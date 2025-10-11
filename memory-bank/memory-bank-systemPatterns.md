@@ -1,0 +1,482 @@
+# System Patterns
+
+Version: 1.0
+Timestamp: [Update when adding patterns]
+
+---
+
+## Development Standards
+
+### Code Style
+
+**General Principles:**
+- Write code that's easy to read
+- Prefer clarity over cleverness
+- Comment the "why", not the "what"
+- Keep functions small and focused
+
+**Naming:**
+- Variables: `descriptiveNames`
+- Functions: `doSomething()`
+- Components: `ComponentName`
+- Constants: `CONSTANT_VALUE`
+
+**File Organization:**
+- One component per file
+- Related files stay together
+- Clear folder structure
+
+---
+
+## Implementation Patterns
+
+### Pattern: API Data Fetching
+
+**When to use:** Fetching data from an API
+
+**Implementation:**
+```javascript
+const [data, setData] = useState(null);
+const [loading, setLoading] = useState(false);
+const [error, setError] = useState(null);
+
+const fetchData = async () => {
+  setLoading(true);
+  setError(null);
+
+  try {
+    const response = await fetch('/api/endpoint');
+    if (!response.ok) throw new Error('Failed to fetch');
+
+    const result = await response.json();
+    setData(result);
+  } catch (err) {
+    setError(err.message);
+    console.error('Fetch error:', err);
+  } finally {
+    setLoading(false);
+  }
+};
+```
+
+**Why it works:**
+- Clear loading states
+- Proper error handling
+- User knows what's happening
+
+**Gotchas:**
+- Don't forget to handle loading state
+- Always catch errors
+- Clean up if component unmounts
+
+---
+
+### Pattern: Form Handling
+
+**When to use:** User input forms
+
+**Implementation:**
+```javascript
+const [formData, setFormData] = useState({
+  field1: '',
+  field2: ''
+});
+const [errors, setErrors] = useState({});
+
+const handleChange = (e) => {
+  const { name, value } = e.target;
+  setFormData(prev => ({
+    ...prev,
+    [name]: value
+  }));
+};
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  // Validate
+  const newErrors = validate(formData);
+  if (Object.keys(newErrors).length > 0) {
+    setErrors(newErrors);
+    return;
+  }
+
+  // Submit
+  try {
+    await submitForm(formData);
+    // Success handling
+  } catch (err) {
+    // Error handling
+  }
+};
+```
+
+**Why it works:**
+- Controlled components
+- Validation before submit
+- Clear error display
+
+---
+
+### Pattern: Conditional Rendering
+
+**When to use:** Show different UI based on state
+
+**Implementation:**
+```javascript
+// Loading state
+if (loading) return <LoadingSpinner />;
+
+// Error state
+if (error) return <ErrorMessage error={error} />;
+
+// Empty state
+if (!data || data.length === 0) return <EmptyState />;
+
+// Success state
+return <DataDisplay data={data} />;
+```
+
+**Why it works:**
+- User always sees appropriate feedback
+- Clear state management
+- Easy to debug
+
+---
+
+## Error Handling Protocols
+
+### Frontend Errors
+
+**Always do:**
+```javascript
+try {
+  // Your code
+} catch (error) {
+  // 1. Log for debugging
+  console.error('Error context:', error);
+
+  // 2. Show user-friendly message
+  setErrorMessage('Something went wrong. Please try again.');
+
+  // 3. Optional: Report to error tracking
+  // reportError(error);
+}
+```
+
+**Never do:**
+- Ignore errors silently
+- Show technical error messages to users
+- Let app crash without feedback
+
+### API Errors
+
+**Pattern:**
+```javascript
+const response = await fetch('/api/endpoint');
+
+if (!response.ok) {
+  // Handle HTTP errors
+  if (response.status === 404) {
+    throw new Error('Resource not found');
+  }
+  if (response.status === 401) {
+    throw new Error('Please log in');
+  }
+  throw new Error('Something went wrong');
+}
+
+const data = await response.json();
+```
+
+---
+
+## Component Structure
+
+### Standard Component Pattern
+
+```javascript
+import React, { useState, useEffect } from 'react';
+
+/**
+ * [Component description]
+ * @param {Object} props - Component props
+ * @param {string} props.propName - What this prop does
+ */
+function MyComponent({ propName }) {
+  // 1. State declarations
+  const [state, setState] = useState(initialValue);
+
+  // 2. Effects
+  useEffect(() => {
+    // Side effects here
+    return () => {
+      // Cleanup if needed
+    };
+  }, [dependencies]);
+
+  // 3. Event handlers
+  const handleEvent = () => {
+    // Handler logic
+  };
+
+  // 4. Helper functions
+  const helperFunction = () => {
+    // Helper logic
+  };
+
+  // 5. Render logic
+  if (loading) return <LoadingState />;
+  if (error) return <ErrorState />;
+
+  return (
+    <div className="component-container">
+      {/* JSX here */}
+    </div>
+  );
+}
+
+export default MyComponent;
+```
+
+---
+
+## Testing Patterns
+
+### What to Test
+
+**Do test:**
+- User interactions (clicks, input)
+- Data fetching and display
+- Form validation
+- Error handling
+- Key business logic
+
+**Don't test:**
+- Implementation details
+- Third-party libraries
+- Obvious code (getters/setters)
+
+### Test Structure
+
+```javascript
+describe('ComponentName', () => {
+  it('should do expected behavior', () => {
+    // Arrange: Set up test data
+
+    // Act: Perform action
+
+    // Assert: Check result
+  });
+});
+```
+
+---
+
+## Git Commit Patterns
+
+### Commit Message Format
+
+```
+type(scope): description
+
+[optional body]
+```
+
+**Types:**
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation only
+- `style`: Formatting changes
+- `refactor`: Code restructuring
+- `test`: Adding tests
+- `chore`: Maintenance
+
+**Examples:**
+```
+feat(auth): add user login form
+fix(api): correct data fetching error
+docs(readme): update installation steps
+refactor(components): simplify Button component
+```
+
+---
+
+## Code Review Checklist
+
+Before committing, ask yourself:
+
+- [ ] Does this code work?
+- [ ] Is it easy to understand?
+- [ ] Are there any magic numbers? (use constants)
+- [ ] Is error handling in place?
+- [ ] Are edge cases covered?
+- [ ] Could this be simpler?
+- [ ] Is it consistent with existing code?
+- [ ] Are there any console.logs to remove?
+- [ ] Is documentation updated?
+
+---
+
+## Performance Patterns
+
+### Avoid Unnecessary Re-renders
+
+```javascript
+// Use React.memo for expensive components
+const ExpensiveComponent = React.memo(({ data }) => {
+  // Component logic
+});
+
+// Use useMemo for expensive calculations
+const expensiveValue = useMemo(() => {
+  return calculateExpensiveValue(data);
+}, [data]);
+
+// Use useCallback for functions passed as props
+const handleClick = useCallback(() => {
+  // Handler logic
+}, [dependencies]);
+```
+
+---
+
+## Lessons Learned
+
+### Lesson 1: [Title] — [Date]
+
+**What happened:**
+[Description of situation]
+
+**What I learned:**
+[Key takeaway]
+
+**Applied pattern:**
+```javascript
+// Code showing the solution
+```
+
+**When to use:**
+[Situations where this applies]
+
+---
+
+### Lesson 2: [Title] — [Date]
+
+**What happened:**
+[Description]
+
+**What I learned:**
+[Takeaway]
+
+---
+
+## Collaboration Guidelines
+
+### Working with Claude
+
+**Start of session:**
+1. "Read Memory Bank files"
+2. Explain what you want to accomplish
+3. Ask questions if anything is unclear
+
+**During development:**
+- Ask Claude to explain decisions
+- Request code reviews
+- Discuss trade-offs
+
+**End of session:**
+- Update Memory Bank
+- Commit changes
+- Note next steps
+
+### Code Documentation
+
+**When to comment:**
+- Complex algorithms
+- Non-obvious business logic
+- Workarounds for known issues
+- TODOs for future improvements
+
+**When not to comment:**
+- Obvious code
+- Self-explanatory functions
+- Code that can be made clearer instead
+
+---
+
+## Security Best Practices
+
+### Input Validation
+
+```javascript
+// Always validate user input
+const isValid = (input) => {
+  if (typeof input !== 'string') return false;
+  if (input.length === 0) return false;
+  if (input.length > MAX_LENGTH) return false;
+  // Add more validation
+  return true;
+};
+```
+
+### Sensitive Data
+
+- Never commit API keys
+- Use environment variables
+- Don't log sensitive data
+- Sanitize user input
+
+---
+
+*Add new patterns as you discover them. This becomes your pattern library!*
+---
+
+## Forge Functional Fitness Specific Patterns
+
+### Pattern: Member Authentication Flow
+
+**When to use:** All member-facing pages and booking operations
+
+**Implementation:**
+```typescript
+// Check if user is authenticated before allowing booking
+const { data: session } = useSession();
+
+if (!session) {
+  router.push('/login');
+  return null;
+}
+const canBook = (workout) => {
+  const now = new Date();
+  const workoutTime = new Date(workout.start_time);
+  const hoursUntilWorkout = (workoutTime - now) / (1000 * 60 * 60);
+  
+  const cutoff = workout.time_of_day === 'AM' ? 16 : 10;
+  return hoursUntilWorkout >= cutoff;
+};
+
+const canCancel = (workout) => {
+  const now = new Date();
+  const workoutTime = new Date(workout.start_time);
+  const hoursUntilWorkout = (workoutTime - now) / (1000 * 60 * 60);
+  
+  const cutoff = workout.time_of_day === 'AM' ? 16 : 10;
+  return hoursUntilWorkout >= cutoff;
+};
+// When someone cancels
+const handleCancellation = async (bookingId) => {
+  // 1. Remove the booking
+  await deleteBooking(bookingId);
+  
+  // 2. Check waitlist
+  const waitlist = await getWaitlist(workoutId);
+  
+  // 3. Promote first person
+  if (waitlist.length > 0) {
+    const nextMember = waitlist[0];
+    await createBooking(nextMember.id, workoutId);
+    await removeFromWaitlist(nextMember.id, workoutId);
+    await sendNotification(nextMember.email, 'You got a spot!');
+  }
+};
