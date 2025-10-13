@@ -430,53 +430,31 @@ const isValid = (input) => {
 ---
 
 *Add new patterns as you discover them. This becomes your pattern library!*
----
+## Forge Functional Fitness Patterns
 
-## Forge Functional Fitness Specific Patterns
-
-### Pattern: Member Authentication Flow
-
-**When to use:** All member-facing pages and booking operations
-
-**Implementation:**
+### Session Management Pattern
 ```typescript
-// Check if user is authenticated before allowing booking
-const { data: session } = useSession();
-
-if (!session) {
-  router.push('/login');
-  return null;
-}
-const canBook = (workout) => {
-  const now = new Date();
-  const workoutTime = new Date(workout.start_time);
-  const hoursUntilWorkout = (workoutTime - now) / (1000 * 60 * 60);
-  
-  const cutoff = workout.time_of_day === 'AM' ? 16 : 10;
-  return hoursUntilWorkout >= cutoff;
-};
-
-const canCancel = (workout) => {
-  const now = new Date();
-  const workoutTime = new Date(workout.start_time);
-  const hoursUntilWorkout = (workoutTime - now) / (1000 * 60 * 60);
-  
-  const cutoff = workout.time_of_day === 'AM' ? 16 : 10;
-  return hoursUntilWorkout >= cutoff;
-};
-// When someone cancels
-const handleCancellation = async (bookingId) => {
-  // 1. Remove the booking
-  await deleteBooking(bookingId);
-  
-  // 2. Check waitlist
-  const waitlist = await getWaitlist(workoutId);
-  
-  // 3. Promote first person
-  if (waitlist.length > 0) {
-    const nextMember = waitlist[0];
-    await createBooking(nextMember.id, workoutId);
-    await removeFromWaitlist(nextMember.id, workoutId);
-    await sendNotification(nextMember.email, 'You got a spot!');
+// Check authentication in each protected page
+useEffect(() => {
+  const role = sessionStorage.getItem('userRole');
+  if (!role || role !== 'expectedRole') {
+    router.push('/');
   }
+}, [router]);
+const formatDate = (date: Date) => date.toISOString().split('T')[0];
+
+const getWeekDates = () => {
+  const curr = new Date(selectedDate);
+  const first = curr.getDate() - curr.getDay() + 1;
+  const dates = [];
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(curr.setDate(first + i));
+    dates.push(date);
+  }
+  return dates;
+};
+const previousWeek = () => {
+  const newDate = new Date(selectedDate);
+  newDate.setDate(newDate.getDate() - 7);
+  setSelectedDate(newDate);
 };

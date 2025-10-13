@@ -9,33 +9,27 @@ Timestamp: [Update when tech changes]
 
 ### Frontend
 
-- **Framework:** Next.js with React 18 and TypeScript
-- **Version:** Next.js 14+ (latest stable)
-- **Why chosen:** PWA capabilities, server-side rendering, built-in API routes, excellent for member-facing web app that works on all devices
+- **Framework:** [e.g., React 18, Vue 3, Vanilla JavaScript]
+- **Version:** [Specific version]
+- **Why chosen:** [Your reasoning]
 
 ### Backend (if applicable)
 
-- **Runtime/Language:** Node.js with TypeScript
-- **Framework:** Next.js API routes (serverless functions)
-- **Version:** Node.js v24.10.0
+- **Runtime/Language:** [e.g., Node.js, Python, Go]
+- **Framework:** [e.g., Express, Flask, FastAPI]
+- **Version:** [Specific version]
 
 ### Database
 
-- **Type:** PostgreSQL (via Supabase)
-- **Version:** PostgreSQL 15+
-- **ORM/Query Library:** Supabase client SDK with built-in authentication and real-time subscriptions
+- **Type:** [e.g., SQLite, PostgreSQL, MongoDB]
+- **Version:** [Specific version]
+- **ORM/Query Library:** [e.g., Sequelize, Prisma, raw SQL]
 
 ---
 
 ## Key Dependencies
 
 ### Production Dependencies
-- **next**: ^14.0.0 - React framework
-- **react**: ^18.0.0 - UI library
-- **typescript**: ^5.0.0 - Type safety
-- **@supabase/supabase-js**: ^2.0.0 - Database and auth
-- **tailwindcss**: ^3.0.0 - Styling
-- **@tanstack/react-query**: ^5.0.0 - Data fetching and caching
 
 ```json
 {

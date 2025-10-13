@@ -1,135 +1,42 @@
-# Active Context
+# The Forge Functional Fitness - Active Context
 
-Version: 1.0
-Timestamp: 2025-10-10
+## Current Session Progress (October 12, 2025)
 
----
+### ✅ COMPLETED
+1. Set up Next.js 15 project with TypeScript and Tailwind
+2. Installed lucide-react for icons
+3. Created login page (`app/page.tsx`) with coach/athlete roles
+4. Created coach dashboard (`app/coach/page.tsx`) with:
+   - Authentication check using sessionStorage
+   - Week navigation (previous/next week)
+   - 7-day calendar grid
+   - Day headers showing date
+   - "Add WOD" buttons for each day
+   - Logout functionality
+   - Today's date highlighted with teal ring
 
-## Current Focus
+### 🔄 CURRENTLY WORKING ON
+Building the WOD creation modal - users can click "Add WOD" but modal doesn't exist yet
 
-Setting up development environment on both PC and Mac, organizing existing project artifacts into proper file structure.
+### 📋 NEXT STEPS
+1. Create WOD creation modal component
+2. Add state management for WODs
+3. Implement section creation (Warm-up, Strength, WOD, etc.)
+4. Add exercise library with search
+5. Create athlete dashboard (`app/athlete/page.tsx`)
+6. Connect to Supabase database
 
-**Goal:** **Goal:** Complete project setup with Git, Memory Bank, and all artifacts converted to actual files in VS Code on both machines.
+## Key Technical Decisions
+- Using Next.js 15 App Router
+- All interactive pages are Client Components ('use client')
+- SessionStorage for temporary auth (will upgrade to Supabase Auth later)
+- Teal color scheme: #208479 (primary), #1a6b62 (hover)
+- File structure: app/page.tsx (login), app/coach/page.tsx (coach dashboard)
 
-**Timeline:** **Timeline:** Today (initial setup phase)
-
----
-
-## Recent Changes
-
-### 2025-10-10 - Initial Project Setup
-
-**What changed:**
-- Created project folder in SynologyDrive (syncs between PC and Mac)
-- Installed development tools on both PC and Mac (VS Code, Git, Node.js, Claude Code)
-- Copied CLAUDE.md and templates from kickstarter repository
-- Created memory-bank folder with three Memory Bank files
-- Opened project in VS Code
-
-**Why:**
-Setting up proper development workflow with Memory Bank system for session continuity across devices.
-
-**Files created:**
-- `CLAUDE.md`
-- `memory-bank/memory-bank-activeContext.md`
-- `memory-bank/memory-bank-techContext.md`
-- `memory-bank/memory-bank-systemPatterns.md`
-
-**Status:** ✅ Complete / 🚧 In Progress / ❌ Blocked
-
----
-
-
-
----
-
-## Next Immediate Steps
-
-1. **[Step 1]**
-   - What: [What needs to be done]
-   - Why: [Why it's next]
-   - Files: [Which files will be affected]
-   - Estimate: [How long you think it'll take]
-
-2. **[Step 2]**
-   - What: [What needs to be done]
-   - Why: [Why it's important]
-
-3. **[Step 3]**
-   - What: [What needs to be done]
-
----
-
-## Known Issues & Blockers
-
-### 🔴 Critical
-
-- **[Issue 1]**
-  - Problem: [Description]
-  - Impact: [What's blocked by this]
-  - Ideas: [Possible solutions]
-  - Status: [Investigating / Waiting / Working on it]
-
-### 🟡 Important
-
-- **[Issue 2]**
-  - Problem: [Description]
-  - Workaround: [Temporary solution if any]
-
-### 🟢 Minor
-
-- **[Issue 3]**
-  - Problem: [Description]
-  - Can live with it for now
-
----
-
-## Learning This Session
-
-### What I Learned
-
-- [New concept/technique 1]
-- [New concept/technique 2]
-- [Insight about the codebase]
-
-### Challenges Overcome
-
-- **[Challenge]:** [How you solved it]
-- **[Challenge]:** [How you solved it]
-
-### Questions That Came Up
-
-- [ ] [Question 1 - needs research]
-- [x] [Question 2 - answered: answer here]
-
----
-
-## Context for Next Session
-
-### Where I Left Off
-
-[Clear description of exactly where you stopped, so you can pick up easily]
-
-### Quick Wins Available
-
-[Easy tasks that can be done quickly next session]
-
-1. [Quick win 1]
-2. [Quick win 2]
-
-### Important Notes
-
-[Anything important to remember for next session]
-
-- [Note 1]
-- [Note 2]
-
----
-
-## Recent Achievements
-
-🎉 [Something you're proud of from this session]
-
----
-
-*Update this file throughout your session. It's your session journal!*
+## Original React Code Reference
+We have fully functional React code (see previous chat) with these features to rebuild:
+- WOD sections with time tracking
+- Exercise library organized by category (Warm-up, Strength, MetCon, Gymnastics, Stretches)
+- Drag-and-drop section reordering
+- Athlete view with today's workouts
+- Benchmark tracking (Forge WODs, Endurance, Lifts)
