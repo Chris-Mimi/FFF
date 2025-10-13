@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { X, Plus, Trash2, Search, Library, ChevronDown, GripVertical } from 'lucide-react';
+import { X, Plus, Trash2, Search, Library, ChevronDown, GripVertical, Check } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 interface WODModalProps {
   isOpen: boolean;
@@ -27,6 +28,15 @@ export interface WODFormData {
   sections: WODSection[];
 }
 
+interface Exercise {
+  id: string;
+  name: string;
+  category: string;
+  description: string | null;
+  video_url: string | null;
+  tags: string[] | null;
+}
+
 const SECTION_TYPES = [
   'Whiteboard Intro',
   'Warm-up',
@@ -49,54 +59,16 @@ const CLASS_TIME_OPTIONS = [
   '18:30'
 ];
 
-// Exercise library organized by category
-const EXERCISE_LIBRARY: Record<string, string[]> = {
-  'Warm-up': [
-    'Bear Crawl',
-    'Twisting Bear Reach',
-    'Hollow Rocks',
-    'ATY Raises',
-    'Hollow Body + Shoulder Flexion',
-    'Alt. Glute Reach Over',
-    'Superman Rocks',
-    'Toy Soldiers',
-    'Elephant Walk',
-  ],
-  'Strength': [
-    'Front Squat',
-    'Back Squat',
-    'Deadlift',
-    'Bench Press',
-    'Strict OH Press',
-  ],
-  'MetCon': [
-    'Burpees',
-    'Box Jumps',
-    'Kettlebell Swings',
-    'Airbike',
-    'Rower',
-    'SkiErg',
-    'Burpee Broad Jumps',
-    'Jumping Jacks',
-  ],
-  'Gymnastics': [
-    'Pull-ups',
-    'Handstand Push-ups',
-    'Muscle-ups',
-    'Parallettes L-Sit',
-    'Toes to Bar',
-    'Alt. Toes to Rings',
-  ],
-  'Stretches': [
-    'Couch',
-    'Scorpion',
-    'Frog',
-    'Foam Roller',
-    'Wall Hinge',
-    'Frog with Reverse Hands',
-    'Pigeon',
-  ],
-};
+const WORKOUT_TITLE_OPTIONS = [
+  'WOD',
+  'Foundations',
+  'Endurance',
+  'Kids',
+  'Kids & Teens',
+  'ElternKind Turnen',
+  'FitKids Turnen',
+  'Diapers & Dumbbells'
+];
 
 // Exercise Library Popup Component
 function ExerciseLibraryPopup({
@@ -109,7 +81,33 @@ function ExerciseLibraryPopup({
   onSelectExercise: (exercise: string) => void;
 }) {
   const [searchTerm, setSearchTerm] = useState('');
+  const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [loading, setLoading] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Fetch exercises from Supabase
+  useEffect(() => {
+    if (isOpen) {
+      fetchExercises();
+    }
+  }, [isOpen]);
+
+  const fetchExercises = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('exercises')
+        .select('*')
+        .order('name');
+
+      if (error) throw error;
+      setExercises(data || []);
+    } catch (error) {
+      console.error('Error fetching exercises:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (isOpen && searchInputRef.current) {
@@ -129,16 +127,26 @@ function ExerciseLibraryPopup({
 
   // Filter exercises across all categories
   const getFilteredCategories = () => {
+    // Group exercises by category
+    const grouped: Record<string, Exercise[]> = {};
+
+    exercises.forEach(exercise => {
+      if (!grouped[exercise.category]) {
+        grouped[exercise.category] = [];
+      }
+      grouped[exercise.category].push(exercise);
+    });
+
     if (!searchTerm) {
-      // No search term - show all categories
-      return EXERCISE_LIBRARY;
+      return grouped;
     }
 
     // With search term - filter exercises in each category
-    const filtered: Record<string, string[]> = {};
-    Object.entries(EXERCISE_LIBRARY).forEach(([category, exercises]) => {
-      const matchingExercises = exercises.filter(exercise =>
-        exercise.toLowerCase().includes(searchTerm.toLowerCase())
+    const filtered: Record<string, Exercise[]> = {};
+    Object.entries(grouped).forEach(([category, categoryExercises]) => {
+      const matchingExercises = categoryExercises.filter(exercise =>
+        exercise.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        exercise.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
       );
       if (matchingExercises.length > 0) {
         filtered[category] = matchingExercises;
@@ -177,19 +185,23 @@ function ExerciseLibraryPopup({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search exercises..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 placeholder-gray-400"
             />
           </div>
-          <p className="text-xs text-gray-500 mt-2">
+          <p className="text-xs text-gray-600 mt-2">
             {totalExercises} exercise{totalExercises !== 1 ? 's' : ''} found
           </p>
         </div>
 
         {/* Exercise List by Category */}
         <div className="flex-1 overflow-y-auto p-4">
-          {Object.keys(filteredCategories).length > 0 ? (
+          {loading ? (
+            <div className="text-center py-8 text-gray-500">
+              <p className="text-sm">Loading exercises...</p>
+            </div>
+          ) : Object.keys(filteredCategories).length > 0 ? (
             <div className="space-y-4">
-              {Object.entries(filteredCategories).map(([category, exercises]) => (
+              {Object.entries(filteredCategories).map(([category, categoryExercises]) => (
                 <div key={category}>
                   {/* Category Header */}
                   <div className="bg-[#208479] text-white px-3 py-2 rounded-t-lg mb-2">
@@ -200,13 +212,14 @@ function ExerciseLibraryPopup({
 
                   {/* Exercise Buttons */}
                   <div className="space-y-1 mb-3">
-                    {exercises.map(exercise => (
+                    {categoryExercises.map(exercise => (
                       <button
-                        key={exercise}
-                        onClick={() => handleSelectExercise(exercise)}
-                        className="w-full text-left px-3 py-2 hover:bg-[#208479] hover:text-white rounded transition text-sm"
+                        key={exercise.id}
+                        onClick={() => handleSelectExercise(exercise.name)}
+                        className="w-full text-left px-3 py-2 hover:bg-[#208479] hover:text-white rounded transition text-sm text-gray-900 hover:text-white"
+                        title={exercise.description || undefined}
                       >
-                        {exercise}
+                        {exercise.name}
                       </button>
                     ))}
                   </div>
@@ -286,7 +299,7 @@ function WODSectionComponent({
             <select
               value={section.type}
               onChange={(e) => onUpdate({ type: e.target.value })}
-              className="px-3 py-1 border border-gray-300 rounded text-sm font-semibold focus:ring-2 focus:ring-[#208479] focus:border-transparent bg-white"
+              className="px-3 py-1 border border-gray-300 rounded text-sm font-semibold focus:ring-2 focus:ring-[#208479] focus:border-transparent bg-white text-gray-900"
             >
               {SECTION_TYPES.map(type => (
                 <option key={type} value={type}>{type}</option>
@@ -300,12 +313,12 @@ function WODSectionComponent({
                 onChange={(e) => onUpdate({ duration: parseInt(e.target.value) || 0 })}
                 min="0"
                 max="60"
-                className="w-16 px-2 py-1 border border-gray-300 rounded text-center focus:ring-2 focus:ring-[#208479] focus:border-transparent bg-white"
+                className="w-16 px-2 py-1 border border-gray-300 rounded text-center focus:ring-2 focus:ring-[#208479] focus:border-transparent bg-white text-gray-900"
               />
-              <span className="text-gray-600">mins</span>
+              <span className="text-gray-700">mins</span>
             </div>
 
-            <div className="text-xs text-gray-500 bg-white px-2 py-1 rounded border border-gray-200">
+            <div className="text-xs text-gray-700 bg-white px-2 py-1 rounded border border-gray-200">
               {elapsedMinutes}-{endTime} min
             </div>
 
@@ -350,9 +363,9 @@ function WODSectionComponent({
                 onChange={(e) => onUpdate({ content: e.target.value })}
                 placeholder="Add exercises (one per line):&#10;* Burpees&#10;* Elephant Walk&#10;* ATY Raises"
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent font-mono text-sm bg-white resize-none overflow-hidden min-h-[80px]"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent font-mono text-sm bg-white resize-none overflow-hidden min-h-[80px] text-gray-900 placeholder-gray-400"
               />
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-600">
                 Tip: Use * for bullet points, add reps/sets, cut/paste, reorder freely
               </p>
             </div>
@@ -362,11 +375,11 @@ function WODSectionComponent({
               className="cursor-pointer hover:bg-gray-50 rounded p-2 -m-2"
             >
               {section.content ? (
-                <div className="text-sm text-gray-700 whitespace-pre-wrap font-mono bg-gray-50 p-2 rounded border border-gray-200 max-h-32 overflow-auto">
+                <div className="text-sm text-gray-900 whitespace-pre-wrap font-mono bg-gray-50 p-2 rounded border border-gray-200 max-h-32 overflow-auto">
                   {section.content}
                 </div>
               ) : (
-                <div className="text-sm text-gray-400 italic">
+                <div className="text-sm text-gray-500 italic">
                   No exercises added yet. Click here or Library to add exercises.
                 </div>
               )}
@@ -616,12 +629,26 @@ export default function WODModal({ isOpen, onClose, onSave, date, editingWOD }: 
             <h2 className="text-xl font-bold">
               {editingWOD ? 'Edit WOD' : 'Create New WOD'}
             </h2>
-            <button
-              onClick={onClose}
-              className="hover:bg-[#1a6b62] p-1 rounded transition"
-            >
-              <X size={24} />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (validate()) {
+                    onSave(formData);
+                    onClose();
+                  }
+                }}
+                className="hover:bg-[#1a6b62] p-1 rounded transition"
+              >
+                <Check size={24} />
+              </button>
+              <button
+                onClick={onClose}
+                className="hover:bg-[#1a6b62] p-1 rounded transition"
+              >
+                <X size={24} />
+              </button>
+            </div>
           </div>
 
           {/* Form */}
@@ -629,7 +656,7 @@ export default function WODModal({ isOpen, onClose, onSave, date, editingWOD }: 
             {/* Date Display */}
             <div className="bg-gray-50 p-3 rounded-lg">
               <p className="text-sm text-gray-600">Date</p>
-              <p className="font-semibold">
+              <p className="font-semibold text-gray-900">
                 {date.toLocaleDateString('en-GB', {
                   weekday: 'long',
                   day: 'numeric',
@@ -641,18 +668,26 @@ export default function WODModal({ isOpen, onClose, onSave, date, editingWOD }: 
 
             {/* Title */}
             <div>
-              <label className="block text-sm font-semibold mb-2">
+              <label className="block text-sm font-semibold mb-2 text-gray-900">
                 Workout Title <span className="text-red-500">*</span>
               </label>
-              <input
-                type="text"
-                value={formData.title}
-                onChange={(e) => handleChange('title', e.target.value)}
-                placeholder="e.g., Heavy Deadlifts + AMRAP"
-                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent ${
-                  errors.title ? 'border-red-500' : 'border-gray-300'
-                }`}
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  list="workout-titles"
+                  value={formData.title}
+                  onChange={(e) => handleChange('title', e.target.value)}
+                  placeholder="Select or type custom title..."
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 placeholder-gray-400 ${
+                    errors.title ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                />
+                <datalist id="workout-titles">
+                  {WORKOUT_TITLE_OPTIONS.map(title => (
+                    <option key={title} value={title} />
+                  ))}
+                </datalist>
+              </div>
               {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
             </div>
 
@@ -660,7 +695,7 @@ export default function WODModal({ isOpen, onClose, onSave, date, editingWOD }: 
             <div className="flex gap-6 items-start">
               {/* Class Times */}
               <div className="flex-1">
-                <label className="block text-sm font-semibold mb-2">
+                <label className="block text-sm font-semibold mb-2 text-gray-900">
                   Class Times <span className="text-red-500">*</span>
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -672,7 +707,7 @@ export default function WODModal({ isOpen, onClose, onSave, date, editingWOD }: 
                       className={`px-3 py-1.5 rounded text-sm font-medium transition ${
                         formData.classTimes.includes(time)
                           ? 'bg-[#208479] text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
                       }`}
                     >
                       {time}
@@ -684,7 +719,7 @@ export default function WODModal({ isOpen, onClose, onSave, date, editingWOD }: 
 
               {/* Max Capacity */}
               <div className="w-32">
-                <label className="block text-sm font-semibold mb-2">
+                <label className="block text-sm font-semibold mb-2 text-gray-900">
                   Max Capacity <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -693,7 +728,7 @@ export default function WODModal({ isOpen, onClose, onSave, date, editingWOD }: 
                   onChange={(e) => handleChange('maxCapacity', parseInt(e.target.value) || 0)}
                   min="1"
                   max="30"
-                  className={`w-full px-3 py-1.5 text-sm border rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent ${
+                  className={`w-full px-3 py-1.5 text-sm border rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 ${
                     errors.maxCapacity ? 'border-red-500' : 'border-gray-300'
                   }`}
                 />
@@ -705,10 +740,10 @@ export default function WODModal({ isOpen, onClose, onSave, date, editingWOD }: 
             <div>
               <div className="flex justify-between items-center mb-3">
                 <div>
-                  <label className="block text-sm font-semibold">
+                  <label className="block text-sm font-semibold text-gray-900">
                     Workout Sections <span className="text-red-500">*</span>
                   </label>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-600 mt-1">
                     Total Duration: <span className="font-semibold text-[#208479]">{totalDuration} mins</span>
                   </p>
                 </div>
@@ -751,22 +786,6 @@ export default function WODModal({ isOpen, onClose, onSave, date, editingWOD }: 
               </div>
             </div>
 
-            {/* Buttons */}
-            <div className="flex gap-3 pt-4 border-t">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="flex-1 px-6 py-3 bg-[#208479] hover:bg-[#1a6b62] text-white font-semibold rounded-lg transition"
-              >
-                {editingWOD ? 'Save Changes' : 'Create WOD'}
-              </button>
-            </div>
           </form>
         </div>
       </div>

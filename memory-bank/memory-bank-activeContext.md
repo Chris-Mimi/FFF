@@ -1,7 +1,7 @@
 # The Forge Functional Fitness - Active Context
 
-Version: 1.1
-Timestamp: 2025-10-13 10:15 UTC
+Version: 1.2
+Timestamp: 2025-10-13 14:35 UTC
 
 ## Current Session Progress (October 13, 2025)
 
@@ -24,8 +24,13 @@ Timestamp: 2025-10-13 10:15 UTC
 7. All changes committed and pushed
 
 ### 📋 NEXT STEPS
-1. Create athlete dashboard (`app/athlete/page.tsx`)
-2. Connect to Supabase database for data persistence
+1. **PRIORITY: Set up Supabase** (user wants extensive exercise library)
+   - Create Supabase project
+   - Design exercises table schema (name, category, description, video_url, tags)
+   - Seed with exercise data
+   - Connect WOD modal to fetch from database (replace hardcoded exercises)
+   - User wants many searchable, categorized exercises - database is essential
+2. Create athlete dashboard (`app/athlete/page.tsx`)
 3. Implement Supabase Auth (replace sessionStorage)
 4. Add athlete view to see today's workouts
 5. Add benchmark tracking (Forge WODs, Endurance, Lifts)
