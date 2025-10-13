@@ -83,14 +83,15 @@ function ExerciseLibraryPopup({
   const [searchTerm, setSearchTerm] = useState('');
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(false);
+  const [hasFetched, setHasFetched] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Fetch exercises from Supabase
+  // Fetch exercises from Supabase only once
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !hasFetched) {
       fetchExercises();
     }
-  }, [isOpen]);
+  }, [isOpen, hasFetched]);
 
   const fetchExercises = async () => {
     setLoading(true);
@@ -102,6 +103,7 @@ function ExerciseLibraryPopup({
 
       if (error) throw error;
       setExercises(data || []);
+      setHasFetched(true);
     } catch (error) {
       console.error('Error fetching exercises:', error);
     } finally {
