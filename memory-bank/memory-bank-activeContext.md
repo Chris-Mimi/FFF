@@ -1,7 +1,7 @@
 # The Forge Functional Fitness - Active Context
 
-Version: 1.4
-Timestamp: 2025-10-14 17:30 UTC
+Version: 1.5
+Timestamp: 2025-10-14 19:00 UTC
 
 ## Project Overview
 CrossFit gym management application for coaches and athletes. Coaches create and manage daily WODs (Workouts of the Day), athletes view and track their workouts.
@@ -55,22 +55,102 @@ CrossFit gym management application for coaches and athletes. Coaches create and
 
 4. Git: All changes committed and pushed to GitHub
 
+### ✅ Session 3: Track System & Analysis Dashboard (October 14, 2025)
+1. **Supabase Database Expansion:**
+   - Created `tracks` table with fields: id, name, description, color, created_at, updated_at
+   - Created `workout_types` table with fields: id, name, description, created_at, updated_at
+   - Created `wods` table with fields: id, title, track_id, workout_type_id, class_times, max_capacity, date, sections (JSONB), created_at, updated_at
+   - Added indexes on date, track_id, and workout_type_id for performance
+   - Seeded default tracks: Strength Focus, Endurance Focus, Gymnastics Focus, Olympic Lifting, Mixed Modal, Benchmark WOD
+   - Seeded default workout types: For Time, AMRAP, EMOM, Chipper, Rounds for Time, Tabata, Interval, Other
+   - Enabled Row Level Security (RLS) with PUBLIC policies for rapid development
+
+2. **WOD Modal Enhancements (`components/WODModal.tsx`):**
+   - Added Track dropdown selector (fetches from Supabase)
+   - Added Workout Type dropdown selector (fetches from Supabase)
+   - Updated WODFormData interface to include track_id and workout_type_id
+   - Track and Workout Type selections persist when creating/editing WODs
+
+3. **Coach Dashboard - WOD Persistence (`app/coach/page.tsx`):**
+   - **Migrated from component state to Supabase database**
+   - Implemented `fetchWODs()` to load all WODs from database on page load
+   - Updated `handleSaveWOD()` to insert/update WODs in Supabase
+   - Updated `handleDeleteWOD()` to delete from Supabase
+   - Updated `handleCopyWOD()` to copy WODs via Supabase
+   - WODs now persist across page refreshes and sessions
+   - Added "Analysis" button to header navigation
+
+4. **Analysis Page - NEW (`app/coach/analysis/page.tsx`):**
+   - **Track Management Section:**
+     - Full CRUD operations for Tracks (Create, Read, Update, Delete)
+     - Modal for adding/editing Tracks with name, description, and color picker
+     - Grid display showing all Tracks with color indicators
+     - Edit and delete buttons on each Track card
+
+   - **Monthly Statistics Section:**
+     - Month navigation (previous/next arrows)
+     - Displays current month/year
+     - Fetches WODs for selected month from Supabase
+     - Calculates and displays comprehensive statistics:
+
+   - **Summary Cards (compact):**
+     - Total Workouts count
+     - Average WOD Duration (in minutes)
+     - Total WOD Time (sum of all WOD sections)
+
+   - **WOD Duration Distribution:**
+     - 7 duration ranges: 1-8 mins, 9-12 mins, 13-20 mins, 21-30 mins, 31-45 mins, 45-60 mins, 60+ mins
+     - Calculates total duration by summing all sections with type "WOD"
+     - Handles multiple WOD sections correctly
+     - Grid display showing count for each duration range
+
+   - **Track Breakdown:**
+     - Visual progress bars showing workout count per Track
+     - Color-coded by Track color
+     - Sorted by count (descending)
+     - Shows percentage of total workouts
+
+   - **Workout Type Breakdown:**
+     - Grid display of workout counts by type
+     - Shows all workout types (For Time, AMRAP, EMOM, etc.)
+
+   - **Top Exercises:**
+     - Extracts exercises from WOD section content using pattern matching
+     - Filters out common non-exercise words
+     - Shows top 20 most frequently used exercises
+     - Displays count for each exercise
+
+5. **Bug Fixes:**
+   - Fixed Analysis page authentication (corrected sessionStorage key mismatch)
+   - Added RLS policies for INSERT/UPDATE/DELETE on all tables
+   - Split SQL queries to handle table creation and RLS setup separately
+
+6. Git: Committed with message "feat: add Track system and Analysis page with comprehensive statistics" (commit 636d4e9)
+
 ### 📋 NEXT STEPS
-1. Store WODs in Supabase database (currently stored in component state)
-2. Create athlete dashboard (`app/athlete/page.tsx`)
-3. Implement Supabase Auth (replace sessionStorage)
-4. Add athlete view to see today's workouts
-5. Add benchmark tracking (Forge WODs, Endurance, Lifts)
+1. Create athlete dashboard (`app/athlete/page.tsx`)
+2. Implement Supabase Auth (replace sessionStorage)
+3. Add athlete view to see today's workouts
+4. Add benchmark tracking (Forge WODs, Endurance, Lifts)
+5. Improve exercise extraction algorithm for more accurate frequency analysis
 
 ## Key Technical Decisions
 - Using Next.js 15 App Router
 - All interactive pages are Client Components ('use client')
-- Supabase for exercise database (PostgreSQL with RLS)
+- Supabase for database (PostgreSQL with RLS)
+  - Tables: exercises, tracks, workout_types, wods
+  - JSONB storage for WOD sections (flexible structure)
+  - Row Level Security enabled with PUBLIC policies
 - SessionStorage for temporary auth (will upgrade to Supabase Auth)
 - Teal color scheme: #208479 (primary), #1a6b62 (hover)
 - Darker grey background: #e5e7eb (bg-gray-200)
-- WODs stored in component state (will move to Supabase)
-- File structure: app/page.tsx (login), app/coach/page.tsx (coach dashboard), components/WODModal.tsx, lib/supabase.ts
+- **WODs now stored in Supabase database** (previously component state)
+- File structure:
+  - app/page.tsx (login)
+  - app/coach/page.tsx (coach dashboard)
+  - app/coach/analysis/page.tsx (analysis & statistics)
+  - components/WODModal.tsx
+  - lib/supabase.ts
 
 ## Coach Dashboard Features (Reference)
 - Weekly/monthly view toggle with ISO week numbers
@@ -80,10 +160,14 @@ CrossFit gym management application for coaches and athletes. Coaches create and
 - Click WOD to edit in both views
 - Today's date highlighted with teal ring
 - Fixed date handling to prevent timezone issues
+- **Analysis button in header** - navigates to statistics page
+- **All WODs persist in Supabase** - survive page refreshes
 
 ## WOD Modal Features (Reference)
 - Header: Check (✓) to save, X to cancel
 - Editable title dropdown with preset options
+- **Track dropdown** - selects workout focus/track
+- **Workout Type dropdown** - selects workout format (For Time, AMRAP, etc.)
 - Collapsible sections showing content when collapsed
 - Auto-expanding textarea grows with content
 - Drag sections to reorder (HTML5 drag-drop)
@@ -91,3 +175,18 @@ CrossFit gym management application for coaches and athletes. Coaches create and
 - No flashing/loading on library re-opens (exercises cached)
 - Section types: Whiteboard Intro, Warm-up, Skill, Gymnastics, Accessory, Strength, WOD Preparation, WOD, Cool Down
 - Default template automatically created for new WODs
+
+## Analysis Page Features (Reference)
+- **Track Management:**
+  - Add/Edit/Delete Tracks with color picker
+  - Grid display with color indicators
+  - Used for categorizing workouts by focus area
+
+- **Monthly Statistics:**
+  - Month navigation (previous/next)
+  - Summary cards: Total Workouts, Avg WOD Duration, Total WOD Time (compact)
+  - **WOD Duration Distribution:** 7 ranges from 1-8 mins to 60+ mins
+  - Track Breakdown: Visual progress bars with color coding
+  - Workout Type Breakdown: Grid showing count per type
+  - Top 20 Exercises: Frequency analysis from WOD content
+  - All statistics update automatically when month changes
