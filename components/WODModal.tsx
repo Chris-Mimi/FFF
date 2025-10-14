@@ -22,6 +22,8 @@ export interface WODSection {
 export interface WODFormData {
   id?: string;
   title: string;
+  track_id?: string;
+  workout_type_id?: string;
   classTimes: string[];
   maxCapacity: number;
   date: string;
@@ -35,6 +37,19 @@ interface Exercise {
   description: string | null;
   video_url: string | null;
   tags: string[] | null;
+}
+
+interface Track {
+  id: string;
+  name: string;
+  description: string | null;
+  color: string | null;
+}
+
+interface WorkoutType {
+  id: string;
+  name: string;
+  description: string | null;
 }
 
 const SECTION_TYPES = [
@@ -396,6 +411,8 @@ function WODSectionComponent({
 export default function WODModal({ isOpen, onClose, onSave, date, editingWOD }: WODModalProps) {
   const [formData, setFormData] = useState<WODFormData>({
     title: '',
+    track_id: '',
+    workout_type_id: '',
     classTimes: [],
     maxCapacity: 12,
     date: date.toISOString().split('T')[0],
@@ -407,6 +424,34 @@ export default function WODModal({ isOpen, onClose, onSave, date, editingWOD }: 
   const [activeSection, setActiveSection] = useState<number | null>(null);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [tracks, setTracks] = useState<Track[]>([]);
+  const [workoutTypes, setWorkoutTypes] = useState<WorkoutType[]>([]);
+  const [loadingTracks, setLoadingTracks] = useState(false);
+
+  // Fetch tracks and workout types on mount
+  useEffect(() => {
+    fetchTracksAndTypes();
+  }, []);
+
+  const fetchTracksAndTypes = async () => {
+    setLoadingTracks(true);
+    try {
+      const [tracksResult, typesResult] = await Promise.all([
+        supabase.from('tracks').select('*').order('name'),
+        supabase.from('workout_types').select('*').order('name')
+      ]);
+
+      if (tracksResult.error) throw tracksResult.error;
+      if (typesResult.error) throw typesResult.error;
+
+      setTracks(tracksResult.data || []);
+      setWorkoutTypes(typesResult.data || []);
+    } catch (error) {
+      console.error('Error fetching tracks and workout types:', error);
+    } finally {
+      setLoadingTracks(false);
+    }
+  };
 
   // Reset form when modal opens or editingWOD changes
   useEffect(() => {
@@ -448,6 +493,8 @@ export default function WODModal({ isOpen, onClose, onSave, date, editingWOD }: 
 
         setFormData({
           title: '',
+          track_id: '',
+          workout_type_id: '',
           classTimes: [],
           maxCapacity: 12,
           date: date.toISOString().split('T')[0],
@@ -691,6 +738,49 @@ export default function WODModal({ isOpen, onClose, onSave, date, editingWOD }: 
                 </datalist>
               </div>
               {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
+            </div>
+
+            {/* Track and Workout Type */}
+            <div className="flex gap-6 items-start">
+              {/* Track */}
+              <div className="flex-1">
+                <label className="block text-sm font-semibold mb-2 text-gray-900">
+                  Track
+                </label>
+                <select
+                  value={formData.track_id || ''}
+                  onChange={(e) => handleChange('track_id', e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 bg-white"
+                  disabled={loadingTracks}
+                >
+                  <option value="">Select Track...</option>
+                  {tracks.map(track => (
+                    <option key={track.id} value={track.id}>
+                      {track.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Workout Type */}
+              <div className="flex-1">
+                <label className="block text-sm font-semibold mb-2 text-gray-900">
+                  Workout Type
+                </label>
+                <select
+                  value={formData.workout_type_id || ''}
+                  onChange={(e) => handleChange('workout_type_id', e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 bg-white"
+                  disabled={loadingTracks}
+                >
+                  <option value="">Select Workout Type...</option>
+                  {workoutTypes.map(type => (
+                    <option key={type.id} value={type.id}>
+                      {type.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             {/* Class Times and Max Capacity */}

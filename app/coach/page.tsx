@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { LogOut, Plus, Edit2, Trash2, Calendar, CalendarDays, Copy } from 'lucide-react';
+import { LogOut, Plus, Edit2, Trash2, Calendar, CalendarDays, Copy, BarChart3 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import WODModal, { WODFormData } from '@/components/WODModal';
+import { supabase } from '@/lib/supabase';
 
 type ViewMode = 'weekly' | 'monthly';
 
@@ -23,14 +24,49 @@ export default function CoachDashboard() {
     // Check if user is logged in
     const role = sessionStorage.getItem('userRole');
     const name = sessionStorage.getItem('userName');
-    
+
     if (!role || role !== 'coach') {
       router.push('/');
       return;
     }
-    
+
     setUser({ role, name: name || 'Coach' });
+    fetchWODs();
   }, [router]);
+
+  const fetchWODs = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('wods')
+        .select('*')
+        .order('date', { ascending: true });
+
+      if (error) throw error;
+
+      // Group WODs by date
+      const grouped: Record<string, WODFormData[]> = {};
+      data?.forEach((wod: any) => {
+        const dateKey = wod.date;
+        if (!grouped[dateKey]) {
+          grouped[dateKey] = [];
+        }
+        grouped[dateKey].push({
+          id: wod.id,
+          title: wod.title,
+          track_id: wod.track_id,
+          workout_type_id: wod.workout_type_id,
+          classTimes: wod.class_times,
+          maxCapacity: wod.max_capacity,
+          date: wod.date,
+          sections: wod.sections
+        });
+      });
+
+      setWods(grouped);
+    } catch (error) {
+      console.error('Error fetching WODs:', error);
+    }
+  };
 
   const handleLogout = () => {
     sessionStorage.clear();
@@ -124,53 +160,95 @@ export default function CoachDashboard() {
     setIsModalOpen(true);
   };
 
-  const handleSaveWOD = (wodData: WODFormData) => {
+  const handleSaveWOD = async (wodData: WODFormData) => {
     const dateKey = formatDate(modalDate);
 
-    setWods(prev => {
-      const dayWODs = prev[dateKey] || [];
-
+    try {
       if (editingWOD && editingWOD.id) {
         // Update existing WOD
-        return {
-          ...prev,
-          [dateKey]: dayWODs.map(w => w.id === editingWOD.id ? { ...wodData, id: editingWOD.id } : w)
-        };
+        const { error } = await supabase
+          .from('wods')
+          .update({
+            title: wodData.title,
+            track_id: wodData.track_id || null,
+            workout_type_id: wodData.workout_type_id || null,
+            class_times: wodData.classTimes,
+            max_capacity: wodData.maxCapacity,
+            date: dateKey,
+            sections: wodData.sections,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', editingWOD.id);
+
+        if (error) throw error;
       } else {
         // Create new WOD
-        const newWOD = {
-          ...wodData,
-          id: Date.now().toString()
-        };
-        return {
-          ...prev,
-          [dateKey]: [...dayWODs, newWOD]
-        };
-      }
-    });
-  };
+        const { error } = await supabase
+          .from('wods')
+          .insert([{
+            title: wodData.title,
+            track_id: wodData.track_id || null,
+            workout_type_id: wodData.workout_type_id || null,
+            class_times: wodData.classTimes,
+            max_capacity: wodData.maxCapacity,
+            date: dateKey,
+            sections: wodData.sections
+          }]);
 
-  const handleDeleteWOD = (dateKey: string, wodId: string) => {
-    if (confirm('Are you sure you want to delete this WOD?')) {
-      setWods(prev => ({
-        ...prev,
-        [dateKey]: prev[dateKey].filter(w => w.id !== wodId)
-      }));
+        if (error) throw error;
+      }
+
+      // Refresh WODs from database
+      await fetchWODs();
+    } catch (error) {
+      console.error('Error saving WOD:', error);
+      alert('Error saving WOD. Please try again.');
     }
   };
 
-  const handleCopyWOD = (wod: WODFormData, targetDate: Date) => {
-    const dateKey = formatDate(targetDate);
-    const copiedWOD: WODFormData = {
-      ...wod,
-      id: Date.now().toString(),
-      date: dateKey
-    };
+  const handleDeleteWOD = async (dateKey: string, wodId: string) => {
+    if (!confirm('Are you sure you want to delete this WOD?')) return;
 
-    setWods(prev => ({
-      ...prev,
-      [dateKey]: [...(prev[dateKey] || []), copiedWOD]
-    }));
+    try {
+      const { error } = await supabase
+        .from('wods')
+        .delete()
+        .eq('id', wodId);
+
+      if (error) throw error;
+
+      // Refresh WODs from database
+      await fetchWODs();
+    } catch (error) {
+      console.error('Error deleting WOD:', error);
+      alert('Error deleting WOD. Please try again.');
+    }
+  };
+
+  const handleCopyWOD = async (wod: WODFormData, targetDate: Date) => {
+    const dateKey = formatDate(targetDate);
+
+    try {
+      const { error } = await supabase
+        .from('wods')
+        .insert([{
+          title: wod.title,
+          track_id: wod.track_id || null,
+          workout_type_id: wod.workout_type_id || null,
+          class_times: wod.classTimes,
+          max_capacity: wod.maxCapacity,
+          date: dateKey,
+          sections: wod.sections
+        }]);
+
+      if (error) throw error;
+
+      // Refresh WODs from database
+      await fetchWODs();
+    } catch (error) {
+      console.error('Error copying WOD:', error);
+      alert('Error copying WOD. Please try again.');
+    }
   };
 
   const handleDragStart = (e: React.DragEvent, wod: WODFormData, sourceDate: string) => {
@@ -218,13 +296,22 @@ export default function CoachDashboard() {
             <h1 className="text-2xl font-bold">The Forge - Coach Dashboard</h1>
             <p className="text-teal-100">Welcome, {user.name}</p>
           </div>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 bg-[#1a6b62] hover:bg-teal-800 px-4 py-2 rounded-lg transition"
-          >
-            <LogOut size={18} />
-            Logout
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.push('/coach/analysis')}
+              className="flex items-center gap-2 bg-[#1a6b62] hover:bg-teal-800 px-4 py-2 rounded-lg transition"
+            >
+              <BarChart3 size={18} />
+              Analysis
+            </button>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 bg-[#1a6b62] hover:bg-teal-800 px-4 py-2 rounded-lg transition"
+            >
+              <LogOut size={18} />
+              Logout
+            </button>
+          </div>
         </div>
       </header>
 
