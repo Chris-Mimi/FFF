@@ -64,14 +64,26 @@ export default function AnalysisPage() {
   });
 
   useEffect(() => {
-    const role = sessionStorage.getItem('userRole');
+    const checkAuth = async () => {
+      const { getCurrentUser } = await import('@/lib/auth');
+      const currentUser = await getCurrentUser();
 
-    if (!role || role !== 'coach') {
-      router.push('/');
-      return;
-    }
+      if (!currentUser) {
+        router.push('/login');
+        return;
+      }
 
-    fetchData();
+      const role = currentUser.user_metadata?.role || 'athlete';
+      if (role !== 'coach') {
+        router.push('/coach');
+        return;
+      }
+
+      fetchData();
+      setLoading(false);
+    };
+
+    checkAuth();
   }, [router]);
 
   useEffect(() => {

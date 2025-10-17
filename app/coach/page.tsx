@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { LogOut, Plus, Edit2, Trash2, Calendar, CalendarDays, Copy, BarChart3 } from 'lucide-react';
+import { LogOut, Plus, Edit2, Trash2, Calendar, CalendarDays, Copy, BarChart3, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import WODModal, { WODFormData } from '@/components/WODModal';
 import { supabase } from '@/lib/supabase';
+import { getCurrentUser, signOut } from '@/lib/auth';
 
 type ViewMode = 'weekly' | 'monthly';
 
@@ -19,19 +20,34 @@ export default function CoachDashboard() {
   const [viewMode, setViewMode] = useState<ViewMode>('weekly');
   const [draggedWOD, setDraggedWOD] = useState<{ wod: WODFormData; sourceDate: string } | null>(null);
   const [copiedWOD, setCopiedWOD] = useState<WODFormData | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is logged in
-    const role = sessionStorage.getItem('userRole');
-    const name = sessionStorage.getItem('userName');
+    // Check authentication
+    const checkAuth = async () => {
+      const currentUser = await getCurrentUser();
 
-    if (!role || role !== 'coach') {
-      router.push('/');
-      return;
-    }
+      if (!currentUser) {
+        router.push('/login');
+        return;
+      }
 
-    setUser({ role, name: name || 'Coach' });
-    fetchWODs();
+      // Check if user is a coach
+      const role = currentUser.user_metadata?.role || 'athlete';
+      if (role !== 'coach') {
+        router.push('/athlete');
+        return;
+      }
+
+      setUser({
+        role,
+        name: currentUser.user_metadata?.full_name || currentUser.email || 'Coach'
+      });
+      setLoading(false);
+      fetchWODs();
+    };
+
+    checkAuth();
   }, [router]);
 
   const fetchWODs = async () => {
@@ -68,9 +84,13 @@ export default function CoachDashboard() {
     }
   };
 
-  const handleLogout = () => {
-    sessionStorage.clear();
-    router.push('/');
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      router.push('/login');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
 
   const formatDate = (date: Date) => {
@@ -280,8 +300,15 @@ export default function CoachDashboard() {
     setCopiedWOD(null); // Clear clipboard after pasting
   };
 
-  if (!user) {
-    return <div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>;
+  if (loading || !user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#208479] mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
   }
 
   const displayDates = viewMode === 'weekly' ? getWeekDates() : getMonthDates();
@@ -297,6 +324,13 @@ export default function CoachDashboard() {
             <p className="text-teal-100">Welcome, {user.name}</p>
           </div>
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.push('/coach/athletes')}
+              className="flex items-center gap-2 bg-[#1a6b62] hover:bg-teal-800 px-4 py-2 rounded-lg transition"
+            >
+              <Users size={18} />
+              Athletes
+            </button>
             <button
               onClick={() => router.push('/coach/analysis')}
               className="flex items-center gap-2 bg-[#1a6b62] hover:bg-teal-800 px-4 py-2 rounded-lg transition"

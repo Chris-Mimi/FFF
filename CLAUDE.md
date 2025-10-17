@@ -1,7 +1,7 @@
 # Claude Code Project Guidelines for Vibe-Coding Projects
 
-Version: 2.1
-Timestamp: 2025-10-07 15:00 UTC
+Version: 2.2
+Timestamp: 2025-10-16 15:00 UTC
 
 ---
 
@@ -50,9 +50,19 @@ If user asks you to create a new project:
    - Verify `memory-bank/` exists with all 3 files
    - If missing: Ask user if you should create from templates in `templates/`
    - Read ALL 3 files: activeContext.md, techContext.md, systemPatterns.md
+   - **MANDATORY:** Read `memory-bank/workflow-protocols.md` for token efficiency rules
    - Understand current state before acting
 
-2. **Begin work** with full context awareness
+2. **Agent Decision (MANDATORY):**
+   - **BEFORE starting ANY task, ask yourself:**
+     - Is this 3+ distinct steps? → USE AGENT
+     - Does this require searching multiple files? → USE AGENT
+     - Does this involve repetitive changes across files? → USE AGENT
+   - **If answer is YES to any:** You MUST use Task tool with appropriate agent
+   - **If working directly:** Task must be single-file, simple, well-defined
+   - **Failure to use agents burns tokens unnecessarily**
+
+3. **Begin work** with full context awareness and correct tool choice
 
 ---
 
@@ -264,6 +274,201 @@ You already know best practices from your training. Key reminders:
 
 ---
 
+## Automatic Task Delegation (Multi-Agent Strategy)
+
+**Purpose:** Automatically use Haiku 4.5 for low-level tasks to improve speed and reduce costs, while reserving Sonnet for complex architecture and decision-making.
+
+### When to Proactively Use Haiku 4.5 Slash Commands
+
+**IMPORTANT:** As Claude (Sonnet), you should automatically invoke these slash commands when you identify these tasks, WITHOUT waiting for the user to ask. The user is a beginner and won't know when to use them.
+
+#### 1. **Testing (`/write-tests`)**
+**Use when:**
+- User completes a new feature or function
+- Adding new utility functions to `/lib/utils/`
+- Creating new React components
+- Refactoring existing code
+
+**Example triggers:**
+- "I just added a new component..."
+- "Can you write a function to..."
+- After completing any feature implementation
+
+**What to say:**
+- "I'm invoking `/write-tests` to generate unit tests for this new functionality."
+
+#### 2. **Component Scaffolding (`/scaffold-component`)**
+**Use when:**
+- User asks for a new React component
+- Need to create a modal, form, or UI element
+- Building new pages or views
+
+**Example triggers:**
+- "Create a new component for..."
+- "I need a modal that shows..."
+- "Add a form for entering..."
+
+**What to say:**
+- "I'm using `/scaffold-component` to quickly generate the component structure following project conventions."
+
+#### 3. **Code Cleanup (`/code-cleanup`)**
+**Use when:**
+- After implementing features (end of coding session)
+- User mentions "clean up" or "organize"
+- You notice unused imports or formatting issues
+- Before committing code
+
+**Example triggers:**
+- "Clean up the code"
+- After completing 3+ features in a session
+- Before git commit operations
+
+**What to say:**
+- "I'm running `/code-cleanup` to remove unused imports and improve code formatting."
+
+#### 4. **Type Generation (`/create-types`)**
+**Use when:**
+- New database tables are added
+- Schema changes occur
+- User mentions "types are missing" or TypeScript errors appear
+- Starting a new project with Supabase
+
+**Example triggers:**
+- "The database schema changed..."
+- TypeScript errors about missing types
+- "Create types for the database..."
+
+**What to say:**
+- "I'm using `/create-types` to generate TypeScript interfaces from the database schema."
+
+#### 5. **Quick Bug Fixes (`/quick-fix`)**
+**Use when:**
+- User reports a small, isolated bug
+- Type errors in specific files
+- Missing null checks
+- Simple logic errors
+
+**Example triggers:**
+- "There's a bug in..."
+- "Fix the error where..."
+- "This isn't working..."
+
+**What to say:**
+- "I'm using `/quick-fix` to patch this issue quickly."
+
+#### 6. **SQL Query Generation (`/generate-sql`)**
+**Use when:**
+- User needs a database query
+- Creating new Supabase operations
+- Optimizing existing queries
+- Need to write CRUD operations
+
+**Example triggers:**
+- "Get all workouts for..."
+- "Query the database for..."
+- "How do I fetch..."
+
+**What to say:**
+- "I'm using `/generate-sql` to generate the Supabase query for this operation."
+
+#### 7. **Form Validation (`/validate-forms`)**
+**Use when:**
+- Creating forms with user input
+- User mentions validation needs
+- Adding data entry features
+- Building modals with inputs
+
+**Example triggers:**
+- "Create a form for..."
+- "Add validation to..."
+- "This input needs to check..."
+
+**What to say:**
+- "I'm using `/validate-forms` to add comprehensive input validation."
+
+#### 8. **Documentation Updates (`/update-docs`)**
+**Use when:**
+- After completing features
+- User says "update the README"
+- Schema or API changes occur
+- Before ending a coding session
+
+**Example triggers:**
+- "Update the documentation..."
+- After 3+ significant features are added
+- "Add this to the README..."
+
+**What to say:**
+- "I'm running `/update-docs` to keep documentation in sync with recent changes."
+
+#### 9. **Extract Utilities (`/extract-utility`)**
+**Use when:**
+- Notice repeated code patterns (3+ times)
+- User mentions "refactor" or "DRY"
+- Code review reveals duplication
+- After implementing similar features
+
+**Example triggers:**
+- "This code is repeated..."
+- After creating 3+ similar functions
+- Code cleanup reveals patterns
+
+**What to say:**
+- "I'm using `/extract-utility` to extract this repeated code into reusable functions."
+
+### Decision Matrix: Sonnet vs Haiku
+
+**Use Sonnet (You) for:**
+- Complex architecture decisions
+- Multi-file refactoring
+- New feature design and planning
+- Debugging complex issues
+- Database schema design
+- Security considerations
+- Performance optimization strategy
+
+**Use Haiku (Slash Commands) for:**
+- Writing tests for existing code
+- Generating boilerplate code
+- Code formatting and cleanup
+- Generating types from schema
+- Simple bug fixes
+- SQL query generation
+- Form validation logic
+- Documentation updates
+- Extracting utility functions
+
+### Workflow Pattern
+
+**Typical Session:**
+1. User asks for feature (Sonnet plans and designs)
+2. Sonnet writes core implementation
+3. Sonnet invokes `/write-tests` for testing
+4. Sonnet invokes `/code-cleanup` before commit
+5. Sonnet invokes `/update-docs` to document changes
+
+**Example:**
+```
+User: "Add a feature to export workout data to CSV"
+
+Sonnet (You):
+1. Plan the export feature architecture
+2. Implement the core export logic
+3. "I'm invoking `/write-tests` to generate tests for the export function"
+4. "I'm running `/code-cleanup` to clean up the code"
+5. "I'm using `/update-docs` to add the new feature to the README"
+```
+
+### Important Rules
+
+- **Be Proactive:** Don't wait for user to ask for tests, cleanup, or docs
+- **Explain Briefly:** One line explaining which command and why
+- **Chain When Appropriate:** After completing a feature, run tests → cleanup → docs
+- **Trust Haiku:** Don't verify Haiku's work unless user reports issues
+- **Preserve Context:** You (Sonnet) maintain the conversation and planning
+
+---
+
 ## Key Principles
 
 1. **Communicate First** - Explain plan, ask for big changes, show what you did
@@ -272,9 +477,10 @@ You already know best practices from your training. Key reminders:
 4. **Memory Bank is Truth** - Follow established patterns, update when they evolve
 5. **Best Practices Built-In** - You know them, user trusts you to apply them
 6. **Vibe-Coding** - User focuses on what to build, you focus on how
+7. **Delegate to Haiku** - Use specialized slash commands for low-level tasks automatically
 
 **This CLAUDE.md guides your behavior. User's guidance is in chris-kickstarter.md.**
 
 ---
 
-*Version 2.0: Shifted from "learning to code" to "building with Claude" (Vibe-Coding)*
+*Version 2.2: Added Multi-Agent Strategy with automatic Haiku 4.5 task delegation*
