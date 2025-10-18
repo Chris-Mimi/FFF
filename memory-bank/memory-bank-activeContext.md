@@ -1,7 +1,7 @@
 # The Forge Functional Fitness - Active Context
 
-Version: 2.1
-Timestamp: 2025-10-17 10:00 UTC
+Version: 2.3
+Timestamp: 2025-10-18 20:30 UTC
 
 ## ⚠️ CRITICAL: READ THIS FIRST EVERY SESSION
 
@@ -394,8 +394,112 @@ CrossFit gym management application for coaches and athletes. Coaches create and
      - Added custom Tooltip component (lines 1070-1084) to display original result format instead of numeric values
    - **Result:** All benchmark formats now display correctly on progress charts with readable tooltips
 
+### ✅ Session 8: WOD Search Panel & Coach Notes (October 18, 2025)
+1. **Coach Notes Feature:**
+   - Created SQL migration: `supabase-wods-coach-notes.sql`
+   - Added `coach_notes` TEXT column to `wods` table
+   - Created GIN index for full-text search on coach_notes
+   - Created documentation: `COACH-NOTES-SETUP.md`
+
+2. **WOD Modal - Coach Notes Panel (`components/WODModal.tsx`):**
+   - Added "Notes" button in modal header (toggles side panel)
+   - Implemented 400px wide side panel sliding from right
+   - Auto-expanding textarea for private coach notes
+   - Notes persist with WOD save/load operations
+   - Modal expanded from max-w-5xl to max-w-7xl
+   - Smooth slide-in animation with button highlighting
+
+3. **Coach Dashboard - WOD Search Panel (`app/coach/page.tsx`):**
+   - Added "Add WOD" button in header (opens search panel)
+   - Implemented 500px wide search panel (fixed, slides from right)
+   - Search input with 300ms debounce
+   - Track filters with checkboxes and real-time counts
+   - "All Tracks" checkbox for bulk selection
+   - Search results grid with WOD cards
+
+4. **Search Functionality:**
+   - Database search on title and coach_notes (case-insensitive)
+   - Client-side filtering on sections content
+   - Empty state when no results found
+   - Loading state during search operations
+   - Combines database and client-side filtering
+
+5. **Drag-and-Drop from Search Results:**
+   - Search result WOD cards are draggable
+   - Drop on calendar days to copy WOD to target date
+   - Visual feedback with drag cursors
+   - Integrates with existing calendar drag-drop system
+
+6. **Layout Adjustments:**
+   - Calendar receives `pr-[500px]` padding when search panel open
+   - Prevents calendar overlap with fixed search panel
+   - Panel uses fixed positioning: `fixed right-0 top-16`
+   - Smooth transition with `translate-x-full/0` animation
+
+7. **Styling (`app/globals.css`):**
+   - Added custom scrollbar styles for search panel
+   - Webkit scrollbar: 8px width, rounded thumb, hover effects
+
+8. **Known Layout Issue:**
+   - Calendar shifts left when search panel opens (due to padding)
+   - Functionality maintained but visual transition needs refinement
+   - Future enhancement: smoother layout transition strategy
+
+### ✅ Session 9: WOD Panel System & Advanced Drag-Drop (October 18, 2025)
+1. **WOD Modal Conversion to Side Panel:**
+   - Converted WOD Modal to 800px left-side panel
+   - Added slide-in-left animation (translate-x-[-100%] to translate-x-0)
+   - Panel positioned `fixed left-0 top-16 h-[calc(100vh-4rem)]`
+   - Scroll container for WOD content with custom scrollbar styling
+   - Background overlay maintained for focus
+
+2. **Coach Notes Panel Repositioning:**
+   - Coach Notes panel now opens to RIGHT of WOD panel (not inside it)
+   - 400px wide, positioned `left-[800px]` when WOD panel is open
+   - Opens with WOD panel to create unified editing workspace
+   - Independent close button (can close notes while keeping WOD panel open)
+   - Smooth transitions synchronized with WOD panel
+
+3. **WOD Search Panel Enhancements:**
+   - Reduced from 500px to 400px wide for better proportion
+   - Positioned on far right of screen
+   - Includes individual section drag-drop functionality
+   - Sections from search results draggable into WOD panel
+   - Shows section type, duration, and exercise preview
+
+4. **Advanced Drag-and-Drop System:**
+   - **Entire WOD Drag-Drop:** Drag complete WOD cards from search to calendar dates
+   - **Section Drag-Drop:** Drag individual sections from search WODs into WOD panel
+   - Drop zones in WOD panel highlight on drag over
+   - Sections can be inserted at any position in WOD
+   - Combines calendar date-based and content-based drag-drop
+   - Visual feedback: drag cursors, drop zone highlighting
+
+5. **Layout System:**
+   - **Final Layout:** [WOD 800px LEFT] [Calendar Center] [Notes 400px] [Search 400px RIGHT]
+   - Calendar adjusts margins dynamically:
+     - `ml-[800px]` when WOD panel open (left margin)
+     - `mr-[800px]` when both notes and search panels open (right margin)
+     - `mr-[400px]` when only search panel open
+   - Smooth transitions between layout states
+   - No calendar overlap with any panel
+
+6. **Database & Persistence:**
+   - All changes save to Supabase (wods table with coach_notes)
+   - Section drag-drop modifies sections JSONB array
+   - Coach notes persist independently
+   - Search panel queries updated to include coach_notes field
+
+7. **Files Modified:**
+   - `app/coach/page.tsx` - WOD panel system, layout margins, drag-drop handlers
+   - `components/WODModal.tsx` - Converted to side panel, repositioned notes panel
+   - `app/globals.css` - Scrollbar styles for WOD panel
+
+8. **SQL Migration:**
+   - `supabase-wods-coach-notes.sql` (created in Session 8, applied in Session 9)
+
 ### 🐛 KNOWN ISSUES
-- None currently identified
+- **Notes Panel Positioning:** Minor adjustment needed to butt up against WOD panel edge (currently slight gap)
 
 ### 📋 NEXT STEPS
 1. Implement Supabase Auth to replace sessionStorage
@@ -411,9 +515,10 @@ CrossFit gym management application for coaches and athletes. Coaches create and
 - Using Next.js 15 App Router
 - All interactive pages are Client Components ('use client')
 - Supabase for database (PostgreSQL with RLS)
-  - **Coach Tables:** exercises, tracks, workout_types, wods
+  - **Coach Tables:** exercises, tracks, workout_types, wods (with coach_notes field)
   - **Athlete Tables:** athlete_profiles, workout_logs, benchmark_results, lift_records
   - JSONB storage for WOD sections (flexible structure)
+  - GIN indexes for full-text search (coach_notes)
   - Row Level Security enabled with PUBLIC policies for development
   - User-specific RLS policies ready for production
 - SessionStorage for temporary auth (will upgrade to Supabase Auth)
@@ -423,13 +528,16 @@ CrossFit gym management application for coaches and athletes. Coaches create and
 - Metric units throughout: kg, cm, meters
 - File structure:
   - app/page.tsx (login)
-  - app/coach/page.tsx (coach dashboard)
+  - app/coach/page.tsx (coach dashboard with search panel)
   - app/coach/analysis/page.tsx (analysis & statistics)
+  - app/coach/athletes/page.tsx (athlete management)
   - app/athlete/page.tsx (athlete dashboard - all 6 tabs)
-  - components/WODModal.tsx
+  - components/WODModal.tsx (with coach notes panel)
   - lib/supabase.ts
   - supabase-athlete-tables.sql
+  - supabase-wods-coach-notes.sql
   - SUPABASE-ATHLETE-SETUP.md
+  - COACH-NOTES-SETUP.md
 
 ## Coach Dashboard Features (Reference)
 - Weekly/monthly view toggle with ISO week numbers
@@ -439,8 +547,16 @@ CrossFit gym management application for coaches and athletes. Coaches create and
 - Click WOD to edit in both views
 - Today's date highlighted with teal ring
 - Fixed date handling to prevent timezone issues
+- **Add WOD button in header** - opens WOD search panel
 - **Analysis button in header** - navigates to statistics page
 - **Athletes button in header** - navigates to athlete management page
+- **WOD Search Panel:**
+  - 500px wide fixed panel slides from right
+  - Search input with 300ms debounce
+  - Track filters with checkboxes and counts
+  - Search results display WOD cards
+  - Drag-and-drop from search results to calendar
+  - Database + client-side search (title, coach_notes, sections)
 - **All WODs persist in Supabase** - survive page refreshes
 
 ## Coach Athletes Page Features (Reference)
@@ -476,10 +592,17 @@ CrossFit gym management application for coaches and athletes. Coaches create and
 - Coaches can add historical data by changing date in modals
 
 ## WOD Modal Features (Reference)
-- Header: Check (✓) to save, X to cancel
+- Header: Check (✓) to save, X to cancel, **Notes button** to toggle coach notes panel
 - Editable title dropdown with preset options
 - **Track dropdown** - selects workout focus/track
 - **Workout Type dropdown** - selects workout format (For Time, AMRAP, etc.)
+- **Coach Notes Panel:**
+  - 400px wide side panel slides from right
+  - Private notes for coaches only
+  - Auto-expanding textarea
+  - Notes saved with WOD (coach_notes field)
+  - Smooth slide-in animation
+- Modal expands to max-w-7xl to accommodate notes panel
 - Collapsible sections showing content when collapsed
 - Auto-expanding textarea grows with content
 - Drag sections to reorder (HTML5 drag-drop)

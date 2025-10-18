@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { X, Plus, Trash2, Search, Library, ChevronDown, GripVertical, Check } from 'lucide-react';
+import { X, Plus, Trash2, Search, Library, ChevronDown, GripVertical, Check, FileText } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 interface WODModalProps {
@@ -10,6 +10,10 @@ interface WODModalProps {
   onSave: (wod: WODFormData) => void;
   date: Date;
   editingWOD?: WODFormData | null;
+  isPanel?: boolean;
+  panelOffset?: number;
+  initialNotesOpen?: boolean;
+  onNotesToggle?: (open: boolean) => void;
 }
 
 export interface WODSection {
@@ -28,6 +32,7 @@ export interface WODFormData {
   maxCapacity: number;
   date: string;
   sections: WODSection[];
+  coach_notes?: string;
 }
 
 interface Exercise {
@@ -408,7 +413,7 @@ function WODSectionComponent({
   );
 }
 
-export default function WODModal({ isOpen, onClose, onSave, date, editingWOD }: WODModalProps) {
+export default function WODModal({ isOpen, onClose, onSave, date, editingWOD, isPanel = false, panelOffset = 0, initialNotesOpen = false, onNotesToggle }: WODModalProps) {
   const [formData, setFormData] = useState<WODFormData>({
     title: '',
     track_id: '',
@@ -427,6 +432,13 @@ export default function WODModal({ isOpen, onClose, onSave, date, editingWOD }: 
   const [tracks, setTracks] = useState<Track[]>([]);
   const [workoutTypes, setWorkoutTypes] = useState<WorkoutType[]>([]);
   const [loadingTracks, setLoadingTracks] = useState(false);
+  const [notesPanelOpen, setNotesPanelOpen] = useState(initialNotesOpen);
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  // Sync local notesPanelOpen with parent state
+  useEffect(() => {
+    setNotesPanelOpen(initialNotesOpen);
+  }, [initialNotesOpen]);
 
   // Fetch tracks and workout types on mount
   useEffect(() => {
@@ -508,6 +520,7 @@ export default function WODModal({ isOpen, onClose, onSave, date, editingWOD }: 
     }
   }, [isOpen, editingWOD, date]);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleChange = (field: keyof WODFormData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error for this field
@@ -665,20 +678,124 @@ export default function WODModal({ isOpen, onClose, onSave, date, editingWOD }: 
     }
   };
 
+  // Handle drag and drop from search panel
+  const handlePanelDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  };
+
+  const handlePanelDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  };
+
+  const handlePanelDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+
+    const dataType = e.dataTransfer.getData('text/plain');
+
+    if (dataType === 'wod') {
+      // Handle entire WOD drop - get data from window object (set by drag handler in coach page)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const draggedWODData = (window as any).__draggedWOD;
+      if (draggedWODData) {
+        setFormData({
+          ...formData,
+          title: draggedWODData.title,
+          sections: [...draggedWODData.sections],
+          track_id: draggedWODData.track_id,
+          workout_type_id: draggedWODData.workout_type_id,
+        });
+      }
+    } else if (dataType === 'section') {
+      // Handle section drop - get data from window object
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const draggedSectionData = (window as any).__draggedSection;
+      if (draggedSectionData) {
+        const newSection: WODSection = {
+          id: `section-${Date.now()}`,
+          type: draggedSectionData.type,
+          duration: parseInt(draggedSectionData.duration) || 5,
+          content: draggedSectionData.content
+        };
+        setFormData({
+          ...formData,
+          sections: [...formData.sections, newSection]
+        });
+        // Expand the new section
+        setExpandedSections(new Set([...expandedSections, newSection.id]));
+      }
+    }
+  };
+
   if (!isOpen) return null;
 
   const totalDuration = getTotalDuration();
 
-  return (
-    <>
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-lg shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
+  if (isPanel) {
+    return (
+      <>
+        {/* Coach Notes Panel - Separate Panel to the RIGHT of WOD Panel */}
+        {notesPanelOpen && (
+          <div className="fixed right-[400px] top-0 h-full w-[400px] bg-white shadow-2xl z-50 flex flex-col border-l-2 border-[#208479] animate-slide-in-right">
+            {/* Header */}
+            <div className="bg-[#208479] text-white p-4 flex justify-between items-center">
+              <h2 className="text-xl font-bold">Coach Notes</h2>
+              <button
+                onClick={() => {
+                  setNotesPanelOpen(false);
+                  onNotesToggle?.(false);
+                }}
+                className="hover:bg-[#1a6b62] p-1 rounded transition"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-4">
+              <textarea
+                value={formData.coach_notes || ''}
+                onChange={(e) => handleChange('coach_notes', e.target.value)}
+                placeholder="Add private notes about this workout...&#10;&#10;Examples:&#10;- Athlete feedback&#10;- Scaling options used&#10;- Time management notes&#10;- Equipment setup details&#10;- Modifications made"
+                className="w-full h-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 placeholder-gray-400 resize-none text-sm"
+              />
+            </div>
+
+            {/* Footer */}
+            <div className="border-t p-4 bg-gray-50">
+              <p className="text-xs text-gray-500">
+                Notes are private and searchable. Auto-saved when you save the WOD.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* WOD Panel */}
+        <div className="fixed left-0 top-0 h-full w-[800px] bg-white shadow-2xl z-50 flex flex-col border-r-2 border-[#208479] animate-slide-in-left">
           {/* Header */}
           <div className="bg-[#208479] text-white p-4 flex justify-between items-center">
             <h2 className="text-xl font-bold">
               {editingWOD ? 'Edit WOD' : 'Create New WOD'}
             </h2>
             <div className="flex items-center gap-2">
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  const newValue = !notesPanelOpen;
+                  setNotesPanelOpen(newValue);
+                  onNotesToggle?.(newValue);
+                }}
+                className={`hover:bg-[#1a6b62] p-2 rounded transition flex items-center gap-2 ${notesPanelOpen ? 'bg-[#1a6b62]' : ''}`}
+                title="Coach Notes"
+              >
+                <FileText size={20} />
+                <span className="text-sm">Notes</span>
+              </button>
               <button
                 onClick={(e) => {
                   e.preventDefault();
@@ -700,8 +817,22 @@ export default function WODModal({ isOpen, onClose, onSave, date, editingWOD }: 
             </div>
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6">
+          {/* Content Area - Form Only (No notes panel in side panel mode) */}
+          <form
+            onSubmit={handleSubmit}
+            className="flex-1 overflow-y-auto p-6 space-y-6"
+            onDragOver={handlePanelDragOver}
+            onDragLeave={handlePanelDragLeave}
+            onDrop={handlePanelDrop}
+          >
+            {/* Drop Zone Indicator */}
+            {isDragOver && (
+              <div className="sticky top-0 z-10 mb-4 border-2 border-dashed border-[#208479] rounded-lg p-4 text-center text-sm bg-teal-50 animate-pulse">
+                <p className="font-semibold text-[#208479]">Drop Here</p>
+                <p className="text-xs text-gray-600">Drop WOD or section to add to this workout</p>
+              </div>
+            )}
+
             {/* Date Display */}
             <div className="bg-gray-50 p-3 rounded-lg">
               <p className="text-sm text-gray-600">Date</p>
@@ -872,13 +1003,288 @@ export default function WODModal({ isOpen, onClose, onSave, date, editingWOD }: 
 
                 {formData.sections.length === 0 && (
                   <div className="text-center py-8 text-gray-500">
-                    <p>No sections yet. Click "Add Section" to get started.</p>
+                    <p>No sections yet. Click &quot;Add Section&quot; to get started.</p>
                   </div>
                 )}
               </div>
             </div>
 
-          </form>
+            </form>
+
+          {/* Exercise Library Popup */}
+          <ExerciseLibraryPopup
+            isOpen={libraryOpen}
+            onClose={() => setLibraryOpen(false)}
+            onSelectExercise={handleSelectExercise}
+          />
+        </div>
+      </>
+    );
+  }
+
+  // Original modal mode
+  return (
+    <>
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className={`bg-white rounded-lg shadow-2xl w-full ${notesPanelOpen ? 'max-w-7xl' : 'max-w-5xl'} max-h-[90vh] overflow-hidden flex flex-col transition-all duration-300`}>
+          {/* Header */}
+          <div className="bg-[#208479] text-white p-4 flex justify-between items-center">
+            <h2 className="text-xl font-bold">
+              {editingWOD ? 'Edit WOD' : 'Create New WOD'}
+            </h2>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  const newValue = !notesPanelOpen;
+                  setNotesPanelOpen(newValue);
+                  onNotesToggle?.(newValue);
+                }}
+                className={`hover:bg-[#1a6b62] p-2 rounded transition flex items-center gap-2 ${notesPanelOpen ? 'bg-[#1a6b62]' : ''}`}
+                title="Coach Notes"
+              >
+                <FileText size={20} />
+                <span className="text-sm">Notes</span>
+              </button>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (validate()) {
+                    onSave(formData);
+                    onClose();
+                  }
+                }}
+                className="hover:bg-[#1a6b62] p-1 rounded transition"
+              >
+                <Check size={24} />
+              </button>
+              <button
+                onClick={onClose}
+                className="hover:bg-[#1a6b62] p-1 rounded transition"
+              >
+                <X size={24} />
+              </button>
+            </div>
+          </div>
+
+          {/* Content Area - Form and Notes Side by Side */}
+          <div className="flex-1 flex overflow-hidden">
+            {/* Form */}
+            <form onSubmit={handleSubmit} className={`${notesPanelOpen ? 'flex-1' : 'w-full'} overflow-y-auto p-6 space-y-6`}>
+            {/* Date Display */}
+            <div className="bg-gray-50 p-3 rounded-lg">
+              <p className="text-sm text-gray-600">Date</p>
+              <p className="font-semibold text-gray-900">
+                {date.toLocaleDateString('en-GB', {
+                  weekday: 'long',
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric'
+                })}
+              </p>
+            </div>
+
+            {/* Title */}
+            <div>
+              <label className="block text-sm font-semibold mb-2 text-gray-900">
+                Workout Title <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  list="workout-titles"
+                  value={formData.title}
+                  onChange={(e) => handleChange('title', e.target.value)}
+                  placeholder="Select or type custom title..."
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 placeholder-gray-400 ${
+                    errors.title ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                />
+                <datalist id="workout-titles">
+                  {WORKOUT_TITLE_OPTIONS.map(title => (
+                    <option key={title} value={title} />
+                  ))}
+                </datalist>
+              </div>
+              {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
+            </div>
+
+            {/* Track and Workout Type */}
+            <div className="flex gap-6 items-start">
+              {/* Track */}
+              <div className="flex-1">
+                <label className="block text-sm font-semibold mb-2 text-gray-900">
+                  Track
+                </label>
+                <select
+                  value={formData.track_id || ''}
+                  onChange={(e) => handleChange('track_id', e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 bg-white"
+                  disabled={loadingTracks}
+                >
+                  <option value="">Select Track...</option>
+                  {tracks.map(track => (
+                    <option key={track.id} value={track.id}>
+                      {track.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Workout Type */}
+              <div className="flex-1">
+                <label className="block text-sm font-semibold mb-2 text-gray-900">
+                  Workout Type
+                </label>
+                <select
+                  value={formData.workout_type_id || ''}
+                  onChange={(e) => handleChange('workout_type_id', e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 bg-white"
+                  disabled={loadingTracks}
+                >
+                  <option value="">Select Workout Type...</option>
+                  {workoutTypes.map(type => (
+                    <option key={type.id} value={type.id}>
+                      {type.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Class Times and Max Capacity */}
+            <div className="flex gap-6 items-start">
+              {/* Class Times */}
+              <div className="flex-1">
+                <label className="block text-sm font-semibold mb-2 text-gray-900">
+                  Class Times <span className="text-red-500">*</span>
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {CLASS_TIME_OPTIONS.map(time => (
+                    <button
+                      key={time}
+                      type="button"
+                      onClick={() => toggleClassTime(time)}
+                      className={`px-3 py-1.5 rounded text-sm font-medium transition ${
+                        formData.classTimes.includes(time)
+                          ? 'bg-[#208479] text-white'
+                          : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                      }`}
+                    >
+                      {time}
+                    </button>
+                  ))}
+                </div>
+                {errors.classTimes && <p className="text-red-500 text-sm mt-1">{errors.classTimes}</p>}
+              </div>
+
+              {/* Max Capacity */}
+              <div className="w-32">
+                <label className="block text-sm font-semibold mb-2 text-gray-900">
+                  Max Capacity <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  value={formData.maxCapacity}
+                  onChange={(e) => handleChange('maxCapacity', parseInt(e.target.value) || 0)}
+                  min="1"
+                  max="30"
+                  className={`w-full px-3 py-1.5 text-sm border rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 ${
+                    errors.maxCapacity ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                />
+                {errors.maxCapacity && <p className="text-red-500 text-sm mt-1">{errors.maxCapacity}</p>}
+              </div>
+            </div>
+
+            {/* Sections */}
+            <div>
+              <div className="flex justify-between items-center mb-3">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900">
+                    Workout Sections <span className="text-red-500">*</span>
+                  </label>
+                  <p className="text-xs text-gray-600 mt-1">
+                    Total Duration: <span className="font-semibold text-[#208479]">{totalDuration} mins</span>
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={addSection}
+                  className="px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white text-sm font-medium rounded-lg flex items-center gap-2 transition"
+                >
+                  <Plus size={16} />
+                  Add Section
+                </button>
+              </div>
+
+              {errors.sections && <p className="text-red-500 text-sm mb-2">{errors.sections}</p>}
+
+              <div className="space-y-4">
+                {formData.sections.map((section, index) => (
+                  <WODSectionComponent
+                    key={section.id}
+                    section={section}
+                    sectionIndex={index}
+                    totalSections={formData.sections.length}
+                    elapsedMinutes={getElapsedMinutes(index)}
+                    isExpanded={expandedSections.has(section.id)}
+                    onToggleExpand={() => toggleSectionExpanded(section.id)}
+                    onUpdate={(updates) => updateSection(section.id, updates)}
+                    onDelete={() => deleteSection(section.id)}
+                    onOpenLibrary={() => openLibraryForSection(index)}
+                    onDragStart={handleDragStart}
+                    onDragOver={handleDragOver}
+                    onDrop={handleDrop}
+                  />
+                ))}
+
+                {formData.sections.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>No sections yet. Click &quot;Add Section&quot; to get started.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            </form>
+
+            {/* Coach Notes Side Panel */}
+            {notesPanelOpen && (
+              <div className="w-[400px] bg-gray-50 shadow-xl flex flex-col border-l-2 border-[#208479]">
+                {/* Header */}
+                <div className="bg-[#208479] text-white p-4 flex justify-between items-center">
+                  <h3 className="text-lg font-bold">Coach Notes</h3>
+                  <button
+                    onClick={() => {
+                      setNotesPanelOpen(false);
+                      onNotesToggle?.(false);
+                    }}
+                    className="hover:bg-[#1a6b62] p-1 rounded transition"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 overflow-y-auto p-4">
+                  <textarea
+                    value={formData.coach_notes || ''}
+                    onChange={(e) => handleChange('coach_notes', e.target.value)}
+                    placeholder="Add private notes about this workout...&#10;&#10;Examples:&#10;- Athlete feedback&#10;- Scaling options used&#10;- Time management notes&#10;- Equipment setup details&#10;- Modifications made"
+                    className="w-full h-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 placeholder-gray-400 resize-none text-sm"
+                  />
+                </div>
+
+                {/* Footer */}
+                <div className="border-t p-3 bg-white">
+                  <p className="text-xs text-gray-500">
+                    Notes are private and searchable. Auto-saved when you save the WOD.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

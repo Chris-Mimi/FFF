@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { LogOut, Plus, Edit2, Trash2, Calendar, CalendarDays, Copy, BarChart3, Users } from 'lucide-react';
+import { LogOut, Plus, Trash2, Calendar, CalendarDays, Copy, BarChart3, Users, FileText, Search, X, GripVertical } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import WODModal, { WODFormData } from '@/components/WODModal';
+import WODModal, { WODFormData, WODSection } from '@/components/WODModal';
 import { supabase } from '@/lib/supabase';
 import { getCurrentUser, signOut } from '@/lib/auth';
 
@@ -21,6 +21,19 @@ export default function CoachDashboard() {
   const [draggedWOD, setDraggedWOD] = useState<{ wod: WODFormData; sourceDate: string } | null>(null);
   const [copiedWOD, setCopiedWOD] = useState<WODFormData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [notesPanel, setNotesPanel] = useState<{ isOpen: boolean; wod: WODFormData | null }>({ isOpen: false, wod: null });
+  const [notesDraft, setNotesDraft] = useState('');
+  const [searchPanelOpen, setSearchPanelOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTrack, setSelectedTrack] = useState<string | null>(null);
+  const [searchResults, setSearchResults] = useState<WODFormData[]>([]);
+  const [tracks, setTracks] = useState<Array<{ id: string; name: string }>>([]);
+  const [trackCounts, setTrackCounts] = useState<Record<string, number>>({});
+  const [selectedSearchWOD, setSelectedSearchWOD] = useState<WODFormData | null>(null);
+  const [quickEditMode, setQuickEditMode] = useState(false);
+  const [quickEditWOD, setQuickEditWOD] = useState<WODFormData | null>(null);
+  const [draggedSection, setDraggedSection] = useState<{ type: string; duration: string; content: string } | null>(null);
+  const [notesPanelOpen, setNotesPanelOpen] = useState(false);
 
   useEffect(() => {
     // Check authentication
@@ -45,10 +58,131 @@ export default function CoachDashboard() {
       });
       setLoading(false);
       fetchWODs();
+      fetchTracksAndCounts();
     };
 
     checkAuth();
   }, [router]);
+
+  const fetchTracksAndCounts = async () => {
+    try {
+      // Fetch all tracks
+      const { data: tracksData, error: tracksError } = await supabase
+        .from('tracks')
+        .select('*')
+        .order('name', { ascending: true });
+
+      if (tracksError) throw tracksError;
+      setTracks(tracksData || []);
+
+      // Fetch WOD counts grouped by track_id
+      const { data: wodsData, error: wodsError } = await supabase
+        .from('wods')
+        .select('track_id');
+
+      if (wodsError) throw wodsError;
+
+      // Count WODs per track
+      const counts: Record<string, number> = {};
+      wodsData?.forEach((wod: { track_id: string | null }) => {
+        if (wod.track_id) {
+          counts[wod.track_id] = (counts[wod.track_id] || 0) + 1;
+        }
+      });
+
+      setTrackCounts(counts);
+    } catch (error) {
+      console.error('Error fetching tracks and counts:', error);
+    }
+  };
+
+  // Search WODs with debounce
+  useEffect(() => {
+    if (!searchQuery && !selectedTrack) {
+      setSearchResults([]);
+      return;
+    }
+
+    const searchWODs = async () => {
+      try {
+        let query = supabase
+          .from('wods')
+          .select('*');
+
+        // Filter by track if selected
+        if (selectedTrack) {
+          query = query.eq('track_id', selectedTrack);
+        }
+
+        // Search in title, coach_notes, and sections content
+        if (searchQuery) {
+          query = query.or(`title.ilike.%${searchQuery}%,coach_notes.ilike.%${searchQuery}%`);
+        }
+
+        // Order by date descending and limit results
+        const { data, error } = await query
+          .order('date', { ascending: false })
+          .limit(50);
+
+        if (error) throw error;
+
+        // Map to WODFormData
+        interface WODRecord {
+          id: string;
+          title: string;
+          track_id: string | null;
+          workout_type_id: string | null;
+          class_times: string[];
+          max_capacity: number;
+          date: string;
+          sections: Array<{
+            id: string;
+            type: string;
+            title: string;
+            duration: number;
+            content: string;
+          }>;
+          coach_notes: string | null;
+        }
+
+        let results: WODFormData[] = data?.map((wod: WODRecord) => ({
+          id: wod.id,
+          title: wod.title,
+          track_id: wod.track_id || undefined,
+          workout_type_id: wod.workout_type_id || undefined,
+          classTimes: wod.class_times,
+          maxCapacity: wod.max_capacity,
+          date: wod.date,
+          sections: wod.sections,
+          coach_notes: wod.coach_notes || undefined
+        })) || [];
+
+        // Client-side filter for sections content if search query exists
+        if (searchQuery) {
+          results = results.filter(wod => {
+            // Check if search term is in title or coach_notes (already filtered by DB)
+            const titleMatch = wod.title.toLowerCase().includes(searchQuery.toLowerCase());
+            const notesMatch = wod.coach_notes?.toLowerCase().includes(searchQuery.toLowerCase());
+
+            // Check if search term is in any section content
+            const sectionsMatch = wod.sections.some(section =>
+              section.content.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+
+            return titleMatch || notesMatch || sectionsMatch;
+          });
+        }
+
+        setSearchResults(results);
+      } catch (error) {
+        console.error('Error searching WODs:', error);
+      }
+    };
+
+    // Debounce search
+    const timeoutId = setTimeout(searchWODs, 300);
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, selectedTrack]);
 
   const fetchWODs = async () => {
     try {
@@ -60,8 +194,26 @@ export default function CoachDashboard() {
       if (error) throw error;
 
       // Group WODs by date
+      interface WODRecord {
+        id: string;
+        title: string;
+        track_id: string | null;
+        workout_type_id: string | null;
+        class_times: string[];
+        max_capacity: number;
+        date: string;
+        sections: Array<{
+          id: string;
+          type: string;
+          title: string;
+          duration: number;
+          content: string;
+        }>;
+        coach_notes: string | null;
+      }
+
       const grouped: Record<string, WODFormData[]> = {};
-      data?.forEach((wod: any) => {
+      data?.forEach((wod: WODRecord) => {
         const dateKey = wod.date;
         if (!grouped[dateKey]) {
           grouped[dateKey] = [];
@@ -69,12 +221,13 @@ export default function CoachDashboard() {
         grouped[dateKey].push({
           id: wod.id,
           title: wod.title,
-          track_id: wod.track_id,
-          workout_type_id: wod.workout_type_id,
+          track_id: wod.track_id || undefined,
+          workout_type_id: wod.workout_type_id || undefined,
           classTimes: wod.class_times,
           maxCapacity: wod.max_capacity,
           date: wod.date,
-          sections: wod.sections
+          sections: wod.sections,
+          coach_notes: wod.coach_notes || undefined
         });
       });
 
@@ -168,10 +321,11 @@ export default function CoachDashboard() {
     setSelectedDate(newDate);
   };
 
-  const openCreateModal = (date: Date) => {
+  const openCreateModal = (date: Date, openNotes: boolean = false) => {
     setModalDate(date);
     setEditingWOD(null);
     setIsModalOpen(true);
+    setNotesPanelOpen(openNotes);
   };
 
   const openEditModal = (wod: WODFormData) => {
@@ -196,6 +350,7 @@ export default function CoachDashboard() {
             max_capacity: wodData.maxCapacity,
             date: dateKey,
             sections: wodData.sections,
+            coach_notes: wodData.coach_notes || null,
             updated_at: new Date().toISOString()
           })
           .eq('id', editingWOD.id);
@@ -212,7 +367,8 @@ export default function CoachDashboard() {
             class_times: wodData.classTimes,
             max_capacity: wodData.maxCapacity,
             date: dateKey,
-            sections: wodData.sections
+            sections: wodData.sections,
+            coach_notes: wodData.coach_notes || null
           }]);
 
         if (error) throw error;
@@ -222,7 +378,41 @@ export default function CoachDashboard() {
       await fetchWODs();
     } catch (error) {
       console.error('Error saving WOD:', error);
-      alert('Error saving WOD. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      alert(`Error saving WOD: ${errorMessage}\n\nPlease check the console for details.`);
+    }
+  };
+
+  const openNotesPanel = (wod: WODFormData) => {
+    setNotesPanel({ isOpen: true, wod });
+    setNotesDraft(wod.coach_notes || '');
+  };
+
+  const closeNotesPanel = () => {
+    setNotesPanel({ isOpen: false, wod: null });
+    setNotesDraft('');
+  };
+
+  const handleSaveNotes = async () => {
+    if (!notesPanel.wod?.id) return;
+
+    try {
+      const { error } = await supabase
+        .from('wods')
+        .update({
+          coach_notes: notesDraft || null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', notesPanel.wod.id);
+
+      if (error) throw error;
+
+      // Refresh WODs and close panel
+      await fetchWODs();
+      closeNotesPanel();
+    } catch (error) {
+      console.error('Error saving notes:', error);
+      alert('Error saving notes. Please try again.');
     }
   };
 
@@ -274,6 +464,100 @@ export default function CoachDashboard() {
   const handleDragStart = (e: React.DragEvent, wod: WODFormData, sourceDate: string) => {
     setDraggedWOD({ wod, sourceDate });
     e.dataTransfer.effectAllowed = 'copy';
+    e.dataTransfer.setData('text/plain', 'wod');
+    // Store WOD data on window object for cross-component access
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window as any).__draggedWOD = wod;
+  };
+
+  const handleSectionDragStart = (e: React.DragEvent, section: { type: string; duration: string; content: string }) => {
+    setDraggedSection(section);
+    e.dataTransfer.effectAllowed = 'copy';
+    e.dataTransfer.setData('text/plain', 'section');
+    // Store section data on window object for cross-component access
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window as any).__draggedSection = section;
+  };
+
+  const handleQuickEditDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const dataType = e.dataTransfer.getData('text/plain');
+
+    if (dataType === 'wod' && draggedWOD && quickEditWOD) {
+      // Replace entire WOD content
+      setQuickEditWOD({
+        ...quickEditWOD,
+        title: draggedWOD.wod.title,
+        sections: [...draggedWOD.wod.sections],
+        track_id: draggedWOD.wod.track_id,
+        workout_type_id: draggedWOD.wod.workout_type_id,
+      });
+      setDraggedWOD(null);
+    } else if (dataType === 'section' && draggedSection && quickEditWOD) {
+      // Add section to WOD
+      const newSection: WODSection = {
+        id: `section-${Date.now()}`,
+        type: draggedSection.type,
+        duration: parseInt(draggedSection.duration) || 5,
+        content: draggedSection.content
+      };
+      setQuickEditWOD({
+        ...quickEditWOD,
+        sections: [...quickEditWOD.sections, newSection],
+      });
+      setDraggedSection(null);
+    }
+  };
+
+  const openQuickEdit = (date?: Date) => {
+    const timestamp = Date.now();
+    const newWOD: WODFormData = {
+      title: '',
+      track_id: '',
+      workout_type_id: '',
+      classTimes: [],
+      maxCapacity: 12,
+      date: date ? formatDate(date) : formatDate(new Date()),
+      sections: [
+        { id: `section-${timestamp}-1`, type: 'Warm-up', duration: 12, content: '' },
+        { id: `section-${timestamp}-2`, type: 'Accessory', duration: 10, content: '' },
+        { id: `section-${timestamp}-3`, type: 'Strength', duration: 15, content: '' },
+        { id: `section-${timestamp}-4`, type: 'WOD', duration: 15, content: '' },
+      ],
+      coach_notes: '',
+    };
+    setQuickEditWOD(newWOD);
+    setQuickEditMode(true);
+    setSearchPanelOpen(true);
+  };
+
+  const saveQuickEdit = async () => {
+    if (!quickEditWOD) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('wods')
+        .insert([{
+          title: quickEditWOD.title,
+          track_id: quickEditWOD.track_id || null,
+          workout_type_id: quickEditWOD.workout_type_id || null,
+          class_times: quickEditWOD.classTimes,
+          max_capacity: quickEditWOD.maxCapacity,
+          date: quickEditWOD.date,
+          sections: quickEditWOD.sections,
+          coach_notes: quickEditWOD.coach_notes || null,
+        }])
+        .select();
+
+      if (error) throw error;
+
+      await fetchWODs();
+      setQuickEditMode(false);
+      setQuickEditWOD(null);
+    } catch (error) {
+      console.error('Error saving WOD:', error);
+      alert('Error saving WOD. Please try again.');
+    }
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -285,7 +569,6 @@ export default function CoachDashboard() {
     e.preventDefault();
     if (!draggedWOD) return;
 
-    const targetDateKey = formatDate(targetDate);
     handleCopyWOD(draggedWOD.wod, targetDate);
     setDraggedWOD(null);
   };
@@ -315,15 +598,31 @@ export default function CoachDashboard() {
   const weekDates = getWeekDates();
 
   return (
-    <div className="min-h-screen bg-gray-200">
+    <div className="min-h-screen bg-gray-200 flex">
+      <div className={`flex-1 flex flex-col transition-all duration-300 ${
+        isModalOpen && notesPanelOpen && searchPanelOpen ? 'ml-[800px] mr-[800px]' :
+        isModalOpen && notesPanelOpen ? 'ml-[800px] mr-[400px]' :
+        isModalOpen && searchPanelOpen ? 'ml-[800px] mr-[400px]' :
+        isModalOpen && quickEditMode ? 'ml-[800px] mr-[400px]' :
+        quickEditMode ? 'mr-[800px]' :
+        isModalOpen ? 'ml-[800px]' :
+        searchPanelOpen ? 'mr-[400px]' : ''
+      }`}>
       {/* Header */}
-      <header className="bg-[#208479] text-white p-4 shadow-lg">
+      <header className="bg-[#208479] text-white p-4 shadow-lg flex-shrink-0">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold">The Forge - Coach Dashboard</h1>
             <p className="text-teal-100">Welcome, {user.name}</p>
           </div>
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setSearchPanelOpen(!searchPanelOpen)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${searchPanelOpen ? 'bg-teal-800' : 'bg-[#1a6b62] hover:bg-teal-800'}`}
+            >
+              <Plus size={18} />
+              Add WOD
+            </button>
             <button
               onClick={() => router.push('/coach/athletes')}
               className="flex items-center gap-2 bg-[#1a6b62] hover:bg-teal-800 px-4 py-2 rounded-lg transition"
@@ -349,8 +648,10 @@ export default function CoachDashboard() {
         </div>
       </header>
 
-      {/* View Mode Toggle & Navigation */}
-      <div className="bg-white border-b p-4">
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col">
+        {/* View Mode Toggle & Navigation */}
+        <div className="bg-white border-b p-4 flex-shrink-0">
         <div className="max-w-7xl mx-auto space-y-4">
           {/* View Mode Toggle */}
           <div className="flex justify-center">
@@ -409,8 +710,8 @@ export default function CoachDashboard() {
         </div>
       </div>
 
-      {/* Calendar Grid */}
-      <div className={`${viewMode === 'weekly' ? 'max-w-[1600px]' : 'max-w-7xl'} mx-auto p-4`}>
+        {/* Calendar Grid */}
+        <div className={`mx-auto p-4 flex-1 ${viewMode === 'weekly' ? 'max-w-[1600px]' : 'max-w-7xl'}`}>
         {viewMode === 'monthly' && (
           /* Month View with Week Numbers */
           <div>
@@ -480,16 +781,28 @@ export default function CoachDashboard() {
                               <div className="font-semibold text-gray-900 truncate flex-1 cursor-pointer" onClick={() => openEditModal(wod)}>
                                 {wod.title}
                               </div>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleCopyToClipboard(wod);
-                                }}
-                                className="opacity-0 group-hover:opacity-100 text-[#208479] hover:text-[#1a6b62] p-0.5"
-                                title="Copy WOD"
-                              >
-                                <Copy size={10} />
-                              </button>
+                              <div className="flex gap-0.5 opacity-0 group-hover:opacity-100">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openNotesPanel(wod);
+                                  }}
+                                  className="text-[#208479] hover:text-[#1a6b62] p-0.5"
+                                  title="Coach Notes"
+                                >
+                                  <FileText size={10} />
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleCopyToClipboard(wod);
+                                  }}
+                                  className="text-[#208479] hover:text-[#1a6b62] p-0.5"
+                                  title="Copy WOD"
+                                >
+                                  <Copy size={10} />
+                                </button>
+                              </div>
                             </div>
                           </div>
                         ))}
@@ -527,7 +840,7 @@ export default function CoachDashboard() {
               <div className="text-sm font-semibold">Week {getWeekNumber(displayDates[0])}</div>
             </div>
 
-            <div className="flex flex-col lg:flex-row gap-4">
+            <div className="flex flex-col lg:flex-row gap-2 overflow-x-auto">
               {displayDates.map((date, idx) => {
                 const dateKey = formatDate(date);
                 const dayWODs = wods[dateKey] || [];
@@ -536,7 +849,7 @@ export default function CoachDashboard() {
                 return (
                   <div
                     key={idx}
-                    className={`bg-white rounded-lg shadow p-4 flex-1 min-w-[180px] ${isToday ? 'ring-2 ring-[#208479]' : ''}`}
+                    className={`bg-white rounded-lg shadow p-4 flex-1 min-w-[160px] ${isToday ? 'ring-2 ring-[#208479]' : ''}`}
                     onDragOver={handleDragOver}
                     onDrop={(e) => handleDrop(e, date)}
                   >
@@ -588,6 +901,16 @@ export default function CoachDashboard() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
+                              openNotesPanel(wod);
+                            }}
+                            className="text-[#208479] hover:text-[#1a6b62] p-1 bg-white rounded shadow-sm"
+                            title="Coach Notes"
+                          >
+                            <FileText size={14} />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
                               handleCopyToClipboard(wod);
                             }}
                             className="text-[#208479] hover:text-[#1a6b62] p-1 bg-white rounded shadow-sm"
@@ -623,16 +946,362 @@ export default function CoachDashboard() {
             </div>
           </div>
         )}
+        </div>
+      </div>
       </div>
 
-      {/* WOD Modal */}
+      {/* WOD Search Panel */}
+      {searchPanelOpen && (
+        <div className="fixed right-0 top-0 h-full w-[400px] bg-white shadow-2xl z-50 flex flex-col border-l-2 border-[#208479] animate-slide-in-right">
+          {/* Header */}
+          <div className="bg-[#208479] text-white p-4 flex justify-between items-center">
+            <h2 className="text-xl font-bold">Schedule a Workout</h2>
+            <button onClick={() => setSearchPanelOpen(false)} className="hover:bg-[#1a6b62] p-1 rounded transition">
+              <X size={24} />
+            </button>
+          </div>
+
+          {/* Search Bar */}
+          <div className="p-4 border-b">
+            <div className="relative">
+              <Search className="absolute left-3 top-3 text-gray-400" size={18} />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search workout history..."
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[#208479] focus:border-transparent"
+              />
+            </div>
+          </div>
+
+          {/* Track Filter Section */}
+          <div className="flex-1 overflow-y-auto">
+            <div className="p-4 space-y-2">
+              {tracks.map((track) => (
+                <button
+                  key={track.id}
+                  onClick={() => setSelectedTrack(selectedTrack === track.id ? null : track.id)}
+                  className={`w-full text-left px-4 py-2 rounded-lg flex justify-between items-center transition ${
+                    selectedTrack === track.id ? 'bg-[#208479] text-white' : 'bg-white hover:bg-gray-100 text-gray-900'
+                  }`}
+                >
+                  <span className="font-medium">{track.name}</span>
+                  <span className={`text-sm ${selectedTrack === track.id ? 'opacity-75' : 'text-gray-600'}`}>{trackCounts[track.id] || 0}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Search Results */}
+            {!selectedSearchWOD && (searchQuery || selectedTrack) && (
+              <div className="border-t p-4">
+                <h3 className="font-semibold text-gray-900 mb-2">
+                  {searchQuery ? 'Search Results' : 'Track Workouts'}
+                </h3>
+                <div className="space-y-2">
+                  {searchResults.map((wod) => (
+                    <div
+                      key={wod.id}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, wod, wod.date)}
+                      onClick={() => setSelectedSearchWOD(wod)}
+                      className="p-3 bg-white rounded-lg cursor-pointer hover:bg-gray-100 transition border border-gray-200"
+                    >
+                      <div className="font-semibold text-sm text-gray-900">{wod.title}</div>
+                      <div className="text-xs text-gray-600">{new Date(wod.date).toLocaleDateString()}</div>
+                    </div>
+                  ))}
+                  {searchResults.length === 0 && (
+                    <p className="text-sm text-gray-500">No results found</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* WOD Detail View */}
+            {selectedSearchWOD && (
+              <div className="border-t p-4 flex-1 overflow-y-auto">
+                <button
+                  onClick={() => setSelectedSearchWOD(null)}
+                  className="text-sm text-[#208479] hover:text-[#1a6b62] mb-4 flex items-center gap-1"
+                >
+                  ← Back to results
+                </button>
+
+                {/* Draggable Entire WOD */}
+                <div
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, selectedSearchWOD, selectedSearchWOD.date)}
+                  className="cursor-move hover:bg-gray-50 p-2 rounded-lg transition"
+                >
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-2">
+                      <GripVertical size={20} className="text-gray-400 mt-1 flex-shrink-0" />
+                      <div className="flex-1">
+                        <h3 className="font-bold text-lg text-gray-900 mb-1">{selectedSearchWOD.title}</h3>
+                        <p className="text-xs text-gray-600">{new Date(selectedSearchWOD.date).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+
+                    {/* Sections with individual drag handles */}
+                    <div className="space-y-3">
+                      {selectedSearchWOD.sections.map((section, idx) => (
+                        <div
+                          key={idx}
+                          draggable
+                          onDragStart={(e) => {
+                            e.stopPropagation();
+                            handleSectionDragStart(e, { type: section.type, duration: String(section.duration), content: section.content });
+                          }}
+                          className="bg-white rounded-lg border border-gray-200 p-3 cursor-move hover:border-[#208479] transition flex gap-2"
+                        >
+                          <GripVertical size={16} className="text-gray-400 flex-shrink-0 mt-1" />
+                          <div className="flex-1">
+                            <div className="font-semibold text-sm text-gray-900 mb-1">{section.type}</div>
+                            <div className="text-xs text-gray-500 mb-2">{section.duration}</div>
+                            <div className="text-sm text-gray-700 whitespace-pre-wrap">{section.content}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Coach Notes */}
+                    {selectedSearchWOD.coach_notes && (
+                      <div className="bg-yellow-50 rounded-lg border border-yellow-200 p-3">
+                        <div className="font-semibold text-sm text-gray-900 mb-1">Coach Notes</div>
+                        <div className="text-sm text-gray-700 whitespace-pre-wrap">{selectedSearchWOD.coach_notes}</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-2 pt-4">
+                  <button
+                    onClick={() => {
+                      openEditModal(selectedSearchWOD);
+                      setSearchPanelOpen(false);
+                      setSelectedSearchWOD(null);
+                    }}
+                    className="flex-1 px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white rounded-lg font-medium transition"
+                  >
+                    Edit WOD
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="border-t p-4">
+            <button
+              onClick={() => {
+                openCreateModal(new Date(), true);
+                setSelectedSearchWOD(null);
+              }}
+              className="w-full px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white rounded-lg font-medium transition"
+            >
+              + Create New WOD
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Edit Panel */}
+      {quickEditMode && quickEditWOD && (
+        <div className="fixed right-0 top-0 h-full w-[400px] bg-white shadow-2xl z-50 flex flex-col border-l-2 border-[#208479] animate-slide-in-right" style={{ right: searchPanelOpen ? '400px' : '0' }}>
+          {/* Header */}
+          <div className="bg-[#208479] text-white p-4 flex justify-between items-center">
+            <h2 className="text-xl font-bold">Quick Edit WOD</h2>
+            <button
+              onClick={() => {
+                setQuickEditMode(false);
+                setQuickEditWOD(null);
+              }}
+              className="hover:bg-[#1a6b62] p-1 rounded transition"
+            >
+              <X size={24} />
+            </button>
+          </div>
+
+          {/* Content */}
+          <div
+            className="flex-1 overflow-y-auto p-4 space-y-4"
+            onDragOver={handleDragOver}
+            onDrop={handleQuickEditDrop}
+          >
+            {/* Drop Zone Indicator */}
+            <div className="border-2 border-dashed border-[#208479] rounded-lg p-4 text-center text-sm text-gray-600 bg-teal-50">
+              <p className="font-semibold text-[#208479]">Drop Zone</p>
+              <p className="text-xs">Drag entire WODs or individual sections here</p>
+            </div>
+
+            {/* Title Input */}
+            <div>
+              <label className="block text-sm font-semibold mb-2 text-gray-900">
+                WOD Title
+              </label>
+              <input
+                type="text"
+                value={quickEditWOD.title}
+                onChange={(e) => setQuickEditWOD({ ...quickEditWOD, title: e.target.value })}
+                placeholder="Enter workout title..."
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 placeholder-gray-400"
+              />
+            </div>
+
+            {/* Sections */}
+            <div className="space-y-3">
+              {quickEditWOD.sections.map((section, idx) => (
+                <div key={idx} className="bg-white rounded-lg border border-gray-200 p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="font-semibold text-sm text-gray-900">{section.type}</div>
+                    <button
+                      onClick={() => {
+                        const newSections = quickEditWOD.sections.filter((_, i) => i !== idx);
+                        setQuickEditWOD({ ...quickEditWOD, sections: newSections });
+                      }}
+                      className="text-red-600 hover:text-red-800 text-xs"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  <div className="text-xs text-gray-500 mb-2">{section.duration}</div>
+                  <textarea
+                    value={section.content}
+                    onChange={(e) => {
+                      const newSections = [...quickEditWOD.sections];
+                      newSections[idx] = { ...newSections[idx], content: e.target.value };
+                      setQuickEditWOD({ ...quickEditWOD, sections: newSections });
+                    }}
+                    placeholder="Enter section content..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 placeholder-gray-400 text-sm min-h-[100px] resize-y"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="border-t p-4 bg-gray-50 flex gap-3">
+            <button
+              onClick={() => {
+                setQuickEditMode(false);
+                setQuickEditWOD(null);
+              }}
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 text-gray-700 font-medium transition"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={saveQuickEdit}
+              className="flex-1 px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white rounded-lg font-medium transition"
+            >
+              Save WOD
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* WOD Modal as Side Panel */}
       <WODModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={handleSaveWOD}
         date={modalDate}
         editingWOD={editingWOD}
+        isPanel={true}
+        panelOffset={searchPanelOpen ? 400 : quickEditMode ? 400 : 0}
+        initialNotesOpen={notesPanelOpen}
+        onNotesToggle={setNotesPanelOpen}
       />
+
+      {/* Coach Notes Side Panel */}
+      {notesPanel.isOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black bg-opacity-30 z-40"
+            onClick={closeNotesPanel}
+          />
+
+          {/* Side Panel */}
+          <div className="fixed right-0 top-0 h-full w-full max-w-2xl bg-white shadow-2xl z-50 flex flex-col animate-slide-in">
+            {/* Header */}
+            <div className="bg-[#208479] text-white p-6 flex justify-between items-start">
+              <div>
+                <h2 className="text-2xl font-bold mb-2">Coach Notes</h2>
+                <p className="text-sm opacity-90">
+                  {notesPanel.wod?.title} - {notesPanel.wod?.date ? new Date(notesPanel.wod.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
+                </p>
+              </div>
+              <button
+                onClick={closeNotesPanel}
+                className="hover:bg-[#1a6b62] p-2 rounded transition"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-gray-900">
+                    Notes
+                  </label>
+                  <textarea
+                    value={notesDraft}
+                    onChange={(e) => setNotesDraft(e.target.value)}
+                    placeholder="Add private notes about this workout...&#10;&#10;Examples:&#10;- Athlete feedback&#10;- Scaling options used&#10;- Time management notes&#10;- Equipment setup details&#10;- Modifications made"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 placeholder-gray-400 min-h-[400px] resize-y font-mono text-sm"
+                  />
+                  <p className="text-xs text-gray-500 mt-2">
+                    These notes are private and searchable. They&apos;ll help you find and reference this workout in the future.
+                  </p>
+                </div>
+
+                {/* WOD Preview */}
+                <div className="border-t pt-4">
+                  <h3 className="text-sm font-semibold text-gray-900 mb-2">Workout Preview</h3>
+                  <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                    <div className="text-sm">
+                      <span className="font-semibold text-gray-700">Class Times:</span>{' '}
+                      <span className="text-gray-900">{notesPanel.wod?.classTimes?.join(', ') || 'None'}</span>
+                    </div>
+                    <div className="text-sm">
+                      <span className="font-semibold text-gray-700">Sections:</span>{' '}
+                      <span className="text-gray-900">{notesPanel.wod?.sections?.length || 0}</span>
+                    </div>
+                    <div className="text-sm">
+                      <span className="font-semibold text-gray-700">Total Duration:</span>{' '}
+                      <span className="text-gray-900">
+                        {notesPanel.wod?.sections?.reduce((sum, s) => sum + s.duration, 0) || 0} mins
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="border-t p-6 bg-gray-50 flex justify-end gap-3">
+              <button
+                onClick={closeNotesPanel}
+                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 text-gray-700 font-medium transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveNotes}
+                className="px-6 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white rounded-lg font-medium transition"
+              >
+                Save Notes
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
