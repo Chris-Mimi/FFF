@@ -159,8 +159,11 @@ function ProfileTab({ userName, userId }: { userName: string; userId: string }) 
     weight_kg: '',
     emergency_contact_name: '',
     emergency_contact_phone: '',
+    avatar_url: '',
   });
   const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   useEffect(() => {
     fetchProfile();
@@ -196,7 +199,11 @@ function ProfileTab({ userName, userId }: { userName: string; userId: string }) 
           weight_kg: data.weight_kg?.toString() || '',
           emergency_contact_name: data.emergency_contact_name || '',
           emergency_contact_phone: data.emergency_contact_phone || '',
+          avatar_url: data.avatar_url || '',
         });
+        if (data.avatar_url) {
+          setAvatarUrl(data.avatar_url);
+        }
       } else {
         console.log('No profile data found, user will need to create profile');
       }
@@ -204,6 +211,53 @@ function ProfileTab({ userName, userId }: { userName: string; userId: string }) 
       console.error('Error fetching profile:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload an image file');
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      alert('File size must be less than 2MB');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      // Create a unique file path: userId/timestamp-filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${userId}/${Date.now()}.${fileExt}`;
+
+      // Upload to Supabase Storage
+      const { error } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (error) throw error;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      setAvatarUrl(publicUrl);
+      alert('Avatar uploaded successfully! Click "Save Changes" to update your profile.');
+    } catch (error: any) {
+      console.error('Error uploading avatar:', error);
+      alert(`Failed to upload avatar: ${error.message}`);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -246,6 +300,7 @@ function ProfileTab({ userName, userId }: { userName: string; userId: string }) 
         weight_kg: profile.weight_kg ? parseFloat(profile.weight_kg) : null,
         emergency_contact_name: profile.emergency_contact_name || null,
         emergency_contact_phone: profile.emergency_contact_phone || null,
+        avatar_url: avatarUrl || null,
       };
 
       console.log('Formatted profile data:', profileData);
@@ -300,12 +355,38 @@ function ProfileTab({ userName, userId }: { userName: string; userId: string }) 
       <div className="space-y-6">
         {/* Profile Picture */}
         <div className="flex items-center gap-4">
-          <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
-            <User size={40} className="text-gray-400" />
+          <div className="relative">
+            <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <User size={40} className="text-gray-400" />
+              )}
+            </div>
+            <label
+              htmlFor="avatar-upload"
+              className="absolute bottom-0 right-0 w-8 h-8 bg-[#208479] hover:bg-[#1a6b62] rounded-full flex items-center justify-center cursor-pointer transition shadow-lg"
+              title="Upload profile picture"
+            >
+              <Edit2 size={16} className="text-white" />
+              <input
+                id="avatar-upload"
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarUpload}
+                className="hidden"
+                disabled={uploading}
+              />
+            </label>
           </div>
           <div>
             <h3 className="text-xl font-semibold text-gray-900">{profile.full_name || userName}</h3>
             <p className="text-gray-600">Athlete</p>
+            {uploading && <p className="text-sm text-[#208479] mt-1">Uploading...</p>}
           </div>
         </div>
 
