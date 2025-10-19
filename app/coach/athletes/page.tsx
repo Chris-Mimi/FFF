@@ -45,7 +45,7 @@ export default function CoachAthletesPage() {
     try {
       const { data, error } = await supabase
         .from('athlete_profiles')
-        .select('*')
+        .select('id, user_id, full_name, email, date_of_birth, phone_number, height_cm, weight_kg')
         .order('full_name', { ascending: true });
 
       if (error) throw error;
@@ -273,15 +273,18 @@ export default function CoachAthletesPage() {
 }
 
 // Benchmarks Section Component
-function BenchmarksSection({ athleteId, onAddResult }: { athleteId: string; onAddResult: () => void }) {
+function BenchmarksSection({ athleteId, onAddResult }: { athleteId?: string; onAddResult: () => void }) {
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchResults();
+    if (athleteId) {
+      fetchResults();
+    }
   }, [athleteId]);
 
   const fetchResults = async () => {
+    if (!athleteId) return;
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -342,15 +345,18 @@ function BenchmarksSection({ athleteId, onAddResult }: { athleteId: string; onAd
 }
 
 // Lifts Section Component
-function LiftsSection({ athleteId, onAddResult }: { athleteId: string; onAddResult: () => void }) {
+function LiftsSection({ athleteId, onAddResult }: { athleteId?: string; onAddResult: () => void }) {
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchResults();
+    if (athleteId) {
+      fetchResults();
+    }
   }, [athleteId]);
 
   const fetchResults = async () => {
+    if (!athleteId) return;
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -416,15 +422,18 @@ function LiftsSection({ athleteId, onAddResult }: { athleteId: string; onAddResu
 }
 
 // Logbook Section Component
-function LogbookSection({ athleteId }: { athleteId: string }) {
+function LogbookSection({ athleteId }: { athleteId?: string }) {
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchLogs();
+    if (athleteId) {
+      fetchLogs();
+    }
   }, [athleteId]);
 
   const fetchLogs = async () => {
+    if (!athleteId) return;
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -497,7 +506,7 @@ function AddBenchmarkModal({
   onClose,
   onSave,
 }: {
-  athleteId: string;
+  athleteId?: string;
   athleteName: string;
   onClose: () => void;
   onSave: () => void;
@@ -513,7 +522,7 @@ function AddBenchmarkModal({
   ];
 
   const handleSave = async () => {
-    if (!benchmarkName || !result) {
+    if (!athleteId || !benchmarkName || !result) {
       alert('Please fill in benchmark name and result');
       return;
     }
@@ -627,7 +636,7 @@ function AddLiftModal({
   onClose,
   onSave,
 }: {
-  athleteId: string;
+  athleteId?: string;
   athleteName: string;
   onClose: () => void;
   onSave: () => void;
@@ -651,7 +660,7 @@ function AddLiftModal({
   };
 
   const handleSave = async () => {
-    if (!liftName || !weight) {
+    if (!athleteId || !liftName || !weight) {
       alert('Please fill in lift name and weight');
       return;
     }
