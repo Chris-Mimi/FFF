@@ -34,6 +34,11 @@ export default function CoachDashboard() {
   const [quickEditWOD, setQuickEditWOD] = useState<WODFormData | null>(null);
   const [draggedSection, setDraggedSection] = useState<{ type: string; duration: string; content: string } | null>(null);
   const [notesPanelOpen, setNotesPanelOpen] = useState(false);
+  const [workoutTypes, setWorkoutTypes] = useState<Array<{ id: string; name: string }>>([]);
+  const [selectedMovements, setSelectedMovements] = useState<string[]>([]);
+  const [selectedWorkoutTypes, setSelectedWorkoutTypes] = useState<string[]>([]);
+  const [selectedTracks, setSelectedTracks] = useState<string[]>([]);
+  const [movements, setMovements] = useState<Map<string, number>>(new Map());
 
   useEffect(() => {
     // Check authentication
@@ -64,6 +69,73 @@ export default function CoachDashboard() {
     checkAuth();
   }, [router]);
 
+  // Extract movements from WOD sections
+  const extractMovements = (wods: WODFormData[]): Map<string, number> => {
+    const movementCounts = new Map<string, number>();
+
+    // Common CrossFit movements to look for (ordered from most specific to least specific)
+    const movementPatterns = [
+      // Squats - most specific first
+      'Bulgarian Split Squats', 'Bulgarian Split Squat', 'Overhead Squats', 'Overhead Squat', 'Front Squats', 'Front Squat', 'Back Squats', 'Back Squat', 'Air Squats', 'Air Squat', 'Squat Cleans', 'Squat Clean', 'Pistols', 'Pistol',
+      // Deadlifts
+      'Romanian Deadlifts', 'Romanian Deadlift', 'Sumo Deadlifts', 'Sumo Deadlift', 'Deadlifts', 'Deadlift',
+      // Olympic lifts
+      'Squat Cleans', 'Squat Clean', 'Hang Cleans', 'Hang Clean', 'Power Cleans', 'Power Clean', 'Cleans', 'Clean',
+      'Squat Snatches', 'Squat Snatch', 'Hang Snatches', 'Hang Snatch', 'Power Snatches', 'Power Snatch', 'Snatches', 'Snatch',
+      // Press movements
+      'Handstand Push-ups', 'Handstand Push-up', 'Push Presses', 'Push Press', 'Shoulder Presses', 'Shoulder Press', 'Bench Presses', 'Bench Press', 'Strict Presses', 'Strict Press', 'Split Jerks', 'Split Jerk', 'Presses', 'Press', 'Jerks', 'Jerk',
+      // Pull movements
+      'Chest-to-Bar', 'Pull-ups', 'Pull-up', 'Pull-Up', 'Pullups', 'Pullup', 'Chin-ups', 'Chin-up', 'Chinups', 'Chinup', 'C2B',
+      // Push-ups
+      'Push-ups', 'Push-up', 'Push-Up', 'Pushups', 'Pushup', 'HSPU',
+      // Gymnastics
+      'Muscle-up', 'Muscle-Up', 'Muscle-ups', 'Ring Dips', 'Ring Dip', 'Bar Dips', 'Bar Dip',
+      'Toes to Bar', 'T2B', 'Knees to Elbow', 'K2E',
+      // Lunges
+      'Walking Lunges', 'Walking Lunge', 'Reverse Lunges', 'Reverse Lunge', 'Lunges', 'Lunge',
+      // Cardio equipment
+      'Assault Bike', 'Echo Bike', 'Air Bike', 'Ski Erg', 'Rowing', 'Row', 'Running', 'Run',
+      // Kettlebell movements - most specific first
+      'American Kettlebell Swings', 'American Kettlebell Swing', 'Russian Kettlebell Swings', 'Russian Kettlebell Swing', 'Kettlebell Swings', 'Kettlebell Swing', 'KB Swings', 'KB Swing', 'Turkish Get-Ups', 'Turkish Get-Up',
+      // Other movements
+      'GHD Sit-ups', 'GHD Sit-up', 'Sit-ups', 'Sit-up', 'Situps', 'Situp', 'Wall Balls', 'Wall Ball', 'Thrusters', 'Thruster',
+      'Double Unders', 'Double Under', 'Single Unders', 'Single Under', 'Jump Rope', 'Box Jumps', 'Box Jump', 'Burpees', 'Burpee',
+      'Farmer Carry', 'Sled Push', 'Sled Pull',
+      'Bear Crawl', 'Crab Walk', 'Elephant Walk', 'High Knees',
+      'Plank', 'V-up'
+    ];
+
+    wods.forEach(wod => {
+      wod.sections.forEach(section => {
+        const content = section.content.toLowerCase();
+
+        movementPatterns.forEach(movement => {
+          // Use a more flexible pattern that handles hyphens, asterisks, and other common formatting
+          const escapedMovement = movement.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const pattern = new RegExp(`(?:^|[\\s*•-])${escapedMovement}(?:[\\s*•-]|$|x|\\d)`, 'i');
+          if (pattern.test(content)) {
+            movementCounts.set(movement, (movementCounts.get(movement) || 0) + 1);
+          }
+        });
+      });
+    });
+
+    return movementCounts;
+  };
+
+  // Highlight search terms in text
+  const highlightText = (text: string, searchTerms: string[]): string => {
+    if (!searchTerms.length) return text;
+
+    let result = text;
+    searchTerms.forEach(term => {
+      const regex = new RegExp(`(${term})`, 'gi');
+      result = result.replace(regex, '<mark class="bg-yellow-200 text-gray-900">$1</mark>');
+    });
+
+    return result;
+  };
+
   const fetchTracksAndCounts = async () => {
     try {
       // Fetch all tracks
@@ -74,6 +146,15 @@ export default function CoachDashboard() {
 
       if (tracksError) throw tracksError;
       setTracks(tracksData || []);
+
+      // Fetch all workout types
+      const { data: typesData, error: typesError } = await supabase
+        .from('workout_types')
+        .select('*')
+        .order('name', { ascending: true });
+
+      if (typesError) throw typesError;
+      setWorkoutTypes(typesData || []);
 
       // Fetch WOD counts grouped by track_id
       const { data: wodsData, error: wodsError } = await supabase
@@ -98,7 +179,7 @@ export default function CoachDashboard() {
 
   // Search WODs with debounce
   useEffect(() => {
-    if (!searchQuery && !selectedTrack) {
+    if (!searchQuery && !selectedMovements.length && !selectedWorkoutTypes.length && !selectedTracks.length) {
       setSearchResults([]);
       return;
     }
@@ -109,20 +190,20 @@ export default function CoachDashboard() {
           .from('wods')
           .select('*');
 
-        // Filter by track if selected
-        if (selectedTrack) {
-          query = query.eq('track_id', selectedTrack);
+        // Filter by tracks if selected
+        if (selectedTracks.length > 0) {
+          query = query.in('track_id', selectedTracks);
         }
 
-        // Search in title, coach_notes, and sections content
-        if (searchQuery) {
-          query = query.or(`title.ilike.%${searchQuery}%,coach_notes.ilike.%${searchQuery}%`);
+        // Filter by workout types if selected
+        if (selectedWorkoutTypes.length > 0) {
+          query = query.in('workout_type_id', selectedWorkoutTypes);
         }
 
-        // Order by date descending and limit results
+        // Order by date descending and get all WODs (filter client-side for better section content search)
         const { data, error } = await query
           .order('date', { ascending: false })
-          .limit(50);
+          .limit(500);
 
         if (error) throw error;
 
@@ -157,23 +238,31 @@ export default function CoachDashboard() {
           coach_notes: wod.coach_notes || undefined
         })) || [];
 
-        // Client-side filter for sections content if search query exists
+        // Client-side filter for search query (OR logic for each term)
         if (searchQuery) {
+          const searchTerms = searchQuery.trim().toLowerCase().split(/\s+/);
           results = results.filter(wod => {
-            // Check if search term is in title or coach_notes (already filtered by DB)
-            const titleMatch = wod.title.toLowerCase().includes(searchQuery.toLowerCase());
-            const notesMatch = wod.coach_notes?.toLowerCase().includes(searchQuery.toLowerCase());
+            const combinedText = `${wod.title} ${wod.coach_notes || ''} ${wod.sections.map(s => s.content).join(' ')}`.toLowerCase();
+            // If ANY search term matches, include this WOD
+            return searchTerms.some(term => combinedText.includes(term));
+          });
+        }
 
-            // Check if search term is in any section content
-            const sectionsMatch = wod.sections.some(section =>
-              section.content.toLowerCase().includes(searchQuery.toLowerCase())
+        // Client-side filter for movements (AND logic)
+        if (selectedMovements.length > 0) {
+          results = results.filter(wod => {
+            const combinedContent = wod.sections.map(s => s.content.toLowerCase()).join(' ');
+            return selectedMovements.every(movement =>
+              new RegExp(`\\b${movement.toLowerCase()}\\b`, 'i').test(combinedContent)
             );
-
-            return titleMatch || notesMatch || sectionsMatch;
           });
         }
 
         setSearchResults(results);
+
+        // Update movements map from all WODs
+        const allMovements = extractMovements(results);
+        setMovements(allMovements);
       } catch (error) {
         console.error('Error searching WODs:', error);
       }
@@ -182,7 +271,7 @@ export default function CoachDashboard() {
     // Debounce search
     const timeoutId = setTimeout(searchWODs, 300);
     return () => clearTimeout(timeoutId);
-  }, [searchQuery, selectedTrack]);
+  }, [searchQuery, selectedMovements, selectedWorkoutTypes, selectedTracks]);
 
   const fetchWODs = async () => {
     try {
@@ -374,8 +463,9 @@ export default function CoachDashboard() {
         if (error) throw error;
       }
 
-      // Refresh WODs from database
+      // Refresh WODs and track counts from database
       await fetchWODs();
+      await fetchTracksAndCounts();
     } catch (error) {
       console.error('Error saving WOD:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -407,8 +497,9 @@ export default function CoachDashboard() {
 
       if (error) throw error;
 
-      // Refresh WODs and close panel
+      // Refresh WODs, track counts, and close panel
       await fetchWODs();
+      await fetchTracksAndCounts();
       closeNotesPanel();
     } catch (error) {
       console.error('Error saving notes:', error);
@@ -427,8 +518,9 @@ export default function CoachDashboard() {
 
       if (error) throw error;
 
-      // Refresh WODs from database
+      // Refresh WODs and track counts from database
       await fetchWODs();
+      await fetchTracksAndCounts();
     } catch (error) {
       console.error('Error deleting WOD:', error);
       alert('Error deleting WOD. Please try again.');
@@ -453,8 +545,9 @@ export default function CoachDashboard() {
 
       if (error) throw error;
 
-      // Refresh WODs from database
+      // Refresh WODs and track counts from database
       await fetchWODs();
+      await fetchTracksAndCounts();
     } catch (error) {
       console.error('Error copying WOD:', error);
       alert('Error copying WOD. Please try again.');
@@ -552,6 +645,7 @@ export default function CoachDashboard() {
       if (error) throw error;
 
       await fetchWODs();
+      await fetchTracksAndCounts();
       setQuickEditMode(false);
       setQuickEditWOD(null);
     } catch (error) {
@@ -602,11 +696,13 @@ export default function CoachDashboard() {
       <div className={`flex-1 flex flex-col transition-all duration-300 ${
         isModalOpen && notesPanelOpen && searchPanelOpen ? 'ml-[800px] mr-[800px]' :
         isModalOpen && notesPanelOpen ? 'ml-[800px] mr-[400px]' :
-        isModalOpen && searchPanelOpen ? 'ml-[800px] mr-[400px]' :
+        isModalOpen && searchPanelOpen ? 'ml-[800px] mr-[800px]' :
+        isModalOpen && quickEditMode && searchPanelOpen ? 'ml-[800px] mr-[1200px]' :
         isModalOpen && quickEditMode ? 'ml-[800px] mr-[400px]' :
+        quickEditMode && searchPanelOpen ? 'mr-[1200px]' :
         quickEditMode ? 'mr-[800px]' :
         isModalOpen ? 'ml-[800px]' :
-        searchPanelOpen ? 'mr-[400px]' : ''
+        searchPanelOpen ? 'mr-[800px]' : ''
       }`}>
       {/* Header */}
       <header className="bg-[#208479] text-white p-4 shadow-lg flex-shrink-0">
@@ -785,16 +881,6 @@ export default function CoachDashboard() {
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    openNotesPanel(wod);
-                                  }}
-                                  className="text-[#208479] hover:text-[#1a6b62] p-0.5"
-                                  title="Coach Notes"
-                                >
-                                  <FileText size={10} />
-                                </button>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
                                     handleCopyToClipboard(wod);
                                   }}
                                   className="text-[#208479] hover:text-[#1a6b62] p-0.5"
@@ -901,16 +987,6 @@ export default function CoachDashboard() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              openNotesPanel(wod);
-                            }}
-                            className="text-[#208479] hover:text-[#1a6b62] p-1 bg-white rounded shadow-sm"
-                            title="Coach Notes"
-                          >
-                            <FileText size={14} />
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
                               handleCopyToClipboard(wod);
                             }}
                             className="text-[#208479] hover:text-[#1a6b62] p-1 bg-white rounded shadow-sm"
@@ -952,144 +1028,359 @@ export default function CoachDashboard() {
 
       {/* WOD Search Panel */}
       {searchPanelOpen && (
-        <div className="fixed right-0 top-0 h-full w-[400px] bg-white shadow-2xl z-50 flex flex-col border-l-2 border-[#208479] animate-slide-in-right">
+        <div className="fixed right-0 top-0 h-full w-[800px] bg-white shadow-2xl z-50 flex flex-col border-l-2 border-[#208479] animate-slide-in-right">
           {/* Header */}
           <div className="bg-[#208479] text-white p-4 flex justify-between items-center">
             <h2 className="text-xl font-bold">Schedule a Workout</h2>
-            <button onClick={() => setSearchPanelOpen(false)} className="hover:bg-[#1a6b62] p-1 rounded transition">
+            <button onClick={() => {
+              setSearchPanelOpen(false);
+              setSelectedSearchWOD(null);
+              setSearchQuery('');
+              setSelectedMovements([]);
+              setSelectedWorkoutTypes([]);
+              setSelectedTracks([]);
+            }} className="hover:bg-[#1a6b62] p-1 rounded transition">
               <X size={24} />
             </button>
           </div>
 
-          {/* Search Bar */}
-          <div className="p-4 border-b">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 text-gray-400" size={18} />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search workout history..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[#208479] focus:border-transparent"
-              />
-            </div>
-          </div>
-
-          {/* Track Filter Section */}
-          <div className="flex-1 overflow-y-auto">
-            <div className="p-4 space-y-2">
-              {tracks.map((track) => (
-                <button
-                  key={track.id}
-                  onClick={() => setSelectedTrack(selectedTrack === track.id ? null : track.id)}
-                  className={`w-full text-left px-4 py-2 rounded-lg flex justify-between items-center transition ${
-                    selectedTrack === track.id ? 'bg-[#208479] text-white' : 'bg-white hover:bg-gray-100 text-gray-900'
-                  }`}
-                >
-                  <span className="font-medium">{track.name}</span>
-                  <span className={`text-sm ${selectedTrack === track.id ? 'opacity-75' : 'text-gray-600'}`}>{trackCounts[track.id] || 0}</span>
-                </button>
-              ))}
-            </div>
-
-            {/* Search Results */}
-            {!selectedSearchWOD && (searchQuery || selectedTrack) && (
-              <div className="border-t p-4">
-                <h3 className="font-semibold text-gray-900 mb-2">
-                  {searchQuery ? 'Search Results' : 'Track Workouts'}
-                </h3>
-                <div className="space-y-2">
-                  {searchResults.map((wod) => (
-                    <div
-                      key={wod.id}
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, wod, wod.date)}
-                      onClick={() => setSelectedSearchWOD(wod)}
-                      className="p-3 bg-white rounded-lg cursor-pointer hover:bg-gray-100 transition border border-gray-200"
-                    >
-                      <div className="font-semibold text-sm text-gray-900">{wod.title}</div>
-                      <div className="text-xs text-gray-600">{new Date(wod.date).toLocaleDateString()}</div>
-                    </div>
-                  ))}
-                  {searchResults.length === 0 && (
-                    <p className="text-sm text-gray-500">No results found</p>
+          {/* Two-Column Layout */}
+          <div className="flex-1 flex overflow-hidden">
+            {/* LEFT SIDEBAR - Filters */}
+            <div className="w-[200px] border-r overflow-y-auto bg-gray-50">
+              {/* Movements Section */}
+              <details className="border-b" open>
+                <summary className="px-3 py-2 font-semibold text-sm text-gray-900 cursor-pointer hover:bg-gray-100">
+                  Movements
+                </summary>
+                <div className="px-2 py-2 space-y-1">
+                  {Array.from(movements.entries())
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([movement, count]) => (
+                      <button
+                        key={movement}
+                        onClick={() => {
+                          setSelectedMovements(prev =>
+                            prev.includes(movement)
+                              ? prev.filter(m => m !== movement)
+                              : [...prev, movement]
+                          );
+                        }}
+                        className={`w-full text-left px-2 py-1 rounded text-xs flex justify-between items-center transition ${
+                          selectedMovements.includes(movement)
+                            ? 'bg-[#208479] text-white'
+                            : 'hover:bg-gray-200 text-gray-900'
+                        }`}
+                      >
+                        <span className="truncate">{movement}</span>
+                        <span className={`text-xs ml-1 ${selectedMovements.includes(movement) ? 'opacity-75' : 'text-gray-500'}`}>
+                          {count}
+                        </span>
+                      </button>
+                    ))}
+                  {movements.size === 0 && (
+                    <p className="text-xs text-gray-500 px-2 py-1">No movements found</p>
                   )}
                 </div>
-              </div>
-            )}
+              </details>
 
-            {/* WOD Detail View */}
-            {selectedSearchWOD && (
-              <div className="border-t p-4 flex-1 overflow-y-auto">
-                <button
-                  onClick={() => setSelectedSearchWOD(null)}
-                  className="text-sm text-[#208479] hover:text-[#1a6b62] mb-4 flex items-center gap-1"
-                >
-                  ← Back to results
-                </button>
+              {/* Workout Types Section */}
+              <details className="border-b" open>
+                <summary className="px-3 py-2 font-semibold text-sm text-gray-900 cursor-pointer hover:bg-gray-100">
+                  Workout Types
+                </summary>
+                <div className="px-2 py-2 space-y-1">
+                  {workoutTypes.map((type) => {
+                    const count = searchResults.filter(wod => wod.workout_type_id === type.id).length;
+                    return (
+                      <button
+                        key={type.id}
+                        onClick={() => {
+                          setSelectedWorkoutTypes(prev =>
+                            prev.includes(type.id)
+                              ? prev.filter(t => t !== type.id)
+                              : [...prev, type.id]
+                          );
+                        }}
+                        className={`w-full text-left px-2 py-1 rounded text-xs flex justify-between items-center transition ${
+                          selectedWorkoutTypes.includes(type.id)
+                            ? 'bg-[#208479] text-white'
+                            : 'hover:bg-gray-200 text-gray-900'
+                        }`}
+                      >
+                        <span className="truncate">{type.name}</span>
+                        <span className={`text-xs ml-1 ${selectedWorkoutTypes.includes(type.id) ? 'opacity-75' : 'text-gray-500'}`}>
+                          {count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                  {workoutTypes.length === 0 && (
+                    <p className="text-xs text-gray-500 px-2 py-1">No types found</p>
+                  )}
+                </div>
+              </details>
 
-                {/* Draggable Entire WOD */}
-                <div
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, selectedSearchWOD, selectedSearchWOD.date)}
-                  className="cursor-move hover:bg-gray-50 p-2 rounded-lg transition"
-                >
-                  <div className="space-y-4">
-                    <div className="flex items-start gap-2">
-                      <GripVertical size={20} className="text-gray-400 mt-1 flex-shrink-0" />
-                      <div className="flex-1">
-                        <h3 className="font-bold text-lg text-gray-900 mb-1">{selectedSearchWOD.title}</h3>
-                        <p className="text-xs text-gray-600">{new Date(selectedSearchWOD.date).toLocaleDateString()}</p>
-                      </div>
-                    </div>
+              {/* Tracks Section */}
+              <details className="border-b" open>
+                <summary className="px-3 py-2 font-semibold text-sm text-gray-900 cursor-pointer hover:bg-gray-100">
+                  Tracks
+                </summary>
+                <div className="px-2 py-2 space-y-1">
+                  {tracks.map((track) => (
+                    <button
+                      key={track.id}
+                      onClick={() => {
+                        setSelectedTracks(prev =>
+                          prev.includes(track.id)
+                            ? prev.filter(t => t !== track.id)
+                            : [...prev, track.id]
+                        );
+                      }}
+                      className={`w-full text-left px-2 py-1 rounded text-xs flex justify-between items-center transition ${
+                        selectedTracks.includes(track.id)
+                          ? 'bg-[#208479] text-white'
+                          : 'hover:bg-gray-200 text-gray-900'
+                      }`}
+                    >
+                      <span className="truncate">{track.name}</span>
+                      <span className={`text-xs ml-1 ${selectedTracks.includes(track.id) ? 'opacity-75' : 'text-gray-500'}`}>
+                        {trackCounts[track.id] || 0}
+                      </span>
+                    </button>
+                  ))}
+                  {tracks.length === 0 && (
+                    <p className="text-xs text-gray-500 px-2 py-1">No tracks found</p>
+                  )}
+                </div>
+              </details>
+            </div>
 
-                    {/* Sections with individual drag handles */}
-                    <div className="space-y-3">
-                      {selectedSearchWOD.sections.map((section, idx) => (
-                        <div
-                          key={idx}
-                          draggable
-                          onDragStart={(e) => {
-                            e.stopPropagation();
-                            handleSectionDragStart(e, { type: section.type, duration: String(section.duration), content: section.content });
-                          }}
-                          className="bg-white rounded-lg border border-gray-200 p-3 cursor-move hover:border-[#208479] transition flex gap-2"
+            {/* RIGHT SIDE - Search and Results */}
+            <div className="flex-1 flex flex-col overflow-hidden">
+              {/* Search Bar */}
+              <div className="p-4 border-b">
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 text-gray-400" size={18} />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search workout history..."
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[#208479] focus:border-transparent"
+                  />
+                </div>
+
+                {/* Active Filter Chips */}
+                {(searchQuery || selectedMovements.length > 0 || selectedWorkoutTypes.length > 0 || selectedTracks.length > 0) && (
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {searchQuery && (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-[#208479] text-white text-xs rounded-full">
+                        Search: &quot;{searchQuery}&quot;
+                        <button onClick={() => setSearchQuery('')} className="hover:bg-[#1a6b62] rounded-full p-0.5">
+                          <X size={12} />
+                        </button>
+                      </span>
+                    )}
+                    {selectedMovements.map(movement => (
+                      <span key={movement} className="inline-flex items-center gap-1 px-2 py-1 bg-[#208479] text-white text-xs rounded-full">
+                        {movement}
+                        <button
+                          onClick={() => setSelectedMovements(prev => prev.filter(m => m !== movement))}
+                          className="hover:bg-[#1a6b62] rounded-full p-0.5"
                         >
-                          <GripVertical size={16} className="text-gray-400 flex-shrink-0 mt-1" />
-                          <div className="flex-1">
-                            <div className="font-semibold text-sm text-gray-900 mb-1">{section.type}</div>
-                            <div className="text-xs text-gray-500 mb-2">{section.duration}</div>
-                            <div className="text-sm text-gray-700 whitespace-pre-wrap">{section.content}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                          <X size={12} />
+                        </button>
+                      </span>
+                    ))}
+                    {selectedWorkoutTypes.map(typeId => {
+                      const type = workoutTypes.find(t => t.id === typeId);
+                      return type ? (
+                        <span key={typeId} className="inline-flex items-center gap-1 px-2 py-1 bg-[#208479] text-white text-xs rounded-full">
+                          {type.name}
+                          <button
+                            onClick={() => setSelectedWorkoutTypes(prev => prev.filter(t => t !== typeId))}
+                            className="hover:bg-[#1a6b62] rounded-full p-0.5"
+                          >
+                            <X size={12} />
+                          </button>
+                        </span>
+                      ) : null;
+                    })}
+                    {selectedTracks.map(trackId => {
+                      const track = tracks.find(t => t.id === trackId);
+                      return track ? (
+                        <span key={trackId} className="inline-flex items-center gap-1 px-2 py-1 bg-[#208479] text-white text-xs rounded-full">
+                          {track.name}
+                          <button
+                            onClick={() => setSelectedTracks(prev => prev.filter(t => t !== trackId))}
+                            className="hover:bg-[#1a6b62] rounded-full p-0.5"
+                          >
+                            <X size={12} />
+                          </button>
+                        </span>
+                      ) : null;
+                    })}
+                  </div>
+                )}
+              </div>
 
-                    {/* Coach Notes */}
-                    {selectedSearchWOD.coach_notes && (
-                      <div className="bg-yellow-50 rounded-lg border border-yellow-200 p-3">
-                        <div className="font-semibold text-sm text-gray-900 mb-1">Coach Notes</div>
-                        <div className="text-sm text-gray-700 whitespace-pre-wrap">{selectedSearchWOD.coach_notes}</div>
-                      </div>
+              {/* Search Results */}
+              {!selectedSearchWOD && (searchQuery || selectedMovements.length > 0 || selectedWorkoutTypes.length > 0 || selectedTracks.length > 0) && (
+                <div className="flex-1 overflow-y-auto p-4">
+                  <h3 className="font-semibold text-gray-900 mb-3">
+                    Results ({searchResults.length})
+                  </h3>
+                  <div className="space-y-3">
+                    {searchResults.map((wod) => {
+                      const wodSection = wod.sections.find(s => s.type.toLowerCase() === 'wod');
+                      const wodDate = new Date(wod.date);
+                      const formattedDate = wodDate.toLocaleDateString('en-GB', {
+                        weekday: 'long',
+                        day: 'numeric',
+                        month: 'long',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      });
+                      const searchTerms = searchQuery.trim().split(/\s+/).filter(Boolean);
+
+                      return (
+                        <div
+                          key={wod.id}
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, wod, wod.date)}
+                          onClick={() => setSelectedSearchWOD(wod)}
+                          className="p-3 bg-white rounded-lg cursor-pointer hover:bg-gray-50 transition border border-gray-200 hover:border-[#208479]"
+                        >
+                          <div className="text-xs text-gray-500 mb-1">{formattedDate}</div>
+                          <div
+                            className="font-semibold text-sm text-gray-900 mb-2"
+                            dangerouslySetInnerHTML={{ __html: highlightText(wod.title, searchTerms) }}
+                          />
+                          {wodSection && (
+                            <div
+                              className="text-xs text-gray-700 whitespace-pre-wrap line-clamp-3"
+                              dangerouslySetInnerHTML={{ __html: highlightText(wodSection.content, searchTerms) }}
+                            />
+                          )}
+                        </div>
+                      );
+                    })}
+                    {searchResults.length === 0 && (
+                      <p className="text-sm text-gray-500">No results found</p>
                     )}
                   </div>
                 </div>
+              )}
 
-                {/* Action Buttons */}
-                <div className="flex gap-2 pt-4">
+              {/* WOD Detail View */}
+              {selectedSearchWOD && (
+                <div className="flex-1 overflow-y-auto p-4">
                   <button
-                    onClick={() => {
-                      openEditModal(selectedSearchWOD);
-                      setSearchPanelOpen(false);
-                      setSelectedSearchWOD(null);
-                    }}
-                    className="flex-1 px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white rounded-lg font-medium transition"
+                    onClick={() => setSelectedSearchWOD(null)}
+                    className="text-sm text-[#208479] hover:text-[#1a6b62] mb-4 flex items-center gap-1"
                   >
-                    Edit WOD
+                    ← Back to results
                   </button>
+
+                  {/* Draggable Entire WOD */}
+                  <div className="hover:bg-gray-50 p-2 rounded-lg transition" id={`wod-${selectedSearchWOD.id}`}>
+                    <div className="space-y-4">
+                      <div className="flex items-start gap-2">
+                        <div
+                          draggable
+                          onDragStart={(e) => {
+                            const wodElement = document.getElementById(`wod-${selectedSearchWOD.id}`);
+                            if (wodElement) {
+                              const ghost = wodElement.cloneNode(true) as HTMLElement;
+                              ghost.style.position = 'absolute';
+                              ghost.style.top = '-9999px';
+                              ghost.style.width = wodElement.offsetWidth + 'px';
+                              ghost.style.backgroundColor = '#f9fafb';
+                              ghost.style.padding = '8px';
+                              ghost.style.borderRadius = '8px';
+                              ghost.style.opacity = '0.9';
+                              document.body.appendChild(ghost);
+                              e.dataTransfer.setDragImage(ghost, 10, 10);
+                              setTimeout(() => document.body.removeChild(ghost), 0);
+                            }
+                            handleDragStart(e, selectedSearchWOD, selectedSearchWOD.date);
+                          }}
+                          className="cursor-move"
+                        >
+                          <GripVertical size={20} className="text-gray-400 mt-1 flex-shrink-0" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-bold text-lg text-gray-900 mb-1">{selectedSearchWOD.title}</h3>
+                          <p className="text-xs text-gray-600">{new Date(selectedSearchWOD.date).toLocaleDateString()}</p>
+                        </div>
+                      </div>
+
+                      {/* Sections with individual drag handles */}
+                      <div className="space-y-3">
+                        {selectedSearchWOD.sections.map((section, idx) => (
+                          <div
+                            key={idx}
+                            id={`section-${selectedSearchWOD.id}-${idx}`}
+                            className="bg-white rounded-lg border border-gray-200 p-3 hover:border-[#208479] transition flex gap-2"
+                          >
+                            <div
+                              draggable
+                              onDragStart={(e) => {
+                                e.stopPropagation();
+                                const sectionElement = document.getElementById(`section-${selectedSearchWOD.id}-${idx}`);
+                                if (sectionElement) {
+                                  const ghost = sectionElement.cloneNode(true) as HTMLElement;
+                                  ghost.style.position = 'absolute';
+                                  ghost.style.top = '-9999px';
+                                  ghost.style.width = sectionElement.offsetWidth + 'px';
+                                  ghost.style.backgroundColor = 'white';
+                                  ghost.style.opacity = '0.9';
+                                  document.body.appendChild(ghost);
+                                  e.dataTransfer.setDragImage(ghost, 10, 10);
+                                  setTimeout(() => document.body.removeChild(ghost), 0);
+                                }
+                                handleSectionDragStart(e, { type: section.type, duration: String(section.duration), content: section.content });
+                              }}
+                              className="cursor-move"
+                            >
+                              <GripVertical size={16} className="text-gray-400 flex-shrink-0 mt-1" />
+                            </div>
+                            <div className="flex-1">
+                              <div className="font-semibold text-sm text-gray-900 mb-1">{section.type}</div>
+                              <div className="text-xs text-gray-500 mb-2">{section.duration} min</div>
+                              <div className="text-sm text-gray-700 whitespace-pre-wrap">{section.content}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Coach Notes */}
+                      {selectedSearchWOD.coach_notes && (
+                        <div className="bg-yellow-50 rounded-lg border border-yellow-200 p-3">
+                          <div className="font-semibold text-sm text-gray-900 mb-1">Coach Notes</div>
+                          <div className="text-sm text-gray-700 whitespace-pre-wrap">{selectedSearchWOD.coach_notes}</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-2 pt-4">
+                    <button
+                      onClick={() => {
+                        openEditModal(selectedSearchWOD);
+                        setSearchPanelOpen(false);
+                        setSelectedSearchWOD(null);
+                      }}
+                      className="flex-1 px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white rounded-lg font-medium transition"
+                    >
+                      Edit WOD
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
           {/* Footer */}
@@ -1109,7 +1400,7 @@ export default function CoachDashboard() {
 
       {/* Quick Edit Panel */}
       {quickEditMode && quickEditWOD && (
-        <div className="fixed right-0 top-0 h-full w-[400px] bg-white shadow-2xl z-50 flex flex-col border-l-2 border-[#208479] animate-slide-in-right" style={{ right: searchPanelOpen ? '400px' : '0' }}>
+        <div className="fixed right-0 top-0 h-full w-[400px] bg-white shadow-2xl z-50 flex flex-col border-l-2 border-[#208479] animate-slide-in-right" style={{ right: searchPanelOpen ? '800px' : '0' }}>
           {/* Header */}
           <div className="bg-[#208479] text-white p-4 flex justify-between items-center">
             <h2 className="text-xl font-bold">Quick Edit WOD</h2>
@@ -1211,7 +1502,7 @@ export default function CoachDashboard() {
         date={modalDate}
         editingWOD={editingWOD}
         isPanel={true}
-        panelOffset={searchPanelOpen ? 400 : quickEditMode ? 400 : 0}
+        panelOffset={searchPanelOpen ? 800 : quickEditMode ? 400 : 0}
         initialNotesOpen={notesPanelOpen}
         onNotesToggle={setNotesPanelOpen}
       />
