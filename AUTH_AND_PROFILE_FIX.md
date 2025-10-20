@@ -3,10 +3,16 @@
 ## Issues Identified
 
 ### Issue 1: Session Not Persisting (Browser Not Offering to Save Password)
-**Root Cause:** The Supabase client was not configured to persist authentication sessions in localStorage. It was using default settings which don't enable session persistence.
+
+**Root Cause:** The Supabase client was not configured to persist authentication
+sessions in localStorage. It was using default settings which don't enable
+session persistence.
 
 ### Issue 2: Profile Data Not Saving
-**Root Cause:** No specific bug in the save logic, but the function lacked proper debugging and user feedback. The issue was likely related to:
+
+**Root Cause:** No specific bug in the save logic, but the function lacked
+proper debugging and user feedback. The issue was likely related to:
+
 1. No visual confirmation that save succeeded or failed
 2. Errors being swallowed silently
 3. No debugging output to help diagnose issues
@@ -14,18 +20,22 @@
 ## Files Modified
 
 ### 1. `/lib/supabase.ts` (Lines 6-13)
+
 **What Changed:**
+
 - Added authentication configuration with `persistSession: true`
 - Enabled `autoRefreshToken` for automatic token renewal
 - Configured `detectSessionInUrl` for OAuth redirects
 - Set storage to use `localStorage` for session persistence
 
 **Before:**
+
 ```typescript
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 ```
 
 **After:**
+
 ```typescript
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
@@ -38,22 +48,33 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 ```
 
 **Why This Fixes Session Persistence:**
+
 - `persistSession: true` tells Supabase to store the session in localStorage
 - This allows the browser to offer password-saving functionality
 - Sessions will persist across page reloads and browser restarts
 - Users won't need to log in every time
 
 ### 2. `/lib/auth.ts` (Lines 8-17, 60-75)
+
 **What Changed:**
+
 - Added console logging to `getCurrentUser()` to track session retrieval
 - Added console logging to `signInWithEmail()` to track login success
 
 **Lines 8-17:**
+
 ```typescript
 export async function getCurrentUser(): Promise<User | null> {
   try {
-    const { data: { user }, error } = await supabase.auth.getUser();
-    console.log('getCurrentUser result:', { user: user?.id, email: user?.email, error });
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
+    console.log('getCurrentUser result:', {
+      user: user?.id,
+      email: user?.email,
+      error,
+    });
     if (error) throw error;
     return user;
   } catch (error) {
@@ -64,6 +85,7 @@ export async function getCurrentUser(): Promise<User | null> {
 ```
 
 **Lines 60-75:**
+
 ```typescript
 export async function signInWithEmail(email: string, password: string) {
   try {
@@ -74,7 +96,11 @@ export async function signInWithEmail(email: string, password: string) {
     });
 
     if (error) throw error;
-    console.log('Sign in successful:', { userId: data.user?.id, email: data.user?.email, session: !!data.session });
+    console.log('Sign in successful:', {
+      userId: data.user?.id,
+      email: data.user?.email,
+      session: !!data.session,
+    });
     return data;
   } catch (error) {
     console.error('Error signing in:', error);
@@ -84,7 +110,9 @@ export async function signInWithEmail(email: string, password: string) {
 ```
 
 ### 3. `/app/athlete/page.tsx` (Lines 169-206, 202-263)
+
 **What Changed:**
+
 - Added extensive console logging to `fetchProfile()` to debug data loading
 - Added console logging to `handleSaveProfile()` to track save operations
 - Changed alerts to provide more specific feedback (create vs update)
@@ -92,6 +120,7 @@ export async function signInWithEmail(email: string, password: string) {
 - Improved error messages to show the actual error
 
 **Lines 169-206 (fetchProfile):**
+
 ```typescript
 const fetchProfile = async () => {
   console.log('Fetching profile for user:', userId);
@@ -124,6 +153,7 @@ const fetchProfile = async () => {
 ```
 
 **Lines 202-263 (handleSaveProfile):**
+
 ```typescript
 const handleSaveProfile = async () => {
   console.log('Starting profile save for user:', userId);
@@ -164,6 +194,7 @@ const handleSaveProfile = async () => {
 ## Database Schema Updates Required
 
 ### Missing Columns in Supabase
+
 Run this SQL in your Supabase SQL Editor to add missing columns:
 
 ```sql
@@ -180,7 +211,9 @@ This SQL has been saved to: `supabase-athlete-tables-update.sql`
 ## Testing Instructions
 
 ### Test 1: Session Persistence
-1. Clear your browser's localStorage (DevTools > Application > Local Storage > Clear)
+
+1. Clear your browser's localStorage (DevTools > Application > Local Storage >
+   Clear)
 2. Log in with your credentials
 3. **Expected:** Browser should offer to save your password
 4. **Check Console:** Should see "Sign in successful" with user info
@@ -192,6 +225,7 @@ This SQL has been saved to: `supabase-athlete-tables-update.sql`
 10. **Expected:** Should still be logged in
 
 ### Test 2: Profile Data Save
+
 1. Log in and go to Profile tab
 2. Open browser DevTools Console (F12)
 3. Fill out profile fields (name, email, phone, etc.)
@@ -203,7 +237,8 @@ This SQL has been saved to: `supabase-athlete-tables-update.sql`
    - "Formatted profile data: {...}"
    - Either "Updating existing profile" or "Inserting new profile"
    - "Update/Insert result: {data: [...], error: null}"
-6. **Expected Alert:** "Profile created successfully!" or "Profile updated successfully!"
+6. **Expected Alert:** "Profile created successfully!" or "Profile updated
+   successfully!"
 7. Refresh the page (F5)
 8. **Expected:** All profile data should still be there
 9. Log out, log back in
@@ -212,6 +247,7 @@ This SQL has been saved to: `supabase-athlete-tables-update.sql`
 ### What to Look For in Console
 
 **On Successful Save:**
+
 ```
 Starting profile save for user: abc-123-def-456
 Profile data to save: {full_name: "John Doe", email: "john@example.com", ...}
@@ -222,6 +258,7 @@ Insert result: {data: [{id: "xyz-789", ...}], error: null}
 ```
 
 **On Failed Save (Shows the problem):**
+
 ```
 Starting profile save for user: abc-123-def-456
 Profile data to save: {full_name: "John Doe", ...}
@@ -232,11 +269,13 @@ Insert result: {data: null, error: {message: "duplicate key value violates uniqu
 ## What Each Fix Does
 
 ### Session Persistence Fix
+
 - **Before:** Sessions stored in memory only, cleared on page refresh
 - **After:** Sessions stored in localStorage, persist across sessions
 - **Result:** Browser can save passwords, users stay logged in
 
 ### Profile Save Fix
+
 - **Before:** Silent failures, no feedback, hard to debug
 - **After:** Detailed logging, clear success/error messages, visible errors
 - **Result:** You can see exactly what's happening and where it fails
@@ -244,12 +283,14 @@ Insert result: {data: null, error: {message: "duplicate key value violates uniqu
 ## Troubleshooting
 
 ### If Session Still Not Persisting:
+
 1. Check browser console for errors
 2. Verify localStorage is enabled (some privacy modes disable it)
 3. Check DevTools > Application > Local Storage > [your-domain]
    - Should see keys like `supabase.auth.token`
 
 ### If Profile Still Not Saving:
+
 1. Check console logs for the exact error message
 2. Common issues:
    - **RLS Policy Error:** Database permissions not set correctly
@@ -261,6 +302,7 @@ Insert result: {data: null, error: {message: "duplicate key value violates uniqu
    - Verify your user_id matches the session user_id
 
 ### If Data Fetches But Doesn't Display:
+
 1. Check console: "Setting profile data from database"
 2. Verify the data structure matches the form state
 3. Check for type mismatches (numbers as strings, etc.)
@@ -275,21 +317,30 @@ Insert result: {data: null, error: {message: "duplicate key value violates uniqu
 ## Additional Notes
 
 ### Console Logging (For Development Only)
-The extensive console logging added is for debugging purposes. Once everything works:
+
+The extensive console logging added is for debugging purposes. Once everything
+works:
+
 - You can remove the console.log statements
 - Or wrap them in `if (process.env.NODE_ENV === 'development')`
 - Keep the console.error statements for production debugging
 
 ### Security Considerations
-The current setup uses PUBLIC RLS policies (lines 124-172 in supabase-athlete-tables.sql) which allow anyone to access data. This is noted as "for development" in the SQL comments.
+
+The current setup uses PUBLIC RLS policies (lines 124-172 in
+supabase-athlete-tables.sql) which allow anyone to access data. This is noted as
+"for development" in the SQL comments.
 
 **Before production:**
+
 1. Remove the PUBLIC policies (lines 124-172)
 2. Keep only the user-specific policies (lines 72-122)
 3. Test that users can only access their own data
 
 ### Browser Password Manager
+
 Now that sessions persist properly:
+
 - Chrome/Edge: Should offer "Save password" on login
 - Firefox: Should offer "Save password" on login
 - Safari: Should offer to save to Keychain

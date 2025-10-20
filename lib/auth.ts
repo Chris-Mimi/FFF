@@ -7,7 +7,10 @@ import { User } from '@supabase/supabase-js';
  */
 export async function getCurrentUser(): Promise<User | null> {
   try {
-    const { data: { user }, error } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
     console.log('getCurrentUser result:', { user: user?.id, email: user?.email, error });
     if (error) throw error;
     return user;
@@ -66,7 +69,11 @@ export async function signInWithEmail(email: string, password: string) {
     });
 
     if (error) throw error;
-    console.log('Sign in successful:', { userId: data.user?.id, email: data.user?.email, session: !!data.session });
+    console.log('Sign in successful:', {
+      userId: data.user?.id,
+      email: data.user?.email,
+      session: !!data.session,
+    });
     return data;
   } catch (error) {
     console.error('Error signing in:', error);

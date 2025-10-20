@@ -37,3 +37,7 @@ Thumbs.db
 
 # Misc
 *.log
+# ----------------------------------
+# Personal Notes and Workflow Files
+# ----------------------------------
+/Chris Notes

@@ -1,7 +1,7 @@
 # Workflow Protocols (Agent & Context Mandates)
 
-Version: 1.1
-Timestamp: [UPDATE ON REVISION]
+Version: 1.2
+Timestamp: 2025-10-21
 
 ## Core Principle: Token Efficiency
 
@@ -9,6 +9,62 @@ Timestamp: [UPDATE ON REVISION]
 
 - **Warning Level (60%):** Suggest session end after current task.
 - **Critical Level (70%):** **STOP** new complex tasks, complete current work, and **END SESSION** to start fresh.
+
+---
+
+## 🤖 AI Assistant Selection (Cost & Efficiency)
+
+### When to Use Cline (VS Code)
+
+**Best for:**
+- ✅ Quick UI tweaks (single component)
+- ✅ TypeScript/React refactoring (IntelliSense feedback)
+- ✅ Single-file edits
+- ✅ Visual changes (immediate preview)
+
+**Requirements:**
+- ⚠️ **Subagents MUST be enabled** (50-70% cost savings)
+- ⚠️ Break large tasks into small pieces (reduce context)
+- ⚠️ Clear chat between unrelated tasks
+
+**Cost (with subagents):** $0.10-0.15 per medium task
+**Cost (without subagents):** $0.30-0.50 per medium task ❌ AVOID
+
+### When to Use Claude Code (Me - CLI)
+
+**Best for:**
+- ✅ Multi-file features (3+ files)
+- ✅ Complex refactoring
+- ✅ Database/backend issues
+- ✅ Memory Bank updates
+- ✅ Git operations
+- ✅ Bug investigations
+- ✅ Architecture planning
+
+**Advantages:**
+- ✅ Uses Task agents automatically (per 3-Point Test)
+- ✅ Better for full codebase context
+- ✅ Safer Git/Memory Bank handling
+
+**Cost:** $0.12-0.20 per medium task (agents included)
+
+### Decision Matrix
+
+| Task Type | Use | Why |
+|:---|:---|:---|
+| "Change button color" | Cline | Single file, instant preview |
+| "Add delete icon to month view" | Cline (if subagents work) | UI-focused, TypeScript feedback |
+| "Refactor authentication system" | Claude Code | Multi-file, complex, needs agents |
+| "Fix database RLS policies" | Claude Code | Backend, requires debugging |
+| "Update Memory Bank" | Claude Code | Designed for it |
+| "Create Git commit" | Claude Code | Safer, more experience |
+| "Implement new feature (3+ files)" | Claude Code | Needs Task agents |
+
+### Cost Tracking
+
+**Monitor usage:** https://console.anthropic.com/settings/billing
+**Set budget alerts** in Anthropic Console
+**Review monthly:** Identify which assistant is most cost-effective for your workflow
 
 ---
 

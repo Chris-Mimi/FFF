@@ -1,11 +1,23 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { LogOut, Plus, Trash2, Calendar, CalendarDays, Copy, BarChart3, Users, FileText, Search, X, GripVertical } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import WODModal, { WODFormData, WODSection } from '@/components/WODModal';
-import { supabase } from '@/lib/supabase';
 import { getCurrentUser, signOut } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
+import {
+  BarChart3,
+  Calendar,
+  CalendarDays,
+  Copy,
+  GripVertical,
+  LogOut,
+  Plus,
+  Search,
+  Trash2,
+  Users,
+  X,
+} from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 type ViewMode = 'weekly' | 'monthly';
 
@@ -18,21 +30,29 @@ export default function CoachDashboard() {
   const [modalDate, setModalDate] = useState<Date>(new Date());
   const [editingWOD, setEditingWOD] = useState<WODFormData | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('weekly');
-  const [draggedWOD, setDraggedWOD] = useState<{ wod: WODFormData; sourceDate: string } | null>(null);
+  const [draggedWOD, setDraggedWOD] = useState<{ wod: WODFormData; sourceDate: string } | null>(
+    null
+  );
   const [copiedWOD, setCopiedWOD] = useState<WODFormData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [notesPanel, setNotesPanel] = useState<{ isOpen: boolean; wod: WODFormData | null }>({ isOpen: false, wod: null });
+  const [notesPanel, setNotesPanel] = useState<{ isOpen: boolean; wod: WODFormData | null }>({
+    isOpen: false,
+    wod: null,
+  });
   const [notesDraft, setNotesDraft] = useState('');
   const [searchPanelOpen, setSearchPanelOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTrack, setSelectedTrack] = useState<string | null>(null);
   const [searchResults, setSearchResults] = useState<WODFormData[]>([]);
   const [tracks, setTracks] = useState<Array<{ id: string; name: string }>>([]);
   const [trackCounts, setTrackCounts] = useState<Record<string, number>>({});
   const [selectedSearchWOD, setSelectedSearchWOD] = useState<WODFormData | null>(null);
   const [quickEditMode, setQuickEditMode] = useState(false);
   const [quickEditWOD, setQuickEditWOD] = useState<WODFormData | null>(null);
-  const [draggedSection, setDraggedSection] = useState<{ type: string; duration: string; content: string } | null>(null);
+  const [draggedSection, setDraggedSection] = useState<{
+    type: string;
+    duration: string;
+    content: string;
+  } | null>(null);
   const [notesPanelOpen, setNotesPanelOpen] = useState(false);
   const [workoutTypes, setWorkoutTypes] = useState<Array<{ id: string; name: string }>>([]);
   const [selectedMovements, setSelectedMovements] = useState<string[]>([]);
@@ -59,7 +79,7 @@ export default function CoachDashboard() {
 
       setUser({
         role,
-        name: currentUser.user_metadata?.full_name || currentUser.email || 'Coach'
+        name: currentUser.user_metadata?.full_name || currentUser.email || 'Coach',
       });
       setLoading(false);
       fetchWODs();
@@ -76,33 +96,148 @@ export default function CoachDashboard() {
     // Common CrossFit movements to look for (ordered from most specific to least specific)
     const movementPatterns = [
       // Squats - most specific first
-      'Bulgarian Split Squats', 'Bulgarian Split Squat', 'Overhead Squats', 'Overhead Squat', 'Front Squats', 'Front Squat', 'Back Squats', 'Back Squat', 'Air Squats', 'Air Squat', 'Squat Cleans', 'Squat Clean', 'Pistols', 'Pistol',
+      'Bulgarian Split Squats',
+      'Bulgarian Split Squat',
+      'Overhead Squats',
+      'Overhead Squat',
+      'Front Squats',
+      'Front Squat',
+      'Back Squats',
+      'Back Squat',
+      'Air Squats',
+      'Air Squat',
+      'Squat Cleans',
+      'Squat Clean',
+      'Pistols',
+      'Pistol',
       // Deadlifts
-      'Romanian Deadlifts', 'Romanian Deadlift', 'Sumo Deadlifts', 'Sumo Deadlift', 'Deadlifts', 'Deadlift',
+      'Romanian Deadlifts',
+      'Romanian Deadlift',
+      'Sumo Deadlifts',
+      'Sumo Deadlift',
+      'Deadlifts',
+      'Deadlift',
       // Olympic lifts
-      'Squat Cleans', 'Squat Clean', 'Hang Cleans', 'Hang Clean', 'Power Cleans', 'Power Clean', 'Cleans', 'Clean',
-      'Squat Snatches', 'Squat Snatch', 'Hang Snatches', 'Hang Snatch', 'Power Snatches', 'Power Snatch', 'Snatches', 'Snatch',
+      'Squat Cleans',
+      'Squat Clean',
+      'Hang Cleans',
+      'Hang Clean',
+      'Power Cleans',
+      'Power Clean',
+      'Cleans',
+      'Clean',
+      'Squat Snatches',
+      'Squat Snatch',
+      'Hang Snatches',
+      'Hang Snatch',
+      'Power Snatches',
+      'Power Snatch',
+      'Snatches',
+      'Snatch',
       // Press movements
-      'Handstand Push-ups', 'Handstand Push-up', 'Push Presses', 'Push Press', 'Shoulder Presses', 'Shoulder Press', 'Bench Presses', 'Bench Press', 'Strict Presses', 'Strict Press', 'Split Jerks', 'Split Jerk', 'Presses', 'Press', 'Jerks', 'Jerk',
+      'Handstand Push-ups',
+      'Handstand Push-up',
+      'Push Presses',
+      'Push Press',
+      'Shoulder Presses',
+      'Shoulder Press',
+      'Bench Presses',
+      'Bench Press',
+      'Strict Presses',
+      'Strict Press',
+      'Split Jerks',
+      'Split Jerk',
+      'Presses',
+      'Press',
+      'Jerks',
+      'Jerk',
       // Pull movements
-      'Chest-to-Bar', 'Pull-ups', 'Pull-up', 'Pull-Up', 'Pullups', 'Pullup', 'Chin-ups', 'Chin-up', 'Chinups', 'Chinup', 'C2B',
+      'Chest-to-Bar',
+      'Pull-ups',
+      'Pull-up',
+      'Pull-Up',
+      'Pullups',
+      'Pullup',
+      'Chin-ups',
+      'Chin-up',
+      'Chinups',
+      'Chinup',
+      'C2B',
       // Push-ups
-      'Push-ups', 'Push-up', 'Push-Up', 'Pushups', 'Pushup', 'HSPU',
+      'Push-ups',
+      'Push-up',
+      'Push-Up',
+      'Pushups',
+      'Pushup',
+      'HSPU',
       // Gymnastics
-      'Muscle-up', 'Muscle-Up', 'Muscle-ups', 'Ring Dips', 'Ring Dip', 'Bar Dips', 'Bar Dip',
-      'Toes to Bar', 'T2B', 'Knees to Elbow', 'K2E',
+      'Muscle-up',
+      'Muscle-Up',
+      'Muscle-ups',
+      'Ring Dips',
+      'Ring Dip',
+      'Bar Dips',
+      'Bar Dip',
+      'Toes to Bar',
+      'T2B',
+      'Knees to Elbow',
+      'K2E',
       // Lunges
-      'Walking Lunges', 'Walking Lunge', 'Reverse Lunges', 'Reverse Lunge', 'Lunges', 'Lunge',
+      'Walking Lunges',
+      'Walking Lunge',
+      'Reverse Lunges',
+      'Reverse Lunge',
+      'Lunges',
+      'Lunge',
       // Cardio equipment
-      'Assault Bike', 'Echo Bike', 'Air Bike', 'Ski Erg', 'Rowing', 'Row', 'Running', 'Run',
+      'Assault Bike',
+      'Echo Bike',
+      'Air Bike',
+      'Ski Erg',
+      'Rowing',
+      'Row',
+      'Running',
+      'Run',
       // Kettlebell movements - most specific first
-      'American Kettlebell Swings', 'American Kettlebell Swing', 'Russian Kettlebell Swings', 'Russian Kettlebell Swing', 'Kettlebell Swings', 'Kettlebell Swing', 'KB Swings', 'KB Swing', 'Turkish Get-Ups', 'Turkish Get-Up',
+      'American Kettlebell Swings',
+      'American Kettlebell Swing',
+      'Russian Kettlebell Swings',
+      'Russian Kettlebell Swing',
+      'Kettlebell Swings',
+      'Kettlebell Swing',
+      'KB Swings',
+      'KB Swing',
+      'Turkish Get-Ups',
+      'Turkish Get-Up',
       // Other movements
-      'GHD Sit-ups', 'GHD Sit-up', 'Sit-ups', 'Sit-up', 'Situps', 'Situp', 'Wall Balls', 'Wall Ball', 'Thrusters', 'Thruster',
-      'Double Unders', 'Double Under', 'Single Unders', 'Single Under', 'Jump Rope', 'Box Jumps', 'Box Jump', 'Burpees', 'Burpee',
-      'Farmer Carry', 'Sled Push', 'Sled Pull',
-      'Bear Crawl', 'Crab Walk', 'Elephant Walk', 'High Knees',
-      'Plank', 'V-up'
+      'GHD Sit-ups',
+      'GHD Sit-up',
+      'Sit-ups',
+      'Sit-up',
+      'Situps',
+      'Situp',
+      'Wall Balls',
+      'Wall Ball',
+      'Thrusters',
+      'Thruster',
+      'Double Unders',
+      'Double Under',
+      'Single Unders',
+      'Single Under',
+      'Jump Rope',
+      'Box Jumps',
+      'Box Jump',
+      'Burpees',
+      'Burpee',
+      'Farmer Carry',
+      'Sled Push',
+      'Sled Pull',
+      'Bear Crawl',
+      'Crab Walk',
+      'Elephant Walk',
+      'High Knees',
+      'Plank',
+      'V-up',
     ];
 
     wods.forEach(wod => {
@@ -157,9 +292,7 @@ export default function CoachDashboard() {
       setWorkoutTypes(typesData || []);
 
       // Fetch WOD counts grouped by track_id
-      const { data: wodsData, error: wodsError } = await supabase
-        .from('wods')
-        .select('track_id');
+      const { data: wodsData, error: wodsError } = await supabase.from('wods').select('track_id');
 
       if (wodsError) throw wodsError;
 
@@ -179,16 +312,19 @@ export default function CoachDashboard() {
 
   // Search WODs with debounce
   useEffect(() => {
-    if (!searchQuery && !selectedMovements.length && !selectedWorkoutTypes.length && !selectedTracks.length) {
+    if (
+      !searchQuery &&
+      !selectedMovements.length &&
+      !selectedWorkoutTypes.length &&
+      !selectedTracks.length
+    ) {
       setSearchResults([]);
       return;
     }
 
     const searchWODs = async () => {
       try {
-        let query = supabase
-          .from('wods')
-          .select('*');
+        let query = supabase.from('wods').select('*');
 
         // Filter by tracks if selected
         if (selectedTracks.length > 0) {
@@ -201,9 +337,7 @@ export default function CoachDashboard() {
         }
 
         // Order by date descending and get all WODs (filter client-side for better section content search)
-        const { data, error } = await query
-          .order('date', { ascending: false })
-          .limit(500);
+        const { data, error } = await query.order('date', { ascending: false }).limit(500);
 
         if (error) throw error;
 
@@ -226,23 +360,25 @@ export default function CoachDashboard() {
           coach_notes: string | null;
         }
 
-        let results: WODFormData[] = data?.map((wod: WODRecord) => ({
-          id: wod.id,
-          title: wod.title,
-          track_id: wod.track_id || undefined,
-          workout_type_id: wod.workout_type_id || undefined,
-          classTimes: wod.class_times,
-          maxCapacity: wod.max_capacity,
-          date: wod.date,
-          sections: wod.sections,
-          coach_notes: wod.coach_notes || undefined
-        })) || [];
+        let results: WODFormData[] =
+          data?.map((wod: WODRecord) => ({
+            id: wod.id,
+            title: wod.title,
+            track_id: wod.track_id || undefined,
+            workout_type_id: wod.workout_type_id || undefined,
+            classTimes: wod.class_times,
+            maxCapacity: wod.max_capacity,
+            date: wod.date,
+            sections: wod.sections,
+            coach_notes: wod.coach_notes || undefined,
+          })) || [];
 
         // Client-side filter for search query (OR logic for each term)
         if (searchQuery) {
           const searchTerms = searchQuery.trim().toLowerCase().split(/\s+/);
           results = results.filter(wod => {
-            const combinedText = `${wod.title} ${wod.coach_notes || ''} ${wod.sections.map(s => s.content).join(' ')}`.toLowerCase();
+            const combinedText =
+              `${wod.title} ${wod.coach_notes || ''} ${wod.sections.map(s => s.content).join(' ')}`.toLowerCase();
             // If ANY search term matches, include this WOD
             return searchTerms.some(term => combinedText.includes(term));
           });
@@ -316,7 +452,7 @@ export default function CoachDashboard() {
           maxCapacity: wod.max_capacity,
           date: wod.date,
           sections: wod.sections,
-          coach_notes: wod.coach_notes || undefined
+          coach_notes: wod.coach_notes || undefined,
         });
       });
 
@@ -348,7 +484,7 @@ export default function CoachDashboard() {
     const dayNum = d.getUTCDay() || 7;
     d.setUTCDate(d.getUTCDate() + 4 - dayNum);
     const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+    return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
   };
 
   const getWeekDates = () => {
@@ -440,16 +576,15 @@ export default function CoachDashboard() {
             date: dateKey,
             sections: wodData.sections,
             coach_notes: wodData.coach_notes || null,
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
           })
           .eq('id', editingWOD.id);
 
         if (error) throw error;
       } else {
         // Create new WOD
-        const { error } = await supabase
-          .from('wods')
-          .insert([{
+        const { error } = await supabase.from('wods').insert([
+          {
             title: wodData.title,
             track_id: wodData.track_id || null,
             workout_type_id: wodData.workout_type_id || null,
@@ -457,8 +592,9 @@ export default function CoachDashboard() {
             max_capacity: wodData.maxCapacity,
             date: dateKey,
             sections: wodData.sections,
-            coach_notes: wodData.coach_notes || null
-          }]);
+            coach_notes: wodData.coach_notes || null,
+          },
+        ]);
 
         if (error) throw error;
       }
@@ -471,11 +607,6 @@ export default function CoachDashboard() {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       alert(`Error saving WOD: ${errorMessage}\n\nPlease check the console for details.`);
     }
-  };
-
-  const openNotesPanel = (wod: WODFormData) => {
-    setNotesPanel({ isOpen: true, wod });
-    setNotesDraft(wod.coach_notes || '');
   };
 
   const closeNotesPanel = () => {
@@ -491,7 +622,7 @@ export default function CoachDashboard() {
         .from('wods')
         .update({
           coach_notes: notesDraft || null,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq('id', notesPanel.wod.id);
 
@@ -511,10 +642,7 @@ export default function CoachDashboard() {
     if (!confirm('Are you sure you want to delete this WOD?')) return;
 
     try {
-      const { error } = await supabase
-        .from('wods')
-        .delete()
-        .eq('id', wodId);
+      const { error } = await supabase.from('wods').delete().eq('id', wodId);
 
       if (error) throw error;
 
@@ -531,17 +659,17 @@ export default function CoachDashboard() {
     const dateKey = formatDate(targetDate);
 
     try {
-      const { error } = await supabase
-        .from('wods')
-        .insert([{
+      const { error } = await supabase.from('wods').insert([
+        {
           title: wod.title,
           track_id: wod.track_id || null,
           workout_type_id: wod.workout_type_id || null,
           class_times: wod.classTimes,
           max_capacity: wod.maxCapacity,
           date: dateKey,
-          sections: wod.sections
-        }]);
+          sections: wod.sections,
+        },
+      ]);
 
       if (error) throw error;
 
@@ -563,7 +691,10 @@ export default function CoachDashboard() {
     (window as any).__draggedWOD = wod;
   };
 
-  const handleSectionDragStart = (e: React.DragEvent, section: { type: string; duration: string; content: string }) => {
+  const handleSectionDragStart = (
+    e: React.DragEvent,
+    section: { type: string; duration: string; content: string }
+  ) => {
     setDraggedSection(section);
     e.dataTransfer.effectAllowed = 'copy';
     e.dataTransfer.setData('text/plain', 'section');
@@ -592,7 +723,7 @@ export default function CoachDashboard() {
         id: `section-${Date.now()}`,
         type: draggedSection.type,
         duration: parseInt(draggedSection.duration) || 5,
-        content: draggedSection.content
+        content: draggedSection.content,
       };
       setQuickEditWOD({
         ...quickEditWOD,
@@ -602,44 +733,24 @@ export default function CoachDashboard() {
     }
   };
 
-  const openQuickEdit = (date?: Date) => {
-    const timestamp = Date.now();
-    const newWOD: WODFormData = {
-      title: '',
-      track_id: '',
-      workout_type_id: '',
-      classTimes: [],
-      maxCapacity: 12,
-      date: date ? formatDate(date) : formatDate(new Date()),
-      sections: [
-        { id: `section-${timestamp}-1`, type: 'Warm-up', duration: 12, content: '' },
-        { id: `section-${timestamp}-2`, type: 'Accessory', duration: 10, content: '' },
-        { id: `section-${timestamp}-3`, type: 'Strength', duration: 15, content: '' },
-        { id: `section-${timestamp}-4`, type: 'WOD', duration: 15, content: '' },
-      ],
-      coach_notes: '',
-    };
-    setQuickEditWOD(newWOD);
-    setQuickEditMode(true);
-    setSearchPanelOpen(true);
-  };
-
   const saveQuickEdit = async () => {
     if (!quickEditWOD) return;
 
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('wods')
-        .insert([{
-          title: quickEditWOD.title,
-          track_id: quickEditWOD.track_id || null,
-          workout_type_id: quickEditWOD.workout_type_id || null,
-          class_times: quickEditWOD.classTimes,
-          max_capacity: quickEditWOD.maxCapacity,
-          date: quickEditWOD.date,
-          sections: quickEditWOD.sections,
-          coach_notes: quickEditWOD.coach_notes || null,
-        }])
+        .insert([
+          {
+            title: quickEditWOD.title,
+            track_id: quickEditWOD.track_id || null,
+            workout_type_id: quickEditWOD.workout_type_id || null,
+            class_times: quickEditWOD.classTimes,
+            max_capacity: quickEditWOD.maxCapacity,
+            date: quickEditWOD.date,
+            sections: quickEditWOD.sections,
+            coach_notes: quickEditWOD.coach_notes || null,
+          },
+        ])
         .select();
 
       if (error) throw error;
@@ -679,10 +790,10 @@ export default function CoachDashboard() {
 
   if (loading || !user) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#208479] mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+      <div className='min-h-screen bg-gray-50 flex items-center justify-center'>
+        <div className='text-center'>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-[#208479] mx-auto'></div>
+          <p className='mt-4 text-gray-600'>Loading...</p>
         </div>
       </div>
     );
@@ -692,368 +803,535 @@ export default function CoachDashboard() {
   const weekDates = getWeekDates();
 
   return (
-    <div className="min-h-screen bg-gray-200 flex">
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${
-        isModalOpen && notesPanelOpen && searchPanelOpen ? 'ml-[800px] mr-[800px]' :
-        isModalOpen && notesPanelOpen ? 'ml-[800px] mr-[400px]' :
-        isModalOpen && searchPanelOpen ? 'ml-[800px] mr-[800px]' :
-        isModalOpen && quickEditMode && searchPanelOpen ? 'ml-[800px] mr-[1200px]' :
-        isModalOpen && quickEditMode ? 'ml-[800px] mr-[400px]' :
-        quickEditMode && searchPanelOpen ? 'mr-[1200px]' :
-        quickEditMode ? 'mr-[800px]' :
-        isModalOpen ? 'ml-[800px]' :
-        searchPanelOpen ? 'mr-[800px]' : ''
-      }`}>
-      {/* Header */}
-      <header className="bg-[#208479] text-white p-4 shadow-lg flex-shrink-0">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold">The Forge - Coach Dashboard</h1>
-            <p className="text-teal-100">Welcome, {user.name}</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setSearchPanelOpen(!searchPanelOpen)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${searchPanelOpen ? 'bg-teal-800' : 'bg-[#1a6b62] hover:bg-teal-800'}`}
-            >
-              <Plus size={18} />
-              Add WOD
-            </button>
-            <button
-              onClick={() => router.push('/coach/athletes')}
-              className="flex items-center gap-2 bg-[#1a6b62] hover:bg-teal-800 px-4 py-2 rounded-lg transition"
-            >
-              <Users size={18} />
-              Athletes
-            </button>
-            <button
-              onClick={() => router.push('/coach/analysis')}
-              className="flex items-center gap-2 bg-[#1a6b62] hover:bg-teal-800 px-4 py-2 rounded-lg transition"
-            >
-              <BarChart3 size={18} />
-              Analysis
-            </button>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 bg-[#1a6b62] hover:bg-teal-800 px-4 py-2 rounded-lg transition"
-            >
-              <LogOut size={18} />
-              Logout
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col">
-        {/* View Mode Toggle & Navigation */}
-        <div className="bg-white border-b p-4 flex-shrink-0">
-        <div className="max-w-7xl mx-auto space-y-4">
-          {/* View Mode Toggle */}
-          <div className="flex justify-center">
-            <div className="inline-flex rounded-lg border border-gray-300 p-1 bg-gray-50">
+    <div className='min-h-screen bg-gray-200 flex'>
+      <div
+        className={`flex-1 flex flex-col transition-all duration-300 ${
+          isModalOpen && notesPanelOpen && searchPanelOpen
+            ? 'ml-[800px] mr-[800px]'
+            : isModalOpen && notesPanelOpen
+              ? 'ml-[800px] mr-[400px]'
+              : isModalOpen && searchPanelOpen
+                ? 'ml-[800px] mr-[800px]'
+                : isModalOpen && quickEditMode && searchPanelOpen
+                  ? 'ml-[800px] mr-[1200px]'
+                  : isModalOpen && quickEditMode
+                    ? 'ml-[800px] mr-[400px]'
+                    : quickEditMode && searchPanelOpen
+                      ? 'mr-[1200px]'
+                      : quickEditMode
+                        ? 'mr-[800px]'
+                        : isModalOpen
+                          ? 'ml-[800px]'
+                          : searchPanelOpen
+                            ? 'mr-[800px]'
+                            : ''
+        }`}
+      >
+        {/* Header */}
+        <header className='bg-[#208479] text-white p-4 shadow-lg flex-shrink-0'>
+          <div className='max-w-7xl mx-auto flex justify-between items-center'>
+            <div>
+              <h1 className='text-2xl font-bold'>The Forge - Coach Dashboard</h1>
+              <p className='text-teal-100'>Welcome, {user.name}</p>
+            </div>
+            <div className='flex items-center gap-3'>
               <button
-                onClick={() => setViewMode('weekly')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium transition ${
-                  viewMode === 'weekly'
-                    ? 'bg-[#208479] text-white'
-                    : 'text-gray-700 hover:text-gray-900'
-                }`}
+                onClick={() => setSearchPanelOpen(!searchPanelOpen)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${searchPanelOpen ? 'bg-teal-800' : 'bg-[#1a6b62] hover:bg-teal-800'}`}
               >
-                <CalendarDays size={18} />
-                Weekly
+                <Plus size={18} />
+                Add WOD
               </button>
               <button
-                onClick={() => setViewMode('monthly')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium transition ${
-                  viewMode === 'monthly'
-                    ? 'bg-[#208479] text-white'
-                    : 'text-gray-700 hover:text-gray-900'
-                }`}
+                onClick={() => router.push('/coach/athletes')}
+                className='flex items-center gap-2 bg-[#1a6b62] hover:bg-teal-800 px-4 py-2 rounded-lg transition'
               >
-                <Calendar size={18} />
-                Monthly
+                <Users size={18} />
+                Athletes
+              </button>
+              <button
+                onClick={() => router.push('/coach/analysis')}
+                className='flex items-center gap-2 bg-[#1a6b62] hover:bg-teal-800 px-4 py-2 rounded-lg transition'
+              >
+                <BarChart3 size={18} />
+                Analysis
+              </button>
+              <button
+                onClick={handleLogout}
+                className='flex items-center gap-2 bg-[#1a6b62] hover:bg-teal-800 px-4 py-2 rounded-lg transition'
+              >
+                <LogOut size={18} />
+                Logout
               </button>
             </div>
           </div>
+        </header>
 
-          {/* Period Navigation */}
-          <div className="flex justify-between items-center">
-            <button
-              onClick={previousPeriod}
-              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-900 font-medium"
-            >
-              {viewMode === 'weekly' ? 'Previous Week' : 'Previous Month'}
-            </button>
-            <h2 className="text-xl font-semibold text-gray-900">
-              {viewMode === 'weekly' ? (
-                <>
-                  Week {getWeekNumber(weekDates[0])} - {weekDates[0].toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                </>
-              ) : (
-                <>
-                  {selectedDate.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
-                </>
-              )}
-            </h2>
-            <button
-              onClick={nextPeriod}
-              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-900 font-medium"
-            >
-              {viewMode === 'weekly' ? 'Next Week' : 'Next Month'}
-            </button>
-          </div>
-        </div>
-      </div>
+        {/* Main Content Area */}
+        <div className='flex-1 flex flex-col'>
+          {/* View Mode Toggle & Navigation */}
+          <div className='bg-white border-b p-4 flex-shrink-0'>
+            <div className='max-w-7xl mx-auto space-y-4'>
+              {/* View Mode Toggle */}
+              <div className='flex justify-center'>
+                <div className='inline-flex rounded-lg border border-gray-300 p-1 bg-gray-50'>
+                  <button
+                    onClick={() => setViewMode('weekly')}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium transition ${
+                      viewMode === 'weekly'
+                        ? 'bg-[#208479] text-white'
+                        : 'text-gray-700 hover:text-gray-900'
+                    }`}
+                  >
+                    <CalendarDays size={18} />
+                    Weekly
+                  </button>
+                  <button
+                    onClick={() => setViewMode('monthly')}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium transition ${
+                      viewMode === 'monthly'
+                        ? 'bg-[#208479] text-white'
+                        : 'text-gray-700 hover:text-gray-900'
+                    }`}
+                  >
+                    <Calendar size={18} />
+                    Monthly
+                  </button>
+                </div>
+              </div>
 
-        {/* Calendar Grid */}
-        <div className={`mx-auto p-4 flex-1 ${viewMode === 'weekly' ? 'max-w-[1600px]' : 'max-w-7xl'}`}>
-        {viewMode === 'monthly' && (
-          /* Month View with Week Numbers */
-          <div>
-            {/* Weekday Headers */}
-            <div className="grid grid-cols-8 gap-2 mb-2">
-              <div className="text-center text-xs font-semibold text-gray-600 py-2">Week</div>
-              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
-                <div key={day} className="text-center text-xs font-semibold text-gray-600 py-2">{day}</div>
-              ))}
+              {/* Period Navigation */}
+              <div className='flex justify-between items-center'>
+                <button
+                  onClick={previousPeriod}
+                  className='px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-900 font-medium'
+                >
+                  {viewMode === 'weekly' ? 'Previous Week' : 'Previous Month'}
+                </button>
+                <h2 className='text-xl font-semibold text-gray-900'>
+                  {viewMode === 'weekly' ? (
+                    <>
+                      Week {getWeekNumber(weekDates[0])} -{' '}
+                      {weekDates[0].toLocaleDateString('en-GB', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                      })}
+                    </>
+                  ) : (
+                    <>
+                      {selectedDate.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
+                    </>
+                  )}
+                </h2>
+                <button
+                  onClick={nextPeriod}
+                  className='px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-900 font-medium'
+                >
+                  {viewMode === 'weekly' ? 'Next Week' : 'Next Month'}
+                </button>
+              </div>
             </div>
+          </div>
 
-            {/* Month Grid - 6 rows of 7 days */}
-            {Array.from({ length: 6 }).map((_, weekIdx) => {
-              const weekStart = weekIdx * 7;
-              const weekDates = displayDates.slice(weekStart, weekStart + 7);
-              const weekNumber = getWeekNumber(weekDates[0]);
+          {/* Calendar Grid */}
+          <div className='mx-auto p-4 flex-1 max-w-none w-full'>
+            {viewMode === 'monthly' && (
+              /* Month View with Week Numbers */
+              <div>
+                {/* Weekday Headers with Cancel Button */}
+                <div className='flex gap-2 mb-2'>
+                  {/* Week number column header */}
+                  <div className='w-8'></div>
+                  {/* Day headers */}
+                  <div className='flex-1 grid grid-cols-7 gap-2'>
+                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+                      <div
+                        key={day}
+                        className='text-center text-xs font-semibold text-gray-600 py-2'
+                      >
+                        {day}
+                      </div>
+                    ))}
+                  </div>
+                  {/* Cancel button area */}
+                  <div className='w-16'>
+                    {copiedWOD && (
+                      <button
+                        onClick={() => setCopiedWOD(null)}
+                        className='text-xs px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition w-full'
+                        title='Cancel copy mode'
+                      >
+                        Cancel
+                      </button>
+                    )}
+                  </div>
+                </div>
 
-              return (
-                <div key={weekIdx} className="grid grid-cols-8 gap-2 mb-2">
-                  {/* Week Number */}
-                  <div className="flex items-center justify-center bg-gray-100 rounded text-xs font-semibold text-gray-700">
-                    {weekNumber}
+                {/* Month Grid - 6 rows of 7 days */}
+                {Array.from({ length: 6 }).map((_, weekIdx) => {
+                  const weekStart = weekIdx * 7;
+                  const weekDates = displayDates.slice(weekStart, weekStart + 7);
+                  const weekNumber = getWeekNumber(weekDates[0]);
+
+                  return (
+                    <div key={weekIdx} className='flex gap-2 mb-2'>
+                      {/* Week Number - Outside Grid */}
+                      <div className='w-8 flex items-center justify-center text-xs font-medium text-gray-500'>
+                        {weekNumber}
+                      </div>
+
+                      {/* Days in week */}
+                      <div className='flex-1 grid grid-cols-7 gap-2'>
+                        {weekDates.map((date, dayIdx) => {
+                          const dateKey = formatDate(date);
+                          const dayWODs = wods[dateKey] || [];
+                          const isToday = formatDate(new Date()) === dateKey;
+                          const isCurrentMonth = date.getMonth() === selectedDate.getMonth();
+
+                          return (
+                            <div
+                              key={dayIdx}
+                              className={`bg-white rounded-lg shadow p-2 min-h-[120px] relative ${
+                                isToday ? 'ring-2 ring-[#208479]' : ''
+                              } ${!isCurrentMonth ? 'opacity-40' : ''}`}
+                              onDragOver={handleDragOver}
+                              onDrop={e => handleDrop(e, date)}
+                            >
+                              {/* Day Number and Paste Button */}
+                              <div className='flex items-center justify-between mb-1'>
+                                <div
+                                  className={`text-sm font-semibold ${isCurrentMonth ? 'text-gray-900' : 'text-gray-500'}`}
+                                >
+                                  {date.getDate()}
+                                </div>
+                                {copiedWOD && (
+                                  <button
+                                    onClick={() => handlePasteFromClipboard(date)}
+                                    className='text-[10px] px-1 py-0.5 bg-[#208479] text-white rounded hover:bg-[#1a6b62] transition'
+                                    title='Paste WOD'
+                                  >
+                                    Paste
+                                  </button>
+                                )}
+                              </div>
+
+                              {/* WODs */}
+                              {dayWODs.slice(0, 2).map((wod: WODFormData) => (
+                                <div
+                                  key={wod.id}
+                                  draggable
+                                  onDragStart={e => handleDragStart(e, wod, dateKey)}
+                                  className='mb-1 p-1 bg-gray-50 rounded text-xs hover:bg-gray-200 cursor-move transition group relative'
+                                  title='Drag to copy'
+                                >
+                                  <div className='flex items-center justify-between gap-1'>
+                                    <div
+                                      className='font-semibold text-gray-900 truncate flex-1 cursor-pointer'
+                                      onClick={() => openEditModal(wod)}
+                                    >
+                                      {wod.title}
+                                    </div>
+                                    <div className='flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity'>
+                                      <button
+                                        onClick={e => {
+                                          e.stopPropagation();
+                                          handleCopyToClipboard(wod);
+                                        }}
+                                        className='text-[#208479] hover:text-[#1a6b62] p-0.5'
+                                        title='Copy WOD'
+                                      >
+                                        <Copy size={12} />
+                                      </button>
+                                      <button
+                                        onClick={e => {
+                                          e.stopPropagation();
+                                          handleDeleteWOD(dateKey, wod.id!);
+                                        }}
+                                        className='text-gray-500 hover:text-red-600 p-0.5'
+                                        title='Delete WOD'
+                                      >
+                                        <Trash2 size={12} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                              {dayWODs.length > 2 && (
+                                <div
+                                  className='text-xs text-gray-600 hover:text-[#208479] cursor-pointer'
+                                  onClick={() => openEditModal(dayWODs[2])}
+                                  title='Click to see more WODs'
+                                >
+                                  +{dayWODs.length - 2} more
+                                </div>
+                              )}
+
+                              {/* Add Button */}
+                              <button
+                                onClick={() => openCreateModal(date)}
+                                className='w-full mt-1 py-1 text-xs text-gray-600 hover:text-[#208479] transition'
+                              >
+                                <Plus size={12} className='inline' />
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {viewMode === 'weekly' && (
+              /* Week View - 2 Weeks */
+              <div>
+                {/* First Week */}
+                <div className='mb-6'>
+                  {/* Week Number Banner */}
+                  <div className='bg-[#208479] text-white px-4 py-2 rounded-t-lg mb-4'>
+                    <div className='text-sm font-semibold'>Week {getWeekNumber(displayDates[0])}</div>
                   </div>
 
-                  {/* Days in week */}
-                  {weekDates.map((date, dayIdx) => {
+                  <div className='grid grid-cols-7 gap-2'>
+                    {displayDates.slice(0, 7).map((date, idx) => {
                     const dateKey = formatDate(date);
                     const dayWODs = wods[dateKey] || [];
                     const isToday = formatDate(new Date()) === dateKey;
-                    const isCurrentMonth = date.getMonth() === selectedDate.getMonth();
 
                     return (
                       <div
-                        key={dayIdx}
-                        className={`bg-white rounded-lg shadow p-2 min-h-[100px] relative ${
-                          isToday ? 'ring-2 ring-[#208479]' : ''
-                        } ${!isCurrentMonth ? 'opacity-40' : ''}`}
+                        key={idx}
+                        className={`bg-white rounded-lg shadow p-4 ${isToday ? 'ring-2 ring-[#208479]' : ''}`}
                         onDragOver={handleDragOver}
-                        onDrop={(e) => handleDrop(e, date)}
+                        onDrop={e => handleDrop(e, date)}
                       >
-                        {/* Day Number and Paste Button */}
-                        <div className="flex items-center justify-between mb-1">
-                          <div className={`text-sm font-semibold ${isCurrentMonth ? 'text-gray-900' : 'text-gray-500'}`}>
-                            {date.getDate()}
+                        {/* Day Header */}
+                        <div className='mb-3 flex justify-between items-center'>
+                          <div>
+                            <div className='font-bold text-lg text-gray-900'>
+                              {date.toLocaleDateString('en-GB', { weekday: 'long' })}
+                            </div>
+                            <div className='text-sm text-gray-700'>
+                              {date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                            </div>
                           </div>
                           {copiedWOD && (
                             <button
                               onClick={() => handlePasteFromClipboard(date)}
-                              className="text-[10px] px-1 py-0.5 bg-[#208479] text-white rounded hover:bg-[#1a6b62] transition"
-                              title="Paste WOD"
+                              className='text-xs px-2 py-1 bg-[#208479] text-white rounded hover:bg-[#1a6b62] transition'
+                              title='Paste WOD'
                             >
                               Paste
                             </button>
                           )}
                         </div>
 
-                        {/* WODs */}
-                        {dayWODs.slice(0, 2).map((wod: WODFormData) => (
+                        {/* WODs for this day */}
+                        {dayWODs.map((wod: WODFormData) => (
                           <div
                             key={wod.id}
                             draggable
-                            onDragStart={(e) => handleDragStart(e, wod, dateKey)}
-                            className="mb-1 p-1 bg-gray-50 rounded text-xs hover:bg-gray-200 cursor-move transition group relative"
-                            title="Drag to copy"
+                            onDragStart={e => handleDragStart(e, wod, dateKey)}
+                            className='mb-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition cursor-move group relative'
+                            title='Drag to copy or click to edit'
                           >
-                            <div className="flex items-center justify-between gap-1">
-                              <div className="font-semibold text-gray-900 truncate flex-1 cursor-pointer" onClick={() => openEditModal(wod)}>
+                            <div className='pr-8'>
+                              <span
+                                className='font-bold text-sm text-gray-900 cursor-pointer block mb-2'
+                                onClick={e => {
+                                  e.stopPropagation();
+                                  openEditModal(wod);
+                                }}
+                              >
                                 {wod.title}
+                              </span>
+                              <div className='text-xs text-gray-700'>
+                                {wod.classTimes?.join(', ')}
                               </div>
-                              <div className="flex gap-0.5 opacity-0 group-hover:opacity-100">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleCopyToClipboard(wod);
-                                  }}
-                                  className="text-[#208479] hover:text-[#1a6b62] p-0.5"
-                                  title="Copy WOD"
-                                >
-                                  <Copy size={10} />
-                                </button>
-                              </div>
+                            </div>
+                            <div className='absolute top-2 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity'>
+                              <button
+                                onClick={e => {
+                                  e.stopPropagation();
+                                  handleCopyToClipboard(wod);
+                                }}
+                                className='text-[#208479] hover:text-[#1a6b62] p-1 bg-white rounded shadow-sm'
+                                title='Copy WOD'
+                              >
+                                <Copy size={14} />
+                              </button>
+                              <button
+                                onClick={e => {
+                                  e.stopPropagation();
+                                  handleDeleteWOD(dateKey, wod.id!);
+                                }}
+                                className='text-gray-500 hover:text-red-600 p-1 bg-white rounded shadow-sm'
+                                title='Delete WOD'
+                              >
+                                <Trash2 size={14} />
+                              </button>
                             </div>
                           </div>
                         ))}
-                        {dayWODs.length > 2 && (
-                          <div
-                            className="text-xs text-gray-600 hover:text-[#208479] cursor-pointer"
-                            onClick={() => openEditModal(dayWODs[2])}
-                            title="Click to see more WODs"
-                          >
-                            +{dayWODs.length - 2} more
-                          </div>
-                        )}
 
-                        {/* Add Button */}
+                        {/* Add WOD Button */}
                         <button
                           onClick={() => openCreateModal(date)}
-                          className="w-full mt-1 py-1 text-xs text-gray-600 hover:text-[#208479] transition"
+                          className='w-full py-2 border-2 border-dashed border-gray-300 hover:border-[#208479] hover:bg-[#208479] hover:text-white rounded-lg text-gray-700 hover:text-white flex items-center justify-center gap-2 transition font-medium'
                         >
-                          <Plus size={12} className="inline" />
+                          <Plus size={18} />
+                          Add WOD
                         </button>
                       </div>
                     );
                   })}
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {viewMode === 'weekly' && (
-          /* Week View */
-          <div>
-            {/* Week Number Banner */}
-            <div className="bg-[#208479] text-white px-4 py-2 rounded-t-lg mb-4">
-              <div className="text-sm font-semibold">Week {getWeekNumber(displayDates[0])}</div>
-            </div>
-
-            <div className="flex flex-col lg:flex-row gap-2 overflow-x-auto">
-              {displayDates.map((date, idx) => {
-                const dateKey = formatDate(date);
-                const dayWODs = wods[dateKey] || [];
-                const isToday = formatDate(new Date()) === dateKey;
-
-                return (
-                  <div
-                    key={idx}
-                    className={`bg-white rounded-lg shadow p-4 flex-1 min-w-[160px] ${isToday ? 'ring-2 ring-[#208479]' : ''}`}
-                    onDragOver={handleDragOver}
-                    onDrop={(e) => handleDrop(e, date)}
-                  >
-                    {/* Day Header */}
-                    <div className="mb-3 flex justify-between items-center">
-                      <div>
-                        <div className="font-bold text-lg text-gray-900">
-                          {date.toLocaleDateString('en-GB', { weekday: 'long' })}
-                        </div>
-                        <div className="text-sm text-gray-700">
-                          {date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-                        </div>
-                      </div>
-                      {copiedWOD && (
-                        <button
-                          onClick={() => handlePasteFromClipboard(date)}
-                          className="text-xs px-2 py-1 bg-[#208479] text-white rounded hover:bg-[#1a6b62] transition"
-                          title="Paste WOD"
-                        >
-                          Paste
-                        </button>
-                      )}
-                    </div>
-
-                    {/* WODs for this day */}
-                    {dayWODs.map((wod: WODFormData) => (
-                      <div
-                        key={wod.id}
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, wod, dateKey)}
-                        className="mb-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition cursor-move group relative"
-                        title="Drag to copy or click to edit"
-                      >
-                        <div className="pr-8">
-                          <span
-                            className="font-bold text-sm text-gray-900 cursor-pointer block mb-2"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openEditModal(wod);
-                            }}
-                          >
-                            {wod.title}
-                          </span>
-                          <div className="text-xs text-gray-700">
-                            {wod.classTimes?.join(', ')}
-                          </div>
-                        </div>
-                        <div className="absolute top-2 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleCopyToClipboard(wod);
-                            }}
-                            className="text-[#208479] hover:text-[#1a6b62] p-1 bg-white rounded shadow-sm"
-                            title="Copy WOD"
-                          >
-                            <Copy size={14} />
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteWOD(dateKey, wod.id!);
-                            }}
-                            className="text-gray-500 hover:text-red-600 p-1 bg-white rounded shadow-sm"
-                            title="Delete WOD"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-
-                    {/* Add WOD Button */}
-                    <button
-                      onClick={() => openCreateModal(date)}
-                      className="w-full py-2 border-2 border-dashed border-gray-300 hover:border-[#208479] hover:bg-[#208479] hover:text-white rounded-lg text-gray-700 hover:text-white flex items-center justify-center gap-2 transition font-medium"
-                    >
-                      <Plus size={18} />
-                      Add WOD
-                    </button>
                   </div>
-                );
-              })}
-            </div>
+                </div>
+
+                {/* Second Week */}
+                <div>
+                  {/* Week Number Banner */}
+                  <div className='bg-[#208479] text-white px-4 py-2 rounded-t-lg mb-4'>
+                    <div className='text-sm font-semibold'>Week {getWeekNumber(new Date(displayDates[7]))}</div>
+                  </div>
+
+                  <div className='grid grid-cols-7 gap-2'>
+                    {Array.from({ length: 7 }).map((_, dayOffset) => {
+                      const currentDate = new Date(displayDates[0]);
+                      currentDate.setDate(currentDate.getDate() + 7 + dayOffset);
+                      const date = currentDate;
+                      const dateKey = formatDate(date);
+                      const dayWODs = wods[dateKey] || [];
+                      const isToday = formatDate(new Date()) === dateKey;
+
+                      return (
+                        <div
+                          key={dayOffset}
+                          className={`bg-white rounded-lg shadow p-4 ${isToday ? 'ring-2 ring-[#208479]' : ''}`}
+                          onDragOver={handleDragOver}
+                          onDrop={e => handleDrop(e, date)}
+                        >
+                          {/* Day Header */}
+                          <div className='mb-3 flex justify-between items-center'>
+                            <div>
+                              <div className='font-bold text-lg text-gray-900'>
+                                {date.toLocaleDateString('en-GB', { weekday: 'long' })}
+                              </div>
+                              <div className='text-sm text-gray-700'>
+                                {date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                              </div>
+                            </div>
+                            {copiedWOD && (
+                              <button
+                                onClick={() => handlePasteFromClipboard(date)}
+                                className='text-xs px-2 py-1 bg-[#208479] text-white rounded hover:bg-[#1a6b62] transition'
+                                title='Paste WOD'
+                              >
+                                Paste
+                              </button>
+                            )}
+                          </div>
+
+                          {/* WODs for this day */}
+                          {dayWODs.map((wod: WODFormData) => (
+                            <div
+                              key={wod.id}
+                              draggable
+                              onDragStart={e => handleDragStart(e, wod, dateKey)}
+                              className='mb-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition cursor-move group relative'
+                              title='Drag to copy or click to edit'
+                            >
+                              <div className='pr-8'>
+                                <span
+                                  className='font-bold text-sm text-gray-900 cursor-pointer block mb-2'
+                                  onClick={e => {
+                                    e.stopPropagation();
+                                    openEditModal(wod);
+                                  }}
+                                >
+                                  {wod.title}
+                                </span>
+                                <div className='text-xs text-gray-700'>
+                                  {wod.classTimes?.join(', ')}
+                                </div>
+                              </div>
+                              <div className='absolute top-2 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity'>
+                                <button
+                                  onClick={e => {
+                                    e.stopPropagation();
+                                    handleCopyToClipboard(wod);
+                                  }}
+                                  className='text-[#208479] hover:text-[#1a6b62] p-1 bg-white rounded shadow-sm'
+                                  title='Copy WOD'
+                                >
+                                  <Copy size={14} />
+                                </button>
+                                <button
+                                  onClick={e => {
+                                    e.stopPropagation();
+                                    handleDeleteWOD(dateKey, wod.id!);
+                                  }}
+                                  className='text-gray-500 hover:text-red-600 p-1 bg-white rounded shadow-sm'
+                                  title='Delete WOD'
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+
+                          {/* Add WOD Button */}
+                          <button
+                            onClick={() => openCreateModal(date)}
+                            className='w-full py-2 border-2 border-dashed border-gray-300 hover:border-[#208479] hover:bg-[#208479] hover:text-white rounded-lg text-gray-700 hover:text-white flex items-center justify-center gap-2 transition font-medium'
+                          >
+                            <Plus size={18} />
+                            Add WOD
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-        )}
         </div>
-      </div>
       </div>
 
       {/* WOD Search Panel */}
       {searchPanelOpen && (
-        <div className="fixed right-0 top-0 h-full w-[800px] bg-white shadow-2xl z-50 flex flex-col border-l-2 border-[#208479] animate-slide-in-right">
+        <div className='fixed right-0 top-0 h-full w-[800px] bg-white shadow-2xl z-50 flex flex-col border-l-2 border-[#208479] animate-slide-in-right'>
           {/* Header */}
-          <div className="bg-[#208479] text-white p-4 flex justify-between items-center">
-            <h2 className="text-xl font-bold">Schedule a Workout</h2>
-            <button onClick={() => {
-              setSearchPanelOpen(false);
-              setSelectedSearchWOD(null);
-              setSearchQuery('');
-              setSelectedMovements([]);
-              setSelectedWorkoutTypes([]);
-              setSelectedTracks([]);
-            }} className="hover:bg-[#1a6b62] p-1 rounded transition">
+          <div className='bg-[#208479] text-white p-4 flex justify-between items-center'>
+            <h2 className='text-xl font-bold'>Schedule a Workout</h2>
+            <button
+              onClick={() => {
+                setSearchPanelOpen(false);
+                setSelectedSearchWOD(null);
+                setSearchQuery('');
+                setSelectedMovements([]);
+                setSelectedWorkoutTypes([]);
+                setSelectedTracks([]);
+              }}
+              className='hover:bg-[#1a6b62] p-1 rounded transition'
+            >
               <X size={24} />
             </button>
           </div>
 
           {/* Two-Column Layout */}
-          <div className="flex-1 flex overflow-hidden">
+          <div className='flex-1 flex overflow-hidden'>
             {/* LEFT SIDEBAR - Filters */}
-            <div className="w-[200px] border-r overflow-y-auto bg-gray-50">
+            <div className='w-[200px] border-r overflow-y-auto bg-gray-50'>
               {/* Movements Section */}
-              <details className="border-b" open>
-                <summary className="px-3 py-2 font-semibold text-sm text-gray-900 cursor-pointer hover:bg-gray-100">
+              <details className='border-b' open>
+                <summary className='px-3 py-2 font-semibold text-sm text-gray-900 cursor-pointer hover:bg-gray-100'>
                   Movements
                 </summary>
-                <div className="px-2 py-2 space-y-1">
+                <div className='px-2 py-2 space-y-1'>
                   {Array.from(movements.entries())
                     .sort((a, b) => b[1] - a[1])
                     .map(([movement, count]) => (
@@ -1072,26 +1350,30 @@ export default function CoachDashboard() {
                             : 'hover:bg-gray-200 text-gray-900'
                         }`}
                       >
-                        <span className="truncate">{movement}</span>
-                        <span className={`text-xs ml-1 ${selectedMovements.includes(movement) ? 'opacity-75' : 'text-gray-500'}`}>
+                        <span className='truncate'>{movement}</span>
+                        <span
+                          className={`text-xs ml-1 ${selectedMovements.includes(movement) ? 'opacity-75' : 'text-gray-500'}`}
+                        >
                           {count}
                         </span>
                       </button>
                     ))}
                   {movements.size === 0 && (
-                    <p className="text-xs text-gray-500 px-2 py-1">No movements found</p>
+                    <p className='text-xs text-gray-500 px-2 py-1'>No movements found</p>
                   )}
                 </div>
               </details>
 
               {/* Workout Types Section */}
-              <details className="border-b" open>
-                <summary className="px-3 py-2 font-semibold text-sm text-gray-900 cursor-pointer hover:bg-gray-100">
+              <details className='border-b' open>
+                <summary className='px-3 py-2 font-semibold text-sm text-gray-900 cursor-pointer hover:bg-gray-100'>
                   Workout Types
                 </summary>
-                <div className="px-2 py-2 space-y-1">
-                  {workoutTypes.map((type) => {
-                    const count = searchResults.filter(wod => wod.workout_type_id === type.id).length;
+                <div className='px-2 py-2 space-y-1'>
+                  {workoutTypes.map(type => {
+                    const count = searchResults.filter(
+                      wod => wod.workout_type_id === type.id
+                    ).length;
                     return (
                       <button
                         key={type.id}
@@ -1108,26 +1390,28 @@ export default function CoachDashboard() {
                             : 'hover:bg-gray-200 text-gray-900'
                         }`}
                       >
-                        <span className="truncate">{type.name}</span>
-                        <span className={`text-xs ml-1 ${selectedWorkoutTypes.includes(type.id) ? 'opacity-75' : 'text-gray-500'}`}>
+                        <span className='truncate'>{type.name}</span>
+                        <span
+                          className={`text-xs ml-1 ${selectedWorkoutTypes.includes(type.id) ? 'opacity-75' : 'text-gray-500'}`}
+                        >
                           {count}
                         </span>
                       </button>
                     );
                   })}
                   {workoutTypes.length === 0 && (
-                    <p className="text-xs text-gray-500 px-2 py-1">No types found</p>
+                    <p className='text-xs text-gray-500 px-2 py-1'>No types found</p>
                   )}
                 </div>
               </details>
 
               {/* Tracks Section */}
-              <details className="border-b" open>
-                <summary className="px-3 py-2 font-semibold text-sm text-gray-900 cursor-pointer hover:bg-gray-100">
+              <details className='border-b' open>
+                <summary className='px-3 py-2 font-semibold text-sm text-gray-900 cursor-pointer hover:bg-gray-100'>
                   Tracks
                 </summary>
-                <div className="px-2 py-2 space-y-1">
-                  {tracks.map((track) => (
+                <div className='px-2 py-2 space-y-1'>
+                  {tracks.map(track => (
                     <button
                       key={track.id}
                       onClick={() => {
@@ -1143,51 +1427,64 @@ export default function CoachDashboard() {
                           : 'hover:bg-gray-200 text-gray-900'
                       }`}
                     >
-                      <span className="truncate">{track.name}</span>
-                      <span className={`text-xs ml-1 ${selectedTracks.includes(track.id) ? 'opacity-75' : 'text-gray-500'}`}>
+                      <span className='truncate'>{track.name}</span>
+                      <span
+                        className={`text-xs ml-1 ${selectedTracks.includes(track.id) ? 'opacity-75' : 'text-gray-500'}`}
+                      >
                         {trackCounts[track.id] || 0}
                       </span>
                     </button>
                   ))}
                   {tracks.length === 0 && (
-                    <p className="text-xs text-gray-500 px-2 py-1">No tracks found</p>
+                    <p className='text-xs text-gray-500 px-2 py-1'>No tracks found</p>
                   )}
                 </div>
               </details>
             </div>
 
             {/* RIGHT SIDE - Search and Results */}
-            <div className="flex-1 flex flex-col overflow-hidden">
+            <div className='flex-1 flex flex-col overflow-hidden'>
               {/* Search Bar */}
-              <div className="p-4 border-b">
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 text-gray-400" size={18} />
+              <div className='p-4 border-b'>
+                <div className='relative'>
+                  <Search className='absolute left-3 top-3 text-gray-400' size={18} />
                   <input
-                    type="text"
+                    type='text'
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search workout history..."
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[#208479] focus:border-transparent"
+                    onChange={e => setSearchQuery(e.target.value)}
+                    placeholder='Search workout history...'
+                    className='w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[#208479] focus:border-transparent'
                   />
                 </div>
 
                 {/* Active Filter Chips */}
-                {(searchQuery || selectedMovements.length > 0 || selectedWorkoutTypes.length > 0 || selectedTracks.length > 0) && (
-                  <div className="flex flex-wrap gap-2 mt-3">
+                {(searchQuery ||
+                  selectedMovements.length > 0 ||
+                  selectedWorkoutTypes.length > 0 ||
+                  selectedTracks.length > 0) && (
+                  <div className='flex flex-wrap gap-2 mt-3'>
                     {searchQuery && (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-[#208479] text-white text-xs rounded-full">
+                      <span className='inline-flex items-center gap-1 px-2 py-1 bg-[#208479] text-white text-xs rounded-full'>
                         Search: &quot;{searchQuery}&quot;
-                        <button onClick={() => setSearchQuery('')} className="hover:bg-[#1a6b62] rounded-full p-0.5">
+                        <button
+                          onClick={() => setSearchQuery('')}
+                          className='hover:bg-[#1a6b62] rounded-full p-0.5'
+                        >
                           <X size={12} />
                         </button>
                       </span>
                     )}
                     {selectedMovements.map(movement => (
-                      <span key={movement} className="inline-flex items-center gap-1 px-2 py-1 bg-[#208479] text-white text-xs rounded-full">
+                      <span
+                        key={movement}
+                        className='inline-flex items-center gap-1 px-2 py-1 bg-[#208479] text-white text-xs rounded-full'
+                      >
                         {movement}
                         <button
-                          onClick={() => setSelectedMovements(prev => prev.filter(m => m !== movement))}
-                          className="hover:bg-[#1a6b62] rounded-full p-0.5"
+                          onClick={() =>
+                            setSelectedMovements(prev => prev.filter(m => m !== movement))
+                          }
+                          className='hover:bg-[#1a6b62] rounded-full p-0.5'
                         >
                           <X size={12} />
                         </button>
@@ -1196,11 +1493,16 @@ export default function CoachDashboard() {
                     {selectedWorkoutTypes.map(typeId => {
                       const type = workoutTypes.find(t => t.id === typeId);
                       return type ? (
-                        <span key={typeId} className="inline-flex items-center gap-1 px-2 py-1 bg-[#208479] text-white text-xs rounded-full">
+                        <span
+                          key={typeId}
+                          className='inline-flex items-center gap-1 px-2 py-1 bg-[#208479] text-white text-xs rounded-full'
+                        >
                           {type.name}
                           <button
-                            onClick={() => setSelectedWorkoutTypes(prev => prev.filter(t => t !== typeId))}
-                            className="hover:bg-[#1a6b62] rounded-full p-0.5"
+                            onClick={() =>
+                              setSelectedWorkoutTypes(prev => prev.filter(t => t !== typeId))
+                            }
+                            className='hover:bg-[#1a6b62] rounded-full p-0.5'
                           >
                             <X size={12} />
                           </button>
@@ -1210,11 +1512,16 @@ export default function CoachDashboard() {
                     {selectedTracks.map(trackId => {
                       const track = tracks.find(t => t.id === trackId);
                       return track ? (
-                        <span key={trackId} className="inline-flex items-center gap-1 px-2 py-1 bg-[#208479] text-white text-xs rounded-full">
+                        <span
+                          key={trackId}
+                          className='inline-flex items-center gap-1 px-2 py-1 bg-[#208479] text-white text-xs rounded-full'
+                        >
                           {track.name}
                           <button
-                            onClick={() => setSelectedTracks(prev => prev.filter(t => t !== trackId))}
-                            className="hover:bg-[#1a6b62] rounded-full p-0.5"
+                            onClick={() =>
+                              setSelectedTracks(prev => prev.filter(t => t !== trackId))
+                            }
+                            className='hover:bg-[#1a6b62] rounded-full p-0.5'
                           >
                             <X size={12} />
                           </button>
@@ -1226,71 +1533,84 @@ export default function CoachDashboard() {
               </div>
 
               {/* Search Results */}
-              {!selectedSearchWOD && (searchQuery || selectedMovements.length > 0 || selectedWorkoutTypes.length > 0 || selectedTracks.length > 0) && (
-                <div className="flex-1 overflow-y-auto p-4">
-                  <h3 className="font-semibold text-gray-900 mb-3">
-                    Results ({searchResults.length})
-                  </h3>
-                  <div className="space-y-3">
-                    {searchResults.map((wod) => {
-                      const wodSection = wod.sections.find(s => s.type.toLowerCase() === 'wod');
-                      const wodDate = new Date(wod.date);
-                      const formattedDate = wodDate.toLocaleDateString('en-GB', {
-                        weekday: 'long',
-                        day: 'numeric',
-                        month: 'long',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      });
-                      const searchTerms = searchQuery.trim().split(/\s+/).filter(Boolean);
+              {!selectedSearchWOD &&
+                (searchQuery ||
+                  selectedMovements.length > 0 ||
+                  selectedWorkoutTypes.length > 0 ||
+                  selectedTracks.length > 0) && (
+                  <div className='flex-1 overflow-y-auto p-4'>
+                    <h3 className='font-semibold text-gray-900 mb-3'>
+                      Results ({searchResults.length})
+                    </h3>
+                    <div className='space-y-3'>
+                      {searchResults.map(wod => {
+                        const wodSection = wod.sections.find(s => s.type.toLowerCase() === 'wod');
+                        const wodDate = new Date(wod.date);
+                        const formattedDate = wodDate.toLocaleDateString('en-GB', {
+                          weekday: 'long',
+                          day: 'numeric',
+                          month: 'long',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        });
+                        const searchTerms = searchQuery.trim().split(/\s+/).filter(Boolean);
 
-                      return (
-                        <div
-                          key={wod.id}
-                          draggable
-                          onDragStart={(e) => handleDragStart(e, wod, wod.date)}
-                          onClick={() => setSelectedSearchWOD(wod)}
-                          className="p-3 bg-white rounded-lg cursor-pointer hover:bg-gray-50 transition border border-gray-200 hover:border-[#208479]"
-                        >
-                          <div className="text-xs text-gray-500 mb-1">{formattedDate}</div>
+                        return (
                           <div
-                            className="font-semibold text-sm text-gray-900 mb-2"
-                            dangerouslySetInnerHTML={{ __html: highlightText(wod.title, searchTerms) }}
-                          />
-                          {wodSection && (
+                            key={wod.id}
+                            draggable
+                            onDragStart={e => handleDragStart(e, wod, wod.date)}
+                            onClick={() => setSelectedSearchWOD(wod)}
+                            className='p-3 bg-white rounded-lg cursor-pointer hover:bg-gray-50 transition border border-gray-200 hover:border-[#208479]'
+                          >
+                            <div className='text-xs text-gray-500 mb-1'>{formattedDate}</div>
                             <div
-                              className="text-xs text-gray-700 whitespace-pre-wrap line-clamp-3"
-                              dangerouslySetInnerHTML={{ __html: highlightText(wodSection.content, searchTerms) }}
+                              className='font-semibold text-sm text-gray-900 mb-2'
+                              dangerouslySetInnerHTML={{
+                                __html: highlightText(wod.title, searchTerms),
+                              }}
                             />
-                          )}
-                        </div>
-                      );
-                    })}
-                    {searchResults.length === 0 && (
-                      <p className="text-sm text-gray-500">No results found</p>
-                    )}
+                            {wodSection && (
+                              <div
+                                className='text-xs text-gray-700 whitespace-pre-wrap line-clamp-3'
+                                dangerouslySetInnerHTML={{
+                                  __html: highlightText(wodSection.content, searchTerms),
+                                }}
+                              />
+                            )}
+                          </div>
+                        );
+                      })}
+                      {searchResults.length === 0 && (
+                        <p className='text-sm text-gray-500'>No results found</p>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* WOD Detail View */}
               {selectedSearchWOD && (
-                <div className="flex-1 overflow-y-auto p-4">
+                <div className='flex-1 overflow-y-auto p-4'>
                   <button
                     onClick={() => setSelectedSearchWOD(null)}
-                    className="text-sm text-[#208479] hover:text-[#1a6b62] mb-4 flex items-center gap-1"
+                    className='text-sm text-[#208479] hover:text-[#1a6b62] mb-4 flex items-center gap-1'
                   >
                     ← Back to results
                   </button>
 
                   {/* Draggable Entire WOD */}
-                  <div className="hover:bg-gray-50 p-2 rounded-lg transition" id={`wod-${selectedSearchWOD.id}`}>
-                    <div className="space-y-4">
-                      <div className="flex items-start gap-2">
+                  <div
+                    className='hover:bg-gray-50 p-2 rounded-lg transition'
+                    id={`wod-${selectedSearchWOD.id}`}
+                  >
+                    <div className='space-y-4'>
+                      <div className='flex items-start gap-2'>
                         <div
                           draggable
-                          onDragStart={(e) => {
-                            const wodElement = document.getElementById(`wod-${selectedSearchWOD.id}`);
+                          onDragStart={e => {
+                            const wodElement = document.getElementById(
+                              `wod-${selectedSearchWOD.id}`
+                            );
                             if (wodElement) {
                               const ghost = wodElement.cloneNode(true) as HTMLElement;
                               ghost.style.position = 'absolute';
@@ -1306,29 +1626,35 @@ export default function CoachDashboard() {
                             }
                             handleDragStart(e, selectedSearchWOD, selectedSearchWOD.date);
                           }}
-                          className="cursor-move"
+                          className='cursor-move'
                         >
-                          <GripVertical size={20} className="text-gray-400 mt-1 flex-shrink-0" />
+                          <GripVertical size={20} className='text-gray-400 mt-1 flex-shrink-0' />
                         </div>
-                        <div className="flex-1">
-                          <h3 className="font-bold text-lg text-gray-900 mb-1">{selectedSearchWOD.title}</h3>
-                          <p className="text-xs text-gray-600">{new Date(selectedSearchWOD.date).toLocaleDateString()}</p>
+                        <div className='flex-1'>
+                          <h3 className='font-bold text-lg text-gray-900 mb-1'>
+                            {selectedSearchWOD.title}
+                          </h3>
+                          <p className='text-xs text-gray-600'>
+                            {new Date(selectedSearchWOD.date).toLocaleDateString()}
+                          </p>
                         </div>
                       </div>
 
                       {/* Sections with individual drag handles */}
-                      <div className="space-y-3">
+                      <div className='space-y-3'>
                         {selectedSearchWOD.sections.map((section, idx) => (
                           <div
                             key={idx}
                             id={`section-${selectedSearchWOD.id}-${idx}`}
-                            className="bg-white rounded-lg border border-gray-200 p-3 hover:border-[#208479] transition flex gap-2"
+                            className='bg-white rounded-lg border border-gray-200 p-3 hover:border-[#208479] transition flex gap-2'
                           >
                             <div
                               draggable
-                              onDragStart={(e) => {
+                              onDragStart={e => {
                                 e.stopPropagation();
-                                const sectionElement = document.getElementById(`section-${selectedSearchWOD.id}-${idx}`);
+                                const sectionElement = document.getElementById(
+                                  `section-${selectedSearchWOD.id}-${idx}`
+                                );
                                 if (sectionElement) {
                                   const ghost = sectionElement.cloneNode(true) as HTMLElement;
                                   ghost.style.position = 'absolute';
@@ -1340,16 +1666,29 @@ export default function CoachDashboard() {
                                   e.dataTransfer.setDragImage(ghost, 10, 10);
                                   setTimeout(() => document.body.removeChild(ghost), 0);
                                 }
-                                handleSectionDragStart(e, { type: section.type, duration: String(section.duration), content: section.content });
+                                handleSectionDragStart(e, {
+                                  type: section.type,
+                                  duration: String(section.duration),
+                                  content: section.content,
+                                });
                               }}
-                              className="cursor-move"
+                              className='cursor-move'
                             >
-                              <GripVertical size={16} className="text-gray-400 flex-shrink-0 mt-1" />
+                              <GripVertical
+                                size={16}
+                                className='text-gray-400 flex-shrink-0 mt-1'
+                              />
                             </div>
-                            <div className="flex-1">
-                              <div className="font-semibold text-sm text-gray-900 mb-1">{section.type}</div>
-                              <div className="text-xs text-gray-500 mb-2">{section.duration} min</div>
-                              <div className="text-sm text-gray-700 whitespace-pre-wrap">{section.content}</div>
+                            <div className='flex-1'>
+                              <div className='font-semibold text-sm text-gray-900 mb-1'>
+                                {section.type}
+                              </div>
+                              <div className='text-xs text-gray-500 mb-2'>
+                                {section.duration} min
+                              </div>
+                              <div className='text-sm text-gray-700 whitespace-pre-wrap'>
+                                {section.content}
+                              </div>
                             </div>
                           </div>
                         ))}
@@ -1357,23 +1696,27 @@ export default function CoachDashboard() {
 
                       {/* Coach Notes */}
                       {selectedSearchWOD.coach_notes && (
-                        <div className="bg-yellow-50 rounded-lg border border-yellow-200 p-3">
-                          <div className="font-semibold text-sm text-gray-900 mb-1">Coach Notes</div>
-                          <div className="text-sm text-gray-700 whitespace-pre-wrap">{selectedSearchWOD.coach_notes}</div>
+                        <div className='bg-yellow-50 rounded-lg border border-yellow-200 p-3'>
+                          <div className='font-semibold text-sm text-gray-900 mb-1'>
+                            Coach Notes
+                          </div>
+                          <div className='text-sm text-gray-700 whitespace-pre-wrap'>
+                            {selectedSearchWOD.coach_notes}
+                          </div>
                         </div>
                       )}
                     </div>
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex gap-2 pt-4">
+                  <div className='flex gap-2 pt-4'>
                     <button
                       onClick={() => {
                         openEditModal(selectedSearchWOD);
                         setSearchPanelOpen(false);
                         setSelectedSearchWOD(null);
                       }}
-                      className="flex-1 px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white rounded-lg font-medium transition"
+                      className='flex-1 px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white rounded-lg font-medium transition'
                     >
                       Edit WOD
                     </button>
@@ -1384,13 +1727,13 @@ export default function CoachDashboard() {
           </div>
 
           {/* Footer */}
-          <div className="border-t p-4">
+          <div className='border-t p-4'>
             <button
               onClick={() => {
                 openCreateModal(new Date(), true);
                 setSelectedSearchWOD(null);
               }}
-              className="w-full px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white rounded-lg font-medium transition"
+              className='w-full px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white rounded-lg font-medium transition'
             >
               + Create New WOD
             </button>
@@ -1400,16 +1743,19 @@ export default function CoachDashboard() {
 
       {/* Quick Edit Panel */}
       {quickEditMode && quickEditWOD && (
-        <div className="fixed right-0 top-0 h-full w-[400px] bg-white shadow-2xl z-50 flex flex-col border-l-2 border-[#208479] animate-slide-in-right" style={{ right: searchPanelOpen ? '800px' : '0' }}>
+        <div
+          className='fixed right-0 top-0 h-full w-[400px] bg-white shadow-2xl z-50 flex flex-col border-l-2 border-[#208479] animate-slide-in-right'
+          style={{ right: searchPanelOpen ? '800px' : '0' }}
+        >
           {/* Header */}
-          <div className="bg-[#208479] text-white p-4 flex justify-between items-center">
-            <h2 className="text-xl font-bold">Quick Edit WOD</h2>
+          <div className='bg-[#208479] text-white p-4 flex justify-between items-center'>
+            <h2 className='text-xl font-bold'>Quick Edit WOD</h2>
             <button
               onClick={() => {
                 setQuickEditMode(false);
                 setQuickEditWOD(null);
               }}
-              className="hover:bg-[#1a6b62] p-1 rounded transition"
+              className='hover:bg-[#1a6b62] p-1 rounded transition'
             >
               <X size={24} />
             </button>
@@ -1417,56 +1763,54 @@ export default function CoachDashboard() {
 
           {/* Content */}
           <div
-            className="flex-1 overflow-y-auto p-4 space-y-4"
+            className='flex-1 overflow-y-auto p-4 space-y-4'
             onDragOver={handleDragOver}
             onDrop={handleQuickEditDrop}
           >
             {/* Drop Zone Indicator */}
-            <div className="border-2 border-dashed border-[#208479] rounded-lg p-4 text-center text-sm text-gray-600 bg-teal-50">
-              <p className="font-semibold text-[#208479]">Drop Zone</p>
-              <p className="text-xs">Drag entire WODs or individual sections here</p>
+            <div className='border-2 border-dashed border-[#208479] rounded-lg p-4 text-center text-sm text-gray-600 bg-teal-50'>
+              <p className='font-semibold text-[#208479]'>Drop Zone</p>
+              <p className='text-xs'>Drag entire WODs or individual sections here</p>
             </div>
 
             {/* Title Input */}
             <div>
-              <label className="block text-sm font-semibold mb-2 text-gray-900">
-                WOD Title
-              </label>
+              <label className='block text-sm font-semibold mb-2 text-gray-900'>WOD Title</label>
               <input
-                type="text"
+                type='text'
                 value={quickEditWOD.title}
-                onChange={(e) => setQuickEditWOD({ ...quickEditWOD, title: e.target.value })}
-                placeholder="Enter workout title..."
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 placeholder-gray-400"
+                onChange={e => setQuickEditWOD({ ...quickEditWOD, title: e.target.value })}
+                placeholder='Enter workout title...'
+                className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 placeholder-gray-400'
               />
             </div>
 
             {/* Sections */}
-            <div className="space-y-3">
+            <div className='space-y-3'>
               {quickEditWOD.sections.map((section, idx) => (
-                <div key={idx} className="bg-white rounded-lg border border-gray-200 p-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="font-semibold text-sm text-gray-900">{section.type}</div>
+                <div key={idx} className='bg-white rounded-lg border border-gray-200 p-3'>
+                  <div className='flex items-center justify-between mb-2'>
+                    <div className='font-semibold text-sm text-gray-900'>{section.type}</div>
                     <button
                       onClick={() => {
                         const newSections = quickEditWOD.sections.filter((_, i) => i !== idx);
                         setQuickEditWOD({ ...quickEditWOD, sections: newSections });
                       }}
-                      className="text-red-600 hover:text-red-800 text-xs"
+                      className='text-red-600 hover:text-red-800 text-xs'
                     >
                       Remove
                     </button>
                   </div>
-                  <div className="text-xs text-gray-500 mb-2">{section.duration}</div>
+                  <div className='text-xs text-gray-500 mb-2'>{section.duration}</div>
                   <textarea
                     value={section.content}
-                    onChange={(e) => {
+                    onChange={e => {
                       const newSections = [...quickEditWOD.sections];
                       newSections[idx] = { ...newSections[idx], content: e.target.value };
                       setQuickEditWOD({ ...quickEditWOD, sections: newSections });
                     }}
-                    placeholder="Enter section content..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 placeholder-gray-400 text-sm min-h-[100px] resize-y"
+                    placeholder='Enter section content...'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 placeholder-gray-400 text-sm min-h-[100px] resize-y'
                   />
                 </div>
               ))}
@@ -1474,19 +1818,19 @@ export default function CoachDashboard() {
           </div>
 
           {/* Footer */}
-          <div className="border-t p-4 bg-gray-50 flex gap-3">
+          <div className='border-t p-4 bg-gray-50 flex gap-3'>
             <button
               onClick={() => {
                 setQuickEditMode(false);
                 setQuickEditWOD(null);
               }}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 text-gray-700 font-medium transition"
+              className='flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 text-gray-700 font-medium transition'
             >
               Cancel
             </button>
             <button
               onClick={saveQuickEdit}
-              className="flex-1 px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white rounded-lg font-medium transition"
+              className='flex-1 px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white rounded-lg font-medium transition'
             >
               Save WOD
             </button>
@@ -1511,63 +1855,69 @@ export default function CoachDashboard() {
       {notesPanel.isOpen && (
         <>
           {/* Backdrop */}
-          <div
-            className="fixed inset-0 bg-black bg-opacity-30 z-40"
-            onClick={closeNotesPanel}
-          />
+          <div className='fixed inset-0 bg-black bg-opacity-30 z-40' onClick={closeNotesPanel} />
 
           {/* Side Panel */}
-          <div className="fixed right-0 top-0 h-full w-full max-w-2xl bg-white shadow-2xl z-50 flex flex-col animate-slide-in">
+          <div className='fixed right-0 top-0 h-full w-full max-w-2xl bg-white shadow-2xl z-50 flex flex-col animate-slide-in'>
             {/* Header */}
-            <div className="bg-[#208479] text-white p-6 flex justify-between items-start">
+            <div className='bg-[#208479] text-white p-6 flex justify-between items-start'>
               <div>
-                <h2 className="text-2xl font-bold mb-2">Coach Notes</h2>
-                <p className="text-sm opacity-90">
-                  {notesPanel.wod?.title} - {notesPanel.wod?.date ? new Date(notesPanel.wod.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
+                <h2 className='text-2xl font-bold mb-2'>Coach Notes</h2>
+                <p className='text-sm opacity-90'>
+                  {notesPanel.wod?.title} -{' '}
+                  {notesPanel.wod?.date
+                    ? new Date(notesPanel.wod.date).toLocaleDateString('en-GB', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                      })
+                    : ''}
                 </p>
               </div>
               <button
                 onClick={closeNotesPanel}
-                className="hover:bg-[#1a6b62] p-2 rounded transition"
+                className='hover:bg-[#1a6b62] p-2 rounded transition'
               >
                 <X size={24} />
               </button>
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6">
-              <div className="space-y-4">
+            <div className='flex-1 overflow-y-auto p-6'>
+              <div className='space-y-4'>
                 <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-900">
-                    Notes
-                  </label>
+                  <label className='block text-sm font-semibold mb-2 text-gray-900'>Notes</label>
                   <textarea
                     value={notesDraft}
-                    onChange={(e) => setNotesDraft(e.target.value)}
-                    placeholder="Add private notes about this workout...&#10;&#10;Examples:&#10;- Athlete feedback&#10;- Scaling options used&#10;- Time management notes&#10;- Equipment setup details&#10;- Modifications made"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 placeholder-gray-400 min-h-[400px] resize-y font-mono text-sm"
+                    onChange={e => setNotesDraft(e.target.value)}
+                    placeholder='Add private notes about this workout...&#10;&#10;Examples:&#10;- Athlete feedback&#10;- Scaling options used&#10;- Time management notes&#10;- Equipment setup details&#10;- Modifications made'
+                    className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 placeholder-gray-400 min-h-[400px] resize-y font-mono text-sm'
                   />
-                  <p className="text-xs text-gray-500 mt-2">
-                    These notes are private and searchable. They&apos;ll help you find and reference this workout in the future.
+                  <p className='text-xs text-gray-500 mt-2'>
+                    These notes are private and searchable. They&apos;ll help you find and reference
+                    this workout in the future.
                   </p>
                 </div>
 
                 {/* WOD Preview */}
-                <div className="border-t pt-4">
-                  <h3 className="text-sm font-semibold text-gray-900 mb-2">Workout Preview</h3>
-                  <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                    <div className="text-sm">
-                      <span className="font-semibold text-gray-700">Class Times:</span>{' '}
-                      <span className="text-gray-900">{notesPanel.wod?.classTimes?.join(', ') || 'None'}</span>
+                <div className='border-t pt-4'>
+                  <h3 className='text-sm font-semibold text-gray-900 mb-2'>Workout Preview</h3>
+                  <div className='bg-gray-50 rounded-lg p-4 space-y-2'>
+                    <div className='text-sm'>
+                      <span className='font-semibold text-gray-700'>Class Times:</span>{' '}
+                      <span className='text-gray-900'>
+                        {notesPanel.wod?.classTimes?.join(', ') || 'None'}
+                      </span>
                     </div>
-                    <div className="text-sm">
-                      <span className="font-semibold text-gray-700">Sections:</span>{' '}
-                      <span className="text-gray-900">{notesPanel.wod?.sections?.length || 0}</span>
+                    <div className='text-sm'>
+                      <span className='font-semibold text-gray-700'>Sections:</span>{' '}
+                      <span className='text-gray-900'>{notesPanel.wod?.sections?.length || 0}</span>
                     </div>
-                    <div className="text-sm">
-                      <span className="font-semibold text-gray-700">Total Duration:</span>{' '}
-                      <span className="text-gray-900">
-                        {notesPanel.wod?.sections?.reduce((sum, s) => sum + s.duration, 0) || 0} mins
+                    <div className='text-sm'>
+                      <span className='font-semibold text-gray-700'>Total Duration:</span>{' '}
+                      <span className='text-gray-900'>
+                        {notesPanel.wod?.sections?.reduce((sum, s) => sum + s.duration, 0) || 0}{' '}
+                        mins
                       </span>
                     </div>
                   </div>
@@ -1576,16 +1926,16 @@ export default function CoachDashboard() {
             </div>
 
             {/* Footer */}
-            <div className="border-t p-6 bg-gray-50 flex justify-end gap-3">
+            <div className='border-t p-6 bg-gray-50 flex justify-end gap-3'>
               <button
                 onClick={closeNotesPanel}
-                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 text-gray-700 font-medium transition"
+                className='px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 text-gray-700 font-medium transition'
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveNotes}
-                className="px-6 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white rounded-lg font-medium transition"
+                className='px-6 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white rounded-lg font-medium transition'
               >
                 Save Notes
               </button>

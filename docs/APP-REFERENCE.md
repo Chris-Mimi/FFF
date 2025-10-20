@@ -1,7 +1,6 @@
 # Forge Functional Fitness - Application Reference Guide
 
-Version: 1.0
-Timestamp: 2025-10-16 15:00 UTC
+Version: 1.0 Timestamp: 2025-10-16 15:00 UTC
 
 ---
 
@@ -21,12 +20,16 @@ Timestamp: 2025-10-16 15:00 UTC
 
 ## Application Overview
 
-**Forge Functional Fitness** is a CrossFit gym management application designed to streamline workout programming for coaches and performance tracking for athletes.
+**Forge Functional Fitness** is a CrossFit gym management application designed
+to streamline workout programming for coaches and performance tracking for
+athletes.
 
 ### Purpose
 
-- **For Coaches:** Create and manage daily WODs (Workouts of the Day), track programming patterns, analyze training volume
-- **For Athletes:** View scheduled workouts, log results, track personal records, visualize progress over time
+- **For Coaches:** Create and manage daily WODs (Workouts of the Day), track
+  programming patterns, analyze training volume
+- **For Athletes:** View scheduled workouts, log results, track personal
+  records, visualize progress over time
 
 ### Technology Stack
 
@@ -46,6 +49,7 @@ Timestamp: 2025-10-16 15:00 UTC
 ### Units
 
 All measurements use **metric units:**
+
 - Weights: kilograms (kg)
 - Heights: centimeters (cm)
 - Distances: meters (m), kilometers (km)
@@ -59,6 +63,7 @@ All measurements use **metric units:**
 **Access:** Full control over programming and athlete management
 
 **Capabilities:**
+
 - Create, edit, delete daily WODs
 - Copy/paste WODs between days
 - Drag-and-drop WODs to duplicate
@@ -68,6 +73,7 @@ All measurements use **metric units:**
 - Manually add athlete data (benchmarks, lifts, logs)
 
 **Dashboard Views:**
+
 - Weekly calendar (7 days with full details)
 - Monthly calendar (6 weeks grid view)
 - Analysis page (statistics and programming insights)
@@ -78,6 +84,7 @@ All measurements use **metric units:**
 **Access:** Personal training data and scheduled workouts
 
 **Capabilities:**
+
 - View daily scheduled WODs
 - Log workout results and notes
 - Track benchmark WOD performance
@@ -87,6 +94,7 @@ All measurements use **metric units:**
 - Track emergency contact details
 
 **Dashboard Tabs:**
+
 - Profile
 - Athlete Logbook
 - Benchmark Workouts
@@ -100,11 +108,13 @@ All measurements use **metric units:**
 
 ### Overview
 
-The coach dashboard is the central hub for creating and managing daily programming. Coaches can switch between weekly and monthly calendar views.
+The coach dashboard is the central hub for creating and managing daily
+programming. Coaches can switch between weekly and monthly calendar views.
 
 ### Weekly View
 
 **Layout:**
+
 - 7 columns (Monday - Sunday)
 - Full workout details visible
 - Drag-and-drop between days to copy WODs
@@ -112,10 +122,12 @@ The coach dashboard is the central hub for creating and managing daily programmi
 - Hover actions: Copy, Delete
 
 **ISO Week Numbers:**
+
 - Displayed at top of view
 - Follows ISO 8601 standard (Monday = start of week)
 
 **Features:**
+
 - **Click WOD card** to edit
 - **Drag WOD card** to another day to copy it
 - **Copy button** (hover) - copies to clipboard
@@ -125,12 +137,14 @@ The coach dashboard is the central hub for creating and managing daily programmi
 ### Monthly View
 
 **Layout:**
+
 - 6 rows × 7 columns grid
 - Week numbers in left column
 - Compact WOD display (shows max 2 per day)
 - Grayed out days from previous/next month
 
 **Features:**
+
 - Same copy/paste/drag functionality as weekly
 - Click WOD to edit
 - "+X more" indicator when >2 WODs scheduled
@@ -138,6 +152,7 @@ The coach dashboard is the central hub for creating and managing daily programmi
 ### Creating a WOD
 
 **Process:**
+
 1. Click "Add WOD" button on desired date
 2. WOD Modal opens with default template:
    - Warm-up (12 min)
@@ -146,6 +161,7 @@ The coach dashboard is the central hub for creating and managing daily programmi
    - WOD (15 min)
 
 **Modal Controls:**
+
 - **Header:** Check (✓) to save, X to cancel
 - **Title Dropdown:** Select workout category
   - WOD (default)
@@ -162,6 +178,7 @@ The coach dashboard is the central hub for creating and managing daily programmi
 ### WOD Sections
 
 **Section Types:**
+
 - Whiteboard Intro
 - Warm-up
 - Skill
@@ -173,6 +190,7 @@ The coach dashboard is the central hub for creating and managing daily programmi
 - Cool Down
 
 **Section Controls:**
+
 - **Duration field:** Time allocation in minutes
 - **Content field:** Auto-expanding textarea for workout details
 - **Exercise library button:** Quick access to 80+ exercises by category
@@ -180,6 +198,7 @@ The coach dashboard is the central hub for creating and managing daily programmi
 - **Drag handle:** Reorder sections (drag-and-drop)
 
 **Section Behavior:**
+
 - Collapsed by default (shows preview of content)
 - Click collapsed section to expand and edit
 - Auto-collapses when adding new sections
@@ -188,6 +207,7 @@ The coach dashboard is the central hub for creating and managing daily programmi
 ### Exercise Library
 
 **Categories:**
+
 - Warm-up
 - Gymnastics
 - Strength
@@ -195,6 +215,7 @@ The coach dashboard is the central hub for creating and managing daily programmi
 - Stretches
 
 **Features:**
+
 - 80+ exercises with descriptions
 - Click exercise name to insert into section content
 - Modal interface with category tabs
@@ -203,6 +224,7 @@ The coach dashboard is the central hub for creating and managing daily programmi
 ### Navigation
 
 **Header Buttons:**
+
 - **Analysis:** View programming statistics
 - **Athletes:** Manage athlete profiles and data
 - **Logout:** Return to login screen
@@ -213,26 +235,31 @@ The coach dashboard is the central hub for creating and managing daily programmi
 
 ### Overview
 
-Dedicated page for coaches to view and manage individual athlete data. Split-panel interface with athlete list and detailed view.
+Dedicated page for coaches to view and manage individual athlete data.
+Split-panel interface with athlete list and detailed view.
 
 ### Athletes List Panel (Left)
 
 **Display:**
+
 - All athlete profiles from database
 - Clickable cards with athlete names
 - Visual selection highlighting
 
 **Interaction:**
+
 - Click athlete to load their data in right panel
 
 ### Athlete Details Panel (Right)
 
 **Profile Header:**
+
 - Athlete name
 - Personal stats (height, weight)
 - Emergency contact information
 
 **Tab Navigation:**
+
 1. **Benchmarks Tab**
 2. **Lifts Tab**
 3. **Logbook Tab**
@@ -240,27 +267,32 @@ Dedicated page for coaches to view and manage individual athlete data. Split-pan
 ### Benchmarks Tab (Coach View)
 
 **Display:**
+
 - All benchmark results for selected athlete
 - Personal bests grouped by benchmark name
 - Complete history with dates and scaling
 
 **Actions:**
+
 - **Add Result Button:** Manually log benchmark for athlete
   - Date selector
   - Result field
   - Scaling dropdown (Rx, Sc1, Sc2, Sc3)
   - Notes field
 
-**Use Case:** Coach logs results for athletes who don't have app access or for historical data entry
+**Use Case:** Coach logs results for athletes who don't have app access or for
+historical data entry
 
 ### Lifts Tab (Coach View)
 
 **Display:**
+
 - All lift records grouped by lift name
 - PRs for each rep max type (1RM, 3RM, 5RM, 10RM)
 - Complete history with dates
 
 **Actions:**
+
 - **Add Lift Button:** Manually log lift for athlete
   - Date selector
   - Weight field (kg)
@@ -273,6 +305,7 @@ Dedicated page for coaches to view and manage individual athlete data. Split-pan
 ### Logbook Tab (Coach View)
 
 **Display:**
+
 - All workout logs for selected athlete
 - Shows WOD date, result, and notes
 - Sortable by date
@@ -285,13 +318,15 @@ Dedicated page for coaches to view and manage individual athlete data. Split-pan
 
 ### Overview
 
-Statistical dashboard for analyzing programming patterns and training volume over time.
+Statistical dashboard for analyzing programming patterns and training volume
+over time.
 
 ### Track Management Section
 
 **Purpose:** Define and manage workout categories (training focuses)
 
 **Default Tracks:**
+
 - Strength Focus
 - Endurance Focus
 - Gymnastics Focus
@@ -300,12 +335,14 @@ Statistical dashboard for analyzing programming patterns and training volume ove
 - Benchmark WOD
 
 **Features:**
+
 - **Add Track:** Create new category with name, description, color
 - **Edit Track:** Modify existing track details
 - **Delete Track:** Remove track (confirms before deleting)
 - **Color Picker:** Visual identifier for each track
 
 **Display:**
+
 - Grid layout showing all tracks
 - Color indicators on each card
 - Edit/Delete buttons per track
@@ -313,11 +350,13 @@ Statistical dashboard for analyzing programming patterns and training volume ove
 ### Monthly Statistics Section
 
 **Navigation:**
+
 - Previous/Next month arrows
 - Displays current month and year
 - Auto-updates all statistics when month changes
 
 **Summary Cards:**
+
 1. **Total Workouts:** Count of WODs in selected month
 2. **Average WOD Duration:** Mean time across all WOD sections
 3. **Total WOD Time:** Sum of all WOD section durations
@@ -325,6 +364,7 @@ Statistical dashboard for analyzing programming patterns and training volume ove
 ### WOD Duration Distribution
 
 **7 Duration Ranges:**
+
 - 1-8 minutes
 - 9-12 minutes
 - 13-20 minutes
@@ -334,6 +374,7 @@ Statistical dashboard for analyzing programming patterns and training volume ove
 - 60+ minutes
 
 **Calculation:**
+
 - Sums ALL sections with type "WOD" in each workout
 - Handles multiple WOD sections correctly
 - Groups into ranges and displays counts
@@ -343,6 +384,7 @@ Statistical dashboard for analyzing programming patterns and training volume ove
 ### Track Breakdown
 
 **Display:**
+
 - Visual progress bars for each track
 - Color-coded by track color
 - Sorted by count (descending)
@@ -353,6 +395,7 @@ Statistical dashboard for analyzing programming patterns and training volume ove
 ### Workout Type Breakdown
 
 **Display:**
+
 - Grid showing counts per workout type
 - All types displayed (For Time, AMRAP, EMOM, Chipper, etc.)
 
@@ -361,11 +404,13 @@ Statistical dashboard for analyzing programming patterns and training volume ove
 ### Top Exercises
 
 **Display:**
+
 - Top 20 most frequently used exercises
 - Extracted from WOD section content using pattern matching
 - Displays count for each exercise
 
 **Calculation:**
+
 - Parses WOD content for exercise names
 - Filters out common non-exercise words
 - Aggregates and sorts by frequency
@@ -378,16 +423,19 @@ Statistical dashboard for analyzing programming patterns and training volume ove
 
 ### Overview
 
-Personal training hub with 6 tabs for tracking workouts, progress, and profile management.
+Personal training hub with 6 tabs for tracking workouts, progress, and profile
+management.
 
 ### Tab Navigation
 
 **Design:**
+
 - Horizontal tab bar with icons
 - Active tab highlighted in teal
 - Mobile-responsive with horizontal scroll
 
 **Tabs:**
+
 1. Profile (User icon)
 2. Athlete Logbook (BookOpen icon)
 3. Benchmark Workouts (Trophy icon)
@@ -402,6 +450,7 @@ Personal training hub with 6 tabs for tracking workouts, progress, and profile m
 **Purpose:** Manage personal information and emergency contacts
 
 **Fields:**
+
 - Full Name
 - Email
 - Date of Birth
@@ -410,10 +459,12 @@ Personal training hub with 6 tabs for tracking workouts, progress, and profile m
 - Weight (kg)
 
 **Emergency Contact:**
+
 - Contact Name
 - Contact Phone
 
 **Features:**
+
 - Profile picture placeholder
 - Auto-loads existing profile on mount
 - Insert/update logic (handles new users gracefully)
@@ -428,12 +479,14 @@ Personal training hub with 6 tabs for tracking workouts, progress, and profile m
 **Purpose:** View daily WODs and log workout results
 
 **Date Navigation:**
+
 - Previous/Next day buttons
 - Current date display (full format: "Monday, October 16, 2025")
 - "Go to Today" button (appears when not viewing current date)
 - "Today" indicator when viewing current date
 
 **WOD Display:**
+
 - Fetches all WODs scheduled for selected date
 - Shows workout title, track, and type badges
 - Displays all WOD sections with durations
@@ -442,12 +495,14 @@ Personal training hub with 6 tabs for tracking workouts, progress, and profile m
 **Logging Workout Results:**
 
 For each WOD:
+
 1. **Date field:** Defaults to selected date, can be changed
 2. **Result/Time field:** Free text (e.g., "12:45", "15 rounds", "100 kg")
 3. **Notes field:** Workout feedback, modifications, observations
 4. **Save Log Entry button:** Persists to database
 
 **Features:**
+
 - Each WOD has independent result/notes inputs
 - Insert/update logic (checks for existing logs)
 - Logs persist across sessions
@@ -456,6 +511,7 @@ For each WOD:
 **Database:** `workout_logs` table
 
 **Use Cases:**
+
 - Log workout immediately after completing
 - Add notes about scaling or modifications
 - Record how the workout felt
@@ -470,6 +526,7 @@ For each WOD:
 **12 Benchmark WODs (Metric Units):**
 
 **"Girls" Benchmarks:**
+
 1. **Fran:** 21-15-9 Thrusters (43/29 kg) & Pull-ups
 2. **Helen:** 3 rounds - 400m Run, 21 KB Swings (24/16 kg), 12 Pull-ups
 3. **Cindy:** AMRAP 20 - 5 Pull-ups, 10 Push-ups, 15 Air Squats
@@ -478,29 +535,34 @@ For each WOD:
 6. **Annie:** 50-40-30-20-10 Double Unders & Sit-ups
 7. **Diane:** 21-15-9 Deadlifts (102/70 kg) & HSPU
 8. **Elizabeth:** 21-15-9 Cleans (61/43 kg) & Ring Dips
-9. **Kelly:** 5 rounds - 400m Run, 30 Box Jumps (60/50 cm), 30 Wall Balls (9/6 kg)
+9. **Kelly:** 5 rounds - 400m Run, 30 Box Jumps (60/50 cm), 30 Wall Balls (9/6
+   kg)
 10. **Nancy:** 5 rounds - 400m Run, 15 OHS (43/29 kg)
 11. **Jackie:** For Time - 1000m Row, 50 Thrusters (20/16 kg), 30 Pull-ups
 12. **Mary:** AMRAP 20 - 5 HSPU, 10 Pistols, 15 Pull-ups
 
 **Benchmark Cards:**
+
 - Displays workout type and description
 - Shows personal best if recorded
 - Click to open logging modal
 
 **Logging Modal:**
+
 - **Date field:** Select workout date
 - **Time/Result field:** Enter completion time or rounds
 - **Scaling dropdown:** Rx, Sc1, Sc2, Sc3
 - **Notes field:** Optional observations
 
 **Recent History:**
+
 - Last 10 benchmark results
 - Shows date, result, scaling, notes
 - **Edit button:** Opens modal pre-filled with entry data
 - **Delete button:** Removes entry with confirmation
 
 **Progress Charts:**
+
 - Select benchmark to view line chart
 - X-axis: Dates
 - Y-axis: Results (converted to numeric values)
@@ -514,6 +576,7 @@ For each WOD:
 **Database:** `benchmark_results` table
 
 **Use Cases:**
+
 - Track improvement on specific benchmarks
 - Compare performance across different scaling levels
 - Identify PRs and trend lines
@@ -528,21 +591,25 @@ For each WOD:
 **12 Major Lifts (Organized by Category):**
 
 **Squat:**
+
 - Back Squat
 - Front Squat
 - Overhead Squat
 
 **Pull:**
+
 - Deadlift
 - Sumo Deadlift
 
 **Press:**
+
 - Bench Press
 - Shoulder Press
 - Push Press
 - Jerk
 
 **Olympic:**
+
 - Clean
 - Snatch
 - Clean & Jerk
@@ -550,17 +617,20 @@ For each WOD:
 **Rep Max Tracking:**
 
 Each lift tracks **4 rep max types separately:**
+
 - **1RM:** 1 Rep Max
 - **3RM:** 3 Rep Max
 - **5RM:** 5 Rep Max
 - **10RM:** 10 Rep Max
 
 **Lift Cards:**
+
 - Display all recorded rep max PRs (2-column grid)
 - Shows only rep max types with data
 - Click to open logging modal
 
 **Logging Modal:**
+
 - **Date field:** Select lift date
 - **Weight field:** Enter weight in kg
 - **Rep Max Type dropdown:** Select 1RM, 3RM, 5RM, or 10RM
@@ -568,11 +638,13 @@ Each lift tracks **4 rep max types separately:**
 - **Estimated 1RM display:** Auto-calculates for non-1RM lifts (Brzycki Formula)
 
 **Brzycki Formula:**
+
 ```
 1RM = weight × (36 / (37 - reps))
 ```
 
 **Recent History:**
+
 - Last 10 lift records
 - Shows lift name, date, weight, rep max type
 - Displays estimated 1RM for non-1RM lifts
@@ -582,10 +654,12 @@ Each lift tracks **4 rep max types separately:**
 **Progress Charts:**
 
 **Two-Tier Selection:**
+
 1. **Select Lift:** Shows total count across all rep maxes
 2. **Select Rep Max Type:** Shows only types with recorded data
 
 **Chart Display:**
+
 - Line chart showing weight progression over time
 - X-axis: Dates
 - Y-axis: Weight (kg)
@@ -595,6 +669,7 @@ Each lift tracks **4 rep max types separately:**
 **Database:** `lift_records` table (includes `rep_max_type` field)
 
 **Use Cases:**
+
 - Track strength progression across multiple rep ranges
 - Compare 1RM to 5RM ratios
 - Identify plateaus in training
@@ -607,23 +682,27 @@ Each lift tracks **4 rep max types separately:**
 **Purpose:** Consolidated view of all personal bests
 
 **Summary Stats:**
+
 - **Total PRs:** Combined benchmark + lift PRs
 - **Benchmark WODs:** Count of benchmarks with recorded results
 - **Barbell Lifts:** Count of lifts with 1RM records
 
 **Benchmark WODs Section:**
+
 - Displays best result per benchmark
 - Shows date achieved
 - Large prominent result display
 - Empty state when no benchmarks logged
 
 **Barbell Lifts Section (1RM):**
+
 - Displays highest 1RM per lift
 - Shows date achieved
 - Calculated from `calculated_1rm` field
 - Empty state when no lifts logged
 
 **Auto-Sync:**
+
 - Automatically updates when new PRs logged in other tabs
 - No manual refresh needed
 - Real-time reflection of training progress
@@ -664,8 +743,8 @@ PostgreSQL database hosted on Supabase with Row Level Security (RLS) enabled.
 
 **Supabase Project:** xvrefulklquuizbpkppb.supabase.co
 
-**Current Auth:** sessionStorage (temporary, for development)
-**Future Auth:** Supabase Auth with user_id linkage
+**Current Auth:** sessionStorage (temporary, for development) **Future Auth:**
+Supabase Auth with user_id linkage
 
 ---
 
@@ -676,6 +755,7 @@ PostgreSQL database hosted on Supabase with Row Level Security (RLS) enabled.
 Exercise library for WOD creation.
 
 **Columns:**
+
 - `id` (UUID, PK)
 - `name` (TEXT)
 - `category` (TEXT) - Warm-up, Gymnastics, Strength, MetCon, Stretches
@@ -686,6 +766,7 @@ Exercise library for WOD creation.
 - `updated_at` (TIMESTAMP)
 
 **Indexes:**
+
 - `category` (faster filtering)
 - `name` (search optimization)
 
@@ -698,6 +779,7 @@ Exercise library for WOD creation.
 Workout categorization by training focus.
 
 **Columns:**
+
 - `id` (UUID, PK)
 - `name` (TEXT)
 - `description` (TEXT, nullable)
@@ -706,6 +788,7 @@ Workout categorization by training focus.
 - `updated_at` (TIMESTAMP)
 
 **Default Tracks:**
+
 - Strength Focus
 - Endurance Focus
 - Gymnastics Focus
@@ -720,6 +803,7 @@ Workout categorization by training focus.
 Workout format categorization.
 
 **Columns:**
+
 - `id` (UUID, PK)
 - `name` (TEXT)
 - `description` (TEXT, nullable)
@@ -727,6 +811,7 @@ Workout format categorization.
 - `updated_at` (TIMESTAMP)
 
 **Default Types:**
+
 - For Time
 - AMRAP
 - EMOM
@@ -743,6 +828,7 @@ Workout format categorization.
 Daily programmed workouts.
 
 **Columns:**
+
 - `id` (UUID, PK)
 - `title` (TEXT)
 - `track_id` (UUID, FK → tracks)
@@ -755,6 +841,7 @@ Daily programmed workouts.
 - `updated_at` (TIMESTAMP)
 
 **Sections JSONB Structure:**
+
 ```json
 [
   {
@@ -773,6 +860,7 @@ Daily programmed workouts.
 ```
 
 **Indexes:**
+
 - `date` (calendar queries)
 - `track_id` (analytics)
 - `workout_type_id` (analytics)
@@ -786,6 +874,7 @@ Daily programmed workouts.
 Personal information and emergency contacts.
 
 **Columns:**
+
 - `id` (UUID, PK)
 - `user_id` (UUID, FK → auth.users, nullable for now)
 - `full_name` (TEXT, nullable)
@@ -800,6 +889,7 @@ Personal information and emergency contacts.
 - `updated_at` (TIMESTAMP)
 
 **Index:**
+
 - `user_id` (when auth implemented)
 
 ---
@@ -809,6 +899,7 @@ Personal information and emergency contacts.
 Daily workout results and notes.
 
 **Columns:**
+
 - `id` (UUID, PK)
 - `user_id` (UUID, FK → auth.users, nullable for now)
 - `wod_id` (UUID, FK → wods, ON DELETE SET NULL)
@@ -819,6 +910,7 @@ Daily workout results and notes.
 - `updated_at` (TIMESTAMP)
 
 **Indexes:**
+
 - `user_id`
 - `workout_date` (calendar queries)
 
@@ -829,6 +921,7 @@ Daily workout results and notes.
 Benchmark WOD performance tracking.
 
 **Columns:**
+
 - `id` (UUID, PK)
 - `user_id` (UUID, FK → auth.users, nullable for now)
 - `benchmark_name` (TEXT) - e.g., "Fran", "Helen"
@@ -840,10 +933,12 @@ Benchmark WOD performance tracking.
 - `updated_at` (TIMESTAMP)
 
 **Indexes:**
+
 - `user_id`
 - `benchmark_name` (grouping)
 
 **Constraint:**
+
 - `scaling` CHECK (IN ('Rx', 'Sc1', 'Sc2', 'Sc3'))
 
 ---
@@ -853,6 +948,7 @@ Benchmark WOD performance tracking.
 Barbell lift tracking with multiple rep max types.
 
 **Columns:**
+
 - `id` (UUID, PK)
 - `user_id` (UUID, FK → auth.users, nullable for now)
 - `lift_name` (TEXT) - e.g., "Back Squat"
@@ -866,12 +962,14 @@ Barbell lift tracking with multiple rep max types.
 - `updated_at` (TIMESTAMP)
 
 **Indexes:**
+
 - `user_id`
 - `lift_name` (grouping)
 - `lift_date` (chronological queries)
 - `rep_max_type` (filtering)
 
 **Constraint:**
+
 - `rep_max_type` CHECK (IN ('1RM', '3RM', '5RM', '10RM', 'Other'))
 
 ---
@@ -881,16 +979,19 @@ Barbell lift tracking with multiple rep max types.
 **Status:** Enabled on all tables
 
 **Current Policies:**
+
 - **PUBLIC policies** (temporary for development)
   - Allow SELECT, INSERT, UPDATE, DELETE for all users
   - Used while sessionStorage auth is active
 
 **Production Policies (Ready to Activate):**
+
 - **User-specific policies** based on `auth.uid()`
   - Athletes can only access their own data
   - Coaches can access all data (will need coach role check)
 
 **Migration Plan:**
+
 1. Implement Supabase Auth
 2. Update all `user_id` fields with actual user IDs
 3. Drop PUBLIC policies
@@ -908,21 +1009,25 @@ Track workout modifications for different athlete skill levels.
 ### Scaling Levels
 
 **Rx (As Prescribed):**
+
 - Standard benchmark weights and movements
 - No modifications
 - Competition standard
 
 **Sc1 (Scaling Level 1):**
+
 - Slight modifications
 - Reduced weights (10-20%)
 - Movement substitutions (e.g., band pull-ups)
 
 **Sc2 (Scaling Level 2):**
+
 - Moderate modifications
 - Reduced weights (30-50%)
 - Simpler movement variations
 
 **Sc3 (Scaling Level 3):**
+
 - Significant modifications
 - Reduced weights (50%+)
 - Beginner-friendly movements
@@ -938,6 +1043,7 @@ Track workout modifications for different athlete skill levels.
 **Constraint:** CHECK (scaling IN ('Rx', 'Sc1', 'Sc2', 'Sc3'))
 
 **Display:**
+
 - Badge in recent history
 - Included in chart tooltips
 - Allows tracking improvement within scaling levels
@@ -985,16 +1091,19 @@ Categorize workouts by training focus/domain for balanced programming.
 ### Features
 
 **Color Coding:**
+
 - Each track has unique color (hex code)
 - Displayed as badges on WOD cards
 - Visual programming balance
 
 **Analytics Integration:**
+
 - Track Breakdown in Analysis page
 - Shows workout distribution across tracks
 - Helps identify programming gaps
 
 **Coach Management:**
+
 - Create custom tracks
 - Edit track details (name, description, color)
 - Delete unused tracks
@@ -1013,12 +1122,14 @@ Categorize workouts by training focus/domain for balanced programming.
 ### Local Development Setup
 
 **1. Clone Repository**
+
 ```bash
 git clone https://github.com/Percepto25/FFF.git
 cd FFF
 ```
 
 **2. Install Dependencies**
+
 ```bash
 npm install
 ```
@@ -1026,12 +1137,14 @@ npm install
 **3. Configure Supabase**
 
 Create `.env.local` file in project root:
+
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://xvrefulklquuizbpkppb.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
 ```
 
 **Get Supabase credentials:**
+
 1. Log into Supabase dashboard
 2. Select your project
 3. Go to Settings → API
@@ -1048,6 +1161,7 @@ Execute SQL files in Supabase SQL Editor in order:
    - Create `wods` table
 
 2. **Athlete Tables:**
+
    ```bash
    supabase-athlete-tables.sql
    ```
@@ -1059,11 +1173,13 @@ Execute SQL files in Supabase SQL Editor in order:
    ```
 
 **5. Start Development Server**
+
 ```bash
 npm run dev
 ```
 
 **6. Access Application**
+
 - Navigate to `http://localhost:3000`
 - Login screen appears
 - Choose Coach or Athlete role
@@ -1074,6 +1190,7 @@ npm run dev
 ### Production Deployment (Vercel)
 
 **1. Push to GitHub**
+
 ```bash
 git add .
 git commit -m "Initial deployment"
@@ -1081,6 +1198,7 @@ git push origin main
 ```
 
 **2. Connect to Vercel**
+
 1. Log into Vercel dashboard
 2. Click "New Project"
 3. Import from GitHub
@@ -1089,14 +1207,17 @@ git push origin main
 **3. Configure Environment Variables**
 
 Add in Vercel project settings:
+
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
 **4. Deploy**
+
 - Vercel auto-deploys on every push to main
 - Production URL provided after deployment
 
 **5. Enable Supabase Auth (Future)**
+
 - Configure Auth providers in Supabase
 - Update redirect URLs for production
 - Migrate from sessionStorage to proper auth
@@ -1110,11 +1231,13 @@ Add in Vercel project settings:
 #### Issue: "No WODs showing in calendar"
 
 **Possible Causes:**
+
 1. No WODs created yet
 2. Date range doesn't include created WODs
 3. Database connection issue
 
 **Solutions:**
+
 1. Create a WOD using "Add WOD" button
 2. Navigate to different weeks/months
 3. Check `.env.local` Supabase credentials
@@ -1125,11 +1248,13 @@ Add in Vercel project settings:
 #### Issue: "Exercise library not loading"
 
 **Possible Causes:**
+
 1. `exercises` table not created
 2. No exercise data seeded
 3. Database permissions issue
 
 **Solutions:**
+
 1. Run exercise table creation SQL
 2. Seed exercise data using provided SQL script
 3. Check RLS policies allow PUBLIC access (development)
@@ -1140,11 +1265,13 @@ Add in Vercel project settings:
 #### Issue: "Athlete data not saving"
 
 **Possible Causes:**
+
 1. Tables not created
 2. RLS policies too restrictive
 3. Network/connection error
 
 **Solutions:**
+
 1. Run `supabase-athlete-tables.sql`
 2. Verify PUBLIC policies exist for development
 3. Check browser console for error messages
@@ -1155,11 +1282,13 @@ Add in Vercel project settings:
 #### Issue: "Charts not displaying data"
 
 **Possible Causes:**
+
 1. No data logged for selected item
 2. Result format not parseable (benchmarks)
 3. Recharts library not installed
 
 **Solutions:**
+
 1. Log at least 2 entries for trend line
 2. Use standard formats (e.g., "5:42" for time)
 3. Run `npm install recharts`
@@ -1170,10 +1299,12 @@ Add in Vercel project settings:
 #### Issue: "Date showing wrong day in calendar"
 
 **Possible Causes:**
+
 1. Timezone mismatch
 2. Date comparison issue
 
 **Solution:**
+
 - This was fixed in commit c23f788
 - Ensure you have latest code
 - Date handling now uses UTC normalization
@@ -1183,11 +1314,13 @@ Add in Vercel project settings:
 #### Issue: "Can't delete WOD/benchmark/lift"
 
 **Possible Causes:**
+
 1. Confirmation dialog not appearing
 2. Database permissions
 3. Foreign key constraint
 
 **Solutions:**
+
 1. Check browser pop-up blocker settings
 2. Verify RLS policies allow DELETE
 3. Check for dependent records (logs referencing WOD)
@@ -1245,11 +1378,13 @@ CREATE POLICY "PUBLIC can view all" ON table_name
 #### Slow Calendar Rendering
 
 **Possible Causes:**
+
 1. Too many WODs in month view
 2. Large WOD content in sections
 3. Many drag-and-drop elements
 
 **Solutions:**
+
 1. Limit WOD display in monthly view (already shows max 2)
 2. Consider pagination for very long timeframes
 3. Optimize re-renders with React.memo if needed
@@ -1263,6 +1398,7 @@ CREATE POLICY "PUBLIC can view all" ON table_name
 In Supabase dashboard → Logs → select table → view queries
 
 **Useful for:**
+
 - Debugging query errors
 - Checking RLS policy application
 - Monitoring performance
@@ -1364,6 +1500,7 @@ LIMIT 1;
 ### Getting Help
 
 For issues or questions:
+
 1. Check this reference guide
 2. Review Memory Bank files for recent changes
 3. Check Troubleshooting section above
@@ -1372,6 +1509,5 @@ For issues or questions:
 
 ---
 
-*Last Updated: 2025-10-16*
-*Version: 1.0*
-*Documentation maintained as part of Forge Functional Fitness development*
+_Last Updated: 2025-10-16_ _Version: 1.0_ _Documentation maintained as part of
+Forge Functional Fitness development_

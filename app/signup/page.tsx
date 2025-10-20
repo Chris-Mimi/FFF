@@ -47,13 +47,13 @@ export default function SignupPage() {
 
       // Create athlete profile if role is athlete
       if (role === 'athlete') {
-        const { error: profileError } = await supabase
-          .from('athlete_profiles')
-          .insert([{
+        const { error: profileError } = await supabase.from('athlete_profiles').insert([
+          {
             user_id: user.id,
             full_name: fullName,
             email: email,
-          }]);
+          },
+        ]);
 
         if (profileError) {
           console.error('Error creating athlete profile:', profileError);
@@ -71,142 +71,145 @@ export default function SignupPage() {
           router.push('/athlete');
         }
       }, 2000);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Signup error:', err);
-      setError(err.message || 'Failed to create account. Please try again.');
+      const errorMessage =
+        err instanceof Error ? err.message : 'Failed to create account. Please try again.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-700 to-teal-900 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-2xl p-8 max-w-md w-full">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">The Forge</h1>
-          <p className="text-gray-600">Functional Fitness</p>
+    <div className='min-h-screen bg-gradient-to-br from-teal-700 to-teal-900 flex items-center justify-center p-4'>
+      <div className='bg-white rounded-lg shadow-2xl p-8 max-w-md w-full'>
+        <div className='text-center mb-8'>
+          <h1 className='text-4xl font-bold text-gray-800 mb-2'>The Forge</h1>
+          <p className='text-gray-600'>Functional Fitness</p>
         </div>
 
         {success ? (
-          <div className="text-center py-8">
-            <CheckCircle size={64} className="text-green-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Account Created!</h2>
-            <p className="text-gray-600">Redirecting you to your dashboard...</p>
+          <div className='text-center py-8'>
+            <CheckCircle size={64} className='text-green-500 mx-auto mb-4' />
+            <h2 className='text-2xl font-bold text-gray-900 mb-2'>Account Created!</h2>
+            <p className='text-gray-600'>Redirecting you to your dashboard...</p>
           </div>
         ) : (
-          <form onSubmit={handleSignup} className="space-y-6">
+          <form onSubmit={handleSignup} className='space-y-6'>
             <div>
-              <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor='fullName' className='block text-sm font-medium text-gray-700 mb-2'>
                 Full Name
               </label>
               <input
-                id="fullName"
-                type="text"
+                id='fullName'
+                type='text'
                 value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
+                onChange={e => setFullName(e.target.value)}
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900"
-                placeholder="John Doe"
+                className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                placeholder='John Doe'
                 disabled={loading}
               />
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor='email' className='block text-sm font-medium text-gray-700 mb-2'>
                 Email Address
               </label>
               <input
-                id="email"
-                type="email"
+                id='email'
+                type='email'
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={e => setEmail(e.target.value)}
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900"
-                placeholder="you@example.com"
+                className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                placeholder='you@example.com'
                 disabled={loading}
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor='password' className='block text-sm font-medium text-gray-700 mb-2'>
                 Password
               </label>
               <input
-                id="password"
-                type="password"
+                id='password'
+                type='password'
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={e => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900"
-                placeholder="At least 6 characters"
+                className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                placeholder='At least 6 characters'
                 disabled={loading}
               />
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor='confirmPassword'
+                className='block text-sm font-medium text-gray-700 mb-2'
+              >
                 Confirm Password
               </label>
               <input
-                id="confirmPassword"
-                type="password"
+                id='confirmPassword'
+                type='password'
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                onChange={e => setConfirmPassword(e.target.value)}
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900"
-                placeholder="Re-enter your password"
+                className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                placeholder='Re-enter your password'
                 disabled={loading}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                I am a...
-              </label>
-              <div className="space-y-2">
-                <label className="flex items-center p-3 border-2 border-gray-300 rounded-lg cursor-pointer hover:border-[#208479] transition">
+              <label className='block text-sm font-medium text-gray-700 mb-3'>I am a...</label>
+              <div className='space-y-2'>
+                <label className='flex items-center p-3 border-2 border-gray-300 rounded-lg cursor-pointer hover:border-[#208479] transition'>
                   <input
-                    type="radio"
-                    name="role"
-                    value="athlete"
+                    type='radio'
+                    name='role'
+                    value='athlete'
                     checked={role === 'athlete'}
-                    onChange={(e) => setRole(e.target.value as 'athlete')}
-                    className="w-4 h-4 text-[#208479] focus:ring-[#208479]"
+                    onChange={e => setRole(e.target.value as 'athlete')}
+                    className='w-4 h-4 text-[#208479] focus:ring-[#208479]'
                     disabled={loading}
                   />
-                  <span className="ml-3 text-gray-900 font-medium">Athlete</span>
+                  <span className='ml-3 text-gray-900 font-medium'>Athlete</span>
                 </label>
-                <label className="flex items-center p-3 border-2 border-gray-300 rounded-lg cursor-pointer hover:border-[#208479] transition">
+                <label className='flex items-center p-3 border-2 border-gray-300 rounded-lg cursor-pointer hover:border-[#208479] transition'>
                   <input
-                    type="radio"
-                    name="role"
-                    value="coach"
+                    type='radio'
+                    name='role'
+                    value='coach'
                     checked={role === 'coach'}
-                    onChange={(e) => setRole(e.target.value as 'coach')}
-                    className="w-4 h-4 text-[#208479] focus:ring-[#208479]"
+                    onChange={e => setRole(e.target.value as 'coach')}
+                    className='w-4 h-4 text-[#208479] focus:ring-[#208479]'
                     disabled={loading}
                   />
-                  <span className="ml-3 text-gray-900 font-medium">Coach</span>
+                  <span className='ml-3 text-gray-900 font-medium'>Coach</span>
                 </label>
               </div>
             </div>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
-                <AlertCircle size={20} className="text-red-600 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-red-800">{error}</p>
+              <div className='bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3'>
+                <AlertCircle size={20} className='text-red-600 flex-shrink-0 mt-0.5' />
+                <p className='text-sm text-red-800'>{error}</p>
               </div>
             )}
 
             <button
-              type="submit"
+              type='submit'
               disabled={loading}
-              className="w-full bg-[#208479] hover:bg-[#1a6b62] text-white font-semibold py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className='w-full bg-[#208479] hover:bg-[#1a6b62] text-white font-semibold py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2'
             >
               {loading ? (
                 <>
-                  <Loader2 size={20} className="animate-spin" />
+                  <Loader2 size={20} className='animate-spin' />
                   Creating account...
                 </>
               ) : (
@@ -217,10 +220,10 @@ export default function SignupPage() {
         )}
 
         {!success && (
-          <div className="mt-6 text-center">
-            <p className="text-gray-600">
+          <div className='mt-6 text-center'>
+            <p className='text-gray-600'>
               Already have an account?{' '}
-              <Link href="/login" className="text-[#208479] hover:text-[#1a6b62] font-medium">
+              <Link href='/login' className='text-[#208479] hover:text-[#1a6b62] font-medium'>
                 Sign in
               </Link>
             </p>

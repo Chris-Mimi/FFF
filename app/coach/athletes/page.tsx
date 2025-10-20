@@ -5,12 +5,25 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, User, Trophy, Dumbbell, BookOpen, Plus } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
+interface AthleteProfile {
+  id: string;
+  user_id: string;
+  full_name: string | null;
+  email: string | null;
+  date_of_birth: string | null;
+  phone_number: string | null;
+  height_cm: number | null;
+  weight_kg: number | null;
+}
+
 export default function CoachAthletesPage() {
   const router = useRouter();
-  const [athletes, setAthletes] = useState<any[]>([]);
-  const [selectedAthlete, setSelectedAthlete] = useState<any | null>(null);
+  const [athletes, setAthletes] = useState<AthleteProfile[]>([]);
+  const [selectedAthlete, setSelectedAthlete] = useState<AthleteProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeSection, setActiveSection] = useState<'benchmarks' | 'lifts' | 'logbook'>('benchmarks');
+  const [activeSection, setActiveSection] = useState<'benchmarks' | 'lifts' | 'logbook'>(
+    'benchmarks'
+  );
 
   // Modal states for adding results
   const [showBenchmarkModal, setShowBenchmarkModal] = useState(false);
@@ -63,40 +76,40 @@ export default function CoachAthletesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className='min-h-screen bg-gray-100'>
       {/* Header */}
-      <div className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-4 py-4">
+      <div className='bg-white shadow'>
+        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+          <div className='flex items-center gap-4 py-4'>
             <button
               onClick={handleBackToDashboard}
-              className="p-2 hover:bg-gray-100 rounded-lg transition text-gray-700"
+              className='p-2 hover:bg-gray-100 rounded-lg transition text-gray-700'
             >
               <ArrowLeft size={24} />
             </button>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Athletes</h1>
-              <p className="text-sm text-gray-600">View and manage athlete data</p>
+              <h1 className='text-3xl font-bold text-gray-900'>Athletes</h1>
+              <p className='text-sm text-gray-600'>View and manage athlete data</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-12 gap-6">
+      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
+        <div className='grid grid-cols-12 gap-6'>
           {/* Athletes List */}
-          <div className="col-span-4">
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">All Athletes</h2>
+          <div className='col-span-4'>
+            <div className='bg-white rounded-lg shadow p-6'>
+              <h2 className='text-xl font-bold text-gray-900 mb-4'>All Athletes</h2>
 
               {loading ? (
-                <p className="text-gray-500 text-center py-4">Loading athletes...</p>
+                <p className='text-gray-500 text-center py-4'>Loading athletes...</p>
               ) : athletes.length === 0 ? (
-                <p className="text-gray-500 text-center py-4">No athletes found</p>
+                <p className='text-gray-500 text-center py-4'>No athletes found</p>
               ) : (
-                <div className="space-y-2">
-                  {athletes.map((athlete) => (
+                <div className='space-y-2'>
+                  {athletes.map(athlete => (
                     <button
                       key={athlete.id}
                       onClick={() => setSelectedAthlete(athlete)}
@@ -106,15 +119,15 @@ export default function CoachAthletesPage() {
                           : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                       }`}
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                          <User size={20} className="text-gray-400" />
+                      <div className='flex items-center gap-3'>
+                        <div className='w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center'>
+                          <User size={20} className='text-gray-400' />
                         </div>
                         <div>
-                          <p className="font-semibold text-gray-900">
+                          <p className='font-semibold text-gray-900'>
                             {athlete.full_name || 'Unnamed Athlete'}
                           </p>
-                          <p className="text-sm text-gray-600">{athlete.email || 'No email'}</p>
+                          <p className='text-sm text-gray-600'>{athlete.email || 'No email'}</p>
                         </div>
                       </div>
                     </button>
@@ -125,63 +138,69 @@ export default function CoachAthletesPage() {
           </div>
 
           {/* Athlete Details */}
-          <div className="col-span-8">
+          <div className='col-span-8'>
             {!selectedAthlete ? (
-              <div className="bg-white rounded-lg shadow p-12 text-center text-gray-500">
-                <User size={48} className="mx-auto mb-4 text-gray-300" />
-                <p className="text-lg">Select an athlete to view their data</p>
+              <div className='bg-white rounded-lg shadow p-12 text-center text-gray-500'>
+                <User size={48} className='mx-auto mb-4 text-gray-300' />
+                <p className='text-lg'>Select an athlete to view their data</p>
               </div>
             ) : (
-              <div className="space-y-6">
+              <div className='space-y-6'>
                 {/* Athlete Header */}
-                <div className="bg-white rounded-lg shadow p-6">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center">
-                      <User size={32} className="text-gray-400" />
+                <div className='bg-white rounded-lg shadow p-6'>
+                  <div className='flex items-center gap-4 mb-6'>
+                    <div className='w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center'>
+                      <User size={32} className='text-gray-400' />
                     </div>
                     <div>
-                      <h2 className="text-2xl font-bold text-gray-900">
+                      <h2 className='text-2xl font-bold text-gray-900'>
                         {selectedAthlete.full_name || 'Unnamed Athlete'}
                       </h2>
-                      <p className="text-gray-600">{selectedAthlete.email || 'No email'}</p>
+                      <p className='text-gray-600'>{selectedAthlete.email || 'No email'}</p>
                     </div>
                   </div>
 
                   {/* Profile Info */}
-                  <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200">
+                  <div className='grid grid-cols-2 gap-4 pt-4 border-t border-gray-200'>
                     {selectedAthlete.date_of_birth && (
                       <div>
-                        <p className="text-sm text-gray-600">Date of Birth</p>
-                        <p className="font-semibold text-gray-900">
+                        <p className='text-sm text-gray-600'>Date of Birth</p>
+                        <p className='font-semibold text-gray-900'>
                           {new Date(selectedAthlete.date_of_birth).toLocaleDateString()}
                         </p>
                       </div>
                     )}
                     {selectedAthlete.phone_number && (
                       <div>
-                        <p className="text-sm text-gray-600">Phone</p>
-                        <p className="font-semibold text-gray-900">{selectedAthlete.phone_number}</p>
+                        <p className='text-sm text-gray-600'>Phone</p>
+                        <p className='font-semibold text-gray-900'>
+                          {selectedAthlete.phone_number}
+                        </p>
                       </div>
                     )}
                     {selectedAthlete.height_cm && (
                       <div>
-                        <p className="text-sm text-gray-600">Height</p>
-                        <p className="font-semibold text-gray-900">{selectedAthlete.height_cm} cm</p>
+                        <p className='text-sm text-gray-600'>Height</p>
+                        <p className='font-semibold text-gray-900'>
+                          {selectedAthlete.height_cm} cm
+                        </p>
                       </div>
                     )}
                     {selectedAthlete.weight_kg && (
                       <div>
-                        <p className="text-sm text-gray-600">Weight</p>
-                        <p className="font-semibold text-gray-900">{selectedAthlete.weight_kg} kg</p>
+                        <p className='text-sm text-gray-600'>Weight</p>
+                        <p className='font-semibold text-gray-900'>
+                          {selectedAthlete.weight_kg} kg
+                        </p>
                       </div>
                     )}
                   </div>
                 </div>
 
                 {/* Section Tabs */}
-                <div className="bg-white rounded-lg shadow">
-                  <div className="border-b border-gray-200">
-                    <nav className="flex">
+                <div className='bg-white rounded-lg shadow'>
+                  <div className='border-b border-gray-200'>
+                    <nav className='flex'>
                       <button
                         onClick={() => setActiveSection('benchmarks')}
                         className={`flex items-center gap-2 px-6 py-4 border-b-2 font-medium text-sm transition ${
@@ -219,7 +238,7 @@ export default function CoachAthletesPage() {
                   </div>
 
                   {/* Section Content */}
-                  <div className="p-6">
+                  <div className='p-6'>
                     {activeSection === 'benchmarks' && (
                       <BenchmarksSection
                         athleteId={selectedAthlete.user_id}
@@ -273,14 +292,29 @@ export default function CoachAthletesPage() {
 }
 
 // Benchmarks Section Component
-function BenchmarksSection({ athleteId, onAddResult }: { athleteId?: string; onAddResult: () => void }) {
-  const [results, setResults] = useState<any[]>([]);
+function BenchmarksSection({
+  athleteId,
+  onAddResult,
+}: {
+  athleteId?: string;
+  onAddResult: () => void;
+}) {
+  interface BenchmarkResult {
+    id: string;
+    benchmark_name: string;
+    result: string;
+    notes?: string;
+    workout_date: string;
+  }
+
+  const [results, setResults] = useState<BenchmarkResult[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (athleteId) {
       fetchResults();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [athleteId]);
 
   const fetchResults = async () => {
@@ -304,16 +338,16 @@ function BenchmarksSection({ athleteId, onAddResult }: { athleteId?: string; onA
   };
 
   if (loading) {
-    return <p className="text-gray-500 text-center py-8">Loading benchmark results...</p>;
+    return <p className='text-gray-500 text-center py-8'>Loading benchmark results...</p>;
   }
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-bold text-gray-900">Benchmark Results</h3>
+      <div className='flex items-center justify-between mb-4'>
+        <h3 className='text-lg font-bold text-gray-900'>Benchmark Results</h3>
         <button
           onClick={onAddResult}
-          className="flex items-center gap-2 px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white font-medium rounded-lg transition"
+          className='flex items-center gap-2 px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white font-medium rounded-lg transition'
         >
           <Plus size={18} />
           Add Result
@@ -321,20 +355,23 @@ function BenchmarksSection({ athleteId, onAddResult }: { athleteId?: string; onA
       </div>
 
       {results.length === 0 ? (
-        <p className="text-gray-500 text-center py-8">No benchmark results recorded yet</p>
+        <p className='text-gray-500 text-center py-8'>No benchmark results recorded yet</p>
       ) : (
-        <div className="space-y-3">
-          {results.map((result) => (
-            <div key={result.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+        <div className='space-y-3'>
+          {results.map(result => (
+            <div
+              key={result.id}
+              className='flex items-center justify-between p-4 bg-gray-50 rounded-lg'
+            >
               <div>
-                <p className="font-semibold text-gray-900">{result.benchmark_name}</p>
-                <p className="text-sm text-gray-600">
+                <p className='font-semibold text-gray-900'>{result.benchmark_name}</p>
+                <p className='text-sm text-gray-600'>
                   {new Date(result.workout_date).toLocaleDateString()}
                 </p>
               </div>
-              <div className="text-right">
-                <p className="font-semibold text-[#208479]">{result.result}</p>
-                {result.notes && <p className="text-sm text-gray-600">{result.notes}</p>}
+              <div className='text-right'>
+                <p className='font-semibold text-[#208479]'>{result.result}</p>
+                {result.notes && <p className='text-sm text-gray-600'>{result.notes}</p>}
               </div>
             </div>
           ))}
@@ -346,13 +383,25 @@ function BenchmarksSection({ athleteId, onAddResult }: { athleteId?: string; onA
 
 // Lifts Section Component
 function LiftsSection({ athleteId, onAddResult }: { athleteId?: string; onAddResult: () => void }) {
-  const [results, setResults] = useState<any[]>([]);
+  interface LiftRecord {
+    id: string;
+    lift_name: string;
+    weight_kg: number;
+    reps: number;
+    calculated_1rm?: number;
+    rep_max_type?: string;
+    notes?: string;
+    lift_date: string;
+  }
+
+  const [results, setResults] = useState<LiftRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (athleteId) {
       fetchResults();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [athleteId]);
 
   const fetchResults = async () => {
@@ -376,16 +425,16 @@ function LiftsSection({ athleteId, onAddResult }: { athleteId?: string; onAddRes
   };
 
   if (loading) {
-    return <p className="text-gray-500 text-center py-8">Loading lift records...</p>;
+    return <p className='text-gray-500 text-center py-8'>Loading lift records...</p>;
   }
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-bold text-gray-900">Lift Records</h3>
+      <div className='flex items-center justify-between mb-4'>
+        <h3 className='text-lg font-bold text-gray-900'>Lift Records</h3>
         <button
           onClick={onAddResult}
-          className="flex items-center gap-2 px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white font-medium rounded-lg transition"
+          className='flex items-center gap-2 px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white font-medium rounded-lg transition'
         >
           <Plus size={18} />
           Add Record
@@ -393,25 +442,28 @@ function LiftsSection({ athleteId, onAddResult }: { athleteId?: string; onAddRes
       </div>
 
       {results.length === 0 ? (
-        <p className="text-gray-500 text-center py-8">No lift records recorded yet</p>
+        <p className='text-gray-500 text-center py-8'>No lift records recorded yet</p>
       ) : (
-        <div className="space-y-3">
-          {results.map((result) => (
-            <div key={result.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+        <div className='space-y-3'>
+          {results.map(result => (
+            <div
+              key={result.id}
+              className='flex items-center justify-between p-4 bg-gray-50 rounded-lg'
+            >
               <div>
-                <p className="font-semibold text-gray-900">{result.lift_name}</p>
-                <p className="text-sm text-gray-600">
+                <p className='font-semibold text-gray-900'>{result.lift_name}</p>
+                <p className='text-sm text-gray-600'>
                   {new Date(result.lift_date).toLocaleDateString()}
                 </p>
               </div>
-              <div className="text-right">
-                <p className="font-semibold text-[#208479]">
+              <div className='text-right'>
+                <p className='font-semibold text-[#208479]'>
                   {result.weight_kg} kg ({result.rep_max_type || `${result.reps} reps`})
                 </p>
                 {result.reps > 1 && (
-                  <p className="text-xs text-gray-600">Est. 1RM: {result.calculated_1rm} kg</p>
+                  <p className='text-xs text-gray-600'>Est. 1RM: {result.calculated_1rm} kg</p>
                 )}
-                {result.notes && <p className="text-sm text-gray-600 mt-1">{result.notes}</p>}
+                {result.notes && <p className='text-sm text-gray-600 mt-1'>{result.notes}</p>}
               </div>
             </div>
           ))}
@@ -423,13 +475,25 @@ function LiftsSection({ athleteId, onAddResult }: { athleteId?: string; onAddRes
 
 // Logbook Section Component
 function LogbookSection({ athleteId }: { athleteId?: string }) {
-  const [logs, setLogs] = useState<any[]>([]);
+  interface WorkoutLog {
+    id: string;
+    workout_date: string;
+    result?: string;
+    notes?: string;
+    wods?: {
+      title: string;
+      date: string;
+    };
+  }
+
+  const [logs, setLogs] = useState<WorkoutLog[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (athleteId) {
       fetchLogs();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [athleteId]);
 
   const fetchLogs = async () => {
@@ -438,13 +502,15 @@ function LogbookSection({ athleteId }: { athleteId?: string }) {
     try {
       const { data, error } = await supabase
         .from('workout_logs')
-        .select(`
+        .select(
+          `
           *,
           wods (
             title,
             date
           )
-        `)
+        `
+        )
         .eq('user_id', athleteId)
         .order('workout_date', { ascending: false });
 
@@ -462,35 +528,29 @@ function LogbookSection({ athleteId }: { athleteId?: string }) {
   };
 
   if (loading) {
-    return <p className="text-gray-500 text-center py-8">Loading workout logs...</p>;
+    return <p className='text-gray-500 text-center py-8'>Loading workout logs...</p>;
   }
 
   return (
     <div>
-      <h3 className="text-lg font-bold text-gray-900 mb-4">Workout Logs</h3>
+      <h3 className='text-lg font-bold text-gray-900 mb-4'>Workout Logs</h3>
 
       {logs.length === 0 ? (
-        <p className="text-gray-500 text-center py-8">No workout logs recorded yet</p>
+        <p className='text-gray-500 text-center py-8'>No workout logs recorded yet</p>
       ) : (
-        <div className="space-y-3">
-          {logs.map((log) => (
-            <div key={log.id} className="p-4 bg-gray-50 rounded-lg">
-              <div className="flex items-start justify-between mb-2">
+        <div className='space-y-3'>
+          {logs.map(log => (
+            <div key={log.id} className='p-4 bg-gray-50 rounded-lg'>
+              <div className='flex items-start justify-between mb-2'>
                 <div>
-                  <p className="font-semibold text-gray-900">
-                    {log.wods?.title || 'Workout'}
-                  </p>
-                  <p className="text-sm text-gray-600">
+                  <p className='font-semibold text-gray-900'>{log.wods?.title || 'Workout'}</p>
+                  <p className='text-sm text-gray-600'>
                     {new Date(log.workout_date).toLocaleDateString()}
                   </p>
                 </div>
-                {log.result && (
-                  <p className="font-semibold text-[#208479]">{log.result}</p>
-                )}
+                {log.result && <p className='font-semibold text-[#208479]'>{log.result}</p>}
               </div>
-              {log.notes && (
-                <p className="text-sm text-gray-700 mt-2">{log.notes}</p>
-              )}
+              {log.notes && <p className='text-sm text-gray-700 mt-2'>{log.notes}</p>}
             </div>
           ))}
         </div>
@@ -517,8 +577,18 @@ function AddBenchmarkModal({
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
 
   const benchmarks = [
-    'Fran', 'Helen', 'Cindy', 'Grace', 'Isabel', 'Annie',
-    'Diane', 'Elizabeth', 'Kelly', 'Nancy', 'Jackie', 'Mary'
+    'Fran',
+    'Helen',
+    'Cindy',
+    'Grace',
+    'Isabel',
+    'Annie',
+    'Diane',
+    'Elizabeth',
+    'Kelly',
+    'Nancy',
+    'Jackie',
+    'Mary',
   ];
 
   const handleSave = async () => {
@@ -528,15 +598,13 @@ function AddBenchmarkModal({
     }
 
     try {
-      const { error } = await supabase
-        .from('benchmark_results')
-        .insert({
-          user_id: athleteId,
-          benchmark_name: benchmarkName,
-          result: result,
-          notes: notes || null,
-          workout_date: date,
-        });
+      const { error } = await supabase.from('benchmark_results').insert({
+        user_id: athleteId,
+        benchmark_name: benchmarkName,
+        result: result,
+        notes: notes || null,
+        workout_date: date,
+      });
 
       if (error) throw error;
       alert('Benchmark result added successfully!');
@@ -548,77 +616,71 @@ function AddBenchmarkModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-4">
+    <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50'>
+      <div className='bg-white rounded-lg shadow-xl max-w-md w-full p-6'>
+        <h3 className='text-xl font-bold text-gray-900 mb-4'>
           Add Benchmark Result for {athleteName}
         </h3>
 
-        <div className="space-y-4">
+        <div className='space-y-4'>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Benchmark
-            </label>
+            <label className='block text-sm font-medium text-gray-700 mb-2'>Benchmark</label>
             <select
               value={benchmarkName}
-              onChange={(e) => setBenchmarkName(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900"
+              onChange={e => setBenchmarkName(e.target.value)}
+              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
             >
-              <option value="">Select benchmark...</option>
-              {benchmarks.map((name) => (
-                <option key={name} value={name}>{name}</option>
+              <option value=''>Select benchmark...</option>
+              {benchmarks.map(name => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Date
-            </label>
+            <label className='block text-sm font-medium text-gray-700 mb-2'>Date</label>
             <input
-              type="date"
+              type='date'
               value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900"
+              onChange={e => setDate(e.target.value)}
+              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Result
-            </label>
+            <label className='block text-sm font-medium text-gray-700 mb-2'>Result</label>
             <input
-              type="text"
+              type='text'
               value={result}
-              onChange={(e) => setResult(e.target.value)}
-              placeholder="e.g., 5:42, 15 rounds"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900"
+              onChange={e => setResult(e.target.value)}
+              placeholder='e.g., 5:42, 15 rounds'
+              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Notes (optional)
-            </label>
+            <label className='block text-sm font-medium text-gray-700 mb-2'>Notes (optional)</label>
             <textarea
               value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Any additional notes..."
+              onChange={e => setNotes(e.target.value)}
+              placeholder='Any additional notes...'
               rows={3}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 resize-none"
+              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 resize-none'
             />
           </div>
 
-          <div className="flex gap-3 pt-4">
+          <div className='flex gap-3 pt-4'>
             <button
               onClick={onClose}
-              className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg transition"
+              className='flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg transition'
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
-              className="flex-1 px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white font-medium rounded-lg transition"
+              className='flex-1 px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white font-medium rounded-lg transition'
             >
               Save
             </button>
@@ -648,10 +710,18 @@ function AddLiftModal({
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
 
   const lifts = [
-    'Back Squat', 'Front Squat', 'Overhead Squat',
-    'Deadlift', 'Sumo Deadlift',
-    'Bench Press', 'Shoulder Press', 'Push Press', 'Jerk',
-    'Clean', 'Snatch', 'Clean & Jerk'
+    'Back Squat',
+    'Front Squat',
+    'Overhead Squat',
+    'Deadlift',
+    'Sumo Deadlift',
+    'Bench Press',
+    'Shoulder Press',
+    'Push Press',
+    'Jerk',
+    'Clean',
+    'Snatch',
+    'Clean & Jerk',
   ];
 
   const calculate1RM = (weight: number, reps: number) => {
@@ -670,18 +740,16 @@ function AddLiftModal({
     const calculated1RM = calculate1RM(weightNum, reps);
 
     try {
-      const { error } = await supabase
-        .from('lift_records')
-        .insert({
-          user_id: athleteId,
-          lift_name: liftName,
-          weight_kg: weightNum,
-          reps: reps,
-          calculated_1rm: calculated1RM,
-          rep_max_type: repMaxType,
-          notes: notes || null,
-          lift_date: date,
-        });
+      const { error } = await supabase.from('lift_records').insert({
+        user_id: athleteId,
+        lift_name: liftName,
+        weight_kg: weightNum,
+        reps: reps,
+        calculated_1rm: calculated1RM,
+        rep_max_type: repMaxType,
+        notes: notes || null,
+        lift_date: date,
+      });
 
       if (error) throw error;
       alert('Lift record added successfully!');
@@ -693,103 +761,93 @@ function AddLiftModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-4">
-          Add Lift Record for {athleteName}
-        </h3>
+    <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50'>
+      <div className='bg-white rounded-lg shadow-xl max-w-md w-full p-6'>
+        <h3 className='text-xl font-bold text-gray-900 mb-4'>Add Lift Record for {athleteName}</h3>
 
-        <div className="space-y-4">
+        <div className='space-y-4'>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Lift
-            </label>
+            <label className='block text-sm font-medium text-gray-700 mb-2'>Lift</label>
             <select
               value={liftName}
-              onChange={(e) => setLiftName(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900"
+              onChange={e => setLiftName(e.target.value)}
+              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
             >
-              <option value="">Select lift...</option>
-              {lifts.map((name) => (
-                <option key={name} value={name}>{name}</option>
+              <option value=''>Select lift...</option>
+              {lifts.map(name => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Date
-            </label>
+            <label className='block text-sm font-medium text-gray-700 mb-2'>Date</label>
             <input
-              type="date"
+              type='date'
               value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900"
+              onChange={e => setDate(e.target.value)}
+              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className='grid grid-cols-2 gap-4'>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Weight (kg)
-              </label>
+              <label className='block text-sm font-medium text-gray-700 mb-2'>Weight (kg)</label>
               <input
-                type="number"
+                type='number'
                 value={weight}
-                onChange={(e) => setWeight(e.target.value)}
-                placeholder="100"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900"
+                onChange={e => setWeight(e.target.value)}
+                placeholder='100'
+                className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Rep Max Type
-              </label>
+              <label className='block text-sm font-medium text-gray-700 mb-2'>Rep Max Type</label>
               <select
                 value={repMaxType}
-                onChange={(e) => setRepMaxType(e.target.value as '1RM' | '3RM' | '5RM' | '10RM')}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900"
+                onChange={e => setRepMaxType(e.target.value as '1RM' | '3RM' | '5RM' | '10RM')}
+                className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
               >
-                <option value="1RM">1RM</option>
-                <option value="3RM">3RM</option>
-                <option value="5RM">5RM</option>
-                <option value="10RM">10RM</option>
+                <option value='1RM'>1RM</option>
+                <option value='3RM'>3RM</option>
+                <option value='5RM'>5RM</option>
+                <option value='10RM'>10RM</option>
               </select>
             </div>
           </div>
 
           {weight && repMaxType !== '1RM' && (
-            <div className="bg-gray-50 p-3 rounded-lg">
-              <p className="text-sm text-gray-600">Estimated 1RM:</p>
-              <p className="text-lg font-semibold text-[#208479]">
+            <div className='bg-gray-50 p-3 rounded-lg'>
+              <p className='text-sm text-gray-600'>Estimated 1RM:</p>
+              <p className='text-lg font-semibold text-[#208479]'>
                 {calculate1RM(parseFloat(weight), parseInt(repMaxType.replace('RM', '')))} kg
               </p>
             </div>
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Notes (optional)
-            </label>
+            <label className='block text-sm font-medium text-gray-700 mb-2'>Notes (optional)</label>
             <textarea
               value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Any additional notes..."
+              onChange={e => setNotes(e.target.value)}
+              placeholder='Any additional notes...'
               rows={3}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 resize-none"
+              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 resize-none'
             />
           </div>
 
-          <div className="flex gap-3 pt-4">
+          <div className='flex gap-3 pt-4'>
             <button
               onClick={onClose}
-              className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg transition"
+              className='flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg transition'
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
-              className="flex-1 px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white font-medium rounded-lg transition"
+              className='flex-1 px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white font-medium rounded-lg transition'
             >
               Save
             </button>
