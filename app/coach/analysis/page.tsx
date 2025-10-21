@@ -301,10 +301,10 @@ export default function AnalysisPage() {
     });
   };
 
-  const handleLogout = () => {
-    sessionStorage.removeItem('user');
-    sessionStorage.removeItem('role');
-    router.push('/');
+  const handleLogout = async () => {
+    const { signOut } = await import('@/lib/auth');
+    await signOut();
+    router.push('/login');
   };
 
   const changeMonth = (direction: 'prev' | 'next') => {

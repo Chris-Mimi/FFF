@@ -266,7 +266,7 @@ export default function CoachAthletesPage() {
       {showBenchmarkModal && selectedAthlete && (
         <AddBenchmarkModal
           athleteId={selectedAthlete.user_id}
-          athleteName={selectedAthlete.full_name}
+          athleteName={selectedAthlete.full_name || 'Unknown Athlete'}
           onClose={() => setShowBenchmarkModal(false)}
           onSave={() => {
             setShowBenchmarkModal(false);
@@ -279,7 +279,7 @@ export default function CoachAthletesPage() {
       {showLiftModal && selectedAthlete && (
         <AddLiftModal
           athleteId={selectedAthlete.user_id}
-          athleteName={selectedAthlete.full_name}
+          athleteName={selectedAthlete.full_name || 'Unknown Athlete'}
           onClose={() => setShowLiftModal(false)}
           onSave={() => {
             setShowLiftModal(false);

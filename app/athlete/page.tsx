@@ -1021,7 +1021,7 @@ function BenchmarksTab({ userId }: { userId: string }) {
     setNewTime(entry.result);
     setNewNotes(entry.notes || '');
     setNewDate(entry.workout_date);
-    setNewScaling(entry.scaling || 'Rx');
+    setNewScaling((entry.scaling as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3') || 'Rx');
     setEditingBenchmarkId(entry.id);
   };
 
@@ -1481,7 +1481,7 @@ function LiftsTab({ userId }: { userId: string }) {
   const handleEditLift = (entry: LiftRecord) => {
     setSelectedLift(entry.lift_name);
     setNewWeight(entry.weight_kg.toString());
-    setNewRepMaxType(entry.rep_max_type);
+    setNewRepMaxType((entry.rep_max_type as '1RM' | '3RM' | '5RM' | '10RM') || '1RM');
     setNewNotes(entry.notes || '');
     setNewDate(entry.lift_date);
     setEditingLiftId(entry.id);
