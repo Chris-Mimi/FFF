@@ -1,7 +1,7 @@
 # The Forge Functional Fitness - Active Context (Final, Corrected)
 
-Version: 2.4
-Timestamp: 2025-10-20 00:30 UTC
+Version: 2.6
+Timestamp: 2025-10-21 14:30 UTC
 
 ## ⚠️ CRITICAL RULES & CONTEXT
 
@@ -44,18 +44,41 @@ The project is **IN PROGRESS**. All core data models and UI features are complet
 ## 🔑 Key Technical Decisions
 
 * **Platform:** Next.js 15 App Router, TypeScript, Tailwind.
-* **Database:** **Supabase** (PostgreSQL) with RLS enabled (PUBLIC policies for development).
+* **Database:** **Supabase** (PostgreSQL) with RLS enabled.
+* **Authentication:** **Supabase Auth** implemented (signup/login/logout).
 * **Data Model:** JSONB for WOD sections; GIN indexes for full-text search (`coach_notes`).
 * **Units:** **Metric units** enforced throughout: kg, cm, meters.
-* **Temp Auth:** `sessionStorage` (slated for upgrade to Supabase Auth).
 * **Visualization:** `recharts` library for progress charts.
+
+---
+
+## 🛠️ Tooling & Development Environment
+
+| Feature | Implementation | Files |
+| :--- | :--- | :--- |
+| **Cline Integration** | Integrated cline-init rules with Memory Bank protocols and agent delegation. | `.clinerules`, `~/Documents/Cline/Rules/custom_instructions.md` |
+| **Linting System** | ESLint + Prettier + EditorConfig configured; all files formatted and linted (22 errors, 21 warnings fixed). | `.eslintrc.js`, `.prettierrc`, `.editorconfig`, `scripts/lint.sh` |
+| **VS Code** | Format on save, ESLint integration, recommended extensions configured. | `.vscode/settings.json`, `.vscode/extensions.json` |
+| **AI Assistant Selection** | Decision matrix added for Cline vs Claude Code usage (cost efficiency, subagent requirements). | `memory-bank/workflow-protocols.md:1.2` |
+
+---
+
+## 🔐 Supabase Auth Implementation (v2.6)
+
+| **Feature** | Description | Files |
+| :--- | :--- | :--- |
+| **Analysis Logout Fix** | Fixed logout handler to use Supabase Auth instead of sessionStorage. | `app/coach/analysis/page.tsx:19` |
+| **Type Error Fixes** | Fixed type assertions for `scaling` (Scaling type) and `rep_max_type` (RepMaxType type). | `app/athlete/page.tsx:139,155` |
+| **Null Guard Fixes** | Added null guards for `athleteProfile.full_name` across athlete pages. | `app/athlete/page.tsx:170,171` |
+| **RLS Policy Cleanup** | Created SQL script to remove PUBLIC RLS policies (for future use after multi-user setup). | `supabase/migrations/remove-public-rls-policies.sql` |
+| **Signup UX** | Extended success message timeout from 2s to 3s for better readability. | `app/auth/signup/page.tsx:45` |
 
 ---
 
 ## 📋 NEXT STEPS (Priority)
 
-1.  **Implement Supabase Auth** to replace `sessionStorage`.
-2.  Add `user_id` to all athlete tables (currently NULL).
-3.  Remove **PUBLIC RLS policies** once Auth is implemented.
-4.  Add multi-user support with proper data isolation.
-5.  Test athlete dashboard with multiple users.
+1.  Add `user_id` to all athlete tables (currently NULL).
+2.  Remove **PUBLIC RLS policies** using the migration script (once multi-user setup is ready).
+3.  Add multi-user support with proper data isolation.
+4.  Test athlete dashboard with multiple users.
+5.  Implement account deletion functionality (requires Supabase Auth Admin API).
