@@ -1,7 +1,7 @@
 # The Forge Functional Fitness - Active Context (Final, Corrected)
 
-Version: 2.6
-Timestamp: 2025-10-21 14:30 UTC
+Version: 2.8
+Timestamp: 2025-10-22 02:30 UTC
 
 ## ⚠️ CRITICAL RULES & CONTEXT
 
@@ -25,7 +25,7 @@ The project is **IN PROGRESS**. All core data models and UI features are complet
 | Area | Features Implemented (Scope & Detail) | Files/DB |
 | :--- | :--- | :--- |
 | **Dashboard** | Weekly/Monthly view (using **ISO week numbers**). Drag-and-drop WODs between calendar days. **Search Panel** for WOD lookup, filtered by Track. **Layout System refined** for smooth panel transitions. | `app/coach/page.tsx` |
-| **WOD Panels** | WOD Modal converted to **800px Left Side Panel**. **Coach Notes Panel** (400px wide) slides from right; notes are private, **TEXT column**, and **full-text searchable** via GIN index. **Advanced Drag-Drop** for moving sections from Search Panel into WOD panel. | `components/WODModal.tsx` |
+| **WOD Panels** | WOD Modal converted to **800px Left Side Panel**. **Coach Notes Panel** (floating modal, resizable/draggable); notes are private, **TEXT column**, and **full-text searchable** via GIN index. **Advanced Drag-Drop** for moving sections from Search Panel into WOD panel. **Exercise Library** is draggable/resizable with responsive columns. | `components/WODModal.tsx` |
 | **Analysis** | Full CRUD for **Tracks** (name, description, color picker). Stats include: **7 WOD Duration Distribution ranges**, Track/Type breakdowns, and **Top 20 Exercises** (parsed from WOD content). | `app/coach/analysis/page.tsx` |
 | **Athletes** | Athletes Management Page with null guards for data fetching. Coaches have full CRUD for athlete data. | `app/coach/athletes/page.tsx` |
 
@@ -75,10 +75,24 @@ The project is **IN PROGRESS**. All core data models and UI features are complet
 
 ---
 
+## 🎯 WOD Creation UX & Database-Driven Features (v2.8)
+
+| **Feature** | Description | Files |
+| :--- | :--- | :--- |
+| **Workout Type Refactor** | Moved Workout Type dropdown from top form to WOD section headers only. Each section can have its own workout_type_id. | `components/WODModal.tsx:34` |
+| **Database Section Types** | Replaced hardcoded SECTION_TYPES array with database-driven section_types table. Dynamic ordering via display_order column. | `supabase-section-types.sql`, `components/WODModal.tsx:71-78` |
+| **Exercise Library UX** | Made library draggable/resizable with 4-corner handles. Responsive 2-4 column layout. Stays open for multiple selections. | `components/WODModal.tsx:104-200` |
+| **Add Section Logic** | Sections now insert after currently expanded section. Uses next section type from database sequence. | `components/WODModal.tsx:handleAddSection` |
+| **Resizable Coach Notes Modal** | Converted Notes side panel to floating modal with 4-corner resize handles and drag-to-move. | `app/coach/page.tsx:62-656,1893-2033` |
+| **Week Number Fix** | Fixed week number calculation for second week in monthly view. | `app/coach/page.tsx:1235-1238` |
+
+---
+
 ## 📋 NEXT STEPS (Priority)
 
-1.  Add `user_id` to all athlete tables (currently NULL).
-2.  Remove **PUBLIC RLS policies** using the migration script (once multi-user setup is ready).
-3.  Add multi-user support with proper data isolation.
-4.  Test athlete dashboard with multiple users.
-5.  Implement account deletion functionality (requires Supabase Auth Admin API).
+1.  **Decision:** Commit resizable modal changes (Coach Notes + Exercise Library).
+2.  **Run Migration:** Execute `supabase-section-types.sql` in Supabase SQL Editor to create section_types table.
+3.  **Exercise Filtering Research:** Consider implementing movement pattern or equipment-based filtering for Exercise Library (deferred for future discussion).
+4.  Add `user_id` to all athlete tables (currently NULL).
+5.  Remove **PUBLIC RLS policies** using the migration script (once multi-user setup is ready).
+6.  Add multi-user support with proper data isolation.
