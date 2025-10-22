@@ -976,7 +976,7 @@ export default function CoachDashboard() {
           <div className='flex-1 flex flex-col w-full'>
             {viewMode === 'monthly' && (
               /* Month View with Week Numbers */
-              <div className='w-full px-4'>
+              <div className='w-full max-w-none px-4'>
                 {/* Weekday Headers with Cancel Button */}
                 <div className='flex gap-2 mb-2'>
                   {/* Week number column header */}
@@ -992,18 +992,20 @@ export default function CoachDashboard() {
                       </div>
                     ))}
                   </div>
-                  {/* Cancel button area */}
-                  <div className='w-16'>
-                    {copiedWOD && (
-                      <button
-                        onClick={() => setCopiedWOD(null)}
-                        className='text-xs px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition w-full'
-                        title='Cancel copy mode'
-                      >
-                        Cancel
-                      </button>
-                    )}
-                  </div>
+                  {/* Cancel button area - only show when panel is closed */}
+                  {!searchPanelOpen && (
+                    <div className='w-16'>
+                      {copiedWOD && (
+                        <button
+                          onClick={() => setCopiedWOD(null)}
+                          className='text-xs px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition w-full'
+                          title='Cancel copy mode'
+                        >
+                          Cancel
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Month Grid - 6 rows of 7 days */}
@@ -1121,8 +1123,8 @@ export default function CoachDashboard() {
                         })}
                       </div>
 
-                      {/* Empty space to align with cancel button area */}
-                      <div className='w-16'></div>
+                      {/* Empty space to align with cancel button area - only show when panel is closed */}
+                      {!searchPanelOpen && <div className='w-16'></div>}
                     </div>
                   );
                 })}
