@@ -1,18 +1,18 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import {
-  X,
-  Plus,
-  Trash2,
-  Search,
-  Library,
-  ChevronDown,
-  GripVertical,
-  Check,
-  FileText,
-} from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import {
+  Check,
+  ChevronDown,
+  FileText,
+  GripVertical,
+  Library,
+  Plus,
+  Search,
+  Trash2,
+  X,
+} from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 
 interface WODModalProps {
   isOpen: boolean;
@@ -31,6 +31,7 @@ export interface WODSection {
   type: string;
   duration: number; // minutes
   content: string; // Free-form markdown text
+  workout_type_id?: string; // Workout type (only for WOD sections)
 }
 
 export interface WODFormData {
@@ -67,17 +68,12 @@ interface WorkoutType {
   description: string | null;
 }
 
-const SECTION_TYPES = [
-  'Whiteboard Intro',
-  'Warm-up',
-  'Skill',
-  'Gymnastics',
-  'Accessory',
-  'Strength',
-  'WOD Preparation',
-  'WOD',
-  'Cool Down',
-];
+interface SectionType {
+  id: string;
+  name: string;
+  description: string | null;
+  display_order: number;
+}
 
 const CLASS_TIME_OPTIONS = ['9:00', '10:00', '11:00', '15:00', '16:00', '17:15', '18:30'];
 
@@ -107,6 +103,119 @@ function ExerciseLibraryPopup({
   const [loading, setLoading] = useState(false);
   const [hasFetched, setHasFetched] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Position and size state for draggable/resizable modal
+  const [librarySize, setLibrarySize] = useState({ width: 800, height: 600 });
+  const [libraryPos, setLibraryPos] = useState({ bottom: 100, left: 300 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [resizeCorner, setResizeCorner] = useState<string>('');
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0, bottom: 0, left: 0 });
+  const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 });
+
+  // Handle drag
+  const handleLibraryDragStart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+    setDragStart({
+      x: e.clientX,
+      y: e.clientY,
+      bottom: libraryPos.bottom,
+      left: libraryPos.left,
+    });
+  };
+
+  // Handle resize
+  const handleLibraryResizeStart = (e: React.MouseEvent, corner: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsResizing(true);
+    setResizeCorner(corner);
+    setResizeStart({
+      x: e.clientX,
+      y: e.clientY,
+      width: librarySize.width,
+      height: librarySize.height,
+    });
+  };
+
+  // Drag and resize effects
+  useEffect(() => {
+    if (isDragging) {
+      const handleMouseMove = (e: MouseEvent) => {
+        const deltaX = e.clientX - dragStart.x;
+        const deltaY = e.clientY - dragStart.y;
+        setLibraryPos({
+          bottom: Math.max(0, dragStart.bottom - deltaY),
+          left: Math.max(0, dragStart.left + deltaX),
+        });
+      };
+      const handleMouseUp = () => setIsDragging(false);
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+
+    if (isResizing) {
+      const handleMouseMove = (e: MouseEvent) => {
+        const deltaX = e.clientX - resizeStart.x;
+        const deltaY = e.clientY - resizeStart.y;
+        let newWidth = resizeStart.width;
+        let newHeight = resizeStart.height;
+        let newBottom = libraryPos.bottom;
+        let newLeft = libraryPos.left;
+
+        switch (resizeCorner) {
+          case 'se':
+            newWidth = resizeStart.width + deltaX;
+            newHeight = resizeStart.height + deltaY;
+            newBottom = libraryPos.bottom - deltaY;
+            break;
+          case 'sw':
+            newWidth = resizeStart.width - deltaX;
+            newHeight = resizeStart.height + deltaY;
+            newLeft = libraryPos.left + deltaX;
+            newBottom = libraryPos.bottom - deltaY;
+            break;
+          case 'ne':
+            newWidth = resizeStart.width + deltaX;
+            newHeight = resizeStart.height - deltaY;
+            newBottom = libraryPos.bottom - deltaY;
+            break;
+          case 'nw':
+            newWidth = resizeStart.width - deltaX;
+            newHeight = resizeStart.height - deltaY;
+            newLeft = libraryPos.left + deltaX;
+            newBottom = libraryPos.bottom - deltaY;
+            break;
+        }
+
+        newWidth = Math.max(600, Math.min(1400, newWidth));
+        newHeight = Math.max(400, Math.min(window.innerHeight * 0.9, newHeight));
+        newBottom = Math.max(0, newBottom);
+        newLeft = Math.max(0, newLeft);
+
+        setLibrarySize({ width: newWidth, height: newHeight });
+        const updates: { left?: number; bottom?: number } = {};
+        if (resizeCorner === 'sw' || resizeCorner === 'nw') updates.left = newLeft;
+        updates.bottom = newBottom;
+        setLibraryPos(prev => ({ ...prev, ...updates }));
+      };
+      const handleMouseUp = () => {
+        setIsResizing(false);
+        setResizeCorner('');
+      };
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, isResizing, dragStart, resizeStart, resizeCorner]);
 
   // Fetch exercises from Supabase only once
   useEffect(() => {
@@ -143,7 +252,7 @@ function ExerciseLibraryPopup({
 
   const handleSelectExercise = (exercise: string) => {
     onSelectExercise(exercise);
-    onClose();
+    // Keep library open for multiple selections
   };
 
   // Filter exercises across all categories
@@ -180,17 +289,73 @@ function ExerciseLibraryPopup({
   const filteredCategories = getFilteredCategories();
   const totalExercises = Object.values(filteredCategories).flat().length;
 
+  // Calculate responsive columns based on width
+  const getColumnClass = () => {
+    if (librarySize.width >= 1100) return 'grid-cols-4';
+    if (librarySize.width >= 800) return 'grid-cols-3';
+    return 'grid-cols-2';
+  };
+
   return (
-    <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4'>
-      <div className='bg-white rounded-lg shadow-2xl max-w-md w-full max-h-[80vh] flex flex-col'>
-        {/* Header */}
-        <div className='bg-[#208479] text-white p-4 flex justify-between items-center rounded-t-lg'>
+    <div
+      className='fixed z-[100]'
+      style={{
+        bottom: `${libraryPos.bottom}px`,
+        left: `${libraryPos.left}px`,
+      }}
+    >
+      <div
+        className='bg-white rounded-lg shadow-2xl flex flex-col relative border-4 border-[#208479]'
+        style={{
+          width: `${librarySize.width}px`,
+          height: `${librarySize.height}px`,
+        }}
+      >
+        {/* Corner Resize Handles */}
+        <div
+          className='absolute bottom-0 right-0 w-8 h-8 cursor-se-resize z-50'
+          onMouseDown={e => handleLibraryResizeStart(e, 'se')}
+          title='Drag to resize'
+        >
+          <div className='absolute bottom-0 right-0 w-0 h-0 border-l-[32px] border-l-transparent border-b-[32px] border-b-[#208479] hover:border-b-[#1a6b62] transition'></div>
+        </div>
+        <div
+          className='absolute top-0 right-0 w-8 h-8 cursor-ne-resize z-50'
+          onMouseDown={e => handleLibraryResizeStart(e, 'ne')}
+          title='Drag to resize'
+        >
+          <div className='absolute top-0 right-0 w-0 h-0 border-l-[32px] border-l-transparent border-t-[32px] border-t-[#208479] hover:border-t-[#1a6b62] transition rounded-tr-lg'></div>
+        </div>
+        <div
+          className='absolute bottom-0 left-0 w-8 h-8 cursor-sw-resize z-50'
+          onMouseDown={e => handleLibraryResizeStart(e, 'sw')}
+          title='Drag to resize'
+        >
+          <div className='absolute bottom-0 left-0 w-0 h-0 border-r-[32px] border-r-transparent border-b-[32px] border-b-[#208479] hover:border-b-[#1a6b62] transition rounded-bl-lg'></div>
+        </div>
+        <div
+          className='absolute top-0 left-0 w-8 h-8 cursor-nw-resize z-50'
+          onMouseDown={e => handleLibraryResizeStart(e, 'nw')}
+          title='Drag to resize'
+        >
+          <div className='absolute top-0 left-0 w-0 h-0 border-r-[32px] border-r-transparent border-t-[32px] border-t-[#208479] hover:border-t-[#1a6b62] transition rounded-tl-lg'></div>
+        </div>
+
+        {/* Header - Draggable */}
+        <div
+          className='bg-[#208479] text-white p-4 flex justify-between items-center rounded-t-lg cursor-move flex-shrink-0'
+          onMouseDown={handleLibraryDragStart}
+        >
           <h3 className='font-bold flex items-center gap-2'>
             <Library size={20} />
             Exercise Library
           </h3>
-          <button onClick={onClose} className='hover:bg-[#1a6b62] p-1 rounded transition'>
-            <X size={20} />
+          <button
+            onClick={onClose}
+            className='px-4 py-2 bg-[#1a6b62] hover:bg-[#145a52] text-white rounded-lg font-semibold transition flex items-center gap-2'
+          >
+            Done
+            <X size={18} />
           </button>
         </div>
 
@@ -230,8 +395,8 @@ function ExerciseLibraryPopup({
                     <h4 className='text-sm font-bold uppercase tracking-wide'>{category}</h4>
                   </div>
 
-                  {/* Exercise Buttons */}
-                  <div className='space-y-1 mb-3'>
+                  {/* Exercise Buttons - Responsive Grid */}
+                  <div className={`grid ${getColumnClass()} gap-2 mb-3`}>
                     {categoryExercises.map(exercise => (
                       <button
                         key={exercise.id}
@@ -271,6 +436,9 @@ function WODSectionComponent({
   onDragStart,
   onDragOver,
   onDrop,
+  workoutTypes,
+  sectionTypes,
+  loadingTracks,
 }: {
   section: WODSection;
   sectionIndex: number;
@@ -283,6 +451,9 @@ function WODSectionComponent({
   onDragStart: (e: React.DragEvent, index: number) => void;
   onDragOver: (e: React.DragEvent, index: number) => void;
   onDrop: (e: React.DragEvent, index: number) => void;
+  workoutTypes: WorkoutType[];
+  sectionTypes: SectionType[];
+  loadingTracks: boolean;
 }) {
   const endTime = elapsedMinutes + section.duration;
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -320,10 +491,11 @@ function WODSectionComponent({
               value={section.type}
               onChange={e => onUpdate({ type: e.target.value })}
               className='px-3 py-1 border border-gray-300 rounded text-sm font-semibold focus:ring-2 focus:ring-[#208479] focus:border-transparent bg-white text-gray-900'
+              disabled={loadingTracks}
             >
-              {SECTION_TYPES.map(type => (
-                <option key={type} value={type}>
-                  {type}
+              {sectionTypes.map(type => (
+                <option key={type.id} value={type.name}>
+                  {type.name}
                 </option>
               ))}
             </select>
@@ -343,6 +515,26 @@ function WODSectionComponent({
             <div className='text-xs text-gray-700 bg-white px-2 py-1 rounded border border-gray-200'>
               {elapsedMinutes}-{endTime} min
             </div>
+
+            {/* Workout Type Dropdown - Only for WOD sections */}
+            {section.type === 'WOD' && (
+              <div className='flex items-center gap-2'>
+                <label className='text-xs font-semibold text-gray-700'>Type:</label>
+                <select
+                  value={section.workout_type_id || ''}
+                  onChange={e => onUpdate({ workout_type_id: e.target.value })}
+                  className='px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 bg-white text-xs'
+                  disabled={loadingTracks}
+                >
+                  <option value=''>Select Type...</option>
+                  {workoutTypes.map(type => (
+                    <option key={type.id} value={type.id}>
+                      {type.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <button
               type='button'
@@ -437,17 +629,148 @@ export default function WODModal({
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<number | null>(null);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
+  const [lastExpandedSectionId, setLastExpandedSectionId] = useState<string | null>(null);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [tracks, setTracks] = useState<Track[]>([]);
   const [workoutTypes, setWorkoutTypes] = useState<WorkoutType[]>([]);
+  const [sectionTypes, setSectionTypes] = useState<SectionType[]>([]);
   const [loadingTracks, setLoadingTracks] = useState(false);
   const [notesPanelOpen, setNotesPanelOpen] = useState(initialNotesOpen);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [notesModalSize, setNotesModalSize] = useState({ width: 600, height: 500 });
+  const [notesModalPos, setNotesModalPos] = useState({ bottom: 20, left: 820 });
+  const [isResizingNotes, setIsResizingNotes] = useState(false);
+  const [isDraggingNotes, setIsDraggingNotes] = useState(false);
+  const [resizeStartNotes, setResizeStartNotes] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const [dragStartNotes, setDragStartNotes] = useState({ x: 0, y: 0, bottom: 0, left: 0 });
 
   // Sync local notesPanelOpen with parent state
   useEffect(() => {
     setNotesPanelOpen(initialNotesOpen);
   }, [initialNotesOpen]);
+
+  // Handle Notes modal drag (move)
+  const handleNotesDragStart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDraggingNotes(true);
+    setDragStartNotes({
+      x: e.clientX,
+      y: e.clientY,
+      bottom: notesModalPos.bottom,
+      left: notesModalPos.left,
+    });
+  };
+
+  // Handle Notes modal resize
+  const [resizeCorner, setResizeCorner] = useState<string>('');
+  const handleNotesResizeStart = (e: React.MouseEvent, corner: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsResizingNotes(true);
+    setResizeCorner(corner);
+    setResizeStartNotes({
+      x: e.clientX,
+      y: e.clientY,
+      width: notesModalSize.width,
+      height: notesModalSize.height,
+    });
+  };
+
+  useEffect(() => {
+    if (isDraggingNotes) {
+      const handleMouseMove = (e: MouseEvent) => {
+        const deltaX = e.clientX - dragStartNotes.x;
+        const deltaY = e.clientY - dragStartNotes.y;
+
+        setNotesModalPos({
+          bottom: Math.max(0, dragStartNotes.bottom - deltaY),
+          left: Math.max(0, dragStartNotes.left + deltaX),
+        });
+      };
+
+      const handleMouseUp = () => {
+        setIsDraggingNotes(false);
+      };
+
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+
+    if (isResizingNotes) {
+      const handleMouseMove = (e: MouseEvent) => {
+        const deltaX = e.clientX - resizeStartNotes.x;
+        const deltaY = e.clientY - resizeStartNotes.y;
+
+        let newWidth = resizeStartNotes.width;
+        let newHeight = resizeStartNotes.height;
+        let newBottom = notesModalPos.bottom;
+        let newLeft = notesModalPos.left;
+
+        // Handle resize based on corner - ALL expand in drag direction
+        switch (resizeCorner) {
+          case 'se': // Bottom-right: drag down/right = grow
+            newWidth = resizeStartNotes.width + deltaX;
+            newHeight = resizeStartNotes.height + deltaY; // Drag down = taller
+            newBottom = notesModalPos.bottom - deltaY; // Move bottom down
+            break;
+          case 'sw': // Bottom-left: drag down/left = grow
+            newWidth = resizeStartNotes.width - deltaX;
+            newHeight = resizeStartNotes.height + deltaY; // Drag down = taller
+            newLeft = notesModalPos.left + deltaX;
+            newBottom = notesModalPos.bottom - deltaY; // Move bottom down
+            break;
+          case 'ne': // Top-right: drag up/right = grow
+            newWidth = resizeStartNotes.width + deltaX;
+            newHeight = resizeStartNotes.height - deltaY; // Drag up (-Y) = taller
+            newBottom = notesModalPos.bottom - deltaY; // Accommodate growth
+            break;
+          case 'nw': // Top-left: drag up/left = grow
+            newWidth = resizeStartNotes.width - deltaX;
+            newHeight = resizeStartNotes.height - deltaY; // Drag up (-Y) = taller
+            newLeft = notesModalPos.left + deltaX;
+            newBottom = notesModalPos.bottom - deltaY; // Accommodate growth
+            break;
+        }
+
+        // Apply constraints
+        newWidth = Math.max(400, Math.min(1000, newWidth));
+        newHeight = Math.max(300, Math.min(window.innerHeight * 0.9, newHeight));
+        newBottom = Math.max(0, newBottom);
+        newLeft = Math.max(0, newLeft);
+
+        setNotesModalSize({ width: newWidth, height: newHeight });
+
+        // Update position (all corners affect position now)
+        const updates: { left?: number; bottom?: number } = {};
+
+        if (resizeCorner === 'sw' || resizeCorner === 'nw') {
+          updates.left = newLeft;
+        }
+        // All corners affect bottom position
+        updates.bottom = newBottom;
+
+        setNotesModalPos(prev => ({ ...prev, ...updates }));
+      };
+
+      const handleMouseUp = () => {
+        setIsResizingNotes(false);
+        setResizeCorner('');
+      };
+
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDraggingNotes, isResizingNotes, dragStartNotes, resizeStartNotes]);
 
   // Fetch tracks and workout types on mount
   useEffect(() => {
@@ -457,18 +780,21 @@ export default function WODModal({
   const fetchTracksAndTypes = async () => {
     setLoadingTracks(true);
     try {
-      const [tracksResult, typesResult] = await Promise.all([
+      const [tracksResult, typesResult, sectionTypesResult] = await Promise.all([
         supabase.from('tracks').select('*').order('name'),
         supabase.from('workout_types').select('*').order('name'),
+        supabase.from('section_types').select('*').order('display_order'),
       ]);
 
       if (tracksResult.error) throw tracksResult.error;
       if (typesResult.error) throw typesResult.error;
+      if (sectionTypesResult.error) throw sectionTypesResult.error;
 
       setTracks(tracksResult.data || []);
       setWorkoutTypes(typesResult.data || []);
+      setSectionTypes(sectionTypesResult.data || []);
     } catch (error) {
-      console.error('Error fetching tracks and workout types:', error);
+      console.error('Error fetching tracks, workout types, and section types:', error);
     } finally {
       setLoadingTracks(false);
     }
@@ -521,8 +847,9 @@ export default function WODModal({
           date: date.toISOString().split('T')[0],
           sections: templateSections,
         });
-        // Expand the first section (Warm-up)
+        // Expand the first section (Warm-up) and track it
         setExpandedSections(new Set([templateSections[0].id]));
+        setLastExpandedSectionId(templateSections[0].id);
       }
       setErrors({});
       setActiveSection(null);
@@ -556,28 +883,61 @@ export default function WODModal({
       const newSet = new Set(prev);
       if (newSet.has(sectionId)) {
         newSet.delete(sectionId);
+        // Don't clear lastExpandedSectionId when collapsing - keep it as reference for adding new sections
       } else {
         newSet.add(sectionId);
+        // Track this as the last expanded section
+        setLastExpandedSectionId(sectionId);
       }
       return newSet;
     });
   };
 
   const addSection = () => {
+    // Determine the section type for the new section
+    let newSectionType = 'Warm-up'; // Default fallback
+
+    if (lastExpandedSectionId && sectionTypes.length > 0) {
+      const expandedSection = formData.sections.find(s => s.id === lastExpandedSectionId);
+      if (expandedSection) {
+        // Find the current section type in the ordered list
+        const currentTypeIndex = sectionTypes.findIndex(t => t.name === expandedSection.type);
+        if (currentTypeIndex !== -1 && currentTypeIndex < sectionTypes.length - 1) {
+          // Use the next section type in display_order
+          newSectionType = sectionTypes[currentTypeIndex + 1].name;
+        } else if (currentTypeIndex === sectionTypes.length - 1) {
+          // If we're at the last type, cycle back to first
+          newSectionType = sectionTypes[0].name;
+        }
+      }
+    }
+
     const newSection: WODSection = {
       id: `section-${Date.now()}`,
-      type: 'Warm-up',
+      type: newSectionType,
       duration: 5,
       content: '',
     };
 
-    setFormData(prev => ({
-      ...prev,
-      sections: [...prev.sections, newSection],
-    }));
+    setFormData(prev => {
+      // Find the index of the last expanded section
+      const expandedIndex = lastExpandedSectionId
+        ? prev.sections.findIndex(s => s.id === lastExpandedSectionId)
+        : -1;
+
+      // If there's an expanded section, insert after it; otherwise add at the end
+      if (expandedIndex !== -1) {
+        const newSections = [...prev.sections];
+        newSections.splice(expandedIndex + 1, 0, newSection);
+        return { ...prev, sections: newSections };
+      } else {
+        return { ...prev, sections: [...prev.sections, newSection] };
+      }
+    });
 
     // Collapse all existing sections and expand only the new one
     setExpandedSections(new Set([newSection.id]));
+    setLastExpandedSectionId(newSection.id);
   };
 
   const updateSection = (sectionId: string, updates: Partial<WODSection>) => {
@@ -746,38 +1106,85 @@ export default function WODModal({
   if (isPanel) {
     return (
       <>
-        {/* Coach Notes Panel - Separate Panel to the RIGHT of WOD Panel */}
+        {/* Coach Notes Floating Modal */}
         {notesPanelOpen && (
-          <div className='fixed left-[800px] top-0 h-full w-[400px] bg-white shadow-2xl z-50 flex flex-col border-l-2 border-[#208479] animate-slide-in-right'>
-            {/* Header */}
-            <div className='bg-[#208479] text-white p-4 flex justify-between items-center'>
-              <h2 className='text-xl font-bold'>Coach Notes</h2>
-              <button
-                onClick={() => {
-                  setNotesPanelOpen(false);
-                  onNotesToggle?.(false);
-                }}
-                className='hover:bg-[#1a6b62] p-1 rounded transition'
+          <div
+            className='fixed z-[70]'
+            style={{
+              bottom: `${notesModalPos.bottom}px`,
+              left: `${notesModalPos.left}px`,
+            }}
+          >
+            <div
+              className='bg-white rounded-lg shadow-2xl flex flex-col relative border-4 border-[#208479]'
+              style={{
+                width: `${notesModalSize.width}px`,
+                height: `${notesModalSize.height}px`,
+              }}
+            >
+              {/* Corner Resize Handles */}
+              <div
+                className='absolute bottom-0 right-0 w-8 h-8 cursor-se-resize z-50'
+                onMouseDown={(e) => handleNotesResizeStart(e, 'se')}
+                title='Drag to resize'
               >
-                <X size={24} />
-              </button>
-            </div>
+                <div className='absolute bottom-0 right-0 w-0 h-0 border-l-[32px] border-l-transparent border-b-[32px] border-b-[#208479] hover:border-b-[#1a6b62] transition'></div>
+              </div>
+              <div
+                className='absolute top-0 right-0 w-8 h-8 cursor-ne-resize z-50'
+                onMouseDown={(e) => handleNotesResizeStart(e, 'ne')}
+                title='Drag to resize'
+              >
+                <div className='absolute top-0 right-0 w-0 h-0 border-l-[32px] border-l-transparent border-t-[32px] border-t-[#208479] hover:border-t-[#1a6b62] transition rounded-tr-lg'></div>
+              </div>
+              <div
+                className='absolute bottom-0 left-0 w-8 h-8 cursor-sw-resize z-50'
+                onMouseDown={(e) => handleNotesResizeStart(e, 'sw')}
+                title='Drag to resize'
+              >
+                <div className='absolute bottom-0 left-0 w-0 h-0 border-r-[32px] border-r-transparent border-b-[32px] border-b-[#208479] hover:border-b-[#1a6b62] transition rounded-bl-lg'></div>
+              </div>
+              <div
+                className='absolute top-0 left-0 w-8 h-8 cursor-nw-resize z-50'
+                onMouseDown={(e) => handleNotesResizeStart(e, 'nw')}
+                title='Drag to resize'
+              >
+                <div className='absolute top-0 left-0 w-0 h-0 border-r-[32px] border-r-transparent border-t-[32px] border-t-[#208479] hover:border-t-[#1a6b62] transition rounded-tl-lg'></div>
+              </div>
 
-            {/* Content */}
-            <div className='flex-1 overflow-y-auto p-4'>
-              <textarea
-                value={formData.coach_notes || ''}
-                onChange={e => handleChange('coach_notes', e.target.value)}
-                placeholder='Add private notes about this workout...&#10;&#10;Examples:&#10;- Athlete feedback&#10;- Scaling options used&#10;- Time management notes&#10;- Equipment setup details&#10;- Modifications made'
-                className='w-full h-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 placeholder-gray-400 resize-none text-sm'
-              />
-            </div>
+              {/* Header - Draggable */}
+              <div
+                className='bg-[#208479] text-white p-4 rounded-t-lg flex justify-between items-center flex-shrink-0 cursor-move'
+                onMouseDown={handleNotesDragStart}
+              >
+                <h2 className='text-xl font-bold'>Coach Notes</h2>
+                <button
+                    onClick={() => {
+                      setNotesPanelOpen(false);
+                      onNotesToggle?.(false);
+                    }}
+                    className='hover:bg-[#1a6b62] p-1 rounded transition'
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
 
-            {/* Footer */}
-            <div className='border-t p-4 bg-gray-50'>
-              <p className='text-xs text-gray-500'>
-                Notes are private and searchable. Auto-saved when you save the WOD.
-              </p>
+                {/* Content */}
+                <div className='flex-1 overflow-y-auto p-4'>
+                  <textarea
+                    value={formData.coach_notes || ''}
+                    onChange={e => handleChange('coach_notes', e.target.value)}
+                    placeholder='Add private notes about this workout...&#10;&#10;Examples:&#10;- Athlete feedback&#10;- Scaling options used&#10;- Time management notes&#10;- Equipment setup details&#10;- Modifications made'
+                    className='w-full h-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 placeholder-gray-400 resize-none text-sm'
+                  />
+                </div>
+
+              {/* Footer */}
+              <div className='border-t p-4 bg-gray-50 rounded-b-lg flex-shrink-0'>
+                <p className='text-xs text-gray-500'>
+                  Notes are private and searchable. Auto-saved when you save the WOD.
+                </p>
+              </div>
             </div>
           </div>
         )}
@@ -873,45 +1280,22 @@ export default function WODModal({
               {errors.title && <p className='text-red-500 text-sm mt-1'>{errors.title}</p>}
             </div>
 
-            {/* Track and Workout Type */}
-            <div className='flex gap-6 items-start'>
-              {/* Track */}
-              <div className='flex-1'>
-                <label className='block text-sm font-semibold mb-2 text-gray-900'>Track</label>
-                <select
-                  value={formData.track_id || ''}
-                  onChange={e => handleChange('track_id', e.target.value)}
-                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 bg-white'
-                  disabled={loadingTracks}
-                >
-                  <option value=''>Select Track...</option>
-                  {tracks.map(track => (
-                    <option key={track.id} value={track.id}>
-                      {track.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Workout Type */}
-              <div className='flex-1'>
-                <label className='block text-sm font-semibold mb-2 text-gray-900'>
-                  Workout Type
-                </label>
-                <select
-                  value={formData.workout_type_id || ''}
-                  onChange={e => handleChange('workout_type_id', e.target.value)}
-                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 bg-white'
-                  disabled={loadingTracks}
-                >
-                  <option value=''>Select Workout Type...</option>
-                  {workoutTypes.map(type => (
-                    <option key={type.id} value={type.id}>
-                      {type.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            {/* Track */}
+            <div>
+              <label className='block text-sm font-semibold mb-2 text-gray-900'>Track</label>
+              <select
+                value={formData.track_id || ''}
+                onChange={e => handleChange('track_id', e.target.value)}
+                className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 bg-white'
+                disabled={loadingTracks}
+              >
+                <option value=''>Select Track...</option>
+                {tracks.map(track => (
+                  <option key={track.id} value={track.id}>
+                    {track.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Class Times and Max Capacity */}
@@ -1002,6 +1386,9 @@ export default function WODModal({
                     onDragStart={handleDragStart}
                     onDragOver={handleDragOver}
                     onDrop={handleDrop}
+                    workoutTypes={workoutTypes}
+                    sectionTypes={sectionTypes}
+                    loadingTracks={loadingTracks}
                   />
                 ))}
 
@@ -1014,13 +1401,14 @@ export default function WODModal({
             </div>
           </form>
 
-          {/* Exercise Library Popup */}
-          <ExerciseLibraryPopup
-            isOpen={libraryOpen}
-            onClose={() => setLibraryOpen(false)}
-            onSelectExercise={handleSelectExercise}
-          />
         </div>
+
+        {/* Exercise Library Popup - Outside panel for proper z-index */}
+        <ExerciseLibraryPopup
+          isOpen={libraryOpen}
+          onClose={() => setLibraryOpen(false)}
+          onSelectExercise={handleSelectExercise}
+        />
       </>
     );
   }
@@ -1112,45 +1500,22 @@ export default function WODModal({
                 {errors.title && <p className='text-red-500 text-sm mt-1'>{errors.title}</p>}
               </div>
 
-              {/* Track and Workout Type */}
-              <div className='flex gap-6 items-start'>
-                {/* Track */}
-                <div className='flex-1'>
-                  <label className='block text-sm font-semibold mb-2 text-gray-900'>Track</label>
-                  <select
-                    value={formData.track_id || ''}
-                    onChange={e => handleChange('track_id', e.target.value)}
-                    className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 bg-white'
-                    disabled={loadingTracks}
-                  >
-                    <option value=''>Select Track...</option>
-                    {tracks.map(track => (
-                      <option key={track.id} value={track.id}>
-                        {track.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Workout Type */}
-                <div className='flex-1'>
-                  <label className='block text-sm font-semibold mb-2 text-gray-900'>
-                    Workout Type
-                  </label>
-                  <select
-                    value={formData.workout_type_id || ''}
-                    onChange={e => handleChange('workout_type_id', e.target.value)}
-                    className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 bg-white'
-                    disabled={loadingTracks}
-                  >
-                    <option value=''>Select Workout Type...</option>
-                    {workoutTypes.map(type => (
-                      <option key={type.id} value={type.id}>
-                        {type.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              {/* Track */}
+              <div>
+                <label className='block text-sm font-semibold mb-2 text-gray-900'>Track</label>
+                <select
+                  value={formData.track_id || ''}
+                  onChange={e => handleChange('track_id', e.target.value)}
+                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 bg-white'
+                  disabled={loadingTracks}
+                >
+                  <option value=''>Select Track...</option>
+                  {tracks.map(track => (
+                    <option key={track.id} value={track.id}>
+                      {track.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* Class Times and Max Capacity */}
@@ -1241,6 +1606,9 @@ export default function WODModal({
                       onDragStart={handleDragStart}
                       onDragOver={handleDragOver}
                       onDrop={handleDrop}
+                      workoutTypes={workoutTypes}
+                      sectionTypes={sectionTypes}
+                      loadingTracks={loadingTracks}
                     />
                   ))}
 
