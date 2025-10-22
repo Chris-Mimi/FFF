@@ -59,6 +59,9 @@ export default function CoachDashboard() {
   const [selectedWorkoutTypes, setSelectedWorkoutTypes] = useState<string[]>([]);
   const [selectedTracks, setSelectedTracks] = useState<string[]>([]);
   const [movements, setMovements] = useState<Map<string, number>>(new Map());
+  const [modalSize, setModalSize] = useState({ width: 768, height: 600 });
+  const [isResizing, setIsResizing] = useState(false);
+  const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 });
 
   useEffect(() => {
     // Check authentication
@@ -612,7 +615,46 @@ export default function CoachDashboard() {
   const closeNotesPanel = () => {
     setNotesPanel({ isOpen: false, wod: null });
     setNotesDraft('');
+    setModalSize({ width: 768, height: 600 }); // Reset size
   };
+
+  const handleResizeStart = (e: React.MouseEvent, corner: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsResizing(true);
+    setResizeStart({
+      x: e.clientX,
+      y: e.clientY,
+      width: modalSize.width,
+      height: modalSize.height,
+    });
+  };
+
+  useEffect(() => {
+    if (!isResizing) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const deltaX = e.clientX - resizeStart.x;
+      const deltaY = e.clientY - resizeStart.y;
+
+      const newWidth = Math.max(400, Math.min(1200, resizeStart.width + deltaX * 2));
+      const newHeight = Math.max(400, Math.min(window.innerHeight * 0.9, resizeStart.height + deltaY * 2));
+
+      setModalSize({ width: newWidth, height: newHeight });
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizing, resizeStart]);
 
   const handleSaveNotes = async () => {
     if (!notesPanel.wod?.id) return;
@@ -806,25 +848,21 @@ export default function CoachDashboard() {
     <div className='min-h-screen bg-gray-200 flex'>
       <div
         className={`flex-1 flex flex-col transition-all duration-300 ${
-          isModalOpen && notesPanelOpen && searchPanelOpen
+          isModalOpen && searchPanelOpen
             ? 'ml-[800px] mr-[800px]'
-            : isModalOpen && notesPanelOpen
-              ? 'ml-[800px] mr-[400px]'
-              : isModalOpen && searchPanelOpen
-                ? 'ml-[800px] mr-[800px]'
-                : isModalOpen && quickEditMode && searchPanelOpen
-                  ? 'ml-[800px] mr-[1200px]'
-                  : isModalOpen && quickEditMode
-                    ? 'ml-[800px] mr-[400px]'
-                    : quickEditMode && searchPanelOpen
-                      ? 'mr-[1200px]'
-                      : quickEditMode
+            : isModalOpen && quickEditMode && searchPanelOpen
+              ? 'ml-[800px] mr-[1200px]'
+              : isModalOpen && quickEditMode
+                ? 'ml-[800px] mr-[400px]'
+                : quickEditMode && searchPanelOpen
+                  ? 'mr-[1200px]'
+                  : quickEditMode
+                    ? 'mr-[800px]'
+                    : isModalOpen
+                      ? 'ml-[800px]'
+                      : searchPanelOpen
                         ? 'mr-[800px]'
-                        : isModalOpen
-                          ? 'ml-[800px]'
-                          : searchPanelOpen
-                            ? 'mr-[800px]'
-                            : ''
+                        : ''
         }`}
       >
         {/* Header */}
@@ -870,8 +908,8 @@ export default function CoachDashboard() {
         {/* Main Content Area */}
         <div className='flex-1 flex flex-col'>
           {/* View Mode Toggle & Navigation */}
-          <div className='bg-white border-b p-4 flex-shrink-0'>
-            <div className='max-w-7xl mx-auto space-y-4'>
+          <div className='bg-white border-b px-4 py-4 flex-shrink-0'>
+            <div className='w-full space-y-4'>
               {/* View Mode Toggle */}
               <div className='flex justify-center'>
                 <div className='inline-flex rounded-lg border border-gray-300 p-1 bg-gray-50'>
@@ -935,10 +973,10 @@ export default function CoachDashboard() {
           </div>
 
           {/* Calendar Grid */}
-          <div className='mx-auto p-4 flex-1 max-w-none w-full'>
+          <div className='flex-1 flex flex-col w-full'>
             {viewMode === 'monthly' && (
               /* Month View with Week Numbers */
-              <div>
+              <div className='w-full px-4'>
                 {/* Weekday Headers with Cancel Button */}
                 <div className='flex gap-2 mb-2'>
                   {/* Week number column header */}
@@ -948,7 +986,7 @@ export default function CoachDashboard() {
                     {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
                       <div
                         key={day}
-                        className='text-center text-xs font-semibold text-gray-600 py-2'
+                        className='text-center text-xs font-semibold text-white bg-[#208479] py-2 rounded'
                       >
                         {day}
                       </div>
@@ -976,8 +1014,8 @@ export default function CoachDashboard() {
 
                   return (
                     <div key={weekIdx} className='flex gap-2 mb-2'>
-                      {/* Week Number - Outside Grid */}
-                      <div className='w-8 flex items-center justify-center text-xs font-medium text-gray-500'>
+                      {/* Week Number - Teal Box */}
+                      <div className='w-8 flex items-center justify-center text-xs font-semibold text-white bg-[#208479] rounded'>
                         {weekNumber}
                       </div>
 
@@ -1001,7 +1039,11 @@ export default function CoachDashboard() {
                               {/* Day Number and Paste Button */}
                               <div className='flex items-center justify-between mb-1'>
                                 <div
-                                  className={`text-sm font-semibold ${isCurrentMonth ? 'text-gray-900' : 'text-gray-500'}`}
+                                  className={`text-sm font-semibold ${
+                                    isCurrentMonth
+                                      ? 'text-[#208479]'
+                                      : 'text-gray-400'
+                                  }`}
                                 >
                                   {date.getDate()}
                                 </div>
@@ -1078,6 +1120,9 @@ export default function CoachDashboard() {
                           );
                         })}
                       </div>
+
+                      {/* Empty space to align with cancel button area */}
+                      <div className='w-16'></div>
                     </div>
                   );
                 })}
@@ -1086,7 +1131,7 @@ export default function CoachDashboard() {
 
             {viewMode === 'weekly' && (
               /* Week View - 2 Weeks */
-              <div>
+              <div className='px-4'>
                 {/* First Week */}
                 <div className='mb-6'>
                   {/* Week Number Banner */}
@@ -1194,7 +1239,11 @@ export default function CoachDashboard() {
                 <div>
                   {/* Week Number Banner */}
                   <div className='bg-[#208479] text-white px-4 py-2 rounded-t-lg mb-4'>
-                    <div className='text-sm font-semibold'>Week {getWeekNumber(new Date(displayDates[7]))}</div>
+                    <div className='text-sm font-semibold'>Week {getWeekNumber((() => {
+                      const secondWeekStart = new Date(displayDates[0]);
+                      secondWeekStart.setDate(secondWeekStart.getDate() + 7);
+                      return secondWeekStart;
+                    })())}</div>
                   </div>
 
                   <div className='grid grid-cols-7 gap-2'>
@@ -1851,16 +1900,62 @@ export default function CoachDashboard() {
         onNotesToggle={setNotesPanelOpen}
       />
 
-      {/* Coach Notes Side Panel */}
+      {/* Coach Notes Modal */}
       {notesPanel.isOpen && (
         <>
           {/* Backdrop */}
-          <div className='fixed inset-0 bg-black bg-opacity-30 z-40' onClick={closeNotesPanel} />
+          <div className='fixed inset-0 bg-black bg-opacity-50 z-40' onClick={closeNotesPanel} />
 
-          {/* Side Panel */}
-          <div className='fixed right-0 top-0 h-full w-full max-w-2xl bg-white shadow-2xl z-50 flex flex-col animate-slide-in'>
-            {/* Header */}
-            <div className='bg-[#208479] text-white p-6 flex justify-between items-start'>
+          {/* Floating Modal */}
+          <div className='fixed inset-0 z-50 flex items-center justify-center p-4'>
+            <div
+              className='bg-white rounded-lg shadow-2xl flex flex-col relative'
+              style={{
+                width: `${modalSize.width}px`,
+                height: `${modalSize.height}px`,
+                maxWidth: '90vw',
+                maxHeight: '90vh'
+              }}
+            >
+              {/* Resize Handles - Large corner triangles */}
+              {/* Bottom-right */}
+              <div
+                className='absolute bottom-0 right-0 w-12 h-12 cursor-se-resize z-50'
+                onMouseDown={(e) => handleResizeStart(e, 'se')}
+                title='Drag to resize'
+              >
+                <div className='absolute bottom-0 right-0 w-0 h-0 border-l-[48px] border-l-transparent border-b-[48px] border-b-[#208479] hover:border-b-[#1a6b62] transition'></div>
+                <div className='absolute bottom-1 right-1 text-white text-xs font-bold'>⇘</div>
+              </div>
+              {/* Top-right */}
+              <div
+                className='absolute top-0 right-0 w-12 h-12 cursor-ne-resize z-50'
+                onMouseDown={(e) => handleResizeStart(e, 'ne')}
+                title='Drag to resize'
+              >
+                <div className='absolute top-0 right-0 w-0 h-0 border-l-[48px] border-l-transparent border-t-[48px] border-t-[#208479] hover:border-t-[#1a6b62] transition rounded-tr-lg'></div>
+                <div className='absolute top-1 right-1 text-white text-xs font-bold'>⇗</div>
+              </div>
+              {/* Bottom-left */}
+              <div
+                className='absolute bottom-0 left-0 w-12 h-12 cursor-sw-resize z-50'
+                onMouseDown={(e) => handleResizeStart(e, 'sw')}
+                title='Drag to resize'
+              >
+                <div className='absolute bottom-0 left-0 w-0 h-0 border-r-[48px] border-r-transparent border-b-[48px] border-b-[#208479] hover:border-b-[#1a6b62] transition rounded-bl-lg'></div>
+                <div className='absolute bottom-1 left-1 text-white text-xs font-bold'>⇙</div>
+              </div>
+              {/* Top-left */}
+              <div
+                className='absolute top-0 left-0 w-12 h-12 cursor-nw-resize z-50'
+                onMouseDown={(e) => handleResizeStart(e, 'nw')}
+                title='Drag to resize'
+              >
+                <div className='absolute top-0 left-0 w-0 h-0 border-r-[48px] border-r-transparent border-t-[48px] border-t-[#208479] hover:border-t-[#1a6b62] transition rounded-tl-lg'></div>
+                <div className='absolute top-1 left-1 text-white text-xs font-bold'>⇖</div>
+              </div>
+              {/* Header */}
+              <div className='bg-[#208479] text-white p-6 rounded-t-lg flex justify-between items-start flex-shrink-0'>
               <div>
                 <h2 className='text-2xl font-bold mb-2'>Coach Notes</h2>
                 <p className='text-sm opacity-90'>
@@ -1873,17 +1968,17 @@ export default function CoachDashboard() {
                       })
                     : ''}
                 </p>
+                </div>
+                <button
+                  onClick={closeNotesPanel}
+                  className='hover:bg-[#1a6b62] p-2 rounded transition'
+                >
+                  <X size={24} />
+                </button>
               </div>
-              <button
-                onClick={closeNotesPanel}
-                className='hover:bg-[#1a6b62] p-2 rounded transition'
-              >
-                <X size={24} />
-              </button>
-            </div>
 
-            {/* Content */}
-            <div className='flex-1 overflow-y-auto p-6'>
+              {/* Content */}
+              <div className='flex-1 overflow-y-auto p-6'>
               <div className='space-y-4'>
                 <div>
                   <label className='block text-sm font-semibold mb-2 text-gray-900'>Notes</label>
@@ -1922,23 +2017,24 @@ export default function CoachDashboard() {
                     </div>
                   </div>
                 </div>
+                </div>
               </div>
-            </div>
 
-            {/* Footer */}
-            <div className='border-t p-6 bg-gray-50 flex justify-end gap-3'>
-              <button
-                onClick={closeNotesPanel}
-                className='px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 text-gray-700 font-medium transition'
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveNotes}
-                className='px-6 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white rounded-lg font-medium transition'
-              >
-                Save Notes
-              </button>
+              {/* Footer */}
+              <div className='border-t p-6 bg-gray-50 rounded-b-lg flex justify-end gap-3 flex-shrink-0'>
+                <button
+                  onClick={closeNotesPanel}
+                  className='px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 text-gray-700 font-medium transition'
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveNotes}
+                  className='px-6 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white rounded-lg font-medium transition'
+                >
+                  Save Notes
+                </button>
+              </div>
             </div>
           </div>
         </>
