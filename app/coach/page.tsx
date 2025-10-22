@@ -55,6 +55,7 @@ export default function CoachDashboard() {
   } | null>(null);
   const [notesPanelOpen, setNotesPanelOpen] = useState(false);
   const [workoutTypes, setWorkoutTypes] = useState<Array<{ id: string; name: string }>>([]);
+  const [sectionTypes, setSectionTypes] = useState<Array<{ id: string; name: string; display_order: number }>>([]);
   const [selectedMovements, setSelectedMovements] = useState<string[]>([]);
   const [selectedWorkoutTypes, setSelectedWorkoutTypes] = useState<string[]>([]);
   const [selectedTracks, setSelectedTracks] = useState<string[]>([]);
@@ -62,6 +63,8 @@ export default function CoachDashboard() {
   const [modalSize, setModalSize] = useState({ width: 768, height: 600 });
   const [isResizing, setIsResizing] = useState(false);
   const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const [hoveredWOD, setHoveredWOD] = useState<WODFormData | null>(null);
+  const [excludedSectionTypes, setExcludedSectionTypes] = useState<string[]>([]);
 
   useEffect(() => {
     // Check authentication
@@ -96,163 +99,92 @@ export default function CoachDashboard() {
   const extractMovements = (wods: WODFormData[]): Map<string, number> => {
     const movementCounts = new Map<string, number>();
 
-    // Common CrossFit movements to look for (ordered from most specific to least specific)
-    const movementPatterns = [
-      // Squats - most specific first
-      'Bulgarian Split Squats',
-      'Bulgarian Split Squat',
-      'Overhead Squats',
-      'Overhead Squat',
-      'Front Squats',
-      'Front Squat',
-      'Back Squats',
-      'Back Squat',
-      'Air Squats',
-      'Air Squat',
-      'Squat Cleans',
-      'Squat Clean',
-      'Pistols',
-      'Pistol',
-      // Deadlifts
-      'Romanian Deadlifts',
-      'Romanian Deadlift',
-      'Sumo Deadlifts',
-      'Sumo Deadlift',
-      'Deadlifts',
-      'Deadlift',
-      // Olympic lifts
-      'Squat Cleans',
-      'Squat Clean',
-      'Hang Cleans',
-      'Hang Clean',
-      'Power Cleans',
-      'Power Clean',
-      'Cleans',
-      'Clean',
-      'Squat Snatches',
-      'Squat Snatch',
-      'Hang Snatches',
-      'Hang Snatch',
-      'Power Snatches',
-      'Power Snatch',
-      'Snatches',
-      'Snatch',
-      // Press movements
-      'Handstand Push-ups',
-      'Handstand Push-up',
-      'Push Presses',
-      'Push Press',
-      'Shoulder Presses',
-      'Shoulder Press',
-      'Bench Presses',
-      'Bench Press',
-      'Strict Presses',
-      'Strict Press',
-      'Split Jerks',
-      'Split Jerk',
-      'Presses',
-      'Press',
-      'Jerks',
-      'Jerk',
-      // Pull movements
-      'Chest-to-Bar',
-      'Pull-ups',
-      'Pull-up',
-      'Pull-Up',
-      'Pullups',
-      'Pullup',
-      'Chin-ups',
-      'Chin-up',
-      'Chinups',
-      'Chinup',
-      'C2B',
-      // Push-ups
-      'Push-ups',
-      'Push-up',
-      'Push-Up',
-      'Pushups',
-      'Pushup',
-      'HSPU',
-      // Gymnastics
-      'Muscle-up',
-      'Muscle-Up',
-      'Muscle-ups',
-      'Ring Dips',
-      'Ring Dip',
-      'Bar Dips',
-      'Bar Dip',
-      'Toes to Bar',
-      'T2B',
-      'Knees to Elbow',
-      'K2E',
-      // Lunges
-      'Walking Lunges',
-      'Walking Lunge',
-      'Reverse Lunges',
-      'Reverse Lunge',
-      'Lunges',
-      'Lunge',
-      // Cardio equipment
-      'Assault Bike',
-      'Echo Bike',
-      'Air Bike',
-      'Ski Erg',
-      'Rowing',
-      'Row',
-      'Running',
-      'Run',
-      // Kettlebell movements - most specific first
-      'American Kettlebell Swings',
-      'American Kettlebell Swing',
-      'Russian Kettlebell Swings',
-      'Russian Kettlebell Swing',
-      'Kettlebell Swings',
-      'Kettlebell Swing',
-      'KB Swings',
-      'KB Swing',
-      'Turkish Get-Ups',
-      'Turkish Get-Up',
-      // Other movements
-      'GHD Sit-ups',
-      'GHD Sit-up',
-      'Sit-ups',
-      'Sit-up',
-      'Situps',
-      'Situp',
-      'Wall Balls',
-      'Wall Ball',
-      'Thrusters',
-      'Thruster',
-      'Double Unders',
-      'Double Under',
-      'Single Unders',
-      'Single Under',
-      'Jump Rope',
-      'Box Jumps',
-      'Box Jump',
-      'Burpees',
-      'Burpee',
-      'Farmer Carry',
-      'Sled Push',
-      'Sled Pull',
-      'Bear Crawl',
-      'Crab Walk',
-      'Elephant Walk',
-      'High Knees',
-      'Plank',
-      'V-up',
-    ];
+    // Words to exclude from movement names (noise words)
+    const excludeWords = new Set([
+      'reps', 'rep', 'rounds', 'round', 'minutes', 'minute', 'min', 'mins',
+      'seconds', 'second', 'sec', 'secs', 'meter', 'meters', 'calories', 'cal',
+      'cals', 'each', 'side', 'total', 'amrap', 'emom', 'for', 'time', 'the',
+      'and', 'or', 'of', 'in', 'at', 'to', 'a', 'an', 'with', 'without',
+      'rx', 'scaled', 'beginner', 'intermediate', 'advanced'
+    ]);
+
+    // Helper function to normalize movement name
+    const normalizeMovement = (movement: string): string => {
+      return movement
+        .split(/\s+/)
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ')
+        .trim();
+    };
+
+    // Helper function to check if a word is likely part of a movement name
+    const isValidMovementWord = (word: string): boolean => {
+      const cleaned = word.toLowerCase();
+      return !excludeWords.has(cleaned) &&
+             cleaned.length > 1 &&
+             !/^\d+$/.test(cleaned);
+    };
 
     wods.forEach(wod => {
       wod.sections.forEach(section => {
-        const content = section.content.toLowerCase();
+        const lines = section.content.split('\n');
 
-        movementPatterns.forEach(movement => {
-          // Use a more flexible pattern that handles hyphens, asterisks, and other common formatting
-          const escapedMovement = movement.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-          const pattern = new RegExp(`(?:^|[\\s*•-])${escapedMovement}(?:[\\s*•-]|$|x|\\d)`, 'i');
-          if (pattern.test(content)) {
-            movementCounts.set(movement, (movementCounts.get(movement) || 0) + 1);
+        lines.forEach(line => {
+          const trimmedLine = line.trim();
+          if (!trimmedLine) return;
+
+          // Pattern 1: Number + x + Movement (e.g., "10x Air Squats", "10x Pass Throughs (PVC)")
+          const numberXPattern = /^(?:\d+[\s-]*x[\s-]*|[\d-]+[\s-]*x[\s-]*)([\w\s\-()]+?)(?:\s*[@\d]|$)/i;
+          let match = trimmedLine.match(numberXPattern);
+
+          // Pattern 2: Bullet/asterisk + Movement (e.g., "* Arm Circles", "- Butt Kicks")
+          if (!match) {
+            const bulletPattern = /^[\s*•\-]+\s*([\w\s\-()]+?)(?:\s*[@\d]|$)/;
+            match = trimmedLine.match(bulletPattern);
+          }
+
+          // Pattern 3: Number + Movement (e.g., "10 Air Squats", "21-15-9 Thrusters")
+          if (!match) {
+            const numberPattern = /^(?:\d+[\s-]*)([\w\s\-()]+?)(?:\s*[@\d]|$)/;
+            match = trimmedLine.match(numberPattern);
+          }
+
+          // Pattern 4: Rep scheme + Movement (e.g., "21-15-9 Thrusters")
+          if (!match) {
+            const repSchemePattern = /^(?:\d+-\d+(?:-\d+)*[\s-]*)([\w\s\-()]+?)(?:\s*[@\d]|$)/;
+            match = trimmedLine.match(repSchemePattern);
+          }
+
+          if (match && match[1]) {
+            // Extract and clean the movement name
+            let movementText = match[1].trim();
+
+            // Remove trailing punctuation but keep parentheses
+            movementText = movementText.replace(/[,;.!?]+$/, '');
+
+            // Check if there's parenthetical content (like "PVC" or "Resistance Band")
+            const hasParentheses = /\(([^)]+)\)/.test(movementText);
+
+            if (hasParentheses) {
+              // Preserve the entire phrase including parentheses
+              const movement = normalizeMovement(movementText);
+              if (movement.length >= 3) {
+                movementCounts.set(movement, (movementCounts.get(movement) || 0) + 1);
+              }
+            } else {
+              // Split into words and filter out noise for non-parenthetical movements
+              const words = movementText.split(/\s+/).filter(isValidMovementWord);
+
+              // Take up to 4 words for the movement name (most movements are 1-4 words)
+              if (words.length > 0 && words.length <= 4) {
+                const movement = normalizeMovement(words.join(' '));
+
+                // Only add if movement name is substantial (at least 3 characters)
+                if (movement.length >= 3) {
+                  movementCounts.set(movement, (movementCounts.get(movement) || 0) + 1);
+                }
+              }
+            }
           }
         });
       });
@@ -294,6 +226,15 @@ export default function CoachDashboard() {
       if (typesError) throw typesError;
       setWorkoutTypes(typesData || []);
 
+      // Fetch all section types
+      const { data: sectionTypesData, error: sectionTypesError } = await supabase
+        .from('section_types')
+        .select('*')
+        .order('display_order', { ascending: true });
+
+      if (sectionTypesError) throw sectionTypesError;
+      setSectionTypes(sectionTypesData || []);
+
       // Fetch WOD counts grouped by track_id
       const { data: wodsData, error: wodsError } = await supabase.from('wods').select('track_id');
 
@@ -322,6 +263,7 @@ export default function CoachDashboard() {
       !selectedTracks.length
     ) {
       setSearchResults([]);
+      setMovements(new Map());
       return;
     }
 
@@ -334,10 +276,7 @@ export default function CoachDashboard() {
           query = query.in('track_id', selectedTracks);
         }
 
-        // Filter by workout types if selected
-        if (selectedWorkoutTypes.length > 0) {
-          query = query.in('workout_type_id', selectedWorkoutTypes);
-        }
+        // Note: Workout type filtering moved to client-side (line ~328) since workout_type_id is now in sections JSONB
 
         // Order by date descending and get all WODs (filter client-side for better section content search)
         const { data, error } = await query.order('date', { ascending: false }).limit(500);
@@ -359,6 +298,7 @@ export default function CoachDashboard() {
             title: string;
             duration: number;
             content: string;
+            workout_type_id?: string;
           }>;
           coach_notes: string | null;
         }
@@ -380,8 +320,13 @@ export default function CoachDashboard() {
         if (searchQuery) {
           const searchTerms = searchQuery.trim().toLowerCase().split(/\s+/);
           results = results.filter(wod => {
+            // Filter sections based on excluded section types
+            const sectionsToSearch = excludedSectionTypes.length > 0
+              ? wod.sections.filter(s => !excludedSectionTypes.includes(s.type))
+              : wod.sections;
+
             const combinedText =
-              `${wod.title} ${wod.coach_notes || ''} ${wod.sections.map(s => s.content).join(' ')}`.toLowerCase();
+              `${wod.title} ${wod.coach_notes || ''} ${sectionsToSearch.map(s => s.content).join(' ')}`.toLowerCase();
             // If ANY search term matches, include this WOD
             return searchTerms.some(term => combinedText.includes(term));
           });
@@ -397,6 +342,15 @@ export default function CoachDashboard() {
           });
         }
 
+        // Client-side filter for workout types (check section-level workout_type_id)
+        if (selectedWorkoutTypes.length > 0) {
+          results = results.filter(wod =>
+            wod.sections.some(section =>
+              section.workout_type_id && selectedWorkoutTypes.includes(section.workout_type_id)
+            )
+          );
+        }
+
         setSearchResults(results);
 
         // Update movements map from all WODs
@@ -410,7 +364,7 @@ export default function CoachDashboard() {
     // Debounce search
     const timeoutId = setTimeout(searchWODs, 300);
     return () => clearTimeout(timeoutId);
-  }, [searchQuery, selectedMovements, selectedWorkoutTypes, selectedTracks]);
+  }, [searchQuery, selectedMovements, selectedWorkoutTypes, selectedTracks, excludedSectionTypes]);
 
   const fetchWODs = async () => {
     try {
@@ -946,22 +900,33 @@ export default function CoachDashboard() {
                 >
                   {viewMode === 'weekly' ? 'Previous Week' : 'Previous Month'}
                 </button>
-                <h2 className='text-xl font-semibold text-gray-900'>
-                  {viewMode === 'weekly' ? (
-                    <>
-                      Week {getWeekNumber(weekDates[0])} -{' '}
-                      {weekDates[0].toLocaleDateString('en-GB', {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric',
-                      })}
-                    </>
-                  ) : (
-                    <>
-                      {selectedDate.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
-                    </>
+                <div className='flex items-center gap-4'>
+                  <h2 className='text-xl font-semibold text-gray-900'>
+                    {viewMode === 'weekly' ? (
+                      <>
+                        Week {getWeekNumber(weekDates[0])} -{' '}
+                        {weekDates[0].toLocaleDateString('en-GB', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric',
+                        })}
+                      </>
+                    ) : (
+                      <>
+                        {selectedDate.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
+                      </>
+                    )}
+                  </h2>
+                  {copiedWOD && (
+                    <button
+                      onClick={() => setCopiedWOD(null)}
+                      className='text-xs px-3 py-1.5 bg-red-500 text-white rounded hover:bg-red-600 transition'
+                      title='Cancel copy mode'
+                    >
+                      Cancel Copy
+                    </button>
                   )}
-                </h2>
+                </div>
                 <button
                   onClick={nextPeriod}
                   className='px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-900 font-medium'
@@ -977,7 +942,7 @@ export default function CoachDashboard() {
             {viewMode === 'monthly' && (
               /* Month View with Week Numbers */
               <div className='w-full max-w-none px-4'>
-                {/* Weekday Headers with Cancel Button */}
+                {/* Weekday Headers */}
                 <div className='flex gap-2 mb-2'>
                   {/* Week number column header */}
                   <div className='w-8'></div>
@@ -992,20 +957,6 @@ export default function CoachDashboard() {
                       </div>
                     ))}
                   </div>
-                  {/* Cancel button area - only show when panel is closed */}
-                  {!searchPanelOpen && (
-                    <div className='w-16'>
-                      {copiedWOD && (
-                        <button
-                          onClick={() => setCopiedWOD(null)}
-                          className='text-xs px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition w-full'
-                          title='Cancel copy mode'
-                        >
-                          Cancel
-                        </button>
-                      )}
-                    </div>
-                  )}
                 </div>
 
                 {/* Month Grid - 6 rows of 7 days */}
@@ -1122,9 +1073,6 @@ export default function CoachDashboard() {
                           );
                         })}
                       </div>
-
-                      {/* Empty space to align with cancel button area - only show when panel is closed */}
-                      {!searchPanelOpen && <div className='w-16'></div>}
                     </div>
                   );
                 })}
@@ -1366,6 +1314,8 @@ export default function CoachDashboard() {
                 setSelectedMovements([]);
                 setSelectedWorkoutTypes([]);
                 setSelectedTracks([]);
+                setSearchResults([]);
+                setMovements(new Map());
               }}
               className='hover:bg-[#1a6b62] p-1 rounded transition'
             >
@@ -1422,8 +1372,8 @@ export default function CoachDashboard() {
                 </summary>
                 <div className='px-2 py-2 space-y-1'>
                   {workoutTypes.map(type => {
-                    const count = searchResults.filter(
-                      wod => wod.workout_type_id === type.id
+                    const count = searchResults.filter(wod =>
+                      wod.sections.some(section => section.workout_type_id === type.id)
                     ).length;
                     return (
                       <button
@@ -1506,6 +1456,32 @@ export default function CoachDashboard() {
                     placeholder='Search workout history...'
                     className='w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[#208479] focus:border-transparent'
                   />
+                </div>
+
+                {/* Section Type Filter Buttons */}
+                <div className='mt-3'>
+                  <div className='text-xs font-semibold text-gray-700 mb-2'>Exclude from search:</div>
+                  <div className='flex flex-wrap gap-2'>
+                    {sectionTypes.map(sectionType => (
+                      <button
+                        key={sectionType.id}
+                        onClick={() => {
+                          setExcludedSectionTypes(prev =>
+                            prev.includes(sectionType.name)
+                              ? prev.filter(t => t !== sectionType.name)
+                              : [...prev, sectionType.name]
+                          );
+                        }}
+                        className={`px-3 py-1 rounded-full text-xs font-medium transition ${
+                          excludedSectionTypes.includes(sectionType.name)
+                            ? 'bg-red-500 text-white'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                      >
+                        {sectionType.name}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Active Filter Chips */}
@@ -1593,7 +1569,7 @@ export default function CoachDashboard() {
                     <h3 className='font-semibold text-gray-900 mb-3'>
                       Results ({searchResults.length})
                     </h3>
-                    <div className='space-y-3'>
+                    <div className='space-y-3 relative'>
                       {searchResults.map(wod => {
                         const wodSection = wod.sections.find(s => s.type.toLowerCase() === 'wod');
                         const wodDate = new Date(wod.date);
@@ -1612,7 +1588,9 @@ export default function CoachDashboard() {
                             draggable
                             onDragStart={e => handleDragStart(e, wod, wod.date)}
                             onClick={() => setSelectedSearchWOD(wod)}
-                            className='p-3 bg-white rounded-lg cursor-pointer hover:bg-gray-50 transition border border-gray-200 hover:border-[#208479]'
+                            onMouseEnter={() => setHoveredWOD(wod)}
+                            onMouseLeave={() => setHoveredWOD(null)}
+                            className='p-3 bg-white rounded-lg cursor-pointer hover:bg-gray-50 transition border border-gray-200 hover:border-[#208479] relative'
                           >
                             <div className='text-xs text-gray-500 mb-1'>{formattedDate}</div>
                             <div
@@ -1628,6 +1606,26 @@ export default function CoachDashboard() {
                                   __html: highlightText(wodSection.content, searchTerms),
                                 }}
                               />
+                            )}
+
+                            {/* Hover Popover - Full WOD Preview */}
+                            {hoveredWOD?.id === wod.id && (
+                              <div className='absolute inset-0 bg-white border-2 border-[#208479] rounded-lg shadow-2xl p-4 z-[200] overflow-y-auto'>
+                                <div className='text-sm font-bold text-gray-900 mb-3'>{wod.title}</div>
+                                <div className='space-y-3'>
+                                  {wod.sections.map((section, idx) => (
+                                    <div key={idx} className='border-b border-gray-200 pb-2 last:border-b-0'>
+                                      <div className='text-xs font-semibold text-[#208479] mb-1'>
+                                        {section.type}
+                                        {section.duration > 0 && ` (${section.duration} min)`}
+                                      </div>
+                                      <div className='text-xs text-gray-700 whitespace-pre-wrap'>
+                                        {section.content}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
                             )}
                           </div>
                         );

@@ -12,7 +12,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 interface WODModalProps {
   isOpen: boolean;
@@ -240,23 +240,22 @@ function ExerciseLibraryPopup({
   };
 
   useEffect(() => {
-    if (isOpen && searchInputRef.current) {
-      searchInputRef.current.focus();
-    }
     if (isOpen) {
+      // Clear search and focus input when opening
+      setSearchTerm('');
+      if (searchInputRef.current) {
+        searchInputRef.current.focus();
+      }
+    } else {
+      // Clear search when closing to ensure clean state on next open
       setSearchTerm('');
     }
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  // Filter exercises across all categories - memoized to ensure recalculation
+  const filteredCategories = useMemo(() => {
+    console.log('Recalculating filtered categories. searchTerm:', JSON.stringify(searchTerm), 'length:', searchTerm.length);
 
-  const handleSelectExercise = (exercise: string) => {
-    onSelectExercise(exercise);
-    // Keep library open for multiple selections
-  };
-
-  // Filter exercises across all categories
-  const getFilteredCategories = () => {
     // Group exercises by category
     const grouped: Record<string, Exercise[]> = {};
 
@@ -267,27 +266,42 @@ function ExerciseLibraryPopup({
       grouped[exercise.category].push(exercise);
     });
 
-    if (!searchTerm) {
+    const trimmedSearch = searchTerm.trim();
+    console.log('Trimmed search:', JSON.stringify(trimmedSearch), 'length:', trimmedSearch.length);
+
+    if (!trimmedSearch) {
+      console.log('Search is empty, returning all exercises');
       return grouped;
     }
 
+    console.log('Search has value, filtering...');
     // With search term - filter exercises in each category
     const filtered: Record<string, Exercise[]> = {};
     Object.entries(grouped).forEach(([category, categoryExercises]) => {
       const matchingExercises = categoryExercises.filter(
         exercise =>
-          exercise.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          exercise.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+          exercise.name.toLowerCase().includes(trimmedSearch.toLowerCase()) ||
+          exercise.tags?.some(tag => tag.toLowerCase().includes(trimmedSearch.toLowerCase()))
       );
       if (matchingExercises.length > 0) {
         filtered[category] = matchingExercises;
       }
     });
+    console.log('Returning filtered results');
     return filtered;
-  };
+  }, [exercises, searchTerm]);
 
-  const filteredCategories = getFilteredCategories();
-  const totalExercises = Object.values(filteredCategories).flat().length;
+  const totalExercises = useMemo(
+    () => Object.values(filteredCategories).flat().length,
+    [filteredCategories]
+  );
+
+  if (!isOpen) return null;
+
+  const handleSelectExercise = (exercise: string) => {
+    onSelectExercise(exercise);
+    // Keep library open for multiple selections
+  };
 
   // Calculate responsive columns based on width
   const getColumnClass = () => {
@@ -628,6 +642,7 @@ export default function WODModal({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<number | null>(null);
+  const [libraryKey, setLibraryKey] = useState(0);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const [lastExpandedSectionId, setLastExpandedSectionId] = useState<string | null>(null);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -989,6 +1004,13 @@ export default function WODModal({
   const openLibraryForSection = (sectionIndex: number) => {
     setActiveSection(sectionIndex);
     setLibraryOpen(true);
+  };
+
+  const closeLibrary = () => {
+    setLibraryOpen(false);
+    setActiveSection(null);
+    // Force library to remount on next open by changing key
+    setLibraryKey(prev => prev + 1);
   };
 
   const handleSelectExercise = (exercise: string) => {
@@ -1405,8 +1427,9 @@ export default function WODModal({
 
         {/* Exercise Library Popup - Outside panel for proper z-index */}
         <ExerciseLibraryPopup
+          key={libraryKey}
           isOpen={libraryOpen}
-          onClose={() => setLibraryOpen(false)}
+          onClose={closeLibrary}
           onSelectExercise={handleSelectExercise}
         />
       </>
@@ -1662,8 +1685,9 @@ export default function WODModal({
 
       {/* Exercise Library Popup */}
       <ExerciseLibraryPopup
+        key={libraryKey}
         isOpen={libraryOpen}
-        onClose={() => setLibraryOpen(false)}
+        onClose={closeLibrary}
         onSelectExercise={handleSelectExercise}
       />
     </>
