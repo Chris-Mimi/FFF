@@ -1,7 +1,7 @@
 # The Forge Functional Fitness - Active Context (Final, Corrected)
 
-Version: 2.8
-Timestamp: 2025-10-22 02:30 UTC
+Version: 2.9
+Timestamp: 2025-10-23 15:45 UTC
 
 ## ⚠️ CRITICAL RULES & CONTEXT
 
@@ -88,11 +88,23 @@ The project is **IN PROGRESS**. All core data models and UI features are complet
 
 ---
 
+## 🔍 WOD Search Panel Enhancements (v2.9)
+
+| **Feature** | Description | Files |
+| :--- | :--- | :--- |
+| **Dynamic Movement Extraction** | Regex-based parsing extracts movements from any WOD format (replaces 140+ hardcoded patterns). | `app/coach/page.tsx:96-180` |
+| **Workout Type Filter Fix** | Fixed filter to use section-level workout_type_id instead of deprecated WOD-level field. | `app/coach/page.tsx:267-337` |
+| **Section Exclusion Filters** | Dynamic filter buttons exclude specific section types (e.g., Warm-up) from search results. | `app/coach/page.tsx:58,230-236,314-316,1461-1485` |
+| **WOD Hover Preview** | Popover shows full WOD content when hovering over search result card. | `app/coach/page.tsx:66,1549-1550,1569-1587` |
+| **Cancel Copy Button** | Moved to navigation bar (works in both weekly and monthly views). | `app/coach/page.tsx:886-918` |
+| **React Hooks Bug Fix** | Fixed hooks order violation in ExerciseLibraryPopup component. | `components/WODModal.tsx:255-304` |
+
+---
+
 ## 📋 NEXT STEPS (Priority)
 
-1.  **Decision:** Commit resizable modal changes (Coach Notes + Exercise Library).
-2.  **Run Migration:** Execute `supabase-section-types.sql` in Supabase SQL Editor to create section_types table.
-3.  **Exercise Filtering Research:** Consider implementing movement pattern or equipment-based filtering for Exercise Library (deferred for future discussion).
-4.  Add `user_id` to all athlete tables (currently NULL).
-5.  Remove **PUBLIC RLS policies** using the migration script (once multi-user setup is ready).
-6.  Add multi-user support with proper data isolation.
+1.  **Run Migration:** Execute `supabase-section-types.sql` in Supabase SQL Editor to create section_types table.
+2.  **Exercise Filtering Research:** Consider implementing movement pattern or equipment-based filtering for Exercise Library (deferred for future discussion).
+3.  Add `user_id` to all athlete tables (currently NULL).
+4.  Remove **PUBLIC RLS policies** using the migration script (once multi-user setup is ready).
+5.  Add multi-user support with proper data isolation.
