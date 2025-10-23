@@ -429,6 +429,67 @@ const isValid = (input) => {
 
 ---
 
+## Debugging Protocols (CRITICAL - Read First When Debugging)
+
+### Core Principles
+
+**ALWAYS follow this order when debugging:**
+
+1. **Trust the User**
+   - If user says "exercise is in database", it IS in the database
+   - Don't ask to verify what user already confirmed
+   - User has direct access to database - trust their statements
+
+2. **Add Comprehensive Logging IMMEDIATELY**
+   - Don't guess at the problem
+   - Add console.logs at every step of data flow
+   - Log: input → transformation → output
+   - Verify assumptions with data, not speculation
+
+3. **Trace Data Flow Systematically**
+   - Extraction → Normalization → Validation → Storage → Display
+   - Find where data is lost/changed
+   - Don't skip steps or modify code until you know where the issue is
+
+4. **Don't Modify Code Based on Guesses**
+   - Verify each step with logging first
+   - Only change code after confirming root cause
+   - One fix at a time, verify after each change
+
+### Anti-Patterns (DO NOT DO)
+
+❌ **Circular Questioning**
+- Asking same question multiple times after user answered
+- Requesting database verification when user selected from UI
+
+❌ **Premature Optimization**
+- Changing normalization logic before checking if data exists
+- Modifying regex patterns before seeing what they capture
+
+❌ **Scattered Debugging**
+- Checking random parts of code without systematic trace
+- Modifying multiple areas simultaneously
+
+### Debugging Template
+
+```javascript
+// Step 1: Log at extraction point
+console.log('Extracted:', rawValue);
+
+// Step 2: Log after transformation
+console.log('After transform:', transformedValue);
+
+// Step 3: Log validation result
+console.log('Validation:', validationResult);
+
+// Step 4: Log final state
+console.log('Final state:', finalValue);
+```
+
+**Use this pattern EVERY TIME** before modifying code.
+
+---
+
 *Add new patterns as you discover them. This becomes your pattern library!*
 ## Forge Functional Fitness Patterns
 
