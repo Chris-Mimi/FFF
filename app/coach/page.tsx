@@ -65,6 +65,7 @@ export default function CoachDashboard() {
   const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const [hoveredWOD, setHoveredWOD] = useState<WODFormData | null>(null);
   const [excludedSectionTypes, setExcludedSectionTypes] = useState<string[]>([]);
+  const [focusedDate, setFocusedDate] = useState<Date | null>(null);
 
   useEffect(() => {
     // Check authentication
@@ -901,6 +902,16 @@ export default function CoachDashboard() {
                   {viewMode === 'weekly' ? 'Previous Week' : 'Previous Month'}
                 </button>
                 <div className='flex items-center gap-4'>
+                  <button
+                    onClick={() => {
+                      const today = new Date();
+                      setSelectedDate(today);
+                      setFocusedDate(today);
+                    }}
+                    className='px-3 py-1 bg-[#208479] hover:bg-[#1a6b62] rounded text-white text-sm font-medium transition'
+                  >
+                    Today
+                  </button>
                   <h2 className='text-xl font-semibold text-gray-900'>
                     {viewMode === 'weekly' ? (
                       <>
@@ -979,24 +990,38 @@ export default function CoachDashboard() {
                           const dayWODs = wods[dateKey] || [];
                           const isToday = formatDate(new Date()) === dateKey;
                           const isCurrentMonth = date.getMonth() === selectedDate.getMonth();
+                          const isSelected = focusedDate && formatDate(date) === formatDate(focusedDate);
 
                           return (
                             <div
                               key={dayIdx}
-                              className={`bg-white rounded-lg shadow p-2 min-h-[120px] relative ${
+                              className={`bg-white rounded-lg shadow p-2 min-h-[120px] relative cursor-pointer ${
                                 isToday ? 'ring-2 ring-[#208479]' : ''
-                              } ${!isCurrentMonth ? 'opacity-40' : ''}`}
+                              } ${isSelected ? 'ring-4 ring-blue-400' : ''} ${!isCurrentMonth ? 'opacity-40' : ''}`}
                               onDragOver={handleDragOver}
                               onDrop={e => handleDrop(e, date)}
+                              onClick={e => {
+                                const target = e.target as HTMLElement;
+                                // Exclude clicks on workouts and buttons
+                                if (!target.closest('.workout-card') && !target.closest('button')) {
+                                  setFocusedDate(date);
+                                }
+                              }}
                             >
                               {/* Day Number and Paste Button */}
                               <div className='flex items-center justify-between mb-1'>
                                 <div
-                                  className={`text-sm font-semibold ${
+                                  className={`text-sm font-semibold cursor-pointer ${
                                     isCurrentMonth
                                       ? 'text-[#208479]'
                                       : 'text-gray-400'
                                   }`}
+                                  onClick={e => {
+                                    e.stopPropagation();
+                                    setSelectedDate(date);
+                                    setFocusedDate(date);
+                                    setViewMode('weekly');
+                                  }}
                                 >
                                   {date.getDate()}
                                 </div>
@@ -1012,12 +1037,14 @@ export default function CoachDashboard() {
                               </div>
 
                               {/* WODs */}
-                              {dayWODs.slice(0, 2).map((wod: WODFormData) => (
+                              {dayWODs.map((wod: WODFormData) => (
                                 <div
                                   key={wod.id}
                                   draggable
                                   onDragStart={e => handleDragStart(e, wod, dateKey)}
-                                  className='mb-1 p-1 bg-gray-50 rounded text-xs hover:bg-gray-200 cursor-move transition group relative'
+                                  onMouseEnter={() => setHoveredWOD(wod)}
+                                  onMouseLeave={() => setHoveredWOD(null)}
+                                  className='workout-card mb-1 p-1 bg-gray-50 rounded text-xs hover:bg-gray-200 cursor-move transition group relative'
                                   title='Drag to copy'
                                 >
                                   <div className='flex items-center justify-between gap-1'>
@@ -1050,17 +1077,33 @@ export default function CoachDashboard() {
                                       </button>
                                     </div>
                                   </div>
+
+                                  {/* Hover Popover */}
+                                  {hoveredWOD?.id === wod.id && (
+                                    <div className='absolute left-0 top-full w-80 bg-white border-2 border-[#208479] rounded-lg shadow-2xl p-4 z-[200] max-h-96 overflow-y-auto'>
+                                      <div className='text-sm font-bold text-gray-900 mb-3'>{wod.title}</div>
+                                      <div className='space-y-3'>
+                                        {wod.sections
+                                          .filter(section => {
+                                            const excludedTypes = ['Whiteboard Intro', 'Warm-up', 'WOD preparation', 'Cool Down'];
+                                            return section.content?.trim() && !excludedTypes.includes(section.type);
+                                          })
+                                          .map((section, idx) => (
+                                            <div key={idx} className='border-b border-gray-200 pb-2 last:border-b-0'>
+                                              <div className='text-xs font-semibold text-[#208479] mb-1'>
+                                                {section.type}
+                                                {section.duration > 0 && ` (${section.duration} min)`}
+                                              </div>
+                                              <div className='text-xs text-gray-700 whitespace-pre-wrap'>
+                                                {section.content}
+                                              </div>
+                                            </div>
+                                          ))}
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
                               ))}
-                              {dayWODs.length > 2 && (
-                                <div
-                                  className='text-xs text-gray-600 hover:text-[#208479] cursor-pointer'
-                                  onClick={() => openEditModal(dayWODs[2])}
-                                  title='Click to see more WODs'
-                                >
-                                  +{dayWODs.length - 2} more
-                                </div>
-                              )}
 
                               {/* Add Button */}
                               <button
@@ -1094,13 +1137,21 @@ export default function CoachDashboard() {
                     const dateKey = formatDate(date);
                     const dayWODs = wods[dateKey] || [];
                     const isToday = formatDate(new Date()) === dateKey;
+                    const isSelected = focusedDate && formatDate(date) === formatDate(focusedDate);
 
                     return (
                       <div
                         key={idx}
-                        className={`bg-white rounded-lg shadow p-4 ${isToday ? 'ring-2 ring-[#208479]' : ''}`}
+                        className={`bg-white rounded-lg shadow p-4 cursor-pointer ${isToday ? 'ring-2 ring-[#208479]' : ''} ${isSelected ? 'ring-4 ring-blue-400' : ''}`}
                         onDragOver={handleDragOver}
                         onDrop={e => handleDrop(e, date)}
+                        onClick={e => {
+                          const target = e.target as HTMLElement;
+                          // Exclude clicks on workouts and buttons
+                          if (!target.closest('.workout-card') && !target.closest('button')) {
+                            setFocusedDate(date);
+                          }
+                        }}
                       >
                         {/* Day Header */}
                         <div className='mb-3 flex justify-between items-center'>
@@ -1112,15 +1163,24 @@ export default function CoachDashboard() {
                               {date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
                             </div>
                           </div>
-                          {copiedWOD && (
+                          <div className='flex gap-2 items-center'>
+                            {copiedWOD && (
+                              <button
+                                onClick={() => handlePasteFromClipboard(date)}
+                                className='text-xs px-2 py-1 bg-[#208479] text-white rounded hover:bg-[#1a6b62] transition'
+                                title='Paste WOD'
+                              >
+                                Paste
+                              </button>
+                            )}
                             <button
-                              onClick={() => handlePasteFromClipboard(date)}
-                              className='text-xs px-2 py-1 bg-[#208479] text-white rounded hover:bg-[#1a6b62] transition'
-                              title='Paste WOD'
+                              onClick={() => openCreateModal(date)}
+                              className='w-8 h-8 flex items-center justify-center border-2 border-dashed border-gray-300 hover:border-[#208479] hover:bg-[#208479] rounded-lg transition'
+                              title='Add Workout'
                             >
-                              Paste
+                              <Plus size={22} className='text-[#208479] hover:text-white' strokeWidth={2.5} />
                             </button>
-                          )}
+                          </div>
                         </div>
 
                         {/* WODs for this day */}
@@ -1129,7 +1189,9 @@ export default function CoachDashboard() {
                             key={wod.id}
                             draggable
                             onDragStart={e => handleDragStart(e, wod, dateKey)}
-                            className='mb-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition cursor-move group relative'
+                            onMouseEnter={() => setHoveredWOD(wod)}
+                            onMouseLeave={() => setHoveredWOD(null)}
+                            className='workout-card mb-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition cursor-move group relative'
                             title='Drag to copy or click to edit'
                           >
                             <div className='pr-8'>
@@ -1168,17 +1230,33 @@ export default function CoachDashboard() {
                                 <Trash2 size={14} />
                               </button>
                             </div>
+
+                            {/* Hover Popover */}
+                            {hoveredWOD?.id === wod.id && (
+                              <div className='absolute left-0 top-full w-80 bg-white border-2 border-[#208479] rounded-lg shadow-2xl p-4 z-[200] max-h-96 overflow-y-auto'>
+                                <div className='text-sm font-bold text-gray-900 mb-3'>{wod.title}</div>
+                                <div className='space-y-3'>
+                                  {wod.sections
+                                    .filter(section => {
+                                      const excludedTypes = ['Whiteboard Intro', 'Warm-up', 'WOD preparation', 'Cool Down'];
+                                      return section.content?.trim() && !excludedTypes.includes(section.type);
+                                    })
+                                    .map((section, idx) => (
+                                      <div key={idx} className='border-b border-gray-200 pb-2 last:border-b-0'>
+                                        <div className='text-xs font-semibold text-[#208479] mb-1'>
+                                          {section.type}
+                                          {section.duration > 0 && ` (${section.duration} min)`}
+                                        </div>
+                                        <div className='text-xs text-gray-700 whitespace-pre-wrap'>
+                                          {section.content}
+                                        </div>
+                                      </div>
+                                    ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         ))}
-
-                        {/* Add WOD Button */}
-                        <button
-                          onClick={() => openCreateModal(date)}
-                          className='w-full py-2 border-2 border-dashed border-gray-300 hover:border-[#208479] hover:bg-[#208479] hover:text-white rounded-lg text-gray-700 hover:text-white flex items-center justify-center gap-2 transition font-medium'
-                        >
-                          <Plus size={18} />
-                          Add Workout
-                        </button>
                       </div>
                     );
                   })}
@@ -1204,13 +1282,21 @@ export default function CoachDashboard() {
                       const dateKey = formatDate(date);
                       const dayWODs = wods[dateKey] || [];
                       const isToday = formatDate(new Date()) === dateKey;
+                      const isSelected = focusedDate && formatDate(date) === formatDate(focusedDate);
 
                       return (
                         <div
                           key={dayOffset}
-                          className={`bg-white rounded-lg shadow p-4 ${isToday ? 'ring-2 ring-[#208479]' : ''}`}
+                          className={`bg-white rounded-lg shadow p-4 cursor-pointer ${isToday ? 'ring-2 ring-[#208479]' : ''} ${isSelected ? 'ring-4 ring-blue-400' : ''}`}
                           onDragOver={handleDragOver}
                           onDrop={e => handleDrop(e, date)}
+                          onClick={e => {
+                            const target = e.target as HTMLElement;
+                            // Exclude clicks on workouts and buttons
+                            if (!target.closest('.workout-card') && !target.closest('button')) {
+                              setFocusedDate(date);
+                            }
+                          }}
                         >
                           {/* Day Header */}
                           <div className='mb-3 flex justify-between items-center'>
@@ -1222,15 +1308,24 @@ export default function CoachDashboard() {
                                 {date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
                               </div>
                             </div>
-                            {copiedWOD && (
+                            <div className='flex gap-2 items-center'>
+                              {copiedWOD && (
+                                <button
+                                  onClick={() => handlePasteFromClipboard(date)}
+                                  className='text-xs px-2 py-1 bg-[#208479] text-white rounded hover:bg-[#1a6b62] transition'
+                                  title='Paste WOD'
+                                >
+                                  Paste
+                                </button>
+                              )}
                               <button
-                                onClick={() => handlePasteFromClipboard(date)}
-                                className='text-xs px-2 py-1 bg-[#208479] text-white rounded hover:bg-[#1a6b62] transition'
-                                title='Paste WOD'
+                                onClick={() => openCreateModal(date)}
+                                className='w-8 h-8 flex items-center justify-center border-2 border-dashed border-gray-300 hover:border-[#208479] hover:bg-[#208479] rounded-lg transition'
+                                title='Add Workout'
                               >
-                                Paste
+                                <Plus size={22} className='text-[#208479] hover:text-white' strokeWidth={2.5} />
                               </button>
-                            )}
+                            </div>
                           </div>
 
                           {/* WODs for this day */}
@@ -1239,7 +1334,9 @@ export default function CoachDashboard() {
                               key={wod.id}
                               draggable
                               onDragStart={e => handleDragStart(e, wod, dateKey)}
-                              className='mb-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition cursor-move group relative'
+                              onMouseEnter={() => setHoveredWOD(wod)}
+                              onMouseLeave={() => setHoveredWOD(null)}
+                              className='workout-card mb-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition cursor-move group relative'
                               title='Drag to copy or click to edit'
                             >
                               <div className='pr-8'>
@@ -1278,17 +1375,33 @@ export default function CoachDashboard() {
                                   <Trash2 size={14} />
                                 </button>
                               </div>
+
+                              {/* Hover Popover */}
+                              {hoveredWOD?.id === wod.id && (
+                                <div className='absolute left-0 top-full w-80 bg-white border-2 border-[#208479] rounded-lg shadow-2xl p-4 z-[200] max-h-96 overflow-y-auto'>
+                                  <div className='text-sm font-bold text-gray-900 mb-3'>{wod.title}</div>
+                                  <div className='space-y-3'>
+                                    {wod.sections
+                                      .filter(section => {
+                                        const excludedTypes = ['Whiteboard Intro', 'Warm-up', 'WOD preparation', 'Cool Down'];
+                                        return section.content?.trim() && !excludedTypes.includes(section.type);
+                                      })
+                                      .map((section, idx) => (
+                                        <div key={idx} className='border-b border-gray-200 pb-2 last:border-b-0'>
+                                          <div className='text-xs font-semibold text-[#208479] mb-1'>
+                                            {section.type}
+                                            {section.duration > 0 && ` (${section.duration} min)`}
+                                          </div>
+                                          <div className='text-xs text-gray-700 whitespace-pre-wrap'>
+                                            {section.content}
+                                          </div>
+                                        </div>
+                                      ))}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           ))}
-
-                          {/* Add Workout Button */}
-                          <button
-                            onClick={() => openCreateModal(date)}
-                            className='w-full py-2 border-2 border-dashed border-gray-300 hover:border-[#208479] hover:bg-[#208479] hover:text-white rounded-lg text-gray-700 hover:text-white flex items-center justify-center gap-2 transition font-medium'
-                          >
-                            <Plus size={18} />
-                            Add Workout
-                          </button>
                         </div>
                       );
                     })}

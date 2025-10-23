@@ -63,14 +63,14 @@ export default function SignupPage() {
 
       setSuccess(true);
 
-      // Redirect after 2 seconds
+      // Redirect after 3 seconds
       setTimeout(() => {
         if (role === 'coach') {
           router.push('/coach');
         } else {
           router.push('/athlete');
         }
-      }, 2000);
+      }, 3000);
     } catch (err) {
       console.error('Signup error:', err);
       const errorMessage =
