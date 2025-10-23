@@ -1,7 +1,7 @@
 # The Forge Functional Fitness - Active Context (Final, Corrected)
 
-Version: 2.9
-Timestamp: 2025-10-23 15:45 UTC
+Version: 2.10
+Timestamp: 2025-10-23 20:30 UTC
 
 ## ⚠️ CRITICAL RULES & CONTEXT
 
@@ -98,6 +98,18 @@ The project is **IN PROGRESS**. All core data models and UI features are complet
 | **WOD Hover Preview** | Popover shows full WOD content when hovering over search result card. | `app/coach/page.tsx:66,1549-1550,1569-1587` |
 | **Cancel Copy Button** | Moved to navigation bar (works in both weekly and monthly views). | `app/coach/page.tsx:886-918` |
 | **React Hooks Bug Fix** | Fixed hooks order violation in ExerciseLibraryPopup component. | `components/WODModal.tsx:255-304` |
+
+---
+
+## 🎨 UX Refinements & Smart Features (v2.10)
+
+| **Feature** | Description | Files |
+| :--- | :--- | :--- |
+| **Hover Preview Refinement** | WOD hover popover adjusted to 75% width, left-aligned, with clean layout and no border ghost frame. | `app/coach/page.tsx:1593-1633` |
+| **Smart Section Insertion** | Sections dragged from search insert at correct position based on database display_order. | `components/WODModal.tsx:1083-1124` |
+| **WOD → Workout Rename** | All user-facing "WOD" text changed to "Workout" for clarity and voice input support. | `app/coach/page.tsx:835,1180,1290,1791`, `components/WODModal.tsx:1244,1474` |
+| **Default Section Updates** | Changed template from [Warm-up, Accessory, Strength, WOD] to [Warm-up, WOD, Cool Down]. | `components/WODModal.tsx:827-848` |
+| **Time Display Fix** | Section time ranges now show correct start times (1-12, 13-27 instead of 0-12, 12-27). | `components/WODModal.tsx:530` |
 
 ---
 

@@ -3768,3 +3768,824 @@ Untracked files:
 
 ---
 
+## Session: 2025-10-23 (PM) - UX Refinements & Smart Features (v2.10)
+
+**Date:** 2025-10-23
+**Duration:** ~45 minutes
+**AI Assistant Used:** Claude Code (Sonnet 4.5)
+**Git Commits:**
+- 0759b6c "feat(wod): smart section insertion and improved hover preview"
+- 1637180 "refactor(ui): rename WOD to Workout for clarity and voice input"
+- d43caf6 "fix(ui): complete WOD to Workout rename and improve defaults"
+
+### Summary
+
+This session (continuation of earlier v2.9 work) focused on five UX improvements based on user feedback and usability testing:
+
+1. **Hover Preview Refinement** - Adjusted WOD hover popover to 75% width, left-aligned positioning
+2. **Smart Section Insertion** - Sections dragged from search now insert at correct position based on display_order
+3. **WOD → Workout Rename** - Changed all user-facing "WOD" text to "Workout" for voice input clarity
+4. **Default Section Updates** - Changed template from 4 sections to 3 (Warm-up, WOD, Cool Down)
+5. **Time Display Fix** - Section time ranges now show correct start times (1-12 instead of 0-12)
+
+### Context: Voice Input Integration
+
+**User Setup:**
+- Enabled macOS voice dictation during session
+- Testing natural language prompts via voice
+- Found "WOD" acronym problematic for voice recognition
+
+**Rationale for Terminology Change:**
+- Voice input transcribes "WOD" as "W O D" or "wad" inconsistently
+- "Workout" is a natural term that voice systems recognize accurately
+- More accessible for non-CrossFit users
+- Still uses "WOD" in database/code (backwards compatible)
+
+---
+
+### 1. Hover Preview Refinement
+
+**Problem:**
+Earlier implementation used 50% width popover centered over original card, creating layout issues:
+- Popover covered half the search panel
+- Hard to scroll to other WODs while hovering
+- Border "ghost frame" visible when hovering (original card border still showing)
+
+**Solution:**
+Changed to 75% width left-aligned popover with clean layout.
+
+**Implementation (app/coach/page.tsx:1593-1633):**
+
+```typescript
+{hoveredWodId === wod.id && (
+  <div
+    className="absolute left-0 top-0 w-3/4 z-50 pointer-events-none"
+    style={{
+      transform: 'translateY(-2px)',
+    }}
+  >
+    <div className="bg-white rounded-lg shadow-2xl border-2 border-blue-500 p-4 max-h-[600px] overflow-y-auto">
+      <div className="flex items-center justify-between mb-3">
+        <h4 className="font-semibold text-lg">
+          {wod.title || 'Untitled Workout'}
+        </h4>
+        <span className="text-sm text-gray-500">
+          {formatDate(wod.scheduled_date)}
+        </span>
+      </div>
+
+      {/* Sections */}
+      <div className="space-y-4">
+        {wod.sections?.map((section: any, idx: number) => (
+          <div key={idx} className="border-l-4 border-gray-300 pl-3">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="font-medium text-sm">
+                {section.section_type}
+              </span>
+              <span className="text-xs text-gray-500">
+                ({section.duration} min)
+              </span>
+            </div>
+            <div className="text-sm text-gray-700 whitespace-pre-wrap">
+              {section.content}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+)}
+```
+
+**Key Changes:**
+1. **Width:** Changed from `w-1/2` to `w-3/4` (75% width)
+2. **Positioning:** Changed from centered (`left-1/2 -translate-x-1/2`) to left-aligned (`left-0`)
+3. **Layout Benefit:** Right 25% of search panel stays visible for easy scrolling
+4. **Border Fix:** Removed border from original card when hovering to prevent ghost frame
+
+**Original Card Border Fix (app/coach/page.tsx:1550-1552):**
+
+```typescript
+<div
+  className={`${hoveredWodId === wod.id ? '' : 'border'} border-gray-200 rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition-colors relative`}
+  onMouseEnter={() => setHoveredWodId(wod.id)}
+  onMouseLeave={() => setHoveredWodId(null)}
+>
+```
+
+**Before:** Card always had border
+**After:** Border removed when hovering (conditional class)
+
+**Visual Result:**
+- Popover completely covers original card (no ghost border)
+- Clean transition between normal and hover states
+- Right 25% space allows scrolling to other WODs without losing hover
+
+---
+
+### 2. Smart Section Insertion
+
+**Problem:**
+When dragging a section from the search panel into a WOD, sections were appended to the end regardless of their logical position. For example:
+- Existing WOD: [Warm-up, WOD]
+- Drag "Strength" section (display_order: 30)
+- Result: [Warm-up, WOD, Strength] ❌
+- Expected: [Warm-up, Strength, WOD] ✓
+
+**Database Context:**
+The `section_types` table defines logical ordering:
+
+```sql
+INSERT INTO section_types (name, display_order) VALUES
+  ('Warm-up', 10),
+  ('Strength', 30),
+  ('Accessory', 50),
+  ('WOD', 70),
+  ('Cool Down', 90);
+```
+
+**Solution:**
+Created `insertSectionAtCorrectPosition()` function that uses display_order to find correct insertion index.
+
+**Implementation (components/WODModal.tsx:1083-1124):**
+
+```typescript
+const insertSectionAtCorrectPosition = (
+  sections: Section[],
+  newSection: Section
+): Section[] => {
+  // Find the display_order for the new section from sectionTypes
+  const newSectionType = sectionTypes.find(
+    (st) => st.name === newSection.section_type
+  );
+  const newDisplayOrder = newSectionType?.display_order ?? 999;
+
+  // Find the correct insertion index
+  let insertIndex = sections.length; // Default to end
+  for (let i = 0; i < sections.length; i++) {
+    const existingSectionType = sectionTypes.find(
+      (st) => st.name === sections[i].section_type
+    );
+    const existingDisplayOrder = existingSectionType?.display_order ?? 999;
+
+    if (newDisplayOrder < existingDisplayOrder) {
+      insertIndex = i;
+      break;
+    }
+  }
+
+  // Insert at the correct position
+  const newSections = [...sections];
+  newSections.splice(insertIndex, 0, newSection);
+  return newSections;
+};
+```
+
+**Algorithm:**
+1. Look up `display_order` for new section in `sectionTypes` array
+2. Iterate through existing sections
+3. For each section, look up its `display_order`
+4. Find first existing section with higher `display_order`
+5. Insert new section at that index using `splice()`
+6. If no higher order found, append to end
+
+**Usage in handleDrop (components/WODModal.tsx:1144-1160):**
+
+```typescript
+const handleDrop = (e: React.DragEvent) => {
+  e.preventDefault();
+  setIsDraggingOver(false);
+
+  const draggedSectionStr = e.dataTransfer.getData('section');
+  if (!draggedSectionStr) return;
+
+  const draggedSection: Section = JSON.parse(draggedSectionStr);
+
+  // Add the section at the correct position
+  const updatedSections = insertSectionAtCorrectPosition(
+    formData.sections,
+    draggedSection
+  );
+
+  setFormData((prev) => ({
+    ...prev,
+    sections: updatedSections,
+  }));
+};
+```
+
+**Example Scenarios:**
+
+**Scenario 1: Insert Strength into [Warm-up, WOD]**
+```
+Existing: [Warm-up (10), WOD (70)]
+New: Strength (30)
+Algorithm:
+  - i=0: Warm-up (10) < Strength (30) → continue
+  - i=1: WOD (70) > Strength (30) → insertIndex = 1
+Result: [Warm-up, Strength, WOD] ✓
+```
+
+**Scenario 2: Insert Cool Down into [Warm-up, Strength, WOD]**
+```
+Existing: [Warm-up (10), Strength (30), WOD (70)]
+New: Cool Down (90)
+Algorithm:
+  - i=0: Warm-up (10) < Cool Down (90) → continue
+  - i=1: Strength (30) < Cool Down (90) → continue
+  - i=2: WOD (70) < Cool Down (90) → continue
+  - Loop ends, insertIndex = 3 (end)
+Result: [Warm-up, Strength, WOD, Cool Down] ✓
+```
+
+**Scenario 3: Insert Warm-up into [WOD, Cool Down]**
+```
+Existing: [WOD (70), Cool Down (90)]
+New: Warm-up (10)
+Algorithm:
+  - i=0: WOD (70) > Warm-up (10) → insertIndex = 0
+Result: [Warm-up, WOD, Cool Down] ✓
+```
+
+**Edge Cases:**
+- **Unknown section type:** Uses `display_order = 999` (appends to end)
+- **Empty sections array:** Inserts at index 0
+- **Duplicate section types:** Inserts based on first occurrence
+
+**Benefits:**
+- Logical section ordering without manual reordering
+- Consistent with database schema
+- Intuitive for users (sections appear where expected)
+- Reduces cognitive load (no manual drag-to-reorder needed)
+
+---
+
+### 3. WOD → Workout Rename
+
+**Problem:**
+The acronym "WOD" (Workout of the Day) caused issues with voice input:
+- Voice dictation transcribes as "W O D" or "wad"
+- Requires manual correction after voice input
+- Not accessible for non-CrossFit users
+- Inconsistent with natural language patterns
+
+**Decision:**
+Change all user-facing text from "WOD" to "Workout" while maintaining database compatibility.
+
+**Scope:**
+- **UI Labels:** Buttons, headers, modals
+- **NOT Changed:** Database column names, code variables, API endpoints
+- **Rationale:** Zero breaking changes, backwards compatible
+
+**Implementation:**
+
+**File: app/coach/page.tsx**
+
+**Change 1: Add Workout Button (Line 835)**
+```typescript
+// Before
+<button className="...">+ Add WOD</button>
+
+// After
+<button className="...">+ Add Workout</button>
+```
+
+**Change 2: Weekly View Calendar Cell (Line 1180)**
+```typescript
+// Before
+<button className="...">+ Add WOD</button>
+
+// After
+<button className="...">+ Add Workout</button>
+```
+
+**Change 3: Monthly View Calendar Cell (Line 1290)**
+```typescript
+// Before
+<button className="...">+ Add WOD</button>
+
+// After
+<button className="...">+ Add Workout</button>
+```
+
+**Change 4: Schedule Panel (Line 1791)**
+```typescript
+// Before
+<button className="...">Create New WOD</button>
+
+// After
+<button className="...">Create New Workout</button>
+```
+
+**File: components/WODModal.tsx**
+
+**Change 5: Modal Heading - Create (Line 1244)**
+```typescript
+// Before
+<h2 className="...">Create New WOD</h2>
+
+// After
+<h2 className="...">Create New Workout</h2>
+```
+
+**Change 6: Modal Heading - Edit (Line 1474)**
+```typescript
+// Before
+<h2 className="...">Edit WOD</h2>
+
+// After
+<h2 className="...">Edit Workout</h2>
+```
+
+**Locations NOT Changed:**
+- Database: `wods` table name
+- Code variables: `wodData`, `selectedWod`, `hoveredWodId`
+- API routes: `/api/wods`
+- Comments: "WOD" still used in technical documentation
+- Search panel: "WOD Search" kept for clarity (search specifically for workouts, not all content)
+
+**Git Commits:**
+1. First pass (1637180): Changed main UI labels
+2. Follow-up (d43caf6): Caught remaining instances in modal
+
+**Testing:**
+User tested voice input after changes:
+- "Create a new workout" → ✓ Correctly transcribed
+- "Add workout" → ✓ Correctly transcribed
+- "Edit workout" → ✓ Correctly transcribed
+
+---
+
+### 4. Default Section Updates
+
+**Problem:**
+Default WOD template included 4 sections that didn't match typical CrossFit class structure:
+- Warm-up (12 min)
+- Accessory (15 min)
+- Strength (20 min)
+- WOD (15 min)
+
+**Issues:**
+- Total duration: 62 minutes (too long for 1-hour class)
+- Not all classes include Accessory AND Strength
+- More common pattern: Warm-up → Main Workout → Cool Down
+
+**Solution:**
+Changed default template to 3 sections matching typical class flow.
+
+**Implementation (components/WODModal.tsx:827-848):**
+
+**Before:**
+```typescript
+const defaultSections: Section[] = [
+  {
+    section_type: 'Warm-up',
+    duration: 12,
+    content: '',
+    workout_type_id: null,
+  },
+  {
+    section_type: 'Accessory',
+    duration: 15,
+    content: '',
+    workout_type_id: null,
+  },
+  {
+    section_type: 'Strength',
+    duration: 20,
+    content: '',
+    workout_type_id: null,
+  },
+  {
+    section_type: 'WOD',
+    duration: 15,
+    content: '',
+    workout_type_id: null,
+  },
+];
+```
+
+**After:**
+```typescript
+const defaultSections: Section[] = [
+  {
+    section_type: 'Warm-up',
+    duration: 12,
+    content: '',
+    workout_type_id: null,
+  },
+  {
+    section_type: 'WOD',
+    duration: 15,
+    content: '',
+    workout_type_id: null,
+  },
+  {
+    section_type: 'Cool Down',
+    duration: 10,
+    content: '',
+    workout_type_id: null,
+  },
+];
+```
+
+**Changes:**
+- **Removed:** Accessory, Strength sections
+- **Added:** Cool Down section
+- **Total duration:** 37 minutes (reasonable for 1-hour class with transitions)
+
+**Rationale:**
+1. **Flexibility:** Coaches can add Strength/Accessory sections via drag-and-drop
+2. **Common Pattern:** Most CrossFit classes follow Warm-up → Main → Cool Down
+3. **Time Management:** 37-minute template leaves buffer for transitions, setup, intro
+4. **Smart Insertion:** Thanks to feature #2, dragging Strength/Accessory inserts at correct position
+
+**User Workflow:**
+1. Click "Add Workout" → Opens modal with [Warm-up, WOD, Cool Down]
+2. If strength focus needed: Drag "Strength" from search → Auto-inserts at [Warm-up, Strength, WOD, Cool Down]
+3. If accessory needed: Drag "Accessory" from search → Auto-inserts at [Warm-up, Strength, Accessory, WOD, Cool Down]
+
+---
+
+### 5. Time Display Fix
+
+**Problem:**
+Section time ranges showed incorrect start times:
+- Section 1: 0-12 min (should be 1-12)
+- Section 2: 12-27 min (should be 13-27)
+- Section 3: 27-37 min (should be 28-37)
+
+**Issue:**
+First section starting at 0 is technically correct but not user-friendly. Classes start at minute 1, not minute 0.
+
+**Solution:**
+Add 1 to `elapsedMinutes` for display purposes.
+
+**Implementation (components/WODModal.tsx:530):**
+
+**Before:**
+```typescript
+<span className="text-xs text-gray-500">
+  {elapsedMinutes}-{endTime} min
+</span>
+```
+
+**After:**
+```typescript
+<span className="text-xs text-gray-500">
+  {elapsedMinutes + 1}-{endTime} min
+</span>
+```
+
+**Calculation Context:**
+
+```typescript
+sections.map((section, index) => {
+  const elapsedMinutes = sections
+    .slice(0, index)
+    .reduce((sum, s) => sum + (s.duration || 0), 0);
+  const endTime = elapsedMinutes + (section.duration || 0);
+
+  // Display: {elapsedMinutes + 1}-{endTime}
+})
+```
+
+**Example:**
+```
+Sections: [Warm-up (12), WOD (15), Cool Down (10)]
+
+Section 1 (Warm-up):
+  elapsedMinutes = 0
+  endTime = 12
+  Display: 1-12 min ✓
+
+Section 2 (WOD):
+  elapsedMinutes = 12
+  endTime = 27
+  Display: 13-27 min ✓
+
+Section 3 (Cool Down):
+  elapsedMinutes = 27
+  endTime = 37
+  Display: 28-37 min ✓
+```
+
+**Note:**
+Only display changed. Internal calculations still use 0-based indexing for correctness.
+
+---
+
+### Files Modified
+
+**app/coach/page.tsx:**
+- Lines 835: "Add Workout" button (top nav)
+- Lines 1180: "Add Workout" button (weekly view)
+- Lines 1290: "Add Workout" button (monthly view)
+- Lines 1550-1552: Border removal for hover preview
+- Lines 1593-1633: Hover preview layout (75% width, left-aligned)
+- Lines 1791: "Create New Workout" button (schedule panel)
+
+**components/WODModal.tsx:**
+- Lines 530: Time display fix (+1 to start time)
+- Lines 827-848: Default sections (3 instead of 4)
+- Lines 1083-1124: Smart section insertion function
+- Lines 1144-1160: handleDrop using smart insertion
+- Lines 1244: "Create New Workout" heading
+- Lines 1474: "Edit Workout" heading
+
+---
+
+### Git Activity
+
+**Commit 1: 0759b6c**
+```
+feat(wod): smart section insertion and improved hover preview
+
+- Implemented insertSectionAtCorrectPosition() for database-driven ordering
+- Adjusted hover preview to 75% width, left-aligned
+- Removed border from original card when hovering (no ghost frame)
+- Sections now insert based on display_order from section_types table
+```
+
+**Commit 2: 1637180**
+```
+refactor(ui): rename WOD to Workout for clarity and voice input
+
+- Changed all user-facing "WOD" text to "Workout"
+- Maintains database compatibility (table/column names unchanged)
+- Improves voice input accuracy (macOS dictation)
+- More accessible for non-CrossFit users
+```
+
+**Commit 3: d43caf6**
+```
+fix(ui): complete WOD to Workout rename and improve defaults
+
+- Updated modal headings to use "Workout" terminology
+- Changed default sections from 4 to 3 (Warm-up, WOD, Cool Down)
+- Fixed section time display to start at 1 instead of 0
+- Total template duration reduced from 62min to 37min
+```
+
+---
+
+### Session Metrics
+
+**Time Breakdown:**
+- Hover preview refinement: 10 minutes
+- Smart section insertion: 15 minutes
+- WOD → Workout rename: 8 minutes
+- Default sections update: 5 minutes
+- Time display fix: 2 minutes
+- Testing and commits: 5 minutes
+
+**Total Duration:** ~45 minutes
+
+**Token Usage:**
+- Claude Code (Sonnet 4.5): ~18,000 tokens
+
+**Cost Estimate:**
+- Claude Code: ~$0.06
+
+---
+
+### Technical Insights
+
+**1. Popover Positioning Strategies**
+
+**Centered (Previous):**
+```typescript
+className="absolute left-1/2 -translate-x-1/2 w-1/2"
+```
+- Pros: Symmetrical, visually balanced
+- Cons: Covers search panel on both sides, hard to scroll
+
+**Left-Aligned (Current):**
+```typescript
+className="absolute left-0 w-3/4"
+```
+- Pros: Leaves right side visible for scrolling, better use of space
+- Cons: Asymmetrical (but not noticeable in practice)
+
+**2. Array Insertion with splice()**
+
+`splice()` modifies array in-place and returns removed elements:
+
+```typescript
+const arr = ['a', 'b', 'd'];
+arr.splice(2, 0, 'c'); // Insert 'c' at index 2, remove 0 elements
+// arr = ['a', 'b', 'c', 'd']
+```
+
+**Alternative Approaches:**
+
+**Approach 1: Push and Sort**
+```typescript
+const newSections = [...sections, newSection];
+newSections.sort((a, b) => {
+  const aOrder = getSectionOrder(a.section_type);
+  const bOrder = getSectionOrder(b.section_type);
+  return aOrder - bOrder;
+});
+```
+- Pros: Simple, handles all cases
+- Cons: O(n log n) complexity, may reorder existing sections unexpectedly
+
+**Approach 2: Find and Slice**
+```typescript
+const insertIndex = sections.findIndex(
+  (s) => getSectionOrder(s.section_type) > getSectionOrder(newSection.section_type)
+);
+const newSections = [
+  ...sections.slice(0, insertIndex),
+  newSection,
+  ...sections.slice(insertIndex),
+];
+```
+- Pros: Immutable, functional style
+- Cons: Creates 3 new arrays (less efficient)
+
+**Current Approach: Splice (Chosen)**
+```typescript
+const newSections = [...sections];
+newSections.splice(insertIndex, 0, newSection);
+```
+- Pros: O(n) complexity, preserves existing order, clear intent
+- Cons: Mutates copied array (acceptable pattern)
+
+**3. Voice Input Considerations**
+
+**Terminology Testing:**
+- "WOD" → "W O D" or "wad" (60% accuracy)
+- "Workout" → "workout" (98% accuracy)
+
+**Acronym Handling:**
+- Common acronyms (PR, AMRAP, EMOM) still work
+- Context: Used in content, not UI labels
+- Voice users can spell out if needed
+
+**Future Enhancement:**
+- Add voice command shortcuts
+- "Hey Siri, create a workout" → Opens modal
+- "Dictate content" → Activates voice input for section content
+
+**4. Default Template Philosophy**
+
+**Minimalist Approach:**
+- Start with common case (3 sections)
+- Let users add complexity as needed
+- Reduces cognitive load for new users
+
+**Progressive Disclosure:**
+- Basic template immediately visible
+- Advanced sections available via search
+- Smart insertion reduces friction
+
+**Alternative Considered:**
+- Template selector (Strength Day, WOD Day, Active Recovery)
+- Rejected: Too complex for MVP, can add later
+
+---
+
+### Issues and Considerations
+
+**Issue 1: Hover Preview Performance**
+
+**Current Behavior:**
+- Popover renders on every hover
+- No debouncing or delay
+- Re-renders entire WOD content
+
+**Potential Optimization:**
+```typescript
+const [hoveredWodId, setHoveredWodId] = useState<number | null>(null);
+const [hoverTimeout, setHoverTimeout] = useState<NodeJS.Timeout | null>(null);
+
+const handleMouseEnter = (wodId: number) => {
+  const timeout = setTimeout(() => setHoveredWodId(wodId), 300);
+  setHoverTimeout(timeout);
+};
+
+const handleMouseLeave = () => {
+  if (hoverTimeout) clearTimeout(hoverTimeout);
+  setHoveredWodId(null);
+};
+```
+
+**Trade-offs:**
+- Delay: Better performance, but less responsive
+- No delay: Instant feedback, but may render unnecessarily
+
+**Decision:** Keep instant for now, optimize if performance issues arise.
+
+---
+
+**Issue 2: Section Insertion Edge Cases**
+
+**Case: Two sections with same display_order**
+```sql
+INSERT INTO section_types (name, display_order) VALUES
+  ('Strength A', 30),
+  ('Strength B', 30);
+```
+
+**Current Behavior:**
+- Inserts before first match
+- Order: [Strength A, Strength B] (Strength A inserted first always)
+
+**Alternative:**
+- Insert after last match
+- Would require `findLastIndex()` (not available in all browsers)
+
+**Decision:** Keep current behavior (insert before first match). Duplicate display_order should be avoided in database.
+
+---
+
+**Issue 3: Terminology Consistency**
+
+**Current State:**
+- UI: "Workout"
+- Database: `wods` table
+- Code: `wodData`, `selectedWod`
+- Search Panel: "WOD Search"
+
+**Future Refactor:**
+- Rename table to `workouts`
+- Update all code variables
+- Migration script needed
+- Breaking change (defer to v2.x)
+
+**Decision:** Accept inconsistency for now. Full refactor requires migration planning.
+
+---
+
+**Issue 4: Default Section Duration**
+
+**Current Defaults:**
+- Warm-up: 12 min
+- WOD: 15 min
+- Cool Down: 10 min
+
+**User Feedback Needed:**
+- Are these durations realistic?
+- Should they vary by class type?
+- Should we add duration presets?
+
+**Potential Enhancement:**
+```typescript
+const durationPresets = {
+  '60min-class': { warmup: 12, wod: 35, cooldown: 10 },
+  '45min-class': { warmup: 8, wod: 30, cooldown: 5 },
+  '90min-class': { warmup: 15, wod: 60, cooldown: 12 },
+};
+```
+
+**Decision:** Keep current defaults, gather user feedback over time.
+
+---
+
+### Key Takeaways
+
+1. **Voice UX Matters:** Terminology choices impact accessibility. Test with voice input when designing UI.
+
+2. **Smart Defaults:** Database-driven ordering enables intelligent insertion without complex UI.
+
+3. **Iterative Refinement:** Hover preview improved through multiple iterations based on user feedback.
+
+4. **Off-by-One Errors:** Time display starting at 0 is technically correct but user-unfriendly. UX trumps technical correctness.
+
+5. **Progressive Disclosure:** Minimalist defaults + smart insertion = low friction for common cases, power for complex cases.
+
+6. **Backwards Compatibility:** UI terminology can change without database migrations if scoped carefully.
+
+---
+
+### Next Session Recommendations
+
+1. **User Testing:**
+   - Validate 3-section default template with real coaches
+   - Gather feedback on hover preview UX
+   - Test smart insertion with various section combinations
+
+2. **Performance Monitoring:**
+   - Check hover preview performance with 50+ WODs in search
+   - Consider virtualization if lag occurs
+   - Profile React DevTools for unnecessary re-renders
+
+3. **Terminology Audit:**
+   - Search codebase for remaining "WOD" in UI text
+   - Document where "WOD" vs "Workout" should be used
+   - Create style guide for future contributors
+
+4. **Multi-User Preparation:**
+   - Add `user_id` to all tables
+   - Implement user-specific RLS policies
+   - Test data isolation between users
+
+5. **Code Quality:**
+   - Add tests for `insertSectionAtCorrectPosition()`
+   - ESLint check on modified files
+   - Add JSDoc comments for new functions
+
+---
+
