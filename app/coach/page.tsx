@@ -821,7 +821,7 @@ export default function CoachDashboard() {
         }`}
       >
         {/* Header */}
-        <header className='bg-[#208479] text-white p-4 shadow-lg flex-shrink-0'>
+        <header className='bg-[#208479] text-white p-4 shadow-lg flex-shrink-0 sticky top-0 z-40'>
           <div className='max-w-7xl mx-auto flex justify-between items-center'>
             <div>
               <h1 className='text-2xl font-bold'>The Forge - Coach Dashboard</h1>
@@ -863,7 +863,7 @@ export default function CoachDashboard() {
         {/* Main Content Area */}
         <div className='flex-1 flex flex-col'>
           {/* View Mode Toggle & Navigation */}
-          <div className='bg-white border-b px-4 py-4 flex-shrink-0'>
+          <div className='bg-white border-b px-4 py-4 flex-shrink-0 sticky top-[72px] z-30'>
             <div className='w-full space-y-4'>
               {/* View Mode Toggle */}
               <div className='flex justify-center'>
@@ -1004,7 +1004,9 @@ export default function CoachDashboard() {
                                 const target = e.target as HTMLElement;
                                 // Exclude clicks on workouts and buttons
                                 if (!target.closest('.workout-card') && !target.closest('button')) {
-                                  setFocusedDate(date);
+                                  const newDate = new Date(date);
+                                  setFocusedDate(newDate);
+                                  setSelectedDate(newDate);
                                 }
                               }}
                             >
@@ -1018,8 +1020,9 @@ export default function CoachDashboard() {
                                   }`}
                                   onClick={e => {
                                     e.stopPropagation();
-                                    setSelectedDate(date);
-                                    setFocusedDate(date);
+                                    const newDate = new Date(date);
+                                    setSelectedDate(newDate);
+                                    setFocusedDate(newDate);
                                     setViewMode('weekly');
                                   }}
                                 >

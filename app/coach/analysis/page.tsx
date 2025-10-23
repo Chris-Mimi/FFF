@@ -44,14 +44,22 @@ interface Statistics {
   durationBreakdown: { range: string; count: number }[];
 }
 
+type TimeframePeriod = 1 | 3 | 6 | 12;
+
 export default function AnalysisPage() {
   const router = useRouter();
   const [tracks, setTracks] = useState<Track[]>([]);
   const [workoutTypes, setWorkoutTypes] = useState<WorkoutType[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState(new Date());
+  const [timeframePeriod, setTimeframePeriod] = useState<TimeframePeriod>(1);
   const [statistics, setStatistics] = useState<Statistics | null>(null);
   const [loadingStats, setLoadingStats] = useState(false);
+
+  // Exercise Search State
+  const [exerciseSearch, setExerciseSearch] = useState('');
+  const [selectedExercise, setSelectedExercise] = useState<string | null>(null);
+  const [exerciseCount, setExerciseCount] = useState<number>(0);
 
   // Track Management Modal State
   const [trackModalOpen, setTrackModalOpen] = useState(false);
@@ -90,7 +98,15 @@ export default function AnalysisPage() {
       fetchMonthlyWODs();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedMonth, tracks, workoutTypes]);
+  }, [selectedMonth, timeframePeriod, tracks, workoutTypes]);
+
+  // Update exercise count when statistics change and an exercise is selected
+  useEffect(() => {
+    if (selectedExercise && statistics) {
+      const exerciseData = statistics.exerciseFrequency.find(e => e.exercise === selectedExercise);
+      setExerciseCount(exerciseData?.count || 0);
+    }
+  }, [statistics, selectedExercise]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -117,8 +133,11 @@ export default function AnalysisPage() {
     try {
       const year = selectedMonth.getFullYear();
       const month = selectedMonth.getMonth();
-      const startDate = new Date(year, month, 1);
-      const endDate = new Date(year, month + 1, 0);
+
+      // Calculate date range based on timeframe period
+      // Use UTC to avoid timezone issues
+      const endDate = new Date(Date.UTC(year, month + 1, 0)); // Last day of selected month
+      const startDate = new Date(Date.UTC(year, month - timeframePeriod + 1, 1)); // First day of period
 
       const startDateStr = startDate.toISOString().split('T')[0];
       const endDateStr = endDate.toISOString().split('T')[0];
@@ -200,31 +219,82 @@ export default function AnalysisPage() {
       })
       .sort((a, b) => b.count - a.count);
 
-    // Exercise frequency - extract from section content
-    const exercisePattern = /\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\b/g;
+    // Exercise frequency - extract from section content using proper parsing
     const exerciseCounts: Record<string, number> = {};
+
+    // Words to exclude from movement names
+    const excludeWords = new Set([
+      'reps', 'rep', 'rounds', 'round', 'minutes', 'minute', 'min', 'mins',
+      'seconds', 'second', 'sec', 'secs', 'meter', 'meters', 'calories', 'cal',
+      'cals', 'each', 'side', 'total', 'amrap', 'emom', 'for', 'time', 'the',
+      'and', 'or', 'of', 'in', 'at', 'to', 'a', 'an', 'with', 'without',
+      'rx', 'scaled', 'beginner', 'intermediate', 'advanced'
+    ]);
+
+    const normalizeMovement = (movement: string): string => {
+      return movement
+        .split(/\s+/)
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ')
+        .trim();
+    };
+
+    const isValidMovementWord = (word: string): boolean => {
+      const cleaned = word.toLowerCase();
+      return !excludeWords.has(cleaned) && cleaned.length > 1 && !/^\d+$/.test(cleaned);
+    };
 
     wods.forEach(wod => {
       wod.sections.forEach(section => {
-        const matches = section.content.match(exercisePattern);
-        if (matches) {
-          matches.forEach(exercise => {
-            // Filter out common words that aren't exercises
-            const commonWords = [
-              'Time',
-              'Reps',
-              'Rounds',
-              'Minutes',
-              'Seconds',
-              'Weight',
-              'Score',
-              'Notes',
-            ];
-            if (!commonWords.includes(exercise) && exercise.length > 2) {
-              exerciseCounts[exercise] = (exerciseCounts[exercise] || 0) + 1;
+        const lines = section.content.split('\n');
+
+        lines.forEach(line => {
+          const trimmedLine = line.trim();
+          if (!trimmedLine) return;
+
+          // Pattern 1: Number + x + Movement (e.g., "10x Air Squats")
+          const numberXPattern = /^(?:\d+[\s-]*x[\s-]*|[\d-]+[\s-]*x[\s-]*)([\w\s\-()]+?)(?:\s*[@\d]|$)/i;
+          let match = trimmedLine.match(numberXPattern);
+
+          // Pattern 2: Bullet/asterisk + Movement (e.g., "* Arm Circles")
+          if (!match) {
+            const bulletPattern = /^[\s*•\-]+\s*([\w\s\-()]+?)(?:\s*[@\d]|$)/;
+            match = trimmedLine.match(bulletPattern);
+          }
+
+          // Pattern 3: Number + Movement (e.g., "10 Air Squats", "500m Row")
+          if (!match) {
+            const numberPattern = /^(?:\d+[a-z]*[\s-]*)([\w\s\-()]+?)(?:\s*[@\d]|$)/i;
+            match = trimmedLine.match(numberPattern);
+          }
+
+          // Pattern 4: Rep scheme + Movement (e.g., "21-15-9 Thrusters")
+          if (!match) {
+            const repSchemePattern = /^(?:\d+-\d+(?:-\d+)*[\s-]*)([\w\s\-()]+?)(?:\s*[@\d]|$)/;
+            match = trimmedLine.match(repSchemePattern);
+          }
+
+          if (match && match[1]) {
+            let movementText = match[1].trim();
+            movementText = movementText.replace(/[,;.!?]+$/, '');
+
+            const hasParentheses = /\(([^)]+)\)/.test(movementText);
+
+            if (hasParentheses) {
+              const movement = normalizeMovement(movementText);
+              if (movement.length >= 3) {
+                exerciseCounts[movement] = (exerciseCounts[movement] || 0) + 1;
+              }
+            } else {
+              const words = movementText.split(/\s+/).filter(isValidMovementWord);
+              const movement = normalizeMovement(words.slice(0, 4).join(' '));
+
+              if (movement.length >= 3) {
+                exerciseCounts[movement] = (exerciseCounts[movement] || 0) + 1;
+              }
             }
-          });
-        }
+          }
+        });
       });
     });
 
@@ -299,6 +369,12 @@ export default function AnalysisPage() {
       averageWODDuration,
       durationBreakdown,
     });
+
+    // Update exercise count if one is selected
+    if (selectedExercise) {
+      const count = exerciseCounts[selectedExercise] || 0;
+      setExerciseCount(count);
+    }
   };
 
   const handleLogout = async () => {
@@ -321,6 +397,20 @@ export default function AnalysisPage() {
 
   const formatMonthYear = (date: Date) => {
     return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  };
+
+  const getTimeframeLabel = () => {
+    const endDate = new Date(selectedMonth);
+    const startDate = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() - timeframePeriod + 1, 1);
+
+    if (timeframePeriod === 1) {
+      return formatMonthYear(selectedMonth);
+    }
+
+    const startMonthYear = startDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    const endMonthYear = endDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+
+    return `${startMonthYear} - ${endMonthYear}`;
   };
 
   const openTrackModal = (track?: Track) => {
@@ -392,10 +482,32 @@ export default function AnalysisPage() {
     }
   };
 
+  const handleExerciseSelect = (exercise: string) => {
+    setSelectedExercise(exercise);
+    setExerciseSearch('');
+
+    // Calculate count for selected exercise
+    if (statistics) {
+      const exerciseData = statistics.exerciseFrequency.find(e => e.exercise === exercise);
+      setExerciseCount(exerciseData?.count || 0);
+    }
+  };
+
+  const clearExerciseSelection = () => {
+    setSelectedExercise(null);
+    setExerciseCount(0);
+    setExerciseSearch('');
+  };
+
+  // Filter exercises based on search
+  const filteredExercises = statistics?.exerciseFrequency.filter(e =>
+    e.exercise.toLowerCase().includes(exerciseSearch.toLowerCase())
+  ) || [];
+
   return (
     <div className='min-h-screen bg-gray-200'>
       {/* Header */}
-      <header className='bg-[#208479] text-white p-4 shadow-md'>
+      <header className='bg-[#208479] text-white p-4 shadow-md sticky top-0 z-40'>
         <div className='max-w-7xl mx-auto flex justify-between items-center'>
           <div className='flex items-center gap-4'>
             <button
@@ -477,23 +589,43 @@ export default function AnalysisPage() {
         {/* Monthly Statistics Section */}
         <div className='bg-white rounded-lg shadow p-6'>
           <div className='flex justify-between items-center mb-6'>
-            <h2 className='text-xl font-bold text-gray-900'>Monthly Statistics</h2>
-            <div className='flex items-center gap-4'>
-              <button
-                onClick={() => changeMonth('prev')}
-                className='p-2 hover:bg-gray-100 rounded-lg transition'
-              >
-                <ChevronLeft size={20} className='text-gray-700' />
-              </button>
-              <span className='text-lg font-semibold text-gray-900 min-w-[200px] text-center'>
-                {formatMonthYear(selectedMonth)}
-              </span>
-              <button
-                onClick={() => changeMonth('next')}
-                className='p-2 hover:bg-gray-100 rounded-lg transition'
-              >
-                <ChevronRight size={20} className='text-gray-700' />
-              </button>
+            <h2 className='text-xl font-bold text-gray-900'>Statistics</h2>
+            <div className='flex items-center gap-6'>
+              {/* Timeframe Period Selector */}
+              <div className='flex items-center gap-2 bg-gray-100 rounded-lg p-1'>
+                {([1, 3, 6, 12] as TimeframePeriod[]).map(period => (
+                  <button
+                    key={period}
+                    onClick={() => setTimeframePeriod(period)}
+                    className={`px-3 py-1.5 rounded-md font-semibold text-sm transition ${
+                      timeframePeriod === period
+                        ? 'bg-[#208479] text-white'
+                        : 'text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {period === 1 ? '1 Month' : `${period} Months`}
+                  </button>
+                ))}
+              </div>
+
+              {/* Month Navigation */}
+              <div className='flex items-center gap-4'>
+                <button
+                  onClick={() => changeMonth('prev')}
+                  className='p-2 hover:bg-gray-100 rounded-lg transition'
+                >
+                  <ChevronLeft size={20} className='text-gray-700' />
+                </button>
+                <span className='text-lg font-semibold text-gray-900 min-w-[200px] text-center'>
+                  {getTimeframeLabel()}
+                </span>
+                <button
+                  onClick={() => changeMonth('next')}
+                  className='p-2 hover:bg-gray-100 rounded-lg transition'
+                >
+                  <ChevronRight size={20} className='text-gray-700' />
+                </button>
+              </div>
             </div>
           </div>
 
@@ -503,48 +635,119 @@ export default function AnalysisPage() {
             </div>
           ) : statistics ? (
             <div className='space-y-6'>
-              {/* Summary Cards */}
-              <div className='flex gap-4 items-center'>
-                <div className='bg-gradient-to-br from-[#208479] to-[#1a6b62] text-white rounded-lg p-4 flex items-center gap-3'>
-                  <div>
-                    <div className='text-xs font-semibold opacity-90'>Total Workouts</div>
-                    <div className='text-2xl font-bold'>{statistics.totalWorkouts}</div>
+              {/* Summary Cards with Duration Distribution */}
+              <div className='flex gap-6 items-start'>
+                {/* Summary Cards */}
+                <div className='flex gap-4'>
+                  <div className='bg-gradient-to-br from-[#208479] to-[#1a6b62] text-white rounded-lg p-4 flex items-center gap-3'>
+                    <div>
+                      <div className='text-xs font-semibold opacity-90'>Total Workouts</div>
+                      <div className='text-2xl font-bold'>{statistics.totalWorkouts}</div>
+                    </div>
                   </div>
-                </div>
-                <div className='bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-lg p-4 flex items-center gap-3'>
-                  <div>
-                    <div className='text-xs font-semibold opacity-90'>Avg WOD Duration</div>
-                    <div className='text-2xl font-bold'>
-                      {statistics.averageWODDuration}
-                      <span className='text-base ml-1'>min</span>
+                  <div className='bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-lg p-4 flex items-center gap-3'>
+                    <div>
+                      <div className='text-xs font-semibold opacity-90'>Avg WOD Duration</div>
+                      <div className='text-2xl font-bold'>
+                        {statistics.averageWODDuration}
+                        <span className='text-base ml-1'>min</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className='bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-lg p-4 flex items-center gap-3'>
+                    <div>
+                      <div className='text-xs font-semibold opacity-90'>Total WOD Time</div>
+                      <div className='text-2xl font-bold'>
+                        {statistics.totalWODDuration}
+                        <span className='text-base ml-1'>min</span>
+                      </div>
                     </div>
                   </div>
                 </div>
-                <div className='bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-lg p-4 flex items-center gap-3'>
-                  <div>
-                    <div className='text-xs font-semibold opacity-90'>Total WOD Time</div>
-                    <div className='text-2xl font-bold'>
-                      {statistics.totalWODDuration}
-                      <span className='text-base ml-1'>min</span>
-                    </div>
+
+                {/* WOD Duration Distribution - Compact */}
+                <div className='flex-1'>
+                  <h3 className='text-sm font-bold text-gray-900 mb-2'>WOD Duration Distribution</h3>
+                  <div className='flex gap-2 flex-wrap'>
+                    {statistics.durationBreakdown.map((duration, idx) => (
+                      <div
+                        key={idx}
+                        className='bg-gray-50 rounded-lg p-2 text-center border border-gray-200 min-w-[80px]'
+                      >
+                        <div className='text-lg font-bold text-[#208479]'>{duration.count}</div>
+                        <div className='text-[10px] text-gray-700 font-medium'>{duration.range}</div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
 
-              {/* WOD Duration Breakdown */}
-              <div>
-                <h3 className='text-lg font-bold text-gray-900 mb-3'>WOD Duration Distribution</h3>
-                <div className='grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3'>
-                  {statistics.durationBreakdown.map((duration, idx) => (
-                    <div
-                      key={idx}
-                      className='bg-gray-50 rounded-lg p-4 text-center border border-gray-200'
-                    >
-                      <div className='text-2xl font-bold text-[#208479]'>{duration.count}</div>
-                      <div className='text-xs text-gray-700 font-medium mt-1'>{duration.range}</div>
+              {/* Exercise Search */}
+              <div className='bg-white border border-gray-300 rounded-lg p-6'>
+                <h3 className='text-lg font-bold text-gray-900 mb-4'>Exercise/Movement Search</h3>
+
+                <div className='flex gap-4 items-start'>
+                  {/* Search Input */}
+                  <div className='flex-1 relative'>
+                    <input
+                      type='text'
+                      value={exerciseSearch}
+                      onChange={(e) => setExerciseSearch(e.target.value)}
+                      placeholder='Search for an exercise or movement...'
+                      className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                      disabled={!!selectedExercise}
+                    />
+
+                    {/* Dropdown Results */}
+                    {exerciseSearch && !selectedExercise && filteredExercises.length > 0 && (
+                      <div className='absolute z-10 w-full mt-2 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto'>
+                        {filteredExercises.slice(0, 20).map((exercise, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => handleExerciseSelect(exercise.exercise)}
+                            className='w-full px-4 py-3 text-left hover:bg-gray-100 flex justify-between items-center border-b border-gray-100 last:border-b-0'
+                          >
+                            <span className='text-gray-900 font-medium'>{exercise.exercise}</span>
+                            <span className='text-[#208479] font-bold text-sm'>{exercise.count}x</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {exerciseSearch && !selectedExercise && filteredExercises.length === 0 && (
+                      <div className='absolute z-10 w-full mt-2 bg-white border border-gray-300 rounded-lg shadow-lg p-4 text-center text-gray-500'>
+                        No exercises found matching &quot;{exerciseSearch}&quot;
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Result Display */}
+                  {selectedExercise && (
+                    <div className='flex items-center gap-4'>
+                      <div className='bg-[#208479] text-white rounded-lg px-6 py-3'>
+                        <div className='text-xs font-semibold opacity-90 mb-1'>
+                          {selectedExercise}
+                        </div>
+                        <div className='text-3xl font-bold'>
+                          {exerciseCount}
+                          <span className='text-base ml-2'>times</span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={clearExerciseSelection}
+                        className='px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition'
+                      >
+                        Clear
+                      </button>
                     </div>
-                  ))}
+                  )}
                 </div>
+
+                {!selectedExercise && !exerciseSearch && (
+                  <p className='text-sm text-gray-500 mt-3'>
+                    Start typing to search through all exercises in the selected timeframe
+                  </p>
+                )}
               </div>
 
               {/* Track Breakdown */}
