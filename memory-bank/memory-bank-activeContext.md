@@ -1,7 +1,7 @@
 # The Forge Functional Fitness - Active Context (Final, Corrected)
 
-Version: 2.10
-Timestamp: 2025-10-23 20:30 UTC
+Version: 2.11
+Timestamp: 2025-10-23 14:45 UTC
 
 ## ⚠️ CRITICAL RULES & CONTEXT
 
@@ -56,7 +56,7 @@ The project is **IN PROGRESS**. All core data models and UI features are complet
 
 | Feature | Implementation | Files |
 | :--- | :--- | :--- |
-| **Cline Integration** | Integrated cline-init rules with Memory Bank protocols and agent delegation. | `.clinerules`, `~/Documents/Cline/Rules/custom_instructions.md` |
+| **Cline Integration** | Configured with free backup models (Grok, Supernova) for use during Anthropic rate limiting. User experienced throttling issues requiring backup strategy. | `.clinerules`, `CLAUDE.md:39-45` |
 | **Linting System** | ESLint + Prettier + EditorConfig configured; all files formatted and linted (22 errors, 21 warnings fixed). | `.eslintrc.js`, `.prettierrc`, `.editorconfig`, `scripts/lint.sh` |
 | **VS Code** | Format on save, ESLint integration, recommended extensions configured. | `.vscode/settings.json`, `.vscode/extensions.json` |
 | **AI Assistant Selection** | Decision matrix added for Cline vs Claude Code usage (cost efficiency, subagent requirements). | `memory-bank/workflow-protocols.md:1.2` |
@@ -110,6 +110,19 @@ The project is **IN PROGRESS**. All core data models and UI features are complet
 | **WOD → Workout Rename** | All user-facing "WOD" text changed to "Workout" for clarity and voice input support. | `app/coach/page.tsx:835,1180,1290,1791`, `components/WODModal.tsx:1244,1474` |
 | **Default Section Updates** | Changed template from [Warm-up, Accessory, Strength, WOD] to [Warm-up, WOD, Cool Down]. | `components/WODModal.tsx:827-848` |
 | **Time Display Fix** | Section time ranges now show correct start times (1-12, 13-27 instead of 0-12, 12-27). | `components/WODModal.tsx:530` |
+
+---
+
+## 📅 Calendar Navigation & Workout Preview (v2.11)
+
+| **Feature** | Description | Files |
+| :--- | :--- | :--- |
+| **Add Workout Button Redesign** | Moved to top-right of day headers. Shows large teal "+" icon (22px, stroke 2.5) with hover effects. Removed button text. | `app/coach/page.tsx:1125-1131,1262-1268` |
+| **Workout Hover Popover** | Displays filtered workout sections on hover in both weekly and monthly views. Excludes: Whiteboard Intro, Warm-up, WOD preparation, Cool Down. Shows only sections with content. | `app/coach/page.tsx:1183-1206,1320-1343,1056-1079` |
+| **Monthly View Expansion** | Removed 2-workout limit. All workouts now display and expand vertically. Removed "+X more" indicator. | `app/coach/page.tsx:1015` |
+| **Focused Date System** | Added `focusedDate` state separate from `selectedDate` (week navigation). Blue ring (ring-4) highlights focused date. Teal ring shows today. | `app/coach/page.tsx:68,983,1130,1275` |
+| **Click-to-Select Navigation** | Monthly: Click empty space = highlight; click day number = switch to weekly + highlight. Weekly: Click empty space = highlight (no navigation). Works in both weeks displayed. | `app/coach/page.tsx:992-998,1008-1014,1138-1144,1283-1289` |
+| **Today Button** | Teal button in navigation bar jumps to current date. Sets both `selectedDate` and `focusedDate`. | `app/coach/page.tsx:905-914` |
 
 ---
 
