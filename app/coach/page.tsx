@@ -832,7 +832,7 @@ export default function CoachDashboard() {
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${searchPanelOpen ? 'bg-teal-800' : 'bg-[#1a6b62] hover:bg-teal-800'}`}
               >
                 <Plus size={18} />
-                Add WOD
+                Add Workout
               </button>
               <button
                 onClick={() => router.push('/coach/athletes')}
@@ -1177,7 +1177,7 @@ export default function CoachDashboard() {
                           className='w-full py-2 border-2 border-dashed border-gray-300 hover:border-[#208479] hover:bg-[#208479] hover:text-white rounded-lg text-gray-700 hover:text-white flex items-center justify-center gap-2 transition font-medium'
                         >
                           <Plus size={18} />
-                          Add WOD
+                          Add Workout
                         </button>
                       </div>
                     );
@@ -1788,7 +1788,7 @@ export default function CoachDashboard() {
               }}
               className='w-full px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white rounded-lg font-medium transition'
             >
-              + Create New WOD
+              + Create New Workout
             </button>
           </div>
         </div>

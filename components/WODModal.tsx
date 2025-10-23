@@ -1241,7 +1241,7 @@ export default function WODModal({
         <div className='fixed left-0 top-0 h-full w-[800px] bg-white shadow-2xl z-50 flex flex-col border-r-2 border-[#208479] animate-slide-in-left'>
           {/* Header */}
           <div className='bg-[#208479] text-white p-4 flex justify-between items-center'>
-            <h2 className='text-xl font-bold'>{editingWOD ? 'Edit WOD' : 'Create New WOD'}</h2>
+            <h2 className='text-xl font-bold'>{editingWOD ? 'Edit Workout' : 'Create New Workout'}</h2>
             <div className='flex items-center gap-2'>
               <button
                 onClick={e => {
@@ -1471,7 +1471,7 @@ export default function WODModal({
         >
           {/* Header */}
           <div className='bg-[#208479] text-white p-4 flex justify-between items-center'>
-            <h2 className='text-xl font-bold'>{editingWOD ? 'Edit WOD' : 'Create New WOD'}</h2>
+            <h2 className='text-xl font-bold'>{editingWOD ? 'Edit Workout' : 'Create New Workout'}</h2>
             <div className='flex items-center gap-2'>
               <button
                 onClick={e => {
