@@ -39,6 +39,7 @@ interface Statistics {
   trackBreakdown: { trackId: string; trackName: string; count: number; color: string }[];
   typeBreakdown: { typeId: string; typeName: string; count: number }[];
   exerciseFrequency: { exercise: string; count: number }[];
+  allExerciseFrequency: { exercise: string; count: number }[];
   totalWODDuration: number;
   averageWODDuration: number;
   durationBreakdown: { range: string; count: number }[];
@@ -50,6 +51,7 @@ export default function AnalysisPage() {
   const router = useRouter();
   const [tracks, setTracks] = useState<Track[]>([]);
   const [workoutTypes, setWorkoutTypes] = useState<WorkoutType[]>([]);
+  const [exercises, setExercises] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [timeframePeriod, setTimeframePeriod] = useState<TimeframePeriod>(1);
@@ -111,16 +113,23 @@ export default function AnalysisPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [tracksResult, typesResult] = await Promise.all([
+      const [tracksResult, typesResult, exercisesResult] = await Promise.all([
         supabase.from('tracks').select('*').order('name'),
         supabase.from('workout_types').select('*').order('name'),
+        supabase.from('exercises').select('name').order('name'),
       ]);
 
       if (tracksResult.error) throw tracksResult.error;
       if (typesResult.error) throw typesResult.error;
+      if (exercisesResult.error) throw exercisesResult.error;
 
       setTracks(tracksResult.data || []);
       setWorkoutTypes(typesResult.data || []);
+
+      // Build exercise set from database
+      const exerciseSet = new Set<string>();
+      (exercisesResult.data || []).forEach(ex => exerciseSet.add(ex.name));
+      setExercises(exerciseSet);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -232,11 +241,73 @@ export default function AnalysisPage() {
     ]);
 
     const normalizeMovement = (movement: string): string => {
+      // Split on spaces while preserving hyphens and parentheses
       return movement
         .split(/\s+/)
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .map(word => {
+          // Keep exact case for words containing parentheses (e.g., "(PVC)", "(RX)")
+          if (word.includes('(') || word.includes(')')) {
+            return word;
+          }
+          // For hyphenated words, normalize each part separately (e.g., "Knees-to-Elbows")
+          if (word.includes('-')) {
+            return word.split('-').map(part =>
+              part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+            ).join('-');
+          }
+          // Title case for regular words
+          return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+        })
         .join(' ')
         .trim();
+    };
+
+    const findMatchingExercise = (movement: string): string | null => {
+      // First try exact match
+      if (exercises.has(movement)) {
+        return movement;
+      }
+
+      // Try with hyphens instead of spaces (e.g., "Pass Throughs" -> "Pass-Throughs")
+      const hyphenated = movement.replace(/\s+/g, '-');
+      if (exercises.has(hyphenated)) {
+        return hyphenated;
+      }
+
+      // Try singular/plural variations
+      const singular = movement.endsWith('s') ? movement.slice(0, -1) : movement + 's';
+      if (exercises.has(singular)) {
+        return singular;
+      }
+
+      const singularHyphenated = hyphenated.endsWith('s') ? hyphenated.slice(0, -1) : hyphenated + 's';
+      if (exercises.has(singularHyphenated)) {
+        return singularHyphenated;
+      }
+
+      // Try without trailing 's' for words like "Thrusters" -> "Thruster"
+      for (const exercise of exercises) {
+        if (exercise === movement ||
+            exercise + 's' === movement ||
+            exercise === movement + 's' ||
+            exercise === hyphenated ||
+            exercise + 's' === hyphenated ||
+            exercise === hyphenated + 's') {
+          return exercise;
+        }
+      }
+
+      // Check if the movement contains any known exercise (e.g., "Barbell Deadlift" contains "Deadlift")
+      const movementWords = movement.split(' ');
+      for (const exercise of exercises) {
+        const exerciseWords = exercise.replace(/-/g, ' ').split(' ');
+        // If all words from the known exercise appear in the movement, it's a match
+        if (exerciseWords.every(word => movementWords.includes(word))) {
+          return exercise; // Return the database name
+        }
+      }
+
+      return null;
     };
 
     const isValidMovementWord = (word: string): boolean => {
@@ -278,30 +349,25 @@ export default function AnalysisPage() {
             let movementText = match[1].trim();
             movementText = movementText.replace(/[,;.!?]+$/, '');
 
-            const hasParentheses = /\(([^)]+)\)/.test(movementText);
+            // Normalize the movement (keep parentheses - they're part of exercise names)
+            const movement = normalizeMovement(movementText);
 
-            if (hasParentheses) {
-              const movement = normalizeMovement(movementText);
-              if (movement.length >= 3) {
-                exerciseCounts[movement] = (exerciseCounts[movement] || 0) + 1;
-              }
-            } else {
-              const words = movementText.split(/\s+/).filter(isValidMovementWord);
-              const movement = normalizeMovement(words.slice(0, 4).join(' '));
-
-              if (movement.length >= 3) {
-                exerciseCounts[movement] = (exerciseCounts[movement] || 0) + 1;
-              }
+            const matchedExercise = findMatchingExercise(movement);
+            if (matchedExercise) {
+              exerciseCounts[matchedExercise] = (exerciseCounts[matchedExercise] || 0) + 1;
             }
           }
         });
       });
     });
 
-    const exerciseFrequency = Object.entries(exerciseCounts)
+    // ALL exercises sorted by count (for search dropdown)
+    const allExerciseFrequency = Object.entries(exerciseCounts)
       .map(([exercise, count]) => ({ exercise, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 20); // Top 20 exercises
+      .sort((a, b) => b.count - a.count);
+
+    // Top 20 for display
+    const exerciseFrequency = allExerciseFrequency.slice(0, 20);
 
     // WOD duration - sum all sections with type "WOD" and categorize
     let totalWODDuration = 0;
@@ -365,6 +431,7 @@ export default function AnalysisPage() {
       trackBreakdown,
       typeBreakdown,
       exerciseFrequency,
+      allExerciseFrequency,
       totalWODDuration,
       averageWODDuration,
       durationBreakdown,
@@ -499,8 +566,8 @@ export default function AnalysisPage() {
     setExerciseSearch('');
   };
 
-  // Filter exercises based on search
-  const filteredExercises = statistics?.exerciseFrequency.filter(e =>
+  // Filter exercises based on search (use ALL exercises, not just top 20)
+  const filteredExercises = statistics?.allExerciseFrequency.filter(e =>
     e.exercise.toLowerCase().includes(exerciseSearch.toLowerCase())
   ) || [];
 
