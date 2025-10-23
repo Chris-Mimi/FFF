@@ -1590,7 +1590,11 @@ export default function CoachDashboard() {
                             onClick={() => setSelectedSearchWOD(wod)}
                             onMouseEnter={() => setHoveredWOD(wod)}
                             onMouseLeave={() => setHoveredWOD(null)}
-                            className='p-3 bg-white rounded-lg cursor-pointer hover:bg-gray-50 transition border border-gray-200 hover:border-[#208479] relative'
+                            className={`p-3 bg-white rounded-lg cursor-pointer transition relative min-h-[80px] w-3/4 ${
+                              hoveredWOD?.id === wod.id
+                                ? 'border-0'
+                                : 'border border-gray-200 hover:border-[#208479] hover:bg-gray-50'
+                            }`}
                           >
                             <div className='text-xs text-gray-500 mb-1'>{formattedDate}</div>
                             <div

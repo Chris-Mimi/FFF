@@ -1080,6 +1080,30 @@ export default function WODModal({
     setIsDragOver(false);
   };
 
+  const insertSectionAtCorrectPosition = (sections: WODSection[], newSection: WODSection): WODSection[] => {
+    // Get display_order for the new section
+    const newSectionType = sectionTypes.find(t => t.name === newSection.type);
+    if (!newSectionType) {
+      // Fallback: append to end
+      return [...sections, newSection];
+    }
+
+    // Find insertion index
+    let insertIndex = sections.length; // Default to end
+    for (let i = 0; i < sections.length; i++) {
+      const existingSectionType = sectionTypes.find(t => t.name === sections[i].type);
+      if (existingSectionType && existingSectionType.display_order > newSectionType.display_order) {
+        insertIndex = i;
+        break;
+      }
+    }
+
+    // Insert at calculated position
+    const newSections = [...sections];
+    newSections.splice(insertIndex, 0, newSection);
+    return newSections;
+  };
+
   const handlePanelDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -1111,9 +1135,11 @@ export default function WODModal({
           duration: parseInt(draggedSectionData.duration) || 5,
           content: draggedSectionData.content,
         };
+        // Insert section at correct position based on section type display_order
+        const updatedSections = insertSectionAtCorrectPosition(formData.sections, newSection);
         setFormData({
           ...formData,
-          sections: [...formData.sections, newSection],
+          sections: updatedSections,
         });
         // Expand the new section
         setExpandedSections(new Set([...expandedSections, newSection.id]));
