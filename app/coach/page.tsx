@@ -1281,13 +1281,13 @@ export default function CoachDashboard() {
                             </div>
                           ))}
 
-                          {/* Add WOD Button */}
+                          {/* Add Workout Button */}
                           <button
                             onClick={() => openCreateModal(date)}
                             className='w-full py-2 border-2 border-dashed border-gray-300 hover:border-[#208479] hover:bg-[#208479] hover:text-white rounded-lg text-gray-700 hover:text-white flex items-center justify-center gap-2 transition font-medium'
                           >
                             <Plus size={18} />
-                            Add WOD
+                            Add Workout
                           </button>
                         </div>
                       );

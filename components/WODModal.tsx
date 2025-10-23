@@ -527,7 +527,7 @@ function WODSectionComponent({
             </div>
 
             <div className='text-xs text-gray-700 bg-white px-2 py-1 rounded border border-gray-200'>
-              {elapsedMinutes}-{endTime} min
+              {elapsedMinutes + 1}-{endTime} min
             </div>
 
             {/* Workout Type Dropdown - Only for WOD sections */}
@@ -835,20 +835,14 @@ export default function WODModal({
           },
           {
             id: `section-${timestamp}-2`,
-            type: 'Accessory',
-            duration: 10,
+            type: 'WOD',
+            duration: 15,
             content: '',
           },
           {
             id: `section-${timestamp}-3`,
-            type: 'Strength',
-            duration: 15,
-            content: '',
-          },
-          {
-            id: `section-${timestamp}-4`,
-            type: 'WOD',
-            duration: 15,
+            type: 'Cool Down',
+            duration: 10,
             content: '',
           },
         ];
