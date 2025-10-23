@@ -36,6 +36,13 @@ significant action.
   as directed by the **`workflow-protocols.md`** for cost and efficiency. This
   includes proactively invoking low-level Haiku slash commands (e.g.,
   `/write-tests`, `/code-cleanup`) after completing a feature.
+- **Cline Setup:** Cline is already configured in this project (`.clinerules` directory exists) with subagents enabled.
+  - **Primary use case:** Backup when Anthropic rate limiting occurs (user experiences frequent throttling requiring hours of wait time).
+  - **Free backup models available:** When Claude is throttled, switch to FREE models in Cline:
+    - `x-ai/grok-code-fast-1` (FREE, 262K context, good for coding)
+    - `cline/code-supernova-1-million` (FREE, 1M context with image support)
+  - **How to switch:** In Cline panel → Click "Model" dropdown → Select free alternative
+  - **Cost awareness:** User learned Cline with Claude can be expensive ($25 in 2 days). Use free models as backup instead of paid alternatives.
 
 ### 2. Communication and Safety
 
