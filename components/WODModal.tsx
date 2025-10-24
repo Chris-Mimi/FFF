@@ -9,10 +9,12 @@ import {
   Library,
   Plus,
   Search,
+  Send,
   Trash2,
   X,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import PublishModal, { PublishConfig } from './PublishModal';
 
 interface WODModalProps {
   isOpen: boolean;
@@ -659,6 +661,9 @@ export default function WODModal({
   const [isDraggingNotes, setIsDraggingNotes] = useState(false);
   const [resizeStartNotes, setResizeStartNotes] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const [dragStartNotes, setDragStartNotes] = useState({ x: 0, y: 0, bottom: 0, left: 0 });
+  const [publishModalOpen, setPublishModalOpen] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [isPublishing, setIsPublishing] = useState(false);
 
   // Sync local notesPanelOpen with parent state
   useEffect(() => {
@@ -1076,6 +1081,35 @@ export default function WODModal({
     }
   };
 
+  const handlePublish = async (publishConfig: PublishConfig) => {
+    setIsPublishing(true);
+    try {
+      const response = await fetch('/api/google/publish-workout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          workoutId: editingWOD?.id,
+          publishConfig,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to publish workout');
+      }
+
+      setPublishModalOpen(false);
+      alert('Workout published successfully!');
+    } catch (error) {
+      console.error('Error publishing workout:', error);
+      alert('Failed to publish workout. Please try again.');
+      throw error;
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
   // Handle drag and drop from search panel
   const handlePanelDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -1265,6 +1299,19 @@ export default function WODModal({
                 <FileText size={20} />
                 <span className='text-sm'>Notes</span>
               </button>
+              {editingWOD?.id && (
+                <button
+                  onClick={e => {
+                    e.preventDefault();
+                    setPublishModalOpen(true);
+                  }}
+                  className='hover:bg-[#1a6b62] p-2 rounded transition flex items-center gap-2'
+                  title='Publish Workout'
+                >
+                  <Send size={20} />
+                  <span className='text-sm'>Publish</span>
+                </button>
+              )}
               <button
                 onClick={e => {
                   e.preventDefault();
@@ -1467,6 +1514,15 @@ export default function WODModal({
           onClose={closeLibrary}
           onSelectExercise={handleSelectExercise}
         />
+
+        {/* Publish Modal */}
+        <PublishModal
+          isOpen={publishModalOpen}
+          onClose={() => setPublishModalOpen(false)}
+          onPublish={handlePublish}
+          sections={formData.sections}
+          workoutDate={date}
+        />
       </>
     );
   }
@@ -1495,6 +1551,19 @@ export default function WODModal({
                 <FileText size={20} />
                 <span className='text-sm'>Notes</span>
               </button>
+              {editingWOD?.id && (
+                <button
+                  onClick={e => {
+                    e.preventDefault();
+                    setPublishModalOpen(true);
+                  }}
+                  className='hover:bg-[#1a6b62] p-2 rounded transition flex items-center gap-2'
+                  title='Publish Workout'
+                >
+                  <Send size={20} />
+                  <span className='text-sm'>Publish</span>
+                </button>
+              )}
               <button
                 onClick={e => {
                   e.preventDefault();
@@ -1724,6 +1793,15 @@ export default function WODModal({
         isOpen={libraryOpen}
         onClose={closeLibrary}
         onSelectExercise={handleSelectExercise}
+      />
+
+      {/* Publish Modal */}
+      <PublishModal
+        isOpen={publishModalOpen}
+        onClose={() => setPublishModalOpen(false)}
+        onPublish={handlePublish}
+        sections={formData.sections}
+        workoutDate={date}
       />
     </>
   );

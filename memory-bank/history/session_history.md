@@ -4,6 +4,808 @@ This file contains detailed, verbose session logs with full technical context, c
 
 ---
 
+## Session: 2025-10-25 - Google Calendar Publishing Integration
+
+**Date:** 2025-10-25
+**Duration:** ~2.5 hours
+**AI Assistant Used:** Claude Code (Sonnet 4.5)
+**Dev Server:** Running on port 3001
+**Git Commits:** None (pending testing and setup completion)
+
+### Summary
+
+This session implemented a complete Google Calendar publishing system to allow coaches to publish workouts to a shared calendar that athletes can view. The implementation includes database schema updates, publishing UI, athlete interface, Google Calendar API integration, and comprehensive setup documentation.
+
+**Implementation Status:**
+- ✅ Code complete and TypeScript compilation passing
+- ❌ Database migration not executed
+- ❌ Google Calendar setup not completed
+- ❌ Environment variables not configured
+- ❌ No functional testing performed
+
+---
+
+### COMPLETED WORK
+
+#### 1. Documentation Fix - Memory Bank Filename Convention
+
+**File Modified:**
+- `memory-bank/workflow-protocols.md` (line 9)
+
+**Change:**
+Added critical note about the `memory-bank-` filename prefix requirement:
+
+```markdown
+> **CRITICAL:** The **activeContext.md** file MUST be named `memory-bank-activeContext.md` (with the `memory-bank-` prefix) to be discoverable by Cline and its subagents. The file WILL NOT BE FOUND without this exact naming convention.
+```
+
+**Reason:** Discovered that Cline requires the `memory-bank-` prefix for file discovery. This prevents future file access issues.
+
+---
+
+#### 2. Database Schema - Publishing Columns
+
+**File Created:**
+- `supabase-publishing-columns.sql`
+
+**Schema Changes:**
+```sql
+ALTER TABLE wods
+ADD COLUMN is_published BOOLEAN DEFAULT FALSE,
+ADD COLUMN publish_sections TEXT[] DEFAULT ARRAY[]::TEXT[],
+ADD COLUMN google_event_id TEXT,
+ADD COLUMN publish_time TIME,
+ADD COLUMN publish_duration INTEGER DEFAULT 60;
+
+COMMENT ON COLUMN wods.is_published IS 'Whether this workout is published to the athlete calendar';
+COMMENT ON COLUMN wods.publish_sections IS 'Array of section types to include in published workout';
+COMMENT ON COLUMN wods.google_event_id IS 'Google Calendar event ID for syncing';
+COMMENT ON COLUMN wods.publish_time IS 'Time of day for the published workout event';
+COMMENT ON COLUMN wods.publish_duration IS 'Duration of the event in minutes (default 60)';
+```
+
+**Column Details:**
+- `is_published`: Boolean flag for tracking publishing state
+- `publish_sections`: Array of section type names to include (e.g., ['Strength', 'WOD'])
+- `google_event_id`: Stores Google Calendar event ID for updates/deletions
+- `publish_time`: Time of day for the event (e.g., '18:00:00')
+- `publish_duration`: Event duration in minutes (default 60, range 30-90)
+
+**Status:** ❌ NOT EXECUTED - Must be run in Supabase SQL Editor
+
+---
+
+#### 3. Package Installation - Google APIs Client
+
+**Command Executed:**
+```bash
+npm install googleapis
+```
+
+**Output:**
+```
+added 44 packages, and audited 545 packages in 8s
+218 packages are looking for funding
+found 0 vulnerabilities
+```
+
+**Package Details:**
+- Name: `googleapis`
+- Purpose: Official Google APIs Node.js client library
+- Used for: Google Calendar API integration with service account authentication
+- Dependencies: Added 44 related packages
+
+---
+
+#### 4. Publishing Modal Component
+
+**File Created:**
+- `components/PublishModal.tsx`
+
+**Component Features:**
+
+**Section Selection:**
+- Displays all workout sections as checkboxes
+- Allows selective publishing (choose which sections to include)
+- Visual distinction between selected/unselected sections
+- Default: all sections selected
+
+**Time Picker:**
+- 30-minute increment dropdown (00:00 to 23:30)
+- Pre-populated with workout's existing publish_time or default 18:00
+- Format: HH:MM (24-hour)
+
+**Duration Selector:**
+- Radio buttons for 30, 60, or 90 minutes
+- Default: 60 minutes
+- Pre-populated from existing publish_duration
+
+**Event Preview:**
+- Real-time preview of event title and description
+- Shows exactly what will appear in Google Calendar
+- Includes formatted section content with proper spacing
+- Location: "The Forge Functional Fitness, Bergwerkstrasse 10, Pforzen, Bavaria"
+
+**Key Implementation Details:**
+
+```tsx
+// State management
+const [selectedSections, setSelectedSections] = useState<string[]>(
+  wod.publish_sections || wod.sections.map(s => s.type)
+);
+const [publishTime, setPublishTime] = useState<string>(
+  wod.publish_time || '18:00'
+);
+const [duration, setDuration] = useState<number>(
+  wod.publish_duration || 60
+);
+
+// Toggle section selection
+const toggleSection = (sectionType: string) => {
+  if (selectedSections.includes(sectionType)) {
+    setSelectedSections(selectedSections.filter(t => t !== sectionType));
+  } else {
+    setSelectedSections([...selectedSections, sectionType]);
+  }
+};
+
+// Publish API call
+const response = await fetch('/api/google/publish-workout', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    wodId: wod.id,
+    date: wod.date,
+    publishSections: selectedSections,
+    publishTime,
+    duration
+  })
+});
+```
+
+**UI Layout:**
+- Modal: Fixed positioning with dark overlay
+- Width: Max 2xl (672px)
+- Sections: Scrollable list with checkboxes
+- Buttons: Teal publish, gray cancel
+- Preview: Read-only textarea showing event details
+
+---
+
+#### 5. WOD Modal Integration - Publish Button
+
+**File Modified:**
+- `components/WODModal.tsx`
+
+**Changes:**
+- Added Publish button to header (line 1242-1253)
+- Button placement: Between Save and Delete buttons
+- Icon: Calendar icon from lucide-react
+- Visibility logic: Only shows when editing existing workouts with valid date
+
+**Implementation:**
+
+```tsx
+{/* Publish Button - Only show for existing workouts with date */}
+{wod.id && wod.date && (
+  <button
+    onClick={() => setShowPublishModal(true)}
+    className='px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 flex items-center gap-2'
+  >
+    <Calendar className='w-4 h-4' />
+    Publish
+  </button>
+)}
+```
+
+**State Management:**
+```tsx
+const [showPublishModal, setShowPublishModal] = useState(false);
+
+// Modal rendering
+{showPublishModal && wod.id && wod.date && (
+  <PublishModal
+    wod={wod}
+    onClose={() => setShowPublishModal(false)}
+    onPublish={handlePublishSuccess}
+  />
+)}
+```
+
+**Behavior:**
+- Button disabled for new workouts (no ID yet)
+- Button disabled if workout has no date assigned
+- Opens PublishModal on click
+- Closes modal after successful publish
+- Refreshes WOD data after publish to show updated publish state
+
+---
+
+#### 6. Athlete Workouts Tab Component
+
+**File Created:**
+- `components/AthleteWorkoutsTab.tsx`
+
+**Component Features:**
+
+**Weekly Calendar View:**
+- Displays 7 days starting from current date
+- Monday-Sunday layout
+- Responsive grid (grid-cols-7)
+- Each day shows: day name, date number, month
+
+**Published Workouts Display:**
+- Fetches only published workouts (is_published = true)
+- Shows workout sections based on publish_sections array
+- Displays publish_time in 12-hour format (e.g., "6:00 PM")
+- Color-coded by track (using track's color from database)
+
+**Hover Preview:**
+- Popover appears on workout card hover
+- Shows full section content with proper formatting
+- Positioned at cursor location
+- Dismisses on mouse leave
+
+**Key Implementation:**
+
+```tsx
+// Fetch published workouts
+const { data: workouts } = await supabase
+  .from('wods')
+  .select(`
+    *,
+    tracks (
+      name,
+      color
+    )
+  `)
+  .eq('is_published', true)
+  .gte('date', startDate.toISOString().split('T')[0])
+  .lte('date', endDate.toISOString().split('T')[0])
+  .order('date', { ascending: true });
+
+// Filter sections based on publish_sections
+const publishedSections = workout.sections.filter(section =>
+  workout.publish_sections?.includes(section.type)
+);
+
+// Format time display
+const formatTime = (time: string | null) => {
+  if (!time) return '';
+  const [hours, minutes] = time.split(':');
+  const hour = parseInt(hours);
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  const displayHour = hour % 12 || 12;
+  return `${displayHour}:${minutes} ${ampm}`;
+};
+```
+
+**Styling:**
+- Track color applied to left border (border-l-4)
+- Teal background on hover
+- Clean card layout with padding
+- Responsive text sizing
+
+---
+
+#### 7. Athlete Page Integration - Workouts Tab
+
+**File Modified:**
+- `app/athlete/page.tsx`
+
+**Changes:**
+1. Added Calendar icon import (line 75)
+2. Added Workouts tab button to navigation (line 311-313)
+3. Added AthleteWorkoutsTab component rendering (existing logic already supported this)
+
+**Tab Button Implementation:**
+
+```tsx
+<button
+  onClick={() => setActiveTab('workouts')}
+  className={`flex items-center gap-2 px-4 py-2 border-b-2 transition-colors ${
+    activeTab === 'workouts'
+      ? 'border-teal-500 text-teal-600'
+      : 'border-transparent text-gray-500 hover:text-gray-700'
+  }`}
+>
+  <Calendar className='w-4 h-4' />
+  Workouts
+</button>
+```
+
+**Tab Order:**
+1. Profile
+2. Logbook
+3. Workouts (NEW)
+4. Benchmarks
+5. Barbell Lifts
+6. PRs
+
+**Component Rendering:**
+```tsx
+{activeTab === 'workouts' && <AthleteWorkoutsTab />}
+```
+
+---
+
+#### 8. Google Calendar API Routes
+
+**File Created:**
+- `app/api/google/publish-workout/route.ts`
+
+**Endpoints:**
+
+**POST /api/google/publish-workout**
+- Creates/updates Google Calendar event
+- Updates wods table with publish data
+- Returns event details
+
+**DELETE /api/google/publish-workout**
+- Deletes Google Calendar event
+- Clears publish data from wods table
+- Returns success status
+
+**Authentication:**
+- Uses Google Service Account via JWT
+- Requires 3 environment variables:
+  - `GOOGLE_SERVICE_ACCOUNT_EMAIL`
+  - `GOOGLE_PRIVATE_KEY`
+  - `GOOGLE_CALENDAR_ID`
+
+**POST Implementation Details:**
+
+```typescript
+// Initialize Google Calendar API
+const auth = new google.auth.JWT(
+  process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+  undefined,
+  process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+  ['https://www.googleapis.com/auth/calendar']
+);
+
+const calendar = google.calendar({ version: 'v3', auth });
+
+// Build event
+const event = {
+  summary: `Workout - ${trackName}`,
+  description: eventDescription,
+  location: 'The Forge Functional Fitness, Bergwerkstrasse 10, Pforzen, Bavaria',
+  start: {
+    dateTime: startDateTime.toISOString(),
+    timeZone: 'Europe/Berlin',
+  },
+  end: {
+    dateTime: endDateTime.toISOString(),
+    timeZone: 'Europe/Berlin',
+  },
+};
+
+// Create or update event
+if (existingEventId) {
+  await calendar.events.update({
+    calendarId: process.env.GOOGLE_CALENDAR_ID!,
+    eventId: existingEventId,
+    requestBody: event,
+  });
+} else {
+  const response = await calendar.events.insert({
+    calendarId: process.env.GOOGLE_CALENDAR_ID!,
+    requestBody: event,
+  });
+  googleEventId = response.data.id!;
+}
+
+// Update wods table
+await supabase
+  .from('wods')
+  .update({
+    is_published: true,
+    publish_sections: publishSections,
+    google_event_id: googleEventId,
+    publish_time: publishTime,
+    publish_duration: duration,
+  })
+  .eq('id', wodId);
+```
+
+**DELETE Implementation:**
+
+```typescript
+// Delete from Google Calendar
+await calendar.events.delete({
+  calendarId: process.env.GOOGLE_CALENDAR_ID!,
+  eventId: googleEventId,
+});
+
+// Clear publish data from database
+await supabase
+  .from('wods')
+  .update({
+    is_published: false,
+    publish_sections: [],
+    google_event_id: null,
+    publish_time: null,
+    publish_duration: null,
+  })
+  .eq('id', wodId);
+```
+
+**Error Handling:**
+- Validates all required parameters
+- Checks for environment variables
+- Returns appropriate HTTP status codes:
+  - 200: Success
+  - 400: Bad request (missing parameters)
+  - 500: Server error (Google API or database failure)
+
+**Location Details:**
+- Venue: The Forge Functional Fitness
+- Address: Bergwerkstrasse 10, Pforzen, Bavaria
+- Timezone: Europe/Berlin (handles DST automatically)
+
+---
+
+#### 9. Google Calendar Setup Documentation
+
+**File Created:**
+- `GOOGLE_CALENDAR_SETUP.md`
+
+**Documentation Sections:**
+
+1. **Prerequisites**
+   - Google account requirement
+   - Access to Google Cloud Console
+
+2. **Step 1: Create Google Cloud Project**
+   - Navigate to console.cloud.google.com
+   - Create new project
+   - Screenshot placeholders for UI steps
+
+3. **Step 2: Enable Google Calendar API**
+   - API Library navigation
+   - Enable Calendar API for project
+
+4. **Step 3: Create Service Account**
+   - IAM & Admin navigation
+   - Service account creation
+   - Key generation (JSON format)
+
+5. **Step 4: Share Calendar with Service Account**
+   - Google Calendar settings
+   - Share with service account email
+   - Set "Make changes to events" permission
+
+6. **Step 5: Configure Environment Variables**
+   - Extract values from JSON key file
+   - Add to `.env.local`
+   - Format instructions for private key
+
+7. **Step 6: Test the Integration**
+   - Restart dev server
+   - Test publish workflow
+   - Verify event in Google Calendar
+
+8. **Troubleshooting**
+   - Common errors and solutions
+   - Permission issues
+   - Environment variable formatting
+
+**Example Environment Variables:**
+
+```bash
+GOOGLE_SERVICE_ACCOUNT_EMAIL=your-service-account@your-project.iam.gserviceaccount.com
+GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYour\nPrivate\nKey\nHere\n-----END PRIVATE KEY-----\n"
+GOOGLE_CALENDAR_ID=your-calendar-id@group.calendar.google.com
+```
+
+**Security Notes:**
+- Never commit service account credentials
+- Keep JSON key file secure
+- Service account has limited permissions (calendar only)
+
+---
+
+#### 10. Environment Variables Setup
+
+**File Modified:**
+- `.env.local`
+
+**Added Variables:**
+
+```bash
+# Google Calendar API Configuration
+GOOGLE_SERVICE_ACCOUNT_EMAIL=
+GOOGLE_PRIVATE_KEY=
+GOOGLE_CALENDAR_ID=
+```
+
+**Status:** ❌ Empty placeholders - must be filled in after Google Cloud setup
+
+**Required Values:**
+1. `GOOGLE_SERVICE_ACCOUNT_EMAIL`: Email from service account creation
+2. `GOOGLE_PRIVATE_KEY`: Private key from JSON key file (with \n escaped)
+3. `GOOGLE_CALENDAR_ID`: Target calendar ID from Google Calendar settings
+
+---
+
+#### 11. Quality Checks - TypeScript & Dev Server
+
+**TypeScript Compilation:**
+
+Command:
+```bash
+npx tsc --noEmit
+```
+
+Result:
+```
+✅ No errors found
+```
+
+**Dev Server Status:**
+- Port: 3001
+- Status: Running successfully
+- No runtime errors detected
+
+---
+
+### PENDING SETUP (Not Yet Done)
+
+#### 1. Database Migration
+**Action Required:**
+- Open Supabase Dashboard → SQL Editor
+- Copy contents of `supabase-publishing-columns.sql`
+- Execute migration
+- Verify columns added with `\d wods` command
+
+**Risk:** App will fail if attempting to publish before migration is run
+
+---
+
+#### 2. Google Cloud Configuration
+**Actions Required:**
+1. Create Google Cloud project
+2. Enable Google Calendar API
+3. Create service account
+4. Generate and download JSON key
+5. Share target calendar with service account
+6. Extract credentials to environment variables
+
+**Estimated Time:** 15-20 minutes
+
+**Documentation:** Follow `GOOGLE_CALENDAR_SETUP.md` step-by-step
+
+---
+
+#### 3. Environment Variables
+**Action Required:**
+- Fill in 3 empty variables in `.env.local`
+- Restart dev server after adding variables
+
+**Validation:**
+- Service account email format: `*@*.iam.gserviceaccount.com`
+- Private key format: Must include header/footer and `\n` escapes
+- Calendar ID format: Usually ends with `@group.calendar.google.com`
+
+---
+
+#### 4. Functional Testing
+**Test Scenarios:**
+
+**Publish Workflow:**
+1. Open existing workout with date
+2. Click Publish button
+3. Select sections to publish
+4. Set time and duration
+5. Verify preview looks correct
+6. Click Publish
+7. Check Google Calendar for event
+8. Verify wods table updated
+
+**Athlete View:**
+1. Switch to athlete interface
+2. Navigate to Workouts tab
+3. Verify published workout appears
+4. Hover over workout card
+5. Verify popover shows correct content
+6. Check time format display
+
+**Unpublish:**
+1. Open published workout
+2. Click Publish button (should show as "Published")
+3. Click Unpublish/Delete
+4. Verify event removed from Google Calendar
+5. Verify database cleared
+
+---
+
+#### 5. Git Commit
+**Pending Until:**
+- Setup completed
+- Functional testing passed
+- Any bugs fixed
+
+**Proposed Commit Message:**
+```
+feat(publishing): add Google Calendar integration for athlete workouts
+
+- Add publishing columns to wods table (is_published, publish_sections, google_event_id, publish_time, publish_duration)
+- Create PublishModal component with section selection, time picker, duration selector, and event preview
+- Add Publish button to WOD modal (visible only for existing workouts with dates)
+- Create AthleteWorkoutsTab component with weekly calendar view of published workouts
+- Add Workouts tab to athlete interface
+- Implement Google Calendar API routes (POST/DELETE) with service account auth
+- Add comprehensive setup documentation (GOOGLE_CALENDAR_SETUP.md)
+- Install googleapis package for API integration
+- Configure environment variables for Google Calendar credentials
+
+Location: The Forge Functional Fitness, Bergwerkstrasse 10, Pforzen, Bavaria
+Timezone: Europe/Berlin
+Event duration: 30-90 minutes (default 60)
+```
+
+---
+
+### TECHNICAL NOTES
+
+#### Date/Time Handling
+
+**Database Storage:**
+- `wod.date`: DATE type (YYYY-MM-DD)
+- `publish_time`: TIME type (HH:MM:SS)
+- Combined for Google Calendar event creation
+
+**Timezone:**
+- Application timezone: Europe/Berlin
+- Google Calendar handles DST automatically
+- All times displayed in local time (12-hour format for athletes)
+
+**DateTime Construction:**
+```typescript
+const [hours, minutes] = publishTime.split(':');
+const startDateTime = new Date(date);
+startDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+const endDateTime = new Date(startDateTime.getTime() + duration * 60000);
+```
+
+---
+
+#### Section Filtering
+
+**Publish Sections Array:**
+- Stores section TYPE names (not IDs)
+- Example: `['Strength', 'WOD', 'Cool Down']`
+- Empty array = no sections published
+- Null = publish all sections (backward compatibility)
+
+**Filtering Logic:**
+```typescript
+const publishedSections = workout.sections.filter(section =>
+  workout.publish_sections?.includes(section.type) ?? true
+);
+```
+
+---
+
+#### Google Calendar Event Format
+
+**Event Title:**
+```
+Workout - {Track Name}
+```
+
+**Event Description:**
+```
+{Section Type 1}
+{Section Content 1}
+
+{Section Type 2}
+{Section Content 2}
+```
+
+**Example:**
+```
+Strength
+Back Squat 5-5-5-5-5
+Build to heavy set of 5
+
+WOD
+For Time:
+21-15-9
+Thrusters (95/65)
+Pull-ups
+```
+
+---
+
+#### API Error Handling
+
+**Common Errors:**
+
+1. **Missing Environment Variables:**
+   - Status: 500
+   - Message: "Google Calendar credentials not configured"
+
+2. **Invalid Event ID:**
+   - Status: 400
+   - Message: "Workout not published"
+
+3. **Calendar Permission Issues:**
+   - Status: 500
+   - Message: "Failed to create/delete event"
+   - Solution: Check calendar sharing settings
+
+4. **Database Update Failure:**
+   - Status: 500
+   - Message: "Failed to update workout"
+   - Solution: Check Supabase connection and migration
+
+---
+
+### FILES CREATED/MODIFIED
+
+**Created:**
+1. `supabase-publishing-columns.sql` - Database schema for publishing features
+2. `components/PublishModal.tsx` - Publishing UI component
+3. `components/AthleteWorkoutsTab.tsx` - Athlete calendar view
+4. `app/api/google/publish-workout/route.ts` - Google Calendar API integration
+5. `GOOGLE_CALENDAR_SETUP.md` - Complete setup guide
+
+**Modified:**
+1. `memory-bank/workflow-protocols.md` - Added filename convention note (line 9)
+2. `components/WODModal.tsx` - Added Publish button (lines 1195, 1242-1253)
+3. `app/athlete/page.tsx` - Added Workouts tab (lines 75, 311-313)
+4. `.env.local` - Added 3 environment variable placeholders
+5. `package.json` - Added googleapis dependency
+
+---
+
+### NEXT STEPS (Ordered)
+
+1. **Execute Database Migration**
+   - Open Supabase SQL Editor
+   - Run `supabase-publishing-columns.sql`
+   - Verify columns with `SELECT * FROM wods LIMIT 1;`
+
+2. **Google Cloud Setup**
+   - Follow `GOOGLE_CALENDAR_SETUP.md` step-by-step
+   - Create service account
+   - Share calendar
+   - Download JSON key
+
+3. **Configure Environment**
+   - Extract credentials from JSON key
+   - Fill in 3 variables in `.env.local`
+   - Restart dev server (Ctrl+C, then `npm run dev`)
+
+4. **Test Publishing**
+   - Create/open a workout with a date
+   - Click Publish button
+   - Select sections, set time, choose duration
+   - Publish and verify Google Calendar event created
+   - Check wods table updated correctly
+
+5. **Test Athlete View**
+   - Switch to athlete interface
+   - Go to Workouts tab
+   - Verify workout appears in calendar
+   - Test hover preview
+
+6. **Test Unpublishing**
+   - Open published workout
+   - Unpublish/delete event
+   - Verify removed from Google Calendar
+   - Verify database cleared
+
+7. **Git Commit**
+   - Run `git status` to verify all files
+   - Run `git diff` to review changes
+   - Create commit with detailed message
+   - Consider adding screenshot of athlete calendar to docs
+
+---
+
 ## Session: 2025-10-24 (Part 3 - Analysis Page Enhancements)
 
 **Date:** 2025-10-24

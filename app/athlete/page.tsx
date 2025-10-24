@@ -15,6 +15,7 @@ import {
   ChevronRight,
   Edit2,
   Trash2,
+  Calendar,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { getCurrentUser, signOut } from '@/lib/auth';
@@ -28,8 +29,9 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
+import AthleteWorkoutsTab from '@/components/AthleteWorkoutsTab';
 
-type TabName = 'profile' | 'logbook' | 'benchmarks' | 'lifts' | 'records' | 'security';
+type TabName = 'profile' | 'workouts' | 'logbook' | 'benchmarks' | 'lifts' | 'records' | 'security';
 
 export default function AthleteDashboard() {
   const router = useRouter();
@@ -85,6 +87,7 @@ export default function AthleteDashboard() {
 
   const tabs = [
     { id: 'profile' as TabName, label: 'Profile', icon: User },
+    { id: 'workouts' as TabName, label: 'Workouts', icon: Calendar },
     { id: 'logbook' as TabName, label: 'Athlete Logbook', icon: BookOpen },
     { id: 'benchmarks' as TabName, label: 'Benchmark Workouts', icon: Trophy },
     { id: 'lifts' as TabName, label: 'Barbell Lifts', icon: Dumbbell },
@@ -98,6 +101,8 @@ export default function AthleteDashboard() {
     switch (activeTab) {
       case 'profile':
         return <ProfileTab userName={userName} userId={userId} />;
+      case 'workouts':
+        return <AthleteWorkoutsTab userId={userId} />;
       case 'logbook':
         return <LogbookTab userId={userId} />;
       case 'benchmarks':

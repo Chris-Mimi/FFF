@@ -3,6 +3,23 @@
 Version: 1.3
 Timestamp: 2025-10-24
 
+## 📁 Memory Bank Files (CRITICAL - File Naming)
+
+**IMPORTANT:** Memory bank files have `memory-bank-` prefix in their filenames!
+
+**Correct paths to read at session start:**
+- `memory-bank/memory-bank-activeContext.md` ✅
+- `memory-bank/memory-bank-techContext.md` ✅
+- `memory-bank/memory-bank-systemPatterns.md` ✅
+- `memory-bank/workflow-protocols.md` ✅ (no prefix)
+
+**DO NOT use:**
+- ❌ `memory-bank/activeContext.md`
+- ❌ `memory-bank/techContext.md`
+- ❌ `memory-bank/systemPatterns.md`
+
+---
+
 ## Core Principle: Token Efficiency
 
 **MANDATE:** Keep all Claude Code sessions under **50%** token context usage.

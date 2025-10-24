@@ -1,7 +1,7 @@
 # The Forge Functional Fitness - Active Context (Final, Corrected)
 
-Version: 2.18
-Timestamp: 2025-10-24
+Version: 2.19
+Timestamp: 2025-10-25
 
 ## ⚠️ CRITICAL RULES & CONTEXT
 
@@ -174,10 +174,26 @@ The project is **IN PROGRESS**. All core data models and UI features are complet
 
 ---
 
+## 📤 Google Calendar Publishing (v2.19)
+
+| **Feature** | Description | Files |
+| :--- | :--- | :--- |
+| **Database Schema** | Added publishing columns to wods table (is_published, publish_sections, google_event_id, publish_time, publish_duration). | `supabase-publishing-columns.sql` |
+| **Publishing Modal** | Section checkboxes for selective publishing, time picker with 30-min increments, duration selector (30-90 min), event preview. | `components/PublishModal.tsx` |
+| **WOD Modal Integration** | Added Publish button in header (only visible when editing existing workouts with valid date). | `components/WODModal.tsx:1195,1242-1253` |
+| **Athlete Workouts Tab** | Weekly calendar view displaying published workouts with section content popover on hover. | `components/AthleteWorkoutsTab.tsx`, `app/athlete/page.tsx:75,311-313` |
+| **Google Calendar API** | POST/DELETE endpoints for event creation/deletion using service account auth. Location: Bergwerkstrasse 10, Pforzen. Timezone: Europe/Berlin. | `app/api/google/publish-workout/route.ts` |
+| **Setup Documentation** | Complete guide for Google Cloud project setup, service account creation, and calendar sharing. | `GOOGLE_CALENDAR_SETUP.md` |
+| **Environment Variables** | Added 3 placeholders: GOOGLE_SERVICE_ACCOUNT_EMAIL, GOOGLE_PRIVATE_KEY, GOOGLE_CALENDAR_ID. | `.env.local` |
+| **Implementation Status** | Code complete, Google Calendar setup pending (requires manual configuration). | — |
+
+---
+
 ## 📋 NEXT STEPS (Priority)
 
-1.  **Run Migration:** Execute `supabase-section-types.sql` in Supabase SQL Editor to create section_types table.
-2.  **Exercise Filtering Research:** Consider implementing movement pattern or equipment-based filtering for Exercise Library (deferred for future discussion).
-3.  Add `user_id` to all athlete tables (currently NULL).
-4.  Remove **PUBLIC RLS policies** using the migration script (once multi-user setup is ready).
-5.  Add multi-user support with proper data isolation.
+1.  **Execute Publishing Migration:** Run `supabase-publishing-columns.sql` in Supabase SQL Editor to add publishing columns to wods table.
+2.  **Google Calendar Setup:** Follow `GOOGLE_CALENDAR_SETUP.md` to create service account and fill in environment variables.
+3.  **Test Publishing Workflow:** Test event creation/deletion and athlete view after setup is complete.
+4.  **Run Migration:** Execute `supabase-section-types.sql` in Supabase SQL Editor to create section_types table.
+5.  Add `user_id` to all athlete tables (currently NULL).
+6.  Remove **PUBLIC RLS policies** using the migration script (once multi-user setup is ready).
