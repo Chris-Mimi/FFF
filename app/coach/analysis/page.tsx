@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef, useLayoutEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { ArrowLeft, Plus, Edit2, Trash2, BarChart3, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { ArrowLeft, BarChart3, ChevronLeft, ChevronRight, Edit2, Plus, Trash2, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 
 interface Track {
   id: string;
@@ -61,8 +61,7 @@ export default function AnalysisPage() {
 
   // Exercise Search State
   const [exerciseSearch, setExerciseSearch] = useState('');
-  const [selectedExercise, setSelectedExercise] = useState<string | null>(null);
-  const [exerciseCount, setExerciseCount] = useState<number>(0);
+  const [selectedExercises, setSelectedExercises] = useState<string[]>([]);
 
   // Track Management Modal State
   const [trackModalOpen, setTrackModalOpen] = useState(false);
@@ -114,13 +113,12 @@ export default function AnalysisPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedMonth, timeframePeriod, tracks, workoutTypes]);
 
-  // Update exercise count when statistics change and an exercise is selected
+  // Update exercise count when statistics change and selected exercises change
   useEffect(() => {
-    if (selectedExercise && statistics) {
-      const exerciseData = statistics.allExerciseFrequency.find(e => e.exercise === selectedExercise);
-      setExerciseCount(exerciseData?.count || 0);
+    if (statistics && selectedExercises.length > 0) {
+      // This effect is maintained for any future usage, but we'll handle counts per chip
     }
-  }, [statistics, selectedExercise]);
+  }, [statistics, selectedExercises]);
 
   // Restore scroll position after statistics update
   useEffect(() => {
@@ -466,11 +464,7 @@ export default function AnalysisPage() {
       durationBreakdown,
     });
 
-    // Update exercise count if one is selected
-    if (selectedExercise) {
-      const count = exerciseCounts[selectedExercise] || 0;
-      setExerciseCount(count);
-    }
+    // Exercise counts are now handled per chip
   };
 
   const handleLogout = async () => {
@@ -601,19 +595,19 @@ export default function AnalysisPage() {
   };
 
   const handleExerciseSelect = (exercise: string) => {
-    setSelectedExercise(exercise);
-    setExerciseSearch('');
-
-    // Calculate count for selected exercise (use ALL exercises, not just top 20)
-    if (statistics) {
-      const exerciseData = statistics.allExerciseFrequency.find(e => e.exercise === exercise);
-      setExerciseCount(exerciseData?.count || 0);
+    if (!selectedExercises.includes(exercise)) {
+      setSelectedExercises([...selectedExercises, exercise]);
     }
+    setExerciseSearch('');
   };
 
-  const clearExerciseSelection = () => {
-    setSelectedExercise(null);
-    setExerciseCount(0);
+  const removeExerciseSelection = (exerciseToRemove: string) => {
+    setSelectedExercises(selectedExercises.filter(e => e !== exerciseToRemove));
+    setExerciseSearch('');
+  };
+
+  const clearAllExerciseSelections = () => {
+    setSelectedExercises([]);
     setExerciseSearch('');
   };
 
@@ -770,64 +764,74 @@ export default function AnalysisPage() {
               <div className='bg-white border border-gray-300 rounded-lg p-6'>
                 <h3 className='text-lg font-bold text-gray-900 mb-4'>Exercise/Movement Search</h3>
 
-                <div className='flex gap-4 items-start'>
-                  {/* Search Input */}
-                  <div className='flex-1 relative'>
-                    <input
-                      type='text'
-                      value={exerciseSearch}
-                      onChange={(e) => setExerciseSearch(e.target.value)}
-                      placeholder='Search for an exercise or movement...'
-                      className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
-                      disabled={!!selectedExercise}
-                    />
+                {/* Search Input */}
+                <div className='relative'>
+                  <input
+                    type='text'
+                    value={exerciseSearch}
+                    onChange={(e) => setExerciseSearch(e.target.value)}
+                    placeholder='Search for an exercise or movement...'
+                    className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                  />
 
-                    {/* Dropdown Results */}
-                    {exerciseSearch && !selectedExercise && filteredExercises.length > 0 && (
-                      <div className='absolute z-10 w-full mt-2 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto'>
-                        {filteredExercises.slice(0, 20).map((exercise, idx) => (
-                          <button
-                            key={idx}
-                            onClick={() => handleExerciseSelect(exercise.exercise)}
-                            className='w-full px-4 py-3 text-left hover:bg-gray-100 flex justify-between items-center border-b border-gray-100 last:border-b-0'
-                          >
-                            <span className='text-gray-900 font-medium'>{exercise.exercise}</span>
-                            <span className='text-[#208479] font-bold text-sm'>{exercise.count}x</span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                  {/* Dropdown Results */}
+                  {exerciseSearch && filteredExercises.length > 0 && (
+                    <div className='absolute z-10 w-full mt-2 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto'>
+                      {filteredExercises.slice(0, 20).map((exercise, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => handleExerciseSelect(exercise.exercise)}
+                          className='w-full px-4 py-3 text-left hover:bg-gray-100 flex justify-between items-center border-b border-gray-100 last:border-b-0'
+                        >
+                          <span className='text-gray-900 font-medium'>{exercise.exercise}</span>
+                          <span className='text-[#208479] font-bold text-sm'>{exercise.count}x</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
 
-                    {exerciseSearch && !selectedExercise && filteredExercises.length === 0 && (
-                      <div className='absolute z-10 w-full mt-2 bg-white border border-gray-300 rounded-lg shadow-lg p-4 text-center text-gray-500'>
-                        No exercises found matching &quot;{exerciseSearch}&quot;
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Result Display */}
-                  {selectedExercise && (
-                    <div className='flex items-center gap-4'>
-                      <div className='bg-[#208479] text-white rounded-lg px-6 py-3'>
-                        <div className='text-xs font-semibold opacity-90 mb-1'>
-                          {selectedExercise}
-                        </div>
-                        <div className='text-3xl font-bold'>
-                          {exerciseCount}
-                          <span className='text-base ml-2'>times</span>
-                        </div>
-                      </div>
-                      <button
-                        onClick={clearExerciseSelection}
-                        className='px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition'
-                      >
-                        Clear
-                      </button>
+                  {exerciseSearch && filteredExercises.length === 0 && (
+                    <div className='absolute z-10 w-full mt-2 bg-white border border-gray-300 rounded-lg shadow-lg p-4 text-center text-gray-500'>
+                      No exercises found matching "{exerciseSearch}"
                     </div>
                   )}
                 </div>
 
-                {!selectedExercise && !exerciseSearch && (
+                {/* Selected Exercises as Chips */}
+                {selectedExercises.length > 0 && (
+                  <div className='mt-4'>
+                    <div className='flex flex-wrap gap-2'>
+                      {selectedExercises.map(exercise => {
+                        const count = statistics?.allExerciseFrequency.find(e => e.exercise === exercise)?.count || 0;
+                        return (
+                          <span
+                            key={exercise}
+                            className='inline-flex items-center gap-1 px-3 py-2 bg-[#208479] text-white text-sm rounded-full'
+                          >
+                            <span className='font-medium'>{exercise}</span>
+                            <span className='text-xs opacity-90'>({count}x)</span>
+                            <button
+                              onClick={() => removeExerciseSelection(exercise)}
+                              className='hover:bg-[#1a6b62] rounded-full p-0.5 ml-1'
+                            >
+                              <X size={14} />
+                            </button>
+                          </span>
+                        );
+                      })}
+                    </div>
+                    <div className='mt-3 flex gap-2'>
+                      <button
+                        onClick={clearAllExerciseSelections}
+                        className='px-3 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg text-sm transition'
+                      >
+                        Clear All
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {!exerciseSearch && selectedExercises.length === 0 && (
                   <p className='text-sm text-gray-500 mt-3'>
                     Start typing to search through all exercises in the selected timeframe
                   </p>
