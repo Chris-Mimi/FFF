@@ -1,7 +1,7 @@
 # The Forge Functional Fitness - Active Context (Final, Corrected)
 
-Version: 2.11
-Timestamp: 2025-10-23 14:45 UTC
+Version: 2.16
+Timestamp: 2025-10-24 18:30 UTC
 
 ## ⚠️ CRITICAL RULES & CONTEXT
 
@@ -123,6 +123,39 @@ The project is **IN PROGRESS**. All core data models and UI features are complet
 | **Focused Date System** | Added `focusedDate` state separate from `selectedDate` (week navigation). Blue ring (ring-4) highlights focused date. Teal ring shows today. | `app/coach/page.tsx:68,983,1130,1275` |
 | **Click-to-Select Navigation** | Monthly: Click empty space = highlight; click day number = switch to weekly + highlight. Weekly: Click empty space = highlight (no navigation). Works in both weeks displayed. | `app/coach/page.tsx:992-998,1008-1014,1138-1144,1283-1289` |
 | **Today Button** | Teal button in navigation bar jumps to current date. Sets both `selectedDate` and `focusedDate`. | `app/coach/page.tsx:905-914` |
+
+---
+
+## 📊 Analysis Page Enhancements (v2.13)
+
+| **Feature** | Description | Files |
+| :--- | :--- | :--- |
+| **Exercise Search Database Integration** | Replaced hardcoded exercise list with Supabase `exercises` table. Search uses full dataset (`allExerciseFrequency`) while display shows top 20. Normalization preserves case for parentheses "(PVC)", handles hyphen/space variations. | `app/coach/analysis/page.tsx:96-195,485-529` |
+
+---
+
+## 📅 Analysis Page UX & Timeframes (v2.14)
+
+| **Feature** | Description | Files |
+| :--- | :--- | :--- |
+| **Exercise Search Bug Fix** | Fixed popover showing "0 times" for exercises outside top 20 by using `allExerciseFrequency` instead of `exerciseFrequency`. | `app/coach/analysis/page.tsx:485-529` |
+| **Panel Reorganization** | Moved Statistics to top, Manage Tracks to bottom with reduced padding (p-4 instead of p-6). | `app/coach/analysis/page.tsx:567-755` |
+| **1 Week Timeframe** | Added 0.25 period for rolling 7-day window with arrow navigation moving by 7 days instead of months. | `app/coach/analysis/page.tsx:48,170-174,485-491,517-524` |
+| **Editable Date Range Picker** | Draggable modal with month/year dropdowns, validation, and "Today" button. | `app/coach/analysis/page.tsx:541-638` |
+| **Date Range Display** | Shows actual date ranges for week view (e.g., "Oct 25, 2024 - Oct 31, 2024"). | `app/coach/analysis/page.tsx:570-577` |
+
+---
+
+## 📅 Calendar & Panel UX (v2.16)
+
+| **Feature** | Description | Files |
+| :--- | :--- | :--- |
+| **Search Panel Date Format** | Added year to workout date display in search results (e.g., "Oct 25, 2024" instead of "Oct 25"). | `app/coach/page.tsx:1550` |
+| **Button Repositioning** | Moved Add Workout/Paste buttons to bottom right of day cards. Flexbox layout prevents day name obstruction. | `app/coach/page.tsx:1148,1160-1264,1295,1307-1412` |
+| **Single Add Button** | Replaced per-day "+" buttons with single focused-date "+" in nav bar with date tooltip. Simplified UX with single action point. | `app/coach/page.tsx:919,1107,1254,1401` |
+| **Exercise Insertion Fix** | Fixed cursor position gap bug when inserting exercises from library into WOD content. | `components/WODModal.tsx:1311-1356` |
+| **Calendar Hide Logic** | Calendar now hides when both WOD and Search panels are open simultaneously. Shows when either panel closes. | `app/coach/page.tsx:973,1751-1807` |
+| **Panel Alignment** | WOD panel now aligns with Search panel below header (matches height and positioning). | `components/WODModal.tsx:1205` |
 
 ---
 
