@@ -393,8 +393,8 @@ export default function AnalysisPage() {
       .map(([exercise, count]) => ({ exercise, count }))
       .sort((a, b) => b.count - a.count);
 
-    // Top 20 for display
-    const exerciseFrequency = allExerciseFrequency.slice(0, 20);
+    // Top 40 for display
+    const exerciseFrequency = allExerciseFrequency.slice(0, 40);
 
     // WOD duration - sum all sections with type "WOD" and categorize
     let totalWODDuration = 0;
@@ -895,18 +895,15 @@ export default function AnalysisPage() {
               {/* Exercise Frequency */}
               {statistics.exerciseFrequency.length > 0 && (
                 <div>
-                  <h3 className='text-lg font-bold text-gray-900 mb-3'>Top Exercises</h3>
-                  <div className='grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3'>
+                  <h3 className='text-lg font-bold text-gray-900 mb-3'>Top 40 Exercises</h3>
+                  <div className='flex flex-wrap gap-2'>
                     {statistics.exerciseFrequency.map((exercise, idx) => (
-                      <div key={idx} className='bg-gray-50 rounded-lg p-3 border border-gray-200'>
-                        <div className='text-lg font-bold text-[#208479]'>{exercise.count}</div>
-                        <div
-                          className='text-xs text-gray-700 font-medium mt-1 truncate'
-                          title={exercise.exercise}
-                        >
-                          {exercise.exercise}
-                        </div>
-                      </div>
+                      <span
+                        key={idx}
+                        className='inline-flex items-center px-3 py-2 bg-[#208479] text-white text-sm rounded-full font-medium'
+                      >
+                        {exercise.exercise} ({exercise.count}x)
+                      </span>
                     ))}
                   </div>
                 </div>
