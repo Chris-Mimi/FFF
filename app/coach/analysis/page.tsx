@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Plus, Edit2, Trash2, BarChart3, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Plus, Edit2, Trash2, BarChart3, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 interface Track {
@@ -45,7 +45,7 @@ interface Statistics {
   durationBreakdown: { range: string; count: number }[];
 }
 
-type TimeframePeriod = 1 | 3 | 6 | 12;
+type TimeframePeriod = 0.25 | 1 | 3 | 6 | 12;
 
 export default function AnalysisPage() {
   const router = useRouter();
@@ -57,6 +57,7 @@ export default function AnalysisPage() {
   const [timeframePeriod, setTimeframePeriod] = useState<TimeframePeriod>(1);
   const [statistics, setStatistics] = useState<Statistics | null>(null);
   const [loadingStats, setLoadingStats] = useState(false);
+  const scrollPositionRef = useRef<number>(0);
 
   // Exercise Search State
   const [exerciseSearch, setExerciseSearch] = useState('');
@@ -71,6 +72,17 @@ export default function AnalysisPage() {
     description: '',
     color: '#208479',
   });
+
+  // Date Range Picker State
+  const [dateRangeModalOpen, setDateRangeModalOpen] = useState(false);
+  const [tempStartMonth, setTempStartMonth] = useState(new Date());
+  const [tempEndMonth, setTempEndMonth] = useState(new Date());
+  const [startYearInput, setStartYearInput] = useState('');
+  const [endYearInput, setEndYearInput] = useState('');
+  const dateButtonRef = useRef<HTMLButtonElement>(null);
+  const [pickerPosition, setPickerPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -105,10 +117,18 @@ export default function AnalysisPage() {
   // Update exercise count when statistics change and an exercise is selected
   useEffect(() => {
     if (selectedExercise && statistics) {
-      const exerciseData = statistics.exerciseFrequency.find(e => e.exercise === selectedExercise);
+      const exerciseData = statistics.allExerciseFrequency.find(e => e.exercise === selectedExercise);
       setExerciseCount(exerciseData?.count || 0);
     }
   }, [statistics, selectedExercise]);
+
+  // Restore scroll position after statistics update
+  useEffect(() => {
+    if (scrollPositionRef.current > 0) {
+      window.scrollTo(0, scrollPositionRef.current);
+      scrollPositionRef.current = 0;
+    }
+  }, [statistics]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -144,9 +164,18 @@ export default function AnalysisPage() {
       const month = selectedMonth.getMonth();
 
       // Calculate date range based on timeframe period
-      // Use UTC to avoid timezone issues
-      const endDate = new Date(Date.UTC(year, month + 1, 0)); // Last day of selected month
-      const startDate = new Date(Date.UTC(year, month - timeframePeriod + 1, 1)); // First day of period
+      let endDate: Date;
+      let startDate: Date;
+
+      if (timeframePeriod === 0.25) {
+        // 1 Week - 7 day rolling window ending on selected date
+        endDate = new Date(selectedMonth);
+        startDate = new Date(selectedMonth);
+        startDate.setDate(endDate.getDate() - 6); // 7 days total including end date
+      } else {
+        endDate = new Date(year, month + 1, 0); // Last day of selected month
+        startDate = new Date(year, month - timeframePeriod + 1, 1); // First day of period (handles negative months)
+      }
 
       const startDateStr = startDate.toISOString().split('T')[0];
       const endDateStr = endDate.toISOString().split('T')[0];
@@ -453,10 +482,20 @@ export default function AnalysisPage() {
   const changeMonth = (direction: 'prev' | 'next') => {
     setSelectedMonth(prev => {
       const newDate = new Date(prev);
-      if (direction === 'prev') {
-        newDate.setMonth(newDate.getMonth() - 1);
+      if (timeframePeriod === 0.25) {
+        // Move by 7 days for week view
+        if (direction === 'prev') {
+          newDate.setDate(newDate.getDate() - 7);
+        } else {
+          newDate.setDate(newDate.getDate() + 7);
+        }
       } else {
-        newDate.setMonth(newDate.getMonth() + 1);
+        // Move by month for other views
+        if (direction === 'prev') {
+          newDate.setMonth(newDate.getMonth() - 1);
+        } else {
+          newDate.setMonth(newDate.getMonth() + 1);
+        }
       }
       return newDate;
     });
@@ -467,13 +506,25 @@ export default function AnalysisPage() {
   };
 
   const getTimeframeLabel = () => {
-    const endDate = new Date(selectedMonth);
-    const startDate = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() - timeframePeriod + 1, 1);
+    const year = selectedMonth.getFullYear();
+    const month = selectedMonth.getMonth();
+
+    if (timeframePeriod === 0.25) {
+      // 1 Week - show actual date range (7 day rolling window ending on selected date)
+      const endDate = new Date(selectedMonth);
+      const startDate = new Date(selectedMonth);
+      startDate.setDate(endDate.getDate() - 6);
+
+      const formatDate = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      return `${formatDate(startDate)} - ${formatDate(endDate)}`;
+    }
 
     if (timeframePeriod === 1) {
       return formatMonthYear(selectedMonth);
     }
 
+    const endDate = new Date(selectedMonth);
+    const startDate = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() - timeframePeriod + 1, 1);
     const startMonthYear = startDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
     const endMonthYear = endDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 
@@ -553,9 +604,9 @@ export default function AnalysisPage() {
     setSelectedExercise(exercise);
     setExerciseSearch('');
 
-    // Calculate count for selected exercise
+    // Calculate count for selected exercise (use ALL exercises, not just top 20)
     if (statistics) {
-      const exerciseData = statistics.exerciseFrequency.find(e => e.exercise === exercise);
+      const exerciseData = statistics.allExerciseFrequency.find(e => e.exercise === exercise);
       setExerciseCount(exerciseData?.count || 0);
     }
   };
@@ -598,61 +649,7 @@ export default function AnalysisPage() {
         </div>
       </header>
 
-      <div className='max-w-7xl mx-auto p-6 space-y-6'>
-        {/* Track Management Section */}
-        <div className='bg-white rounded-lg shadow p-6'>
-          <div className='flex justify-between items-center mb-4'>
-            <h2 className='text-xl font-bold text-gray-900'>Manage Tracks</h2>
-            <button
-              onClick={() => openTrackModal()}
-              className='px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white font-semibold rounded-lg flex items-center gap-2 transition'
-            >
-              <Plus size={18} />
-              Add Track
-            </button>
-          </div>
-
-          {loading ? (
-            <p className='text-gray-500'>Loading...</p>
-          ) : (
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-              {tracks.map(track => (
-                <div
-                  key={track.id}
-                  className='border border-gray-300 rounded-lg p-4 hover:shadow-md transition'
-                >
-                  <div className='flex items-start justify-between mb-2'>
-                    <div className='flex items-center gap-2'>
-                      <div
-                        className='w-4 h-4 rounded-full'
-                        style={{ backgroundColor: track.color || '#208479' }}
-                      />
-                      <h3 className='font-bold text-gray-900'>{track.name}</h3>
-                    </div>
-                    <div className='flex gap-2'>
-                      <button
-                        onClick={() => openTrackModal(track)}
-                        className='text-[#208479] hover:text-[#1a6b62] p-1'
-                      >
-                        <Edit2 size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteTrack(track.id)}
-                        className='text-gray-400 hover:text-red-600 p-1'
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </div>
-                  {track.description && (
-                    <p className='text-sm text-gray-600'>{track.description}</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
+      <div className='max-w-7xl mx-auto p-6 space-y-6' style={{ minHeight: 'calc(100vh - 200px)' }}>
         {/* Monthly Statistics Section */}
         <div className='bg-white rounded-lg shadow p-6'>
           <div className='flex justify-between items-center mb-6'>
@@ -660,17 +657,21 @@ export default function AnalysisPage() {
             <div className='flex items-center gap-6'>
               {/* Timeframe Period Selector */}
               <div className='flex items-center gap-2 bg-gray-100 rounded-lg p-1'>
-                {([1, 3, 6, 12] as TimeframePeriod[]).map(period => (
+                {([0.25, 1, 3, 6, 12] as TimeframePeriod[]).map(period => (
                   <button
                     key={period}
-                    onClick={() => setTimeframePeriod(period)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      scrollPositionRef.current = window.scrollY;
+                      setTimeframePeriod(period);
+                    }}
                     className={`px-3 py-1.5 rounded-md font-semibold text-sm transition ${
                       timeframePeriod === period
                         ? 'bg-[#208479] text-white'
                         : 'text-gray-700 hover:bg-gray-200'
                     }`}
                   >
-                    {period === 1 ? '1 Month' : `${period} Months`}
+                    {period === 0.25 ? '1 Week' : period === 1 ? '1 Month' : `${period} Months`}
                   </button>
                 ))}
               </div>
@@ -683,9 +684,25 @@ export default function AnalysisPage() {
                 >
                   <ChevronLeft size={20} className='text-gray-700' />
                 </button>
-                <span className='text-lg font-semibold text-gray-900 min-w-[200px] text-center'>
+                <button
+                  ref={dateButtonRef}
+                  onClick={() => {
+                    const endDate = new Date(selectedMonth);
+                    const startDate = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() - timeframePeriod + 1, 1);
+                    setTempStartMonth(startDate);
+                    setTempEndMonth(endDate);
+                    setStartYearInput(startDate.getFullYear().toString());
+                    setEndYearInput(endDate.getFullYear().toString());
+                    if (!dateRangeModalOpen && dateButtonRef.current) {
+                      const rect = dateButtonRef.current.getBoundingClientRect();
+                      setPickerPosition({ x: rect.left, y: rect.bottom + 8 });
+                    }
+                    setDateRangeModalOpen(true);
+                  }}
+                  className='text-lg font-semibold text-gray-900 min-w-[200px] text-center hover:bg-gray-100 px-4 py-2 rounded-lg transition border border-transparent hover:border-gray-300'
+                >
                   {getTimeframeLabel()}
-                </span>
+                </button>
                 <button
                   onClick={() => changeMonth('next')}
                   className='p-2 hover:bg-gray-100 rounded-lg transition'
@@ -696,9 +713,9 @@ export default function AnalysisPage() {
             </div>
           </div>
 
-          {loadingStats ? (
-            <div className='text-center py-12 text-gray-500'>
-              <p>Loading statistics...</p>
+          {loading ? (
+            <div className='text-center py-12 text-gray-500' style={{ minHeight: '400px' }}>
+              <p>Loading...</p>
             </div>
           ) : statistics ? (
             <div className='space-y-6'>
@@ -908,6 +925,62 @@ export default function AnalysisPage() {
             </div>
           )}
         </div>
+
+        {/* Track Management Section */}
+        {!loading && (
+          <div className='bg-white rounded-lg shadow p-5'>
+            <div className='flex justify-between items-center mb-4'>
+              <h2 className='text-lg font-bold text-gray-900'>Manage Tracks</h2>
+            <button
+              onClick={() => openTrackModal()}
+              className='px-3 py-1.5 bg-[#208479] hover:bg-[#1a6b62] text-white font-semibold rounded-lg flex items-center gap-2 transition text-sm'
+            >
+              <Plus size={16} />
+              Add Track
+            </button>
+          </div>
+
+          {loading ? (
+            <p className='text-gray-500 text-sm'>Loading...</p>
+          ) : (
+            <div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3'>
+              {tracks.map(track => (
+                <div
+                  key={track.id}
+                  className='border border-gray-300 rounded-lg p-3 hover:shadow-md transition'
+                >
+                  <div className='flex items-start justify-between mb-1'>
+                    <div className='flex items-center gap-2'>
+                      <div
+                        className='w-3 h-3 rounded-full'
+                        style={{ backgroundColor: track.color || '#208479' }}
+                      />
+                      <h3 className='font-bold text-gray-900 text-sm'>{track.name}</h3>
+                    </div>
+                    <div className='flex gap-1'>
+                      <button
+                        onClick={() => openTrackModal(track)}
+                        className='text-[#208479] hover:text-[#1a6b62] p-1'
+                      >
+                        <Edit2 size={14} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteTrack(track.id)}
+                        className='text-gray-400 hover:text-red-600 p-1'
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+                  {track.description && (
+                    <p className='text-xs text-gray-600'>{track.description}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        )}
       </div>
 
       {/* Track Modal */}
@@ -974,6 +1047,202 @@ export default function AnalysisPage() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Date Range Picker Popover */}
+      {dateRangeModalOpen && (
+        <div
+          className='fixed bg-white rounded-lg shadow-2xl w-80 border-2 border-[#208479] z-50'
+          style={{
+            top: `${pickerPosition.y}px`,
+            left: `${pickerPosition.x}px`,
+            cursor: isDragging ? 'grabbing' : 'default'
+          }}
+          onMouseMove={(e) => {
+            if (isDragging) {
+              setPickerPosition({
+                x: e.clientX - dragOffset.x,
+                y: e.clientY - dragOffset.y
+              });
+            }
+          }}
+          onMouseUp={() => setIsDragging(false)}
+          onMouseLeave={() => setIsDragging(false)}
+        >
+          <div
+            className='bg-[#208479] text-white px-4 py-2 rounded-t-lg flex justify-between items-center cursor-grab active:cursor-grabbing'
+            onMouseDown={(e) => {
+              const rect = e.currentTarget.parentElement!.getBoundingClientRect();
+              setDragOffset({
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+              });
+              setIsDragging(true);
+            }}
+          >
+            <h3 className='text-sm font-bold'>Select Date Range</h3>
+            <button
+              onClick={() => setDateRangeModalOpen(false)}
+              className='hover:bg-[#1a6b62] rounded p-1 transition'
+            >
+              <X size={16} />
+            </button>
+          </div>
+
+            <div className='p-4 space-y-3'>
+              <div>
+                <label className='block text-xs font-semibold text-gray-700 mb-2'>From</label>
+                <div className='flex gap-2'>
+                  <select
+                    value={tempStartMonth.getMonth()}
+                    onChange={(e) => {
+                      const newStartMonth = new Date(tempStartMonth.getFullYear(), parseInt(e.target.value), 1);
+                      if (newStartMonth <= tempEndMonth) {
+                        setTempStartMonth(newStartMonth);
+                      }
+                    }}
+                    className='flex-1 px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-sm text-gray-900 bg-white'
+                  >
+                    {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map((month, idx) => (
+                      <option key={idx} value={idx}>{month}</option>
+                    ))}
+                  </select>
+                  <input
+                    type='number'
+                    value={startYearInput}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setStartYearInput(value);
+                      const year = parseInt(value);
+                      if (!isNaN(year) && year >= 2000 && year <= 2099) {
+                        const newStartMonth = new Date(year, tempStartMonth.getMonth(), 1);
+                        if (newStartMonth <= tempEndMonth) {
+                          setTempStartMonth(newStartMonth);
+                        }
+                      }
+                    }}
+                    onBlur={() => {
+                      const year = parseInt(startYearInput);
+                      if (isNaN(year) || year < 2000 || year > 2099) {
+                        const currentYear = new Date().getFullYear();
+                        setStartYearInput(currentYear.toString());
+                        setTempStartMonth(new Date(currentYear, tempStartMonth.getMonth(), 1));
+                      } else {
+                        const newStartMonth = new Date(year, tempStartMonth.getMonth(), 1);
+                        if (newStartMonth > tempEndMonth) {
+                          setStartYearInput(tempStartMonth.getFullYear().toString());
+                        }
+                      }
+                    }}
+                    className='w-24 px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-sm text-gray-900 bg-white'
+                    placeholder='YYYY'
+                    min='2000'
+                    max='2099'
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className='block text-xs font-semibold text-gray-700 mb-2'>To</label>
+                <div className='flex gap-2'>
+                  <select
+                    value={tempEndMonth.getMonth()}
+                    onChange={(e) => {
+                      const newEndMonth = new Date(tempEndMonth.getFullYear(), parseInt(e.target.value), 1);
+                      if (newEndMonth >= tempStartMonth) {
+                        setTempEndMonth(newEndMonth);
+                      }
+                    }}
+                    className='flex-1 px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-sm text-gray-900 bg-white'
+                  >
+                    {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map((month, idx) => (
+                      <option key={idx} value={idx}>{month}</option>
+                    ))}
+                  </select>
+                  <input
+                    type='number'
+                    value={endYearInput}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setEndYearInput(value);
+                      const year = parseInt(value);
+                      if (!isNaN(year) && year >= 2000 && year <= 2099) {
+                        const newEndMonth = new Date(year, tempEndMonth.getMonth(), 1);
+                        if (newEndMonth >= tempStartMonth) {
+                          setTempEndMonth(newEndMonth);
+                        }
+                      }
+                    }}
+                    onBlur={() => {
+                      const year = parseInt(endYearInput);
+                      if (isNaN(year) || year < 2000 || year > 2099) {
+                        const currentYear = new Date().getFullYear();
+                        setEndYearInput(currentYear.toString());
+                        setTempEndMonth(new Date(currentYear, tempEndMonth.getMonth(), 1));
+                      } else {
+                        const newEndMonth = new Date(year, tempEndMonth.getMonth(), 1);
+                        if (newEndMonth < tempStartMonth) {
+                          setEndYearInput(tempEndMonth.getFullYear().toString());
+                        }
+                      }
+                    }}
+                    className='w-24 px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-sm text-gray-900 bg-white'
+                    placeholder='YYYY'
+                    min='2000'
+                    max='2099'
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className='p-3 border-t bg-gray-50 rounded-b-lg space-y-2'>
+              <button
+                onClick={() => {
+                  const today = new Date();
+                  const endMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+                  const startMonth = new Date(today.getFullYear(), today.getMonth() - timeframePeriod + 1, 1);
+                  setTempStartMonth(startMonth);
+                  setTempEndMonth(endMonth);
+                  setStartYearInput(startMonth.getFullYear().toString());
+                  setEndYearInput(endMonth.getFullYear().toString());
+                  setSelectedMonth(endMonth);
+                }}
+                className='w-full px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold rounded transition'
+              >
+                Today
+              </button>
+              <div className='flex gap-2'>
+                <button
+                  onClick={() => setDateRangeModalOpen(false)}
+                  className='flex-1 px-3 py-1.5 border border-gray-300 text-gray-700 text-sm font-semibold rounded hover:bg-white transition'
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    // Calculate the period and set selectedMonth to the end month
+                    const timeDiff = tempEndMonth.getTime() - tempStartMonth.getTime();
+                    const daysDiff = Math.round(timeDiff / (1000 * 60 * 60 * 24)) + 1;
+                    const monthsDiff = (tempEndMonth.getFullYear() - tempStartMonth.getFullYear()) * 12 +
+                                      (tempEndMonth.getMonth() - tempStartMonth.getMonth()) + 1;
+
+                    // Find closest timeframe period
+                    if (daysDiff <= 7) setTimeframePeriod(0.25);
+                    else if (monthsDiff === 1) setTimeframePeriod(1);
+                    else if (monthsDiff === 3) setTimeframePeriod(3);
+                    else if (monthsDiff === 6) setTimeframePeriod(6);
+                    else if (monthsDiff === 12) setTimeframePeriod(12);
+                    else setTimeframePeriod(monthsDiff as TimeframePeriod);
+
+                    setSelectedMonth(tempEndMonth);
+                  }}
+                  className='flex-1 px-3 py-1.5 bg-[#208479] hover:bg-[#1a6b62] text-white text-sm font-semibold rounded transition'
+                >
+                  Apply
+                </button>
+              </div>
+            </div>
         </div>
       )}
     </div>
