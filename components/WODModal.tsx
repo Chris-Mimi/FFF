@@ -1247,7 +1247,7 @@ export default function WODModal({
         )}
 
         {/* WOD Panel */}
-        <div className='fixed left-0 top-[72px] h-[calc(100vh-72px)] w-[800px] bg-white shadow-2xl z-50 flex flex-col border-r-2 border-[#208479] animate-slide-in-left'>
+        <div className='fixed left-0 top-[72px] h-[calc(100vh-72px)] w-[800px] bg-white shadow-2xl z-50 flex flex-col border-r-2 border-[#208479] border-t border-gray-400 animate-slide-in-left'>
           {/* Header */}
           <div className='bg-[#208479] text-white p-4 flex justify-between items-center'>
             <h2 className='text-xl font-bold'>{editingWOD ? 'Edit Workout' : 'Create New Workout'}</h2>

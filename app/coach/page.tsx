@@ -805,29 +805,8 @@ export default function CoachDashboard() {
 
   return (
     <div className='min-h-screen bg-gray-200 relative'>
-      <div
-        className={`flex-1 flex flex-col transition-all duration-300 ${
-          // Hide calendar completely when both panels are open
-          isModalOpen && searchPanelOpen
-            ? ''
-            : // Adjust margins when only one panel is open
-              isModalOpen && quickEditMode && searchPanelOpen
-                ? 'ml-[800px] mr-[1200px]'
-              : isModalOpen && quickEditMode
-                ? 'ml-[800px] mr-[400px]'
-              : quickEditMode && searchPanelOpen
-                ? 'mr-[1200px]'
-              : quickEditMode
-                ? 'mr-[800px]'
-              : isModalOpen
-                ? 'ml-[800px]'
-              : searchPanelOpen
-                ? 'mr-[800px]'
-                : ''
-        }`}
-      >
-        {/* Header */}
-        <header className='bg-[#208479] text-white p-4 shadow-lg flex-shrink-0 sticky top-0 z-40'>
+      {/* Header - Always full width, independent of panels */}
+      <header className='bg-[#208479] text-white p-4 shadow-lg sticky top-0 z-50'>
           <div className='max-w-7xl mx-auto flex justify-between items-center'>
             <div>
               <h1 className='text-2xl font-bold'>The Forge - Coach Dashboard</h1>
@@ -866,8 +845,33 @@ export default function CoachDashboard() {
           </div>
         </header>
 
+      {/* Calendar Content - Adjusts margins when panels open */}
+      <div
+        className={`flex flex-col transition-all duration-300 ${
+          // Hide calendar completely when both panels are open
+          isModalOpen && searchPanelOpen
+            ? ''
+            : // Adjust margins when only one panel is open
+              isModalOpen && quickEditMode && searchPanelOpen
+                ? 'ml-[800px] mr-[1200px]'
+              : isModalOpen && quickEditMode
+                ? 'ml-[800px] mr-[400px]'
+              : quickEditMode && searchPanelOpen
+                ? 'mr-[1200px]'
+              : quickEditMode
+                ? 'mr-[800px]'
+              : isModalOpen
+                ? 'ml-[800px]'
+              : searchPanelOpen
+                ? 'mr-[800px]'
+                : ''
+        }`}
+      >
         {/* Main Content Area */}
         <div className='flex-1 flex flex-col'>
+          {/* Hide calendar navigation and grid when both panels are open */}
+          {!(isModalOpen && searchPanelOpen) && (
+          <>
           {/* View Mode Toggle & Navigation */}
           <div className='bg-white border-b px-4 py-4 flex-shrink-0 sticky top-[72px] z-30'>
             <div className='w-full space-y-4'>
@@ -968,9 +972,6 @@ export default function CoachDashboard() {
 
           {/* Calendar Grid */}
           <div className='flex-1 flex flex-col w-full'>
-            {/* Hide calendar when both Search Panel and Create WOD Modal are open */}
-            {!(isModalOpen && searchPanelOpen) && (
-              <>
                 {viewMode === 'monthly' && (
               /* Month View with Week Numbers */
               <div className='w-full max-w-none px-4'>
@@ -1415,15 +1416,16 @@ export default function CoachDashboard() {
                 </div>
               </div>
             )}
-              </>
-            )}
           </div>
+          </>
+          )}
         </div>
       </div>
+      {/* End Calendar Content */}
 
       {/* WOD Search Panel */}
       {searchPanelOpen && (
-        <div className='fixed right-0 top-[72px] h-[calc(100vh-72px)] w-[800px] bg-white shadow-2xl z-50 flex flex-col border-l-2 border-[#208479] animate-slide-in-right'>
+        <div className='fixed right-0 top-[72px] h-[calc(100vh-72px)] w-[800px] bg-white shadow-2xl z-50 flex flex-col border-l-2 border-[#208479] border-t border-gray-400 animate-slide-in-right'>
           {/* Header */}
           <div className='bg-[#208479] text-white p-4 flex justify-between items-center'>
             <h2 className='text-xl font-bold'>Schedule a Workout</h2>
@@ -1919,7 +1921,7 @@ export default function CoachDashboard() {
       {/* Quick Edit Panel */}
       {quickEditMode && quickEditWOD && (
         <div
-          className='fixed right-0 top-[72px] h-[calc(100vh-72px)] w-[400px] bg-white shadow-2xl z-50 flex flex-col border-l-2 border-[#208479] animate-slide-in-right'
+          className='fixed right-0 top-[72px] h-[calc(100vh-72px)] w-[400px] bg-white shadow-2xl z-50 flex flex-col border-l-2 border-[#208479] border-t border-gray-400 animate-slide-in-right'
           style={{ right: searchPanelOpen ? '800px' : '0' }}
         >
           {/* Header */}

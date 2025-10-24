@@ -1,7 +1,7 @@
 # Workflow Protocols (Agent & Context Mandates)
 
-Version: 1.2
-Timestamp: 2025-10-21
+Version: 1.3
+Timestamp: 2025-10-24
 
 ## Core Principle: Token Efficiency
 
@@ -65,6 +65,95 @@ Timestamp: 2025-10-21
 **Monitor usage:** https://console.anthropic.com/settings/billing
 **Set budget alerts** in Anthropic Console
 **Review monthly:** Identify which assistant is most cost-effective for your workflow
+
+---
+
+## 🔄 Cline (Grok) + Claude Code Integration Workflow
+
+### Task Evaluation Protocol (MANDATORY for Claude Code)
+
+**When user requests a task, Claude Code MUST:**
+
+1. **Evaluate if Cline/Grok is suitable** using these criteria:
+   - ✅ Single file modification
+   - ✅ UI/visual changes (immediate preview needed)
+   - ✅ Component styling or layout adjustments
+   - ✅ Simple bug fixes with clear scope
+   - ❌ Multi-file changes → Use Claude Code
+   - ❌ Git operations → Use Claude Code
+   - ❌ Memory Bank updates → Use Claude Code
+   - ❌ Complex logic/debugging → Use Claude Code
+
+2. **If Grok is suitable:**
+   - Tell user: "Grok - good fit"
+   - Provide **precise, copy-paste prompt** with:
+     - Exact file path(s)
+     - Specific line numbers if known
+     - Clear description of what to change
+     - Expected behavior after change
+     - How to test the change
+
+3. **Example response format:**
+   ```
+   Grok - good fit.
+
+   **Prompt for Grok:**
+
+   Bug fix in components/WODModal.tsx:
+
+   The Exercise Library insertion is leaving unwanted gaps when:
+   1. User selects exercises (works correctly)
+   2. User closes library, places cursor on new line
+   3. User reopens library and selects exercise
+   4. Result: Extra blank line appears
+
+   Fix the insertion logic (around line 1083-1124) to:
+   - Trim trailing whitespace/newlines before cursor position
+   - Insert exercise without creating gaps
+   - Maintain clean spacing (one newline between exercises)
+
+   Test by: Add exercises, close library, click below last exercise,
+   reopen library, add another - should have no gap.
+   ```
+
+### Git Commit Protocol After Grok Work (MANDATORY)
+
+**When user says "Grok made changes, check and commit" (or similar):**
+
+1. **ALWAYS run `git status` FIRST** - See ALL modified files
+2. **ALWAYS run `git diff`** - Review ALL changes (or per file)
+3. **Show user summary:**
+   - List of modified files
+   - Brief description of changes per file
+4. **Wait for confirmation** if unexpected changes found
+5. **Commit all related files together** - Never partial commits
+6. **Use proper commit message format** (see Git Commit Guidelines)
+7. **Push only if user requests**
+
+**Why this matters:**
+- Grok can modify multiple files silently
+- `git status` catches everything
+- Prevents lost work from partial commits
+- Ensures working changes aren't buried under new edits
+
+**Example workflow:**
+```bash
+# User: "Grok made changes, check and commit"
+git status              # Discover: app/coach/page.tsx, components/WODModal.tsx modified
+git diff app/coach/page.tsx
+git diff components/WODModal.tsx
+# Show user summaries
+# Get confirmation
+git add app/coach/page.tsx components/WODModal.tsx
+git commit -m "fix(coach): proper commit message"
+git push                # Only if requested
+```
+
+**NEVER:**
+- ❌ Commit without running `git status` first
+- ❌ Commit only some modified files
+- ❌ Assume you know what changed without verifying
+- ❌ Skip showing user what's being committed
 
 ---
 
