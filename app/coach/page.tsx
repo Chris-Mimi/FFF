@@ -567,6 +567,10 @@ export default function CoachDashboard() {
     }
   };
 
+  const handleAddWorkout = (date: Date) => {
+    openCreateModal(date);
+  };
+
   const closeNotesPanel = () => {
     setNotesPanel({ isOpen: false, wod: null });
     setNotesDraft('');
@@ -912,6 +916,18 @@ export default function CoachDashboard() {
                   >
                     Today
                   </button>
+                  <button
+                    onClick={() => handleAddWorkout(focusedDate || new Date())}
+                    className='w-10 h-10 bg-teal-600 hover:bg-teal-700 rounded-lg shadow-md flex items-center justify-center transition'
+                    title={focusedDate ? `Add workout to ${focusedDate.toLocaleDateString('en-GB', {
+                      weekday: 'long',
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                    })}` : 'Add workout'}
+                  >
+                    <Plus size={24} strokeWidth={2.5} className='text-white' />
+                  </button>
                   <h2 className='text-xl font-semibold text-gray-900'>
                     {viewMode === 'weekly' ? (
                       <>
@@ -1107,14 +1123,6 @@ export default function CoachDashboard() {
                                   )}
                                 </div>
                               ))}
-
-                              {/* Add Button */}
-                              <button
-                                onClick={() => openCreateModal(date)}
-                                className='w-full mt-1 py-1 text-xs text-gray-600 hover:text-[#208479] transition'
-                              >
-                                <Plus size={12} className='inline' />
-                              </button>
                             </div>
                           );
                         })}
@@ -1254,13 +1262,6 @@ export default function CoachDashboard() {
                               Paste
                             </button>
                           )}
-                          <button
-                            onClick={() => openCreateModal(date)}
-                            className='w-8 h-8 flex items-center justify-center border-2 border-dashed border-gray-300 hover:border-[#208479] hover:bg-[#208479] rounded-lg transition flex-shrink-0'
-                            title='Add Workout'
-                          >
-                            <Plus size={22} className='text-[#208479] hover:text-white' strokeWidth={2.5} />
-                          </button>
                         </div>
                       </div>
                     );
@@ -1401,13 +1402,6 @@ export default function CoachDashboard() {
                                 Paste
                               </button>
                             )}
-                            <button
-                              onClick={() => openCreateModal(date)}
-                              className='w-8 h-8 flex items-center justify-center border-2 border-dashed border-gray-300 hover:border-[#208479] hover:bg-[#208479] rounded-lg transition flex-shrink-0'
-                              title='Add Workout'
-                            >
-                              <Plus size={22} className='text-[#208479] hover:text-white' strokeWidth={2.5} />
-                            </button>
                           </div>
                         </div>
                       );
