@@ -4,6 +4,376 @@ This file contains detailed, verbose session logs with full technical context, c
 
 ---
 
+## Session: 2025-10-24 (Part 2 - Header/Panel Layout & Grok Workflow)
+
+**Date:** 2025-10-24
+**Duration:** ~30 minutes
+**AI Assistants Used:** Grok (Cline), Claude Code (Sonnet)
+**Git Commit:** 938b87f "fix(coach): restructure header/panel layout and add panel borders"
+
+### Summary
+
+This session fixed critical layout issues discovered after the previous Grok workflow session. Main accomplishments:
+
+1. **Header Independence** - Restructured DOM to prevent header squishing when panels open
+2. **Panel Borders** - Added gray-400 top borders to all three panels
+3. **Calendar Content Separation** - Created dedicated container for calendar navigation/grid
+4. **workflow-protocols.md v1.3** - Added Grok integration workflow with Task Evaluation and Git Commit protocols
+
+### Context: Issues from Previous Grok Session
+
+**Problem discovered:**
+- Header was squishing when both WOD and Search panels opened
+- Calendar navigation still visible in gap between header and panels
+- Partial git commit only included `app/coach/page.tsx` when Grok had modified both files
+
+**Root cause:**
+- Header was inside the same container that calculated width based on panel states
+- Calendar navigation and grid weren't grouped in a single hideable container
+- Grok workflow lacked mandatory `git status` verification step
+
+### 1. Header Layout Restructure
+
+**Objective:** Make header independent of panel states so it always displays at full width.
+
+**Original Structure (Problem):**
+```tsx
+// Header was INSIDE content container that changed width
+<div className={`transition-all duration-300 ${getContentWidth()}`}>
+  {/* HEADER */}
+  <div className="...">
+    {/* Navigation, Today, Month selector, etc. */}
+  </div>
+
+  {/* Calendar content */}
+</div>
+```
+
+**Issue:** When `getContentWidth()` returned narrower classes for open panels, the header also narrowed, causing layout squishing.
+
+**Solution (New Structure):**
+```tsx
+{/* HEADER - Independent, always full width */}
+<div className="mb-4">
+  <div className="flex items-center justify-between mb-4">
+    {/* Logo & Title */}
+    <div className="flex items-center gap-3">
+      <Dumbbell className="w-8 h-8 text-teal-500" />
+      <h1 className="text-2xl font-bold text-gray-900">Coach Dashboard</h1>
+    </div>
+
+    {/* Action Buttons */}
+    <div className="flex items-center gap-3">
+      {/* Logout, Notes, Search buttons */}
+    </div>
+  </div>
+
+  {/* Navigation Bar */}
+  <div className="flex items-center justify-between">
+    {/* Week/Month toggle, Today, Add Workout buttons, date navigation */}
+  </div>
+</div>
+
+{/* CONTENT - Panels positioned at top-[72px] below header */}
+<div className={`transition-all duration-300 ${getContentWidth()}`}>
+  {/* Calendar navigation and grid */}
+</div>
+```
+
+**Key Changes:**
+- Header moved outside `transition-all` container
+- Header uses only `mb-4` margin, no width calculations
+- Content container starts below header with panels positioned at `top-[72px]`
+
+**Files Modified:**
+- `app/coach/page.tsx:808-846` - Header extraction and independence
+- `app/coach/page.tsx:973-982` - Calendar content container restructure
+
+### 2. Calendar Content Container Separation
+
+**Objective:** Group calendar navigation and grid so both hide together when panels open.
+
+**Previous Issue:**
+- Calendar grid was hiding correctly
+- Calendar navigation (week numbers, day headers) remained visible in gap
+
+**Solution:**
+```tsx
+{/* CALENDAR CONTENT - hides when both panels open */}
+<div className={`transition-all duration-300 ${getContentWidth()}`}>
+  {!shouldHideCalendar && (
+    <>
+      {/* Calendar Navigation */}
+      <div className="mb-4">
+        {/* Week numbers, day headers, etc. */}
+      </div>
+
+      {/* Calendar Grid */}
+      <div className="grid grid-cols-7 gap-4">
+        {/* Day cards */}
+      </div>
+    </>
+  )}
+</div>
+```
+
+**Result:** Both navigation and grid now hide/show together based on `shouldHideCalendar` state.
+
+**Files Modified:**
+- `app/coach/page.tsx:973-982` - Wrapped navigation and grid in single conditional
+
+### 3. Panel Border Additions
+
+**Objective:** Add visual separation with gray borders on all three panels.
+
+**Implementation:**
+
+1. **WOD Modal Panel:**
+```tsx
+// components/WODModal.tsx:1205
+className="fixed right-0 top-[72px] h-[calc(100vh-72px)] w-[800px]
+           bg-white shadow-2xl overflow-hidden z-30 border-t-4 border-gray-400"
+```
+
+2. **Search Panel:**
+```tsx
+// app/coach/page.tsx:1455
+className="fixed left-0 top-[72px] h-[calc(100vh-72px)] w-96
+           bg-white shadow-lg overflow-hidden z-20 border-t-4 border-gray-400"
+```
+
+3. **Coach Notes Modal:**
+```tsx
+// app/coach/page.tsx:1933
+className="absolute bg-white rounded-lg shadow-2xl resize overflow-auto
+           border-t-4 border-gray-400"
+```
+
+**Visual Result:**
+- Darker gray (gray-400) provides clear visual separation
+- Consistent 4px top border across all panels
+- Matches design system for panel hierarchy
+
+**Files Modified:**
+- `components/WODModal.tsx:1205`
+- `app/coach/page.tsx:1455`
+- `app/coach/page.tsx:1933`
+
+### 4. workflow-protocols.md Update (v1.3)
+
+**Objective:** Document Grok integration workflow to prevent future partial commits and improve task delegation.
+
+**New Sections Added:**
+
+#### Task Evaluation Protocol (Lines 71-117)
+
+**Purpose:** Claude Code MUST evaluate if Grok/Cline is suitable before delegating tasks.
+
+**Criteria:**
+- ✅ Single file modification
+- ✅ UI/visual changes (immediate preview needed)
+- ✅ Component styling or layout adjustments
+- ✅ Simple bug fixes with clear scope
+- ❌ Multi-file changes → Use Claude Code
+- ❌ Git operations → Use Claude Code
+- ❌ Memory Bank updates → Use Claude Code
+
+**Example Response Format:**
+```
+Grok - good fit.
+
+**Prompt for Grok:**
+
+Bug fix in components/WODModal.tsx:
+
+The Exercise Library insertion is leaving unwanted gaps when:
+1. User selects exercises (works correctly)
+2. User closes library, places cursor on new line
+3. User reopens library and selects exercise
+4. Result: Extra blank line appears
+
+Fix the insertion logic (around line 1083-1124) to:
+- Trim trailing whitespace/newlines before cursor position
+- Insert exercise without creating gaps
+- Maintain clean spacing (one newline between exercises)
+
+Test by: Add exercises, close library, click below last exercise,
+reopen library, add another - should have no gap.
+```
+
+#### Git Commit Protocol After Grok Work (Lines 119-157)
+
+**Purpose:** MANDATORY verification steps before committing Grok's changes.
+
+**Workflow:**
+```bash
+# User: "Grok made changes, check and commit"
+git status              # Discover: app/coach/page.tsx, components/WODModal.tsx modified
+git diff app/coach/page.tsx
+git diff components/WODModal.tsx
+# Show user summaries
+# Get confirmation
+git add app/coach/page.tsx components/WODModal.tsx
+git commit -m "fix(coach): proper commit message"
+git push                # Only if requested
+```
+
+**NEVER:**
+- ❌ Commit without running `git status` first
+- ❌ Commit only some modified files
+- ❌ Assume you know what changed without verifying
+- ❌ Skip showing user what's being committed
+
+**Why This Matters:**
+- Grok can modify multiple files silently
+- `git status` catches everything
+- Prevents lost work from partial commits
+- Ensures working changes aren't buried under new edits
+
+**Files Modified:**
+- `memory-bank/workflow-protocols.md:1-207` - Added sections 71-157 for Grok integration
+
+### 5. Git Commit Verification
+
+**Lesson Learned from Previous Session:**
+
+Previous commit (from Grok session) only included `app/coach/page.tsx`:
+```bash
+git log --oneline -1
+# 4d892b7 feat(analysis): add 1-week timeframe with editable date range picker
+```
+
+But `git status` revealed TWO modified files:
+```bash
+git status
+# modified:   app/coach/page.tsx
+# modified:   components/WODModal.tsx
+```
+
+**This Session's Verification:**
+```bash
+git status
+# Changes to be committed:
+#   modified:   app/coach/page.tsx
+#   modified:   components/WODModal.tsx
+#   modified:   memory-bank/workflow-protocols.md
+
+git diff app/coach/page.tsx
+# - Header restructure (lines 808-846)
+# - Panel border addition (line 1455)
+# - Coach notes border (line 1933)
+# - Calendar content wrapper (lines 973-982)
+
+git diff components/WODModal.tsx
+# - WOD modal border addition (line 1205)
+
+git diff memory-bank/workflow-protocols.md
+# - Version 1.3 update
+# - Task Evaluation Protocol (lines 71-117)
+# - Git Commit Protocol (lines 119-157)
+```
+
+**Proper Commit:**
+```bash
+git add app/coach/page.tsx components/WODModal.tsx memory-bank/workflow-protocols.md
+git commit -m "fix(coach): restructure header/panel layout and add panel borders
+
+- Move header outside content container for full-width independence
+- Add gray-400 top borders to WOD, Search, and Notes panels
+- Group calendar navigation and grid in single container
+- Update workflow-protocols to v1.3 with Grok integration
+- Add Task Evaluation and Git Commit protocols
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+
+# Result: 938b87f
+```
+
+### Technical Lessons Learned
+
+1. **DOM Structure Hierarchy:**
+   - Independent header vs. content containers prevents layout coupling
+   - Panels positioned with absolute/fixed positioning relative to header height
+   - `top-[72px]` keeps panels below fixed header
+
+2. **Conditional Rendering Grouping:**
+   - Group related UI elements under single conditional
+   - Prevents partial visibility when state changes
+   - Reduces complexity in show/hide logic
+
+3. **Grok Workflow Integration:**
+   - Always verify with `git status` before commits
+   - Grok may modify multiple files without explicit notification
+   - Task evaluation prevents inappropriate delegations
+   - Clear, copy-paste prompts improve Grok's success rate
+
+4. **Border Consistency:**
+   - Using Tailwind's `border-t-4 border-gray-400` across panels
+   - Creates visual hierarchy and separation
+   - gray-400 provides sufficient contrast without being harsh
+
+### Code Snippets
+
+**Header Independence Structure:**
+```tsx
+// app/coach/page.tsx:808-846
+{/* HEADER - Independent, always full width */}
+<div className="mb-4">
+  <div className="flex items-center justify-between mb-4">
+    <div className="flex items-center gap-3">
+      <Dumbbell className="w-8 h-8 text-teal-500" />
+      <h1 className="text-2xl font-bold text-gray-900">Coach Dashboard</h1>
+    </div>
+    <div className="flex items-center gap-3">
+      {/* Action buttons */}
+    </div>
+  </div>
+  <div className="flex items-center justify-between">
+    {/* Navigation bar */}
+  </div>
+</div>
+```
+
+**Calendar Content Container:**
+```tsx
+// app/coach/page.tsx:973-982
+<div className={`transition-all duration-300 ${getContentWidth()}`}>
+  {!shouldHideCalendar && (
+    <>
+      {/* Calendar Navigation */}
+      <div className="mb-4">...</div>
+      {/* Calendar Grid */}
+      <div className="grid grid-cols-7 gap-4">...</div>
+    </>
+  )}
+</div>
+```
+
+**Panel Border Example:**
+```tsx
+// components/WODModal.tsx:1205
+className="fixed right-0 top-[72px] h-[calc(100vh-72px)] w-[800px]
+           bg-white shadow-2xl overflow-hidden z-30 border-t-4 border-gray-400"
+```
+
+### Files Modified
+
+1. `app/coach/page.tsx` - Header restructure, calendar container, panel borders
+2. `components/WODModal.tsx` - WOD panel border addition
+3. `memory-bank/workflow-protocols.md` - v1.3 with Grok integration protocols
+
+### Commit Information
+
+- **Commit Hash:** 938b87f
+- **Message:** "fix(coach): restructure header/panel layout and add panel borders"
+- **Files:** 3 modified
+- **Insertions:** ~100 lines
+- **Deletions:** ~20 lines
+
+---
+
 ## Session: 2025-10-21 (Tooling Integration & Code Quality)
 
 **Date:** 2025-10-21

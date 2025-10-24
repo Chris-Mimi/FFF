@@ -1,7 +1,7 @@
 # The Forge Functional Fitness - Active Context (Final, Corrected)
 
-Version: 2.16
-Timestamp: 2025-10-24 18:30 UTC
+Version: 2.17
+Timestamp: 2025-10-24
 
 ## ⚠️ CRITICAL RULES & CONTEXT
 
@@ -59,7 +59,8 @@ The project is **IN PROGRESS**. All core data models and UI features are complet
 | **Cline Integration** | Configured with free backup models (Grok, Supernova) for use during Anthropic rate limiting. User experienced throttling issues requiring backup strategy. | `.clinerules`, `CLAUDE.md:39-45` |
 | **Linting System** | ESLint + Prettier + EditorConfig configured; all files formatted and linted (22 errors, 21 warnings fixed). | `.eslintrc.js`, `.prettierrc`, `.editorconfig`, `scripts/lint.sh` |
 | **VS Code** | Format on save, ESLint integration, recommended extensions configured. | `.vscode/settings.json`, `.vscode/extensions.json` |
-| **AI Assistant Selection** | Decision matrix added for Cline vs Claude Code usage (cost efficiency, subagent requirements). | `memory-bank/workflow-protocols.md:1.2` |
+| **AI Assistant Selection** | Decision matrix added for Cline vs Claude Code usage (cost efficiency, subagent requirements). | `memory-bank/workflow-protocols.md:15-68` |
+| **Grok Workflow Integration** | Task evaluation protocol and mandatory git commit process (status/diff verification before commits). | `memory-bank/workflow-protocols.md:71-157` |
 
 ---
 
@@ -156,6 +157,17 @@ The project is **IN PROGRESS**. All core data models and UI features are complet
 | **Exercise Insertion Fix** | Fixed cursor position gap bug when inserting exercises from library into WOD content. | `components/WODModal.tsx:1311-1356` |
 | **Calendar Hide Logic** | Calendar now hides when both WOD and Search panels are open simultaneously. Shows when either panel closes. | `app/coach/page.tsx:973,1751-1807` |
 | **Panel Alignment** | WOD panel now aligns with Search panel below header (matches height and positioning). | `components/WODModal.tsx:1205` |
+
+---
+
+## 🎨 Panel Layout & Workflow (v2.17)
+
+| **Feature** | Description | Files |
+| :--- | :--- | :--- |
+| **Header Independence** | Header moved outside content container, always full width regardless of panel states. Panels positioned below at top-[72px]. | `app/coach/page.tsx:808-846` |
+| **Panel Borders** | Added gray-400 top borders to all three panels (WOD Modal, Search Panel, Coach Notes Modal). | `components/WODModal.tsx:1205`, `app/coach/page.tsx:1455,1933` |
+| **Calendar Content Container** | Separate container for calendar navigation/grid; hides both when panels open. | `app/coach/page.tsx:973-982` |
+| **Workflow Protocols v1.3** | Added Grok integration workflow: Task Evaluation Protocol and Git Commit Protocol (mandatory git status/diff before commits). | `memory-bank/workflow-protocols.md:71-157` |
 
 ---
 
