@@ -591,6 +591,7 @@ function WODSectionComponent({
                 onChange={e => onUpdate({ content: e.target.value })}
                 placeholder='Add exercises (one per line):&#10;* Burpees&#10;* Elephant Walk&#10;* ATY Raises'
                 rows={3}
+                data-section-id={section.id}
                 className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent font-mono text-sm bg-white resize-none overflow-hidden min-h-[80px] text-gray-900 placeholder-gray-400'
               />
               <p className='text-xs text-gray-600'>
@@ -1013,8 +1014,22 @@ export default function WODModal({
     const section = formData.sections[activeSection];
     if (!section) return;
 
-    // Add exercise as a bullet point
-    const newContent = section.content ? `${section.content}\n* ${exercise}` : `* ${exercise}`;
+    // Find the textarea element for the active section to get cursor position
+    const textarea = document.querySelector(`textarea[data-section-id="${section.id}"]`) as HTMLTextAreaElement;
+    if (!textarea) return;
+
+    const cursorPos = textarea.selectionStart;
+    const beforeCursor = section.content.substring(0, cursorPos);
+    const afterCursor = section.content.substring(cursorPos);
+
+    // Trim trailing whitespace/newlines before cursor position but don't trim leading content
+    const trimmedBefore = beforeCursor.replace(/(\n\s*)+$/, ''); // Remove trailing newlines and whitespace
+
+    // Check if we need to add a newline (only if there's content before cursor without trailing newline)
+    const needsNewline = trimmedBefore.length > 0 && !/\n$/.test(trimmedBefore);
+
+    // Insert exercise at cleaned cursor position
+    const newContent = `${trimmedBefore}${needsNewline ? '\n' : ''}* ${exercise}${afterCursor ? '\n' + afterCursor : ''}`;
 
     updateSection(section.id, { content: newContent });
   };
