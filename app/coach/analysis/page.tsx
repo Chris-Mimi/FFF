@@ -1,7 +1,7 @@
 'use client';
 
 import { supabase } from '@/lib/supabase';
-import { ArrowLeft, BarChart3, ChevronLeft, ChevronRight, Edit2, Plus, Trash2, X } from 'lucide-react';
+import { ArrowLeft, BarChart3, ChevronLeft, ChevronRight, Edit2, Library, Plus, Trash2, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
@@ -52,6 +52,7 @@ export default function AnalysisPage() {
   const [tracks, setTracks] = useState<Track[]>([]);
   const [workoutTypes, setWorkoutTypes] = useState<WorkoutType[]>([]);
   const [exercises, setExercises] = useState<Set<string>>(new Set());
+  const [exerciseCategories, setExerciseCategories] = useState<Map<string, string>>(new Map());
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [timeframePeriod, setTimeframePeriod] = useState<TimeframePeriod>(1);
@@ -62,6 +63,14 @@ export default function AnalysisPage() {
   // Exercise Search State
   const [exerciseSearch, setExerciseSearch] = useState('');
   const [selectedExercises, setSelectedExercises] = useState<string[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+
+  // Exercise Library Panel State
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  const [libraryPos, setLibraryPos] = useState({ top: 100, left: 100 });
+  const [librarySize, setLibrarySize] = useState({ width: 600, height: 500 });
+  const [showUnusedOnly, setShowUnusedOnly] = useState(false);
 
   // Track Management Modal State
   const [trackModalOpen, setTrackModalOpen] = useState(false);
@@ -134,7 +143,7 @@ export default function AnalysisPage() {
       const [tracksResult, typesResult, exercisesResult] = await Promise.all([
         supabase.from('tracks').select('*').order('name'),
         supabase.from('workout_types').select('*').order('name'),
-        supabase.from('exercises').select('name').order('name'),
+        supabase.from('exercises').select('name, category').order('name'),
       ]);
 
       if (tracksResult.error) throw tracksResult.error;
@@ -144,10 +153,22 @@ export default function AnalysisPage() {
       setTracks(tracksResult.data || []);
       setWorkoutTypes(typesResult.data || []);
 
-      // Build exercise set from database
+      // Build exercise set and category map from database
       const exerciseSet = new Set<string>();
-      (exercisesResult.data || []).forEach(ex => exerciseSet.add(ex.name));
+      const categoryMap = new Map<string, string>();
+      const categorySet = new Set<string>();
+
+      (exercisesResult.data || []).forEach(ex => {
+        exerciseSet.add(ex.name);
+        if (ex.category) {
+          categoryMap.set(ex.name, ex.category);
+          categorySet.add(ex.category);
+        }
+      });
+
       setExercises(exerciseSet);
+      setExerciseCategories(categoryMap);
+      setCategories(Array.from(categorySet).sort());
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -611,10 +632,63 @@ export default function AnalysisPage() {
     setExerciseSearch('');
   };
 
-  // Filter exercises based on search (use ALL exercises, not just top 20)
-  const filteredExercises = statistics?.allExerciseFrequency.filter(e =>
-    e.exercise.toLowerCase().includes(exerciseSearch.toLowerCase())
-  ) || [];
+  const toggleCategory = (category: string) => {
+    if (selectedCategories.includes(category)) {
+      setSelectedCategories(selectedCategories.filter(c => c !== category));
+    } else {
+      setSelectedCategories([...selectedCategories, category]);
+    }
+  };
+
+  const clearAllCategories = () => {
+    setSelectedCategories([]);
+  };
+
+  // Get all exercises from database with counts from current timeframe, filtered by category and unused status
+  const getAllExercisesWithCounts = () => {
+    const exerciseList: Array<{ exercise: string; count: number }> = [];
+
+    exercises.forEach(exerciseName => {
+      // Filter by selected categories if any
+      const exerciseCategory = exerciseCategories.get(exerciseName);
+      if (selectedCategories.length > 0 && (!exerciseCategory || !selectedCategories.includes(exerciseCategory))) {
+        return; // Skip this exercise
+      }
+
+      const exerciseData = statistics?.allExerciseFrequency.find(e => e.exercise === exerciseName);
+      const count = exerciseData?.count || 0;
+
+      // Filter by unused status if enabled
+      if (showUnusedOnly && count > 0) {
+        return; // Skip exercises that have been used
+      }
+
+      exerciseList.push({
+        exercise: exerciseName,
+        count: count
+      });
+    });
+
+    // Sort by name
+    return exerciseList.sort((a, b) => a.exercise.localeCompare(b.exercise));
+  };
+
+  // Filter exercises based on search AND selected categories
+  const filteredExercises = statistics?.allExerciseFrequency.filter(e => {
+    const matchesSearch = e.exercise.toLowerCase().includes(exerciseSearch.toLowerCase());
+    // If no categories selected, show all; otherwise check if exercise matches selected categories
+    const exerciseCategory = exerciseCategories.get(e.exercise);
+    const matchesCategory = selectedCategories.length === 0 ||
+      (exerciseCategory && selectedCategories.includes(exerciseCategory));
+    return matchesSearch && matchesCategory;
+  }) || [];
+
+  // Filter Top 40 exercises by selected categories
+  const filteredTopExercises = statistics?.exerciseFrequency.filter(e => {
+    const exerciseCategory = exerciseCategories.get(e.exercise);
+    return selectedCategories.length === 0 ||
+      (exerciseCategory && selectedCategories.includes(exerciseCategory));
+  }) || [];
 
   return (
     <div className='min-h-screen bg-gray-200'>
@@ -764,15 +838,61 @@ export default function AnalysisPage() {
               <div className='bg-white border border-gray-300 rounded-lg p-6'>
                 <h3 className='text-lg font-bold text-gray-900 mb-4'>Exercise/Movement Search</h3>
 
-                {/* Search Input */}
-                <div className='relative'>
-                  <input
-                    type='text'
-                    value={exerciseSearch}
-                    onChange={(e) => setExerciseSearch(e.target.value)}
-                    placeholder='Search for an exercise or movement...'
-                    className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
-                  />
+                {/* Category Filter Chips */}
+                {categories.length > 0 && (
+                  <div className='mb-4'>
+                    <div className='flex items-center gap-2 mb-2'>
+                      <span className='text-sm font-medium text-gray-700'>Filter by Category:</span>
+                    </div>
+                    <div className='flex flex-wrap gap-2'>
+                      {categories.map(category => (
+                        <button
+                          key={category}
+                          onClick={() => toggleCategory(category)}
+                          className={`px-3 py-1.5 text-sm rounded-full font-medium transition ${
+                            selectedCategories.includes(category)
+                              ? 'bg-[#208479] text-white'
+                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          }`}
+                        >
+                          {category}
+                        </button>
+                      ))}
+                      <button
+                        onClick={() => setShowUnusedOnly(!showUnusedOnly)}
+                        className={`px-3 py-1.5 text-sm rounded-full font-medium transition border-2 ${
+                          showUnusedOnly
+                            ? 'bg-orange-500 text-white border-orange-500'
+                            : 'bg-white text-orange-600 border-orange-500 hover:bg-orange-50'
+                        }`}
+                      >
+                        Unused
+                      </button>
+                      {(selectedCategories.length > 0 || showUnusedOnly) && (
+                        <button
+                          onClick={() => {
+                            clearAllCategories();
+                            setShowUnusedOnly(false);
+                          }}
+                          className='px-3 py-1.5 text-sm rounded-full bg-red-100 text-red-700 hover:bg-red-200 font-medium transition'
+                        >
+                          Clear Filters
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Search Input with Browse Library Button */}
+                <div className='flex gap-2 items-start'>
+                  <div className='flex-1 relative'>
+                    <input
+                      type='text'
+                      value={exerciseSearch}
+                      onChange={(e) => setExerciseSearch(e.target.value)}
+                      placeholder='Search for an exercise or movement...'
+                      className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                    />
 
                   {/* Dropdown Results */}
                   {exerciseSearch && filteredExercises.length > 0 && (
@@ -795,6 +915,16 @@ export default function AnalysisPage() {
                       No exercises found matching "{exerciseSearch}"
                     </div>
                   )}
+                  </div>
+
+                  {/* Browse Library Button */}
+                  <button
+                    onClick={() => setLibraryOpen(true)}
+                    className='flex items-center gap-2 px-4 py-3 bg-[#208479] hover:bg-[#1a6b62] text-white rounded-lg font-medium transition whitespace-nowrap'
+                  >
+                    <Library size={20} />
+                    Browse Library
+                  </button>
                 </div>
 
                 {/* Selected Exercises as Chips */}
@@ -893,14 +1023,16 @@ export default function AnalysisPage() {
               )}
 
               {/* Exercise Frequency */}
-              {statistics.exerciseFrequency.length > 0 && (
+              {filteredTopExercises.length > 0 && (
                 <div>
-                  <h3 className='text-lg font-bold text-gray-900 mb-3'>Top 40 Exercises</h3>
+                  <h3 className='text-lg font-bold text-gray-900 mb-3'>
+                    Top Exercises{selectedCategories.length > 0 && ` (${selectedCategories.join(', ')})`}
+                  </h3>
                   <div className='flex flex-wrap gap-2'>
-                    {statistics.exerciseFrequency.map((exercise, idx) => (
+                    {filteredTopExercises.map((exercise, idx) => (
                       <span
                         key={idx}
-                        className='inline-flex items-center px-3 py-2 bg-[#208479] text-white text-sm rounded-full font-medium'
+                        className='inline-flex items-center px-3 py-2 bg-gray-100 text-gray-900 border-2 border-[#208479] text-sm rounded-full font-medium'
                       >
                         {exercise.exercise} ({exercise.count}x)
                       </span>
@@ -1244,6 +1376,106 @@ export default function AnalysisPage() {
                 </button>
               </div>
             </div>
+        </div>
+      )}
+
+      {/* Exercise Library Panel */}
+      {libraryOpen && (
+        <div
+          className='fixed bg-white rounded-lg shadow-2xl border-2 border-[#208479] flex flex-col z-50'
+          style={{
+            top: `${libraryPos.top}px`,
+            left: `${libraryPos.left}px`,
+            width: `${librarySize.width}px`,
+            height: `${librarySize.height}px`,
+          }}
+        >
+          {/* Header - Draggable */}
+          <div
+            className='bg-[#208479] text-white p-3 rounded-t-lg cursor-move flex justify-between items-center'
+            onMouseDown={(e) => {
+              const startX = e.clientX - libraryPos.left;
+              const startY = e.clientY - libraryPos.top;
+
+              const handleMouseMove = (moveEvent: MouseEvent) => {
+                setLibraryPos({
+                  left: moveEvent.clientX - startX,
+                  top: moveEvent.clientY - startY,
+                });
+              };
+
+              const handleMouseUp = () => {
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
+              };
+
+              document.addEventListener('mousemove', handleMouseMove);
+              document.addEventListener('mouseup', handleMouseUp);
+            }}
+          >
+            <h3 className='font-bold flex items-center gap-2'>
+              <Library size={20} />
+              Exercise Library
+            </h3>
+            <button
+              onClick={() => setLibraryOpen(false)}
+              className='hover:bg-[#1a6b62] p-1 rounded transition'
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          {/* Content */}
+          <div className='flex-1 overflow-auto p-4'>
+            <div
+              className='grid gap-2'
+              style={{
+                gridTemplateColumns: `repeat(${Math.max(2, Math.floor(librarySize.width / 200))}, minmax(0, 1fr))`
+              }}
+            >
+              {getAllExercisesWithCounts().map((exercise, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleExerciseSelect(exercise.exercise)}
+                  className='text-left px-3 py-2 border border-gray-300 rounded-lg hover:bg-[#208479] hover:text-white transition group'
+                >
+                  <div className='font-medium text-gray-900 group-hover:text-white'>{exercise.exercise}</div>
+                  <div className='text-xs text-gray-600 group-hover:text-white'>
+                    {exercise.count > 0 ? `${exercise.count}x` : 'Not used yet'}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Resize Handle */}
+          <div
+            className='absolute bottom-0 right-0 w-4 h-4 cursor-se-resize'
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              const startX = e.clientX;
+              const startY = e.clientY;
+              const startWidth = librarySize.width;
+              const startHeight = librarySize.height;
+
+              const handleMouseMove = (moveEvent: MouseEvent) => {
+                setLibrarySize({
+                  width: Math.max(400, startWidth + (moveEvent.clientX - startX)),
+                  height: Math.max(300, startHeight + (moveEvent.clientY - startY)),
+                });
+              };
+
+              const handleMouseUp = () => {
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
+              };
+
+              document.addEventListener('mousemove', handleMouseMove);
+              document.addEventListener('mouseup', handleMouseUp);
+            }}
+          >
+            <div className='absolute bottom-1 right-1 w-0 h-0 border-l-8 border-l-transparent border-b-8 border-b-gray-400' />
+          </div>
         </div>
       )}
     </div>
