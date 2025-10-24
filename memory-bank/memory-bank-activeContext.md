@@ -1,6 +1,6 @@
 # The Forge Functional Fitness - Active Context (Final, Corrected)
 
-Version: 2.17
+Version: 2.18
 Timestamp: 2025-10-24
 
 ## ⚠️ CRITICAL RULES & CONTEXT
@@ -132,6 +132,9 @@ The project is **IN PROGRESS**. All core data models and UI features are complet
 | **Feature** | Description | Files |
 | :--- | :--- | :--- |
 | **Exercise Search Database Integration** | Replaced hardcoded exercise list with Supabase `exercises` table. Search uses full dataset (`allExerciseFrequency`) while display shows top 20. Normalization preserves case for parentheses "(PVC)", handles hyphen/space variations. | `app/coach/analysis/page.tsx:96-195,485-529` |
+| **Multi-Select Exercise Chips** | Changed search from single to multiple selection array. Selected exercises display as small chips below search bar with exercise name + count. Individual X buttons and "Clear All" button added. | `app/coach/analysis/page.tsx` |
+| **Top 40 Compact Display** | Changed from grid of large cards to flex-wrap compact chips. Increased display from top 20 to top 40 exercises. Chips styled with grey background and teal border (distinct from search chips). | `app/coach/analysis/page.tsx` |
+| **Category Filters & Library Panel** | Fetch exercise categories from Supabase. Dynamic category filter chips (multiple selection). "Unused" filter shows exercises not used in workouts. Browse Library button opens draggable/resizable panel with ALL database exercises, responsive column layout. Filters affect Top Exercises, search results, and library. | `app/coach/analysis/page.tsx` |
 
 ---
 

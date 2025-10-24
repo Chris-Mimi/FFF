@@ -4,6 +4,544 @@ This file contains detailed, verbose session logs with full technical context, c
 
 ---
 
+## Session: 2025-10-24 (Part 3 - Analysis Page Enhancements)
+
+**Date:** 2025-10-24
+**Duration:** ~3 hours
+**AI Assistant Used:** Claude Code (Sonnet 4.5)
+**Git Commits:**
+- `429434c` - "feat(analysis): add multi-select exercise chips with individual removal"
+- `935030f` - "feat(analysis): convert Top Exercises to compact chips and increase to 40"
+- `d148aa1` - "feat(analysis): add exercise category filters and browsable library panel"
+
+### Summary
+
+This session implemented three major enhancements to the Analysis page, focusing on improved exercise filtering, visualization, and data exploration capabilities:
+
+1. **Multi-Select Exercise Search** - Changed from single exercise selection to multiple selection with individual chip removal
+2. **Top 40 Compact Exercise Display** - Converted from large cards to compact chips and doubled display capacity
+3. **Category Filters & Exercise Library Panel** - Added dynamic category filtering and a draggable/resizable library panel to browse all exercises
+
+These features provide coaches with more powerful tools for analyzing exercise usage patterns across their programming.
+
+---
+
+### Feature 1: Multi-Select Exercise Chips (Commit 429434c)
+
+**Objective:** Allow coaches to select and view multiple exercises simultaneously in the search interface.
+
+**Previous Behavior:**
+- Single exercise selection only
+- Search cleared after selection
+- No visual indication of selected exercise
+
+**New Implementation:**
+
+**State Changes:**
+```tsx
+// Changed from single string to array
+const [selectedExercises, setSelectedExercises] = useState<string[]>([]);
+
+// Handler now maintains array of selections
+const handleExerciseSelect = (exercise: string) => {
+  if (!selectedExercises.includes(exercise)) {
+    setSelectedExercises([...selectedExercises, exercise]);
+  }
+  setExerciseSearch(''); // Clear search but keep selections
+};
+
+// New removal handler for individual chips
+const removeExerciseSelection = (exerciseToRemove: string) => {
+  setSelectedExercises(selectedExercises.filter(e => e !== exerciseToRemove));
+  setExerciseSearch('');
+};
+```
+
+**UI Implementation:**
+```tsx
+{/* Selected Exercises Display Below Search Bar */}
+{selectedExercises.length > 0 && (
+  <div className='mt-4'>
+    <div className='flex flex-wrap gap-2'>
+      {selectedExercises.map(exercise => {
+        const count = statistics?.allExerciseFrequency.find(e => e.exercise === exercise)?.count || 0;
+        return (
+          <div
+            key={exercise}
+            className='flex items-center gap-2 bg-teal-500 text-white px-3 py-1.5 rounded-full text-sm'
+          >
+            <span className='font-medium'>
+              {exercise} ({count}x)
+            </span>
+            <button
+              onClick={() => removeExerciseSelection(exercise)}
+              className='hover:bg-teal-600 rounded-full p-0.5 transition-colors'
+            >
+              <X className='w-4 h-4' />
+            </button>
+          </div>
+        );
+      })}
+    </div>
+
+    {/* Clear All Button */}
+    {selectedExercises.length > 1 && (
+      <button
+        onClick={() => setSelectedExercises([])}
+        className='mt-2 text-sm text-gray-600 hover:text-gray-900 underline'
+      >
+        Clear All
+      </button>
+    )}
+  </div>
+)}
+```
+
+**Key Features:**
+- Each chip shows exercise name + count (e.g., "Burpees (15x)")
+- Individual X button on each chip for removal
+- "Clear All" button appears when 2+ exercises selected
+- Teal background matches Schedule Workout panel filter chips
+- Search bar remains active for adding more exercises
+- Chips persist when typing new search queries
+
+**Files Modified:**
+- `app/coach/analysis/page.tsx` - State management and UI rendering (79 insertions, 75 deletions)
+
+---
+
+### Feature 2: Top 40 Compact Exercise Display (Commit 935030f)
+
+**Objective:** Display more exercises in less vertical space using a compact chip layout.
+
+**Previous Behavior:**
+- Top 20 exercises shown as large cards in grid layout
+- Each card had significant padding and height
+- Limited data density
+
+**New Implementation:**
+
+**Layout Change:**
+```tsx
+{/* OLD - Grid of large cards */}
+<div className='grid grid-cols-2 gap-4 mt-4'>
+  {exerciseFrequency.slice(0, 20).map((item, idx) => (
+    <div key={idx} className='bg-gray-50 rounded-lg p-4'>
+      <div className='flex items-center justify-between'>
+        <span className='font-medium text-gray-900'>{item.exercise}</span>
+        <span className='text-teal-600 font-bold text-lg'>{item.count}x</span>
+      </div>
+    </div>
+  ))}
+</div>
+
+{/* NEW - Flex-wrap compact chips */}
+<div className='flex flex-wrap gap-2 mt-4'>
+  {exerciseFrequency.slice(0, 40).map((item, idx) => (
+    <div
+      key={idx}
+      className='bg-gray-100 border border-teal-500 text-gray-900 px-3 py-1.5 rounded-full text-sm'
+    >
+      <span className='font-medium'>
+        {item.exercise} ({item.count}x)
+      </span>
+    </div>
+  ))}
+</div>
+```
+
+**Style Differentiation:**
+- **Top Exercise Chips:** Gray background (`bg-gray-100`) with teal border (`border-teal-500`)
+- **Selected Exercise Chips:** Teal background (`bg-teal-500`) with white text
+- This visual distinction helps users differentiate between:
+  - Static display of top exercises (gray chips)
+  - Active user selections (teal chips)
+
+**Improvements:**
+- Increased from 20 to 40 exercises (2x data density)
+- Reduced vertical space by ~60%
+- Consistent chip format: "Exercise Name (count)"
+- Responsive flex-wrap layout adapts to screen width
+- Matches search chip styling (but different colors)
+
+**Files Modified:**
+- `app/coach/analysis/page.tsx` - Display layout (10 insertions, 13 deletions)
+
+---
+
+### Feature 3: Category Filters & Exercise Library Panel (Commit d148aa1)
+
+**Objective:** Enable filtering by exercise category and provide a comprehensive browsable library of all database exercises.
+
+This was the most complex feature, involving:
+1. Database integration for categories
+2. Dynamic filter chip system
+3. Draggable/resizable library panel
+4. Responsive column layout
+5. Integration with existing search/display systems
+
+#### Part A: Category Filtering System
+
+**Database Integration:**
+```tsx
+// Fetch unique categories from exercises table
+useEffect(() => {
+  async function fetchCategories() {
+    const { data, error } = await supabase
+      .from('exercises')
+      .select('category')
+      .not('category', 'is', null);
+
+    if (data) {
+      const uniqueCategories = [...new Set(data.map(d => d.category))].sort();
+      setCategories(uniqueCategories);
+    }
+  }
+  fetchCategories();
+}, []);
+```
+
+**State Management:**
+```tsx
+// Category selection state
+const [categories, setCategories] = useState<string[]>([]);
+const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+const [showUnusedOnly, setShowUnusedOnly] = useState(false);
+
+// Exercise-to-category mapping (built when processing WODs)
+const [exerciseToCategory, setExerciseToCategory] = useState<Record<string, string>>({});
+```
+
+**Filter UI:**
+```tsx
+{/* Category Filter Chips */}
+<div className='mb-4'>
+  <label className='block text-sm font-medium text-gray-700 mb-2'>
+    Filter by Category
+  </label>
+  <div className='flex flex-wrap gap-2'>
+    {categories.map(category => (
+      <button
+        key={category}
+        onClick={() => {
+          setSelectedCategories(prev =>
+            prev.includes(category)
+              ? prev.filter(c => c !== category)
+              : [...prev, category]
+          );
+        }}
+        className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+          selectedCategories.includes(category)
+            ? 'bg-teal-500 text-white'
+            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+        }`}
+      >
+        {category}
+      </button>
+    ))}
+
+    {/* Unused Filter Button */}
+    <button
+      onClick={() => setShowUnusedOnly(!showUnusedOnly)}
+      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+        showUnusedOnly
+          ? 'bg-teal-500 text-white'
+          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+      }`}
+    >
+      Unused
+    </button>
+  </div>
+</div>
+```
+
+**Filter Logic:**
+```tsx
+// Apply category and unused filters to exercise list
+const filteredExercises = allExerciseFrequency.filter(item => {
+  // Category filter
+  if (selectedCategories.length > 0) {
+    const exerciseCategory = exerciseToCategory[item.exercise];
+    if (!exerciseCategory || !selectedCategories.includes(exerciseCategory)) {
+      return false;
+    }
+  }
+
+  // Unused filter (shows exercises with 0 count)
+  if (showUnusedOnly && item.count > 0) {
+    return false;
+  }
+
+  return true;
+});
+```
+
+**Filter Integration:**
+- Filters apply to **three areas**:
+  1. Top Exercises display (top 40 chips)
+  2. Exercise search dropdown results
+  3. Exercise Library panel content
+
+**Dynamic Title:**
+```tsx
+{/* Top Exercises title shows active filters */}
+<h3 className='text-lg font-semibold text-gray-900'>
+  Top Exercises
+  {selectedCategories.length > 0 && (
+    <span className='text-sm font-normal text-gray-600'>
+      {' '}({selectedCategories.join(', ')})
+    </span>
+  )}
+</h3>
+```
+
+#### Part B: Exercise Library Panel
+
+**State Management:**
+```tsx
+// Library panel state
+const [libraryOpen, setLibraryOpen] = useState(false);
+const [libraryPos, setLibraryPos] = useState({ top: 100, left: 100 });
+const [librarySize, setLibrarySize] = useState({ width: 600, height: 500 });
+const [isDragging, setIsDragging] = useState(false);
+const [isResizing, setIsResizing] = useState(false);
+const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+```
+
+**Drag Implementation:**
+```tsx
+const handleLibraryMouseDown = (e: React.MouseEvent) => {
+  if (e.target === e.currentTarget || (e.target as HTMLElement).closest('.library-header')) {
+    setIsDragging(true);
+    setDragOffset({
+      x: e.clientX - libraryPos.left,
+      y: e.clientY - libraryPos.top,
+    });
+  }
+};
+
+useEffect(() => {
+  const handleMouseMove = (e: MouseEvent) => {
+    if (isDragging) {
+      setLibraryPos({
+        left: e.clientX - dragOffset.x,
+        top: e.clientY - dragOffset.y,
+      });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  if (isDragging) {
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }
+}, [isDragging, dragOffset]);
+```
+
+**Resize Implementation:**
+```tsx
+const handleResizeMouseDown = (e: React.MouseEvent) => {
+  e.stopPropagation();
+  setIsResizing(true);
+  setDragOffset({
+    x: e.clientX,
+    y: e.clientY,
+  });
+};
+
+useEffect(() => {
+  const handleMouseMove = (e: MouseEvent) => {
+    if (isResizing) {
+      const deltaX = e.clientX - dragOffset.x;
+      const deltaY = e.clientY - dragOffset.y;
+
+      setLibrarySize(prev => ({
+        width: Math.max(400, prev.width + deltaX),
+        height: Math.max(300, prev.height + deltaY),
+      }));
+
+      setDragOffset({ x: e.clientX, y: e.clientY });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsResizing(false);
+  };
+
+  if (isResizing) {
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }
+}, [isResizing, dragOffset]);
+```
+
+**Responsive Column Layout:**
+```tsx
+// Calculate columns based on panel width
+const columnCount = Math.max(2, Math.floor(librarySize.width / 250));
+
+<div
+  style={{
+    display: 'grid',
+    gridTemplateColumns: `repeat(${columnCount}, 1fr)`,
+    gap: '0.5rem',
+  }}
+>
+  {filteredLibraryExercises.map(item => (
+    <button
+      key={item.exercise}
+      onClick={() => handleExerciseSelect(item.exercise)}
+      className='text-left p-2 hover:bg-gray-50 rounded border border-gray-200'
+    >
+      <div className='font-medium text-sm text-gray-900'>{item.exercise}</div>
+      <div className='text-xs text-gray-500'>
+        {item.count > 0 ? `${item.count}x` : 'Not used yet'}
+      </div>
+    </button>
+  ))}
+</div>
+```
+
+**Library Features:**
+- **Data Source:** ALL exercises from `exercises` table (not just ones used in workouts)
+- **Display Format:** Exercise name + count or "Not used yet"
+- **Sorting:** Alphabetically sorted
+- **Filtering:** Respects category and unused filters
+- **Selection:** Click exercise to add to selected chips (same as search)
+- **Persistence:** Panel stays open for multiple selections
+- **Responsive:** 2-4 columns depending on panel width (minimum 250px per column)
+- **Positioning:** Fixed position with z-index 50
+- **Styling:** White background, shadow, teal border
+
+**Library UI Structure:**
+```tsx
+{libraryOpen && (
+  <div
+    className='fixed bg-white rounded-lg shadow-2xl border-2 border-[#208479] flex flex-col z-50'
+    style={{
+      top: libraryPos.top,
+      left: libraryPos.left,
+      width: librarySize.width,
+      height: librarySize.height,
+    }}
+    onMouseDown={handleLibraryMouseDown}
+  >
+    {/* Header with drag handle and close button */}
+    <div className='library-header flex items-center justify-between p-4 border-b border-gray-200 cursor-move'>
+      <h3 className='text-lg font-semibold text-gray-900'>Exercise Library</h3>
+      <button onClick={() => setLibraryOpen(false)}>
+        <X className='w-5 h-5' />
+      </button>
+    </div>
+
+    {/* Scrollable content area */}
+    <div className='flex-1 overflow-y-auto p-4'>
+      {/* Responsive grid layout */}
+    </div>
+
+    {/* Resize handle (bottom-right corner) */}
+    <div
+      className='absolute bottom-0 right-0 w-4 h-4 cursor-se-resize'
+      onMouseDown={handleResizeMouseDown}
+    >
+      <div className='w-full h-full bg-teal-500 opacity-50' />
+    </div>
+  </div>
+)}
+```
+
+**Integration Points:**
+1. **Exercise Selection:** Library uses same `handleExerciseSelect()` as search dropdown
+2. **Filter Synchronization:** Library content respects `selectedCategories` and `showUnusedOnly` states
+3. **Top Exercises:** Filter changes affect top 40 display
+4. **Search Results:** Search dropdown also respects filters
+
+**Files Modified:**
+- `app/coach/analysis/page.tsx` - All features (253 insertions, 21 deletions)
+
+---
+
+### Technical Implementation Notes
+
+**Exercise-to-Category Mapping:**
+```tsx
+// Built during WOD parsing to map exercise names to categories
+const categoryMap: Record<string, string> = {};
+const { data: exercisesData } = await supabase
+  .from('exercises')
+  .select('name, category');
+
+exercisesData?.forEach(ex => {
+  if (ex.name && ex.category) {
+    categoryMap[ex.name] = ex.category;
+  }
+});
+
+setExerciseToCategory(categoryMap);
+```
+
+**Unused Exercise Detection:**
+- Exercises from database with `count: 0` in frequency calculation
+- "Unused" filter shows these exercises (useful for discovering underutilized movements)
+- Works in combination with category filters (e.g., "Gymnastics + Unused")
+
+**Performance Considerations:**
+- Category fetch happens once on component mount
+- Exercise-to-category mapping built once during statistics calculation
+- Filter operations use in-memory arrays (no additional database queries)
+- Library panel uses CSS grid for efficient responsive layout
+
+**User Experience Flow:**
+1. User arrives at Analysis page (sees default top 40 exercises)
+2. Selects category filters (top 40 updates to show only selected categories)
+3. Clicks "Unused" to see exercises not yet used (combines with category selection)
+4. Uses search bar to find specific exercises (respects filters)
+5. Clicks "Browse Library" to explore all exercises (respects filters)
+6. Drags/resizes library panel to preferred size
+7. Clicks exercises in library to add to selection chips
+8. Each selection shows exercise name + count in chip below search
+9. Can remove individual chips or clear all
+
+---
+
+### Files Modified
+
+**Single File:**
+- `app/coach/analysis/page.tsx`
+  - Feature 1: 79 insertions, 75 deletions
+  - Feature 2: 10 insertions, 13 deletions
+  - Feature 3: 253 insertions, 21 deletions
+  - **Total:** 342 insertions, 109 deletions
+
+---
+
+### Testing & Verification
+
+**Tested Scenarios:**
+1. Multi-select: Add/remove individual exercises, clear all
+2. Top 40 display: Verify chip format and count accuracy
+3. Category filters: Single and multiple category selection
+4. Unused filter: Alone and combined with categories
+5. Library panel: Drag, resize, column responsiveness
+6. Search integration: Search + filters + library working together
+7. Exercise selection: From search dropdown and library panel
+8. Filter synchronization: Top 40, search, and library all respect filters
+
+**No Known Issues**
+
+---
+
 ## Session: 2025-10-24 (Part 2 - Header/Panel Layout & Grok Workflow)
 
 **Date:** 2025-10-24
