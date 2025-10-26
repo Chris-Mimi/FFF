@@ -76,64 +76,63 @@ export async function POST(request: NextRequest) {
       startDateTime.getTime() + publishConfig.eventDurationMinutes * 60000
     );
 
-    // Check for required environment variables
-    if (
-      !process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL ||
-      !process.env.GOOGLE_PRIVATE_KEY ||
-      !process.env.GOOGLE_CALENDAR_ID
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            'Google Calendar is not configured. Please add GOOGLE_SERVICE_ACCOUNT_EMAIL, GOOGLE_PRIVATE_KEY, and GOOGLE_CALENDAR_ID to environment variables.',
-        },
-        { status: 500 }
-      );
-    }
+    // Check if Google Calendar is configured
+    const googleCalendarConfigured =
+      process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL &&
+      process.env.GOOGLE_PRIVATE_KEY &&
+      process.env.GOOGLE_CALENDAR_ID;
 
-    // Initialize Google Calendar API
-    const auth = new google.auth.GoogleAuth({
-      credentials: {
-        client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-        private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-      },
-      scopes: ['https://www.googleapis.com/auth/calendar'],
-    });
+    let calendarEventId: string | null = null;
 
-    const calendar = google.calendar({ version: 'v3', auth });
+    // Only sync to Google Calendar if configured
+    if (googleCalendarConfigured) {
+      try {
+        // Initialize Google Calendar API
+        const auth = new google.auth.GoogleAuth({
+          credentials: {
+            client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+            private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+          },
+          scopes: ['https://www.googleapis.com/auth/calendar'],
+        });
 
-    // Create or update calendar event
-    const event = {
-      summary: `${workout.title} - ${new Date(workout.date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}`,
-      description: description,
-      location: 'The Forge Functional Fitness, Bergwerkstrasse 10, Pforzen, Bavaria',
-      start: {
-        dateTime: startDateTime.toISOString(),
-        timeZone: 'Europe/Berlin',
-      },
-      end: {
-        dateTime: endDateTime.toISOString(),
-        timeZone: 'Europe/Berlin',
-      },
-    };
+        const calendar = google.calendar({ version: 'v3', auth });
 
-    let calendarEventId: string;
+        // Create or update calendar event
+        const event = {
+          summary: `${workout.title} - ${new Date(workout.date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}`,
+          description: description,
+          location: 'The Forge Functional Fitness, Bergwerkstrasse 10, Pforzen, Bavaria',
+          start: {
+            dateTime: startDateTime.toISOString(),
+            timeZone: 'Europe/Berlin',
+          },
+          end: {
+            dateTime: endDateTime.toISOString(),
+            timeZone: 'Europe/Berlin',
+          },
+        };
 
-    if (workout.calendar_event_id) {
-      // Update existing event
-      const response = await calendar.events.update({
-        calendarId: process.env.GOOGLE_CALENDAR_ID,
-        eventId: workout.calendar_event_id,
-        requestBody: event,
-      });
-      calendarEventId = response.data.id!;
-    } else {
-      // Create new event
-      const response = await calendar.events.insert({
-        calendarId: process.env.GOOGLE_CALENDAR_ID,
-        requestBody: event,
-      });
-      calendarEventId = response.data.id!;
+        if (workout.calendar_event_id) {
+          // Update existing event
+          const response = await calendar.events.update({
+            calendarId: process.env.GOOGLE_CALENDAR_ID,
+            eventId: workout.calendar_event_id,
+            requestBody: event,
+          });
+          calendarEventId = response.data.id!;
+        } else {
+          // Create new event
+          const response = await calendar.events.insert({
+            calendarId: process.env.GOOGLE_CALENDAR_ID,
+            requestBody: event,
+          });
+          calendarEventId = response.data.id!;
+        }
+      } catch (error) {
+        console.error('Error syncing to Google Calendar:', error);
+        // Continue with publishing even if Google Calendar sync fails
+      }
     }
 
     // Update workout in database
@@ -159,8 +158,11 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Workout published successfully',
+      message: googleCalendarConfigured
+        ? 'Workout published successfully'
+        : 'Workout published successfully (Google Calendar not configured)',
       calendarEventId,
+      googleCalendarSynced: googleCalendarConfigured && !!calendarEventId,
     });
   } catch (error) {
     console.error('Error publishing workout:', error);

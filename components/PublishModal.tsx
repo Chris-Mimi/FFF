@@ -130,7 +130,7 @@ export default function PublishModal({
               type='time'
               value={eventTime}
               onChange={e => setEventTime(e.target.value)}
-              className='w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#20766a] focus:border-transparent'
+              className='w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#20766a] focus:border-transparent text-gray-900'
             />
           </div>
 
@@ -146,7 +146,7 @@ export default function PublishModal({
               step='15'
               value={eventDurationMinutes}
               onChange={e => setEventDurationMinutes(parseInt(e.target.value))}
-              className='w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#20766a] focus:border-transparent'
+              className='w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#20766a] focus:border-transparent text-gray-900'
             />
           </div>
 

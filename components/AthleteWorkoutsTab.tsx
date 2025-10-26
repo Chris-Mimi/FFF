@@ -40,13 +40,20 @@ export default function AthleteWorkoutsTab({ userId }: AthleteWorkoutsTabProps) 
     fetchPublishedWorkouts();
   }, [selectedDate]);
 
+  const formatDate = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const fetchPublishedWorkouts = async () => {
     setLoading(true);
     try {
       // Get the week dates
       const weekDates = getWeekDates(selectedDate);
-      const startDate = weekDates[0].toISOString().split('T')[0];
-      const endDate = weekDates[6].toISOString().split('T')[0];
+      const startDate = formatDate(weekDates[0]);
+      const endDate = formatDate(weekDates[6]);
 
       const { data, error } = await supabase
         .from('wods')
@@ -117,8 +124,6 @@ export default function AthleteWorkoutsTab({ userId }: AthleteWorkoutsTabProps) 
     setSelectedDate(newDate);
   };
 
-  const formatDate = (date: Date) => date.toISOString().split('T')[0];
-
   const getWorkoutForDate = (date: Date): PublishedWorkout | undefined => {
     return workouts.find(w => w.date === formatDate(date));
   };
@@ -149,7 +154,7 @@ export default function AthleteWorkoutsTab({ userId }: AthleteWorkoutsTabProps) 
           <div className='flex items-center gap-4'>
             <button
               onClick={previousWeek}
-              className='p-2 hover:bg-gray-100 rounded-full transition'
+              className='p-2 hover:bg-gray-100 rounded-full transition text-gray-900'
               title='Previous Week'
             >
               <ChevronLeft size={24} />
@@ -159,7 +164,7 @@ export default function AthleteWorkoutsTab({ userId }: AthleteWorkoutsTabProps) 
             </span>
             <button
               onClick={nextWeek}
-              className='p-2 hover:bg-gray-100 rounded-full transition'
+              className='p-2 hover:bg-gray-100 rounded-full transition text-gray-900'
               title='Next Week'
             >
               <ChevronRight size={24} />
@@ -183,7 +188,7 @@ export default function AthleteWorkoutsTab({ userId }: AthleteWorkoutsTabProps) 
               }`}
             >
               {/* Day Header */}
-              <div className={`p-3 text-center ${isToday ? 'bg-[#208479] text-white' : 'bg-gray-100'}`}>
+              <div className={`p-3 text-center ${isToday ? 'bg-[#208479] text-white' : 'bg-gray-100 text-gray-900'}`}>
                 <div className='text-sm font-semibold'>{dayName}</div>
                 <div className='text-lg font-bold'>
                   {date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
