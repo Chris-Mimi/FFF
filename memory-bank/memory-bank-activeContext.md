@@ -1,6 +1,6 @@
 # The Forge Functional Fitness - Active Context (Final, Corrected)
 
-Version: 2.21
+Version: 2.22
 Timestamp: 2025-10-26
 
 ## ⚠️ CRITICAL RULES & CONTEXT
@@ -211,6 +211,16 @@ The project is **IN PROGRESS**. All core data models and UI features are complet
 | **Publish/Unpublish Flow** | Complete workflow: PublishModal (section selection, time/duration), API route (POST/DELETE), conditional button (Publish vs Unpublish), auto-refresh calendar. | `components/PublishModal.tsx`, `app/api/google/publish-workout/route.ts`, `components/WODModal.tsx:1242-1260`, `app/coach/page.tsx` |
 | **Athlete Workouts Fix** | Updated all field names in AthleteWorkoutsTab (published → is_published, published_section_ids → publish_sections). | `components/AthleteWorkoutsTab.tsx:33,193` |
 | **Logbook Filter** | Added .eq('is_published', true) to athlete logbook query to show only published workouts. | `app/athlete/page.tsx:141` |
+
+---
+
+## 🔧 Database-Driven Titles & Bug Fixes (v2.22)
+
+| **Feature** | Description | Files |
+| :--- | :--- | :--- |
+| **Workout Titles Migration** | Moved hardcoded workout titles to Supabase table, updated WODModal and schedule page to fetch from DB. | `supabase-workout-titles.sql`, `components/WODModal.tsx:88-93,659,813,1424-1426,1681-1683`, `app/coach/schedule/page.tsx:19-24,39,67-80,454-458` |
+| **Session Generation Timezone Fix** | Fixed UTC conversion causing 1-day offset in auto-generated weekly sessions. | `app/api/sessions/generate-weekly/route.ts:81-85,147-151` |
+| **Weekly Session Auto-Publish** | Auto-publish weekly_sessions when saving linked WODs to make sessions available for booking. | `app/coach/page.tsx:592-598` |
 
 ---
 

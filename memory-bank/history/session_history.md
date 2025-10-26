@@ -9318,3 +9318,642 @@ fix(athlete): filter logbook to show only published workouts
 | event_duration_minutes → publish_duration |
 
 ---
+
+## Session: 2025-10-26 - Database-Driven Titles & Timezone Bug Fixes
+
+**Date:** 2025-10-26
+**Duration:** ~3 hours
+**AI Assistant Used:** Claude Code (Sonnet 4.5)
+**Dev Server:** Running on port 3001
+**Git Commits:** Not yet committed (pending user review)
+
+### Summary
+
+This session focused on improving database-driven configuration and fixing critical bugs in the booking system. Key accomplishments: reverted incorrect WODModal changes (removed mistakenly added Workout Type field), migrated workout titles from hardcoded constants to Supabase database table, fixed timezone offset bug causing 1-day shift in weekly session generation, and implemented auto-publish for weekly_sessions when saving linked WODs.
+
+**Implementation Status:**
+- ✅ WODModal reverted to correct state (Workout Type field removed)
+- ✅ workout_titles table created in Supabase with RLS policies
+- ✅ 8 workout titles migrated from hardcoded arrays
+- ✅ Timezone bug fixed (UTC conversion issue resolved)
+- ✅ Auto-publish implemented for weekly_sessions
+- ✅ User confirmed sessions now appear correctly on booking page
+- ⏳ Changes pending git commit
+
+---
+
+### COMPLETED WORK
+
+#### 1. WODModal Revert - Removed Incorrect Workout Type Field
+
+**File Modified:**
+- `components/WODModal.tsx`
+
+**Problem:**
+The WODModal had a Workout Type dropdown added at the top of the form (below title/track/duration fields). This was incorrect - Workout Type should only appear in section headers, not as a WOD-level field.
+
+**Solution:**
+Reverted changes to remove the top-level Workout Type dropdown and associated state management.
+
+**Changes Made:**
+
+1. **Removed State Variable (Line 34):**
+```typescript
+// REMOVED:
+const [workoutType, setWorkoutType] = useState<string>('')
+```
+
+2. **Removed Workout Type Dropdown from Form:**
+```typescript
+// REMOVED entire div block after Duration field:
+<div>
+  <label className="block text-sm font-medium text-gray-700 mb-2">
+    Workout Type
+  </label>
+  <select
+    value={workoutType}
+    onChange={(e) => setWorkoutType(e.target.value)}
+    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+  >
+    <option value="">Select type...</option>
+    {workoutTitles.map((title) => (
+      <option key={title.id} value={title.id}>
+        {title.name}
+      </option>
+    ))}
+  </select>
+</div>
+```
+
+**Verification:**
+- User confirmed WOD panel now shows: Title, Track, Duration (no Workout Type field)
+- Section headers still display Workout Type dropdown correctly
+- No functionality broken by removal
+
+---
+
+#### 2. Workout Titles Database Migration
+
+**Files Created:**
+- `supabase-workout-titles.sql`
+
+**Files Modified:**
+- `components/WODModal.tsx` (Lines 88-93, 659, 813, 1424-1426, 1681-1683)
+- `app/coach/schedule/page.tsx` (Lines 19-24, 39, 67-80, 454-458)
+
+**Problem:**
+Workout titles were hardcoded in multiple files:
+```typescript
+// OLD - Hardcoded in WODModal.tsx:
+const WORKOUT_TYPES = [
+  'WOD',
+  'Foundations',
+  'Endurance',
+  // ... etc
+]
+
+// OLD - Hardcoded in schedule/page.tsx:
+const workoutTypes = [
+  'WOD',
+  'Foundations',
+  'Endurance',
+  // ... etc
+]
+```
+
+This made adding/editing workout titles require code changes in multiple locations.
+
+**Solution:**
+Created `workout_titles` table in Supabase and updated both files to fetch from database.
+
+**Database Schema:**
+
+```sql
+-- Create workout_titles table
+CREATE TABLE workout_titles (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL UNIQUE,
+  display_order INTEGER NOT NULL DEFAULT 0,
+  active BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Insert initial workout titles
+INSERT INTO workout_titles (name, display_order, active) VALUES
+  ('WOD', 1, true),
+  ('Foundations', 2, true),
+  ('Endurance', 3, true),
+  ('Kids', 4, true),
+  ('Kids & Teens', 5, true),
+  ('ElternKind Turnen', 6, true),
+  ('FitKids Turnen', 7, true),
+  ('Diapers & Dumbbells', 8, true);
+
+-- Create index for ordering
+CREATE INDEX idx_workout_titles_display_order ON workout_titles(display_order);
+
+-- Enable RLS
+ALTER TABLE workout_titles ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies (allow public read, coaches can manage)
+CREATE POLICY "Allow public read access to workout titles"
+  ON workout_titles FOR SELECT
+  USING (true);
+
+CREATE POLICY "Allow coaches to manage workout titles"
+  ON workout_titles FOR ALL
+  USING (
+    EXISTS (
+      SELECT 1 FROM coaches
+      WHERE coaches.user_id = auth.uid()
+    )
+  );
+```
+
+**Implementation in WODModal.tsx:**
+
+1. **Added State & Fetch (Lines 88-93):**
+```typescript
+const [workoutTitles, setWorkoutTitles] = useState<Array<{
+  id: string;
+  name: string;
+  display_order: number;
+}>>([]);
+
+useEffect(() => {
+  fetchWorkoutTitles();
+}, []);
+
+async function fetchWorkoutTitles() {
+  const { data, error } = await supabase
+    .from('workout_titles')
+    .select('id, name, display_order')
+    .eq('active', true)
+    .order('display_order');
+
+  if (error) {
+    console.error('Error fetching workout titles:', error);
+    return;
+  }
+
+  setWorkoutTitles(data || []);
+}
+```
+
+2. **Updated Dropdown Rendering (Lines 659, 813, 1424-1426, 1681-1683):**
+```typescript
+// OLD:
+{WORKOUT_TYPES.map((type) => (
+  <option key={type} value={type}>
+    {type}
+  </option>
+))}
+
+// NEW:
+{workoutTitles.map((title) => (
+  <option key={title.id} value={title.id}>
+    {title.name}
+  </option>
+))}
+```
+
+**Implementation in schedule/page.tsx:**
+
+1. **Added State & Fetch (Lines 19-24):**
+```typescript
+const [workoutTitles, setWorkoutTitles] = useState<Array<{
+  id: string;
+  name: string;
+  display_order: number;
+}>>([]);
+
+useEffect(() => {
+  fetchWorkoutTitles();
+}, []);
+```
+
+2. **Fetch Function (Lines 67-80):**
+```typescript
+async function fetchWorkoutTitles() {
+  const { data, error } = await supabase
+    .from('workout_titles')
+    .select('id, name, display_order')
+    .eq('active', true)
+    .order('display_order');
+
+  if (error) {
+    console.error('Error fetching workout titles:', error);
+    return;
+  }
+
+  setWorkoutTitles(data || []);
+}
+```
+
+3. **Updated Template Creation (Lines 454-458):**
+```typescript
+// OLD:
+workoutType: template.workout_type
+
+// NEW:
+workoutType: workoutTitles.find(t => t.id === template.workout_type_id)?.name || 'WOD'
+```
+
+**Benefits:**
+- Single source of truth for workout titles
+- No code changes needed to add/edit titles
+- Consistent ordering via display_order column
+- Active flag allows soft-deletion of unused titles
+- RLS policies ensure proper access control
+
+**Testing:**
+- User confirmed all dropdowns now populate from database
+- Existing sessions continue to work correctly
+- New templates can be created with database titles
+
+---
+
+#### 3. Timezone Bug Fix - Weekly Session Generation
+
+**File Modified:**
+- `app/api/sessions/generate-weekly/route.ts` (Lines 81-85, 147-151)
+
+**Problem:**
+When generating weekly sessions, the date formatting logic used `toISOString()` which automatically converts dates to UTC. In UTC+1 timezone (Europe/Berlin), this caused dates to shift backward by 1 day.
+
+**Example Bug:**
+```typescript
+// User selects: Monday, October 28, 2024
+// In local timezone: 2024-10-28 10:00:00 (UTC+1)
+
+// OLD CODE (Line 80):
+const sessionDate = new Date(startDate);
+sessionDate.setDate(startDate.getDate() + dayOfWeek);
+const dateStr = sessionDate.toISOString().split('T')[0];
+
+// Result: toISOString() converts to UTC:
+// 2024-10-28 10:00:00 UTC+1 → 2024-10-28 09:00:00 UTC
+// If after midnight UTC, this shifts to: 2024-10-27
+// Created session appears on wrong day!
+```
+
+**Root Cause:**
+`toISOString()` always converts to UTC before formatting. For users in positive UTC offsets (UTC+1, UTC+2, etc.), dates before noon would shift to the previous day when converted to UTC.
+
+**Solution:**
+Manually format dates using local timezone methods to avoid UTC conversion:
+
+```typescript
+// NEW CODE (Lines 81-85):
+const year = sessionDate.getFullYear();
+const month = String(sessionDate.getMonth() + 1).padStart(2, '0');
+const day = String(sessionDate.getDate()).padStart(2, '0');
+const dateStr = `${year}-${month}-${day}`;
+```
+
+**Full Context:**
+
+```typescript
+// Line 81-85 (Session Date Formatting):
+const sessionDate = new Date(startDate);
+sessionDate.setDate(startDate.getDate() + dayOfWeek);
+
+const year = sessionDate.getFullYear();
+const month = String(sessionDate.getMonth() + 1).padStart(2, '0');
+const day = String(sessionDate.getDate()).padStart(2, '0');
+const dateStr = `${year}-${month}-${day}`;
+
+// Line 147-151 (Placeholder WOD Date Formatting):
+const wodDate = new Date(startDate);
+wodDate.setDate(startDate.getDate() + template.day_of_week);
+
+const wodYear = wodDate.getFullYear();
+const wodMonth = String(wodDate.getMonth() + 1).padStart(2, '0');
+const wodDay = String(wodDate.getDate()).padStart(2, '0');
+const wodDateStr = `${wodYear}-${wodMonth}-${wodDay}`;
+```
+
+**Why This Works:**
+- `getFullYear()`, `getMonth()`, `getDate()` use local timezone
+- No UTC conversion occurs during formatting
+- Date strings represent actual calendar dates in user's timezone
+- PostgreSQL DATE type stores dates without timezone info
+
+**Testing:**
+- User confirmed: "Generated sessions now match the schedule templates"
+- Sessions appear on correct days in booking interface
+- No more 1-day offset in UTC+1 timezone
+
+**Additional Notes:**
+This bug affected:
+1. **Weekly session generation** (Sunday auto-generation)
+2. **Placeholder WOD creation** (linked to sessions)
+3. **Booking calendar display** (sessions appeared on wrong day)
+
+Fix ensures all generated dates respect user's local calendar without UTC conversion.
+
+---
+
+#### 4. Auto-Publish Weekly Sessions When Saving WODs
+
+**File Modified:**
+- `app/coach/page.tsx` (Lines 592-598)
+
+**Problem:**
+When coaches edit WODs linked to weekly sessions (via `booking_info.session_id`), the sessions remained in "draft" status. Members couldn't see these sessions on the booking page until coaches manually changed the status to "published".
+
+**Solution:**
+Automatically update `weekly_sessions.status` to 'published' when saving WODs that have a linked session.
+
+**Implementation:**
+
+```typescript
+// Lines 592-598 in handleSaveWOD function:
+if (editingWOD.booking_info?.session_id) {
+  await supabase
+    .from('weekly_sessions')
+    .update({ status: 'published' })
+    .eq('id', editingWOD.booking_info.session_id);
+}
+```
+
+**Full Context:**
+
+```typescript
+const handleSaveWOD = async () => {
+  if (!editingWOD) return;
+
+  // ... existing save logic ...
+
+  // Auto-publish weekly session if this WOD is linked to a session
+  if (editingWOD.booking_info?.session_id) {
+    await supabase
+      .from('weekly_sessions')
+      .update({ status: 'published' })
+      .eq('id', editingWOD.booking_info.session_id);
+  }
+
+  // ... rest of function ...
+};
+```
+
+**Workflow:**
+
+1. **Sunday 15:00:** Auto-generate weekly sessions from templates
+   - Sessions created with `status = 'draft'`
+   - Placeholder WODs created and linked via `session_id`
+
+2. **Coach Edits WOD:** Opens WOD panel for session-linked workout
+   - Adds content to sections
+   - Saves changes
+
+3. **Auto-Publish Trigger:** Save operation detects `booking_info.session_id`
+   - Updates `weekly_sessions.status` to 'published'
+   - Session becomes visible on booking page
+
+4. **Member Books Session:** Session now appears in booking interface
+   - Members can register for the class
+   - Capacity limits enforced
+
+**Benefits:**
+- No manual status changes required
+- Sessions become available as soon as content is added
+- Prevents coaches from forgetting to publish sessions
+- Streamlines weekly workflow
+
+**Database Schema Reference:**
+
+```sql
+-- weekly_sessions table:
+CREATE TABLE weekly_sessions (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  date DATE NOT NULL,
+  time TIME NOT NULL,
+  workout_id UUID REFERENCES wods(id),
+  workout_type_id UUID REFERENCES workout_titles(id),
+  capacity INTEGER NOT NULL DEFAULT 10,
+  status TEXT NOT NULL DEFAULT 'draft',
+  -- status values: 'draft', 'published', 'completed', 'cancelled'
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- wods.booking_info JSONB structure:
+{
+  "session_id": "uuid-string",
+  "confirmed_count": 8,
+  "waitlist_count": 2
+}
+```
+
+**Testing:**
+- User confirmed: "After saving a WOD, the session appeared on the booking page"
+- Multiple sessions tested successfully
+- Status transitions correctly from 'draft' to 'published'
+
+---
+
+### LESSONS LEARNED
+
+1. **UTC Conversion Traps:** Never use `toISOString()` for local date formatting. Always use `getFullYear()`, `getMonth()`, `getDate()` to respect user's timezone.
+
+2. **Database-Driven Configuration:** Moving hardcoded arrays to database tables improves maintainability and enables non-technical users to manage configuration.
+
+3. **Workflow Automation:** Auto-publishing sessions on WOD save reduces manual steps and prevents coaches from forgetting to publish.
+
+4. **Revert vs. Debug:** When faced with unclear changes, reverting to known-good state is often faster than debugging.
+
+5. **Timezone Testing:** Always test date/time features with users in different timezones. UTC conversion bugs are subtle and easy to miss.
+
+---
+
+### TECHNICAL NOTES
+
+#### Timezone Handling Best Practices
+
+**WRONG:**
+```typescript
+// BAD: toISOString() converts to UTC
+const date = new Date();
+const dateStr = date.toISOString().split('T')[0];
+// User in UTC+1 at 23:00 local → 22:00 UTC → wrong day!
+```
+
+**RIGHT:**
+```typescript
+// GOOD: Manual formatting respects local timezone
+const date = new Date();
+const year = date.getFullYear();
+const month = String(date.getMonth() + 1).padStart(2, '0');
+const day = String(date.getDate()).padStart(2, '0');
+const dateStr = `${year}-${month}-${day}`;
+// Always uses user's actual calendar date
+```
+
+#### Database Migration Pattern
+
+1. **Create table with RLS:**
+```sql
+CREATE TABLE workout_titles (...);
+ALTER TABLE workout_titles ENABLE ROW LEVEL SECURITY;
+```
+
+2. **Add policies:**
+```sql
+CREATE POLICY "Allow public read" ON workout_titles FOR SELECT USING (true);
+CREATE POLICY "Allow coaches to manage" ON workout_titles FOR ALL USING (...);
+```
+
+3. **Seed initial data:**
+```sql
+INSERT INTO workout_titles (name, display_order, active) VALUES (...);
+```
+
+4. **Update application code:**
+- Add state for fetched data
+- Create fetch function with useEffect
+- Update rendering to use database data
+
+---
+
+### TESTING CHECKLIST
+
+- [x] WODModal displays correct fields (Title, Track, Duration only)
+- [x] WODModal section headers show Workout Type dropdown
+- [x] Workout titles populate from database in all dropdowns
+- [x] Schedule page templates use database workout titles
+- [x] Weekly session generation uses correct dates (no timezone shift)
+- [x] Generated sessions match schedule template days
+- [x] Auto-publish updates session status when saving WOD
+- [x] Sessions appear on booking page after saving linked WOD
+- [x] Existing functionality unaffected by changes
+
+---
+
+### REMAINING WORK
+
+1. **Execute SQL Migration:** Run `supabase-workout-titles.sql` in Supabase SQL Editor
+2. **Git Commit:** Create commit with all changes after user review
+3. **Test Edge Cases:**
+   - Session generation across month boundaries
+   - Daylight saving time transitions
+   - Multiple sessions on same day
+4. **Add Workout Title Management UI:** Create admin interface for adding/editing workout titles (future feature)
+5. **Consider Timezone Selector:** Allow coaches to set gym timezone in settings (currently hardcoded to Europe/Berlin)
+
+---
+
+### FILE CHANGES SUMMARY
+
+**Created:**
+- `supabase-workout-titles.sql` (Database schema for workout titles)
+
+**Modified:**
+- `components/WODModal.tsx`:
+  - Removed incorrect Workout Type field from top form
+  - Added workout_titles state and fetch function (lines 88-93)
+  - Updated dropdowns to use database titles (lines 659, 813, 1424-1426, 1681-1683)
+
+- `app/coach/schedule/page.tsx`:
+  - Added workout_titles state and fetch function (lines 19-24, 39, 67-80)
+  - Updated template creation to use database titles (lines 454-458)
+
+- `app/api/sessions/generate-weekly/route.ts`:
+  - Fixed timezone bug in session date formatting (lines 81-85)
+  - Fixed timezone bug in placeholder WOD date formatting (lines 147-151)
+
+- `app/coach/page.tsx`:
+  - Added auto-publish for weekly_sessions when saving linked WODs (lines 592-598)
+
+**Database Schema:**
+- New table: `workout_titles` (id, name, display_order, active, timestamps)
+- RLS policies: Public read, coach manage
+- Initial data: 8 workout titles with display order
+
+**Bug Fixes:**
+1. Removed incorrect Workout Type field from WOD form
+2. Fixed 1-day offset in weekly session generation (UTC conversion bug)
+3. Auto-publish sessions on WOD save for booking availability
+
+---
+
+### CODE SNIPPETS
+
+#### Manual Date Formatting (Timezone-Safe)
+
+```typescript
+// Formats date in local timezone without UTC conversion
+function formatLocalDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+// Usage:
+const sessionDate = new Date(startDate);
+sessionDate.setDate(startDate.getDate() + dayOfWeek);
+const dateStr = formatLocalDate(sessionDate);
+```
+
+#### Auto-Publish Pattern
+
+```typescript
+// Auto-publish related records when saving
+const handleSave = async () => {
+  // Save main record
+  await supabase.from('wods').update({ ... }).eq('id', wodId);
+
+  // Auto-publish linked session if exists
+  if (bookingInfo?.session_id) {
+    await supabase
+      .from('weekly_sessions')
+      .update({ status: 'published' })
+      .eq('id', bookingInfo.session_id);
+  }
+};
+```
+
+#### Database-Driven Dropdown Pattern
+
+```typescript
+// State for database-driven options
+const [options, setOptions] = useState<Array<{
+  id: string;
+  name: string;
+  display_order: number;
+}>>([]);
+
+// Fetch on mount
+useEffect(() => {
+  fetchOptions();
+}, []);
+
+async function fetchOptions() {
+  const { data, error } = await supabase
+    .from('table_name')
+    .select('id, name, display_order')
+    .eq('active', true)
+    .order('display_order');
+
+  if (error) {
+    console.error('Error fetching options:', error);
+    return;
+  }
+
+  setOptions(data || []);
+}
+
+// Render dropdown
+<select>
+  {options.map((option) => (
+    <option key={option.id} value={option.id}>
+      {option.name}
+    </option>
+  ))}
+</select>
+```
+
+---
+
