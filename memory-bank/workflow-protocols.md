@@ -1,22 +1,47 @@
 # Workflow Protocols (Agent & Context Mandates)
 
-Version: 1.3
-Timestamp: 2025-10-24
+Version: 1.4
+Timestamp: 2025-10-26
 
-## 📁 Memory Bank Files (CRITICAL - File Naming)
+## 🚨 SESSION START PROTOCOL (MANDATORY - DO THIS FIRST)
 
-**IMPORTANT:** Memory bank files have `memory-bank-` prefix in their filenames!
+**EVERY session MUST start with reading these 4 files in a SINGLE parallel Read call:**
 
-**Correct paths to read at session start:**
+```
+Read: memory-bank/memory-bank-activeContext.md
+Read: memory-bank/memory-bank-techContext.md
+Read: memory-bank/memory-bank-systemPatterns.md
+Read: memory-bank/workflow-protocols.md
+```
+
+**CRITICAL:** Memory bank files have `memory-bank-` prefix! Use exact paths above.
+
+**DO NOT attempt to read:**
+- ❌ `memory-bank/activeContext.md` (missing prefix)
+- ❌ `memory-bank/techContext.md` (missing prefix)
+- ❌ `memory-bank/systemPatterns.md` (missing prefix)
+
+**If you read wrong paths:** You waste tokens and user time. Always use the 4 correct paths listed above.
+
+---
+
+## 🚫 FORBIDDEN DIRECTORIES (NEVER READ)
+
+**NEVER read files from these directories under ANY circumstances:**
+- ❌ `Chris Notes/` - User's personal notes (not for Claude)
+- ❌ Any directory explicitly marked as personal/private
+
+**Why:** `.gitignore` only affects Git commits, NOT Read tool access. This protocol prevents reading user's private files.
+
+---
+
+## 📁 Memory Bank Files Reference
+
+**Correct paths:**
 - `memory-bank/memory-bank-activeContext.md` ✅
 - `memory-bank/memory-bank-techContext.md` ✅
 - `memory-bank/memory-bank-systemPatterns.md` ✅
 - `memory-bank/workflow-protocols.md` ✅ (no prefix)
-
-**DO NOT use:**
-- ❌ `memory-bank/activeContext.md`
-- ❌ `memory-bank/techContext.md`
-- ❌ `memory-bank/systemPatterns.md`
 
 ---
 
