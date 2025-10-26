@@ -48,6 +48,12 @@ export interface WODFormData {
   coach_notes?: string;
   is_published?: boolean;
   google_event_id?: string | null;
+  booking_info?: {
+    session_id: string;
+    confirmed_count: number;
+    waitlist_count: number;
+    capacity: number;
+  };
 }
 
 interface Exercise {
@@ -79,18 +85,14 @@ interface SectionType {
   display_order: number;
 }
 
-const CLASS_TIME_OPTIONS = ['9:00', '10:00', '11:00', '15:00', '16:00', '17:15', '18:30'];
+interface WorkoutTitle {
+  id: string;
+  name: string;
+  display_order: number;
+  active: boolean;
+}
 
-const WORKOUT_TITLE_OPTIONS = [
-  'WOD',
-  'Foundations',
-  'Endurance',
-  'Kids',
-  'Kids & Teens',
-  'ElternKind Turnen',
-  'FitKids Turnen',
-  'Diapers & Dumbbells',
-];
+const CLASS_TIME_OPTIONS = ['9:00', '10:00', '11:00', '15:00', '16:00', '17:15', '18:30'];
 
 // Exercise Library Popup Component
 function ExerciseLibraryPopup({
@@ -654,6 +656,7 @@ export default function WODModal({
   const [tracks, setTracks] = useState<Track[]>([]);
   const [workoutTypes, setWorkoutTypes] = useState<WorkoutType[]>([]);
   const [sectionTypes, setSectionTypes] = useState<SectionType[]>([]);
+  const [workoutTitles, setWorkoutTitles] = useState<WorkoutTitle[]>([]);
   const [loadingTracks, setLoadingTracks] = useState(false);
   const [notesPanelOpen, setNotesPanelOpen] = useState(initialNotesOpen);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -803,21 +806,24 @@ export default function WODModal({
   const fetchTracksAndTypes = async () => {
     setLoadingTracks(true);
     try {
-      const [tracksResult, typesResult, sectionTypesResult] = await Promise.all([
+      const [tracksResult, typesResult, sectionTypesResult, workoutTitlesResult] = await Promise.all([
         supabase.from('tracks').select('*').order('name'),
         supabase.from('workout_types').select('*').order('name'),
         supabase.from('section_types').select('*').order('display_order'),
+        supabase.from('workout_titles').select('*').eq('active', true).order('display_order'),
       ]);
 
       if (tracksResult.error) throw tracksResult.error;
       if (typesResult.error) throw typesResult.error;
       if (sectionTypesResult.error) throw sectionTypesResult.error;
+      if (workoutTitlesResult.error) throw workoutTitlesResult.error;
 
       setTracks(tracksResult.data || []);
       setWorkoutTypes(typesResult.data || []);
       setSectionTypes(sectionTypesResult.data || []);
+      setWorkoutTitles(workoutTitlesResult.data || []);
     } catch (error) {
-      console.error('Error fetching tracks, workout types, and section types:', error);
+      console.error('Error fetching tracks, workout types, section types, and workout titles:', error);
     } finally {
       setLoadingTracks(false);
     }
@@ -1415,8 +1421,8 @@ export default function WODModal({
                   }`}
                 />
                 <datalist id='workout-titles'>
-                  {WORKOUT_TITLE_OPTIONS.map(title => (
-                    <option key={title} value={title} />
+                  {workoutTitles.map(wt => (
+                    <option key={wt.id} value={wt.name} />
                   ))}
                 </datalist>
               </div>
@@ -1672,8 +1678,8 @@ export default function WODModal({
                     }`}
                   />
                   <datalist id='workout-titles'>
-                    {WORKOUT_TITLE_OPTIONS.map(title => (
-                      <option key={title} value={title} />
+                    {workoutTitles.map(wt => (
+                      <option key={wt.id} value={wt.name} />
                     ))}
                   </datalist>
                 </div>

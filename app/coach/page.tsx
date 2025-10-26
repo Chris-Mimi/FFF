@@ -13,6 +13,7 @@ import {
   Plus,
   Search,
   Trash2,
+  UserCheck,
   Users,
   X,
 } from 'lucide-react';
@@ -373,9 +374,25 @@ export default function CoachDashboard() {
 
   const fetchWODs = async () => {
     try {
+      // Fetch all bookings first
+      const { data: allBookings, error: bookingsError } = await supabase
+        .from('bookings')
+        .select('session_id, status');
+
+      if (bookingsError) throw bookingsError;
+
+      console.log('All bookings fetched:', allBookings);
+
+      // Fetch WODs with sessions
       const { data, error } = await supabase
         .from('wods')
-        .select('*')
+        .select(`
+          *,
+          weekly_sessions (
+            id,
+            capacity
+          )
+        `)
         .order('date', { ascending: true });
 
       if (error) throw error;
@@ -399,6 +416,10 @@ export default function CoachDashboard() {
         coach_notes: string | null;
         is_published: boolean;
         google_event_id: string | null;
+        weekly_sessions?: Array<{
+          id: string;
+          capacity: number;
+        }>;
       }
 
       const grouped: Record<string, WODFormData[]> = {};
@@ -407,6 +428,25 @@ export default function CoachDashboard() {
         if (!grouped[dateKey]) {
           grouped[dateKey] = [];
         }
+
+        // Calculate booking info from weekly_sessions
+        let bookingInfo;
+        if (wod.weekly_sessions && wod.weekly_sessions.length > 0) {
+          const session = wod.weekly_sessions[0]; // Should only be one session per workout
+
+          // Find bookings for this session from allBookings
+          const sessionBookings = allBookings?.filter(b => b.session_id === session.id) || [];
+          const confirmedCount = sessionBookings.filter(b => b.status === 'confirmed').length;
+          const waitlistCount = sessionBookings.filter(b => b.status === 'waitlist').length;
+
+          bookingInfo = {
+            session_id: session.id,
+            confirmed_count: confirmedCount,
+            waitlist_count: waitlistCount,
+            capacity: session.capacity
+          };
+        }
+
         grouped[dateKey].push({
           id: wod.id,
           title: wod.title,
@@ -419,6 +459,7 @@ export default function CoachDashboard() {
           coach_notes: wod.coach_notes || undefined,
           is_published: wod.is_published || false,
           google_event_id: wod.google_event_id || null,
+          booking_info: bookingInfo,
         });
       });
 
@@ -547,6 +588,14 @@ export default function CoachDashboard() {
           .eq('id', editingWOD.id);
 
         if (error) throw error;
+
+        // If this WOD has a linked weekly_session, publish it
+        if (editingWOD.booking_info?.session_id) {
+          await supabase
+            .from('weekly_sessions')
+            .update({ status: 'published' })
+            .eq('id', editingWOD.booking_info.session_id);
+        }
       } else {
         // Create new WOD
         const { error } = await supabase.from('wods').insert([
@@ -829,6 +878,20 @@ export default function CoachDashboard() {
                 Add Workout
               </button>
               <button
+                onClick={() => router.push('/coach/schedule')}
+                className='flex items-center gap-2 bg-[#1a6b62] hover:bg-teal-800 px-4 py-2 rounded-lg transition'
+              >
+                <Calendar size={18} />
+                Schedule
+              </button>
+              <button
+                onClick={() => router.push('/coach/members')}
+                className='flex items-center gap-2 bg-[#1a6b62] hover:bg-teal-800 px-4 py-2 rounded-lg transition'
+              >
+                <UserCheck size={18} />
+                Members
+              </button>
+              <button
                 onClick={() => router.push('/coach/athletes')}
                 className='flex items-center gap-2 bg-[#1a6b62] hover:bg-teal-800 px-4 py-2 rounded-lg transition'
               >
@@ -1093,6 +1156,19 @@ export default function CoachDashboard() {
                                           P
                                         </span>
                                       )}
+                                      {wod.booking_info && (
+                                        <span
+                                          className={`flex-shrink-0 text-[10px] font-bold text-white rounded px-1 py-0.5 ${
+                                            wod.booking_info.waitlist_count > 0 ? 'bg-purple-600' :
+                                            wod.booking_info.confirmed_count >= wod.booking_info.capacity ? 'bg-red-600' :
+                                            wod.booking_info.confirmed_count >= wod.booking_info.capacity * 0.8 ? 'bg-yellow-600' :
+                                            'bg-green-600'
+                                          }`}
+                                          title={`${wod.booking_info.confirmed_count} confirmed / ${wod.booking_info.capacity} capacity${wod.booking_info.waitlist_count > 0 ? ` (+${wod.booking_info.waitlist_count} waitlist)` : ''}`}
+                                        >
+                                          {wod.booking_info.confirmed_count}/{wod.booking_info.capacity}{wod.booking_info.waitlist_count > 0 ? ` +${wod.booking_info.waitlist_count}` : ''}
+                                        </span>
+                                      )}
                                     </div>
                                     <div className='flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity'>
                                       <button
@@ -1221,6 +1297,19 @@ export default function CoachDashboard() {
                                 {wod.is_published && (
                                   <span className='flex-shrink-0 text-[10px] font-bold text-white bg-[#208479] rounded px-1 py-0.5' title='Published'>
                                     P
+                                  </span>
+                                )}
+                                {wod.booking_info && (
+                                  <span
+                                    className={`flex-shrink-0 text-[10px] font-bold text-white rounded px-1 py-0.5 ${
+                                      wod.booking_info.waitlist_count > 0 ? 'bg-purple-600' :
+                                      wod.booking_info.confirmed_count >= wod.booking_info.capacity ? 'bg-red-600' :
+                                      wod.booking_info.confirmed_count >= wod.booking_info.capacity * 0.8 ? 'bg-yellow-600' :
+                                      'bg-green-600'
+                                    }`}
+                                    title={`${wod.booking_info.confirmed_count} confirmed / ${wod.booking_info.capacity} capacity${wod.booking_info.waitlist_count > 0 ? ` (+${wod.booking_info.waitlist_count} waitlist)` : ''}`}
+                                  >
+                                    {wod.booking_info.confirmed_count}/{wod.booking_info.capacity}{wod.booking_info.waitlist_count > 0 ? ` +${wod.booking_info.waitlist_count}` : ''}
                                   </span>
                                 )}
                               </div>
@@ -1368,6 +1457,19 @@ export default function CoachDashboard() {
                                   {wod.is_published && (
                                     <span className='flex-shrink-0 text-[10px] font-bold text-white bg-[#208479] rounded px-1 py-0.5' title='Published'>
                                       P
+                                    </span>
+                                  )}
+                                  {wod.booking_info && (
+                                    <span
+                                      className={`flex-shrink-0 text-[10px] font-bold text-white rounded px-1 py-0.5 ${
+                                        wod.booking_info.waitlist_count > 0 ? 'bg-purple-600' :
+                                        wod.booking_info.confirmed_count >= wod.booking_info.capacity ? 'bg-red-600' :
+                                        wod.booking_info.confirmed_count >= wod.booking_info.capacity * 0.8 ? 'bg-yellow-600' :
+                                        'bg-green-600'
+                                      }`}
+                                      title={`${wod.booking_info.confirmed_count} confirmed / ${wod.booking_info.capacity} capacity${wod.booking_info.waitlist_count > 0 ? ` (+${wod.booking_info.waitlist_count} waitlist)` : ''}`}
+                                    >
+                                      {wod.booking_info.confirmed_count}/{wod.booking_info.capacity}{wod.booking_info.waitlist_count > 0 ? ` +${wod.booking_info.waitlist_count}` : ''}
                                     </span>
                                   )}
                                 </div>
