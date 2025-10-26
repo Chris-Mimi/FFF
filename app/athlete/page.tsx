@@ -556,7 +556,7 @@ function LogbookTab({ userId }: { userId: string }) {
     const dateStr = date.toISOString().split('T')[0];
 
     try {
-      // Fetch WODs
+      // Fetch WODs (only published workouts)
       const { data: wodsData, error: wodsError } = await supabase
         .from('wods')
         .select(
@@ -566,7 +566,8 @@ function LogbookTab({ userId }: { userId: string }) {
           workout_types (name)
         `
         )
-        .eq('date', dateStr);
+        .eq('date', dateStr)
+        .eq('is_published', true);
 
       if (wodsError) throw wodsError;
       setWods(wodsData || []);
