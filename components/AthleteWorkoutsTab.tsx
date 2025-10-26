@@ -18,9 +18,9 @@ interface PublishedWorkout {
   date: string;
   track_id: string;
   sections: WorkoutSection[];
-  published_section_ids: string[];
-  event_time: string;
-  event_duration_minutes: number;
+  publish_sections: string[];
+  publish_time: string;
+  publish_duration: number;
   track?: {
     name: string;
     color: string;
@@ -64,13 +64,13 @@ export default function AthleteWorkoutsTab({ userId }: AthleteWorkoutsTabProps) 
           date,
           track_id,
           sections,
-          published_section_ids,
-          event_time,
-          event_duration_minutes,
+          publish_sections,
+          publish_time,
+          publish_duration,
           tracks:track_id (name, color)
         `
         )
-        .eq('published', true)
+        .eq('is_published', true)
         .gte('date', startDate)
         .lte('date', endDate)
         .order('date', { ascending: true });
@@ -86,9 +86,9 @@ export default function AthleteWorkoutsTab({ userId }: AthleteWorkoutsTabProps) 
         date: workout.date,
         track_id: workout.track_id,
         sections: workout.sections || [],
-        published_section_ids: workout.published_section_ids || [],
-        event_time: workout.event_time,
-        event_duration_minutes: workout.event_duration_minutes,
+        publish_sections: workout.publish_sections || [],
+        publish_time: workout.publish_time,
+        publish_duration: workout.publish_duration,
         track: Array.isArray(workout.tracks) ? workout.tracks[0] : workout.tracks,
       }));
 
@@ -130,7 +130,7 @@ export default function AthleteWorkoutsTab({ userId }: AthleteWorkoutsTabProps) 
 
   const getPublishedSections = (workout: PublishedWorkout): WorkoutSection[] => {
     return workout.sections.filter(section =>
-      workout.published_section_ids.includes(section.id)
+      workout.publish_sections.includes(section.id)
     );
   };
 
@@ -214,7 +214,7 @@ export default function AthleteWorkoutsTab({ userId }: AthleteWorkoutsTabProps) 
 
                     {/* Event Time */}
                     <div className='text-xs text-gray-600'>
-                      {workout.event_time} ({workout.event_duration_minutes} min)
+                      {workout.publish_time} ({workout.publish_duration} min)
                     </div>
 
                     {/* Published Sections */}
