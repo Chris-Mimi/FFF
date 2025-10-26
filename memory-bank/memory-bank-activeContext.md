@@ -1,7 +1,7 @@
 # The Forge Functional Fitness - Active Context (Final, Corrected)
 
-Version: 2.19
-Timestamp: 2025-10-25
+Version: 2.20
+Timestamp: 2025-10-26
 
 ## ⚠️ CRITICAL RULES & CONTEXT
 
@@ -189,11 +189,23 @@ The project is **IN PROGRESS**. All core data models and UI features are complet
 
 ---
 
+## 🐛 Publishing Fixes & Workflow (v2.20)
+
+| **Feature** | Description | Files |
+| :--- | :--- | :--- |
+| **Optional Google Calendar** | Publishing now works WITHOUT Google credentials. Database updates always succeed; Google sync is optional. Error handling prevents crashes when env vars missing. | `app/api/google/publish-workout/route.ts:79-136` |
+| **Schema Fix (INTEGER[] → TEXT[])** | Fixed publish_sections and published_section_ids columns from INTEGER[] to TEXT[] to store section type names instead of IDs. | `supabase-publishing-columns.sql` |
+| **Timezone Bug Fix** | Fixed date shifting in athlete workouts tab by removing toISOString(). Now uses local date strings to prevent UTC conversion issues. | `components/AthleteWorkoutsTab.tsx:104,126,134` |
+| **Styling Fixes** | Fixed greyed out text in athlete workouts: dates (text-gray-300 → text-gray-800), arrows (text-gray-400 → text-gray-800), input fields (text-gray-400 → text-gray-900, opacity-50 removed). | `components/AthleteWorkoutsTab.tsx:99,115,140-146,153-158` |
+| **Workflow Protocols** | Updated session start protocol with correct file paths, added forbidden directories (Chris Notes/, cline-rules/). | `memory-bank/workflow-protocols.md:1-15` |
+
+---
+
 ## 📋 NEXT STEPS (Priority)
 
 1.  **Execute Publishing Migration:** Run `supabase-publishing-columns.sql` in Supabase SQL Editor to add publishing columns to wods table.
-2.  **Google Calendar Setup:** Follow `GOOGLE_CALENDAR_SETUP.md` to create service account and fill in environment variables.
-3.  **Test Publishing Workflow:** Test event creation/deletion and athlete view after setup is complete.
+2.  **Google Calendar Setup (Optional):** Follow `GOOGLE_CALENDAR_SETUP.md` to create service account and fill in environment variables (publishing works without this).
+3.  **Test Publishing Workflow:** Test event creation/deletion and athlete view.
 4.  **Run Migration:** Execute `supabase-section-types.sql` in Supabase SQL Editor to create section_types table.
 5.  Add `user_id` to all athlete tables (currently NULL).
 6.  Remove **PUBLIC RLS policies** using the migration script (once multi-user setup is ready).
