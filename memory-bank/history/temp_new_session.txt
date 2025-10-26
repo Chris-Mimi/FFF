@@ -1,0 +1,512 @@
+## Session: 2025-10-26 (Evening) - Publish/Unpublish Workflow Implementation
+
+**Date:** 2025-10-26 (Evening Session)
+**Duration:** ~2 hours
+**AI Assistant Used:** Claude Code (Sonnet 4.5)
+**Previous Work:** Grok attempted publish/unpublish feature but implementation was broken
+**Git Commits:**
+- `0a2d4d0` - fix(coach): add is_published field mapping to display "P" badge
+- `fa4dd69` - feat(publish): add publish/unpublish workout functionality
+- `4cf95c4` - fix(athlete): update field names to match database schema
+- `57cbab3` - fix(athlete): filter logbook to show only published workouts
+
+### Summary
+
+This session focused on cleaning up and properly implementing the publish/unpublish workout functionality after Grok's incomplete attempt. Started by reverting all uncommitted changes via git restore, then systematically rebuilt the feature with proper field name alignment, database schema fixes, and complete workflow integration.
+
+**Key Accomplishments:**
+1. Reverted Grok's uncommitted changes cleanly
+2. Fixed database schema field names (published → is_published, published_section_ids → publish_sections)
+3. Implemented complete PublishModal component with section selection, time/duration pickers
+4. Built API route with optional Google Calendar integration
+5. Added conditional Publish/Unpublish button in WOD Modal
+6. Fixed athlete page to show published workouts correctly (field name updates)
+7. Added is_published filter to athlete logbook query
+8. All changes properly committed with descriptive messages
+
+**Implementation Status:**
+- ✅ Complete publish/unpublish workflow operational
+- ✅ "P" badge displays correctly on coach calendar
+- ✅ Athlete page shows published workouts with correct data
+- ✅ Logbook filters to published workouts only
+- ✅ Auto-refresh after publish/unpublish actions
+- ✅ All field names aligned between database, TypeScript, and queries
+
+---
+
+### COMPLETED WORK
+
+#### 1. Reverting Grok's Incomplete Implementation
+
+**Problem:** Grok left the codebase in a broken state with uncommitted changes and mismatched field names.
+
+**Solution:** `git restore .` to revert all uncommitted changes and start fresh.
+
+**Result:** Clean working directory, ready to rebuild the feature properly.
+
+---
+
+#### 2. Fix "P" Badge Not Showing
+
+**Problem:** Coach calendar wasn't displaying "P" badge for published workouts because query didn't select `is_published` field.
+
+**Files Modified:** `app/coach/page.tsx`
+**Git Commit:** `0a2d4d0`
+
+**Changes:**
+Added `is_published` to query field mappings in two locations:
+
+**Weekly View Query (Line 185):**
+```typescript
+// Before
+id, date, track_id, tracks!inner(name, color), coach_notes, created_at, updated_at
+
+// After
+id, date, track_id, tracks!inner(name, color), coach_notes, is_published, created_at, updated_at
+```
+
+**Monthly View Query (Line 217):**
+```typescript
+// Same change - added is_published to query
+```
+
+**Impact:**
+- "P" badge now displays correctly on published workouts
+- Badge renders in top-right corner of workout cards
+
+---
+
+#### 3. Database Schema Field Name Corrections
+
+**Problem:** TypeScript interface and SQL migration had mismatched field names causing runtime errors.
+
+**Files Modified:** `supabase-publishing-columns.sql`
+
+**Field Name Mapping:**
+| Old Name | New Name | Type |
+|----------|----------|------|
+| `published` | `is_published` | BOOLEAN |
+| `published_section_ids` | `publish_sections` | TEXT[] |
+| `google_calendar_event_id` | `google_event_id` | TEXT |
+
+**Before:**
+```sql
+ALTER TABLE wods ADD COLUMN IF NOT EXISTS published BOOLEAN DEFAULT false;
+ALTER TABLE wods ADD COLUMN IF NOT EXISTS published_section_ids TEXT[];
+ALTER TABLE wods ADD COLUMN IF NOT EXISTS google_calendar_event_id TEXT;
+```
+
+**After:**
+```sql
+ALTER TABLE wods ADD COLUMN IF NOT EXISTS is_published BOOLEAN DEFAULT false;
+ALTER TABLE wods ADD COLUMN IF NOT EXISTS publish_sections TEXT[];
+ALTER TABLE wods ADD COLUMN IF NOT EXISTS google_event_id TEXT;
+```
+
+**TypeScript Interface:**
+```typescript
+interface WOD {
+  is_published: boolean
+  publish_sections: string[]
+  google_event_id: string | null
+  publish_time: string | null
+  publish_duration: number | null
+}
+```
+
+**Impact:**
+- Database schema now matches TypeScript interface exactly
+- Eliminates runtime errors from field name mismatches
+
+---
+
+#### 4. PublishModal Component Implementation
+
+**Files Modified:**
+- `components/PublishModal.tsx` (created/rebuilt)
+- `components/WODModal.tsx` (integrated modal)
+
+**Git Commit:** `fa4dd69`
+
+**Component Features:**
+1. **Section Selection:** Checkboxes for each WOD section, only selectable if content exists
+2. **Time Picker:** Dropdown with 30-min increments (5:00 AM - 9:30 PM), default 5:00 PM
+3. **Duration Selector:** Options: 30, 45, 60, 75, 90 minutes, default 60
+4. **Event Preview:** Shows selected sections, time, and duration
+5. **Auto-Refresh:** Calls `onPublishComplete()` callback to refresh calendar
+
+**Component Structure:**
+```typescript
+interface PublishModalProps {
+  isOpen: boolean
+  onClose: () => void
+  sections: WODSection[]
+  wodId: string
+  wodDate: string
+  onPublishComplete: () => void
+}
+```
+
+**Time Generation:**
+```typescript
+function generateTimeOptions() {
+  const times = []
+  for (let hour = 5; hour <= 21; hour++) {
+    for (let min of [0, 30]) {
+      if (hour === 21 && min === 30) break // Stop at 9:30 PM
+      const timeStr = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`
+      times.push({ value: timeStr, label: formatTime(timeStr) })
+    }
+  }
+  return times
+}
+```
+
+**Publish Handler:**
+```typescript
+const handlePublish = async () => {
+  if (selectedSections.length === 0) {
+    alert('Please select at least one section to publish')
+    return
+  }
+
+  const response = await fetch('/api/google/publish-workout', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      wodId, wodDate, sections: selectedSections, publishTime, duration: publishDuration
+    })
+  })
+
+  if (!response.ok) throw new Error('Failed to publish')
+
+  onPublishComplete()
+  onClose()
+}
+```
+
+---
+
+#### 5. API Route - Publish/Unpublish with Optional Google Calendar
+
+**Files Modified:** `app/api/google/publish-workout/route.ts`
+**Git Commit:** `fa4dd69`
+
+**Endpoints:**
+- **POST /api/google/publish-workout** - Publish a workout
+- **DELETE /api/google/publish-workout?wodId={id}** - Unpublish a workout
+
+**POST Request Body:**
+```typescript
+{
+  wodId: string        // WOD ID to publish
+  wodDate: string      // Workout date (YYYY-MM-DD)
+  sections: string[]   // Section type names to publish
+  publishTime: string  // Time in HH:MM format
+  duration: number     // Duration in minutes
+}
+```
+
+**Optional Google Calendar Integration:**
+```typescript
+const hasGoogleCredentials = Boolean(
+  process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL &&
+  process.env.GOOGLE_PRIVATE_KEY &&
+  process.env.GOOGLE_CALENDAR_ID
+)
+
+if (hasGoogleCredentials) {
+  // Create/delete Google Calendar event
+} else {
+  console.log('Google Calendar not configured, skipping event creation')
+}
+```
+
+**Database Update (Always Executes):**
+```typescript
+const { error } = await supabase
+  .from('wods')
+  .update({
+    is_published: true,
+    publish_sections: sections,
+    publish_time: publishTime,
+    publish_duration: duration,
+    google_event_id: eventId || null
+  })
+  .eq('id', wodId)
+```
+
+**Google Calendar Event:**
+```typescript
+const event = {
+  summary: `Workout - ${wodDate}`,
+  description: eventDescription,
+  start: {
+    dateTime: `${wodDate}T${publishTime}:00`,
+    timeZone: 'Europe/Berlin'
+  },
+  end: {
+    dateTime: calculateEndTime(wodDate, publishTime, duration),
+    timeZone: 'Europe/Berlin'
+  },
+  location: 'Bergwerkstrasse 10, Pforzen'
+}
+```
+
+**Unpublish (DELETE):**
+```typescript
+// Get current WOD data
+const { data: wod } = await supabase
+  .from('wods')
+  .select('google_event_id')
+  .eq('id', wodId)
+  .single()
+
+// Delete Google Calendar event if exists
+if (wod?.google_event_id && hasGoogleCredentials) {
+  await calendar.events.delete({
+    calendarId: process.env.GOOGLE_CALENDAR_ID,
+    eventId: wod.google_event_id
+  })
+}
+
+// Update database
+await supabase
+  .from('wods')
+  .update({
+    is_published: false,
+    publish_sections: null,
+    publish_time: null,
+    publish_duration: null,
+    google_event_id: null
+  })
+  .eq('id', wodId)
+```
+
+---
+
+#### 6. WOD Modal - Conditional Publish/Unpublish Button
+
+**Files Modified:** `components/WODModal.tsx`
+**Git Commit:** `fa4dd69`
+
+**Button Visibility Logic:**
+```typescript
+// Only show when editing existing workout with valid date
+const showPublishButton = wodId && selectedDate
+```
+
+**Conditional Button (Lines 1242-1260):**
+```typescript
+{showPublishButton && (
+  <>
+    {!wod.is_published ? (
+      <button
+        onClick={() => setShowPublishModal(true)}
+        className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700"
+      >
+        Publish
+      </button>
+    ) : (
+      <button
+        onClick={handleUnpublish}
+        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+      >
+        Unpublish
+      </button>
+    )}
+  </>
+)}
+```
+
+**Unpublish Handler:**
+```typescript
+const handleUnpublish = async () => {
+  if (!wodId) return
+  if (!confirm('Are you sure you want to unpublish this workout?')) return
+
+  const response = await fetch(
+    `/api/google/publish-workout?wodId=${wodId}`,
+    { method: 'DELETE' }
+  )
+
+  if (!response.ok) throw new Error('Failed to unpublish')
+
+  setWod({ ...wod, is_published: false })
+  onSave() // Refresh calendar
+}
+```
+
+**UX Flow:**
+1. Coach opens existing workout → Clicks "Publish"
+2. PublishModal opens → Coach selects sections/time/duration
+3. Clicks "Publish Workout" → API updates database + optional Google Calendar
+4. Modal closes, calendar refreshes → "P" badge appears, button changes to "Unpublish"
+
+---
+
+#### 7. Athlete Page Field Name Updates
+
+**Problem:** AthleteWorkoutsTab used old field names (published, published_section_ids) not matching database schema.
+
+**Files Modified:** `components/AthleteWorkoutsTab.tsx`
+**Git Commit:** `4cf95c4`
+
+**Line 33 - Query:**
+```typescript
+// Before
+id, date, published, published_section_ids, sections, coach_notes
+
+// After
+id, date, is_published, publish_sections, sections, coach_notes
+```
+
+**Line 193 - Section Filtering:**
+```typescript
+// Before
+const publishedSections = workout.sections?.filter(s =>
+  workout.published_section_ids?.includes(s.id)
+) || []
+
+// After
+const publishedSections = workout.sections?.filter(s =>
+  workout.publish_sections?.includes(s.section_type)
+) || []
+```
+
+**Impact:**
+- Athlete workouts tab now loads published workouts correctly
+- Section filtering works (filters by section_type name, not ID)
+
+---
+
+#### 8. Athlete Logbook Published Filter
+
+**Problem:** Athlete logbook showed ALL workouts, including unpublished. Athletes should only see published workouts.
+
+**Files Modified:** `app/athlete/page.tsx`
+**Git Commit:** `57cbab3`
+
+**Line 141:**
+```typescript
+// Before
+const { data: allWods } = await supabase
+  .from('wods')
+  .select(`id, date, sections`)
+  .order('date', { ascending: false })
+
+// After
+const { data: allWods } = await supabase
+  .from('wods')
+  .select(`id, date, sections`)
+  .eq('is_published', true)  // Only fetch published workouts
+  .order('date', { ascending: false })
+```
+
+**Data Flow:**
+```
+Coach creates workout → is_published = false (default)
+Coach clicks "Publish" → is_published = true → Workout appears in athlete logbook
+Coach clicks "Unpublish" → is_published = false → Workout hidden (logs preserved)
+```
+
+---
+
+### Git Commit Details
+
+**Commit 1: `0a2d4d0` - Fix "P" Badge**
+```
+fix(coach): add is_published field mapping to display "P" badge
+
+- Add is_published to query selects in both weekly and monthly views
+- Enables "P" badge to display on published workouts in coach calendar
+```
+
+**Commit 2: `fa4dd69` - Publish/Unpublish Feature**
+```
+feat(publish): add publish/unpublish workout functionality
+
+- Implement PublishModal component with section selection, time/duration pickers
+- Add POST/DELETE API routes with optional Google Calendar integration
+- Add conditional Publish/Unpublish button in WOD Modal header
+- Auto-refresh calendar after publish/unpublish actions
+- Fix database schema field names to match TypeScript interface
+```
+
+**Commit 3: `4cf95c4` - Athlete Page Field Names**
+```
+fix(athlete): update field names to match database schema
+
+- Change published → is_published in query
+- Change published_section_ids → publish_sections in query
+- Update section filtering to use section_type instead of id
+```
+
+**Commit 4: `57cbab3` - Logbook Published Filter**
+```
+fix(athlete): filter logbook to show only published workouts
+
+- Add .eq('is_published', true) to logbook workout query
+- Ensures athletes only see workouts coaches have published
+```
+
+---
+
+### Technical Decisions
+
+**1. Field Name Consistency**
+- Used `is_published` (boolean convention) instead of `published`
+- Used `publish_sections` (stores TEXT[] section type names) instead of `published_section_ids`
+- Rationale: Section type names are stable identifiers, easier to query, human-readable
+
+**2. Optional Google Calendar**
+- Made Google Calendar sync optional, not required
+- Database always updates, Google sync only if credentials present
+- Rationale: Reduces setup friction, prevents publishing failures due to API issues
+
+**3. Section Filtering by Type Name**
+- Filter using `section_type` (string) instead of `id` (number)
+- Rationale: Section IDs could change if table recreated, type names are stable business identifiers
+
+**4. Auto-Refresh on Publish/Unpublish**
+- Automatically refresh calendar after actions
+- Rationale: Immediate visual feedback, "P" badge appears/disappears instantly, better UX
+
+**5. Athlete Logbook Filtering**
+- Filter at database level, not client-side
+- Rationale: More efficient, prevents exposing draft workout data to client
+
+---
+
+### Debugging Steps
+
+**Problem 1: "P" Badge Not Appearing**
+- Symptom: Published workouts didn't show "P" badge
+- Investigation: Checked WOD Modal (working) → database (correct) → query (missing field)
+- Root Cause: Missing `is_published` in query select
+- Solution: Added `is_published` to both weekly/monthly queries
+
+**Problem 2: Athlete Page Not Showing Published Workouts**
+- Symptom: Empty calendar in athlete workouts tab
+- Investigation: PublishModal working → API working → database correct → query field mismatch
+- Root Cause: Query using old field names (published, published_section_ids)
+- Solution: Updated to new names (is_published, publish_sections)
+
+**Problem 3: Athlete Logbook Showing All Workouts**
+- Symptom: Both published and unpublished workouts visible
+- Investigation: Checked query, found no is_published filter
+- Root Cause: Missing `.eq('is_published', true)` filter
+- Solution: Added filter to query
+
+---
+
+### Lessons Learned
+
+1. **Revert Before Rebuild:** When inheriting broken code, reverting and rebuilding is often faster than debugging incrementally
+2. **Field Name Consistency is Critical:** Mismatched field names cause hard-to-debug runtime errors
+3. **Test Complete User Flows:** Individual component testing isn't enough, must test end-to-end workflows
+4. **Optional Dependencies Improve Resilience:** Making external APIs optional prevents single points of failure
+5. **Immediate Visual Feedback Matters:** Auto-refresh and instant badge updates provide better UX
+
+---
+
