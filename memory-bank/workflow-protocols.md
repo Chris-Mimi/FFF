@@ -1,6 +1,6 @@
 # Workflow Protocols (Agent & Context Mandates)
 
-Version: 1.4
+Version: 1.5
 Timestamp: 2025-10-26
 
 ## 🚨 SESSION START PROTOCOL (MANDATORY - DO THIS FIRST)
@@ -32,6 +32,31 @@ Read: memory-bank/workflow-protocols.md
 - ❌ Any directory explicitly marked as personal/private
 
 **Why:** `.gitignore` only affects Git commits, NOT Read tool access. This protocol prevents reading user's private files.
+
+---
+
+## 📝 COMMUNICATION TERMINOLOGY (MANDATORY)
+
+**Use correct Git/GitHub terminology when communicating with user:**
+
+**CORRECT:**
+- ✅ "Commit changes" or "Save to Git" (local)
+- ✅ "Push to GitHub" (upload to cloud)
+- ✅ "Use `git push` command"
+- ✅ "Upload commits to GitHub"
+
+**INCORRECT:**
+- ❌ "Push to git" (git is the tool, not the destination)
+- ❌ "Save to GitHub" (you commit first, then push)
+- ❌ Mixing up Git (tool) and GitHub (service)
+
+**Key Distinctions:**
+- **Git** = Version control software (tool on your computer)
+- **GitHub** = Cloud hosting service for Git repositories
+- **Commit** = Save changes locally with Git
+- **Push** = Upload commits from local Git to GitHub
+
+**Why this matters:** User needs clear, accurate terminology to understand the workflow.
 
 ---
 
