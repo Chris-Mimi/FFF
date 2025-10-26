@@ -2047,7 +2047,10 @@ export default function CoachDashboard() {
       {/* WOD Modal as Side Panel */}
       <WODModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          fetchWODs(); // Refresh to get updated publish status
+        }}
         onSave={handleSaveWOD}
         date={modalDate}
         editingWOD={editingWOD}
