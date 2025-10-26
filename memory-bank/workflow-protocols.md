@@ -37,7 +37,9 @@ Read: memory-bank/workflow-protocols.md
 
 ## 📝 COMMUNICATION TERMINOLOGY (MANDATORY)
 
-**Use correct Git/GitHub terminology when communicating with user:**
+**CORE PRINCIPLE:** Always use correct, consistent technical terminology. User can ask for clarification, but proper terms help learning and clear communication.
+
+### Git/GitHub Terminology
 
 **CORRECT:**
 - ✅ "Commit changes" or "Save to Git" (local)
@@ -56,7 +58,63 @@ Read: memory-bank/workflow-protocols.md
 - **Commit** = Save changes locally with Git
 - **Push** = Upload commits from local Git to GitHub
 
-**Why this matters:** User needs clear, accurate terminology to understand the workflow.
+### UI/Component Terminology (Consistency Required)
+
+**Always use these exact terms:**
+
+**Layout Components:**
+- **Modal** = Overlay window that blocks interaction with page behind it (e.g., PublishModal)
+- **Panel** = Side/fixed area that can coexist with main content (e.g., WOD Modal as side panel)
+- **Dropdown** = Select menu that expands downward
+- **Popover** = Small floating info box triggered by hover/click
+- **Tooltip** = Brief text hint on hover
+
+**Navigation Elements:**
+- **Navigation arrows** = Chevron/arrow buttons for moving between items
+- **Breadcrumbs** = Path showing current location (Home > Coach > Workouts)
+- **Tabs** = Horizontal navigation switching between views
+- **Sidebar** = Vertical navigation menu
+
+**Interactive Elements:**
+- **Button** = Clickable action trigger
+- **Toggle** = On/off switch
+- **Checkbox** = Square box for multiple selections
+- **Radio button** = Round button for single selection
+- **Input field** = Text entry box
+- **Textarea** = Multi-line text entry box
+
+**Data Display:**
+- **Table** = Grid of rows and columns
+- **Card** = Contained block of related info
+- **List** = Vertical stack of items
+- **Grid** = Multi-column layout of items
+- **Chip** = Small pill-shaped label/tag
+
+**States:**
+- **Disabled** = Greyed out, non-interactive
+- **Active** = Currently selected/in use
+- **Hover** = Mouse over element
+- **Focus** = Element selected for keyboard input
+- **Loading** = Waiting for data/action to complete
+
+### Database Terminology
+
+**Always use these exact terms:**
+- **Table** = Database table (e.g., `wods`, `athlete_profiles`)
+- **Column** = Table field (e.g., `published`, `event_time`)
+- **Row** = Single record in a table
+- **Query** = Database request for data
+- **Migration** = SQL script that changes database schema
+- **Schema** = Structure/organization of database tables
+
+### Why This Matters
+
+1. **Learning** - User learns correct technical vocabulary
+2. **Clarity** - No ambiguity about what's being discussed
+3. **Consistency** - Same element always called by same name
+4. **Professional communication** - User can discuss project with other developers
+
+**User can always ask:** "What's a modal?" or "What do you mean by migration?" - that's expected and encouraged.
 
 ---
 
