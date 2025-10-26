@@ -302,6 +302,8 @@ export default function CoachDashboard() {
             workout_type_id?: string;
           }>;
           coach_notes: string | null;
+          is_published: boolean;
+          google_event_id: string | null;
         }
 
         let results: WODFormData[] =
@@ -315,6 +317,8 @@ export default function CoachDashboard() {
             date: wod.date,
             sections: wod.sections,
             coach_notes: wod.coach_notes || undefined,
+            is_published: wod.is_published || false,
+            google_event_id: wod.google_event_id || null,
           })) || [];
 
         // Client-side filter for search query (OR logic for each term)
@@ -393,6 +397,8 @@ export default function CoachDashboard() {
           content: string;
         }>;
         coach_notes: string | null;
+        is_published: boolean;
+        google_event_id: string | null;
       }
 
       const grouped: Record<string, WODFormData[]> = {};
@@ -411,6 +417,8 @@ export default function CoachDashboard() {
           date: wod.date,
           sections: wod.sections,
           coach_notes: wod.coach_notes || undefined,
+          is_published: wod.is_published || false,
+          google_event_id: wod.google_event_id || null,
         });
       });
 
@@ -1073,11 +1081,18 @@ export default function CoachDashboard() {
                                   title='Drag to copy'
                                 >
                                   <div className='flex items-center justify-between gap-1'>
-                                    <div
-                                      className='font-semibold text-gray-900 truncate flex-1 cursor-pointer'
-                                      onClick={() => openEditModal(wod)}
-                                    >
-                                      {wod.title}
+                                    <div className='flex items-center gap-1 flex-1 min-w-0'>
+                                      <div
+                                        className='font-semibold text-gray-900 truncate cursor-pointer'
+                                        onClick={() => openEditModal(wod)}
+                                      >
+                                        {wod.title}
+                                      </div>
+                                      {wod.is_published && (
+                                        <span className='flex-shrink-0 text-[10px] font-bold text-white bg-[#208479] rounded px-1 py-0.5' title='Published'>
+                                          P
+                                        </span>
+                                      )}
                                     </div>
                                     <div className='flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity'>
                                       <button
@@ -1193,15 +1208,22 @@ export default function CoachDashboard() {
                             title='Drag to copy or click to edit'
                           >
                             <div className='pr-8'>
-                              <span
-                                className='font-bold text-sm text-gray-900 cursor-pointer block mb-2'
-                                onClick={e => {
-                                  e.stopPropagation();
-                                  openEditModal(wod);
-                                }}
-                              >
-                                {wod.title}
-                              </span>
+                              <div className='flex items-center gap-1 mb-2'>
+                                <span
+                                  className='font-bold text-sm text-gray-900 cursor-pointer'
+                                  onClick={e => {
+                                    e.stopPropagation();
+                                    openEditModal(wod);
+                                  }}
+                                >
+                                  {wod.title}
+                                </span>
+                                {wod.is_published && (
+                                  <span className='flex-shrink-0 text-[10px] font-bold text-white bg-[#208479] rounded px-1 py-0.5' title='Published'>
+                                    P
+                                  </span>
+                                )}
+                              </div>
                               <div className='text-xs text-gray-700'>
                                 {wod.classTimes?.join(', ')}
                               </div>
@@ -1333,15 +1355,22 @@ export default function CoachDashboard() {
                               title='Drag to copy or click to edit'
                             >
                               <div className='pr-8'>
-                                <span
-                                  className='font-bold text-sm text-gray-900 cursor-pointer block mb-2'
-                                  onClick={e => {
-                                    e.stopPropagation();
-                                    openEditModal(wod);
-                                  }}
-                                >
-                                  {wod.title}
-                                </span>
+                                <div className='flex items-center gap-1 mb-2'>
+                                  <span
+                                    className='font-bold text-sm text-gray-900 cursor-pointer'
+                                    onClick={e => {
+                                      e.stopPropagation();
+                                      openEditModal(wod);
+                                    }}
+                                  >
+                                    {wod.title}
+                                  </span>
+                                  {wod.is_published && (
+                                    <span className='flex-shrink-0 text-[10px] font-bold text-white bg-[#208479] rounded px-1 py-0.5' title='Published'>
+                                      P
+                                    </span>
+                                  )}
+                                </div>
                                 <div className='text-xs text-gray-700'>
                                   {wod.classTimes?.join(', ')}
                                 </div>
@@ -2018,7 +2047,10 @@ export default function CoachDashboard() {
       {/* WOD Modal as Side Panel */}
       <WODModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          fetchWODs(); // Refresh to get updated publish status
+        }}
         onSave={handleSaveWOD}
         date={modalDate}
         editingWOD={editingWOD}

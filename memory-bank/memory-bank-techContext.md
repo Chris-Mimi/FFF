@@ -1,7 +1,7 @@
 # Technical Context
 
-Version: 1.0
-Timestamp: [Update when tech changes]
+Version: 2.0
+Timestamp: 2025-10-26
 
 ---
 
@@ -9,21 +9,24 @@ Timestamp: [Update when tech changes]
 
 ### Frontend
 
-- **Framework:** [e.g., React 18, Vue 3, Vanilla JavaScript]
-- **Version:** [Specific version]
-- **Why chosen:** [Your reasoning]
+- **Framework:** Next.js 15 (App Router)
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS
+- **Why chosen:** Modern React framework with server-side rendering, API routes, and excellent TypeScript support
 
-### Backend (if applicable)
+### Backend
 
-- **Runtime/Language:** [e.g., Node.js, Python, Go]
-- **Framework:** [e.g., Express, Flask, FastAPI]
-- **Version:** [Specific version]
+- **Runtime:** Node.js (via Next.js API routes)
+- **Framework:** Next.js API Routes
+- **Database:** Supabase (PostgreSQL)
+- **Authentication:** Supabase Auth
 
 ### Database
 
-- **Type:** [e.g., SQLite, PostgreSQL, MongoDB]
-- **Version:** [Specific version]
-- **ORM/Query Library:** [e.g., Sequelize, Prisma, raw SQL]
+- **Type:** PostgreSQL (via Supabase)
+- **Version:** Supabase managed
+- **Query Library:** Supabase JavaScript client
+- **Key Features:** RLS (Row Level Security), JSONB columns, GIN indexes for full-text search
 
 ---
 
@@ -33,25 +36,35 @@ Timestamp: [Update when tech changes]
 
 ```json
 {
-  "dependency-name": "version",
-  "another-dep": "version"
+  "@supabase/supabase-js": "latest",
+  "next": "15.x",
+  "react": "18.x",
+  "recharts": "latest",
+  "stripe": "latest"
 }
 ```
 
 **Why we use them:**
-- **[Dependency 1]:** [What it does and why you need it]
-- **[Dependency 2]:** [What it does and why you need it]
+- **@supabase/supabase-js:** Database client and authentication
+- **next:** React framework with SSR and API routes
+- **react:** UI library
+- **recharts:** Progress charts for athlete tracking
+- **stripe:** Payment processing (upcoming booking system)
 
 ### Development Dependencies
 
 ```json
 {
-  "dev-dependency": "version"
+  "typescript": "latest",
+  "eslint": "latest",
+  "prettier": "latest"
 }
 ```
 
 **Purpose:**
-- **[Dev Dep 1]:** [What it helps with]
+- **TypeScript:** Type safety and better developer experience
+- **ESLint:** Code quality and consistency
+- **Prettier:** Automatic code formatting
 
 ---
 
@@ -60,20 +73,29 @@ Timestamp: [Update when tech changes]
 ### Environment Variables
 
 ```bash
-# Required
-DATABASE_URL=          # [What it's for]
-API_KEY=               # [What it's for]
+# Supabase (Required)
+NEXT_PUBLIC_SUPABASE_URL=          # Supabase project URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY=     # Supabase anonymous/public key
 
-# Optional
-DEBUG=                 # [What it's for]
-PORT=                  # [Default: 3000]
+# Google Calendar (Optional - Publishing feature)
+GOOGLE_SERVICE_ACCOUNT_EMAIL=      # Service account email
+GOOGLE_PRIVATE_KEY=                # Service account private key
+GOOGLE_CALENDAR_ID=                # Target calendar ID
+
+# Stripe (Upcoming - Booking system payments)
+STRIPE_SECRET_KEY=                 # Stripe secret key (Phase 2)
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY= # Stripe publishable key (Phase 2)
 ```
 
 ### Config Files
 
 - **`package.json`:** Project dependencies and scripts
-- **`.env`:** Environment-specific variables (NOT in Git)
-- **`[other-config].json`:** [What it configures]
+- **`.env.local`:** Environment-specific variables (NOT in Git, required for local development)
+- **`tsconfig.json`:** TypeScript configuration
+- **`tailwind.config.js`:** Tailwind CSS configuration
+- **`.eslintrc.js`:** ESLint rules and configuration
+- **`.prettierrc`:** Prettier formatting rules
+- **`.editorconfig`:** Editor settings for consistent formatting
 
 ---
 
@@ -83,9 +105,10 @@ PORT=                  # [Default: 3000]
 
 ```bash
 # Required software
-- Node.js 18+ (or your version)
-- npm or yarn
-- [Any other requirements]
+- Node.js 18+
+- npm (comes with Node.js)
+- Supabase account (for database)
+- Git
 ```
 
 ### Initial Setup
@@ -98,22 +121,19 @@ git clone [repo-url]
 npm install
 
 # 3. Create environment file
-cp .env.example .env
+# Create .env.local and add Supabase credentials
 
-# 4. Edit .env with your settings
-# (Add your API keys, etc.)
-
-# 5. Run development server
+# 4. Run development server
 npm run dev
 ```
 
 ### Available Scripts
 
 ```bash
-npm run dev          # Start development server
+npm run dev          # Start development server (http://localhost:3000)
 npm run build        # Build for production
-npm run test         # Run tests
-npm run lint         # Check code quality
+npm run lint         # Check code quality with ESLint
+npm run format       # Format code with Prettier (if configured)
 ```
 
 ---
@@ -122,26 +142,32 @@ npm run lint         # Check code quality
 
 ### Browser Support
 
-[Which browsers you're targeting]
-- Chrome/Edge: Latest 2 versions
+- Chrome/Edge: Latest 2 versions (primary target)
 - Firefox: Latest 2 versions
 - Safari: Latest 2 versions
-- [Your requirements]
+- Mobile browsers: iOS Safari, Chrome Android
 
 ### Performance Requirements
 
-[Any performance goals you have]
 - Page load: Under 3 seconds
-- API response: Under 500ms
-- [Your requirements]
+- API response: Under 500ms for database queries
+- Client-side rendering for interactive calendar
+- Optimized JSONB queries with GIN indexes
 
 ### Security Considerations
 
-[Security measures you're implementing]
-- Input validation
-- SQL injection prevention
-- XSS protection
-- [Your measures]
+- **Supabase RLS policies:** Row-level security enforced at database level
+- **Authentication:** Supabase Auth with JWT tokens
+- **Input validation:** TypeScript type checking + runtime validation
+- **SQL injection prevention:** Supabase client parameterized queries
+- **Environment variables:** Sensitive keys in .env.local (not committed)
+
+### Units System
+
+- **Metric units enforced throughout:**
+  - Weight: kilograms (kg)
+  - Distance: meters (m)
+  - Height: centimeters (cm)
 
 ---
 
@@ -152,13 +178,15 @@ npm run lint         # Check code quality
 **VS Code** with extensions:
 - ESLint
 - Prettier
-- [Other extensions you use]
+- TypeScript + JavaScript
+- Tailwind CSS IntelliSense
 
 ### Tools
 
 - **Git:** Version control
-- **Claude Code:** AI development assistant
-- **[Other tools]:** [Purpose]
+- **Claude Code:** AI development assistant (primary)
+- **Cline:** Backup AI assistant with free models (Grok, Supernova) for rate limit situations
+- **Supabase Dashboard:** Database management and SQL editor
 
 ---
 
@@ -166,26 +194,34 @@ npm run lint         # Check code quality
 
 ### External APIs
 
-**[API Name]:**
-- Purpose: [What you use it for]
-- Authentication: [How you authenticate]
+**Google Calendar API:**
+- Purpose: Publish workouts to public calendar for athletes
+- Authentication: Service account with OAuth 2.0
 - Endpoints used:
-  - `GET /endpoint` - [What it does]
-  - `POST /endpoint` - [What it does]
-- Rate limits: [If applicable]
-- Documentation: [Link]
+  - `POST /calendars/{calendarId}/events` - Create event
+  - `DELETE /calendars/{calendarId}/events/{eventId}` - Delete event
+- Rate limits: Standard Google API limits
+- Documentation: [Google Calendar API Docs](https://developers.google.com/calendar)
+- Status: Optional (app works without it)
 
-### Internal API (if you built one)
+**Stripe API (Upcoming - Phase 2):**
+- Purpose: Process subscription payments for booking system
+- Authentication: API keys (secret + publishable)
+- Endpoints: Checkout, subscriptions, webhooks
+- Documentation: [Stripe Docs](https://stripe.com/docs)
+
+### Internal API
 
 **Base URL:** `http://localhost:3000/api`
 
 **Endpoints:**
-- `GET /api/users` - Get all users
-- `POST /api/users` - Create new user
-- [Your endpoints]
+- `POST /api/google/publish-workout` - Publish workout to Google Calendar (optional Google sync)
+- `DELETE /api/google/publish-workout` - Delete workout from Google Calendar
+- Future: `/api/stripe/*` - Payment processing (Phase 2)
 
 **Authentication:**
-[How your API authentication works]
+- Supabase Auth session tokens
+- API routes validate user session before processing
 
 ---
 

@@ -21,7 +21,7 @@ interface Workout {
   title: string;
   date: string;
   sections: WorkoutSection[];
-  calendar_event_id?: string;
+  google_event_id?: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     // Fetch the workout from database
     const { data: workout, error: fetchError } = await supabase
       .from('wods')
-      .select('id, title, date, sections, calendar_event_id')
+      .select('id, title, date, sections, google_event_id')
       .eq('id', workoutId)
       .single();
 
@@ -113,11 +113,11 @@ export async function POST(request: NextRequest) {
           },
         };
 
-        if (workout.calendar_event_id) {
+        if (workout.google_event_id) {
           // Update existing event
           const response = await calendar.events.update({
             calendarId: process.env.GOOGLE_CALENDAR_ID,
-            eventId: workout.calendar_event_id,
+            eventId: workout.google_event_id,
             requestBody: event,
           });
           calendarEventId = response.data.id!;
@@ -139,12 +139,11 @@ export async function POST(request: NextRequest) {
     const { error: updateError } = await supabase
       .from('wods')
       .update({
-        published: true,
-        published_at: new Date().toISOString(),
-        published_section_ids: publishConfig.selectedSectionIds,
-        calendar_event_id: calendarEventId,
-        event_time: publishConfig.eventTime,
-        event_duration_minutes: publishConfig.eventDurationMinutes,
+        is_published: true,
+        publish_time: publishConfig.eventTime,
+        publish_duration: publishConfig.eventDurationMinutes,
+        publish_sections: publishConfig.selectedSectionIds,
+        google_event_id: calendarEventId,
       })
       .eq('id', workoutId);
 
@@ -186,7 +185,7 @@ export async function DELETE(request: NextRequest) {
     // Fetch the workout
     const { data: workout, error: fetchError } = await supabase
       .from('wods')
-      .select('calendar_event_id')
+      .select('google_event_id')
       .eq('id', workoutId)
       .single();
 
@@ -196,7 +195,7 @@ export async function DELETE(request: NextRequest) {
 
     // Delete from Google Calendar if event exists
     if (
-      workout.calendar_event_id &&
+      workout.google_event_id &&
       process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL &&
       process.env.GOOGLE_PRIVATE_KEY &&
       process.env.GOOGLE_CALENDAR_ID
@@ -214,7 +213,7 @@ export async function DELETE(request: NextRequest) {
       try {
         await calendar.events.delete({
           calendarId: process.env.GOOGLE_CALENDAR_ID,
-          eventId: workout.calendar_event_id,
+          eventId: workout.google_event_id,
         });
       } catch (error) {
         console.error('Error deleting calendar event:', error);
@@ -226,10 +225,11 @@ export async function DELETE(request: NextRequest) {
     const { error: updateError } = await supabase
       .from('wods')
       .update({
-        published: false,
-        published_at: null,
-        published_section_ids: [],
-        calendar_event_id: null,
+        is_published: false,
+        publish_time: null,
+        publish_duration: null,
+        publish_sections: null,
+        google_event_id: null,
       })
       .eq('id', workoutId);
 

@@ -46,6 +46,8 @@ export interface WODFormData {
   date: string;
   sections: WODSection[];
   coach_notes?: string;
+  is_published?: boolean;
+  google_event_id?: string | null;
 }
 
 interface Exercise {
@@ -1100,6 +1102,7 @@ export default function WODModal({
       }
 
       setPublishModalOpen(false);
+      onClose(); // Close modal to refresh calendar
       alert('Workout published successfully!');
     } catch (error) {
       console.error('Error publishing workout:', error);
@@ -1107,6 +1110,28 @@ export default function WODModal({
       throw error;
     } finally {
       setIsPublishing(false);
+    }
+  };
+
+  const handleUnpublish = async () => {
+    if (!confirm('Unpublish this workout? It will be removed from athletes\' calendars.')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/google/publish-workout?workoutId=${editingWOD?.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to unpublish workout');
+      }
+
+      onClose(); // Close modal to refresh calendar
+      alert('Workout unpublished successfully!');
+    } catch (error) {
+      console.error('Error unpublishing workout:', error);
+      alert('Failed to unpublish workout. Please try again.');
     }
   };
 
@@ -1300,17 +1325,31 @@ export default function WODModal({
                 <span className='text-sm'>Notes</span>
               </button>
               {editingWOD?.id && (
-                <button
-                  onClick={e => {
-                    e.preventDefault();
-                    setPublishModalOpen(true);
-                  }}
-                  className='hover:bg-[#1a6b62] p-2 rounded transition flex items-center gap-2'
-                  title='Publish Workout'
-                >
-                  <Send size={20} />
-                  <span className='text-sm'>Publish</span>
-                </button>
+                editingWOD.is_published ? (
+                  <button
+                    onClick={e => {
+                      e.preventDefault();
+                      handleUnpublish();
+                    }}
+                    className='hover:bg-[#1a6b62] p-2 rounded transition flex items-center gap-2'
+                    title='Unpublish Workout'
+                  >
+                    <X size={20} />
+                    <span className='text-sm'>Unpublish</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={e => {
+                      e.preventDefault();
+                      setPublishModalOpen(true);
+                    }}
+                    className='hover:bg-[#1a6b62] p-2 rounded transition flex items-center gap-2'
+                    title='Publish Workout'
+                  >
+                    <Send size={20} />
+                    <span className='text-sm'>Publish</span>
+                  </button>
+                )
               )}
               <button
                 onClick={e => {
@@ -1552,17 +1591,31 @@ export default function WODModal({
                 <span className='text-sm'>Notes</span>
               </button>
               {editingWOD?.id && (
-                <button
-                  onClick={e => {
-                    e.preventDefault();
-                    setPublishModalOpen(true);
-                  }}
-                  className='hover:bg-[#1a6b62] p-2 rounded transition flex items-center gap-2'
-                  title='Publish Workout'
-                >
-                  <Send size={20} />
-                  <span className='text-sm'>Publish</span>
-                </button>
+                editingWOD.is_published ? (
+                  <button
+                    onClick={e => {
+                      e.preventDefault();
+                      handleUnpublish();
+                    }}
+                    className='hover:bg-[#1a6b62] p-2 rounded transition flex items-center gap-2'
+                    title='Unpublish Workout'
+                  >
+                    <X size={20} />
+                    <span className='text-sm'>Unpublish</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={e => {
+                      e.preventDefault();
+                      setPublishModalOpen(true);
+                    }}
+                    className='hover:bg-[#1a6b62] p-2 rounded transition flex items-center gap-2'
+                    title='Publish Workout'
+                  >
+                    <Send size={20} />
+                    <span className='text-sm'>Publish</span>
+                  </button>
+                )
               )}
               <button
                 onClick={e => {

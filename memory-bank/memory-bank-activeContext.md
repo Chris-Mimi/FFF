@@ -1,6 +1,6 @@
 # The Forge Functional Fitness - Active Context (Final, Corrected)
 
-Version: 2.20
+Version: 2.21
 Timestamp: 2025-10-26
 
 ## ⚠️ CRITICAL RULES & CONTEXT
@@ -201,11 +201,142 @@ The project is **IN PROGRESS**. All core data models and UI features are complet
 
 ---
 
+## ✅ Publish/Unpublish Workflow (v2.21)
+
+| **Feature** | Description | Files |
+| :--- | :--- | :--- |
+| **Grok Revert & Rebuild** | Reverted incomplete Grok implementation, rebuilt publish/unpublish from scratch with proper field mappings. | `git restore .` → rebuild |
+| **"P" Badge Display** | Added is_published field to coach page queries (fetchWODs, searchWODs) to show publish badge. | `app/coach/page.tsx:185,217` |
+| **Schema Field Names** | Corrected SQL migration to match TypeScript (published → is_published, calendar_event_id → google_event_id, published_section_ids → publish_sections, event_time → publish_time, event_duration_minutes → publish_duration). | `supabase-publishing-columns.sql` |
+| **Publish/Unpublish Flow** | Complete workflow: PublishModal (section selection, time/duration), API route (POST/DELETE), conditional button (Publish vs Unpublish), auto-refresh calendar. | `components/PublishModal.tsx`, `app/api/google/publish-workout/route.ts`, `components/WODModal.tsx:1242-1260`, `app/coach/page.tsx` |
+| **Athlete Workouts Fix** | Updated all field names in AthleteWorkoutsTab (published → is_published, published_section_ids → publish_sections). | `components/AthleteWorkoutsTab.tsx:33,193` |
+| **Logbook Filter** | Added .eq('is_published', true) to athlete logbook query to show only published workouts. | `app/athlete/page.tsx:141` |
+
+---
+
+## 📅 Booking System Planning (v3.0)
+
+| **Feature** | Description | Implementation Phase |
+| :--- | :--- | :--- |
+| **Overview** | Three-section app: Coach Page (workouts), Book a WOD Page (member bookings), Athlete Page (paid performance tracking). | — |
+| **Weekly Workflow** | Sunday 15:00: Auto-generate weekly sessions from templates with coach review. Sessions create placeholder workouts on calendar. Members book by class type only (content hidden until published). | Phase 1 |
+| **Member System** | Self-registration with pending status. Coach approval required (active/blocked). Individual 1-month Athlete trial per member (starts on approval). Family accounts supported with tiered pricing. | Phase 1 |
+| **Session Templates** | Database-driven templates: day_of_week, time, workout_type, capacity. Used for weekly auto-generation. | Phase 1 |
+| **Booking Flow** | Members book sessions with capacity limits. Waitlist when full. Coach notified of waitlist, can promote members or increase capacity. | Phase 1 |
+| **Coach Integration** | Booking badges on calendar cards: "[8/10 +2]" (confirmed/capacity +waitlist). Color-coded: green (available), yellow (nearly full), red (full), purple (waitlist). Session Management Modal for bookings. | Phase 1 |
+| **Publishing Restriction** | Published workouts visible ONLY to members who booked that specific session AND have active subscription or trial. | Phase 1 |
+| **Payments (Stripe)** | Monthly/yearly subscriptions with family pricing tiers. Trial expiry shows paywall with subscribe prompt. Germany-compatible. | Phase 2 |
+| **Notifications** | In-app bell icon initially. Email notifications later: account approval, booking confirmed, waitlist promoted, trial ending. | Phase 3 |
+
+### Database Schema (New Tables)
+
+**1. members**
+- id (UUID, PK), email, password_hash, name, phone
+- status (pending, active, blocked)
+- account_type (primary, family_member)
+- primary_member_id (FK to members, nullable)
+- athlete_trial_start (timestamp, individual per member)
+- athlete_subscription_status (trial, active, expired)
+- athlete_subscription_end (timestamp)
+- athlete_access (boolean, calculated field)
+- created_at, updated_at
+
+**2. session_templates**
+- id (UUID, PK)
+- day_of_week (1-7, Monday=1)
+- time (HH:MM)
+- workout_type (WOD, Foundations, Diapers & Dumbbells, etc.)
+- default_capacity (integer)
+- active (boolean)
+
+**3. weekly_sessions**
+- id (UUID, PK)
+- date (YYYY-MM-DD)
+- time (HH:MM)
+- workout_id (FK to wods, auto-created placeholder)
+- capacity (integer)
+- status (draft, published, completed, cancelled)
+
+**4. bookings**
+- id (UUID, PK)
+- session_id (FK to weekly_sessions)
+- member_id (FK to members)
+- status (confirmed, waitlist, cancelled)
+- booked_at (timestamp)
+
+**5. subscriptions**
+- id (UUID, PK)
+- primary_member_id (FK to members)
+- plan_type (monthly, yearly)
+- family_member_count (integer, for tiered pricing)
+- status (active, expired, cancelled)
+- current_period_end (timestamp)
+- stripe_subscription_id
+- created_at, updated_at
+
+### Implementation Priorities
+
+**Phase 1 - Core Booking System:**
+1. Create database schema (5 new tables)
+2. Member registration and coach approval workflow
+3. Session templates and weekly auto-generation (Sunday 15:00)
+4. Booking interface for members (capacity + waitlist)
+5. Coach page integration (booking badges + Session Management Modal)
+
+**Phase 2 - Payment Integration:**
+6. Stripe setup and configuration
+7. Subscription management (monthly/yearly)
+8. Paywall for Athlete Page after trial
+
+**Phase 3 - Enhancements:**
+9. Notification system (in-app → email)
+10. Advanced booking features
+
+---
+
+## 📤 Google Calendar Workouts Import Planning (v3.0 - Future Feature)
+
+ChatGPT analysis provided comprehensive ETL strategy for importing 5+ years of workout data from Google Calendar text events into structured Supabase format.
+
+| **Phase** | **Key Features** | **Technical Approach** |
+| :--- | :--- | :--- |
+| **Import Strategy** | 5+ years (≈1500 workouts) → Staged approach: Test week → Test month → Full migration | Google Calendar API → Python/JS ETL script → Supabase |
+| **Text Processing** | Parse inconsistent text formats → Map to structured sections (Warm-Up, Strength, WOD) | Fuzzy section detection, exercise name matching against Supabase library |
+| **Data Safety** | No data loss: Raw text preservation in coach_notes for unclear content | 100% backup in raw_text field, catch-all for unparsed content |
+| **Database Schema** | Import tables (calendar_imports, calendar_imported_sections, calendar_imported_exercises) → Live tables (workouts, workout_sections, workout_movements) | Hybrid: Temp import tables for testing, then promote to production |
+| **User Experience** | Manual review for unknown exercises, automated handling of YouTube/Facebook links, optional Google publishing | Admin dashboard for unmatched exercise review, structured reprocessing possible |
+
+| **Technology Stack** | **Tools** | **Key Dependencies** |
+| :--- | :--- | :--- |
+| **Scripting** | Python preferred (supabase-py, google-api-python-client) | google-api-python-client, fuzzywuzzy for matching, supabase-py |
+| **Database** | PostgreSQL extensions for fuzzy matching possible | TEXT[] for section types, UUID relationships, preserve original raw_text |
+| **Setup** | Google Cloud Console for API access + Service Account | OAuth 2.0 credentials, Calendar.readonly scope |
+| **Processing** | Dry-run mode for testing, promotion script for final migration | Batch processing, confidence scores for parsing quality |
+
+| **Workflow** | **Steps** | **Safety Measures** |
+| :--- | :--- | :--- |
+| **1. Extraction** | Google Calendar API pulls events by date range | Time range parametrization (--start --end) |
+| **2. Parsing** | Section detection (fuzzy keywords), exercise extraction from text | Confidence rating per workout (0-1 scale) |
+| **3. Matching** | Fuzzy match against Supabase exercises library | Unknown exercises flagged for review |
+| **4. Staging** | Store in temporary import tables for testing | Never touches production data during testing |
+| **5. Promotion** | Script moves validated data to live tables | Unmatched content goes to coach_notes |
+
+| **Risks & Mitigations** | **Solution** |
+| :--- | :--- |
+| Inconsistent text formatting (5 years of variation) | Fuzzy detection for section headers, raw_text backup |
+| Unknown exercises (Incomplete Supabase library) | Separate unknown_exercises table, manual review workflow |
+| Links/videos in workout text | Automatic extraction to links field or coach_notes |
+| API rate limits/timeouts (1500 events) | Staged imports, parameterized batch processing |
+| Data loss during import | Always preserve original raw text, reprocess anytime |
+
+---
+
 ## 📋 NEXT STEPS (Priority)
 
 1.  **Execute Publishing Migration:** Run `supabase-publishing-columns.sql` in Supabase SQL Editor to add publishing columns to wods table.
 2.  **Google Calendar Setup (Optional):** Follow `GOOGLE_CALENDAR_SETUP.md` to create service account and fill in environment variables (publishing works without this).
 3.  **Test Publishing Workflow:** Test event creation/deletion and athlete view.
 4.  **Run Migration:** Execute `supabase-section-types.sql` in Supabase SQL Editor to create section_types table.
-5.  Add `user_id` to all athlete tables (currently NULL).
-6.  Remove **PUBLIC RLS policies** using the migration script (once multi-user setup is ready).
+5.  **Begin Booking System Phase 1:** Start with database schema creation for members, session_templates, weekly_sessions, bookings, and subscriptions tables.
+6.  Add `user_id` to all athlete tables (currently NULL).
+7.  Remove **PUBLIC RLS policies** using the migration script (once multi-user setup is ready).

@@ -536,7 +536,8 @@ function LogbookTab({ userId }: { userId: string }) {
     date: string;
     tracks?: { name: string; color: string };
     workout_types?: { name: string };
-    sections: Array<{ type: string; content: string; duration?: string }>;
+    sections: Array<{ id: string; type: string; content: string; duration?: string }>;
+    published_section_ids?: string[];
   }
 
   const [wods, setWods] = useState<WOD[]>([]);
@@ -555,7 +556,7 @@ function LogbookTab({ userId }: { userId: string }) {
     const dateStr = date.toISOString().split('T')[0];
 
     try {
-      // Fetch WODs
+      // Fetch WODs (only published workouts)
       const { data: wodsData, error: wodsError } = await supabase
         .from('wods')
         .select(
@@ -565,7 +566,8 @@ function LogbookTab({ userId }: { userId: string }) {
           workout_types (name)
         `
         )
-        .eq('date', dateStr);
+        .eq('date', dateStr)
+        .eq('is_published', true);
 
       if (wodsError) throw wodsError;
       setWods(wodsData || []);
@@ -604,6 +606,15 @@ function LogbookTab({ userId }: { userId: string }) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const getPublishedSections = (wod: WOD) => {
+    if (!wod.published_section_ids || wod.published_section_ids.length === 0) {
+      return wod.sections;
+    }
+    return wod.sections.filter(section =>
+      wod.published_section_ids?.includes(section.id)
+    );
   };
 
   const handleSaveWorkoutLog = async (wodId: string) => {
@@ -765,21 +776,20 @@ function LogbookTab({ userId }: { userId: string }) {
 
               {/* WOD Sections */}
               <div className='space-y-4'>
-                {wod.sections &&
-                  wod.sections.map((section, index: number) => (
-                    <div key={index} className='border-l-4 border-[#208479] pl-4'>
-                      <div className='flex items-center gap-2 mb-2'>
-                        <h4 className='font-semibold text-gray-900'>{section.type}</h4>
-                        {section.duration && (
-                          <span className='text-sm text-gray-600 flex items-center gap-1'>
-                            <Clock size={14} />
-                            {section.duration} min
-                          </span>
-                        )}
-                      </div>
-                      <p className='text-gray-700 whitespace-pre-wrap'>{section.content}</p>
+                {getPublishedSections(wod).map((section, index: number) => (
+                  <div key={section.id || index} className='border-l-4 border-[#208479] pl-4'>
+                    <div className='flex items-center gap-2 mb-2'>
+                      <h4 className='font-semibold text-gray-900'>{section.type}</h4>
+                      {section.duration && (
+                        <span className='text-sm text-gray-600 flex items-center gap-1'>
+                          <Clock size={14} />
+                          {section.duration} min
+                        </span>
+                      )}
                     </div>
-                  ))}
+                    <p className='text-gray-700 whitespace-pre-wrap'>{section.content}</p>
+                  </div>
+                ))}
               </div>
 
               {/* Workout Notes Section */}
