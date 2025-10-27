@@ -31,8 +31,32 @@ export default function LoginPage() {
 
       if (role === 'coach') {
         router.push('/coach');
-      } else {
+      } else if (role === 'athlete') {
         router.push('/athlete');
+      } else {
+        // Check if user is a member
+        const { supabase } = await import('@/lib/supabase');
+        const { data: member } = await supabase
+          .from('members')
+          .select('id, status')
+          .eq('id', user.id)
+          .single();
+
+        if (member) {
+          if (member.status === 'pending') {
+            setError('Your account is pending approval. Please wait for coach approval.');
+            await signOut();
+            return;
+          } else if (member.status === 'blocked') {
+            setError('Your account has been blocked. Please contact the coach.');
+            await signOut();
+            return;
+          } else {
+            router.push('/member/book');
+          }
+        } else {
+          router.push('/athlete');
+        }
       }
     } catch (err) {
       console.error('Login error:', err);
@@ -113,6 +137,15 @@ export default function LoginPage() {
             Don&apos;t have an account?{' '}
             <Link href='/signup' className='text-[#208479] hover:text-[#1a6b62] font-medium'>
               Sign up
+            </Link>
+          </p>
+        </div>
+
+        <div className='mt-4 text-center'>
+          <p className='text-gray-600 text-sm'>
+            New member?{' '}
+            <Link href='/auth/register-member' className='text-[#208479] hover:text-[#1a6b62] font-medium'>
+              Register for class booking
             </Link>
           </p>
         </div>

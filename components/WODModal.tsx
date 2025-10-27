@@ -16,6 +16,14 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react';
 import PublishModal, { PublishConfig } from './PublishModal';
 
+// Format date to YYYY-MM-DD using local timezone
+const formatDateLocal = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 interface WODModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -642,7 +650,7 @@ export default function WODModal({
     workout_type_id: '',
     classTimes: [],
     maxCapacity: 12,
-    date: date.toISOString().split('T')[0],
+    date: formatDateLocal(date),
     sections: [],
   });
 
@@ -867,7 +875,7 @@ export default function WODModal({
           workout_type_id: '',
           classTimes: [],
           maxCapacity: 12,
-          date: date.toISOString().split('T')[0],
+          date: formatDateLocal(date),
           sections: templateSections,
         });
         // Expand the first section (Warm-up) and track it
@@ -1064,9 +1072,10 @@ export default function WODModal({
       newErrors.title = 'Title is required';
     }
 
-    if (formData.classTimes.length === 0) {
-      newErrors.classTimes = 'Select at least one class time';
-    }
+    // Class times are now managed via schedule sessions, not required here
+    // if (formData.classTimes.length === 0) {
+    //   newErrors.classTimes = 'Select at least one class time';
+    // }
 
     if (formData.sections.length === 0) {
       newErrors.sections = 'Add at least one section';
@@ -1447,53 +1456,25 @@ export default function WODModal({
               </select>
             </div>
 
-            {/* Class Times and Max Capacity */}
-            <div className='flex gap-6 items-start'>
-              {/* Class Times */}
-              <div className='flex-1'>
-                <label className='block text-sm font-semibold mb-2 text-gray-900'>
-                  Class Times <span className='text-red-500'>*</span>
-                </label>
-                <div className='flex flex-wrap gap-2'>
-                  {CLASS_TIME_OPTIONS.map(time => (
-                    <button
-                      key={time}
-                      type='button'
-                      onClick={() => toggleClassTime(time)}
-                      className={`px-3 py-1.5 rounded text-sm font-medium transition ${
-                        formData.classTimes.includes(time)
-                          ? 'bg-[#208479] text-white'
-                          : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
-                      }`}
-                    >
-                      {time}
-                    </button>
-                  ))}
-                </div>
-                {errors.classTimes && (
-                  <p className='text-red-500 text-sm mt-1'>{errors.classTimes}</p>
-                )}
-              </div>
-
-              {/* Max Capacity */}
-              <div className='w-32'>
-                <label className='block text-sm font-semibold mb-2 text-gray-900'>
-                  Max Capacity <span className='text-red-500'>*</span>
-                </label>
-                <input
-                  type='number'
-                  value={formData.maxCapacity}
-                  onChange={e => handleChange('maxCapacity', parseInt(e.target.value) || 0)}
-                  min='1'
-                  max='30'
-                  className={`w-full px-3 py-1.5 text-sm border rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 ${
-                    errors.maxCapacity ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                />
-                {errors.maxCapacity && (
-                  <p className='text-red-500 text-sm mt-1'>{errors.maxCapacity}</p>
-                )}
-              </div>
+            {/* Max Capacity */}
+            <div>
+              <label className='block text-sm font-semibold mb-2 text-gray-900'>
+                Max Capacity <span className='text-red-500'>*</span>
+              </label>
+              <input
+                type='number'
+                value={formData.maxCapacity}
+                onChange={e => handleChange('maxCapacity', parseInt(e.target.value) || 0)}
+                min='1'
+                max='30'
+                className={`w-32 px-3 py-1.5 text-sm border rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 ${
+                  errors.maxCapacity ? 'border-red-500' : 'border-gray-300'
+                }`}
+              />
+              {errors.maxCapacity && (
+                <p className='text-red-500 text-sm mt-1'>{errors.maxCapacity}</p>
+              )}
+              <p className='text-xs text-gray-500 mt-1'>Session times are managed via schedule templates</p>
             </div>
 
             {/* Sections */}
@@ -1704,53 +1685,25 @@ export default function WODModal({
                 </select>
               </div>
 
-              {/* Class Times and Max Capacity */}
-              <div className='flex gap-6 items-start'>
-                {/* Class Times */}
-                <div className='flex-1'>
-                  <label className='block text-sm font-semibold mb-2 text-gray-900'>
-                    Class Times <span className='text-red-500'>*</span>
-                  </label>
-                  <div className='flex flex-wrap gap-2'>
-                    {CLASS_TIME_OPTIONS.map(time => (
-                      <button
-                        key={time}
-                        type='button'
-                        onClick={() => toggleClassTime(time)}
-                        className={`px-3 py-1.5 rounded text-sm font-medium transition ${
-                          formData.classTimes.includes(time)
-                            ? 'bg-[#208479] text-white'
-                            : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
-                        }`}
-                      >
-                        {time}
-                      </button>
-                    ))}
-                  </div>
-                  {errors.classTimes && (
-                    <p className='text-red-500 text-sm mt-1'>{errors.classTimes}</p>
-                  )}
-                </div>
-
-                {/* Max Capacity */}
-                <div className='w-32'>
-                  <label className='block text-sm font-semibold mb-2 text-gray-900'>
-                    Max Capacity <span className='text-red-500'>*</span>
-                  </label>
-                  <input
-                    type='number'
-                    value={formData.maxCapacity}
-                    onChange={e => handleChange('maxCapacity', parseInt(e.target.value) || 0)}
-                    min='1'
-                    max='30'
-                    className={`w-full px-3 py-1.5 text-sm border rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 ${
-                      errors.maxCapacity ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                  />
-                  {errors.maxCapacity && (
-                    <p className='text-red-500 text-sm mt-1'>{errors.maxCapacity}</p>
-                  )}
-                </div>
+              {/* Max Capacity */}
+              <div>
+                <label className='block text-sm font-semibold mb-2 text-gray-900'>
+                  Max Capacity <span className='text-red-500'>*</span>
+                </label>
+                <input
+                  type='number'
+                  value={formData.maxCapacity}
+                  onChange={e => handleChange('maxCapacity', parseInt(e.target.value) || 0)}
+                  min='1'
+                  max='30'
+                  className={`w-32 px-3 py-1.5 text-sm border rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 ${
+                    errors.maxCapacity ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                />
+                {errors.maxCapacity && (
+                  <p className='text-red-500 text-sm mt-1'>{errors.maxCapacity}</p>
+                )}
+                <p className='text-xs text-gray-500 mt-1'>Session times are managed via schedule templates</p>
               </div>
 
               {/* Sections */}

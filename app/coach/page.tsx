@@ -1,6 +1,7 @@
 'use client';
 
 import WODModal, { WODFormData, WODSection } from '@/components/WODModal';
+import SessionManagementModal from '@/components/SessionManagementModal';
 import { getCurrentUser, signOut } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import {
@@ -67,6 +68,11 @@ export default function CoachDashboard() {
   const [hoveredWOD, setHoveredWOD] = useState<WODFormData | null>(null);
   const [excludedSectionTypes, setExcludedSectionTypes] = useState<string[]>([]);
   const [focusedDate, setFocusedDate] = useState<Date | null>(null);
+  const [sessionManagementModal, setSessionManagementModal] = useState<{
+    isOpen: boolean;
+    sessionId: string | null;
+    workoutDate: string | null;
+  }>({ isOpen: false, sessionId: null, workoutDate: null });
 
   useEffect(() => {
     // Check authentication
@@ -589,6 +595,12 @@ export default function CoachDashboard() {
 
         if (error) throw error;
 
+        // Update all linked weekly_sessions with new capacity
+        await supabase
+          .from('weekly_sessions')
+          .update({ capacity: wodData.maxCapacity })
+          .eq('workout_id', editingWOD.id);
+
         // If this WOD has a linked weekly_session, publish it
         if (editingWOD.booking_info?.session_id) {
           await supabase
@@ -598,7 +610,7 @@ export default function CoachDashboard() {
         }
       } else {
         // Create new WOD
-        const { error } = await supabase.from('wods').insert([
+        const { data: newWOD, error } = await supabase.from('wods').insert([
           {
             title: wodData.title,
             track_id: wodData.track_id || null,
@@ -609,9 +621,22 @@ export default function CoachDashboard() {
             sections: wodData.sections,
             coach_notes: wodData.coach_notes || null,
           },
-        ]);
+        ]).select().single();
 
         if (error) throw error;
+
+        // Create a weekly_session for each class time if provided
+        if (wodData.classTimes && wodData.classTimes.length > 0 && newWOD) {
+          for (const time of wodData.classTimes) {
+            await supabase.from('weekly_sessions').insert({
+              date: dateKey,
+              time: time,
+              workout_id: newWOD.id,
+              capacity: wodData.maxCapacity,
+              status: 'draft'
+            });
+          }
+        }
       }
 
       // Refresh WODs and track counts from database
@@ -1157,17 +1182,25 @@ export default function CoachDashboard() {
                                         </span>
                                       )}
                                       {wod.booking_info && (
-                                        <span
-                                          className={`flex-shrink-0 text-[10px] font-bold text-white rounded px-1 py-0.5 ${
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSessionManagementModal({
+                                              isOpen: true,
+                                              sessionId: wod.booking_info.session_id,
+                                              workoutDate: wod.date
+                                            });
+                                          }}
+                                          className={`flex-shrink-0 text-[10px] font-bold text-white rounded px-1 py-0.5 hover:opacity-80 transition cursor-pointer ${
                                             wod.booking_info.waitlist_count > 0 ? 'bg-purple-600' :
                                             wod.booking_info.confirmed_count >= wod.booking_info.capacity ? 'bg-red-600' :
                                             wod.booking_info.confirmed_count >= wod.booking_info.capacity * 0.8 ? 'bg-yellow-600' :
                                             'bg-green-600'
                                           }`}
-                                          title={`${wod.booking_info.confirmed_count} confirmed / ${wod.booking_info.capacity} capacity${wod.booking_info.waitlist_count > 0 ? ` (+${wod.booking_info.waitlist_count} waitlist)` : ''}`}
+                                          title={`Click to manage session - ${wod.booking_info.confirmed_count} confirmed / ${wod.booking_info.capacity} capacity${wod.booking_info.waitlist_count > 0 ? ` (+${wod.booking_info.waitlist_count} waitlist)` : ''}`}
                                         >
                                           {wod.booking_info.confirmed_count}/{wod.booking_info.capacity}{wod.booking_info.waitlist_count > 0 ? ` +${wod.booking_info.waitlist_count}` : ''}
-                                        </span>
+                                        </button>
                                       )}
                                     </div>
                                     <div className='flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity'>
@@ -1300,17 +1333,25 @@ export default function CoachDashboard() {
                                   </span>
                                 )}
                                 {wod.booking_info && (
-                                  <span
-                                    className={`flex-shrink-0 text-[10px] font-bold text-white rounded px-1 py-0.5 ${
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSessionManagementModal({
+                                        isOpen: true,
+                                        sessionId: wod.booking_info.session_id,
+                                        workoutDate: wod.date
+                                      });
+                                    }}
+                                    className={`flex-shrink-0 text-[10px] font-bold text-white rounded px-1 py-0.5 hover:opacity-80 transition cursor-pointer ${
                                       wod.booking_info.waitlist_count > 0 ? 'bg-purple-600' :
                                       wod.booking_info.confirmed_count >= wod.booking_info.capacity ? 'bg-red-600' :
                                       wod.booking_info.confirmed_count >= wod.booking_info.capacity * 0.8 ? 'bg-yellow-600' :
                                       'bg-green-600'
                                     }`}
-                                    title={`${wod.booking_info.confirmed_count} confirmed / ${wod.booking_info.capacity} capacity${wod.booking_info.waitlist_count > 0 ? ` (+${wod.booking_info.waitlist_count} waitlist)` : ''}`}
+                                    title={`Click to manage session - ${wod.booking_info.confirmed_count} confirmed / ${wod.booking_info.capacity} capacity${wod.booking_info.waitlist_count > 0 ? ` (+${wod.booking_info.waitlist_count} waitlist)` : ''}`}
                                   >
                                     {wod.booking_info.confirmed_count}/{wod.booking_info.capacity}{wod.booking_info.waitlist_count > 0 ? ` +${wod.booking_info.waitlist_count}` : ''}
-                                  </span>
+                                  </button>
                                 )}
                               </div>
                               <div className='text-xs text-gray-700'>
@@ -1460,17 +1501,25 @@ export default function CoachDashboard() {
                                     </span>
                                   )}
                                   {wod.booking_info && (
-                                    <span
-                                      className={`flex-shrink-0 text-[10px] font-bold text-white rounded px-1 py-0.5 ${
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSessionManagementModal({
+                                          isOpen: true,
+                                          sessionId: wod.booking_info.session_id,
+                                          workoutDate: wod.date
+                                        });
+                                      }}
+                                      className={`flex-shrink-0 text-[10px] font-bold text-white rounded px-1 py-0.5 hover:opacity-80 transition cursor-pointer ${
                                         wod.booking_info.waitlist_count > 0 ? 'bg-purple-600' :
                                         wod.booking_info.confirmed_count >= wod.booking_info.capacity ? 'bg-red-600' :
                                         wod.booking_info.confirmed_count >= wod.booking_info.capacity * 0.8 ? 'bg-yellow-600' :
                                         'bg-green-600'
                                       }`}
-                                      title={`${wod.booking_info.confirmed_count} confirmed / ${wod.booking_info.capacity} capacity${wod.booking_info.waitlist_count > 0 ? ` (+${wod.booking_info.waitlist_count} waitlist)` : ''}`}
+                                      title={`Click to manage session - ${wod.booking_info.confirmed_count} confirmed / ${wod.booking_info.capacity} capacity${wod.booking_info.waitlist_count > 0 ? ` (+${wod.booking_info.waitlist_count} waitlist)` : ''}`}
                                     >
                                       {wod.booking_info.confirmed_count}/{wod.booking_info.capacity}{wod.booking_info.waitlist_count > 0 ? ` +${wod.booking_info.waitlist_count}` : ''}
-                                    </span>
+                                    </button>
                                   )}
                                 </div>
                                 <div className='text-xs text-gray-700'>
@@ -2301,6 +2350,17 @@ export default function CoachDashboard() {
           </div>
         </>
       )}
+
+      {/* Session Management Modal */}
+      <SessionManagementModal
+        isOpen={sessionManagementModal.isOpen}
+        onClose={() => setSessionManagementModal({ isOpen: false, sessionId: null, workoutDate: null })}
+        sessionId={sessionManagementModal.sessionId || ''}
+        workoutDate={sessionManagementModal.workoutDate || ''}
+        onSessionUpdated={() => {
+          fetchWODs();
+        }}
+      />
     </div>
   );
 }

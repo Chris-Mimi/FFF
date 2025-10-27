@@ -1,37 +1,50 @@
 # Workflow Protocols (Agent & Context Mandates)
 
-Version: 1.5
-Timestamp: 2025-10-26
+Version: 1.6
+Timestamp: 2025-10-27
 
-## 🚨 SESSION START PROTOCOL (MANDATORY - DO THIS FIRST)
+---
+---
+---
 
-**EVERY session MUST start with reading these 4 files in a SINGLE parallel Read call:**
+# ⛔️⛔️⛔️ READ THIS FIRST - CRITICAL SESSION START PROTOCOL ⛔️⛔️⛔️
+
+## 🚨 STEP 1: READ WORKFLOW-PROTOCOLS.MD FIRST (THIS FILE)
+
+**ALWAYS read workflow-protocols.md BEFORE attempting to read other memory bank files.**
+
+## 🚨 STEP 2: USE CORRECT FILE PATHS IN ONE PARALLEL CALL
+
+**Memory bank files have `memory-bank-` prefix! Copy this EXACT command:**
 
 ```
-Read: memory-bank/memory-bank-activeContext.md
-Read: memory-bank/memory-bank-techContext.md
-Read: memory-bank/memory-bank-systemPatterns.md
-Read: memory-bank/workflow-protocols.md
+Read in ONE parallel call:
+- memory-bank/memory-bank-activeContext.md  ✅ (NOTE THE PREFIX!)
+- memory-bank/memory-bank-techContext.md    ✅ (NOTE THE PREFIX!)
+- memory-bank/memory-bank-systemPatterns.md ✅ (NOTE THE PREFIX!)
 ```
 
-**CRITICAL:** Memory bank files have `memory-bank-` prefix! Use exact paths above.
+## ❌ WRONG PATHS (WILL FAIL - DON'T USE):
+- memory-bank/activeContext.md    ❌ MISSING PREFIX
+- memory-bank/techContext.md      ❌ MISSING PREFIX
+- memory-bank/systemPatterns.md   ❌ MISSING PREFIX
 
-**DO NOT attempt to read:**
-- ❌ `memory-bank/activeContext.md` (missing prefix)
-- ❌ `memory-bank/techContext.md` (missing prefix)
-- ❌ `memory-bank/systemPatterns.md` (missing prefix)
-
-**If you read wrong paths:** You waste tokens and user time. Always use the 4 correct paths listed above.
+**User has told you multiple times:** Reading wrong paths wastes tokens and time. Use correct paths from the start.
 
 ---
 
-## 🚫 FORBIDDEN DIRECTORIES (NEVER READ)
+## 🚫 FORBIDDEN: NEVER READ CHRIS NOTES FOLDER
 
-**NEVER read files from these directories under ANY circumstances:**
-- ❌ `Chris Notes/` - User's personal notes (not for Claude)
-- ❌ Any directory explicitly marked as personal/private
+**ABSOLUTELY NEVER read files from:**
+- ❌ `Chris Notes/` directory
+- ❌ Any path containing "Chris Notes"
+- ❌ User's personal note files
 
-**Why:** `.gitignore` only affects Git commits, NOT Read tool access. This protocol prevents reading user's private files.
+**Why:** This is the user's private note folder. Not for Claude. Ever.
+
+---
+---
+---
 
 ---
 
@@ -115,16 +128,6 @@ Read: memory-bank/workflow-protocols.md
 4. **Professional communication** - User can discuss project with other developers
 
 **User can always ask:** "What's a modal?" or "What do you mean by migration?" - that's expected and encouraged.
-
----
-
-## 📁 Memory Bank Files Reference
-
-**Correct paths:**
-- `memory-bank/memory-bank-activeContext.md` ✅
-- `memory-bank/memory-bank-techContext.md` ✅
-- `memory-bank/memory-bank-systemPatterns.md` ✅
-- `memory-bank/workflow-protocols.md` ✅ (no prefix)
 
 ---
 
