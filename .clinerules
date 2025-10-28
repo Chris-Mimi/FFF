@@ -179,7 +179,7 @@ Rule: Never assume success without user testing confirmation.
 - `memory-bank/memory-bank-activeContext.md` - Current focus (v2.40+)
 - `memory-bank/memory-bank-techContext.md` - Tech stack
 - `memory-bank/memory-bank-systemPatterns.md` - Development standards
-- `memory-bank/history/session_history.md` - Detailed verbose archive (reference only)
+- `project-history/session_history.md` - Detailed verbose archive (OUTSIDE memory-bank/, reference only)
 
 ---
 

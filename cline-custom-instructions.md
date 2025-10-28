@@ -18,9 +18,9 @@ Your memory resets → Survival through external Memory Bank documentation
 - **Contains**: memory-bank-activeContext.md, memory-bank-techContext.md,
   memory-bank-systemPatterns.md
 - **Special**: workflow-protocols.md (agent delegation rules)
-- **Archive**: history/session_history.md (detailed verbose logs, NOT read at
-  session start)
-- **Lean rule**: Max 2 weeks active context, auto-archive older to history/
+- **Archive**: project-history/session_history.md (detailed verbose logs, NOT read at
+  session start - OUTSIDE memory-bank folder)
+- **Lean rule**: Max 2 weeks active context, auto-archive older to project-history/
 
 ## ⚡ SESSION-START (30s max)
 
@@ -43,11 +43,12 @@ changes)
 - ✅ Current focus, immediate next steps, blockers
 - ❌ Completed work → history/, Old issues → history/
 
-### history/session_history.md: Detailed Archive
+### project-history/session_history.md: Detailed Archive
 
 - **Purpose**: Long-term detailed reference (verbose style)
 - **Contains**: Step-by-step troubleshooting logs, implementation details,
   decision rationale
+- **Location**: OUTSIDE memory-bank/ folder to avoid token waste
 - **NOT for**: Session start reading (too long)
 - **Use when**: Need historical context, debugging recurring issues,
   understanding past decisions
