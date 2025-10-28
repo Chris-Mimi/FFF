@@ -9957,3 +9957,477 @@ async function fetchOptions() {
 
 ---
 
+## Session: 2025-10-27 - Membership Types & Session Management
+
+### Overview
+Committed all changes from the previous session which implemented membership types system, session management modal, timezone fixes, and various UX improvements. This session focused solely on committing the work to git and updating the memory bank.
+
+### 1. Git Commit - All Previous Session Changes
+
+**What Was Committed:**
+All outstanding changes from the previous session were committed to git, including:
+- Membership types implementation
+- Session management modal
+- Timezone fixes
+- Login flow improvements
+- Member card UI updates
+- Class times removal from workout creation
+
+**Git Operations:**
+```bash
+git status
+git diff
+git add .
+git commit -m "Comprehensive commit message"
+```
+
+**Files Committed:**
+- `app/login/page.tsx` (modified)
+- `tsconfig.tsbuildinfo` (modified)
+
+**Previous Session Work (Now Committed):**
+
+#### Membership Types System
+- **Database:** Added `membership_types` TEXT[] column to `members` table
+- **SQL Migration:** `database/add-membership-types.sql`
+- **Categories:** 7 types - WOD, Foundations, Diapers & Dumbbells, Unlimited, Trial, Coach, Paused
+- **Color Coding:**
+  - WOD: Blue (bg-blue-100, text-blue-800, border-blue-300)
+  - Foundations: Purple (bg-purple-100, text-purple-800, border-purple-300)
+  - Diapers & Dumbbells: Pink (bg-pink-100, text-pink-800, border-pink-300)
+  - Unlimited: Green (bg-green-100, text-green-800, border-green-300)
+  - Trial: Yellow (bg-yellow-100, text-yellow-800, border-yellow-300)
+  - Coach: Indigo (bg-indigo-100, text-indigo-800, border-indigo-300)
+  - Paused: Gray (bg-gray-100, text-gray-800, border-gray-300)
+
+**Implementation Details:**
+```typescript
+// Member interface update
+interface Member {
+  id: string;
+  email: string;
+  full_name: string;
+  phone: string | null;
+  status: 'pending' | 'active' | 'blocked';
+  membership_types: string[];  // NEW FIELD
+  // ... other fields
+}
+
+// Color mapping helper
+const getMembershipTypeColor = (type: string) => {
+  const colors: Record<string, string> = {
+    'WOD': 'bg-blue-100 text-blue-800 border-blue-300',
+    'Foundations': 'bg-purple-100 text-purple-800 border-purple-300',
+    'Diapers & Dumbbells': 'bg-pink-100 text-pink-800 border-pink-300',
+    'Unlimited': 'bg-green-100 text-green-800 border-green-300',
+    'Trial': 'bg-yellow-100 text-yellow-800 border-yellow-300',
+    'Coach': 'bg-indigo-100 text-indigo-800 border-indigo-300',
+    'Paused': 'bg-gray-100 text-gray-800 border-gray-300',
+  };
+  return colors[type] || 'bg-gray-100 text-gray-800 border-gray-300';
+};
+
+// Member card display (multi-select badges)
+{member.membership_types && member.membership_types.length > 0 && (
+  <div className="flex flex-wrap gap-1 mb-2">
+    {member.membership_types.map((type) => (
+      <span
+        key={type}
+        className={`px-2 py-0.5 rounded-md text-xs font-medium border ${getMembershipTypeColor(type)}`}
+      >
+        {type}
+      </span>
+    ))}
+  </div>
+)}
+```
+
+**Filter System:**
+```typescript
+// State for filter chips
+const [selectedMembershipTypes, setSelectedMembershipTypes] = useState<string[]>([]);
+
+// Available types (dynamic extraction from all members)
+const availableMembershipTypes = Array.from(
+  new Set(
+    members
+      .filter(m => m.membership_types && m.membership_types.length > 0)
+      .flatMap(m => m.membership_types)
+  )
+).sort();
+
+// Filter logic
+const filteredMembers = members.filter(member => {
+  // Status filter
+  if (statusFilter !== 'all' && member.status !== statusFilter) {
+    return false;
+  }
+
+  // Membership type filter (OR logic - member must have at least one selected type)
+  if (selectedMembershipTypes.length > 0) {
+    const memberTypes = member.membership_types || [];
+    const hasMatchingType = selectedMembershipTypes.some(type =>
+      memberTypes.includes(type)
+    );
+    if (!hasMatchingType) {
+      return false;
+    }
+  }
+
+  return true;
+});
+
+// Filter UI - Dynamic chips
+<div className="flex flex-wrap gap-2">
+  {availableMembershipTypes.map(type => (
+    <button
+      key={type}
+      onClick={() => {
+        setSelectedMembershipTypes(prev =>
+          prev.includes(type)
+            ? prev.filter(t => t !== type)
+            : [...prev, type]
+        );
+      }}
+      className={`px-3 py-1 rounded-md text-sm font-medium border transition-colors ${
+        selectedMembershipTypes.includes(type)
+          ? getMembershipTypeColor(type)
+          : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+      }`}
+    >
+      {type}
+    </button>
+  ))}
+</div>
+```
+
+**Files Modified:**
+- `app/coach/members/page.tsx:61-86` (membership types constant & color helper)
+- `app/coach/members/page.tsx:165-215` (filter state and logic)
+- `app/coach/members/page.tsx:459-495` (member card badges display)
+
+#### Session Management Modal
+
+**Component:** `components/SessionManagementModal.tsx`
+
+**Features:**
+1. **Booking Details Display:**
+   - Member list with confirmation status
+   - Confirmed members shown first
+   - Waitlist members shown separately
+   - Color-coded status badges (green for confirmed, yellow for waitlist)
+
+2. **Edit Capabilities:**
+   - Time picker with 30-minute increments (05:00 - 21:00)
+   - Capacity slider (5-30 participants)
+   - Cancel session button (red, destructive action)
+
+3. **Modal Behavior:**
+   - Draggable (via header)
+   - 500px width, responsive height
+   - Positioned at top-[100px]
+   - Dark overlay background
+
+**Implementation Details:**
+```typescript
+interface SessionManagementModalProps {
+  sessionId: string;
+  sessionDate: string;
+  sessionTime: string;
+  capacity: number;
+  bookings: Array<{
+    id: string;
+    member: {
+      full_name: string;
+      email: string;
+    };
+    status: 'confirmed' | 'waitlist' | 'cancelled';
+  }>;
+  onClose: () => void;
+  onUpdate: () => void;
+}
+
+// Booking list display
+const confirmedBookings = bookings.filter(b => b.status === 'confirmed');
+const waitlistBookings = bookings.filter(b => b.status === 'waitlist');
+
+<div className="space-y-2">
+  {confirmedBookings.length > 0 && (
+    <div>
+      <h3 className="text-sm font-semibold mb-2">Confirmed ({confirmedBookings.length})</h3>
+      <div className="space-y-1">
+        {confirmedBookings.map(booking => (
+          <div key={booking.id} className="flex items-center justify-between">
+            <span>{booking.member.full_name}</span>
+            <span className="px-2 py-0.5 rounded text-xs bg-green-100 text-green-800">
+              Confirmed
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )}
+
+  {waitlistBookings.length > 0 && (
+    <div>
+      <h3 className="text-sm font-semibold mb-2">Waitlist ({waitlistBookings.length})</h3>
+      <div className="space-y-1">
+        {waitlistBookings.map(booking => (
+          <div key={booking.id} className="flex items-center justify-between">
+            <span>{booking.member.full_name}</span>
+            <span className="px-2 py-0.5 rounded text-xs bg-yellow-100 text-yellow-800">
+              Waitlist
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )}
+</div>
+```
+
+**Coach Page Integration:**
+```typescript
+// app/coach/page.tsx:1134-1143
+// Booking badge click handler
+const handleBookingBadgeClick = (sessionId: string) => {
+  setSelectedSessionId(sessionId);
+  setShowSessionManagement(true);
+};
+
+// Badge rendering (clickable)
+<button
+  onClick={() => handleBookingBadgeClick(session.id)}
+  className="text-xs font-semibold hover:underline"
+>
+  [{confirmedCount}/{capacity} {waitlistCount > 0 ? `+${waitlistCount}` : ''}]
+</button>
+```
+
+#### Timezone Fix - formatDateLocal Helper
+
+**Problem:**
+`toISOString()` converts Date objects to UTC, causing timezone shifting issues. For example, a local date of 2025-10-27 might become 2025-10-26T23:00:00.000Z if the timezone is GMT+1.
+
+**Solution:**
+Created `formatDateLocal()` helper function that returns YYYY-MM-DD in local timezone without UTC conversion.
+
+**Implementation:**
+```typescript
+// lib/utils.ts:29-34
+export function formatDateLocal(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+```
+
+**Usage:**
+```typescript
+// components/AthleteWorkoutsTab.tsx:104
+const weekStartStr = formatDateLocal(weekStart);
+
+// components/AthleteWorkoutsTab.tsx:126
+const weekEndStr = formatDateLocal(weekEnd);
+
+// components/AthleteWorkoutsTab.tsx:134
+const selectedDateStr = formatDateLocal(selectedDate);
+```
+
+**Impact:**
+- Fixed 1-day offset bug in athlete workouts tab
+- Ensures consistent date handling across components
+- Prevents UTC conversion issues in date comparisons
+
+#### Class Times Removal from Workout Creation
+
+**Change:** Removed `class_times` input field from WOD Modal (workout creation interface).
+
+**Rationale:**
+- Scheduling is now managed by linked `weekly_sessions` records
+- Sessions define the time and capacity
+- Workouts are content-only (sections, exercises, notes)
+- Avoids duplicate/conflicting time information
+
+**Files Modified:**
+- `components/WODModal.tsx` (removed class_times field from form)
+
+#### Member Card UI Compaction
+
+**Changes:**
+- Reduced card padding: `p-4` → `p-3`
+- Tighter spacing for membership type badges
+- Optimized for multi-column grid layout
+
+**Files Modified:**
+- `app/coach/members/page.tsx:459-495`
+
+**CSS Changes:**
+```typescript
+// Before
+<div className="bg-white rounded-lg shadow p-4 border border-gray-200">
+
+// After
+<div className="bg-white rounded-lg shadow p-3 border border-gray-200">
+```
+
+#### Login Flow - Member Status Validation
+
+**Feature:** Added member status check during login to prevent blocked members from accessing the system.
+
+**Implementation:**
+```typescript
+// app/login/page.tsx:67-74
+// After email/password validation, check member status
+const { data: memberData, error: memberError } = await supabase
+  .from('members')
+  .select('status')
+  .eq('email', email)
+  .single();
+
+if (memberData?.status === 'blocked') {
+  setError('Your account has been blocked. Please contact the coach.');
+  return;
+}
+
+if (memberData?.status === 'pending') {
+  setError('Your account is pending approval. Please wait for the coach to activate your account.');
+  return;
+}
+```
+
+**Error Messages:**
+- **Blocked:** "Your account has been blocked. Please contact the coach."
+- **Pending:** "Your account is pending approval. Please wait for the coach to activate your account."
+
+**Files Modified:**
+- `app/login/page.tsx:67-74`
+
+### Key Patterns Established
+
+#### Multi-Select Array Field with Color-Coded Badges
+
+**Database Schema:**
+```sql
+ALTER TABLE members ADD COLUMN membership_types TEXT[];
+```
+
+**React State:**
+```typescript
+const [selectedMembershipTypes, setSelectedMembershipTypes] = useState<string[]>([]);
+```
+
+**Filter Logic (OR):**
+```typescript
+const filteredMembers = members.filter(member => {
+  if (selectedMembershipTypes.length > 0) {
+    const memberTypes = member.membership_types || [];
+    return selectedMembershipTypes.some(type => memberTypes.includes(type));
+  }
+  return true;
+});
+```
+
+**Dynamic Filter Chips:**
+```typescript
+const availableTypes = Array.from(
+  new Set(members.flatMap(m => m.membership_types))
+).sort();
+
+availableTypes.map(type => (
+  <button
+    onClick={() => toggleFilter(type)}
+    className={selectedTypes.includes(type) ? 'active' : 'inactive'}
+  >
+    {type}
+  </button>
+));
+```
+
+#### Draggable Modal Pattern
+
+**React DnD Kit:**
+```typescript
+import { useDraggable } from '@dnd-kit/core';
+
+const { attributes, listeners, setNodeRef, transform } = useDraggable({
+  id: 'modal-id',
+});
+
+const style = transform
+  ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` }
+  : undefined;
+
+<div ref={setNodeRef} style={style}>
+  <div {...listeners} {...attributes} className="cursor-move">
+    Header (drag handle)
+  </div>
+  <div>Content (non-draggable)</div>
+</div>
+```
+
+#### Timezone-Safe Date Formatting
+
+**Helper Function:**
+```typescript
+export function formatDateLocal(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+```
+
+**When to Use:**
+- Storing dates in Supabase (DATE columns)
+- Comparing local dates without time component
+- Preventing UTC conversion issues
+
+**When NOT to Use:**
+- Timestamps requiring time information
+- Cross-timezone coordination
+- Server-side date operations (use UTC)
+
+### Technical Decisions
+
+1. **Membership Types as TEXT[]:** Flexible multi-select system allows members to have multiple membership types simultaneously (e.g., both "WOD" and "Trial").
+
+2. **OR Logic for Filters:** Members matching ANY selected membership type appear in results (inclusive filtering).
+
+3. **Dynamic Filter Chips:** Filter options extracted from actual member data, automatically updates as memberships change.
+
+4. **Session Management Modal:** Centralized UI for managing bookings, separate from the calendar to avoid cluttering the main view.
+
+5. **formatDateLocal Helper:** Prevents timezone bugs by keeping date operations in local timezone throughout the application.
+
+6. **Login Status Validation:** Security layer ensures blocked/pending members cannot access the system even with valid credentials.
+
+### Database Schema
+
+**Members Table (Updated):**
+```sql
+ALTER TABLE members ADD COLUMN membership_types TEXT[];
+
+-- Example data
+membership_types: ['WOD', 'Trial']
+membership_types: ['Foundations']
+membership_types: ['Unlimited', 'Coach']
+```
+
+### Files Modified (This Session)
+
+1. `app/login/page.tsx` - Member status validation
+2. `tsconfig.tsbuildinfo` - TypeScript build info
+3. `memory-bank/memory-bank-activeContext.md` - Version bump to 2.23, added v2.23 section
+4. `memory-bank/history/session_history.md` - This detailed session entry
+
+### Next Steps
+
+1. Test membership types filtering with real data
+2. Implement session cancellation logic in SessionManagementModal
+3. Add member promotion from waitlist to confirmed
+4. Consider adding "bulk add membership type" feature for batch updates
+
+---
+

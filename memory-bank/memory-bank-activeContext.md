@@ -1,7 +1,7 @@
 # The Forge Functional Fitness - Active Context (Final, Corrected)
 
-Version: 2.22
-Timestamp: 2025-10-26
+Version: 2.23
+Timestamp: 2025-10-27
 
 ## ⚠️ CRITICAL RULES & CONTEXT
 
@@ -221,6 +221,20 @@ The project is **IN PROGRESS**. All core data models and UI features are complet
 | **Workout Titles Migration** | Moved hardcoded workout titles to Supabase table, updated WODModal and schedule page to fetch from DB. | `supabase-workout-titles.sql`, `components/WODModal.tsx:88-93,659,813,1424-1426,1681-1683`, `app/coach/schedule/page.tsx:19-24,39,67-80,454-458` |
 | **Session Generation Timezone Fix** | Fixed UTC conversion causing 1-day offset in auto-generated weekly sessions. | `app/api/sessions/generate-weekly/route.ts:81-85,147-151` |
 | **Weekly Session Auto-Publish** | Auto-publish weekly_sessions when saving linked WODs to make sessions available for booking. | `app/coach/page.tsx:592-598` |
+
+---
+
+## 🎫 Membership Types & Session Management (v2.23)
+
+| **Feature** | Description | Files |
+| :--- | :--- | :--- |
+| **Membership Types System** | Added membership_types column to members table with 7 categories (WOD, Foundations, Diapers & Dumbbells, Unlimited, Trial, Coach, Paused). Color-coded badges and dynamic filter chips. | `database/add-membership-types.sql`, `app/coach/members/page.tsx:61-86,165-215,459-495` |
+| **Session Management Modal** | Draggable modal shows booking details (member list, status badges), edit time/capacity, cancel session button. Opens from calendar badge click. | `components/SessionManagementModal.tsx`, `app/coach/page.tsx:1134-1143` |
+| **Timezone Fix (formatDateLocal)** | Created helper function to prevent timezone shifting from toISOString(). Returns YYYY-MM-DD in local timezone. | `lib/utils.ts:29-34`, `components/AthleteWorkoutsTab.tsx:104,126,134` |
+| **Workout Creation Simplification** | Removed class_times field from WOD creation (linked sessions now define scheduling). | `components/WODModal.tsx` |
+| **Member Card Compaction** | Reduced card padding and spacing for efficient multi-column layout. | `app/coach/members/page.tsx:459-495` |
+| **Login Member Status Validation** | Added member status check (active/blocked) to login flow with appropriate error messages. | `app/login/page.tsx:67-74` |
+| **Git Commit** | Committed all changes from membership types implementation and session management features. | Git commit SHA pending |
 
 ---
 
