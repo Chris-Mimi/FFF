@@ -26,6 +26,7 @@ interface Member {
   membership_types: MembershipType[];
   ten_card_purchase_date: string | null;
   ten_card_sessions_used: number;
+  attendance_count?: number;
 }
 
 const MEMBERSHIP_TYPE_LABELS: Record<MembershipType, string> = {
@@ -57,6 +58,7 @@ export default function CoachMembersPage() {
     isOpen: boolean;
     member: Member | null;
   }>({ isOpen: false, member: null });
+  const [attendanceTimeframe, setAttendanceTimeframe] = useState<7 | 30 | 365>(30);
 
   useEffect(() => {
     // Check authentication (simple check for now)
@@ -67,30 +69,51 @@ export default function CoachMembersPage() {
       }
     };
     checkAuth();
-    fetchMembers(activeTab);
-  }, [activeTab, router]);
+    fetchMembersWithAttendance(activeTab, attendanceTimeframe);
+  }, [activeTab, attendanceTimeframe, router]);
 
-  const fetchMembers = async (status: MemberStatus) => {
-    console.log('🚀 fetchMembers starting, status:', status);
+  const fetchMembersWithAttendance = async (status: MemberStatus, days: 7 | 30 | 365) => {
+    console.log('🚀 fetchMembersWithAttendance starting, status:', status, 'days:', days);
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // First get the members
+      const { data: membersData, error: membersError } = await supabase
         .from('members')
         .select('*')
         .eq('status', status)
         .order('created_at', { ascending: false });
 
-      console.log('🔍 fetchMembers result:', { data, error });
-
-      if (error) {
-        console.error('❌ fetchMembers error:', error);
-        throw error;
+      if (membersError) {
+        console.error('❌ fetchMembers error:', membersError);
+        throw membersError;
       }
 
-      console.log('✅ fetchMembers success:', data?.length, 'members, first member 10-card data:', data?.[0]?.ten_card_purchase_date, data?.[0]?.ten_card_sessions_used);
-      setMembers(data || []);
+      // Then get attendance counts for each member
+      const membersWithAttendance = await Promise.all(
+        (membersData || []).map(async (member) => {
+          try {
+            const { data: attendanceData, error: attendanceError } = await supabase.rpc(
+              'get_member_attendance_count',
+              { p_member_id: member.id, p_days_back: days }
+            );
+
+            if (attendanceError) {
+              console.error('❌ Attendance fetch error for member', member.id, attendanceError);
+              return { ...member, attendance_count: 0 };
+            }
+
+            return { ...member, attendance_count: attendanceData || 0 };
+          } catch (error) {
+            console.error('❌ Attendance query failed for member', member.id, error);
+            return { ...member, attendance_count: 0 };
+          }
+        })
+      );
+
+      console.log('✅ fetchMembersWithAttendance success:', membersWithAttendance.length, 'members');
+      setMembers(membersWithAttendance);
     } catch (error) {
-      console.error('💥 fetchMembers failed:', error);
+      console.error('💥 fetchMembersWithAttendance failed:', error);
       setLoading(false); // Make sure loading ends even on error
     } finally {
       setLoading(false);
@@ -112,7 +135,7 @@ export default function CoachMembersPage() {
       }
 
       // Refresh members list
-      await fetchMembers(activeTab);
+      await fetchMembersWithAttendance(activeTab, attendanceTimeframe);
     } catch (error) {
       console.error('Error approving member:', error);
       alert('Failed to approve member. Please try again.');
@@ -140,7 +163,7 @@ export default function CoachMembersPage() {
       }
 
       // Refresh members list
-      await fetchMembers(activeTab);
+      await fetchMembersWithAttendance(activeTab, attendanceTimeframe);
     } catch (error) {
       console.error('Error blocking member:', error);
       alert('Failed to block member. Please try again.');
@@ -312,9 +335,30 @@ export default function CoachMembersPage() {
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Attendance Timeframe Selector */}
       {members.length > 0 && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-400 font-medium">Attendance timeframe:</span>
+            <select
+              value={attendanceTimeframe}
+              onChange={(e) => setAttendanceTimeframe(parseInt(e.target.value) as 7 | 30 | 365)}
+              className="px-3 py-1 bg-gray-700 text-white rounded text-sm border border-gray-600"
+            >
+              <option value="7">Last 7 days</option>
+              <option value="30">Last 30 days</option>
+              <option value="365">Last 12 months</option>
+            </select>
+            <span className="text-xs text-gray-500">
+              Click to change timeframe for attendance counts
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Filters */}
+      {members.length > 0 && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-2">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm text-gray-400 font-medium">Filter by type:</span>
             {(Object.keys(MEMBERSHIP_TYPE_LABELS) as MembershipType[]).map(type => (
@@ -411,16 +455,24 @@ export default function CoachMembersPage() {
                         <span className="text-white">{formatDate(member.created_at)}</span>
                       </div>
                       {activeTab === 'active' && (
-                        <div>
-                          <span className="text-gray-400">Athlete Trial:</span>{' '}
-                          <span className={`font-medium ${
-                            member.athlete_subscription_status === 'trial' ? 'text-teal-400' :
-                            member.athlete_subscription_status === 'active' ? 'text-green-400' :
-                            'text-gray-500'
-                          }`}>
-                            {getTrialStatus(member)}
-                          </span>
-                        </div>
+                        <>
+                          <div>
+                            <span className="text-gray-400">Attendance:</span>{' '}
+                            <span className="font-medium text-white">
+                              {member.attendance_count}x
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-gray-400">Athlete Trial:</span>{' '}
+                            <span className={`font-medium ${
+                              member.athlete_subscription_status === 'trial' ? 'text-teal-400' :
+                              member.athlete_subscription_status === 'active' ? 'text-green-400' :
+                              'text-gray-500'
+                            }`}>
+                              {getTrialStatus(member)}
+                            </span>
+                          </div>
+                        </>
                       )}
                     </div>
 
@@ -483,7 +535,7 @@ export default function CoachMembersPage() {
         isOpen={tenCardModal.isOpen}
         onClose={() => setTenCardModal({ isOpen: false, member: null })}
         member={tenCardModal.member}
-        onUpdate={() => fetchMembers(activeTab)}
+        onUpdate={() => fetchMembersWithAttendance(activeTab, attendanceTimeframe)}
       />
     </div>
   );
