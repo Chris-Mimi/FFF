@@ -23,13 +23,16 @@ CREATE POLICY "Public can register"
   ON members FOR INSERT
   WITH CHECK (status = 'pending');
 
--- Policy 4: Coaches can view all members (temporary - using user_metadata check)
--- TODO: Replace with proper role-based check when coach role system is implemented
+-- Policy 4: Coaches can view all members
 CREATE POLICY "Coaches can view all members"
   ON members FOR SELECT
-  USING (
-    (SELECT raw_user_meta_data->>'role' FROM auth.users WHERE id = auth.uid()) = 'coach'
-  );
+  USING (auth.jwt() ->> 'role' = 'coach');
 
--- Policy 5: Service role can do everything (for API endpoints)
+-- Policy 5: Coaches can update members (for admin tasks like 10-card management)
+CREATE POLICY "Coaches can update members"
+  ON members FOR UPDATE
+  USING ((auth.jwt() ->> 'role') = 'coach')
+  WITH CHECK ((auth.jwt() ->> 'role') = 'coach');
+
+-- Policy 6: Service role can do everything (for API endpoints)
 -- This is handled automatically by service_role key, no policy needed

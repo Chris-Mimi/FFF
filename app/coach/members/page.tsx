@@ -1,5 +1,6 @@
 'use client';
 
+import TenCardModal from '@/components/TenCardModal';
 import { signOut } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import { Check, Clock, LogOut, UserCheck, UserX, X } from 'lucide-react';
@@ -70,6 +71,7 @@ export default function CoachMembersPage() {
   }, [activeTab, router]);
 
   const fetchMembers = async (status: MemberStatus) => {
+    console.log('🚀 fetchMembers starting, status:', status);
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -78,10 +80,18 @@ export default function CoachMembersPage() {
         .eq('status', status)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      console.log('🔍 fetchMembers result:', { data, error });
+
+      if (error) {
+        console.error('❌ fetchMembers error:', error);
+        throw error;
+      }
+
+      console.log('✅ fetchMembers success:', data?.length, 'members, first member 10-card data:', data?.[0]?.ten_card_purchase_date, data?.[0]?.ten_card_sessions_used);
       setMembers(data || []);
     } catch (error) {
-      console.error('Error fetching members:', error);
+      console.error('💥 fetchMembers failed:', error);
+      setLoading(false); // Make sure loading ends even on error
     } finally {
       setLoading(false);
     }
@@ -196,6 +206,25 @@ export default function CoachMembersPage() {
         member.membership_types?.some(type => selectedFilters.includes(type))
       );
 
+  const getMembershipTypeCounts = () => {
+    const counts: Record<MembershipType, number> = {
+      member: 0,
+      drop_in: 0,
+      ten_card: 0,
+      wellpass: 0,
+      hansefit: 0,
+      trial: 0,
+    };
+
+    members.forEach(member => {
+      member.membership_types?.forEach(type => {
+        counts[type]++;
+      });
+    });
+
+    return counts;
+  };
+
   const getTrialStatus = (member: Member) => {
     if (member.athlete_subscription_status === 'trial' && member.athlete_subscription_end) {
       const daysLeft = Math.ceil(
@@ -205,6 +234,9 @@ export default function CoachMembersPage() {
     }
     return member.athlete_subscription_status === 'active' ? 'Active' : 'No access';
   };
+
+  const membershipCounts = getMembershipTypeCounts();
+  const totalActiveAthletes = members.length;
 
   return (
     <div className="min-h-screen bg-gray-900">
@@ -289,13 +321,14 @@ export default function CoachMembersPage() {
               <button
                 key={type}
                 onClick={() => toggleFilter(type)}
-                className={`px-2.5 py-1 rounded text-xs font-medium transition ${
+                className={`flex flex-col items-center px-2.5 py-1 rounded text-xs font-medium transition ${
                   selectedFilters.includes(type)
                     ? MEMBERSHIP_TYPE_COLORS[type].active
                     : MEMBERSHIP_TYPE_COLORS[type].inactive
                 }`}
               >
-                {MEMBERSHIP_TYPE_LABELS[type]}
+                <span>{MEMBERSHIP_TYPE_LABELS[type]}</span>
+                <span className="text-[10px] opacity-75">{membershipCounts[type]}</span>
               </button>
             ))}
             {selectedFilters.length > 0 && (
@@ -306,6 +339,9 @@ export default function CoachMembersPage() {
                 Clear ({filteredMembers.length})
               </button>
             )}
+            <div className="ml-auto px-3 py-1 bg-gray-700 rounded text-xs font-medium text-gray-300">
+              Total Athletes: {totalActiveAthletes}
+            </div>
           </div>
         </div>
       )}

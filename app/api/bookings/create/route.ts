@@ -111,6 +111,8 @@ export async function POST(request: NextRequest) {
     // Increment 10-card sessions used if member has 10-card membership
     if (booking.status === 'confirmed' && member.membership_types?.includes('ten_card')) {
       try {
+        console.log('🐾 10-card increment: User', user.id, 'has', member.membership_types, 'starting count:', member.ten_card_sessions_used);
+
         // Increment the sessions used counter
         const { error: updateError } = await supabase
           .from('members')
@@ -122,6 +124,8 @@ export async function POST(request: NextRequest) {
         if (updateError) {
           console.error('Failed to increment 10-card sessions:', updateError);
           // Don't fail the booking for this - just log it
+        } else {
+          console.log('✅ 10-card incremented to:', member.ten_card_sessions_used + 1);
         }
       } catch (error) {
         console.error('Error handling 10-card logic:', error);

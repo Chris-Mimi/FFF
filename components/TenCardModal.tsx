@@ -12,7 +12,7 @@ interface TenCardModalProps {
     name: string;
     ten_card_purchase_date: string | null;
     ten_card_sessions_used: number;
-  };
+  } | null;
   onUpdate: () => void;
 }
 
@@ -22,30 +22,64 @@ export default function TenCardModal({
   member,
   onUpdate,
 }: TenCardModalProps) {
-  const [purchaseDate, setPurchaseDate] = useState(member.ten_card_purchase_date || '');
-  const [sessionsUsed, setSessionsUsed] = useState(member.ten_card_sessions_used);
+  const [purchaseDate, setPurchaseDate] = useState(member?.ten_card_purchase_date || '');
+  const [sessionsUsed, setSessionsUsed] = useState(member?.ten_card_sessions_used || 0);
   const [loading, setLoading] = useState(false);
 
-  if (!isOpen) return null;
+  if (!isOpen || !member) return null;
 
   const handleSave = async () => {
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('members')
-        .update({
-          ten_card_purchase_date: purchaseDate || null,
-          ten_card_sessions_used: sessionsUsed
-        })
-        .eq('id', member.id);
+      // Debug JWT to see if role: 'coach' is set
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log('🔐 JWT payload check - user:', user, 'app_metadata:', user?.app_metadata, 'user_metadata:', user?.user_metadata);
 
-      if (error) throw error;
+      console.log('🛟 TenCardModal save:', member.id, 'purchase_date:', purchaseDate, 'sessions_used:', sessionsUsed);
 
-      onUpdate();
+          // First verify member exists and who the current user is
+          const { data: currentUser } = await supabase.auth.getUser();
+          console.log('🔍 Checking if member', member.id, 'exists...');
+
+          // Test direct query first
+          const { data: memberCheck, error: memberError } = await supabase
+            .from('members')
+            .select('id, ten_card_sessions_used, ten_card_purchase_date')
+            .eq('id', member.id)
+            .single();
+
+          console.log('📋 Member query result:', {
+            memberCheck,
+            memberError,
+            exists: !!memberCheck,
+            hasColumns: memberCheck ? {
+              ten_card_sessions_used: memberCheck.ten_card_sessions_used,
+              ten_card_purchase_date: memberCheck.ten_card_purchase_date
+            } : null
+          });
+
+          const { data, error } = await supabase
+            .from('members')
+            .update({
+              ten_card_purchase_date: purchaseDate || null,
+              ten_card_sessions_used: sessionsUsed
+            })
+            .eq('id', member.id);
+
+      console.log('🗃️ Supabase update result - data:', data, 'error:', error);
+
+      if (error) {
+        console.error('📛 Supabase error updating 10-card info:', error);
+        throw error;
+      }
+
+      console.log('✅ 10-card modal save successful, calling onUpdate()...');
+      const fetchResult = onUpdate();
+      console.log('📡 onUpdate() called (should fetch and refresh data)');
       onClose();
     } catch (error) {
-      console.error('Error updating 10-card info:', error);
-      alert('Failed to update 10-card information');
+      console.error('❌ Error updating 10-card info:', error);
+      alert('Failed to update 10-card information\n\nCheck console for details');
     } finally {
       setLoading(false);
     }
