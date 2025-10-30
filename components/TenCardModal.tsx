@@ -2,7 +2,7 @@
 
 import { supabase } from '@/lib/supabase';
 import { RefreshCw, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface TenCardModalProps {
   isOpen: boolean;
@@ -22,9 +22,28 @@ export default function TenCardModal({
   member,
   onUpdate,
 }: TenCardModalProps) {
-  const [purchaseDate, setPurchaseDate] = useState(member?.ten_card_purchase_date || '');
+  const [purchaseDate, setPurchaseDate] = useState(() => {
+    if (!member?.ten_card_purchase_date) return '';
+    const dateStr = member.ten_card_purchase_date;
+    // Extract YYYY-MM-DD from timestamp (handles both 'T' and space separators)
+    return dateStr.includes('T') ? dateStr.split('T')[0] : dateStr.split(' ')[0];
+  });
   const [sessionsUsed, setSessionsUsed] = useState(member?.ten_card_sessions_used || 0);
   const [loading, setLoading] = useState(false);
+
+  // Update state when member prop changes (after refresh)
+  useEffect(() => {
+    if (member) {
+      // Format timestamp to YYYY-MM-DD for date input
+      let formattedDate = '';
+      if (member.ten_card_purchase_date) {
+        const dateStr = member.ten_card_purchase_date;
+        formattedDate = dateStr.includes('T') ? dateStr.split('T')[0] : dateStr.split(' ')[0];
+      }
+      setPurchaseDate(formattedDate);
+      setSessionsUsed(member.ten_card_sessions_used || 0);
+    }
+  }, [member]);
 
   if (!isOpen || !member) return null;
 
@@ -147,7 +166,7 @@ export default function TenCardModal({
                 type="date"
                 value={purchaseDate}
                 onChange={(e) => setPurchaseDate(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#208479] focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900"
               />
               <p className="text-xs text-gray-500 mt-1">
                 Sessions used counter starts from this date.
@@ -165,7 +184,7 @@ export default function TenCardModal({
                 max="10"
                 value={sessionsUsed}
                 onChange={(e) => setSessionsUsed(Math.max(0, Math.min(10, parseInt(e.target.value) || 0)))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#208479] focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900"
               />
             </div>
 

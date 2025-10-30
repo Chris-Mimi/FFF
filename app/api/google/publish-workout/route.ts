@@ -1,6 +1,19 @@
 import { supabase } from '@/lib/supabase';
 import { google } from 'googleapis';
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+
+// Service role client for bypassing RLS
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
+);
 
 interface PublishConfig {
   selectedSectionIds: string[];
@@ -155,6 +168,39 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Auto-create weekly_session for booking if it doesn't exist (use admin client to bypass RLS)
+    const { data: existingSession } = await supabaseAdmin
+      .from('weekly_sessions')
+      .select('id')
+      .eq('workout_id', workoutId)
+      .single();
+
+    if (!existingSession) {
+      const { error: sessionError } = await supabaseAdmin
+        .from('weekly_sessions')
+        .insert({
+          date: workout.date,
+          time: publishConfig.eventTime,
+          capacity: 12, // Default capacity
+          status: 'published',
+          workout_id: workoutId,
+        });
+
+      if (sessionError) {
+        console.error('Error creating weekly session:', sessionError);
+        // Don't fail the whole publish if session creation fails
+      }
+    } else {
+      // Update existing session to published
+      await supabaseAdmin
+        .from('weekly_sessions')
+        .update({
+          time: publishConfig.eventTime,
+          status: 'published',
+        })
+        .eq('id', existingSession.id);
+    }
+
     return NextResponse.json({
       success: true,
       message: googleCalendarConfigured
@@ -240,6 +286,12 @@ export async function DELETE(request: NextRequest) {
         { status: 500 }
       );
     }
+
+    // Cancel associated weekly_session (use admin client to bypass RLS)
+    await supabaseAdmin
+      .from('weekly_sessions')
+      .update({ status: 'cancelled' })
+      .eq('workout_id', workoutId);
 
     return NextResponse.json({
       success: true,
