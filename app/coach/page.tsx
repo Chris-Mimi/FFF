@@ -1187,7 +1187,7 @@ export default function CoachDashboard() {
                                             e.stopPropagation();
                                             setSessionManagementModal({
                                               isOpen: true,
-                                              sessionId: wod.booking_info.session_id,
+                                              sessionId: wod.booking_info!.session_id,
                                               workoutDate: wod.date
                                             });
                                           }}
@@ -1338,7 +1338,7 @@ export default function CoachDashboard() {
                                       e.stopPropagation();
                                       setSessionManagementModal({
                                         isOpen: true,
-                                        sessionId: wod.booking_info.session_id,
+                                        sessionId: wod.booking_info!.session_id,
                                         workoutDate: wod.date
                                       });
                                     }}
@@ -1506,7 +1506,7 @@ export default function CoachDashboard() {
                                         e.stopPropagation();
                                         setSessionManagementModal({
                                           isOpen: true,
-                                          sessionId: wod.booking_info.session_id,
+                                          sessionId: wod.booking_info!.session_id,
                                           workoutDate: wod.date
                                         });
                                       }}

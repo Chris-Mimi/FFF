@@ -87,7 +87,13 @@ export default function SessionManagementModal({
 
       if (bookingsError) throw bookingsError;
 
-      setBookings(bookingsData || []);
+      // Transform data to flatten member array to single object
+      const transformedBookings = (bookingsData || []).map(booking => ({
+        ...booking,
+        member: Array.isArray(booking.member) ? booking.member[0] : booking.member
+      }));
+
+      setBookings(transformedBookings);
     } catch (error) {
       console.error('Error fetching session details:', error);
       alert('Failed to load session details');

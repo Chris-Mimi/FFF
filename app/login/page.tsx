@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { signInWithEmail, getUserRole } from '@/lib/auth';
+import { signInWithEmail, getUserRole, signOut } from '@/lib/auth';
 import Link from 'next/link';
 import { AlertCircle, Loader2 } from 'lucide-react';
 
