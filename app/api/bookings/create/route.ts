@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
@@ -38,10 +38,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if member is active
+    // Check if member is active (and get 10-card info)
     const { data: member } = await supabase
       .from('members')
-      .select('id, status')
+      .select('id, status, membership_types, ten_card_sessions_used')
       .eq('id', user.id)
       .single();
 
@@ -106,6 +106,27 @@ export async function POST(request: NextRequest) {
         { error: 'Failed to create booking' },
         { status: 500 }
       );
+    }
+
+    // Increment 10-card sessions used if member has 10-card membership
+    if (booking.status === 'confirmed' && member.membership_types?.includes('ten_card')) {
+      try {
+        // Increment the sessions used counter
+        const { error: updateError } = await supabase
+          .from('members')
+          .update({
+            ten_card_sessions_used: member.ten_card_sessions_used + 1
+          })
+          .eq('id', user.id);
+
+        if (updateError) {
+          console.error('Failed to increment 10-card sessions:', updateError);
+          // Don't fail the booking for this - just log it
+        }
+      } catch (error) {
+        console.error('Error handling 10-card logic:', error);
+        // Don't fail the booking for this
+      }
     }
 
     // TODO: Create notification for coach if waitlist

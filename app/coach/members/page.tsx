@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
-import { Check, X, UserCheck, UserX, Clock, LogOut } from 'lucide-react';
 import { signOut } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
+import { Check, Clock, LogOut, UserCheck, UserX, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 type MemberStatus = 'pending' | 'active' | 'blocked';
 
@@ -23,6 +23,8 @@ interface Member {
   athlete_subscription_end: string | null;
   created_at: string;
   membership_types: MembershipType[];
+  ten_card_purchase_date: string | null;
+  ten_card_sessions_used: number;
 }
 
 const MEMBERSHIP_TYPE_LABELS: Record<MembershipType, string> = {
@@ -50,6 +52,10 @@ export default function CoachMembersPage() {
   const [loading, setLoading] = useState(true);
   const [processingMemberId, setProcessingMemberId] = useState<string | null>(null);
   const [selectedFilters, setSelectedFilters] = useState<MembershipType[]>([]);
+  const [tenCardModal, setTenCardModal] = useState<{
+    isOpen: boolean;
+    member: Member | null;
+  }>({ isOpen: false, member: null });
 
   useEffect(() => {
     // Check authentication (simple check for now)
@@ -339,6 +345,19 @@ export default function CoachMembersPage() {
                           Family
                         </span>
                       )}
+                      {member.membership_types?.includes('ten_card') && (
+                        <button
+                          onClick={() => setTenCardModal({ isOpen: true, member })}
+                          className={`px-2 py-0.5 rounded text-xs font-medium transition cursor-pointer ${
+                            member.ten_card_sessions_used >= 9
+                              ? 'bg-red-600 text-white hover:bg-red-700'
+                              : 'bg-purple-600 text-white hover:bg-purple-700'
+                          }`}
+                          title="Manage 10-card"
+                        >
+                          {member.ten_card_sessions_used || 0}/10
+                        </button>
+                      )}
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
                       <div>
@@ -422,6 +441,14 @@ export default function CoachMembersPage() {
           </div>
         )}
       </div>
+
+      {/* Ten Card Modal */}
+      <TenCardModal
+        isOpen={tenCardModal.isOpen}
+        onClose={() => setTenCardModal({ isOpen: false, member: null })}
+        member={tenCardModal.member}
+        onUpdate={() => fetchMembers(activeTab)}
+      />
     </div>
   );
 }
