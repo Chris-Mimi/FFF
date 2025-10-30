@@ -240,6 +240,35 @@ The project is **IN PROGRESS**. All core data models and UI features are complet
 
 ## 📅 Booking System Planning (v3.0)
 
+---
+
+## 👥 Member Management System (v2.25 - ✅ Complete)
+
+| **Feature** | **Status** | **Description** |
+| :--- | :--- | :--- |
+| **10-Card Tracking System** | ✅ **Implemented** | Modal for purchase date management, auto-increment on confirmed bookings, visual alerts at 9/10 sessions. Database columns added, RLS policies configured, booking API integrated. |
+| **Filter Chip Counters** | ✅ **Implemented** | Real-time membership type counts below filter buttons, total active athletes count, dynamic updates when memberships change. |
+| **Attendance History Tracking** | ✅ **Implemented** | Confirmed booking counts by selectable timeframe (7/30/365 days), attendance selector dropdown, parallel database queries with Promise.all for performance, member card display integration. |
+| **Manual Booking Cancellation** | 🚧 **Next Priority** | Allow coaches to manually cancel athlete bookings with proper UI controls and status updates. |
+| **Late Cancellation Tracking** | 📋 **Planned** | Track and visually mark bookings cancelled within restricted timeframes, generate coach alerts. |
+
+**Technical Implementation:**
+- **Database**: New columns (ten_card_purchase_date, ten_card_sessions_used), RPC function (get_member_attendance_count), updated RLS policies for coach permissions
+- **Frontend**: Enhanced members page with advanced filtering, TenCardModal component, attendance timeframe selector, real-time counter updates
+- **API Integration**: Booking confirmation auto-increments 10-card sessions, manual cancellation capabilities
+- **Files**: 4 SQL migrations, 1 React component, enhanced page component, booking API updates
+- **Status**: Code complete & committed (964485f), requires SQL migration execution in Supabase
+- **Testing**: Modal and counter logic verified, attendance function needs database deployment
+
+**Key Achievements:**
+- Comprehensive member tracking dashboard with multiple data views
+- Automated 10-card session management
+- Efficient attendance querying with selectable timeframes
+- Real-time membership filtering and counting
+- Scalable RLS security policies for multi-role access
+
+---
+
 | **Feature** | Description | Implementation Phase |
 | :--- | :--- | :--- |
 | **Overview** | Three-section app: Coach Page (workouts), Book a WOD Page (member bookings), Athlete Page (paid performance tracking). | — |
