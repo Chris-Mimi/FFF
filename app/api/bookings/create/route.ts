@@ -4,15 +4,28 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
-    // Create Supabase client with cookies
-    const cookieStore = await cookies();
+    // Get auth token from Authorization header
+    const authHeader = request.headers.get('Authorization');
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('❌ No Authorization header found');
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    const accessToken = authHeader.replace('Bearer ', '');
+    console.log('✅ Found access token in header');
+
+    // Create Supabase client with auth token
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         global: {
           headers: {
-            cookie: cookieStore.toString()
+            Authorization: `Bearer ${accessToken}`
           }
         }
       }

@@ -4,15 +4,28 @@ import { cookies } from 'next/headers';
 
 export async function POST(request: NextRequest) {
   try {
-    // Create Supabase client with cookies
-    const cookieStore = await cookies();
+    // Get auth token from Authorization header
+    const authHeader = request.headers.get('Authorization');
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('❌ No Authorization header found');
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    const accessToken = authHeader.replace('Bearer ', '');
+    console.log('✅ Found access token in header');
+
+    // Create Supabase client with auth token
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         global: {
           headers: {
-            cookie: cookieStore.toString()
+            Authorization: `Bearer ${accessToken}`
           }
         }
       }
@@ -82,6 +95,36 @@ export async function POST(request: NextRequest) {
         { error: 'Failed to cancel booking' },
         { status: 500 }
       );
+    }
+
+    // Decrement 10-card sessions if booking was confirmed and member has 10-card
+    if (booking.status === 'confirmed') {
+      const { data: member } = await supabase
+        .from('members')
+        .select('membership_types, ten_card_sessions_used')
+        .eq('id', user.id)
+        .single();
+
+      if (member?.membership_types?.includes('ten_card') && member.ten_card_sessions_used > 0) {
+        try {
+          console.log('🔄 10-card decrement: User', user.id, 'cancelling, current:', member.ten_card_sessions_used);
+
+          const { error: updateError } = await supabase
+            .from('members')
+            .update({
+              ten_card_sessions_used: member.ten_card_sessions_used - 1
+            })
+            .eq('id', user.id);
+
+          if (updateError) {
+            console.error('Failed to decrement 10-card sessions:', updateError);
+          } else {
+            console.log('✅ 10-card decremented to:', member.ten_card_sessions_used - 1);
+          }
+        } catch (error) {
+          console.error('Error handling 10-card decrement:', error);
+        }
+      }
     }
 
     // TODO: If user was confirmed, promote first waitlist member to confirmed

@@ -139,21 +139,27 @@ export default function MemberBookingPage() {
 
     setProcessing(sessionId);
     try {
-      // Create booking directly with Supabase
-      const { data: booking, error } = await supabase
-        .from('bookings')
-        .insert({
-          session_id: sessionId,
-          member_id: user.id,
-          status: 'confirmed', // TODO: Check capacity and set to waitlist if full
-          booked_at: new Date().toISOString()
-        })
-        .select()
-        .single();
+      // Get current session token
+      const { data: { session } } = await supabase.auth.getSession();
 
-      if (error) {
-        console.error('Booking error:', error);
-        throw new Error('Failed to book session');
+      if (!session) {
+        throw new Error('Not authenticated');
+      }
+
+      // Use API route to create booking (handles 10-card auto-increment)
+      const response = await fetch('/api/bookings/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ sessionId }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to book session');
       }
 
       await fetchSessions();
@@ -172,15 +178,27 @@ export default function MemberBookingPage() {
 
     setProcessing(sessionId);
     try {
-      // Delete booking (instead of marking as cancelled)
-      const { error } = await supabase
-        .from('bookings')
-        .delete()
-        .eq('id', bookingId);
+      // Get current session token
+      const { data: { session } } = await supabase.auth.getSession();
 
-      if (error) {
-        console.error('Cancel error:', error);
-        throw new Error('Failed to cancel booking');
+      if (!session) {
+        throw new Error('Not authenticated');
+      }
+
+      // Use API route to cancel booking (handles 10-card auto-decrement)
+      const response = await fetch('/api/bookings/cancel', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ bookingId }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to cancel booking');
       }
 
       await fetchSessions();
