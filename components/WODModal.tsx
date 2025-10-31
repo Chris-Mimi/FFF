@@ -962,6 +962,14 @@ export default function WODModal({
         return;
       }
 
+      // Also update the workout's publish_time for Athlete page display
+      if (formData.id) {
+        await supabase
+          .from('wods')
+          .update({ publish_time: tempTime })
+          .eq('id', formData.id);
+      }
+
       setSessionTime(tempTime);
       setEditingTime(false);
       // Trigger parent refresh to update card

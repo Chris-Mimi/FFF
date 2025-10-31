@@ -222,7 +222,7 @@ export default function SessionManagementModal({
 
       if (error) throw error;
 
-      // Update the WOD's class_times array with all session times
+      // Update the WOD's class_times array and publish_time
       if (session?.workout_id) {
         const { data: allSessions } = await supabase
           .from('weekly_sessions')
@@ -234,7 +234,10 @@ export default function SessionManagementModal({
           const classTimes = allSessions.map(s => s.time);
           await supabase
             .from('wods')
-            .update({ class_times: classTimes })
+            .update({
+              class_times: classTimes,
+              publish_time: newTime  // Update publish_time for Athlete page
+            })
             .eq('id', session.workout_id);
         }
       }
