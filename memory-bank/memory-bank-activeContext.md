@@ -1,6 +1,6 @@
 # The Forge Functional Fitness - Active Context (Final, Corrected)
 
-Version: 2.27
+Version: 2.28
 Timestamp: 2025-10-31
 
 ## ⚠️ CRITICAL RULES & CONTEXT
@@ -324,6 +324,41 @@ The project is **IN PROGRESS**. All core data models and UI features are complet
 
 **Commits:**
 - `7e1d839` - feat: add Olympic Lifting section type to section_types table
+
+---
+
+## 🎛️ Session Management UX Improvements (v2.28 - ✅ Complete)
+
+| **Feature** | **Status** | **Description** |
+| :--- | :--- | :--- |
+| **Time Picker (15-min increments)** | ✅ **Complete** | Replaced HTML time input with select dropdown showing only 15-minute intervals (00, 15, 30, 45). Default selection set to 12:00 for better UX. |
+| **Session Modal 2-Row Layout** | ✅ **Complete** | Reorganized session info section from 4 individual rows to 2-row CSS Grid layout: Row 1 (Date \| Time), Row 2 (Capacity \| Status). Improved visual organization. |
+| **Athlete Workout Card Time Display** | ✅ **Complete** | Modified workout card headers to display "Date at Time" format (e.g., "31 Oct 2025 at 18:00"). Days without workouts show just date. |
+| **"All Time" Attendance Filter** | ✅ **Complete** | Added "All Time" option to attendance timeframe selector. Set as default selection. Passes null to RPC function for no date filter. |
+
+**Technical Implementation:**
+- **Time Picker**: Select dropdown with 96 options (24 hours × 4 intervals). Dynamic generation using Array.from with hour/minute mapping.
+- **Grid Layout**: CSS Grid provides better responsive behavior than previous flexbox approach.
+- **Date/Time Display**: Conditional rendering in athlete workouts tab - shows time only when workout exists.
+- **Attendance TypeScript**: Updated types to include 'all', proper null handling for RPC call parameter.
+
+**Files Modified:**
+- `components/SessionManagementModal.tsx` - Time picker and 2-row grid layout
+- `components/AthleteWorkoutsTab.tsx` - Time display on workout cards
+- `app/coach/members/page.tsx` - "All Time" attendance option
+
+**Commits:**
+- `1d66c0f` - feat: implement session tasks - time picker, layout, athlete cards, attendance
+
+**Testing:**
+- ✅ Time picker shows 15-minute increments only
+- ✅ Session modal displays in clean 2-row grid
+- ✅ Athlete cards show time when workouts exist
+- ✅ "All Time" attendance filter fetches all historical data
+
+---
+
+## 📅 Booking System Planning (v3.0)
 
 ---
 
