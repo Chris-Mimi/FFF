@@ -58,6 +58,13 @@ export default function SessionManagementModal({
   const [selectedMemberId, setSelectedMemberId] = useState('');
   const [addingMember, setAddingMember] = useState(false);
 
+  // Helper function to ensure time is zero-padded for select dropdown
+  const padTime = (time: string): string => {
+    if (!time) return '12:00';
+    const [hours, minutes] = time.split(':');
+    return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
+  };
+
   useEffect(() => {
     if (isOpen && sessionId) {
       fetchSessionDetails();
@@ -78,7 +85,7 @@ export default function SessionManagementModal({
 
       setSession(sessionData);
       setNewCapacity(sessionData.capacity);
-      setNewTime(sessionData.time);
+      setNewTime(padTime(sessionData.time));
 
       // Fetch bookings with member details
       const { data: bookingsData, error: bookingsError } = await supabase
@@ -420,7 +427,7 @@ export default function SessionManagementModal({
                         <button
                           onClick={() => {
                             setEditingTime(false);
-                            setNewTime(session.time);
+                            setNewTime(padTime(session.time));
                           }}
                           className="px-3 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 text-sm"
                         >
@@ -432,11 +439,7 @@ export default function SessionManagementModal({
                         <span>{session.time}</span>
                         <button
                           onClick={() => {
-                            // Pad time to match select options format (HH:MM)
-                            const currentTime = session.time || '12:00';
-                            const [hours, minutes] = currentTime.split(':');
-                            const paddedTime = `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
-                            setNewTime(paddedTime);
+                            setNewTime(padTime(session.time));
                             setEditingTime(true);
                           }}
                           className="p-1 text-gray-500 hover:text-[#208479]"

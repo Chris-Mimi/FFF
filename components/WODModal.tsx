@@ -686,6 +686,13 @@ export default function WODModal({
   const [editingTime, setEditingTime] = useState(false);
   const [tempTime, setTempTime] = useState('12:00');
 
+  // Helper function to ensure time is zero-padded for select dropdown
+  const padTime = (time: string): string => {
+    if (!time) return '12:00';
+    const [hours, minutes] = time.split(':');
+    return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
+  };
+
   // Sync local notesPanelOpen with parent state
   useEffect(() => {
     setNotesPanelOpen(initialNotesOpen);
@@ -865,7 +872,7 @@ export default function WODModal({
 
             if (!error && data) {
               setSessionTime(data.time);
-              setTempTime(data.time);
+              setTempTime(padTime(data.time));
             }
           };
           fetchSessionTime();
@@ -1429,7 +1436,7 @@ export default function WODModal({
                       <button
                         onClick={() => {
                           setEditingTime(false);
-                          setTempTime(sessionTime!);
+                          setTempTime(padTime(sessionTime!));
                         }}
                         className="px-3 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 text-sm"
                       >
@@ -1441,11 +1448,7 @@ export default function WODModal({
                       <span className="font-medium">{sessionTime}</span>
                       <button
                         onClick={() => {
-                          // Pad time to match select options format (HH:MM)
-                          const currentTime = sessionTime || '12:00';
-                          const [hours, minutes] = currentTime.split(':');
-                          const paddedTime = `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
-                          setTempTime(paddedTime);
+                          setTempTime(padTime(sessionTime!));
                           setEditingTime(true);
                         }}
                         className="p-1 hover:bg-[#1a6b62] rounded transition"
@@ -1727,7 +1730,7 @@ export default function WODModal({
                       <button
                         onClick={() => {
                           setEditingTime(false);
-                          setTempTime(sessionTime!);
+                          setTempTime(padTime(sessionTime!));
                         }}
                         className="px-3 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 text-sm"
                       >
@@ -1739,11 +1742,7 @@ export default function WODModal({
                       <span className="font-medium">{sessionTime}</span>
                       <button
                         onClick={() => {
-                          // Pad time to match select options format (HH:MM)
-                          const currentTime = sessionTime || '12:00';
-                          const [hours, minutes] = currentTime.split(':');
-                          const paddedTime = `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
-                          setTempTime(paddedTime);
+                          setTempTime(padTime(sessionTime!));
                           setEditingTime(true);
                         }}
                         className="p-1 hover:bg-[#1a6b62] rounded transition"
