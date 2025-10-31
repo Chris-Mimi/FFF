@@ -4,6 +4,8 @@ import { supabase } from '@/lib/supabase';
 import {
   Check,
   ChevronDown,
+  Clock,
+  Edit2,
   FileText,
   GripVertical,
   Library,
@@ -34,6 +36,7 @@ interface WODModalProps {
   panelOffset?: number;
   initialNotesOpen?: boolean;
   onNotesToggle?: (open: boolean) => void;
+  onTimeUpdated?: () => void;
 }
 
 export interface WODSection {
@@ -61,6 +64,7 @@ export interface WODFormData {
     confirmed_count: number;
     waitlist_count: number;
     capacity: number;
+    time?: string;
   };
 }
 
@@ -643,6 +647,7 @@ export default function WODModal({
   isPanel = false,
   initialNotesOpen = false,
   onNotesToggle,
+  onTimeUpdated,
 }: WODModalProps) {
   const [formData, setFormData] = useState<WODFormData>({
     title: '',
@@ -677,6 +682,9 @@ export default function WODModal({
   const [publishModalOpen, setPublishModalOpen] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isPublishing, setIsPublishing] = useState(false);
+  const [sessionTime, setSessionTime] = useState<string | null>(null);
+  const [editingTime, setEditingTime] = useState(false);
+  const [tempTime, setTempTime] = useState('12:00');
 
   // Sync local notesPanelOpen with parent state
   useEffect(() => {
@@ -845,6 +853,25 @@ export default function WODModal({
         // When editing, expand all sections to show full content
         const allSectionIds = editingWOD.sections.map(s => s.id);
         setExpandedSections(new Set(allSectionIds));
+
+        // Fetch session time if this WOD is linked to a session
+        if (editingWOD.booking_info?.session_id) {
+          const fetchSessionTime = async () => {
+            const { data, error } = await supabase
+              .from('weekly_sessions')
+              .select('time')
+              .eq('id', editingWOD.booking_info!.session_id)
+              .single();
+
+            if (!error && data) {
+              setSessionTime(data.time);
+              setTempTime(data.time);
+            }
+          };
+          fetchSessionTime();
+        } else {
+          setSessionTime(null);
+        }
       } else {
         // Create template sections for new WOD
         const timestamp = Date.now();
@@ -884,6 +911,10 @@ export default function WODModal({
       }
       setErrors({});
       setActiveSection(null);
+      setEditingTime(false);
+      if (!editingWOD) {
+        setSessionTime(null);
+      }
     }
   }, [isOpen, editingWOD, date]);
 
@@ -907,6 +938,33 @@ export default function WODModal({
         ? prev.classTimes.filter(t => t !== time)
         : [...prev.classTimes, time].sort(),
     }));
+  };
+
+  const handleTimeUpdate = async () => {
+    if (!formData.booking_info?.session_id) return;
+
+    try {
+      const { error } = await supabase
+        .from('weekly_sessions')
+        .update({ time: tempTime })
+        .eq('id', formData.booking_info.session_id);
+
+      if (error) {
+        console.error('Error updating session time:', error);
+        alert('Failed to update time');
+        return;
+      }
+
+      setSessionTime(tempTime);
+      setEditingTime(false);
+      // Trigger parent refresh to update card
+      if (onTimeUpdated) {
+        onTimeUpdated();
+      }
+    } catch (error) {
+      console.error('Error updating session time:', error);
+      alert('Failed to update time');
+    }
   };
 
   const toggleSectionExpanded = (sectionId: string) => {
@@ -1339,6 +1397,62 @@ export default function WODModal({
                 <FileText size={20} />
                 <span className='text-sm'>Notes</span>
               </button>
+              {/* Session Time Display/Edit */}
+              {sessionTime && (
+                <div className="flex items-center gap-2 border-l border-white/30 pl-4">
+                  <Clock size={18} />
+                  {editingTime ? (
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={tempTime}
+                        onChange={(e) => setTempTime(e.target.value)}
+                        className="px-2 py-1 border rounded bg-white text-gray-900 text-sm"
+                      >
+                        {/* Generate time options in 15-minute increments */}
+                        {Array.from({ length: 24 }, (_, hour) =>
+                          [0, 15, 30, 45].map(minute => {
+                            const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                            return (
+                              <option key={timeString} value={timeString}>
+                                {timeString}
+                              </option>
+                            );
+                          })
+                        ).flat()}
+                      </select>
+                      <button
+                        onClick={handleTimeUpdate}
+                        className="px-3 py-1 bg-white text-[#208479] rounded hover:bg-gray-100 text-sm font-medium"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditingTime(false);
+                          setTempTime(sessionTime!);
+                        }}
+                        className="px-3 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 text-sm"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <span className="font-medium">{sessionTime}</span>
+                      <button
+                        onClick={() => {
+                          setTempTime(sessionTime || '12:00');
+                          setEditingTime(true);
+                        }}
+                        className="p-1 hover:bg-[#1a6b62] rounded transition"
+                        title="Edit time"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
               {editingWOD?.id && (
                 editingWOD.is_published ? (
                   <button
@@ -1577,6 +1691,62 @@ export default function WODModal({
                 <FileText size={20} />
                 <span className='text-sm'>Notes</span>
               </button>
+              {/* Session Time Display/Edit */}
+              {sessionTime && (
+                <div className="flex items-center gap-2 border-l border-white/30 pl-4">
+                  <Clock size={18} />
+                  {editingTime ? (
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={tempTime}
+                        onChange={(e) => setTempTime(e.target.value)}
+                        className="px-2 py-1 border rounded bg-white text-gray-900 text-sm"
+                      >
+                        {/* Generate time options in 15-minute increments */}
+                        {Array.from({ length: 24 }, (_, hour) =>
+                          [0, 15, 30, 45].map(minute => {
+                            const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                            return (
+                              <option key={timeString} value={timeString}>
+                                {timeString}
+                              </option>
+                            );
+                          })
+                        ).flat()}
+                      </select>
+                      <button
+                        onClick={handleTimeUpdate}
+                        className="px-3 py-1 bg-white text-[#208479] rounded hover:bg-gray-100 text-sm font-medium"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditingTime(false);
+                          setTempTime(sessionTime!);
+                        }}
+                        className="px-3 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 text-sm"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <span className="font-medium">{sessionTime}</span>
+                      <button
+                        onClick={() => {
+                          setTempTime(sessionTime || '12:00');
+                          setEditingTime(true);
+                        }}
+                        className="p-1 hover:bg-[#1a6b62] rounded transition"
+                        title="Edit time"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
               {editingWOD?.id && (
                 editingWOD.is_published ? (
                   <button

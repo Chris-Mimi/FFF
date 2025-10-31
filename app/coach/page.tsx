@@ -396,7 +396,8 @@ export default function CoachDashboard() {
           *,
           weekly_sessions (
             id,
-            capacity
+            capacity,
+            time
           )
         `)
         .order('date', { ascending: true });
@@ -425,6 +426,7 @@ export default function CoachDashboard() {
         weekly_sessions?: Array<{
           id: string;
           capacity: number;
+          time: string;
         }>;
       }
 
@@ -449,7 +451,8 @@ export default function CoachDashboard() {
             session_id: session.id,
             confirmed_count: confirmedCount,
             waitlist_count: waitlistCount,
-            capacity: session.capacity
+            capacity: session.capacity,
+            time: session.time
           };
         }
 
@@ -1355,7 +1358,7 @@ export default function CoachDashboard() {
                                 )}
                               </div>
                               <div className='text-xs text-gray-700'>
-                                {wod.classTimes?.join(', ')}
+                                {wod.booking_info?.time || wod.classTimes?.join(', ')}
                               </div>
                             </div>
                             <div className='absolute top-2 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity'>
@@ -2209,6 +2212,7 @@ export default function CoachDashboard() {
         panelOffset={searchPanelOpen ? 800 : quickEditMode ? 400 : 0}
         initialNotesOpen={notesPanelOpen}
         onNotesToggle={setNotesPanelOpen}
+        onTimeUpdated={fetchWODs}
       />
 
       {/* Coach Notes Modal */}

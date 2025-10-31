@@ -235,7 +235,6 @@ export default function SessionManagementModal({
       setEditingTime(false);
       await fetchSessionDetails();
       onSessionUpdated();
-      alert('Time updated successfully');
     } catch (error) {
       console.error('Error updating time:', error);
       alert('Failed to update time');
@@ -433,7 +432,7 @@ export default function SessionManagementModal({
                         <span>{session.time}</span>
                         <button
                           onClick={() => {
-                            setNewTime('12:00');
+                            setNewTime(session.time || '12:00');
                             setEditingTime(true);
                           }}
                           className="p-1 text-gray-500 hover:text-[#208479]"

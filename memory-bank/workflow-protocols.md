@@ -110,6 +110,24 @@ Read in ONE parallel call:
 - **Focus** = Element selected for keyboard input
 - **Loading** = Waiting for data/action to complete
 
+### Workout Terminology (CRITICAL - DO NOT FORGET)
+
+**WOD vs Workout:**
+- ✅ **"Workout"** = General term for any training session (use in ALL user-facing text and communication)
+- ✅ **"WOD"** = ONLY use when referring to the specific WOD section type within a workout
+- ❌ **NEVER say "WOD Modal"** → Correct: "Edit Workout Modal" or "Manage Session Modal"
+- ❌ **NEVER say "Create a WOD"** → Correct: "Create a Workout"
+- ❌ **NEVER say "WOD card"** → Correct: "Workout card"
+
+**Component Names:**
+- **Edit Workout Modal** = Side panel for creating/editing workout content (`components/WODModal.tsx`)
+- **Manage Session Modal** = Popup modal for managing session bookings, time, capacity (`components/SessionManagementModal.tsx`)
+- **WOD section** = ONE section within a workout (Warm-up, WOD, Cool Down, etc.)
+
+**Database Context:**
+- Database table is called `wods` (technical legacy name - keep as-is)
+- But in communication with user: always say "workouts table"
+
 ### Database Terminology
 
 **Always use these exact terms:**
