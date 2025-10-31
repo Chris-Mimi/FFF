@@ -1,6 +1,6 @@
 # The Forge Functional Fitness - Active Context (Final, Corrected)
 
-Version: 2.26
+Version: 2.27
 Timestamp: 2025-10-31
 
 ## ⚠️ CRITICAL RULES & CONTEXT
@@ -260,13 +260,53 @@ The project is **IN PROGRESS**. All core data models and UI features are complet
 - **Commit**: 7bf65e6 (fix: implement 10-card auto-tracking and fix booking authentication)
 - **Package**: Installed @supabase/ssr for Next.js 15 compatibility
 
-**Known Issues:**
-- ⚠️ **Rebooking Error**: After cancelling and rebooking same session, API returns 500 error. Logs show "Booking creation error" but full message truncated. Investigation needed.
-
 **Testing Results:**
 - ✅ First booking: Counter increments correctly
 - ✅ Cancellation: Counter decrements correctly
-- ❌ Rebooking: 500 error (needs debugging in next session)
+- ✅ Rebooking: Fixed in v2.27 (partial unique index solution)
+
+---
+
+## 🔧 Member Management & Booking Improvements (v2.27 - ✅ Complete)
+
+| **Feature** | **Status** | **Description** |
+| :--- | :--- | :--- |
+| **Rebooking Fix** | ✅ **Complete** | Fixed 500 error when rebooking cancelled sessions. Replaced UNIQUE constraint with partial unique index (only applies when status != 'cancelled'). |
+| **No-Show Tracking** | ✅ **Complete** | Added 'no_show' status to bookings. Counts toward 10-card usage but not attendance stats. Includes undo functionality. |
+| **Manual Booking** | ✅ **Complete** | Coach can manually book members via dropdown in Session Management Modal. Auto-increments 10-card for confirmed bookings. Filters out already-booked members. |
+| **Pending Member Notification** | ✅ **Complete** | Pending tab shows orange text with pulse animation when members await approval. Real-time counter badge. |
+| **Unapprove/Unblock Endpoints** | ✅ **Complete** | Testing utilities: Reset active members to pending, move blocked members back to pending. |
+| **Athlete Page Navigation** | ✅ **Complete** | Member booking page shows "Athlete Page" button with trial/active/expired status. Access control validates trial expiry. |
+
+**Technical Implementation:**
+- **Database**: Partial unique index (`unique_active_bookings`), no_show status enum, fix rebooking constraint SQL
+- **API Routes**: `/api/members/unapprove`, `/api/members/unblock` with service role authentication
+- **Member Management**: Pending count polling, subtle testing buttons (unapprove), success message parsing fix
+- **Session Modal**: Manual booking dropdown with member filtering, no-show/undo buttons, confirmation messages updated
+- **10-Card Integration**: No-show counts toward sessions_used, manual booking auto-increments
+- **Athlete Access**: Navigation button shows trial end date, validates subscription status on athlete page load
+
+**Files Modified:**
+- `database/fix-rebooking-constraint.sql` - Partial unique index for rebooking
+- `database/add-no-show-status.sql` - Add no_show enum value
+- `app/coach/members/page.tsx` - Pending notifications, unapprove/unblock, success message fix
+- `components/SessionManagementModal.tsx` - Manual booking, no-show tracking, member dropdown
+- `components/TenCardModal.tsx` - Updated sessions_used calculation to include no_show
+- `app/member/book/page.tsx` - Athlete page navigation button with access status
+- `app/athlete/page.tsx` - Member-based authentication with trial validation
+- `app/api/members/unapprove/route.ts` - Reset to pending endpoint
+- `app/api/members/unblock/route.ts` - Unblock endpoint
+
+**Commits:**
+- `acdaf5b` - feat: add member management features and booking improvements
+- `d03fdb6` - feat(member): add athlete page navigation with access control
+
+**Testing Status:**
+- ✅ Rebooking after cancellation works correctly
+- ✅ No-show marks correctly, counts toward 10-card
+- ✅ Manual booking filters and increments correctly
+- ✅ Pending notification appears/disappears dynamically
+- ✅ Athlete page access validates trial expiry
 
 ---
 
