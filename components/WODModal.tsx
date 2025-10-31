@@ -1441,7 +1441,11 @@ export default function WODModal({
                       <span className="font-medium">{sessionTime}</span>
                       <button
                         onClick={() => {
-                          setTempTime(sessionTime || '12:00');
+                          // Pad time to match select options format (HH:MM)
+                          const currentTime = sessionTime || '12:00';
+                          const [hours, minutes] = currentTime.split(':');
+                          const paddedTime = `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
+                          setTempTime(paddedTime);
                           setEditingTime(true);
                         }}
                         className="p-1 hover:bg-[#1a6b62] rounded transition"
@@ -1735,7 +1739,11 @@ export default function WODModal({
                       <span className="font-medium">{sessionTime}</span>
                       <button
                         onClick={() => {
-                          setTempTime(sessionTime || '12:00');
+                          // Pad time to match select options format (HH:MM)
+                          const currentTime = sessionTime || '12:00';
+                          const [hours, minutes] = currentTime.split(':');
+                          const paddedTime = `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
+                          setTempTime(paddedTime);
                           setEditingTime(true);
                         }}
                         className="p-1 hover:bg-[#1a6b62] rounded transition"

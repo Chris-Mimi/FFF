@@ -432,7 +432,11 @@ export default function SessionManagementModal({
                         <span>{session.time}</span>
                         <button
                           onClick={() => {
-                            setNewTime(session.time || '12:00');
+                            // Pad time to match select options format (HH:MM)
+                            const currentTime = session.time || '12:00';
+                            const [hours, minutes] = currentTime.split(':');
+                            const paddedTime = `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
+                            setNewTime(paddedTime);
                             setEditingTime(true);
                           }}
                           className="p-1 text-gray-500 hover:text-[#208479]"
