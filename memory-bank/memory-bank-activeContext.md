@@ -1,7 +1,7 @@
 # The Forge Functional Fitness - Active Context (Final, Corrected)
 
-Version: 2.23
-Timestamp: 2025-10-27
+Version: 2.26
+Timestamp: 2025-10-31
 
 ## ⚠️ CRITICAL RULES & CONTEXT
 
@@ -242,30 +242,31 @@ The project is **IN PROGRESS**. All core data models and UI features are complet
 
 ---
 
-## 👥 Member Management System (v2.25 - ✅ Complete)
+## 👥 Member Management & 10-Card Auto-Tracking (v2.26 - ✅ Complete)
 
 | **Feature** | **Status** | **Description** |
 | :--- | :--- | :--- |
-| **10-Card Tracking System** | ✅ **Implemented** | Modal for purchase date management, auto-increment on confirmed bookings, visual alerts at 9/10 sessions. Database columns added, RLS policies configured, booking API integrated. |
-| **Filter Chip Counters** | ✅ **Implemented** | Real-time membership type counts below filter buttons, total active athletes count, dynamic updates when memberships change. |
-| **Attendance History Tracking** | ✅ **Implemented** | Confirmed booking counts by selectable timeframe (7/30/365 days), attendance selector dropdown, parallel database queries with Promise.all for performance, member card display integration. |
-| **Manual Booking Cancellation** | 🚧 **Next Priority** | Allow coaches to manually cancel athlete bookings with proper UI controls and status updates. |
-| **Late Cancellation Tracking** | 📋 **Planned** | Track and visually mark bookings cancelled within restricted timeframes, generate coach alerts. |
+| **10-Card Auto-Tracking** | ✅ **Complete** | Auto-increment on booking, auto-decrement on cancellation. Header-based auth for API routes. Member booking page uses API endpoints instead of direct DB calls. |
+| **Filter Chip Counters** | ✅ **Complete** | Real-time membership type counts, total active athletes count, dynamic updates. |
+| **Attendance History Tracking** | ✅ **Complete** | Confirmed booking counts by selectable timeframe (7/30/365 days), integrated into member cards. |
+| **Manual 10-Card Management** | ✅ **Complete** | TenCardModal for purchase date and sessions_used editing with reset functionality. |
+| **Authentication Fix** | ✅ **Complete** | Booking API routes switched from cookie-based to Authorization header authentication. Client passes access token in request headers. |
 
 **Technical Implementation:**
-- **Database**: New columns (ten_card_purchase_date, ten_card_sessions_used), RPC function (get_member_attendance_count), updated RLS policies for coach permissions
-- **Frontend**: Enhanced members page with advanced filtering, TenCardModal component, attendance timeframe selector, real-time counter updates
-- **API Integration**: Booking confirmation auto-increments 10-card sessions, manual cancellation capabilities
-- **Files**: 4 SQL migrations, 1 React component, enhanced page component, booking API updates
-- **Status**: Code complete & committed (964485f), requires SQL migration execution in Supabase
-- **Testing**: Modal and counter logic verified, attendance function needs database deployment
+- **API Routes**: Authorization header authentication (`Bearer token`), auto-increment/decrement logic with debug logging
+- **Client Integration**: Member booking page fetches session token and includes in Authorization header for create/cancel requests
+- **Database**: ten_card_purchase_date, ten_card_sessions_used columns, RPC function (get_member_attendance_count)
+- **Files Modified**: `app/api/bookings/create/route.ts`, `app/api/bookings/cancel/route.ts`, `app/member/book/page.tsx`
+- **Commit**: 7bf65e6 (fix: implement 10-card auto-tracking and fix booking authentication)
+- **Package**: Installed @supabase/ssr for Next.js 15 compatibility
 
-**Key Achievements:**
-- Comprehensive member tracking dashboard with multiple data views
-- Automated 10-card session management
-- Efficient attendance querying with selectable timeframes
-- Real-time membership filtering and counting
-- Scalable RLS security policies for multi-role access
+**Known Issues:**
+- ⚠️ **Rebooking Error**: After cancelling and rebooking same session, API returns 500 error. Logs show "Booking creation error" but full message truncated. Investigation needed.
+
+**Testing Results:**
+- ✅ First booking: Counter increments correctly
+- ✅ Cancellation: Counter decrements correctly
+- ❌ Rebooking: 500 error (needs debugging in next session)
 
 ---
 
