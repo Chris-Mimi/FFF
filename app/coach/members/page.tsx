@@ -59,6 +59,7 @@ export default function CoachMembersPage() {
     member: Member | null;
   }>({ isOpen: false, member: null });
   const [attendanceTimeframe, setAttendanceTimeframe] = useState<7 | 30 | 365>(30);
+  const [pendingCount, setPendingCount] = useState(0);
 
   useEffect(() => {
     // Check authentication (simple check for now)
@@ -70,7 +71,22 @@ export default function CoachMembersPage() {
     };
     checkAuth();
     fetchMembersWithAttendance(activeTab, attendanceTimeframe);
+    fetchPendingCount(); // Fetch pending count on mount and when tab changes
   }, [activeTab, attendanceTimeframe, router]);
+
+  const fetchPendingCount = async () => {
+    try {
+      const { count, error } = await supabase
+        .from('members')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending');
+
+      if (error) throw error;
+      setPendingCount(count || 0);
+    } catch (error) {
+      console.error('Error fetching pending count:', error);
+    }
+  };
 
   const fetchMembersWithAttendance = async (status: MemberStatus, days: 7 | 30 | 365) => {
     console.log('🚀 fetchMembersWithAttendance starting, status:', status, 'days:', days);
@@ -129,23 +145,28 @@ export default function CoachMembersPage() {
         body: JSON.stringify({ memberId })
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to approve member');
+        throw new Error(data.error || 'Failed to approve member');
       }
 
-      // Refresh members list
+      // Show success message
+      alert(data.message || 'Member approved successfully');
+
+      // Refresh members list and pending count
       await fetchMembersWithAttendance(activeTab, attendanceTimeframe);
+      await fetchPendingCount();
     } catch (error) {
       console.error('Error approving member:', error);
-      alert('Failed to approve member. Please try again.');
+      alert(error instanceof Error ? error.message : 'Failed to approve member. Please try again.');
     } finally {
       setProcessingMemberId(null);
     }
   };
 
   const handleBlock = async (memberId: string) => {
-    if (!confirm('Are you sure you want to block this member?')) {
+    if (!confirm('Are you sure you want to block this member? They will lose access to their account.')) {
       return;
     }
 
@@ -157,16 +178,87 @@ export default function CoachMembersPage() {
         body: JSON.stringify({ memberId })
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to block member');
+        throw new Error(data.error || 'Failed to block member');
       }
 
-      // Refresh members list
+      // Show success message
+      alert(data.message || 'Member blocked successfully');
+
+      // Refresh members list and pending count
       await fetchMembersWithAttendance(activeTab, attendanceTimeframe);
+      await fetchPendingCount();
     } catch (error) {
       console.error('Error blocking member:', error);
-      alert('Failed to block member. Please try again.');
+      alert(error instanceof Error ? error.message : 'Failed to block member. Please try again.');
+    } finally {
+      setProcessingMemberId(null);
+    }
+  };
+
+  const handleUnapprove = async (memberId: string) => {
+    if (!confirm('Move this member back to pending status? This will clear their trial period.')) {
+      return;
+    }
+
+    setProcessingMemberId(memberId);
+    try {
+      const response = await fetch('/api/members/unapprove', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memberId })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to unapprove member');
+      }
+
+      // Show success message
+      alert(data.message || 'Member moved back to pending status');
+
+      // Refresh members list and pending count
+      await fetchMembersWithAttendance(activeTab, attendanceTimeframe);
+      await fetchPendingCount();
+    } catch (error) {
+      console.error('Error unapproving member:', error);
+      alert(error instanceof Error ? error.message : 'Failed to unapprove member. Please try again.');
+    } finally {
+      setProcessingMemberId(null);
+    }
+  };
+
+  const handleUnblock = async (memberId: string) => {
+    if (!confirm('Unblock this member? They will be moved to pending status and need re-approval.')) {
+      return;
+    }
+
+    setProcessingMemberId(memberId);
+    try {
+      const response = await fetch('/api/members/unblock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memberId })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to unblock member');
+      }
+
+      // Show success message
+      alert(data.message || 'Member unblocked and moved to pending status');
+
+      // Refresh members list and pending count
+      await fetchMembersWithAttendance(activeTab, attendanceTimeframe);
+      await fetchPendingCount();
+    } catch (error) {
+      console.error('Error unblocking member:', error);
+      alert(error instanceof Error ? error.message : 'Failed to unblock member. Please try again.');
     } finally {
       setProcessingMemberId(null);
     }
@@ -311,12 +403,19 @@ export default function CoachMembersPage() {
             className={`px-6 py-3 font-medium transition-colors duration-200 border-b-2 ${
               activeTab === 'pending'
                 ? 'border-teal-500 text-teal-500'
+                : pendingCount > 0
+                ? 'border-transparent text-orange-400 hover:text-orange-300 animate-pulse'
                 : 'border-transparent text-gray-400 hover:text-gray-300'
             }`}
           >
             <div className="flex items-center gap-2">
               <Clock size={18} />
               Pending
+              {pendingCount > 0 && activeTab !== 'pending' && (
+                <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-orange-500 rounded-full">
+                  {pendingCount}
+                </span>
+              )}
             </div>
           </button>
           <button
@@ -520,6 +619,31 @@ export default function CoachMembersPage() {
                       >
                         <X size={16} />
                         Block
+                      </button>
+                    </div>
+                  )}
+                  {activeTab === 'active' && (
+                    <div className="flex gap-2 ml-3">
+                      <button
+                        onClick={() => handleUnapprove(member.id)}
+                        disabled={processingMemberId === member.id}
+                        className="flex items-center gap-1 px-2 py-1 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-orange-400 hover:text-orange-300 rounded transition-colors duration-200 text-xs"
+                        title="Move back to pending"
+                      >
+                        <Clock size={12} />
+                        Unapprove
+                      </button>
+                    </div>
+                  )}
+                  {activeTab === 'blocked' && (
+                    <div className="flex gap-2 ml-3">
+                      <button
+                        onClick={() => handleUnblock(member.id)}
+                        disabled={processingMemberId === member.id}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-green-500 hover:bg-green-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200 text-sm"
+                      >
+                        <Check size={16} />
+                        Unblock
                       </button>
                     </div>
                   )}

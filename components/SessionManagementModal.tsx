@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { X, Users, Calendar, Clock, Trash2, Edit2 } from 'lucide-react';
+import { X, Users, Calendar, Clock, Trash2, Edit2, UserX, Undo2 } from 'lucide-react';
 
 interface SessionManagementModalProps {
   isOpen: boolean;
@@ -14,7 +14,7 @@ interface SessionManagementModalProps {
 
 interface Booking {
   id: string;
-  status: 'confirmed' | 'waitlist' | 'cancelled';
+  status: 'confirmed' | 'waitlist' | 'cancelled' | 'no_show';
   booked_at: string;
   member: {
     id: string;
@@ -32,6 +32,14 @@ interface SessionDetails {
   workout_id: string;
 }
 
+interface Member {
+  id: string;
+  name: string;
+  email: string;
+  membership_types: string[];
+  ten_card_sessions_used: number;
+}
+
 export default function SessionManagementModal({
   isOpen,
   onClose,
@@ -46,6 +54,9 @@ export default function SessionManagementModal({
   const [newCapacity, setNewCapacity] = useState(0);
   const [editingTime, setEditingTime] = useState(false);
   const [newTime, setNewTime] = useState('');
+  const [availableMembers, setAvailableMembers] = useState<Member[]>([]);
+  const [selectedMemberId, setSelectedMemberId] = useState('');
+  const [addingMember, setAddingMember] = useState(false);
 
   useEffect(() => {
     if (isOpen && sessionId) {
@@ -94,6 +105,27 @@ export default function SessionManagementModal({
       }));
 
       setBookings(transformedBookings);
+
+      // Fetch all active members for manual booking
+      const { data: membersData, error: membersError } = await supabase
+        .from('members')
+        .select('id, name, email, membership_types, ten_card_sessions_used')
+        .eq('status', 'active')
+        .order('name', { ascending: true });
+
+      if (membersError) throw membersError;
+
+      // Filter out members who already have active bookings
+      const bookedMemberIds = transformedBookings
+        .filter((b: any) => b.status !== 'cancelled')
+        .map((b: any) => b.member.id);
+
+      const available = (membersData || []).filter(
+        (m: Member) => !bookedMemberIds.includes(m.id)
+      );
+
+      setAvailableMembers(available);
+      setSelectedMemberId('');
     } catch (error) {
       console.error('Error fetching session details:', error);
       alert('Failed to load session details');
@@ -210,8 +242,110 @@ export default function SessionManagementModal({
     }
   };
 
+  const handleMarkNoShow = async (bookingId: string, memberName: string) => {
+    if (!confirm(`Mark ${memberName} as no-show?\n\nIf they have a 10-card, this will still count toward their usage. They won't count toward attendance statistics.`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .update({ status: 'no_show' })
+        .eq('id', bookingId);
+
+      if (error) throw error;
+
+      await fetchSessionDetails();
+      onSessionUpdated();
+    } catch (error) {
+      console.error('Error marking no-show:', error);
+      alert('Failed to mark as no-show');
+    }
+  };
+
+  const handleUndoNoShow = async (bookingId: string, memberName: string) => {
+    if (!confirm(`Mark ${memberName} as attended (undo no-show)?`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .update({ status: 'confirmed' })
+        .eq('id', bookingId);
+
+      if (error) throw error;
+
+      await fetchSessionDetails();
+      onSessionUpdated();
+    } catch (error) {
+      console.error('Error undoing no-show:', error);
+      alert('Failed to undo no-show');
+    }
+  };
+
+  const handleManualBooking = async () => {
+    if (!selectedMemberId) {
+      alert('Please select a member');
+      return;
+    }
+
+    setAddingMember(true);
+    try {
+      const selectedMember = availableMembers.find(m => m.id === selectedMemberId);
+      if (!selectedMember) {
+        throw new Error('Member not found');
+      }
+
+      // Determine booking status based on capacity
+      const confirmedCount = bookings.filter(b => b.status === 'confirmed').length;
+      const bookingStatus = confirmedCount < (session?.capacity || 0) ? 'confirmed' : 'waitlist';
+
+      // Create booking
+      const { error: bookingError } = await supabase
+        .from('bookings')
+        .insert({
+          session_id: sessionId,
+          member_id: selectedMemberId,
+          status: bookingStatus,
+          booked_at: new Date().toISOString()
+        });
+
+      if (bookingError) throw bookingError;
+
+      // Increment 10-card sessions used if member has 10-card and booking is confirmed
+      if (bookingStatus === 'confirmed' && selectedMember.membership_types?.includes('ten_card')) {
+        const { error: updateError } = await supabase
+          .from('members')
+          .update({
+            ten_card_sessions_used: selectedMember.ten_card_sessions_used + 1
+          })
+          .eq('id', selectedMemberId);
+
+        if (updateError) {
+          console.error('Failed to increment 10-card sessions:', updateError);
+          // Don't fail the booking for this
+        }
+      }
+
+      await fetchSessionDetails();
+      onSessionUpdated();
+
+      const statusMessage = bookingStatus === 'confirmed'
+        ? `${selectedMember.name} booked successfully`
+        : `${selectedMember.name} added to waitlist (session full)`;
+      alert(statusMessage);
+    } catch (error) {
+      console.error('Error booking member:', error);
+      alert('Failed to book member');
+    } finally {
+      setAddingMember(false);
+    }
+  };
+
   const confirmedBookings = bookings.filter(b => b.status === 'confirmed');
   const waitlistBookings = bookings.filter(b => b.status === 'waitlist');
+  const noShowBookings = bookings.filter(b => b.status === 'no_show');
 
   if (!isOpen) return null;
 
@@ -349,6 +483,42 @@ export default function SessionManagementModal({
                 </div>
               </div>
 
+              {/* Manual Booking */}
+              {session.status !== 'cancelled' && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h3 className="text-base font-semibold text-gray-800 mb-3">Add Member Manually</h3>
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={selectedMemberId}
+                      onChange={(e) => setSelectedMemberId(e.target.value)}
+                      disabled={addingMember || availableMembers.length === 0}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 disabled:bg-gray-100"
+                    >
+                      <option value="">
+                        {availableMembers.length === 0 ? 'No available members' : 'Select a member...'}
+                      </option>
+                      {availableMembers.map((member) => (
+                        <option key={member.id} value={member.id}>
+                          {member.name}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={handleManualBooking}
+                      disabled={!selectedMemberId || addingMember}
+                      className="px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg transition whitespace-nowrap"
+                    >
+                      {addingMember ? 'Adding...' : 'Add Member'}
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-600 mt-2">
+                    {confirmedBookings.length >= (session?.capacity || 0)
+                      ? '⚠️ Session is full - member will be added to waitlist'
+                      : `${(session?.capacity || 0) - confirmedBookings.length} spot(s) available`}
+                  </p>
+                </div>
+              )}
+
               {/* Confirmed Bookings */}
               <div>
                 <h3 className="text-base font-semibold text-gray-800 mb-2">
@@ -363,15 +533,58 @@ export default function SessionManagementModal({
                         key={booking.id}
                         className="flex items-center justify-between bg-white border rounded px-2 py-1.5 text-sm"
                       >
-                        <span className="font-medium text-gray-800">{booking.member.name}</span>
-                        <span className="text-xs text-gray-400">
-                          {new Date(booking.booked_at).toLocaleDateString('en-GB')}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-gray-800">{booking.member.name}</span>
+                          <span className="text-xs text-gray-400">
+                            {new Date(booking.booked_at).toLocaleDateString('en-GB')}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => handleMarkNoShow(booking.id, booking.member.name)}
+                          className="flex items-center gap-1 px-2 py-1 text-xs bg-orange-100 hover:bg-orange-200 text-orange-700 rounded transition"
+                          title="Mark as no-show"
+                        >
+                          <UserX size={14} />
+                          No-Show
+                        </button>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
+
+              {/* No-Shows */}
+              {noShowBookings.length > 0 && (
+                <div>
+                  <h3 className="text-base font-semibold text-gray-800 mb-2">
+                    No-Shows ({noShowBookings.length})
+                  </h3>
+                  <div className="space-y-1">
+                    {noShowBookings.map((booking) => (
+                      <div
+                        key={booking.id}
+                        className="flex items-center justify-between bg-orange-50 border border-orange-200 rounded px-2 py-1.5 text-sm"
+                      >
+                        <div className="flex items-center gap-2">
+                          <UserX size={14} className="text-orange-600" />
+                          <span className="font-medium text-gray-800">{booking.member.name}</span>
+                          <span className="text-xs text-gray-400">
+                            {new Date(booking.booked_at).toLocaleDateString('en-GB')}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => handleUndoNoShow(booking.id, booking.member.name)}
+                          className="flex items-center gap-1 px-2 py-1 text-xs bg-green-100 hover:bg-green-200 text-green-700 rounded transition"
+                          title="Mark as attended (undo no-show)"
+                        >
+                          <Undo2 size={14} />
+                          Undo
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Waitlist */}
               {waitlistBookings.length > 0 && (

@@ -47,43 +47,48 @@ export default function TenCardModal({
 
   if (!isOpen || !member) return null;
 
+  const recalculateSessionsUsed = async (purchaseDateStr: string) => {
+    if (!purchaseDateStr || !member) return sessionsUsed;
+
+    try {
+      // Fetch all confirmed AND no_show bookings for this member with session dates
+      // Both count toward 10-card usage (they reserved a slot)
+      const { data: bookings, error } = await supabase
+        .from('bookings')
+        .select('id, status, weekly_sessions!inner(date)')
+        .eq('member_id', member.id)
+        .in('status', ['confirmed', 'no_show'])
+        .gte('weekly_sessions.date', purchaseDateStr);
+
+      if (error) {
+        console.error('Error fetching bookings for recalculation:', error);
+        return sessionsUsed;
+      }
+
+      const count = bookings?.length || 0;
+      console.log(`📊 Recalculated sessions: ${count} bookings (confirmed + no_show) since ${purchaseDateStr}`);
+      return count;
+    } catch (error) {
+      console.error('Error recalculating sessions:', error);
+      return sessionsUsed;
+    }
+  };
+
   const handleSave = async () => {
     setLoading(true);
     try {
-      // Debug JWT to see if role: 'coach' is set
-      const { data: { user } } = await supabase.auth.getUser();
-      console.log('🔐 JWT payload check - user:', user, 'app_metadata:', user?.app_metadata, 'user_metadata:', user?.user_metadata);
+      // Recalculate sessions_used based on confirmed bookings after purchase date
+      const recalculatedSessions = await recalculateSessionsUsed(purchaseDate);
 
-      console.log('🛟 TenCardModal save:', member.id, 'purchase_date:', purchaseDate, 'sessions_used:', sessionsUsed);
+      console.log('🛟 TenCardModal save:', member.id, 'purchase_date:', purchaseDate, 'recalculated sessions:', recalculatedSessions);
 
-          // First verify member exists and who the current user is
-          const { data: currentUser } = await supabase.auth.getUser();
-          console.log('🔍 Checking if member', member.id, 'exists...');
-
-          // Test direct query first
-          const { data: memberCheck, error: memberError } = await supabase
-            .from('members')
-            .select('id, ten_card_sessions_used, ten_card_purchase_date')
-            .eq('id', member.id)
-            .single();
-
-          console.log('📋 Member query result:', {
-            memberCheck,
-            memberError,
-            exists: !!memberCheck,
-            hasColumns: memberCheck ? {
-              ten_card_sessions_used: memberCheck.ten_card_sessions_used,
-              ten_card_purchase_date: memberCheck.ten_card_purchase_date
-            } : null
-          });
-
-          const { data, error } = await supabase
-            .from('members')
-            .update({
-              ten_card_purchase_date: purchaseDate || null,
-              ten_card_sessions_used: sessionsUsed
-            })
-            .eq('id', member.id);
+      const { data, error } = await supabase
+        .from('members')
+        .update({
+          ten_card_purchase_date: purchaseDate || null,
+          ten_card_sessions_used: recalculatedSessions
+        })
+        .eq('id', member.id);
 
       console.log('🗃️ Supabase update result - data:', data, 'error:', error);
 
@@ -93,7 +98,7 @@ export default function TenCardModal({
       }
 
       console.log('✅ 10-card modal save successful, calling onUpdate()...');
-      const fetchResult = onUpdate();
+      onUpdate();
       console.log('📡 onUpdate() called (should fetch and refresh data)');
       onClose();
     } catch (error) {
@@ -173,19 +178,29 @@ export default function TenCardModal({
               </p>
             </div>
 
-            {/* Sessions Used */}
+            {/* Sessions Used - Auto-calculated */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Sessions Used (0-10)
+                Sessions Used (Auto-calculated)
               </label>
-              <input
-                type="number"
-                min="0"
-                max="10"
-                value={sessionsUsed}
-                onChange={(e) => setSessionsUsed(Math.max(0, Math.min(10, parseInt(e.target.value) || 0)))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900"
-              />
+              <div className="flex items-center gap-3">
+                <div className="flex-1 px-3 py-2 border border-gray-300 bg-gray-50 rounded-md text-gray-700 font-medium">
+                  {sessionsUsed}/10
+                </div>
+                <button
+                  onClick={async () => {
+                    const count = await recalculateSessionsUsed(purchaseDate);
+                    setSessionsUsed(count);
+                  }}
+                  disabled={!purchaseDate}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-sm rounded-lg transition"
+                >
+                  Preview
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Click Preview to see count based on current purchase date. Saved automatically when you save changes.
+              </p>
             </div>
 
             {/* Reset Button */}
