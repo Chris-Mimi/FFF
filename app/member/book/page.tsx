@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { Calendar, Users, Clock, LogOut, ChevronLeft, ChevronRight, X, Check } from 'lucide-react';
+import { Calendar, Users, Clock, LogOut, ChevronLeft, ChevronRight, X, Check, TrendingUp } from 'lucide-react';
 import { signOut } from '@/lib/auth';
+import Link from 'next/link';
 
 interface WeeklySession {
   id: string;
@@ -26,6 +27,11 @@ export default function MemberBookingPage() {
   const [sessions, setSessions] = useState<WeeklySession[]>([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState<string | null>(null);
+  const [athleteStatus, setAthleteStatus] = useState<{
+    hasAccess: boolean;
+    status: 'trial' | 'active' | 'expired';
+    trialEnd: string | null;
+  } | null>(null);
 
   useEffect(() => {
     checkAuth();
@@ -44,10 +50,10 @@ export default function MemberBookingPage() {
       return;
     }
 
-    // Check if user is a member
+    // Check if user is a member and get athlete access info
     const { data: member } = await supabase
       .from('members')
-      .select('id, email, status')
+      .select('id, email, status, athlete_subscription_status, athlete_subscription_end')
       .eq('id', authUser.id)
       .single();
 
@@ -63,6 +69,19 @@ export default function MemberBookingPage() {
       return;
     }
 
+    // Check athlete access
+    const now = new Date();
+    const trialEnd = member.athlete_subscription_end ? new Date(member.athlete_subscription_end) : null;
+    const hasAccess =
+      member.athlete_subscription_status === 'active' ||
+      (member.athlete_subscription_status === 'trial' && trialEnd && trialEnd > now);
+
+    setAthleteStatus({
+      hasAccess,
+      status: member.athlete_subscription_status,
+      trialEnd: member.athlete_subscription_end
+    });
+
     setUser({ id: authUser.id, email: authUser.email || '' });
   };
 
@@ -73,6 +92,14 @@ export default function MemberBookingPage() {
     try {
       const weekEnd = new Date(weekStart);
       weekEnd.setDate(weekStart.getDate() + 7);
+
+      // Format dates in local timezone (YYYY-MM-DD) to avoid timezone shift
+      const formatLocalDate = (date: Date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
 
       // Fetch weekly sessions with booking counts
       const { data: sessionsData, error } = await supabase
@@ -93,8 +120,8 @@ export default function MemberBookingPage() {
           )
         `)
         .eq('status', 'published')
-        .gte('date', weekStart.toISOString().split('T')[0])
-        .lt('date', weekEnd.toISOString().split('T')[0])
+        .gte('date', formatLocalDate(weekStart))
+        .lt('date', formatLocalDate(weekEnd))
         .order('date', { ascending: true })
         .order('time', { ascending: true });
 
@@ -277,13 +304,33 @@ export default function MemberBookingPage() {
               <h1 className="text-2xl font-bold text-white">Book a Class</h1>
               <p className="text-gray-400 text-sm mt-1">Reserve your spot in upcoming sessions</p>
             </div>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200"
-            >
-              <LogOut size={18} />
-              Logout
-            </button>
+            <div className="flex items-center gap-3">
+              {athleteStatus && (
+                <Link href="/athlete">
+                  <button
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors duration-200 ${
+                      athleteStatus.hasAccess
+                        ? 'bg-teal-500 hover:bg-teal-600 text-white'
+                        : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+                    }`}
+                  >
+                    <TrendingUp size={18} />
+                    {athleteStatus.hasAccess
+                      ? athleteStatus.status === 'trial'
+                        ? 'Athlete Page (Trial)'
+                        : 'Athlete Page'
+                      : 'Unlock Athlete Page'}
+                  </button>
+                </Link>
+              )}
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200"
+              >
+                <LogOut size={18} />
+                Logout
+              </button>
+            </div>
           </div>
         </div>
       </header>

@@ -50,16 +50,50 @@ export default function AthleteDashboard() {
         return;
       }
 
-      // Check if user is an athlete
-      const role = user.user_metadata?.role || 'athlete';
-      if (role !== 'athlete') {
+      // First check if user is an active member with athlete access
+      const { data: member } = await supabase
+        .from('members')
+        .select('id, name, status, athlete_subscription_status, athlete_subscription_end')
+        .eq('id', user.id)
+        .single();
+
+      // If they're a member, check their status and athlete access
+      if (member) {
+        if (member.status !== 'active') {
+          alert('Your account is pending approval. Please wait for coach approval.');
+          router.push('/member/book');
+          return;
+        }
+
+        // Check athlete access
+        const now = new Date();
+        const trialEnd = member.athlete_subscription_end ? new Date(member.athlete_subscription_end) : null;
+        const hasAccess =
+          member.athlete_subscription_status === 'active' ||
+          (member.athlete_subscription_status === 'trial' && trialEnd && trialEnd > now);
+
+        if (!hasAccess) {
+          alert('Your athlete page access has expired. Please contact the coach to renew.');
+          router.push('/member/book');
+          return;
+        }
+
+        // Member has access - allow them to use athlete page
+        setUserName(user.user_metadata?.full_name || user.email || 'Athlete');
+        setUserId(user.id);
+        setLoading(false);
+        return;
+      }
+
+      // If not a member, check if they're a coach (redirect coaches who aren't members)
+      const role = user.user_metadata?.role;
+      if (role === 'coach') {
         router.push('/coach');
         return;
       }
 
-      setUserName(user.user_metadata?.full_name || user.email || 'Athlete');
-      setUserId(user.id);
-      setLoading(false);
+      // Not a member and not a coach - redirect to login
+      router.push('/login');
     };
 
     checkAuth();
