@@ -310,6 +310,23 @@ The project is **IN PROGRESS**. All core data models and UI features are complet
 
 ---
 
+## 🔧 Section Types Extension & Olympic Lifting Addition (v2.27)
+
+| **Feature** | **Status** | **Description** |
+| :--- | :--- | :--- |
+| **Olympic Lifting Section Type** | ✅ **Complete** | Added "Olympic Lifting" section type to section_types table. Includes Olympic weightlifting movements (Clean, Snatch, Jerk variations). Available in Create New Workout modal for section selection. |
+
+**Technical Implementation:**
+- **Database**: Added Olympic Lifting to section_types table with display_order 11, description for weightlifting movements
+- **File Created**: `database/add-olympic-lifting-workout-type.sql` - Corrected SQL script (initial mistake placed in wrong table)
+- **UI Integration**: Section type choice in WOD creation modal (Warm-up, Strength, Gymnastics, **Olympic Lifting**, etc.)
+- **Verification**: Confirmed in database and UI working as expected
+
+**Commits:**
+- `7e1d839` - feat: add Olympic Lifting section type to section_types table
+
+---
+
 | **Feature** | Description | Implementation Phase |
 | :--- | :--- | :--- |
 | **Overview** | Three-section app: Coach Page (workouts), Book a WOD Page (member bookings), Athlete Page (paid performance tracking). | — |

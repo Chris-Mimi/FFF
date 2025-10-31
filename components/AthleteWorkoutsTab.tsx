@@ -190,8 +190,11 @@ export default function AthleteWorkoutsTab({ userId }: AthleteWorkoutsTabProps) 
               {/* Day Header */}
               <div className={`p-3 text-center ${isToday ? 'bg-[#208479] text-white' : 'bg-gray-300 text-gray-900'}`}>
                 <div className='text-sm font-semibold'>{dayName}</div>
-                <div className='text-lg font-bold'>
-                  {date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                <div className='text-sm font-bold'>
+                  {workout
+                    ? `${date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} at ${workout.publish_time}`
+                    : date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+                  }
                 </div>
               </div>
 

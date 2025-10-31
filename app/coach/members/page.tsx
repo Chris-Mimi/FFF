@@ -58,7 +58,7 @@ export default function CoachMembersPage() {
     isOpen: boolean;
     member: Member | null;
   }>({ isOpen: false, member: null });
-  const [attendanceTimeframe, setAttendanceTimeframe] = useState<7 | 30 | 365>(30);
+  const [attendanceTimeframe, setAttendanceTimeframe] = useState<7 | 30 | 365 | 'all'>('all');
   const [pendingCount, setPendingCount] = useState(0);
 
   useEffect(() => {
@@ -88,8 +88,10 @@ export default function CoachMembersPage() {
     }
   };
 
-  const fetchMembersWithAttendance = async (status: MemberStatus, days: 7 | 30 | 365) => {
-    console.log('🚀 fetchMembersWithAttendance starting, status:', status, 'days:', days);
+  const fetchMembersWithAttendance = async (status: MemberStatus, timeframe: 7 | 30 | 365 | 'all') => {
+    // Convert 'all' to null for the RPC call (no date filter)
+    const daysParam = timeframe === 'all' ? null : timeframe;
+    console.log('🚀 fetchMembersWithAttendance starting, status:', status, 'timeframe:', timeframe, 'daysParam:', daysParam);
     setLoading(true);
     try {
       // First get the members
@@ -110,7 +112,7 @@ export default function CoachMembersPage() {
           try {
             const { data: attendanceData, error: attendanceError } = await supabase.rpc(
               'get_member_attendance_count',
-              { p_member_id: member.id, p_days_back: days }
+              { p_member_id: member.id, p_days_back: daysParam }
             );
 
             if (attendanceError) {
@@ -441,12 +443,16 @@ export default function CoachMembersPage() {
             <span className="text-sm text-gray-400 font-medium">Attendance timeframe:</span>
             <select
               value={attendanceTimeframe}
-              onChange={(e) => setAttendanceTimeframe(parseInt(e.target.value) as 7 | 30 | 365)}
+              onChange={(e) => {
+                const value = e.target.value;
+                setAttendanceTimeframe(value === 'all' ? 'all' : parseInt(value) as 7 | 30 | 365);
+              }}
               className="px-3 py-1 bg-gray-700 text-white rounded text-sm border border-gray-600"
             >
               <option value="7">Last 7 days</option>
               <option value="30">Last 30 days</option>
               <option value="365">Last 12 months</option>
+              <option value="all">All Time</option>
             </select>
             <span className="text-xs text-gray-500">
               Click to change timeframe for attendance counts
