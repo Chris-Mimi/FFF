@@ -14,7 +14,7 @@ interface SessionManagementModalProps {
 
 interface Booking {
   id: string;
-  status: 'confirmed' | 'waitlist' | 'cancelled' | 'no_show';
+  status: 'confirmed' | 'waitlist' | 'cancelled' | 'no_show' | 'late_cancel';
   booked_at: string;
   member: {
     id: string;
@@ -57,6 +57,13 @@ export default function SessionManagementModal({
   const [availableMembers, setAvailableMembers] = useState<Member[]>([]);
   const [selectedMemberId, setSelectedMemberId] = useState('');
   const [addingMember, setAddingMember] = useState(false);
+  const [modalPos, setModalPos] = useState({ top: 100, left: 100 });
+  const [modalSize, setModalSize] = useState({ width: 600, height: 700 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const [resizeCorner, setResizeCorner] = useState<'nw' | 'ne' | 'sw' | 'se' | null>(null);
 
   // Helper function to ensure time is zero-padded for select dropdown
   const padTime = (time: string): string => {
@@ -293,6 +300,48 @@ export default function SessionManagementModal({
     }
   };
 
+  const handleLateCancel = async (bookingId: string, memberName: string) => {
+    if (!confirm(`Mark ${memberName} as late cancellation?\n\nThis will count toward their 10-card usage but NOT toward attendance statistics.`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .update({ status: 'late_cancel' })
+        .eq('id', bookingId);
+
+      if (error) throw error;
+
+      await fetchSessionDetails();
+      onSessionUpdated();
+    } catch (error) {
+      console.error('Error marking late cancellation:', error);
+      alert('Failed to mark as late cancellation');
+    }
+  };
+
+  const handleUndoLateCancel = async (bookingId: string, memberName: string) => {
+    if (!confirm(`Mark ${memberName} as attended (undo late cancellation)?`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .update({ status: 'confirmed' })
+        .eq('id', bookingId);
+
+      if (error) throw error;
+
+      await fetchSessionDetails();
+      onSessionUpdated();
+    } catch (error) {
+      console.error('Error undoing late cancellation:', error);
+      alert('Failed to undo late cancellation');
+    }
+  };
+
   const handleManualBooking = async () => {
     if (!selectedMemberId) {
       alert('Please select a member');
@@ -352,24 +401,167 @@ export default function SessionManagementModal({
     }
   };
 
+  const handleDragStart = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest('.resize-handle')) return;
+    setIsDragging(true);
+    setDragStart({ x: e.clientX - modalPos.left, y: e.clientY - modalPos.top });
+  };
+
+  const handleDragMove = (e: MouseEvent) => {
+    if (!isDragging) return;
+    setModalPos({
+      left: e.clientX - dragStart.x,
+      top: e.clientY - dragStart.y,
+    });
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+  };
+
+  const handleResizeStart = (e: React.MouseEvent, corner: 'nw' | 'ne' | 'sw' | 'se') => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsResizing(true);
+    setResizeCorner(corner);
+    setResizeStart({
+      x: e.clientX,
+      y: e.clientY,
+      width: modalSize.width,
+      height: modalSize.height,
+    });
+  };
+
+  const handleResizeMove = (e: MouseEvent) => {
+    if (!isResizing || !resizeCorner) return;
+
+    const dx = e.clientX - resizeStart.x;
+    const dy = e.clientY - resizeStart.y;
+
+    let newWidth = resizeStart.width;
+    let newHeight = resizeStart.height;
+    let newLeft = modalPos.left;
+    let newTop = modalPos.top;
+
+    if (resizeCorner.includes('e')) newWidth = Math.max(500, resizeStart.width + dx);
+    if (resizeCorner.includes('w')) {
+      newWidth = Math.max(500, resizeStart.width - dx);
+      newLeft = modalPos.left + dx;
+    }
+    if (resizeCorner.includes('s')) newHeight = Math.max(500, resizeStart.height + dy);
+    if (resizeCorner.includes('n')) {
+      newHeight = Math.max(500, resizeStart.height - dy);
+      newTop = modalPos.top + dy;
+    }
+
+    setModalSize({ width: newWidth, height: newHeight });
+    setModalPos({ left: newLeft, top: newTop });
+  };
+
+  const handleResizeEnd = () => {
+    setIsResizing(false);
+    setResizeCorner(null);
+  };
+
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener('mousemove', handleDragMove);
+      window.addEventListener('mouseup', handleDragEnd);
+      return () => {
+        window.removeEventListener('mousemove', handleDragMove);
+        window.removeEventListener('mouseup', handleDragEnd);
+      };
+    }
+  }, [isDragging]);
+
+  useEffect(() => {
+    if (isResizing) {
+      window.addEventListener('mousemove', handleResizeMove);
+      window.addEventListener('mouseup', handleResizeEnd);
+      return () => {
+        window.removeEventListener('mousemove', handleResizeMove);
+        window.removeEventListener('mouseup', handleResizeEnd);
+      };
+    }
+  }, [isResizing]);
+
   const confirmedBookings = bookings.filter(b => b.status === 'confirmed');
   const waitlistBookings = bookings.filter(b => b.status === 'waitlist');
   const noShowBookings = bookings.filter(b => b.status === 'no_show');
+  const lateCancelBookings = bookings.filter(b => b.status === 'late_cancel');
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+    <>
+      {/* Floating Modal */}
+      <div
+        className="fixed bg-white rounded-lg shadow-2xl flex flex-col z-50"
+        style={{
+          left: `${modalPos.left}px`,
+          top: `${modalPos.top}px`,
+          width: `${modalSize.width}px`,
+          height: `${modalSize.height}px`,
+          maxWidth: '90vw',
+          maxHeight: '90vh'
+        }}
+      >
+        {/* Resize Handles - Large corner triangles */}
+        {/* Bottom-right */}
+        <div
+          className="absolute bottom-0 right-0 w-12 h-12 cursor-se-resize z-50"
+          onMouseDown={(e) => handleResizeStart(e, 'se')}
+          title="Drag to resize"
+        >
+          <div className="absolute bottom-0 right-0 w-0 h-0 border-l-[48px] border-l-transparent border-b-[48px] border-b-[#208479] hover:border-b-[#1a6b62] transition"></div>
+          <div className="absolute bottom-1 right-1 text-white text-xs font-bold">⇘</div>
+        </div>
+        {/* Top-right */}
+        <div
+          className="absolute top-0 right-0 w-12 h-12 cursor-ne-resize z-50"
+          onMouseDown={(e) => handleResizeStart(e, 'ne')}
+          title="Drag to resize"
+        >
+          <div className="absolute top-0 right-0 w-0 h-0 border-l-[48px] border-l-transparent border-t-[48px] border-t-[#208479] hover:border-t-[#1a6b62] transition rounded-tr-lg"></div>
+          <div className="absolute top-1 right-1 text-white text-xs font-bold">⇗</div>
+        </div>
+        {/* Bottom-left */}
+        <div
+          className="absolute bottom-0 left-0 w-12 h-12 cursor-sw-resize z-50"
+          onMouseDown={(e) => handleResizeStart(e, 'sw')}
+          title="Drag to resize"
+        >
+          <div className="absolute bottom-0 left-0 w-0 h-0 border-r-[48px] border-r-transparent border-b-[48px] border-b-[#208479] hover:border-b-[#1a6b62] transition rounded-bl-lg"></div>
+          <div className="absolute bottom-1 left-1 text-white text-xs font-bold">⇙</div>
+        </div>
+        {/* Top-left */}
+        <div
+          className="absolute top-0 left-0 w-12 h-12 cursor-nw-resize z-50"
+          onMouseDown={(e) => handleResizeStart(e, 'nw')}
+          title="Drag to resize"
+        >
+          <div className="absolute top-0 left-0 w-0 h-0 border-r-[48px] border-r-transparent border-t-[48px] border-t-[#208479] hover:border-t-[#1a6b62] transition rounded-tl-lg"></div>
+          <div className="absolute top-1 left-1 text-white text-xs font-bold">⇖</div>
+        </div>
+
         {/* Header */}
-        <div className="bg-[#208479] text-white p-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Users size={24} />
-            <h2 className="text-xl font-bold">Manage Session</h2>
+        <div
+          className="bg-[#208479] text-white p-6 rounded-t-lg flex justify-between items-start flex-shrink-0 cursor-move"
+          onMouseDown={handleDragStart}
+        >
+          <div>
+            <h2 className="text-2xl font-bold">Manage Session</h2>
+            <p className="text-sm opacity-90">
+              {workoutDate ? new Date(workoutDate).toLocaleDateString('en-GB', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+              }) : ''}
+            </p>
           </div>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-white/20 rounded transition"
+            className="hover:bg-[#1a6b62] p-2 rounded transition"
           >
             <X size={24} />
           </button>
@@ -566,14 +758,23 @@ export default function SessionManagementModal({
                             {new Date(booking.booked_at).toLocaleDateString('en-GB')}
                           </span>
                         </div>
-                        <button
-                          onClick={() => handleMarkNoShow(booking.id, booking.member.name)}
-                          className="flex items-center gap-1 px-2 py-1 text-xs bg-orange-100 hover:bg-orange-200 text-orange-700 rounded transition"
-                          title="Mark as no-show"
-                        >
-                          <UserX size={14} />
-                          No-Show
-                        </button>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => handleLateCancel(booking.id, booking.member.name)}
+                            className="flex items-center gap-1 px-2 py-1 text-xs bg-purple-50 hover:bg-purple-100 text-purple-800 rounded transition"
+                            title="Mark as late cancellation"
+                          >
+                            Late Cancel
+                          </button>
+                          <button
+                            onClick={() => handleMarkNoShow(booking.id, booking.member.name)}
+                            className="flex items-center gap-1 px-2 py-1 text-xs bg-orange-100 hover:bg-orange-200 text-orange-700 rounded transition"
+                            title="Mark as no-show"
+                          >
+                            <UserX size={14} />
+                            No-Show
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -603,6 +804,39 @@ export default function SessionManagementModal({
                           onClick={() => handleUndoNoShow(booking.id, booking.member.name)}
                           className="flex items-center gap-1 px-2 py-1 text-xs bg-green-100 hover:bg-green-200 text-green-700 rounded transition"
                           title="Mark as attended (undo no-show)"
+                        >
+                          <Undo2 size={14} />
+                          Undo
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Late Cancellations */}
+              {lateCancelBookings.length > 0 && (
+                <div>
+                  <h3 className="text-base font-semibold text-gray-800 mb-2">
+                    Late Cancellations ({lateCancelBookings.length})
+                  </h3>
+                  <div className="space-y-1">
+                    {lateCancelBookings.map((booking) => (
+                      <div
+                        key={booking.id}
+                        className="flex items-center justify-between bg-purple-50 border-2 border-purple-300 rounded px-2 py-1.5 text-sm"
+                      >
+                        <div className="flex items-center gap-2">
+                          <X size={14} className="text-purple-600 font-bold" />
+                          <span className="font-medium text-gray-800">{booking.member.name}</span>
+                          <span className="text-xs text-gray-400">
+                            {new Date(booking.booked_at).toLocaleDateString('en-GB')}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => handleUndoLateCancel(booking.id, booking.member.name)}
+                          className="flex items-center gap-1 px-2 py-1 text-xs bg-green-100 hover:bg-green-200 text-green-700 rounded transition"
+                          title="Mark as attended (undo late cancellation)"
                         >
                           <Undo2 size={14} />
                           Undo
@@ -657,15 +891,15 @@ export default function SessionManagementModal({
         </div>
 
         {/* Footer */}
-        <div className="border-t p-4 flex justify-end">
+        <div className="border-t p-6 bg-gray-50 rounded-b-lg flex justify-end gap-3 flex-shrink-0">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg transition"
+            className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 text-gray-700 font-medium transition"
           >
             Close
           </button>
         </div>
       </div>
-    </div>
+    </>
   );
 }
