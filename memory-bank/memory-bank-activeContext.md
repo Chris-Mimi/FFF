@@ -1,7 +1,7 @@
 # The Forge Functional Fitness - Active Context (Final, Corrected)
 
-Version: 2.28
-Timestamp: 2025-10-31
+Version: 2.29
+Timestamp: 2025-11-01
 
 ## ⚠️ CRITICAL RULES & CONTEXT
 
@@ -355,6 +355,33 @@ The project is **IN PROGRESS**. All core data models and UI features are complet
 - ✅ Session modal displays in clean 2-row grid
 - ✅ Athlete cards show time when workouts exist
 - ✅ "All Time" attendance filter fetches all historical data
+
+---
+
+## 🐛 Time Picker Bug Fixes (v2.29 - ✅ Complete)
+
+| **Feature** | **Status** | **Description** |
+| :--- | :--- | :--- |
+| **Zero-Padding Fix** | ✅ **Complete** | Fixed time picker defaulting to 00:00. Added padTime() helper to ensure time values always match select dropdown format (HH:MM). Applied at all 8 state-setting locations. |
+| **Athlete Page Time Sync** | ✅ **Complete** | Fixed Athlete page showing stale time. Both modals now update weekly_sessions.time AND wods.publish_time when time changes. |
+
+**Technical Implementation:**
+- **Root Cause 1**: Database stores "8:45", select options are "08:45" - mismatch caused default to "00:00"
+- **Root Cause 2**: Athlete page reads publish_time from wods table, but updates only changed weekly_sessions.time
+- **Solution**: padTime() helper function, dual-table updates in both modals
+- **Locations Fixed**: 8 total (SessionManagementModal: 3, WODModal: 5)
+
+**Files Modified:**
+- `components/SessionManagementModal.tsx` - padTime() helper, zero-padding at fetch/cancel/edit, publish_time update
+- `components/WODModal.tsx` - padTime() helper, zero-padding at fetch/cancel/edit (2 instances each), publish_time update
+
+**Commits:**
+- `04f64ec` - fix: ensure time picker always shows current time by applying zero-padding everywhere
+- `a2c84fe` - fix: update wods.publish_time when changing session time for Athlete page display
+
+**Testing:**
+- ✅ Time picker consistently shows current time across all state changes
+- ✅ Athlete page immediately reflects time changes from either modal
 
 ---
 
