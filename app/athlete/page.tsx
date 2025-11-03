@@ -587,8 +587,9 @@ function LogbookTab({ userId, initialDate }: { userId: string; initialDate?: Dat
   const fetchAttendedWorkoutsForPeriod = async (startDate: Date, endDate: Date) => {
     setLoading(true);
     try {
-      const startStr = startDate.toISOString().split('T')[0];
-      const endStr = endDate.toISOString().split('T')[0];
+      // Format dates in local timezone to avoid UTC conversion issues
+      const startStr = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
+      const endStr = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`;
 
       // Fetch published WODs in date range
       const { data: wodsData, error: wodsError } = await supabase
