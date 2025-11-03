@@ -1,6 +1,6 @@
 # Active Context
 
-**Version:** 3.0
+**Version:** 3.1
 **Updated:** 2025-11-03
 
 ---
@@ -60,17 +60,17 @@ Athlete Tables (linked to members.id)
 ## 📍 Current Status (Last 2 Weeks)
 
 **Completed:**
-- Late cancel and no-show tracking (v2.30)
-- Session management improvements with 15-min time picker (v2.28-2.29)
-- Time synchronization across wods and weekly_sessions tables
-- "All Time" attendance filter option
-- Olympic Lifting section type added
+- Memory Bank optimization: 82% reduction (40KB → 9.5KB), created history system and lessons-learned.md
+- Athlete Logbook week/month views: Accordion-style week view with attended workouts list, calendar-grid month view
+- Click-to-logbook: Published Workouts cards now navigate to Logbook tab with selected date
+- "All Time" attendance bug: Fixed RPC function to handle NULL for all-time counts
+- macOS autofill popup: Identified as system-level iCloud Keychain (not code issue)
 
 **Active Development:**
-- Memory Bank optimization (THIS SESSION)
+- None
 
 **Known Issues:**
-- None currently
+- macOS iCloud Keychain shows password autofill popups on input fields (OS behavior, not app bug)
 
 ---
 
