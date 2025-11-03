@@ -409,9 +409,10 @@ export default function SessionManagementModal({
 
   const handleDragMove = (e: MouseEvent) => {
     if (!isDragging) return;
+    const newTop = Math.max(50, e.clientY - dragStart.y); // Prevent dragging above header
     setModalPos({
       left: e.clientX - dragStart.x,
-      top: e.clientY - dragStart.y,
+      top: newTop,
     });
   };
 
@@ -448,9 +449,9 @@ export default function SessionManagementModal({
       newWidth = Math.max(500, resizeStart.width - dx);
       newLeft = modalPos.left + dx;
     }
-    if (resizeCorner.includes('s')) newHeight = Math.max(500, resizeStart.height + dy);
+    if (resizeCorner.includes('s')) newHeight = Math.max(200, resizeStart.height + dy);
     if (resizeCorner.includes('n')) {
-      newHeight = Math.max(500, resizeStart.height - dy);
+      newHeight = Math.max(200, resizeStart.height - dy);
       newTop = modalPos.top + dy;
     }
 
@@ -502,46 +503,41 @@ export default function SessionManagementModal({
           top: `${modalPos.top}px`,
           width: `${modalSize.width}px`,
           height: `${modalSize.height}px`,
-          maxWidth: '90vw',
-          maxHeight: '90vh'
+          maxWidth: '90vw'
         }}
       >
-        {/* Resize Handles - Large corner triangles */}
+        {/* Resize Handles - Small corner indicators */}
         {/* Bottom-right */}
         <div
-          className="absolute bottom-0 right-0 w-12 h-12 cursor-se-resize z-50"
+          className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize z-50"
           onMouseDown={(e) => handleResizeStart(e, 'se')}
           title="Drag to resize"
         >
-          <div className="absolute bottom-0 right-0 w-0 h-0 border-l-[48px] border-l-transparent border-b-[48px] border-b-[#208479] hover:border-b-[#1a6b62] transition"></div>
-          <div className="absolute bottom-1 right-1 text-white text-xs font-bold">⇘</div>
+          <div className="absolute bottom-0 right-0 w-0 h-0 border-l-[16px] border-l-transparent border-b-[16px] border-b-[#208479] hover:border-b-[#1a6b62] transition"></div>
         </div>
         {/* Top-right */}
         <div
-          className="absolute top-0 right-0 w-12 h-12 cursor-ne-resize z-50"
+          className="absolute top-0 right-0 w-4 h-4 cursor-ne-resize z-50"
           onMouseDown={(e) => handleResizeStart(e, 'ne')}
           title="Drag to resize"
         >
-          <div className="absolute top-0 right-0 w-0 h-0 border-l-[48px] border-l-transparent border-t-[48px] border-t-[#208479] hover:border-t-[#1a6b62] transition rounded-tr-lg"></div>
-          <div className="absolute top-1 right-1 text-white text-xs font-bold">⇗</div>
+          <div className="absolute top-0 right-0 w-0 h-0 border-l-[16px] border-l-transparent border-t-[16px] border-t-[#208479] hover:border-t-[#1a6b62] transition"></div>
         </div>
         {/* Bottom-left */}
         <div
-          className="absolute bottom-0 left-0 w-12 h-12 cursor-sw-resize z-50"
+          className="absolute bottom-0 left-0 w-4 h-4 cursor-sw-resize z-50"
           onMouseDown={(e) => handleResizeStart(e, 'sw')}
           title="Drag to resize"
         >
-          <div className="absolute bottom-0 left-0 w-0 h-0 border-r-[48px] border-r-transparent border-b-[48px] border-b-[#208479] hover:border-b-[#1a6b62] transition rounded-bl-lg"></div>
-          <div className="absolute bottom-1 left-1 text-white text-xs font-bold">⇙</div>
+          <div className="absolute bottom-0 left-0 w-0 h-0 border-r-[16px] border-r-transparent border-b-[16px] border-b-[#208479] hover:border-b-[#1a6b62] transition"></div>
         </div>
         {/* Top-left */}
         <div
-          className="absolute top-0 left-0 w-12 h-12 cursor-nw-resize z-50"
+          className="absolute top-0 left-0 w-4 h-4 cursor-nw-resize z-50"
           onMouseDown={(e) => handleResizeStart(e, 'nw')}
           title="Drag to resize"
         >
-          <div className="absolute top-0 left-0 w-0 h-0 border-r-[48px] border-r-transparent border-t-[48px] border-t-[#208479] hover:border-t-[#1a6b62] transition rounded-tl-lg"></div>
-          <div className="absolute top-1 left-1 text-white text-xs font-bold">⇖</div>
+          <div className="absolute top-0 left-0 w-0 h-0 border-r-[16px] border-r-transparent border-t-[16px] border-t-[#208479] hover:border-t-[#1a6b62] transition"></div>
         </div>
 
         {/* Header */}
@@ -871,15 +867,15 @@ export default function SessionManagementModal({
 
               {/* Cancel Session Button */}
               {session.status !== 'cancelled' && (
-                <div className="pt-4 border-t">
+                <div className="pt-2 border-t">
                   <button
                     onClick={handleCancelSession}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition"
+                    className="flex items-center gap-1 px-3 py-1.5 text-sm bg-red-600 hover:bg-red-700 text-white rounded transition"
                   >
-                    <Trash2 size={18} />
+                    <Trash2 size={16} />
                     Cancel This Session
                   </button>
-                  <p className="text-xs text-gray-500 mt-2">
+                  <p className="text-xs text-gray-500 mt-1">
                     This will cancel all bookings and mark the session as cancelled.
                   </p>
                 </div>
@@ -891,10 +887,10 @@ export default function SessionManagementModal({
         </div>
 
         {/* Footer */}
-        <div className="border-t p-6 bg-gray-50 rounded-b-lg flex justify-end gap-3 flex-shrink-0">
+        <div className="border-t p-3 bg-gray-50 rounded-b-lg flex justify-end gap-2 flex-shrink-0">
           <button
             onClick={onClose}
-            className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 text-gray-700 font-medium transition"
+            className="px-4 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-100 text-gray-700 font-medium transition"
           >
             Close
           </button>
