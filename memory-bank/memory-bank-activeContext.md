@@ -89,7 +89,7 @@ Athlete Tables (linked to members.id)
 
 ## 🗂️ Additional Resources
 
-- **Detailed History:** See `memory-bank/history/` for feature implementation details by date
+- **Detailed History:** See `project-history/` for feature implementation details by date
 - **Critical Gotchas:** See `memory-bank/lessons-learned.md` for timezone handling, field naming, and architectural patterns
 - **Workflow Rules:** See `memory-bank/workflow-protocols.md` for session protocols and agent usage
 - **Tech Details:** See `memory-bank/memory-bank-techContext.md` for database schema and architecture
