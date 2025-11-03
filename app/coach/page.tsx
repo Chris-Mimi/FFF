@@ -1760,6 +1760,9 @@ export default function CoachDashboard() {
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
                     placeholder='Search workout history...'
+                    autoComplete='off'
+                    readOnly
+                    onFocus={e => e.currentTarget.removeAttribute('readonly')}
                     className='w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[#208479] focus:border-transparent'
                   />
                 </div>

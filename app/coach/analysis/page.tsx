@@ -891,6 +891,9 @@ export default function AnalysisPage() {
                       value={exerciseSearch}
                       onChange={(e) => setExerciseSearch(e.target.value)}
                       placeholder='Search for an exercise or movement...'
+                      autoComplete='off'
+                      readOnly
+                      onFocus={(e) => e.currentTarget.removeAttribute('readonly')}
                       className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
                     />
 

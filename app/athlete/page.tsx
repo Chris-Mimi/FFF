@@ -1,35 +1,35 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import AthleteWorkoutsTab from '@/components/AthleteWorkoutsTab';
+import { getCurrentUser, signOut } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
 import {
-  User,
-  BookOpen,
-  Trophy,
-  Dumbbell,
   Award,
-  Shield,
-  LogOut,
-  Clock,
+  BookOpen,
+  Calendar,
   ChevronLeft,
   ChevronRight,
+  Clock,
+  Dumbbell,
   Edit2,
+  LogOut,
+  Shield,
   Trash2,
-  Calendar,
+  Trophy,
+  User,
 } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
-import { getCurrentUser, signOut } from '@/lib/auth';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import {
-  LineChart,
+  CartesianGrid,
+  Legend,
   Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
 } from 'recharts';
-import AthleteWorkoutsTab from '@/components/AthleteWorkoutsTab';
 
 type TabName = 'profile' | 'workouts' | 'logbook' | 'benchmarks' | 'lifts' | 'records' | 'security';
 
@@ -39,6 +39,7 @@ export default function AthleteDashboard() {
   const [userName, setUserName] = useState('');
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [logbookDate, setLogbookDate] = useState(new Date());
 
   useEffect(() => {
     // Check authentication
@@ -136,9 +137,15 @@ export default function AthleteDashboard() {
       case 'profile':
         return <ProfileTab userName={userName} userId={userId} />;
       case 'workouts':
-        return <AthleteWorkoutsTab userId={userId} />;
+        return <AthleteWorkoutsTab
+          userId={userId}
+          onNavigateToLogbook={(date) => {
+            setLogbookDate(date);
+            setActiveTab('logbook');
+          }}
+        />;
       case 'logbook':
-        return <LogbookTab userId={userId} />;
+        return <LogbookTab userId={userId} initialDate={logbookDate} />;
       case 'benchmarks':
         return <BenchmarksTab userId={userId} />;
       case 'lifts':
@@ -162,13 +169,22 @@ export default function AthleteDashboard() {
               <h1 className='text-3xl font-bold text-gray-900'>The Forge</h1>
               <p className='text-sm text-gray-600'>Welcome back, {userName}</p>
             </div>
-            <button
-              onClick={handleLogout}
-              className='flex items-center gap-2 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition text-gray-700'
-            >
-              <LogOut size={18} />
-              Logout
-            </button>
+            <div className='flex items-center gap-3'>
+              <button
+                onClick={() => router.push('/member/book')}
+                className='flex items-center gap-2 bg-[#208479] hover:bg-[#1a6b62] text-white px-6 py-3 rounded-lg font-medium transition'
+              >
+                <Calendar size={18} />
+                Book a Class
+              </button>
+              <button
+                onClick={handleLogout}
+                className='flex items-center gap-2 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition text-gray-700'
+              >
+                <LogOut size={18} />
+                Logout
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -562,8 +578,89 @@ function ProfileTab({ userName, userId }: { userName: string; userId: string }) 
 }
 
 // Logbook Tab Component
-function LogbookTab({ userId }: { userId: string }) {
-  const [selectedDate, setSelectedDate] = useState(new Date());
+function LogbookTab({ userId, initialDate }: { userId: string; initialDate?: Date }) {
+  const [selectedDate, setSelectedDate] = useState(initialDate || new Date());
+  const [viewMode, setViewMode] = useState<'day' | 'week' | 'month'>('week');
+  const [expandedWorkoutId, setExpandedWorkoutId] = useState<string | null>(null);
+  const [attendedWorkouts, setAttendedWorkouts] = useState<WOD[]>([]);
+
+  const fetchAttendedWorkoutsForPeriod = async (startDate: Date, endDate: Date) => {
+    setLoading(true);
+    try {
+      const startStr = startDate.toISOString().split('T')[0];
+      const endStr = endDate.toISOString().split('T')[0];
+
+      // Fetch published WODs in date range
+      const { data: wodsData, error: wodsError } = await supabase
+        .from('wods')
+        .select(
+          `*, tracks (name, color), workout_types (name)`
+        )
+        .gte('date', startStr)
+        .lte('date', endStr)
+        .eq('is_published', true)
+        .order('date', { ascending: true });
+
+      if (wodsError) throw wodsError;
+
+      // Filter to only workouts user attended (confirmed bookings)
+      const attendedWods = await Promise.all(
+        (wodsData || []).map(async (wod) => {
+          const { data: session } = await supabase
+            .from('weekly_sessions')
+            .select('id')
+            .eq('workout_id', wod.id)
+            .maybeSingle();
+
+          if (!session) return null;
+
+          const { data: booking } = await supabase
+            .from('bookings')
+            .select('status')
+            .eq('session_id', session.id)
+            .eq('member_id', userId)
+            .eq('status', 'confirmed')
+            .maybeSingle();
+
+          return booking ? wod : null;
+        })
+      );
+
+      const filteredWorkouts = attendedWods.filter((w): w is WOD => w !== null);
+      setAttendedWorkouts(filteredWorkouts);
+
+      // Fetch logs for attended workouts
+      const { data: logsData } = await supabase
+        .from('workout_logs')
+        .select('*')
+        .gte('workout_date', startStr)
+        .lte('workout_date', endStr)
+        .eq('user_id', userId);
+
+      const logsMap: Record<string, { result: string; notes: string; date: string }> = {};
+      (logsData || []).forEach((log) => {
+        if (log.wod_id) {
+          logsMap[log.wod_id] = {
+            result: log.result || '',
+            notes: log.notes || '',
+            date: log.workout_date,
+          };
+        }
+      });
+      setWorkoutLogs(logsMap);
+    } catch (error) {
+      console.error('Error fetching attended workouts:', error);
+      setAttendedWorkouts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (initialDate) {
+      setSelectedDate(initialDate);
+    }
+  }, [initialDate]);
   interface WOD {
     id: string;
     title: string;
@@ -581,9 +678,18 @@ function LogbookTab({ userId }: { userId: string }) {
   >({});
 
   useEffect(() => {
-    fetchWODsForDate(selectedDate);
+    if (viewMode === 'day') {
+      fetchWODsForDate(selectedDate);
+    } else if (viewMode === 'week') {
+      const weekDates = getWeekDates(selectedDate);
+      fetchAttendedWorkoutsForPeriod(weekDates[0], weekDates[6]);
+    } else if (viewMode === 'month') {
+      const monthStart = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+      const monthEnd = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0);
+      fetchAttendedWorkoutsForPeriod(monthStart, monthEnd);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDate, userId]);
+  }, [selectedDate, userId, viewMode]);
 
   const fetchWODsForDate = async (date: Date) => {
     setLoading(true);
@@ -718,6 +824,42 @@ function LogbookTab({ userId }: { userId: string }) {
     return date.toDateString() === today.toDateString();
   };
 
+  const getWeekDates = (date: Date): Date[] => {
+    const curr = new Date(date);
+    const first = curr.getDate() - curr.getDay() + 1; // Monday
+    const dates = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(curr);
+      d.setDate(first + i);
+      dates.push(d);
+    }
+    return dates;
+  };
+
+  const previousPeriod = () => {
+    if (viewMode === 'week') {
+      previousWeek();
+    } else if (viewMode === 'day') {
+      previousDay();
+    } else if (viewMode === 'month') {
+      previousMonth();
+    }
+  };
+
+  const nextPeriod = () => {
+    if (viewMode === 'week') {
+      nextWeek();
+    } else if (viewMode === 'day') {
+      nextDay();
+    } else if (viewMode === 'month') {
+      nextMonth();
+    }
+  };
+
+  const goToToday = () => {
+    setSelectedDate(new Date());
+  };
+
   const previousDay = () => {
     const newDate = new Date(selectedDate);
     newDate.setDate(newDate.getDate() - 1);
@@ -730,9 +872,32 @@ function LogbookTab({ userId }: { userId: string }) {
     setSelectedDate(newDate);
   };
 
-  const goToToday = () => {
-    setSelectedDate(new Date());
+  const previousWeek = () => {
+    const newDate = new Date(selectedDate);
+    newDate.setDate(newDate.getDate() - 7);
+    setSelectedDate(newDate);
   };
+
+  const nextWeek = () => {
+    const newDate = new Date(selectedDate);
+    newDate.setDate(newDate.getDate() + 7);
+    setSelectedDate(newDate);
+  };
+
+  const previousMonth = () => {
+    const newDate = new Date(selectedDate);
+    newDate.setMonth(newDate.getMonth() - 1);
+    setSelectedDate(newDate);
+  };
+
+  const nextMonth = () => {
+    const newDate = new Date(selectedDate);
+    newDate.setMonth(newDate.getMonth() + 1);
+    setSelectedDate(newDate);
+  };
+
+  const weekDates = getWeekDates(selectedDate);
+  const weekLabel = `${weekDates[0].toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} - ${weekDates[6].toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`;
 
   return (
     <div className='space-y-6'>
@@ -740,25 +905,77 @@ function LogbookTab({ userId }: { userId: string }) {
       <div className='bg-white rounded-lg shadow p-6'>
         <div className='flex items-center justify-between mb-4'>
           <button
-            onClick={previousDay}
+            onClick={previousPeriod}
             className='p-2 hover:bg-gray-100 rounded-lg transition text-gray-700'
           >
             <ChevronLeft size={24} />
           </button>
 
           <div className='text-center'>
-            <h2 className='text-2xl font-bold text-gray-900'>{formatDate(selectedDate)}</h2>
-            {isToday(selectedDate) && (
-              <span className='text-sm text-[#208479] font-medium'>Today</span>
+            {viewMode === 'week' ? (
+              <>
+                <h2 className='text-xl font-bold text-gray-900'>{weekLabel}</h2>
+                <p className='text-sm text-gray-600'>Week View</p>
+              </>
+            ) : viewMode === 'month' ? (
+              <>
+                <h2 className='text-xl font-bold text-gray-900'>
+                  {selectedDate.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
+                </h2>
+                <p className='text-sm text-gray-600'>Month View</p>
+              </>
+            ) : (
+              <>
+                <h2 className='text-xl font-bold text-gray-900'>{formatDate(selectedDate)}</h2>
+                {isToday(selectedDate) && (
+                  <span className='text-sm text-[#208479] font-medium'>Today</span>
+                )}
+              </>
             )}
           </div>
 
           <button
-            onClick={nextDay}
+            onClick={nextPeriod}
             className='p-2 hover:bg-gray-100 rounded-lg transition text-gray-700'
           >
             <ChevronRight size={24} />
           </button>
+        </div>
+
+        {/* View Mode Toggle */}
+        <div className='flex justify-center mb-4'>
+          <div className='inline-flex rounded-lg border border-gray-300 p-1 bg-gray-50'>
+            <button
+              onClick={() => setViewMode('day')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium transition ${
+                viewMode === 'day'
+                  ? 'bg-[#208479] text-white'
+                  : 'text-gray-700 hover:text-gray-900'
+              }`}
+            >
+              Day
+            </button>
+            <button
+              onClick={() => setViewMode('week')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium transition ${
+                viewMode === 'week'
+                  ? 'bg-[#208479] text-white'
+                  : 'text-gray-700 hover:text-gray-900'
+              }`}
+            >
+              Week
+            </button>
+            <button
+              onClick={() => setViewMode('month')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium transition ${
+                viewMode === 'month'
+                  ? 'bg-[#208479] text-white'
+                  : 'text-gray-700 hover:text-gray-900'
+              }`}
+            >
+              Month
+            </button>
+          </div>
         </div>
 
         {!isToday(selectedDate) && (
@@ -774,139 +991,461 @@ function LogbookTab({ userId }: { userId: string }) {
       </div>
 
       {/* WODs Display */}
-      {loading ? (
-        <div className='bg-white rounded-lg shadow p-6 text-center text-gray-500'>
-          Loading workouts...
-        </div>
-      ) : wods.length === 0 ? (
-        <div className='bg-white rounded-lg shadow p-6 text-center text-gray-500'>
-          No workouts scheduled for this day
-        </div>
-      ) : (
-        <div className='space-y-4'>
-          {wods.map(wod => (
-            <div key={wod.id} className='bg-white rounded-lg shadow p-6'>
-              {/* WOD Header */}
-              <div className='flex items-start justify-between mb-4'>
-                <div>
-                  <h3 className='text-xl font-bold text-gray-900'>{wod.title}</h3>
-                  <div className='flex items-center gap-3 mt-2 text-sm text-gray-600'>
-                    {wod.tracks && (
-                      <span
-                        className='px-2 py-1 rounded text-white'
-                        style={{ backgroundColor: wod.tracks.color }}
-                      >
-                        {wod.tracks.name}
-                      </span>
-                    )}
-                    {wod.workout_types && (
-                      <span className='px-2 py-1 bg-gray-200 rounded text-gray-700'>
-                        {wod.workout_types.name}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* WOD Sections */}
-              <div className='space-y-4'>
-                {getPublishedSections(wod).map((section, index: number) => (
-                  <div key={section.id || index} className='border-l-4 border-[#208479] pl-4'>
-                    <div className='flex items-center gap-2 mb-2'>
-                      <h4 className='font-semibold text-gray-900'>{section.type}</h4>
-                      {section.duration && (
-                        <span className='text-sm text-gray-600 flex items-center gap-1'>
-                          <Clock size={14} />
-                          {section.duration} min
+      {/* Day View - Keep existing */}
+      {viewMode === 'day' && (
+        loading ? (
+          <div className='bg-white rounded-lg shadow p-6 text-center text-gray-500'>
+            Loading workouts...
+          </div>
+        ) : wods.length === 0 ? (
+          <div className='bg-white rounded-lg shadow p-6 text-center text-gray-500'>
+            No workouts scheduled for this day
+          </div>
+        ) : (
+          <div className='space-y-4'>
+            {wods.map(wod => (
+              <div key={wod.id} className='bg-white rounded-lg shadow p-6'>
+                {/* WOD Header */}
+                <div className='flex items-start justify-between mb-4'>
+                  <div>
+                    <h3 className='text-xl font-bold text-gray-900'>{wod.title}</h3>
+                    <div className='flex items-center gap-3 mt-2 text-sm text-gray-600'>
+                      {wod.tracks && (
+                        <span
+                          className='px-2 py-1 rounded text-white'
+                          style={{ backgroundColor: wod.tracks.color }}
+                        >
+                          {wod.tracks.name}
+                        </span>
+                      )}
+                      {wod.workout_types && (
+                        <span className='px-2 py-1 bg-gray-200 rounded text-gray-700'>
+                          {wod.workout_types.name}
                         </span>
                       )}
                     </div>
-                    <p className='text-gray-700 whitespace-pre-wrap'>{section.content}</p>
                   </div>
-                ))}
-              </div>
+                </div>
 
-              {/* Workout Notes Section */}
-              <div className='mt-6 pt-6 border-t border-gray-200'>
-                <h4 className='font-semibold text-gray-900 mb-3'>My Notes & Results</h4>
-
+                {/* WOD Sections */}
                 <div className='space-y-4'>
-                  <div>
-                    <label className='block text-sm font-medium text-gray-700 mb-2'>Date</label>
-                    <input
-                      type='date'
-                      value={workoutLogs[wod.id]?.date || selectedDate.toISOString().split('T')[0]}
-                      onChange={e =>
-                        setWorkoutLogs({
-                          ...workoutLogs,
-                          [wod.id]: {
-                            result: workoutLogs[wod.id]?.result || '',
-                            notes: workoutLogs[wod.id]?.notes || '',
-                            date: e.target.value,
-                          },
-                        })
-                      }
-                      className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
-                    />
-                  </div>
+                  {getPublishedSections(wod).map((section, index: number) => (
+                    <div key={section.id || index} className='border-l-4 border-[#208479] pl-4'>
+                      <div className='flex items-center gap-2 mb-2'>
+                        <h4 className='font-semibold text-gray-900'>{section.type}</h4>
+                        {section.duration && (
+                          <span className='text-sm text-gray-600 flex items-center gap-1'>
+                            <Clock size={14} />
+                            {section.duration} min
+                          </span>
+                        )}
+                      </div>
+                      <p className='text-gray-700 whitespace-pre-wrap'>{section.content}</p>
+                    </div>
+                  ))}
+                </div>
 
-                  <div>
-                    <label className='block text-sm font-medium text-gray-700 mb-2'>
-                      Result/Time
-                    </label>
-                    <input
-                      type='text'
-                      value={workoutLogs[wod.id]?.result || ''}
-                      onChange={e =>
-                        setWorkoutLogs({
-                          ...workoutLogs,
-                          [wod.id]: {
-                            result: e.target.value,
-                            notes: workoutLogs[wod.id]?.notes || '',
-                            date:
-                              workoutLogs[wod.id]?.date || selectedDate.toISOString().split('T')[0],
-                          },
-                        })
-                      }
-                      placeholder='e.g., 12:45, 15 rounds, 100 kg'
-                      className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
-                    />
-                  </div>
+                {/* Workout Notes Section */}
+                <div className='mt-6 pt-6 border-t border-gray-200'>
+                  <h4 className='font-semibold text-gray-900 mb-3'>My Notes & Results</h4>
 
-                  <div>
-                    <label className='block text-sm font-medium text-gray-700 mb-2'>Notes</label>
-                    <textarea
-                      value={workoutLogs[wod.id]?.notes || ''}
-                      onChange={e =>
-                        setWorkoutLogs({
-                          ...workoutLogs,
-                          [wod.id]: {
-                            result: workoutLogs[wod.id]?.result || '',
-                            notes: e.target.value,
-                            date:
-                              workoutLogs[wod.id]?.date || selectedDate.toISOString().split('T')[0],
-                          },
-                        })
-                      }
-                      placeholder='How did it feel? Any modifications? What went well?'
-                      rows={4}
-                      className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 resize-none'
-                    />
-                  </div>
+                  <div className='space-y-4'>
+                    <div>
+                      <label className='block text-sm font-medium text-gray-700 mb-2'>Date</label>
+                      <input
+                        type='date'
+                        value={workoutLogs[wod.id]?.date || selectedDate.toISOString().split('T')[0]}
+                        onChange={e =>
+                          setWorkoutLogs({
+                            ...workoutLogs,
+                            [wod.id]: {
+                              result: workoutLogs[wod.id]?.result || '',
+                              notes: workoutLogs[wod.id]?.notes || '',
+                              date: e.target.value,
+                            },
+                          })
+                        }
+                        className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                      />
+                    </div>
 
-                  <div className='flex justify-end'>
-                    <button
-                      onClick={() => handleSaveWorkoutLog(wod.id)}
-                      className='px-6 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white font-medium rounded-lg transition'
-                    >
-                      Save Log Entry
-                    </button>
+                    <div>
+                      <label className='block text-sm font-medium text-gray-700 mb-2'>
+                        Result/Time
+                      </label>
+                      <input
+                        type='text'
+                        value={workoutLogs[wod.id]?.result || ''}
+                        onChange={e =>
+                          setWorkoutLogs({
+                            ...workoutLogs,
+                            [wod.id]: {
+                              result: e.target.value,
+                              notes: workoutLogs[wod.id]?.notes || '',
+                              date:
+                                workoutLogs[wod.id]?.date || selectedDate.toISOString().split('T')[0],
+                            },
+                          })
+                        }
+                        placeholder='e.g., 12:45, 15 rounds, 100 kg'
+                        className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                      />
+                    </div>
+
+                    <div>
+                      <label className='block text-sm font-medium text-gray-700 mb-2'>Notes</label>
+                      <textarea
+                        value={workoutLogs[wod.id]?.notes || ''}
+                        onChange={e =>
+                          setWorkoutLogs({
+                            ...workoutLogs,
+                            [wod.id]: {
+                              result: workoutLogs[wod.id]?.result || '',
+                              notes: e.target.value,
+                              date:
+                                workoutLogs[wod.id]?.date || selectedDate.toISOString().split('T')[0],
+                            },
+                          })
+                        }
+                        placeholder='How did it feel? Any modifications? What went well?'
+                        rows={4}
+                        className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 resize-none'
+                      />
+                    </div>
+
+                    <div className='flex justify-end'>
+                      <button
+                        onClick={() => handleSaveWorkoutLog(wod.id)}
+                        className='px-6 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white font-medium rounded-lg transition'
+                      >
+                        Save Log Entry
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
+            ))}
+          </div>
+        )
+      )}
+
+      {/* Week View - Accordion List */}
+      {viewMode === 'week' && (
+        loading ? (
+          <div className='bg-white rounded-lg shadow p-6 text-center text-gray-500'>Loading...</div>
+        ) : attendedWorkouts.length === 0 ? (
+          <div className='bg-white rounded-lg shadow p-6 text-center text-gray-500'>
+            No attended workouts this week
+          </div>
+        ) : (
+          <div className='space-y-3'>
+            {attendedWorkouts.map((wod) => {
+              const isExpanded = expandedWorkoutId === wod.id;
+              return (
+                <div key={wod.id} className='bg-white rounded-lg shadow overflow-hidden'>
+                  {/* Clickable Header */}
+                  <button
+                    onClick={() => setExpandedWorkoutId(isExpanded ? null : wod.id)}
+                    className='w-full p-4 flex items-center justify-between hover:bg-gray-50 transition text-left'
+                  >
+                    <div className='flex items-center gap-3'>
+                      {wod.tracks && (
+                        <div className='w-3 h-3 rounded-full flex-shrink-0' style={{ backgroundColor: wod.tracks.color }} />
+                      )}
+                      <div>
+                        <h3 className='font-bold text-gray-900'>{wod.title}</h3>
+                        <p className='text-sm text-gray-600'>
+                          {new Date(wod.date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}
+                        </p>
+                      </div>
+                    </div>
+                    <ChevronRight size={20} className={`text-gray-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+                  </button>
+
+                  {/* Expanded Details */}
+                  {isExpanded && (
+                    <div className='p-4 border-t border-gray-200'>
+                      {/* Workout Sections */}
+                      <div className='space-y-4 mb-6'>
+                        {getPublishedSections(wod).map((section, index) => (
+                          <div key={section.id || index} className='border-l-4 border-[#208479] pl-4'>
+                            <div className='flex items-center gap-2 mb-2'>
+                              <h4 className='font-semibold text-gray-900'>{section.type}</h4>
+                              {section.duration && (
+                                <span className='text-sm text-gray-600 flex items-center gap-1'>
+                                  <Clock size={14} />
+                                  {section.duration} min
+                                </span>
+                              )}
+                            </div>
+                            <p className='text-gray-700 whitespace-pre-wrap'>{section.content}</p>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Log Entry Form */}
+                      <div className='pt-6 border-t border-gray-200'>
+                        <h4 className='font-semibold text-gray-900 mb-3'>My Notes & Results</h4>
+                        <div className='space-y-4'>
+                          <div>
+                            <label className='block text-sm font-medium text-gray-700 mb-2'>Date</label>
+                            <input
+                              type='date'
+                              value={workoutLogs[wod.id]?.date || wod.date}
+                              onChange={e =>
+                                setWorkoutLogs({
+                                  ...workoutLogs,
+                                  [wod.id]: {
+                                    result: workoutLogs[wod.id]?.result || '',
+                                    notes: workoutLogs[wod.id]?.notes || '',
+                                    date: e.target.value,
+                                  },
+                                })
+                              }
+                              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479]
+  focus:border-transparent text-gray-900'
+                            />
+                          </div>
+                          <div>
+                            <label className='block text-sm font-medium text-gray-700 mb-2'>Result/Time</label>
+                            <input
+                              type='text'
+                              value={workoutLogs[wod.id]?.result || ''}
+                              onChange={e =>
+                                setWorkoutLogs({
+                                  ...workoutLogs,
+                                  [wod.id]: {
+                                    result: e.target.value,
+                                    notes: workoutLogs[wod.id]?.notes || '',
+                                    date: workoutLogs[wod.id]?.date || wod.date,
+                                  },
+                                })
+                              }
+                              placeholder='e.g., 12:45, 15 rounds, 100 kg'
+                              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479]
+  focus:border-transparent text-gray-900'
+                            />
+                          </div>
+                          <div>
+                            <label className='block text-sm font-medium text-gray-700 mb-2'>Notes</label>
+                            <textarea
+                              value={workoutLogs[wod.id]?.notes || ''}
+                              onChange={e =>
+                                setWorkoutLogs({
+                                  ...workoutLogs,
+                                  [wod.id]: {
+                                    result: workoutLogs[wod.id]?.result || '',
+                                    notes: e.target.value,
+                                    date: workoutLogs[wod.id]?.date || wod.date,
+                                  },
+                                })
+                              }
+                              placeholder='How did it feel? Any modifications?'
+                              rows={4}
+                              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479]
+  focus:border-transparent text-gray-900 resize-none'
+                            />
+                          </div>
+                          <div className='flex justify-end'>
+                            <button
+                              onClick={() => handleSaveWorkoutLog(wod.id)}
+                              className='px-6 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white font-medium rounded-lg transition'
+                            >
+                              Save Log Entry
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )
+      )}
+
+      {/* Month View - Calendar Grid */}
+      {viewMode === 'month' && (
+        loading ? (
+          <div className='bg-white rounded-lg shadow p-6 text-center text-gray-500'>Loading...</div>
+        ) : (
+          <div className='bg-white rounded-lg shadow p-6'>
+            <div className='grid grid-cols-7 gap-2'>
+              {/* Day headers */}
+              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+                <div key={day} className='text-center text-xs font-semibold text-gray-600 p-2'>{day}</div>
+              ))}
+
+              {/* Calendar days */}
+              {(() => {
+                const monthStart = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+                const monthEnd = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0);
+                const startDay = monthStart.getDay() === 0 ? 6 : monthStart.getDay() - 1; // Monday = 0
+                const days = [];
+
+                // Empty cells before month starts
+                for (let i = 0; i < startDay; i++) {
+                  days.push(<div key={`empty-${i}`} className='p-2' />);
+                }
+
+                // Month days
+                for (let day = 1; day <= monthEnd.getDate(); day++) {
+                  const date = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), day);
+                  // Format date in local timezone to avoid UTC conversion issues
+                  const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+                  const workout = attendedWorkouts.find(w => w.date === dateStr);
+                  const isToday = new Date().toDateString() === date.toDateString();
+
+                  days.push(
+                    <div
+                      key={day}
+                      onClick={() => workout && setExpandedWorkoutId(workout.id)}
+                      className={`p-2 min-h-[60px] rounded-lg border transition ${
+                        workout
+                          ? 'border-[#208479] bg-teal-50 cursor-pointer hover:bg-teal-100'
+                          : 'border-gray-200 bg-gray-50'
+                      } ${isToday ? 'ring-2 ring-[#7dd3c0]' : ''}`}
+                    >
+                      <div className={`text-sm font-semibold ${workout ? 'text-[#208479]' : 'text-gray-400'}`}>
+                        {day}
+                      </div>
+                      {workout && (
+                        <div className='mt-1 text-xs text-gray-700 truncate'>{workout.title}</div>
+                      )}
+                    </div>
+                  );
+                }
+
+                return days;
+              })()}
             </div>
-          ))}
-        </div>
+
+            {/* Expanded workout details below calendar */}
+            {expandedWorkoutId && attendedWorkouts.find(w => w.id === expandedWorkoutId) && (
+              <div className='mt-6 pt-6 border-t border-gray-200'>
+                {(() => {
+                  const wod = attendedWorkouts.find(w => w.id === expandedWorkoutId)!;
+                  return (
+                    <div>
+                      <div className='flex items-center justify-between mb-4'>
+                        <div className='flex items-center gap-3'>
+                          {wod.tracks && (
+                            <div className='w-3 h-3 rounded-full' style={{ backgroundColor: wod.tracks.color }} />
+                          )}
+                          <div>
+                            <h3 className='text-xl font-bold text-gray-900'>{wod.title}</h3>
+                            <p className='text-sm text-gray-600'>
+                              {new Date(wod.date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => setExpandedWorkoutId(null)}
+                          className='text-gray-400 hover:text-gray-600'
+                        >
+                          ✕
+                        </button>
+                      </div>
+
+                      {/* Workout sections */}
+                      <div className='space-y-4 mb-6'>
+                        {getPublishedSections(wod).map((section, index) => (
+                          <div key={section.id || index} className='border-l-4 border-[#208479] pl-4'>
+                            <div className='flex items-center gap-2 mb-2'>
+                              <h4 className='font-semibold text-gray-900'>{section.type}</h4>
+                              {section.duration && (
+                                <span className='text-sm text-gray-600 flex items-center gap-1'>
+                                  <Clock size={14} />
+                                  {section.duration} min
+                                </span>
+                              )}
+                            </div>
+                            <p className='text-gray-700 whitespace-pre-wrap'>{section.content}</p>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Log form - same as week view */}
+                      <div className='pt-6 border-t border-gray-200'>
+                        <h4 className='font-semibold text-gray-900 mb-3'>My Notes & Results</h4>
+                        <div className='space-y-4'>
+                          <div>
+                            <label className='block text-sm font-medium text-gray-700 mb-2'>Date</label>
+                            <input
+                              type='date'
+                              value={workoutLogs[wod.id]?.date || wod.date}
+                              onChange={e =>
+                                setWorkoutLogs({
+                                  ...workoutLogs,
+                                  [wod.id]: {
+                                    result: workoutLogs[wod.id]?.result || '',
+                                    notes: workoutLogs[wod.id]?.notes || '',
+                                    date: e.target.value,
+                                  },
+                                })
+                              }
+                              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479]
+  focus:border-transparent text-gray-900'
+                            />
+                          </div>
+                          <div>
+                            <label className='block text-sm font-medium text-gray-700 mb-2'>Result/Time</label>
+                            <input
+                              type='text'
+                              value={workoutLogs[wod.id]?.result || ''}
+                              onChange={e =>
+                                setWorkoutLogs({
+                                  ...workoutLogs,
+                                  [wod.id]: {
+                                    result: e.target.value,
+                                    notes: workoutLogs[wod.id]?.notes || '',
+                                    date: workoutLogs[wod.id]?.date || wod.date,
+                                  },
+                                })
+                              }
+                              placeholder='e.g., 12:45, 15 rounds, 100 kg'
+                              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479]
+  focus:border-transparent text-gray-900'
+                            />
+                          </div>
+                          <div>
+                            <label className='block text-sm font-medium text-gray-700 mb-2'>Notes</label>
+                            <textarea
+                              value={workoutLogs[wod.id]?.notes || ''}
+                              onChange={e =>
+                                setWorkoutLogs({
+                                  ...workoutLogs,
+                                  [wod.id]: {
+                                    result: workoutLogs[wod.id]?.result || '',
+                                    notes: e.target.value,
+                                    date: workoutLogs[wod.id]?.date || wod.date,
+                                  },
+                                })
+                              }
+                              placeholder='How did it feel? Any modifications?'
+                              rows={4}
+                              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479]
+  focus:border-transparent text-gray-900 resize-none'
+                            />
+                          </div>
+                          <div className='flex justify-end'>
+                            <button
+                              onClick={() => handleSaveWorkoutLog(wod.id)}
+                              className='px-6 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white font-medium rounded-lg transition'
+                            >
+                              Save Log Entry
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+          </div>
+        )
       )}
     </div>
   );

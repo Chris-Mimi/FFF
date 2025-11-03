@@ -21,6 +21,8 @@ interface PublishedWorkout {
   publish_sections: string[];
   publish_time: string;
   publish_duration: number;
+  session_id?: string;
+  attended?: boolean;
   track?: {
     name: string;
     color: string;
@@ -29,9 +31,10 @@ interface PublishedWorkout {
 
 interface AthleteWorkoutsTabProps {
   userId: string;
+  onNavigateToLogbook?: (date: Date) => void;
 }
 
-export default function AthleteWorkoutsTab({ userId }: AthleteWorkoutsTabProps) {
+export default function AthleteWorkoutsTab({ userId, onNavigateToLogbook }: AthleteWorkoutsTabProps) {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [workouts, setWorkouts] = useState<PublishedWorkout[]>([]);
   const [loading, setLoading] = useState(true);
@@ -80,19 +83,56 @@ export default function AthleteWorkoutsTab({ userId }: AthleteWorkoutsTabProps) 
         return;
       }
 
-      const formattedWorkouts: PublishedWorkout[] = (data || []).map(workout => ({
-        id: workout.id,
-        title: workout.title,
-        date: workout.date,
-        track_id: workout.track_id,
-        sections: workout.sections || [],
-        publish_sections: workout.publish_sections || [],
-        publish_time: workout.publish_time,
-        publish_duration: workout.publish_duration,
-        track: Array.isArray(workout.tracks) ? workout.tracks[0] : workout.tracks,
-      }));
+      // Check attendance for each workout
+      const workoutsWithAttendance = await Promise.all(
+        (data || []).map(async (workout) => {
+          // Get session for this workout
+          const { data: sessionData } = await supabase
+            .from('weekly_sessions')
+            .select('id')
+            .eq('workout_id', workout.id)
+            .single();
 
-      setWorkouts(formattedWorkouts);
+          const sessionId = sessionData?.id;
+
+          let attended = false;
+          if (sessionId) {
+            // Check if user has a confirmed booking for this session and date is in the past
+            const workoutDate = new Date(workout.date);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const isPastDate = workoutDate < today;
+
+            if (isPastDate) {
+              const { data: booking } = await supabase
+                .from('bookings')
+                .select('status')
+                .eq('session_id', sessionId)
+                .eq('member_id', userId)
+                .eq('status', 'confirmed')
+                .single();
+
+              attended = !!booking;
+            }
+          }
+
+          return {
+            id: workout.id,
+            title: workout.title,
+            date: workout.date,
+            track_id: workout.track_id,
+            sections: workout.sections || [],
+            publish_sections: workout.publish_sections || [],
+            publish_time: workout.publish_time,
+            publish_duration: workout.publish_duration,
+            session_id: sessionId,
+            attended,
+            track: Array.isArray(workout.tracks) ? workout.tracks[0] : workout.tracks,
+          };
+        })
+      );
+
+      setWorkouts(workoutsWithAttendance);
     } catch (error) {
       console.error('Error fetching workouts:', error);
     } finally {
@@ -183,12 +223,19 @@ export default function AthleteWorkoutsTab({ userId }: AthleteWorkoutsTabProps) 
           return (
             <div
               key={index}
+              onClick={() => workout && onNavigateToLogbook?.(date)}
               className={`bg-white rounded-lg shadow-md overflow-hidden ${
-                isToday ? 'ring-2 ring-[#208479]' : 'border border-gray-400'
-              }`}
+                isToday ? 'ring-4 ring-[#7dd3c0]' : 'border border-gray-400'
+              } ${workout ? 'cursor-pointer hover:shadow-lg transition-shadow' : ''}`}
             >
               {/* Day Header */}
-              <div className={`p-3 text-center ${isToday ? 'bg-[#208479] text-white' : 'bg-gray-300 text-gray-900'}`}>
+              <div className={`p-3 text-center ${
+                isToday
+                  ? 'bg-gray-300 text-gray-900'
+                  : workout?.attended
+                  ? 'bg-[#208479] text-white'
+                  : 'bg-gray-300 text-gray-900'
+              }`}>
                 <div className='text-sm font-semibold'>{dayName}</div>
                 <div className='text-sm font-bold'>
                   {workout
