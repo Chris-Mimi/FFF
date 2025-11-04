@@ -41,7 +41,7 @@ export default function AthleteWorkoutsTab({ userId, onNavigateToLogbook }: Athl
 
   useEffect(() => {
     fetchPublishedWorkouts();
-  }, [selectedDate]);
+  }, [selectedDate, userId]);
 
   const formatDate = (date: Date) => {
     const year = date.getFullYear();
@@ -83,7 +83,7 @@ export default function AthleteWorkoutsTab({ userId, onNavigateToLogbook }: Athl
         return;
       }
 
-      // Check attendance for each workout
+      // Check attendance for each workout and only include attended ones
       const workoutsWithAttendance = await Promise.all(
         (data || []).map(async (workout) => {
           // Get session for this workout
@@ -91,7 +91,7 @@ export default function AthleteWorkoutsTab({ userId, onNavigateToLogbook }: Athl
             .from('weekly_sessions')
             .select('id')
             .eq('workout_id', workout.id)
-            .single();
+            .maybeSingle();
 
           const sessionId = sessionData?.id;
 
@@ -116,6 +116,9 @@ export default function AthleteWorkoutsTab({ userId, onNavigateToLogbook }: Athl
             }
           }
 
+          // Only return workout if user attended it
+          if (!attended) return null;
+
           return {
             id: workout.id,
             title: workout.title,
@@ -126,13 +129,15 @@ export default function AthleteWorkoutsTab({ userId, onNavigateToLogbook }: Athl
             publish_time: workout.publish_time,
             publish_duration: workout.publish_duration,
             session_id: sessionId,
-            attended,
+            attended: true, // Since we filtered to only attended ones
             track: Array.isArray(workout.tracks) ? workout.tracks[0] : workout.tracks,
-          };
+          } as PublishedWorkout;
         })
       );
 
-      setWorkouts(workoutsWithAttendance);
+      // Filter out null values (non-attended workouts)
+      const filteredWorkouts = workoutsWithAttendance.filter((w): w is PublishedWorkout => w !== null);
+      setWorkouts(filteredWorkouts);
     } catch (error) {
       console.error('Error fetching workouts:', error);
     } finally {

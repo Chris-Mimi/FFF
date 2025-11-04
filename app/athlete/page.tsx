@@ -40,6 +40,9 @@ export default function AthleteDashboard() {
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [logbookDate, setLogbookDate] = useState(new Date());
+  const [activeProfileId, setActiveProfileId] = useState<string | null>(null);
+  const [familyMembers, setFamilyMembers] = useState<Array<{id: string, display_name: string, relationship: string}>>([]);
+  const [selectedProfileName, setSelectedProfileName] = useState('');
 
   useEffect(() => {
     // Check authentication
@@ -54,7 +57,7 @@ export default function AthleteDashboard() {
       // First check if user is an active member with athlete access
       const { data: member } = await supabase
         .from('members')
-        .select('id, name, status, athlete_subscription_status, athlete_subscription_end')
+        .select('id, name, status, athlete_subscription_status, athlete_subscription_end, display_name')
         .eq('id', user.id)
         .single();
 
@@ -80,8 +83,20 @@ export default function AthleteDashboard() {
         }
 
         // Member has access - allow them to use athlete page
-        setUserName(user.user_metadata?.full_name || user.email || 'Athlete');
+        setUserName(member.display_name || user.user_metadata?.full_name || user.email || 'Athlete');
         setUserId(user.id);
+        setActiveProfileId(user.id); // Default to primary user
+        setSelectedProfileName(member.display_name || user.user_metadata?.full_name || user.email || 'Athlete');
+
+        // Fetch family members
+        const { data: familyMembersData } = await supabase
+          .from('members')
+          .select('id, display_name, relationship')
+          .eq('primary_member_id', user.id)
+          .eq('account_type', 'family_member')
+          .order('display_name');
+
+        setFamilyMembers(familyMembersData || []);
         setLoading(false);
         return;
       }
@@ -131,31 +146,42 @@ export default function AthleteDashboard() {
   ];
 
   const renderTabContent = () => {
-    if (!userId) return null;
+    if (!userId || !activeProfileId) return null;
 
     switch (activeTab) {
       case 'profile':
-        return <ProfileTab userName={userName} userId={userId} />;
+        return <ProfileTab userName={selectedProfileName} userId={activeProfileId} />;
       case 'workouts':
         return <AthleteWorkoutsTab
-          userId={userId}
+          userId={activeProfileId}
           onNavigateToLogbook={(date) => {
             setLogbookDate(date);
             setActiveTab('logbook');
           }}
         />;
       case 'logbook':
-        return <LogbookTab userId={userId} initialDate={logbookDate} />;
+        return <LogbookTab userId={activeProfileId} initialDate={logbookDate} />;
       case 'benchmarks':
-        return <BenchmarksTab userId={userId} />;
+        return <BenchmarksTab userId={activeProfileId} />;
       case 'lifts':
-        return <LiftsTab userId={userId} />;
+        return <LiftsTab userId={activeProfileId} />;
       case 'records':
-        return <RecordsTab userId={userId} />;
+        return <RecordsTab userId={activeProfileId} />;
       case 'security':
         return <SecurityTab />;
       default:
         return null;
+    }
+  };
+
+  // Handle profile selection
+  const handleProfileChange = (profileId: string) => {
+    setActiveProfileId(profileId);
+    const selectedMember = familyMembers.find(m => m.id === profileId);
+    if (selectedMember) {
+      setSelectedProfileName(selectedMember.display_name);
+    } else if (profileId === userId) {
+      setSelectedProfileName(userName);
     }
   };
 
@@ -168,6 +194,24 @@ export default function AthleteDashboard() {
             <div>
               <h1 className='text-3xl font-bold text-gray-900'>The Forge</h1>
               <p className='text-sm text-gray-600'>Welcome back, {userName}</p>
+              {/* Profile Selector */}
+              {(familyMembers.length > 0 || activeProfileId) && (
+                <div className='mt-2'>
+                  <label className='block text-xs font-medium text-gray-500 mb-1'>Viewing as:</label>
+                  <select
+                    value={activeProfileId || userId || ''}
+                    onChange={(e) => handleProfileChange(e.target.value)}
+                    className='px-3 py-1 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-[#208479] focus:border-transparent'
+                  >
+                    <option value={userId}>{userName}</option>
+                    {familyMembers.map(member => (
+                      <option key={member.id} value={member.id}>
+                        {member.display_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
             <div className='flex items-center gap-3'>
               <button
@@ -282,7 +326,20 @@ function ProfileTab({ userName, userId }: { userName: string; userId: string }) 
           setAvatarUrl(data.avatar_url);
         }
       } else {
-        console.log('No profile data found, user will need to create profile');
+        console.log('No profile data found, resetting to empty profile');
+        // Reset to empty profile for new users/family members
+        setProfile({
+          full_name: '',
+          email: '',
+          date_of_birth: '',
+          phone_number: '',
+          height_cm: '',
+          weight_kg: '',
+          emergency_contact_name: '',
+          emergency_contact_phone: '',
+          avatar_url: '',
+        });
+        setAvatarUrl(null);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -697,7 +754,7 @@ function LogbookTab({ userId, initialDate }: { userId: string; initialDate?: Dat
     const dateStr = date.toISOString().split('T')[0];
 
     try {
-      // Fetch WODs (only published workouts)
+      // Fetch published WODs for this date
       const { data: wodsData, error: wodsError } = await supabase
         .from('wods')
         .select(
@@ -711,9 +768,35 @@ function LogbookTab({ userId, initialDate }: { userId: string; initialDate?: Dat
         .eq('is_published', true);
 
       if (wodsError) throw wodsError;
-      setWods(wodsData || []);
 
-      // Fetch existing workout logs for this date for this user
+      // Filter to only workouts user attended (confirmed bookings)
+      const attendedWods = await Promise.all(
+        (wodsData || []).map(async (wod) => {
+          // Get session for this workout
+          const { data: session } = await supabase
+            .from('weekly_sessions')
+            .select('id')
+            .eq('workout_id', wod.id)
+            .maybeSingle();
+
+          if (!session) return null;
+
+          const { data: booking } = await supabase
+            .from('bookings')
+            .select('status')
+            .eq('session_id', session.id)
+            .eq('member_id', userId)
+            .eq('status', 'confirmed')
+            .maybeSingle();
+
+          return booking ? wod : null;
+        })
+      );
+
+      const filteredWorkouts = attendedWods.filter((w): w is WOD => w !== null);
+      setWods(filteredWorkouts);
+
+      // Fetch existing workout logs for attended workouts for this user
       const { data: logsData, error: logsError } = await supabase
         .from('workout_logs')
         .select('*')
