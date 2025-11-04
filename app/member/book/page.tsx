@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { Calendar, Users, Clock, LogOut, ChevronLeft, ChevronRight, X, Check, TrendingUp } from 'lucide-react';
+import { Calendar, Users, Clock, LogOut, ChevronLeft, ChevronRight, X, Check, TrendingUp, Edit2, Trash2 } from 'lucide-react';
 import { signOut } from '@/lib/auth';
 import Link from 'next/link';
 
@@ -521,96 +521,72 @@ export default function MemberBookingPage() {
           </button>
         </div>
 
-        {/* Family Members Section */}
-        <div className="mb-6">
-          <div className="bg-gray-800 rounded-lg border border-gray-700 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-xl font-bold text-white">Family Members</h2>
-                <p className="text-gray-400 text-sm mt-1">Manage family member profiles for booking</p>
-              </div>
-              <button
-                onClick={openAddModal}
-                className="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-lg transition-colors duration-200 text-sm font-medium"
-              >
-                + Add Family Member
-              </button>
-            </div>
-
-            {familyMembers.length === 0 ? (
-              <p className="text-gray-400 text-center py-8">No family members added yet</p>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {familyMembers.map((member) => (
-                  <div
-                    key={member.id}
-                    className="bg-gray-700/50 rounded-lg p-4 border border-gray-600 hover:border-teal-500 transition-colors"
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex-1">
-                        <h3 className="text-white font-semibold text-lg">
-                          {member.display_name}
-                          {member.account_type === 'primary' && (
-                            <span className="ml-2 text-xs bg-teal-500/20 text-teal-300 px-2 py-1 rounded">
-                              You
-                            </span>
-                          )}
-                        </h3>
-                        {member.date_of_birth && (
-                          <p className="text-gray-400 text-sm mt-1">
-                            Born: {new Date(member.date_of_birth).toLocaleDateString()}
-                          </p>
-                        )}
-                        <p className="text-gray-400 text-sm capitalize mt-1">
-                          {member.relationship}
-                        </p>
-                      </div>
-                    </div>
-
-                    {member.account_type === 'family_member' && (
-                      <div className="flex gap-2 mt-3 pt-3 border-t border-gray-600">
-                        <button
-                          onClick={() => openEditModal(member)}
-                          className="flex-1 px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white text-sm rounded transition-colors"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDeleteFamilyMember(member.id, member.display_name)}
-                          disabled={processing === member.id}
-                          className="flex-1 px-3 py-1.5 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm rounded transition-colors"
-                        >
-                          {processing === member.id ? 'Deleting...' : 'Delete'}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Booking For Selector */}
+        {/* Booking For - Compact Selectable Cards */}
         {familyMembers.length > 0 && (
           <div className="mb-6">
             <div className="bg-gray-800 rounded-lg border border-gray-700 p-4">
-              <div className="flex items-center gap-4">
-                <label className="text-gray-300 font-medium whitespace-nowrap">
-                  Booking for:
-                </label>
-                <select
-                  value={bookingForMemberId || ''}
-                  onChange={(e) => setBookingForMemberId(e.target.value)}
-                  className="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-teal-500"
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-white font-semibold text-sm">Select who you're booking for:</h3>
+                <button
+                  onClick={openAddModal}
+                  className="px-3 py-1 bg-teal-500 hover:bg-teal-600 text-white rounded text-xs font-medium transition-colors"
                 >
-                  {familyMembers.map((member) => (
-                    <option key={member.id} value={member.id}>
-                      {member.display_name}
-                      {member.account_type === 'primary' ? ' (Yourself)' : ''}
-                    </option>
-                  ))}
-                </select>
+                  + Add Member
+                </button>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {familyMembers.map((member) => (
+                  <div
+                    key={member.id}
+                    onClick={() => setBookingForMemberId(member.id)}
+                    className={`relative cursor-pointer rounded-lg p-3 border-2 transition-all ${
+                      bookingForMemberId === member.id
+                        ? 'border-teal-500 bg-teal-500/10'
+                        : 'border-gray-600 bg-gray-700/50 hover:border-gray-500'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className={`font-medium ${bookingForMemberId === member.id ? 'text-teal-300' : 'text-white'}`}>
+                            {member.display_name}
+                          </span>
+                          {member.account_type === 'primary' && (
+                            <span className="text-xs bg-teal-500/20 text-teal-300 px-1.5 py-0.5 rounded">
+                              You
+                            </span>
+                          )}
+                        </div>
+                        {member.relationship !== 'self' && (
+                          <p className="text-gray-400 text-xs capitalize mt-0.5">
+                            {member.relationship}
+                          </p>
+                        )}
+                      </div>
+
+                      {member.account_type === 'family_member' && (
+                        <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            onClick={() => openEditModal(member)}
+                            className="p-1 text-gray-400 hover:text-white transition-colors"
+                            title="Edit"
+                          >
+                            <Edit2 size={14} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteFamilyMember(member.id, member.display_name)}
+                            disabled={processing === member.id}
+                            className="p-1 text-gray-400 hover:text-red-400 disabled:text-gray-600 transition-colors"
+                            title="Delete"
+                          >
+                            {processing === member.id ? '...' : <Trash2 size={14} />}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
