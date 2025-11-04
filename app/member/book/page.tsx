@@ -48,16 +48,17 @@ export default function MemberBookingPage() {
     date_of_birth: '',
     relationship: 'child' as 'spouse' | 'child' | 'other'
   });
+  const [bookingForMemberId, setBookingForMemberId] = useState<string | null>(null);
 
   useEffect(() => {
     checkAuth();
   }, []);
 
   useEffect(() => {
-    if (user) {
+    if (user && bookingForMemberId) {
       fetchSessions();
     }
-  }, [weekStart, user]);
+  }, [weekStart, user, bookingForMemberId]);
 
   const checkAuth = async () => {
     const { data: { user: authUser } } = await supabase.auth.getUser();
@@ -151,8 +152,8 @@ export default function MemberBookingPage() {
         const bookings = session.bookings || [];
         const confirmedBookings = bookings.filter((b: any) => b.status === 'confirmed');
         const waitlistBookings = bookings.filter((b: any) => b.status === 'waitlist');
-        // Only find active bookings (not cancelled)
-        const userBooking = bookings.find((b: any) => b.member_id === user.id && b.status !== 'cancelled');
+        // Only find active bookings (not cancelled) for the selected member
+        const userBooking = bookings.find((b: any) => b.member_id === bookingForMemberId && b.status !== 'cancelled');
 
         // Extract workout type from title (format: "WOD - Auto-generated")
         const workoutTitle = session.wods?.title || '';
@@ -190,6 +191,11 @@ export default function MemberBookingPage() {
 
       if (error) throw error;
       setFamilyMembers(data || []);
+
+      // Set default booking member to primary user (yourself)
+      if (!bookingForMemberId) {
+        setBookingForMemberId(userId);
+      }
     } catch (error) {
       console.error('Error fetching family members:', error);
     }
@@ -311,7 +317,7 @@ export default function MemberBookingPage() {
   };
 
   const handleBook = async (sessionId: string) => {
-    if (!user) return;
+    if (!user || !bookingForMemberId) return;
 
     setProcessing(sessionId);
     try {
@@ -329,7 +335,10 @@ export default function MemberBookingPage() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ sessionId }),
+        body: JSON.stringify({
+          sessionId,
+          memberId: bookingForMemberId
+        }),
       });
 
       const data = await response.json();
@@ -581,6 +590,31 @@ export default function MemberBookingPage() {
             )}
           </div>
         </div>
+
+        {/* Booking For Selector */}
+        {familyMembers.length > 0 && (
+          <div className="mb-6">
+            <div className="bg-gray-800 rounded-lg border border-gray-700 p-4">
+              <div className="flex items-center gap-4">
+                <label className="text-gray-300 font-medium whitespace-nowrap">
+                  Booking for:
+                </label>
+                <select
+                  value={bookingForMemberId || ''}
+                  onChange={(e) => setBookingForMemberId(e.target.value)}
+                  className="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-teal-500"
+                >
+                  {familyMembers.map((member) => (
+                    <option key={member.id} value={member.id}>
+                      {member.display_name}
+                      {member.account_type === 'primary' ? ' (Yourself)' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Sessions List */}
         {loading ? (

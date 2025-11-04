@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { sessionId } = body;
+    const { sessionId, memberId } = body;
 
     if (!sessionId) {
       return NextResponse.json(
@@ -51,11 +51,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Determine which member to book for (default to authenticated user)
+    const bookingMemberId = memberId || user.id;
+
+    // If booking for someone else, verify they're a family member
+    if (bookingMemberId !== user.id) {
+      const { data: familyMember, error: familyError } = await supabase
+        .from('members')
+        .select('id, primary_member_id, account_type')
+        .eq('id', bookingMemberId)
+        .single();
+
+      if (familyError || !familyMember) {
+        return NextResponse.json(
+          { error: 'Family member not found' },
+          { status: 404 }
+        );
+      }
+
+      // Verify the authenticated user is the primary member
+      if (familyMember.account_type !== 'family_member' || familyMember.primary_member_id !== user.id) {
+        return NextResponse.json(
+          { error: 'You can only book for your own family members' },
+          { status: 403 }
+        );
+      }
+    }
+
     // Check if member is active (and get 10-card info)
     const { data: member } = await supabase
       .from('members')
       .select('id, status, membership_types, ten_card_sessions_used')
-      .eq('id', user.id)
+      .eq('id', bookingMemberId)
       .single();
 
     if (!member || member.status !== 'active') {
@@ -86,11 +113,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user already has a booking for this session
-    const existingBooking = session.bookings?.find((b: any) => b.member_id === user.id && b.status !== 'cancelled');
+    // Check if member already has a booking for this session
+    const existingBooking = session.bookings?.find((b: any) => b.member_id === bookingMemberId && b.status !== 'cancelled');
     if (existingBooking) {
       return NextResponse.json(
-        { error: 'You have already booked this session' },
+        { error: 'This member has already booked this session' },
         { status: 400 }
       );
     }
@@ -106,7 +133,7 @@ export async function POST(request: NextRequest) {
       .from('bookings')
       .insert({
         session_id: sessionId,
-        member_id: user.id,
+        member_id: bookingMemberId,
         status: bookingStatus,
         booked_at: new Date().toISOString()
       })
@@ -124,7 +151,7 @@ export async function POST(request: NextRequest) {
     // Increment 10-card sessions used if member has 10-card membership
     if (booking.status === 'confirmed' && member.membership_types?.includes('ten_card')) {
       try {
-        console.log('🐾 10-card increment: User', user.id, 'has', member.membership_types, 'starting count:', member.ten_card_sessions_used);
+        console.log('🐾 10-card increment: Member', bookingMemberId, 'has', member.membership_types, 'starting count:', member.ten_card_sessions_used);
 
         // Increment the sessions used counter
         const { error: updateError } = await supabase
@@ -132,7 +159,7 @@ export async function POST(request: NextRequest) {
           .update({
             ten_card_sessions_used: member.ten_card_sessions_used + 1
           })
-          .eq('id', user.id);
+          .eq('id', bookingMemberId);
 
         if (updateError) {
           console.error('Failed to increment 10-card sessions:', updateError);
