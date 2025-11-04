@@ -540,47 +540,38 @@ export default function MemberBookingPage() {
                   <div
                     key={member.id}
                     onClick={() => setBookingForMemberId(member.id)}
-                    className={`relative cursor-pointer rounded-lg p-3 border-2 transition-all ${
+                    className={`relative cursor-pointer rounded-lg px-3 py-2 border-2 transition-all ${
                       bookingForMemberId === member.id
                         ? 'border-teal-500 bg-teal-500/10'
                         : 'border-gray-600 bg-gray-700/50 hover:border-gray-500'
                     }`}
                   >
                     <div className="flex items-center gap-2">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className={`font-medium ${bookingForMemberId === member.id ? 'text-teal-300' : 'text-white'}`}>
-                            {member.display_name}
-                          </span>
-                          {member.account_type === 'primary' && (
-                            <span className="text-xs bg-teal-500/20 text-teal-300 px-1.5 py-0.5 rounded">
-                              You
-                            </span>
-                          )}
-                        </div>
-                        {member.relationship !== 'self' && (
-                          <p className="text-gray-400 text-xs capitalize mt-0.5">
-                            {member.relationship}
-                          </p>
-                        )}
-                      </div>
+                      <span className={`font-medium text-sm ${bookingForMemberId === member.id ? 'text-teal-300' : 'text-white'}`}>
+                        {member.display_name}
+                      </span>
+                      {member.account_type === 'primary' && (
+                        <span className="text-xs bg-teal-500/20 text-teal-300 px-1.5 py-0.5 rounded">
+                          You
+                        </span>
+                      )}
 
                       {member.account_type === 'family_member' && (
-                        <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex gap-1 ml-1" onClick={(e) => e.stopPropagation()}>
                           <button
                             onClick={() => openEditModal(member)}
-                            className="p-1 text-gray-400 hover:text-white transition-colors"
+                            className="p-0.5 text-gray-400 hover:text-white transition-colors"
                             title="Edit"
                           >
-                            <Edit2 size={14} />
+                            <Edit2 size={12} />
                           </button>
                           <button
                             onClick={() => handleDeleteFamilyMember(member.id, member.display_name)}
                             disabled={processing === member.id}
-                            className="p-1 text-gray-400 hover:text-red-400 disabled:text-gray-600 transition-colors"
+                            className="p-0.5 text-gray-400 hover:text-red-400 disabled:text-gray-600 transition-colors"
                             title="Delete"
                           >
-                            {processing === member.id ? '...' : <Trash2 size={14} />}
+                            {processing === member.id ? '...' : <Trash2 size={12} />}
                           </button>
                         </div>
                       )}
@@ -605,11 +596,11 @@ export default function MemberBookingPage() {
             <p className="text-gray-500 text-sm">Check back later or try a different week</p>
           </div>
         ) : (
-          <div className="grid gap-4">
+          <div className="grid gap-3">
             {sessions.map((session) => (
               <div
                 key={session.id}
-                className={`bg-gray-800 rounded-lg p-6 border ${
+                className={`bg-gray-800 rounded-lg p-4 border ${
                   session.user_booking_status !== 'none'
                     ? 'border-teal-500'
                     : 'border-gray-700'
@@ -617,31 +608,31 @@ export default function MemberBookingPage() {
               >
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-xl font-semibold text-white">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <h3 className="text-lg font-semibold text-white">
                         {formatDate(session.date)} at {formatTime(session.time)}
                       </h3>
                       {session.user_booking_status === 'confirmed' && (
-                        <span className="px-3 py-1 bg-teal-500/20 text-teal-300 text-sm rounded-full flex items-center gap-1">
-                          <Check size={14} />
+                        <span className="px-2 py-0.5 bg-teal-500/20 text-teal-300 text-xs rounded-full flex items-center gap-1">
+                          <Check size={12} />
                           Booked
                         </span>
                       )}
                       {session.user_booking_status === 'waitlist' && (
-                        <span className="px-3 py-1 bg-purple-500/20 text-purple-300 text-sm rounded-full flex items-center gap-1">
-                          <Clock size={14} />
+                        <span className="px-2 py-0.5 bg-purple-500/20 text-purple-300 text-xs rounded-full flex items-center gap-1">
+                          <Clock size={12} />
                           Waitlist
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-6 text-sm mb-3">
+                    <div className="flex items-center gap-4 text-sm">
                       <div>
                         <span className="text-gray-400">Type:</span>{' '}
                         <span className="text-white font-medium">{session.workout_type}</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Users size={16} className={getCapacityColor(session.confirmed_count, session.capacity)} />
-                        <span className="text-gray-400">
+                      <div className="flex items-center gap-1.5">
+                        <Users size={14} className={getCapacityColor(session.confirmed_count, session.capacity)} />
+                        <span className="text-gray-400 text-xs">
                           {session.confirmed_count}/{session.capacity}
                         </span>
                         {getCapacityBadge(session)}
@@ -650,12 +641,12 @@ export default function MemberBookingPage() {
                   </div>
 
                   {/* Action Button */}
-                  <div className="ml-4">
+                  <div className="ml-3">
                     {session.user_booking_status === 'none' ? (
                       <button
                         onClick={() => handleBook(session.id)}
                         disabled={processing === session.id}
-                        className="px-6 py-2 bg-teal-500 hover:bg-teal-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200"
+                        className="px-4 py-1.5 bg-teal-500 hover:bg-teal-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm rounded-lg transition-colors duration-200"
                       >
                         {processing === session.id ? 'Booking...' : 'Book'}
                       </button>
@@ -663,9 +654,9 @@ export default function MemberBookingPage() {
                       <button
                         onClick={() => handleCancel(session.id, session.user_booking_id!)}
                         disabled={processing === session.id}
-                        className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200"
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm rounded-lg transition-colors duration-200"
                       >
-                        <X size={18} />
+                        <X size={16} />
                         {processing === session.id ? 'Canceling...' : 'Cancel'}
                       </button>
                     )}
