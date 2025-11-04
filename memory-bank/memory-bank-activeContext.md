@@ -1,6 +1,6 @@
 # Active Context
 
-**Version:** 3.2
+**Version:** 3.3
 **Updated:** 2025-11-04
 
 ---
@@ -60,12 +60,20 @@ Athlete Tables (linked to members.id)
 ## 📍 Current Status (Last 2 Weeks)
 
 **Completed (2025-11-04):**
-- **Family Accounts (Phases 1-3):** Full implementation for booking family members
-  - Database migration: `account_type`, `primary_member_id`, `display_name`, `date_of_birth`, `relationship` columns
-  - RLS policies: Users can CRUD their own family members
-  - Booking API: Accepts `memberId` parameter, validates family relationships
-  - UI: Compact selectable cards for choosing booking member, inline edit/delete
-  - Migration file: `supabase/migrations/20251104_add_family_accounts.sql`
+- **Family Accounts (Phases 1-4):** Complete multi-profile athlete page implementation
+  - **Phase 4:** Multi-profile athlete page with complete data isolation
+    - Profile selector dropdown in header showing family member names
+    - `activeProfileId` state management for profile switching
+    - All tabs filter data by selected profile (workouts, logbook, benchmarks, lifts, records)
+    - Instant updates when switching between family profiles
+    - Complete data isolation between family members
+    - Files: `app/athlete/page.tsx`, `components/AthleteWorkoutsTab.tsx`
+  - **Phases 1-3:** Full implementation for booking family members
+    - Database migration: `account_type`, `primary_member_id`, `display_name`, `date_of_birth`, `relationship` columns
+    - RLS policies: Users can CRUD their own family members
+    - Booking API: Accepts `memberId` parameter, validates family relationships
+    - UI: Compact selectable cards for choosing booking member, inline edit/delete
+    - Migration file: `supabase/migrations/20251104_add_family_accounts.sql`
 
 **Completed (Previous):**
 - Memory Bank optimization: 82% reduction (40KB → 9.5KB)
@@ -74,7 +82,7 @@ Athlete Tables (linked to members.id)
 - "All Time" attendance bug fix
 
 **Active Development:**
-- None (ready for Phase 4)
+- None (ready for Phase 5)
 
 **Known Issues:**
 - macOS iCloud Keychain autofill popups (OS behavior, not app bug)
@@ -84,13 +92,8 @@ Athlete Tables (linked to members.id)
 ## 📋 Next Immediate Steps
 
 **Family Accounts - Remaining Phases:**
-1. **Phase 4 (Recommended: Cline/Grok):** Multi-profile athlete page
-   - Add profile selector dropdown in athlete page header
-   - Filter all queries by `activeProfileId` (workout logs, benchmarks, lifts, logbook)
-   - Update workout logging to use selected profile
-   - File: `app/athlete/page.tsx` (~1400 lines, complex)
-2. **Phase 5:** Subscription gating for family members
-3. **Phase 6:** Booking history badges ("Booked for Emma")
+1. **Phase 5:** Subscription gating for family members
+2. **Phase 6:** Booking history badges ("Booked for Emma")
 
 **Other:**
 4. Test late cancel/no-show functionality in production
