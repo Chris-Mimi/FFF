@@ -41,18 +41,29 @@ SET
 WHERE account_type IS NULL;
 
 -- ============================================
--- STEP 3: Modify email column (allow NULL for family members)
+-- STEP 3: Modify email and name columns (allow NULL for family members)
 -- ============================================
 
--- Family members don't have auth accounts, so email can be NULL
+-- Family members don't have auth accounts, so email and name can be NULL
 ALTER TABLE members
 ALTER COLUMN email DROP NOT NULL;
+
+ALTER TABLE members
+ALTER COLUMN name DROP NOT NULL;
 
 -- Add constraint: Primary members MUST have email, family members don't need it
 ALTER TABLE members
 ADD CONSTRAINT primary_must_have_email
 CHECK (
   (account_type = 'primary' AND email IS NOT NULL) OR
+  (account_type = 'family_member')
+);
+
+-- Add constraint: Primary members MUST have name OR email
+ALTER TABLE members
+ADD CONSTRAINT primary_must_have_identifier
+CHECK (
+  (account_type = 'primary' AND (name IS NOT NULL OR email IS NOT NULL)) OR
   (account_type = 'family_member')
 );
 
