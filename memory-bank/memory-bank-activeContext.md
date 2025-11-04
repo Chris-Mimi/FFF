@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 3.1
-**Updated:** 2025-11-03
+**Version:** 3.2
+**Updated:** 2025-11-04
 
 ---
 
@@ -45,7 +45,7 @@ Coach Tables
 ├─ weekly_sessions (id, date, time, workout_id, capacity, status)
 
 Member Tables
-├─ members (id, email, name, status: pending|active|blocked, membership_types[], ten_card_purchase_date, ten_card_sessions_used)
+├─ members (id, email, name, status, membership_types[], account_type: primary|family_member, primary_member_id, display_name, date_of_birth, relationship)
 ├─ bookings (id, session_id, member_id, status: confirmed|waitlist|cancelled|no_show|late_cancel)
 
 Athlete Tables (linked to members.id)
@@ -59,31 +59,42 @@ Athlete Tables (linked to members.id)
 
 ## 📍 Current Status (Last 2 Weeks)
 
-**Completed:**
-- Memory Bank optimization: 82% reduction (40KB → 9.5KB), created history system and lessons-learned.md
-- Athlete Logbook week/month views: Accordion-style week view with attended workouts list, calendar-grid month view
-- Click-to-logbook: Published Workouts cards now navigate to Logbook tab with selected date
-- "All Time" attendance bug: Fixed RPC function to handle NULL for all-time counts
-- macOS autofill popup: Identified as system-level iCloud Keychain (not code issue)
+**Completed (2025-11-04):**
+- **Family Accounts (Phases 1-3):** Full implementation for booking family members
+  - Database migration: `account_type`, `primary_member_id`, `display_name`, `date_of_birth`, `relationship` columns
+  - RLS policies: Users can CRUD their own family members
+  - Booking API: Accepts `memberId` parameter, validates family relationships
+  - UI: Compact selectable cards for choosing booking member, inline edit/delete
+  - Migration file: `supabase/migrations/20251104_add_family_accounts.sql`
+
+**Completed (Previous):**
+- Memory Bank optimization: 82% reduction (40KB → 9.5KB)
+- Athlete Logbook: Accordion week view, calendar month view
+- Click-to-logbook navigation from Published Workouts
+- "All Time" attendance bug fix
 
 **Active Development:**
-- None
+- None (ready for Phase 4)
 
 **Known Issues:**
-- macOS iCloud Keychain shows password autofill popups on input fields (OS behavior, not app bug)
+- macOS iCloud Keychain autofill popups (OS behavior, not app bug)
 
 ---
 
 ## 📋 Next Immediate Steps
 
-1. Test late cancel/no-show functionality in production
-2. Review Google Calendar publishing setup (optional, env vars not configured)
-3. Continue Phase 1 booking system features:
-   - Session template auto-generation (Sunday 15:00)
-   - Booking badges on calendar cards
-   - Waitlist promotion workflow
-4. Add `user_id` to athlete tables (currently NULL for multi-user support)
-5. Remove PUBLIC RLS policies before production (migration ready: `supabase/migrations/remove-public-rls-policies.sql`)
+**Family Accounts - Remaining Phases:**
+1. **Phase 4 (Recommended: Cline/Grok):** Multi-profile athlete page
+   - Add profile selector dropdown in athlete page header
+   - Filter all queries by `activeProfileId` (workout logs, benchmarks, lifts, logbook)
+   - Update workout logging to use selected profile
+   - File: `app/athlete/page.tsx` (~1400 lines, complex)
+2. **Phase 5:** Subscription gating for family members
+3. **Phase 6:** Booking history badges ("Booked for Emma")
+
+**Other:**
+4. Test late cancel/no-show functionality in production
+5. Remove PUBLIC RLS policies before production
 
 ---
 
