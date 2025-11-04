@@ -41,7 +41,23 @@ SET
 WHERE account_type IS NULL;
 
 -- ============================================
--- STEP 3: Add constraints
+-- STEP 3: Modify email column (allow NULL for family members)
+-- ============================================
+
+-- Family members don't have auth accounts, so email can be NULL
+ALTER TABLE members
+ALTER COLUMN email DROP NOT NULL;
+
+-- Add constraint: Primary members MUST have email, family members don't need it
+ALTER TABLE members
+ADD CONSTRAINT primary_must_have_email
+CHECK (
+  (account_type = 'primary' AND email IS NOT NULL) OR
+  (account_type = 'family_member')
+);
+
+-- ============================================
+-- STEP 4: Add constraints
 -- ============================================
 
 -- Primary members cannot have a primary_member_id (they ARE the primary)
@@ -61,7 +77,7 @@ CHECK (
 );
 
 -- ============================================
--- STEP 4: Create indexes for performance
+-- STEP 5: Create indexes for performance
 -- ============================================
 
 -- Index for looking up family members by primary account
@@ -74,7 +90,7 @@ CREATE INDEX IF NOT EXISTS idx_members_account_type
 ON members(account_type);
 
 -- ============================================
--- STEP 5: Update RLS policies
+-- STEP 6: Update RLS policies
 -- ============================================
 
 -- Allow users to view their own family members
@@ -114,7 +130,7 @@ USING (
 );
 
 -- ============================================
--- STEP 6: Helper function for subscription check
+-- STEP 7: Helper function for subscription check
 -- ============================================
 
 -- Function to get primary member's subscription status (for family members)
@@ -155,7 +171,7 @@ END;
 $$;
 
 -- ============================================
--- STEP 7: Verification queries
+-- STEP 8: Verification queries
 -- ============================================
 
 -- Run these after migration to verify:
