@@ -9,6 +9,7 @@ import {
   Calendar,
   CalendarDays,
   Copy,
+  Dumbbell,
   GripVertical,
   LogOut,
   Plus,
@@ -932,6 +933,13 @@ export default function CoachDashboard() {
               >
                 <BarChart3 size={18} />
                 Analysis
+              </button>
+              <button
+                onClick={() => router.push('/coach/benchmarks-lifts')}
+                className='flex items-center gap-2 bg-[#1a6b62] hover:bg-teal-800 px-4 py-2 rounded-lg transition'
+              >
+                <Dumbbell size={18} />
+                Benchmarks & Lifts
               </button>
               <button
                 onClick={handleLogout}

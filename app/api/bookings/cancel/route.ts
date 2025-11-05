@@ -65,13 +65,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify user owns this booking
-    if (booking.member_id !== user.id) {
+    // Verify user owns this booking (either their own or their family member's)
+    const { data: bookingMember, error: memberError } = await supabase
+      .from('members')
+      .select('id, primary_member_id, account_type')
+      .eq('id', booking.member_id)
+      .single();
+
+    console.log('🔍 Authorization check:', {
+      authenticated_user: user.id,
+      booking_member_id: booking.member_id,
+      booking_member_data: bookingMember,
+      member_fetch_error: memberError
+    });
+
+    const canCancel =
+      booking.member_id === user.id || // User's own booking
+      bookingMember?.primary_member_id === user.id; // Family member's booking
+
+    if (!canCancel) {
+      console.log('❌ Authorization failed - cannot cancel');
       return NextResponse.json(
         { error: 'You can only cancel your own bookings' },
         { status: 403 }
       );
     }
+
+    console.log('✅ Authorization passed');
 
     if (booking.status === 'cancelled') {
       return NextResponse.json(
@@ -102,19 +122,19 @@ export async function POST(request: NextRequest) {
       const { data: member } = await supabase
         .from('members')
         .select('membership_types, ten_card_sessions_used')
-        .eq('id', user.id)
+        .eq('id', booking.member_id)
         .single();
 
       if (member?.membership_types?.includes('ten_card') && member.ten_card_sessions_used > 0) {
         try {
-          console.log('🔄 10-card decrement: User', user.id, 'cancelling, current:', member.ten_card_sessions_used);
+          console.log('🔄 10-card decrement: Member', booking.member_id, 'cancelling, current:', member.ten_card_sessions_used);
 
           const { error: updateError } = await supabase
             .from('members')
             .update({
               ten_card_sessions_used: member.ten_card_sessions_used - 1
             })
-            .eq('id', user.id);
+            .eq('id', booking.member_id);
 
           if (updateError) {
             console.error('Failed to decrement 10-card sessions:', updateError);

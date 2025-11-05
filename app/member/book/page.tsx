@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { Calendar, Users, Clock, LogOut, ChevronLeft, ChevronRight, X, Check, TrendingUp, Edit2, Trash2 } from 'lucide-react';
+import { Calendar, Users, Clock, LogOut, ChevronLeft, ChevronRight, X, Check, TrendingUp, Edit2, Trash2, User } from 'lucide-react';
 import { signOut } from '@/lib/auth';
 import Link from 'next/link';
 
@@ -18,11 +18,13 @@ interface WeeklySession {
   waitlist_count: number;
   user_booking_status: 'none' | 'confirmed' | 'waitlist';
   user_booking_id: string | null;
+  other_family_bookings: Array<{ name: string; id: string }>;
 }
 
 interface FamilyMember {
   id: string;
-  display_name: string;
+  display_name: string | null;
+  name: string | null;
   date_of_birth: string | null;
   relationship: 'self' | 'spouse' | 'child' | 'other';
   account_type: 'primary' | 'family_member';
@@ -152,8 +154,36 @@ export default function MemberBookingPage() {
         const bookings = session.bookings || [];
         const confirmedBookings = bookings.filter((b: any) => b.status === 'confirmed');
         const waitlistBookings = bookings.filter((b: any) => b.status === 'waitlist');
-        // Only find active bookings (not cancelled) for the selected member
-        const userBooking = bookings.find((b: any) => b.member_id === bookingForMemberId && b.status !== 'cancelled');
+
+        // Find booking for CURRENTLY SELECTED member (for booking status/cancel button)
+        const selectedMemberBooking = bookings.find((b: any) =>
+          b.member_id === bookingForMemberId && b.status !== 'cancelled'
+        );
+
+        // Find bookings for ALL OTHER family members (for badge display)
+        const familyMemberIds = familyMembers.map(fm => fm.id);
+        const otherFamilyBookings = bookings
+          .filter((b: any) =>
+            familyMemberIds.includes(b.member_id) &&
+            b.member_id !== bookingForMemberId &&
+            b.status !== 'cancelled'
+          )
+          .map((b: any) => {
+            // Get name from local familyMembers data instead of nested join
+            const member = familyMembers.find(fm => fm.id === b.member_id);
+            // Use display_name if set, otherwise extract first name from name field
+            let displayName = 'Unknown';
+            if (member?.display_name) {
+              displayName = member.display_name;
+            } else if (member?.name) {
+              // Extract first name (everything before first space)
+              displayName = member.name.split(' ')[0];
+            }
+            return {
+              name: displayName,
+              id: b.member_id
+            };
+          });
 
         // Extract workout type from title (format: "WOD - Auto-generated")
         const workoutTitle = session.wods?.title || '';
@@ -168,8 +198,9 @@ export default function MemberBookingPage() {
           workout_type: workoutType,
           confirmed_count: confirmedBookings.length,
           waitlist_count: waitlistBookings.length,
-          user_booking_status: userBooking ? userBooking.status : 'none',
-          user_booking_id: userBooking?.id || null
+          user_booking_status: selectedMemberBooking ? selectedMemberBooking.status : 'none',
+          user_booking_id: selectedMemberBooking?.id || null,
+          other_family_bookings: otherFamilyBookings
         };
       });
 
@@ -185,7 +216,7 @@ export default function MemberBookingPage() {
     try {
       const { data, error } = await supabase
         .from('members')
-        .select('id, display_name, date_of_birth, relationship, account_type')
+        .select('id, display_name, name, date_of_birth, relationship, account_type')
         .or(`id.eq.${userId},primary_member_id.eq.${userId}`)
         .order('account_type', { ascending: false }); // Primary first
 
@@ -531,7 +562,7 @@ export default function MemberBookingPage() {
                   onClick={openAddModal}
                   className="px-3 py-1 bg-teal-500 hover:bg-teal-600 text-white rounded text-xs font-medium transition-colors"
                 >
-                  + Add Member
+                  + Add Family Member
                 </button>
               </div>
 
@@ -548,13 +579,8 @@ export default function MemberBookingPage() {
                   >
                     <div className="flex items-center gap-2">
                       <span className={`font-medium text-sm ${bookingForMemberId === member.id ? 'text-teal-300' : 'text-white'}`}>
-                        {member.display_name}
+                        {member.account_type === 'primary' ? 'You' : (member.display_name || member.name)}
                       </span>
-                      {member.account_type === 'primary' && (
-                        <span className="text-xs bg-teal-500/20 text-teal-300 px-1.5 py-0.5 rounded">
-                          You
-                        </span>
-                      )}
 
                       {member.account_type === 'family_member' && (
                         <div className="flex gap-1 ml-1" onClick={(e) => e.stopPropagation()}>
@@ -624,6 +650,12 @@ export default function MemberBookingPage() {
                           Waitlist
                         </span>
                       )}
+                      {session.other_family_bookings.map((booking) => (
+                        <span key={booking.id} className="px-2 py-0.5 bg-blue-500/20 text-blue-300 text-xs rounded-full flex items-center gap-1">
+                          <User size={12} />
+                          Booked for {booking.name}
+                        </span>
+                      ))}
                     </div>
                     <div className="flex items-center gap-4 text-sm">
                       <div>

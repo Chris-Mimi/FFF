@@ -15,6 +15,7 @@ interface Member {
   id: string;
   email: string;
   name: string;
+  display_name: string | null;
   phone: string | null;
   status: MemberStatus;
   account_type: 'primary' | 'family_member';
@@ -524,7 +525,7 @@ export default function CoachMembersPage() {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <h3 className="text-base font-semibold text-white">{member.name}</h3>
+                      <h3 className="text-base font-semibold text-white">{member.display_name || member.name}</h3>
                       {member.account_type === 'family_member' && (
                         <span className="px-1.5 py-0.5 bg-purple-500/20 text-purple-300 text-xs rounded-full">
                           Family

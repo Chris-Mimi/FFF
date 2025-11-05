@@ -57,7 +57,7 @@ export default function AthleteDashboard() {
       // First check if user is an active member with athlete access
       const { data: member } = await supabase
         .from('members')
-        .select('id, name, status, athlete_subscription_status, athlete_subscription_end, display_name')
+        .select('id, name, status, display_name')
         .eq('id', user.id)
         .single();
 
@@ -69,12 +69,29 @@ export default function AthleteDashboard() {
           return;
         }
 
-        // Check athlete access
+        // Check athlete access using RPC function (works for both primary and family members)
+        const { data: subscriptionData, error: rpcError } = await supabase
+          .rpc('get_primary_subscription_status', { member_uuid: user.id });
+
+        if (rpcError) {
+          console.error('RPC Error:', rpcError);
+          alert(`Subscription check error: ${rpcError.message}`);
+          router.push('/member/book');
+          return;
+        }
+
+        if (!subscriptionData || subscriptionData.length === 0) {
+          alert('Unable to verify subscription status. Please contact the coach.');
+          router.push('/member/book');
+          return;
+        }
+
+        const { subscription_status, subscription_end } = subscriptionData[0];
         const now = new Date();
-        const trialEnd = member.athlete_subscription_end ? new Date(member.athlete_subscription_end) : null;
+        const trialEnd = subscription_end ? new Date(subscription_end) : null;
         const hasAccess =
-          member.athlete_subscription_status === 'active' ||
-          (member.athlete_subscription_status === 'trial' && trialEnd && trialEnd > now);
+          subscription_status === 'active' ||
+          (subscription_status === 'trial' && trialEnd && trialEnd > now);
 
         if (!hasAccess) {
           alert('Your athlete page access has expired. Please contact the coach to renew.');
@@ -201,7 +218,7 @@ export default function AthleteDashboard() {
                   <select
                     value={activeProfileId || userId || ''}
                     onChange={(e) => handleProfileChange(e.target.value)}
-                    className='px-3 py-1 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-[#208479] focus:border-transparent'
+                    className='px-3 py-1 bg-white border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-2 focus:ring-[#208479] focus:border-transparent cursor-pointer'
                   >
                     <option value={userId}>{userName}</option>
                     {familyMembers.map(member => (
@@ -998,14 +1015,24 @@ function LogbookTab({ userId, initialDate }: { userId: string; initialDate?: Dat
           <div className='text-center'>
             {viewMode === 'week' ? (
               <>
-                <h2 className='text-xl font-bold text-gray-900'>{weekLabel}</h2>
+                <div className='flex items-center gap-2'>
+                  <h2 className='text-xl font-bold text-gray-900'>{weekLabel}</h2>
+                  <span className='px-2 py-0.5 bg-teal-500/20 text-teal-700 text-xs font-medium rounded-full'>
+                    {attendedWorkouts.length} {attendedWorkouts.length === 1 ? 'workout' : 'workouts'}
+                  </span>
+                </div>
                 <p className='text-sm text-gray-600'>Week View</p>
               </>
             ) : viewMode === 'month' ? (
               <>
-                <h2 className='text-xl font-bold text-gray-900'>
-                  {selectedDate.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
-                </h2>
+                <div className='flex items-center gap-2'>
+                  <h2 className='text-xl font-bold text-gray-900'>
+                    {selectedDate.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
+                  </h2>
+                  <span className='px-2 py-0.5 bg-teal-500/20 text-teal-700 text-xs font-medium rounded-full'>
+                    {attendedWorkouts.length} {attendedWorkouts.length === 1 ? 'workout' : 'workouts'}
+                  </span>
+                </div>
                 <p className='text-sm text-gray-600'>Month View</p>
               </>
             ) : (
@@ -1554,75 +1581,27 @@ function BenchmarksTab({ userId }: { userId: string }) {
   const [newScaling, setNewScaling] = useState<'Rx' | 'Sc1' | 'Sc2' | 'Sc3'>('Rx');
   const [benchmarkHistory, setBenchmarkHistory] = useState<BenchmarkResult[]>([]);
   const [editingBenchmarkId, setEditingBenchmarkId] = useState<string | null>(null);
+  const [benchmarks, setBenchmarks] = useState<Array<{ name: string; type: string; description: string }>>([]);
 
   useEffect(() => {
+    fetchBenchmarks();
     fetchBenchmarkHistory();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
-  const benchmarks = [
-    {
-      name: 'Fran',
-      type: 'For Time',
-      description: '21-15-9 reps of:\nThrusters (43/29 kg)\nPull-ups',
-    },
-    {
-      name: 'Helen',
-      type: 'For Time',
-      description: '3 rounds for time:\n400m Run\n21 KB Swings (24/16 kg)\n12 Pull-ups',
-    },
-    {
-      name: 'Cindy',
-      type: 'AMRAP 20',
-      description: 'AMRAP in 20 minutes:\n5 Pull-ups\n10 Push-ups\n15 Air Squats',
-    },
-    {
-      name: 'Grace',
-      type: 'For Time',
-      description: 'For time:\n30 Clean & Jerks (61/43 kg)',
-    },
-    {
-      name: 'Isabel',
-      type: 'For Time',
-      description: 'For time:\n30 Snatches (61/43 kg)',
-    },
-    {
-      name: 'Annie',
-      type: 'For Time',
-      description: '50-40-30-20-10 reps of:\nDouble Unders\nSit-ups',
-    },
-    {
-      name: 'Diane',
-      type: 'For Time',
-      description: '21-15-9 reps of:\nDeadlifts (102/70 kg)\nHandstand Push-ups',
-    },
-    {
-      name: 'Elizabeth',
-      type: 'For Time',
-      description: '21-15-9 reps of:\nCleans (61/43 kg)\nRing Dips',
-    },
-    {
-      name: 'Kelly',
-      type: 'For Time',
-      description: '5 rounds for time:\n400m Run\n30 Box Jumps (60/50 cm)\n30 Wall Balls (9/6 kg)',
-    },
-    {
-      name: 'Nancy',
-      type: 'For Time',
-      description: '5 rounds for time:\n400m Run\n15 Overhead Squats (43/29 kg)',
-    },
-    {
-      name: 'Jackie',
-      type: 'For Time',
-      description: 'For time:\n1000m Row\n50 Thrusters (20/16 kg)\n30 Pull-ups',
-    },
-    {
-      name: 'Mary',
-      type: 'AMRAP 20',
-      description:
-        'AMRAP in 20 minutes:\n5 Handstand Push-ups\n10 Pistols (alternating)\n15 Pull-ups',
-    },
-  ];
+  const fetchBenchmarks = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('benchmark_workouts')
+        .select('name, type, description')
+        .order('display_order');
+
+      if (error) throw error;
+      setBenchmarks(data || []);
+    } catch (error) {
+      console.error('Error fetching benchmarks:', error);
+    }
+  };
 
   const fetchBenchmarkHistory = async () => {
     try {
@@ -2056,26 +2035,27 @@ function LiftsTab({ userId }: { userId: string }) {
   const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0]);
   const [liftHistory, setLiftHistory] = useState<LiftRecord[]>([]);
   const [editingLiftId, setEditingLiftId] = useState<string | null>(null);
+  const [lifts, setLifts] = useState<Array<{ name: string; category: string }>>([]);
 
   useEffect(() => {
+    fetchLifts();
     fetchLiftHistory();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
-  const lifts = [
-    { name: 'Back Squat', category: 'Squat' },
-    { name: 'Front Squat', category: 'Squat' },
-    { name: 'Overhead Squat', category: 'Squat' },
-    { name: 'Deadlift', category: 'Pull' },
-    { name: 'Sumo Deadlift', category: 'Pull' },
-    { name: 'Bench Press', category: 'Press' },
-    { name: 'Shoulder Press', category: 'Press' },
-    { name: 'Push Press', category: 'Press' },
-    { name: 'Jerk', category: 'Press' },
-    { name: 'Clean', category: 'Olympic' },
-    { name: 'Snatch', category: 'Olympic' },
-    { name: 'Clean & Jerk', category: 'Olympic' },
-  ];
+  const fetchLifts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('barbell_lifts')
+        .select('name, category')
+        .order('display_order');
+
+      if (error) throw error;
+      setLifts(data || []);
+    } catch (error) {
+      console.error('Error fetching lifts:', error);
+    }
+  };
 
   const fetchLiftHistory = async () => {
     try {
