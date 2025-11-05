@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 3.3
-**Updated:** 2025-11-04
+**Version:** 3.4
+**Updated:** 2025-11-05
 
 ---
 
@@ -43,6 +43,9 @@ Coach Tables
 ├─ exercises (id, name, category)
 ├─ tracks (id, name, description, color)
 ├─ weekly_sessions (id, date, time, workout_id, capacity, status)
+├─ benchmark_workouts (id, name, type, description, display_order)
+├─ forge_benchmarks (id, name, type, description, display_order)
+├─ barbell_lifts (id, name, category, display_order)
 
 Member Tables
 ├─ members (id, email, name, status, membership_types[], account_type: primary|family_member, primary_member_id, display_name, date_of_birth, relationship)
@@ -59,30 +62,23 @@ Athlete Tables (linked to members.id)
 
 ## 📍 Current Status (Last 2 Weeks)
 
-**Completed (2025-11-04):**
-- **Family Accounts (Phases 1-4):** Complete multi-profile athlete page implementation
-  - **Phase 4:** Multi-profile athlete page with complete data isolation
-    - Profile selector dropdown in header showing family member names
-    - `activeProfileId` state management for profile switching
-    - All tabs filter data by selected profile (workouts, logbook, benchmarks, lifts, records)
-    - Instant updates when switching between family profiles
-    - Complete data isolation between family members
-    - Files: `app/athlete/page.tsx`, `components/AthleteWorkoutsTab.tsx`
-  - **Phases 1-3:** Full implementation for booking family members
-    - Database migration: `account_type`, `primary_member_id`, `display_name`, `date_of_birth`, `relationship` columns
-    - RLS policies: Users can CRUD their own family members
-    - Booking API: Accepts `memberId` parameter, validates family relationships
-    - UI: Compact selectable cards for choosing booking member, inline edit/delete
-    - Migration file: `supabase/migrations/20251104_add_family_accounts.sql`
+**Completed (2025-11-05):**
+- **Database-Driven Benchmarks & Lifts:** Coach management UI for benchmarks and lifts
+  - Replaced hardcoded arrays with database tables
+  - Coach CRUD interface at `/coach/benchmarks-lifts` with 3 tabs
+  - Athletes now see dynamic lists based on coach configuration
+  - Tables: `benchmark_workouts`, `forge_benchmarks`, `barbell_lifts`
 
-**Completed (Previous):**
-- Memory Bank optimization: 82% reduction (40KB → 9.5KB)
-- Athlete Logbook: Accordion week view, calendar month view
-- Click-to-logbook navigation from Published Workouts
-- "All Time" attendance bug fix
+**Completed (2025-11-04):**
+- **Family Accounts (Phases 5-6):** Subscription gating and booking badges
+  - Phase 5: Family members inherit subscription from primary account
+  - Phase 6: Booking badges show "Booked for [Name]" with proper authorization
+- **Family Accounts (Phases 1-4):** Multi-profile athlete page
+  - Profile selector with complete data isolation
+  - Family member booking with compact card UI
 
 **Active Development:**
-- None (ready for Phase 5)
+- None
 
 **Known Issues:**
 - macOS iCloud Keychain autofill popups (OS behavior, not app bug)
@@ -91,13 +87,9 @@ Athlete Tables (linked to members.id)
 
 ## 📋 Next Immediate Steps
 
-**Family Accounts - Remaining Phases:**
-1. **Phase 5:** Subscription gating for family members
-2. **Phase 6:** Booking history badges ("Booked for Emma")
-
-**Other:**
-4. Test late cancel/no-show functionality in production
-5. Remove PUBLIC RLS policies before production
+1. Test late cancel/no-show functionality in production
+2. Remove PUBLIC RLS policies before production
+3. Consider adding coach ability to edit section types, workout types, exercises
 
 ---
 
@@ -111,4 +103,4 @@ Athlete Tables (linked to members.id)
 
 ---
 
-**File Size:** ~3.2KB (87% reduction from 40KB)
+**File Size:** ~3.4KB
