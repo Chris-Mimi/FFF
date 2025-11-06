@@ -1776,7 +1776,7 @@ function BenchmarksTab({ userId }: { userId: string }) {
   };
 
   const getBenchmarkChartData = (benchmarkName: string) => {
-    return benchmarkHistory
+    const filteredData = benchmarkHistory
       .filter(e => e.benchmark_name === benchmarkName)
       .sort((a, b) => new Date(a.workout_date).getTime() - new Date(b.workout_date).getTime())
       .map(entry => {
@@ -1794,6 +1794,21 @@ function BenchmarksTab({ userId }: { userId: string }) {
         };
       })
       .filter(entry => entry.result !== null); // Only include entries we could parse
+
+    // Find best result per scaling level
+    const bestPerScaling = new Map<string, number>();
+    filteredData.forEach(entry => {
+      const currentBest = bestPerScaling.get(entry.scaling);
+      if (currentBest === undefined || entry.result! < currentBest) {
+        bestPerScaling.set(entry.scaling, entry.result!);
+      }
+    });
+
+    // Mark PRs
+    return filteredData.map(entry => ({
+      ...entry,
+      isPR: entry.result === bestPerScaling.get(entry.scaling),
+    }));
   };
 
   const sortedBenchmarks = benchmarks
@@ -1851,7 +1866,6 @@ function BenchmarksTab({ userId }: { userId: string }) {
                 </p>
                 {bestTimes.length > 0 && (
                   <div className='pt-2 border-t border-gray-200 space-y-1'>
-                    <p className='text-xs text-gray-600'>PR:</p>
                     {bestTimes.map((bt, idx) => (
                       <div key={idx} className='flex items-center justify-between'>
                         <span className='text-xs font-medium text-gray-700'>{bt.scaling}</span>
@@ -2064,11 +2078,22 @@ function BenchmarksTab({ userId }: { userId: string }) {
                     stroke='#208479'
                     strokeWidth={2}
                     name='Result'
+                    label={({ x, y, index }: { x: number; y: number; value: number; index: number }) => {
+                      const data = getBenchmarkChartData(chartBenchmark);
+                      if (data[index]?.isPR) {
+                        return (
+                          <text x={x} y={y - 10} fill='red' fontSize={10} fontWeight='bold' textAnchor='middle'>
+                            PR!
+                          </text>
+                        );
+                      }
+                      return null;
+                    }}
                   />
                 </LineChart>
               </ResponsiveContainer>
               <p className='text-xs text-gray-600 mt-2 text-center'>
-                * Chart shows all recorded results for {chartBenchmark}
+                * Chart shows all recorded results for {chartBenchmark}. Red &quot;PR!&quot; badges mark best result per scaling level.
               </p>
             </div>
           )}
@@ -2287,7 +2312,7 @@ function ForgeBenchmarksTab({ userId }: { userId: string }) {
   };
 
   const getBenchmarkChartData = (benchmarkName: string) => {
-    return benchmarkHistory
+    const filteredData = benchmarkHistory
       .filter(e => e.benchmark_name === benchmarkName)
       .sort((a, b) => new Date(a.workout_date).getTime() - new Date(b.workout_date).getTime())
       .map(entry => {
@@ -2305,6 +2330,21 @@ function ForgeBenchmarksTab({ userId }: { userId: string }) {
         };
       })
       .filter(entry => entry.result !== null); // Only include entries we could parse
+
+    // Find best result per scaling level
+    const bestPerScaling = new Map<string, number>();
+    filteredData.forEach(entry => {
+      const currentBest = bestPerScaling.get(entry.scaling);
+      if (currentBest === undefined || entry.result! < currentBest) {
+        bestPerScaling.set(entry.scaling, entry.result!);
+      }
+    });
+
+    // Mark PRs
+    return filteredData.map(entry => ({
+      ...entry,
+      isPR: entry.result === bestPerScaling.get(entry.scaling),
+    }));
   };
 
   const sortedBenchmarks = benchmarks
@@ -2362,7 +2402,6 @@ function ForgeBenchmarksTab({ userId }: { userId: string }) {
                 </p>
                 {bestTimes.length > 0 && (
                   <div className='pt-2 border-t border-gray-200 space-y-1'>
-                    <p className='text-xs text-gray-600'>PR:</p>
                     {bestTimes.map((bt, idx) => (
                       <div key={idx} className='flex items-center justify-between'>
                         <span className='text-xs font-medium text-gray-700'>{bt.scaling}</span>
@@ -2575,11 +2614,22 @@ function ForgeBenchmarksTab({ userId }: { userId: string }) {
                     stroke='#208479'
                     strokeWidth={2}
                     name='Result'
+                    label={({ x, y, index }: { x: number; y: number; value: number; index: number }) => {
+                      const data = getBenchmarkChartData(chartBenchmark);
+                      if (data[index]?.isPR) {
+                        return (
+                          <text x={x} y={y - 10} fill='red' fontSize={10} fontWeight='bold' textAnchor='middle'>
+                            PR!
+                          </text>
+                        );
+                      }
+                      return null;
+                    }}
                   />
                 </LineChart>
               </ResponsiveContainer>
               <p className='text-xs text-gray-600 mt-2 text-center'>
-                * Chart shows all recorded results for {chartBenchmark}
+                * Chart shows all recorded results for {chartBenchmark}. Red &quot;PR!&quot; badges mark best result per scaling level.
               </p>
             </div>
           )}
