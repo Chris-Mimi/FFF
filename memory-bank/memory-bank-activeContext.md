@@ -1,6 +1,6 @@
 # Active Context
 
-**Version:** 3.5
+**Version:** 3.6
 **Updated:** 2025-11-06
 
 ---
@@ -62,20 +62,20 @@ Athlete Tables (linked to members.id)
 
 ## 📍 Current Status (Last 2 Weeks)
 
-**Completed (2025-11-06):**
+**Completed (2025-11-06 Session 2):**
+- **Athlete UI Redesign:** Visual overhaul with cyan theme and enhanced functionality
+  - Barbell Lifts: Removed categories, 5-column grid, cyan cards
+  - Darker page background (gray-400) for better contrast
+  - Personal Records: Added Forge Benchmarks section, collapsible accordions, 4-column layout
+  - Fixed lift display to show actual rep max type (not just estimated 1RM)
+  - Added scaling levels to benchmark results
+
+**Completed (2025-11-06 Session 1):**
 - **Athlete Page Enhancements:** Benchmark cards and PR display
   - Added Forge Benchmarks tab (fetches from `forge_benchmarks` table)
   - Compact card design: 5 columns on large screens, hover shows details
   - Fixed PR logic: Prioritizes scaling hierarchy (Rx > Sc1 > Sc2 > Sc3) then best time
   - Multi-PR display: Shows best result per scaling level (e.g., Rx 20:41, Sc1 7:55)
-- **Cline Rules Cleanup:** Renamed files for clarity
-  - `custom_instructions.md` → `cline-rules.md` (working file)
-  - `README.md` → `SETUP-GUIDE.md` (documentation)
-  - Removed redundant instruction files
-- **Workflow Protocols Update:** Added MANDATORY GATE section
-  - Task evaluation checkpoint immediately after SESSION START
-  - Required output format template for all tasks
-  - Prevents skipping delegation evaluation
 
 **Completed (2025-11-05):**
 - **Database-Driven Benchmarks & Lifts:** Coach management UI for benchmarks and lifts
