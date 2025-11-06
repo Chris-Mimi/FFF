@@ -14,6 +14,7 @@ import {
   Edit2,
   LogOut,
   Shield,
+  Target,
   Trash2,
   Trophy,
   User,
@@ -31,7 +32,7 @@ import {
   YAxis,
 } from 'recharts';
 
-type TabName = 'profile' | 'workouts' | 'logbook' | 'benchmarks' | 'lifts' | 'records' | 'security';
+type TabName = 'profile' | 'workouts' | 'logbook' | 'benchmarks' | 'forge-benchmarks' | 'lifts' | 'records' | 'security';
 
 export default function AthleteDashboard() {
   const router = useRouter();
@@ -157,6 +158,7 @@ export default function AthleteDashboard() {
     { id: 'workouts' as TabName, label: 'Workouts', icon: Calendar },
     { id: 'logbook' as TabName, label: 'Athlete Logbook', icon: BookOpen },
     { id: 'benchmarks' as TabName, label: 'Benchmark Workouts', icon: Trophy },
+    { id: 'forge-benchmarks' as TabName, label: 'Forge Benchmarks', icon: Target },
     { id: 'lifts' as TabName, label: 'Barbell Lifts', icon: Dumbbell },
     { id: 'records' as TabName, label: 'Personal Records', icon: Award },
     { id: 'security' as TabName, label: 'Access & Security', icon: Shield },
@@ -180,6 +182,8 @@ export default function AthleteDashboard() {
         return <LogbookTab userId={activeProfileId} initialDate={logbookDate} />;
       case 'benchmarks':
         return <BenchmarksTab userId={activeProfileId} />;
+      case 'forge-benchmarks':
+        return <ForgeBenchmarksTab userId={activeProfileId} />;
       case 'lifts':
         return <LiftsTab userId={activeProfileId} />;
       case 'records':
@@ -1784,6 +1788,457 @@ function BenchmarksTab({ userId }: { userId: string }) {
                 <div className='flex items-start justify-between mb-2'>
                   <h3 className='text-lg font-bold text-gray-900'>{benchmark.name}</h3>
                   <Trophy size={20} className='text-[#208479]' />
+                </div>
+                <p className='text-sm text-gray-600 mb-2'>{benchmark.type}</p>
+                <p className='text-sm text-gray-700 whitespace-pre-line mb-3'>
+                  {benchmark.description}
+                </p>
+                {bestTime && (
+                  <div className='pt-2 border-t border-gray-200'>
+                    <p className='text-xs text-gray-600'>Personal Best:</p>
+                    <p className='text-sm font-semibold text-[#208479]'>{bestTime}</p>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Log New Benchmark Modal */}
+      {selectedBenchmark && (
+        <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50'>
+          <div className='bg-white rounded-lg shadow-xl max-w-md w-full p-6'>
+            <h3 className='text-xl font-bold text-gray-900 mb-4'>
+              {editingBenchmarkId ? 'Edit' : 'Log'} {selectedBenchmark}
+            </h3>
+
+            <div className='space-y-4'>
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>Date</label>
+                <input
+                  type='date'
+                  value={newDate}
+                  onChange={e => setNewDate(e.target.value)}
+                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                />
+              </div>
+
+              <div className='grid grid-cols-2 gap-4'>
+                <div>
+                  <label className='block text-sm font-medium text-gray-700 mb-2'>
+                    Time/Result
+                  </label>
+                  <input
+                    type='text'
+                    value={newTime}
+                    onChange={e => setNewTime(e.target.value)}
+                    placeholder='e.g., 5:42, 15 rounds + 5'
+                    className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                    autoFocus
+                  />
+                </div>
+                <div>
+                  <label className='block text-sm font-medium text-gray-700 mb-2'>Scaling</label>
+                  <select
+                    value={newScaling}
+                    onChange={e => setNewScaling(e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3')}
+                    className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                  >
+                    <option value='Rx'>Rx</option>
+                    <option value='Sc1'>Sc1</option>
+                    <option value='Sc2'>Sc2</option>
+                    <option value='Sc3'>Sc3</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  Notes (optional)
+                </label>
+                <textarea
+                  value={newNotes}
+                  onChange={e => setNewNotes(e.target.value)}
+                  placeholder='How did it feel? Any modifications?'
+                  rows={3}
+                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 resize-none'
+                />
+              </div>
+
+              <div className='flex gap-3 pt-4'>
+                <button
+                  onClick={() => {
+                    setSelectedBenchmark(null);
+                    setNewTime('');
+                    setNewNotes('');
+                    setNewDate(new Date().toISOString().split('T')[0]);
+                    setNewScaling('Rx');
+                    setEditingBenchmarkId(null);
+                  }}
+                  className='flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg transition'
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveBenchmark}
+                  disabled={!newTime}
+                  className='flex-1 px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white font-medium rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed'
+                >
+                  {editingBenchmarkId ? 'Update' : 'Save'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Recent History */}
+      {benchmarkHistory.length > 0 && (
+        <div className='bg-white rounded-lg shadow p-6'>
+          <h3 className='text-xl font-bold text-gray-900 mb-4'>Recent Benchmark Results</h3>
+          <div className='space-y-3'>
+            {benchmarkHistory.slice(0, 10).map(entry => (
+              <div
+                key={entry.id}
+                className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'
+              >
+                <div className='flex-1'>
+                  <p className='font-semibold text-gray-900'>{entry.benchmark_name}</p>
+                  <p className='text-sm text-gray-600'>
+                    {new Date(entry.workout_date).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className='text-right flex-1'>
+                  <div className='flex items-center justify-end gap-2'>
+                    <p className='font-semibold text-[#208479]'>{entry.result}</p>
+                    <span className='px-2 py-0.5 bg-gray-200 text-gray-700 text-xs font-medium rounded'>
+                      {entry.scaling || 'Rx'}
+                    </span>
+                  </div>
+                  {entry.notes && <p className='text-sm text-gray-600'>{entry.notes}</p>}
+                </div>
+                <div className='flex items-center gap-2 ml-4'>
+                  <button
+                    onClick={() => handleEditBenchmark(entry)}
+                    className='p-2 text-gray-600 hover:text-[#208479] hover:bg-gray-200 rounded transition'
+                    title='Edit entry'
+                  >
+                    <Edit2 size={18} />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteBenchmark(entry.id)}
+                    className='p-2 text-gray-600 hover:text-red-600 hover:bg-gray-200 rounded transition'
+                    title='Delete entry'
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Progress Charts */}
+      {benchmarksWithHistory.length > 0 && (
+        <div className='bg-white rounded-lg shadow p-6'>
+          <h3 className='text-xl font-bold text-gray-900 mb-4'>Progress Charts</h3>
+          <p className='text-sm text-gray-600 mb-4'>
+            Select a benchmark to view your progress over time
+          </p>
+
+          <div className='flex flex-wrap gap-2 mb-6'>
+            {benchmarksWithHistory.map(benchmark => (
+              <button
+                key={benchmark.name}
+                onClick={() =>
+                  setChartBenchmark(chartBenchmark === benchmark.name ? null : benchmark.name)
+                }
+                className={`px-4 py-2 rounded-lg font-medium transition ${
+                  chartBenchmark === benchmark.name
+                    ? 'bg-[#208479] text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {benchmark.name} ({benchmark.count})
+              </button>
+            ))}
+          </div>
+
+          {chartBenchmark && (
+            <div className='mt-4'>
+              <h4 className='text-lg font-semibold text-gray-900 mb-4'>
+                {chartBenchmark} Progress
+              </h4>
+              <ResponsiveContainer width='100%' height={300}>
+                <LineChart data={getBenchmarkChartData(chartBenchmark)}>
+                  <CartesianGrid strokeDasharray='3 3' />
+                  <XAxis dataKey='date' />
+                  <YAxis />
+                  <Tooltip
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        return (
+                          <div className='bg-white p-3 border border-gray-300 rounded shadow-lg'>
+                            <p className='text-sm text-gray-900 font-semibold'>
+                              {payload[0].payload.date}
+                            </p>
+                            <p className='text-sm text-[#208479] font-semibold'>
+                              Result: {payload[0].payload.resultDisplay}
+                            </p>
+                            <p className='text-sm text-gray-600'>
+                              Scaling: {payload[0].payload.scaling}
+                            </p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Legend />
+                  <Line
+                    type='monotone'
+                    dataKey='result'
+                    stroke='#208479'
+                    strokeWidth={2}
+                    name='Result'
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+              <p className='text-xs text-gray-600 mt-2 text-center'>
+                * Chart shows all recorded results for {chartBenchmark}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Forge Benchmarks Tab Component
+function ForgeBenchmarksTab({ userId }: { userId: string }) {
+  interface BenchmarkResult {
+    id: string;
+    benchmark_name: string;
+    result: string;
+    notes?: string;
+    workout_date: string;
+    scaling?: string;
+  }
+
+  const [selectedBenchmark, setSelectedBenchmark] = useState<string | null>(null);
+  const [chartBenchmark, setChartBenchmark] = useState<string | null>(null);
+  const [newTime, setNewTime] = useState('');
+  const [newNotes, setNewNotes] = useState('');
+  const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0]);
+  const [newScaling, setNewScaling] = useState<'Rx' | 'Sc1' | 'Sc2' | 'Sc3'>('Rx');
+  const [benchmarkHistory, setBenchmarkHistory] = useState<BenchmarkResult[]>([]);
+  const [editingBenchmarkId, setEditingBenchmarkId] = useState<string | null>(null);
+  const [benchmarks, setBenchmarks] = useState<Array<{ name: string; type: string; description: string }>>([]);
+
+  useEffect(() => {
+    fetchBenchmarks();
+    fetchBenchmarkHistory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
+
+  const fetchBenchmarks = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('forge_benchmarks')
+        .select('name, type, description')
+        .order('display_order');
+
+      if (error) throw error;
+      setBenchmarks(data || []);
+    } catch (error) {
+      console.error('Error fetching benchmarks:', error);
+    }
+  };
+
+  const fetchBenchmarkHistory = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('benchmark_results')
+        .select('*')
+        .eq('user_id', userId)
+        .order('workout_date', { ascending: false });
+
+      if (error) throw error;
+      setBenchmarkHistory(data || []);
+    } catch (error) {
+      console.error('Error fetching benchmark history:', error);
+    }
+  };
+
+  const handleSaveBenchmark = async () => {
+    if (!selectedBenchmark || !newTime) return;
+
+    try {
+      if (editingBenchmarkId) {
+        // Update existing entry
+        const { error } = await supabase
+          .from('benchmark_results')
+          .update({
+            benchmark_name: selectedBenchmark,
+            result: newTime,
+            notes: newNotes || null,
+            workout_date: newDate,
+            scaling: newScaling,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', editingBenchmarkId);
+
+        if (error) throw error;
+      } else {
+        // Insert new entry
+        const { error} = await supabase.from('benchmark_results').insert({
+          user_id: userId,
+          benchmark_name: selectedBenchmark,
+          result: newTime,
+          notes: newNotes || null,
+          workout_date: newDate,
+          scaling: newScaling,
+        });
+
+        if (error) throw error;
+      }
+
+      // Refresh the history
+      await fetchBenchmarkHistory();
+
+      // Clear form
+      setNewTime('');
+      setNewNotes('');
+      setNewDate(new Date().toISOString().split('T')[0]);
+      setNewScaling('Rx');
+      setSelectedBenchmark(null);
+      setEditingBenchmarkId(null);
+    } catch (error) {
+      console.error('Error saving benchmark:', error);
+      alert('Failed to save benchmark result. Please try again.');
+    }
+  };
+
+  const handleEditBenchmark = (entry: BenchmarkResult) => {
+    setSelectedBenchmark(entry.benchmark_name);
+    setNewTime(entry.result);
+    setNewNotes(entry.notes || '');
+    setNewDate(entry.workout_date);
+    setNewScaling((entry.scaling as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3') || 'Rx');
+    setEditingBenchmarkId(entry.id);
+  };
+
+  const handleDeleteBenchmark = async (id: string) => {
+    if (
+      !confirm(
+        'Are you sure you want to delete this benchmark result? This action cannot be undone.'
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase.from('benchmark_results').delete().eq('id', id);
+
+      if (error) throw error;
+
+      // Refresh the history
+      await fetchBenchmarkHistory();
+    } catch (error) {
+      console.error('Error deleting benchmark:', error);
+      alert('Failed to delete benchmark result. Please try again.');
+    }
+  };
+
+  const getBestTime = (benchmarkName: string) => {
+    const entries = benchmarkHistory.filter(e => e.benchmark_name === benchmarkName);
+    if (entries.length === 0) return null;
+    return entries[0].result;
+  };
+
+  // Helper function to convert benchmark result strings to numeric values for charting
+  const parseResultToNumber = (result: string): number | null => {
+    if (!result) return null;
+
+    // Handle time formats: "5:42", "10:30" (minutes:seconds)
+    if (result.includes(':')) {
+      const [mins, secs] = result.split(':').map(parseFloat);
+      return mins + secs / 60; // Convert to decimal minutes
+    }
+
+    // Handle rounds + reps format with "+" sign: "5+28", "15+10", "15 rounds + 5"
+    if (result.includes('+')) {
+      // Extract numbers around the "+" sign
+      const plusMatch = result.match(/(\d+)\s*\+\s*(\d+)/);
+      if (plusMatch) {
+        const rounds = parseInt(plusMatch[1]);
+        const reps = parseInt(plusMatch[2]);
+        return rounds + reps / 100; // 5+28 = 5.28
+      }
+    }
+
+    // Handle decimal time format: "10.00", "5.5" (already in decimal minutes for time-based WODs)
+    const decimal = parseFloat(result);
+    if (!isNaN(decimal) && result.match(/^\d+\.?\d*$/)) {
+      return decimal;
+    }
+
+    // If we can't parse it, return null (won't show on chart)
+    return null;
+  };
+
+  const getBenchmarkChartData = (benchmarkName: string) => {
+    return benchmarkHistory
+      .filter(e => e.benchmark_name === benchmarkName)
+      .sort((a, b) => new Date(a.workout_date).getTime() - new Date(b.workout_date).getTime())
+      .map(entry => {
+        const numericValue = parseResultToNumber(entry.result);
+        return {
+          date: new Date(entry.workout_date).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+          }),
+          result: numericValue,
+          resultDisplay: entry.result, // Keep original string for tooltip
+          scaling: entry.scaling || 'Rx', // Include scaling for tooltip
+          fullDate: entry.workout_date,
+        };
+      })
+      .filter(entry => entry.result !== null); // Only include entries we could parse
+  };
+
+  const benchmarksWithHistory = benchmarks
+    .map(b => ({
+      ...b,
+      count: benchmarkHistory.filter(e => e.benchmark_name === b.name).length,
+    }))
+    .filter(b => b.count > 0)
+    .sort((a, b) => b.count - a.count);
+
+  return (
+    <div className='space-y-6'>
+      <div className='bg-white rounded-lg shadow p-6'>
+        <h2 className='text-2xl font-bold text-gray-900 mb-2'>Forge Benchmarks</h2>
+        <p className='text-gray-600 mb-6'>
+          Track your performance on gym-specific benchmark workouts.
+        </p>
+
+        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+          {benchmarks.map(benchmark => {
+            const bestTime = getBestTime(benchmark.name);
+            return (
+              <div
+                key={benchmark.name}
+                onClick={() => setSelectedBenchmark(benchmark.name)}
+                className='border border-gray-300 rounded-lg p-4 hover:border-[#208479] hover:bg-gray-50 cursor-pointer transition'
+              >
+                <div className='flex items-start justify-between mb-2'>
+                  <h3 className='text-lg font-bold text-gray-900'>{benchmark.name}</h3>
+                  <Target size={20} className='text-[#208479]' />
                 </div>
                 <p className='text-sm text-gray-600 mb-2'>{benchmark.type}</p>
                 <p className='text-sm text-gray-700 whitespace-pre-line mb-3'>
