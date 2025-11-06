@@ -1805,6 +1805,7 @@ function BenchmarksTab({ userId }: { userId: string }) {
         ...b,
         hasResults,
         mostRecentDate,
+        count: userResults.length,
       };
     })
     .sort((a, b) => {
@@ -2001,7 +2002,7 @@ function BenchmarksTab({ userId }: { userId: string }) {
       )}
 
       {/* Progress Charts */}
-      {benchmarksWithHistory.length > 0 && (
+      {sortedBenchmarks.filter(b => b.hasResults).length > 0 && (
         <div className='bg-white rounded-lg shadow p-6'>
           <h3 className='text-xl font-bold text-gray-900 mb-4'>Progress Charts</h3>
           <p className='text-sm text-gray-600 mb-4'>
@@ -2009,7 +2010,7 @@ function BenchmarksTab({ userId }: { userId: string }) {
           </p>
 
           <div className='flex flex-wrap gap-2 mb-6'>
-            {benchmarksWithHistory.map(benchmark => (
+            {sortedBenchmarks.filter(b => b.hasResults).map(benchmark => (
               <button
                 key={benchmark.name}
                 onClick={() =>
@@ -2315,6 +2316,7 @@ function ForgeBenchmarksTab({ userId }: { userId: string }) {
         ...b,
         hasResults,
         mostRecentDate,
+        count: userResults.length,
       };
     })
     .sort((a, b) => {
@@ -2511,7 +2513,7 @@ function ForgeBenchmarksTab({ userId }: { userId: string }) {
       )}
 
       {/* Progress Charts */}
-      {benchmarksWithHistory.length > 0 && (
+      {sortedBenchmarks.filter(b => b.hasResults).length > 0 && (
         <div className='bg-white rounded-lg shadow p-6'>
           <h3 className='text-xl font-bold text-gray-900 mb-4'>Progress Charts</h3>
           <p className='text-sm text-gray-600 mb-4'>
@@ -2519,7 +2521,7 @@ function ForgeBenchmarksTab({ userId }: { userId: string }) {
           </p>
 
           <div className='flex flex-wrap gap-2 mb-6'>
-            {benchmarksWithHistory.map(benchmark => (
+            {sortedBenchmarks.filter(b => b.hasResults).map(benchmark => (
               <button
                 key={benchmark.name}
                 onClick={() =>
