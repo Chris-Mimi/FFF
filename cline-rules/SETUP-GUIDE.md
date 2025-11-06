@@ -2,6 +2,8 @@
 
 **Last Updated:** 2025-11-06
 
+**Note:** This is documentation only. The actual working rules file is `cline-rules.md`.
+
 ---
 
 ## 🎯 What Are Cline Rules?
@@ -14,7 +16,7 @@ Cline Rules are persistent instructions that guide your AI assistant's behavior.
 
 This project uses a **single rules file**:
 
-- **`custom_instructions.md`** - Main Cline rules with:
+- **`cline-rules.md`** - Main Cline rules with:
   - Memory Bank integration protocols
   - Development workflow standards
   - Forbidden actions (git operations, documentation editing)
@@ -27,12 +29,12 @@ This project uses a **single rules file**:
 
 ### Activation
 
-Cline automatically reads `cline-rules/custom_instructions.md` when working in this project (workspace rules).
+Cline automatically reads `cline-rules/cline-rules.md` when working in this project (workspace rules).
 
 **To verify it's active:**
 1. Open Cline in VS Code
 2. Click the **Rules** tab (in Cline sidebar)
-3. You should see `custom_instructions.md` listed
+3. You should see `cline-rules.md` listed
 4. Ensure it's **toggled ON**
 
 ### What It Does
@@ -49,7 +51,7 @@ Cline automatically reads `cline-rules/custom_instructions.md` when working in t
 
 ### 1. Edit Language Preference
 
-Find this section in `custom_instructions.md`:
+Find this section in `cline-rules.md`:
 
 ```markdown
 ## 🌐 LANGUAGE
@@ -120,7 +122,7 @@ Obsidian is a knowledge management tool that can integrate with your development
 
 ### Multiple Rule Files
 
-You can split `custom_instructions.md` into focused files:
+You can split `cline-rules.md` into focused files:
 
 ```
 cline-rules/
@@ -137,7 +139,7 @@ cline-rules/
 
 **How:**
 1. Create new `.md` files in `cline-rules/`
-2. Move relevant sections from `custom_instructions.md`
+2. Move relevant sections from `cline-rules.md`
 3. Use numbered prefixes for priority order
 4. Activate individually in Cline's Rules tab
 
@@ -156,7 +158,7 @@ cline-rules/
 ### Issue: Cline Still Tries to Commit
 
 **Solution:**
-- Check that `FORBIDDEN ACTIONS` section exists in `custom_instructions.md`
+- Check that `FORBIDDEN ACTIONS` section exists in `cline-rules.md`
 - Verify section includes git operations
 - Rule must be active in Rules tab
 - May need to explicitly remind Cline: "Do not commit"
@@ -191,7 +193,7 @@ cline-rules/
 
 When making changes:
 
-- [ ] Rule modifications saved to `custom_instructions.md`
+- [ ] Rule modifications saved to `cline-rules.md`
 - [ ] Rule still toggled **ON** in Cline's Rules tab
 - [ ] Tested with a simple request to verify changes work
 - [ ] Committed to git if changes should be shared/preserved
@@ -205,7 +207,7 @@ Since this is a workspace rule (project-specific), it's already in git:
 ```bash
 # Team members automatically get rules when they clone
 git clone [repo-url]
-# Rules ready in cline-rules/custom_instructions.md
+# Rules ready in cline-rules/cline-rules.md
 ```
 
 Team members just need to:
@@ -215,4 +217,4 @@ Team members just need to:
 
 ---
 
-**Remember:** This file (README.md) is just documentation. The actual rules Cline follows are in `custom_instructions.md`.
+**Remember:** This file (SETUP-GUIDE.md) is just documentation. The actual rules Cline follows are in `cline-rules.md`.

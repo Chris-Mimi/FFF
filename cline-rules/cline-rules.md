@@ -220,8 +220,8 @@ Rule: Never assume success without user testing confirmation.
 - ❌ `memory-bank/workflow-protocols.md`
 - ❌ `project-history/lessons-learned.md`
 - ❌ `CLAUDE.md`
-- ❌ `cline-custom-instructions.md`
-- ❌ `cline-rules/custom_instructions.md`
+- ❌ `cline-rules/cline-rules.md`
+- ❌ `cline-rules/SETUP-GUIDE.md`
 - ❌ Any file in `project-history/*.md`
 
 **Why:** These files are project documentation managed by Claude Code during dedicated Memory Bank update sessions.
