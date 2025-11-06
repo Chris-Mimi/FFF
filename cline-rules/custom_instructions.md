@@ -196,3 +196,34 @@ Before creating files:
 **NEVER use attempt_completion!** Always use ask_followup_question instead and ask User for testing results.
 
 Rule: Never assume success without user testing confirmation.
+
+## 🚫 FORBIDDEN ACTIONS (CRITICAL)
+
+### Git Operations - ABSOLUTELY FORBIDDEN
+
+**YOU MUST NEVER:**
+- ❌ Run `git add`
+- ❌ Run `git commit`
+- ❌ Run `git push`
+- ❌ Run any git command that modifies repository state
+
+**Why:** Claude Code handles all git operations after reviewing and testing your changes.
+
+**When you're done:** Tell the user "Changes complete. Ready for review and commit."
+
+### Memory Bank & Protocol Files - ABSOLUTELY FORBIDDEN
+
+**YOU MUST NEVER edit these files:**
+- ❌ `memory-bank/memory-bank-activeContext.md`
+- ❌ `memory-bank/memory-bank-techContext.md`
+- ❌ `memory-bank/memory-bank-systemPatterns.md`
+- ❌ `memory-bank/workflow-protocols.md`
+- ❌ `project-history/lessons-learned.md`
+- ❌ `CLAUDE.md`
+- ❌ `cline-custom-instructions.md`
+- ❌ `cline-rules/custom_instructions.md`
+- ❌ Any file in `project-history/*.md`
+
+**Why:** These files are project documentation managed by Claude Code during dedicated Memory Bank update sessions.
+
+**If asked to update these:** Respond "Memory Bank updates are handled by Claude Code. Your changes are complete and ready for review."
