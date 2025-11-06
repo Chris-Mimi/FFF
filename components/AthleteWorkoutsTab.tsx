@@ -236,10 +236,10 @@ export default function AthleteWorkoutsTab({ userId, onNavigateToLogbook }: Athl
               {/* Day Header */}
               <div className={`p-3 text-center ${
                 isToday
-                  ? 'bg-gray-300 text-gray-900'
+                  ? 'bg-cyan-100 text-gray-900'
                   : workout?.attended
                   ? 'bg-[#208479] text-white'
-                  : 'bg-gray-300 text-gray-900'
+                  : 'bg-cyan-100 text-gray-900'
               }`}>
                 <div className='text-sm font-semibold'>{dayName}</div>
                 <div className='text-sm font-bold'>

@@ -7,6 +7,7 @@ import {
   Award,
   BookOpen,
   Calendar,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Clock,
@@ -207,7 +208,7 @@ export default function AthleteDashboard() {
   };
 
   return (
-    <div className='min-h-screen bg-gray-100'>
+    <div className='min-h-screen bg-gray-400'>
       {/* Header */}
       <div className='bg-white shadow'>
         <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
@@ -1261,7 +1262,7 @@ function LogbookTab({ userId, initialDate }: { userId: string; initialDate?: Dat
                   {/* Clickable Header */}
                   <button
                     onClick={() => setExpandedWorkoutId(isExpanded ? null : wod.id)}
-                    className='w-full p-4 flex items-center justify-between hover:bg-gray-50 transition text-left'
+                    className='w-full p-4 flex items-center justify-between bg-cyan-100/50 hover:bg-cyan-100/70 transition text-left'
                   >
                     <div className='flex items-center gap-3'>
                       {wod.tracks && (
@@ -1418,7 +1419,7 @@ function LogbookTab({ userId, initialDate }: { userId: string; initialDate?: Dat
                       onClick={() => workout && setExpandedWorkoutId(workout.id)}
                       className={`p-2 min-h-[60px] rounded-lg border transition ${
                         workout
-                          ? 'border-[#208479] bg-teal-50 cursor-pointer hover:bg-teal-100'
+                          ? 'border-[#208479] bg-cyan-100/50 cursor-pointer hover:bg-cyan-100/70'
                           : 'border-gray-200 bg-gray-50'
                       } ${isToday ? 'ring-2 ring-[#7dd3c0]' : ''}`}
                     >
@@ -1818,7 +1819,7 @@ function BenchmarksTab({ userId }: { userId: string }) {
               <div
                 key={benchmark.name}
                 onClick={() => setSelectedBenchmark(benchmark.name)}
-                className='group border border-gray-300 rounded-lg p-3 hover:border-[#208479] hover:bg-gray-50 cursor-pointer transition'
+                className='group border border-gray-300 rounded-lg p-3 bg-cyan-100/50 hover:border-[#208479] hover:bg-cyan-100/70 cursor-pointer transition'
               >
                 <div className='flex items-start justify-between mb-1'>
                   <h3 className='text-base font-bold text-gray-900'>{benchmark.name}</h3>
@@ -2311,7 +2312,7 @@ function ForgeBenchmarksTab({ userId }: { userId: string }) {
               <div
                 key={benchmark.name}
                 onClick={() => setSelectedBenchmark(benchmark.name)}
-                className='group border border-gray-300 rounded-lg p-3 hover:border-[#208479] hover:bg-gray-50 cursor-pointer transition'
+                className='group border border-gray-300 rounded-lg p-3 bg-cyan-100/50 hover:border-[#208479] hover:bg-cyan-100/70 cursor-pointer transition'
               >
                 <div className='flex items-start justify-between mb-1'>
                   <h3 className='text-base font-bold text-gray-900'>{benchmark.name}</h3>
@@ -2722,15 +2723,6 @@ function LiftsTab({ userId }: { userId: string }) {
     return Math.round(weight * (36 / (37 - reps)));
   };
 
-  const groupedLifts = lifts.reduce(
-    (acc, lift) => {
-      if (!acc[lift.category]) acc[lift.category] = [];
-      acc[lift.category].push(lift);
-      return acc;
-    },
-    {} as Record<string, typeof lifts>
-  );
-
   const getLiftChartData = (liftName: string, repMaxType: '1RM' | '3RM' | '5RM' | '10RM') => {
     return liftHistory
       .filter(e => e.lift_name === liftName && e.rep_max_type === repMaxType)
@@ -2776,46 +2768,41 @@ function LiftsTab({ userId }: { userId: string }) {
           Track your strength progress on major barbell movements.
         </p>
 
-        {Object.entries(groupedLifts).map(([category, categoryLifts]) => (
-          <div key={category} className='mb-6'>
-            <h3 className='text-lg font-semibold text-gray-900 mb-3'>{category}</h3>
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-              {categoryLifts.map(lift => {
-                const prs = getAllRepMaxPRs(lift.name);
-                const hasAnyPR = Object.values(prs).some(pr => pr !== null);
-                return (
-                  <div
-                    key={lift.name}
-                    onClick={() => setSelectedLift(lift.name)}
-                    className='border border-gray-300 rounded-lg p-4 hover:border-[#208479] hover:bg-gray-50 cursor-pointer transition'
-                  >
-                    <div className='flex items-start justify-between mb-2'>
-                      <h4 className='text-base font-bold text-gray-900'>{lift.name}</h4>
-                      <Dumbbell size={18} className='text-[#208479]' />
-                    </div>
-                    {hasAnyPR ? (
-                      <div className='mt-2 grid grid-cols-2 gap-2'>
-                        {(['1RM', '3RM', '5RM', '10RM'] as const).map(
-                          type =>
-                            prs[type] !== null && (
-                              <div key={type}>
-                                <p className='text-xs text-gray-600'>{type}:</p>
-                                <p className='text-sm font-semibold text-[#208479]'>
-                                  {prs[type]} kg
-                                </p>
-                              </div>
-                            )
-                        )}
-                      </div>
-                    ) : (
-                      <p className='text-sm text-gray-500 mt-2'>No records yet</p>
+        <div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3'>
+          {lifts.map(lift => {
+            const prs = getAllRepMaxPRs(lift.name);
+            const hasAnyPR = Object.values(prs).some(pr => pr !== null);
+            return (
+              <div
+                key={lift.name}
+                onClick={() => setSelectedLift(lift.name)}
+                className='group border border-gray-300 rounded-lg p-3 bg-cyan-100/50 hover:border-[#208479] hover:bg-cyan-100/70 cursor-pointer transition'
+              >
+                <div className='flex items-start justify-between mb-1'>
+                  <h4 className='text-base font-bold text-gray-900'>{lift.name}</h4>
+                  <Dumbbell size={18} className='text-[#208479] flex-shrink-0' />
+                </div>
+                {hasAnyPR ? (
+                  <div className='mt-2 grid grid-cols-2 gap-2'>
+                    {(['1RM', '3RM', '5RM', '10RM'] as const).map(
+                      type =>
+                        prs[type] !== null && (
+                          <div key={type}>
+                            <p className='text-xs text-gray-600'>{type}:</p>
+                            <p className='text-sm font-semibold text-[#208479]'>
+                              {prs[type]} kg
+                            </p>
+                          </div>
+                        )
                     )}
                   </div>
-                );
-              })}
-            </div>
-          </div>
-        ))}
+                ) : (
+                  <p className='text-sm text-gray-500 mt-2'>No records yet</p>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Log New Lift Modal */}
@@ -3057,13 +3044,20 @@ function LiftsTab({ userId }: { userId: string }) {
 // Records Tab Component
 function RecordsTab({ userId }: { userId: string }) {
   const [benchmarkPRs, setBenchmarkPRs] = useState<BenchmarkResult[]>([]);
+  const [forgeBenchmarkPRs, setForgeBenchmarkPRs] = useState<BenchmarkResult[]>([]);
   const [liftPRs, setLiftPRs] = useState<LiftRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expandedSections, setExpandedSections] = useState({
+    benchmarks: true,
+    forgeBenchmarks: true,
+    lifts: true,
+  });
 
   interface BenchmarkResult {
     id: string;
     benchmark_name: string;
     result: string;
+    scaling: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3';
     workout_date: string;
   }
 
@@ -3071,6 +3065,7 @@ function RecordsTab({ userId }: { userId: string }) {
     id: string;
     lift_name: string;
     weight_kg: number;
+    rep_max_type: '1RM' | '3RM' | '5RM' | '10RM';
     calculated_1rm?: number;
     lift_date: string;
   }
@@ -3080,9 +3075,27 @@ function RecordsTab({ userId }: { userId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
+  const toggleSection = (section: 'benchmarks' | 'forgeBenchmarks' | 'lifts') => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
+
   const fetchPersonalRecords = async () => {
     setLoading(true);
     try {
+      // Fetch all benchmark names to categorize them
+      const { data: benchmarkWorkouts } = await supabase
+        .from('benchmark_workouts')
+        .select('name');
+      const benchmarkNames = new Set(benchmarkWorkouts?.map(b => b.name.trim()) || []);
+
+      const { data: forgeBenchmarks } = await supabase
+        .from('forge_benchmarks')
+        .select('name');
+      const forgeBenchmarkNames = new Set(forgeBenchmarks?.map(b => b.name.trim()) || []);
+
       // Fetch benchmark PRs (best result per benchmark) for this user
       const { data: benchmarkData, error: benchmarkError } = await supabase
         .from('benchmark_results')
@@ -3094,12 +3107,25 @@ function RecordsTab({ userId }: { userId: string }) {
 
       // Group by benchmark_name and keep only the most recent (which we'll assume is the best)
       const benchmarkMap = new Map<string, BenchmarkResult>();
+      const forgeBenchmarkMap = new Map<string, BenchmarkResult>();
+
       (benchmarkData || []).forEach((entry: BenchmarkResult) => {
-        if (!benchmarkMap.has(entry.benchmark_name)) {
-          benchmarkMap.set(entry.benchmark_name, entry);
+        const trimmedName = entry.benchmark_name.trim();
+        if (benchmarkNames.has(trimmedName)) {
+          // It's a standard benchmark workout
+          if (!benchmarkMap.has(trimmedName)) {
+            benchmarkMap.set(trimmedName, entry);
+          }
+        } else {
+          // If not in benchmark_workouts, treat as Forge Benchmark
+          if (!forgeBenchmarkMap.has(trimmedName)) {
+            forgeBenchmarkMap.set(trimmedName, entry);
+          }
         }
       });
+
       setBenchmarkPRs(Array.from(benchmarkMap.values()));
+      setForgeBenchmarkPRs(Array.from(forgeBenchmarkMap.values()));
 
       // Fetch lift PRs (highest 1RM per lift) for this user
       const { data: liftData, error: liftError } = await supabase
@@ -3124,6 +3150,7 @@ function RecordsTab({ userId }: { userId: string }) {
     } catch (error) {
       console.error('Error fetching personal records:', error);
       setBenchmarkPRs([]);
+      setForgeBenchmarkPRs([]);
       setLiftPRs([]);
     } finally {
       setLoading(false);
@@ -3145,16 +3172,20 @@ function RecordsTab({ userId }: { userId: string }) {
         <p className='text-gray-600 mb-6'>All your personal bests in one place.</p>
 
         {/* Summary Stats */}
-        <div className='grid grid-cols-1 md:grid-cols-3 gap-4 mb-8'>
+        <div className='grid grid-cols-1 md:grid-cols-4 gap-4 mb-8'>
           <div className='bg-gradient-to-br from-teal-50 to-teal-100 rounded-lg p-4 border border-teal-200'>
             <p className='text-sm text-teal-700 font-medium mb-1'>Total PRs</p>
             <p className='text-3xl font-bold text-teal-900'>
-              {benchmarkPRs.length + liftPRs.length}
+              {benchmarkPRs.length + forgeBenchmarkPRs.length + liftPRs.length}
             </p>
           </div>
           <div className='bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200'>
             <p className='text-sm text-blue-700 font-medium mb-1'>Benchmark WODs</p>
             <p className='text-3xl font-bold text-blue-900'>{benchmarkPRs.length}</p>
+          </div>
+          <div className='bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-lg p-4 border border-cyan-200'>
+            <p className='text-sm text-cyan-700 font-medium mb-1'>Forge Benchmarks</p>
+            <p className='text-3xl font-bold text-cyan-900'>{forgeBenchmarkPRs.length}</p>
           </div>
           <div className='bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200'>
             <p className='text-sm text-purple-700 font-medium mb-1'>Barbell Lifts</p>
@@ -3164,83 +3195,154 @@ function RecordsTab({ userId }: { userId: string }) {
 
         {/* Benchmark WODs Section */}
         <div className='mb-8'>
-          <div className='flex items-center gap-2 mb-4'>
+          <button
+            onClick={() => toggleSection('benchmarks')}
+            className='flex items-center gap-2 mb-4 w-full hover:opacity-70 transition'
+          >
             <Trophy size={24} className='text-[#208479]' />
             <h3 className='text-xl font-bold text-gray-900'>Benchmark WODs</h3>
-          </div>
-          {benchmarkPRs.length === 0 ? (
-            <p className='text-gray-500 text-center py-8'>
-              No benchmark PRs yet. Complete a benchmark workout to see it here!
-            </p>
-          ) : (
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-              {benchmarkPRs.map(benchmark => (
-                <div
-                  key={benchmark.id}
-                  className='border border-gray-300 rounded-lg p-4 hover:border-[#208479] transition'
-                >
-                  <div className='flex items-start justify-between'>
-                    <div>
-                      <h4 className='text-lg font-bold text-gray-900'>
-                        {benchmark.benchmark_name}
-                      </h4>
-                      <p className='text-sm text-gray-600 mt-1'>
-                        {new Date(benchmark.workout_date).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                        })}
-                      </p>
+            <ChevronDown
+              size={20}
+              className={`text-gray-600 transition-transform ${expandedSections.benchmarks ? 'rotate-180' : ''}`}
+            />
+          </button>
+          {expandedSections.benchmarks && (
+            <>
+              {benchmarkPRs.length === 0 ? (
+                <p className='text-gray-500 text-center py-8'>
+                  No benchmark PRs yet. Complete a benchmark workout to see it here!
+                </p>
+              ) : (
+                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3'>
+                  {benchmarkPRs.map(benchmark => (
+                    <div
+                      key={benchmark.id}
+                      className='border border-gray-300 rounded-lg p-3 bg-cyan-100/50 hover:border-[#208479] hover:bg-cyan-100/70 transition'
+                    >
+                      <div className='flex flex-col'>
+                        <h4 className='text-base font-bold text-gray-900 mb-1'>
+                          {benchmark.benchmark_name}
+                        </h4>
+                        <p className='text-xs text-gray-600 mb-2'>
+                          {new Date(benchmark.workout_date).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          })}
+                        </p>
+                        <div className='flex items-baseline gap-2'>
+                          <p className='text-xl font-bold text-[#208479]'>{benchmark.result}</p>
+                          <p className='text-xs font-medium text-gray-700'>({benchmark.scaling})</p>
+                        </div>
+                      </div>
                     </div>
-                    <div className='text-right'>
-                      <p className='text-2xl font-bold text-[#208479]'>{benchmark.result}</p>
-                      <p className='text-xs text-gray-600 mt-1'>Personal Best</p>
-                    </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Forge Benchmarks Section */}
+        <div className='mb-8'>
+          <button
+            onClick={() => toggleSection('forgeBenchmarks')}
+            className='flex items-center gap-2 mb-4 w-full hover:opacity-70 transition'
+          >
+            <Target size={24} className='text-[#208479]' />
+            <h3 className='text-xl font-bold text-gray-900'>Forge Benchmarks</h3>
+            <ChevronDown
+              size={20}
+              className={`text-gray-600 transition-transform ${expandedSections.forgeBenchmarks ? 'rotate-180' : ''}`}
+            />
+          </button>
+          {expandedSections.forgeBenchmarks && (
+            <>
+              {forgeBenchmarkPRs.length === 0 ? (
+                <p className='text-gray-500 text-center py-8'>
+                  No Forge Benchmark PRs yet. Complete a Forge Benchmark workout to see it here!
+                </p>
+              ) : (
+                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3'>
+                  {forgeBenchmarkPRs.map(benchmark => (
+                    <div
+                      key={benchmark.id}
+                      className='border border-gray-300 rounded-lg p-3 bg-cyan-100/50 hover:border-[#208479] hover:bg-cyan-100/70 transition'
+                    >
+                      <div className='flex flex-col'>
+                        <h4 className='text-base font-bold text-gray-900 mb-1'>
+                          {benchmark.benchmark_name}
+                        </h4>
+                        <p className='text-xs text-gray-600 mb-2'>
+                          {new Date(benchmark.workout_date).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          })}
+                        </p>
+                        <div className='flex items-baseline gap-2'>
+                          <p className='text-xl font-bold text-[#208479]'>{benchmark.result}</p>
+                          <p className='text-xs font-medium text-gray-700'>({benchmark.scaling})</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
 
         {/* Barbell Lifts Section */}
         <div>
-          <div className='flex items-center gap-2 mb-4'>
+          <button
+            onClick={() => toggleSection('lifts')}
+            className='flex items-center gap-2 mb-4 w-full hover:opacity-70 transition'
+          >
             <Dumbbell size={24} className='text-[#208479]' />
-            <h3 className='text-xl font-bold text-gray-900'>Barbell Lifts (1RM)</h3>
-          </div>
-          {liftPRs.length === 0 ? (
-            <p className='text-gray-500 text-center py-8'>
-              No lift PRs yet. Log a lift to see it here!
-            </p>
-          ) : (
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-              {liftPRs.map(lift => (
-                <div
-                  key={lift.id}
-                  className='border border-gray-300 rounded-lg p-4 hover:border-[#208479] transition'
-                >
-                  <div className='flex items-start justify-between'>
-                    <div>
-                      <h4 className='text-lg font-bold text-gray-900'>{lift.lift_name}</h4>
-                      <p className='text-sm text-gray-600 mt-1'>
-                        {new Date(lift.lift_date).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                        })}
-                      </p>
+            <h3 className='text-xl font-bold text-gray-900'>Barbell Lifts</h3>
+            <ChevronDown
+              size={20}
+              className={`text-gray-600 transition-transform ${expandedSections.lifts ? 'rotate-180' : ''}`}
+            />
+          </button>
+          {expandedSections.lifts && (
+            <>
+              {liftPRs.length === 0 ? (
+                <p className='text-gray-500 text-center py-8'>
+                  No lift PRs yet. Log a lift to see it here!
+                </p>
+              ) : (
+                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3'>
+                  {liftPRs.map(lift => (
+                    <div
+                      key={lift.id}
+                      className='border border-gray-300 rounded-lg p-3 bg-cyan-100/50 hover:border-[#208479] hover:bg-cyan-100/70 transition'
+                    >
+                      <div className='flex flex-col'>
+                        <h4 className='text-base font-bold text-gray-900 mb-1'>{lift.lift_name}</h4>
+                        <p className='text-xs text-gray-600 mb-2'>
+                          {new Date(lift.lift_date).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          })}
+                        </p>
+                        <p className='text-xl font-bold text-[#208479]'>
+                          {lift.weight_kg} kg
+                        </p>
+                        <p className='text-xs text-gray-600 mt-0.5'>{lift.rep_max_type}</p>
+                        {lift.rep_max_type !== '1RM' && lift.calculated_1rm && (
+                          <p className='text-xs text-gray-500'>
+                            Est. 1RM: {Math.round(lift.calculated_1rm)} kg
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <div className='text-right'>
-                      <p className='text-2xl font-bold text-[#208479]'>
-                        {Math.round(lift.calculated_1rm || lift.weight_kg)} kg
-                      </p>
-                      <p className='text-xs text-gray-600 mt-1'>1 Rep Max</p>
-                    </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              )}
+            </>
           )}
         </div>
       </div>
