@@ -1705,7 +1705,31 @@ function BenchmarksTab({ userId }: { userId: string }) {
   const getBestTime = (benchmarkName: string) => {
     const entries = benchmarkHistory.filter(e => e.benchmark_name === benchmarkName);
     if (entries.length === 0) return null;
-    return entries[0].result;
+
+    // Define scaling order (lower number = better scaling)
+    const scalingOrder: Record<string, number> = {
+      'Rx': 0,
+      'Sc1': 1,
+      'Sc2': 2,
+      'Sc3': 3
+    };
+
+    // Sort by scaling first (Rx best), then by time (lower = better for time-based)
+    const sorted = entries.sort((a, b) => {
+      const aScaling = scalingOrder[a.scaling || 'Sc3'] ?? 99;
+      const bScaling = scalingOrder[b.scaling || 'Sc3'] ?? 99;
+
+      if (aScaling !== bScaling) {
+        return aScaling - bScaling; // Better scaling wins
+      }
+
+      // Same scaling, compare times
+      const aTime = parseResultToNumber(a.result) || Infinity;
+      const bTime = parseResultToNumber(b.result) || Infinity;
+      return aTime - bTime; // Lower time wins
+    });
+
+    return sorted[0].result;
   };
 
   // Helper function to convert benchmark result strings to numeric values for charting
@@ -1776,26 +1800,28 @@ function BenchmarksTab({ userId }: { userId: string }) {
           Track your performance on classic CrossFit benchmark WODs.
         </p>
 
-        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+        <div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3'>
           {benchmarks.map(benchmark => {
             const bestTime = getBestTime(benchmark.name);
             return (
               <div
                 key={benchmark.name}
                 onClick={() => setSelectedBenchmark(benchmark.name)}
-                className='border border-gray-300 rounded-lg p-4 hover:border-[#208479] hover:bg-gray-50 cursor-pointer transition'
+                className='group border border-gray-300 rounded-lg p-3 hover:border-[#208479] hover:bg-gray-50 cursor-pointer transition'
               >
                 <div className='flex items-start justify-between mb-2'>
-                  <h3 className='text-lg font-bold text-gray-900'>{benchmark.name}</h3>
-                  <Trophy size={20} className='text-[#208479]' />
+                  <h3 className='text-base font-bold text-gray-900'>{benchmark.name}</h3>
+                  <Trophy size={18} className='text-[#208479] flex-shrink-0' />
                 </div>
-                <p className='text-sm text-gray-600 mb-2'>{benchmark.type}</p>
-                <p className='text-sm text-gray-700 whitespace-pre-line mb-3'>
+                <p className='text-xs text-gray-600 mb-1 opacity-0 group-hover:opacity-100 transition-opacity'>
+                  {benchmark.type}
+                </p>
+                <p className='text-xs text-gray-700 whitespace-pre-line mb-2 opacity-0 group-hover:opacity-100 transition-opacity max-h-0 group-hover:max-h-32 overflow-hidden'>
                   {benchmark.description}
                 </p>
                 {bestTime && (
                   <div className='pt-2 border-t border-gray-200'>
-                    <p className='text-xs text-gray-600'>Personal Best:</p>
+                    <p className='text-xs text-gray-600'>PR:</p>
                     <p className='text-sm font-semibold text-[#208479]'>{bestTime}</p>
                   </div>
                 )}
@@ -2156,7 +2182,31 @@ function ForgeBenchmarksTab({ userId }: { userId: string }) {
   const getBestTime = (benchmarkName: string) => {
     const entries = benchmarkHistory.filter(e => e.benchmark_name === benchmarkName);
     if (entries.length === 0) return null;
-    return entries[0].result;
+
+    // Define scaling order (lower number = better scaling)
+    const scalingOrder: Record<string, number> = {
+      'Rx': 0,
+      'Sc1': 1,
+      'Sc2': 2,
+      'Sc3': 3
+    };
+
+    // Sort by scaling first (Rx best), then by time (lower = better for time-based)
+    const sorted = entries.sort((a, b) => {
+      const aScaling = scalingOrder[a.scaling || 'Sc3'] ?? 99;
+      const bScaling = scalingOrder[b.scaling || 'Sc3'] ?? 99;
+
+      if (aScaling !== bScaling) {
+        return aScaling - bScaling; // Better scaling wins
+      }
+
+      // Same scaling, compare times
+      const aTime = parseResultToNumber(a.result) || Infinity;
+      const bTime = parseResultToNumber(b.result) || Infinity;
+      return aTime - bTime; // Lower time wins
+    });
+
+    return sorted[0].result;
   };
 
   // Helper function to convert benchmark result strings to numeric values for charting
@@ -2227,26 +2277,28 @@ function ForgeBenchmarksTab({ userId }: { userId: string }) {
           Track your performance on gym-specific benchmark workouts.
         </p>
 
-        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+        <div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3'>
           {benchmarks.map(benchmark => {
             const bestTime = getBestTime(benchmark.name);
             return (
               <div
                 key={benchmark.name}
                 onClick={() => setSelectedBenchmark(benchmark.name)}
-                className='border border-gray-300 rounded-lg p-4 hover:border-[#208479] hover:bg-gray-50 cursor-pointer transition'
+                className='group border border-gray-300 rounded-lg p-3 hover:border-[#208479] hover:bg-gray-50 cursor-pointer transition'
               >
                 <div className='flex items-start justify-between mb-2'>
-                  <h3 className='text-lg font-bold text-gray-900'>{benchmark.name}</h3>
-                  <Target size={20} className='text-[#208479]' />
+                  <h3 className='text-base font-bold text-gray-900'>{benchmark.name}</h3>
+                  <Target size={18} className='text-[#208479] flex-shrink-0' />
                 </div>
-                <p className='text-sm text-gray-600 mb-2'>{benchmark.type}</p>
-                <p className='text-sm text-gray-700 whitespace-pre-line mb-3'>
+                <p className='text-xs text-gray-600 mb-1 opacity-0 group-hover:opacity-100 transition-opacity'>
+                  {benchmark.type}
+                </p>
+                <p className='text-xs text-gray-700 whitespace-pre-line mb-2 opacity-0 group-hover:opacity-100 transition-opacity max-h-0 group-hover:max-h-32 overflow-hidden'>
                   {benchmark.description}
                 </p>
                 {bestTime && (
                   <div className='pt-2 border-t border-gray-200'>
-                    <p className='text-xs text-gray-600'>Personal Best:</p>
+                    <p className='text-xs text-gray-600'>PR:</p>
                     <p className='text-sm font-semibold text-[#208479]'>{bestTime}</p>
                   </div>
                 )}
