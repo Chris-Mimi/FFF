@@ -2627,7 +2627,19 @@ function LiftsTab({ userId }: { userId: string }) {
         .order('display_order');
 
       if (error) throw error;
-      setLifts(data || []);
+
+      // Custom reorder: Move "Clean" between "Snatch" and "Clean & Jerk"
+      const reorderedLifts = (data || []).slice();
+      const cleanIndex = reorderedLifts.findIndex(l => l.name === 'Clean');
+      const cleanAndJerkIndex = reorderedLifts.findIndex(l => l.name === 'Clean & Jerk');
+
+      if (cleanIndex !== -1 && cleanAndJerkIndex !== -1) {
+        const [cleanLift] = reorderedLifts.splice(cleanIndex, 1);
+        const newCleanAndJerkIndex = reorderedLifts.findIndex(l => l.name === 'Clean & Jerk');
+        reorderedLifts.splice(newCleanAndJerkIndex, 0, cleanLift);
+      }
+
+      setLifts(reorderedLifts);
     } catch (error) {
       console.error('Error fetching lifts:', error);
     }
