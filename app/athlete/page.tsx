@@ -2817,39 +2817,94 @@ function LiftsTab({ userId }: { userId: string }) {
         </p>
 
         <div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3'>
-          {lifts.map(lift => {
-            const prs = getAllRepMaxPRs(lift.name);
-            const hasAnyPR = Object.values(prs).some(pr => pr !== null);
+          {(() => {
+            // Separate olympic lifts (Snatch, Clean, Clean & Jerk) from others
+            const olympicLiftNames = ['Snatch', 'Clean', 'Clean & Jerk'];
+            const nonOlympicLifts = lifts.filter(l => !olympicLiftNames.includes(l.name));
+            const olympicLifts = lifts.filter(l => olympicLiftNames.includes(l.name));
+
+            // Calculate spacers needed to push olympic lifts to new row (5 columns)
+            const spacersNeeded = nonOlympicLifts.length % 5 === 0 ? 0 : 5 - (nonOlympicLifts.length % 5);
+
             return (
-              <div
-                key={lift.name}
-                onClick={() => setSelectedLift(lift.name)}
-                className='group border border-gray-300 rounded-lg p-3 bg-cyan-100/50 hover:border-[#208479] hover:bg-cyan-100/70 cursor-pointer transition'
-              >
-                <div className='flex items-start justify-between mb-1'>
-                  <h4 className='text-base font-bold text-gray-900'>{lift.name}</h4>
-                  <Dumbbell size={18} className='text-[#208479] flex-shrink-0' />
-                </div>
-                {hasAnyPR ? (
-                  <div className='mt-2 grid grid-cols-2 gap-2'>
-                    {(['1RM', '3RM', '5RM', '10RM'] as const).map(
-                      type =>
-                        prs[type] !== null && (
-                          <div key={type}>
-                            <p className='text-xs text-gray-600'>{type}:</p>
-                            <p className='text-sm font-semibold text-[#208479]'>
-                              {prs[type]} kg
-                            </p>
-                          </div>
-                        )
-                    )}
-                  </div>
-                ) : (
-                  <p className='text-sm text-gray-500 mt-2'>No records yet</p>
-                )}
-              </div>
+              <>
+                {/* Non-olympic lifts */}
+                {nonOlympicLifts.map(lift => {
+                  const prs = getAllRepMaxPRs(lift.name);
+                  const hasAnyPR = Object.values(prs).some(pr => pr !== null);
+                  return (
+                    <div
+                      key={lift.name}
+                      onClick={() => setSelectedLift(lift.name)}
+                      className='group border border-gray-300 rounded-lg p-3 bg-cyan-100/50 hover:border-[#208479] hover:bg-cyan-100/70 cursor-pointer transition'
+                    >
+                      <div className='flex items-start justify-between mb-1'>
+                        <h4 className='text-base font-bold text-gray-900'>{lift.name}</h4>
+                        <Dumbbell size={18} className='text-[#208479] flex-shrink-0' />
+                      </div>
+                      {hasAnyPR ? (
+                        <div className='mt-2 grid grid-cols-2 gap-2'>
+                          {(['1RM', '3RM', '5RM', '10RM'] as const).map(
+                            type =>
+                              prs[type] !== null && (
+                                <div key={type}>
+                                  <p className='text-xs text-gray-600'>{type}:</p>
+                                  <p className='text-sm font-semibold text-[#208479]'>
+                                    {prs[type]} kg
+                                  </p>
+                                </div>
+                              )
+                          )}
+                        </div>
+                      ) : (
+                        <p className='text-sm text-gray-500 mt-2'>No records yet</p>
+                      )}
+                    </div>
+                  );
+                })}
+
+                {/* Empty spacers to push olympic lifts to new row */}
+                {Array.from({ length: spacersNeeded }).map((_, i) => (
+                  <div key={`spacer-${i}`} className='hidden lg:block' />
+                ))}
+
+                {/* Olympic lifts */}
+                {olympicLifts.map(lift => {
+                  const prs = getAllRepMaxPRs(lift.name);
+                  const hasAnyPR = Object.values(prs).some(pr => pr !== null);
+                  return (
+                    <div
+                      key={lift.name}
+                      onClick={() => setSelectedLift(lift.name)}
+                      className='group border border-gray-300 rounded-lg p-3 bg-cyan-100/50 hover:border-[#208479] hover:bg-cyan-100/70 cursor-pointer transition'
+                    >
+                      <div className='flex items-start justify-between mb-1'>
+                        <h4 className='text-base font-bold text-gray-900'>{lift.name}</h4>
+                        <Dumbbell size={18} className='text-[#208479] flex-shrink-0' />
+                      </div>
+                      {hasAnyPR ? (
+                        <div className='mt-2 grid grid-cols-2 gap-2'>
+                          {(['1RM', '3RM', '5RM', '10RM'] as const).map(
+                            type =>
+                              prs[type] !== null && (
+                                <div key={type}>
+                                  <p className='text-xs text-gray-600'>{type}:</p>
+                                  <p className='text-sm font-semibold text-[#208479]'>
+                                    {prs[type]} kg
+                                  </p>
+                                </div>
+                              )
+                          )}
+                        </div>
+                      ) : (
+                        <p className='text-sm text-gray-500 mt-2'>No records yet</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </>
             );
-          })}
+          })()}
         </div>
       </div>
 
