@@ -16,7 +16,7 @@ Complete restructuring of Memory Bank system to reduce token usage from 53KB to 
 ## Solution Implemented
 
 ### 1. Created History File System
-**Structure:** `memory-bank/history/` with dated, feature-named files
+**Structure:** `project-history/` with dated, feature-named files
 
 **Files Created:**
 - `2025-10-15-auth-implementation.md` (v2.6-2.7)
@@ -134,11 +134,12 @@ Complete restructuring of Memory Bank system to reduce token usage from 53KB to 
 ## Future Session Protocol
 
 **For new sessions:**
-1. Read core Memory Bank files (~12KB)
-2. Reference lessons-learned.md as needed
-3. Look up history files only when relevant to current work
-4. At session end, create new dated history file if significant work completed
-5. Update activeContext with only current status (remove completed items)
+1. Read this file 2025-11-03-memory-optimization.md
+2. Read core Memory Bank files (~12KB)
+3. Reference lessons-learned.md as needed
+4. Look up history files only when relevant to current work
+5. At session end, create new dated history file if significant work completed
+6. Update activeContext with only current status (remove completed items)
 
 **File naming for future history:**
 `YYYY-MM-DD-feature-name.md` (e.g., `2025-11-05-payment-integration.md`)

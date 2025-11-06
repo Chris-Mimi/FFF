@@ -14,16 +14,13 @@
 
 **✅ CORRECT paths (copy exactly):**
 ```
+Read:
+- project-history/2025-11-03-memory-optimization.md
 Read in ONE parallel call:
 - memory-bank/memory-bank-activeContext.md
 - memory-bank/memory-bank-techContext.md
 - memory-bank/memory-bank-systemPatterns.md
 ```
-
-**❌ WRONG paths (missing prefix - will fail):**
-- memory-bank/activeContext.md
-- memory-bank/techContext.md
-- memory-bank/systemPatterns.md
 
 ### STEP 3: Never Read Chris Notes Folder
 **ABSOLUTELY NEVER read:**
@@ -74,14 +71,14 @@ Read in ONE parallel call:
 **MANDATE:** Keep sessions under 50% context usage.
 
 **Monitoring:**
-- **50%/60%/70%:** Alert
+- **50%/60%/70%:** Alert user and await instructions as to how to proceed
 - **80%:** STOP work, finish current task, ask for Memory Bank update
 
 ---
 
 ## 🤖 AI ASSISTANT SELECTION
 
-### When to Use Cline (VS Code)
+### When to Use Cline/Grok (VS Code)
 **Best for:**
 - Single-file edits
 - UI tweaks with immediate preview

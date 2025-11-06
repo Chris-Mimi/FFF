@@ -48,7 +48,7 @@ changes)
 - **Purpose**: Long-term detailed reference (verbose style)
 - **Contains**: Step-by-step troubleshooting logs, implementation details,
   decision rationale
-- **Location**: OUTSIDE memory-bank/ folder to avoid token waste
+- **Location**: in project-history folder
 - **NOT for**: Session start reading (too long)
 - **Use when**: Need historical context, debugging recurring issues,
   understanding past decisions
@@ -56,7 +56,8 @@ changes)
 ### Completed Tasks:
 
 - Concise summary → activeContext.md (then archive when old)
-- Detailed walkthrough → history/session_history.md (permanent reference)
+- Detailed but concise walkthrough → add tasks completed in this session to a new history file in project-history folder.
+Format is date-bried decsription of work undertaken
 - Never duplicate information
 
 ## 🔧 AUTO-CLEANUP
