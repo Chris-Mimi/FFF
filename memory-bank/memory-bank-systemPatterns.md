@@ -1,7 +1,7 @@
 # System Patterns
 
-Version: 1.0
-Timestamp: [Update when adding patterns]
+Version: 1.1
+Timestamp: 2025-11-06
 
 ---
 
@@ -373,15 +373,17 @@ const handleClick = useCallback(() => {
 
 ## Collaboration Guidelines
 
-### Working with Claude
+### Working with Claude Code (CLI)
 
 **Start of session:**
-1. "Read Memory Bank files"
-2. Explain what you want to accomplish
-3. Ask questions if anything is unclear
+1. Claude reads workflow-protocols.md FIRST
+2. Claude reads all Memory Bank files
+3. Explain what you want to accomplish
+4. Claude evaluates task delegation (Cline/Agent/Direct)
+5. Ask questions if anything is unclear
 
 **During development:**
-- Ask Claude to explain decisions
+- Claude explains decisions
 - Request code reviews
 - Discuss trade-offs
 
@@ -389,6 +391,37 @@ const handleClick = useCallback(() => {
 - Update Memory Bank
 - Commit changes
 - Note next steps
+
+### Working with Cline/Grok (VS Code)
+
+**CRITICAL: Always provide Active Context first**
+
+**Setup (MANDATORY):**
+1. Have Cline read `memory-bank-activeContext.md` FIRST
+2. Then provide specific task prompt
+3. Cline works confidently in 1-2 minutes
+
+**Why Active Context is required:**
+- Without context, Cline overthinks and gets stuck (10+ min on 2-min tasks)
+- Active Context provides confidence anchor:
+  - Tech stack confirmation
+  - Project patterns
+  - Prevents analysis paralysis
+- Even "simple" UI tasks need this context
+
+**Lesson learned:** 2025-11-06 - Attempted UI change without Active Context, Cline repeated statements and couldn't start work after 10+ minutes. With Active Context, same tasks complete in 1-2 minutes.
+
+**Best for:**
+- Single-file edits
+- UI/visual changes
+- Component styling
+- Simple bug fixes
+
+**Not suitable for:**
+- Multi-file changes
+- Git operations
+- Memory Bank updates
+- Complex logic/debugging
 
 ### Code Documentation
 

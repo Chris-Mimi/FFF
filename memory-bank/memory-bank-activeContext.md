@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 3.4
-**Updated:** 2025-11-05
+**Version:** 3.5
+**Updated:** 2025-11-06
 
 ---
 
@@ -62,6 +62,21 @@ Athlete Tables (linked to members.id)
 
 ## 📍 Current Status (Last 2 Weeks)
 
+**Completed (2025-11-06):**
+- **Athlete Page Enhancements:** Benchmark cards and PR display
+  - Added Forge Benchmarks tab (fetches from `forge_benchmarks` table)
+  - Compact card design: 5 columns on large screens, hover shows details
+  - Fixed PR logic: Prioritizes scaling hierarchy (Rx > Sc1 > Sc2 > Sc3) then best time
+  - Multi-PR display: Shows best result per scaling level (e.g., Rx 20:41, Sc1 7:55)
+- **Cline Rules Cleanup:** Renamed files for clarity
+  - `custom_instructions.md` → `cline-rules.md` (working file)
+  - `README.md` → `SETUP-GUIDE.md` (documentation)
+  - Removed redundant instruction files
+- **Workflow Protocols Update:** Added MANDATORY GATE section
+  - Task evaluation checkpoint immediately after SESSION START
+  - Required output format template for all tasks
+  - Prevents skipping delegation evaluation
+
 **Completed (2025-11-05):**
 - **Database-Driven Benchmarks & Lifts:** Coach management UI for benchmarks and lifts
   - Replaced hardcoded arrays with database tables
@@ -82,6 +97,9 @@ Athlete Tables (linked to members.id)
 
 **Known Issues:**
 - macOS iCloud Keychain autofill popups (OS behavior, not app bug)
+
+**Lessons Learned (2025-11-06):**
+- **Cline/Grok requires Active Context:** Even for "simple" UI tasks, Cline needs to read `memory-bank-activeContext.md` first to prevent analysis paralysis. Without context, Cline overthinks and gets stuck (observed: 10+ min on 2-min task). Active Context acts as confidence anchor.
 
 ---
 
