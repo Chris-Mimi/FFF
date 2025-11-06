@@ -1796,13 +1796,30 @@ function BenchmarksTab({ userId }: { userId: string }) {
       .filter(entry => entry.result !== null); // Only include entries we could parse
   };
 
-  const benchmarksWithHistory = benchmarks
-    .map(b => ({
-      ...b,
-      count: benchmarkHistory.filter(e => e.benchmark_name === b.name).length,
-    }))
-    .filter(b => b.count > 0)
-    .sort((a, b) => b.count - a.count);
+  const sortedBenchmarks = benchmarks
+    .map(b => {
+      const userResults = benchmarkHistory.filter(e => e.benchmark_name === b.name);
+      const hasResults = userResults.length > 0;
+      const mostRecentDate = hasResults ? userResults[0].workout_date : null; // Already sorted by date desc
+      return {
+        ...b,
+        hasResults,
+        mostRecentDate,
+      };
+    })
+    .sort((a, b) => {
+      // First, sort by whether they have results
+      if (a.hasResults && !b.hasResults) return -1;
+      if (!a.hasResults && b.hasResults) return 1;
+
+      // If both have results, sort by most recent date (descending)
+      if (a.hasResults && b.hasResults) {
+        return new Date(b.mostRecentDate!).getTime() - new Date(a.mostRecentDate!).getTime();
+      }
+
+      // If neither has results, maintain original order
+      return 0;
+    });
 
   return (
     <div className='space-y-6'>
@@ -1813,7 +1830,7 @@ function BenchmarksTab({ userId }: { userId: string }) {
         </p>
 
         <div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3'>
-          {benchmarks.map(benchmark => {
+          {sortedBenchmarks.map(benchmark => {
             const bestTimes = getBestTimes(benchmark.name);
             return (
               <div
@@ -2289,13 +2306,30 @@ function ForgeBenchmarksTab({ userId }: { userId: string }) {
       .filter(entry => entry.result !== null); // Only include entries we could parse
   };
 
-  const benchmarksWithHistory = benchmarks
-    .map(b => ({
-      ...b,
-      count: benchmarkHistory.filter(e => e.benchmark_name === b.name).length,
-    }))
-    .filter(b => b.count > 0)
-    .sort((a, b) => b.count - a.count);
+  const sortedBenchmarks = benchmarks
+    .map(b => {
+      const userResults = benchmarkHistory.filter(e => e.benchmark_name === b.name);
+      const hasResults = userResults.length > 0;
+      const mostRecentDate = hasResults ? userResults[0].workout_date : null; // Already sorted by date desc
+      return {
+        ...b,
+        hasResults,
+        mostRecentDate,
+      };
+    })
+    .sort((a, b) => {
+      // First, sort by whether they have results
+      if (a.hasResults && !b.hasResults) return -1;
+      if (!a.hasResults && b.hasResults) return 1;
+
+      // If both have results, sort by most recent date (descending)
+      if (a.hasResults && b.hasResults) {
+        return new Date(b.mostRecentDate!).getTime() - new Date(a.mostRecentDate!).getTime();
+      }
+
+      // If neither has results, maintain original order
+      return 0;
+    });
 
   return (
     <div className='space-y-6'>
@@ -2306,7 +2340,7 @@ function ForgeBenchmarksTab({ userId }: { userId: string }) {
         </p>
 
         <div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3'>
-          {benchmarks.map(benchmark => {
+          {sortedBenchmarks.map(benchmark => {
             const bestTimes = getBestTimes(benchmark.name);
             return (
               <div
