@@ -29,6 +29,55 @@ Read in ONE parallel call:
 
 ---
 
+## 🚦 BEFORE EVERY TASK (MANDATORY GATE)
+
+**⛔️ When user requests work → STOP → Evaluate FIRST**
+
+### Evaluation Decision Tree
+
+**Ask yourself:**
+1. **Is this Cline/Grok suitable?**
+   - ✅ Single file modification
+   - ✅ UI/visual changes
+   - ✅ Component styling
+   - ✅ Simple bug fixes
+   - → **Recommend Cline/Grok**
+
+2. **Is this Task Agent suitable?**
+   - ✅ 3+ distinct steps
+   - ✅ Multi-file search/exploration
+   - ✅ Repetitive changes across files
+   - → **Recommend Agent**
+
+3. **Is this Claude Code direct work?**
+   - ✅ Multi-file feature (3+ files)
+   - ✅ Git operations
+   - ✅ Memory Bank updates
+   - ✅ Complex logic/debugging
+   - → **Do directly**
+
+### Required Output Format
+
+**BEFORE starting ANY implementation, output:**
+```
+Task: [brief description]
+Complexity: [single-file/multi-file/exploratory/etc]
+Best approach: [Cline/Agent/Me directly]
+Reasoning: [one sentence why]
+
+Proceed with [approach]?
+```
+
+### Critical Rules
+
+- **NEVER** start implementation without this evaluation
+- **NEVER** skip asking user for approval of approach
+- **ALWAYS** provide this evaluation even if task seems obvious
+
+**Cost awareness:** Cline ($0.10-0.15) vs Claude Code direct ($0.20+ with context usage)
+
+---
+
 ## 📝 COMMUNICATION TERMINOLOGY
 
 ### Git/GitHub (Always Use Correct Terms)
