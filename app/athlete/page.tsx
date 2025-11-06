@@ -2082,7 +2082,7 @@ function BenchmarksTab({ userId }: { userId: string }) {
                       const data = getBenchmarkChartData(chartBenchmark);
                       if (data[index]?.isPR) {
                         return (
-                          <text x={x} y={y - 10} fill='red' fontSize={10} fontWeight='bold' textAnchor='middle'>
+                          <text x={x} y={y - 12} fill='red' fontSize={14} fontWeight='bold' textAnchor='middle'>
                             PR!
                           </text>
                         );
@@ -2618,7 +2618,7 @@ function ForgeBenchmarksTab({ userId }: { userId: string }) {
                       const data = getBenchmarkChartData(chartBenchmark);
                       if (data[index]?.isPR) {
                         return (
-                          <text x={x} y={y - 10} fill='red' fontSize={10} fontWeight='bold' textAnchor='middle'>
+                          <text x={x} y={y - 12} fill='red' fontSize={14} fontWeight='bold' textAnchor='middle'>
                             PR!
                           </text>
                         );
