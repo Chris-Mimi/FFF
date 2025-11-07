@@ -691,7 +691,7 @@ export default function AnalysisPage() {
   }) || [];
 
   return (
-    <div className='min-h-screen bg-gray-200'>
+    <div className='min-h-screen bg-gray-400'>
       {/* Header */}
       <header className='bg-[#208479] text-white p-4 shadow-md sticky top-0 z-40'>
         <div className='max-w-7xl mx-auto flex justify-between items-center'>

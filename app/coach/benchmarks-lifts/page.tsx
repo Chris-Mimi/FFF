@@ -374,7 +374,7 @@ export default function BenchmarksLiftsManagementPage() {
   }
 
   return (
-    <div className='min-h-screen bg-gray-100'>
+    <div className='min-h-screen bg-gray-400'>
       {/* Header */}
       <div className='bg-white shadow'>
         <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
@@ -433,7 +433,12 @@ export default function BenchmarksLiftsManagementPage() {
         {activeTab === 'benchmarks' && (
           <div className='bg-white rounded-lg shadow p-6'>
             <div className='flex justify-between items-center mb-4'>
-              <h2 className='text-xl font-bold text-gray-900'>Benchmark Workouts</h2>
+              <div className='flex items-center gap-3'>
+                <h2 className='text-xl font-bold text-gray-900'>Benchmark Workouts</h2>
+                <span className='px-3 py-1 bg-teal-100 text-teal-700 rounded-full text-sm font-semibold'>
+                  {benchmarks.length}
+                </span>
+              </div>
               <button
                 onClick={() => openBenchmarkModal()}
                 className='px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition flex items-center gap-2'
@@ -443,38 +448,31 @@ export default function BenchmarksLiftsManagementPage() {
               </button>
             </div>
 
-            <div className='space-y-2'>
+            <div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3'>
               {benchmarks.map((benchmark) => (
                 <div
                   key={benchmark.id}
-                  className='flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition'
+                  className='border border-gray-200 rounded-lg p-3 bg-teal-100 hover:bg-teal-200 hover:shadow-lg hover:z-10 transition-all group relative'
                 >
-                  <div className='flex-1'>
-                    <div className='flex items-center gap-3'>
-                      <span className='text-xs text-gray-500 font-mono w-8'>#{benchmark.display_order}</span>
-                      <div>
-                        <h3 className='font-semibold text-gray-900'>{benchmark.name}</h3>
-                        <p className='text-sm text-gray-600'>{benchmark.type}</p>
-                        {benchmark.description && (
-                          <p className='text-sm text-gray-500 mt-1 whitespace-pre-line'>{benchmark.description}</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <div className='flex gap-2'>
+                  <div className='absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition'>
                     <button
                       onClick={() => openBenchmarkModal(benchmark)}
-                      className='p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition'
+                      className='p-1 text-blue-600 hover:bg-blue-50 rounded transition'
                     >
-                      <Edit2 size={18} />
+                      <Edit2 size={16} />
                     </button>
                     <button
                       onClick={() => deleteBenchmark(benchmark.id)}
-                      className='p-2 text-red-600 hover:bg-red-50 rounded-lg transition'
+                      className='p-1 text-red-600 hover:bg-red-50 rounded transition'
                     >
-                      <Trash2 size={18} />
+                      <Trash2 size={16} />
                     </button>
                   </div>
+                  <h3 className='text-base font-bold text-gray-900 mb-1'>{benchmark.name}</h3>
+                  <p className='text-sm text-gray-800 mb-1'>{benchmark.type}</p>
+                  {benchmark.description && (
+                    <p className='text-xs text-gray-700 line-clamp-2 group-hover:line-clamp-none'>{benchmark.description}</p>
+                  )}
                 </div>
               ))}
 
@@ -491,7 +489,12 @@ export default function BenchmarksLiftsManagementPage() {
         {activeTab === 'forge' && (
           <div className='bg-white rounded-lg shadow p-6'>
             <div className='flex justify-between items-center mb-4'>
-              <h2 className='text-xl font-bold text-gray-900'>Forge Benchmarks</h2>
+              <div className='flex items-center gap-3'>
+                <h2 className='text-xl font-bold text-gray-900'>Forge Benchmarks</h2>
+                <span className='px-3 py-1 bg-teal-100 text-teal-700 rounded-full text-sm font-semibold'>
+                  {forgeBenchmarks.length}
+                </span>
+              </div>
               <button
                 onClick={() => openForgeModal()}
                 className='px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition flex items-center gap-2'
@@ -501,38 +504,31 @@ export default function BenchmarksLiftsManagementPage() {
               </button>
             </div>
 
-            <div className='space-y-2'>
+            <div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3'>
               {forgeBenchmarks.map((forge) => (
                 <div
                   key={forge.id}
-                  className='flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition'
+                  className='border border-gray-200 rounded-lg p-3 bg-teal-100 hover:bg-teal-200 hover:shadow-lg hover:z-10 transition-all group relative'
                 >
-                  <div className='flex-1'>
-                    <div className='flex items-center gap-3'>
-                      <span className='text-xs text-gray-500 font-mono w-8'>#{forge.display_order}</span>
-                      <div>
-                        <h3 className='font-semibold text-gray-900'>{forge.name}</h3>
-                        <p className='text-sm text-gray-600'>{forge.type}</p>
-                        {forge.description && (
-                          <p className='text-sm text-gray-500 mt-1 whitespace-pre-line'>{forge.description}</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <div className='flex gap-2'>
+                  <div className='absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition'>
                     <button
                       onClick={() => openForgeModal(forge)}
-                      className='p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition'
+                      className='p-1 text-blue-600 hover:bg-blue-50 rounded transition'
                     >
-                      <Edit2 size={18} />
+                      <Edit2 size={16} />
                     </button>
                     <button
                       onClick={() => deleteForge(forge.id)}
-                      className='p-2 text-red-600 hover:bg-red-50 rounded-lg transition'
+                      className='p-1 text-red-600 hover:bg-red-50 rounded transition'
                     >
-                      <Trash2 size={18} />
+                      <Trash2 size={16} />
                     </button>
                   </div>
+                  <h3 className='text-base font-bold text-gray-900 mb-1'>{forge.name}</h3>
+                  <p className='text-sm text-gray-800 mb-1'>{forge.type}</p>
+                  {forge.description && (
+                    <p className='text-xs text-gray-700 line-clamp-2 group-hover:line-clamp-none'>{forge.description}</p>
+                  )}
                 </div>
               ))}
 
@@ -549,7 +545,12 @@ export default function BenchmarksLiftsManagementPage() {
         {activeTab === 'lifts' && (
           <div className='bg-white rounded-lg shadow p-6'>
             <div className='flex justify-between items-center mb-4'>
-              <h2 className='text-xl font-bold text-gray-900'>Barbell Lifts</h2>
+              <div className='flex items-center gap-3'>
+                <h2 className='text-xl font-bold text-gray-900'>Barbell Lifts</h2>
+                <span className='px-3 py-1 bg-teal-100 text-teal-700 rounded-full text-sm font-semibold'>
+                  {lifts.length}
+                </span>
+              </div>
               <button
                 onClick={() => openLiftModal()}
                 className='px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition flex items-center gap-2'
@@ -559,33 +560,28 @@ export default function BenchmarksLiftsManagementPage() {
               </button>
             </div>
 
-            <div className='space-y-2'>
+            <div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3'>
               {lifts.map((lift) => (
                 <div
                   key={lift.id}
-                  className='flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition'
+                  className='border border-gray-200 rounded-lg p-3 bg-teal-100 hover:bg-teal-200 hover:shadow-lg hover:z-10 transition-all group relative'
                 >
-                  <div className='flex items-center gap-3 flex-1'>
-                    <span className='text-xs text-gray-500 font-mono w-8'>#{lift.display_order}</span>
-                    <div>
-                      <h3 className='font-semibold text-gray-900'>{lift.name}</h3>
-                      <p className='text-sm text-gray-600'>{lift.category}</p>
-                    </div>
-                  </div>
-                  <div className='flex gap-2'>
+                  <div className='absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition'>
                     <button
                       onClick={() => openLiftModal(lift)}
-                      className='p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition'
+                      className='p-1 text-blue-600 hover:bg-blue-50 rounded transition'
                     >
-                      <Edit2 size={18} />
+                      <Edit2 size={16} />
                     </button>
                     <button
                       onClick={() => deleteLift(lift.id)}
-                      className='p-2 text-red-600 hover:bg-red-50 rounded-lg transition'
+                      className='p-1 text-red-600 hover:bg-red-50 rounded transition'
                     >
-                      <Trash2 size={18} />
+                      <Trash2 size={16} />
                     </button>
                   </div>
+                  <h3 className='text-base font-bold text-gray-900 mb-1'>{lift.name}</h3>
+                  <p className='text-sm text-gray-800'>{lift.category}</p>
                 </div>
               ))}
 
