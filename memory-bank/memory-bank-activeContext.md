@@ -63,12 +63,13 @@ Athlete Tables (linked to members.id)
 ## 📍 Current Status (Last 2 Weeks)
 
 **Completed (2025-11-06 Session 2):**
-- **Athlete UI Redesign:** Visual overhaul with cyan theme and enhanced functionality
-  - Barbell Lifts: Removed categories, 5-column grid, cyan cards
-  - Darker page background (gray-400) for better contrast
-  - Personal Records: Added Forge Benchmarks section, collapsible accordions, 4-column layout
-  - Fixed lift display to show actual rep max type (not just estimated 1RM)
-  - Added scaling levels to benchmark results
+- **Athlete UI Redesign & UX Improvements:** Comprehensive redesign with 8 commits
+  - Cyan theme: Darker background (gray-400), cyan cards across all tabs
+  - Barbell Lifts: Removed categories, 5-column grid, olympic lifts on dedicated bottom row
+  - Benchmarks: Intelligent sorting (completed first, then by recency)
+  - Personal Records: Forge Benchmarks section, collapsible accordions, 4-column layout
+  - Charts: Red "PR!" badges on best results per scaling level
+  - Fixed lift display to show actual rep max type (not estimated 1RM only)
 
 **Completed (2025-11-06 Session 1):**
 - **Athlete Page Enhancements:** Benchmark cards and PR display
