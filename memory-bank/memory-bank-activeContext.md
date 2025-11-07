@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 3.6
-**Updated:** 2025-11-06
+**Version:** 3.7
+**Updated:** 2025-11-07
 
 ---
 
@@ -62,6 +62,14 @@ Athlete Tables (linked to members.id)
 
 ## 📍 Current Status (Last 2 Weeks)
 
+**Completed (2025-11-07):**
+- **UI Refinements:** Coach and Athlete page improvements
+  - Coach pages: Changed background to gray-400 for consistency with athlete pages
+  - Coach Benchmarks & Lifts: Compact 5-column grid, teal cards, count badges, darker text
+  - Drag-and-drop reordering for Forge Benchmarks with grip handle (fixes button conflicts)
+  - Athlete benchmarks: Cards collapse to show only name, expand on hover, results always visible
+  - See `project-history/2025-11-07-ui-refinements.md` for details
+
 **Completed (2025-11-06 Session 2):**
 - **Athlete UI Redesign & UX Improvements:** Comprehensive redesign with 8 commits
   - Cyan theme: Darker background (gray-400), cyan cards across all tabs
@@ -84,14 +92,6 @@ Athlete Tables (linked to members.id)
   - Coach CRUD interface at `/coach/benchmarks-lifts` with 3 tabs
   - Athletes now see dynamic lists based on coach configuration
   - Tables: `benchmark_workouts`, `forge_benchmarks`, `barbell_lifts`
-
-**Completed (2025-11-04):**
-- **Family Accounts (Phases 5-6):** Subscription gating and booking badges
-  - Phase 5: Family members inherit subscription from primary account
-  - Phase 6: Booking badges show "Booked for [Name]" with proper authorization
-- **Family Accounts (Phases 1-4):** Multi-profile athlete page
-  - Profile selector with complete data isolation
-  - Family member booking with compact card UI
 
 **Active Development:**
 - None
