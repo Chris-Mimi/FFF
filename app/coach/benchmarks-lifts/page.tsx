@@ -2,8 +2,25 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Plus, Edit2, Trash2, Save, X } from 'lucide-react';
+import { ArrowLeft, Plus, Edit2, Trash2, Save, X, GripVertical } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  rectSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface Benchmark {
   id: string;
@@ -18,6 +35,76 @@ interface Lift {
   name: string;
   category: string;
   display_order: number;
+}
+
+// Sortable Forge Card Component
+function SortableForgeCard({
+  forge,
+  onEdit,
+  onDelete,
+}: {
+  forge: Benchmark;
+  onEdit: (forge: Benchmark) => void;
+  onDelete: (id: string) => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: forge.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      className='border border-gray-200 rounded-lg p-3 bg-teal-100 hover:bg-teal-200 hover:shadow-lg hover:z-10 transition-all group relative'
+    >
+      {/* Drag Handle */}
+      <div
+        {...listeners}
+        className='absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600'
+      >
+        <GripVertical size={18} />
+      </div>
+
+      {/* Edit/Delete Buttons */}
+      <div className='absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition'>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit(forge);
+          }}
+          className='p-1 text-blue-600 hover:bg-blue-50 rounded transition'
+        >
+          <Edit2 size={16} />
+        </button>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(forge.id);
+          }}
+          className='p-1 text-red-600 hover:bg-red-50 rounded transition'
+        >
+          <Trash2 size={16} />
+        </button>
+      </div>
+      <h3 className='text-base font-bold text-gray-900 mb-1'>{forge.name}</h3>
+      <p className='text-sm text-gray-800 mb-1'>{forge.type}</p>
+      {forge.description && (
+        <p className='text-xs text-gray-700 line-clamp-2 group-hover:line-clamp-none'>{forge.description}</p>
+      )}
+    </div>
+  );
 }
 
 export default function BenchmarksLiftsManagementPage() {
@@ -56,6 +143,14 @@ export default function BenchmarksLiftsManagementPage() {
     category: '',
     display_order: 0
   });
+
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   useEffect(() => {
     checkAuth();
@@ -272,6 +367,44 @@ export default function BenchmarksLiftsManagementPage() {
     } catch (error: any) {
       console.error('Error deleting forge benchmark:', error);
       alert(`Error: ${error.message}`);
+    }
+  };
+
+  const handleForgeDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    const oldIndex = forgeBenchmarks.findIndex((item) => item.id === active.id);
+    const newIndex = forgeBenchmarks.findIndex((item) => item.id === over.id);
+
+    const reorderedItems = arrayMove(forgeBenchmarks, oldIndex, newIndex);
+
+    // Update local state immediately for smooth UX
+    setForgeBenchmarks(reorderedItems);
+
+    // Update display_order in database
+    try {
+      const updates = reorderedItems.map((item, index) => ({
+        id: item.id,
+        display_order: index + 1,
+      }));
+
+      for (const update of updates) {
+        const { error } = await supabase
+          .from('forge_benchmarks')
+          .update({ display_order: update.display_order })
+          .eq('id', update.id);
+
+        if (error) throw error;
+      }
+    } catch (error: any) {
+      console.error('Error updating order:', error);
+      alert(`Error updating order: ${error.message}`);
+      // Revert to original order on error
+      fetchForgeBenchmarks();
     }
   };
 
@@ -504,40 +637,33 @@ export default function BenchmarksLiftsManagementPage() {
               </button>
             </div>
 
-            <div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3'>
-              {forgeBenchmarks.map((forge) => (
-                <div
-                  key={forge.id}
-                  className='border border-gray-200 rounded-lg p-3 bg-teal-100 hover:bg-teal-200 hover:shadow-lg hover:z-10 transition-all group relative'
+            {forgeBenchmarks.length === 0 ? (
+              <div className='text-center py-8 text-gray-500'>
+                No Forge benchmarks yet. Click "Add Forge Benchmark" to create one.
+              </div>
+            ) : (
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleForgeDragEnd}
+              >
+                <SortableContext
+                  items={forgeBenchmarks.map(f => f.id)}
+                  strategy={rectSortingStrategy}
                 >
-                  <div className='absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition'>
-                    <button
-                      onClick={() => openForgeModal(forge)}
-                      className='p-1 text-blue-600 hover:bg-blue-50 rounded transition'
-                    >
-                      <Edit2 size={16} />
-                    </button>
-                    <button
-                      onClick={() => deleteForge(forge.id)}
-                      className='p-1 text-red-600 hover:bg-red-50 rounded transition'
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                  <div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3'>
+                    {forgeBenchmarks.map((forge) => (
+                      <SortableForgeCard
+                        key={forge.id}
+                        forge={forge}
+                        onEdit={openForgeModal}
+                        onDelete={deleteForge}
+                      />
+                    ))}
                   </div>
-                  <h3 className='text-base font-bold text-gray-900 mb-1'>{forge.name}</h3>
-                  <p className='text-sm text-gray-800 mb-1'>{forge.type}</p>
-                  {forge.description && (
-                    <p className='text-xs text-gray-700 line-clamp-2 group-hover:line-clamp-none'>{forge.description}</p>
-                  )}
-                </div>
-              ))}
-
-              {forgeBenchmarks.length === 0 && (
-                <div className='text-center py-8 text-gray-500'>
-                  No Forge benchmarks yet. Click "Add Forge Benchmark" to create one.
-                </div>
-              )}
-            </div>
+                </SortableContext>
+              </DndContext>
+            )}
           </div>
         )}
 

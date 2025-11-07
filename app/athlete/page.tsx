@@ -1858,10 +1858,10 @@ function BenchmarksTab({ userId }: { userId: string }) {
                   <h3 className='text-base font-bold text-gray-900'>{benchmark.name}</h3>
                   <Trophy size={18} className='text-[#208479] flex-shrink-0' />
                 </div>
-                <p className='text-xs text-gray-600 mb-1 opacity-0 group-hover:opacity-100 transition-opacity'>
+                <p className='text-xs text-gray-600 opacity-0 group-hover:opacity-100 transition-all max-h-0 group-hover:max-h-8 overflow-hidden group-hover:mb-1'>
                   {benchmark.type}
                 </p>
-                <p className='text-xs text-gray-700 whitespace-pre-line mb-2 opacity-0 group-hover:opacity-100 transition-opacity max-h-0 group-hover:max-h-32 overflow-hidden'>
+                <p className='text-xs text-gray-700 whitespace-pre-line opacity-0 group-hover:opacity-100 transition-all max-h-0 group-hover:max-h-32 overflow-hidden group-hover:mb-2'>
                   {benchmark.description}
                 </p>
                 {bestTimes.length > 0 && (
@@ -2394,10 +2394,10 @@ function ForgeBenchmarksTab({ userId }: { userId: string }) {
                   <h3 className='text-base font-bold text-gray-900'>{benchmark.name}</h3>
                   <Target size={18} className='text-[#208479] flex-shrink-0' />
                 </div>
-                <p className='text-xs text-gray-600 mb-1 opacity-0 group-hover:opacity-100 transition-opacity'>
+                <p className='text-xs text-gray-600 opacity-0 group-hover:opacity-100 transition-all max-h-0 group-hover:max-h-8 overflow-hidden group-hover:mb-1'>
                   {benchmark.type}
                 </p>
-                <p className='text-xs text-gray-700 whitespace-pre-line mb-2 opacity-0 group-hover:opacity-100 transition-opacity max-h-0 group-hover:max-h-32 overflow-hidden'>
+                <p className='text-xs text-gray-700 whitespace-pre-line opacity-0 group-hover:opacity-100 transition-all max-h-0 group-hover:max-h-32 overflow-hidden group-hover:mb-2'>
                   {benchmark.description}
                 </p>
                 {bestTimes.length > 0 && (
