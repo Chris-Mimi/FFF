@@ -63,13 +63,13 @@ Athlete Tables (linked to members.id)
 ## 📍 Current Status (Last 2 Weeks)
 
 **Completed (2025-11-08):**
-- **Security & Testing:** Production readiness improvements
-  - Tested late cancel/no-show functionality - fully operational
-  - Fixed bug: `late_cancel` status missing from 10-card recalculation (TenCardModal.tsx:60)
-  - Created RLS policy migration: `database/remove-all-public-policies.sql`
-  - Migration removes 20 PUBLIC CRUD policies, restricts reference data to authenticated users
-  - Only "Public can register" remains for signup flow - ready for production deployment
-  - Commits: ea1aad4 (10-card fix), 2045f77 (RLS migration)
+- **Security & Testing:** Production readiness improvements (PARTIALLY COMPLETE)
+  - ✅ Tested late cancel/no-show functionality - fully operational
+  - ✅ Fixed bug: `late_cancel` status missing from 10-card recalculation (TenCardModal.tsx:60)
+  - ✅ Created RLS migrations for athlete/benchmark data protection
+  - ⚠️ Member registration INSERT still blocked (6 different approaches failed)
+  - See `project-history/2025-11-08-rls-debugging-session.md` for complete attempt history
+  - Commits: ea1aad4 (10-card fix), 2045f77 (initial RLS), 50453a2 (docs), 0747b1c (debug session)
 
 **Completed (2025-11-07):**
 - **UI Refinements:** Coach and Athlete page improvements
@@ -106,6 +106,11 @@ Athlete Tables (linked to members.id)
 - None
 
 **Known Issues:**
+- **RLS member registration blocked:** Direct database INSERT fails despite 6 different policy approaches
+  - Works: RLS disabled, constraints pass
+  - Fails: All policy variations (TO anon, auth.uid() checks, current_user, no auth checks)
+  - Hypothesis: Supabase config, role permissions, or deeper database issue
+  - File: `project-history/2025-11-08-rls-debugging-session.md`
 - macOS iCloud Keychain autofill popups (OS behavior, not app bug)
 
 **Lessons Learned (2025-11-06):**
@@ -115,8 +120,11 @@ Athlete Tables (linked to members.id)
 
 ## 📋 Next Immediate Steps
 
-1. **Deploy RLS migration:** Run `database/remove-all-public-policies.sql` in Supabase before production
-2. Test app functionality after RLS changes (coach/athlete pages, booking system)
+1. **Fix member registration RLS issue:**
+   - Review `project-history/2025-11-08-rls-debugging-session.md`
+   - Try: Supabase Dashboard settings, role permissions, Edge Functions
+   - Don't repeat: 6 failed approaches documented in history
+2. Test authenticated app functionality (coach/athlete pages work normally)
 3. Consider adding coach ability to edit section types, workout types, exercises
 
 ---
