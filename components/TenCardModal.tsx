@@ -51,13 +51,13 @@ export default function TenCardModal({
     if (!purchaseDateStr || !member) return sessionsUsed;
 
     try {
-      // Fetch all confirmed AND no_show bookings for this member with session dates
-      // Both count toward 10-card usage (they reserved a slot)
+      // Fetch all confirmed, no_show, AND late_cancel bookings for this member with session dates
+      // All three count toward 10-card usage (they reserved a slot)
       const { data: bookings, error } = await supabase
         .from('bookings')
         .select('id, status, weekly_sessions!inner(date)')
         .eq('member_id', member.id)
-        .in('status', ['confirmed', 'no_show'])
+        .in('status', ['confirmed', 'no_show', 'late_cancel'])
         .gte('weekly_sessions.date', purchaseDateStr);
 
       if (error) {
@@ -66,7 +66,7 @@ export default function TenCardModal({
       }
 
       const count = bookings?.length || 0;
-      console.log(`📊 Recalculated sessions: ${count} bookings (confirmed + no_show) since ${purchaseDateStr}`);
+      console.log(`📊 Recalculated sessions: ${count} bookings (confirmed + no_show + late_cancel) since ${purchaseDateStr}`);
       return count;
     } catch (error) {
       console.error('Error recalculating sessions:', error);
