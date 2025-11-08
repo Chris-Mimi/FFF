@@ -612,6 +612,17 @@ export default function CoachDashboard() {
             .update({ status: 'published' })
             .eq('id', editingWOD.booking_info.session_id);
         }
+
+        // Link selected sessions to this workout if any were selected
+        if (wodData.selectedSessionIds && wodData.selectedSessionIds.length > 0) {
+          await supabase
+            .from('weekly_sessions')
+            .update({
+              workout_id: editingWOD.id,
+              capacity: wodData.maxCapacity,
+            })
+            .in('id', wodData.selectedSessionIds);
+        }
       } else {
         // Create new WOD
         const { data: newWOD, error } = await supabase.from('wods').insert([
@@ -640,6 +651,17 @@ export default function CoachDashboard() {
               status: 'draft'
             });
           }
+        }
+
+        // Link selected sessions to this workout if any were selected
+        if (wodData.selectedSessionIds && wodData.selectedSessionIds.length > 0 && newWOD) {
+          await supabase
+            .from('weekly_sessions')
+            .update({
+              workout_id: newWOD.id,
+              capacity: wodData.maxCapacity,
+            })
+            .in('id', wodData.selectedSessionIds);
         }
       }
 
@@ -904,7 +926,7 @@ export default function CoachDashboard() {
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${searchPanelOpen ? 'bg-teal-800' : 'bg-[#1a6b62] hover:bg-teal-800'}`}
               >
                 <Plus size={18} />
-                Add Workout
+                Workout Library
               </button>
               <button
                 onClick={() => router.push('/coach/schedule')}
@@ -1619,7 +1641,7 @@ export default function CoachDashboard() {
         <div className='fixed right-0 top-[72px] h-[calc(100vh-72px)] w-[800px] bg-white shadow-2xl z-50 flex flex-col border-l-2 border-[#208479] border-t border-gray-400 animate-slide-in-right'>
           {/* Header */}
           <div className='bg-[#208479] text-white p-4 flex justify-between items-center'>
-            <h2 className='text-xl font-bold'>Schedule a Workout</h2>
+            <h2 className='text-xl font-bold'>Workout Library</h2>
             <button
               onClick={() => {
                 setSearchPanelOpen(false);
