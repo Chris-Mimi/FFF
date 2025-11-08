@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 3.8
-**Updated:** 2025-11-08
+**Version:** 3.9
+**Updated:** 2025-11-08 (Session 2)
 
 ---
 
@@ -62,14 +62,23 @@ Athlete Tables (linked to members.id)
 
 ## 📍 Current Status (Last 2 Weeks)
 
-**Completed (2025-11-08):**
-- **Security & Testing:** Production readiness improvements (PARTIALLY COMPLETE)
+**Completed (2025-11-08 Session 2):**
+- **RLS Issue Resolved:** Member registration now working via proper signup flow
+  - ✅ Fixed signup to create members record after auth.signUp()
+  - ✅ Used user.id from auth response (satisfies members.id constraint)
+  - ✅ Tested: Signup creates members record with status='pending'
+  - ✅ Verified: RLS blocks unauthenticated access correctly
+  - Root cause: Yesterday's raw SQL tests bypassed auth context
+  - Commit: 50d8656 (signup fix)
+
+**Completed (2025-11-08 Session 1):**
+- **Security & Testing:** Production readiness improvements
   - ✅ Tested late cancel/no-show functionality - fully operational
   - ✅ Fixed bug: `late_cancel` status missing from 10-card recalculation (TenCardModal.tsx:60)
   - ✅ Created RLS migrations for athlete/benchmark data protection
-  - ⚠️ Member registration INSERT still blocked (6 different approaches failed)
-  - See `project-history/2025-11-08-rls-debugging-session.md` for complete attempt history
-  - Commits: ea1aad4 (10-card fix), 2045f77 (initial RLS), 50453a2 (docs), 0747b1c (debug session)
+  - ⚠️ Discovered signup didn't create members records (fixed in Session 2)
+  - See `project-history/2025-11-08-rls-debugging-session.md` for diagnostic process
+  - Commits: ea1aad4 (10-card fix), 2045f77 (initial RLS), 50453a2 (docs), 0747b1c (debug session), 9653a54 (docs update)
 
 **Completed (2025-11-07):**
 - **UI Refinements:** Coach and Athlete page improvements
@@ -106,26 +115,23 @@ Athlete Tables (linked to members.id)
 - None
 
 **Known Issues:**
-- **RLS member registration blocked:** Direct database INSERT fails despite 6 different policy approaches
-  - Works: RLS disabled, constraints pass
-  - Fails: All policy variations (TO anon, auth.uid() checks, current_user, no auth checks)
-  - Hypothesis: Supabase config, role permissions, or deeper database issue
-  - File: `project-history/2025-11-08-rls-debugging-session.md`
 - macOS iCloud Keychain autofill popups (OS behavior, not app bug)
 
-**Lessons Learned (2025-11-06):**
-- **Cline/Grok requires Active Context:** Even for "simple" UI tasks, Cline needs to read `memory-bank-activeContext.md` first to prevent analysis paralysis. Without context, Cline overthinks and gets stuck (observed: 10+ min on 2-min task). Active Context acts as confidence anchor.
+**Lessons Learned:**
+- **2025-11-08:** Testing RLS with raw SQL bypasses production auth flow - Always test via actual app signup/login, not direct database INSERT
+- **2025-11-06:** Cline/Grok requires Active Context - Even for "simple" UI tasks, Cline needs to read `memory-bank-activeContext.md` first to prevent analysis paralysis. Without context, Cline overthinks and gets stuck (observed: 10+ min on 2-min task). Active Context acts as confidence anchor.
 
 ---
 
 ## 📋 Next Immediate Steps
 
-1. **Fix member registration RLS issue:**
-   - Review `project-history/2025-11-08-rls-debugging-session.md`
-   - Try: Supabase Dashboard settings, role permissions, Edge Functions
-   - Don't repeat: 6 failed approaches documented in history
-2. Test authenticated app functionality (coach/athlete pages work normally)
-3. Consider adding coach ability to edit section types, workout types, exercises
+1. **Test booking system end-to-end:**
+   - Coach creates session templates
+   - Sessions auto-generate weekly
+   - Members can book sessions
+   - Verify RLS policies for bookings
+2. Consider adding coach ability to edit section types, workout types, exercises
+3. Build member approval workflow for coaches
 
 ---
 
