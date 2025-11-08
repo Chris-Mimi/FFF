@@ -59,19 +59,33 @@ export default function SignupPage() {
         // Continue - member can be created later by coach if needed
       }
 
-      // Create athlete profile if role is athlete
+      // Create athlete profile if role is athlete (using service role API to bypass RLS)
       if (role === 'athlete') {
-        const { error: profileError } = await supabase.from('athlete_profiles').insert([
-          {
-            user_id: user.id,
-            full_name: fullName,
-            email: email,
-          },
-        ]);
+        try {
+          const response = await fetch('/api/athlete/create-profile', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId: user.id,
+              fullName: fullName,
+              email: email,
+            }),
+          });
 
-        if (profileError) {
-          console.error('Error creating athlete profile:', profileError);
-          // Don't fail signup if profile creation fails
+          const data = await response.json();
+
+          if (!response.ok) {
+            console.error('Error creating athlete profile:', data.error);
+            throw new Error(data.error || 'Failed to create athlete profile');
+          }
+
+          console.log('Athlete profile created:', data.profileId);
+        } catch (profileError) {
+          console.error('Athlete profile creation failed:', profileError);
+          // Show error to user - this is important for athlete functionality
+          setError('Account created but athlete profile setup failed. Please contact support.');
+          setLoading(false);
+          return;
         }
       }
 
