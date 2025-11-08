@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 3.9
-**Updated:** 2025-11-08 (Session 2)
+**Version:** 4.0
+**Updated:** 2025-11-09
 
 ---
 
@@ -62,6 +62,17 @@ Athlete Tables (linked to members.id)
 
 ## 📍 Current Status (Last 2 Weeks)
 
+**Completed (2025-11-09):**
+- **Workflow Improvements & Booking System Verification:**
+  - ✅ Tested full booking flow: Templates → Generation → Booking → Approval
+  - ✅ Fixed athlete_profiles RLS: Dropped problematic policy using auth.users subquery
+  - ✅ Created service role API `/api/athlete/create-profile` to bypass RLS during signup
+  - ✅ Built "Apply to Other Sessions" feature (link multiple sessions to one workout)
+  - ✅ Renamed "Add Workout" → "Workout Library" for clarity
+  - ⚠️ **Identified workflow confusion:** Need to separate "bookable sessions" from "loggable workouts"
+  - **Next:** Major workflow refactor planned (see project-history/2025-11-09-workflow-refactor-plan.md)
+  - Commits: b15cc4a (apply to sessions), e352a42 (diagnostic cleanup)
+
 **Completed (2025-11-08 Session 2):**
 - **RLS Issue Resolved:** Member registration now working via proper signup flow
   - ✅ Fixed signup to create members record after auth.signUp()
@@ -112,12 +123,18 @@ Athlete Tables (linked to members.id)
   - Tables: `benchmark_workouts`, `forge_benchmarks`, `barbell_lifts`
 
 **Active Development:**
-- None
+- **Workout Workflow Refactor** (Planned for next session)
+  - Separate session booking from workout logging
+  - 3-state visual system: Empty / Draft / Published
+  - Auto-publish sessions on generation
+  - See: `project-history/2025-11-09-workflow-refactor-plan.md`
 
 **Known Issues:**
 - macOS iCloud Keychain autofill popups (OS behavior, not app bug)
 
 **Lessons Learned:**
+- **2025-11-09:** Workflow clarity is critical - "Publishing" had dual meaning (booking + logging), causing confusion. Separate concerns for better UX.
+- **2025-11-09:** RLS policies using auth.users subqueries fail - Authenticated users can't query auth.users. Use auth.jwt() metadata instead.
 - **2025-11-08:** Testing RLS with raw SQL bypasses production auth flow - Always test via actual app signup/login, not direct database INSERT
 - **2025-11-06:** Cline/Grok requires Active Context - Even for "simple" UI tasks, Cline needs to read `memory-bank-activeContext.md` first to prevent analysis paralysis. Without context, Cline overthinks and gets stuck (observed: 10+ min on 2-min task). Active Context acts as confidence anchor.
 
@@ -125,13 +142,17 @@ Athlete Tables (linked to members.id)
 
 ## 📋 Next Immediate Steps
 
-1. **Test booking system end-to-end:**
-   - Coach creates session templates
-   - Sessions auto-generate weekly
-   - Members can book sessions
-   - Verify RLS policies for bookings
+1. **Implement Workout Workflow Refactor** (~6.5 hours estimated)
+   - Phase 1: Add `workout_publish_status` column to DB
+   - Phase 2: Auto-publish sessions on generation (status='published')
+   - Phase 3: Implement 3-state visual card system (light grey/dark grey/teal)
+   - Phase 4: Update Publish Modal to assign workouts by time
+   - Phase 5: Update drag & drop to save as draft
+   - Phase 6: Change duplicate to create separate workout copies
+   - Phase 7: Add "Publish for Logging" button to Workout Editor
+   - Phase 8: Testing & refinement
+   - **See:** `project-history/2025-11-09-workflow-refactor-plan.md` for details
 2. Consider adding coach ability to edit section types, workout types, exercises
-3. Build member approval workflow for coaches
 
 ---
 
