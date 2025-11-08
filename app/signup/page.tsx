@@ -45,6 +45,20 @@ export default function SignupPage() {
         throw new Error('Signup failed');
       }
 
+      // Create member record for booking system (all users need this)
+      const { error: memberError } = await supabase.from('members').insert({
+        id: user.id,
+        email: email,
+        name: fullName,
+        status: 'pending',
+        account_type: 'primary',
+      });
+
+      if (memberError) {
+        console.error('Error creating member:', memberError);
+        // Continue - member can be created later by coach if needed
+      }
+
       // Create athlete profile if role is athlete
       if (role === 'athlete') {
         const { error: profileError } = await supabase.from('athlete_profiles').insert([
