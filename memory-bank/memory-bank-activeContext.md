@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 3.7
-**Updated:** 2025-11-07
+**Version:** 3.8
+**Updated:** 2025-11-08
 
 ---
 
@@ -62,6 +62,15 @@ Athlete Tables (linked to members.id)
 
 ## 📍 Current Status (Last 2 Weeks)
 
+**Completed (2025-11-08):**
+- **Security & Testing:** Production readiness improvements
+  - Tested late cancel/no-show functionality - fully operational
+  - Fixed bug: `late_cancel` status missing from 10-card recalculation (TenCardModal.tsx:60)
+  - Created RLS policy migration: `database/remove-all-public-policies.sql`
+  - Migration removes 20 PUBLIC CRUD policies, restricts reference data to authenticated users
+  - Only "Public can register" remains for signup flow - ready for production deployment
+  - Commits: ea1aad4 (10-card fix), 2045f77 (RLS migration)
+
 **Completed (2025-11-07):**
 - **UI Refinements:** Coach and Athlete page improvements
   - Coach pages: Changed background to gray-400 for consistency with athlete pages
@@ -106,8 +115,8 @@ Athlete Tables (linked to members.id)
 
 ## 📋 Next Immediate Steps
 
-1. Test late cancel/no-show functionality in production
-2. Remove PUBLIC RLS policies before production
+1. **Deploy RLS migration:** Run `database/remove-all-public-policies.sql` in Supabase before production
+2. Test app functionality after RLS changes (coach/athlete pages, booking system)
 3. Consider adding coach ability to edit section types, workout types, exercises
 
 ---
