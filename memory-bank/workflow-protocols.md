@@ -1,7 +1,7 @@
 # Workflow Protocols
 
-**Version:** 2.0
-**Updated:** 2025-11-03
+**Version:** 2.1
+**Updated:** 2025-11-09
 
 ---
 
@@ -9,6 +9,29 @@
 
 ### STEP 1: Read This File First
 **ALWAYS read workflow-protocols.md BEFORE other memory bank files.**
+
+### STEP 1.5: Git Sync FIRST (MANDATORY)
+**BEFORE reading Memory Bank, check Git status:**
+
+```bash
+git fetch origin
+git status
+```
+
+**If user mentions ANY of these phrases:**
+- "pushed to GitHub"
+- "git is ahead"
+- "committed and pushed"
+- "GitHub has the latest"
+
+**Then IMMEDIATELY run:**
+```bash
+git reset --hard origin/main
+```
+
+**✅ Trust user statements about GitHub**
+**❌ Do NOT analyze local changes first**
+**❌ Do NOT make assumptions about what needs fixing**
 
 ### STEP 2: Use Correct File Paths (One Parallel Call)
 
