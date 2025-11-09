@@ -1,6 +1,6 @@
 # Active Context
 
-**Version:** 4.0
+**Version:** 4.1
 **Updated:** 2025-11-09
 
 ---
@@ -62,16 +62,28 @@ Athlete Tables (linked to members.id)
 
 ## 📍 Current Status (Last 2 Weeks)
 
-**Completed (2025-11-09):**
-- **Workflow Improvements & Booking System Verification:**
-  - ✅ Tested full booking flow: Templates → Generation → Booking → Approval
-  - ✅ Fixed athlete_profiles RLS: Dropped problematic policy using auth.users subquery
-  - ✅ Created service role API `/api/athlete/create-profile` to bypass RLS during signup
+**Completed (2025-11-09 Session 2):**
+- **Workflow Protocol Fixes (Critical):**
+  - ✅ Added mandatory git sync step to session start protocol
+  - ✅ Fixed file paths in workflow-protocols.md to use absolute paths (were failing every session)
+  - ✅ Documented root cause failures in protocol adherence
+  - Commits: 7242ea5 (git sync), 71fc89c (absolute paths)
+  - **Lesson:** Protocol documentation itself had bugs causing repeated failures
+
+**Completed (2025-11-09 Session 1):**
+- **3-State Workout System Implementation:**
+  - ✅ Added `workout_publish_status` column to wods table (null/draft/published)
+  - ✅ Separated session booking from workout publishing
+  - ✅ Sessions auto-publish on generation (immediately bookable)
+  - ✅ Workouts auto-publish when saved with content
+  - ✅ Visual card states: Empty (light grey, dashed), Draft (dark grey, solid), Published (teal + 📊)
+  - ✅ Drag handle in top-left corner for copying workouts
+  - ✅ Auto-create default 09:00 session if none exist on date
+  - ✅ Updated fetchWODs to query weekly_sessions with workout join
+  - ✅ Schedule & Book pages: 3-column grid layout grouped by day
   - ✅ Built "Apply to Other Sessions" feature (link multiple sessions to one workout)
-  - ✅ Renamed "Add Workout" → "Workout Library" for clarity
-  - ⚠️ **Identified workflow confusion:** Need to separate "bookable sessions" from "loggable workouts"
-  - **Next:** Major workflow refactor planned (see project-history/2025-11-09-workflow-refactor-plan.md)
-  - Commits: b15cc4a (apply to sessions), e352a42 (diagnostic cleanup)
+  - Commit: 9374e44 (3-state system)
+  - Related: b15cc4a (apply to sessions), e352a42 (diagnostic cleanup), de2d30e (docs)
 
 **Completed (2025-11-08 Session 2):**
 - **RLS Issue Resolved:** Member registration now working via proper signup flow
@@ -122,17 +134,14 @@ Athlete Tables (linked to members.id)
   - Athletes now see dynamic lists based on coach configuration
   - Tables: `benchmark_workouts`, `forge_benchmarks`, `barbell_lifts`
 
-**Active Development:**
-- **Workout Workflow Refactor** (Planned for next session)
-  - Separate session booking from workout logging
-  - 3-state visual system: Empty / Draft / Published
-  - Auto-publish sessions on generation
-  - See: `project-history/2025-11-09-workflow-refactor-plan.md`
-
 **Known Issues:**
+- **athlete/page.tsx file too large** - File exceeds Read tool limits (~2000 lines), prevents debugging/maintenance. Needs refactoring into smaller component files.
 - macOS iCloud Keychain autofill popups (OS behavior, not app bug)
 
 **Lessons Learned:**
+- **2025-11-09 (Session 2):** Git sync MUST be first step when user mentions "pushed to GitHub" - Don't analyze local changes, immediately `git reset --hard origin/main`
+- **2025-11-09 (Session 2):** Protocol documentation can have bugs - workflow-protocols.md had wrong file paths for weeks, causing repeated failures without root cause fixes
+- **2025-11-09 (Session 2):** Fix root causes, not symptoms - Repeated workarounds without fixing broken protocols wastes time and erodes trust
 - **2025-11-09:** Workflow clarity is critical - "Publishing" had dual meaning (booking + logging), causing confusion. Separate concerns for better UX.
 - **2025-11-09:** RLS policies using auth.users subqueries fail - Authenticated users can't query auth.users. Use auth.jwt() metadata instead.
 - **2025-11-08:** Testing RLS with raw SQL bypasses production auth flow - Always test via actual app signup/login, not direct database INSERT
@@ -142,17 +151,27 @@ Athlete Tables (linked to members.id)
 
 ## 📋 Next Immediate Steps
 
-1. **Implement Workout Workflow Refactor** (~6.5 hours estimated)
-   - Phase 1: Add `workout_publish_status` column to DB
-   - Phase 2: Auto-publish sessions on generation (status='published')
-   - Phase 3: Implement 3-state visual card system (light grey/dark grey/teal)
-   - Phase 4: Update Publish Modal to assign workouts by time
-   - Phase 5: Update drag & drop to save as draft
-   - Phase 6: Change duplicate to create separate workout copies
-   - Phase 7: Add "Publish for Logging" button to Workout Editor
-   - Phase 8: Testing & refinement
-   - **See:** `project-history/2025-11-09-workflow-refactor-plan.md` for details
-2. Consider adding coach ability to edit section types, workout types, exercises
+1. **Refactor athlete/page.tsx** (High Priority - Technical Debt)
+   - **Problem:** File too large to read with Read tool (~2000+ lines)
+   - **Solution:** Split into focused component files
+   - **Approach:** Extract major sections into separate components:
+     - ProfileSection.tsx - athlete profile display
+     - BenchmarkSection.tsx - CrossFit benchmark tracking
+     - ForgeBenchmarkSection.tsx - Forge benchmark tracking
+     - LiftRecordsSection.tsx - barbell lift PRs
+     - WorkoutLogSection.tsx - workout logging
+   - **Benefit:** Easier debugging, better code organization, follows React best practices
+   - **Risk:** Low - pure refactoring with testing after each extraction
+
+2. **Testing & Deployment Preparation:**
+   - Test 3-state workflow system in production-like environment
+   - Verify all booking flows work correctly
+   - Create deployment checklist
+
+3. **Future Enhancements:**
+   - Coach ability to edit section types, workout types, exercises
+   - Bulk operations for session/workout management
+   - Improved search/filter capabilities
 
 ---
 
