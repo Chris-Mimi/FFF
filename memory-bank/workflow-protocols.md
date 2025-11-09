@@ -33,16 +33,18 @@ git reset --hard origin/main
 **❌ Do NOT analyze local changes first**
 **❌ Do NOT make assumptions about what needs fixing**
 
-### STEP 2: Use Correct File Paths (One Parallel Call)
+### STEP 2: Read Memory Bank Files (Absolute Paths Required)
 
-**✅ CORRECT paths (copy exactly):**
+**Read in ONE parallel call (copy exactly):**
 ```
-Read:
-- project-history/2025-11-03-memory-optimization.md
-Read in ONE parallel call:
-- memory-bank/memory-bank-activeContext.md
-- memory-bank/memory-bank-techContext.md
-- memory-bank/memory-bank-systemPatterns.md
+/Users/chrishiles/SynologyDrive/CrossFit Hammerschmiede (CFH)/AI Development/forge-functional-fitness/memory-bank/memory-bank-activeContext.md
+/Users/chrishiles/SynologyDrive/CrossFit Hammerschmiede (CFH)/AI Development/forge-functional-fitness/memory-bank/memory-bank-techContext.md
+/Users/chrishiles/SynologyDrive/CrossFit Hammerschmiede (CFH)/AI Development/forge-functional-fitness/memory-bank/memory-bank-systemPatterns.md
+```
+
+**❌ WRONG - Relative paths DO NOT WORK:**
+```
+memory-bank/memory-bank-activeContext.md  ← Read tool will fail
 ```
 
 ### STEP 3: Never Read Chris Notes Folder
