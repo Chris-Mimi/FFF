@@ -622,80 +622,105 @@ export default function MemberBookingPage() {
             <p className="text-gray-500 text-sm">Check back later or try a different week</p>
           </div>
         ) : (
-          <div className="grid gap-3">
-            {sessions.map((session) => (
-              <div
-                key={session.id}
-                className={`bg-gray-800 rounded-lg p-4 border ${
-                  session.user_booking_status !== 'none'
-                    ? 'border-teal-500'
-                    : 'border-gray-700'
-                } hover:border-gray-600 transition-colors duration-200`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <h3 className="text-lg font-semibold text-white">
-                        {formatDate(session.date)} at {formatTime(session.time)}
-                      </h3>
-                      {session.user_booking_status === 'confirmed' && (
-                        <span className="px-2 py-0.5 bg-teal-500/20 text-teal-300 text-xs rounded-full flex items-center gap-1">
-                          <Check size={12} />
-                          Booked
-                        </span>
-                      )}
-                      {session.user_booking_status === 'waitlist' && (
-                        <span className="px-2 py-0.5 bg-purple-500/20 text-purple-300 text-xs rounded-full flex items-center gap-1">
-                          <Clock size={12} />
-                          Waitlist
-                        </span>
-                      )}
-                      {session.other_family_bookings.map((booking) => (
-                        <span key={booking.id} className="px-2 py-0.5 bg-blue-500/20 text-blue-300 text-xs rounded-full flex items-center gap-1">
-                          <User size={12} />
-                          Booked for {booking.name}
-                        </span>
-                      ))}
-                    </div>
-                    <div className="flex items-center gap-4 text-sm">
-                      <div>
-                        <span className="text-gray-400">Type:</span>{' '}
-                        <span className="text-white font-medium">{session.workout_type}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <Users size={14} className={getCapacityColor(session.confirmed_count, session.capacity)} />
-                        <span className="text-gray-400 text-xs">
-                          {session.confirmed_count}/{session.capacity}
-                        </span>
-                        {getCapacityBadge(session)}
-                      </div>
-                    </div>
-                  </div>
+          <div className="space-y-6">
+            {/* Group sessions by day */}
+            {Array.from(new Set(sessions.map(s => s.date))).map((date) => {
+              const daySessions = sessions.filter(s => s.date === date);
 
-                  {/* Action Button */}
-                  <div className="ml-3">
-                    {session.user_booking_status === 'none' ? (
-                      <button
-                        onClick={() => handleBook(session.id)}
-                        disabled={processing === session.id}
-                        className="px-4 py-1.5 bg-teal-500 hover:bg-teal-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm rounded-lg transition-colors duration-200"
+              return (
+                <div key={date}>
+                  {/* Day Header */}
+                  <h2 className="text-lg font-bold text-teal-400 mb-3">{formatDate(date)}</h2>
+
+                  {/* Sessions Grid - 3 columns */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {daySessions.map((session) => (
+                      <div
+                        key={session.id}
+                        className={`bg-gray-800 rounded-lg p-4 border ${
+                          session.user_booking_status !== 'none'
+                            ? 'border-teal-500'
+                            : 'border-gray-700'
+                        } hover:border-gray-600 transition-colors duration-200`}
                       >
-                        {processing === session.id ? 'Booking...' : 'Book'}
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => handleCancel(session.id, session.user_booking_id!)}
-                        disabled={processing === session.id}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm rounded-lg transition-colors duration-200"
-                      >
-                        <X size={16} />
-                        {processing === session.id ? 'Canceling...' : 'Cancel'}
-                      </button>
-                    )}
+                        <div className="flex gap-3">
+                          {/* Left side - Info */}
+                          <div className="flex-1 min-w-0">
+                            {/* Time and badges */}
+                            <div className="flex items-center gap-2 mb-2 flex-wrap">
+                              <h3 className="text-lg font-semibold text-white">
+                                {formatTime(session.time)}
+                              </h3>
+                              {session.user_booking_status === 'confirmed' && (
+                                <span className="px-2 py-0.5 bg-teal-500/20 text-teal-300 text-xs rounded-full flex items-center gap-1">
+                                  <Check size={12} />
+                                  Booked
+                                </span>
+                              )}
+                              {session.user_booking_status === 'waitlist' && (
+                                <span className="px-2 py-0.5 bg-purple-500/20 text-purple-300 text-xs rounded-full flex items-center gap-1">
+                                  <Clock size={12} />
+                                  Waitlist
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Family bookings */}
+                            {session.other_family_bookings.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mb-2">
+                                {session.other_family_bookings.map((booking) => (
+                                  <span key={booking.id} className="px-2 py-0.5 bg-blue-500/20 text-blue-300 text-xs rounded-full flex items-center gap-1">
+                                    <User size={12} />
+                                    {booking.name}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Details */}
+                            <div className="space-y-1 text-sm">
+                              <div>
+                                <span className="text-gray-400">Type:</span>{' '}
+                                <span className="text-white font-medium">{session.workout_type}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <Users size={14} className={getCapacityColor(session.confirmed_count, session.capacity)} />
+                                <span className="text-gray-400 text-xs">
+                                  {session.confirmed_count}/{session.capacity}
+                                </span>
+                                {getCapacityBadge(session)}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Right side - Action Button */}
+                          <div className="flex flex-col justify-center">
+                            {session.user_booking_status === 'none' ? (
+                              <button
+                                onClick={() => handleBook(session.id)}
+                                disabled={processing === session.id}
+                                className="px-3 py-1.5 bg-teal-500 hover:bg-teal-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm rounded transition-colors duration-200 whitespace-nowrap"
+                              >
+                                {processing === session.id ? 'Booking...' : 'Book'}
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleCancel(session.id, session.user_booking_id!)}
+                                disabled={processing === session.id}
+                                className="flex items-center gap-1.5 px-2 py-1.5 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm rounded transition-colors duration-200"
+                              >
+                                <X size={16} />
+                                {processing === session.id ? 'Canceling...' : 'Cancel'}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

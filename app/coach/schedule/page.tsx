@@ -326,69 +326,86 @@ export default function CoachSchedulePage() {
             <p className="text-gray-500 text-sm">Create your first template to define your weekly class schedule</p>
           </div>
         ) : (
-          <div className="grid gap-4">
-            {templates.map((template) => (
-              <div
-                key={template.id}
-                className={`bg-gray-800 rounded-lg p-6 border ${
-                  template.active ? 'border-gray-700' : 'border-gray-800 opacity-60'
-                } hover:border-gray-600 transition-colors duration-200`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3">
-                      <h3 className="text-xl font-semibold text-white">
-                        {getDayLabel(template.day_of_week)} at {formatTime(template.time)}
-                      </h3>
-                      {!template.active && (
-                        <span className="px-2 py-1 bg-gray-700 text-gray-400 text-xs rounded-full">
-                          Inactive
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-6 text-sm">
-                      <div>
-                        <span className="text-gray-400">Type:</span>{' '}
-                        <span className="text-white font-medium">{template.workout_type}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-400">Capacity:</span>{' '}
-                        <span className="text-white font-medium">{template.default_capacity}</span>
-                      </div>
-                    </div>
-                  </div>
+          <div className="space-y-6">
+            {DAYS_OF_WEEK.map((day) => {
+              const dayTemplates = templates.filter(t => t.day_of_week === day.value);
+              if (dayTemplates.length === 0) return null;
 
-                  {/* Actions */}
-                  <div className="flex gap-2 ml-4">
-                    <button
-                      onClick={() => handleToggleActive(template)}
-                      className={`p-2 rounded-lg transition-colors duration-200 ${
-                        template.active
-                          ? 'bg-teal-500/20 text-teal-400 hover:bg-teal-500/30'
-                          : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
-                      }`}
-                      title={template.active ? 'Deactivate' : 'Activate'}
-                    >
-                      {template.active ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
-                    </button>
-                    <button
-                      onClick={() => handleOpenModal(template)}
-                      className="p-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors duration-200"
-                      title="Edit"
-                    >
-                      <Edit2 size={20} />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(template.id)}
-                      className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200"
-                      title="Delete"
-                    >
-                      <Trash2 size={20} />
-                    </button>
+              return (
+                <div key={day.value}>
+                  {/* Day Header */}
+                  <h2 className="text-lg font-bold text-teal-400 mb-3">{day.label}</h2>
+
+                  {/* Templates Grid - 3 columns */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {dayTemplates.map((template) => (
+                      <div
+                        key={template.id}
+                        className={`bg-gray-800 rounded-lg p-4 border ${
+                          template.active ? 'border-gray-700' : 'border-gray-800 opacity-60'
+                        } hover:border-gray-600 transition-colors duration-200`}
+                      >
+                        <div className="flex gap-3">
+                          {/* Left side - Info */}
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h3 className="text-lg font-semibold text-white">
+                                {formatTime(template.time)}
+                              </h3>
+                              {!template.active && (
+                                <span className="px-2 py-0.5 bg-gray-700 text-gray-400 text-xs rounded-full">
+                                  Inactive
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="space-y-1 text-sm">
+                              <div>
+                                <span className="text-gray-400">Type:</span>{' '}
+                                <span className="text-white font-medium">{template.workout_type}</span>
+                              </div>
+                              <div>
+                                <span className="text-gray-400">Capacity:</span>{' '}
+                                <span className="text-white font-medium">{template.default_capacity}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Right side - Actions (stacked vertically) */}
+                          <div className="flex flex-col gap-1">
+                            <button
+                              onClick={() => handleToggleActive(template)}
+                              className={`p-1.5 rounded transition-colors duration-200 ${
+                                template.active
+                                  ? 'bg-teal-500/20 text-teal-400 hover:bg-teal-500/30'
+                                  : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                              }`}
+                              title={template.active ? 'Deactivate' : 'Activate'}
+                            >
+                              {template.active ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
+                            </button>
+                            <button
+                              onClick={() => handleOpenModal(template)}
+                              className="p-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors duration-200"
+                              title="Edit"
+                            >
+                              <Edit2 size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(template.id)}
+                              className="p-1.5 bg-red-600 hover:bg-red-700 text-white rounded transition-colors duration-200"
+                              title="Delete"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

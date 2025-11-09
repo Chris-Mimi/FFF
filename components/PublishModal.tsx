@@ -11,6 +11,7 @@ interface PublishModalProps {
   sections: WODSection[];
   currentPublishConfig?: PublishConfig | null;
   workoutDate: Date;
+  sessionTime?: string; // Auto-populate from session
 }
 
 export interface PublishConfig {
@@ -26,11 +27,13 @@ export default function PublishModal({
   sections,
   currentPublishConfig,
   workoutDate,
+  sessionTime,
 }: PublishModalProps) {
   const [selectedSectionIds, setSelectedSectionIds] = useState<string[]>(
     currentPublishConfig?.selectedSectionIds || []
   );
-  const [eventTime, setEventTime] = useState(currentPublishConfig?.eventTime || '09:00');
+  // Auto-populate from session time, fallback to config, then default
+  const [eventTime] = useState(sessionTime || currentPublishConfig?.eventTime || '09:00');
   const [eventDurationMinutes, setEventDurationMinutes] = useState(
     currentPublishConfig?.eventDurationMinutes || 60
   );
@@ -119,19 +122,6 @@ export default function PublishModal({
                 </label>
               ))}
             </div>
-          </div>
-
-          {/* Event Time */}
-          <div>
-            <label className='block font-semibold text-gray-900 mb-2'>
-              Calendar Event Time <span className='text-red-500'>*</span>
-            </label>
-            <input
-              type='time'
-              value={eventTime}
-              onChange={e => setEventTime(e.target.value)}
-              className='w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#20766a] focus:border-transparent text-gray-900'
-            />
           </div>
 
           {/* Duration */}

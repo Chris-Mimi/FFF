@@ -66,7 +66,8 @@ export default function CoachDashboard() {
   const [modalSize, setModalSize] = useState({ width: 768, height: 600 });
   const [isResizing, setIsResizing] = useState(false);
   const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 });
-  const [hoveredWOD, setHoveredWOD] = useState<WODFormData | null>(null);
+  const [hoveredWOD, setHoveredWOD] = useState<string | null>(null); // Store session_id instead of whole WOD
+  const [dragHandleHovered, setDragHandleHovered] = useState<string | null>(null); // Track which drag handle is hovered
   const [excludedSectionTypes, setExcludedSectionTypes] = useState<string[]>([]);
   const [focusedDate, setFocusedDate] = useState<Date | null>(null);
   const [sessionManagementModal, setSessionManagementModal] = useState<{
@@ -390,87 +391,124 @@ export default function CoachDashboard() {
 
       console.log('All bookings fetched:', allBookings);
 
-      // Fetch WODs with sessions
+      // Fetch weekly_sessions with optional workout join
       const { data, error } = await supabase
-        .from('wods')
+        .from('weekly_sessions')
         .select(`
-          *,
-          weekly_sessions (
+          id,
+          date,
+          time,
+          capacity,
+          status,
+          workout_id,
+          wods (
             id,
-            capacity,
-            time
+            title,
+            track_id,
+            workout_type_id,
+            class_times,
+            max_capacity,
+            sections,
+            coach_notes,
+            is_published,
+            workout_publish_status,
+            google_event_id
           )
         `)
-        .order('date', { ascending: true });
+        .order('date', { ascending: true })
+        .order('time', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching sessions:', error);
+        throw error;
+      }
 
-      // Group WODs by date
-      interface WODRecord {
+
+      // Group sessions by date
+      interface SessionRecord {
         id: string;
-        title: string;
-        track_id: string | null;
-        workout_type_id: string | null;
-        class_times: string[];
-        max_capacity: number;
         date: string;
-        sections: Array<{
+        time: string;
+        capacity: number;
+        status: string;
+        workout_id: string | null;
+        wods: {
           id: string;
-          type: string;
           title: string;
-          duration: number;
-          content: string;
-        }>;
-        coach_notes: string | null;
-        is_published: boolean;
-        google_event_id: string | null;
-        weekly_sessions?: Array<{
-          id: string;
-          capacity: number;
-          time: string;
-        }>;
+          track_id: string | null;
+          workout_type_id: string | null;
+          class_times: string[];
+          max_capacity: number;
+          sections: Array<{
+            id: string;
+            type: string;
+            title: string;
+            duration: number;
+            content: string;
+          }>;
+          coach_notes: string | null;
+          is_published: boolean;
+          workout_publish_status: string | null;
+          google_event_id: string | null;
+        } | null;
       }
 
       const grouped: Record<string, WODFormData[]> = {};
-      data?.forEach((wod: WODRecord) => {
-        const dateKey = wod.date;
+      data?.forEach((session) => {
+        const dateKey = session.date;
         if (!grouped[dateKey]) {
           grouped[dateKey] = [];
         }
 
-        // Calculate booking info from weekly_sessions
-        let bookingInfo;
-        if (wod.weekly_sessions && wod.weekly_sessions.length > 0) {
-          const session = wod.weekly_sessions[0]; // Should only be one session per workout
+        // Find bookings for this session
+        const sessionBookings = allBookings?.filter(b => b.session_id === session.id) || [];
+        const confirmedCount = sessionBookings.filter(b => b.status === 'confirmed').length;
+        const waitlistCount = sessionBookings.filter(b => b.status === 'waitlist').length;
 
-          // Find bookings for this session from allBookings
-          const sessionBookings = allBookings?.filter(b => b.session_id === session.id) || [];
-          const confirmedCount = sessionBookings.filter(b => b.status === 'confirmed').length;
-          const waitlistCount = sessionBookings.filter(b => b.status === 'waitlist').length;
+        const bookingInfo = {
+          session_id: session.id,
+          confirmed_count: confirmedCount,
+          waitlist_count: waitlistCount,
+          capacity: session.capacity,
+          time: session.time
+        };
 
-          bookingInfo = {
-            session_id: session.id,
-            confirmed_count: confirmedCount,
-            waitlist_count: waitlistCount,
-            capacity: session.capacity,
-            time: session.time
-          };
+        // If session has a workout, use workout data; otherwise create empty placeholder
+        const workout = session.wods; // wods is an object, not an array
+        if (workout) {
+          // Determine publish status: null if no content, otherwise use DB value or default to 'draft'
+          const hasContent = workout.sections && workout.sections.length > 0;
+          const publishStatus = hasContent ? (workout.workout_publish_status || 'draft') : null;
+
+          grouped[dateKey].push({
+            id: workout.id,
+            title: workout.title,
+            track_id: workout.track_id || undefined,
+            workout_type_id: workout.workout_type_id || undefined,
+            classTimes: workout.class_times,
+            maxCapacity: workout.max_capacity,
+            date: session.date,
+            sections: workout.sections,
+            coach_notes: workout.coach_notes || undefined,
+            is_published: workout.is_published || false,
+            workout_publish_status: publishStatus,
+            google_event_id: workout.google_event_id || null,
+            booking_info: bookingInfo,
+          });
+        } else {
+          // Empty session (no workout yet)
+          grouped[dateKey].push({
+            id: `session-${session.id}`,
+            title: 'Session',
+            date: session.date,
+            sections: [],
+            classTimes: [],
+            maxCapacity: session.capacity,
+            is_published: false,
+            workout_publish_status: null, // null means no workout content
+            booking_info: bookingInfo,
+          });
         }
-
-        grouped[dateKey].push({
-          id: wod.id,
-          title: wod.title,
-          track_id: wod.track_id || undefined,
-          workout_type_id: wod.workout_type_id || undefined,
-          classTimes: wod.class_times,
-          maxCapacity: wod.max_capacity,
-          date: wod.date,
-          sections: wod.sections,
-          coach_notes: wod.coach_notes || undefined,
-          is_published: wod.is_published || false,
-          google_event_id: wod.google_event_id || null,
-          booking_info: bookingInfo,
-        });
       });
 
       setWods(grouped);
@@ -582,6 +620,9 @@ export default function CoachDashboard() {
     try {
       if (editingWOD && editingWOD.id) {
         // Update existing WOD
+        // Determine publish status: if has content, set to 'published', otherwise 'draft'
+        const hasContent = wodData.sections && wodData.sections.length > 0;
+
         const { error } = await supabase
           .from('wods')
           .update({
@@ -593,6 +634,7 @@ export default function CoachDashboard() {
             date: dateKey,
             sections: wodData.sections,
             coach_notes: wodData.coach_notes || null,
+            workout_publish_status: hasContent ? 'published' : 'draft',
             updated_at: new Date().toISOString(),
           })
           .eq('id', editingWOD.id);
@@ -625,6 +667,9 @@ export default function CoachDashboard() {
         }
       } else {
         // Create new WOD
+        // Determine publish status: if has content, set to 'published', otherwise 'draft'
+        const hasContent = wodData.sections && wodData.sections.length > 0;
+
         const { data: newWOD, error } = await supabase.from('wods').insert([
           {
             title: wodData.title,
@@ -635,10 +680,17 @@ export default function CoachDashboard() {
             date: dateKey,
             sections: wodData.sections,
             coach_notes: wodData.coach_notes || null,
+            workout_publish_status: hasContent ? 'published' : 'draft',
           },
         ]).select().single();
 
         if (error) throw error;
+
+        // Check if there are any existing sessions for this date
+        const { data: existingSessions } = await supabase
+          .from('weekly_sessions')
+          .select('id')
+          .eq('date', dateKey);
 
         // Create a weekly_session for each class time if provided
         if (wodData.classTimes && wodData.classTimes.length > 0 && newWOD) {
@@ -648,13 +700,12 @@ export default function CoachDashboard() {
               time: time,
               workout_id: newWOD.id,
               capacity: wodData.maxCapacity,
-              status: 'draft'
+              status: 'published'
             });
           }
         }
-
         // Link selected sessions to this workout if any were selected
-        if (wodData.selectedSessionIds && wodData.selectedSessionIds.length > 0 && newWOD) {
+        else if (wodData.selectedSessionIds && wodData.selectedSessionIds.length > 0 && newWOD) {
           await supabase
             .from('weekly_sessions')
             .update({
@@ -662,6 +713,16 @@ export default function CoachDashboard() {
               capacity: wodData.maxCapacity,
             })
             .in('id', wodData.selectedSessionIds);
+        }
+        // If no sessions exist for this date and no class times provided, create a default session
+        else if ((!existingSessions || existingSessions.length === 0) && newWOD) {
+          await supabase.from('weekly_sessions').insert({
+            date: dateKey,
+            time: '09:00',
+            workout_id: newWOD.id,
+            capacity: wodData.maxCapacity,
+            status: 'published'
+          });
         }
       }
 
@@ -748,6 +809,12 @@ export default function CoachDashboard() {
   };
 
   const handleDeleteWOD = async (dateKey: string, wodId: string) => {
+    // Prevent deleting empty sessions (placeholder IDs start with 'session-')
+    if (wodId.startsWith('session-')) {
+      alert('Cannot delete empty sessions. Click to add workout content instead.');
+      return;
+    }
+
     if (!confirm('Are you sure you want to delete this WOD?')) return;
 
     try {
@@ -764,23 +831,39 @@ export default function CoachDashboard() {
     }
   };
 
-  const handleCopyWOD = async (wod: WODFormData, targetDate: Date) => {
+  const handleCopyWOD = async (wod: WODFormData, targetDate: Date, targetSessionId?: string) => {
     const dateKey = formatDate(targetDate);
 
     try {
-      const { error } = await supabase.from('wods').insert([
-        {
-          title: wod.title,
-          track_id: wod.track_id || null,
-          workout_type_id: wod.workout_type_id || null,
-          class_times: wod.classTimes,
-          max_capacity: wod.maxCapacity,
-          date: dateKey,
-          sections: wod.sections,
-        },
-      ]);
+      // Create the new workout as draft
+      const { data: newWorkout, error: workoutError } = await supabase
+        .from('wods')
+        .insert([
+          {
+            title: wod.title,
+            track_id: wod.track_id || null,
+            workout_type_id: wod.workout_type_id || null,
+            class_times: wod.classTimes,
+            max_capacity: wod.maxCapacity,
+            date: dateKey,
+            sections: wod.sections,
+            workout_publish_status: 'draft', // New workouts start as draft
+          },
+        ])
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (workoutError) throw workoutError;
+
+      // If a specific session was targeted, link the workout to it
+      if (targetSessionId && newWorkout) {
+        const { error: sessionError } = await supabase
+          .from('weekly_sessions')
+          .update({ workout_id: newWorkout.id })
+          .eq('id', targetSessionId);
+
+        if (sessionError) throw sessionError;
+      }
 
       // Refresh WODs and track counts from database
       await fetchWODs();
@@ -895,6 +978,20 @@ export default function CoachDashboard() {
     if (!copiedWOD) return;
     handleCopyWOD(copiedWOD, targetDate);
     setCopiedWOD(null); // Clear clipboard after pasting
+  };
+
+  // Helper function to determine card visual state
+  const getCardState = (wod: WODFormData): 'empty' | 'draft' | 'published' => {
+    if (!wod.workout_publish_status) return 'empty'; // No workout content
+    if (wod.workout_publish_status === 'draft') return 'draft'; // Draft workout
+    return 'published'; // Published workout
+  };
+
+  // Helper function to get card styling based on state
+  const getCardClasses = (state: 'empty' | 'draft' | 'published'): string => {
+    if (state === 'empty') return 'bg-gray-200 border-2 border-dashed border-gray-400';
+    if (state === 'draft') return 'bg-gray-400 border-2 border-gray-500';
+    return 'bg-[#208479] border-2 border-[#1a6b62]'; // published - teal
   };
 
   if (loading || !user) {
@@ -1191,29 +1288,66 @@ export default function CoachDashboard() {
                               </div>
 
                               {/* WODs */}
-                              {dayWODs.map((wod: WODFormData) => (
+                              {dayWODs.map((wod: WODFormData) => {
+                                const cardState = getCardState(wod);
+                                const cardClasses = getCardClasses(cardState);
+                                const isEmptySession = cardState === 'empty';
+                                const isPublished = cardState === 'published';
+
+                                return (
                                 <div
-                                  key={wod.id}
-                                  draggable
-                                  onDragStart={e => handleDragStart(e, wod, dateKey)}
-                                  onMouseEnter={() => setHoveredWOD(wod)}
+                                  key={wod.booking_info?.session_id || wod.id}
+                                  onDragOver={handleDragOver}
+                                  onDrop={e => {
+                                    e.stopPropagation();
+                                    if (!draggedWOD || !wod.booking_info?.session_id) return;
+                                    handleCopyWOD(draggedWOD.wod, date, wod.booking_info.session_id);
+                                    setDraggedWOD(null);
+                                  }}
+                                  onMouseEnter={() => !isEmptySession && setHoveredWOD(wod.booking_info?.session_id || wod.id || '')}
                                   onMouseLeave={() => setHoveredWOD(null)}
-                                  className='workout-card mb-1 p-1 bg-gray-50 rounded text-xs hover:bg-gray-200 cursor-move transition group relative'
-                                  title='Drag to copy'
+                                  className={`workout-card mb-1 p-1 rounded text-xs transition group relative ${cardClasses} ${isEmptySession ? 'cursor-pointer' : ''} ${hoveredWOD === (wod.booking_info?.session_id || wod.id) ? 'z-50' : 'z-10'}`}
+                                  title={isEmptySession ? 'Click to add workout' : 'Hover for details, drag handle to copy'}
+                                  onClick={e => {
+                                    if (isEmptySession) {
+                                      e.stopPropagation();
+                                      openEditModal(wod);
+                                    }
+                                  }}
                                 >
-                                  <div className='flex items-center justify-between gap-1'>
-                                    <div className='flex items-center gap-1 flex-1 min-w-0'>
+                                  {/* Drag Handle - Only for workouts with content */}
+                                  {!isEmptySession && (
+                                    <div
+                                      draggable
+                                      onDragStart={e => handleDragStart(e, wod, dateKey)}
+                                      onMouseEnter={() => setDragHandleHovered(wod.booking_info?.session_id || wod.id || '')}
+                                      onMouseLeave={() => setDragHandleHovered(null)}
+                                      className='absolute top-0 left-0 cursor-move p-0.5 opacity-0 group-hover:opacity-100 transition-opacity z-10'
+                                      title='Drag to copy'
+                                    >
+                                      <GripVertical size={12} className={isPublished ? 'text-white' : 'text-gray-600'} />
+                                    </div>
+                                  )}
+
+                                  <div className='flex flex-col gap-0.5'>
+                                    {/* Title Row */}
+                                    <div className='flex items-center gap-1'>
+                                      {/* Title */}
                                       <div
-                                        className='font-semibold text-gray-900 truncate cursor-pointer'
+                                        className={`font-semibold truncate cursor-pointer ${isPublished ? 'text-white' : isEmptySession ? 'text-gray-600' : 'text-gray-900'}`}
                                         onClick={() => openEditModal(wod)}
                                       >
                                         {wod.title}
                                       </div>
-                                      {wod.is_published && (
-                                        <span className='flex-shrink-0 text-[10px] font-bold text-white bg-[#208479] rounded px-1 py-0.5' title='Published'>
-                                          P
+
+                                      {/* Published Icon */}
+                                      {isPublished && (
+                                        <span className='flex-shrink-0 text-xs' title='Published for athlete logging'>
+                                          📊
                                         </span>
                                       )}
+
+                                      {/* Booking Info */}
                                       {wod.booking_info && (
                                         <button
                                           onClick={(e) => {
@@ -1236,32 +1370,41 @@ export default function CoachDashboard() {
                                         </button>
                                       )}
                                     </div>
-                                    <div className='flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity'>
-                                      <button
-                                        onClick={e => {
-                                          e.stopPropagation();
-                                          handleCopyToClipboard(wod);
-                                        }}
-                                        className='text-[#208479] hover:text-[#1a6b62] p-0.5'
-                                        title='Copy WOD'
-                                      >
-                                        <Copy size={12} />
-                                      </button>
-                                      <button
-                                        onClick={e => {
-                                          e.stopPropagation();
-                                          handleDeleteWOD(dateKey, wod.id!);
-                                        }}
-                                        className='text-gray-500 hover:text-red-600 p-0.5'
-                                        title='Delete WOD'
-                                      >
-                                        <Trash2 size={12} />
-                                      </button>
+
+                                    {/* Time Display */}
+                                    <div className={`text-[10px] ${isEmptySession ? 'text-gray-600' : 'text-white'}`}>
+                                      {wod.booking_info?.time}
                                     </div>
                                   </div>
 
-                                  {/* Hover Popover */}
-                                  {hoveredWOD?.id === wod.id && (
+                                  {/* Action Buttons - Only for workouts with content */}
+                                  {!isEmptySession && (
+                                  <div className='absolute top-1 right-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity'>
+                                    <button
+                                      onClick={e => {
+                                        e.stopPropagation();
+                                        handleCopyToClipboard(wod);
+                                      }}
+                                      className='text-[#208479] hover:text-[#1a6b62] p-0.5'
+                                      title='Copy WOD'
+                                    >
+                                      <Copy size={12} />
+                                    </button>
+                                    <button
+                                      onClick={e => {
+                                        e.stopPropagation();
+                                        handleDeleteWOD(dateKey, wod.id!);
+                                      }}
+                                      className='text-gray-500 hover:text-red-600 p-0.5'
+                                      title='Delete WOD'
+                                    >
+                                      <Trash2 size={12} />
+                                    </button>
+                                  </div>
+                                  )}
+
+                                  {/* Hover Popover - Only for workouts with content */}
+                                  {!isEmptySession && hoveredWOD === (wod.booking_info?.session_id || wod.id) && dragHandleHovered !== (wod.booking_info?.session_id || wod.id) && (
                                     <div className='absolute left-0 top-full w-80 bg-white border-2 border-[#208479] rounded-lg shadow-2xl p-4 z-[200] max-h-96 overflow-y-auto'>
                                       <div className='text-sm font-bold text-gray-900 mb-3'>{wod.title}</div>
                                       <div className='space-y-3'>
@@ -1285,7 +1428,8 @@ export default function CoachDashboard() {
                                     </div>
                                   )}
                                 </div>
-                              ))}
+                              );
+                              })}
                             </div>
                           );
                         })}
@@ -1339,20 +1483,53 @@ export default function CoachDashboard() {
 
                         {/* WODs for this day */}
                         <div className='flex-1'>
-                        {dayWODs.map((wod: WODFormData) => (
+                        {dayWODs.map((wod: WODFormData) => {
+                          const cardState = getCardState(wod);
+                          const cardClasses = getCardClasses(cardState);
+                          const isEmptySession = cardState === 'empty';
+                          const isPublished = cardState === 'published';
+
+                          return (
                           <div
-                            key={wod.id}
-                            draggable
-                            onDragStart={e => handleDragStart(e, wod, dateKey)}
-                            onMouseEnter={() => setHoveredWOD(wod)}
+                            key={wod.booking_info?.session_id || wod.id}
+                            onDragOver={handleDragOver}
+                            onDrop={e => {
+                              e.stopPropagation();
+                              if (!draggedWOD || !wod.booking_info?.session_id) return;
+                              handleCopyWOD(draggedWOD.wod, date, wod.booking_info.session_id);
+                              setDraggedWOD(null);
+                            }}
+                            onMouseEnter={() => !isEmptySession && setHoveredWOD(wod.booking_info?.session_id || wod.id || '')}
                             onMouseLeave={() => setHoveredWOD(null)}
-                            className='workout-card mb-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition cursor-move group relative'
-                            title='Drag to copy or click to edit'
+                            className={`workout-card mb-3 p-3 rounded-lg transition group relative ${cardClasses} ${isEmptySession ? 'cursor-pointer' : ''} ${hoveredWOD === (wod.booking_info?.session_id || wod.id) ? 'z-50' : 'z-10'}`}
+                            title={isEmptySession ? 'Click to add workout' : ''}
+                            onClick={e => {
+                              if (isEmptySession) {
+                                e.stopPropagation();
+                                openEditModal(wod);
+                              }
+                            }}
                           >
+                            {/* Drag Handle - Only for workouts with content */}
+                            {!isEmptySession && (
+                              <div
+                                draggable
+                                onDragStart={e => handleDragStart(e, wod, dateKey)}
+                                onMouseEnter={() => setDragHandleHovered(wod.booking_info?.session_id || wod.id || '')}
+                                onMouseLeave={() => setDragHandleHovered(null)}
+                                className='absolute top-0 left-0 cursor-move p-0.5 opacity-0 group-hover:opacity-100 transition-opacity z-10'
+                                title='Drag to copy'
+                              >
+                                <GripVertical size={16} className={isPublished ? 'text-white' : 'text-gray-600'} />
+                              </div>
+                            )}
+
                             <div className='pr-8'>
-                              <div className='flex items-center gap-1 mb-2'>
+                              {/* Title Row */}
+                              <div className='flex items-center gap-1 mb-1'>
+                                {/* Title */}
                                 <span
-                                  className='font-bold text-sm text-gray-900 cursor-pointer'
+                                  className={`font-bold text-sm cursor-pointer ${isPublished ? 'text-white' : isEmptySession ? 'text-gray-600' : 'text-gray-900'}`}
                                   onClick={e => {
                                     e.stopPropagation();
                                     openEditModal(wod);
@@ -1360,11 +1537,15 @@ export default function CoachDashboard() {
                                 >
                                   {wod.title}
                                 </span>
-                                {wod.is_published && (
-                                  <span className='flex-shrink-0 text-[10px] font-bold text-white bg-[#208479] rounded px-1 py-0.5' title='Published'>
-                                    P
+
+                                {/* Published Icon */}
+                                {isPublished && (
+                                  <span className='flex-shrink-0 text-sm' title='Published for athlete logging'>
+                                    📊
                                   </span>
                                 )}
+
+                                {/* Booking Info */}
                                 {wod.booking_info && (
                                   <button
                                     onClick={(e) => {
@@ -1387,35 +1568,41 @@ export default function CoachDashboard() {
                                   </button>
                                 )}
                               </div>
-                              <div className='text-xs text-gray-700'>
-                                {wod.booking_info?.time || wod.classTimes?.join(', ')}
+
+                              {/* Time Display */}
+                              <div className={`text-xs ${isEmptySession ? 'text-gray-600' : 'text-white'}`}>
+                                {wod.booking_info?.time}
                               </div>
                             </div>
-                            <div className='absolute top-2 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity'>
-                              <button
-                                onClick={e => {
-                                  e.stopPropagation();
-                                  handleCopyToClipboard(wod);
-                                }}
-                                className='text-[#208479] hover:text-[#1a6b62] p-1 bg-white rounded shadow-sm'
-                                title='Copy WOD'
-                              >
-                                <Copy size={14} />
-                              </button>
-                              <button
-                                onClick={e => {
-                                  e.stopPropagation();
-                                  handleDeleteWOD(dateKey, wod.id!);
-                                }}
-                                className='text-gray-500 hover:text-red-600 p-1 bg-white rounded shadow-sm'
-                                title='Delete WOD'
-                              >
-                                <Trash2 size={14} />
-                              </button>
-                            </div>
 
-                            {/* Hover Popover */}
-                            {hoveredWOD?.id === wod.id && (
+                            {/* Action Buttons - Only for workouts with content */}
+                            {!isEmptySession && (
+                              <div className='absolute top-2 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity'>
+                                <button
+                                  onClick={e => {
+                                    e.stopPropagation();
+                                    handleCopyToClipboard(wod);
+                                  }}
+                                  className='text-[#208479] hover:text-[#1a6b62] p-1 bg-white rounded shadow-sm'
+                                  title='Copy WOD'
+                                >
+                                  <Copy size={14} />
+                                </button>
+                                <button
+                                  onClick={e => {
+                                    e.stopPropagation();
+                                    handleDeleteWOD(dateKey, wod.id!);
+                                  }}
+                                  className='text-gray-500 hover:text-red-600 p-1 bg-white rounded shadow-sm'
+                                  title='Delete WOD'
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+                            )}
+
+                            {/* Hover Popover - Only for workouts with content, and not when drag handle is hovered */}
+                            {!isEmptySession && hoveredWOD === (wod.booking_info?.session_id || wod.id) && dragHandleHovered !== (wod.booking_info?.session_id || wod.id) && (
                               <div className='absolute left-0 top-full w-80 bg-white border-2 border-[#208479] rounded-lg shadow-2xl p-4 z-[200] max-h-96 overflow-y-auto'>
                                 <div className='text-sm font-bold text-gray-900 mb-3'>{wod.title}</div>
                                 <div className='space-y-3'>
@@ -1439,7 +1626,8 @@ export default function CoachDashboard() {
                               </div>
                             )}
                           </div>
-                        ))}
+                        );
+                        })}
                         </div>
 
                         {/* Bottom Buttons */}
@@ -1507,20 +1695,53 @@ export default function CoachDashboard() {
 
                           {/* WODs for this day */}
                           <div className='flex-1'>
-                          {dayWODs.map((wod: WODFormData) => (
+                          {dayWODs.map((wod: WODFormData) => {
+                            const cardState = getCardState(wod);
+                            const cardClasses = getCardClasses(cardState);
+                            const isEmptySession = cardState === 'empty';
+                            const isPublished = cardState === 'published';
+
+                            return (
                             <div
-                              key={wod.id}
-                              draggable
-                              onDragStart={e => handleDragStart(e, wod, dateKey)}
-                              onMouseEnter={() => setHoveredWOD(wod)}
+                              key={wod.booking_info?.session_id || wod.id}
+                              onDragOver={handleDragOver}
+                              onDrop={e => {
+                                e.stopPropagation();
+                                if (!draggedWOD || !wod.booking_info?.session_id) return;
+                                handleCopyWOD(draggedWOD.wod, date, wod.booking_info.session_id);
+                                setDraggedWOD(null);
+                              }}
+                              onMouseEnter={() => !isEmptySession && setHoveredWOD(wod.booking_info?.session_id || wod.id || '')}
                               onMouseLeave={() => setHoveredWOD(null)}
-                              className='workout-card mb-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition cursor-move group relative'
-                              title='Drag to copy or click to edit'
+                              className={`workout-card mb-3 p-3 rounded-lg transition group relative ${cardClasses} ${isEmptySession ? 'cursor-pointer' : ''} ${hoveredWOD === (wod.booking_info?.session_id || wod.id) ? 'z-50' : 'z-10'}`}
+                              title={isEmptySession ? 'Click to add workout' : 'Hover for details, drag handle to copy'}
+                              onClick={e => {
+                                if (isEmptySession) {
+                                  e.stopPropagation();
+                                  openEditModal(wod);
+                                }
+                              }}
                             >
+                              {/* Drag Handle - Only for workouts with content */}
+                              {!isEmptySession && (
+                                <div
+                                  draggable
+                                  onDragStart={e => handleDragStart(e, wod, dateKey)}
+                                  onMouseEnter={() => setDragHandleHovered(wod.booking_info?.session_id || wod.id || '')}
+                                  onMouseLeave={() => setDragHandleHovered(null)}
+                                  className='absolute top-0 left-0 cursor-move p-0.5 opacity-0 group-hover:opacity-100 transition-opacity z-10'
+                                  title='Drag to copy'
+                                >
+                                  <GripVertical size={16} className={isPublished ? 'text-white' : 'text-gray-600'} />
+                                </div>
+                              )}
+
                               <div className='pr-8'>
-                                <div className='flex items-center gap-1 mb-2'>
+                                {/* Title Row */}
+                                <div className='flex items-center gap-1 mb-1'>
+                                  {/* Title */}
                                   <span
-                                    className='font-bold text-sm text-gray-900 cursor-pointer'
+                                    className={`font-bold text-sm cursor-pointer ${isPublished ? 'text-white' : isEmptySession ? 'text-gray-600' : 'text-gray-900'}`}
                                     onClick={e => {
                                       e.stopPropagation();
                                       openEditModal(wod);
@@ -1528,11 +1749,15 @@ export default function CoachDashboard() {
                                   >
                                     {wod.title}
                                   </span>
-                                  {wod.is_published && (
-                                    <span className='flex-shrink-0 text-[10px] font-bold text-white bg-[#208479] rounded px-1 py-0.5' title='Published'>
-                                      P
+
+                                  {/* Published Icon */}
+                                  {isPublished && (
+                                    <span className='flex-shrink-0 text-sm' title='Published for athlete logging'>
+                                      📊
                                     </span>
                                   )}
+
+                                  {/* Booking Info */}
                                   {wod.booking_info && (
                                     <button
                                       onClick={(e) => {
@@ -1555,10 +1780,14 @@ export default function CoachDashboard() {
                                     </button>
                                   )}
                                 </div>
-                                <div className='text-xs text-gray-700'>
-                                  {wod.classTimes?.join(', ')}
+
+                                {/* Time Display */}
+                                <div className={`text-xs ${isEmptySession ? 'text-gray-600' : 'text-white'}`}>
+                                  {wod.booking_info?.time}
                                 </div>
                               </div>
+                              {/* Action Buttons - Only for workouts with content */}
+                              {!isEmptySession && (
                               <div className='absolute top-2 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity'>
                                 <button
                                   onClick={e => {
@@ -1581,9 +1810,10 @@ export default function CoachDashboard() {
                                   <Trash2 size={14} />
                                 </button>
                               </div>
+                              )}
 
-                              {/* Hover Popover */}
-                              {hoveredWOD?.id === wod.id && (
+                              {/* Hover Popover - Only for workouts with content */}
+                              {!isEmptySession && hoveredWOD === (wod.booking_info?.session_id || wod.id) && dragHandleHovered !== (wod.booking_info?.session_id || wod.id) && (
                                 <div className='absolute left-0 top-full w-80 bg-white border-2 border-[#208479] rounded-lg shadow-2xl p-4 z-[200] max-h-96 overflow-y-auto'>
                                   <div className='text-sm font-bold text-gray-900 mb-3'>{wod.title}</div>
                                   <div className='space-y-3'>
@@ -1607,7 +1837,8 @@ export default function CoachDashboard() {
                                 </div>
                               )}
                             </div>
-                          ))}
+                          );
+                          })}
                           </div>
 
                           {/* Bottom Buttons */}

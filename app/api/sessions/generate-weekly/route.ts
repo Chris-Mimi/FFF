@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
         .from('wods')
         .insert({
           date: formattedDate,
-          title: `${template.workout_type} - Auto-generated`,
+          title: template.workout_type,
           sections: [], // Empty placeholder
           coach_notes: `Auto-generated from template. Please add workout content.`,
           class_times: [] // Empty placeholder for class times
@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
           time: template.time,
           workout_id: workout.id,
           capacity: template.default_capacity,
-          status: 'draft' // Coach must review and publish
+          status: 'published' // Immediately bookable by members
         })
         .select()
         .single();

@@ -58,6 +58,7 @@ export interface WODFormData {
   sections: WODSection[];
   coach_notes?: string;
   is_published?: boolean;
+  workout_publish_status?: string | null; // 'draft' | 'published' | null (null = no workout)
   google_event_id?: string | null;
   booking_info?: {
     session_id: string;
@@ -2075,6 +2076,7 @@ export default function WODModal({
         onPublish={handlePublish}
         sections={formData.sections}
         workoutDate={date}
+        sessionTime={editingWOD?.booking_info?.time}
       />
     </>
   );
