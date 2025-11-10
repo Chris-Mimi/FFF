@@ -1,7 +1,7 @@
 # Workflow Protocols
 
-**Version:** 2.1
-**Updated:** 2025-11-09
+**Version:** 2.2
+**Updated:** 2025-11-10
 
 ---
 
@@ -33,18 +33,22 @@ git reset --hard origin/main
 **❌ Do NOT analyze local changes first**
 **❌ Do NOT make assumptions about what needs fixing**
 
-### STEP 2: Read Memory Bank Files (Absolute Paths Required)
+### STEP 2: Read Memory Bank Files (MANDATORY - USE EXACT PATHS BELOW)
 
-**Read in ONE parallel call (copy exactly):**
+**⛔️ CRITICAL: Use LITERAL paths below CHARACTER-FOR-CHARACTER. Do NOT infer, modify, or shorten.**
+
+**Make THREE Read tool calls in ONE parallel message using EXACTLY these paths:**
 ```
 /Users/chrishiles/SynologyDrive/CrossFit Hammerschmiede (CFH)/AI Development/forge-functional-fitness/memory-bank/memory-bank-activeContext.md
 /Users/chrishiles/SynologyDrive/CrossFit Hammerschmiede (CFH)/AI Development/forge-functional-fitness/memory-bank/memory-bank-techContext.md
 /Users/chrishiles/SynologyDrive/CrossFit Hammerschmiede (CFH)/AI Development/forge-functional-fitness/memory-bank/memory-bank-systemPatterns.md
 ```
 
-**❌ WRONG - Relative paths DO NOT WORK:**
+**❌ WRONG - DO NOT use these paths (will fail):**
 ```
-memory-bank/memory-bank-activeContext.md  ← Read tool will fail
+memory-bank/memory-bank-activeContext.md  ← Missing absolute path prefix
+memory-bank/activeContext.md              ← Wrong filename (missing "memory-bank-" prefix)
+activeContext.md                          ← Wrong filename AND missing path
 ```
 
 ### STEP 3: Never Read Chris Notes Folder
