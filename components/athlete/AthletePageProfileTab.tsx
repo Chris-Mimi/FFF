@@ -1,16 +1,16 @@
-// ProfileTab component
+// AthletePageProfileTab component
 'use client';
 
 import { supabase } from '@/lib/supabase';
 import { Edit2, User } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-interface ProfileTabProps {
+interface AthletePageProfileTabProps {
   userName: string;
   userId: string;
 }
 
-export default function ProfileTab({ userName, userId }: ProfileTabProps) {
+export default function AthletePageProfileTab({ userName, userId }: AthletePageProfileTabProps) {
   const [profile, setProfile] = useState({
     full_name: '',
     email: '',
