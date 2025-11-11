@@ -268,20 +268,41 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
 
       {/* Add/Edit Benchmark Modal */}
       {selectedBenchmark && (
-        <div className='bg-white rounded-lg shadow p-6'>
-          <div className='flex items-center justify-between mb-4'>
-            <h3 className='text-xl font-semibold text-gray-900'>
-              {editingBenchmarkId ? 'Edit' : 'Log'} {selectedBenchmark}
-            </h3>
-            <div className='flex gap-2'>
-              <button
-                onClick={() => setChartBenchmark(chartBenchmark === selectedBenchmark ? null : selectedBenchmark)}
-                className='px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded transition'
-              >
-                {chartBenchmark === selectedBenchmark ? 'Hide Chart' : 'Show Progress'}
-              </button>
+        <div className='fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50' onClick={() => {
+          setSelectedBenchmark(null);
+          setEditingBenchmarkId(null);
+          setNewTime('');
+          setNewNotes('');
+          setNewDate(new Date().toISOString().split('T')[0]);
+          setNewScaling('Rx');
+        }}>
+          <div className='bg-white rounded-lg shadow-xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto' onClick={(e) => e.stopPropagation()}>
+            <div className='flex items-center justify-between mb-4'>
+              <h3 className='text-xl font-semibold text-gray-900'>
+                {editingBenchmarkId ? 'Edit' : 'Log'} {selectedBenchmark}
+              </h3>
+              <div className='flex gap-2'>
+                <button
+                  onClick={() => setChartBenchmark(chartBenchmark === selectedBenchmark ? null : selectedBenchmark)}
+                  className='px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded transition'
+                >
+                  {chartBenchmark === selectedBenchmark ? 'Hide Chart' : 'Show Progress'}
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedBenchmark(null);
+                    setEditingBenchmarkId(null);
+                    setNewTime('');
+                    setNewNotes('');
+                    setNewDate(new Date().toISOString().split('T')[0]);
+                    setNewScaling('Rx');
+                  }}
+                  className='px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded transition'
+                >
+                  ✕
+                </button>
+              </div>
             </div>
-          </div>
 
           <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
             <div className='space-y-4'>
@@ -448,6 +469,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
               </ResponsiveContainer>
             </div>
           )}
+          </div>
         </div>
       )}
     </div>

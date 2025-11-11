@@ -16,7 +16,7 @@ import {
   X,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import PublishModal, { PublishConfig } from './PublishModal';
+import PublishModal, { PublishConfig } from '@/components/coach/PublishModal';
 
 // Format date to YYYY-MM-DD using local timezone
 const formatDateLocal = (date: Date): string => {

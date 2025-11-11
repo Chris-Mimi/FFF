@@ -1,7 +1,7 @@
 'use client';
 
-import WODModal, { WODFormData, WODSection } from '@/components/WODModal';
-import SessionManagementModal from '@/components/SessionManagementModal';
+import WODModal, { WODFormData, WODSection } from '@/components/coach/WODModal';
+import SessionManagementModal from '@/components/coach/SessionManagementModal';
 import { getCurrentUser, signOut } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import {

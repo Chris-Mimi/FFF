@@ -1,6 +1,6 @@
 'use client';
 
-import TenCardModal from '@/components/TenCardModal';
+import TenCardModal from '@/components/coach/TenCardModal';
 import { signOut } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import { Check, Clock, LogOut, UserCheck, UserX, X } from 'lucide-react';

@@ -45,30 +45,44 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
   const fetchPersonalRecords = async () => {
     setLoading(true);
     try {
-      // Fetch benchmark PRs
-      const { data: benchmarkData, error: benchmarkError } = await supabase
+      // Get list of regular benchmark names
+      const { data: benchmarkNames } = await supabase
+        .from('benchmark_workouts')
+        .select('name');
+
+      const regularBenchmarkNames = new Set((benchmarkNames || []).map(b => b.name));
+
+      // Get list of forge benchmark names
+      const { data: forgeNames } = await supabase
+        .from('forge_benchmarks')
+        .select('name');
+
+      const forgeBenchmarkNames = new Set((forgeNames || []).map(b => b.name));
+
+      // Fetch all benchmark results
+      const { data: allResults, error: resultsError } = await supabase
         .from('benchmark_results')
         .select('*')
         .eq('user_id', userId)
         .order('workout_date', { ascending: false });
 
-      if (benchmarkError) throw benchmarkError;
+      if (resultsError) throw resultsError;
 
-      // Group by benchmark name and find best result for each scaling
+      // Separate regular benchmarks from forge benchmarks
+      const benchmarkData = (allResults || []).filter(r => regularBenchmarkNames.has(r.benchmark_name));
+      const forgeData = (allResults || []).filter(r => forgeBenchmarkNames.has(r.benchmark_name));
+
+      // Process regular benchmark PRs
       const benchmarkMap = new Map<string, BenchmarkResult>();
-      (benchmarkData || []).forEach(result => {
+      benchmarkData.forEach(result => {
         const key = `${result.benchmark_name}-${result.scaling}`;
         const existing = benchmarkMap.get(key);
 
-        // For time-based workouts, shorter is better
-        // For rep-based workouts, more is better
-        // This is a simplified approach - you might want to add more logic
         if (!existing || new Date(result.workout_date) > new Date(existing.workout_date)) {
           benchmarkMap.set(key, result);
         }
       });
 
-      // Keep only the best result per benchmark (prioritize Rx over scaled)
       const finalBenchmarkPRs = new Map<string, BenchmarkResult>();
       benchmarkMap.forEach((result, key) => {
         const benchmarkName = result.benchmark_name;
@@ -81,24 +95,9 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
 
       setBenchmarkPRs(Array.from(finalBenchmarkPRs.values()));
 
-      // Fetch forge benchmark PRs (same logic but different table source)
-      const { data: forgeData, error: forgeError } = await supabase
-        .from('benchmark_results')
-        .select('*')
-        .eq('user_id', userId)
-        .order('workout_date', { ascending: false });
-
-      if (forgeError) throw forgeError;
-
-      // Filter for forge benchmarks (you might need to adjust this logic based on your data structure)
-      const forgeResults = (forgeData || []).filter(result => {
-        // This assumes forge benchmarks have a different naming pattern or are stored differently
-        // You might need to adjust this based on your actual data structure
-        return result.benchmark_name; // Placeholder logic
-      });
-
+      // Process forge benchmark PRs
       const forgeMap = new Map<string, BenchmarkResult>();
-      forgeResults.forEach(result => {
+      forgeData.forEach(result => {
         const key = `${result.benchmark_name}-${result.scaling}`;
         const existing = forgeMap.get(key);
 
