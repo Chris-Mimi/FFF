@@ -1,4 +1,4 @@
-// LogbookTab component
+// AthletePageLogbookTab component
 'use client';
 
 import { supabase } from '@/lib/supabase';
@@ -15,12 +15,12 @@ interface WOD {
   published_section_ids?: string[];
 }
 
-interface LogbookTabProps {
+interface AthletePageLogbookTabProps {
   userId: string;
   initialDate?: Date;
 }
 
-export default function LogbookTab({ userId, initialDate }: LogbookTabProps) {
+export default function AthletePageLogbookTab({ userId, initialDate }: AthletePageLogbookTabProps) {
   const [selectedDate, setSelectedDate] = useState(initialDate || new Date());
   const [viewMode, setViewMode] = useState<'day' | 'week' | 'month'>('week');
   const [expandedWorkoutId, setExpandedWorkoutId] = useState<string | null>(null);
