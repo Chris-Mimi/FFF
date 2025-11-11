@@ -1,25 +1,17 @@
-// AthleteWorkoutsTab component
+// AthletePageWorkoutsTab component
 'use client';
 
 import { getCurrentUser, signOut } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import {
-  Award,
-  BookOpen,
-  Calendar,
-  Dumbbell,
-  LogOut,
-  Shield,
-  Target,
-  Trophy,
-  User
+  LogOut
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 type TabName = 'profile' | 'workouts' | 'logbook' | 'benchmarks' | 'forge-benchmarks' | 'lifts' | 'records' | 'security';
 
-export default function AthleteWorkoutsTab() {
+export default function AthletePageWorkoutsTab() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabName>('profile');
   const [userName, setUserName] = useState('');
@@ -129,48 +121,6 @@ export default function AthleteWorkoutsTab() {
       </div>
     );
   }
-
-  const tabs = [
-    { id: 'profile' as TabName, label: 'Profile', icon: User },
-    { id: 'workouts' as TabName, label: 'Workouts', icon: Calendar },
-    { id: 'logbook' as TabName, label: 'Athlete Logbook', icon: BookOpen },
-    { id: 'benchmarks' as TabName, label: 'Benchmark Workouts', icon: Trophy },
-    { id: 'forge-benchmarks' as TabName, label: 'Forge Benchmarks', icon: Target },
-    { id: 'lifts' as TabName, label: 'Barbell Lifts', icon: Dumbbell },
-    { id: 'records' as TabName, label: 'Personal Records', icon: Award },
-    { id: 'security' as TabName, label: 'Access & Security', icon: Shield },
-  ];
-
-  const renderTabContent = () => {
-    if (!userId || !activeProfileId) return null;
-
-    switch (activeTab) {
-      case 'profile':
-        return <ProfileTab userName={selectedProfileName} userId={activeProfileId} />;
-      case 'workouts':
-        return <AthleteWorkoutsTab
-          userId={activeProfileId}
-          onNavigateToLogbook={(date) => {
-            setLogbookDate(date);
-            setActiveTab('logbook');
-          }}
-        />;
-      case 'logbook':
-        return <LogbookTab userId={activeProfileId} initialDate={logbookDate} />;
-      case 'benchmarks':
-        return <BenchmarksTab userId={activeProfileId} />;
-      case 'forge-benchmarks':
-        return <ForgeBenchmarksTab userId={activeProfileId} />;
-      case 'lifts':
-        return <LiftsTab userId={activeProfileId} />;
-      case 'records':
-        return <RecordsTab userId={activeProfileId} />;
-      case 'security':
-        return <SecurityTab />;
-      default:
-        return null;
-    }
-  };
 
   return (
     <div className='min-h-screen bg-gray-400'>
