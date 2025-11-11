@@ -2,7 +2,7 @@
 'use client';
 
 import { supabase } from '@/lib/supabase';
-import { Award, ChevronDown, ChevronRight } from 'lucide-react';
+import { Award, ChevronDown, ChevronRight, Trophy, Target, Flame, Dumbbell } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface BenchmarkResult {
@@ -178,6 +178,47 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
       <div className='bg-white rounded-lg shadow p-6'>
         <h2 className='text-2xl font-bold text-gray-900 mb-2'>Personal Records</h2>
         <p className='text-gray-600 mb-6'>All your personal bests in one place.</p>
+
+        {/* Info Summary Boxes */}
+        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8'>
+          {/* Total PRs */}
+          <div className='bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-lg p-4'>
+            <div className='flex items-center justify-between mb-2'>
+              <h3 className='text-sm font-semibold text-gray-700'>Total PRs</h3>
+              <Trophy size={24} className='text-purple-600' />
+            </div>
+            <p className='text-3xl font-bold text-gray-900'>
+              {benchmarkPRs.length + forgeBenchmarkPRs.length + liftPRs.length}
+            </p>
+          </div>
+
+          {/* Benchmark WODs */}
+          <div className='bg-gradient-to-br from-yellow-50 to-orange-100 border border-orange-200 rounded-lg p-4'>
+            <div className='flex items-center justify-between mb-2'>
+              <h3 className='text-sm font-semibold text-gray-700'>Benchmark WODs</h3>
+              <Target size={24} className='text-orange-600' />
+            </div>
+            <p className='text-3xl font-bold text-gray-900'>{benchmarkPRs.length}</p>
+          </div>
+
+          {/* Forge Benchmarks */}
+          <div className='bg-gradient-to-br from-cyan-50 to-blue-100 border border-blue-200 rounded-lg p-4'>
+            <div className='flex items-center justify-between mb-2'>
+              <h3 className='text-sm font-semibold text-gray-700'>Forge Benchmarks</h3>
+              <Flame size={24} className='text-cyan-600' />
+            </div>
+            <p className='text-3xl font-bold text-gray-900'>{forgeBenchmarkPRs.length}</p>
+          </div>
+
+          {/* Barbell Lifts */}
+          <div className='bg-gradient-to-br from-gray-50 to-slate-100 border border-slate-200 rounded-lg p-4'>
+            <div className='flex items-center justify-between mb-2'>
+              <h3 className='text-sm font-semibold text-gray-700'>Barbell Lifts</h3>
+              <Dumbbell size={24} className='text-gray-600' />
+            </div>
+            <p className='text-3xl font-bold text-gray-900'>{liftPRs.length}</p>
+          </div>
+        </div>
 
         {/* Benchmark Workouts Section */}
         <div className='mb-8'>

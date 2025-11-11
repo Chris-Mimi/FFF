@@ -2,7 +2,7 @@
 'use client';
 
 import { supabase } from '@/lib/supabase';
-import { Edit2, Target, Trash2 } from 'lucide-react';
+import { Edit2, Target, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import {
   CartesianGrid,
@@ -36,8 +36,13 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
   const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0]);
   const [newScaling, setNewScaling] = useState<'Rx' | 'Sc1' | 'Sc2' | 'Sc3'>('Rx');
   const [benchmarkHistory, setBenchmarkHistory] = useState<BenchmarkResult[]>([]);
+  const [recentBenchmarks, setRecentBenchmarks] = useState<BenchmarkResult[]>([]);
   const [editingBenchmarkId, setEditingBenchmarkId] = useState<string | null>(null);
   const [benchmarks, setBenchmarks] = useState<Array<{ name: string; type: string; description: string }>>([]);
+  const [expandedSections, setExpandedSections] = useState({
+    recent: true,
+    charts: true,
+  });
 
   useEffect(() => {
     fetchBenchmarks();
@@ -61,6 +66,13 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
 
   const fetchBenchmarkHistory = async () => {
     try {
+      // Get list of forge benchmark names
+      const { data: forgeNames } = await supabase
+        .from('forge_benchmarks')
+        .select('name');
+
+      const forgeBenchmarkNames = new Set((forgeNames || []).map(b => b.name));
+
       const { data, error } = await supabase
         .from('benchmark_results')
         .select('*')
@@ -68,7 +80,11 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
         .order('workout_date', { ascending: false });
 
       if (error) throw error;
-      setBenchmarkHistory(data || []);
+
+      // Filter to only forge benchmarks
+      const forgeResults = (data || []).filter(r => forgeBenchmarkNames.has(r.benchmark_name));
+      setBenchmarkHistory(forgeResults);
+      setRecentBenchmarks(forgeResults.slice(0, 10));
     } catch (error) {
       console.error('Error fetching benchmark history:', error);
     }
@@ -174,6 +190,15 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
       .filter(entry => entry.benchmark_name === benchmarkName)
       .sort((a, b) => new Date(a.workout_date).getTime() - new Date(b.workout_date).getTime());
 
+    // Find best result for each scaling level to mark as PR
+    const prsByScaling = new Map<string, BenchmarkResult>();
+    results.forEach(result => {
+      const existing = prsByScaling.get(result.scaling || '');
+      if (!existing) {
+        prsByScaling.set(result.scaling || '', result);
+      }
+    });
+
     return results.map(entry => {
       // Convert time strings to seconds for charting
       const timeToSeconds = (timeStr: string) => {
@@ -192,8 +217,26 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
         value: timeToSeconds(entry.result),
         resultDisplay: entry.result,
         scaling: entry.scaling,
+        isPR: prsByScaling.get(entry.scaling || '')?.id === entry.id,
       };
     });
+  };
+
+  // Custom dot component to render PR badges
+  const CustomDot = (props: any) => {
+    const { cx, cy, payload } = props;
+    if (payload.isPR) {
+      return (
+        <g>
+          <circle cx={cx} cy={cy} r={6} fill='#208479' stroke='#fff' strokeWidth={2} />
+          <circle cx={cx} cy={cy} r={10} fill='red' opacity={0.8} />
+          <text x={cx} y={cy + 4} textAnchor='middle' fill='white' fontSize={10} fontWeight='bold'>
+            PR
+          </text>
+        </g>
+      );
+    }
+    return <circle cx={cx} cy={cy} r={4} fill='#208479' stroke='#fff' strokeWidth={2} />;
   };
 
   const sortedBenchmarks = benchmarks
@@ -265,6 +308,117 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
             );
           })}
         </div>
+      </div>
+
+      {/* Recent Forge Benchmarks Section */}
+      <div className='bg-white rounded-lg shadow p-6'>
+        <button
+          onClick={() => setExpandedSections(prev => ({ ...prev, recent: !prev.recent }))}
+          className='flex items-center gap-2 text-2xl font-bold text-gray-900 mb-4 hover:text-[#208479] transition'
+        >
+          {expandedSections.recent ? <ChevronDown size={24} /> : <ChevronRight size={24} />}
+          Recent Forge Benchmarks
+        </button>
+
+        {expandedSections.recent && (
+          <div className='space-y-2'>
+            {recentBenchmarks.length > 0 ? (
+              recentBenchmarks.map(result => (
+                <div key={result.id} className='flex items-center justify-between p-3 bg-gradient-to-r from-cyan-50 to-blue-50 border border-blue-200 rounded-lg'>
+                  <div className='flex-1'>
+                    <div className='flex items-center gap-2 mb-1'>
+                      <h4 className='font-bold text-gray-900'>{result.benchmark_name}</h4>
+                      <span
+                        className={`text-xs px-2 py-1 rounded ${
+                          result.scaling === 'Rx'
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-orange-100 text-orange-700'
+                        }`}
+                      >
+                        {result.scaling}
+                      </span>
+                    </div>
+                    <p className='text-sm text-gray-600'>
+                      {new Date(result.workout_date).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </p>
+                  </div>
+                  <p className='text-lg font-bold text-[#208479]'>{result.result}</p>
+                </div>
+              ))
+            ) : (
+              <p className='text-gray-500 text-center py-8'>No recent forge benchmark results</p>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Progress Charts Section */}
+      <div className='bg-white rounded-lg shadow p-6'>
+        <button
+          onClick={() => setExpandedSections(prev => ({ ...prev, charts: !prev.charts }))}
+          className='flex items-center gap-2 text-2xl font-bold text-gray-900 mb-4 hover:text-[#208479] transition'
+        >
+          {expandedSections.charts ? <ChevronDown size={24} /> : <ChevronRight size={24} />}
+          Progress Charts
+        </button>
+
+        {expandedSections.charts && (
+          <div>
+            <p className='text-gray-600 mb-6'>Visualize your improvements over time.</p>
+            <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+              {benchmarks.slice(0, 6).map(benchmark => {
+                const chartData = getBenchmarkChartData(benchmark.name);
+                if (chartData.length < 2) return null; // Only show charts with 2+ data points
+                return (
+                  <div key={benchmark.name} className='border border-gray-300 rounded-lg p-4'>
+                    <h4 className='font-bold text-gray-900 mb-3'>{benchmark.name}</h4>
+                    <ResponsiveContainer width='100%' height={200}>
+                      <LineChart data={chartData}>
+                        <CartesianGrid strokeDasharray='3 3' />
+                        <XAxis dataKey='date' tick={{ fontSize: 12 }} />
+                        <YAxis hide />
+                        <Tooltip
+                          content={({ active, payload }) => {
+                            if (active && payload && payload.length) {
+                              return (
+                                <div className='bg-white p-2 border border-gray-300 rounded shadow-lg'>
+                                  <p className='text-xs text-gray-900 font-semibold'>
+                                    {payload[0].payload.date}
+                                  </p>
+                                  <p className='text-xs text-[#208479] font-semibold'>
+                                    {payload[0].payload.resultDisplay}
+                                  </p>
+                                  <p className='text-xs text-gray-600'>
+                                    {payload[0].payload.scaling}
+                                  </p>
+                                  {payload[0].payload.isPR && (
+                                    <p className='text-xs text-red-600 font-bold'>PR!</p>
+                                  )}
+                                </div>
+                              );
+                            }
+                            return null;
+                          }}
+                        />
+                        <Line
+                          type='monotone'
+                          dataKey='value'
+                          stroke='#208479'
+                          strokeWidth={2}
+                          dot={<CustomDot />}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Add/Edit Benchmark Modal */}
@@ -463,8 +617,7 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
                     dataKey='value'
                     stroke='#208479'
                     strokeWidth={2}
-                    dot={{ fill: '#208479', strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6, stroke: '#208479', strokeWidth: 2 }}
+                    dot={<CustomDot />}
                   />
                 </LineChart>
               </ResponsiveContainer>

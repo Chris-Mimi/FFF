@@ -2,7 +2,7 @@
 'use client';
 
 import { supabase } from '@/lib/supabase';
-import { Dumbbell, Edit2, Trash2 } from 'lucide-react';
+import { Dumbbell, Edit2, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import {
   CartesianGrid,
@@ -39,8 +39,13 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
   const [newNotes, setNewNotes] = useState('');
   const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0]);
   const [liftHistory, setLiftHistory] = useState<LiftRecord[]>([]);
+  const [recentLifts, setRecentLifts] = useState<LiftRecord[]>([]);
   const [editingLiftId, setEditingLiftId] = useState<string | null>(null);
   const [lifts, setLifts] = useState<Array<{ name: string; category: string }>>([]);
+  const [expandedSections, setExpandedSections] = useState({
+    recent: true,
+    charts: true,
+  });
 
   useEffect(() => {
     fetchLifts();
@@ -84,6 +89,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
 
       if (error) throw error;
       setLiftHistory(data || []);
+      setRecentLifts((data || []).slice(0, 10));
     } catch (error) {
       console.error('Error fetching lift history:', error);
     }
@@ -202,6 +208,9 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
       .filter(entry => entry.lift_name === liftName && entry.rep_max_type === repMaxType)
       .sort((a, b) => new Date(a.lift_date).getTime() - new Date(b.lift_date).getTime());
 
+    // Find best result for this rep max type to mark as PR
+    const prWeight = results.length > 0 ? Math.max(...results.map(r => r.weight_kg)) : 0;
+
     return results.map(entry => ({
       date: new Date(entry.lift_date).toLocaleDateString('en-US', {
         month: 'short',
@@ -209,6 +218,50 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
       }),
       weight: entry.weight_kg,
       calculated1rm: entry.calculated_1rm,
+      isPR: entry.weight_kg === prWeight,
+    }));
+  };
+
+  // Custom dot component to render PR badges
+  const CustomDot = (props: any) => {
+    const { cx, cy, payload } = props;
+    if (payload.isPR) {
+      return (
+        <g>
+          <circle cx={cx} cy={cy} r={6} fill='#208479' stroke='#fff' strokeWidth={2} />
+          <circle cx={cx} cy={cy} r={10} fill='red' opacity={0.8} />
+          <text x={cx} y={cy + 4} textAnchor='middle' fill='white' fontSize={10} fontWeight='bold'>
+            PR
+          </text>
+        </g>
+      );
+    }
+    return <circle cx={cx} cy={cy} r={4} fill='#208479' stroke='#fff' strokeWidth={2} />;
+  };
+
+  // Get chart data with PR badges for multiple rep max types
+  const getLiftChartDataAllTypes = (liftName: string) => {
+    const results = liftHistory
+      .filter(entry => entry.lift_name === liftName)
+      .sort((a, b) => new Date(a.lift_date).getTime() - new Date(b.lift_date).getTime());
+
+    // Find best result for each rep max type to mark as PR
+    const prsByType = new Map<string, number>();
+    (['1RM', '3RM', '5RM', '10RM'] as const).forEach(type => {
+      const typeRecords = results.filter(r => r.rep_max_type === type);
+      if (typeRecords.length > 0) {
+        prsByType.set(type, Math.max(...typeRecords.map(r => r.weight_kg)));
+      }
+    });
+
+    return results.map(entry => ({
+      date: new Date(entry.lift_date).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+      }),
+      weight: entry.weight_kg,
+      repMaxType: entry.rep_max_type,
+      isPR: entry.weight_kg === prsByType.get(entry.rep_max_type || ''),
     }));
   };
 
@@ -306,6 +359,116 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
             );
           })()}
         </div>
+      </div>
+
+      {/* Recent Lifts Section */}
+      <div className='bg-white rounded-lg shadow p-6'>
+        <button
+          onClick={() => setExpandedSections(prev => ({ ...prev, recent: !prev.recent }))}
+          className='flex items-center gap-2 text-2xl font-bold text-gray-900 mb-4 hover:text-[#208479] transition'
+        >
+          {expandedSections.recent ? <ChevronDown size={24} /> : <ChevronRight size={24} />}
+          Recent Lifts
+        </button>
+
+        {expandedSections.recent && (
+          <div className='space-y-2'>
+            {recentLifts.length > 0 ? (
+              recentLifts.map(lift => (
+                <div key={lift.id} className='flex items-center justify-between p-3 bg-gradient-to-r from-gray-50 to-slate-50 border border-slate-200 rounded-lg'>
+                  <div className='flex-1'>
+                    <div className='flex items-center gap-2 mb-1'>
+                      <h4 className='font-bold text-gray-900'>{lift.lift_name}</h4>
+                      <span className='text-xs px-2 py-1 rounded bg-gray-200 text-gray-700'>
+                        {lift.rep_max_type}
+                      </span>
+                    </div>
+                    <p className='text-sm text-gray-600'>
+                      {new Date(lift.lift_date).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </p>
+                  </div>
+                  <div className='text-right'>
+                    <p className='text-lg font-bold text-[#208479]'>{lift.weight_kg}kg</p>
+                    {lift.calculated_1rm && lift.rep_max_type !== '1RM' && (
+                      <p className='text-sm text-gray-500'>Est. 1RM: {lift.calculated_1rm}kg</p>
+                    )}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className='text-gray-500 text-center py-8'>No recent lift results</p>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Progress Charts Section */}
+      <div className='bg-white rounded-lg shadow p-6'>
+        <button
+          onClick={() => setExpandedSections(prev => ({ ...prev, charts: !prev.charts }))}
+          className='flex items-center gap-2 text-2xl font-bold text-gray-900 mb-4 hover:text-[#208479] transition'
+        >
+          {expandedSections.charts ? <ChevronDown size={24} /> : <ChevronRight size={24} />}
+          Progress Charts
+        </button>
+
+        {expandedSections.charts && (
+          <div>
+            <p className='text-gray-600 mb-6'>Visualize your strength gains over time.</p>
+            <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+              {lifts.slice(0, 6).map(lift => {
+                const chartData = getLiftChartDataAllTypes(lift.name);
+                if (chartData.length < 2) return null; // Only show charts with 2+ data points
+                return (
+                  <div key={lift.name} className='border border-gray-300 rounded-lg p-4'>
+                    <h4 className='font-bold text-gray-900 mb-3'>{lift.name}</h4>
+                    <ResponsiveContainer width='100%' height={200}>
+                      <LineChart data={chartData}>
+                        <CartesianGrid strokeDasharray='3 3' />
+                        <XAxis dataKey='date' tick={{ fontSize: 12 }} />
+                        <YAxis />
+                        <Tooltip
+                          content={({ active, payload }) => {
+                            if (active && payload && payload.length) {
+                              return (
+                                <div className='bg-white p-2 border border-gray-300 rounded shadow-lg'>
+                                  <p className='text-xs text-gray-900 font-semibold'>
+                                    {payload[0].payload.date}
+                                  </p>
+                                  <p className='text-xs text-[#208479] font-semibold'>
+                                    {payload[0].payload.weight}kg
+                                  </p>
+                                  <p className='text-xs text-gray-600'>
+                                    {payload[0].payload.repMaxType}
+                                  </p>
+                                  {payload[0].payload.isPR && (
+                                    <p className='text-xs text-red-600 font-bold'>PR!</p>
+                                  )}
+                                </div>
+                              );
+                            }
+                            return null;
+                          }}
+                        />
+                        <Line
+                          type='monotone'
+                          dataKey='weight'
+                          stroke='#208479'
+                          strokeWidth={2}
+                          dot={<CustomDot />}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Add/Edit Lift Modal */}
@@ -517,8 +680,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                     dataKey='weight'
                     stroke='#208479'
                     strokeWidth={2}
-                    dot={{ fill: '#208479', strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6, stroke: '#208479', strokeWidth: 2 }}
+                    dot={<CustomDot />}
                   />
                 </LineChart>
               </ResponsiveContainer>
