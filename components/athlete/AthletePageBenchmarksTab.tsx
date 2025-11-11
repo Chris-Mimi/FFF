@@ -1,4 +1,4 @@
-// BenchmarksTab component
+// AthletePageBenchmarksTab component
 'use client';
 
 import { supabase } from '@/lib/supabase';
@@ -24,11 +24,11 @@ interface BenchmarkResult {
   scaling?: string;
 }
 
-interface BenchmarksTabProps {
+interface AthletePageBenchmarksTabProps {
   userId: string;
 }
 
-export default function BenchmarksTab({ userId }: BenchmarksTabProps) {
+export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmarksTabProps) {
   const [selectedBenchmark, setSelectedBenchmark] = useState<string | null>(null);
   const [chartBenchmark, setChartBenchmark] = useState<string | null>(null);
   const [newTime, setNewTime] = useState('');
