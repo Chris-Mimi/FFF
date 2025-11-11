@@ -1,4 +1,4 @@
-// RecordsTab component
+// AthletePageRecordsTab component
 'use client';
 
 import { supabase } from '@/lib/supabase';
@@ -22,11 +22,11 @@ interface LiftRecord {
   lift_date: string;
 }
 
-interface RecordsTabProps {
+interface AthletePageRecordsTabProps {
   userId: string;
 }
 
-export default function RecordsTab({ userId }: RecordsTabProps) {
+export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabProps) {
   const [benchmarkPRs, setBenchmarkPRs] = useState<BenchmarkResult[]>([]);
   const [forgeBenchmarkPRs, setForgeBenchmarkPRs] = useState<BenchmarkResult[]>([]);
   const [liftPRs, setLiftPRs] = useState<LiftRecord[]>([]);
