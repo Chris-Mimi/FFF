@@ -1,4 +1,4 @@
-// LiftsTab component
+// AthletePageLiftsTab component
 'use client';
 
 import { supabase } from '@/lib/supabase';
@@ -26,11 +26,11 @@ interface LiftRecord {
   lift_date: string;
 }
 
-interface LiftsTabProps {
+interface AthletePageLiftsTabProps {
   userId: string;
 }
 
-export default function LiftsTab({ userId }: LiftsTabProps) {
+export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps) {
   const [selectedLift, setSelectedLift] = useState<string | null>(null);
   const [chartLift, setChartLift] = useState<string | null>(null);
   const [chartRepMaxType, setChartRepMaxType] = useState<'1RM' | '3RM' | '5RM' | '10RM'>('1RM');
