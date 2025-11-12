@@ -215,6 +215,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
       date: new Date(entry.lift_date).toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
+        year: 'numeric',
       }),
       weight: entry.weight_kg,
       calculated1rm: entry.calculated_1rm,
@@ -268,6 +269,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
       date: new Date(entry.lift_date).toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
+        year: 'numeric',
       }),
       weight: entry.weight_kg,
       repMaxType: entry.rep_max_type,
@@ -385,7 +387,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
           <div className='space-y-2'>
             {recentLifts.length > 0 ? (
               recentLifts.map(lift => (
-                <div key={lift.id} className='flex items-center justify-between p-3 bg-gradient-to-r from-sky-50 to-blue-100 border border-sky-300 rounded-lg'>
+                <div key={lift.id} className='flex items-center justify-between p-3 bg-gradient-to-r from-sky-100 to-blue-200 border border-sky-300 rounded-lg'>
                   <div className='flex-1'>
                     <div className='flex items-center gap-2 mb-1'>
                       <h4 className='font-bold text-gray-900'>{lift.lift_name}</h4>
@@ -434,11 +436,11 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                 const chartData = getLiftChartDataAllTypes(lift.name);
                 if (chartData.length < 2) return null; // Only show charts with 2+ data points
                 return (
-                  <div key={lift.name} className='border border-gray-300 rounded-lg p-4'>
+                  <div key={lift.name} className='border border-sky-300 rounded-lg p-4 bg-gradient-to-br from-sky-200 to-blue-300'>
                     <h4 className='font-bold text-gray-900 mb-3'>{lift.name}</h4>
                     <ResponsiveContainer width='100%' height={200}>
                       <LineChart data={chartData}>
-                        <CartesianGrid strokeDasharray='3 3' />
+                        <CartesianGrid strokeDasharray='3 3' stroke='white' />
                         <XAxis dataKey='date' tick={{ fontSize: 12 }} />
                         <YAxis />
                         <Tooltip

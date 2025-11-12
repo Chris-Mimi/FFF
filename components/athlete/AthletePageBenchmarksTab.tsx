@@ -170,12 +170,35 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
     const rxResults = results.filter(r => r.scaling === 'Rx');
     const scaledResults = results.filter(r => r.scaling !== 'Rx');
 
+    const timeToSeconds = (timeStr: string) => {
+      if (timeStr.includes(':')) {
+        const parts = timeStr.split(':');
+        return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+      }
+      return parseInt(timeStr) || 0;
+    };
+
     const getBestTime = (results: BenchmarkResult[]) => {
       if (results.length === 0) return null;
-      // For time-based workouts, find the shortest time
-      // For rep-based workouts, find the highest reps
-      // This is a simplified approach - you might want to add more logic
-      return results[0]; // Since we're already sorted by date desc, this gets the most recent
+
+      // Determine if time-based (contains colon) or rep-based
+      const isTimeBased = results[0].result.includes(':');
+
+      if (isTimeBased) {
+        // For time-based: find LOWEST time (best)
+        return results.reduce((best, current) => {
+          const bestSeconds = timeToSeconds(best.result);
+          const currentSeconds = timeToSeconds(current.result);
+          return currentSeconds < bestSeconds ? current : best;
+        });
+      } else {
+        // For rep-based: find HIGHEST reps (best)
+        return results.reduce((best, current) => {
+          const bestReps = parseInt(best.result) || 0;
+          const currentReps = parseInt(current.result) || 0;
+          return currentReps > bestReps ? current : best;
+        });
+      }
     };
 
     return {
@@ -189,12 +212,40 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
       .filter(entry => entry.benchmark_name === benchmarkName)
       .sort((a, b) => new Date(a.workout_date).getTime() - new Date(b.workout_date).getTime());
 
+    const timeToSeconds = (timeStr: string) => {
+      if (timeStr.includes(':')) {
+        const parts = timeStr.split(':');
+        return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+      }
+      return parseInt(timeStr) || 0;
+    };
+
     // Find best result for each scaling level to mark as PR
     const prsByScaling = new Map<string, BenchmarkResult>();
     results.forEach(result => {
       const existing = prsByScaling.get(result.scaling || '');
+
       if (!existing) {
         prsByScaling.set(result.scaling || '', result);
+      } else {
+        // Determine if time-based or rep-based
+        const isTimeBased = result.result.includes(':');
+
+        if (isTimeBased) {
+          // For time-based: lower is better
+          const existingSeconds = timeToSeconds(existing.result);
+          const currentSeconds = timeToSeconds(result.result);
+          if (currentSeconds < existingSeconds) {
+            prsByScaling.set(result.scaling || '', result);
+          }
+        } else {
+          // For rep-based: higher is better
+          const existingReps = parseInt(existing.result) || 0;
+          const currentReps = parseInt(result.result) || 0;
+          if (currentReps > existingReps) {
+            prsByScaling.set(result.scaling || '', result);
+          }
+        }
       }
     });
 
@@ -212,6 +263,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
         date: new Date(entry.workout_date).toLocaleDateString('en-US', {
           month: 'short',
           day: 'numeric',
+          year: 'numeric',
         }),
         value: timeToSeconds(entry.result),
         resultDisplay: entry.result,
@@ -226,11 +278,11 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
     const { cx, cy, payload } = props;
     if (payload.isPR) {
       // Determine badge color based on scaling level
-      let badgeColor = '#ef4444'; // Red for Rx (default)
+      let badgeColor = '#dc2626'; // Red (red-600) for Rx
       if (payload.scaling === 'Sc1') {
-        badgeColor = '#3b82f6'; // Blue for Sc1
+        badgeColor = '#1e40af'; // Dark blue (blue-800) for Sc1
       } else if (payload.scaling === 'Sc2') {
-        badgeColor = '#93c5fd'; // Light blue for Sc2
+        badgeColor = '#3b82f6'; // Blue (blue-500) for Sc2
       }
 
       return (
@@ -331,15 +383,19 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
           <div className='space-y-2'>
             {recentBenchmarks.length > 0 ? (
               recentBenchmarks.map(result => (
-                <div key={result.id} className='flex items-center justify-between p-3 bg-gradient-to-r from-teal-50 to-teal-100 border border-teal-300 rounded-lg'>
+                <div key={result.id} className='flex items-center justify-between p-3 bg-gradient-to-r from-teal-100 to-teal-200 border border-teal-300 rounded-lg'>
                   <div className='flex-1'>
                     <div className='flex items-center gap-2 mb-1'>
                       <h4 className='font-bold text-gray-900'>{result.benchmark_name}</h4>
                       <span
                         className={`text-xs px-2 py-1 rounded ${
                           result.scaling === 'Rx'
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-orange-100 text-orange-700'
+                            ? 'bg-red-600 text-white'
+                            : result.scaling === 'Sc1'
+                            ? 'bg-blue-800 text-white'
+                            : result.scaling === 'Sc2'
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-slate-600 text-white'
                         }`}
                       >
                         {result.scaling}
@@ -381,11 +437,11 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                 const chartData = getBenchmarkChartData(benchmark.name);
                 if (chartData.length < 2) return null; // Only show charts with 2+ data points
                 return (
-                  <div key={benchmark.name} className='border border-gray-300 rounded-lg p-4'>
+                  <div key={benchmark.name} className='border border-teal-300 rounded-lg p-4 bg-gradient-to-br from-teal-200 to-teal-300'>
                     <h4 className='font-bold text-gray-900 mb-3'>{benchmark.name}</h4>
                     <ResponsiveContainer width='100%' height={200}>
                       <LineChart data={chartData}>
-                        <CartesianGrid strokeDasharray='3 3' />
+                        <CartesianGrid strokeDasharray='3 3' stroke='white' />
                         <XAxis dataKey='date' tick={{ fontSize: 12 }} />
                         <YAxis hide />
                         <Tooltip
@@ -552,8 +608,12 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                           <span
                             className={`text-xs px-2 py-1 rounded ${
                               entry.scaling === 'Rx'
-                                ? 'bg-green-100 text-green-700'
-                                : 'bg-orange-100 text-orange-700'
+                                ? 'bg-red-100 text-red-700'
+                                : entry.scaling === 'Sc1'
+                                ? 'bg-blue-100 text-blue-700'
+                                : entry.scaling === 'Sc2'
+                                ? 'bg-sky-100 text-sky-700'
+                                : 'bg-slate-100 text-slate-700'
                             }`}
                           >
                             {entry.scaling}
