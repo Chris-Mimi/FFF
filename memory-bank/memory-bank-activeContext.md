@@ -1,6 +1,6 @@
 # Active Context
 
-**Version:** 4.3
+**Version:** 4.4
 **Updated:** 2025-11-12
 
 ---
@@ -62,24 +62,19 @@ Athlete Tables (linked to members.id)
 
 ## 📍 Current Status (Last 2 Weeks)
 
-**Completed (2025-11-12 Session 2):**
-- **Athlete Page Tab Enhancements:**
-  - ✅ Added Recent sections (last 10 results) to Benchmarks, Forge Benchmarks, and Lifts tabs
-  - ✅ Added Progress Charts with red PR badges for best results per scaling level/rep max type
-  - ✅ Implemented CustomDot component for PR badge rendering on charts
-  - ✅ Added info summary boxes to Records tab (benchmark/forge/lift stats)
-  - ✅ Properly filtered benchmark vs forge benchmark results in queries
-  - Commit: f4fb134 on augment-refactor branch
-  - See `project-history/2025-11-12-athlete-tabs-enhancements.md` for details
+**Completed (2025-11-12 Session 3):**
+- **Athlete Tabs UI & Critical PR Logic Fix:**
+  - ✅ Fixed critical bug: Time-based PRs now show BEST (lowest) time, not most recent (Fran: 7:55 not 10:31)
+  - ✅ Consistent teal schemes: Medium Teal (Benchmarks), Electric Teal (Forge), Teal Blue (Lifts)
+  - ✅ Full-width charts, white grid lines, year in dates, scaling badge colors (Rx=red, Sc1=dark blue, Sc2=blue)
+  - Commits: 7134361, fb310e3, 7d0e28e (augment-refactor, pushed)
+  - See `project-history/2025-11-12-athlete-tabs-ui-pr-fixes.md`
 
-**Completed (2025-11-12 Session 1):**
-- **Athlete Page Refactoring:**
-  - ✅ Split athlete/page.tsx from 2000+ lines to 268 lines
-  - ✅ Extracted 8 tab components to components/athlete/ directory
-  - ✅ Components: Benchmarks, ForgeBenchmarks, Lifts, Logbook, Profile, Records, Security, Workouts tabs
-  - ✅ Improved maintainability and debugging capabilities
-  - Commits: 13f33a5 (main page), 2ee2e2b (Security), af9dd4e (Records)
-  - Branch: augment-refactor
+**Completed (2025-11-12 Sessions 1-2):**
+- **Athlete Page Refactoring & Tab Enhancements:**
+  - ✅ Split athlete/page.tsx: 2000+ lines → 268 lines, 8 tab components extracted
+  - ✅ Added Recent sections, Progress Charts, PR badges to Benchmarks/Forge/Lifts tabs
+  - Commits: 13f33a5, 2ee2e2b, af9dd4e, f4fb134 (augment-refactor)
 
 **Completed (2025-11-09 Session 2):**
 - **Workflow Protocol Fixes (Critical):**
