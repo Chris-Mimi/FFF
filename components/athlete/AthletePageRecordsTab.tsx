@@ -193,16 +193,16 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
           </div>
 
           {/* Benchmark WODs */}
-          <div className='bg-gradient-to-br from-yellow-50 to-orange-100 border border-orange-200 rounded-lg p-4'>
+          <div className='bg-gradient-to-br from-teal-50 to-teal-100 border border-teal-300 rounded-lg p-4'>
             <div className='flex items-center justify-between mb-2'>
               <h3 className='text-sm font-semibold text-gray-700'>Benchmark WODs</h3>
-              <Target size={24} className='text-orange-600' />
+              <Target size={24} className='text-teal-600' />
             </div>
             <p className='text-3xl font-bold text-gray-900'>{benchmarkPRs.length}</p>
           </div>
 
           {/* Forge Benchmarks */}
-          <div className='bg-gradient-to-br from-cyan-50 to-blue-100 border border-blue-200 rounded-lg p-4'>
+          <div className='bg-gradient-to-br from-cyan-50 to-cyan-100 border border-cyan-300 rounded-lg p-4'>
             <div className='flex items-center justify-between mb-2'>
               <h3 className='text-sm font-semibold text-gray-700'>Forge Benchmarks</h3>
               <Flame size={24} className='text-cyan-600' />
@@ -211,10 +211,10 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
           </div>
 
           {/* Barbell Lifts */}
-          <div className='bg-gradient-to-br from-gray-50 to-slate-100 border border-slate-200 rounded-lg p-4'>
+          <div className='bg-gradient-to-br from-sky-50 to-blue-100 border border-sky-300 rounded-lg p-4'>
             <div className='flex items-center justify-between mb-2'>
               <h3 className='text-sm font-semibold text-gray-700'>Barbell Lifts</h3>
-              <Dumbbell size={24} className='text-gray-600' />
+              <Dumbbell size={24} className='text-sky-600' />
             </div>
             <p className='text-3xl font-bold text-gray-900'>{liftPRs.length}</p>
           </div>
@@ -234,10 +234,10 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6'>
               {benchmarkPRs.length > 0 ? (
                 benchmarkPRs.map(pr => (
-                  <div key={pr.id} className='border border-gray-300 rounded-lg p-4 bg-gradient-to-br from-yellow-50 to-orange-50'>
+                  <div key={pr.id} className='border border-teal-300 rounded-lg p-4 bg-gradient-to-br from-teal-50 to-teal-100'>
                     <div className='flex items-start justify-between mb-2'>
                       <h4 className='font-bold text-gray-900'>{pr.benchmark_name}</h4>
-                      <Award size={18} className='text-yellow-600 flex-shrink-0' />
+                      <Award size={18} className='text-teal-600 flex-shrink-0' />
                     </div>
                     <div className='space-y-1'>
                       <p className='text-lg font-bold text-[#208479]'>{pr.result}</p>
@@ -283,7 +283,7 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6'>
               {forgeBenchmarkPRs.length > 0 ? (
                 forgeBenchmarkPRs.map(pr => (
-                  <div key={pr.id} className='border border-gray-300 rounded-lg p-4 bg-gradient-to-br from-cyan-50 to-blue-50'>
+                  <div key={pr.id} className='border border-cyan-300 rounded-lg p-4 bg-gradient-to-br from-cyan-50 to-cyan-100'>
                     <div className='flex items-start justify-between mb-2'>
                       <h4 className='font-bold text-gray-900'>{pr.benchmark_name}</h4>
                       <Award size={18} className='text-cyan-600 flex-shrink-0' />
@@ -332,10 +332,10 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
               {liftPRs.length > 0 ? (
                 liftPRs.map(pr => (
-                  <div key={pr.id} className='border border-gray-300 rounded-lg p-4 bg-gradient-to-br from-gray-50 to-slate-50'>
+                  <div key={pr.id} className='border border-sky-300 rounded-lg p-4 bg-gradient-to-br from-sky-50 to-blue-100'>
                     <div className='flex items-start justify-between mb-2'>
                       <h4 className='font-bold text-gray-900'>{pr.lift_name}</h4>
-                      <Award size={18} className='text-gray-600 flex-shrink-0' />
+                      <Award size={18} className='text-sky-600 flex-shrink-0' />
                     </div>
                     <div className='space-y-1'>
                       <p className='text-lg font-bold text-[#208479]'>{pr.weight_kg}kg</p>

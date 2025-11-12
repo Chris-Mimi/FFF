@@ -288,7 +288,7 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
               <div
                 key={benchmark.name}
                 onClick={() => setSelectedBenchmark(benchmark.name)}
-                className='group border border-gray-300 rounded-lg p-3 bg-cyan-100/50 hover:border-[#208479] hover:bg-cyan-100/70 cursor-pointer transition'
+                className='group border border-cyan-300 rounded-lg p-3 bg-cyan-100/50 hover:border-cyan-400 hover:bg-cyan-100/70 cursor-pointer transition'
               >
                 <div className='flex items-start justify-between mb-1'>
                   <h3 className='text-base font-bold text-gray-900'>{benchmark.name}</h3>
@@ -332,7 +332,7 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
           <div className='space-y-2'>
             {recentBenchmarks.length > 0 ? (
               recentBenchmarks.map(result => (
-                <div key={result.id} className='flex items-center justify-between p-3 bg-gradient-to-r from-cyan-50 to-blue-50 border border-blue-200 rounded-lg'>
+                <div key={result.id} className='flex items-center justify-between p-3 bg-gradient-to-r from-cyan-50 to-cyan-100 border border-cyan-300 rounded-lg'>
                   <div className='flex-1'>
                     <div className='flex items-center gap-2 mb-1'>
                       <h4 className='font-bold text-gray-900'>{result.benchmark_name}</h4>

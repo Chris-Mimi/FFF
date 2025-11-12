@@ -303,7 +303,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                     <div
                       key={lift.name}
                       onClick={() => setSelectedLift(lift.name)}
-                      className='group border border-gray-300 rounded-lg p-3 bg-cyan-100/50 hover:border-[#208479] hover:bg-cyan-100/70 cursor-pointer transition'
+                      className='group border border-sky-300 rounded-lg p-3 bg-sky-100/50 hover:border-sky-400 hover:bg-sky-100/70 cursor-pointer transition'
                     >
                       <div className='flex items-start justify-between mb-1'>
                         <h4 className='text-base font-bold text-gray-900'>{lift.name}</h4>
@@ -341,7 +341,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                     <div
                       key={lift.name}
                       onClick={() => setSelectedLift(lift.name)}
-                      className='group border border-gray-300 rounded-lg p-3 bg-cyan-100/50 hover:border-[#208479] hover:bg-cyan-100/70 cursor-pointer transition'
+                      className='group border border-sky-300 rounded-lg p-3 bg-sky-100/50 hover:border-sky-400 hover:bg-sky-100/70 cursor-pointer transition'
                     >
                       <div className='flex items-start justify-between mb-1'>
                         <h4 className='text-base font-bold text-gray-900'>{lift.name}</h4>
@@ -385,7 +385,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
           <div className='space-y-2'>
             {recentLifts.length > 0 ? (
               recentLifts.map(lift => (
-                <div key={lift.id} className='flex items-center justify-between p-3 bg-gradient-to-r from-gray-50 to-slate-50 border border-slate-200 rounded-lg'>
+                <div key={lift.id} className='flex items-center justify-between p-3 bg-gradient-to-r from-sky-50 to-blue-100 border border-sky-300 rounded-lg'>
                   <div className='flex-1'>
                     <div className='flex items-center gap-2 mb-1'>
                       <h4 className='font-bold text-gray-900'>{lift.lift_name}</h4>
