@@ -222,14 +222,22 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
     });
   };
 
-  // Custom dot component to render PR badges
+  // Custom dot component to render PR badges with scaling-based colors
   const CustomDot = (props: any) => {
     const { cx, cy, payload } = props;
     if (payload.isPR) {
+      // Determine badge color based on scaling level
+      let badgeColor = '#ef4444'; // Red for Rx (default)
+      if (payload.scaling === 'Sc1') {
+        badgeColor = '#3b82f6'; // Blue for Sc1
+      } else if (payload.scaling === 'Sc2') {
+        badgeColor = '#93c5fd'; // Light blue for Sc2
+      }
+
       return (
         <g>
           <circle cx={cx} cy={cy} r={6} fill='#208479' stroke='#fff' strokeWidth={2} />
-          <circle cx={cx} cy={cy} r={10} fill='red' opacity={0.8} />
+          <circle cx={cx} cy={cy} r={10} fill={badgeColor} opacity={0.8} />
           <text x={cx} y={cy + 4} textAnchor='middle' fill='white' fontSize={10} fontWeight='bold'>
             PR
           </text>
@@ -369,7 +377,7 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
         {expandedSections.charts && (
           <div>
             <p className='text-gray-600 mb-6'>Visualize your improvements over time.</p>
-            <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+            <div className='grid grid-cols-1 gap-6'>
               {benchmarks.slice(0, 6).map(benchmark => {
                 const chartData = getBenchmarkChartData(benchmark.name);
                 if (chartData.length < 2) return null; // Only show charts with 2+ data points

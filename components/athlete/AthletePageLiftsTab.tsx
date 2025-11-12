@@ -222,14 +222,24 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
     }));
   };
 
-  // Custom dot component to render PR badges
+  // Custom dot component to render PR badges with rep-max-based colors
   const CustomDot = (props: any) => {
     const { cx, cy, payload } = props;
     if (payload.isPR) {
+      // Determine badge color based on rep max type
+      let badgeColor = '#ef4444'; // Red for 1RM (default/most important)
+      if (payload.repMaxType === '3RM') {
+        badgeColor = '#3b82f6'; // Blue for 3RM
+      } else if (payload.repMaxType === '5RM') {
+        badgeColor = '#93c5fd'; // Light blue for 5RM
+      } else if (payload.repMaxType === '10RM') {
+        badgeColor = '#bfdbfe'; // Even lighter blue for 10RM
+      }
+
       return (
         <g>
           <circle cx={cx} cy={cy} r={6} fill='#208479' stroke='#fff' strokeWidth={2} />
-          <circle cx={cx} cy={cy} r={10} fill='red' opacity={0.8} />
+          <circle cx={cx} cy={cy} r={10} fill={badgeColor} opacity={0.8} />
           <text x={cx} y={cy + 4} textAnchor='middle' fill='white' fontSize={10} fontWeight='bold'>
             PR
           </text>
@@ -419,7 +429,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
         {expandedSections.charts && (
           <div>
             <p className='text-gray-600 mb-6'>Visualize your strength gains over time.</p>
-            <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+            <div className='grid grid-cols-1 gap-6'>
               {lifts.slice(0, 6).map(lift => {
                 const chartData = getLiftChartDataAllTypes(lift.name);
                 if (chartData.length < 2) return null; // Only show charts with 2+ data points
