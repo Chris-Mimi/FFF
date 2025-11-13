@@ -278,10 +278,10 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
   };
 
   return (
-    <div className='space-y-6'>
-      <div className='bg-white rounded-lg shadow p-6'>
-        <h2 className='text-2xl font-bold text-gray-900 mb-2'>Barbell Lifts</h2>
-        <p className='text-gray-600 mb-6'>
+    <div className='space-y-6 bg-gray-100 p-6 rounded-lg'>
+      <div className='bg-gray-800 rounded-lg shadow p-6'>
+        <h2 className='text-2xl font-bold text-white mb-2'>Barbell Lifts</h2>
+        <p className='text-gray-300 mb-6'>
           Track your strength progress with barbell movements.
         </p>
 
@@ -396,10 +396,10 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
       </div>
 
       {/* Recent Lifts Section */}
-      <div className='bg-white rounded-lg shadow p-6'>
+      <div className='bg-gray-800 rounded-lg shadow p-6'>
         <button
           onClick={() => setExpandedSections(prev => ({ ...prev, recent: !prev.recent }))}
-          className='flex items-center gap-2 text-2xl font-bold text-gray-900 mb-4 hover:text-[#208479] transition'
+          className='flex items-center gap-2 text-2xl font-bold text-white mb-4 hover:text-[#208479] transition'
         >
           {expandedSections.recent ? <ChevronDown size={24} /> : <ChevronRight size={24} />}
           Recent Lifts
@@ -434,17 +434,17 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                 </div>
               ))
             ) : (
-              <p className='text-gray-500 text-center py-8'>No recent lift results</p>
+              <p className='text-gray-400 text-center py-8'>No recent lift results</p>
             )}
           </div>
         )}
       </div>
 
       {/* Progress Charts Section */}
-      <div className='bg-white rounded-lg shadow p-6'>
+      <div className='bg-gray-800 rounded-lg shadow p-6'>
         <button
           onClick={() => setExpandedSections(prev => ({ ...prev, charts: !prev.charts }))}
-          className='flex items-center gap-2 text-2xl font-bold text-gray-900 mb-4 hover:text-[#208479] transition'
+          className='flex items-center gap-2 text-2xl font-bold text-white mb-4 hover:text-[#208479] transition'
         >
           {expandedSections.charts ? <ChevronDown size={24} /> : <ChevronRight size={24} />}
           Progress Charts
@@ -452,7 +452,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
 
         {expandedSections.charts && (
           <div>
-            <p className='text-gray-600 mb-6'>Visualize your strength gains over time.</p>
+            <p className='text-gray-300 mb-6'>Visualize your strength gains over time.</p>
             <div className='grid grid-cols-1 gap-6'>
               {lifts.slice(0, 6).map(lift => {
                 const chartData = getLiftChartDataAllTypes(lift.name);
