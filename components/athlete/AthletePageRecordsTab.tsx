@@ -2,7 +2,7 @@
 'use client';
 
 import { supabase } from '@/lib/supabase';
-import { ChevronDown, ChevronRight, Trophy, Target, Flame, Dumbbell } from 'lucide-react';
+import { ChevronDown, ChevronRight, Dumbbell, Flame, Target, Trophy } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface BenchmarkResult {
@@ -237,16 +237,16 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
 
   return (
     <div className='space-y-6'>
-      <div className='bg-white rounded-lg shadow p-6'>
-        <h2 className='text-2xl font-bold text-gray-900 mb-2'>Personal Records</h2>
-        <p className='text-gray-600 mb-6'>All your personal bests in one place.</p>
+      <div className='bg-gray-500 rounded-xl shadow-lg p-8'>
+        <h2 className='text-3xl font-extrabold text-gray-50 mb-4'>Personal Records</h2>
+        <p className='text-gray-50 mb-8 leading-relaxed'>All your personal bests in one place.</p>
 
         {/* Info Summary Boxes */}
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8'>
           {/* Total PRs */}
           <div className='bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-lg p-4'>
             <div className='flex items-center justify-between mb-2'>
-              <h3 className='text-sm font-semibold text-gray-700'>Total PRs</h3>
+              <h3 className='text-sm font-semibold text-gray-900'>Total PRs</h3>
               <Trophy size={24} className='text-purple-600' />
             </div>
             <p className='text-3xl font-bold text-gray-900'>
@@ -257,7 +257,7 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
           {/* Benchmark WODs */}
           <div className='bg-gradient-to-br from-teal-50 to-teal-100 border border-teal-300 rounded-lg p-4'>
             <div className='flex items-center justify-between mb-2'>
-              <h3 className='text-sm font-semibold text-gray-700'>Benchmark WODs</h3>
+              <h3 className='text-sm font-semibold text-gray-900'>Benchmark WODs</h3>
               <Target size={24} className='text-teal-600' />
             </div>
             <p className='text-3xl font-bold text-gray-900'>{benchmarkPRs.length}</p>
@@ -266,8 +266,8 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
           {/* Forge Benchmarks */}
           <div className='bg-gradient-to-br from-cyan-50 to-cyan-100 border border-cyan-300 rounded-lg p-4'>
             <div className='flex items-center justify-between mb-2'>
-              <h3 className='text-sm font-semibold text-gray-700'>Forge Benchmarks</h3>
-              <Flame size={24} className='text-cyan-600' />
+              <h3 className='text-sm font-semibold text-gray-900'>Forge Benchmarks</h3>
+              <Flame size={24} className='text-cyan-900' />
             </div>
             <p className='text-3xl font-bold text-gray-900'>{forgeBenchmarkPRs.length}</p>
           </div>
@@ -286,7 +286,7 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
         <div className='mb-8'>
           <button
             onClick={() => setExpandedSections(prev => ({ ...prev, benchmarks: !prev.benchmarks }))}
-            className='flex items-center gap-2 text-xl font-semibold text-gray-900 mb-4 hover:text-[#208479] transition'
+            className='flex items-center gap-2 text-xl font-semibold text-gray-100 mb-4 hover:text-[#208479] transition'
           >
             {expandedSections.benchmarks ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
             Benchmark Workouts ({benchmarkPRs.length})
@@ -336,7 +336,7 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
         <div className='mb-8'>
           <button
             onClick={() => setExpandedSections(prev => ({ ...prev, forgeBenchmarks: !prev.forgeBenchmarks }))}
-            className='flex items-center gap-2 text-xl font-semibold text-gray-900 mb-4 hover:text-[#208479] transition'
+            className='flex items-center gap-2 text-xl font-semibold text-gray-100 mb-4 hover:text-[#208479] transition'
           >
             {expandedSections.forgeBenchmarks ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
             Forge Benchmarks ({forgeBenchmarkPRs.length})
@@ -386,7 +386,7 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
         <div>
           <button
             onClick={() => setExpandedSections(prev => ({ ...prev, lifts: !prev.lifts }))}
-            className='flex items-center gap-2 text-xl font-semibold text-gray-900 mb-4 hover:text-[#208479] transition'
+            className='flex items-center gap-2 text-xl font-semibold text-gray-100 mb-4 hover:text-[#208479] transition'
           >
             {expandedSections.lifts ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
             Barbell Lifts ({liftPRs.length})
@@ -399,7 +399,7 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
                   <div key={pr.id} className='border border-sky-300 rounded-lg p-4 bg-gradient-to-br from-sky-100 to-blue-200'>
                     <div className='flex items-start justify-between mb-2'>
                       <h4 className='font-bold text-gray-900'>{pr.lift_name}</h4>
-                      <span className='text-xs px-2 py-1 rounded bg-gray-200 text-gray-700'>
+                      <span className='text-xs px-2 py-1 rounded bg-gray-100 text-gray-700'>
                         {pr.rep_max_type}
                       </span>
                     </div>
