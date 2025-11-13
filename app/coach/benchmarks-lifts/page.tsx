@@ -1,26 +1,26 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { ArrowLeft, Plus, Edit2, Trash2, Save, X, GripVertical } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import {
-  DndContext,
   closestCenter,
+  DndContext,
+  DragEndEvent,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
-  DragEndEvent,
 } from '@dnd-kit/core';
 import {
   arrayMove,
+  rectSortingStrategy,
   SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
-  rectSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { ArrowLeft, Edit2, GripVertical, Plus, Save, Trash2, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 interface Benchmark {
   id: string;
@@ -67,7 +67,7 @@ function SortableForgeCard({
       ref={setNodeRef}
       style={style}
       {...attributes}
-      className='border border-gray-200 rounded-lg p-3 bg-teal-100 hover:bg-teal-200 hover:shadow-lg hover:z-10 transition-all group relative'
+      className='border border-gray-200 rounded-lg p-3 bg-cyan-200 hover:bg-cyan-300 hover:shadow-lg hover:z-10 transition-all group relative'
     >
       {/* Drag Handle */}
       <div
@@ -544,7 +544,7 @@ export default function BenchmarksLiftsManagementPage() {
             onClick={() => setActiveTab('forge')}
             className={`px-4 py-2 rounded-lg font-medium transition ${
               activeTab === 'forge'
-                ? 'bg-teal-500 text-white'
+                ? 'bg-cyan-500 text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-50'
             }`}
           >
@@ -554,7 +554,7 @@ export default function BenchmarksLiftsManagementPage() {
             onClick={() => setActiveTab('lifts')}
             className={`px-4 py-2 rounded-lg font-medium transition ${
               activeTab === 'lifts'
-                ? 'bg-teal-500 text-white'
+                ? 'bg-blue-300 text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-50'
             }`}
           >
@@ -624,13 +624,13 @@ export default function BenchmarksLiftsManagementPage() {
             <div className='flex justify-between items-center mb-4'>
               <div className='flex items-center gap-3'>
                 <h2 className='text-xl font-bold text-gray-900'>Forge Benchmarks</h2>
-                <span className='px-3 py-1 bg-teal-100 text-teal-700 rounded-full text-sm font-semibold'>
+                <span className='px-3 py-1 bg-cyan-300 text-gray-700 rounded-full text-sm font-semibold'>
                   {forgeBenchmarks.length}
                 </span>
               </div>
               <button
                 onClick={() => openForgeModal()}
-                className='px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition flex items-center gap-2'
+                className='px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-300 transition flex items-center gap-2'
               >
                 <Plus size={20} />
                 Add Forge Benchmark
@@ -673,13 +673,13 @@ export default function BenchmarksLiftsManagementPage() {
             <div className='flex justify-between items-center mb-4'>
               <div className='flex items-center gap-3'>
                 <h2 className='text-xl font-bold text-gray-900'>Barbell Lifts</h2>
-                <span className='px-3 py-1 bg-teal-100 text-teal-700 rounded-full text-sm font-semibold'>
+                <span className='px-3 py-1 bg-blue-300 text-gray-700 rounded-full text-sm font-semibold'>
                   {lifts.length}
                 </span>
               </div>
               <button
                 onClick={() => openLiftModal()}
-                className='px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition flex items-center gap-2'
+                className='px-4 py-2 bg-sky-200 text-gray-600 rounded-lg hover:bg-blue-300 transition flex items-center gap-2'
               >
                 <Plus size={20} />
                 Add Lift
@@ -690,7 +690,7 @@ export default function BenchmarksLiftsManagementPage() {
               {lifts.map((lift) => (
                 <div
                   key={lift.id}
-                  className='border border-gray-200 rounded-lg p-3 bg-teal-100 hover:bg-teal-200 hover:shadow-lg hover:z-10 transition-all group relative'
+                  className='border border-gray-200 rounded-lg p-3 bg-blue-300 hover:bg-sky-200 hover:shadow-lg hover:z-10 transition-all group relative'
                 >
                   <div className='absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition'>
                     <button
@@ -724,9 +724,9 @@ export default function BenchmarksLiftsManagementPage() {
       {/* Benchmark Modal */}
       {showBenchmarkModal && (
         <div className='fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center p-4' onClick={() => setShowBenchmarkModal(false)}>
-          <div className='bg-white rounded-lg max-w-lg w-full p-6 shadow-2xl' onClick={(e) => e.stopPropagation()}>
+          <div className='bg-gray-500 rounded-lg max-w-lg w-full p-6 shadow-2xl' onClick={(e) => e.stopPropagation()}>
             <div className='flex justify-between items-center mb-4'>
-              <h3 className='text-xl font-bold text-gray-900'>
+              <h3 className='text-xl font-bold text-gray-100'>
                 {editingBenchmark ? 'Edit Benchmark' : 'Add Benchmark'}
               </h3>
               <button
@@ -739,7 +739,7 @@ export default function BenchmarksLiftsManagementPage() {
 
             <div className='space-y-4'>
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-1'>
+                <label className='block text-sm font-medium text-gray-100 mb-1'>
                   Name
                 </label>
                 <input
@@ -752,7 +752,7 @@ export default function BenchmarksLiftsManagementPage() {
               </div>
 
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-1'>
+                <label className='block text-sm font-medium text-gray-100 mb-1'>
                   Type
                 </label>
                 <select
@@ -769,7 +769,7 @@ export default function BenchmarksLiftsManagementPage() {
               </div>
 
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-1'>
+                <label className='block text-sm font-medium text-gray-100 mb-1'>
                   Description
                 </label>
                 <textarea
@@ -782,7 +782,7 @@ export default function BenchmarksLiftsManagementPage() {
               </div>
 
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-1'>
+                <label className='block text-sm font-medium text-gray-100 mb-1'>
                   Display Order
                 </label>
                 <input
@@ -816,9 +816,9 @@ export default function BenchmarksLiftsManagementPage() {
       {/* Lift Modal */}
       {showLiftModal && (
         <div className='fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center p-4' onClick={() => setShowLiftModal(false)}>
-          <div className='bg-white rounded-lg max-w-lg w-full p-6 shadow-2xl' onClick={(e) => e.stopPropagation()}>
+          <div className='bg-gray-500 rounded-lg max-w-lg w-full p-6 shadow-2xl' onClick={(e) => e.stopPropagation()}>
             <div className='flex justify-between items-center mb-4'>
-              <h3 className='text-xl font-bold text-gray-900'>
+              <h3 className='text-xl font-bold text-gray-100'>
                 {editingLift ? 'Edit Lift' : 'Add Lift'}
               </h3>
               <button
@@ -831,7 +831,7 @@ export default function BenchmarksLiftsManagementPage() {
 
             <div className='space-y-4'>
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-1'>
+                <label className='block text-sm font-medium text-gray-100 mb-1'>
                   Name
                 </label>
                 <input
@@ -844,7 +844,7 @@ export default function BenchmarksLiftsManagementPage() {
               </div>
 
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-1'>
+                <label className='block text-sm font-medium text-gray-100 mb-1'>
                   Category
                 </label>
                 <select
@@ -860,7 +860,7 @@ export default function BenchmarksLiftsManagementPage() {
               </div>
 
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-1'>
+                <label className='block text-sm font-medium text-gray-100 mb-1'>
                   Display Order
                 </label>
                 <input
@@ -894,9 +894,9 @@ export default function BenchmarksLiftsManagementPage() {
       {/* Forge Benchmark Modal */}
       {showForgeModal && (
         <div className='fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center p-4' onClick={() => setShowForgeModal(false)}>
-          <div className='bg-white rounded-lg max-w-lg w-full p-6 shadow-2xl' onClick={(e) => e.stopPropagation()}>
+          <div className='bg-gray-500 rounded-lg max-w-lg w-full p-6 shadow-2xl' onClick={(e) => e.stopPropagation()}>
             <div className='flex justify-between items-center mb-4'>
-              <h3 className='text-xl font-bold text-gray-900'>
+              <h3 className='text-xl font-bold text-gray-100'>
                 {editingForge ? 'Edit Forge Benchmark' : 'Add Forge Benchmark'}
               </h3>
               <button
@@ -909,7 +909,7 @@ export default function BenchmarksLiftsManagementPage() {
 
             <div className='space-y-4'>
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-1'>
+                <label className='block text-sm font-medium text-gray-100 mb-1'>
                   Name
                 </label>
                 <input
@@ -922,7 +922,7 @@ export default function BenchmarksLiftsManagementPage() {
               </div>
 
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-1'>
+                <label className='block text-sm font-medium text-gray-100 mb-1'>
                   Type
                 </label>
                 <select
@@ -939,7 +939,7 @@ export default function BenchmarksLiftsManagementPage() {
               </div>
 
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-1'>
+                <label className='block text-sm font-medium text-gray-100 mb-1'>
                   Description
                 </label>
                 <textarea
@@ -952,7 +952,7 @@ export default function BenchmarksLiftsManagementPage() {
               </div>
 
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-1'>
+                <label className='block text-sm font-medium text-gray-100 mb-1'>
                   Display Order
                 </label>
                 <input
