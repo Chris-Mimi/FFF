@@ -249,6 +249,34 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
       }
     });
 
+    // Find overall best result (considering scaling hierarchy)
+    const scalingPriority = { 'Rx': 4, 'Sc1': 3, 'Sc2': 2, 'Sc3': 1 };
+    let overallBest: BenchmarkResult | null = null;
+
+    Array.from(prsByScaling.values()).forEach(pr => {
+      if (!overallBest) {
+        overallBest = pr;
+      } else {
+        const currentPriority = scalingPriority[pr.scaling as keyof typeof scalingPriority] || 0;
+        const bestPriority = scalingPriority[overallBest.scaling as keyof typeof scalingPriority] || 0;
+
+        if (currentPriority > bestPriority) {
+          overallBest = pr;
+        } else if (currentPriority === bestPriority) {
+          const isTimeBased = pr.result.includes(':');
+          if (isTimeBased) {
+            if (timeToSeconds(pr.result) < timeToSeconds(overallBest.result)) {
+              overallBest = pr;
+            }
+          } else {
+            if (parseInt(pr.result) > parseInt(overallBest.result)) {
+              overallBest = pr;
+            }
+          }
+        }
+      }
+    });
+
     return results.map(entry => {
       // Convert time strings to seconds for charting
       const timeToSeconds = (timeStr: string) => {
@@ -259,6 +287,9 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
         return parseInt(timeStr) || 0;
       };
 
+      const isPR = prsByScaling.get(entry.scaling || '')?.id === entry.id;
+      const isOverallBest = overallBest?.id === entry.id;
+
       return {
         date: new Date(entry.workout_date).toLocaleDateString('en-US', {
           month: 'short',
@@ -268,7 +299,8 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
         value: timeToSeconds(entry.result),
         resultDisplay: entry.result,
         scaling: entry.scaling,
-        isPR: prsByScaling.get(entry.scaling || '')?.id === entry.id,
+        isPR: isPR,
+        isOverallBest: isOverallBest,
       };
     });
   };
@@ -277,12 +309,20 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
   const CustomDot = (props: any) => {
     const { cx, cy, payload } = props;
     if (payload.isPR) {
-      // Determine badge color based on scaling level
-      let badgeColor = '#dc2626'; // Red (red-600) for Rx
-      if (payload.scaling === 'Sc1') {
-        badgeColor = '#1e40af'; // Dark blue (blue-800) for Sc1
-      } else if (payload.scaling === 'Sc2') {
-        badgeColor = '#3b82f6'; // Blue (blue-500) for Sc2
+      // Overall best gets red, others get their scaling color
+      let badgeColor = '#dc2626'; // Red (red-600) for overall best
+
+      if (!payload.isOverallBest) {
+        // Use scaling-specific colors for other PRs
+        if (payload.scaling === 'Rx') {
+          badgeColor = '#dc2626'; // Red (red-600) for Rx
+        } else if (payload.scaling === 'Sc1') {
+          badgeColor = '#1e40af'; // Dark blue (blue-800) for Sc1
+        } else if (payload.scaling === 'Sc2') {
+          badgeColor = '#3b82f6'; // Blue (blue-500) for Sc2
+        } else if (payload.scaling === 'Sc3') {
+          badgeColor = '#60a5fa'; // Light blue (blue-400) for Sc3
+        }
       }
 
       return (
