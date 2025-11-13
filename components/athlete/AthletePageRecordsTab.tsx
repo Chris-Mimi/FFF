@@ -72,47 +72,81 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
       const benchmarkData = (allResults || []).filter(r => regularBenchmarkNames.has(r.benchmark_name));
       const forgeData = (allResults || []).filter(r => forgeBenchmarkNames.has(r.benchmark_name));
 
-      // Process regular benchmark PRs
-      const benchmarkMap = new Map<string, BenchmarkResult>();
-      benchmarkData.forEach(result => {
-        const key = `${result.benchmark_name}-${result.scaling}`;
-        const existing = benchmarkMap.get(key);
+      // Process regular benchmark PRs with proper scaling hierarchy and best result logic
+      const scalingPriority = { 'Rx': 4, 'Sc1': 3, 'Sc2': 2, 'Sc3': 1 };
 
-        if (!existing || new Date(result.workout_date) > new Date(existing.workout_date)) {
-          benchmarkMap.set(key, result);
+      const timeToSeconds = (timeStr: string) => {
+        if (timeStr.includes(':')) {
+          const parts = timeStr.split(':');
+          return parseInt(parts[0]) * 60 + parseInt(parts[1]);
         }
-      });
+        return parseInt(timeStr) || 0;
+      };
 
       const finalBenchmarkPRs = new Map<string, BenchmarkResult>();
-      benchmarkMap.forEach((result, key) => {
-        const benchmarkName = result.benchmark_name;
-        const existing = finalBenchmarkPRs.get(benchmarkName);
+      benchmarkData.forEach(result => {
+        const existing = finalBenchmarkPRs.get(result.benchmark_name);
 
-        if (!existing || (result.scaling === 'Rx' && existing.scaling !== 'Rx')) {
-          finalBenchmarkPRs.set(benchmarkName, result);
+        if (!existing) {
+          finalBenchmarkPRs.set(result.benchmark_name, result);
+        } else {
+          const currentPriority = scalingPriority[result.scaling as keyof typeof scalingPriority] || 0;
+          const existingPriority = scalingPriority[existing.scaling as keyof typeof scalingPriority] || 0;
+
+          // Prioritize higher scaling level
+          if (currentPriority > existingPriority) {
+            finalBenchmarkPRs.set(result.benchmark_name, result);
+          } else if (currentPriority === existingPriority) {
+            // Same scaling - compare results
+            const isTimeBased = result.result.includes(':');
+
+            if (isTimeBased) {
+              // For time: lower is better
+              if (timeToSeconds(result.result) < timeToSeconds(existing.result)) {
+                finalBenchmarkPRs.set(result.benchmark_name, result);
+              }
+            } else {
+              // For reps: higher is better
+              if (parseInt(result.result) > parseInt(existing.result)) {
+                finalBenchmarkPRs.set(result.benchmark_name, result);
+              }
+            }
+          }
         }
       });
 
       setBenchmarkPRs(Array.from(finalBenchmarkPRs.values()));
 
-      // Process forge benchmark PRs
-      const forgeMap = new Map<string, BenchmarkResult>();
-      forgeData.forEach(result => {
-        const key = `${result.benchmark_name}-${result.scaling}`;
-        const existing = forgeMap.get(key);
-
-        if (!existing || new Date(result.workout_date) > new Date(existing.workout_date)) {
-          forgeMap.set(key, result);
-        }
-      });
-
+      // Process forge benchmark PRs with proper scaling hierarchy and best result logic
       const finalForgePRs = new Map<string, BenchmarkResult>();
-      forgeMap.forEach((result, key) => {
-        const benchmarkName = result.benchmark_name;
-        const existing = finalForgePRs.get(benchmarkName);
+      forgeData.forEach(result => {
+        const existing = finalForgePRs.get(result.benchmark_name);
 
-        if (!existing || (result.scaling === 'Rx' && existing.scaling !== 'Rx')) {
-          finalForgePRs.set(benchmarkName, result);
+        if (!existing) {
+          finalForgePRs.set(result.benchmark_name, result);
+        } else {
+          const currentPriority = scalingPriority[result.scaling as keyof typeof scalingPriority] || 0;
+          const existingPriority = scalingPriority[existing.scaling as keyof typeof scalingPriority] || 0;
+
+          // Prioritize higher scaling level
+          if (currentPriority > existingPriority) {
+            finalForgePRs.set(result.benchmark_name, result);
+          } else if (currentPriority === existingPriority) {
+            // Same scaling - compare results
+            const isTimeBased = result.result.includes(':');
+
+            if (isTimeBased) {
+              // For time: lower is better
+              if (timeToSeconds(result.result) < timeToSeconds(existing.result)) {
+                finalForgePRs.set(result.benchmark_name, result);
+              }
+            } else {
+              // For reps: higher is better
+              if (parseInt(result.result) > parseInt(existing.result)) {
+                finalForgePRs.set(result.benchmark_name, result);
+              }
+            }
+          }
         }
       });
 
@@ -245,12 +279,12 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
                         <span
                           className={`text-xs px-2 py-1 rounded ${
                             pr.scaling === 'Rx'
-                              ? 'bg-red-100 text-red-700'
+                              ? 'bg-red-600 text-white'
                               : pr.scaling === 'Sc1'
-                              ? 'bg-blue-100 text-blue-700'
+                              ? 'bg-blue-800 text-white'
                               : pr.scaling === 'Sc2'
-                              ? 'bg-sky-100 text-sky-700'
-                              : 'bg-slate-100 text-slate-700'
+                              ? 'bg-blue-500 text-white'
+                              : 'bg-slate-600 text-white'
                           }`}
                         >
                           {pr.scaling}
@@ -298,12 +332,12 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
                         <span
                           className={`text-xs px-2 py-1 rounded ${
                             pr.scaling === 'Rx'
-                              ? 'bg-red-100 text-red-700'
+                              ? 'bg-red-600 text-white'
                               : pr.scaling === 'Sc1'
-                              ? 'bg-blue-100 text-blue-700'
+                              ? 'bg-blue-800 text-white'
                               : pr.scaling === 'Sc2'
-                              ? 'bg-sky-100 text-sky-700'
-                              : 'bg-slate-100 text-slate-700'
+                              ? 'bg-blue-500 text-white'
+                              : 'bg-slate-600 text-white'
                           }`}
                         >
                           {pr.scaling}
