@@ -649,12 +649,12 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
                           <span
                             className={`text-xs px-2 py-1 rounded ${
                               entry.scaling === 'Rx'
-                                ? 'bg-red-100 text-red-700'
+                                ? 'bg-red-600 text-white'
                                 : entry.scaling === 'Sc1'
-                                ? 'bg-blue-100 text-blue-700'
+                                ? 'bg-blue-800 text-white'
                                 : entry.scaling === 'Sc2'
-                                ? 'bg-blue-100 text-blue-600'
-                                : 'bg-blue-100 text-blue-500'
+                                ? 'bg-blue-500 text-white'
+                                : 'bg-blue-400 text-white'
                             }`}
                           >
                             {entry.scaling}
