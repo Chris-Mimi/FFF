@@ -394,10 +394,12 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                       {lift.rep_max_type}
                     </span>
                   </div>
-                  <p className='text-lg font-bold text-[#208479] mb-1'>{lift.weight_kg}kg</p>
-                  {lift.calculated_1rm && lift.rep_max_type !== '1RM' && (
-                    <p className='text-sm text-gray-500 mb-2'>Est. 1RM: {lift.calculated_1rm}kg</p>
-                  )}
+                  <p className='text-lg font-bold text-[#208479] mb-2'>
+                    {lift.weight_kg}kg
+                    {lift.calculated_1rm && lift.rep_max_type !== '1RM' && (
+                      <span className='text-sm text-gray-500 font-normal ml-2'>(Est. 1RM: {lift.calculated_1rm}kg)</span>
+                    )}
+                  </p>
                   <p className='text-sm text-gray-600'>
                     {new Date(lift.lift_date).toLocaleDateString('en-US', {
                       month: 'short',
@@ -603,11 +605,13 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                     <div key={entry.id} className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'>
                       <div className='flex-1'>
                         <div className='flex items-center gap-2 mb-1'>
-                          <span className='font-semibold text-gray-900'>{entry.weight_kg}kg</span>
+                          <span className='font-semibold text-gray-900'>
+                            {entry.weight_kg}kg
+                            {entry.calculated_1rm && entry.rep_max_type !== '1RM' && (
+                              <span className='text-sm text-gray-500 font-normal ml-2'>(Est. 1RM: {entry.calculated_1rm}kg)</span>
+                            )}
+                          </span>
                           <span className='text-sm text-gray-600'>({entry.rep_max_type})</span>
-                          {entry.calculated_1rm && entry.rep_max_type !== '1RM' && (
-                            <span className='text-sm text-[#208479]'>Est. 1RM: {entry.calculated_1rm}kg</span>
-                          )}
                         </div>
                         <p className='text-sm text-gray-600'>
                           {new Date(entry.lift_date).toLocaleDateString('en-US', {
@@ -670,12 +674,12 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                             </p>
                             <p className='text-sm text-[#208479] font-semibold'>
                               Weight: {payload[0].payload.weight}kg
+                              {payload[0].payload.calculated1rm && (
+                                <span className='text-sm text-gray-600 font-normal ml-2'>
+                                  (Est. 1RM: {payload[0].payload.calculated1rm}kg)
+                                </span>
+                              )}
                             </p>
-                            {payload[0].payload.calculated1rm && (
-                              <p className='text-sm text-gray-600'>
-                                Est. 1RM: {payload[0].payload.calculated1rm}kg
-                              </p>
-                            )}
                           </div>
                         );
                       }
