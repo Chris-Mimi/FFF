@@ -384,31 +384,27 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
         </button>
 
         {expandedSections.recent && (
-          <div className='space-y-2'>
+          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
             {recentLifts.length > 0 ? (
               recentLifts.map(lift => (
-                <div key={lift.id} className='flex items-center justify-between p-3 bg-gradient-to-r from-sky-100 to-blue-200 border border-sky-300 rounded-lg'>
-                  <div className='flex-1'>
-                    <div className='flex items-center gap-2 mb-1'>
-                      <h4 className='font-bold text-gray-900'>{lift.lift_name}</h4>
-                      <span className='text-xs px-2 py-1 rounded bg-gray-200 text-gray-700'>
-                        {lift.rep_max_type}
-                      </span>
-                    </div>
-                    <p className='text-sm text-gray-600'>
-                      {new Date(lift.lift_date).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}
-                    </p>
+                <div key={lift.id} className='flex flex-col p-3 bg-gradient-to-r from-sky-100 to-blue-200 border border-sky-300 rounded-lg'>
+                  <div className='flex items-center gap-2 mb-2'>
+                    <h4 className='font-bold text-gray-900'>{lift.lift_name}</h4>
+                    <span className='text-xs px-2 py-1 rounded bg-gray-200 text-gray-700'>
+                      {lift.rep_max_type}
+                    </span>
                   </div>
-                  <div className='text-right'>
-                    <p className='text-lg font-bold text-[#208479]'>{lift.weight_kg}kg</p>
-                    {lift.calculated_1rm && lift.rep_max_type !== '1RM' && (
-                      <p className='text-sm text-gray-500'>Est. 1RM: {lift.calculated_1rm}kg</p>
-                    )}
-                  </div>
+                  <p className='text-lg font-bold text-[#208479] mb-1'>{lift.weight_kg}kg</p>
+                  {lift.calculated_1rm && lift.rep_max_type !== '1RM' && (
+                    <p className='text-sm text-gray-500 mb-2'>Est. 1RM: {lift.calculated_1rm}kg</p>
+                  )}
+                  <p className='text-sm text-gray-600'>
+                    {new Date(lift.lift_date).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
+                  </p>
                 </div>
               ))
             ) : (

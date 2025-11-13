@@ -421,36 +421,34 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
         </button>
 
         {expandedSections.recent && (
-          <div className='space-y-2'>
+          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
             {recentBenchmarks.length > 0 ? (
               recentBenchmarks.map(result => (
-                <div key={result.id} className='flex items-center justify-between p-3 bg-gradient-to-r from-cyan-100 to-cyan-200 border border-cyan-300 rounded-lg'>
-                  <div className='flex-1'>
-                    <div className='flex items-center gap-2 mb-1'>
-                      <h4 className='font-bold text-gray-900'>{result.benchmark_name}</h4>
-                      <span
-                        className={`text-xs px-2 py-1 rounded ${
-                          result.scaling === 'Rx'
-                            ? 'bg-red-600 text-white'
-                            : result.scaling === 'Sc1'
-                            ? 'bg-blue-800 text-white'
-                            : result.scaling === 'Sc2'
-                            ? 'bg-blue-500 text-white'
-                            : 'bg-blue-400 text-white'
-                        }`}
-                      >
-                        {result.scaling}
-                      </span>
-                    </div>
-                    <p className='text-sm text-gray-600'>
-                      {new Date(result.workout_date).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}
-                    </p>
+                <div key={result.id} className='flex flex-col p-3 bg-gradient-to-r from-cyan-100 to-cyan-200 border border-cyan-300 rounded-lg'>
+                  <div className='flex items-center gap-2 mb-2'>
+                    <h4 className='font-bold text-gray-900'>{result.benchmark_name}</h4>
+                    <span
+                      className={`text-xs px-2 py-1 rounded ${
+                        result.scaling === 'Rx'
+                          ? 'bg-red-600 text-white'
+                          : result.scaling === 'Sc1'
+                          ? 'bg-blue-800 text-white'
+                          : result.scaling === 'Sc2'
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-blue-400 text-white'
+                      }`}
+                    >
+                      {result.scaling}
+                    </span>
                   </div>
-                  <p className='text-lg font-bold text-[#208479]'>{result.result}</p>
+                  <p className='text-lg font-bold text-[#208479] mb-2'>{result.result}</p>
+                  <p className='text-sm text-gray-600'>
+                    {new Date(result.workout_date).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
+                  </p>
                 </div>
               ))
             ) : (
