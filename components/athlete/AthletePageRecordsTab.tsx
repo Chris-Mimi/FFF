@@ -2,7 +2,7 @@
 'use client';
 
 import { supabase } from '@/lib/supabase';
-import { Award, ChevronDown, ChevronRight, Trophy, Target, Flame, Dumbbell } from 'lucide-react';
+import { ChevronDown, ChevronRight, Trophy, Target, Flame, Dumbbell } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface BenchmarkResult {
@@ -299,32 +299,29 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
                   <div key={pr.id} className='border border-teal-300 rounded-lg p-4 bg-gradient-to-br from-teal-100 to-teal-200'>
                     <div className='flex items-start justify-between mb-2'>
                       <h4 className='font-bold text-gray-900'>{pr.benchmark_name}</h4>
-                      <Award size={18} className='text-teal-600 flex-shrink-0' />
+                      <span
+                        className={`text-xs px-2 py-1 rounded ${
+                          pr.scaling === 'Rx'
+                            ? 'bg-red-600 text-white'
+                            : pr.scaling === 'Sc1'
+                            ? 'bg-blue-800 text-white'
+                            : pr.scaling === 'Sc2'
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-blue-400 text-white'
+                        }`}
+                      >
+                        {pr.scaling}
+                      </span>
                     </div>
-                    <div className='space-y-1'>
+                    <div className='flex items-center justify-between'>
                       <p className='text-lg font-bold text-[#208479]'>{pr.result}</p>
-                      <div className='flex items-center gap-2'>
-                        <span
-                          className={`text-xs px-2 py-1 rounded ${
-                            pr.scaling === 'Rx'
-                              ? 'bg-red-600 text-white'
-                              : pr.scaling === 'Sc1'
-                              ? 'bg-blue-800 text-white'
-                              : pr.scaling === 'Sc2'
-                              ? 'bg-blue-500 text-white'
-                              : 'bg-blue-400 text-white'
-                          }`}
-                        >
-                          {pr.scaling}
-                        </span>
-                        <span className='text-sm text-gray-600'>
-                          {new Date(pr.workout_date).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric',
-                          })}
-                        </span>
-                      </div>
+                      <span className='text-sm text-gray-600'>
+                        {new Date(pr.workout_date).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
+                      </span>
                     </div>
                   </div>
                 ))
@@ -352,32 +349,29 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
                   <div key={pr.id} className='border border-cyan-300 rounded-lg p-4 bg-gradient-to-br from-cyan-100 to-cyan-200'>
                     <div className='flex items-start justify-between mb-2'>
                       <h4 className='font-bold text-gray-900'>{pr.benchmark_name}</h4>
-                      <Award size={18} className='text-cyan-600 flex-shrink-0' />
+                      <span
+                        className={`text-xs px-2 py-1 rounded ${
+                          pr.scaling === 'Rx'
+                            ? 'bg-red-600 text-white'
+                            : pr.scaling === 'Sc1'
+                            ? 'bg-blue-800 text-white'
+                            : pr.scaling === 'Sc2'
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-blue-400 text-white'
+                        }`}
+                      >
+                        {pr.scaling}
+                      </span>
                     </div>
-                    <div className='space-y-1'>
+                    <div className='flex items-center justify-between'>
                       <p className='text-lg font-bold text-[#208479]'>{pr.result}</p>
-                      <div className='flex items-center gap-2'>
-                        <span
-                          className={`text-xs px-2 py-1 rounded ${
-                            pr.scaling === 'Rx'
-                              ? 'bg-red-600 text-white'
-                              : pr.scaling === 'Sc1'
-                              ? 'bg-blue-800 text-white'
-                              : pr.scaling === 'Sc2'
-                              ? 'bg-blue-500 text-white'
-                              : 'bg-blue-400 text-white'
-                          }`}
-                        >
-                          {pr.scaling}
-                        </span>
-                        <span className='text-sm text-gray-600'>
-                          {new Date(pr.workout_date).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric',
-                          })}
-                        </span>
-                      </div>
+                      <span className='text-sm text-gray-600'>
+                        {new Date(pr.workout_date).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
+                      </span>
                     </div>
                   </div>
                 ))
@@ -405,16 +399,17 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
                   <div key={pr.id} className='border border-sky-300 rounded-lg p-4 bg-gradient-to-br from-sky-100 to-blue-200'>
                     <div className='flex items-start justify-between mb-2'>
                       <h4 className='font-bold text-gray-900'>{pr.lift_name}</h4>
-                      <Award size={18} className='text-sky-600 flex-shrink-0' />
+                      <span className='text-xs px-2 py-1 rounded bg-gray-200 text-gray-700'>
+                        {pr.rep_max_type}
+                      </span>
                     </div>
-                    <div className='space-y-1'>
-                      <p className='text-lg font-bold text-[#208479]'>{pr.weight_kg}kg</p>
-                      <div className='flex items-center gap-2'>
-                        <span className='text-sm text-gray-600'>({pr.rep_max_type})</span>
+                    <div className='flex items-center justify-between'>
+                      <p className='text-lg font-bold text-[#208479]'>
+                        {pr.weight_kg}kg
                         {pr.calculated_1rm && pr.rep_max_type !== '1RM' && (
-                          <span className='text-sm text-gray-500'>Est. 1RM: {pr.calculated_1rm}kg</span>
+                          <span className='text-sm text-gray-500 font-normal ml-2'>(Est. 1RM: {pr.calculated_1rm}kg)</span>
                         )}
-                      </div>
+                      </p>
                       <span className='text-sm text-gray-600'>
                         {new Date(pr.lift_date).toLocaleDateString('en-US', {
                           month: 'short',
