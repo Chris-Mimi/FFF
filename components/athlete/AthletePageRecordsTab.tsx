@@ -286,7 +286,7 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
         <div className='mb-8'>
           <button
             onClick={() => setExpandedSections(prev => ({ ...prev, benchmarks: !prev.benchmarks }))}
-            className='flex items-center gap-2 text-xl font-semibold text-gray-100 mb-4 hover:text-[#208479] transition'
+            className='flex items-center gap-2 text-xl font-semibold text-gray-100 mb-4 hover:text-[#85d6cd] transition'
           >
             {expandedSections.benchmarks ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
             Benchmark Workouts ({benchmarkPRs.length})
@@ -336,7 +336,7 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
         <div className='mb-8'>
           <button
             onClick={() => setExpandedSections(prev => ({ ...prev, forgeBenchmarks: !prev.forgeBenchmarks }))}
-            className='flex items-center gap-2 text-xl font-semibold text-gray-100 mb-4 hover:text-[#208479] transition'
+            className='flex items-center gap-2 text-xl font-semibold text-gray-100 mb-4 hover:text-[#85d6cd] transition'
           >
             {expandedSections.forgeBenchmarks ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
             Forge Benchmarks ({forgeBenchmarkPRs.length})
@@ -386,7 +386,7 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
         <div>
           <button
             onClick={() => setExpandedSections(prev => ({ ...prev, lifts: !prev.lifts }))}
-            className='flex items-center gap-2 text-xl font-semibold text-gray-100 mb-4 hover:text-[#208479] transition'
+            className='flex items-center gap-2 text-xl font-semibold text-gray-100 mb-4 hover:text-[#85d6cd] transition'
           >
             {expandedSections.lifts ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
             Barbell Lifts ({liftPRs.length})
@@ -399,7 +399,7 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
                   <div key={pr.id} className='border border-sky-300 rounded-lg p-4 bg-gradient-to-br from-sky-100 to-blue-200'>
                     <div className='flex items-start justify-between mb-2'>
                       <h4 className='font-bold text-gray-900'>{pr.lift_name}</h4>
-                      <span className='text-xs px-2 py-1 rounded bg-gray-100 text-gray-700'>
+                      <span className='text-xs px-2 py-1 rounded bg-blue-300 text-gray-700'>
                         {pr.rep_max_type}
                       </span>
                     </div>

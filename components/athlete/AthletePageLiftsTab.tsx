@@ -2,7 +2,7 @@
 'use client';
 
 import { supabase } from '@/lib/supabase';
-import { Dumbbell, Edit2, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, Edit2, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import {
   CartesianGrid,
@@ -278,10 +278,10 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
   };
 
   return (
-    <div className='space-y-6 bg-gray-100 p-6 rounded-lg'>
-      <div className='bg-gray-800 rounded-lg shadow p-6'>
-        <h2 className='text-2xl font-bold text-white mb-2'>Barbell Lifts</h2>
-        <p className='text-gray-300 mb-6'>
+    <div className='space-y-6 bg-gray-500 p-6 rounded-lg'>
+      <div className='bg-white rounded-xl shadow-lg p-8'>
+        <h2 className='text-3xl font-extrabold text-gray-900 mb-4'>Barbell Lifts</h2>
+        <p className='text-gray-700 mb-8 leading-relaxed'>
           Track your strength progress with barbell movements.
         </p>
 
@@ -320,20 +320,16 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                       onClick={() => setSelectedLift(lift.name)}
                       className='group border border-sky-300 rounded-lg p-3 bg-sky-100/50 hover:border-sky-400 hover:bg-sky-100/70 cursor-pointer transition'
                     >
-                      <div className='flex items-start justify-between mb-1'>
-                        <h4 className='text-base font-bold text-gray-900'>{lift.name}</h4>
-                        <Dumbbell size={18} className='text-[#208479] flex-shrink-0' />
-                      </div>
+<div className='flex items-center justify-between mb-1'>
+  <h4 className='text-base font-bold text-gray-900'>{lift.name}</h4>
+  {attemptCount > 0 && (
+    <p className='text-xs font-bold text-gray-500'>{attemptCount}x</p>
+  )}
+</div>
                       {bestRepMax ? (
-                        <div className='flex items-end justify-between'>
-                          <div>
-                            <p className='text-xs text-gray-600'>{bestRepMax}:</p>
-                            <p className='text-sm font-bold text-[#208479]'>{bestWeight}kg</p>
-                          </div>
-                          {attemptCount > 0 && (
-                            <p className='text-xs text-gray-500'>{attemptCount}x</p>
-                          )}
-                        </div>
+<div>
+  <p className='text-lg font-bold text-[#208479]'>{bestWeight}kg</p>
+</div>
                       ) : (
                         <p className='text-xs text-gray-500 mt-2'>No records yet</p>
                       )}
@@ -369,10 +365,12 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                       onClick={() => setSelectedLift(lift.name)}
                       className='group border border-sky-300 rounded-lg p-3 bg-sky-100/50 hover:border-sky-400 hover:bg-sky-100/70 cursor-pointer transition'
                     >
-                      <div className='flex items-start justify-between mb-1'>
-                        <h4 className='text-base font-bold text-gray-900'>{lift.name}</h4>
-                        <Dumbbell size={18} className='text-[#208479] flex-shrink-0' />
-                      </div>
+<div className='flex items-center justify-between mb-1'>
+  <h4 className='text-base font-bold text-gray-900'>{lift.name}</h4>
+  {attemptCount > 0 && (
+    <p className='text-xs font-bold text-gray-500'>{attemptCount}x</p>
+  )}
+</div>
                       {bestRepMax ? (
                         <div className='flex items-end justify-between'>
                           <div>
@@ -396,55 +394,52 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
       </div>
 
       {/* Recent Lifts Section */}
-      <div className='bg-gray-800 rounded-lg shadow p-6'>
+      <div className='bg-white rounded-xl shadow p-6'>
         <button
           onClick={() => setExpandedSections(prev => ({ ...prev, recent: !prev.recent }))}
-          className='flex items-center gap-2 text-2xl font-bold text-white mb-4 hover:text-[#208479] transition'
+          className='flex items-center gap-2 text-2xl font-bold text-gray-700 mb-4 hover:text-[#208479] transition'
         >
           {expandedSections.recent ? <ChevronDown size={24} /> : <ChevronRight size={24} />}
           Recent Lifts
         </button>
 
         {expandedSections.recent && (
-          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
             {recentLifts.length > 0 ? (
               recentLifts.map(lift => (
                 <div key={lift.id} className='flex flex-col p-3 bg-gradient-to-r from-sky-100 to-blue-200 border border-sky-300 rounded-lg'>
-                  <div className='flex items-center gap-2 mb-2'>
-                    <h4 className='font-bold text-gray-900'>{lift.lift_name}</h4>
-                    <span className='text-xs px-2 py-1 rounded bg-gray-200 text-gray-700'>
-                      {lift.rep_max_type}
-                    </span>
-                  </div>
-                  <div className='flex items-center justify-between'>
-                    <p className='text-lg font-bold text-[#208479]'>
-                      {lift.weight_kg}kg
-                      {lift.calculated_1rm && lift.rep_max_type !== '1RM' && (
-                        <span className='text-sm text-gray-500 font-normal ml-2'>(Est. 1RM: {lift.calculated_1rm}kg)</span>
-                      )}
-                    </p>
-                    <p className='text-sm text-gray-600'>
-                      {new Date(lift.lift_date).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}
-                    </p>
-                  </div>
+<div className='relative mb-2'>
+  <h4 className='font-bold text-gray-700'>{lift.lift_name}</h4>
+  <span className='absolute top-0 right-0 text-xs px-2 py-1 rounded bg-blue-300 text-gray-900'>
+    {lift.rep_max_type}
+  </span>
+</div>
+<div className='flex items-center justify-between'>
+  <p className='text-lg font-bold text-[#208479] flex-1'>
+    {lift.weight_kg}kg
+  </p>
+  <p className='text-sm text-gray-700 flex-1 text-right'>
+    {new Date(lift.lift_date).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    })}
+  </p>
+</div>
                 </div>
               ))
             ) : (
-              <p className='text-gray-400 text-center py-8'>No recent lift results</p>
+              <p className='text-gray-500 text-center py-8'>No recent lift results</p>
             )}
           </div>
         )}
       </div>
 
       {/* Progress Charts Section */}
-      <div className='bg-gray-800 rounded-lg shadow p-6'>
+      <div className='bg-white rounded-lg shadow p-6'>
         <button
           onClick={() => setExpandedSections(prev => ({ ...prev, charts: !prev.charts }))}
-          className='flex items-center gap-2 text-2xl font-bold text-white mb-4 hover:text-[#208479] transition'
+          className='flex items-center gap-2 text-2xl font-bold text-gray-700 mb-4 hover:text-[#208479] transition'
         >
           {expandedSections.charts ? <ChevronDown size={24} /> : <ChevronRight size={24} />}
           Progress Charts
@@ -452,14 +447,14 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
 
         {expandedSections.charts && (
           <div>
-            <p className='text-gray-300 mb-6'>Visualize your strength gains over time.</p>
+            <p className='text-gray-700 mb-6'>Visualize your strength gains over time.</p>
             <div className='grid grid-cols-1 gap-6'>
               {lifts.slice(0, 6).map(lift => {
                 const chartData = getLiftChartDataAllTypes(lift.name);
                 if (chartData.length < 2) return null; // Only show charts with 2+ data points
                 return (
                   <div key={lift.name} className='border border-sky-300 rounded-lg p-4 bg-gradient-to-br from-sky-200 to-blue-300'>
-                    <h4 className='font-bold text-gray-900 mb-3'>{lift.name}</h4>
+                    <h4 className='font-bold text-gray-700 mb-3'>{lift.name}</h4>
                     <ResponsiveContainer width='100%' height={200}>
                       <LineChart data={chartData}>
                         <CartesianGrid strokeDasharray='3 3' stroke='white' />
@@ -476,7 +471,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                                   <p className='text-xs text-[#208479] font-semibold'>
                                     {payload[0].payload.weight}kg
                                   </p>
-                                  <p className='text-xs text-gray-600'>
+                                  <p className='text-xs text-gray-700'>
                                     {payload[0].payload.repMaxType}
                                   </p>
                                   {payload[0].payload.isPR && (

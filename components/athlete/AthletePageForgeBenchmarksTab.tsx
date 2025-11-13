@@ -2,7 +2,7 @@
 'use client';
 
 import { supabase } from '@/lib/supabase';
-import { Edit2, Target, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, Edit2, Target, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import {
   CartesianGrid,
@@ -366,10 +366,10 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
     });
 
   return (
-    <div className='space-y-6'>
-      <div className='bg-white rounded-lg shadow p-6'>
-        <h2 className='text-2xl font-bold text-gray-900 mb-2'>Forge Benchmarks</h2>
-        <p className='text-gray-600 mb-6'>
+    <div className='space-y-6 bg-gray-500 p-6 rounded-lg'>
+      <div className='bg-white rounded-xl shadow-lg p-8'>
+        <h2 className='text-3xl font-extrabold text-gray-800 mb-4'>Forge Benchmarks</h2>
+        <p className='text-gray-700 mb-8 leading-relaxed'>
           Track your performance on gym-specific benchmark workouts.
         </p>
 
@@ -408,7 +408,7 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
       </div>
 
       {/* Recent Forge Benchmarks Section */}
-      <div className='bg-white rounded-lg shadow p-6'>
+      <div className='bg-white rounded-xl shadow p-6'>
         <button
           onClick={() => setExpandedSections(prev => ({ ...prev, recent: !prev.recent }))}
           className='flex items-center gap-2 text-2xl font-bold text-gray-900 mb-4 hover:text-[#208479] transition'
@@ -418,7 +418,7 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
         </button>
 
         {expandedSections.recent && (
-          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
             {recentBenchmarks.length > 0 ? (
               recentBenchmarks.map(result => (
                 <div key={result.id} className='flex flex-col p-3 bg-gradient-to-r from-cyan-100 to-cyan-200 border border-cyan-300 rounded-lg'>
@@ -458,7 +458,7 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
       </div>
 
       {/* Progress Charts Section */}
-      <div className='bg-white rounded-lg shadow p-6'>
+      <div className='bg-white rounded-xl shadow p-6'>
         <button
           onClick={() => setExpandedSections(prev => ({ ...prev, charts: !prev.charts }))}
           className='flex items-center gap-2 text-2xl font-bold text-gray-900 mb-4 hover:text-[#208479] transition'
