@@ -435,7 +435,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                             ? 'bg-blue-800 text-white'
                             : result.scaling === 'Sc2'
                             ? 'bg-blue-500 text-white'
-                            : 'bg-slate-600 text-white'
+                            : 'bg-blue-400 text-white'
                         }`}
                       >
                         {result.scaling}
@@ -652,8 +652,8 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                                 : entry.scaling === 'Sc1'
                                 ? 'bg-blue-100 text-blue-700'
                                 : entry.scaling === 'Sc2'
-                                ? 'bg-sky-100 text-sky-700'
-                                : 'bg-slate-100 text-slate-700'
+                                ? 'bg-blue-100 text-blue-600'
+                                : 'bg-blue-100 text-blue-500'
                             }`}
                           >
                             {entry.scaling}
