@@ -300,7 +300,20 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                 {/* Non-olympic lifts */}
                 {nonOlympicLifts.map(lift => {
                   const prs = getAllRepMaxPRs(lift.name);
-                  const hasAnyPR = Object.values(prs).some(pr => pr !== null);
+                  const liftAttempts = liftHistory.filter(r => r.lift_name === lift.name);
+                  const attemptCount = liftAttempts.length;
+
+                  // Find best rep max (prioritize 1RM > 3RM > 5RM > 10RM)
+                  let bestRepMax = null;
+                  let bestWeight = null;
+                  for (const type of ['1RM', '3RM', '5RM', '10RM'] as const) {
+                    if (prs[type] !== null) {
+                      bestRepMax = type;
+                      bestWeight = prs[type];
+                      break;
+                    }
+                  }
+
                   return (
                     <div
                       key={lift.name}
@@ -311,16 +324,14 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                         <h4 className='text-base font-bold text-gray-900'>{lift.name}</h4>
                         <Dumbbell size={18} className='text-[#208479] flex-shrink-0' />
                       </div>
-                      {hasAnyPR ? (
-                        <div className='mt-2 grid grid-cols-2 gap-2'>
-                          {(['1RM', '3RM', '5RM', '10RM'] as const).map(
-                            type =>
-                              prs[type] !== null && (
-                                <div key={type}>
-                                  <p className='text-xs text-gray-600'>{type}:</p>
-                                  <p className='text-sm font-bold text-[#208479]'>{prs[type]}kg</p>
-                                </div>
-                              )
+                      {bestRepMax ? (
+                        <div className='flex items-end justify-between'>
+                          <div>
+                            <p className='text-xs text-gray-600'>{bestRepMax}:</p>
+                            <p className='text-sm font-bold text-[#208479]'>{bestWeight}kg</p>
+                          </div>
+                          {attemptCount > 0 && (
+                            <p className='text-xs text-gray-500'>{attemptCount}x</p>
                           )}
                         </div>
                       ) : (
@@ -338,7 +349,20 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                 {/* Olympic lifts */}
                 {olympicLifts.map(lift => {
                   const prs = getAllRepMaxPRs(lift.name);
-                  const hasAnyPR = Object.values(prs).some(pr => pr !== null);
+                  const liftAttempts = liftHistory.filter(r => r.lift_name === lift.name);
+                  const attemptCount = liftAttempts.length;
+
+                  // Find best rep max (prioritize 1RM > 3RM > 5RM > 10RM)
+                  let bestRepMax = null;
+                  let bestWeight = null;
+                  for (const type of ['1RM', '3RM', '5RM', '10RM'] as const) {
+                    if (prs[type] !== null) {
+                      bestRepMax = type;
+                      bestWeight = prs[type];
+                      break;
+                    }
+                  }
+
                   return (
                     <div
                       key={lift.name}
@@ -349,16 +373,14 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                         <h4 className='text-base font-bold text-gray-900'>{lift.name}</h4>
                         <Dumbbell size={18} className='text-[#208479] flex-shrink-0' />
                       </div>
-                      {hasAnyPR ? (
-                        <div className='mt-2 grid grid-cols-2 gap-2'>
-                          {(['1RM', '3RM', '5RM', '10RM'] as const).map(
-                            type =>
-                              prs[type] !== null && (
-                                <div key={type}>
-                                  <p className='text-xs text-gray-600'>{type}:</p>
-                                  <p className='text-sm font-bold text-[#208479]'>{prs[type]}kg</p>
-                                </div>
-                              )
+                      {bestRepMax ? (
+                        <div className='flex items-end justify-between'>
+                          <div>
+                            <p className='text-xs text-gray-600'>{bestRepMax}:</p>
+                            <p className='text-sm font-bold text-[#208479]'>{bestWeight}kg</p>
+                          </div>
+                          {attemptCount > 0 && (
+                            <p className='text-xs text-gray-500'>{attemptCount}x</p>
                           )}
                         </div>
                       ) : (

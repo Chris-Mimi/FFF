@@ -376,6 +376,7 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
         <div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3'>
           {sortedBenchmarks.map(benchmark => {
             const bestTimes = getBestTimes(benchmark.name);
+            const bestResult = bestTimes.rx || bestTimes.scaled;
             return (
               <div
                 key={benchmark.name}
@@ -389,20 +390,16 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
                 <p className='text-xs text-gray-600 opacity-0 group-hover:opacity-100 transition-all max-h-0 group-hover:max-h-8 overflow-hidden group-hover:mb-1'>
                   {benchmark.type}
                 </p>
-                {bestTimes.rx && (
-                  <div className='mb-1'>
-                    <p className='text-xs text-gray-600'>PR:</p>
-                    <p className='text-sm font-bold text-[#208479]'>{bestTimes.rx.result}</p>
+                {bestResult && (
+                  <div className='flex items-end justify-between'>
+                    <div>
+                      <p className='text-xs text-gray-600'>PR:</p>
+                      <p className='text-sm font-bold text-[#208479]'>{bestResult.result}</p>
+                    </div>
+                    {benchmark.count > 0 && (
+                      <p className='text-xs text-gray-500'>{benchmark.count}x</p>
+                    )}
                   </div>
-                )}
-                {bestTimes.scaled && (
-                  <div className='mb-1'>
-                    <p className='text-xs text-gray-600'>Scaled PR:</p>
-                    <p className='text-sm font-bold text-orange-600'>{bestTimes.scaled.result}</p>
-                  </div>
-                )}
-                {benchmark.count > 0 && (
-                  <p className='text-xs text-gray-500'>{benchmark.count} attempts</p>
                 )}
               </div>
             );
