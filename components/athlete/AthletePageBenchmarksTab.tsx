@@ -2,7 +2,7 @@
 'use client';
 
 import { supabase } from '@/lib/supabase';
-import { Edit2, Trash2, Trophy, ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, Edit2, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import {
   CartesianGrid,
@@ -365,10 +365,10 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
     });
 
   return (
-    <div className='space-y-6'>
-      <div className='bg-white rounded-lg shadow p-6'>
-        <h2 className='text-2xl font-bold text-gray-900 mb-2'>Benchmark Workouts</h2>
-        <p className='text-gray-600 mb-6'>
+    <div className='space-y-6 bg-gray-500 p-6 rounded-lg'>
+      <div className='bg-white rounded-xl shadow-lg p-8'>
+        <h2 className='text-3xl font-extrabold text-gray-800 mb-4'>Benchmark Workouts</h2>
+        <p className='text-gray-700 mb-8 leading-relaxed'>
           Track your performance on classic CrossFit benchmark workouts.
         </p>
 
@@ -382,13 +382,12 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                 onClick={() => setSelectedBenchmark(benchmark.name)}
                 className='group border border-teal-300 rounded-lg p-3 bg-teal-100/50 hover:border-teal-400 hover:bg-teal-100/70 cursor-pointer transition'
               >
-                <div className='flex items-start justify-between mb-1'>
-                  <h3 className='text-base font-bold text-gray-900'>{benchmark.name}</h3>
-                  <Trophy size={18} className='text-[#208479] flex-shrink-0' />
-                </div>
-                <p className='text-xs text-gray-600 opacity-0 group-hover:opacity-100 transition-all max-h-0 group-hover:max-h-8 overflow-hidden group-hover:mb-1'>
-                  {benchmark.type}
-                </p>
+<div className='flex items-start justify-between mb-1'>
+  <h3 className='text-base font-bold text-gray-900'>{benchmark.name}</h3>
+<span className='text-xs text-gray-900'>
+  {benchmark.type}
+</span>
+</div>
                 {bestResult && (
                   <div className='flex items-end justify-between'>
                     <div>
@@ -407,7 +406,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
       </div>
 
       {/* Recent Benchmark Workouts Section */}
-      <div className='bg-white rounded-lg shadow p-6'>
+      <div className='bg-white rounded-xl shadow p-6'>
         <button
           onClick={() => setExpandedSections(prev => ({ ...prev, recent: !prev.recent }))}
           className='flex items-center gap-2 text-2xl font-bold text-gray-900 mb-4 hover:text-[#208479] transition'
@@ -417,26 +416,26 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
         </button>
 
         {expandedSections.recent && (
-          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
             {recentBenchmarks.length > 0 ? (
               recentBenchmarks.map(result => (
                 <div key={result.id} className='flex flex-col p-3 bg-gradient-to-r from-teal-100 to-teal-200 border border-teal-300 rounded-lg'>
-                  <div className='flex items-center gap-2 mb-2'>
-                    <h4 className='font-bold text-gray-900'>{result.benchmark_name}</h4>
-                    <span
-                      className={`text-xs px-2 py-1 rounded ${
-                        result.scaling === 'Rx'
-                          ? 'bg-red-600 text-white'
-                          : result.scaling === 'Sc1'
-                          ? 'bg-blue-800 text-white'
-                          : result.scaling === 'Sc2'
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-blue-400 text-white'
-                      }`}
-                    >
-                      {result.scaling}
-                    </span>
-                  </div>
+<div className='relative mb-2'>
+  <h4 className='font-bold text-gray-900'>{result.benchmark_name}</h4>
+  <span
+    className={`absolute top-0 right-0 text-xs px-2 py-1 rounded ${
+      result.scaling === 'Rx'
+        ? 'bg-red-600 text-white'
+        : result.scaling === 'Sc1'
+        ? 'bg-blue-800 text-white'
+        : result.scaling === 'Sc2'
+        ? 'bg-blue-500 text-white'
+        : 'bg-blue-400 text-white'
+    }`}
+  >
+    {result.scaling}
+  </span>
+</div>
                   <div className='flex items-center justify-between'>
                     <p className='text-lg font-bold text-[#208479]'>{result.result}</p>
                     <p className='text-sm text-gray-600'>
@@ -457,7 +456,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
       </div>
 
       {/* Progress Charts Section */}
-      <div className='bg-white rounded-lg shadow p-6'>
+      <div className='bg-white rounded-xl shadow p-6'>
         <button
           onClick={() => setExpandedSections(prev => ({ ...prev, charts: !prev.charts }))}
           className='flex items-center gap-2 text-2xl font-bold text-gray-900 mb-4 hover:text-[#208479] transition'
