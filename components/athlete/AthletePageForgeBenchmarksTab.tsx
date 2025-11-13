@@ -441,14 +441,16 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
                       {result.scaling}
                     </span>
                   </div>
-                  <p className='text-lg font-bold text-[#208479] mb-2'>{result.result}</p>
-                  <p className='text-sm text-gray-600'>
-                    {new Date(result.workout_date).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                    })}
-                  </p>
+                  <div className='flex items-center justify-between'>
+                    <p className='text-lg font-bold text-[#208479]'>{result.result}</p>
+                    <p className='text-sm text-gray-600'>
+                      {new Date(result.workout_date).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </p>
+                  </div>
                 </div>
               ))
             ) : (

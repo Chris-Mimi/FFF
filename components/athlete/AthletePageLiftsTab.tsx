@@ -394,19 +394,21 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                       {lift.rep_max_type}
                     </span>
                   </div>
-                  <p className='text-lg font-bold text-[#208479] mb-2'>
-                    {lift.weight_kg}kg
-                    {lift.calculated_1rm && lift.rep_max_type !== '1RM' && (
-                      <span className='text-sm text-gray-500 font-normal ml-2'>(Est. 1RM: {lift.calculated_1rm}kg)</span>
-                    )}
-                  </p>
-                  <p className='text-sm text-gray-600'>
-                    {new Date(lift.lift_date).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                    })}
-                  </p>
+                  <div className='flex items-center justify-between'>
+                    <p className='text-lg font-bold text-[#208479]'>
+                      {lift.weight_kg}kg
+                      {lift.calculated_1rm && lift.rep_max_type !== '1RM' && (
+                        <span className='text-sm text-gray-500 font-normal ml-2'>(Est. 1RM: {lift.calculated_1rm}kg)</span>
+                      )}
+                    </p>
+                    <p className='text-sm text-gray-600'>
+                      {new Date(lift.lift_date).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </p>
+                  </div>
                 </div>
               ))
             ) : (
