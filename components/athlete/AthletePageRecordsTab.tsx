@@ -83,74 +83,102 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
         return parseInt(timeStr) || 0;
       };
 
-      const finalBenchmarkPRs = new Map<string, BenchmarkResult>();
+      // Group all results by benchmark name first
+      const benchmarkGroups = new Map<string, BenchmarkResult[]>();
       benchmarkData.forEach(result => {
-        const existing = finalBenchmarkPRs.get(result.benchmark_name);
+        const group = benchmarkGroups.get(result.benchmark_name) || [];
+        group.push(result);
+        benchmarkGroups.set(result.benchmark_name, group);
+      });
 
-        if (!existing) {
-          finalBenchmarkPRs.set(result.benchmark_name, result);
-        } else {
-          const currentPriority = scalingPriority[result.scaling as keyof typeof scalingPriority] || 0;
-          const existingPriority = scalingPriority[existing.scaling as keyof typeof scalingPriority] || 0;
+      // For each benchmark, find the best result
+      const finalBenchmarkPRs: BenchmarkResult[] = [];
+      benchmarkGroups.forEach((results, benchmarkName) => {
+        let bestResult: BenchmarkResult | null = null;
 
-          // Prioritize higher scaling level
-          if (currentPriority > existingPriority) {
-            finalBenchmarkPRs.set(result.benchmark_name, result);
-          } else if (currentPriority === existingPriority) {
-            // Same scaling - compare results
-            const isTimeBased = result.result.includes(':');
+        results.forEach(result => {
+          if (!bestResult) {
+            bestResult = result;
+          } else {
+            const currentPriority = scalingPriority[result.scaling as keyof typeof scalingPriority] || 0;
+            const bestPriority = scalingPriority[bestResult.scaling as keyof typeof scalingPriority] || 0;
 
-            if (isTimeBased) {
-              // For time: lower is better
-              if (timeToSeconds(result.result) < timeToSeconds(existing.result)) {
-                finalBenchmarkPRs.set(result.benchmark_name, result);
-              }
-            } else {
-              // For reps: higher is better
-              if (parseInt(result.result) > parseInt(existing.result)) {
-                finalBenchmarkPRs.set(result.benchmark_name, result);
+            // Prioritize higher scaling level
+            if (currentPriority > bestPriority) {
+              bestResult = result;
+            } else if (currentPriority === bestPriority) {
+              // Same scaling - compare results
+              const isTimeBased = result.result.includes(':');
+
+              if (isTimeBased) {
+                // For time: lower is better
+                if (timeToSeconds(result.result) < timeToSeconds(bestResult.result)) {
+                  bestResult = result;
+                }
+              } else {
+                // For reps: higher is better
+                if (parseInt(result.result) > parseInt(bestResult.result)) {
+                  bestResult = result;
+                }
               }
             }
           }
+        });
+
+        if (bestResult) {
+          finalBenchmarkPRs.push(bestResult);
         }
       });
 
-      setBenchmarkPRs(Array.from(finalBenchmarkPRs.values()));
+      setBenchmarkPRs(finalBenchmarkPRs);
 
       // Process forge benchmark PRs with proper scaling hierarchy and best result logic
-      const finalForgePRs = new Map<string, BenchmarkResult>();
+      const forgeGroups = new Map<string, BenchmarkResult[]>();
       forgeData.forEach(result => {
-        const existing = finalForgePRs.get(result.benchmark_name);
+        const group = forgeGroups.get(result.benchmark_name) || [];
+        group.push(result);
+        forgeGroups.set(result.benchmark_name, group);
+      });
 
-        if (!existing) {
-          finalForgePRs.set(result.benchmark_name, result);
-        } else {
-          const currentPriority = scalingPriority[result.scaling as keyof typeof scalingPriority] || 0;
-          const existingPriority = scalingPriority[existing.scaling as keyof typeof scalingPriority] || 0;
+      const finalForgePRs: BenchmarkResult[] = [];
+      forgeGroups.forEach((results, benchmarkName) => {
+        let bestResult: BenchmarkResult | null = null;
 
-          // Prioritize higher scaling level
-          if (currentPriority > existingPriority) {
-            finalForgePRs.set(result.benchmark_name, result);
-          } else if (currentPriority === existingPriority) {
-            // Same scaling - compare results
-            const isTimeBased = result.result.includes(':');
+        results.forEach(result => {
+          if (!bestResult) {
+            bestResult = result;
+          } else {
+            const currentPriority = scalingPriority[result.scaling as keyof typeof scalingPriority] || 0;
+            const bestPriority = scalingPriority[bestResult.scaling as keyof typeof scalingPriority] || 0;
 
-            if (isTimeBased) {
-              // For time: lower is better
-              if (timeToSeconds(result.result) < timeToSeconds(existing.result)) {
-                finalForgePRs.set(result.benchmark_name, result);
-              }
-            } else {
-              // For reps: higher is better
-              if (parseInt(result.result) > parseInt(existing.result)) {
-                finalForgePRs.set(result.benchmark_name, result);
+            // Prioritize higher scaling level
+            if (currentPriority > bestPriority) {
+              bestResult = result;
+            } else if (currentPriority === bestPriority) {
+              // Same scaling - compare results
+              const isTimeBased = result.result.includes(':');
+
+              if (isTimeBased) {
+                // For time: lower is better
+                if (timeToSeconds(result.result) < timeToSeconds(bestResult.result)) {
+                  bestResult = result;
+                }
+              } else {
+                // For reps: higher is better
+                if (parseInt(result.result) > parseInt(bestResult.result)) {
+                  bestResult = result;
+                }
               }
             }
           }
+        });
+
+        if (bestResult) {
+          finalForgePRs.push(bestResult);
         }
       });
 
-      setForgeBenchmarkPRs(Array.from(finalForgePRs.values()));
+      setForgeBenchmarkPRs(finalForgePRs);
 
       // Fetch lift PRs
       const { data: liftData, error: liftError } = await supabase
@@ -284,7 +312,7 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
                               ? 'bg-blue-800 text-white'
                               : pr.scaling === 'Sc2'
                               ? 'bg-blue-500 text-white'
-                              : 'bg-slate-600 text-white'
+                              : 'bg-blue-400 text-white'
                           }`}
                         >
                           {pr.scaling}
@@ -337,7 +365,7 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
                               ? 'bg-blue-800 text-white'
                               : pr.scaling === 'Sc2'
                               ? 'bg-blue-500 text-white'
-                              : 'bg-slate-600 text-white'
+                              : 'bg-blue-400 text-white'
                           }`}
                         >
                           {pr.scaling}
