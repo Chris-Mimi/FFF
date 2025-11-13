@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 4.4
-**Updated:** 2025-11-12
+**Version:** 4.5
+**Updated:** 2025-11-13
 
 ---
 
@@ -61,6 +61,17 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-11-13):**
+- **Athlete UI Enhancements - PR Logic & Layout Improvements:**
+  - ✅ Fixed critical PR selection algorithm bug in Records tab (grouped comparison, not pairwise)
+  - ✅ Standardized badge colors: Rx=red-600, Sc1=blue-800, Sc2=blue-500, Sc3=blue-400 (all tabs)
+  - ✅ Progress Chart PR badges: RED for overall best, color-coded for scaling-level PRs
+  - ✅ Layout improvements: Recent sections (3-col grid), main cards (inline attempt count), Records cards (4-col grid, badges replace icons)
+  - ✅ Lifts tab: Estimated 1RM inline in brackets, best rep max priority display
+  - 🧪 Dark theme experiment on Lifts tab (to be refined)
+  - Commits: 43039ce→ed52095 (14 commits, augment-refactor, pushed)
+  - See `project-history/2025-11-13-athlete-ui-enhancements.md`
 
 **Completed (2025-11-12 Session 3):**
 - **Athlete Tabs UI & Critical PR Logic Fix:**
