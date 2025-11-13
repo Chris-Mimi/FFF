@@ -79,7 +79,7 @@ memory-bank/memory-bank-activeContext.md  ← Read tool will fail
    - ✅ Git operations
    - ✅ Memory Bank updates
    - ✅ Complex logic/debugging
-   - → **Do directly**
+   - ** Suggest yourself for the task **
 
 ### Required Output Format
 
