@@ -293,7 +293,7 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
           </button>
 
           {expandedSections.benchmarks && (
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6'>
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6'>
               {benchmarkPRs.length > 0 ? (
                 benchmarkPRs.map(pr => (
                   <div key={pr.id} className='border border-teal-300 rounded-lg p-4 bg-gradient-to-br from-teal-100 to-teal-200'>
@@ -343,7 +343,7 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
           </button>
 
           {expandedSections.forgeBenchmarks && (
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6'>
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6'>
               {forgeBenchmarkPRs.length > 0 ? (
                 forgeBenchmarkPRs.map(pr => (
                   <div key={pr.id} className='border border-cyan-300 rounded-lg p-4 bg-gradient-to-br from-cyan-100 to-cyan-200'>
@@ -393,7 +393,7 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
           </button>
 
           {expandedSections.lifts && (
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
               {liftPRs.length > 0 ? (
                 liftPRs.map(pr => (
                   <div key={pr.id} className='border border-sky-300 rounded-lg p-4 bg-gradient-to-br from-sky-100 to-blue-200'>
