@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 4.6
-**Updated:** 2025-11-13 (Session 5)
+**Version:** 4.7
+**Updated:** 2025-11-14 (Session 6)
 
 ---
 
@@ -61,6 +61,18 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-11-14 Session 6):**
+- **3-State Workout System Fixes & Athlete Booking Display:**
+  - ✅ Fixed 3-state transitions: Save with content → draft (not auto-publish), edit preserves status, copy preserves both publish flags
+  - ✅ Fixed exercise library: Auto-expand section before opening (prevents silent failure)
+  - ✅ Athlete Workouts Tab: Fetch bookings first (not published workouts), show all bookings with session times
+  - ✅ Athlete Logbook: Future bookings show "Booked" in Day/Week/Month views (light teal #7dd3c0)
+  - ✅ Past attended workouts show full details + logging forms
+  - ✅ UI updates: Benchmarks-Lifts page color schemes (Forge=cyan, Lifts=blue/sky, modals=dark)
+  - Commits: 8 commits (15f87b8 → 5b9461c)
+  - Branch: augment-refactor (26 commits ahead, pushed)
+  - See `project-history/2025-11-14-3-state-fixes-booking-display.md`
 
 **Completed (2025-11-13 Sessions 4-5):**
 - **Athlete UI Enhancements - PR Logic & Layout Improvements:**
@@ -166,6 +178,10 @@ Athlete Tables (linked to members.id)
 - macOS iCloud Keychain autofill popups (OS behavior, not app bug)
 
 **Lessons Learned:**
+- **2025-11-14:** State preservation on edits - Always preserve existing status on edit operations unless explicitly changing state
+- **2025-11-14:** Data source priority matters - Fetch from source of truth (bookings table for booking status, not published workouts)
+- **2025-11-14:** Silent failures need DOM state - UI actions requiring specific DOM state should ensure that state exists first (auto-expand before library open)
+- **2025-11-14:** Component size threshold - Files >2000 lines become difficult to maintain, consider refactoring when hitting this size
 - **2025-11-09 (Session 2):** Git sync MUST be first step when user mentions "pushed to GitHub" - Don't analyze local changes, immediately `git reset --hard origin/main`
 - **2025-11-09 (Session 2):** Protocol documentation can have bugs - workflow-protocols.md had wrong file paths for weeks, causing repeated failures without root cause fixes
 - **2025-11-09 (Session 2):** Fix root causes, not symptoms - Repeated workarounds without fixing broken protocols wastes time and erodes trust
@@ -178,13 +194,21 @@ Athlete Tables (linked to members.id)
 
 ## 📋 Next Immediate Steps
 
-1. **Testing & Deployment Preparation:**
-   - Test 3-state workflow system in production-like environment
-   - Verify all booking flows work correctly
+1. **Immediate Priorities (From Session 6):**
+   - **Add workout titles from Schedule Tab:** Need ability to create/edit workout titles without leaving coach dashboard
+   - **Rethink "Apply to Other Sessions" section in Edit Workout Modal:**
+     - Currently takes up significant vertical space
+     - Consider collapsible button dropdown design
+     - **Question:** Is this feature necessary? Need to test in actual workflow scenario
+   - **Refactor coach/page.tsx:** File is very large (~2000+ lines), consider breaking into components like athlete page refactor
+
+2. **Testing & Deployment Preparation:**
+   - Test 3-state workflow system in production-like environment (partially complete)
+   - Verify all booking flows work correctly (partially complete)
    - Test athlete page tab enhancements (Recent sections, Progress Charts, PR badges)
    - Create deployment checklist
 
-2. **Future Enhancements:**
+3. **Future Enhancements:**
    - Coach ability to edit section types, workout types, exercises
    - Bulk operations for session/workout management
    - Improved search/filter capabilities
