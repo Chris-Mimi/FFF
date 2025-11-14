@@ -1120,6 +1120,11 @@ export default function WODModal({
   };
 
   const openLibraryForSection = (sectionIndex: number) => {
+    const section = formData.sections[sectionIndex];
+    if (!section) return;
+
+    // Expand the section so textarea exists in DOM for exercise insertion
+    setExpandedSections(prev => new Set(prev).add(section.id));
     setActiveSection(sectionIndex);
     setLibraryOpen(true);
   };
