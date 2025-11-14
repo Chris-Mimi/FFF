@@ -195,7 +195,7 @@ Athlete Tables (linked to members.id)
 ## 📋 Next Immediate Steps
 
 1. **Immediate Priorities (From Session 6):**
-   - **Add workout titles from Schedule Tab:** Need ability to create/edit workout titles without leaving coach dashboard
+   - **Add workout title management to Schedule Tab:** Currently only managed in Supabase, need CRUD UI in Schedule Tab (natural context for creating workouts)
    - **Rethink "Apply to Other Sessions" section in Edit Workout Modal:**
      - Currently takes up significant vertical space
      - Consider collapsible button dropdown design
