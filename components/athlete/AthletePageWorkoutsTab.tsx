@@ -35,6 +35,29 @@ interface AthletePageWorkoutsTabProps {
   onNavigateToLogbook?: (date: Date) => void;
 }
 
+interface BookingResponse {
+  id: string;
+  session_id: string;
+  status: string;
+  weekly_sessions: {
+    id: string;
+    date: string;
+    time: string;
+    workout_id: string | null;
+    wods: {
+      id: string;
+      title: string;
+      track_id: string;
+      sections: WorkoutSection[];
+      publish_sections: string[];
+      publish_time: string;
+      publish_duration: number;
+      is_published: boolean;
+      tracks: { name: string; color: string } | { name: string; color: string }[];
+    } | null;
+  };
+}
+
 export default function AthletePageWorkoutsTab({ userId, onNavigateToLogbook }: AthletePageWorkoutsTabProps) {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [workouts, setWorkouts] = useState<PublishedWorkout[]>([]);
@@ -59,93 +82,68 @@ export default function AthletePageWorkoutsTab({ userId, onNavigateToLogbook }: 
       const startDate = formatDate(weekDates[0]);
       const endDate = formatDate(weekDates[6]);
 
-      const { data, error } = await supabase
-        .from('wods')
-        .select(
-          `
+      // Fetch user's bookings for this week
+      const { data: bookings, error: bookingsError } = await supabase
+        .from('bookings')
+        .select(`
           id,
-          title,
-          date,
-          track_id,
-          sections,
-          publish_sections,
-          publish_time,
-          publish_duration,
-          tracks:track_id (name, color)
-        `
-        )
-        .eq('is_published', true)
-        .gte('date', startDate)
-        .lte('date', endDate)
-        .order('date', { ascending: true });
+          session_id,
+          status,
+          weekly_sessions!inner (
+            id,
+            date,
+            time,
+            workout_id,
+            wods (
+              id,
+              title,
+              track_id,
+              sections,
+              publish_sections,
+              publish_time,
+              publish_duration,
+              is_published,
+              tracks:track_id (name, color)
+            )
+          )
+        `)
+        .eq('member_id', userId)
+        .eq('status', 'confirmed')
+        .gte('weekly_sessions.date', startDate)
+        .lte('weekly_sessions.date', endDate);
 
-      if (error) {
-        console.error('Error fetching published workouts:', error);
+      if (bookingsError) {
+        console.error('Error fetching bookings:', bookingsError);
         return;
       }
 
-      // Check attendance/booking status for each workout
-      const workoutsWithStatus = await Promise.all(
-        (data || []).map(async (workout) => {
-          // Get session for this workout
-          const { data: sessionData } = await supabase
-            .from('weekly_sessions')
-            .select('id')
-            .eq('workout_id', workout.id)
-            .maybeSingle();
+      // Transform bookings into workout display format
+      const workoutsFromBookings = (bookings || []).map((booking: BookingResponse) => {
+        const session = booking.weekly_sessions;
+        const workout = session?.wods;
 
-          const sessionId = sessionData?.id;
+        const sessionDate = new Date(session.date);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const isPastDate = sessionDate < today;
 
-          let attended = false;
-          let booked = false;
+        return {
+          id: workout?.id || `session-${session.id}`,
+          title: workout?.title || 'Workout',
+          date: session.date,
+          track_id: workout?.track_id || '',
+          sections: workout?.sections || [],
+          publish_sections: workout?.publish_sections || [],
+          publish_time: session.time, // Use session time, not publish_time
+          publish_duration: workout?.publish_duration || 60,
+          session_id: session.id,
+          attended: isPastDate,
+          booked: !isPastDate,
+          track: workout?.tracks ? (Array.isArray(workout.tracks) ? workout.tracks[0] : workout.tracks) : null,
+        } as PublishedWorkout;
+      });
 
-          if (sessionId) {
-            // Check if user has a confirmed booking for this session
-            const { data: booking } = await supabase
-              .from('bookings')
-              .select('status')
-              .eq('session_id', sessionId)
-              .eq('member_id', userId)
-              .eq('status', 'confirmed')
-              .maybeSingle();
-
-            if (booking) {
-              const workoutDate = new Date(workout.date);
-              const today = new Date();
-              today.setHours(0, 0, 0, 0);
-              const isPastDate = workoutDate < today;
-
-              if (isPastDate) {
-                attended = true; // Past booking = attended
-              } else {
-                booked = true; // Future booking = booked
-              }
-            }
-          }
-
-          // Show workout if user attended it or has it booked
-          if (!attended && !booked) return null;
-
-          return {
-            id: workout.id,
-            title: workout.title,
-            date: workout.date,
-            track_id: workout.track_id,
-            sections: workout.sections || [],
-            publish_sections: workout.publish_sections || [],
-            publish_time: workout.publish_time,
-            publish_duration: workout.publish_duration,
-            session_id: sessionId,
-            attended,
-            booked,
-            track: Array.isArray(workout.tracks) ? workout.tracks[0] : workout.tracks,
-          } as PublishedWorkout;
-        })
-      );
-
-      // Filter out null values (non-booked workouts)
-      const filteredWorkouts = workoutsWithStatus.filter((w): w is PublishedWorkout => w !== null);
-      setWorkouts(filteredWorkouts);
+      setWorkouts(workoutsFromBookings);
     } catch (error) {
       console.error('Error fetching workouts:', error);
     } finally {
