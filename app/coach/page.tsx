@@ -620,7 +620,7 @@ export default function CoachDashboard() {
     try {
       if (editingWOD && editingWOD.id) {
         // Update existing WOD
-        // Determine publish status: if has content, set to 'draft', otherwise null (empty)
+        // Preserve publish status unless content removed
         const hasContent = wodData.sections && wodData.sections.length > 0;
 
         const { error } = await supabase
@@ -634,7 +634,7 @@ export default function CoachDashboard() {
             date: dateKey,
             sections: wodData.sections,
             coach_notes: wodData.coach_notes || null,
-            workout_publish_status: hasContent ? 'draft' : null,
+            workout_publish_status: hasContent ? (editingWOD.workout_publish_status || 'draft') : null,
             updated_at: new Date().toISOString(),
           })
           .eq('id', editingWOD.id);
