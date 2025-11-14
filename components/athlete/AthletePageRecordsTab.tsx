@@ -396,10 +396,10 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
               {liftPRs.length > 0 ? (
                 liftPRs.map(pr => (
-                  <div key={pr.id} className='border border-sky-300 rounded-lg p-4 bg-gradient-to-br from-sky-100 to-blue-200'>
+                  <div key={pr.id} className='border border-sky-300 rounded-lg p-4 bg-gradient-to-br from-[#1fe2dcff] to-[#81edeaff]'>
                     <div className='flex items-start justify-between mb-2'>
                       <h4 className='font-bold text-gray-900'>{pr.lift_name}</h4>
-                      <span className='text-xs px-2 py-1 rounded bg-blue-300 text-gray-700'>
+                      <span className='text-xs px-2 py-1 rounded bg-[#a1f0e8ff] text-gray-700'>
                         {pr.rep_max_type}
                       </span>
                     </div>

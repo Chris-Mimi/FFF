@@ -318,7 +318,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                     <div
                       key={lift.name}
                       onClick={() => setSelectedLift(lift.name)}
-                      className='group border border-sky-300 rounded-lg p-3 bg-sky-100/50 hover:border-sky-400 hover:bg-sky-100/70 cursor-pointer transition'
+                      className='group border border-[#0ABAB5] rounded-lg p-3 bg-[#AFEEEE] hover:border-sky-400 hover:bg-[#40E0D0] cursor-pointer transition'
                     >
 <div className='flex items-center justify-between mb-1'>
   <h4 className='text-base font-bold text-gray-900'>{lift.name}</h4>
@@ -363,7 +363,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                     <div
                       key={lift.name}
                       onClick={() => setSelectedLift(lift.name)}
-                      className='group border border-sky-300 rounded-lg p-3 bg-sky-100/50 hover:border-sky-400 hover:bg-sky-100/70 cursor-pointer transition'
+                      className='group border border-[#0ABAB5] rounded-lg p-3 bg-[#AFEEEE] hover:border-sky-400 hover:bg-[#40E0D0] cursor-pointer transition'
                     >
 <div className='flex items-center justify-between mb-1'>
   <h4 className='text-base font-bold text-gray-900'>{lift.name}</h4>
@@ -407,10 +407,10 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
             {recentLifts.length > 0 ? (
               recentLifts.map(lift => (
-                <div key={lift.id} className='flex flex-col p-3 bg-gradient-to-r from-sky-100 to-blue-200 border border-sky-300 rounded-lg'>
+                <div key={lift.id} className='flex flex-col p-3 bg-gradient-to-r from-[#AFEEEE] to-[#40E0D0] border border-[#0ABAB5] rounded-lg'>
 <div className='relative mb-2'>
   <h4 className='font-bold text-gray-700'>{lift.lift_name}</h4>
-  <span className='absolute top-0 right-0 text-xs px-2 py-1 rounded bg-blue-300 text-gray-900'>
+  <span className='absolute top-0 right-0 text-xs px-2 py-1 rounded bg-[#AFEEEE] text-gray-900'>
     {lift.rep_max_type}
   </span>
 </div>
@@ -453,7 +453,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                 const chartData = getLiftChartDataAllTypes(lift.name);
                 if (chartData.length < 2) return null; // Only show charts with 2+ data points
                 return (
-                  <div key={lift.name} className='border border-sky-300 rounded-lg p-4 bg-gradient-to-br from-sky-200 to-blue-300'>
+                  <div key={lift.name} className='border border-sky-300 rounded-lg p-4 bg-gradient-to-br from-[#40E0D0] to-[#AFEEEE]'>
                     <h4 className='font-bold text-gray-700 mb-3'>{lift.name}</h4>
                     <ResponsiveContainer width='100%' height={200}>
                       <LineChart data={chartData}>
