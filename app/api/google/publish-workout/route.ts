@@ -153,6 +153,7 @@ export async function POST(request: NextRequest) {
       .from('wods')
       .update({
         is_published: true,
+        workout_publish_status: 'published',
         publish_time: publishConfig.eventTime,
         publish_duration: publishConfig.eventDurationMinutes,
         publish_sections: publishConfig.selectedSectionIds,
@@ -272,6 +273,7 @@ export async function DELETE(request: NextRequest) {
       .from('wods')
       .update({
         is_published: false,
+        workout_publish_status: 'draft',
         publish_time: null,
         publish_duration: null,
         publish_sections: null,
