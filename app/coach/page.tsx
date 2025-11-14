@@ -848,6 +848,7 @@ export default function CoachDashboard() {
             date: dateKey,
             sections: wod.sections,
             workout_publish_status: wod.workout_publish_status || 'draft', // Preserve source status
+            is_published: wod.is_published || false, // Preserve published flag for modal
           },
         ])
         .select()
