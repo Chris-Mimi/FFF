@@ -835,7 +835,7 @@ export default function CoachDashboard() {
     const dateKey = formatDate(targetDate);
 
     try {
-      // Create the new workout as draft
+      // Create the new workout preserving publish status from source
       const { data: newWorkout, error: workoutError } = await supabase
         .from('wods')
         .insert([
@@ -847,7 +847,7 @@ export default function CoachDashboard() {
             max_capacity: wod.maxCapacity,
             date: dateKey,
             sections: wod.sections,
-            workout_publish_status: 'draft', // New workouts start as draft
+            workout_publish_status: wod.workout_publish_status || 'draft', // Preserve source status
           },
         ])
         .select()
