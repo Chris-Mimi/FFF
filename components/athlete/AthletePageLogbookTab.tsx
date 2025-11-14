@@ -13,6 +13,8 @@ interface WOD {
   workout_types?: { name: string };
   sections: Array<{ id: string; type: string; content: string; duration?: string }>;
   published_section_ids?: string[];
+  attended?: boolean; // Past booking = attended
+  booked?: boolean; // Future booking = booked
 }
 
 interface AthletePageLogbookTabProps {
@@ -76,8 +78,8 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
         return;
       }
 
-      // Filter to only workouts user attended (has confirmed booking for past dates)
-      const attendedWods = await Promise.all(
+      // Filter to workouts user has booked (past = attended, future = booked)
+      const userWorkouts = await Promise.all(
         wodsData.map(async (workout) => {
           // Get session for this workout
           const { data: sessionData } = await supabase
@@ -88,13 +90,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
 
           if (!sessionData) return null;
 
-          // Check if user has confirmed booking and workout is in the past
-          const workoutDate = new Date(workout.date);
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-
-          if (workoutDate >= today) return null; // Only show past workouts
-
+          // Check if user has confirmed booking
           const { data: booking } = await supabase
             .from('bookings')
             .select('status')
@@ -105,16 +101,23 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
 
           if (!booking) return null;
 
+          const workoutDate = new Date(workout.date);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const isPastDate = workoutDate < today;
+
           return {
             ...workout,
             sections: workout.sections || [],
             tracks: Array.isArray(workout.tracks) ? workout.tracks[0] : workout.tracks,
             workout_types: Array.isArray(workout.workout_types) ? workout.workout_types[0] : workout.workout_types,
+            attended: isPastDate,
+            booked: !isPastDate,
           };
         })
       );
 
-      const filteredWorkouts = attendedWods.filter(w => w !== null) as WOD[];
+      const filteredWorkouts = userWorkouts.filter(w => w !== null) as WOD[];
       setWods(filteredWorkouts);
 
       // Fetch existing workout logs for attended workouts for this user
@@ -185,8 +188,8 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
         return;
       }
 
-      // Filter to only workouts user attended (has confirmed booking for past dates)
-      const attendedWods = await Promise.all(
+      // Filter to workouts user has booked (past = attended, future = booked)
+      const userWorkouts = await Promise.all(
         wodsData.map(async (workout) => {
           // Get session for this workout
           const { data: sessionData } = await supabase
@@ -197,13 +200,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
 
           if (!sessionData) return null;
 
-          // Check if user has confirmed booking and workout is in the past
-          const workoutDate = new Date(workout.date);
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-
-          if (workoutDate >= today) return null; // Only show past workouts
-
+          // Check if user has confirmed booking
           const { data: booking } = await supabase
             .from('bookings')
             .select('status')
@@ -214,16 +211,23 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
 
           if (!booking) return null;
 
+          const workoutDate = new Date(workout.date);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const isPastDate = workoutDate < today;
+
           return {
             ...workout,
             sections: workout.sections || [],
             tracks: Array.isArray(workout.tracks) ? workout.tracks[0] : workout.tracks,
             workout_types: Array.isArray(workout.workout_types) ? workout.workout_types[0] : workout.workout_types,
+            attended: isPastDate,
+            booked: !isPastDate,
           };
         })
       );
 
-      const filteredWorkouts = attendedWods.filter(w => w !== null) as WOD[];
+      const filteredWorkouts = userWorkouts.filter(w => w !== null) as WOD[];
       setAttendedWorkouts(filteredWorkouts);
 
       // Fetch logs for attended workouts
@@ -289,8 +293,8 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
         return;
       }
 
-      // Filter to only workouts user attended (has confirmed booking for past dates)
-      const attendedWods = await Promise.all(
+      // Filter to workouts user has booked (past = attended, future = booked)
+      const userWorkouts = await Promise.all(
         wodsData.map(async (workout) => {
           // Get session for this workout
           const { data: sessionData } = await supabase
@@ -301,13 +305,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
 
           if (!sessionData) return null;
 
-          // Check if user has confirmed booking and workout is in the past
-          const workoutDate = new Date(workout.date);
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-
-          if (workoutDate >= today) return null; // Only show past workouts
-
+          // Check if user has confirmed booking
           const { data: booking } = await supabase
             .from('bookings')
             .select('status')
@@ -318,16 +316,23 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
 
           if (!booking) return null;
 
+          const workoutDate = new Date(workout.date);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const isPastDate = workoutDate < today;
+
           return {
             ...workout,
             sections: workout.sections || [],
             tracks: Array.isArray(workout.tracks) ? workout.tracks[0] : workout.tracks,
             workout_types: Array.isArray(workout.workout_types) ? workout.workout_types[0] : workout.workout_types,
+            attended: isPastDate,
+            booked: !isPastDate,
           };
         })
       );
 
-      const filteredWorkouts = attendedWods.filter(w => w !== null) as WOD[];
+      const filteredWorkouts = userWorkouts.filter(w => w !== null) as WOD[];
       setAttendedWorkouts(filteredWorkouts);
 
       // Fetch logs for attended workouts
@@ -583,8 +588,16 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                     </span>
                   </div>
 
-                  {/* Workout Sections */}
-                  <div className='space-y-3 mb-4'>
+                  {wod.booked ? (
+                    // Future booked workout - show placeholder
+                    <div className='text-center py-12'>
+                      <div className='text-2xl font-bold text-[#208479] mb-2'>Booked</div>
+                      <div className='text-sm text-gray-500'>Workout details available after class</div>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Workout Sections */}
+                      <div className='space-y-3 mb-4'>
                     {getPublishedSections(wod).map(section => (
                       <div key={section.id} className='bg-gray-50 rounded-lg p-3'>
                         <div className='flex items-center justify-between mb-2'>
@@ -680,6 +693,8 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                       </div>
                     </div>
                   </div>
+                    </>
+                  )}
                 </div>
               ))}
             </div>
@@ -742,19 +757,25 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                               setSelectedDate(date);
                               setViewMode('day');
                             }}
-                            className='w-full text-left p-2 bg-white rounded border hover:shadow-sm transition'
+                            className={`w-full text-left p-2 rounded border hover:shadow-sm transition ${
+                              wod.booked ? 'bg-[#7dd3c0] border-[#7dd3c0]' : 'bg-white'
+                            }`}
                           >
-                            <div className='flex items-center gap-2 mb-1'>
-                              {wod.tracks && (
-                                <div
-                                  className='w-2 h-2 rounded-full flex-shrink-0'
-                                  style={{ backgroundColor: wod.tracks.color || '#208479' }}
-                                />
-                              )}
-                              <span className='text-xs font-medium text-gray-900 truncate'>
-                                {wod.title}
-                              </span>
-                            </div>
+                            {wod.booked ? (
+                              <div className='text-xs font-bold text-gray-900 text-center'>Booked</div>
+                            ) : (
+                              <div className='flex items-center gap-2 mb-1'>
+                                {wod.tracks && (
+                                  <div
+                                    className='w-2 h-2 rounded-full flex-shrink-0'
+                                    style={{ backgroundColor: wod.tracks.color || '#208479' }}
+                                  />
+                                )}
+                                <span className='text-xs font-medium text-gray-900 truncate'>
+                                  {wod.title}
+                                </span>
+                              </div>
+                            )}
                           </button>
                         ))}
                       </div>
@@ -837,8 +858,15 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                       {hasWorkouts && (
                         <div className='mt-1'>
                           {dayWorkouts.slice(0, 2).map(wod => (
-                            <div key={wod.id} className='text-xs bg-[#208479] text-white rounded px-1 py-0.5 mb-1 truncate'>
-                              {wod.title}
+                            <div
+                              key={wod.id}
+                              className={`text-xs rounded px-1 py-0.5 mb-1 truncate ${
+                                wod.booked
+                                  ? 'bg-[#7dd3c0] text-gray-900 font-bold'
+                                  : 'bg-[#208479] text-white'
+                              }`}
+                            >
+                              {wod.booked ? 'Booked' : wod.title}
                             </div>
                           ))}
                           {dayWorkouts.length > 2 && (
