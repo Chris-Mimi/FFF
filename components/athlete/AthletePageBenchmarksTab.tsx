@@ -566,7 +566,10 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                   type='date'
                   value={newDate}
                   onChange={e => setNewDate(e.target.value)}
-                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-100'
+                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-100 date-input-calendar'
+                  style={{
+                    colorScheme: 'dark'
+                  }}
                 />
               </div>
 
@@ -623,7 +626,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                 <button
                   onClick={handleSaveBenchmark}
                   disabled={!newTime}
-                  className='flex-1 px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white font-medium rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed'
+                  className='flex-1 px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white font-medium rounded-lg transition disabled:bg-gray-500 disabled:cursor-not-allowed'
                 >
                   {editingBenchmarkId ? 'Update' : 'Save'}
                 </button>
@@ -686,26 +689,26 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
 
           {chartBenchmark && (
             <div className='mt-4'>
-              <h4 className='text-lg font-semibold text-gray-900 mb-4'>
+              <h4 className='text-lg font-semibold text-gray-100 mb-4'>
                 {chartBenchmark} Progress
               </h4>
               <ResponsiveContainer width='100%' height={300}>
-                <LineChart data={getBenchmarkChartData(chartBenchmark)}>
+                  <LineChart data={getBenchmarkChartData(chartBenchmark)}>
                   <CartesianGrid strokeDasharray='3 3' />
-                  <XAxis dataKey='date' />
-                  <YAxis />
+                  <XAxis dataKey='date' tick={{ fill: '#f3f4f6' }} />
+                  <YAxis tick={{ fill: '#f3f4f6' }} />
                   <Tooltip
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
                         return (
-                          <div className='bg-white p-3 border border-gray-300 rounded shadow-lg'>
-                            <p className='text-sm text-gray-900 font-semibold'>
+                          <div className='bg-gray-800 p-3 border border-gray-600 rounded shadow-lg'>
+                            <p className='text-sm text-gray-100 font-semibold'>
                               {payload[0].payload.date}
                             </p>
-                            <p className='text-sm text-[#208479] font-semibold'>
+                            <p className='text-sm text-[#83e1b2ff] font-semibold'>
                               Result: {payload[0].payload.resultDisplay}
                             </p>
-                            <p className='text-sm text-gray-600'>
+                            <p className='text-sm text-gray-100'>
                               Scaling: {payload[0].payload.scaling}
                             </p>
                           </div>

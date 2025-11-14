@@ -486,7 +486,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                         <Line
                           type='monotone'
                           dataKey='weight'
-                          stroke='#208479'
+                          stroke='#83e1b2ff'
                           strokeWidth={2}
                           dot={<CustomDot />}
                         />
@@ -509,9 +509,9 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
           setNewRepMaxType('1RM');
           setNewDate(new Date().toISOString().split('T')[0]);
         }}>
-          <div className='bg-white rounded-lg shadow-xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto' onClick={(e) => e.stopPropagation()}>
+          <div className='bg-gray-700 rounded-lg shadow-xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto' onClick={(e) => e.stopPropagation()}>
             <div className='flex items-center justify-between mb-4'>
-              <h3 className='text-xl font-semibold text-gray-900'>
+              <h3 className='text-xl font-semibold text-gray-50'>
                 {editingLiftId ? 'Edit' : 'Log'} {selectedLift}
               </h3>
               <div className='flex gap-2'>
@@ -529,7 +529,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                     setNewRepMaxType('1RM');
                     setNewDate(new Date().toISOString().split('T')[0]);
                   }}
-                  className='px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded transition'
+                  className='px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 text-gray-900 rounded transition'
                 >
                   ✕
                 </button>
@@ -539,21 +539,24 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
           <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
             <div className='space-y-4'>
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-2'>Date</label>
+                <label className='block text-sm font-medium text-gray-100 mb-2'>Date</label>
                 <input
                   type='date'
                   value={newDate}
                   onChange={e => setNewDate(e.target.value)}
-                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-100 date-input-calendar'
+                  style={{
+                    colorScheme: 'dark'
+                  }}
                 />
               </div>
 
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-2'>Rep Max Type</label>
+                <label className='block text-sm font-medium text-gray-100 mb-2'>Rep Max Type</label>
                 <select
                   value={newRepMaxType}
                   onChange={e => setNewRepMaxType(e.target.value as '1RM' | '3RM' | '5RM' | '10RM')}
-                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-100'
                 >
                   <option value='1RM'>1 Rep Max</option>
                   <option value='3RM'>3 Rep Max</option>
@@ -563,14 +566,14 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
               </div>
 
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-2'>Weight (kg)</label>
+                <label className='block text-sm font-medium text-gray-100 mb-2'>Weight (kg)</label>
                 <input
                   type='number'
                   step='0.5'
                   value={newWeight}
                   onChange={e => setNewWeight(e.target.value)}
                   placeholder='e.g., 100'
-                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-100'
                 />
                 {newWeight && (
                   <p className='text-sm text-gray-600 mt-1'>
@@ -580,13 +583,13 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
               </div>
 
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-2'>Notes</label>
+                <label className='block text-sm font-medium text-gray-100 mb-2'>Notes</label>
                 <textarea
                   value={newNotes}
                   onChange={e => setNewNotes(e.target.value)}
                   placeholder='How did it feel? Any form notes?'
                   rows={4}
-                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 resize-none'
+                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-100 resize-none'
                 />
               </div>
 
@@ -607,7 +610,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                 <button
                   onClick={handleSaveLift}
                   disabled={!newWeight}
-                  className='flex-1 px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white font-medium rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed'
+                  className='flex-1 px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white font-medium rounded-lg transition disabled:bg-gray-500 disabled:cursor-not-allowed'
                 >
                   {editingLiftId ? 'Update' : 'Save'}
                 </button>
@@ -616,7 +619,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
 
             {/* History */}
             <div>
-              <h4 className='text-lg font-semibold text-gray-900 mb-4'>Previous Records</h4>
+              <h4 className='text-lg font-semibold text-gray-50 mb-4'>Previous Records</h4>
               <div className='space-y-3 max-h-96 overflow-y-auto'>
                 {liftHistory
                   .filter(entry => entry.lift_name === selectedLift)
@@ -664,13 +667,13 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
           {chartLift && (
             <div className='mt-6'>
               <div className='flex items-center justify-between mb-4'>
-                <h4 className='text-lg font-semibold text-gray-900'>
+                <h4 className='text-lg font-semibold text-gray-100'>
                   {chartLift} Progress
                 </h4>
                 <select
                   value={chartRepMaxType}
                   onChange={e => setChartRepMaxType(e.target.value as '1RM' | '3RM' | '5RM' | '10RM')}
-                  className='px-3 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent'
+                  className='px-3 py-1 text-sm text-gray-100 border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent'
                 >
                   <option value='1RM'>1RM</option>
                   <option value='3RM'>3RM</option>
@@ -681,20 +684,20 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
               <ResponsiveContainer width='100%' height={300}>
                 <LineChart data={getLiftChartData(chartLift, chartRepMaxType)}>
                   <CartesianGrid strokeDasharray='3 3' />
-                  <XAxis dataKey='date' />
-                  <YAxis />
+                  <XAxis dataKey='date' tick={{ fill: '#f3f4f6' }} />
+                  <YAxis tick={{ fill: '#f3f4f6' }} />
                   <Tooltip
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
                         return (
-                          <div className='bg-white p-3 border border-gray-300 rounded shadow-lg'>
-                            <p className='text-sm text-gray-900 font-semibold'>
+                          <div className='bg-gray-800 p-3 border border-gray-600 rounded shadow-lg'>
+                            <p className='text-sm text-gray-100 font-semibold'>
                               {payload[0].payload.date}
                             </p>
-                            <p className='text-sm text-[#208479] font-semibold'>
+                            <p className='text-sm text-[#83e1b2ff] font-semibold'>
                               Weight: {payload[0].payload.weight}kg
                               {payload[0].payload.calculated1rm && (
-                                <span className='text-sm text-gray-600 font-normal ml-2'>
+                                <span className='text-sm text-gray-100 font-normal ml-2'>
                                   (Est. 1RM: {payload[0].payload.calculated1rm}kg)
                                 </span>
                               )}
@@ -709,7 +712,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                   <Line
                     type='monotone'
                     dataKey='weight'
-                    stroke='#208479'
+                    stroke='#83e1b2ff'
                     strokeWidth={2}
                     dot={<CustomDot />}
                   />
