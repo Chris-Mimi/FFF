@@ -508,7 +508,7 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
                         <Line
                           type='monotone'
                           dataKey='value'
-                          stroke='#83e1b2ff'
+                          stroke='#208479'
                           strokeWidth={2}
                           dot={<CustomDot />}
                         />
@@ -707,7 +707,7 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
                             <p className='text-sm text-gray-100 font-semibold'>
                               {payload[0].payload.date}
                             </p>
-                            <p className='text-sm text-[#83e1b2ff] font-semibold'>
+                            <p className='text-sm text-[#208479] font-semibold'>
                               Result: {payload[0].payload.resultDisplay}
                             </p>
                             <p className='text-sm text-gray-100'>
@@ -723,7 +723,7 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
                   <Line
                     type='monotone'
                     dataKey='value'
-                    stroke='#83e1b2ff'
+                    stroke='#208479'
                     strokeWidth={2}
                     dot={<CustomDot />}
                   />

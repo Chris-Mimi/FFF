@@ -486,7 +486,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                         <Line
                           type='monotone'
                           dataKey='weight'
-                          stroke='#83e1b2ff'
+                          stroke='#208479'
                           strokeWidth={2}
                           dot={<CustomDot />}
                         />
@@ -683,7 +683,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
               </div>
               <ResponsiveContainer width='100%' height={300}>
                 <LineChart data={getLiftChartData(chartLift, chartRepMaxType)}>
-                  <CartesianGrid strokeDasharray='3 3' />
+                  <CartesianGrid strokeDasharray='3 3' stroke='white' />
                   <XAxis dataKey='date' tick={{ fill: '#f3f4f6' }} />
                   <YAxis tick={{ fill: '#f3f4f6' }} />
                   <Tooltip
@@ -712,7 +712,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                   <Line
                     type='monotone'
                     dataKey='weight'
-                    stroke='#83e1b2ff'
+                    stroke='#208479'
                     strokeWidth={2}
                     dot={<CustomDot />}
                   />
