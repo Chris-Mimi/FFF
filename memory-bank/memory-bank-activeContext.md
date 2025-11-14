@@ -176,6 +176,7 @@ Athlete Tables (linked to members.id)
 
 **Known Issues:**
 - macOS iCloud Keychain autofill popups (OS behavior, not app bug)
+- Publish modal appears over black background (UX issue - should have semi-transparent overlay)
 
 **Lessons Learned:**
 - **2025-11-14:** State preservation on edits - Always preserve existing status on edit operations unless explicitly changing state
