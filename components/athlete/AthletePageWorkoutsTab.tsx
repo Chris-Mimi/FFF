@@ -23,6 +23,7 @@ interface PublishedWorkout {
   publish_duration: number;
   session_id?: string;
   attended?: boolean;
+  booked?: boolean; // User has a confirmed booking for future session
   track?: {
     name: string;
     color: string;
@@ -83,8 +84,8 @@ export default function AthletePageWorkoutsTab({ userId, onNavigateToLogbook }: 
         return;
       }
 
-      // Check attendance for each workout and only include attended ones
-      const workoutsWithAttendance = await Promise.all(
+      // Check attendance/booking status for each workout
+      const workoutsWithStatus = await Promise.all(
         (data || []).map(async (workout) => {
           // Get session for this workout
           const { data: sessionData } = await supabase
@@ -96,28 +97,34 @@ export default function AthletePageWorkoutsTab({ userId, onNavigateToLogbook }: 
           const sessionId = sessionData?.id;
 
           let attended = false;
+          let booked = false;
+
           if (sessionId) {
-            // Check if user has a confirmed booking for this session and date is in the past
-            const workoutDate = new Date(workout.date);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const isPastDate = workoutDate < today;
+            // Check if user has a confirmed booking for this session
+            const { data: booking } = await supabase
+              .from('bookings')
+              .select('status')
+              .eq('session_id', sessionId)
+              .eq('member_id', userId)
+              .eq('status', 'confirmed')
+              .maybeSingle();
 
-            if (isPastDate) {
-              const { data: booking } = await supabase
-                .from('bookings')
-                .select('status')
-                .eq('session_id', sessionId)
-                .eq('member_id', userId)
-                .eq('status', 'confirmed')
-                .single();
+            if (booking) {
+              const workoutDate = new Date(workout.date);
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              const isPastDate = workoutDate < today;
 
-              attended = !!booking;
+              if (isPastDate) {
+                attended = true; // Past booking = attended
+              } else {
+                booked = true; // Future booking = booked
+              }
             }
           }
 
-          // Only return workout if user attended it
-          if (!attended) return null;
+          // Show workout if user attended it or has it booked
+          if (!attended && !booked) return null;
 
           return {
             id: workout.id,
@@ -129,14 +136,15 @@ export default function AthletePageWorkoutsTab({ userId, onNavigateToLogbook }: 
             publish_time: workout.publish_time,
             publish_duration: workout.publish_duration,
             session_id: sessionId,
-            attended: true, // Since we filtered to only attended ones
+            attended,
+            booked,
             track: Array.isArray(workout.tracks) ? workout.tracks[0] : workout.tracks,
           } as PublishedWorkout;
         })
       );
 
-      // Filter out null values (non-attended workouts)
-      const filteredWorkouts = workoutsWithAttendance.filter((w): w is PublishedWorkout => w !== null);
+      // Filter out null values (non-booked workouts)
+      const filteredWorkouts = workoutsWithStatus.filter((w): w is PublishedWorkout => w !== null);
       setWorkouts(filteredWorkouts);
     } catch (error) {
       console.error('Error fetching workouts:', error);
@@ -239,6 +247,8 @@ export default function AthletePageWorkoutsTab({ userId, onNavigateToLogbook }: 
                   ? 'bg-cyan-100 text-gray-900'
                   : workout?.attended
                   ? 'bg-[#208479] text-white'
+                  : workout?.booked
+                  ? 'bg-[#7dd3c0] text-gray-900'
                   : 'bg-cyan-100 text-gray-900'
               }`}>
                 <div className='text-sm font-semibold'>{dayName}</div>
@@ -255,35 +265,47 @@ export default function AthletePageWorkoutsTab({ userId, onNavigateToLogbook }: 
                 {loading ? (
                   <div className='text-center text-gray-400 text-sm py-4'>Loading...</div>
                 ) : workout ? (
-                  <div className='space-y-3'>
-                    {/* Workout Title */}
-                    <div className='flex items-center gap-2'>
-                      {workout.track && (
-                        <div
-                          className='w-3 h-3 rounded-full flex-shrink-0'
-                          style={{ backgroundColor: workout.track.color || '#208479' }}
-                        />
-                      )}
-                      <h3 className='font-bold text-gray-900 text-sm'>{workout.title}</h3>
-                    </div>
-
-                    {/* Event Time */}
-                    <div className='text-xs text-gray-600'>
-                      {workout.publish_time} ({workout.publish_duration} min)
-                    </div>
-
-                    {/* Published Sections */}
-                    {getPublishedSections(workout).map(section => (
-                      <div key={section.id} className='border-l-2 border-[#208479] pl-2'>
-                        <div className='text-xs font-semibold text-[#208479] mb-1'>
-                          {section.type} ({section.duration} min)
-                        </div>
-                        <div className='text-xs text-gray-700 whitespace-pre-wrap'>
-                          {section.content}
-                        </div>
+                  workout.booked ? (
+                    // Future booked session - show "Booked" placeholder
+                    <div className='flex flex-col items-center justify-center h-full py-8'>
+                      <div className='text-center'>
+                        <div className='text-lg font-bold text-[#208479] mb-2'>Booked</div>
+                        <div className='text-xs text-gray-600'>{workout.publish_time}</div>
+                        <div className='text-xs text-gray-500 mt-1'>Workout details available closer to date</div>
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ) : (
+                    // Past attended workout - show full details
+                    <div className='space-y-3'>
+                      {/* Workout Title */}
+                      <div className='flex items-center gap-2'>
+                        {workout.track && (
+                          <div
+                            className='w-3 h-3 rounded-full flex-shrink-0'
+                            style={{ backgroundColor: workout.track.color || '#208479' }}
+                          />
+                        )}
+                        <h3 className='font-bold text-gray-900 text-sm'>{workout.title}</h3>
+                      </div>
+
+                      {/* Event Time */}
+                      <div className='text-xs text-gray-600'>
+                        {workout.publish_time} ({workout.publish_duration} min)
+                      </div>
+
+                      {/* Published Sections */}
+                      {getPublishedSections(workout).map(section => (
+                        <div key={section.id} className='border-l-2 border-[#208479] pl-2'>
+                          <div className='text-xs font-semibold text-[#208479] mb-1'>
+                            {section.type} ({section.duration} min)
+                          </div>
+                          <div className='text-xs text-gray-700 whitespace-pre-wrap'>
+                            {section.content}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )
                 ) : (
                   <div className='text-center text-gray-400 text-sm py-8'>No workout</div>
                 )}
