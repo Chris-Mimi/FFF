@@ -1,10 +1,6 @@
-# Session History
+# Coach Page Refactor - Session 8
 
-Detailed log of development sessions with comprehensive notes for future reference.
-
----
-
-## Session 8 - Coach Page Refactor (2025-11-15)
+**Date:** 2025-11-15
 
 **Duration:** ~2 hours
 **Branch:** `coach-page-refactor` (created from `augment-refactor`)
@@ -196,48 +192,3 @@ Created (16 new files):
 - Add workout title management to Schedule Tab
 - Rethink "Apply to Other Sessions" UI (collapsible?)
 - Consider if "Apply to Other Sessions" is necessary in workflow
-
----
-
-## Session 7 - Chart Visibility & Analysis Fixes (2025-11-15)
-
-**Duration:** ~45 minutes
-**Branch:** `augment-refactor`
-**Status:** ✅ Completed & Pushed
-**Commits:** af46e1f, 29fcba4, 21cbfa7
-
-### Issues Fixed
-
-**✅ Fixed - Invisible Chart Gridlines:**
-- Issue: Gridlines invisible in Lifts tab modal chart
-- Fix: Added white stroke to CartesianGrid component
-- Location: `components/athlete/AthletePage-LiftsTab.tsx`
-
-**✅ Fixed - Chart Line Contrast:**
-- Issue: Light teal lines hard to see on white background
-- Fix: Darkened from #83e1b2ff → #208479
-- Locations: Lifts & Forge Benchmarks tabs
-
-**✅ Fixed - Analysis Page Workout Count:**
-- Issue: "Total Workouts" count didn't match calendar view
-- Fix: Query weekly_sessions (not wods table), filter by workout_publish_status === 'published'
-- Location: `app/coach/analysis/page.tsx`
-
-**✅ Fixed - Week Calculation:**
-- Issue: Used Sunday-Saturday rolling window
-- Fix: Changed to Monday-Sunday week (ISO 8601 standard)
-- Updated both data query and UI label
-
-**✅ Fixed - Track Modal Overlay:**
-- Issue: Solid black background blocked view
-- Fix: Changed to semi-transparent `bg-black/50`
-- Location: Track modal component
-
-### Files Modified
-- `components/athlete/AthletePage-LiftsTab.tsx`
-- `components/athlete/AthletePage-ForgeBenchmarksTab.tsx`
-- `app/coach/analysis/page.tsx`
-
----
-
-*Additional sessions documented in `project-history/` directory with more detailed notes.*

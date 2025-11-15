@@ -85,7 +85,7 @@ Athlete Tables (linked to members.id)
   - Commit: e2af949
   - Branch: coach-page-refactor (created from augment-refactor, pushed)
   - **Workaround:** Use augment-refactor branch until click issue resolved
-  - See `memory-bank/history/session_history.md` for comprehensive documentation
+  - See `project-history/2025-11-15-coach-page-refactor.md` for comprehensive documentation
 
 **Completed (2025-11-15 Session 7):**
 - **Chart Visibility & Analysis Page Fixes:**

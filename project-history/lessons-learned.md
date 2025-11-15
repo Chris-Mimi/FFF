@@ -245,9 +245,9 @@ WHERE status != 'cancelled';
 
 ```typescript
 // ✅ CORRECT paths
-memory-bank/memory-bank-activeContext.md
-memory-bank/memory-bank-techContext.md
-memory-bank/memory-bank-systemPatterns.md
+/Users/chrishiles/SynologyDrive/CrossFit Hammerschmiede (CFH)/AI Development/forge-functional-fitness/memory-bank/memory-bank-activeContext.md
+/Users/chrishiles/SynologyDrive/CrossFit Hammerschmiede (CFH)/AI Development/forge-functional-fitness/memory-bank/memory-bank-techContext.md
+/Users/chrishiles/SynologyDrive/CrossFit Hammerschmiede (CFH)/AI Development/forge-functional-fitness/memory-bank/memory-bank-systemPatterns.md
 
 // ❌ WRONG paths (will fail)
 memory-bank/activeContext.md
