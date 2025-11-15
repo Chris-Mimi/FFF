@@ -890,6 +890,28 @@ export default function WODModal({
         const allSectionIds = editingWOD.sections.map(s => s.id);
         setExpandedSections(new Set(allSectionIds));
 
+        // Check for pending section drop from calendar card
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const pendingSection = (window as any).__draggedSection;
+        if (pendingSection) {
+          const newSection: WODSection = {
+            id: `section-${Date.now()}`,
+            type: pendingSection.type,
+            duration: parseInt(pendingSection.duration) || 5,
+            content: pendingSection.content,
+          };
+          const updatedSections = insertSectionAtCorrectPosition(editingWOD.sections, newSection);
+          setFormData(prev => ({
+            ...prev,
+            sections: updatedSections,
+          }));
+          // Expand the new section
+          setExpandedSections(new Set([...allSectionIds, newSection.id]));
+          // Clear the pending section
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (window as any).__draggedSection = null;
+        }
+
         // Fetch session time if this WOD is linked to a session
         if (editingWOD.booking_info?.session_id) {
           const fetchSessionTime = async () => {
