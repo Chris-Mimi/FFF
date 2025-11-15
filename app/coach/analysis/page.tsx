@@ -965,7 +965,7 @@ export default function AnalysisPage() {
                 )}
 
                 {!exerciseSearch && selectedExercises.length === 0 && (
-                  <p className='text-sm text-gray-500 mt-3'>
+                  <p className='text-sm text-gray-300 mt-3'>
                     Start typing to search through all exercises in the selected timeframe
                   </p>
                 )}
@@ -1064,9 +1064,9 @@ export default function AnalysisPage() {
 
         {/* Track Management Section */}
         {!loading && (
-          <div className='bg-white rounded-lg shadow p-5'>
+          <div className='bg-gray-600 rounded-lg shadow p-5'>
             <div className='flex justify-between items-center mb-4'>
-              <h2 className='text-lg font-bold text-gray-900'>Manage Tracks</h2>
+              <h2 className='text-lg font-bold text-gray-100'>Manage Tracks</h2>
             <button
               onClick={() => openTrackModal()}
               className='px-3 py-1.5 bg-[#208479] hover:bg-[#1a6b62] text-white font-semibold rounded-lg flex items-center gap-2 transition text-sm'
@@ -1083,7 +1083,7 @@ export default function AnalysisPage() {
               {tracks.map(track => (
                 <div
                   key={track.id}
-                  className='border border-gray-300 rounded-lg p-3 hover:shadow-md transition'
+                  className='border border-gray-300 bg-gray-200 rounded-lg p-3 hover:shadow-md transition'
                 >
                   <div className='flex items-start justify-between mb-1'>
                     <div className='flex items-center gap-2'>
@@ -1091,7 +1091,7 @@ export default function AnalysisPage() {
                         className='w-3 h-3 rounded-full'
                         style={{ backgroundColor: track.color || '#208479' }}
                       />
-                      <h3 className='font-bold text-gray-900 text-sm'>{track.name}</h3>
+                      <h3 className='font-bold text-gray-700 text-sm'>{track.name}</h3>
                     </div>
                     <div className='flex gap-1'>
                       <button
@@ -1102,7 +1102,7 @@ export default function AnalysisPage() {
                       </button>
                       <button
                         onClick={() => handleDeleteTrack(track.id)}
-                        className='text-gray-400 hover:text-red-600 p-1'
+                        className='text-gray-600 hover:text-red-500 p-1'
                       >
                         <Trash2 size={14} />
                       </button>

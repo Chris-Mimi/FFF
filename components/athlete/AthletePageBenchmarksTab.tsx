@@ -380,7 +380,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
               <div
                 key={benchmark.name}
                 onClick={() => setSelectedBenchmark(benchmark.name)}
-                className='group border border-teal-300 rounded-lg p-3 bg-teal-100/50 hover:border-teal-400 hover:bg-teal-100/70 cursor-pointer transition'
+                className='group border border-teal-300 rounded-lg p-3 bg-teal-200/50 hover:border-teal-400 hover:bg-teal-300/70 cursor-pointer transition'
               >
 <div className='flex items-start justify-between mb-1'>
   <h3 className='text-base font-bold text-gray-900'>{benchmark.name}</h3>

@@ -381,7 +381,7 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
               <div
                 key={benchmark.name}
                 onClick={() => setSelectedBenchmark(benchmark.name)}
-                className='group border border-cyan-300 rounded-lg p-3 bg-cyan-100/50 hover:border-cyan-400 hover:bg-cyan-100/70 cursor-pointer transition'
+                className='group border border-cyan-300 rounded-lg p-3 bg-cyan-100/50 hover:border-cyan-400 hover:bg-cyan-200/70 cursor-pointer transition'
               >
                 <div className='flex items-start justify-between mb-1'>
                   <h3 className='text-base font-bold text-gray-900'>{benchmark.name}</h3>
