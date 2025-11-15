@@ -1226,6 +1226,9 @@ export default function WODModal({
         throw new Error('Failed to publish workout');
       }
 
+      if (onTimeUpdated) {
+        await onTimeUpdated();
+      }
       setPublishModalOpen(false);
       onClose(); // Close modal to refresh calendar
       alert('Workout published successfully!');
@@ -1252,6 +1255,9 @@ export default function WODModal({
         throw new Error('Failed to unpublish workout');
       }
 
+      if (onTimeUpdated) {
+        await onTimeUpdated();
+      }
       onClose(); // Close modal to refresh calendar
       alert('Workout unpublished successfully!');
     } catch (error) {
