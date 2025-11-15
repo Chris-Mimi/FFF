@@ -1089,14 +1089,14 @@ export default function AnalysisPage() {
                     <div className='flex items-center gap-2'>
                       <div
                         className='w-3 h-3 rounded-full'
-                        style={{ backgroundColor: track.color || '#208479' }}
+                        style={{ backgroundColor: track.color || '#206d84ff' }}
                       />
                       <h3 className='font-bold text-gray-700 text-sm'>{track.name}</h3>
                     </div>
                     <div className='flex gap-1'>
                       <button
                         onClick={() => openTrackModal(track)}
-                        className='text-[#208479] hover:text-[#1a6b62] p-1'
+                        className='text-[#208479] hover:text-orange-400 p-1'
                       >
                         <Edit2 size={14} />
                       </button>
