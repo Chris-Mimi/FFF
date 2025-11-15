@@ -94,8 +94,6 @@ export default function CalendarGrid({
 
           // Check if dropping a section - open modal to add section
           if (dataType === 'section') {
-            // eslint-disable-next-line no-console
-            console.log('Section drop detected on card, window.__draggedSection:', (window as any).__draggedSection);
             onOpenEditModal(wod);
             return;
           }
