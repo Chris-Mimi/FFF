@@ -88,8 +88,19 @@ export default function CalendarGrid({
         onDragOver={onDragOver}
         onDrop={(e) => {
           e.stopPropagation();
-          if (!draggedWOD || !wod.booking_info?.session_id) return;
-          onCopyWODToDate(draggedWOD.wod, new Date(dateKey), wod.booking_info.session_id);
+
+          // Check if dropping a whole workout
+          if (draggedWOD && wod.booking_info?.session_id) {
+            onCopyWODToDate(draggedWOD.wod, new Date(dateKey), wod.booking_info.session_id);
+            return;
+          }
+
+          // Check if dropping a section - open modal to add section
+          const dataType = e.dataTransfer.getData('text/plain');
+          if (dataType === 'section') {
+            onOpenEditModal(wod);
+            // Section will be added by WODModal's drop handler
+          }
         }}
         onMouseEnter={() => !isEmptySession && onWODHover(cardId)}
         onMouseLeave={() => onWODHover(null)}
