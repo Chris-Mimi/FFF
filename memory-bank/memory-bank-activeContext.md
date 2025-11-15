@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 4.9
-**Updated:** 2025-11-15 (Session 8)
+**Version:** 5.0
+**Updated:** 2025-11-15 (Session 8 - completed)
 
 ---
 
@@ -62,30 +62,19 @@ Athlete Tables (linked to members.id)
 
 ## 📍 Current Status (Last 2 Weeks)
 
-**In Progress (2025-11-15 Session 8):**
-- **Coach Page Refactoring - COMPLETED WITH 1 KNOWN BUG:**
-  - ✅ **Major code reorganization:** Reduced app/coach/page.tsx from 2,635 → 408 lines (84% reduction)
-  - ✅ **Created 16 new files:**
-    - 4 utilities: movement-extraction, date-utils, search-utils, card-utils
-    - 5 hooks: useCoachData, useWODOperations, useDragDrop, useQuickEdit, useNotesPanel
-    - 7 components: CoachHeader, CalendarNav, CalendarGrid, SearchPanel, QuickEditPanel, NotesModal, (SessionManagementModal existing)
-  - ✅ **Fixed during refactor:**
-    - Table name error (session_bookings → bookings) in useCoachData.ts:36
-    - Infinite re-render (removed fetchWODs/fetchTracksAndCounts from useEffect deps) in page.tsx:146
-    - Publish/unpublish not updating calendar (added onTimeUpdated callback) in WODModal.tsx:1229,1255
-    - Modal opening centered instead of side panel (added isPanel prop) in page.tsx:319
-    - Card sizing differences (added textSize variable) in CalendarGrid.tsx:96
-  - ⚠️ **OUTSTANDING BUG - Cards Not Clickable When Library Open:**
-    - Symptom: Title obscured by attendance badge, entire card unclickable
-    - Scope: Only when SearchPanel (Workout Library) is open
-    - Status: NEW BUG (works fine on augment-refactor branch)
-    - Attempted fixes: flex-1 min-w-0, z-index increase to 60 (both failed)
-    - Next steps: Compare DOM structure, check width calculations, inspect for overlay elements
-  - ⚠️ **Pre-existing bugs not addressed:** Drag section copies whole WOD, Analysis page workout types
-  - Commit: e2af949
-  - Branch: coach-page-refactor (created from augment-refactor, pushed)
-  - **Workaround:** Use augment-refactor branch until click issue resolved
-  - See `project-history/2025-11-15-coach-page-refactor.md` for comprehensive documentation
+**Completed (2025-11-15 Session 8):**
+- **Fixed Card Clickability Bug from Refactor:**
+  - ✅ Fixed z-index bug: Changed `z-[60]` for both states → conditional `z-50` (hovered) / `z-10` (default)
+  - ✅ Made entire card clickable (not just title) with smart event delegation
+  - ✅ Preserved button/drag handle functionality
+  - Cards now work correctly when Workout Library open
+  - Commits: 3fc498a (card click fix), 45abd18 (section drop detection), f73ba43/ae7d6f8/d3dd67d (section auto-add attempts), 06c0442 (cleanup)
+  - Branch: coach-page-refactor (7 commits)
+- **Section Drag Investigation (Deprioritized):**
+  - Attempted: Auto-add section when dragging from library to closed workout cards
+  - Issue: React StrictMode double-run clearing section data
+  - Resolution: Deprioritized - not worth time investment (works fine when modal open, only 1 extra click)
+  - Status: Partial implementation remains but not fully functional
 
 **Completed (2025-11-15 Session 7):**
 - **Chart Visibility & Analysis Page Fixes:**
@@ -241,16 +230,10 @@ Athlete Tables (linked to members.id)
 
 ## 📋 Next Immediate Steps
 
-1. **CRITICAL - Fix WOD Card Click Issue (Session 8 carryover):**
-   - **Problem:** Cards unclickable when Workout Library open (NEW BUG from refactor)
-   - **Investigation steps:**
-     1. Compare DOM structure between augment-refactor and coach-page-refactor branches
-     2. Check SearchPanel width/positioning calculations when library opens
-     3. Inspect browser with DevTools (may need reduced width to fit console + library)
-     4. Look for unexpected overlay elements or pointer-events CSS blocking clicks
-     5. Compare calendar container margin shifts between branches
-   - **Branch:** coach-page-refactor
-   - **Once fixed:** Merge coach-page-refactor → augment-refactor, test comprehensively
+1. **Branch Management:**
+   - ✅ coach-page-refactor: Card click bug fixed (Session 8)
+   - **Decision needed:** Merge coach-page-refactor → augment-refactor, or continue on augment-refactor?
+   - Note: Section drag to closed cards partially implemented but deprioritized (works when modal open)
 
 2. **Immediate Priorities (From Session 6):**
    - **Add workout title management to Schedule Tab:** Currently only managed in Supabase, need CRUD UI in Schedule Tab (natural context for creating workouts)
