@@ -187,10 +187,16 @@ export default function AnalysisPage() {
       let startDate: Date;
 
       if (timeframePeriod === 0.25) {
-        // 1 Week - 7 day rolling window ending on selected date
-        endDate = new Date(selectedMonth);
-        startDate = new Date(selectedMonth);
-        startDate.setDate(endDate.getDate() - 6); // 7 days total including end date
+        // 1 Week - Monday to Sunday week containing selected date
+        const selectedDate = new Date(selectedMonth);
+        const dayOfWeek = selectedDate.getDay(); // 0=Sunday, 1=Monday, etc.
+        const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Days since Monday
+
+        startDate = new Date(selectedDate);
+        startDate.setDate(selectedDate.getDate() - daysFromMonday); // Go to Monday
+
+        endDate = new Date(startDate);
+        endDate.setDate(startDate.getDate() + 6); // Go to Sunday
       } else {
         endDate = new Date(year, month + 1, 0); // Last day of selected month
         startDate = new Date(year, month - timeframePeriod + 1, 1); // First day of period (handles negative months)
@@ -199,31 +205,54 @@ export default function AnalysisPage() {
       const startDateStr = startDate.toISOString().split('T')[0];
       const endDateStr = endDate.toISOString().split('T')[0];
 
+      // Query weekly_sessions (like calendar does) to count actual sessions with published workouts
       const { data, error } = await supabase
-        .from('wods')
-        .select('*')
+        .from('weekly_sessions')
+        .select(`
+          id,
+          date,
+          time,
+          workout_id,
+          wods (
+            id,
+            title,
+            track_id,
+            workout_type_id,
+            sections,
+            workout_publish_status
+          )
+        `)
         .gte('date', startDateStr)
         .lte('date', endDateStr);
 
       if (error) throw error;
 
-      interface WODRecord {
+      interface SessionRecord {
         id: string;
-        title: string;
-        track_id: string | null;
-        workout_type_id: string | null;
         date: string;
-        sections: WODSection[];
+        time: string;
+        workout_id: string | null;
+        wods: {
+          id: string;
+          title: string;
+          track_id: string | null;
+          workout_type_id: string | null;
+          sections: WODSection[];
+          workout_publish_status: string | null;
+        } | null;
       }
 
-      const wods: WOD[] = (data || []).map((wod: WODRecord) => ({
-        id: wod.id,
-        title: wod.title,
-        track_id: wod.track_id,
-        workout_type_id: wod.workout_type_id,
-        date: wod.date,
-        sections: wod.sections,
-      }));
+      // Filter to only sessions WITH PUBLISHED workouts
+      const wods: WOD[] = (data as any as SessionRecord[])
+        .filter((session) => session.wods !== null && session.wods.workout_publish_status === 'published')
+        .map((session) => ({
+          id: session.wods!.id,
+          title: session.wods!.title,
+          track_id: session.wods!.track_id,
+          workout_type_id: session.wods!.workout_type_id,
+          date: session.date,
+          sections: session.wods!.sections,
+        }));
 
       calculateStatistics(wods);
     } catch (error) {
@@ -525,10 +554,16 @@ export default function AnalysisPage() {
     const month = selectedMonth.getMonth();
 
     if (timeframePeriod === 0.25) {
-      // 1 Week - show actual date range (7 day rolling window ending on selected date)
-      const endDate = new Date(selectedMonth);
-      const startDate = new Date(selectedMonth);
-      startDate.setDate(endDate.getDate() - 6);
+      // 1 Week - Monday to Sunday week containing selected date
+      const selectedDate = new Date(selectedMonth);
+      const dayOfWeek = selectedDate.getDay(); // 0=Sunday, 1=Monday, etc.
+      const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Days since Monday
+
+      const startDate = new Date(selectedDate);
+      startDate.setDate(selectedDate.getDate() - daysFromMonday); // Go to Monday
+
+      const endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + 6); // Go to Sunday
 
       const formatDate = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
       return `${formatDate(startDate)} - ${formatDate(endDate)}`;
