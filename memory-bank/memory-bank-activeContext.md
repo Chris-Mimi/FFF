@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 4.8
-**Updated:** 2025-11-15 (Session 7)
+**Version:** 4.9
+**Updated:** 2025-11-15 (Session 8)
 
 ---
 
@@ -61,6 +61,31 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**In Progress (2025-11-15 Session 8):**
+- **Coach Page Refactoring - COMPLETED WITH 1 KNOWN BUG:**
+  - ✅ **Major code reorganization:** Reduced app/coach/page.tsx from 2,635 → 408 lines (84% reduction)
+  - ✅ **Created 16 new files:**
+    - 4 utilities: movement-extraction, date-utils, search-utils, card-utils
+    - 5 hooks: useCoachData, useWODOperations, useDragDrop, useQuickEdit, useNotesPanel
+    - 7 components: CoachHeader, CalendarNav, CalendarGrid, SearchPanel, QuickEditPanel, NotesModal, (SessionManagementModal existing)
+  - ✅ **Fixed during refactor:**
+    - Table name error (session_bookings → bookings) in useCoachData.ts:36
+    - Infinite re-render (removed fetchWODs/fetchTracksAndCounts from useEffect deps) in page.tsx:146
+    - Publish/unpublish not updating calendar (added onTimeUpdated callback) in WODModal.tsx:1229,1255
+    - Modal opening centered instead of side panel (added isPanel prop) in page.tsx:319
+    - Card sizing differences (added textSize variable) in CalendarGrid.tsx:96
+  - ⚠️ **OUTSTANDING BUG - Cards Not Clickable When Library Open:**
+    - Symptom: Title obscured by attendance badge, entire card unclickable
+    - Scope: Only when SearchPanel (Workout Library) is open
+    - Status: NEW BUG (works fine on augment-refactor branch)
+    - Attempted fixes: flex-1 min-w-0, z-index increase to 60 (both failed)
+    - Next steps: Compare DOM structure, check width calculations, inspect for overlay elements
+  - ⚠️ **Pre-existing bugs not addressed:** Drag section copies whole WOD, Analysis page workout types
+  - Commit: e2af949
+  - Branch: coach-page-refactor (created from augment-refactor, pushed)
+  - **Workaround:** Use augment-refactor branch until click issue resolved
+  - See `memory-bank/history/session_history.md` for comprehensive documentation
 
 **Completed (2025-11-15 Session 7):**
 - **Chart Visibility & Analysis Page Fixes:**
@@ -190,9 +215,16 @@ Athlete Tables (linked to members.id)
 - macOS iCloud Keychain autofill popups (OS behavior, not app bug)
 
 **Lessons Learned:**
-- **2025-11-15:** NEVER push before user testing - User explicitly stated multiple times to wait for testing before pushing. Always commit locally, let user test, then push only after confirmation.
-- **2025-11-15:** Query consistency matters - Analysis page and Calendar must query same table (weekly_sessions) to show matching counts. Direct wods table query shows different count than calendar.
-- **2025-11-15:** Week standards vary by region - Monday-Sunday is standard in Europe and fitness industry (ISO 8601). Don't assume Sunday-Saturday.
+- **2025-11-15 Session 8:** Component extraction requires careful integration - Task agents may create different hook signatures than expected, requiring manual integration and TypeScript fixes
+- **2025-11-15 Session 8:** useEffect dependency arrays are critical - Including function references (like fetchWODs) causes infinite re-renders. Use eslint-disable comment and remove from deps when functions are stable
+- **2025-11-15 Session 8:** Callback pattern beats prop drilling - Pass callbacks as parameters (e.g., handleDrop(e, date, onCopy)) instead of requiring props in hook definitions
+- **2025-11-15 Session 8:** Table name consistency when extracting - Verify database table names when moving code between files (bookings vs session_bookings)
+- **2025-11-15 Session 8:** Z-index not always the solution - Card clickability issues may be deeper than stacking order (DOM structure, width calculations, pointer-events)
+- **2025-11-15 Session 8:** Branch comparison for debugging - Switching between working/broken branches reveals which bugs are new vs pre-existing
+- **2025-11-15 Session 8:** Safety branches for major refactors - Create feature branch before large refactors to preserve working state
+- **2025-11-15 Session 7:** NEVER push before user testing - User explicitly stated multiple times to wait for testing before pushing. Always commit locally, let user test, then push only after confirmation.
+- **2025-11-15 Session 7:** Query consistency matters - Analysis page and Calendar must query same table (weekly_sessions) to show matching counts. Direct wods table query shows different count than calendar.
+- **2025-11-15 Session 7:** Week standards vary by region - Monday-Sunday is standard in Europe and fitness industry (ISO 8601). Don't assume Sunday-Saturday.
 - **2025-11-14:** State preservation on edits - Always preserve existing status on edit operations unless explicitly changing state
 - **2025-11-14:** Data source priority matters - Fetch from source of truth (bookings table for booking status, not published workouts)
 - **2025-11-14:** Silent failures need DOM state - UI actions requiring specific DOM state should ensure that state exists first (auto-expand before library open)
@@ -209,21 +241,31 @@ Athlete Tables (linked to members.id)
 
 ## 📋 Next Immediate Steps
 
-1. **Immediate Priorities (From Session 6):**
+1. **CRITICAL - Fix WOD Card Click Issue (Session 8 carryover):**
+   - **Problem:** Cards unclickable when Workout Library open (NEW BUG from refactor)
+   - **Investigation steps:**
+     1. Compare DOM structure between augment-refactor and coach-page-refactor branches
+     2. Check SearchPanel width/positioning calculations when library opens
+     3. Inspect browser with DevTools (may need reduced width to fit console + library)
+     4. Look for unexpected overlay elements or pointer-events CSS blocking clicks
+     5. Compare calendar container margin shifts between branches
+   - **Branch:** coach-page-refactor
+   - **Once fixed:** Merge coach-page-refactor → augment-refactor, test comprehensively
+
+2. **Immediate Priorities (From Session 6):**
    - **Add workout title management to Schedule Tab:** Currently only managed in Supabase, need CRUD UI in Schedule Tab (natural context for creating workouts)
    - **Rethink "Apply to Other Sessions" section in Edit Workout Modal:**
      - Currently takes up significant vertical space
      - Consider collapsible button dropdown design
      - **Question:** Is this feature necessary? Need to test in actual workflow scenario
-   - **Refactor coach/page.tsx:** File is very large (~2000+ lines), consider breaking into components like athlete page refactor
 
-2. **Testing & Deployment Preparation:**
+3. **Testing & Deployment Preparation:**
    - Test 3-state workflow system in production-like environment (partially complete)
    - Verify all booking flows work correctly (partially complete)
    - Test athlete page tab enhancements (Recent sections, Progress Charts, PR badges)
    - Create deployment checklist
 
-3. **Future Enhancements:**
+4. **Future Enhancements:**
    - Coach ability to edit section types, workout types, exercises
    - Bulk operations for session/workout management
    - Improved search/filter capabilities

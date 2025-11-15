@@ -527,6 +527,165 @@ console.log('Final state:', finalValue);
 
 ---
 
+## Component Refactoring Pattern (Large File Extraction)
+
+**When to use:** When a component file exceeds 2000 lines and becomes difficult to maintain
+
+**Implementation Steps:**
+
+1. **Create Safety Branch:**
+```bash
+git checkout -b feature-refactor
+```
+
+2. **Identify Extraction Targets:**
+   - Utilities: Pure functions (date formatting, text processing, calculations)
+   - Custom Hooks: Stateful logic (data fetching, operations, UI state)
+   - Components: Self-contained UI sections (headers, navigation, panels, modals)
+
+3. **Extract in Order (Dependencies First):**
+
+**Step 1: Extract Utilities**
+```typescript
+// utils/date-utils.ts
+export const formatDate = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+export const getWeekDates = (selectedDate: Date): Date[] => {
+  // Monday-Sunday week calculation
+  const curr = new Date(selectedDate);
+  const first = curr.getDate() - curr.getDay() + 1;
+  const dates = [];
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(curr.setDate(first + i));
+    dates.push(date);
+  }
+  return dates;
+};
+```
+
+**Step 2: Extract Custom Hooks**
+```typescript
+// hooks/useCoachData.ts
+export const useCoachData = ({
+  searchQuery,
+  selectedMovements,
+  selectedWorkoutTypes,
+  selectedTracks,
+  excludedSectionTypes,
+}: UseCoachDataProps) => {
+  const [wods, setWods] = useState<Record<string, WODFormData[]>>({});
+  const [loading, setLoading] = useState(true);
+
+  const fetchWODs = async () => {
+    // Data fetching logic
+  };
+
+  // CRITICAL: Don't include fetchWODs in useEffect deps if stable
+  useEffect(() => {
+    fetchWODs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount
+
+  return { wods, loading, fetchWODs };
+};
+
+// hooks/index.ts (barrel export)
+export { useCoachData } from './useCoachData';
+export { useWODOperations } from './useWODOperations';
+export { useDragDrop } from './useDragDrop';
+```
+
+**Step 3: Extract Components**
+```typescript
+// components/CalendarNav.tsx
+interface CalendarNavProps {
+  viewMode: 'weekly' | 'monthly';
+  selectedDate: Date;
+  onViewModeChange: (mode: 'weekly' | 'monthly') => void;
+  onPreviousPeriod: () => void;
+  onNextPeriod: () => void;
+  onTodayClick: () => void;
+}
+
+export const CalendarNav = ({
+  viewMode,
+  selectedDate,
+  onViewModeChange,
+  onPreviousPeriod,
+  onNextPeriod,
+  onTodayClick,
+}: CalendarNavProps) => {
+  return (
+    <div className="navigation-container">
+      {/* Navigation UI */}
+    </div>
+  );
+};
+```
+
+**Step 4: Use Callback Pattern for Dependencies**
+```typescript
+// Instead of passing handlers through hook props:
+const useDragDrop = ({ handleCopyWOD }) => { /* ... */ }; // ❌ Requires prop
+
+// Use callback parameters:
+const useDragDrop = () => {
+  const handleDrop = (e: React.DragEvent, targetDate: Date, onCopy: CopyCallback) => {
+    // onCopy passed when called, not when hook defined
+    if (!draggedWOD) return;
+    onCopy(draggedWOD.wod, targetDate);
+  };
+  return { handleDrop };
+};
+
+// Call with wrapper:
+const handleDropWrapper = (e: React.DragEvent, date: Date) => {
+  handleDrop(e, date, handleCopyWOD); // ✅ Curried callback
+};
+```
+
+4. **Test Integration:**
+   - Fix TypeScript errors (signature mismatches, missing imports)
+   - Verify table names and database queries
+   - Check useEffect dependency arrays
+   - Test all functionality incrementally
+   - Compare with original branch to identify new vs pre-existing bugs
+
+5. **Commit and Test Before Merging:**
+```bash
+git add -A
+git commit -m "refactor: extract components/hooks/utils from monolithic file"
+git push -u origin feature-refactor
+# User tests thoroughly before merge
+```
+
+**Why it works:**
+- Smaller files are easier to navigate and maintain
+- Separation of concerns (UI, logic, utilities)
+- Reusable hooks and utilities
+- Clear file organization
+- Easier to test individual pieces
+
+**Gotchas:**
+- Agent-created code may have different signatures than expected
+- useEffect dependencies with function refs cause infinite re-renders
+- Table names may be inconsistent when moving code
+- Z-index/layout issues may emerge from component extraction
+- Always create safety branch before major refactors
+- Test thoroughly before merging to main development branch
+
+**Success Metrics:**
+- Session 8: Reduced coach/page.tsx from 2,635 → 408 lines (84% reduction)
+- Created 16 new files (4 utilities, 5 hooks, 7 components)
+- All functionality preserved (with one fixable bug)
+
+---
+
 ## Forge Functional Fitness Patterns
 
 ### Database Schema Overview
