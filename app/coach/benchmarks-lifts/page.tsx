@@ -67,7 +67,7 @@ function SortableForgeCard({
       ref={setNodeRef}
       style={style}
       {...attributes}
-      className='border border-gray-200 rounded-lg p-3 bg-cyan-200 hover:bg-cyan-300 hover:shadow-lg hover:z-10 transition-all group relative'
+      className='border border-gray-300 rounded-lg p-3 bg-cyan-200 hover:bg-cyan-300 hover:shadow-lg hover:z-10 transition-all group relative'
     >
       {/* Drag Handle */}
       <div
@@ -554,7 +554,7 @@ export default function BenchmarksLiftsManagementPage() {
             onClick={() => setActiveTab('lifts')}
             className={`px-4 py-2 rounded-lg font-medium transition ${
               activeTab === 'lifts'
-                ? 'bg-blue-300 text-white'
+                ? 'bg-blue-400 text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-50'
             }`}
           >
@@ -585,7 +585,7 @@ export default function BenchmarksLiftsManagementPage() {
               {benchmarks.map((benchmark) => (
                 <div
                   key={benchmark.id}
-                  className='border border-gray-200 rounded-lg p-3 bg-teal-100 hover:bg-teal-200 hover:shadow-lg hover:z-10 transition-all group relative'
+                  className='border border-gray-300 rounded-lg p-3 bg-teal-100 hover:bg-teal-200 hover:shadow-lg hover:z-10 transition-all group relative'
                 >
                   <div className='absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition'>
                     <button
@@ -630,7 +630,7 @@ export default function BenchmarksLiftsManagementPage() {
               </div>
               <button
                 onClick={() => openForgeModal()}
-                className='px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-300 transition flex items-center gap-2'
+                className='px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition flex items-center gap-2'
               >
                 <Plus size={20} />
                 Add Forge Benchmark
@@ -679,7 +679,7 @@ export default function BenchmarksLiftsManagementPage() {
               </div>
               <button
                 onClick={() => openLiftModal()}
-                className='px-4 py-2 bg-sky-200 text-gray-600 rounded-lg hover:bg-blue-300 transition flex items-center gap-2'
+                className='px-4 py-2 bg-sky-500 text-gray-100 rounded-lg hover:bg-blue-600 transition flex items-center gap-2'
               >
                 <Plus size={20} />
                 Add Lift
@@ -690,7 +690,7 @@ export default function BenchmarksLiftsManagementPage() {
               {lifts.map((lift) => (
                 <div
                   key={lift.id}
-                  className='border border-gray-200 rounded-lg p-3 bg-blue-300 hover:bg-sky-200 hover:shadow-lg hover:z-10 transition-all group relative'
+                  className='border border-gray-300 rounded-lg p-3 bg-blue-200 hover:bg-sky-300 hover:shadow-lg hover:z-10 transition-all group relative'
                 >
                   <div className='absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition'>
                     <button

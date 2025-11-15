@@ -710,7 +710,7 @@ export default function AnalysisPage() {
           </div>
           <button
             onClick={handleLogout}
-            className='px-4 py-2 bg-white text-[#208479] font-semibold rounded hover:bg-gray-100 transition'
+            className='px-4 py-2 bg-white text-[#208479] font-semibold rounded hover:bg-gray-300 transition'
           >
             Logout
           </button>
@@ -719,9 +719,9 @@ export default function AnalysisPage() {
 
       <div className='max-w-7xl mx-auto p-6 space-y-6' style={{ minHeight: 'calc(100vh - 200px)' }}>
         {/* Monthly Statistics Section */}
-        <div className='bg-white rounded-lg shadow p-6'>
+        <div className='bg-gray-600 rounded-xl shadow-xl p-8'>
           <div className='flex justify-between items-center mb-6'>
-            <h2 className='text-xl font-bold text-gray-900'>Statistics</h2>
+            <h2 className='text-xl font-bold text-gray-100'>Statistics</h2>
             <div className='flex items-center gap-6'>
               {/* Timeframe Period Selector */}
               <div className='flex items-center gap-2 bg-gray-100 rounded-lg p-1'>
@@ -736,7 +736,7 @@ export default function AnalysisPage() {
                     className={`px-3 py-1.5 rounded-md font-semibold text-sm transition ${
                       timeframePeriod === period
                         ? 'bg-[#208479] text-white'
-                        : 'text-gray-700 hover:bg-gray-200'
+                        : 'text-gray-700 hover:bg-gray-300'
                     }`}
                   >
                     {period === 0.25 ? '1 Week' : period === 1 ? '1 Month' : `${period} Months`}
@@ -748,9 +748,9 @@ export default function AnalysisPage() {
               <div className='flex items-center gap-4'>
                 <button
                   onClick={() => changeMonth('prev')}
-                  className='p-2 hover:bg-gray-100 rounded-lg transition'
+                  className='p-2 hover:bg-gray-400 rounded-lg transition'
                 >
-                  <ChevronLeft size={20} className='text-gray-700' />
+                  <ChevronLeft size={20} className='text-gray-100' />
                 </button>
                 <button
                   ref={dateButtonRef}
@@ -767,15 +767,15 @@ export default function AnalysisPage() {
                     }
                     setDateRangeModalOpen(true);
                   }}
-                  className='text-lg font-semibold text-gray-900 min-w-[200px] text-center hover:bg-gray-100 px-4 py-2 rounded-lg transition border border-transparent hover:border-gray-300'
+                  className='text-lg font-semibold text-gray-100 min-w-[200px] text-center hover:bg-gray-400 px-4 py-2 rounded-lg transition border border-transparent hover:border-gray-500'
                 >
                   {getTimeframeLabel()}
                 </button>
                 <button
                   onClick={() => changeMonth('next')}
-                  className='p-2 hover:bg-gray-100 rounded-lg transition'
+                  className='p-2 hover:bg-gray-400 rounded-lg transition'
                 >
-                  <ChevronRight size={20} className='text-gray-700' />
+                  <ChevronRight size={20} className='text-gray-100' />
                 </button>
               </div>
             </div>
@@ -806,7 +806,7 @@ export default function AnalysisPage() {
                       </div>
                     </div>
                   </div>
-                  <div className='bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-lg p-4 flex items-center gap-3'>
+                  <div className='bg-gradient-to-br from-purple-500 to-purple-700 text-white rounded-lg p-4 flex items-center gap-3'>
                     <div>
                       <div className='text-xs font-semibold opacity-90'>Total WOD Time</div>
                       <div className='text-2xl font-bold'>
@@ -819,7 +819,7 @@ export default function AnalysisPage() {
 
                 {/* WOD Duration Distribution - Compact */}
                 <div className='flex-1'>
-                  <h3 className='text-sm font-bold text-gray-900 mb-2'>WOD Duration Distribution</h3>
+                  <h3 className='text-sm font-bold text-gray-100 mb-2'>WOD Duration Distribution</h3>
                   <div className='flex gap-2 flex-wrap'>
                     {statistics.durationBreakdown.map((duration, idx) => (
                       <div
@@ -835,14 +835,14 @@ export default function AnalysisPage() {
               </div>
 
               {/* Exercise Search */}
-              <div className='bg-white border border-gray-300 rounded-lg p-6'>
-                <h3 className='text-lg font-bold text-gray-900 mb-4'>Exercise/Movement Search</h3>
+              <div className='bg-gray-700 border border-gray-500 rounded-lg p-6'>
+                <h3 className='text-lg font-bold text-gray-100 mb-4'>Exercise/Movement Search</h3>
 
                 {/* Category Filter Chips */}
                 {categories.length > 0 && (
                   <div className='mb-4'>
                     <div className='flex items-center gap-2 mb-2'>
-                      <span className='text-sm font-medium text-gray-700'>Filter by Category:</span>
+                      <span className='text-sm font-medium text-gray-100'>Filter by Category:</span>
                     </div>
                     <div className='flex flex-wrap gap-2'>
                       {categories.map(category => (
@@ -894,7 +894,7 @@ export default function AnalysisPage() {
                       autoComplete='off'
                       readOnly
                       onFocus={(e) => e.currentTarget.removeAttribute('readonly')}
-                      className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                      className='w-full px-4 py-3 border border-gray-400 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-50'
                     />
 
                   {/* Dropdown Results */}
@@ -904,7 +904,7 @@ export default function AnalysisPage() {
                         <button
                           key={idx}
                           onClick={() => handleExerciseSelect(exercise.exercise)}
-                          className='w-full px-4 py-3 text-left hover:bg-gray-100 flex justify-between items-center border-b border-gray-100 last:border-b-0'
+                          className='w-full px-4 py-3 text-left hover:bg-gray-300 flex justify-between items-center border-b border-gray-100 last:border-b-0'
                         >
                           <span className='text-gray-900 font-medium'>{exercise.exercise}</span>
                           <span className='text-[#208479] font-bold text-sm'>{exercise.count}x</span>
@@ -914,7 +914,7 @@ export default function AnalysisPage() {
                   )}
 
                   {exerciseSearch && filteredExercises.length === 0 && (
-                    <div className='absolute z-10 w-full mt-2 bg-white border border-gray-300 rounded-lg shadow-lg p-4 text-center text-gray-500'>
+                    <div className='absolute z-10 w-full mt-2 bg-white border border-gray-300 rounded-lg shadow-lg p-4 text-center text-gray-100'>
                       No exercises found matching "{exerciseSearch}"
                     </div>
                   )}
@@ -974,7 +974,7 @@ export default function AnalysisPage() {
               {/* Track Breakdown */}
               {statistics.trackBreakdown.length > 0 && (
                 <div>
-                  <h3 className='text-lg font-bold text-gray-900 mb-3'>Workouts by Track</h3>
+                  <h3 className='text-lg font-bold text-gray-100 mb-3'>Workouts by Track</h3>
                   <div className='space-y-2'>
                     {statistics.trackBreakdown.map(track => (
                       <div key={track.trackId} className='flex items-center gap-3'>
@@ -983,7 +983,7 @@ export default function AnalysisPage() {
                           style={{ backgroundColor: track.color }}
                         />
                         <div className='flex-1 flex items-center gap-3'>
-                          <span className='text-gray-900 font-medium min-w-[150px]'>
+                          <span className='text-gray-100 font-medium min-w-[150px]'>
                             {track.trackName}
                           </span>
                           <div className='flex-1 bg-gray-200 rounded-full h-6 relative'>
@@ -994,7 +994,7 @@ export default function AnalysisPage() {
                                 backgroundColor: track.color,
                               }}
                             />
-                            <span className='absolute inset-0 flex items-center justify-center text-sm font-semibold text-gray-900'>
+                            <span className='absolute inset-0 flex items-center justify-center text-sm font-semibold text-gray-700'>
                               {track.count}
                             </span>
                           </div>
@@ -1008,7 +1008,7 @@ export default function AnalysisPage() {
               {/* Workout Type Breakdown */}
               {statistics.typeBreakdown.length > 0 && (
                 <div>
-                  <h3 className='text-lg font-bold text-gray-900 mb-3'>Workouts by Type</h3>
+                  <h3 className='text-lg font-bold text-gray-100 mb-3'>Workouts by Type</h3>
                   <div className='grid grid-cols-2 md:grid-cols-4 gap-3'>
                     {statistics.typeBreakdown.map(type => (
                       <div
@@ -1028,7 +1028,7 @@ export default function AnalysisPage() {
               {/* Exercise Frequency */}
               {filteredTopExercises.length > 0 && (
                 <div>
-                  <h3 className='text-lg font-bold text-gray-900 mb-3'>
+                  <h3 className='text-lg font-bold text-gray-100 mb-3'>
                     Top Exercises{selectedCategories.length > 0 && ` (${selectedCategories.join(', ')})`}
                   </h3>
                   <div className='flex flex-wrap gap-2'>
