@@ -892,6 +892,10 @@ export default function WODModal({
         console.log('WODModal opened with editingWOD, checking for pending section:', pendingSection);
 
         if (pendingSection) {
+          // Clear immediately to prevent double-processing in React StrictMode
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (window as any).__draggedSection = null;
+
           // Add pending section to editingWOD before setting formData
           const newSection: WODSection = {
             id: `section-${Date.now()}`,
@@ -907,12 +911,11 @@ export default function WODModal({
             sections: updatedSections,
           });
           setExpandedSections(new Set(allSectionIds));
-
-          // Clear the pending section
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (window as any).__draggedSection = null;
-        } else {
-          // No pending section - normal edit flow
+        } else if (formData.sections.length === 0 || formData.id !== editingWOD.id) {
+          // Only reset formData if:
+          // 1. formData is empty (initial state), OR
+          // 2. We're editing a different workout (ID changed)
+          // This prevents StrictMode's second run from overwriting section additions
           setFormData(editingWOD);
           const allSectionIds = editingWOD.sections.map(s => s.id);
           setExpandedSections(new Set(allSectionIds));
