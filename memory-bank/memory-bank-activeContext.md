@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 4.7
-**Updated:** 2025-11-14 (Session 6)
+**Version:** 4.8
+**Updated:** 2025-11-15 (Session 7)
 
 ---
 
@@ -61,6 +61,18 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-11-15 Session 7):**
+- **Chart Visibility & Analysis Page Fixes:**
+  - ✅ Fixed invisible gridlines in Lifts tab modal chart (added white stroke to CartesianGrid)
+  - ✅ Darkened chart lines in Lifts & Forge Benchmarks tabs (#83e1b2ff → #208479 for better contrast)
+  - ✅ Fixed Analysis page "Total Workouts" count: Now queries weekly_sessions (not wods table), matches calendar view
+  - ✅ Only counts published workouts (filters by workout_publish_status === 'published')
+  - ✅ Fixed week calculation: Monday-Sunday week (was Sunday-Saturday rolling window)
+  - ✅ Updated both data query and UI label to use Monday-Sunday logic
+  - ✅ Fixed track modal overlay: Semi-transparent bg-black/50 (was solid black bg-black bg-opacity-50)
+  - Commits: af46e1f (charts), 29fcba4 (track modal), 21cbfa7 (analysis fixes)
+  - Branch: augment-refactor (32 commits ahead, pushed)
 
 **Completed (2025-11-14 Session 6):**
 - **3-State Workout System Fixes & Athlete Booking Display:**
@@ -178,6 +190,9 @@ Athlete Tables (linked to members.id)
 - macOS iCloud Keychain autofill popups (OS behavior, not app bug)
 
 **Lessons Learned:**
+- **2025-11-15:** NEVER push before user testing - User explicitly stated multiple times to wait for testing before pushing. Always commit locally, let user test, then push only after confirmation.
+- **2025-11-15:** Query consistency matters - Analysis page and Calendar must query same table (weekly_sessions) to show matching counts. Direct wods table query shows different count than calendar.
+- **2025-11-15:** Week standards vary by region - Monday-Sunday is standard in Europe and fitness industry (ISO 8601). Don't assume Sunday-Saturday.
 - **2025-11-14:** State preservation on edits - Always preserve existing status on edit operations unless explicitly changing state
 - **2025-11-14:** Data source priority matters - Fetch from source of truth (bookings table for booking status, not published workouts)
 - **2025-11-14:** Silent failures need DOM state - UI actions requiring specific DOM state should ensure that state exists first (auto-expand before library open)
