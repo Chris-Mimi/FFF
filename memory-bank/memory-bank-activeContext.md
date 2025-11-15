@@ -249,6 +249,7 @@ Athlete Tables (linked to members.id)
    - Create deployment checklist
 
 4. **Future Enhancements:**
+   - **Undo after paste/drop:** Toast notification with "Undo" button for ~5 seconds after pasting/dropping workout (currently only "Cancel Copy" before paste, or manual delete after)
    - Coach ability to edit section types, workout types, exercises
    - Bulk operations for session/workout management
    - Improved search/filter capabilities
