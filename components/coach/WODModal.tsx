@@ -888,6 +888,8 @@ export default function WODModal({
         // Check for pending section drop from calendar card BEFORE setting formData
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const pendingSection = (window as any).__draggedSection;
+        // eslint-disable-next-line no-console
+        console.log('WODModal opened with editingWOD, checking for pending section:', pendingSection);
 
         if (pendingSection) {
           // Add pending section to editingWOD before setting formData
