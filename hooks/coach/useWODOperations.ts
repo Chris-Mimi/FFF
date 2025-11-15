@@ -172,12 +172,30 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
       if (workoutError) throw workoutError;
 
       if (targetSessionId && newWorkout) {
+        // Update existing session with new workout
         const { error: sessionError } = await supabase
           .from('weekly_sessions')
           .update({ workout_id: newWorkout.id })
           .eq('id', targetSessionId);
 
         if (sessionError) throw sessionError;
+      } else if (newWorkout) {
+        // No target session - check if any sessions exist on this date
+        const { data: existingSessions } = await supabase
+          .from('weekly_sessions')
+          .select('id')
+          .eq('date', dateKey);
+
+        // If no sessions exist, create default 09:00 session
+        if (!existingSessions || existingSessions.length === 0) {
+          await supabase.from('weekly_sessions').insert({
+            date: dateKey,
+            time: '09:00',
+            workout_id: newWorkout.id,
+            capacity: wod.maxCapacity,
+            status: 'published'
+          });
+        }
       }
 
       await fetchWODs();
