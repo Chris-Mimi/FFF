@@ -93,15 +93,17 @@ export default function CalendarGrid({
         }}
         onMouseEnter={() => !isEmptySession && onWODHover(cardId)}
         onMouseLeave={() => onWODHover(null)}
-        className={`workout-card ${marginBottom} ${padding} ${roundedClass} ${textSize} transition group relative ${cardClasses} ${
-          isEmptySession ? 'cursor-pointer' : ''
-        } ${hoveredWOD === cardId ? 'z-[60]' : 'z-[60]'}`}
-        title={isEmptySession ? 'Click to add workout' : 'Hover for details, drag handle to copy'}
+        className={`workout-card ${marginBottom} ${padding} ${roundedClass} ${textSize} transition group relative cursor-pointer ${cardClasses} ${hoveredWOD === cardId ? 'z-50' : 'z-10'}`}
+        title={isEmptySession ? 'Click to add workout' : 'Click to edit workout'}
         onClick={(e) => {
-          if (isEmptySession) {
-            e.stopPropagation();
-            onOpenEditModal(wod);
-          }
+          const target = e.target as HTMLElement;
+          // Don't interfere with button clicks (booking badge, action buttons)
+          if (target.closest('button')) return;
+          // Don't interfere with drag handle
+          if (target.closest('[draggable]')) return;
+
+          e.stopPropagation();
+          onOpenEditModal(wod);
         }}
       >
         {/* Drag Handle - Only for workouts with content */}
@@ -123,10 +125,9 @@ export default function CalendarGrid({
           <div className='flex items-center gap-1'>
             {/* Title */}
             <div
-              className={`${titleSize} flex-1 min-w-0 truncate cursor-pointer ${
+              className={`${titleSize} flex-1 min-w-0 truncate ${
                 isPublished ? 'text-white' : isEmptySession ? 'text-gray-600' : 'text-gray-900'
               }`}
-              onClick={() => onOpenEditModal(wod)}
             >
               {wod.title}
             </div>
