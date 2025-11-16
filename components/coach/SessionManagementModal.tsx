@@ -101,7 +101,8 @@ export default function SessionManagementModal({
           id,
           status,
           booked_at,
-          member:members (
+          member_id,
+          members!inner (
             id,
             name,
             email
@@ -112,13 +113,13 @@ export default function SessionManagementModal({
 
       if (bookingsError) throw bookingsError;
 
-      // Transform data to flatten member array to single object
-      const transformedBookings = (bookingsData || [])
-        .map(booking => ({
-          ...booking,
-          member: Array.isArray(booking.member) ? booking.member[0] : booking.member
-        }))
-        .filter(booking => booking.member && booking.member.name); // Only include bookings with valid member data
+      // Transform data to rename members to member for consistency
+      const transformedBookings = (bookingsData || []).map(booking => ({
+        id: booking.id,
+        status: booking.status,
+        booked_at: booking.booked_at,
+        member: booking.members // Rename members field to member
+      }));
 
       setBookings(transformedBookings);
 
