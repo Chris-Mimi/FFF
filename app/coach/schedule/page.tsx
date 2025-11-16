@@ -452,8 +452,8 @@ export default function CoachSchedulePage() {
                   {/* Day Header */}
                   <h2 className="text-lg font-bold text-teal-400 mb-3">{day.label}</h2>
 
-                  {/* Templates Grid - 4 columns */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {/* Templates Grid - 5 columns */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
                     {dayTemplates.map((template) => (
                       <div
                         key={template.id}
@@ -466,7 +466,7 @@ export default function CoachSchedulePage() {
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
                               <h3 className="text-lg font-semibold text-white">
-                                {formatTime(template.time)}
+                                {formatTime(template.time)} <span className="text-sm text-gray-200">({template.default_capacity})</span>
                               </h3>
                               {!template.active && (
                                 <span className="px-2 py-0.5 bg-gray-700 text-gray-400 text-xs rounded-full">
@@ -477,12 +477,7 @@ export default function CoachSchedulePage() {
 
                             <div className="space-y-1 text-sm">
                               <div>
-                                <span className="text-gray-400">Type:</span>{' '}
                                 <span className="text-white font-medium">{template.workout_type}</span>
-                              </div>
-                              <div>
-                                <span className="text-gray-400">Capacity:</span>{' '}
-                                <span className="text-white font-medium">{template.default_capacity}</span>
                               </div>
                             </div>
                           </div>
