@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
-import { Calendar, Plus, Edit2, Trash2, ToggleLeft, ToggleRight, LogOut, X } from 'lucide-react';
 import { signOut } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
+import { Calendar, Edit2, LogOut, Plus, Trash2, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 interface SessionTemplate {
   id: string;
@@ -51,6 +51,16 @@ export default function CoachSchedulePage() {
   const [generating, setGenerating] = useState(false);
   const [generationResult, setGenerationResult] = useState<string | null>(null);
 
+  // Workout Title Modal State
+  const [showTitleModal, setShowTitleModal] = useState(false);
+  const [editingTitle, setEditingTitle] = useState<WorkoutTitle | null>(null);
+  const [titleFormData, setTitleFormData] = useState({
+    name: '',
+    display_order: 1,
+    active: true
+  });
+  const [savingTitle, setSavingTitle] = useState(false);
+
   useEffect(() => {
     // Check authentication
     const checkAuth = async () => {
@@ -69,7 +79,6 @@ export default function CoachSchedulePage() {
       const { data, error } = await supabase
         .from('workout_titles')
         .select('*')
-        .eq('active', true)
         .order('display_order', { ascending: true });
 
       if (error) throw error;
@@ -254,6 +263,119 @@ export default function CoachSchedulePage() {
     return time.slice(0, 5); // Convert HH:MM:SS to HH:MM
   };
 
+  // Workout Title CRUD Operations
+  const handleOpenTitleModal = (title?: WorkoutTitle) => {
+    if (title) {
+      setEditingTitle(title);
+      setTitleFormData({
+        name: title.name,
+        display_order: title.display_order,
+        active: title.active
+      });
+    } else {
+      setEditingTitle(null);
+      const maxOrder = workoutTitles.length > 0
+        ? Math.max(...workoutTitles.map(t => t.display_order))
+        : 0;
+      setTitleFormData({
+        name: '',
+        display_order: maxOrder + 1,
+        active: true
+      });
+    }
+    setShowTitleModal(true);
+  };
+
+  const handleCloseTitleModal = () => {
+    setShowTitleModal(false);
+    setEditingTitle(null);
+  };
+
+  const handleSaveTitle = async () => {
+    if (!titleFormData.name.trim()) {
+      alert('Please enter a workout title name.');
+      return;
+    }
+
+    setSavingTitle(true);
+    try {
+      if (editingTitle) {
+        // Update existing title
+        const { error } = await supabase
+          .from('workout_titles')
+          .update({
+            name: titleFormData.name.trim(),
+            display_order: titleFormData.display_order,
+            active: titleFormData.active,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', editingTitle.id);
+
+        if (error) throw error;
+      } else {
+        // Create new title
+        const { error } = await supabase
+          .from('workout_titles')
+          .insert({
+            name: titleFormData.name.trim(),
+            display_order: titleFormData.display_order,
+            active: titleFormData.active
+          });
+
+        if (error) throw error;
+      }
+
+      await fetchWorkoutTitles();
+      handleCloseTitleModal();
+    } catch (error) {
+      console.error('Error saving workout title:', error);
+      if (error && typeof error === 'object' && 'code' in error && error.code === '23505') {
+        alert('A workout title with this name already exists.');
+      } else {
+        alert('Failed to save workout title. Please try again.');
+      }
+    } finally {
+      setSavingTitle(false);
+    }
+  };
+
+  const handleDeleteTitle = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this workout title? This may affect existing session templates.')) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('workout_titles')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      await fetchWorkoutTitles();
+    } catch (error) {
+      console.error('Error deleting workout title:', error);
+      alert('Failed to delete workout title. Please try again.');
+    }
+  };
+
+  const handleToggleTitleActive = async (title: WorkoutTitle) => {
+    try {
+      const { error } = await supabase
+        .from('workout_titles')
+        .update({
+          active: !title.active,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', title.id);
+
+      if (error) throw error;
+      await fetchWorkoutTitles();
+    } catch (error) {
+      console.error('Error toggling workout title:', error);
+      alert('Failed to update workout title. Please try again.');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-900">
       {/* Header */}
@@ -264,7 +386,23 @@ export default function CoachSchedulePage() {
               <h1 className="text-2xl font-bold text-white">Weekly Schedule Templates</h1>
               <p className="text-gray-400 text-sm mt-1">Define your recurring weekly class schedule</p>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => handleOpenModal()}
+                className="flex items-center gap-2 px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-lg transition-colors duration-200"
+              >
+                <Plus size={18} />
+                Add Template
+              </button>
+              <button
+                onClick={handleGenerateWeek}
+                disabled={generating || templates.filter(t => t.active).length === 0}
+                className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200"
+                title="Generate sessions for next week from active templates"
+              >
+                <Calendar size={18} />
+                {generating ? 'Generating...' : 'Generate Next Week'}
+              </button>
               <button
                 onClick={() => router.push('/coach')}
                 className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors duration-200"
@@ -280,38 +418,16 @@ export default function CoachSchedulePage() {
               </button>
             </div>
           </div>
+          {generationResult && (
+            <div className="mt-3 px-4 py-2 bg-teal-500/20 border border-teal-500 text-teal-300 rounded-lg text-sm inline-block">
+              {generationResult}
+            </div>
+          )}
         </div>
       </header>
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-12">
-        {/* Action Buttons */}
-        <div className="mb-6 flex items-center justify-between">
-          <button
-            onClick={() => handleOpenModal()}
-            className="flex items-center gap-2 px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-lg transition-colors duration-200"
-          >
-            <Plus size={18} />
-            Add Template
-          </button>
-
-          <div className="flex items-center gap-4">
-            {generationResult && (
-              <div className="px-4 py-2 bg-teal-500/20 border border-teal-500 text-teal-300 rounded-lg text-sm">
-                {generationResult}
-              </div>
-            )}
-            <button
-              onClick={handleGenerateWeek}
-              disabled={generating || templates.filter(t => t.active).length === 0}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200"
-              title="Generate sessions for next week from active templates"
-            >
-              <Calendar size={18} />
-              {generating ? 'Generating...' : 'Generate Next Week'}
-            </button>
-          </div>
-        </div>
 
         {/* Templates List */}
         {loading ? (
@@ -336,8 +452,8 @@ export default function CoachSchedulePage() {
                   {/* Day Header */}
                   <h2 className="text-lg font-bold text-teal-400 mb-3">{day.label}</h2>
 
-                  {/* Templates Grid - 3 columns */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {/* Templates Grid - 4 columns */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     {dayTemplates.map((template) => (
                       <div
                         key={template.id}
@@ -371,33 +487,37 @@ export default function CoachSchedulePage() {
                             </div>
                           </div>
 
-                          {/* Right side - Actions (stacked vertically) */}
+                          {/* Right side - Actions */}
                           <div className="flex flex-col gap-1">
                             <button
                               onClick={() => handleToggleActive(template)}
-                              className={`p-1.5 rounded transition-colors duration-200 ${
+                              className={`w-14 h-7 rounded-full transition-colors duration-200 flex items-center px-1 ${
                                 template.active
-                                  ? 'bg-teal-500/20 text-teal-400 hover:bg-teal-500/30'
-                                  : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                                  ? 'bg-teal-500/20 hover:bg-teal-500/30 justify-end'
+                                  : 'bg-gray-700 hover:bg-gray-600 justify-start'
                               }`}
                               title={template.active ? 'Deactivate' : 'Activate'}
                             >
-                              {template.active ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
+                              <div className={`w-5 h-5 rounded-full transition-colors duration-200 ${
+                                template.active ? 'bg-teal-500' : 'bg-gray-400'
+                              }`} />
                             </button>
-                            <button
-                              onClick={() => handleOpenModal(template)}
-                              className="p-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors duration-200"
-                              title="Edit"
-                            >
-                              <Edit2 size={16} />
-                            </button>
-                            <button
-                              onClick={() => handleDelete(template.id)}
-                              className="p-1.5 bg-red-600 hover:bg-red-700 text-white rounded transition-colors duration-200"
-                              title="Delete"
-                            >
-                              <Trash2 size={16} />
-                            </button>
+                            <div className="flex gap-1">
+                              <button
+                                onClick={() => handleOpenModal(template)}
+                                className="p-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors duration-200"
+                                title="Edit"
+                              >
+                                <Edit2 size={16} />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(template.id)}
+                                className="p-1.5 bg-red-600 hover:bg-red-700 text-white rounded transition-colors duration-200"
+                                title="Delete"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -408,9 +528,96 @@ export default function CoachSchedulePage() {
             })}
           </div>
         )}
+
+        {/* Workout Titles Section */}
+        <div className="mt-12 border-t border-gray-700 pt-8">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-xl font-bold text-white">Workout Titles</h2>
+              <p className="text-gray-400 text-sm mt-1">Manage available workout title options for session templates</p>
+            </div>
+            <button
+              onClick={() => handleOpenTitleModal()}
+              className="flex items-center gap-2 px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-lg transition-colors duration-200"
+            >
+              <Plus size={18} />
+              Add Title
+            </button>
+          </div>
+
+          {workoutTitles.length === 0 ? (
+            <div className="bg-gray-800 rounded-lg p-12 text-center border border-gray-700">
+              <p className="text-gray-400 text-lg mb-2">No workout titles yet</p>
+              <p className="text-gray-500 text-sm">Create your first workout title to use in session templates</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {workoutTitles.map((title) => (
+                <div
+                  key={title.id}
+                  className={`bg-gray-800 rounded-lg p-4 border ${
+                    title.active ? 'border-gray-700' : 'border-gray-800 opacity-60'
+                  } hover:border-gray-600 transition-colors duration-200`}
+                >
+                  <div className="flex gap-3">
+                    {/* Left side - Info */}
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-lg font-semibold text-white">
+                          {title.name}
+                        </h3>
+                        {!title.active && (
+                          <span className="px-2 py-0.5 bg-gray-700 text-gray-400 text-xs rounded-full">
+                            Inactive
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-sm text-gray-400">
+                        Order: {title.display_order}
+                      </div>
+                    </div>
+
+                    {/* Right side - Actions */}
+                    <div className="flex flex-col gap-1">
+                      <button
+                        onClick={() => handleToggleTitleActive(title)}
+                        className={`w-14 h-7 rounded-full transition-colors duration-200 flex items-center px-1 ${
+                          title.active
+                            ? 'bg-teal-500/20 hover:bg-teal-500/30 justify-end'
+                            : 'bg-gray-700 hover:bg-gray-600 justify-start'
+                        }`}
+                        title={title.active ? 'Deactivate' : 'Activate'}
+                      >
+                        <div className={`w-5 h-5 rounded-full transition-colors duration-200 ${
+                          title.active ? 'bg-teal-500' : 'bg-gray-400'
+                        }`} />
+                      </button>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => handleOpenTitleModal(title)}
+                          className="p-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors duration-200"
+                          title="Edit"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteTitle(title.id)}
+                          className="p-1.5 bg-red-600 hover:bg-red-700 text-white rounded transition-colors duration-200"
+                          title="Delete"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Modal */}
+      {/* Session Template Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-gray-800 rounded-lg shadow-xl max-w-md w-full border border-gray-700">
@@ -468,7 +675,7 @@ export default function CoachSchedulePage() {
                   onChange={(e) => setFormData({ ...formData, workout_type: e.target.value })}
                   className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
                 >
-                  {workoutTitles.map((wt) => (
+                  {workoutTitles.filter(wt => wt.active).map((wt) => (
                     <option key={wt.id} value={wt.name}>
                       {wt.name}
                     </option>
@@ -519,6 +726,85 @@ export default function CoachSchedulePage() {
                 className="flex-1 px-4 py-2 bg-teal-500 hover:bg-teal-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200"
               >
                 {saving ? 'Saving...' : editingTemplate ? 'Update' : 'Create'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Workout Title Modal */}
+      {showTitleModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-lg shadow-xl max-w-md w-full border border-gray-700">
+            <div className="flex items-center justify-between p-6 border-b border-gray-700">
+              <h2 className="text-xl font-bold text-white">
+                {editingTitle ? 'Edit Workout Title' : 'Create Workout Title'}
+              </h2>
+              <button
+                onClick={handleCloseTitleModal}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              {/* Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Title Name
+                </label>
+                <input
+                  type="text"
+                  value={titleFormData.name}
+                  onChange={(e) => setTitleFormData({ ...titleFormData, name: e.target.value })}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  placeholder="e.g., WOD, Foundations, Kids"
+                />
+              </div>
+
+              {/* Display Order */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Display Order
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={titleFormData.display_order}
+                  onChange={(e) => setTitleFormData({ ...titleFormData, display_order: parseInt(e.target.value) || 1 })}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+
+              {/* Active Toggle */}
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="titleActive"
+                  checked={titleFormData.active}
+                  onChange={(e) => setTitleFormData({ ...titleFormData, active: e.target.checked })}
+                  className="w-4 h-4 text-teal-500 bg-gray-700 border-gray-600 rounded focus:ring-teal-500"
+                />
+                <label htmlFor="titleActive" className="text-sm font-medium text-gray-300">
+                  Active (available for use in session templates)
+                </label>
+              </div>
+            </div>
+
+            <div className="flex gap-3 p-6 border-t border-gray-700">
+              <button
+                onClick={handleCloseTitleModal}
+                className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors duration-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveTitle}
+                disabled={savingTitle}
+                className="flex-1 px-4 py-2 bg-teal-500 hover:bg-teal-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200"
+              >
+                {savingTitle ? 'Saving...' : editingTitle ? 'Update' : 'Create'}
               </button>
             </div>
           </div>
