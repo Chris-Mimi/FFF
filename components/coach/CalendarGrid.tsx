@@ -222,20 +222,24 @@ export default function CalendarGrid({
           <div className='absolute left-0 top-full w-80 bg-white border-2 border-[#208479] rounded-lg shadow-2xl p-4 z-[200] max-h-96 overflow-y-auto'>
             <div className='text-sm font-bold text-gray-900 mb-3'>{wod.title}</div>
             <div className='space-y-3'>
-              {wod.sections
-                .filter((section) => {
-                  const excludedTypes = ['Whiteboard Intro', 'Warm-up', 'WOD preparation', 'Cool Down'];
-                  return section.content?.trim() && !excludedTypes.includes(section.type);
-                })
-                .map((section, idx) => (
-                  <div key={idx} className='border-b border-gray-200 pb-2 last:border-b-0'>
-                    <div className='text-xs font-semibold text-[#208479] mb-1'>
-                      {section.type}
-                      {section.duration > 0 && ` (${section.duration} min)`}
+              {wod.sections && wod.sections.length > 0 ? (
+                wod.sections
+                  .filter((section) => {
+                    const excludedTypes = ['Whiteboard Intro', 'Warm-up', 'WOD preparation', 'Cool Down'];
+                    return section.content?.trim() && !excludedTypes.includes(section.type);
+                  })
+                  .map((section, idx) => (
+                    <div key={idx} className='border-b border-gray-200 pb-2 last:border-b-0'>
+                      <div className='text-xs font-semibold text-[#208479] mb-1'>
+                        {section.type}
+                        {section.duration > 0 && ` (${section.duration} min)`}
+                      </div>
+                      <div className='text-xs text-gray-700 whitespace-pre-wrap'>{section.content}</div>
                     </div>
-                    <div className='text-xs text-gray-700 whitespace-pre-wrap'>{section.content}</div>
-                  </div>
-                ))}
+                  ))
+              ) : (
+                <div className='text-xs text-gray-500 italic'>No workout sections</div>
+              )}
             </div>
           </div>
         )}
