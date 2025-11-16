@@ -195,8 +195,8 @@ export default function CalendarGrid({
                 e.stopPropagation();
                 onCopyWOD(wod);
               }}
-              className={`hover:text-[#1a6b62] p-${isMonthlyView ? '0.5' : '1'} transition ${
-                isMonthlyView ? 'text-[#208479]' : 'text-[#208479] bg-white rounded shadow-sm'
+              className={`hover:text-[#1a6b62] transition text-[#208479] bg-white rounded shadow-sm ${
+                isMonthlyView ? 'p-0.5' : 'p-1'
               }`}
               title='Copy WOD'
             >
@@ -207,8 +207,8 @@ export default function CalendarGrid({
                 e.stopPropagation();
                 onDeleteWOD(dateKey, wod.id!);
               }}
-              className={`hover:text-red-600 p-${isMonthlyView ? '0.5' : '1'} transition ${
-                isMonthlyView ? 'text-gray-500' : 'text-gray-500 bg-white rounded shadow-sm'
+              className={`hover:text-red-600 transition text-gray-500 bg-white rounded shadow-sm ${
+                isMonthlyView ? 'p-0.5' : 'p-1'
               }`}
               title='Delete WOD'
             >
