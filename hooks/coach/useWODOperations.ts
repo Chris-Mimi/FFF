@@ -90,13 +90,34 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
 
         if (wodData.classTimes && wodData.classTimes.length > 0 && newWOD) {
           for (const time of wodData.classTimes) {
-            await supabase.from('weekly_sessions').insert({
-              date: dateKey,
-              time: time,
-              workout_id: newWOD.id,
-              capacity: wodData.maxCapacity,
-              status: 'published'
-            });
+            // Check if session exists at this date/time
+            const { data: existingSession } = await supabase
+              .from('weekly_sessions')
+              .select('id')
+              .eq('date', dateKey)
+              .eq('time', time)
+              .maybeSingle();
+
+            if (existingSession) {
+              // Update existing session
+              await supabase
+                .from('weekly_sessions')
+                .update({
+                  workout_id: newWOD.id,
+                  capacity: wodData.maxCapacity,
+                  status: 'published'
+                })
+                .eq('id', existingSession.id);
+            } else {
+              // Create new session
+              await supabase.from('weekly_sessions').insert({
+                date: dateKey,
+                time: time,
+                workout_id: newWOD.id,
+                capacity: wodData.maxCapacity,
+                status: 'published'
+              });
+            }
           }
         } else if (wodData.selectedSessionIds && wodData.selectedSessionIds.length > 0 && newWOD) {
           await supabase
@@ -188,15 +209,36 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
 
         if (sessionError) throw sessionError;
       } else if (newWorkout && timesToCreate.length > 0) {
-        // No target session - create new sessions at the same times as source workout
+        // No target session - create or update sessions at the same times as source workout
         for (const time of timesToCreate) {
-          await supabase.from('weekly_sessions').insert({
-            date: dateKey,
-            time: time,
-            workout_id: newWorkout.id,
-            capacity: wod.maxCapacity,
-            status: 'published'
-          });
+          // Check if session exists at this date/time
+          const { data: existingSession } = await supabase
+            .from('weekly_sessions')
+            .select('id')
+            .eq('date', dateKey)
+            .eq('time', time)
+            .maybeSingle();
+
+          if (existingSession) {
+            // Update existing session
+            await supabase
+              .from('weekly_sessions')
+              .update({
+                workout_id: newWorkout.id,
+                capacity: wod.maxCapacity,
+                status: 'published'
+              })
+              .eq('id', existingSession.id);
+          } else {
+            // Create new session
+            await supabase.from('weekly_sessions').insert({
+              date: dateKey,
+              time: time,
+              workout_id: newWorkout.id,
+              capacity: wod.maxCapacity,
+              status: 'published'
+            });
+          }
         }
       }
 
