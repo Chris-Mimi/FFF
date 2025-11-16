@@ -106,14 +106,6 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
               capacity: wodData.maxCapacity,
             })
             .in('id', wodData.selectedSessionIds);
-        } else if ((!existingSessions || existingSessions.length === 0) && newWOD) {
-          await supabase.from('weekly_sessions').insert({
-            date: dateKey,
-            time: '09:00',
-            workout_id: newWOD.id,
-            capacity: wodData.maxCapacity,
-            status: 'published'
-          });
         }
       }
 
@@ -151,6 +143,22 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
     const dateKey = formatDate(targetDate);
 
     try {
+      // If classTimes is empty, fetch the session time(s) from the source workout
+      let timesToCreate = wod.classTimes && wod.classTimes.length > 0 ? wod.classTimes : [];
+
+      if (timesToCreate.length === 0 && wod.id && !wod.id.startsWith('session-')) {
+        // Fetch session times for this workout from the database
+        const { data: sourceSessions, error: sessionsFetchError } = await supabase
+          .from('weekly_sessions')
+          .select('time')
+          .eq('workout_id', wod.id)
+          .order('time', { ascending: true });
+
+        if (!sessionsFetchError && sourceSessions && sourceSessions.length > 0) {
+          timesToCreate = sourceSessions.map(s => s.time);
+        }
+      }
+
       const { data: newWorkout, error: workoutError } = await supabase
         .from('wods')
         .insert([
@@ -158,7 +166,7 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
             title: wod.title,
             track_id: wod.track_id || null,
             workout_type_id: wod.workout_type_id || null,
-            class_times: wod.classTimes,
+            class_times: timesToCreate,
             max_capacity: wod.maxCapacity,
             date: dateKey,
             sections: wod.sections,
@@ -179,17 +187,17 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
           .eq('id', targetSessionId);
 
         if (sessionError) throw sessionError;
-      } else if (newWorkout) {
-        // No target session - create new 09:00 session for the workout
-        // This happens when dropping on day cell (not specific workout card)
-        // or when pasting via Paste button
-        await supabase.from('weekly_sessions').insert({
-          date: dateKey,
-          time: '09:00',
-          workout_id: newWorkout.id,
-          capacity: wod.maxCapacity,
-          status: 'published'
-        });
+      } else if (newWorkout && timesToCreate.length > 0) {
+        // No target session - create new sessions at the same times as source workout
+        for (const time of timesToCreate) {
+          await supabase.from('weekly_sessions').insert({
+            date: dateKey,
+            time: time,
+            workout_id: newWorkout.id,
+            capacity: wod.maxCapacity,
+            status: 'published'
+          });
+        }
       }
 
       await fetchWODs();

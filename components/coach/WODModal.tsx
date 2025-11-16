@@ -697,6 +697,9 @@ export default function WODModal({
   const [otherSessions, setOtherSessions] = useState<Array<{id: string; time: string; workout_id: string | null}>>([]);
   const [selectedSessionIds, setSelectedSessionIds] = useState<Set<string>>(new Set());
 
+  // State for new session time when creating from scratch
+  const [newSessionTime, setNewSessionTime] = useState('09:00');
+
   // Helper function to ensure time is zero-padded for select dropdown
   const padTime = (time: string): string => {
     if (!time) return '12:00';
@@ -1229,10 +1232,15 @@ export default function WODModal({
     e.preventDefault();
 
     if (validate()) {
-      onSave({
+      // If creating new workout without selecting existing sessions, use newSessionTime
+      const dataToSave = {
         ...formData,
         selectedSessionIds: Array.from(selectedSessionIds),
-      });
+        classTimes: (!editingWOD && selectedSessionIds.size === 0)
+          ? [newSessionTime]
+          : formData.classTimes,
+      };
+      onSave(dataToSave);
       onClose();
     }
   };
@@ -1485,14 +1493,14 @@ export default function WODModal({
                 <span className='text-sm'>Notes</span>
               </button>
               {/* Session Time Display/Edit */}
-              {sessionTime && (
+              {(sessionTime || !editingWOD) && (
                 <div className="flex items-center gap-2 border-l border-white/30 pl-4">
                   <Clock size={18} />
-                  {editingTime ? (
+                  {(editingTime || (!editingWOD && !sessionTime)) ? (
                     <div className="flex items-center gap-2">
                       <select
-                        value={tempTime}
-                        onChange={(e) => setTempTime(e.target.value)}
+                        value={sessionTime ? tempTime : newSessionTime}
+                        onChange={(e) => sessionTime ? setTempTime(e.target.value) : setNewSessionTime(e.target.value)}
                         className="px-2 py-1 border rounded bg-white text-gray-900 text-sm"
                       >
                         {/* Generate time options in 15-minute increments */}
@@ -1507,21 +1515,25 @@ export default function WODModal({
                           })
                         ).flat()}
                       </select>
-                      <button
-                        onClick={handleTimeUpdate}
-                        className="px-3 py-1 bg-white text-[#208479] rounded hover:bg-gray-100 text-sm font-medium"
-                      >
-                        Save
-                      </button>
-                      <button
-                        onClick={() => {
-                          setEditingTime(false);
-                          setTempTime(padTime(sessionTime!));
-                        }}
-                        className="px-3 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 text-sm"
-                      >
-                        Cancel
-                      </button>
+                      {sessionTime && (
+                        <>
+                          <button
+                            onClick={handleTimeUpdate}
+                            className="px-3 py-1 bg-white text-[#208479] rounded hover:bg-gray-100 text-sm font-medium"
+                          >
+                            Save
+                          </button>
+                          <button
+                            onClick={() => {
+                              setEditingTime(false);
+                              setTempTime(padTime(sessionTime!));
+                            }}
+                            className="px-3 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 text-sm"
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      )}
                     </div>
                   ) : (
                     <>
@@ -1571,10 +1583,14 @@ export default function WODModal({
                 onClick={e => {
                   e.preventDefault();
                   if (validate()) {
-                    onSave({
+                    const dataToSave = {
                       ...formData,
                       selectedSessionIds: Array.from(selectedSessionIds),
-                    });
+                      classTimes: (!editingWOD && otherSessions.length === 0)
+                        ? [newSessionTime]
+                        : formData.classTimes,
+                    };
+                    onSave(dataToSave);
                     onClose();
                   }
                 }}
@@ -1682,13 +1698,13 @@ export default function WODModal({
             </div>
 
             {/* Apply to Other Sessions */}
-            {otherSessions.length > 0 && (
+            {!editingWOD && otherSessions.length > 0 && (
               <div className='bg-blue-50 border border-blue-200 rounded-lg p-4'>
                 <label className='block text-sm font-semibold mb-2 text-gray-900'>
-                  Apply to Other Sessions Today
+                  Apply to Existing Sessions (Optional)
                 </label>
                 <p className='text-xs text-gray-600 mb-3'>
-                  Select sessions to apply this workout to (creates one workout linked to multiple sessions)
+                  Select existing sessions to link this workout to, or leave unchecked to create a new session at the time shown in the header
                 </p>
                 <div className='space-y-2'>
                   {otherSessions.map(session => (
@@ -1823,14 +1839,14 @@ export default function WODModal({
                 <span className='text-sm'>Notes</span>
               </button>
               {/* Session Time Display/Edit */}
-              {sessionTime && (
+              {(sessionTime || !editingWOD) && (
                 <div className="flex items-center gap-2 border-l border-white/30 pl-4">
                   <Clock size={18} />
-                  {editingTime ? (
+                  {(editingTime || (!editingWOD && !sessionTime)) ? (
                     <div className="flex items-center gap-2">
                       <select
-                        value={tempTime}
-                        onChange={(e) => setTempTime(e.target.value)}
+                        value={sessionTime ? tempTime : newSessionTime}
+                        onChange={(e) => sessionTime ? setTempTime(e.target.value) : setNewSessionTime(e.target.value)}
                         className="px-2 py-1 border rounded bg-white text-gray-900 text-sm"
                       >
                         {/* Generate time options in 15-minute increments */}
@@ -1845,21 +1861,25 @@ export default function WODModal({
                           })
                         ).flat()}
                       </select>
-                      <button
-                        onClick={handleTimeUpdate}
-                        className="px-3 py-1 bg-white text-[#208479] rounded hover:bg-gray-100 text-sm font-medium"
-                      >
-                        Save
-                      </button>
-                      <button
-                        onClick={() => {
-                          setEditingTime(false);
-                          setTempTime(padTime(sessionTime!));
-                        }}
-                        className="px-3 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 text-sm"
-                      >
-                        Cancel
-                      </button>
+                      {sessionTime && (
+                        <>
+                          <button
+                            onClick={handleTimeUpdate}
+                            className="px-3 py-1 bg-white text-[#208479] rounded hover:bg-gray-100 text-sm font-medium"
+                          >
+                            Save
+                          </button>
+                          <button
+                            onClick={() => {
+                              setEditingTime(false);
+                              setTempTime(padTime(sessionTime!));
+                            }}
+                            className="px-3 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 text-sm"
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      )}
                     </div>
                   ) : (
                     <>
@@ -1909,10 +1929,14 @@ export default function WODModal({
                 onClick={e => {
                   e.preventDefault();
                   if (validate()) {
-                    onSave({
+                    const dataToSave = {
                       ...formData,
                       selectedSessionIds: Array.from(selectedSessionIds),
-                    });
+                      classTimes: (!editingWOD && otherSessions.length === 0)
+                        ? [newSessionTime]
+                        : formData.classTimes,
+                    };
+                    onSave(dataToSave);
                     onClose();
                   }
                 }}
