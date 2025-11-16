@@ -113,10 +113,12 @@ export default function SessionManagementModal({
       if (bookingsError) throw bookingsError;
 
       // Transform data to flatten member array to single object
-      const transformedBookings = (bookingsData || []).map(booking => ({
-        ...booking,
-        member: Array.isArray(booking.member) ? booking.member[0] : booking.member
-      }));
+      const transformedBookings = (bookingsData || [])
+        .map(booking => ({
+          ...booking,
+          member: Array.isArray(booking.member) ? booking.member[0] : booking.member
+        }))
+        .filter(booking => booking.member && booking.member.name); // Only include bookings with valid member data
 
       setBookings(transformedBookings);
 
@@ -749,21 +751,21 @@ export default function SessionManagementModal({
                         className="flex items-center justify-between bg-white border rounded px-2 py-1.5 text-sm"
                       >
                         <div className="flex items-center gap-2">
-                          <span className="font-medium text-gray-800">{booking.member.name}</span>
+                          <span className="font-medium text-gray-800">{booking.member?.name || 'Unknown Member'}</span>
                           <span className="text-xs text-gray-400">
-                            {new Date(booking.booked_at).toLocaleDateString('en-GB')}
+                            Booked: {new Date(booking.booked_at).toLocaleDateString('en-GB')}
                           </span>
                         </div>
                         <div className="flex items-center gap-1">
                           <button
-                            onClick={() => handleLateCancel(booking.id, booking.member.name)}
+                            onClick={() => handleLateCancel(booking.id, booking.member?.name || 'Unknown Member')}
                             className="flex items-center gap-1 px-2 py-1 text-xs bg-purple-50 hover:bg-purple-100 text-purple-800 rounded transition"
                             title="Mark as late cancellation"
                           >
                             Late Cancel
                           </button>
                           <button
-                            onClick={() => handleMarkNoShow(booking.id, booking.member.name)}
+                            onClick={() => handleMarkNoShow(booking.id, booking.member?.name || 'Unknown Member')}
                             className="flex items-center gap-1 px-2 py-1 text-xs bg-orange-100 hover:bg-orange-200 text-orange-700 rounded transition"
                             title="Mark as no-show"
                           >
@@ -791,13 +793,13 @@ export default function SessionManagementModal({
                       >
                         <div className="flex items-center gap-2">
                           <UserX size={14} className="text-orange-600" />
-                          <span className="font-medium text-gray-800">{booking.member.name}</span>
+                          <span className="font-medium text-gray-800">{booking.member?.name || 'Unknown Member'}</span>
                           <span className="text-xs text-gray-400">
-                            {new Date(booking.booked_at).toLocaleDateString('en-GB')}
+                            Booked: {new Date(booking.booked_at).toLocaleDateString('en-GB')}
                           </span>
                         </div>
                         <button
-                          onClick={() => handleUndoNoShow(booking.id, booking.member.name)}
+                          onClick={() => handleUndoNoShow(booking.id, booking.member?.name || 'Unknown Member')}
                           className="flex items-center gap-1 px-2 py-1 text-xs bg-green-100 hover:bg-green-200 text-green-700 rounded transition"
                           title="Mark as attended (undo no-show)"
                         >
@@ -824,13 +826,13 @@ export default function SessionManagementModal({
                       >
                         <div className="flex items-center gap-2">
                           <X size={14} className="text-purple-600 font-bold" />
-                          <span className="font-medium text-gray-800">{booking.member.name}</span>
+                          <span className="font-medium text-gray-800">{booking.member?.name || 'Unknown Member'}</span>
                           <span className="text-xs text-gray-400">
-                            {new Date(booking.booked_at).toLocaleDateString('en-GB')}
+                            Booked: {new Date(booking.booked_at).toLocaleDateString('en-GB')}
                           </span>
                         </div>
                         <button
-                          onClick={() => handleUndoLateCancel(booking.id, booking.member.name)}
+                          onClick={() => handleUndoLateCancel(booking.id, booking.member?.name || 'Unknown Member')}
                           className="flex items-center gap-1 px-2 py-1 text-xs bg-green-100 hover:bg-green-200 text-green-700 rounded transition"
                           title="Mark as attended (undo late cancellation)"
                         >
@@ -855,9 +857,9 @@ export default function SessionManagementModal({
                         key={booking.id}
                         className="flex items-center justify-between bg-purple-50 border border-purple-200 rounded px-2 py-1.5 text-sm"
                       >
-                        <span className="font-medium text-gray-800">{booking.member.name}</span>
+                        <span className="font-medium text-gray-800">{booking.member?.name || 'Unknown Member'}</span>
                         <span className="text-xs text-gray-400">
-                          {new Date(booking.booked_at).toLocaleDateString('en-GB')}
+                          Booked: {new Date(booking.booked_at).toLocaleDateString('en-GB')}
                         </span>
                       </div>
                     ))}
