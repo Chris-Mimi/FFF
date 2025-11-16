@@ -224,10 +224,7 @@ export default function CalendarGrid({
             <div className='space-y-3'>
               {wod.sections && wod.sections.length > 0 ? (
                 wod.sections
-                  .filter((section) => {
-                    const excludedTypes = ['Whiteboard Intro', 'Warm-up', 'WOD preparation', 'Cool Down'];
-                    return section.content?.trim() && !excludedTypes.includes(section.type);
-                  })
+                  .filter((section) => section.content?.trim())
                   .map((section, idx) => (
                     <div key={idx} className='border-b border-gray-200 pb-2 last:border-b-0'>
                       <div className='text-xs font-semibold text-[#208479] mb-1'>
