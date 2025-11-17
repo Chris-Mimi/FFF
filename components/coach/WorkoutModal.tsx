@@ -1594,7 +1594,7 @@ export default function WorkoutModal({
                     const dataToSave = {
                       ...formData,
                       selectedSessionIds: Array.from(selectedSessionIds),
-                      classTimes: (!editingWOD && otherSessions.length === 0)
+                      classTimes: (!editingWOD && selectedSessionIds.size === 0)
                         ? [newSessionTime]
                         : formData.classTimes,
                     };
@@ -1969,7 +1969,7 @@ export default function WorkoutModal({
                     const dataToSave = {
                       ...formData,
                       selectedSessionIds: Array.from(selectedSessionIds),
-                      classTimes: (!editingWOD && otherSessions.length === 0)
+                      classTimes: (!editingWOD && selectedSessionIds.size === 0)
                         ? [newSessionTime]
                         : formData.classTimes,
                     };
