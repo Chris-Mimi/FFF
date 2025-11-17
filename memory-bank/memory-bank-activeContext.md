@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 5.1
-**Updated:** 2025-11-17 (Session 9 - completed)
+**Version:** 5.2
+**Updated:** 2025-11-17 (Session 11 - completed)
 
 ---
 
@@ -61,6 +61,16 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-11-17 Session 11):**
+- **Workout Operations & Copy/Paste Critical Fixes:**
+  - ✅ Two-step delete: Workout delete → empty session (preserves bookings), session delete → remove all
+  - ✅ Fixed copy/paste wrong times: Fetch session times from DB (not stale `classTimes`)
+  - ✅ Fixed create workout on populated days: Check `selectedSessionIds.size` not `otherSessions.length`
+  - ✅ Collapsible Thursday: Collapsed by default, toggle in week banner, dynamic grid 6/7 cols
+  - Commits: f0ae640 (delete), a21e8d8 (DB fetch), 06a763d (logic fix), 490b978 (Thursday)
+  - Branch: coach-page-refactor (pushed)
+  - See `project-history/2025-11-17-session-11-workout-operations-fixes.md`
 
 **Completed (2025-11-17 Session 10):**
 - **Exercise Library Multi-Section Workflow Enhancement:**
@@ -229,6 +239,9 @@ Athlete Tables (linked to members.id)
 - macOS iCloud Keychain autofill popups (OS behavior, not app bug)
 
 **Lessons Learned:**
+- **2025-11-17 (Session 11):** Database is source of truth - Always fetch critical data from DB first, use object fields as fallback; stale in-memory fields cause silent bugs
+- **2025-11-17 (Session 11):** Check user intent not data existence - `selectedSessionIds.size === 0` checks if user selected, not if data exists
+- **2025-11-17 (Session 11):** Cascade deletes need planning - Two-step delete (set FK NULL, delete child, optionally delete parent) prevents orphaned records
 - **2025-11-17 (Session 10):** State updates must cover all user interactions - Don't assume state only changes on toggle; clicking an already-active element should still update state
 - **2025-11-17 (Session 10):** User workflow testing reveals hidden bugs - Initial implementation worked for "expand then add" but failed for "already expanded, click again"
 - **2025-11-17:** Database unique constraints - Always check for existing records before INSERT when unique constraints exist (date + time)
