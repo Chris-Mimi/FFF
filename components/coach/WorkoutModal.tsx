@@ -28,7 +28,7 @@ const formatDateLocal = (date: Date): string => {
   return `${year}-${month}-${day}`;
 };
 
-interface WODModalProps {
+interface WorkoutModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (wod: WODFormData) => void;
@@ -645,7 +645,7 @@ function WODSectionComponent({
   );
 }
 
-export default function WODModal({
+export default function WorkoutModal({
   isOpen,
   onClose,
   onSave,
@@ -655,7 +655,7 @@ export default function WODModal({
   initialNotesOpen = false,
   onNotesToggle,
   onTimeUpdated,
-}: WODModalProps) {
+}: WorkoutModalProps) {
   const [formData, setFormData] = useState<WODFormData>({
     title: '',
     track_id: '',

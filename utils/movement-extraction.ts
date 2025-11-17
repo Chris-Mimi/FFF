@@ -1,4 +1,4 @@
-import { WODFormData } from '@/components/coach/WODModal';
+import { WODFormData } from '@/components/coach/WorkoutModal';
 
 // Words to exclude from movement names (noise words)
 const excludeWords = new Set([

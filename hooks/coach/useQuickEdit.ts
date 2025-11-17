@@ -1,6 +1,6 @@
 'use client';
 
-import { WODFormData, WODSection } from '@/components/coach/WODModal';
+import { WODFormData, WODSection } from '@/components/coach/WorkoutModal';
 import { supabase } from '@/lib/supabase';
 import { useState } from 'react';
 

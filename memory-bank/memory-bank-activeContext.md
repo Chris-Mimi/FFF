@@ -62,6 +62,14 @@ Athlete Tables (linked to members.id)
 
 ## 📍 Current Status (Last 2 Weeks)
 
+**Completed (2025-11-17 Session 10):**
+- **Component Naming Convention Fix:**
+  - ✅ Renamed `WODModal` → `WorkoutModal` (15 code files updated)
+  - ✅ Aligns with terminology: "WOD" = section type only, "Workout" = general term
+  - ✅ Updated all imports, component names, and documentation
+  - Files: WorkoutModal.tsx, CalendarNav.tsx, PublishModal.tsx, SearchPanel.tsx, CalendarGrid.tsx, NotesModal.tsx, QuickEditPanel.tsx, useWODOperations.ts, useQuickEdit.ts, useCoachData.ts, useDragDrop.ts, useNotesPanel.ts, card-utils.ts, movement-extraction.ts, app/coach/page.tsx
+  - Branch: coach-page-refactor
+
 **Completed (2025-11-17 Session 9):**
 - **Coach Dashboard & Session Management Critical Fixes:**
   - ✅ Fixed multi-session creation: Check for existing sessions before INSERT (was violating unique constraint)
@@ -206,6 +214,7 @@ Athlete Tables (linked to members.id)
   - Tables: `benchmark_workouts`, `forge_benchmarks`, `barbell_lifts`
 
 **Known Issues:**
+- **Multiple sessions per day:** Cannot create second workout at different time on same day (unique constraint on date+time). Deferred from Session 9 - needs investigation.
 - macOS iCloud Keychain autofill popups (OS behavior, not app bug)
 
 **Lessons Learned:**

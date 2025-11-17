@@ -1,6 +1,6 @@
 'use client';
 
-import WODModal, { WODFormData } from '@/components/coach/WODModal';
+import WorkoutModal, { WODFormData } from '@/components/coach/WorkoutModal';
 import SessionManagementModal from '@/components/coach/SessionManagementModal';
 import { CoachHeader } from '@/components/coach/CoachHeader';
 import { CalendarNav } from '@/components/coach/CalendarNav';
@@ -306,9 +306,9 @@ export default function CoachDashboard() {
         </div>
       </div>
 
-      {/* WOD Modal */}
+      {/* Workout Modal */}
       {isModalOpen && (
-        <WODModal
+        <WorkoutModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           date={modalDate}

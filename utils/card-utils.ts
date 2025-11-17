@@ -1,4 +1,4 @@
-import { WODFormData } from '@/components/coach/WODModal';
+import { WODFormData } from '@/components/coach/WorkoutModal';
 
 export type CardState = 'empty' | 'draft' | 'published';
 

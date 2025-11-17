@@ -2,7 +2,7 @@
 
 import { Send, X } from 'lucide-react';
 import { useState } from 'react';
-import { WODSection } from './WODModal';
+import { WODSection } from './WorkoutModal';
 
 interface PublishModalProps {
   isOpen: boolean;

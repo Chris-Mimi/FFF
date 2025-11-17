@@ -1,6 +1,6 @@
 'use client';
 
-import { WODFormData } from './WODModal';
+import { WODFormData } from './WorkoutModal';
 import { X } from 'lucide-react';
 import { useEffect } from 'react';
 

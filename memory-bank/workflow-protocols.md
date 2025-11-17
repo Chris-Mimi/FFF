@@ -126,7 +126,7 @@ Proceed with [approach]?
 | "Workout card" | "WOD card" |
 
 **Component Names:**
-- `WODModal.tsx` = Edit Workout side panel (legacy name, keep as-is)
+- `WorkoutModal.tsx` = Edit Workout side panel
 - `SessionManagementModal.tsx` = Manage Session popup
 
 ### UI Components (Standard Terms)
@@ -233,9 +233,9 @@ Fix [exact file and line numbers]:
 ```bash
 git status              # See what changed
 git diff app/coach/page.tsx
-git diff components/WODModal.tsx
+git diff components/WorkoutModal.tsx
 # Show summaries, get confirmation
-git add app/coach/page.tsx components/WODModal.tsx
+git add app/coach/page.tsx components/WorkoutModal.tsx
 git commit -m "fix(coach): proper message"
 git push                # Only if requested
 ```

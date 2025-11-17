@@ -1,6 +1,6 @@
 'use client';
 
-import { WODFormData } from '@/components/coach/WODModal';
+import { WODFormData } from '@/components/coach/WorkoutModal';
 import { getWeekNumber } from '@/utils/date-utils';
 import { Calendar, CalendarDays, Plus } from 'lucide-react';
 
