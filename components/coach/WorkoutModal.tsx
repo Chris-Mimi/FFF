@@ -471,6 +471,7 @@ function WODSectionComponent({
   onToggleExpand,
   onUpdate,
   onDelete,
+  onSetActive,
   onDragStart,
   onDragOver,
   onDrop,
@@ -485,6 +486,7 @@ function WODSectionComponent({
   onToggleExpand: () => void;
   onUpdate: (updates: Partial<WODSection>) => void;
   onDelete: () => void;
+  onSetActive: () => void;
   onDragStart: (e: React.DragEvent, index: number) => void;
   onDragOver: (e: React.DragEvent, index: number) => void;
   onDrop: (e: React.DragEvent, index: number) => void;
@@ -506,6 +508,7 @@ function WODSectionComponent({
   return (
     <div
       className='border border-gray-300 rounded-lg bg-white overflow-hidden'
+      onClick={onSetActive}
       onDragOver={e => onDragOver(e, sectionIndex)}
       onDrop={e => onDrop(e, sectionIndex)}
     >
@@ -1788,6 +1791,7 @@ export default function WorkoutModal({
                     onToggleExpand={() => toggleSectionExpanded(section.id, index)}
                     onUpdate={updates => updateSection(section.id, updates)}
                     onDelete={() => deleteSection(section.id)}
+                    onSetActive={() => setActiveSection(index)}
                     onDragStart={handleDragStart}
                     onDragOver={handleDragOver}
                     onDrop={handleDrop}
@@ -2094,6 +2098,7 @@ export default function WorkoutModal({
                       onToggleExpand={() => toggleSectionExpanded(section.id, index)}
                       onUpdate={updates => updateSection(section.id, updates)}
                       onDelete={() => deleteSection(section.id)}
+                      onSetActive={() => setActiveSection(index)}
                       onDragStart={handleDragStart}
                       onDragOver={handleDragOver}
                       onDrop={handleDrop}
