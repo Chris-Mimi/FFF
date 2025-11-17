@@ -688,6 +688,7 @@ export default function WorkoutModal({
   // State for applying workout to other sessions
   const [otherSessions, setOtherSessions] = useState<Array<{id: string; time: string; workout_id: string | null}>>([]);
   const [selectedSessionIds, setSelectedSessionIds] = useState<Set<string>>(new Set());
+  const [applySessionsOpen, setApplySessionsOpen] = useState(false);
 
   // State for new session time when creating from scratch
   const [newSessionTime, setNewSessionTime] = useState('09:00');
@@ -1683,67 +1684,85 @@ export default function WorkoutModal({
               </select>
             </div>
 
-            {/* Max Capacity */}
+            {/* Max Capacity & Apply to Sessions */}
             <div>
-              <label className='block text-sm font-semibold mb-2 text-gray-900'>
-                Max Capacity <span className='text-red-500'>*</span>
-              </label>
-              <input
-                type='number'
-                value={formData.maxCapacity}
-                onChange={e => handleChange('maxCapacity', parseInt(e.target.value) || 0)}
-                min='1'
-                max='30'
-                className={`w-32 px-3 py-1.5 text-sm border rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 ${
-                  errors.maxCapacity ? 'border-red-500' : 'border-gray-300'
-                }`}
-              />
-              {errors.maxCapacity && (
-                <p className='text-red-500 text-sm mt-1'>{errors.maxCapacity}</p>
-              )}
-              <p className='text-xs text-gray-500 mt-1'>Session times are managed via schedule templates</p>
-            </div>
-
-            {/* Apply to Other Sessions */}
-            {!editingWOD && otherSessions.length > 0 && (
-              <div className='bg-blue-50 border border-blue-200 rounded-lg p-4'>
-                <label className='block text-sm font-semibold mb-2 text-gray-900'>
-                  Apply to Existing Sessions (Optional)
-                </label>
-                <p className='text-xs text-gray-600 mb-3'>
-                  Select existing sessions to link this workout to, or leave unchecked to create a new session at the time shown in the header
-                </p>
-                <div className='space-y-2'>
-                  {otherSessions.map(session => (
-                    <label key={session.id} className='flex items-center gap-2 cursor-pointer'>
-                      <input
-                        type='checkbox'
-                        checked={selectedSessionIds.has(session.id)}
-                        onChange={(e) => {
-                          const newSelected = new Set(selectedSessionIds);
-                          if (e.target.checked) {
-                            newSelected.add(session.id);
-                          } else {
-                            newSelected.delete(session.id);
-                          }
-                          setSelectedSessionIds(newSelected);
-                        }}
-                        className='w-4 h-4 text-[#208479] focus:ring-[#208479] rounded'
-                      />
-                      <span className='text-sm text-gray-700'>
-                        {session.time}
-                        {session.workout_id && <span className='text-gray-500 ml-2'>(has workout)</span>}
-                      </span>
-                    </label>
-                  ))}
+              <div className='flex justify-between items-start gap-4'>
+                <div className='flex-1'>
+                  <label className='block text-sm font-semibold mb-2 text-gray-900'>
+                    Max Capacity <span className='text-red-500'>*</span>
+                  </label>
+                  <input
+                    type='number'
+                    value={formData.maxCapacity}
+                    onChange={e => handleChange('maxCapacity', parseInt(e.target.value) || 0)}
+                    min='1'
+                    max='30'
+                    className={`w-32 px-3 py-1.5 text-sm border rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 ${
+                      errors.maxCapacity ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                  />
+                  {errors.maxCapacity && (
+                    <p className='text-red-500 text-sm mt-1'>{errors.maxCapacity}</p>
+                  )}
+                  <p className='text-xs text-gray-500 mt-1'>Session times are managed via schedule templates</p>
                 </div>
-                {selectedSessionIds.size > 0 && (
-                  <p className='text-xs text-blue-600 mt-2'>
-                    Will apply to {selectedSessionIds.size} other session{selectedSessionIds.size > 1 ? 's' : ''}
-                  </p>
+
+                {/* Apply to Other Sessions Dropdown */}
+                {otherSessions.length > 0 && (
+                  <div className='relative'>
+                    <button
+                      type='button'
+                      onClick={() => setApplySessionsOpen(!applySessionsOpen)}
+                      className='mt-6 px-3 py-1.5 text-sm bg-white border-2 border-[#208479] text-[#208479] hover:bg-gray-50 rounded-lg flex items-center gap-2 transition'
+                      title='Apply this workout to other sessions'
+                    >
+                      <span>Apply to Sessions</span>
+                      {selectedSessionIds.size > 0 && (
+                        <span className='bg-[#208479] text-white text-xs px-1.5 py-0.5 rounded-full'>
+                          {selectedSessionIds.size}
+                        </span>
+                      )}
+                      <ChevronDown size={16} className={`transition-transform ${applySessionsOpen ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    {/* Dropdown Menu */}
+                    {applySessionsOpen && (
+                      <div className='absolute right-0 mt-2 w-64 bg-white border border-gray-300 rounded-lg shadow-lg z-50'>
+                        <div className='p-3'>
+                          <p className='text-xs text-gray-600 mb-3'>
+                            Select existing sessions to apply this workout to:
+                          </p>
+                          <div className='space-y-2 max-h-48 overflow-y-auto'>
+                            {otherSessions.map(session => (
+                              <label key={session.id} className='flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded'>
+                                <input
+                                  type='checkbox'
+                                  checked={selectedSessionIds.has(session.id)}
+                                  onChange={(e) => {
+                                    const newSelected = new Set(selectedSessionIds);
+                                    if (e.target.checked) {
+                                      newSelected.add(session.id);
+                                    } else {
+                                      newSelected.delete(session.id);
+                                    }
+                                    setSelectedSessionIds(newSelected);
+                                  }}
+                                  className='w-4 h-4 text-[#208479] focus:ring-[#208479] rounded'
+                                />
+                                <span className='text-sm text-gray-700'>
+                                  {session.time}
+                                  {session.workout_id && <span className='text-gray-500 ml-2'>(has workout)</span>}
+                                </span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
-            )}
+            </div>
 
             {/* Sections */}
             <div>
@@ -2031,25 +2050,84 @@ export default function WorkoutModal({
                 </select>
               </div>
 
-              {/* Max Capacity */}
+              {/* Max Capacity & Apply to Sessions */}
               <div>
-                <label className='block text-sm font-semibold mb-2 text-gray-900'>
-                  Max Capacity <span className='text-red-500'>*</span>
-                </label>
-                <input
-                  type='number'
-                  value={formData.maxCapacity}
-                  onChange={e => handleChange('maxCapacity', parseInt(e.target.value) || 0)}
-                  min='1'
-                  max='30'
-                  className={`w-32 px-3 py-1.5 text-sm border rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 ${
-                    errors.maxCapacity ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                />
-                {errors.maxCapacity && (
-                  <p className='text-red-500 text-sm mt-1'>{errors.maxCapacity}</p>
-                )}
-                <p className='text-xs text-gray-500 mt-1'>Session times are managed via schedule templates</p>
+                <div className='flex justify-between items-start gap-4'>
+                  <div className='flex-1'>
+                    <label className='block text-sm font-semibold mb-2 text-gray-900'>
+                      Max Capacity <span className='text-red-500'>*</span>
+                    </label>
+                    <input
+                      type='number'
+                      value={formData.maxCapacity}
+                      onChange={e => handleChange('maxCapacity', parseInt(e.target.value) || 0)}
+                      min='1'
+                      max='30'
+                      className={`w-32 px-3 py-1.5 text-sm border rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 ${
+                        errors.maxCapacity ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                    />
+                    {errors.maxCapacity && (
+                      <p className='text-red-500 text-sm mt-1'>{errors.maxCapacity}</p>
+                    )}
+                    <p className='text-xs text-gray-500 mt-1'>Session times are managed via schedule templates</p>
+                  </div>
+
+                  {/* Apply to Other Sessions Dropdown */}
+                  {otherSessions.length > 0 && (
+                    <div className='relative'>
+                      <button
+                        type='button'
+                        onClick={() => setApplySessionsOpen(!applySessionsOpen)}
+                        className='mt-6 px-3 py-1.5 text-sm bg-white border-2 border-[#208479] text-[#208479] hover:bg-gray-50 rounded-lg flex items-center gap-2 transition'
+                        title='Apply this workout to other sessions'
+                      >
+                        <span>Apply to Sessions</span>
+                        {selectedSessionIds.size > 0 && (
+                          <span className='bg-[#208479] text-white text-xs px-1.5 py-0.5 rounded-full'>
+                            {selectedSessionIds.size}
+                          </span>
+                        )}
+                        <ChevronDown size={16} className={`transition-transform ${applySessionsOpen ? 'rotate-180' : ''}`} />
+                      </button>
+
+                      {/* Dropdown Menu */}
+                      {applySessionsOpen && (
+                        <div className='absolute right-0 mt-2 w-64 bg-white border border-gray-300 rounded-lg shadow-lg z-50'>
+                          <div className='p-3'>
+                            <p className='text-xs text-gray-600 mb-3'>
+                              Select existing sessions to apply this workout to:
+                            </p>
+                            <div className='space-y-2 max-h-48 overflow-y-auto'>
+                              {otherSessions.map(session => (
+                                <label key={session.id} className='flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded'>
+                                  <input
+                                    type='checkbox'
+                                    checked={selectedSessionIds.has(session.id)}
+                                    onChange={(e) => {
+                                      const newSelected = new Set(selectedSessionIds);
+                                      if (e.target.checked) {
+                                        newSelected.add(session.id);
+                                      } else {
+                                        newSelected.delete(session.id);
+                                      }
+                                      setSelectedSessionIds(newSelected);
+                                    }}
+                                    className='w-4 h-4 text-[#208479] focus:ring-[#208479] rounded'
+                                  />
+                                  <span className='text-sm text-gray-700'>
+                                    {session.time}
+                                    {session.workout_id && <span className='text-gray-500 ml-2'>(has workout)</span>}
+                                  </span>
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Sections */}
