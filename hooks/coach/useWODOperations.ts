@@ -145,9 +145,16 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
       return;
     }
 
-    if (!confirm('Are you sure you want to delete this WOD?')) return;
+    if (!confirm('Are you sure you want to delete this workout? The session will return to empty state.')) return;
 
     try {
+      // First, set all sessions using this workout back to NULL
+      await supabase
+        .from('weekly_sessions')
+        .update({ workout_id: null })
+        .eq('workout_id', wodId);
+
+      // Then delete the workout
       const { error } = await supabase.from('wods').delete().eq('id', wodId);
 
       if (error) throw error;
@@ -157,6 +164,26 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
     } catch (error) {
       console.error('Error deleting WOD:', error);
       alert('Error deleting WOD. Please try again.');
+    }
+  };
+
+  const handleDeleteSession = async (sessionId: string) => {
+    if (!confirm('Delete this session entirely? This will cancel all member bookings for this time slot.')) return;
+
+    try {
+      // Delete the session (bookings will cascade delete if FK is set up that way)
+      const { error } = await supabase
+        .from('weekly_sessions')
+        .delete()
+        .eq('id', sessionId);
+
+      if (error) throw error;
+
+      await fetchWODs();
+      await fetchTracksAndCounts();
+    } catch (error) {
+      console.error('Error deleting session:', error);
+      alert('Error deleting session. Please try again.');
     }
   };
 
@@ -253,6 +280,7 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
   return {
     handleSaveWOD,
     handleDeleteWOD,
+    handleDeleteSession,
     handleCopyWOD,
   };
 };

@@ -31,6 +31,7 @@ interface CalendarGridProps {
   onDragHandleHover: (id: string | null) => void;
   onCopyWOD: (wod: WODFormData) => void;
   onDeleteWOD: (dateKey: string, wodId: string) => void;
+  onDeleteSession: (sessionId: string) => void;
   onOpenEditModal: (wod: WODFormData) => void;
   onPasteFromClipboard: (date: Date) => void;
   onCopyWODToDate: (wod: WODFormData, date: Date, sessionId: string) => void;
@@ -61,6 +62,7 @@ export default function CalendarGrid({
   onDragHandleHover,
   onCopyWOD,
   onDeleteWOD,
+  onDeleteSession,
   onOpenEditModal,
   onPasteFromClipboard,
   onCopyWODToDate,
@@ -211,6 +213,28 @@ export default function CalendarGrid({
                 isMonthlyView ? 'p-0.5' : 'p-1'
               }`}
               title='Delete WOD'
+            >
+              <Trash2 size={iconSize} />
+            </button>
+          </div>
+        )}
+
+        {/* Action Buttons - For empty sessions */}
+        {isEmptySession && wod.booking_info?.session_id && (
+          <div
+            className={`absolute flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity ${
+              isMonthlyView ? 'top-1 right-1' : 'top-2 right-2'
+            }`}
+          >
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDeleteSession(wod.booking_info!.session_id);
+              }}
+              className={`hover:text-red-600 transition text-gray-500 bg-white rounded shadow-sm ${
+                isMonthlyView ? 'p-0.5' : 'p-1'
+              }`}
+              title='Delete session and all bookings'
             >
               <Trash2 size={iconSize} />
             </button>

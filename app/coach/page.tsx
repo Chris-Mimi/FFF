@@ -79,7 +79,7 @@ export default function CoachDashboard() {
     excludedSectionTypes,
   });
 
-  const { handleSaveWOD, handleDeleteWOD, handleCopyWOD } = useWODOperations({
+  const { handleSaveWOD, handleDeleteWOD, handleDeleteSession, handleCopyWOD } = useWODOperations({
     fetchWODs,
     fetchTracksAndCounts,
   });
@@ -290,6 +290,7 @@ export default function CoachDashboard() {
                 onDragHandleHover={setDragHandleHovered}
                 onCopyWOD={handleCopyToClipboard}
                 onDeleteWOD={handleDeleteWOD}
+                onDeleteSession={handleDeleteSession}
                 onOpenEditModal={openEditModal}
                 onPasteFromClipboard={handlePasteWrapper}
                 onCopyWODToDate={handleCopyWOD}
