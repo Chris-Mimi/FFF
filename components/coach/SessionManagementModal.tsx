@@ -101,8 +101,7 @@ export default function SessionManagementModal({
           id,
           status,
           booked_at,
-          member_id,
-          members!inner (
+          members!bookings_member_id_fkey (
             id,
             name,
             email
