@@ -67,20 +67,42 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
           setAvatarUrl(data.avatar_url);
         }
       } else {
-        console.log('No profile data found, resetting to empty profile');
-        // Reset to empty profile for new users/family members
-        setProfile({
-          full_name: '',
-          email: '',
-          date_of_birth: '',
-          phone_number: '',
-          height_cm: '',
-          weight_kg: '',
-          emergency_contact_name: '',
-          emergency_contact_phone: '',
-          avatar_url: '',
-        });
-        setAvatarUrl(null);
+        console.log('No profile data found - checking members table for family member');
+        // No athlete_profiles - might be a family member, get name from members table
+        const { data: memberData } = await supabase
+          .from('members')
+          .select('name, email')
+          .eq('id', userId)
+          .single();
+
+        if (memberData) {
+          setProfile({
+            full_name: memberData.name || '',
+            email: memberData.email || '',
+            date_of_birth: '',
+            phone_number: '',
+            height_cm: '',
+            weight_kg: '',
+            emergency_contact_name: '',
+            emergency_contact_phone: '',
+            avatar_url: '',
+          });
+        } else {
+          console.log('No member data found either, resetting to empty profile');
+          // Reset to empty profile for new users/family members
+          setProfile({
+            full_name: '',
+            email: '',
+            date_of_birth: '',
+            phone_number: '',
+            height_cm: '',
+            weight_kg: '',
+            emergency_contact_name: '',
+            emergency_contact_phone: '',
+            avatar_url: '',
+          });
+          setAvatarUrl(null);
+        }
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -181,8 +203,16 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
 
       console.log('Formatted profile data:', profileData);
 
+      // Always update members.name for consistency
+      if (profile.full_name) {
+        await supabase
+          .from('members')
+          .update({ name: profile.full_name })
+          .eq('id', userId);
+      }
+
       if (existingProfile) {
-        // Update existing profile
+        // Update existing profile (for primary account holder)
         console.log('Updating existing profile with id:', existingProfile.id);
         const { data, error } = await supabase
           .from('athlete_profiles')
@@ -198,17 +228,9 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
         if (error) throw error;
         alert('Profile updated successfully!');
       } else {
-        // Insert new profile
-        console.log('Inserting new profile');
-        const { data, error } = await supabase
-          .from('athlete_profiles')
-          .insert(profileData)
-          .select();
-
-        console.log('Insert result:', { data, error });
-
-        if (error) throw error;
-        alert('Profile created successfully!');
+        // No existing profile - this is a family member without auth account
+        // Just update members table (already done above)
+        alert('Profile updated successfully!');
       }
     } catch (error) {
       console.error('Error saving profile:', error);
