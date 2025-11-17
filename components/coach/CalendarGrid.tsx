@@ -1,10 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import { WODFormData } from './WorkoutModal';
 import {
   Copy,
   GripVertical,
   Trash2,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { getCardState, getCardClasses } from '@/utils/card-utils';
 import { formatDate, getWeekNumber } from '@/utils/date-utils';
@@ -68,6 +71,8 @@ export default function CalendarGrid({
   onCopyWODToDate,
   onSessionManagementClick,
 }: CalendarGridProps) {
+  const [thursdayCollapsed, setThursdayCollapsed] = useState(true);
+
   /**
    * Renders a WOD card with all interactive elements
    */
@@ -376,6 +381,11 @@ export default function CalendarGrid({
   };
 
   if (viewMode === 'monthly') {
+    const daysToShow = thursdayCollapsed
+      ? ['Mon', 'Tue', 'Wed', 'Fri', 'Sat', 'Sun']
+      : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const gridCols = thursdayCollapsed ? 'grid-cols-6' : 'grid-cols-7';
+
     return (
       /* Month View with Week Numbers */
       <div className='w-full max-w-none px-4'>
@@ -384,15 +394,28 @@ export default function CalendarGrid({
           {/* Week number column header */}
           <div className='w-8'></div>
           {/* Day headers */}
-          <div className='flex-1 grid grid-cols-7 gap-2'>
-            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
+          <div className={`flex-1 grid ${gridCols} gap-2`}>
+            {daysToShow.map((day) => (
               <div
                 key={day}
-                className='text-center text-xs font-semibold text-white bg-[#208479] py-2 rounded'
+                onClick={() => day === 'Thu' && setThursdayCollapsed(!thursdayCollapsed)}
+                className={`text-center text-xs font-semibold text-white bg-[#208479] py-2 rounded ${
+                  day === 'Thu' ? 'cursor-pointer hover:bg-[#1a6b62] flex items-center justify-center gap-1' : ''
+                }`}
               >
                 {day}
               </div>
             ))}
+            {thursdayCollapsed && (
+              <div
+                onClick={() => setThursdayCollapsed(false)}
+                className='text-center text-xs font-semibold text-white bg-[#208479] py-2 rounded cursor-pointer hover:bg-[#1a6b62] flex items-center justify-center gap-1'
+                title='Show Thursday'
+              >
+                <ChevronRight size={14} />
+                <span>Thu</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -400,6 +423,9 @@ export default function CalendarGrid({
         {Array.from({ length: 6 }).map((_, weekIdx) => {
           const weekStart = weekIdx * 7;
           const weekDates = displayDates.slice(weekStart, weekStart + 7);
+          const filteredWeekDates = thursdayCollapsed
+            ? weekDates.filter((date) => date.getDay() !== 4) // Thursday is day 4
+            : weekDates;
           const weekNumber = getWeekNumber(weekDates[0]);
 
           return (
@@ -410,8 +436,8 @@ export default function CalendarGrid({
               </div>
 
               {/* Days in week */}
-              <div className='flex-1 grid grid-cols-7 gap-2'>
-                {weekDates.map((date) => renderDayCell(date, true))}
+              <div className={`flex-1 grid ${gridCols} gap-2`}>
+                {filteredWeekDates.map((date) => renderDayCell(date, true))}
               </div>
             </div>
           );
@@ -420,16 +446,30 @@ export default function CalendarGrid({
     );
   } else {
     // Weekly view - 2 weeks
+    const gridCols = thursdayCollapsed ? 'grid-cols-6' : 'grid-cols-7';
+    const firstWeekDates = displayDates.slice(0, 7);
+    const filteredFirstWeek = thursdayCollapsed
+      ? firstWeekDates.filter((date) => date.getDay() !== 4)
+      : firstWeekDates;
+
     return (
       <div className='px-4'>
         {/* First Week */}
         <div className='mb-6'>
           {/* Week Number Banner */}
-          <div className='bg-[#208479] text-white px-4 py-2 rounded-t-lg mb-4'>
+          <div className='bg-[#208479] text-white px-4 py-2 rounded-t-lg mb-4 flex items-center justify-between'>
             <div className='text-sm font-semibold'>Week {getWeekNumber(displayDates[0])}</div>
+            <button
+              onClick={() => setThursdayCollapsed(!thursdayCollapsed)}
+              className='text-xs px-2 py-1 bg-white/20 hover:bg-white/30 rounded flex items-center gap-1'
+              title={thursdayCollapsed ? 'Show Thursday' : 'Hide Thursday'}
+            >
+              {thursdayCollapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+              <span>Thu</span>
+            </button>
           </div>
 
-          <div className='grid grid-cols-7 gap-2'>{displayDates.slice(0, 7).map((date) => renderDayCell(date, false))}</div>
+          <div className={`grid ${gridCols} gap-2`}>{filteredFirstWeek.map((date) => renderDayCell(date, false))}</div>
         </div>
 
         {/* Second Week */}
@@ -448,12 +488,14 @@ export default function CalendarGrid({
             </div>
           </div>
 
-          <div className='grid grid-cols-7 gap-2'>
+          <div className={`grid ${gridCols} gap-2`}>
             {Array.from({ length: 7 }).map((_, dayOffset) => {
               const currentDate = new Date(displayDates[0]);
               currentDate.setDate(currentDate.getDate() + 7 + dayOffset);
-              return renderDayCell(currentDate, false);
-            })}
+              return currentDate;
+            })
+            .filter((date) => !thursdayCollapsed || date.getDay() !== 4)
+            .map((date) => renderDayCell(date, false))}
           </div>
         </div>
       </div>
