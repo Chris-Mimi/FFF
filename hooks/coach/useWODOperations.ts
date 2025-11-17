@@ -191,10 +191,10 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
     const dateKey = formatDate(targetDate);
 
     try {
-      // If classTimes is empty, fetch the session time(s) from the source workout
-      let timesToCreate = wod.classTimes && wod.classTimes.length > 0 ? wod.classTimes : [];
+      // ALWAYS fetch session times from the database (classTimes can be stale)
+      let timesToCreate: string[] = [];
 
-      if (timesToCreate.length === 0 && wod.id && !wod.id.startsWith('session-')) {
+      if (wod.id && !wod.id.startsWith('session-')) {
         // Fetch session times for this workout from the database
         const { data: sourceSessions, error: sessionsFetchError } = await supabase
           .from('weekly_sessions')
@@ -205,6 +205,11 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
         if (!sessionsFetchError && sourceSessions && sourceSessions.length > 0) {
           timesToCreate = sourceSessions.map(s => s.time);
         }
+      }
+
+      // Fallback to classTimes only if DB fetch returned nothing
+      if (timesToCreate.length === 0 && wod.classTimes && wod.classTimes.length > 0) {
+        timesToCreate = wod.classTimes;
       }
 
       const { data: newWorkout, error: workoutError } = await supabase
