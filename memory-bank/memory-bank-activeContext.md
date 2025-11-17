@@ -63,12 +63,23 @@ Athlete Tables (linked to members.id)
 ## 📍 Current Status (Last 2 Weeks)
 
 **Completed (2025-11-17 Session 10):**
+- **Exercise Library Multi-Section Workflow Enhancement:**
+  - ✅ Added ONE global "Library" button (next to "Add Section") replacing per-section buttons
+  - ✅ Click any section to set it as active target for exercise insertion
+  - ✅ Library stays open while switching between sections
+  - ✅ No need to close/reopen library when populating multiple sections
+  - ✅ Fixed bug: exercises now insert into clicked section, not always first section
+  - Implementation: Added `onSetActive` prop, onClick handler on section wrapper, simplified `openLibrary()` function
+  - UI: White Library button with teal border, cleaner section headers
+  - Commits: 8f3a08a (WODModal rename), 466c619 (global library), ae89508 (activeSection fix)
+  - Branch: coach-page-refactor (pushed)
+
 - **Component Naming Convention Fix:**
   - ✅ Renamed `WODModal` → `WorkoutModal` (15 code files updated)
   - ✅ Aligns with terminology: "WOD" = section type only, "Workout" = general term
   - ✅ Updated all imports, component names, and documentation
   - Files: WorkoutModal.tsx, CalendarNav.tsx, PublishModal.tsx, SearchPanel.tsx, CalendarGrid.tsx, NotesModal.tsx, QuickEditPanel.tsx, useWODOperations.ts, useQuickEdit.ts, useCoachData.ts, useDragDrop.ts, useNotesPanel.ts, card-utils.ts, movement-extraction.ts, app/coach/page.tsx
-  - Branch: coach-page-refactor
+  - Branch: coach-page-refactor (part of session)
 
 **Completed (2025-11-17 Session 9):**
 - **Coach Dashboard & Session Management Critical Fixes:**
@@ -218,6 +229,8 @@ Athlete Tables (linked to members.id)
 - macOS iCloud Keychain autofill popups (OS behavior, not app bug)
 
 **Lessons Learned:**
+- **2025-11-17 (Session 10):** State updates must cover all user interactions - Don't assume state only changes on toggle; clicking an already-active element should still update state
+- **2025-11-17 (Session 10):** User workflow testing reveals hidden bugs - Initial implementation worked for "expand then add" but failed for "already expanded, click again"
 - **2025-11-17:** Database unique constraints - Always check for existing records before INSERT when unique constraints exist (date + time)
 - **2025-11-17:** Supabase foreign key syntax - Use explicit names (`table!fkey_name`) not generic `table!inner` for clarity
 - **2025-11-17:** Field name consistency - Transform API responses to match expected field names (members → member) to prevent silent failures
