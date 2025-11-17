@@ -471,7 +471,6 @@ function WODSectionComponent({
   onToggleExpand,
   onUpdate,
   onDelete,
-  onOpenLibrary,
   onDragStart,
   onDragOver,
   onDrop,
@@ -486,7 +485,6 @@ function WODSectionComponent({
   onToggleExpand: () => void;
   onUpdate: (updates: Partial<WODSection>) => void;
   onDelete: () => void;
-  onOpenLibrary: () => void;
   onDragStart: (e: React.DragEvent, index: number) => void;
   onDragOver: (e: React.DragEvent, index: number) => void;
   onDrop: (e: React.DragEvent, index: number) => void;
@@ -574,15 +572,6 @@ function WODSectionComponent({
                 </select>
               </div>
             )}
-
-            <button
-              type='button'
-              onClick={onOpenLibrary}
-              className='text-xs text-[#208479] hover:text-[#1a6b62] flex items-center gap-1'
-            >
-              <Library size={14} />
-              Library
-            </button>
 
             <div className='ml-auto flex items-center gap-2'>
               <button
@@ -1043,16 +1032,24 @@ export default function WorkoutModal({
     }
   };
 
-  const toggleSectionExpanded = (sectionId: string) => {
+  const toggleSectionExpanded = (sectionId: string, sectionIndex?: number) => {
     setExpandedSections(prev => {
       const newSet = new Set(prev);
       if (newSet.has(sectionId)) {
         newSet.delete(sectionId);
         // Don't clear lastExpandedSectionId when collapsing - keep it as reference for adding new sections
+        // If collapsing and this was the active section, clear activeSection
+        if (sectionIndex !== undefined && activeSection === sectionIndex) {
+          setActiveSection(null);
+        }
       } else {
         newSet.add(sectionId);
         // Track this as the last expanded section
         setLastExpandedSectionId(sectionId);
+        // Set this as the active section for library insertions
+        if (sectionIndex !== undefined) {
+          setActiveSection(sectionIndex);
+        }
       }
       return newSet;
     });
@@ -1151,19 +1148,26 @@ export default function WorkoutModal({
     setDraggedIndex(null);
   };
 
-  const openLibraryForSection = (sectionIndex: number) => {
-    const section = formData.sections[sectionIndex];
-    if (!section) return;
+  const openLibrary = () => {
+    // Only open library if there's at least one section
+    if (formData.sections.length === 0) {
+      alert('Please add a section first');
+      return;
+    }
 
-    // Expand the section so textarea exists in DOM for exercise insertion
-    setExpandedSections(prev => new Set(prev).add(section.id));
-    setActiveSection(sectionIndex);
+    // If no section is currently active/expanded, use the first section
+    if (activeSection === null) {
+      const firstSection = formData.sections[0];
+      setExpandedSections(prev => new Set(prev).add(firstSection.id));
+      setActiveSection(0);
+    }
+
     setLibraryOpen(true);
   };
 
   const closeLibrary = () => {
     setLibraryOpen(false);
-    setActiveSection(null);
+    // Don't clear activeSection on close - keep it for next library open
     // Force library to remount on next open by changing key
     setLibraryKey(prev => prev + 1);
   };
@@ -1750,14 +1754,25 @@ export default function WorkoutModal({
                     <span className='font-semibold text-[#208479]'>{totalDuration} mins</span>
                   </p>
                 </div>
-                <button
-                  type='button'
-                  onClick={addSection}
-                  className='px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white text-sm font-medium rounded-lg flex items-center gap-2 transition'
-                >
-                  <Plus size={16} />
-                  Add Section
-                </button>
+                <div className='flex items-center gap-2'>
+                  <button
+                    type='button'
+                    onClick={openLibrary}
+                    className='px-4 py-2 bg-white hover:bg-gray-50 border-2 border-[#208479] text-[#208479] text-sm font-medium rounded-lg flex items-center gap-2 transition'
+                    title='Open Exercise Library'
+                  >
+                    <Library size={16} />
+                    Library
+                  </button>
+                  <button
+                    type='button'
+                    onClick={addSection}
+                    className='px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white text-sm font-medium rounded-lg flex items-center gap-2 transition'
+                  >
+                    <Plus size={16} />
+                    Add Section
+                  </button>
+                </div>
               </div>
 
               {errors.sections && <p className='text-red-500 text-sm mb-2'>{errors.sections}</p>}
@@ -1770,10 +1785,9 @@ export default function WorkoutModal({
                     sectionIndex={index}
                     elapsedMinutes={getElapsedMinutes(index)}
                     isExpanded={expandedSections.has(section.id)}
-                    onToggleExpand={() => toggleSectionExpanded(section.id)}
+                    onToggleExpand={() => toggleSectionExpanded(section.id, index)}
                     onUpdate={updates => updateSection(section.id, updates)}
                     onDelete={() => deleteSection(section.id)}
-                    onOpenLibrary={() => openLibraryForSection(index)}
                     onDragStart={handleDragStart}
                     onDragOver={handleDragOver}
                     onDrop={handleDrop}
@@ -2046,14 +2060,25 @@ export default function WorkoutModal({
                       <span className='font-semibold text-[#208479]'>{totalDuration} mins</span>
                     </p>
                   </div>
-                  <button
-                    type='button'
-                    onClick={addSection}
-                    className='px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white text-sm font-medium rounded-lg flex items-center gap-2 transition'
-                  >
-                    <Plus size={16} />
-                    Add Section
-                  </button>
+                  <div className='flex items-center gap-2'>
+                    <button
+                      type='button'
+                      onClick={openLibrary}
+                      className='px-4 py-2 bg-white hover:bg-gray-50 border-2 border-[#208479] text-[#208479] text-sm font-medium rounded-lg flex items-center gap-2 transition'
+                      title='Open Exercise Library'
+                    >
+                      <Library size={16} />
+                      Library
+                    </button>
+                    <button
+                      type='button'
+                      onClick={addSection}
+                      className='px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white text-sm font-medium rounded-lg flex items-center gap-2 transition'
+                    >
+                      <Plus size={16} />
+                      Add Section
+                    </button>
+                  </div>
                 </div>
 
                 {errors.sections && <p className='text-red-500 text-sm mb-2'>{errors.sections}</p>}
@@ -2066,10 +2091,9 @@ export default function WorkoutModal({
                       sectionIndex={index}
                       elapsedMinutes={getElapsedMinutes(index)}
                       isExpanded={expandedSections.has(section.id)}
-                      onToggleExpand={() => toggleSectionExpanded(section.id)}
+                      onToggleExpand={() => toggleSectionExpanded(section.id, index)}
                       onUpdate={updates => updateSection(section.id, updates)}
                       onDelete={() => deleteSection(section.id)}
-                      onOpenLibrary={() => openLibraryForSection(index)}
                       onDragStart={handleDragStart}
                       onDragOver={handleDragOver}
                       onDrop={handleDrop}
