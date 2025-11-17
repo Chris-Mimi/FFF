@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 5.0
-**Updated:** 2025-11-15 (Session 8 - completed)
+**Version:** 5.1
+**Updated:** 2025-11-17 (Session 9 - completed)
 
 ---
 
@@ -62,19 +62,24 @@ Athlete Tables (linked to members.id)
 
 ## 📍 Current Status (Last 2 Weeks)
 
+**Completed (2025-11-17 Session 9):**
+- **Coach Dashboard & Session Management Critical Fixes:**
+  - ✅ Fixed multi-session creation: Check for existing sessions before INSERT (was violating unique constraint)
+  - ✅ Session Management modal now shows all family member bookings (was showing "Unknown Member")
+  - ✅ Fixed foreign key relationship: `members!bookings_member_id_fkey` for proper join
+  - ✅ Hover popover shows all workout sections (removed filter excluding Warm-up, Cool Down, etc.)
+  - ✅ Monthly view Copy/Delete buttons visible (added white background/shadow)
+  - ✅ Family member profile updates work via members table (bypasses athlete_profiles RLS)
+  - Commits: 1fc9380 → f0716fd (9 commits total)
+  - Branch: coach-page-refactor
+  - See `project-history/2025-11-17-coach-session-fixes.md`
+
 **Completed (2025-11-15 Session 8):**
 - **Fixed Card Clickability Bug from Refactor:**
-  - ✅ Fixed z-index bug: Changed `z-[60]` for both states → conditional `z-50` (hovered) / `z-10` (default)
-  - ✅ Made entire card clickable (not just title) with smart event delegation
-  - ✅ Preserved button/drag handle functionality
-  - Cards now work correctly when Workout Library open
-  - Commits: 3fc498a (card click fix), 45abd18 (section drop detection), f73ba43/ae7d6f8/d3dd67d (section auto-add attempts), 06c0442 (cleanup)
-  - Branch: coach-page-refactor (7 commits)
-- **Section Drag Investigation (Deprioritized):**
-  - Attempted: Auto-add section when dragging from library to closed workout cards
-  - Issue: React StrictMode double-run clearing section data
-  - Resolution: Deprioritized - not worth time investment (works fine when modal open, only 1 extra click)
-  - Status: Partial implementation remains but not fully functional
+  - ✅ Fixed z-index bug, made entire card clickable with smart event delegation
+  - ✅ Cards now work correctly when Workout Library open
+  - ✅ Section drag to closed cards deprioritized (partial implementation, works when modal open)
+  - Commits: 3fc498a → 06c0442 (7 commits), Branch: coach-page-refactor
 
 **Completed (2025-11-15 Session 7):**
 - **Chart Visibility & Analysis Page Fixes:**
@@ -204,12 +209,14 @@ Athlete Tables (linked to members.id)
 - macOS iCloud Keychain autofill popups (OS behavior, not app bug)
 
 **Lessons Learned:**
-- **2025-11-15 Session 8:** Component extraction requires careful integration - Task agents may create different hook signatures than expected, requiring manual integration and TypeScript fixes
-- **2025-11-15 Session 8:** useEffect dependency arrays are critical - Including function references (like fetchWODs) causes infinite re-renders. Use eslint-disable comment and remove from deps when functions are stable
-- **2025-11-15 Session 8:** Callback pattern beats prop drilling - Pass callbacks as parameters (e.g., handleDrop(e, date, onCopy)) instead of requiring props in hook definitions
-- **2025-11-15 Session 8:** Table name consistency when extracting - Verify database table names when moving code between files (bookings vs session_bookings)
-- **2025-11-15 Session 8:** Z-index not always the solution - Card clickability issues may be deeper than stacking order (DOM structure, width calculations, pointer-events)
-- **2025-11-15 Session 8:** Branch comparison for debugging - Switching between working/broken branches reveals which bugs are new vs pre-existing
+- **2025-11-17:** Database unique constraints - Always check for existing records before INSERT when unique constraints exist (date + time)
+- **2025-11-17:** Supabase foreign key syntax - Use explicit names (`table!fkey_name`) not generic `table!inner` for clarity
+- **2025-11-17:** Field name consistency - Transform API responses to match expected field names (members → member) to prevent silent failures
+- **2025-11-17:** RLS scoping strategy - Family members without auth accounts need different data paths (members table) than primary users (athlete_profiles)
+- **2025-11-17:** Filter logic safety - Overly aggressive filters can hide valid data; start permissive then restrict as needed
+- **2025-11-15 Session 8:** Component extraction requires careful integration - Task agents may create different hook signatures than expected
+- **2025-11-15 Session 8:** useEffect dependency arrays critical - Including function references causes infinite re-renders
+- **2025-11-15 Session 8:** Callback pattern beats prop drilling - Pass callbacks as parameters instead of requiring props in hook definitions
 - **2025-11-15 Session 8:** Safety branches for major refactors - Create feature branch before large refactors to preserve working state
 - **2025-11-15 Session 7:** NEVER push before user testing - User explicitly stated multiple times to wait for testing before pushing. Always commit locally, let user test, then push only after confirmation.
 - **2025-11-15 Session 7:** Query consistency matters - Analysis page and Calendar must query same table (weekly_sessions) to show matching counts. Direct wods table query shows different count than calendar.
@@ -231,9 +238,9 @@ Athlete Tables (linked to members.id)
 ## 📋 Next Immediate Steps
 
 1. **Branch Management:**
-   - ✅ coach-page-refactor: Card click bug fixed (Session 8)
+   - ✅ coach-page-refactor: Session management fixes complete (Session 9)
    - **Decision needed:** Merge coach-page-refactor → augment-refactor, or continue on augment-refactor?
-   - Note: Section drag to closed cards partially implemented but deprioritized (works when modal open)
+   - Note: All critical bugs fixed, branch stable and tested
 
 2. **Immediate Priorities:**
    - **Add workout title management to Schedule Tab:**
@@ -280,4 +287,4 @@ Athlete Tables (linked to members.id)
 
 ---
 
-**File Size:** ~3.4KB
+**File Size:** ~3.5KB
