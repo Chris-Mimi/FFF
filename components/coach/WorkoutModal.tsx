@@ -169,20 +169,35 @@ export default function WorkoutModal({
                   {(hook.editingTime || (!editingWOD && !hook.sessionTime)) ? (
                     <div className="flex items-center gap-2">
                       <select
-                        value={hook.sessionTime ? hook.tempTime : hook.newSessionTime}
-                        onChange={(e) => hook.sessionTime ? hook.setTempTime(e.target.value) : hook.setNewSessionTime(e.target.value)}
+                        value={(hook.sessionTime ? hook.tempTime : hook.newSessionTime).substring(0, 2)}
+                        onChange={(e) => {
+                          const currentTime = hook.sessionTime ? hook.tempTime : hook.newSessionTime;
+                          const newTime = `${e.target.value}:${currentTime.substring(3, 5)}`;
+                          hook.sessionTime ? hook.setTempTime(newTime) : hook.setNewSessionTime(newTime);
+                        }}
                         className="px-2 py-1 border rounded bg-white text-gray-900 text-sm"
                       >
-                        {Array.from({ length: 24 }, (_, hour) =>
-                          [0, 15, 30, 45].map(minute => {
-                            const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-                            return (
-                              <option key={timeString} value={timeString}>
-                                {timeString}
-                              </option>
-                            );
-                          })
-                        ).flat()}
+                        {Array.from({ length: 24 }, (_, hour) => (
+                          <option key={hour} value={hour.toString().padStart(2, '0')}>
+                            {hour.toString().padStart(2, '0')}
+                          </option>
+                        ))}
+                      </select>
+                      <span className="text-white">:</span>
+                      <select
+                        value={(hook.sessionTime ? hook.tempTime : hook.newSessionTime).substring(3, 5)}
+                        onChange={(e) => {
+                          const currentTime = hook.sessionTime ? hook.tempTime : hook.newSessionTime;
+                          const newTime = `${currentTime.substring(0, 2)}:${e.target.value}`;
+                          hook.sessionTime ? hook.setTempTime(newTime) : hook.setNewSessionTime(newTime);
+                        }}
+                        className="px-2 py-1 border rounded bg-white text-gray-900 text-sm"
+                      >
+                        {['00', '15', '30', '45'].map(minute => (
+                          <option key={minute} value={minute}>
+                            {minute}
+                          </option>
+                        ))}
                       </select>
                       {hook.sessionTime && (
                         <>
@@ -206,10 +221,10 @@ export default function WorkoutModal({
                     </div>
                   ) : (
                     <>
-                      <span className="font-medium">{hook.sessionTime}</span>
+                      <span className="font-medium">{hook.sessionTime?.substring(0, 5)}</span>
                       <button
                         onClick={() => {
-                          hook.setTempTime((hook.sessionTime || '12:00').padStart(5, '0'));
+                          hook.setTempTime((hook.sessionTime || '12:00').substring(0, 5));
                           hook.setEditingTime(true);
                         }}
                         className="p-1 hover:bg-[#1a6b62] rounded transition"
@@ -543,20 +558,35 @@ export default function WorkoutModal({
                   {(hook.editingTime || (!editingWOD && !hook.sessionTime)) ? (
                     <div className="flex items-center gap-2">
                       <select
-                        value={hook.sessionTime ? hook.tempTime : hook.newSessionTime}
-                        onChange={(e) => hook.sessionTime ? hook.setTempTime(e.target.value) : hook.setNewSessionTime(e.target.value)}
+                        value={(hook.sessionTime ? hook.tempTime : hook.newSessionTime).substring(0, 2)}
+                        onChange={(e) => {
+                          const currentTime = hook.sessionTime ? hook.tempTime : hook.newSessionTime;
+                          const newTime = `${e.target.value}:${currentTime.substring(3, 5)}`;
+                          hook.sessionTime ? hook.setTempTime(newTime) : hook.setNewSessionTime(newTime);
+                        }}
                         className="px-2 py-1 border rounded bg-white text-gray-900 text-sm"
                       >
-                        {Array.from({ length: 24 }, (_, hour) =>
-                          [0, 15, 30, 45].map(minute => {
-                            const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-                            return (
-                              <option key={timeString} value={timeString}>
-                                {timeString}
-                              </option>
-                            );
-                          })
-                        ).flat()}
+                        {Array.from({ length: 24 }, (_, hour) => (
+                          <option key={hour} value={hour.toString().padStart(2, '0')}>
+                            {hour.toString().padStart(2, '0')}
+                          </option>
+                        ))}
+                      </select>
+                      <span className="text-white">:</span>
+                      <select
+                        value={(hook.sessionTime ? hook.tempTime : hook.newSessionTime).substring(3, 5)}
+                        onChange={(e) => {
+                          const currentTime = hook.sessionTime ? hook.tempTime : hook.newSessionTime;
+                          const newTime = `${currentTime.substring(0, 2)}:${e.target.value}`;
+                          hook.sessionTime ? hook.setTempTime(newTime) : hook.setNewSessionTime(newTime);
+                        }}
+                        className="px-2 py-1 border rounded bg-white text-gray-900 text-sm"
+                      >
+                        {['00', '15', '30', '45'].map(minute => (
+                          <option key={minute} value={minute}>
+                            {minute}
+                          </option>
+                        ))}
                       </select>
                       {hook.sessionTime && (
                         <>
@@ -580,10 +610,10 @@ export default function WorkoutModal({
                     </div>
                   ) : (
                     <>
-                      <span className="font-medium">{hook.sessionTime}</span>
+                      <span className="font-medium">{hook.sessionTime?.substring(0, 5)}</span>
                       <button
                         onClick={() => {
-                          hook.setTempTime((hook.sessionTime || '12:00').padStart(5, '0'));
+                          hook.setTempTime((hook.sessionTime || '12:00').substring(0, 5));
                           hook.setEditingTime(true);
                         }}
                         className="p-1 hover:bg-[#1a6b62] rounded transition"
