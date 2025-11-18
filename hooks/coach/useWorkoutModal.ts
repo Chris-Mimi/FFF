@@ -101,6 +101,11 @@ export interface UseWorkoutModalResult {
   applySessionsOpen: boolean;
   newSessionTime: string;
 
+  // Setters for time editing
+  setEditingTime: React.Dispatch<React.SetStateAction<boolean>>;
+  setTempTime: React.Dispatch<React.SetStateAction<string>>;
+  setNewSessionTime: React.Dispatch<React.SetStateAction<string>>;
+
   // Functions
   handleChange: (field: keyof WODFormData, value: any) => void;
   toggleClassTime: (time: string) => void;
@@ -912,6 +917,11 @@ export function useWorkoutModal(
     selectedSessionIds,
     applySessionsOpen,
     newSessionTime,
+
+    // Setters for time editing
+    setEditingTime,
+    setTempTime,
+    setNewSessionTime,
 
     // Functions
     handleChange,

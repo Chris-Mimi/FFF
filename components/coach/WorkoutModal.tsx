@@ -170,7 +170,7 @@ export default function WorkoutModal({
                     <div className="flex items-center gap-2">
                       <select
                         value={hook.sessionTime ? hook.tempTime : hook.newSessionTime}
-                        onChange={(e) => hook.sessionTime ? hook.tempTime = e.target.value : hook.newSessionTime = e.target.value}
+                        onChange={(e) => hook.sessionTime ? hook.setTempTime(e.target.value) : hook.setNewSessionTime(e.target.value)}
                         className="px-2 py-1 border rounded bg-white text-gray-900 text-sm"
                       >
                         {Array.from({ length: 24 }, (_, hour) =>
@@ -194,8 +194,8 @@ export default function WorkoutModal({
                           </button>
                           <button
                             onClick={() => {
-                              hook.editingTime = false;
-                              hook.tempTime = hook.tempTime.padStart(5, '0');
+                              hook.setEditingTime(false);
+                              hook.setTempTime(hook.tempTime.padStart(5, '0'));
                             }}
                             className="px-3 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 text-sm"
                           >
@@ -209,8 +209,8 @@ export default function WorkoutModal({
                       <span className="font-medium">{hook.sessionTime}</span>
                       <button
                         onClick={() => {
-                          hook.tempTime = (hook.sessionTime || '12:00').padStart(5, '0');
-                          hook.editingTime = true;
+                          hook.setTempTime((hook.sessionTime || '12:00').padStart(5, '0'));
+                          hook.setEditingTime(true);
                         }}
                         className="p-1 hover:bg-[#1a6b62] rounded transition"
                         title="Edit time"
@@ -544,7 +544,7 @@ export default function WorkoutModal({
                     <div className="flex items-center gap-2">
                       <select
                         value={hook.sessionTime ? hook.tempTime : hook.newSessionTime}
-                        onChange={(e) => hook.sessionTime ? hook.tempTime = e.target.value : hook.newSessionTime = e.target.value}
+                        onChange={(e) => hook.sessionTime ? hook.setTempTime(e.target.value) : hook.setNewSessionTime(e.target.value)}
                         className="px-2 py-1 border rounded bg-white text-gray-900 text-sm"
                       >
                         {Array.from({ length: 24 }, (_, hour) =>
@@ -568,8 +568,8 @@ export default function WorkoutModal({
                           </button>
                           <button
                             onClick={() => {
-                              hook.editingTime = false;
-                              hook.tempTime = hook.tempTime.padStart(5, '0');
+                              hook.setEditingTime(false);
+                              hook.setTempTime(hook.tempTime.padStart(5, '0'));
                             }}
                             className="px-3 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 text-sm"
                           >
@@ -583,8 +583,8 @@ export default function WorkoutModal({
                       <span className="font-medium">{hook.sessionTime}</span>
                       <button
                         onClick={() => {
-                          hook.tempTime = (hook.sessionTime || '12:00').padStart(5, '0');
-                          hook.editingTime = true;
+                          hook.setTempTime((hook.sessionTime || '12:00').padStart(5, '0'));
+                          hook.setEditingTime(true);
                         }}
                         className="p-1 hover:bg-[#1a6b62] rounded transition"
                         title="Edit time"
