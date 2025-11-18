@@ -18,7 +18,10 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
     const dateKey = formatDate(modalDate);
 
     try {
-      if (editingWOD && editingWOD.id) {
+      // Check if we're editing a real workout (not an empty session with 'session-{uuid}' id)
+      const isEditingRealWorkout = editingWOD && editingWOD.id && !editingWOD.id.startsWith('session-');
+
+      if (isEditingRealWorkout) {
         const hasContent = wodData.sections && wodData.sections.length > 0;
 
         const { error } = await supabase
@@ -52,13 +55,38 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
         }
 
         if (wodData.selectedSessionIds && wodData.selectedSessionIds.length > 0) {
-          await supabase
-            .from('weekly_sessions')
-            .update({
-              workout_id: editingWOD.id,
-              capacity: wodData.maxCapacity,
-            })
-            .in('id', wodData.selectedSessionIds);
+          // Create independent workout copies for each selected session
+          for (const sessionId of wodData.selectedSessionIds) {
+            // Create a duplicate workout
+            const { data: duplicateWOD, error: duplicateError } = await supabase
+              .from('wods')
+              .insert([
+                {
+                  title: wodData.title,
+                  track_id: wodData.track_id || null,
+                  workout_type_id: wodData.workout_type_id || null,
+                  class_times: wodData.classTimes,
+                  max_capacity: wodData.maxCapacity,
+                  date: dateKey,
+                  sections: wodData.sections,
+                  coach_notes: wodData.coach_notes || null,
+                  workout_publish_status: hasContent ? (editingWOD.workout_publish_status || 'draft') : null,
+                },
+              ])
+              .select()
+              .single();
+
+            if (duplicateError) throw duplicateError;
+
+            // Link this session to its own workout copy
+            await supabase
+              .from('weekly_sessions')
+              .update({
+                workout_id: duplicateWOD.id,
+                capacity: wodData.maxCapacity,
+              })
+              .eq('id', sessionId);
+          }
         }
       } else {
         const hasContent = wodData.sections && wodData.sections.length > 0;
@@ -120,13 +148,48 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
             }
           }
         } else if (wodData.selectedSessionIds && wodData.selectedSessionIds.length > 0 && newWOD) {
+          // Create independent workout copies for each selected session
+          for (const sessionId of wodData.selectedSessionIds) {
+            // Create a duplicate workout
+            const { data: duplicateWOD, error: duplicateError } = await supabase
+              .from('wods')
+              .insert([
+                {
+                  title: wodData.title,
+                  track_id: wodData.track_id || null,
+                  workout_type_id: wodData.workout_type_id || null,
+                  class_times: wodData.classTimes,
+                  max_capacity: wodData.maxCapacity,
+                  date: dateKey,
+                  sections: wodData.sections,
+                  coach_notes: wodData.coach_notes || null,
+                  workout_publish_status: hasContent ? 'draft' : null,
+                },
+              ])
+              .select()
+              .single();
+
+            if (duplicateError) throw duplicateError;
+
+            // Link this session to its own workout copy
+            await supabase
+              .from('weekly_sessions')
+              .update({
+                workout_id: duplicateWOD.id,
+                capacity: wodData.maxCapacity,
+              })
+              .eq('id', sessionId);
+          }
+        } else if (editingWOD?.booking_info?.session_id && newWOD) {
+          // Editing an empty session - link the new workout to this session
           await supabase
             .from('weekly_sessions')
             .update({
               workout_id: newWOD.id,
               capacity: wodData.maxCapacity,
+              status: 'published'
             })
-            .in('id', wodData.selectedSessionIds);
+            .eq('id', editingWOD.booking_info.session_id);
         }
       }
 
