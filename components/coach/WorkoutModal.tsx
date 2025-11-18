@@ -3,7 +3,7 @@
 import ExerciseLibraryPopup from '@/components/coach/ExerciseLibraryPopup';
 import PublishModal from '@/components/coach/PublishModal';
 import WODSectionComponent from '@/components/coach/WODSectionComponent';
-import { useWorkoutModal } from '@/hooks/coach/useWorkoutModal';
+import { useWorkoutModal, WODFormData } from '@/hooks/coach/useWorkoutModal';
 import {
   Check,
   ChevronDown,
@@ -19,9 +19,9 @@ import {
 interface WorkoutModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (wod: any) => void;
+  onSave: (wod: WODFormData) => void;
   date: Date;
-  editingWOD?: any;
+  editingWOD?: WODFormData | null;
   isPanel?: boolean;
   panelOffset?: number;
   initialNotesOpen?: boolean;
@@ -36,6 +36,7 @@ export default function WorkoutModal({
   date,
   editingWOD,
   isPanel = false,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   initialNotesOpen = false,
   onNotesToggle,
   onTimeUpdated,
@@ -479,7 +480,7 @@ export default function WorkoutModal({
 
                 {hook.formData.sections.length === 0 && (
                   <div className='text-center py-8 text-gray-500'>
-                    <p>No sections yet. Click "Add Section" to get started.</p>
+                    <p>No sections yet. Click &quot;Add Section&quot; to get started.</p>
                   </div>
                 )}
               </div>
@@ -842,7 +843,7 @@ export default function WorkoutModal({
 
                   {hook.formData.sections.length === 0 && (
                     <div className='text-center py-8 text-gray-500'>
-                      <p>No sections yet. Click "Add Section" to get started.</p>
+                      <p>No sections yet. Click &quot;Add Section&quot; to get started.</p>
                     </div>
                   )}
                 </div>
