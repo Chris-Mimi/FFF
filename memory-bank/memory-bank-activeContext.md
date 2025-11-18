@@ -99,6 +99,7 @@ Athlete Tables (linked to members.id)
   - ✅ Hover popover shows all workout sections (removed filter excluding Warm-up, Cool Down, etc.)
   - ✅ Monthly view Copy/Delete buttons visible (added white background/shadow)
   - ✅ Family member profile updates work via members table (bypasses athlete_profiles RLS)
+  - ✅ Added workout title CRUD UI to Schedule Tab (Create/Edit/Delete/Toggle active)
   - Commits: 1fc9380 → f0716fd (9 commits total)
   - Branch: coach-page-refactor
   - See `project-history/2025-11-17-coach-session-fixes.md`
@@ -278,12 +279,6 @@ Athlete Tables (linked to members.id)
    - Note: All critical bugs fixed, branch stable and tested
 
 2. **Immediate Priorities:**
-   - **Add workout title management to Schedule Tab:**
-     - Currently only managed in Supabase, need CRUD UI in Schedule Tab (natural context)
-     - Implementation: Add tab/section showing workout_titles with Create/Edit/Delete/Toggle active
-     - Reuse existing modal pattern from session templates (~100-150 lines)
-     - Estimated time: 20-30 minutes
-     - **Status:** Ready to implement (next session)
    - **Rethink "Apply to Other Sessions" section in Edit Workout Modal:**
      - Currently takes up significant vertical space
      - Consider collapsible button dropdown design
