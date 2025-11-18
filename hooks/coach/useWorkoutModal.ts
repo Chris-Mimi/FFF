@@ -597,7 +597,8 @@ export function useWorkoutModal(
           .eq('id', formData.id);
       }
 
-      setSessionTime(tempTime);
+      // Set sessionTime with seconds to match DB format
+      setSessionTime(timeWithSeconds);
       setEditingTime(false);
       // Trigger parent refresh to update card
       if (onTimeUpdated) {
