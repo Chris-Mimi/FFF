@@ -139,25 +139,79 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
     }
   };
 
-  const handleDeleteWOD = async (dateKey: string, wodId: string) => {
+  const handleDeleteWOD = async (dateKey: string, wodId: string, sessionId?: string) => {
     if (wodId.startsWith('session-')) {
       alert('Cannot delete empty sessions. Click to add workout content instead.');
       return;
     }
 
-    if (!confirm('Are you sure you want to delete this workout? The session will return to empty state.')) return;
-
     try {
-      // First, set all sessions using this workout back to NULL
-      await supabase
+      // First, count how many sessions use this workout
+      const { data: sessions, error: countError } = await supabase
         .from('weekly_sessions')
-        .update({ workout_id: null })
-        .eq('workout_id', wodId);
+        .select('id, date, time')
+        .eq('workout_id', wodId)
+        .order('date', { ascending: true })
+        .order('time', { ascending: true });
 
-      // Then delete the workout
-      const { error } = await supabase.from('wods').delete().eq('id', wodId);
+      if (countError) throw countError;
 
-      if (error) throw error;
+      const sessionCount = sessions?.length || 0;
+
+      if (sessionCount === 0) {
+        alert('No sessions found for this workout.');
+        return;
+      }
+
+      let deleteFromAll = false;
+
+      // If workout is applied to multiple sessions, ask user what to do
+      if (sessionCount > 1) {
+        const sessionList = sessions
+          ?.map(s => {
+            const date = new Date(s.date);
+            const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+            return `${dayName} ${s.date} at ${s.time}`;
+          })
+          .join('\n  • ');
+
+        const message = `This workout is used in ${sessionCount} sessions:\n  • ${sessionList}\n\nDo you want to:\n\n• Click OK to delete from ALL sessions\n• Click Cancel to delete from THIS session only`;
+
+        deleteFromAll = confirm(message);
+      } else {
+        // Only one session - simple confirmation
+        if (!confirm('Are you sure you want to delete this workout? The session will return to empty state.')) {
+          return;
+        }
+        deleteFromAll = true;
+      }
+
+      if (deleteFromAll) {
+        // Delete from all sessions
+        await supabase
+          .from('weekly_sessions')
+          .update({ workout_id: null })
+          .eq('workout_id', wodId);
+
+        // Then delete the workout
+        const { error } = await supabase.from('wods').delete().eq('id', wodId);
+        if (error) throw error;
+      } else {
+        // Delete from this session only
+        if (!sessionId) {
+          alert('Cannot identify which session to remove workout from.');
+          return;
+        }
+
+        const { error: updateError } = await supabase
+          .from('weekly_sessions')
+          .update({ workout_id: null })
+          .eq('id', sessionId);
+
+        if (updateError) throw updateError;
+
+        // Don't delete the workout - it's still used by other sessions
+      }
 
       await fetchWODs();
       await fetchTracksAndCounts();
