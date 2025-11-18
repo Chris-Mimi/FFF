@@ -33,7 +33,7 @@ interface CalendarGridProps {
   onWODHover: (id: string | null) => void;
   onDragHandleHover: (id: string | null) => void;
   onCopyWOD: (wod: WODFormData) => void;
-  onDeleteWOD: (dateKey: string, wodId: string, sessionId?: string) => void;
+  onDeleteWOD: (dateKey: string, wodId: string) => void;
   onDeleteSession: (sessionId: string) => void;
   onOpenEditModal: (wod: WODFormData) => void;
   onPasteFromClipboard: (date: Date) => void;
@@ -212,7 +212,7 @@ export default function CalendarGrid({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                onDeleteWOD(dateKey, wod.id!, wod.booking_info?.session_id);
+                onDeleteWOD(dateKey, wod.id!);
               }}
               className={`hover:text-red-600 transition text-gray-500 bg-white rounded shadow-sm ${
                 isMonthlyView ? 'p-0.5' : 'p-1'
