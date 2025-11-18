@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 5.2
-**Updated:** 2025-11-17 (Session 11 - completed)
+**Version:** 5.3
+**Updated:** 2025-11-18 (Session 12 - completed)
 
 ---
 
@@ -61,6 +61,19 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-11-18 Session 12):**
+- **Independent Workout Architecture & Delete Simplification:**
+  - ✅ Refactored Apply to Sessions: Creates independent workout copies (not shared references)
+  - ✅ Each session gets unique workout_id (prevents cascading edits)
+  - ✅ Fixed workout_logs: Can now log multiple sessions per day
+  - ✅ Fixed empty session editing: Links new workout to session_id
+  - ✅ Simplified delete: Removed smart prompt logic (no legacy data to handle)
+  - ✅ Delete reduces from 77 → 28 lines (64% reduction)
+  - Architecture: Shared workout_id → Independent copies per session
+  - Commits: be92e8f (smart delete), c4a4934 (docs), c5ff461 (independent copies), d7a9cd9 (simplify)
+  - Branch: coach-page-refactor (pushed)
+  - See `project-history/2025-11-18-session-12-independent-workouts.md`
 
 **Completed (2025-11-17 Session 11):**
 - **Workout Operations & Copy/Paste Critical Fixes:**
@@ -236,10 +249,13 @@ Athlete Tables (linked to members.id)
   - Tables: `benchmark_workouts`, `forge_benchmarks`, `barbell_lifts`
 
 **Known Issues:**
-- **Multiple sessions per day:** Cannot create second workout at different time on same day (unique constraint on date+time). Deferred from Session 9 - needs investigation.
 - macOS iCloud Keychain autofill popups (OS behavior, not app bug)
 
 **Lessons Learned:**
+- **2025-11-18 (Session 12):** Architecture decisions affect multiple systems - workout_logs constraint revealed by shared workout_id architecture; independent copies fixed it
+- **2025-11-18 (Session 12):** Pre-production simplicity advantage - No legacy data means simpler solutions (removed smart delete logic)
+- **2025-11-18 (Session 12):** Independent copies match user mental model - Copy/paste behavior users already understand; shared references confuse
+- **2025-11-18 (Session 12):** Empty session IDs need special handling - `session-{uuid}` vs real workout IDs require different code paths (startsWith check)
 - **2025-11-17 (Session 11):** Database is source of truth - Always fetch critical data from DB first, use object fields as fallback; stale in-memory fields cause silent bugs
 - **2025-11-17 (Session 11):** Check user intent not data existence - `selectedSessionIds.size === 0` checks if user selected, not if data exists
 - **2025-11-17 (Session 11):** Cascade deletes need planning - Two-step delete (set FK NULL, delete child, optionally delete parent) prevents orphaned records
