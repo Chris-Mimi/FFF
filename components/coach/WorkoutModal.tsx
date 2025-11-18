@@ -264,9 +264,13 @@ export default function WorkoutModal({
                 )
               )}
               <button
-                onClick={e => {
+                onClick={async e => {
                   e.preventDefault();
                   if (hook.validate()) {
+                    // Save any pending time changes first
+                    if (editingWOD && hook.sessionTime && hook.tempTime !== hook.sessionTime.substring(0, 5)) {
+                      await hook.handleTimeUpdate();
+                    }
                     const dataToSave = {
                       ...hook.formData,
                       selectedSessionIds: Array.from(hook.selectedSessionIds),
@@ -653,9 +657,13 @@ export default function WorkoutModal({
                 )
               )}
               <button
-                onClick={e => {
+                onClick={async e => {
                   e.preventDefault();
                   if (hook.validate()) {
+                    // Save any pending time changes first
+                    if (editingWOD && hook.sessionTime && hook.tempTime !== hook.sessionTime.substring(0, 5)) {
+                      await hook.handleTimeUpdate();
+                    }
                     const dataToSave = {
                       ...hook.formData,
                       selectedSessionIds: Array.from(hook.selectedSessionIds),
