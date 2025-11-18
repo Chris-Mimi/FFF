@@ -91,9 +91,10 @@ export default function MemberBookingPage() {
     // Check athlete access
     const now = new Date();
     const trialEnd = member.athlete_subscription_end ? new Date(member.athlete_subscription_end) : null;
-    const hasAccess =
+    const hasAccess = !!(
       member.athlete_subscription_status === 'active' ||
-      (member.athlete_subscription_status === 'trial' && trialEnd && trialEnd > now);
+      (member.athlete_subscription_status === 'trial' && trialEnd && trialEnd > now)
+    );
 
     setAthleteStatus({
       hasAccess,
@@ -150,12 +151,16 @@ export default function MemberBookingPage() {
       if (error) throw error;
 
       // Process sessions to add booking counts and user status
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const processedSessions: WeeklySession[] = (sessionsData || []).map((session: any) => {
         const bookings = session.bookings || [];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const confirmedBookings = bookings.filter((b: any) => b.status === 'confirmed');
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const waitlistBookings = bookings.filter((b: any) => b.status === 'waitlist');
 
         // Find booking for CURRENTLY SELECTED member (for booking status/cancel button)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const selectedMemberBooking = bookings.find((b: any) =>
           b.member_id === bookingForMemberId && b.status !== 'cancelled'
         );
@@ -163,11 +168,13 @@ export default function MemberBookingPage() {
         // Find bookings for ALL OTHER family members (for badge display)
         const familyMemberIds = familyMembers.map(fm => fm.id);
         const otherFamilyBookings = bookings
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           .filter((b: any) =>
             familyMemberIds.includes(b.member_id) &&
             b.member_id !== bookingForMemberId &&
             b.status !== 'cancelled'
           )
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           .map((b: any) => {
             // Get name from local familyMembers data instead of nested join
             const member = familyMembers.find(fm => fm.id === b.member_id);
@@ -340,7 +347,7 @@ export default function MemberBookingPage() {
   const openEditModal = (member: FamilyMember) => {
     setEditingMember(member);
     setFamilyFormData({
-      display_name: member.display_name,
+      display_name: member.display_name || '',
       date_of_birth: member.date_of_birth || '',
       relationship: member.relationship as 'spouse' | 'child' | 'other'
     });
@@ -557,7 +564,7 @@ export default function MemberBookingPage() {
           <div className="mb-6">
             <div className="bg-gray-800 rounded-lg border border-gray-700 p-4">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-white font-semibold text-sm">Select who you're booking for:</h3>
+                <h3 className="text-white font-semibold text-sm">Select who you&apos;re booking for:</h3>
                 <button
                   onClick={openAddModal}
                   className="px-3 py-1 bg-teal-500 hover:bg-teal-600 text-white rounded text-xs font-medium transition-colors"
@@ -592,7 +599,7 @@ export default function MemberBookingPage() {
                             <Edit2 size={12} />
                           </button>
                           <button
-                            onClick={() => handleDeleteFamilyMember(member.id, member.display_name)}
+                            onClick={() => handleDeleteFamilyMember(member.id, member.display_name || 'Family Member')}
                             disabled={processing === member.id}
                             className="p-0.5 text-gray-400 hover:text-red-400 disabled:text-gray-600 transition-colors"
                             title="Delete"

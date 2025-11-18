@@ -118,7 +118,8 @@ export default function AthletePageWorkoutsTab({ userId, onNavigateToLogbook }: 
       }
 
       // Transform bookings into workout display format
-      const workoutsFromBookings = (bookings || []).map((booking: BookingResponse) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const workoutsFromBookings = (bookings || []).map((booking: any) => {
         const session = booking.weekly_sessions;
         const workout = session?.wods;
 

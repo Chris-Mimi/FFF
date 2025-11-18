@@ -306,6 +306,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
   };
 
   // Custom dot component to render PR badges with scaling-based colors
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const CustomDot = (props: any) => {
     const { cx, cy, payload } = props;
     if (payload.isPR) {

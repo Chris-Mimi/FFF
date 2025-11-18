@@ -114,6 +114,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if member already has a booking for this session
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const existingBooking = session.bookings?.find((b: any) => b.member_id === bookingMemberId && b.status !== 'cancelled');
     if (existingBooking) {
       return NextResponse.json(
@@ -123,6 +124,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Count confirmed bookings
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const confirmedCount = session.bookings?.filter((b: any) => b.status === 'confirmed').length || 0;
 
     // Determine booking status (confirmed or waitlist)

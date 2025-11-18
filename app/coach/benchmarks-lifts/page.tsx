@@ -251,6 +251,7 @@ export default function BenchmarksLiftsManagementPage() {
 
       setShowBenchmarkModal(false);
       fetchBenchmarks();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error('Error saving benchmark:', error);
       alert(`Error: ${error.message}`);
@@ -270,6 +271,7 @@ export default function BenchmarksLiftsManagementPage() {
 
       if (error) throw error;
       fetchBenchmarks();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error('Error deleting benchmark:', error);
       alert(`Error: ${error.message}`);
@@ -345,6 +347,7 @@ export default function BenchmarksLiftsManagementPage() {
 
       setShowForgeModal(false);
       fetchForgeBenchmarks();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error('Error saving forge benchmark:', error);
       alert(`Error: ${error.message}`);
@@ -364,6 +367,7 @@ export default function BenchmarksLiftsManagementPage() {
 
       if (error) throw error;
       fetchForgeBenchmarks();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error('Error deleting forge benchmark:', error);
       alert(`Error: ${error.message}`);
@@ -400,6 +404,7 @@ export default function BenchmarksLiftsManagementPage() {
 
         if (error) throw error;
       }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error('Error updating order:', error);
       alert(`Error updating order: ${error.message}`);
@@ -473,6 +478,7 @@ export default function BenchmarksLiftsManagementPage() {
 
       setShowLiftModal(false);
       fetchLifts();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error('Error saving lift:', error);
       alert(`Error: ${error.message}`);
@@ -492,6 +498,7 @@ export default function BenchmarksLiftsManagementPage() {
 
       if (error) throw error;
       fetchLifts();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error('Error deleting lift:', error);
       alert(`Error: ${error.message}`);
@@ -611,7 +618,7 @@ export default function BenchmarksLiftsManagementPage() {
 
               {benchmarks.length === 0 && (
                 <div className='text-center py-8 text-gray-500'>
-                  No benchmarks yet. Click "Add Benchmark" to create one.
+                  No benchmarks yet. Click &quot;Add Benchmark&quot; to create one.
                 </div>
               )}
             </div>
@@ -639,7 +646,7 @@ export default function BenchmarksLiftsManagementPage() {
 
             {forgeBenchmarks.length === 0 ? (
               <div className='text-center py-8 text-gray-500'>
-                No Forge benchmarks yet. Click "Add Forge Benchmark" to create one.
+                No Forge benchmarks yet. Click &quot;Add Forge Benchmark&quot; to create one.
               </div>
             ) : (
               <DndContext
@@ -713,7 +720,7 @@ export default function BenchmarksLiftsManagementPage() {
 
               {lifts.length === 0 && (
                 <div className='text-center py-8 text-gray-500'>
-                  No lifts yet. Click "Add Lift" to create one.
+                  No lifts yet. Click &quot;Add Lift&quot; to create one.
                 </div>
               )}
             </div>

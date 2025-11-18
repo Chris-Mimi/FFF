@@ -289,18 +289,7 @@ Athlete Tables (linked to members.id)
 
 ## 📋 Next Immediate Steps
 
-1. **Branch Management:**
-   - ✅ coach-page-refactor: Session management fixes complete (Session 9)
-   - **Decision needed:** Merge coach-page-refactor → augment-refactor, or continue on augment-refactor?
-   - Note: All critical bugs fixed, branch stable and tested
-
-2. **Immediate Priorities:**
-   - **Rethink "Apply to Other Sessions" section in Edit Workout Modal:**
-     - Currently takes up significant vertical space
-     - Consider collapsible button dropdown design
-     - **Question:** Is this feature necessary? Need to test in actual workflow scenario
-
-3. **Code Maintenance & Refactoring Needs:**
+1. **Code Maintenance & Refactoring Needs:**
    - **File Size Management:** Keep files under 2000 lines to avoid frequent major refactors
    - **Large Files Needing Refactor:**
      - `app/coach/analysis/page.tsx` - 60KB (needs component/hook extraction)
@@ -308,13 +297,13 @@ Athlete Tables (linked to members.id)
    - **Lesson:** Proactive refactoring prevents large disruptive refactors like Session 8
    - **Strategy:** Extract when files exceed ~1500 lines, not wait until 2000+
 
-4. **Testing & Deployment Preparation:**
+2. **Testing & Deployment Preparation:**
    - Test 3-state workflow system in production-like environment (partially complete)
    - Verify all booking flows work correctly (partially complete)
    - Test athlete page tab enhancements (Recent sections, Progress Charts, PR badges)
    - Create deployment checklist
 
-5. **Future Enhancements:**
+3. **Future Enhancements:**
    - **Undo after paste/drop:** Toast notification with "Undo" button for ~5 seconds after pasting/dropping workout (currently only "Cancel Copy" before paste, or manual delete after)
    - Coach ability to edit section types, workout types, exercises
    - Bulk operations for session/workout management

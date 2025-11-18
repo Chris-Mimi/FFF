@@ -4,6 +4,9 @@ import ExerciseLibraryPopup from '@/components/coach/ExerciseLibraryPopup';
 import PublishModal from '@/components/coach/PublishModal';
 import WODSectionComponent from '@/components/coach/WODSectionComponent';
 import { useWorkoutModal, WODFormData } from '@/hooks/coach/useWorkoutModal';
+
+// Re-export types for backwards compatibility
+export type { WODFormData, WODSection } from '@/hooks/coach/useWorkoutModal';
 import {
   Check,
   ChevronDown,

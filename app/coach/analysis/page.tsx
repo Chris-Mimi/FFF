@@ -243,6 +243,7 @@ export default function AnalysisPage() {
       }
 
       // Filter to only sessions WITH PUBLISHED workouts
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const wods: WOD[] = (data as any as SessionRecord[])
         .filter((session) => session.wods !== null && session.wods.workout_publish_status === 'published')
         .map((session) => ({
@@ -950,7 +951,7 @@ export default function AnalysisPage() {
 
                   {exerciseSearch && filteredExercises.length === 0 && (
                     <div className='absolute z-10 w-full mt-2 bg-white border border-gray-300 rounded-lg shadow-lg p-4 text-center text-gray-100'>
-                      No exercises found matching "{exerciseSearch}"
+                      No exercises found matching &quot;{exerciseSearch}&quot;
                     </div>
                   )}
                   </div>

@@ -224,6 +224,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
   };
 
   // Custom dot component to render PR badges with rep-max-based colors
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const CustomDot = (props: any) => {
     const { cx, cy, payload } = props;
     if (payload.isPR) {
