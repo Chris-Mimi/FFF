@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 5.3
-**Updated:** 2025-11-18 (Session 12 - completed)
+**Version:** 5.4
+**Updated:** 2025-11-18 (Session 13 - completed)
 
 ---
 
@@ -61,6 +61,20 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-11-18 Session 13):**
+- **WorkoutModal Refactor & Time Selector Improvements:**
+  - ✅ Refactored WorkoutModal: 2256 → 905 lines (60% reduction)
+  - ✅ Created useWorkoutModal.ts hook (946 lines) - all state/logic extracted
+  - ✅ Fixed 30 pre-existing ESLint errors across 8 files (build now passes)
+  - ✅ Fixed time selector broken by refactor (needed setter functions)
+  - ✅ Split time selector: Separate hour (00-23) and minute (00/15/30/45) dropdowns
+  - ✅ Strip seconds from time display (10:30:00 → 10:30)
+  - ✅ Main Save button now saves pending time changes (was only small Save button)
+  - Re-exported WODFormData/WODSection types for backwards compatibility
+  - Commits: 8 commits (45455bc → 8bed8fb)
+  - Branch: workout-modal-refactor (pushed)
+  - See `project-history/2025-11-18-session-13-workout-modal-refactor.md`
 
 **Completed (2025-11-18 Session 12):**
 - **Independent Workout Architecture & Delete Simplification:**
@@ -252,6 +266,10 @@ Athlete Tables (linked to members.id)
 - macOS iCloud Keychain autofill popups (OS behavior, not app bug)
 
 **Lessons Learned:**
+- **2025-11-18 (Session 13):** Hook refactors break direct state mutation - `hook.tempTime = value` doesn't work; must use setters `hook.setTempTime(value)`
+- **2025-11-18 (Session 13):** Pre-existing errors accumulate silently - `npm run dev` doesn't catch all ESLint errors; only `npm run build` enforces strict linting
+- **2025-11-18 (Session 13):** Save buttons need unified behavior - If time can be changed inline, main Save must also save that change (not just dedicated mini-Save)
+- **2025-11-18 (Session 13):** Type re-exports maintain backwards compatibility - When moving types to hooks, re-export from original location to avoid breaking imports
 - **2025-11-18 (Session 12):** Architecture decisions affect multiple systems - workout_logs constraint revealed by shared workout_id architecture; independent copies fixed it
 - **2025-11-18 (Session 12):** Pre-production simplicity advantage - No legacy data means simpler solutions (removed smart delete logic)
 - **2025-11-18 (Session 12):** Independent copies match user mental model - Copy/paste behavior users already understand; shared references confuse
@@ -293,9 +311,9 @@ Athlete Tables (linked to members.id)
    - **File Size Management:** Keep files under 2000 lines to avoid frequent major refactors
    - **Large Files Needing Refactor:**
      - `app/coach/analysis/page.tsx` - 60KB (needs component/hook extraction)
-     - `components/coach/WODModal.tsx` - 82KB (needs component/hook extraction)
    - **Lesson:** Proactive refactoring prevents large disruptive refactors like Session 8
    - **Strategy:** Extract when files exceed ~1500 lines, not wait until 2000+
+   - ✅ **Completed:** WorkoutModal.tsx refactored (Session 13)
 
 2. **Testing & Deployment Preparation:**
    - Test 3-state workflow system in production-like environment (partially complete)
