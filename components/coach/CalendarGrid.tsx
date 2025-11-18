@@ -186,7 +186,7 @@ export default function CalendarGrid({
 
           {/* Time Display */}
           <div className={`${textSize} ${isEmptySession ? 'text-gray-600' : 'text-white'}`}>
-            {wod.booking_info?.time}
+            {wod.booking_info?.time?.substring(0, 5)}
           </div>
         </div>
 

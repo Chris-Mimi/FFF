@@ -575,9 +575,12 @@ export function useWorkoutModal(
     if (!formData.booking_info?.session_id) return;
 
     try {
+      // Add seconds for PostgreSQL TIME format
+      const timeWithSeconds = tempTime.length === 5 ? `${tempTime}:00` : tempTime;
+
       const { error } = await supabase
         .from('weekly_sessions')
-        .update({ time: tempTime })
+        .update({ time: timeWithSeconds })
         .eq('id', formData.booking_info.session_id);
 
       if (error) {
@@ -590,7 +593,7 @@ export function useWorkoutModal(
       if (formData.id) {
         await supabase
           .from('wods')
-          .update({ publish_time: tempTime })
+          .update({ publish_time: timeWithSeconds })
           .eq('id', formData.id);
       }
 
