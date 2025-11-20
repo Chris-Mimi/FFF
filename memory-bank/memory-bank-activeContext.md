@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 5.4
-**Updated:** 2025-11-18 (Session 13 - completed)
+**Version:** 5.5
+**Updated:** 2025-11-20 (Session 14 - Phase 1 complete)
 
 ---
 
@@ -36,7 +36,7 @@ Users (Supabase Auth)
 ├─ auth.users (id, email)
 
 Coach Tables
-├─ wods (id, date, sections: JSONB, is_published, publish_time, publish_sections, google_event_id, coach_notes: TEXT)
+├─ wods (id, date, sections: JSONB [content, lifts[], benchmarks[], forge_benchmarks[]], is_published, publish_time, publish_sections, google_event_id, coach_notes: TEXT)
 ├─ section_types (id, name, display_order)
 ├─ workout_types (id, name)
 ├─ workout_titles (id, title)
@@ -61,6 +61,23 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-11-20 Session 14 - Phase 1):**
+- **Movement Library Feature - Phase 1 (Lifts, Benchmarks, Forge):**
+  - ✅ Created `/types/movements.ts` with TypeScript interfaces for structured data
+  - ✅ Extended WODSection schema: Added lifts[], benchmarks[], forge_benchmarks[] JSONB fields
+  - ✅ Built MovementLibraryPopup with 4 tabs (Exercises | Lifts | Benchmarks | Forge)
+  - ✅ Fetches from barbell_lifts, benchmark_workouts, forge_benchmarks tables
+  - ✅ ConfigureLiftModal: Constant reps (5x5 @ 75%) & Variable reps (per-set table with reps/percentages)
+  - ✅ ConfigureBenchmarkModal & ConfigureForgeBenchmarkModal (scaling, visibility, notes)
+  - ✅ useWorkoutModal: Added 9 handlers (select/add/remove for each movement type)
+  - ✅ WorkoutModal: Integrated all modals with button-based insertion (mobile-friendly)
+  - ✅ Build passes with zero errors
+  - 🔄 **Phase 2 pending:** Display configured movements as badges in WODSectionComponent
+  - Commits: b169c7e (Phase 1)
+  - Branch: movement-library-feature (pushed)
+  - **User note:** Detailed implementation plan saved to `Chris Notes/movement-library-feature Detailed Plan.md`
+  - See `project-history/2025-11-20-session-14-movement-library-phase-1.md`
 
 **Completed (2025-11-18 Session 13):**
 - **WorkoutModal Refactor & Time Selector Improvements:**
@@ -266,6 +283,10 @@ Athlete Tables (linked to members.id)
 - macOS iCloud Keychain autofill popups (OS behavior, not app bug)
 
 **Lessons Learned:**
+- **2025-11-20 (Session 14):** Complex features benefit from detailed upfront planning - Created 18-step plan before coding, user saved plan externally for reference
+- **2025-11-20 (Session 14):** Structured data enables analytics - JSONB arrays (lifts[], benchmarks[]) allow querying "how often is Back Squat programmed?"
+- **2025-11-20 (Session 14):** Button-based insertion better than drag for mobile - Avoids native mobile drag-and-drop complications, works everywhere
+- **2025-11-20 (Session 14):** Variable reps need per-set configuration - 5-3-1 schemes require table UI (Set #, Reps, Percentage) not just comma-separated input
 - **2025-11-18 (Session 13):** Hook refactors break direct state mutation - `hook.tempTime = value` doesn't work; must use setters `hook.setTempTime(value)`
 - **2025-11-18 (Session 13):** Pre-existing errors accumulate silently - `npm run dev` doesn't catch all ESLint errors; only `npm run build` enforces strict linting
 - **2025-11-18 (Session 13):** Save buttons need unified behavior - If time can be changed inline, main Save must also save that change (not just dedicated mini-Save)
@@ -307,7 +328,23 @@ Athlete Tables (linked to members.id)
 
 ## 📋 Next Immediate Steps
 
-1. **Code Maintenance & Refactoring Needs:**
+1. **Movement Library - Phase 2 (PRIORITY):**
+   - **Display configured movements as badges in WODSectionComponent**
+     - Show lifts: "≡ Back Squat 5x5 @ 75% [×]" with remove button
+     - Show benchmarks: "≡ Fran (Rx) [×]"
+     - Show forge benchmarks: "≡ MURPH [×]"
+     - Format display functions (constant vs variable reps)
+   - **Testing workflows:**
+     - Lifts: Select → Configure → Add → Display → Save → Reload → Verify persistence
+     - Benchmarks: Full workflow end-to-end
+     - Forge: Full workflow end-to-end
+     - Mobile: Test button-based insertion
+   - **Analytics utilities:** Create movement-analytics.ts with query functions
+   - **Build/ESLint:** Fix any errors before merge
+   - **Branch:** movement-library-feature → merge to main after testing
+   - **Estimated effort:** 4-6 hours remaining (Phase 2)
+
+2. **Code Maintenance & Refactoring Needs:**
    - **File Size Management:** Keep files under 2000 lines to avoid frequent major refactors
    - **Large Files Needing Refactor:**
      - `app/coach/analysis/page.tsx` - 60KB (needs component/hook extraction)
