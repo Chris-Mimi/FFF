@@ -2,6 +2,7 @@
 
 import { supabase } from '@/lib/supabase';
 import { useEffect, useState } from 'react';
+import type { BarbellLift, Benchmark, ForgeBenchmark, ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
 
 // Format date to YYYY-MM-DD using local timezone
 const formatDateLocal = (date: Date): string => {
@@ -17,6 +18,11 @@ export interface WODSection {
   duration: number; // minutes
   content: string; // Free-form markdown text
   workout_type_id?: string; // Workout type (only for WOD sections)
+
+  // Structured movements
+  lifts?: ConfiguredLift[];
+  benchmarks?: ConfiguredBenchmark[];
+  forge_benchmarks?: ConfiguredForgeBenchmark[];
 }
 
 export interface WODFormData {
@@ -101,6 +107,14 @@ export interface UseWorkoutModalResult {
   applySessionsOpen: boolean;
   newSessionTime: string;
 
+  // Movement Library state
+  liftModalOpen: boolean;
+  benchmarkModalOpen: boolean;
+  forgeModalOpen: boolean;
+  selectedLift: BarbellLift | null;
+  selectedBenchmark: Benchmark | null;
+  selectedForgeBenchmark: ForgeBenchmark | null;
+
   // Setters for time editing
   setEditingTime: React.Dispatch<React.SetStateAction<boolean>>;
   setTempTime: React.Dispatch<React.SetStateAction<string>>;
@@ -120,6 +134,18 @@ export interface UseWorkoutModalResult {
   openLibrary: () => void;
   closeLibrary: () => void;
   handleSelectExercise: (exercise: string) => void;
+  handleSelectLift: (lift: BarbellLift) => void;
+  handleSelectBenchmark: (benchmark: Benchmark) => void;
+  handleSelectForgeBenchmark: (forge: ForgeBenchmark) => void;
+  handleAddLiftToSection: (sectionId: string, configuredLift: ConfiguredLift) => void;
+  handleAddBenchmarkToSection: (sectionId: string, configuredBenchmark: ConfiguredBenchmark) => void;
+  handleAddForgeBenchmarkToSection: (sectionId: string, configuredForgeBenchmark: ConfiguredForgeBenchmark) => void;
+  handleRemoveLift: (sectionId: string, liftIndex: number) => void;
+  handleRemoveBenchmark: (sectionId: string, benchmarkIndex: number) => void;
+  handleRemoveForgeBenchmark: (sectionId: string, forgeIndex: number) => void;
+  setLiftModalOpen: (open: boolean) => void;
+  setBenchmarkModalOpen: (open: boolean) => void;
+  setForgeModalOpen: (open: boolean) => void;
   getTotalDuration: () => number;
   getElapsedMinutes: (sectionIndex: number) => number;
   validate: () => boolean;
@@ -187,6 +213,14 @@ export function useWorkoutModal(
 
   // State for new session time when creating from scratch
   const [newSessionTime, setNewSessionTime] = useState('09:00');
+
+  // Movement Library state
+  const [liftModalOpen, setLiftModalOpen] = useState(false);
+  const [benchmarkModalOpen, setBenchmarkModalOpen] = useState(false);
+  const [forgeModalOpen, setForgeModalOpen] = useState(false);
+  const [selectedLift, setSelectedLift] = useState<BarbellLift | null>(null);
+  const [selectedBenchmark, setSelectedBenchmark] = useState<Benchmark | null>(null);
+  const [selectedForgeBenchmark, setSelectedForgeBenchmark] = useState<ForgeBenchmark | null>(null);
 
   // Helper function to ensure time is zero-padded for select dropdown
   const padTime = (time: string): string => {
@@ -890,6 +924,109 @@ export function useWorkoutModal(
     }
   };
 
+  // Movement Library handlers
+  const handleSelectLift = (lift: BarbellLift) => {
+    setSelectedLift(lift);
+    setLiftModalOpen(true);
+  };
+
+  const handleSelectBenchmark = (benchmark: Benchmark) => {
+    setSelectedBenchmark(benchmark);
+    setBenchmarkModalOpen(true);
+  };
+
+  const handleSelectForgeBenchmark = (forge: ForgeBenchmark) => {
+    setSelectedForgeBenchmark(forge);
+    setForgeModalOpen(true);
+  };
+
+  const handleAddLiftToSection = (sectionId: string, configuredLift: ConfiguredLift) => {
+    setFormData(prev => ({
+      ...prev,
+      sections: prev.sections.map(section =>
+        section.id === sectionId
+          ? {
+              ...section,
+              lifts: [...(section.lifts || []), configuredLift],
+            }
+          : section
+      ),
+    }));
+    setLiftModalOpen(false);
+  };
+
+  const handleAddBenchmarkToSection = (sectionId: string, configuredBenchmark: ConfiguredBenchmark) => {
+    setFormData(prev => ({
+      ...prev,
+      sections: prev.sections.map(section =>
+        section.id === sectionId
+          ? {
+              ...section,
+              benchmarks: [...(section.benchmarks || []), configuredBenchmark],
+            }
+          : section
+      ),
+    }));
+    setBenchmarkModalOpen(false);
+  };
+
+  const handleAddForgeBenchmarkToSection = (sectionId: string, configuredForgeBenchmark: ConfiguredForgeBenchmark) => {
+    setFormData(prev => ({
+      ...prev,
+      sections: prev.sections.map(section =>
+        section.id === sectionId
+          ? {
+              ...section,
+              forge_benchmarks: [...(section.forge_benchmarks || []), configuredForgeBenchmark],
+            }
+          : section
+      ),
+    }));
+    setForgeModalOpen(false);
+  };
+
+  const handleRemoveLift = (sectionId: string, liftIndex: number) => {
+    setFormData(prev => ({
+      ...prev,
+      sections: prev.sections.map(section =>
+        section.id === sectionId
+          ? {
+              ...section,
+              lifts: section.lifts?.filter((_, idx) => idx !== liftIndex),
+            }
+          : section
+      ),
+    }));
+  };
+
+  const handleRemoveBenchmark = (sectionId: string, benchmarkIndex: number) => {
+    setFormData(prev => ({
+      ...prev,
+      sections: prev.sections.map(section =>
+        section.id === sectionId
+          ? {
+              ...section,
+              benchmarks: section.benchmarks?.filter((_, idx) => idx !== benchmarkIndex),
+            }
+          : section
+      ),
+    }));
+  };
+
+  const handleRemoveForgeBenchmark = (sectionId: string, forgeIndex: number) => {
+    setFormData(prev => ({
+      ...prev,
+      sections: prev.sections.map(section =>
+        section.id === sectionId
+          ? {
+              ...section,
+              forge_benchmarks: section.forge_benchmarks?.filter((_, idx) => idx !== forgeIndex),
+            }
+          : section
+      ),
+    }));
+  };
+
   return {
     // State
     formData,
@@ -922,6 +1059,14 @@ export function useWorkoutModal(
     applySessionsOpen,
     newSessionTime,
 
+    // Movement Library state
+    liftModalOpen,
+    benchmarkModalOpen,
+    forgeModalOpen,
+    selectedLift,
+    selectedBenchmark,
+    selectedForgeBenchmark,
+
     // Setters for time editing
     setEditingTime,
     setTempTime,
@@ -941,6 +1086,18 @@ export function useWorkoutModal(
     openLibrary,
     closeLibrary,
     handleSelectExercise,
+    handleSelectLift,
+    handleSelectBenchmark,
+    handleSelectForgeBenchmark,
+    handleAddLiftToSection,
+    handleAddBenchmarkToSection,
+    handleAddForgeBenchmarkToSection,
+    handleRemoveLift,
+    handleRemoveBenchmark,
+    handleRemoveForgeBenchmark,
+    setLiftModalOpen,
+    setBenchmarkModalOpen,
+    setForgeModalOpen,
     getTotalDuration,
     getElapsedMinutes,
     validate,

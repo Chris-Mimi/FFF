@@ -1,0 +1,434 @@
+'use client';
+
+import { useState } from 'react';
+import { ChevronLeft, X, GripVertical, ChevronDown } from 'lucide-react';
+import type { BarbellLift, ConfiguredLift, VariableSet, WODSection } from '@/types/movements';
+
+interface ConfigureLiftModalProps {
+  isOpen: boolean;
+  lift: BarbellLift | null;
+  activeSection: WODSection | null;
+  availableSections: WODSection[];
+  onClose: () => void;
+  onAddToSection: (sectionId: string, configuredLift: ConfiguredLift) => void;
+}
+
+function ConfigureLiftModal({
+  isOpen,
+  lift,
+  activeSection,
+  availableSections,
+  onClose,
+  onAddToSection,
+}: ConfigureLiftModalProps) {
+  const [selectedSectionId, setSelectedSectionId] = useState<string>(activeSection?.id || '');
+  const [repType, setRepType] = useState<'constant' | 'variable'>('constant');
+
+  // Constant reps state
+  const [sets, setSets] = useState(5);
+  const [reps, setReps] = useState(5);
+  const [percentage, setPercentage] = useState<number | undefined>(undefined);
+
+  // Variable reps state
+  const [variableSets, setVariableSets] = useState<VariableSet[]>([
+    { set_number: 1, reps: 5, percentage_1rm: undefined },
+  ]);
+
+  const [scalingOption, setScalingOption] = useState('None');
+  const [visibility, setVisibility] = useState<'everyone' | 'coaches' | 'programmers'>('everyone');
+  const [coachNotes, setCoachNotes] = useState('');
+  const [athleteNotes, setAthleteNotes] = useState('');
+  const [coachNotesExpanded, setCoachNotesExpanded] = useState(false);
+  const [athleteNotesExpanded, setAthleteNotesExpanded] = useState(false);
+
+  if (!isOpen || !lift) return null;
+
+  const handleAddSet = () => {
+    setVariableSets(prev => [
+      ...prev,
+      { set_number: prev.length + 1, reps: 5, percentage_1rm: undefined },
+    ]);
+  };
+
+  const handleRemoveSet = () => {
+    if (variableSets.length > 1) {
+      setVariableSets(prev => prev.slice(0, -1));
+    }
+  };
+
+  const handleUpdateVariableSet = (index: number, field: 'reps' | 'percentage_1rm', value: number | undefined) => {
+    setVariableSets(prev =>
+      prev.map((set, idx) =>
+        idx === index ? { ...set, [field]: value } : set
+      )
+    );
+  };
+
+  const handleAdd = () => {
+    if (!selectedSectionId) {
+      alert('Please select a section');
+      return;
+    }
+
+    const configuredLift: ConfiguredLift = {
+      id: lift.id,
+      name: lift.name,
+      rep_type: repType,
+      ...(repType === 'constant'
+        ? { sets, reps, percentage_1rm: percentage }
+        : { variable_sets: variableSets }),
+      scaling_option: scalingOption !== 'None' ? scalingOption : undefined,
+      visibility,
+      coach_notes: coachNotes || undefined,
+      athlete_notes: athleteNotes || undefined,
+    };
+
+    onAddToSection(selectedSectionId, configuredLift);
+    onClose();
+  };
+
+  // Format display text for drag handle
+  const getDisplayText = () => {
+    if (repType === 'constant') {
+      const base = `${lift.name} ${sets}x${reps}`;
+      return percentage ? `${base} @ ${percentage}%` : base;
+    } else {
+      const repsText = variableSets.map(s => s.reps).join('-');
+      return `${lift.name} ${repsText}`;
+    }
+  };
+
+  return (
+    <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[110]'>
+      <div className='bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto'>
+        {/* Header */}
+        <div className='bg-[#208479] text-white p-4 flex justify-between items-center sticky top-0 z-10'>
+          <div className='flex items-center gap-2'>
+            <button
+              onClick={onClose}
+              className='hover:bg-[#1a6b62] rounded-full p-1 transition'
+            >
+              <ChevronLeft size={24} />
+            </button>
+            <h3 className='font-bold text-lg'>Configure Sets/Reps</h3>
+          </div>
+          <button
+            onClick={onClose}
+            className='hover:bg-[#1a6b62] rounded-full p-1 transition'
+          >
+            <X size={24} />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className='p-6 space-y-6'>
+          {/* Section Selector + Add Button */}
+          <div className='flex items-center gap-3'>
+            <div className='flex-1'>
+              <label className='block text-sm font-semibold text-gray-700 mb-2'>
+                Add to Section
+              </label>
+              <div className='relative'>
+                <select
+                  value={selectedSectionId}
+                  onChange={e => setSelectedSectionId(e.target.value)}
+                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent appearance-none pr-10'
+                >
+                  {availableSections.map(section => (
+                    <option key={section.id} value={section.id}>
+                      {section.type} ({section.duration} min)
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none' size={20} />
+              </div>
+            </div>
+            <button
+              onClick={handleAdd}
+              className='mt-7 px-6 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white rounded-lg font-semibold transition'
+            >
+              Add
+            </button>
+          </div>
+
+          {/* Drag Preview */}
+          <div className='bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center gap-2 text-gray-700'>
+            <GripVertical size={20} className='text-gray-400' />
+            <span className='font-semibold'>{getDisplayText()}</span>
+          </div>
+
+          {/* Constant/Variable Tabs */}
+          <div className='border-b border-gray-300'>
+            <div className='flex'>
+              <button
+                onClick={() => setRepType('constant')}
+                className={`flex-1 px-4 py-3 font-semibold transition ${
+                  repType === 'constant'
+                    ? 'bg-white text-[#208479] border-b-2 border-[#208479]'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                Constant Reps
+              </button>
+              <button
+                onClick={() => setRepType('variable')}
+                className={`flex-1 px-4 py-3 font-semibold transition ${
+                  repType === 'variable'
+                    ? 'bg-white text-[#208479] border-b-2 border-[#208479]'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                Variable Reps
+              </button>
+            </div>
+          </div>
+
+          {/* Constant Reps Content */}
+          {repType === 'constant' && (
+            <div className='space-y-4'>
+              <div className='flex items-center gap-8 justify-center'>
+                {/* Sets */}
+                <div className='text-center'>
+                  <label className='block text-sm font-semibold text-gray-600 mb-2'>SETS</label>
+                  <div className='flex flex-col items-center gap-2'>
+                    <input
+                      type='number'
+                      value={sets}
+                      onChange={e => setSets(Math.max(1, parseInt(e.target.value) || 1))}
+                      className='w-32 px-4 py-3 text-3xl text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent'
+                    />
+                    <div className='flex gap-2'>
+                      <button
+                        onClick={() => setSets(prev => Math.max(1, prev - 1))}
+                        className='px-6 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-semibold transition'
+                      >
+                        −
+                      </button>
+                      <button
+                        onClick={() => setSets(prev => prev + 1)}
+                        className='px-6 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-semibold transition'
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* × Symbol */}
+                <div className='text-4xl font-bold text-gray-400 mt-8'>×</div>
+
+                {/* Reps */}
+                <div className='text-center'>
+                  <label className='block text-sm font-semibold text-gray-600 mb-2'>REPS</label>
+                  <div className='flex flex-col items-center gap-2'>
+                    <input
+                      type='number'
+                      value={reps}
+                      onChange={e => setReps(Math.max(1, parseInt(e.target.value) || 1))}
+                      className='w-32 px-4 py-3 text-3xl text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent'
+                    />
+                    <div className='flex gap-2'>
+                      <button
+                        onClick={() => setReps(prev => Math.max(1, prev - 1))}
+                        className='px-6 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-semibold transition'
+                      >
+                        −
+                      </button>
+                      <button
+                        onClick={() => setReps(prev => prev + 1)}
+                        className='px-6 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-semibold transition'
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Percentage of 1RM */}
+              <div>
+                <label className='block text-sm font-semibold text-gray-700 mb-2'>
+                  Percentage of 1RM (optional)
+                </label>
+                <div className='flex items-center gap-2'>
+                  <input
+                    type='number'
+                    value={percentage || ''}
+                    onChange={e => setPercentage(e.target.value ? parseInt(e.target.value) : undefined)}
+                    placeholder='e.g., 75'
+                    min='0'
+                    max='100'
+                    className='flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent'
+                  />
+                  <span className='text-gray-600 font-semibold'>%</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Variable Reps Content */}
+          {repType === 'variable' && (
+            <div className='space-y-4'>
+              <div className='border border-gray-300 rounded-lg overflow-hidden'>
+                <table className='w-full'>
+                  <thead className='bg-gray-100'>
+                    <tr>
+                      <th className='px-4 py-2 text-left text-sm font-semibold text-gray-600'>Set</th>
+                      <th className='px-4 py-2 text-left text-sm font-semibold text-gray-600'>Reps</th>
+                      <th className='px-4 py-2 text-left text-sm font-semibold text-gray-600'>Percentage</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {variableSets.map((set, idx) => (
+                      <tr key={idx} className='border-t border-gray-200'>
+                        <td className='px-4 py-2 font-semibold text-gray-700'>#{set.set_number}</td>
+                        <td className='px-4 py-2'>
+                          <input
+                            type='number'
+                            value={set.reps}
+                            onChange={e => handleUpdateVariableSet(idx, 'reps', parseInt(e.target.value) || 1)}
+                            className='w-full px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent'
+                            min='1'
+                          />
+                        </td>
+                        <td className='px-4 py-2'>
+                          <input
+                            type='number'
+                            value={set.percentage_1rm || ''}
+                            onChange={e => handleUpdateVariableSet(idx, 'percentage_1rm', e.target.value ? parseInt(e.target.value) : undefined)}
+                            placeholder='%'
+                            className='w-full px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent'
+                            min='0'
+                            max='100'
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className='flex gap-2'>
+                <button
+                  onClick={handleAddSet}
+                  className='flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition'
+                >
+                  + Add Set
+                </button>
+                <button
+                  onClick={handleRemoveSet}
+                  disabled={variableSets.length <= 1}
+                  className='flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition disabled:bg-gray-300 disabled:cursor-not-allowed'
+                >
+                  − Remove Set
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Scaling Options */}
+          <div>
+            <div className='flex items-center justify-between mb-2'>
+              <label className='block text-sm font-semibold text-gray-700'>Scaling Options</label>
+              <button className='text-xs text-[#208479] hover:underline'>Edit Track Default</button>
+            </div>
+            <div className='relative'>
+              <select
+                value={scalingOption}
+                onChange={e => setScalingOption(e.target.value)}
+                className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent appearance-none pr-10'
+              >
+                <option>None</option>
+                <option>Rx</option>
+                <option>Scaled</option>
+              </select>
+              <ChevronDown className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none' size={20} />
+            </div>
+          </div>
+
+          {/* Visibility */}
+          <div>
+            <label className='block text-sm font-semibold text-gray-700 mb-2'>Visible to:</label>
+            <div className='flex gap-4'>
+              <label className='flex items-center gap-2 cursor-pointer'>
+                <input
+                  type='radio'
+                  name='visibility'
+                  value='everyone'
+                  checked={visibility === 'everyone'}
+                  onChange={e => setVisibility(e.target.value as 'everyone')}
+                  className='w-4 h-4 text-[#208479] focus:ring-[#208479]'
+                />
+                <span className='text-sm text-gray-700'>Everyone</span>
+              </label>
+              <label className='flex items-center gap-2 cursor-pointer'>
+                <input
+                  type='radio'
+                  name='visibility'
+                  value='coaches'
+                  checked={visibility === 'coaches'}
+                  onChange={e => setVisibility(e.target.value as 'coaches')}
+                  className='w-4 h-4 text-[#208479] focus:ring-[#208479]'
+                />
+                <span className='text-sm text-gray-700'>Coaches</span>
+              </label>
+              <label className='flex items-center gap-2 cursor-pointer'>
+                <input
+                  type='radio'
+                  name='visibility'
+                  value='programmers'
+                  checked={visibility === 'programmers'}
+                  onChange={e => setVisibility(e.target.value as 'programmers')}
+                  className='w-4 h-4 text-[#208479] focus:ring-[#208479]'
+                />
+                <span className='text-sm text-gray-700'>Programmers Only</span>
+              </label>
+            </div>
+          </div>
+
+          {/* Coach Notes */}
+          <div>
+            <button
+              onClick={() => setCoachNotesExpanded(!coachNotesExpanded)}
+              className='flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition'
+            >
+              <span className={`transform transition ${coachNotesExpanded ? 'rotate-90' : ''}`}>▸</span>
+              Coach notes...
+            </button>
+            {coachNotesExpanded && (
+              <textarea
+                value={coachNotes}
+                onChange={e => setCoachNotes(e.target.value)}
+                placeholder='Notes visible to coaches only'
+                className='mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent'
+                rows={3}
+              />
+            )}
+          </div>
+
+          {/* Athlete Notes */}
+          <div>
+            <button
+              onClick={() => setAthleteNotesExpanded(!athleteNotesExpanded)}
+              className='flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition'
+            >
+              <span className={`transform transition ${athleteNotesExpanded ? 'rotate-90' : ''}`}>▸</span>
+              Athlete notes...
+            </button>
+            {athleteNotesExpanded && (
+              <textarea
+                value={athleteNotes}
+                onChange={e => setAthleteNotes(e.target.value)}
+                placeholder='Notes visible to athletes'
+                className='mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent'
+                rows={3}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default ConfigureLiftModal;

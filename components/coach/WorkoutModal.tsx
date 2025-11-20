@@ -1,6 +1,9 @@
 'use client';
 
-import ExerciseLibraryPopup from '@/components/coach/ExerciseLibraryPopup';
+import MovementLibraryPopup from '@/components/coach/MovementLibraryPopup';
+import ConfigureLiftModal from '@/components/coach/ConfigureLiftModal';
+import ConfigureBenchmarkModal from '@/components/coach/ConfigureBenchmarkModal';
+import ConfigureForgeBenchmarkModal from '@/components/coach/ConfigureForgeBenchmarkModal';
 import PublishModal from '@/components/coach/PublishModal';
 import WODSectionComponent from '@/components/coach/WODSectionComponent';
 import { useWorkoutModal, WODFormData } from '@/hooks/coach/useWorkoutModal';
@@ -511,12 +514,41 @@ export default function WorkoutModal({
 
         </div>
 
-        {/* Exercise Library Popup */}
-        <ExerciseLibraryPopup
+        {/* Movement Library Popup */}
+        <MovementLibraryPopup
           key={hook.libraryKey}
           isOpen={hook.libraryOpen}
           onClose={hook.closeLibrary}
           onSelectExercise={hook.handleSelectExercise}
+          onSelectLift={hook.handleSelectLift}
+          onSelectBenchmark={hook.handleSelectBenchmark}
+          onSelectForgeBenchmark={hook.handleSelectForgeBenchmark}
+        />
+
+        {/* Configure Modals */}
+        <ConfigureLiftModal
+          isOpen={hook.liftModalOpen}
+          lift={hook.selectedLift}
+          activeSection={hook.activeSection !== null ? hook.formData.sections[hook.activeSection] : null}
+          availableSections={hook.formData.sections}
+          onClose={() => hook.setLiftModalOpen(false)}
+          onAddToSection={hook.handleAddLiftToSection}
+        />
+        <ConfigureBenchmarkModal
+          isOpen={hook.benchmarkModalOpen}
+          benchmark={hook.selectedBenchmark}
+          activeSection={hook.activeSection !== null ? hook.formData.sections[hook.activeSection] : null}
+          availableSections={hook.formData.sections}
+          onClose={() => hook.setBenchmarkModalOpen(false)}
+          onAddToSection={hook.handleAddBenchmarkToSection}
+        />
+        <ConfigureForgeBenchmarkModal
+          isOpen={hook.forgeModalOpen}
+          forgeBenchmark={hook.selectedForgeBenchmark}
+          activeSection={hook.activeSection !== null ? hook.formData.sections[hook.activeSection] : null}
+          availableSections={hook.formData.sections}
+          onClose={() => hook.setForgeModalOpen(false)}
+          onAddToSection={hook.handleAddForgeBenchmarkToSection}
         />
 
         {/* Publish Modal */}
@@ -925,12 +957,41 @@ export default function WorkoutModal({
         </div>
       </div>
 
-      {/* Exercise Library Popup */}
-      <ExerciseLibraryPopup
+      {/* Movement Library Popup */}
+      <MovementLibraryPopup
         key={hook.libraryKey}
         isOpen={hook.libraryOpen}
         onClose={hook.closeLibrary}
         onSelectExercise={hook.handleSelectExercise}
+        onSelectLift={hook.handleSelectLift}
+        onSelectBenchmark={hook.handleSelectBenchmark}
+        onSelectForgeBenchmark={hook.handleSelectForgeBenchmark}
+      />
+
+      {/* Configure Modals */}
+      <ConfigureLiftModal
+        isOpen={hook.liftModalOpen}
+        lift={hook.selectedLift}
+        activeSection={hook.activeSection !== null ? hook.formData.sections[hook.activeSection] : null}
+        availableSections={hook.formData.sections}
+        onClose={() => hook.setLiftModalOpen(false)}
+        onAddToSection={hook.handleAddLiftToSection}
+      />
+      <ConfigureBenchmarkModal
+        isOpen={hook.benchmarkModalOpen}
+        benchmark={hook.selectedBenchmark}
+        activeSection={hook.activeSection !== null ? hook.formData.sections[hook.activeSection] : null}
+        availableSections={hook.formData.sections}
+        onClose={() => hook.setBenchmarkModalOpen(false)}
+        onAddToSection={hook.handleAddBenchmarkToSection}
+      />
+      <ConfigureForgeBenchmarkModal
+        isOpen={hook.forgeModalOpen}
+        forgeBenchmark={hook.selectedForgeBenchmark}
+        activeSection={hook.activeSection !== null ? hook.formData.sections[hook.activeSection] : null}
+        availableSections={hook.formData.sections}
+        onClose={() => hook.setForgeModalOpen(false)}
+        onAddToSection={hook.handleAddForgeBenchmarkToSection}
       />
 
       {/* Publish Modal */}
