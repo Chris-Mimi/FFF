@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 5.5
-**Updated:** 2025-11-20 (Session 14 - Phase 1 complete)
+**Version:** 5.7
+**Updated:** 2025-11-21 (Session 16 - Phase 3-4 complete, Movement Library feature-complete)
 
 ---
 
@@ -62,6 +62,38 @@ Athlete Tables (linked to members.id)
 
 ## 📍 Current Status (Last 2 Weeks)
 
+**Completed (2025-11-21 Session 16 - Phase 3-4):**
+- **Movement Library Feature - Phase 3-4 (Athlete Display & Analytics):**
+  - ✅ **Phase 3 - Athlete Display:** Badge rendering in AthletePageWorkoutsTab with format helpers
+  - ✅ Blue (lifts), teal (benchmarks), cyan (forge) badges match coach view
+  - ✅ Descriptions render with whitespace-pre-wrap for proper formatting
+  - ✅ Past workouts show full details, future bookings show "Booked" placeholder
+  - ✅ **Phase 4 - Analytics:** Created `utils/movement-analytics.ts` with comprehensive query functions
+  - ✅ Lift frequency analysis: avgSets, avgReps, mostCommonPercentage
+  - ✅ Benchmark/Forge frequency: mostCommonScaling, type, lastUsed date
+  - ✅ Date range filtering (startDate, endDate) for all queries
+  - ✅ Combined summary function, individual lookup by ID, sorted by frequency
+  - ✅ Zero build errors, type-safe implementation ready for dashboard integration
+  - 🎯 **Movement Library feature-complete:** All 4 phases done, ready for merge to main
+  - Commits: 916a082 (Phase 3-4)
+  - Branch: movement-library-feature (pushed)
+  - See `project-history/2025-11-21-session-16-movement-library-phase-3-4.md`
+
+**Completed (2025-11-21 Session 15 - Phase 2):**
+- **Movement Library Feature - Phase 2 (Badge Display & UX):**
+  - ✅ Badge display in WODSectionComponent (blue=lifts, teal=benchmarks, cyan=forge)
+  - ✅ Format helpers: "Back Squat 5x5 @ 75%", "Fran (Rx)", variable reps "5-3-1"
+  - ✅ Remove buttons [×] with handlers for each badge type
+  - ✅ Database persistence verified (badges persist after save/reload)
+  - ✅ Calendar hover preview shows structured movements with descriptions
+  - ✅ Added description field to ConfiguredBenchmark/ConfiguredForgeBenchmark types
+  - ✅ Configure modals: Draggable, positioned to right (820px), stay open after Add
+  - ✅ Done button replaces back/X (reopens Movement Library)
+  - ✅ Movement Library positioned to right for side-by-side workflow
+  - Commits: 5c0dd28 (Phase 2)
+  - Branch: movement-library-feature (pushed)
+  - See `project-history/2025-11-21-session-15-movement-library-phase-2.md`
+
 **Completed (2025-11-20 Session 14 - Phase 1):**
 - **Movement Library Feature - Phase 1 (Lifts, Benchmarks, Forge):**
   - ✅ Created `/types/movements.ts` with TypeScript interfaces for structured data
@@ -73,10 +105,8 @@ Athlete Tables (linked to members.id)
   - ✅ useWorkoutModal: Added 9 handlers (select/add/remove for each movement type)
   - ✅ WorkoutModal: Integrated all modals with button-based insertion (mobile-friendly)
   - ✅ Build passes with zero errors
-  - 🔄 **Phase 2 pending:** Display configured movements as badges in WODSectionComponent
   - Commits: b169c7e (Phase 1)
   - Branch: movement-library-feature (pushed)
-  - **User note:** Detailed implementation plan saved to `Chris Notes/movement-library-feature Detailed Plan.md`
   - See `project-history/2025-11-20-session-14-movement-library-phase-1.md`
 
 **Completed (2025-11-18 Session 13):**
@@ -283,6 +313,15 @@ Athlete Tables (linked to members.id)
 - macOS iCloud Keychain autofill popups (OS behavior, not app bug)
 
 **Lessons Learned:**
+- **2025-11-21 (Session 16):** Format helper reusability across views - Same format functions used in coach badges, calendar hover, and athlete display ensures perfect consistency
+- **2025-11-21 (Session 16):** JSONB enables zero-migration analytics - Structured movement data in existing JSONB fields allows frequency analysis without schema changes
+- **2025-11-21 (Session 16):** Type safety catches runtime errors early - TypeScript inference prevented several null/undefined access bugs during development
+- **2025-11-21 (Session 16):** Athlete display parity reduces confusion - Athletes seeing movements in same format as coaches reduces training questions
+- **2025-11-21 (Session 15):** Modal positioning matters for workflow - Centered modals block UI interaction; right-side positioning (820px) enables side-by-side work flow
+- **2025-11-21 (Session 15):** Modal persistence improves efficiency - Keeping configure modals open after Add allows rapid multi-item addition without reopen overhead
+- **2025-11-21 (Session 15):** Description storage enables better UX - Storing full benchmark descriptions from database makes hover previews much more informative
+- **2025-11-21 (Session 15):** Format helper reusability - Same format functions used in both badge display and hover preview ensures consistency
+- **2025-11-21 (Session 15):** Existing data migration considerations - New optional fields don't break existing workouts, but users need to re-add items to get new features
 - **2025-11-20 (Session 14):** Complex features benefit from detailed upfront planning - Created 18-step plan before coding, user saved plan externally for reference
 - **2025-11-20 (Session 14):** Structured data enables analytics - JSONB arrays (lifts[], benchmarks[]) allow querying "how often is Back Squat programmed?"
 - **2025-11-20 (Session 14):** Button-based insertion better than drag for mobile - Avoids native mobile drag-and-drop complications, works everywhere
@@ -328,21 +367,15 @@ Athlete Tables (linked to members.id)
 
 ## 📋 Next Immediate Steps
 
-1. **Movement Library - Phase 2 (PRIORITY):**
-   - **Display configured movements as badges in WODSectionComponent**
-     - Show lifts: "≡ Back Squat 5x5 @ 75% [×]" with remove button
-     - Show benchmarks: "≡ Fran (Rx) [×]"
-     - Show forge benchmarks: "≡ MURPH [×]"
-     - Format display functions (constant vs variable reps)
-   - **Testing workflows:**
-     - Lifts: Select → Configure → Add → Display → Save → Reload → Verify persistence
-     - Benchmarks: Full workflow end-to-end
-     - Forge: Full workflow end-to-end
-     - Mobile: Test button-based insertion
-   - **Analytics utilities:** Create movement-analytics.ts with query functions
-   - **Build/ESLint:** Fix any errors before merge
-   - **Branch:** movement-library-feature → merge to main after testing
-   - **Estimated effort:** 4-6 hours remaining (Phase 2)
+1. **Movement Library - Ready for Merge:**
+   - ✅ All 4 phases complete: Infrastructure, Coach Display, Athlete Display, Analytics
+   - ✅ Zero build errors, comprehensive testing complete
+   - **Next:** User acceptance testing, then merge movement-library-feature → main
+   - **Optional enhancements (post-merge):**
+     - Analytics dashboard UI at `/coach/analytics`
+     - Mobile testing and optimization
+     - Movement recommendation engine (underutilized movements)
+     - Athlete notes display with visibility filtering
 
 2. **Code Maintenance & Refactoring Needs:**
    - **File Size Management:** Keep files under 2000 lines to avoid frequent major refactors
