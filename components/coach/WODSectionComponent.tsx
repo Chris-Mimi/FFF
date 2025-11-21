@@ -1,15 +1,8 @@
 'use client';
 
-import { ChevronDown, GripVertical, Trash2 } from 'lucide-react';
+import { ChevronDown, GripVertical, Trash2, X } from 'lucide-react';
 import { useEffect, useRef } from 'react';
-
-export interface WODSection {
-  id: string;
-  type: string;
-  duration: number; // minutes
-  content: string; // Free-form markdown text
-  workout_type_id?: string; // Workout type (only for WOD sections)
-}
+import type { WODSection, ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
 
 interface WorkoutType {
   id: string;
@@ -24,7 +17,34 @@ interface SectionType {
   display_order: number;
 }
 
+// ============================================
+// Format Helper Functions
+// ============================================
+
+function formatLift(lift: ConfiguredLift): string {
+  if (lift.rep_type === 'constant') {
+    const base = `${lift.name} ${lift.sets}x${lift.reps}`;
+    return lift.percentage_1rm ? `${base} @ ${lift.percentage_1rm}%` : base;
+  } else {
+    // Variable reps: show as "5-3-1" format
+    const reps = lift.variable_sets?.map(s => s.reps).join('-') || '';
+    return `${lift.name} ${reps}`;
+  }
+}
+
+function formatBenchmark(benchmark: ConfiguredBenchmark): string {
+  const scaling = benchmark.scaling_option ? ` (${benchmark.scaling_option})` : '';
+  return `${benchmark.name}${scaling}`;
+}
+
+function formatForgeBenchmark(forge: ConfiguredForgeBenchmark): string {
+  const scaling = forge.scaling_option ? ` (${forge.scaling_option})` : '';
+  return `${forge.name}${scaling}`;
+}
+
+// ============================================
 // Section Component
+// ============================================
 function WODSectionComponent({
   section,
   sectionIndex,
@@ -40,6 +60,9 @@ function WODSectionComponent({
   workoutTypes,
   sectionTypes,
   loadingTracks,
+  onRemoveLift,
+  onRemoveBenchmark,
+  onRemoveForgeBenchmark,
 }: {
   section: WODSection;
   sectionIndex: number;
@@ -55,6 +78,9 @@ function WODSectionComponent({
   workoutTypes: WorkoutType[];
   sectionTypes: SectionType[];
   loadingTracks: boolean;
+  onRemoveLift: (sectionId: string, liftIndex: number) => void;
+  onRemoveBenchmark: (sectionId: string, benchmarkIndex: number) => void;
+  onRemoveForgeBenchmark: (sectionId: string, forgeIndex: number) => void;
 }) {
   const endTime = elapsedMinutes + section.duration;
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -164,6 +190,91 @@ function WODSectionComponent({
           {/* Content Preview/Editor */}
           {isExpanded ? (
             <div className='space-y-2'>
+              {/* Movement Badges - Display configured lifts, benchmarks, forge benchmarks */}
+              {((section.lifts && section.lifts.length > 0) ||
+                (section.benchmarks && section.benchmarks.length > 0) ||
+                (section.forge_benchmarks && section.forge_benchmarks.length > 0)) && (
+                <div className='space-y-2'>
+                  {/* Lifts */}
+                  {section.lifts && section.lifts.length > 0 && (
+                    <div className='flex flex-wrap gap-2'>
+                      {section.lifts.map((lift, idx) => (
+                        <div
+                          key={idx}
+                          className='flex items-center gap-2 bg-blue-100 text-blue-900 rounded-md px-3 py-1.5 text-sm font-medium border border-blue-300'
+                        >
+                          <GripVertical size={14} className='text-blue-600' />
+                          <span>{formatLift(lift)}</span>
+                          <button
+                            type='button'
+                            onClick={e => {
+                              e.stopPropagation();
+                              onRemoveLift(section.id, idx);
+                            }}
+                            className='text-blue-600 hover:text-blue-800 hover:bg-blue-200 rounded-full p-0.5'
+                            title='Remove lift'
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Benchmarks */}
+                  {section.benchmarks && section.benchmarks.length > 0 && (
+                    <div className='flex flex-wrap gap-2'>
+                      {section.benchmarks.map((benchmark, idx) => (
+                        <div
+                          key={idx}
+                          className='flex items-center gap-2 bg-teal-100 text-teal-900 rounded-md px-3 py-1.5 text-sm font-medium border border-teal-300'
+                        >
+                          <GripVertical size={14} className='text-teal-600' />
+                          <span>{formatBenchmark(benchmark)}</span>
+                          <button
+                            type='button'
+                            onClick={e => {
+                              e.stopPropagation();
+                              onRemoveBenchmark(section.id, idx);
+                            }}
+                            className='text-teal-600 hover:text-teal-800 hover:bg-teal-200 rounded-full p-0.5'
+                            title='Remove benchmark'
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Forge Benchmarks */}
+                  {section.forge_benchmarks && section.forge_benchmarks.length > 0 && (
+                    <div className='flex flex-wrap gap-2'>
+                      {section.forge_benchmarks.map((forge, idx) => (
+                        <div
+                          key={idx}
+                          className='flex items-center gap-2 bg-cyan-100 text-cyan-900 rounded-md px-3 py-1.5 text-sm font-medium border border-cyan-300'
+                        >
+                          <GripVertical size={14} className='text-cyan-600' />
+                          <span>{formatForgeBenchmark(forge)}</span>
+                          <button
+                            type='button'
+                            onClick={e => {
+                              e.stopPropagation();
+                              onRemoveForgeBenchmark(section.id, idx);
+                            }}
+                            className='text-cyan-600 hover:text-cyan-800 hover:bg-cyan-200 rounded-full p-0.5'
+                            title='Remove forge benchmark'
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
               <textarea
                 ref={textareaRef}
                 value={section.content}

@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { ChevronLeft, X, GripVertical, ChevronDown } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { GripVertical, ChevronDown } from 'lucide-react';
 import type { ForgeBenchmark, ConfiguredForgeBenchmark, WODSection } from '@/types/movements';
 
 interface ConfigureForgeBenchmarkModalProps {
@@ -21,13 +21,60 @@ function ConfigureForgeBenchmarkModal({
   onClose,
   onAddToSection,
 }: ConfigureForgeBenchmarkModalProps) {
-  const [selectedSectionId, setSelectedSectionId] = useState<string>(activeSection?.id || '');
+  const [selectedSectionId, setSelectedSectionId] = useState<string>(
+    activeSection?.id || (availableSections.length > 0 ? availableSections[0].id : '')
+  );
   const [scalingOption, setScalingOption] = useState('None');
   const [visibility, setVisibility] = useState<'everyone' | 'coaches' | 'programmers'>('everyone');
   const [coachNotes, setCoachNotes] = useState('');
   const [athleteNotes, setAthleteNotes] = useState('');
   const [coachNotesExpanded, setCoachNotesExpanded] = useState(false);
   const [athleteNotesExpanded, setAthleteNotesExpanded] = useState(false);
+
+  // Draggable state
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+
+  // Position modal to the right of WorkoutModal on open
+  useEffect(() => {
+    if (isOpen) {
+      const rightX = 820; // 800px + 20px padding
+      const topY = 100; // Top padding
+      setPosition({ x: rightX, y: topY });
+    }
+  }, [isOpen]);
+
+  // Drag handlers
+  const handleDragStart = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y });
+  };
+
+  useEffect(() => {
+    const handleDragMove = (e: MouseEvent) => {
+      if (isDragging) {
+        setPosition({
+          x: e.clientX - dragStart.x,
+          y: e.clientY - dragStart.y,
+        });
+      }
+    };
+
+    const handleDragEnd = () => {
+      setIsDragging(false);
+    };
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleDragMove);
+      document.addEventListener('mouseup', handleDragEnd);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleDragMove);
+      document.removeEventListener('mouseup', handleDragEnd);
+    };
+  }, [isDragging, dragStart]);
 
   if (!isOpen || !forgeBenchmark) return null;
 
@@ -41,6 +88,7 @@ function ConfigureForgeBenchmarkModal({
       id: forgeBenchmark.id,
       name: forgeBenchmark.name,
       type: forgeBenchmark.type,
+      description: forgeBenchmark.description || undefined,
       scaling_option: scalingOption !== 'None' ? scalingOption : undefined,
       visibility,
       coach_notes: coachNotes || undefined,
@@ -48,28 +96,31 @@ function ConfigureForgeBenchmarkModal({
     };
 
     onAddToSection(selectedSectionId, configuredForgeBenchmark);
-    onClose();
+    // Don't close modal - let user add multiple items
   };
 
   return (
-    <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[110]'>
-      <div className='bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto'>
-        {/* Header */}
-        <div className='bg-[#208479] text-white p-4 flex justify-between items-center sticky top-0 z-10'>
+    <div className='fixed inset-0 z-[110] pointer-events-none'>
+      <div
+        className='bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto pointer-events-auto absolute'
+        style={{
+          left: `${position.x}px`,
+          top: `${position.y}px`,
+        }}
+      >
+        {/* Header - Draggable */}
+        <div
+          className='bg-[#208479] text-white p-4 flex justify-between items-center sticky top-0 z-10 cursor-move'
+          onMouseDown={handleDragStart}
+        >
           <div className='flex items-center gap-2'>
-            <button
-              onClick={onClose}
-              className='hover:bg-[#1a6b62] rounded-full p-1 transition'
-            >
-              <ChevronLeft size={24} />
-            </button>
             <h3 className='font-bold text-lg'>Configure Forge Benchmark</h3>
           </div>
           <button
             onClick={onClose}
-            className='hover:bg-[#1a6b62] rounded-full p-1 transition'
+            className='bg-white text-[#208479] hover:bg-gray-100 px-4 py-2 rounded-lg font-semibold transition'
           >
-            <X size={24} />
+            Done
           </button>
         </div>
 

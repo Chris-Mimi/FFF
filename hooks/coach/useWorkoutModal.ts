@@ -928,16 +928,19 @@ export function useWorkoutModal(
   const handleSelectLift = (lift: BarbellLift) => {
     setSelectedLift(lift);
     setLiftModalOpen(true);
+    setLibraryOpen(false); // Close library when opening configure modal
   };
 
   const handleSelectBenchmark = (benchmark: Benchmark) => {
     setSelectedBenchmark(benchmark);
     setBenchmarkModalOpen(true);
+    setLibraryOpen(false); // Close library when opening configure modal
   };
 
   const handleSelectForgeBenchmark = (forge: ForgeBenchmark) => {
     setSelectedForgeBenchmark(forge);
     setForgeModalOpen(true);
+    setLibraryOpen(false); // Close library when opening configure modal
   };
 
   const handleAddLiftToSection = (sectionId: string, configuredLift: ConfiguredLift) => {
@@ -952,7 +955,7 @@ export function useWorkoutModal(
           : section
       ),
     }));
-    setLiftModalOpen(false);
+    // Don't close modal - let user add multiple items
   };
 
   const handleAddBenchmarkToSection = (sectionId: string, configuredBenchmark: ConfiguredBenchmark) => {
@@ -967,7 +970,7 @@ export function useWorkoutModal(
           : section
       ),
     }));
-    setBenchmarkModalOpen(false);
+    // Don't close modal - let user add multiple items
   };
 
   const handleAddForgeBenchmarkToSection = (sectionId: string, configuredForgeBenchmark: ConfiguredForgeBenchmark) => {
@@ -982,7 +985,7 @@ export function useWorkoutModal(
           : section
       ),
     }));
-    setForgeModalOpen(false);
+    // Don't close modal - let user add multiple items
   };
 
   const handleRemoveLift = (sectionId: string, liftIndex: number) => {

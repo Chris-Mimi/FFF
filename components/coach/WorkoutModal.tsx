@@ -500,6 +500,9 @@ export default function WorkoutModal({
                     workoutTypes={hook.workoutTypes}
                     sectionTypes={hook.sectionTypes}
                     loadingTracks={hook.loadingTracks}
+                    onRemoveLift={hook.handleRemoveLift}
+                    onRemoveBenchmark={hook.handleRemoveBenchmark}
+                    onRemoveForgeBenchmark={hook.handleRemoveForgeBenchmark}
                   />
                 ))}
 
@@ -531,7 +534,10 @@ export default function WorkoutModal({
           lift={hook.selectedLift}
           activeSection={hook.activeSection !== null ? hook.formData.sections[hook.activeSection] : null}
           availableSections={hook.formData.sections}
-          onClose={() => hook.setLiftModalOpen(false)}
+          onClose={() => {
+            hook.setLiftModalOpen(false);
+            hook.openLibrary();
+          }}
           onAddToSection={hook.handleAddLiftToSection}
         />
         <ConfigureBenchmarkModal
@@ -539,7 +545,10 @@ export default function WorkoutModal({
           benchmark={hook.selectedBenchmark}
           activeSection={hook.activeSection !== null ? hook.formData.sections[hook.activeSection] : null}
           availableSections={hook.formData.sections}
-          onClose={() => hook.setBenchmarkModalOpen(false)}
+          onClose={() => {
+            hook.setBenchmarkModalOpen(false);
+            hook.openLibrary();
+          }}
           onAddToSection={hook.handleAddBenchmarkToSection}
         />
         <ConfigureForgeBenchmarkModal
@@ -547,7 +556,10 @@ export default function WorkoutModal({
           forgeBenchmark={hook.selectedForgeBenchmark}
           activeSection={hook.activeSection !== null ? hook.formData.sections[hook.activeSection] : null}
           availableSections={hook.formData.sections}
-          onClose={() => hook.setForgeModalOpen(false)}
+          onClose={() => {
+            hook.setForgeModalOpen(false);
+            hook.openLibrary();
+          }}
           onAddToSection={hook.handleAddForgeBenchmarkToSection}
         />
 
@@ -911,6 +923,9 @@ export default function WorkoutModal({
                       workoutTypes={hook.workoutTypes}
                       sectionTypes={hook.sectionTypes}
                       loadingTracks={hook.loadingTracks}
+                      onRemoveLift={hook.handleRemoveLift}
+                      onRemoveBenchmark={hook.handleRemoveBenchmark}
+                      onRemoveForgeBenchmark={hook.handleRemoveForgeBenchmark}
                     />
                   ))}
 
@@ -974,7 +989,10 @@ export default function WorkoutModal({
         lift={hook.selectedLift}
         activeSection={hook.activeSection !== null ? hook.formData.sections[hook.activeSection] : null}
         availableSections={hook.formData.sections}
-        onClose={() => hook.setLiftModalOpen(false)}
+        onClose={() => {
+          hook.setLiftModalOpen(false);
+          hook.openLibrary();
+        }}
         onAddToSection={hook.handleAddLiftToSection}
       />
       <ConfigureBenchmarkModal
@@ -982,7 +1000,10 @@ export default function WorkoutModal({
         benchmark={hook.selectedBenchmark}
         activeSection={hook.activeSection !== null ? hook.formData.sections[hook.activeSection] : null}
         availableSections={hook.formData.sections}
-        onClose={() => hook.setBenchmarkModalOpen(false)}
+        onClose={() => {
+          hook.setBenchmarkModalOpen(false);
+          hook.openLibrary();
+        }}
         onAddToSection={hook.handleAddBenchmarkToSection}
       />
       <ConfigureForgeBenchmarkModal
@@ -990,7 +1011,10 @@ export default function WorkoutModal({
         forgeBenchmark={hook.selectedForgeBenchmark}
         activeSection={hook.activeSection !== null ? hook.formData.sections[hook.activeSection] : null}
         availableSections={hook.formData.sections}
-        onClose={() => hook.setForgeModalOpen(false)}
+        onClose={() => {
+          hook.setForgeModalOpen(false);
+          hook.openLibrary();
+        }}
         onAddToSection={hook.handleAddForgeBenchmarkToSection}
       />
 

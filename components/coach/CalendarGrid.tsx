@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { WODFormData } from './WorkoutModal';
+import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
 import {
   Copy,
   GripVertical,
@@ -11,6 +12,33 @@ import {
 } from 'lucide-react';
 import { getCardState, getCardClasses } from '@/utils/card-utils';
 import { formatDate, getWeekNumber } from '@/utils/date-utils';
+
+// Format helper functions for movement display
+function formatLift(lift: ConfiguredLift): string {
+  if (lift.rep_type === 'constant') {
+    const base = `${lift.name} ${lift.sets}x${lift.reps}`;
+    return lift.percentage_1rm ? `${base} @ ${lift.percentage_1rm}%` : base;
+  } else {
+    const reps = lift.variable_sets?.map(s => s.reps).join('-') || '';
+    return `${lift.name} ${reps}`;
+  }
+}
+
+function formatBenchmark(benchmark: ConfiguredBenchmark): { name: string; description?: string } {
+  const scaling = benchmark.scaling_option ? ` (${benchmark.scaling_option})` : '';
+  return {
+    name: `${benchmark.name}${scaling}`,
+    description: benchmark.description
+  };
+}
+
+function formatForgeBenchmark(forge: ConfiguredForgeBenchmark): { name: string; description?: string } {
+  const scaling = forge.scaling_option ? ` (${forge.scaling_option})` : '';
+  return {
+    name: `${forge.name}${scaling}`,
+    description: forge.description
+  };
+}
 
 interface CalendarGridProps {
   viewMode: 'weekly' | 'monthly';
@@ -253,14 +281,61 @@ export default function CalendarGrid({
             <div className='space-y-3'>
               {wod.sections && wod.sections.length > 0 ? (
                 wod.sections
-                  .filter((section) => section.content?.trim())
+                  .filter((section) => section.content?.trim() || section.lifts?.length || section.benchmarks?.length || section.forge_benchmarks?.length)
                   .map((section, idx) => (
                     <div key={idx} className='border-b border-gray-200 pb-2 last:border-b-0'>
                       <div className='text-xs font-semibold text-[#208479] mb-1'>
                         {section.type}
                         {section.duration > 0 && ` (${section.duration} min)`}
                       </div>
-                      <div className='text-xs text-gray-700 whitespace-pre-wrap'>{section.content}</div>
+
+                      {/* Display structured movements */}
+                      {(section.lifts && section.lifts.length > 0) && (
+                        <div className='mb-1 space-y-1'>
+                          {section.lifts.map((lift, liftIdx) => (
+                            <div key={liftIdx} className='text-xs text-blue-900 bg-blue-50 rounded px-2 py-1'>
+                              ≡ {formatLift(lift)}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {(section.benchmarks && section.benchmarks.length > 0) && (
+                        <div className='mb-1 space-y-1'>
+                          {section.benchmarks.map((benchmark, bmIdx) => {
+                            const formatted = formatBenchmark(benchmark);
+                            return (
+                              <div key={bmIdx} className='text-xs text-teal-900 bg-teal-50 rounded px-2 py-1'>
+                                <div className='font-semibold'>≡ {formatted.name}</div>
+                                {formatted.description && (
+                                  <div className='text-teal-800 whitespace-pre-wrap mt-0.5'>{formatted.description}</div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {(section.forge_benchmarks && section.forge_benchmarks.length > 0) && (
+                        <div className='mb-1 space-y-1'>
+                          {section.forge_benchmarks.map((forge, forgeIdx) => {
+                            const formatted = formatForgeBenchmark(forge);
+                            return (
+                              <div key={forgeIdx} className='text-xs text-cyan-900 bg-cyan-50 rounded px-2 py-1'>
+                                <div className='font-semibold'>≡ {formatted.name}</div>
+                                {formatted.description && (
+                                  <div className='text-cyan-800 whitespace-pre-wrap mt-0.5'>{formatted.description}</div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* Display free-form content */}
+                      {section.content && (
+                        <div className='text-xs text-gray-700 whitespace-pre-wrap'>{section.content}</div>
+                      )}
                     </div>
                   ))
               ) : (

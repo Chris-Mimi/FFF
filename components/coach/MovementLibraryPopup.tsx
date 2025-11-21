@@ -53,7 +53,7 @@ function MovementLibraryPopup({
 
   // Position and size state for draggable/resizable modal
   const [librarySize, setLibrarySize] = useState({ width: 800, height: 600 });
-  const [libraryPos, setLibraryPos] = useState({ bottom: 100, left: 300 });
+  const [libraryPos, setLibraryPos] = useState({ bottom: 100, left: 820 }); // Position to right of WorkoutModal
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [resizeCorner, setResizeCorner] = useState<string>('');
