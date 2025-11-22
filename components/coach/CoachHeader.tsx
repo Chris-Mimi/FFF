@@ -66,7 +66,7 @@ export const CoachHeader = ({
             className='flex items-center gap-2 bg-[#1a6b62] hover:bg-teal-800 px-4 py-2 rounded-lg transition'
           >
             <Dumbbell size={18} />
-            Benchmarks & Lifts
+            Coach Library
           </button>
           <button
             onClick={onLogout}

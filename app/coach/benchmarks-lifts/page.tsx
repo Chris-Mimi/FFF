@@ -18,7 +18,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { ArrowLeft, ChevronDown, ChevronRight, Edit2, GripVertical, Plus, Save, Trash2, X } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronRight, Edit2, GripVertical, Plus, Save, Search, Trash2, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import ExerciseFormModal from '@/components/coach/ExerciseFormModal';
@@ -166,6 +166,8 @@ export default function BenchmarksLiftsManagementPage() {
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [showExerciseModal, setShowExerciseModal] = useState(false);
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
+  const [collapsedExerciseCategories, setCollapsedExerciseCategories] = useState<Record<string, boolean>>({});
+  const [exerciseSearchTerm, setExerciseSearchTerm] = useState('');
 
   // References state
   const [references, setReferences] = useState<any>(null);
@@ -582,6 +584,10 @@ export default function BenchmarksLiftsManagementPage() {
     setCollapsedSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
+  const toggleExerciseCategory = (category: string) => {
+    setCollapsedExerciseCategories(prev => ({ ...prev, [category]: !prev[category] }));
+  };
+
   const handleSaveReference = () => {
     if (!references) return;
 
@@ -965,20 +971,53 @@ export default function BenchmarksLiftsManagementPage() {
               </button>
             </div>
 
+            {/* Search Box */}
+            <div className='mb-4'>
+              <div className='relative'>
+                <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400' size={18} />
+                <input
+                  type='text'
+                  value={exerciseSearchTerm}
+                  onChange={(e) => setExerciseSearchTerm(e.target.value)}
+                  placeholder='Search exercises by name, category, or tags...'
+                  className='w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent'
+                />
+              </div>
+            </div>
+
             {/* Group by category */}
             {Object.entries(
-              exercises.reduce((acc, ex) => {
+              exercises
+                .filter(ex => {
+                  if (!exerciseSearchTerm.trim()) return true;
+                  const searchLower = exerciseSearchTerm.toLowerCase();
+                  return (
+                    ex.name.toLowerCase().includes(searchLower) ||
+                    (ex.display_name && ex.display_name.toLowerCase().includes(searchLower)) ||
+                    ex.category.toLowerCase().includes(searchLower) ||
+                    (ex.subcategory && ex.subcategory.toLowerCase().includes(searchLower)) ||
+                    (ex.tags && ex.tags.some(tag => tag.toLowerCase().includes(searchLower)))
+                  );
+                })
+                .reduce((acc, ex) => {
                 if (!acc[ex.category]) acc[ex.category] = [];
                 acc[ex.category].push(ex);
                 return acc;
               }, {} as Record<string, Exercise[]>)
             ).map(([category, categoryExercises]) => (
-              <div key={category} className='mb-6'>
-                <h3 className='text-lg font-semibold text-gray-800 mb-3 border-b pb-2'>
-                  {category} ({categoryExercises.length})
-                </h3>
-                <div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3'>
-                  {categoryExercises.map((exercise) => (
+              <div key={category} className='mb-6 border rounded-lg'>
+                <button
+                  onClick={() => toggleExerciseCategory(category)}
+                  className='w-full flex items-center gap-2 p-3 hover:bg-green-50 rounded-t-lg'
+                >
+                  {collapsedExerciseCategories[category] ? <ChevronRight size={20} /> : <ChevronDown size={20} />}
+                  <h3 className='text-lg font-semibold text-gray-800'>
+                    {category} ({categoryExercises.length})
+                  </h3>
+                </button>
+                {!collapsedExerciseCategories[category] && (
+                  <div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3 p-3'>
+                    {categoryExercises.sort((a, b) => (a.display_name || a.name).localeCompare(b.display_name || b.name)).map((exercise) => (
                     <div
                       key={exercise.id}
                       className='border border-gray-300 rounded-lg p-3 bg-green-50 hover:bg-green-100 hover:shadow-lg hover:z-10 transition-all group relative'
@@ -1016,8 +1055,9 @@ export default function BenchmarksLiftsManagementPage() {
                         </div>
                       )}
                     </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
 
@@ -1063,8 +1103,8 @@ export default function BenchmarksLiftsManagementPage() {
                     </button>
                   </div>
                   {!collapsedSections.equipment && (
-                    <div className='px-4 pb-3 space-y-0.5'>
-                      {references.namingConventions?.equipment?.map((item: any, idx: number) => (
+                    <div className='px-4 pb-3 grid grid-cols-3 gap-x-4'>
+                      {references.namingConventions?.equipment?.sort((a: any, b: any) => a.abbr.localeCompare(b.abbr)).map((item: any, idx: number) => (
                         <div key={idx} className='flex items-center justify-between py-1 group hover:bg-gray-50 px-2 rounded'>
                           <span className='text-sm'>
                             <span className='font-bold'>{item.abbr}</span> = {item.full}
@@ -1120,8 +1160,8 @@ export default function BenchmarksLiftsManagementPage() {
                     </button>
                   </div>
                   {!collapsedSections.movementTypes && (
-                    <div className='px-4 pb-3 grid grid-cols-2 gap-x-4'>
-                      {references.namingConventions?.movementTypes?.map((item: any, idx: number) => (
+                    <div className='px-4 pb-3 grid grid-cols-3 gap-x-4'>
+                      {references.namingConventions?.movementTypes?.sort((a: any, b: any) => a.abbr.localeCompare(b.abbr)).map((item: any, idx: number) => (
                         <div key={idx} className='flex items-center justify-between py-1 group hover:bg-gray-50 px-2 rounded'>
                           <span className='text-sm'>
                             <span className='font-bold'>{item.abbr}</span> = {item.full}
@@ -1176,8 +1216,8 @@ export default function BenchmarksLiftsManagementPage() {
                     </button>
                   </div>
                   {!collapsedSections.anatomicalTerms && (
-                    <div className='px-4 pb-3 space-y-0.5'>
-                      {references.namingConventions?.anatomicalTerms?.map((item: any, idx: number) => (
+                    <div className='px-4 pb-3 grid grid-cols-3 gap-x-4'>
+                      {references.namingConventions?.anatomicalTerms?.sort((a: any, b: any) => a.abbr.localeCompare(b.abbr)).map((item: any, idx: number) => (
                         <div key={idx} className='flex items-center justify-between py-1 group hover:bg-gray-50 px-2 rounded'>
                           <span className='text-sm'>
                             <span className='font-bold'>{item.abbr}</span> = {item.full}
@@ -1232,8 +1272,8 @@ export default function BenchmarksLiftsManagementPage() {
                     </button>
                   </div>
                   {!collapsedSections.movementPatterns && (
-                    <div className='px-4 pb-3 space-y-0.5'>
-                      {references.namingConventions?.movementPatterns?.map((item: any, idx: number) => (
+                    <div className='px-4 pb-3 grid grid-cols-3 gap-x-4'>
+                      {references.namingConventions?.movementPatterns?.sort((a: any, b: any) => a.abbr.localeCompare(b.abbr)).map((item: any, idx: number) => (
                         <div key={idx} className='flex items-center justify-between py-1 group hover:bg-gray-50 px-2 rounded'>
                           <span className='text-sm'>
                             <span className='font-bold'>{item.abbr}</span> = {item.full}
@@ -1287,8 +1327,8 @@ export default function BenchmarksLiftsManagementPage() {
                     </button>
                   </div>
                   {!collapsedSections.resources && (
-                    <div className='px-4 pb-3 space-y-0.5'>
-                      {references.resources?.map((resource: any, idx: number) => (
+                    <div className='px-4 pb-3 grid grid-cols-3 gap-x-4'>
+                      {references.resources?.sort((a: any, b: any) => a.name.localeCompare(b.name)).map((resource: any, idx: number) => (
                         <div key={idx} className='flex items-start justify-between py-2 group hover:bg-gray-50 px-2 rounded border-b border-gray-100 last:border-0'>
                           <div className='flex-1'>
                             <div>

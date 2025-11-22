@@ -286,7 +286,7 @@ function ExerciseLibraryPopup({
 
                   {/* Exercise Buttons - Responsive Grid */}
                   <div className={`grid ${getColumnClass()} gap-2 mb-3`}>
-                    {categoryExercises.map(exercise => (
+                    {categoryExercises.sort((a, b) => a.name.localeCompare(b.name)).map(exercise => (
                       <button
                         key={exercise.id}
                         onClick={() => handleSelectExercise(exercise.name)}
