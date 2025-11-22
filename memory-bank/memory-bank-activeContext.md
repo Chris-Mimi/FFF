@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 5.7
-**Updated:** 2025-11-21 (Session 16 - Phase 3-4 complete, Movement Library feature-complete)
+**Version:** 5.8
+**Updated:** 2025-11-22 (Session 17 - Exercise Import System + Movement Library UX improvements)
 
 ---
 
@@ -40,7 +40,7 @@ Coach Tables
 ├─ section_types (id, name, display_order)
 ├─ workout_types (id, name)
 ├─ workout_titles (id, title)
-├─ exercises (id, name, category)
+├─ exercises (id, name [UNIQUE], display_name, category, subcategory, equipment[], body_parts[], difficulty, is_warmup, is_stretch, search_terms, search_vector [GIN indexed])
 ├─ tracks (id, name, description, color)
 ├─ weekly_sessions (id, date, time, workout_id, capacity, status)
 ├─ benchmark_workouts (id, name, type, description, display_order)
@@ -61,6 +61,24 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-11-22 Session 17):**
+- **Exercise Import System & Movement Library UX Improvements:**
+  - ✅ **Exercise Import System:** Database schema extension with 8 new fields (display_name, subcategory, equipment[], body_parts[], difficulty, is_warmup, is_stretch, search_terms, search_vector)
+  - ✅ Full-text search via trigger (weighted: name=A, search_terms=B, tags=C) with GIN index
+  - ✅ Bulk import script using service role key: `npx tsx scripts/import-exercises.ts`
+  - ✅ ExerciseFormModal with CRUD operations (comma-separated arrays, difficulty dropdown)
+  - ✅ Added 4th "Exercises" tab to Benchmarks/Lifts page (8 categories, 5-column grid)
+  - ✅ RLS policy: Read/Write enabled, Delete blocked (admin-only via dashboard)
+  - ✅ Imported 55 exercises across 8 categories (sample data ready for 400+ full import)
+  - ✅ **Movement Library UX:** Workout flow category ordering (Warm-up → Olympic → Compound → Gymnastics → Core → Cardio → Specialty → Recovery)
+  - ✅ Ultra-compact layout: gap-0, px-0.5 py-0.5, text-xs (maximum density)
+  - ✅ Dynamic 5-column cap prevents overcrowding (responsive 2-5 columns based on width)
+  - ✅ **Active Section Fix:** Changed from direct mutation to proper setter (exercises now insert into clicked section)
+  - Dependencies: Added dotenv, tsx for import script execution
+  - Commits: 1c6cb43 (13 files, 2,955 insertions)
+  - Branch: main (direct commits)
+  - See `project-history/2025-11-22-session-17-exercise-import-movement-library-ux.md`
 
 **Completed (2025-11-21 Session 16 - Phase 3-4):**
 - **Movement Library Feature - Phase 3-4 (Athlete Display & Analytics):**
@@ -313,6 +331,12 @@ Athlete Tables (linked to members.id)
 - macOS iCloud Keychain autofill popups (OS behavior, not app bug)
 
 **Lessons Learned:**
+- **2025-11-22 (Session 17):** Progressive user feedback yields best UX - "Reduce spacing" request had 4 iterations (gap-2 → gap-1 → gap-0.5 → gap-0) based on user seeing each change. Final result 75% smaller than first attempt.
+- **2025-11-22 (Session 17):** Auto-fill grid column caps need custom functions - `minmax(240px, 1fr)` prevents 6th column but wastes space. Dynamic calculation `Math.min(possibleCols, maxCols)` achieves perfect balance.
+- **2025-11-22 (Session 17):** Direct state mutation invisible to React - `hook.activeSection = index` compiles without error but fails silently at runtime. Must use setters to trigger re-renders.
+- **2025-11-22 (Session 17):** Trigger-based full-text search for non-immutable functions - Generated columns can't use to_tsvector (not immutable). PostgreSQL triggers are standard solution.
+- **2025-11-22 (Session 17):** Service role key required for bulk operations - RLS good for app security, but bulk imports need admin bypass to avoid per-row policy checks.
+- **2025-11-22 (Session 17):** User-driven iteration beats conservative design - User's "still more" feedback 3 times led to gap-0 layout that wouldn't have been reached via safe incremental changes.
 - **2025-11-21 (Session 16):** Format helper reusability across views - Same format functions used in coach badges, calendar hover, and athlete display ensures perfect consistency
 - **2025-11-21 (Session 16):** JSONB enables zero-migration analytics - Structured movement data in existing JSONB fields allows frequency analysis without schema changes
 - **2025-11-21 (Session 16):** Type safety catches runtime errors early - TypeScript inference prevented several null/undefined access bugs during development
@@ -367,15 +391,17 @@ Athlete Tables (linked to members.id)
 
 ## 📋 Next Immediate Steps
 
-1. **Movement Library - Ready for Merge:**
-   - ✅ All 4 phases complete: Infrastructure, Coach Display, Athlete Display, Analytics
-   - ✅ Zero build errors, comprehensive testing complete
-   - **Next:** User acceptance testing, then merge movement-library-feature → main
-   - **Optional enhancements (post-merge):**
-     - Analytics dashboard UI at `/coach/analytics`
-     - Mobile testing and optimization
-     - Movement recommendation engine (underutilized movements)
-     - Athlete notes display with visibility filtering
+1. **Exercise Library - Ready for Full Import:**
+   - ✅ Database schema extended with 8 new fields
+   - ✅ Import script tested with 55 sample exercises
+   - ✅ Coach CRUD UI functional
+   - ✅ Full-text search with GIN index operational
+   - **Next:** Import remaining 300+ exercises to complete 400+ exercise library
+   - **Command:** `npx tsx scripts/import-exercises.ts database/exercises-import.json`
+   - **Optional enhancements:**
+     - Search by equipment/body_parts filters
+     - Exercise favorites/recently used
+     - Video URL integration for exercise demos
 
 2. **Code Maintenance & Refactoring Needs:**
    - **File Size Management:** Keep files under 2000 lines to avoid frequent major refactors
