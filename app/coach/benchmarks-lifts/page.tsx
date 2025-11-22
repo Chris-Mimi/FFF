@@ -1041,17 +1041,16 @@ export default function BenchmarksLiftsManagementPage() {
               <div className='space-y-3'>
                 {/* Equipment */}
                 <div className='border rounded-lg'>
-                  <button
-                    onClick={() => toggleSection('equipment')}
-                    className='w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-t-lg'
-                  >
-                    <div className='flex items-center gap-2'>
+                  <div className='flex items-center justify-between p-3 hover:bg-gray-50 rounded-t-lg'>
+                    <button
+                      onClick={() => toggleSection('equipment')}
+                      className='flex items-center gap-2 flex-1'
+                    >
                       {collapsedSections.equipment ? <ChevronRight size={20} /> : <ChevronDown size={20} />}
                       <h4 className='font-semibold text-gray-800'>Equipment ({references.namingConventions?.equipment?.length || 0})</h4>
-                    </div>
+                    </button>
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
+                      onClick={() => {
                         setReferenceType('naming');
                         setReferenceCategory('equipment');
                         setEditingReference(null);
@@ -1062,7 +1061,7 @@ export default function BenchmarksLiftsManagementPage() {
                     >
                       <Plus size={16} />
                     </button>
-                  </button>
+                  </div>
                   {!collapsedSections.equipment && (
                     <div className='px-4 pb-3 space-y-0.5'>
                       {references.namingConventions?.equipment?.map((item: any, idx: number) => (
@@ -1099,17 +1098,16 @@ export default function BenchmarksLiftsManagementPage() {
 
                 {/* Movement Types */}
                 <div className='border rounded-lg'>
-                  <button
-                    onClick={() => toggleSection('movementTypes')}
-                    className='w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-t-lg'
-                  >
-                    <div className='flex items-center gap-2'>
+                  <div className='flex items-center justify-between p-3 hover:bg-gray-50 rounded-t-lg'>
+                    <button
+                      onClick={() => toggleSection('movementTypes')}
+                      className='flex items-center gap-2 flex-1'
+                    >
                       {collapsedSections.movementTypes ? <ChevronRight size={20} /> : <ChevronDown size={20} />}
                       <h4 className='font-semibold text-gray-800'>Movement Types ({references.namingConventions?.movementTypes?.length || 0})</h4>
-                    </div>
+                    </button>
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
+                      onClick={() => {
                         setReferenceType('naming');
                         setReferenceCategory('movementTypes');
                         setEditingReference(null);
@@ -1120,7 +1118,7 @@ export default function BenchmarksLiftsManagementPage() {
                     >
                       <Plus size={16} />
                     </button>
-                  </button>
+                  </div>
                   {!collapsedSections.movementTypes && (
                     <div className='px-4 pb-3 grid grid-cols-2 gap-x-4'>
                       {references.namingConventions?.movementTypes?.map((item: any, idx: number) => (
@@ -1156,17 +1154,16 @@ export default function BenchmarksLiftsManagementPage() {
 
                 {/* Anatomical Terms */}
                 <div className='border rounded-lg'>
-                  <button
-                    onClick={() => toggleSection('anatomicalTerms')}
-                    className='w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-t-lg'
-                  >
-                    <div className='flex items-center gap-2'>
+                  <div className='flex items-center justify-between p-3 hover:bg-gray-50 rounded-t-lg'>
+                    <button
+                      onClick={() => toggleSection('anatomicalTerms')}
+                      className='flex items-center gap-2 flex-1'
+                    >
                       {collapsedSections.anatomicalTerms ? <ChevronRight size={20} /> : <ChevronDown size={20} />}
                       <h4 className='font-semibold text-gray-800'>Anatomical Terms ({references.namingConventions?.anatomicalTerms?.length || 0})</h4>
-                    </div>
+                    </button>
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
+                      onClick={() => {
                         setReferenceType('naming');
                         setReferenceCategory('anatomicalTerms');
                         setEditingReference(null);
@@ -1177,7 +1174,7 @@ export default function BenchmarksLiftsManagementPage() {
                     >
                       <Plus size={16} />
                     </button>
-                  </button>
+                  </div>
                   {!collapsedSections.anatomicalTerms && (
                     <div className='px-4 pb-3 space-y-0.5'>
                       {references.namingConventions?.anatomicalTerms?.map((item: any, idx: number) => (
@@ -1213,17 +1210,16 @@ export default function BenchmarksLiftsManagementPage() {
 
                 {/* Movement Patterns */}
                 <div className='border rounded-lg'>
-                  <button
-                    onClick={() => toggleSection('movementPatterns')}
-                    className='w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-t-lg'
-                  >
-                    <div className='flex items-center gap-2'>
+                  <div className='flex items-center justify-between p-3 hover:bg-gray-50 rounded-t-lg'>
+                    <button
+                      onClick={() => toggleSection('movementPatterns')}
+                      className='flex items-center gap-2 flex-1'
+                    >
                       {collapsedSections.movementPatterns ? <ChevronRight size={20} /> : <ChevronDown size={20} />}
                       <h4 className='font-semibold text-gray-800'>Movement Patterns & Methods ({references.namingConventions?.movementPatterns?.length || 0})</h4>
-                    </div>
+                    </button>
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
+                      onClick={() => {
                         setReferenceType('naming');
                         setReferenceCategory('movementPatterns');
                         setEditingReference(null);
@@ -1234,7 +1230,7 @@ export default function BenchmarksLiftsManagementPage() {
                     >
                       <Plus size={16} />
                     </button>
-                  </button>
+                  </div>
                   {!collapsedSections.movementPatterns && (
                     <div className='px-4 pb-3 space-y-0.5'>
                       {references.namingConventions?.movementPatterns?.map((item: any, idx: number) => (
@@ -1270,17 +1266,16 @@ export default function BenchmarksLiftsManagementPage() {
 
                 {/* Resources */}
                 <div className='border rounded-lg'>
-                  <button
-                    onClick={() => toggleSection('resources')}
-                    className='w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-t-lg'
-                  >
-                    <div className='flex items-center gap-2'>
+                  <div className='flex items-center justify-between p-3 hover:bg-gray-50 rounded-t-lg'>
+                    <button
+                      onClick={() => toggleSection('resources')}
+                      className='flex items-center gap-2 flex-1'
+                    >
                       {collapsedSections.resources ? <ChevronRight size={20} /> : <ChevronDown size={20} />}
                       <h4 className='font-semibold text-gray-800'>Programs & Resources ({references.resources?.length || 0})</h4>
-                    </div>
+                    </button>
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
+                      onClick={() => {
                         setReferenceType('resource');
                         setEditingReference(null);
                         setReferenceForm({ abbr: '', full: '', notes: '', name: '', description: '', url: '', category: '' });
@@ -1290,7 +1285,7 @@ export default function BenchmarksLiftsManagementPage() {
                     >
                       <Plus size={16} />
                     </button>
-                  </button>
+                  </div>
                   {!collapsedSections.resources && (
                     <div className='px-4 pb-3 space-y-0.5'>
                       {references.resources?.map((resource: any, idx: number) => (
