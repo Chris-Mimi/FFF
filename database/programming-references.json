@@ -1,0 +1,68 @@
+{
+  "namingConventions": {
+    "equipment": [
+      { "abbr": "BB", "full": "Barbell", "notes": null },
+      { "abbr": "BR", "full": "Ball Roll", "notes": "Normally BS for Ball Smash, but we use BS for Back Squat" },
+      { "abbr": "C2", "full": "Concept2", "notes": "Rower/Skierg" },
+      { "abbr": "DB", "full": "Dumbbell", "notes": null },
+      { "abbr": "FR", "full": "Foam Roller", "notes": null },
+      { "abbr": "GHD", "full": "Glute-Ham Developer", "notes": null },
+      { "abbr": "KB", "full": "Kettlebell", "notes": null },
+      { "abbr": "MB", "full": "Medicine Ball", "notes": null },
+      { "abbr": "PVC", "full": "PVC Pipe", "notes": null },
+      { "abbr": "RB", "full": "Resistance Band", "notes": null },
+      { "abbr": "SB", "full": "Sandbag", "notes": null },
+      { "abbr": "TRX", "full": "TRX Suspension Trainer", "notes": null },
+      { "abbr": "WB", "full": "Wallball", "notes": null }
+    ],
+    "movementTypes": [
+      { "abbr": "AKBS", "full": "American Kettlebell Swing", "notes": null },
+      { "abbr": "Alt.", "full": "Alternating", "notes": null },
+      { "abbr": "ATG", "full": "Ass-to-Grass", "notes": null },
+      { "abbr": "BSS", "full": "Bulgarian Split Squat", "notes": null },
+      { "abbr": "C&P", "full": "Clean & Press", "notes": null },
+      { "abbr": "C2B", "full": "Chest to Bar", "notes": null },
+      { "abbr": "DL", "full": "Deadlift", "notes": null },
+      { "abbr": "DUs", "full": "Double-Unders", "notes": null },
+      { "abbr": "SU", "full": "Single Unders", "notes": null },
+      { "abbr": "FS", "full": "Front Squat", "notes": null },
+      { "abbr": "HPC", "full": "Hang Power Clean", "notes": null },
+      { "abbr": "HPS", "full": "Hang Power Snatch", "notes": null },
+      { "abbr": "HSPU", "full": "Handstand Push-Up", "notes": null },
+      { "abbr": "HSW", "full": "Handstand Walk", "notes": null },
+      { "abbr": "OH", "full": "Overhead", "notes": null },
+      { "abbr": "OHP", "full": "Overhead Press", "notes": null },
+      { "abbr": "OHS", "full": "Overhead Squat", "notes": null },
+      { "abbr": "OTB", "full": "Over the Box", "notes": null },
+      { "abbr": "PJ", "full": "Push Jerk", "notes": null },
+      { "abbr": "PP", "full": "Push Press", "notes": null },
+      { "abbr": "PT", "full": "Pass Through", "notes": null },
+      { "abbr": "RDL", "full": "Romanian Deadlift", "notes": null },
+      { "abbr": "RKBS", "full": "Russian Kettlebell Swing", "notes": null },
+      { "abbr": "T2B", "full": "Toes to Bar", "notes": null },
+      { "abbr": "TGU", "full": "Turkish Get-Up", "notes": null },
+      { "abbr": "WGS", "full": "World's Greatest Stretch", "notes": null }
+    ],
+    "anatomicalTerms": [
+      { "abbr": "Dbl", "full": "Double", "notes": null },
+      { "abbr": "FHL", "full": "Flexor Hallucis Longus", "notes": null },
+      { "abbr": "KoT", "full": "Knee Over Toe", "notes": null },
+      { "abbr": "TFL", "full": "Tensor Fascia Latae", "notes": null }
+    ],
+    "movementPatterns": [
+      { "abbr": "ATY", "full": "(ITY) Shape of letters during movement", "notes": null },
+      { "abbr": "PNF", "full": "Proprioceptive Neuromuscular Facilitation", "notes": null }
+    ]
+  },
+  "resources": [
+    { "name": "GoWOD", "description": "Mobility app/program", "url": "https://www.gowod.app/", "category": "Mobility" },
+    { "name": "GMB Fitness", "description": "Gold Medal Bodies", "url": "https://gmb.io/", "category": "Bodyweight/Gymnastics" },
+    { "name": "Squat University", "description": "Dr. Aaron Horschig", "url": "https://squatuniversity.com/", "category": "Movement Quality" },
+    { "name": "Catalyst Athletics", "description": "Olympic Weightlifting", "url": "https://www.catalystathletics.com/", "category": "Olympic Lifting" },
+    { "name": "Saturno Movement", "description": "Gymnastics Mobility program", "url": null, "category": "Gymnastics/Mobility" },
+    { "name": "Torokhtiy", "description": "Olympic Weightlifting program", "url": "https://torokhtiy.com/", "category": "Olympic Lifting" },
+    { "name": "Power Monkey Fitness", "description": "Gymnastics program (Dave Durante)", "url": "https://powermonkeyfitness.com/", "category": "Gymnastics" },
+    { "name": "Wildman Athletica", "description": "Kettlebell program (Mark Wildman)", "url": "https://www.youtube.com/@MarkWildman", "category": "Kettlebell" },
+    { "name": "P90X", "description": "Full fitness program, Ab Ripper X (Tony Horton)", "url": null, "category": "General Fitness" }
+  ]
+}
