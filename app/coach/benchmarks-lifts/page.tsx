@@ -21,6 +21,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { ArrowLeft, Edit2, GripVertical, Plus, Save, Trash2, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import ExerciseFormModal from '@/components/coach/ExerciseFormModal';
 
 interface Benchmark {
   id: string;
@@ -35,6 +36,23 @@ interface Lift {
   name: string;
   category: string;
   display_order: number;
+}
+
+interface Exercise {
+  id: string;
+  name: string;
+  display_name?: string;
+  category: string;
+  subcategory?: string;
+  description: string | null;
+  video_url: string | null;
+  tags: string[] | null;
+  equipment?: string[];
+  body_parts?: string[];
+  difficulty?: 'beginner' | 'intermediate' | 'advanced';
+  is_warmup?: boolean;
+  is_stretch?: boolean;
+  search_terms?: string;
 }
 
 // Sortable Forge Card Component
@@ -109,7 +127,7 @@ function SortableForgeCard({
 
 export default function BenchmarksLiftsManagementPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'benchmarks' | 'forge' | 'lifts'>('benchmarks');
+  const [activeTab, setActiveTab] = useState<'benchmarks' | 'forge' | 'lifts' | 'exercises'>('benchmarks');
   const [loading, setLoading] = useState(true);
 
   // Benchmarks state
@@ -144,6 +162,11 @@ export default function BenchmarksLiftsManagementPage() {
     display_order: 0
   });
 
+  // Exercises state
+  const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [showExerciseModal, setShowExerciseModal] = useState(false);
+  const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
+
   // Drag and drop sensors
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -161,6 +184,7 @@ export default function BenchmarksLiftsManagementPage() {
       fetchBenchmarks();
       fetchForgeBenchmarks();
       fetchLifts();
+      fetchExercises();
     }
   }, [loading]);
 
@@ -491,7 +515,7 @@ export default function BenchmarksLiftsManagementPage() {
     }
 
     try {
-      const { error } = await supabase
+      const { error} = await supabase
         .from('barbell_lifts')
         .delete()
         .eq('id', id);
@@ -501,6 +525,73 @@ export default function BenchmarksLiftsManagementPage() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error('Error deleting lift:', error);
+      alert(`Error: ${error.message}`);
+    }
+  };
+
+  // Exercises functions
+  const fetchExercises = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('exercises')
+        .select('*')
+        .order('category', { ascending: true });
+
+      if (error) throw error;
+      setExercises(data || []);
+    } catch (error) {
+      console.error('Error fetching exercises:', error);
+    }
+  };
+
+  const handleSaveExercise = async (exerciseData: Omit<Exercise, 'id'> & { id?: string }) => {
+    try {
+      if (exerciseData.id) {
+        // Update existing
+        const { error } = await supabase
+          .from('exercises')
+          .update({
+            ...exerciseData,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', exerciseData.id);
+
+        if (error) throw error;
+      } else {
+        // Create new
+        const { error } = await supabase
+          .from('exercises')
+          .insert(exerciseData);
+
+        if (error) throw error;
+      }
+
+      setShowExerciseModal(false);
+      setEditingExercise(null);
+      fetchExercises();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      console.error('Error saving exercise:', error);
+      alert(`Error: ${error.message}`);
+    }
+  };
+
+  const handleDeleteExercise = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this exercise?')) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('exercises')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      fetchExercises();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      console.error('Error deleting exercise:', error);
       alert(`Error: ${error.message}`);
     }
   };
@@ -566,6 +657,16 @@ export default function BenchmarksLiftsManagementPage() {
             }`}
           >
             Barbell Lifts
+          </button>
+          <button
+            onClick={() => setActiveTab('exercises')}
+            className={`px-4 py-2 rounded-lg font-medium transition ${
+              activeTab === 'exercises'
+                ? 'bg-green-500 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            Exercises
           </button>
         </div>
 
@@ -724,6 +825,92 @@ export default function BenchmarksLiftsManagementPage() {
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {/* Exercises Tab */}
+        {activeTab === 'exercises' && (
+          <div className='bg-white rounded-lg shadow p-6'>
+            <div className='flex justify-between items-center mb-4'>
+              <div className='flex items-center gap-3'>
+                <h2 className='text-xl font-bold text-gray-900'>Exercise Library</h2>
+                <span className='px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold'>
+                  {exercises.length}
+                </span>
+              </div>
+              <button
+                onClick={() => {
+                  setEditingExercise(null);
+                  setShowExerciseModal(true);
+                }}
+                className='px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition flex items-center gap-2'
+              >
+                <Plus size={20} />
+                Add Exercise
+              </button>
+            </div>
+
+            {/* Group by category */}
+            {Object.entries(
+              exercises.reduce((acc, ex) => {
+                if (!acc[ex.category]) acc[ex.category] = [];
+                acc[ex.category].push(ex);
+                return acc;
+              }, {} as Record<string, Exercise[]>)
+            ).map(([category, categoryExercises]) => (
+              <div key={category} className='mb-6'>
+                <h3 className='text-lg font-semibold text-gray-800 mb-3 border-b pb-2'>
+                  {category} ({categoryExercises.length})
+                </h3>
+                <div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3'>
+                  {categoryExercises.map((exercise) => (
+                    <div
+                      key={exercise.id}
+                      className='border border-gray-300 rounded-lg p-3 bg-green-50 hover:bg-green-100 hover:shadow-lg hover:z-10 transition-all group relative'
+                    >
+                      <div className='absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition'>
+                        <button
+                          onClick={() => {
+                            setEditingExercise(exercise);
+                            setShowExerciseModal(true);
+                          }}
+                          className='p-1 text-blue-600 hover:bg-blue-50 rounded transition'
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteExercise(exercise.id)}
+                          className='p-1 text-red-600 hover:bg-red-50 rounded transition'
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                      <h4 className='text-base font-bold text-gray-900 mb-1'>
+                        {exercise.display_name || exercise.name}
+                      </h4>
+                      {exercise.subcategory && (
+                        <p className='text-xs text-gray-600 mb-1'>{exercise.subcategory}</p>
+                      )}
+                      {exercise.tags && exercise.tags.length > 0 && (
+                        <div className='flex flex-wrap gap-1 mt-2'>
+                          {exercise.tags.slice(0, 3).map((tag, idx) => (
+                            <span key={idx} className='text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded'>
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+
+            {exercises.length === 0 && (
+              <div className='text-center py-8 text-gray-500'>
+                No exercises yet. Click &quot;Add Exercise&quot; to create one.
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -989,6 +1176,17 @@ export default function BenchmarksLiftsManagementPage() {
           </div>
         </div>
       )}
+
+      {/* Exercise Form Modal */}
+      <ExerciseFormModal
+        isOpen={showExerciseModal}
+        onClose={() => {
+          setShowExerciseModal(false);
+          setEditingExercise(null);
+        }}
+        onSave={handleSaveExercise}
+        editingExercise={editingExercise}
+      />
     </div>
   );
 }

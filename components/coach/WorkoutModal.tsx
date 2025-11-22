@@ -493,7 +493,7 @@ export default function WorkoutModal({
                     onToggleExpand={() => hook.toggleSectionExpanded(section.id, index)}
                     onUpdate={updates => hook.updateSection(section.id, updates)}
                     onDelete={() => hook.deleteSection(section.id)}
-                    onSetActive={() => hook.activeSection = index}
+                    onSetActive={() => hook.setActiveSection(index)}
                     onDragStart={hook.handleDragStart}
                     onDragOver={hook.handleDragOver}
                     onDrop={hook.handleDrop}
@@ -916,7 +916,7 @@ export default function WorkoutModal({
                       onToggleExpand={() => hook.toggleSectionExpanded(section.id, index)}
                       onUpdate={updates => hook.updateSection(section.id, updates)}
                       onDelete={() => hook.deleteSection(section.id)}
-                      onSetActive={() => hook.activeSection = index}
+                      onSetActive={() => hook.setActiveSection(index)}
                       onDragStart={hook.handleDragStart}
                       onDragOver={hook.handleDragOver}
                       onDrop={hook.handleDrop}

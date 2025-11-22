@@ -7,10 +7,18 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 interface Exercise {
   id: string;
   name: string;
+  display_name?: string;
   category: string;
+  subcategory?: string;
   description: string | null;
   video_url: string | null;
   tags: string[] | null;
+  equipment?: string[];
+  body_parts?: string[];
+  difficulty?: 'beginner' | 'intermediate' | 'advanced';
+  is_warmup?: boolean;
+  is_stretch?: boolean;
+  search_terms?: string;
 }
 
 // Exercise Library Popup Component
@@ -30,12 +38,11 @@ function ExerciseLibraryPopup({
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Position and size state for draggable/resizable modal
-  const [librarySize, setLibrarySize] = useState({ width: 800, height: 600 });
-  const [libraryPos, setLibraryPos] = useState({ bottom: 100, left: 300 });
+  const [librarySize, setLibrarySize] = useState({ width: 1000, height: 700 });
+  const [libraryPos, setLibraryPos] = useState({ top: 100, left: 300 });
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
-  const [resizeCorner, setResizeCorner] = useState<string>('');
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0, bottom: 0, left: 0 });
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0, top: 0, left: 0 });
   const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 });
 
   // Handle drag
@@ -45,17 +52,16 @@ function ExerciseLibraryPopup({
     setDragStart({
       x: e.clientX,
       y: e.clientY,
-      bottom: libraryPos.bottom,
+      top: libraryPos.top,
       left: libraryPos.left,
     });
   };
 
-  // Handle resize
-  const handleLibraryResizeStart = (e: React.MouseEvent, corner: string) => {
+  // Handle resize (bottom-right corner only)
+  const handleResizeStart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsResizing(true);
-    setResizeCorner(corner);
     setResizeStart({
       x: e.clientX,
       y: e.clientY,
@@ -71,7 +77,7 @@ function ExerciseLibraryPopup({
         const deltaX = e.clientX - dragStart.x;
         const deltaY = e.clientY - dragStart.y;
         setLibraryPos({
-          bottom: Math.max(0, dragStart.bottom - deltaY),
+          top: Math.max(0, dragStart.top + deltaY),
           left: Math.max(0, dragStart.left + deltaX),
         });
       };
@@ -88,51 +94,13 @@ function ExerciseLibraryPopup({
       const handleMouseMove = (e: MouseEvent) => {
         const deltaX = e.clientX - resizeStart.x;
         const deltaY = e.clientY - resizeStart.y;
-        let newWidth = resizeStart.width;
-        let newHeight = resizeStart.height;
-        let newBottom = libraryPos.bottom;
-        let newLeft = libraryPos.left;
 
-        switch (resizeCorner) {
-          case 'se':
-            newWidth = resizeStart.width + deltaX;
-            newHeight = resizeStart.height + deltaY;
-            newBottom = libraryPos.bottom - deltaY;
-            break;
-          case 'sw':
-            newWidth = resizeStart.width - deltaX;
-            newHeight = resizeStart.height + deltaY;
-            newLeft = libraryPos.left + deltaX;
-            newBottom = libraryPos.bottom - deltaY;
-            break;
-          case 'ne':
-            newWidth = resizeStart.width + deltaX;
-            newHeight = resizeStart.height - deltaY;
-            newBottom = libraryPos.bottom - deltaY;
-            break;
-          case 'nw':
-            newWidth = resizeStart.width - deltaX;
-            newHeight = resizeStart.height - deltaY;
-            newLeft = libraryPos.left + deltaX;
-            newBottom = libraryPos.bottom - deltaY;
-            break;
-        }
-
-        newWidth = Math.max(600, Math.min(1400, newWidth));
-        newHeight = Math.max(400, Math.min(window.innerHeight * 0.9, newHeight));
-        newBottom = Math.max(0, newBottom);
-        newLeft = Math.max(0, newLeft);
+        const newWidth = Math.max(600, Math.min(1400, resizeStart.width + deltaX));
+        const newHeight = Math.max(400, Math.min(900, resizeStart.height + deltaY));
 
         setLibrarySize({ width: newWidth, height: newHeight });
-        const updates: { left?: number; bottom?: number } = {};
-        if (resizeCorner === 'sw' || resizeCorner === 'nw') updates.left = newLeft;
-        updates.bottom = newBottom;
-        setLibraryPos(prev => ({ ...prev, ...updates }));
       };
-      const handleMouseUp = () => {
-        setIsResizing(false);
-        setResizeCorner('');
-      };
+      const handleMouseUp = () => setIsResizing(false);
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
       return () => {
@@ -140,7 +108,7 @@ function ExerciseLibraryPopup({
         document.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [isDragging, isResizing, dragStart, resizeStart, resizeCorner]);
+  }, [isDragging, isResizing, dragStart, resizeStart]);
 
   // Fetch exercises from Supabase only once
   useEffect(() => {
@@ -228,7 +196,7 @@ function ExerciseLibraryPopup({
     // Keep library open for multiple selections
   };
 
-  // Calculate responsive columns based on width
+  // Responsive columns based on width
   const getColumnClass = () => {
     if (librarySize.width >= 1100) return 'grid-cols-4';
     if (librarySize.width >= 800) return 'grid-cols-3';
@@ -239,7 +207,7 @@ function ExerciseLibraryPopup({
     <div
       className='fixed z-[100]'
       style={{
-        bottom: `${libraryPos.bottom}px`,
+        top: `${libraryPos.top}px`,
         left: `${libraryPos.left}px`,
       }}
     >
@@ -250,34 +218,13 @@ function ExerciseLibraryPopup({
           height: `${librarySize.height}px`,
         }}
       >
-        {/* Corner Resize Handles */}
+        {/* Bottom-right resize handle */}
         <div
-          className='absolute bottom-0 right-0 w-8 h-8 cursor-se-resize z-50'
-          onMouseDown={e => handleLibraryResizeStart(e, 'se')}
+          className='absolute bottom-0 right-0 w-6 h-6 cursor-se-resize z-50'
+          onMouseDown={handleResizeStart}
           title='Drag to resize'
         >
-          <div className='absolute bottom-0 right-0 w-0 h-0 border-l-[32px] border-l-transparent border-b-[32px] border-b-[#208479] hover:border-b-[#1a6b62] transition'></div>
-        </div>
-        <div
-          className='absolute top-0 right-0 w-8 h-8 cursor-ne-resize z-50'
-          onMouseDown={e => handleLibraryResizeStart(e, 'ne')}
-          title='Drag to resize'
-        >
-          <div className='absolute top-0 right-0 w-0 h-0 border-l-[32px] border-l-transparent border-t-[32px] border-t-[#208479] hover:border-t-[#1a6b62] transition rounded-tr-lg'></div>
-        </div>
-        <div
-          className='absolute bottom-0 left-0 w-8 h-8 cursor-sw-resize z-50'
-          onMouseDown={e => handleLibraryResizeStart(e, 'sw')}
-          title='Drag to resize'
-        >
-          <div className='absolute bottom-0 left-0 w-0 h-0 border-r-[32px] border-r-transparent border-b-[32px] border-b-[#208479] hover:border-b-[#1a6b62] transition rounded-bl-lg'></div>
-        </div>
-        <div
-          className='absolute top-0 left-0 w-8 h-8 cursor-nw-resize z-50'
-          onMouseDown={e => handleLibraryResizeStart(e, 'nw')}
-          title='Drag to resize'
-        >
-          <div className='absolute top-0 left-0 w-0 h-0 border-r-[32px] border-r-transparent border-t-[32px] border-t-[#208479] hover:border-t-[#1a6b62] transition rounded-tl-lg'></div>
+          <div className='absolute bottom-0 right-0 w-0 h-0 border-l-[24px] border-l-transparent border-b-[24px] border-b-[#208479] hover:border-b-[#1a6b62] transition'></div>
         </div>
 
         {/* Header - Draggable */}

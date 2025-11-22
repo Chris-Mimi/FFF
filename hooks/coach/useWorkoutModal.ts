@@ -119,6 +119,7 @@ export interface UseWorkoutModalResult {
   setEditingTime: React.Dispatch<React.SetStateAction<boolean>>;
   setTempTime: React.Dispatch<React.SetStateAction<string>>;
   setNewSessionTime: React.Dispatch<React.SetStateAction<string>>;
+  setActiveSection: React.Dispatch<React.SetStateAction<number | null>>;
 
   // Functions
   handleChange: (field: keyof WODFormData, value: any) => void;
@@ -1036,6 +1037,7 @@ export function useWorkoutModal(
     errors,
     libraryOpen,
     activeSection,
+    setActiveSection,
     libraryKey,
     expandedSections,
     lastExpandedSectionId,
