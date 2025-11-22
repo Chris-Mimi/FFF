@@ -37,7 +37,45 @@ npx tsx scripts/import-exercises.ts database/exercises-import-sample.json
 
 ---
 
-### 3. Coach UI - Exercises Tab
+### 3. Export Script
+**File:** `scripts/export-exercises.ts`
+
+**What it does:**
+- Fetches all exercises from Supabase database
+- Formats as JSON matching import structure
+- Writes to file (backs up current database state)
+- Shows export summary grouped by category
+
+**Usage:**
+```bash
+# Export to default location
+npx tsx scripts/export-exercises.ts database/exercises-export.json
+
+# Export to custom location (e.g., backup)
+npx tsx scripts/export-exercises.ts database/exercises-backup-2025-11-22.json
+
+# Overwrite working file to sync with database
+npx tsx scripts/export-exercises.ts database/exercises-import.json
+```
+
+**Why you need this:**
+- **Backup**: Save database state before major changes
+- **Sync**: Keep JSON file updated after manual Coach UI additions
+- **Share**: Export for other gyms or version control
+- **Single source of truth**: Database is primary, JSON is exported copy
+
+**Workflow:**
+```bash
+# 1. Add/edit exercises via Coach UI
+# 2. Export database to update JSON file
+npx tsx scripts/export-exercises.ts database/exercises-import.json
+# 3. JSON file now matches database (includes manual additions)
+# 4. Commit to git for version control
+```
+
+---
+
+### 4. Coach UI - Exercises Tab
 **File:** `app/coach/benchmarks-lifts/page.tsx` (modified)
 **File:** `components/coach/ExerciseFormModal.tsx` (new)
 
@@ -51,7 +89,7 @@ npx tsx scripts/import-exercises.ts database/exercises-import-sample.json
 
 ---
 
-### 4. TypeScript Interfaces Updated
+### 5. TypeScript Interfaces Updated
 **Files Modified:**
 - `components/coach/ExerciseLibraryPopup.tsx` - Updated Exercise interface
 - `app/coach/benchmarks-lifts/page.tsx` - Added Exercise interface
@@ -297,6 +335,7 @@ The GIN index on this column enables lightning-fast search across all exercises.
 **Created:**
 - `database/exercises-schema-extension.sql` (migration)
 - `scripts/import-exercises.ts` (import tool)
+- `scripts/export-exercises.ts` (export tool)
 - `components/coach/ExerciseFormModal.tsx` (form UI)
 - `EXERCISE-IMPORT-GUIDE.md` (this file)
 
