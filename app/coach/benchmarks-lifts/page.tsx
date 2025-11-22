@@ -1,5 +1,6 @@
 'use client';
 
+import ExerciseFormModal from '@/components/coach/ExerciseFormModal';
 import { supabase } from '@/lib/supabase';
 import {
   closestCenter,
@@ -21,7 +22,6 @@ import { CSS } from '@dnd-kit/utilities';
 import { ArrowLeft, ChevronDown, ChevronRight, Edit2, GripVertical, Plus, Save, Search, Trash2, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import ExerciseFormModal from '@/components/coach/ExerciseFormModal';
 
 interface Benchmark {
   id: string;
@@ -1071,16 +1071,16 @@ export default function BenchmarksLiftsManagementPage() {
 
         {/* References Tab */}
         {activeTab === 'references' && (
-          <div className='bg-white rounded-lg shadow p-6'>
-            <h2 className='text-2xl font-bold text-gray-900 mb-4'>Programming References</h2>
-            <p className='text-sm text-gray-600 mb-6'>Quick reference for abbreviations and resources (changes persist in session only)</p>
+          <div className='bg-gray-600 rounded-lg shadow p-6'>
+            <h2 className='text-2xl font-bold text-gray-50 mb-4'>Programming References</h2>
+            <p className='text-sm text-gray-100 mb-6'>Quick reference for abbreviations and resources (changes persist in session only)</p>
 
             {!references ? (
               <div className='text-center py-8 text-gray-500'>Loading references...</div>
             ) : (
               <div className='space-y-3'>
                 {/* Equipment */}
-                <div className='border rounded-lg'>
+                <div className='border rounded-lg bg-gray-200'>
                   <div className='flex items-center justify-between p-3 hover:bg-gray-50 rounded-t-lg'>
                     <button
                       onClick={() => toggleSection('equipment')}
@@ -1137,7 +1137,7 @@ export default function BenchmarksLiftsManagementPage() {
                 </div>
 
                 {/* Movement Types */}
-                <div className='border rounded-lg'>
+                <div className='border rounded-lg bg-gray-200'>
                   <div className='flex items-center justify-between p-3 hover:bg-gray-50 rounded-t-lg'>
                     <button
                       onClick={() => toggleSection('movementTypes')}
@@ -1193,7 +1193,7 @@ export default function BenchmarksLiftsManagementPage() {
                 </div>
 
                 {/* Anatomical Terms */}
-                <div className='border rounded-lg'>
+                <div className='border rounded-lg bg-gray-200'>
                   <div className='flex items-center justify-between p-3 hover:bg-gray-50 rounded-t-lg'>
                     <button
                       onClick={() => toggleSection('anatomicalTerms')}
@@ -1249,7 +1249,7 @@ export default function BenchmarksLiftsManagementPage() {
                 </div>
 
                 {/* Movement Patterns */}
-                <div className='border rounded-lg'>
+                <div className='border rounded-lg bg-gray-200'>
                   <div className='flex items-center justify-between p-3 hover:bg-gray-50 rounded-t-lg'>
                     <button
                       onClick={() => toggleSection('movementPatterns')}
@@ -1305,7 +1305,7 @@ export default function BenchmarksLiftsManagementPage() {
                 </div>
 
                 {/* Resources */}
-                <div className='border rounded-lg'>
+                <div className='border rounded-lg bg-gray-200'>
                   <div className='flex items-center justify-between p-3 hover:bg-gray-50 rounded-t-lg'>
                     <button
                       onClick={() => toggleSection('resources')}
