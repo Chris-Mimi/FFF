@@ -127,7 +127,7 @@ function SortableForgeCard({
 
 export default function BenchmarksLiftsManagementPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'benchmarks' | 'forge' | 'lifts' | 'exercises'>('benchmarks');
+  const [activeTab, setActiveTab] = useState<'benchmarks' | 'forge' | 'lifts' | 'exercises' | 'references'>('benchmarks');
   const [loading, setLoading] = useState(true);
 
   // Benchmarks state
@@ -167,6 +167,9 @@ export default function BenchmarksLiftsManagementPage() {
   const [showExerciseModal, setShowExerciseModal] = useState(false);
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
 
+  // References state
+  const [references, setReferences] = useState<any>(null);
+
   // Drag and drop sensors
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -185,6 +188,7 @@ export default function BenchmarksLiftsManagementPage() {
       fetchForgeBenchmarks();
       fetchLifts();
       fetchExercises();
+      fetchReferences();
     }
   }, [loading]);
 
@@ -535,12 +539,22 @@ export default function BenchmarksLiftsManagementPage() {
       const { data, error } = await supabase
         .from('exercises')
         .select('*')
-        .order('category', { ascending: true });
+        .order('category', { ascending: true});
 
       if (error) throw error;
       setExercises(data || []);
     } catch (error) {
       console.error('Error fetching exercises:', error);
+    }
+  };
+
+  const fetchReferences = async () => {
+    try {
+      const response = await fetch('/programming-references.json');
+      const data = await response.json();
+      setReferences(data);
+    } catch (error) {
+      console.error('Error loading references:', error);
     }
   };
 
@@ -617,8 +631,8 @@ export default function BenchmarksLiftsManagementPage() {
               <ArrowLeft size={24} />
             </button>
             <div>
-              <h1 className='text-3xl font-bold text-gray-900'>Benchmarks & Lifts</h1>
-              <p className='text-sm text-gray-600'>Manage benchmark workouts and barbell lifts</p>
+              <h1 className='text-3xl font-bold text-gray-900'>Coach Library</h1>
+              <p className='text-sm text-gray-600'>Manage benchmarks, lifts, exercises, and programming references</p>
             </div>
           </div>
         </div>
@@ -667,6 +681,16 @@ export default function BenchmarksLiftsManagementPage() {
             }`}
           >
             Exercises
+          </button>
+          <button
+            onClick={() => setActiveTab('references')}
+            className={`px-4 py-2 rounded-lg font-medium transition ${
+              activeTab === 'references'
+                ? 'bg-gray-600 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            References
           </button>
         </div>
 
@@ -910,6 +934,104 @@ export default function BenchmarksLiftsManagementPage() {
               <div className='text-center py-8 text-gray-500'>
                 No exercises yet. Click &quot;Add Exercise&quot; to create one.
               </div>
+            )}
+          </div>
+        )}
+
+        {/* References Tab */}
+        {activeTab === 'references' && (
+          <div className='bg-white rounded-lg shadow p-6'>
+            <h2 className='text-2xl font-bold text-gray-900 mb-6'>Programming References</h2>
+
+            {!references ? (
+              <div className='text-center py-8 text-gray-500'>Loading references...</div>
+            ) : (
+              <>
+                {/* Naming Conventions */}
+                <div className='mb-8'>
+                  <h3 className='text-xl font-bold text-gray-800 mb-4 border-b pb-2'>Naming Conventions</h3>
+
+                  {/* Equipment */}
+                  <div className='mb-6'>
+                    <h4 className='text-lg font-semibold text-gray-700 mb-2'>Equipment</h4>
+                    <div className='space-y-1 ml-4'>
+                      {references.namingConventions?.equipment?.map((item: any, idx: number) => (
+                        <div key={idx} className='py-1'>
+                          <span className='font-bold text-gray-900'>{item.abbr}</span> = {item.full}
+                          {item.notes && <span className='text-sm text-gray-600 ml-2'>({item.notes})</span>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Movement Types */}
+                  <div className='mb-6'>
+                    <h4 className='text-lg font-semibold text-gray-700 mb-2'>Movement Types</h4>
+                    <div className='grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1 ml-4'>
+                      {references.namingConventions?.movementTypes?.map((item: any, idx: number) => (
+                        <div key={idx} className='py-1'>
+                          <span className='font-bold text-gray-900'>{item.abbr}</span> = {item.full}
+                          {item.notes && <span className='text-sm text-gray-600 ml-2'>({item.notes})</span>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Anatomical Terms */}
+                  <div className='mb-6'>
+                    <h4 className='text-lg font-semibold text-gray-700 mb-2'>Anatomical Terms</h4>
+                    <div className='space-y-1 ml-4'>
+                      {references.namingConventions?.anatomicalTerms?.map((item: any, idx: number) => (
+                        <div key={idx} className='py-1'>
+                          <span className='font-bold text-gray-900'>{item.abbr}</span> = {item.full}
+                          {item.notes && <span className='text-sm text-gray-600 ml-2'>({item.notes})</span>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Movement Patterns */}
+                  <div className='mb-6'>
+                    <h4 className='text-lg font-semibold text-gray-700 mb-2'>Movement Patterns & Methods</h4>
+                    <div className='space-y-1 ml-4'>
+                      {references.namingConventions?.movementPatterns?.map((item: any, idx: number) => (
+                        <div key={idx} className='py-1'>
+                          <span className='font-bold text-gray-900'>{item.abbr}</span> = {item.full}
+                          {item.notes && <span className='text-sm text-gray-600 ml-2'>({item.notes})</span>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Resources */}
+                <div className='mb-8'>
+                  <h3 className='text-xl font-bold text-gray-800 mb-4 border-b pb-2'>Programs & Resources</h3>
+                  <div className='space-y-2 ml-4'>
+                    {references.resources?.map((resource: any, idx: number) => (
+                      <div key={idx} className='py-2 border-b border-gray-100 last:border-0'>
+                        <div className='flex items-start justify-between'>
+                          <div>
+                            <span className='font-bold text-gray-900'>{resource.name}</span>
+                            <span className='text-sm text-gray-600 ml-2'>({resource.category})</span>
+                            <p className='text-gray-700 mt-1'>{resource.description}</p>
+                            {resource.url && (
+                              <a
+                                href={resource.url}
+                                target='_blank'
+                                rel='noopener noreferrer'
+                                className='text-blue-600 text-sm hover:underline inline-block mt-1'
+                              >
+                                Visit Website →
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
             )}
           </div>
         )}
