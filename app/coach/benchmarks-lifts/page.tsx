@@ -18,7 +18,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { ArrowLeft, Edit2, GripVertical, Plus, Save, Trash2, X } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronRight, Edit2, GripVertical, Plus, Save, Trash2, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import ExerciseFormModal from '@/components/coach/ExerciseFormModal';
@@ -169,6 +169,26 @@ export default function BenchmarksLiftsManagementPage() {
 
   // References state
   const [references, setReferences] = useState<any>(null);
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
+    equipment: false,
+    movementTypes: false,
+    anatomicalTerms: true,
+    movementPatterns: true,
+    resources: false
+  });
+  const [showReferenceModal, setShowReferenceModal] = useState(false);
+  const [editingReference, setEditingReference] = useState<any>(null);
+  const [referenceType, setReferenceType] = useState<'naming' | 'resource'>('naming');
+  const [referenceCategory, setReferenceCategory] = useState<string>('equipment');
+  const [referenceForm, setReferenceForm] = useState({
+    abbr: '',
+    full: '',
+    notes: '',
+    name: '',
+    description: '',
+    url: '',
+    category: ''
+  });
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -558,6 +578,77 @@ export default function BenchmarksLiftsManagementPage() {
     }
   };
 
+  const toggleSection = (section: string) => {
+    setCollapsedSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
+
+  const handleSaveReference = () => {
+    if (!references) return;
+
+    const updatedRefs = { ...references };
+
+    if (referenceType === 'naming') {
+      const category = referenceCategory;
+      const categoryKey = category as keyof typeof updatedRefs.namingConventions;
+
+      if (editingReference) {
+        // Update existing
+        const index = editingReference.index;
+        updatedRefs.namingConventions[categoryKey][index] = {
+          abbr: referenceForm.abbr,
+          full: referenceForm.full,
+          notes: referenceForm.notes || null
+        };
+      } else {
+        // Add new
+        updatedRefs.namingConventions[categoryKey].push({
+          abbr: referenceForm.abbr,
+          full: referenceForm.full,
+          notes: referenceForm.notes || null
+        });
+      }
+    } else {
+      // Resource
+      if (editingReference) {
+        const index = editingReference.index;
+        updatedRefs.resources[index] = {
+          name: referenceForm.name,
+          description: referenceForm.description,
+          url: referenceForm.url || null,
+          category: referenceForm.category
+        };
+      } else {
+        updatedRefs.resources.push({
+          name: referenceForm.name,
+          description: referenceForm.description,
+          url: referenceForm.url || null,
+          category: referenceForm.category
+        });
+      }
+    }
+
+    setReferences(updatedRefs);
+    // Note: Changes are only in-memory. To persist, would need to save to JSON file
+    setShowReferenceModal(false);
+    setEditingReference(null);
+    setReferenceForm({ abbr: '', full: '', notes: '', name: '', description: '', url: '', category: '' });
+  };
+
+  const handleDeleteReference = (type: 'naming' | 'resource', category: string, index: number) => {
+    if (!references || !confirm('Delete this reference?')) return;
+
+    const updatedRefs = { ...references };
+
+    if (type === 'naming') {
+      const categoryKey = category as keyof typeof updatedRefs.namingConventions;
+      updatedRefs.namingConventions[categoryKey].splice(index, 1);
+    } else {
+      updatedRefs.resources.splice(index, 1);
+    }
+
+    setReferences(updatedRefs);
+  };
+
   const handleSaveExercise = async (exerciseData: Omit<Exercise, 'id'> & { id?: string }) => {
     try {
       if (exerciseData.id) {
@@ -941,97 +1032,311 @@ export default function BenchmarksLiftsManagementPage() {
         {/* References Tab */}
         {activeTab === 'references' && (
           <div className='bg-white rounded-lg shadow p-6'>
-            <h2 className='text-2xl font-bold text-gray-900 mb-6'>Programming References</h2>
+            <h2 className='text-2xl font-bold text-gray-900 mb-4'>Programming References</h2>
+            <p className='text-sm text-gray-600 mb-6'>Quick reference for abbreviations and resources (changes persist in session only)</p>
 
             {!references ? (
               <div className='text-center py-8 text-gray-500'>Loading references...</div>
             ) : (
-              <>
-                {/* Naming Conventions */}
-                <div className='mb-8'>
-                  <h3 className='text-xl font-bold text-gray-800 mb-4 border-b pb-2'>Naming Conventions</h3>
-
-                  {/* Equipment */}
-                  <div className='mb-6'>
-                    <h4 className='text-lg font-semibold text-gray-700 mb-2'>Equipment</h4>
-                    <div className='space-y-1 ml-4'>
+              <div className='space-y-3'>
+                {/* Equipment */}
+                <div className='border rounded-lg'>
+                  <button
+                    onClick={() => toggleSection('equipment')}
+                    className='w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-t-lg'
+                  >
+                    <div className='flex items-center gap-2'>
+                      {collapsedSections.equipment ? <ChevronRight size={20} /> : <ChevronDown size={20} />}
+                      <h4 className='font-semibold text-gray-800'>Equipment ({references.namingConventions?.equipment?.length || 0})</h4>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setReferenceType('naming');
+                        setReferenceCategory('equipment');
+                        setEditingReference(null);
+                        setReferenceForm({ abbr: '', full: '', notes: '', name: '', description: '', url: '', category: '' });
+                        setShowReferenceModal(true);
+                      }}
+                      className='p-1 text-gray-600 hover:bg-gray-200 rounded'
+                    >
+                      <Plus size={16} />
+                    </button>
+                  </button>
+                  {!collapsedSections.equipment && (
+                    <div className='px-4 pb-3 space-y-0.5'>
                       {references.namingConventions?.equipment?.map((item: any, idx: number) => (
-                        <div key={idx} className='py-1'>
-                          <span className='font-bold text-gray-900'>{item.abbr}</span> = {item.full}
-                          {item.notes && <span className='text-sm text-gray-600 ml-2'>({item.notes})</span>}
+                        <div key={idx} className='flex items-center justify-between py-1 group hover:bg-gray-50 px-2 rounded'>
+                          <span className='text-sm'>
+                            <span className='font-bold'>{item.abbr}</span> = {item.full}
+                            {item.notes && <span className='text-gray-600 ml-2 text-xs'>({item.notes})</span>}
+                          </span>
+                          <div className='flex gap-1 opacity-0 group-hover:opacity-100'>
+                            <button
+                              onClick={() => {
+                                setEditingReference({ ...item, index: idx, category: 'equipment' });
+                                setReferenceType('naming');
+                                setReferenceCategory('equipment');
+                                setReferenceForm({ abbr: item.abbr, full: item.full, notes: item.notes || '', name: '', description: '', url: '', category: '' });
+                                setShowReferenceModal(true);
+                              }}
+                              className='p-1 text-blue-600 hover:bg-blue-50 rounded'
+                            >
+                              <Edit2 size={14} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteReference('naming', 'equipment', idx)}
+                              className='p-1 text-red-600 hover:bg-red-50 rounded'
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
-                  </div>
+                  )}
+                </div>
 
-                  {/* Movement Types */}
-                  <div className='mb-6'>
-                    <h4 className='text-lg font-semibold text-gray-700 mb-2'>Movement Types</h4>
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1 ml-4'>
+                {/* Movement Types */}
+                <div className='border rounded-lg'>
+                  <button
+                    onClick={() => toggleSection('movementTypes')}
+                    className='w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-t-lg'
+                  >
+                    <div className='flex items-center gap-2'>
+                      {collapsedSections.movementTypes ? <ChevronRight size={20} /> : <ChevronDown size={20} />}
+                      <h4 className='font-semibold text-gray-800'>Movement Types ({references.namingConventions?.movementTypes?.length || 0})</h4>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setReferenceType('naming');
+                        setReferenceCategory('movementTypes');
+                        setEditingReference(null);
+                        setReferenceForm({ abbr: '', full: '', notes: '', name: '', description: '', url: '', category: '' });
+                        setShowReferenceModal(true);
+                      }}
+                      className='p-1 text-gray-600 hover:bg-gray-200 rounded'
+                    >
+                      <Plus size={16} />
+                    </button>
+                  </button>
+                  {!collapsedSections.movementTypes && (
+                    <div className='px-4 pb-3 grid grid-cols-2 gap-x-4'>
                       {references.namingConventions?.movementTypes?.map((item: any, idx: number) => (
-                        <div key={idx} className='py-1'>
-                          <span className='font-bold text-gray-900'>{item.abbr}</span> = {item.full}
-                          {item.notes && <span className='text-sm text-gray-600 ml-2'>({item.notes})</span>}
+                        <div key={idx} className='flex items-center justify-between py-1 group hover:bg-gray-50 px-2 rounded'>
+                          <span className='text-sm'>
+                            <span className='font-bold'>{item.abbr}</span> = {item.full}
+                          </span>
+                          <div className='flex gap-1 opacity-0 group-hover:opacity-100'>
+                            <button
+                              onClick={() => {
+                                setEditingReference({ ...item, index: idx, category: 'movementTypes' });
+                                setReferenceType('naming');
+                                setReferenceCategory('movementTypes');
+                                setReferenceForm({ abbr: item.abbr, full: item.full, notes: item.notes || '', name: '', description: '', url: '', category: '' });
+                                setShowReferenceModal(true);
+                              }}
+                              className='p-1 text-blue-600 hover:bg-blue-50 rounded'
+                            >
+                              <Edit2 size={14} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteReference('naming', 'movementTypes', idx)}
+                              className='p-1 text-red-600 hover:bg-red-50 rounded'
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
-                  </div>
+                  )}
+                </div>
 
-                  {/* Anatomical Terms */}
-                  <div className='mb-6'>
-                    <h4 className='text-lg font-semibold text-gray-700 mb-2'>Anatomical Terms</h4>
-                    <div className='space-y-1 ml-4'>
+                {/* Anatomical Terms */}
+                <div className='border rounded-lg'>
+                  <button
+                    onClick={() => toggleSection('anatomicalTerms')}
+                    className='w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-t-lg'
+                  >
+                    <div className='flex items-center gap-2'>
+                      {collapsedSections.anatomicalTerms ? <ChevronRight size={20} /> : <ChevronDown size={20} />}
+                      <h4 className='font-semibold text-gray-800'>Anatomical Terms ({references.namingConventions?.anatomicalTerms?.length || 0})</h4>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setReferenceType('naming');
+                        setReferenceCategory('anatomicalTerms');
+                        setEditingReference(null);
+                        setReferenceForm({ abbr: '', full: '', notes: '', name: '', description: '', url: '', category: '' });
+                        setShowReferenceModal(true);
+                      }}
+                      className='p-1 text-gray-600 hover:bg-gray-200 rounded'
+                    >
+                      <Plus size={16} />
+                    </button>
+                  </button>
+                  {!collapsedSections.anatomicalTerms && (
+                    <div className='px-4 pb-3 space-y-0.5'>
                       {references.namingConventions?.anatomicalTerms?.map((item: any, idx: number) => (
-                        <div key={idx} className='py-1'>
-                          <span className='font-bold text-gray-900'>{item.abbr}</span> = {item.full}
-                          {item.notes && <span className='text-sm text-gray-600 ml-2'>({item.notes})</span>}
+                        <div key={idx} className='flex items-center justify-between py-1 group hover:bg-gray-50 px-2 rounded'>
+                          <span className='text-sm'>
+                            <span className='font-bold'>{item.abbr}</span> = {item.full}
+                          </span>
+                          <div className='flex gap-1 opacity-0 group-hover:opacity-100'>
+                            <button
+                              onClick={() => {
+                                setEditingReference({ ...item, index: idx, category: 'anatomicalTerms' });
+                                setReferenceType('naming');
+                                setReferenceCategory('anatomicalTerms');
+                                setReferenceForm({ abbr: item.abbr, full: item.full, notes: item.notes || '', name: '', description: '', url: '', category: '' });
+                                setShowReferenceModal(true);
+                              }}
+                              className='p-1 text-blue-600 hover:bg-blue-50 rounded'
+                            >
+                              <Edit2 size={14} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteReference('naming', 'anatomicalTerms', idx)}
+                              className='p-1 text-red-600 hover:bg-red-50 rounded'
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
-                  </div>
+                  )}
+                </div>
 
-                  {/* Movement Patterns */}
-                  <div className='mb-6'>
-                    <h4 className='text-lg font-semibold text-gray-700 mb-2'>Movement Patterns & Methods</h4>
-                    <div className='space-y-1 ml-4'>
+                {/* Movement Patterns */}
+                <div className='border rounded-lg'>
+                  <button
+                    onClick={() => toggleSection('movementPatterns')}
+                    className='w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-t-lg'
+                  >
+                    <div className='flex items-center gap-2'>
+                      {collapsedSections.movementPatterns ? <ChevronRight size={20} /> : <ChevronDown size={20} />}
+                      <h4 className='font-semibold text-gray-800'>Movement Patterns & Methods ({references.namingConventions?.movementPatterns?.length || 0})</h4>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setReferenceType('naming');
+                        setReferenceCategory('movementPatterns');
+                        setEditingReference(null);
+                        setReferenceForm({ abbr: '', full: '', notes: '', name: '', description: '', url: '', category: '' });
+                        setShowReferenceModal(true);
+                      }}
+                      className='p-1 text-gray-600 hover:bg-gray-200 rounded'
+                    >
+                      <Plus size={16} />
+                    </button>
+                  </button>
+                  {!collapsedSections.movementPatterns && (
+                    <div className='px-4 pb-3 space-y-0.5'>
                       {references.namingConventions?.movementPatterns?.map((item: any, idx: number) => (
-                        <div key={idx} className='py-1'>
-                          <span className='font-bold text-gray-900'>{item.abbr}</span> = {item.full}
-                          {item.notes && <span className='text-sm text-gray-600 ml-2'>({item.notes})</span>}
+                        <div key={idx} className='flex items-center justify-between py-1 group hover:bg-gray-50 px-2 rounded'>
+                          <span className='text-sm'>
+                            <span className='font-bold'>{item.abbr}</span> = {item.full}
+                          </span>
+                          <div className='flex gap-1 opacity-0 group-hover:opacity-100'>
+                            <button
+                              onClick={() => {
+                                setEditingReference({ ...item, index: idx, category: 'movementPatterns' });
+                                setReferenceType('naming');
+                                setReferenceCategory('movementPatterns');
+                                setReferenceForm({ abbr: item.abbr, full: item.full, notes: item.notes || '', name: '', description: '', url: '', category: '' });
+                                setShowReferenceModal(true);
+                              }}
+                              className='p-1 text-blue-600 hover:bg-blue-50 rounded'
+                            >
+                              <Edit2 size={14} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteReference('naming', 'movementPatterns', idx)}
+                              className='p-1 text-red-600 hover:bg-red-50 rounded'
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* Resources */}
-                <div className='mb-8'>
-                  <h3 className='text-xl font-bold text-gray-800 mb-4 border-b pb-2'>Programs & Resources</h3>
-                  <div className='space-y-2 ml-4'>
-                    {references.resources?.map((resource: any, idx: number) => (
-                      <div key={idx} className='py-2 border-b border-gray-100 last:border-0'>
-                        <div className='flex items-start justify-between'>
-                          <div>
-                            <span className='font-bold text-gray-900'>{resource.name}</span>
-                            <span className='text-sm text-gray-600 ml-2'>({resource.category})</span>
-                            <p className='text-gray-700 mt-1'>{resource.description}</p>
+                <div className='border rounded-lg'>
+                  <button
+                    onClick={() => toggleSection('resources')}
+                    className='w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-t-lg'
+                  >
+                    <div className='flex items-center gap-2'>
+                      {collapsedSections.resources ? <ChevronRight size={20} /> : <ChevronDown size={20} />}
+                      <h4 className='font-semibold text-gray-800'>Programs & Resources ({references.resources?.length || 0})</h4>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setReferenceType('resource');
+                        setEditingReference(null);
+                        setReferenceForm({ abbr: '', full: '', notes: '', name: '', description: '', url: '', category: '' });
+                        setShowReferenceModal(true);
+                      }}
+                      className='p-1 text-gray-600 hover:bg-gray-200 rounded'
+                    >
+                      <Plus size={16} />
+                    </button>
+                  </button>
+                  {!collapsedSections.resources && (
+                    <div className='px-4 pb-3 space-y-0.5'>
+                      {references.resources?.map((resource: any, idx: number) => (
+                        <div key={idx} className='flex items-start justify-between py-2 group hover:bg-gray-50 px-2 rounded border-b border-gray-100 last:border-0'>
+                          <div className='flex-1'>
+                            <div>
+                              <span className='font-bold text-sm'>{resource.name}</span>
+                              <span className='text-xs text-gray-600 ml-2'>({resource.category})</span>
+                            </div>
+                            <p className='text-xs text-gray-700 mt-0.5'>{resource.description}</p>
                             {resource.url && (
                               <a
                                 href={resource.url}
                                 target='_blank'
                                 rel='noopener noreferrer'
-                                className='text-blue-600 text-sm hover:underline inline-block mt-1'
+                                className='text-blue-600 text-xs hover:underline inline-block mt-0.5'
                               >
-                                Visit Website →
+                                Visit →
                               </a>
                             )}
                           </div>
+                          <div className='flex gap-1 opacity-0 group-hover:opacity-100 ml-2'>
+                            <button
+                              onClick={() => {
+                                setEditingReference({ ...resource, index: idx });
+                                setReferenceType('resource');
+                                setReferenceForm({ abbr: '', full: '', notes: '', name: resource.name, description: resource.description, url: resource.url || '', category: resource.category });
+                                setShowReferenceModal(true);
+                              }}
+                              className='p-1 text-blue-600 hover:bg-blue-50 rounded'
+                            >
+                              <Edit2 size={14} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteReference('resource', '', idx)}
+                              className='p-1 text-red-600 hover:bg-red-50 rounded'
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </>
+              </div>
             )}
           </div>
         )}
@@ -1309,6 +1614,127 @@ export default function BenchmarksLiftsManagementPage() {
         onSave={handleSaveExercise}
         editingExercise={editingExercise}
       />
+
+      {/* Reference Modal */}
+      {showReferenceModal && (
+        <div className='fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center p-4' onClick={() => setShowReferenceModal(false)}>
+          <div className='bg-white rounded-lg max-w-md w-full p-6 shadow-2xl' onClick={(e) => e.stopPropagation()}>
+            <div className='flex justify-between items-center mb-4'>
+              <h3 className='text-xl font-bold text-gray-900'>
+                {editingReference ? 'Edit' : 'Add'} {referenceType === 'naming' ? 'Naming Convention' : 'Resource'}
+              </h3>
+              <button
+                onClick={() => {
+                  setShowReferenceModal(false);
+                  setEditingReference(null);
+                }}
+                className='p-1 hover:bg-gray-100 rounded'
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className='space-y-4'>
+              {referenceType === 'naming' ? (
+                <>
+                  <div>
+                    <label className='block text-sm font-medium text-gray-700 mb-1'>Abbreviation</label>
+                    <input
+                      type='text'
+                      value={referenceForm.abbr}
+                      onChange={(e) => setReferenceForm({ ...referenceForm, abbr: e.target.value })}
+                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent'
+                      placeholder='e.g., BB, HPC'
+                    />
+                  </div>
+                  <div>
+                    <label className='block text-sm font-medium text-gray-700 mb-1'>Full Name</label>
+                    <input
+                      type='text'
+                      value={referenceForm.full}
+                      onChange={(e) => setReferenceForm({ ...referenceForm, full: e.target.value })}
+                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent'
+                      placeholder='e.g., Barbell, Hang Power Clean'
+                    />
+                  </div>
+                  <div>
+                    <label className='block text-sm font-medium text-gray-700 mb-1'>Notes (optional)</label>
+                    <input
+                      type='text'
+                      value={referenceForm.notes}
+                      onChange={(e) => setReferenceForm({ ...referenceForm, notes: e.target.value })}
+                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent'
+                      placeholder='Additional context'
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <label className='block text-sm font-medium text-gray-700 mb-1'>Name</label>
+                    <input
+                      type='text'
+                      value={referenceForm.name}
+                      onChange={(e) => setReferenceForm({ ...referenceForm, name: e.target.value })}
+                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent'
+                      placeholder='e.g., GoWOD'
+                    />
+                  </div>
+                  <div>
+                    <label className='block text-sm font-medium text-gray-700 mb-1'>Description</label>
+                    <input
+                      type='text'
+                      value={referenceForm.description}
+                      onChange={(e) => setReferenceForm({ ...referenceForm, description: e.target.value })}
+                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent'
+                      placeholder='Brief description'
+                    />
+                  </div>
+                  <div>
+                    <label className='block text-sm font-medium text-gray-700 mb-1'>URL (optional)</label>
+                    <input
+                      type='text'
+                      value={referenceForm.url}
+                      onChange={(e) => setReferenceForm({ ...referenceForm, url: e.target.value })}
+                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent'
+                      placeholder='https://...'
+                    />
+                  </div>
+                  <div>
+                    <label className='block text-sm font-medium text-gray-700 mb-1'>Category</label>
+                    <input
+                      type='text'
+                      value={referenceForm.category}
+                      onChange={(e) => setReferenceForm({ ...referenceForm, category: e.target.value })}
+                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent'
+                      placeholder='e.g., Mobility, Olympic Lifting'
+                    />
+                  </div>
+                </>
+              )}
+
+              <div className='flex gap-3 mt-6'>
+                <button
+                  onClick={handleSaveReference}
+                  className='flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition flex items-center justify-center gap-2'
+                >
+                  <Save size={18} />
+                  {editingReference ? 'Update' : 'Add'}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowReferenceModal(false);
+                    setEditingReference(null);
+                  }}
+                  className='px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition'
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
