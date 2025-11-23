@@ -3,6 +3,34 @@
 import ExerciseFormModal from '@/components/coach/ExerciseFormModal';
 import { ChevronDown, ChevronRight, Edit2, Plus, Search, Trash2 } from 'lucide-react';
 
+// Define category ordering (workout flow)
+const EXERCISE_CATEGORY_ORDER = [
+  'Warm-up & Mobility',
+  'Olympic Lifting & Barbell Movements',
+  'Compound Exercises',
+  'Gymnastics & Bodyweight',
+  'Core, Abs & Isometric Holds',
+  'Cardio & Conditioning',
+  'Specialty',
+  'Recovery & Stretching',
+];
+
+// Sort categories by predefined order
+const sortCategories = (
+  grouped: Record<string, Exercise[]>,
+  categoryOrder: string[]
+): [string, Exercise[]][] => {
+  return Object.entries(grouped).sort(([catA], [catB]) => {
+    const indexA = categoryOrder.indexOf(catA);
+    const indexB = categoryOrder.indexOf(catB);
+    // If category not in order array, put at end
+    if (indexA === -1 && indexB === -1) return catA.localeCompare(catB);
+    if (indexA === -1) return 1;
+    if (indexB === -1) return -1;
+    return indexA - indexB;
+  });
+};
+
 interface Exercise {
   id: string;
   name: string;
@@ -85,7 +113,7 @@ export default function ExercisesTab({
         </div>
 
         {/* Group by category */}
-        {Object.entries(
+        {sortCategories(
           exercises
             .filter(ex => {
               if (!searchTerm.trim()) return true;
@@ -102,7 +130,8 @@ export default function ExercisesTab({
               if (!acc[ex.category]) acc[ex.category] = [];
               acc[ex.category].push(ex);
               return acc;
-            }, {} as Record<string, Exercise[]>)
+            }, {} as Record<string, Exercise[]>),
+          EXERCISE_CATEGORY_ORDER
         ).map(([category, categoryExercises]) => (
           <div key={category} className='mb-6 border rounded-lg'>
             <button
@@ -141,15 +170,20 @@ export default function ExercisesTab({
                     {exercise.subcategory && (
                       <p className='text-xs text-gray-600 mb-1'>{exercise.subcategory}</p>
                     )}
-                    {exercise.tags && exercise.tags.length > 0 && (
-                      <div className='flex flex-wrap gap-1 mt-2'>
-                        {exercise.tags.slice(0, 3).map((tag, idx) => (
-                          <span key={idx} className='text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded'>
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
+                    {exercise.tags && exercise.tags.length > 0 && (() => {
+                      // Filter out tags that are duplicates of body_parts
+                      const bodyPartsSet = new Set((exercise.body_parts || []).map(bp => bp.toLowerCase()));
+                      const uniqueTags = exercise.tags.filter(tag => !bodyPartsSet.has(tag.toLowerCase()));
+                      return uniqueTags.length > 0 ? (
+                        <div className='flex flex-wrap gap-1 mt-2'>
+                          {uniqueTags.slice(0, 3).map((tag, idx) => (
+                            <span key={idx} className='text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded'>
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null;
+                    })()}
                   </div>
                 ))}
               </div>
