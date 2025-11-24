@@ -85,7 +85,7 @@ export default function ReferencesTab({
             <div className='flex items-center justify-between p-3 hover:bg-gray-50 rounded-t-lg'>
               <button
                 onClick={() => onToggleSection('equipment')}
-                className='flex items-center gap-2 flex-1'
+                className='flex items-center gap-2 flex-1 text-gray-800'
               >
                 {collapsedSections.equipment ? <ChevronRight size={20} /> : <ChevronDown size={20} />}
                 <h4 className='font-semibold text-gray-800'>Equipment ({references.namingConventions?.equipment?.length || 0})</h4>
@@ -101,7 +101,7 @@ export default function ReferencesTab({
               <div className='px-4 pb-3 grid grid-cols-3 gap-x-4'>
                 {references.namingConventions?.equipment?.sort((a, b) => a.abbr.localeCompare(b.abbr)).map((item, idx: number) => (
                   <div key={idx} className='flex items-center justify-between py-1 group hover:bg-gray-50 px-2 rounded'>
-                    <span className='text-sm'>
+                    <span className='text-sm text-gray-900'>
                       <span className='font-bold'>{item.abbr}</span> = {item.full}
                       {item.notes && <span className='text-gray-600 ml-2 text-xs'>({item.notes})</span>}
                     </span>
@@ -130,7 +130,7 @@ export default function ReferencesTab({
             <div className='flex items-center justify-between p-3 hover:bg-gray-50 rounded-t-lg'>
               <button
                 onClick={() => onToggleSection('movementTypes')}
-                className='flex items-center gap-2 flex-1'
+                className='flex items-center gap-2 flex-1 text-gray-800'
               >
                 {collapsedSections.movementTypes ? <ChevronRight size={20} /> : <ChevronDown size={20} />}
                 <h4 className='font-semibold text-gray-800'>Movement Types ({references.namingConventions?.movementTypes?.length || 0})</h4>
@@ -146,7 +146,7 @@ export default function ReferencesTab({
               <div className='px-4 pb-3 grid grid-cols-3 gap-x-4'>
                 {references.namingConventions?.movementTypes?.sort((a, b) => a.abbr.localeCompare(b.abbr)).map((item, idx: number) => (
                   <div key={idx} className='flex items-center justify-between py-1 group hover:bg-gray-50 px-2 rounded'>
-                    <span className='text-sm'>
+                    <span className='text-sm text-gray-900'>
                       <span className='font-bold'>{item.abbr}</span> = {item.full}
                     </span>
                     <div className='flex gap-1 opacity-0 group-hover:opacity-100'>
@@ -174,7 +174,7 @@ export default function ReferencesTab({
             <div className='flex items-center justify-between p-3 hover:bg-gray-50 rounded-t-lg'>
               <button
                 onClick={() => onToggleSection('anatomicalTerms')}
-                className='flex items-center gap-2 flex-1'
+                className='flex items-center gap-2 flex-1 text-gray-800'
               >
                 {collapsedSections.anatomicalTerms ? <ChevronRight size={20} /> : <ChevronDown size={20} />}
                 <h4 className='font-semibold text-gray-800'>Anatomical Terms ({references.namingConventions?.anatomicalTerms?.length || 0})</h4>
@@ -190,7 +190,7 @@ export default function ReferencesTab({
               <div className='px-4 pb-3 grid grid-cols-3 gap-x-4'>
                 {references.namingConventions?.anatomicalTerms?.sort((a, b) => a.abbr.localeCompare(b.abbr)).map((item, idx: number) => (
                   <div key={idx} className='flex items-center justify-between py-1 group hover:bg-gray-50 px-2 rounded'>
-                    <span className='text-sm'>
+                    <span className='text-sm text-gray-900'>
                       <span className='font-bold'>{item.abbr}</span> = {item.full}
                     </span>
                     <div className='flex gap-1 opacity-0 group-hover:opacity-100'>
@@ -218,7 +218,7 @@ export default function ReferencesTab({
             <div className='flex items-center justify-between p-3 hover:bg-gray-50 rounded-t-lg'>
               <button
                 onClick={() => onToggleSection('movementPatterns')}
-                className='flex items-center gap-2 flex-1'
+                className='flex items-center gap-2 flex-1 text-gray-800'
               >
                 {collapsedSections.movementPatterns ? <ChevronRight size={20} /> : <ChevronDown size={20} />}
                 <h4 className='font-semibold text-gray-800'>Movement Patterns & Methods ({references.namingConventions?.movementPatterns?.length || 0})</h4>
@@ -234,7 +234,7 @@ export default function ReferencesTab({
               <div className='px-4 pb-3 grid grid-cols-3 gap-x-4'>
                 {references.namingConventions?.movementPatterns?.sort((a, b) => a.abbr.localeCompare(b.abbr)).map((item, idx: number) => (
                   <div key={idx} className='flex items-center justify-between py-1 group hover:bg-gray-50 px-2 rounded'>
-                    <span className='text-sm'>
+                    <span className='text-sm text-gray-900'>
                       <span className='font-bold'>{item.abbr}</span> = {item.full}
                     </span>
                     <div className='flex gap-1 opacity-0 group-hover:opacity-100'>
@@ -262,7 +262,7 @@ export default function ReferencesTab({
             <div className='flex items-center justify-between p-3 hover:bg-gray-50 rounded-t-lg'>
               <button
                 onClick={() => onToggleSection('resources')}
-                className='flex items-center gap-2 flex-1'
+                className='flex items-center gap-2 flex-1 text-gray-800'
               >
                 {collapsedSections.resources ? <ChevronRight size={20} /> : <ChevronDown size={20} />}
                 <h4 className='font-semibold text-gray-800'>Programs & Resources ({references.resources?.length || 0})</h4>
@@ -280,7 +280,7 @@ export default function ReferencesTab({
                   <div key={idx} className='flex items-start justify-between py-2 group hover:bg-gray-50 px-2 rounded border-b border-gray-100 last:border-0'>
                     <div className='flex-1'>
                       <div>
-                        <span className='font-bold text-sm'>{resource.name}</span>
+                        <span className='font-bold text-sm text-gray-900'>{resource.name}</span>
                         <span className='text-xs text-gray-600 ml-2'>({resource.category})</span>
                       </div>
                       <p className='text-xs text-gray-700 mt-0.5'>{resource.description}</p>
@@ -342,7 +342,7 @@ export default function ReferencesTab({
                       type='text'
                       value={form.abbr}
                       onChange={(e) => onFormChange('abbr', e.target.value)}
-                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent'
+                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent text-gray-900'
                       placeholder='e.g., BB, HPC'
                     />
                   </div>
@@ -352,7 +352,7 @@ export default function ReferencesTab({
                       type='text'
                       value={form.full}
                       onChange={(e) => onFormChange('full', e.target.value)}
-                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent'
+                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent text-gray-900'
                       placeholder='e.g., Barbell, Hang Power Clean'
                     />
                   </div>
@@ -362,7 +362,7 @@ export default function ReferencesTab({
                       type='text'
                       value={form.notes}
                       onChange={(e) => onFormChange('notes', e.target.value)}
-                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent'
+                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent text-gray-900'
                       placeholder='Additional context'
                     />
                   </div>
@@ -375,7 +375,7 @@ export default function ReferencesTab({
                       type='text'
                       value={form.name}
                       onChange={(e) => onFormChange('name', e.target.value)}
-                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent'
+                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent text-gray-900'
                       placeholder='e.g., GoWOD'
                     />
                   </div>
@@ -385,7 +385,7 @@ export default function ReferencesTab({
                       type='text'
                       value={form.description}
                       onChange={(e) => onFormChange('description', e.target.value)}
-                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent'
+                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent text-gray-900'
                       placeholder='Brief description'
                     />
                   </div>
@@ -395,7 +395,7 @@ export default function ReferencesTab({
                       type='text'
                       value={form.url}
                       onChange={(e) => onFormChange('url', e.target.value)}
-                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent'
+                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent text-gray-900'
                       placeholder='https://...'
                     />
                   </div>
@@ -405,7 +405,7 @@ export default function ReferencesTab({
                       type='text'
                       value={form.category}
                       onChange={(e) => onFormChange('category', e.target.value)}
-                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent'
+                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent text-gray-900'
                       placeholder='e.g., Mobility, Olympic Lifting'
                     />
                   </div>

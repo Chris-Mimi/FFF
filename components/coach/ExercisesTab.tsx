@@ -107,7 +107,7 @@ export default function ExercisesTab({
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
               placeholder='Search exercises by name, category, or tags...'
-              className='w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent'
+              className='w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900'
             />
           </div>
         </div>
@@ -136,7 +136,7 @@ export default function ExercisesTab({
           <div key={category} className='mb-6 border rounded-lg'>
             <button
               onClick={() => onToggleCategory(category)}
-              className='w-full flex items-center gap-2 p-3 hover:bg-green-50 rounded-t-lg'
+              className='w-full flex items-center gap-2 p-3 hover:bg-green-100 rounded-t-lg text-gray-800'
             >
               {collapsedCategories[category] ? <ChevronRight size={20} /> : <ChevronDown size={20} />}
               <h3 className='text-lg font-semibold text-gray-800'>
