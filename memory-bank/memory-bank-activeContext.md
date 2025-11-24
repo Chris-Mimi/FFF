@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 5.9
-**Updated:** 2025-11-23 (Session 19 - Proactive Code Refactoring)
+**Version:** 6.0
+**Updated:** 2025-11-24 (Session 20 - Exercise Library Complete Import)
 
 ---
 
@@ -61,6 +61,21 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-11-24 Session 20):**
+- **Exercise Library Complete Import & UI Text Fixes:**
+  - ✅ **Full Exercise Import:** Parsed 8 corrected markdown files → 522 clean exercises
+  - ✅ Created `parse-exercises.ts` script (markdown → JSON with typo fixes)
+  - ✅ Created `clean-and-import-exercises.ts` (database refresh script)
+  - ✅ Fixed 6 duplicate exercise names (category slug suffixes)
+  - ✅ Deleted 1,062 mixed/incorrect exercises, imported 522 verified exercises
+  - ✅ **UI Text Color Fixes:** Fixed greyed-out text in ExercisesTab and ReferencesTab
+  - ✅ Search input, collapse arrows, list items, modal inputs now properly visible
+  - **Exercise Breakdown:** Warm-up (110), Gymnastics (108), Core (83), Cardio (50), Strength (48), Recovery (46), Compound (44), Olympic (33)
+  - **Database State:** Clean, verified data with all fields populated (equipment[], body_parts[], difficulty, search_terms)
+  - Commits: a176d7c (UI fixes), 0bd5b4c (import system)
+  - Branch: main (pushed)
+  - See `project-history/2025-11-24-session-20-exercise-library-complete.md`
 
 **Completed (2025-11-23 Session 19):**
 - **Proactive Code Refactoring (Coach Library & Analysis Pages):**
@@ -355,6 +370,11 @@ Athlete Tables (linked to members.id)
 - macOS iCloud Keychain autofill popups (OS behavior, not app bug)
 
 **Lessons Learned:**
+- **2025-11-24 (Session 20):** Markdown parsing with regex is fragile but effective - Split by `#### ` worked but required careful section parsing for subcategories
+- **2025-11-24 (Session 20):** Conservative difficulty assignment safer than aggressive - When uncertain, defaulting to "intermediate" prevents user confusion
+- **2025-11-24 (Session 20):** Duplicate detection requires database-level checks - Parser found 6 duplicates that weren't obvious in separate markdown files
+- **2025-11-24 (Session 20):** Clean slate imports prevent data corruption - Deleting all records before import ensures no mixed old/new data
+- **2025-11-24 (Session 20):** Text color inheritance issues common in Tailwind - Must explicitly set text color on interactive elements (buttons, inputs)
 - **2025-11-23 (Session 19):** Proactive refactoring strategy works - Refactoring at ~1500 lines (vs waiting for 2000+) enables clean extraction in single session without breaking changes
 - **2025-11-23 (Session 19):** Natural component boundaries simplify refactoring - Tab-based structure provided logical separation that matches user mental model
 - **2025-11-23 (Session 19):** Type safety catches integration errors - Build caught RefObject<HTMLButtonElement> vs RefObject<HTMLButtonElement | null> mismatch during integration
@@ -419,17 +439,16 @@ Athlete Tables (linked to members.id)
 
 ## 📋 Next Immediate Steps
 
-1. **Exercise Library - Ready for Full Import:**
-   - ✅ Database schema extended with 8 new fields
-   - ✅ Import script tested with 55 sample exercises
-   - ✅ Coach CRUD UI functional
+1. **Exercise Library - Optional Enhancements:**
+   - ✅ **COMPLETED:** Full import of 522 exercises (Session 20)
+   - ✅ Database schema with 8 fields (display_name, subcategory, equipment[], body_parts[], difficulty, is_warmup, is_stretch, search_terms)
    - ✅ Full-text search with GIN index operational
-   - **Next:** Import remaining 300+ exercises to complete 400+ exercise library
-   - **Command:** `npx tsx scripts/import-exercises.ts database/exercises-import.json`
-   - **Optional enhancements:**
-     - Search by equipment/body_parts filters
-     - Exercise favorites/recently used
+   - ✅ Coach CRUD UI functional
+   - **Optional future enhancements:**
+     - Equipment/body_parts filter dropdowns in search
+     - Exercise favorites/recently used tracking
      - Video URL integration for exercise demos
+     - Exercise usage analytics (frequency in workouts)
 
 2. **Code Maintenance & Refactoring:**
    - **File Size Management:** Keep files under ~1500 lines to avoid frequent major refactors
