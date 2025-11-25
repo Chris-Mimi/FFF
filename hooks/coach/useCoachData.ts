@@ -59,7 +59,8 @@ export const useCoachData = ({
             coach_notes,
             is_published,
             workout_publish_status,
-            google_event_id
+            google_event_id,
+            publish_time
           )
         `)
         .order('date', { ascending: true })
@@ -108,6 +109,7 @@ export const useCoachData = ({
             is_published: workout.is_published || false,
             workout_publish_status: publishStatus,
             google_event_id: workout.google_event_id || null,
+            publish_time: workout.publish_time || undefined,
             booking_info: bookingInfo,
           });
         } else {

@@ -47,6 +47,9 @@ export default function WorkoutModal({
   onNotesToggle,
   onTimeUpdated,
 }: WorkoutModalProps) {
+  // Calculate session time for publish modal
+  const publishSessionTime = editingWOD?.publish_time || editingWOD?.booking_info?.time;
+
   const hook = useWorkoutModal(
     isOpen,
     date,
@@ -570,6 +573,7 @@ export default function WorkoutModal({
           onPublish={hook.handlePublish}
           sections={hook.formData.sections}
           workoutDate={date}
+          sessionTime={publishSessionTime}
         />
       </>
     );
@@ -1025,7 +1029,7 @@ export default function WorkoutModal({
         onPublish={hook.handlePublish}
         sections={hook.formData.sections}
         workoutDate={date}
-        sessionTime={editingWOD?.booking_info?.time}
+        sessionTime={publishSessionTime}
       />
     </>
   );

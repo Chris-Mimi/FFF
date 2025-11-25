@@ -1,7 +1,7 @@
 'use client';
 
 import { Send, X } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { WODSection } from './WorkoutModal';
 
 interface PublishModalProps {
@@ -20,6 +20,13 @@ export interface PublishConfig {
   eventDurationMinutes: number;
 }
 
+// Helper to strip seconds from time (HH:MM:SS -> HH:MM)
+const formatTime = (time?: string): string => {
+  if (!time) return '09:00';
+  // If time includes seconds (HH:MM:SS), strip them
+  return time.includes(':') ? time.substring(0, 5) : time;
+};
+
 export default function PublishModal({
   isOpen,
   onClose,
@@ -29,15 +36,26 @@ export default function PublishModal({
   workoutDate,
   sessionTime,
 }: PublishModalProps) {
+  // Determine initial time: sessionTime > currentPublishConfig > default
+  const initialTime = sessionTime
+    ? formatTime(sessionTime)
+    : (currentPublishConfig?.eventTime || '09:00');
+
   const [selectedSectionIds, setSelectedSectionIds] = useState<string[]>(
     currentPublishConfig?.selectedSectionIds || []
   );
-  // Auto-populate from session time, fallback to config, then default
-  const [eventTime] = useState(sessionTime || currentPublishConfig?.eventTime || '09:00');
+  const [eventTime, setEventTime] = useState(initialTime);
   const [eventDurationMinutes, setEventDurationMinutes] = useState(
     currentPublishConfig?.eventDurationMinutes || 60
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Update eventTime whenever sessionTime changes
+  useEffect(() => {
+    if (sessionTime) {
+      setEventTime(formatTime(sessionTime));
+    }
+  }, [sessionTime]);
 
   const handleToggleSection = (sectionId: string) => {
     setSelectedSectionIds(prev =>
