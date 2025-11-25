@@ -147,8 +147,46 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // TODO: If user was confirmed, promote first waitlist member to confirmed
-    // TODO: Send notification to promoted member (Phase 3)
+    // Auto-promote first waitlist member if cancelled booking was confirmed
+    if (booking.status === 'confirmed') {
+      const { data: waitlistBookings } = await supabase
+        .from('bookings')
+        .select('id, member_id')
+        .eq('session_id', booking.session_id)
+        .eq('status', 'waitlist')
+        .order('booked_at', { ascending: true })
+        .limit(1);
+
+      if (waitlistBookings && waitlistBookings.length > 0) {
+        const firstWaitlist = waitlistBookings[0];
+
+        // Promote to confirmed
+        await supabase
+          .from('bookings')
+          .update({ status: 'confirmed', updated_at: new Date().toISOString() })
+          .eq('id', firstWaitlist.id);
+
+        // Increment 10-card if applicable
+        const { data: promotedMember } = await supabase
+          .from('members')
+          .select('membership_types, ten_card_sessions_used')
+          .eq('id', firstWaitlist.member_id)
+          .single();
+
+        if (promotedMember?.membership_types?.includes('ten_card')) {
+          await supabase
+            .from('members')
+            .update({
+              ten_card_sessions_used: (promotedMember.ten_card_sessions_used || 0) + 1
+            })
+            .eq('id', firstWaitlist.member_id);
+        }
+
+        console.log('✅ Promoted waitlist member to confirmed:', firstWaitlist.member_id);
+        // TODO: Send notification to promoted member (Phase 3)
+      }
+    }
+
     // TODO: Notify coach of cancellation
 
     return NextResponse.json(

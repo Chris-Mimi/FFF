@@ -53,7 +53,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
   const fetchWODsForDay = async () => {
     setLoading(true);
     try {
-      const dateStr = selectedDate.toISOString().split('T')[0];
+      const dateStr = formatLocalDate(selectedDate);
 
       // Get workouts for this date
       const { data: wodsData, error: wodsError } = await supabase
@@ -160,8 +160,8 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
     setLoading(true);
     try {
       const weekDates = getWeekDates(selectedDate);
-      const startStr = weekDates[0].toISOString().split('T')[0];
-      const endStr = weekDates[6].toISOString().split('T')[0];
+      const startStr = formatLocalDate(weekDates[0]);
+      const endStr = formatLocalDate(weekDates[6]);
 
       // Get workouts for this week
       const { data: wodsData, error: wodsError } = await supabase
@@ -624,7 +624,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                         <label className='block text-sm font-medium text-gray-700 mb-2'>Date</label>
                         <input
                           type='date'
-                          value={workoutLogs[wod.id]?.date || selectedDate.toISOString().split('T')[0]}
+                          value={workoutLogs[wod.id]?.date || formatLocalDate(selectedDate)}
                           onChange={e =>
                             setWorkoutLogs({
                               ...workoutLogs,
@@ -653,7 +653,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                                 result: e.target.value,
                                 notes: workoutLogs[wod.id]?.notes || '',
                                 date:
-                                  workoutLogs[wod.id]?.date || selectedDate.toISOString().split('T')[0],
+                                  workoutLogs[wod.id]?.date || formatLocalDate(selectedDate),
                               },
                             })
                           }
@@ -673,7 +673,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                                 result: workoutLogs[wod.id]?.result || '',
                                 notes: e.target.value,
                                 date:
-                                  workoutLogs[wod.id]?.date || selectedDate.toISOString().split('T')[0],
+                                  workoutLogs[wod.id]?.date || formatLocalDate(selectedDate),
                               },
                             })
                           }

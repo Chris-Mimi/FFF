@@ -310,20 +310,14 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
   const CustomDot = (props: any) => {
     const { cx, cy, payload } = props;
     if (payload.isPR) {
-      // Overall best gets red, others get their scaling color
-      let badgeColor = '#dc2626'; // Red (red-600) for overall best
+      let badgeColor = '#dc2626'; // Red for Rx (default)
 
-      if (!payload.isOverallBest) {
-        // Use scaling-specific colors for other PRs
-        if (payload.scaling === 'Rx') {
-          badgeColor = '#dc2626'; // Red (red-600) for Rx
-        } else if (payload.scaling === 'Sc1') {
-          badgeColor = '#1e40af'; // Dark blue (blue-800) for Sc1
-        } else if (payload.scaling === 'Sc2') {
-          badgeColor = '#3b82f6'; // Blue (blue-500) for Sc2
-        } else if (payload.scaling === 'Sc3') {
-          badgeColor = '#60a5fa'; // Light blue (blue-400) for Sc3
-        }
+      if (payload.scaling === 'Sc1') {
+        badgeColor = '#1018ee'; // Blue for Sc1
+      } else if (payload.scaling === 'Sc2') {
+        badgeColor = '#4146f0'; // Medium blue for Sc2
+      } else if (payload.scaling === 'Sc3') {
+        badgeColor = '#6468ef'; // Light blue for Sc3
       }
 
       return (

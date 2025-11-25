@@ -223,25 +223,15 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
     }));
   };
 
-  // Custom dot component to render PR badges with rep-max-based colors
+  // Custom dot component to render PR badges (all red)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const CustomDot = (props: any) => {
     const { cx, cy, payload } = props;
     if (payload.isPR) {
-      // Determine badge color based on rep max type
-      let badgeColor = '#ef4444'; // Red for 1RM (default/most important)
-      if (payload.repMaxType === '3RM') {
-        badgeColor = '#3b82f6'; // Blue for 3RM
-      } else if (payload.repMaxType === '5RM') {
-        badgeColor = '#93c5fd'; // Light blue for 5RM
-      } else if (payload.repMaxType === '10RM') {
-        badgeColor = '#bfdbfe'; // Even lighter blue for 10RM
-      }
-
       return (
         <g>
           <circle cx={cx} cy={cy} r={6} fill='#208479' stroke='#fff' strokeWidth={2} />
-          <circle cx={cx} cy={cy} r={10} fill={badgeColor} opacity={0.8} />
+          <circle cx={cx} cy={cy} r={10} fill='#ef4444' opacity={0.8} />
           <text x={cx} y={cy + 4} textAnchor='middle' fill='white' fontSize={10} fontWeight='bold'>
             PR
           </text>
@@ -453,9 +443,14 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
               {lifts.slice(0, 6).map(lift => {
                 const chartData = getLiftChartDataAllTypes(lift.name);
                 if (chartData.length < 2) return null; // Only show charts with 2+ data points
+
+                // Determine which rep max types have data
+                const repMaxTypes = Array.from(new Set(chartData.map(d => d.repMaxType).filter(Boolean)));
+                const repMaxLabel = repMaxTypes.length > 0 ? ` (${repMaxTypes.join(', ')})` : '';
+
                 return (
                   <div key={lift.name} className='border border-sky-300 rounded-lg p-4 bg-gradient-to-br from-[#40E0D0] to-[#AFEEEE]'>
-                    <h4 className='font-bold text-gray-700 mb-3'>{lift.name}</h4>
+                    <h4 className='font-bold text-gray-700 mb-3'>{lift.name}{repMaxLabel}</h4>
                     <ResponsiveContainer width='100%' height={200}>
                       <LineChart data={chartData}>
                         <CartesianGrid strokeDasharray='3 3' stroke='white' />

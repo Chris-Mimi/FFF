@@ -210,6 +210,44 @@ export default function SessionManagementModal({
           .eq('id', session.workout_id);
       }
 
+      // Auto-promote waitlist members if capacity increased
+      const spotsOpened = newCapacity - confirmedCount;
+      if (spotsOpened > 0) {
+        const { data: waitlistBookings } = await supabase
+          .from('bookings')
+          .select('id, member_id')
+          .eq('session_id', sessionId)
+          .eq('status', 'waitlist')
+          .order('booked_at', { ascending: true })
+          .limit(spotsOpened);
+
+        if (waitlistBookings && waitlistBookings.length > 0) {
+          for (const booking of waitlistBookings) {
+            // Promote to confirmed
+            await supabase
+              .from('bookings')
+              .update({ status: 'confirmed', updated_at: new Date().toISOString() })
+              .eq('id', booking.id);
+
+            // Increment 10-card if applicable
+            const { data: member } = await supabase
+              .from('members')
+              .select('membership_types, ten_card_sessions_used')
+              .eq('id', booking.member_id)
+              .single();
+
+            if (member?.membership_types?.includes('ten_card')) {
+              await supabase
+                .from('members')
+                .update({
+                  ten_card_sessions_used: (member.ten_card_sessions_used || 0) + 1
+                })
+                .eq('id', booking.member_id);
+            }
+          }
+        }
+      }
+
       setEditingCapacity(false);
       await fetchSessionDetails();
       onSessionUpdated();
