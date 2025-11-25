@@ -2,6 +2,19 @@
 
 import { X } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
+
+// Predefined category order
+const EXERCISE_CATEGORY_ORDER = [
+  'Warm-up & Mobility',
+  'Olympic Lifting & Barbell Movements',
+  'Compound Exercises',
+  'Gymnastics & Bodyweight',
+  'Core, Abs & Isometric Holds',
+  'Cardio & Conditioning',
+  'Specialty',
+  'Recovery & Stretching',
+];
 
 interface Exercise {
   id: string;
@@ -49,6 +62,115 @@ export default function ExerciseFormModal({
     search_terms: '',
   });
 
+  // State for categories and subcategories mapping
+  const [categorySubcategoryMap, setCategorySubcategoryMap] = useState<Record<string, string[]>>({});
+  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
+  const [customCategory, setCustomCategory] = useState('');
+  const [customSubcategory, setCustomSubcategory] = useState('');
+
+  // Add custom subcategory to dropdown
+  const addCustomSubcategory = () => {
+    if (!customSubcategory.trim() || !form.category || form.category === '__custom__') return;
+
+    const trimmedSubcat = customSubcategory.trim();
+
+    // Add to the category's subcategory list
+    const updatedMap = {
+      ...categorySubcategoryMap,
+      [form.category]: [...(categorySubcategoryMap[form.category] || []), trimmedSubcat].sort(),
+    };
+    setCategorySubcategoryMap(updatedMap);
+
+    // Persist custom subcategories to localStorage (load existing, add new, save)
+    try {
+      const stored = localStorage.getItem('exercise-custom-subcategories');
+      const customSubcats: Record<string, string[]> = stored ? JSON.parse(stored) : {};
+
+      // Add the new subcategory to custom list
+      if (!customSubcats[form.category]) {
+        customSubcats[form.category] = [];
+      }
+      if (!customSubcats[form.category].includes(trimmedSubcat)) {
+        customSubcats[form.category].push(trimmedSubcat);
+        customSubcats[form.category].sort();
+      }
+
+      localStorage.setItem('exercise-custom-subcategories', JSON.stringify(customSubcats));
+    } catch (e) {
+      console.error('Failed to save custom subcategories to localStorage', e);
+    }
+
+    // Set the form to use this new subcategory
+    setForm({ ...form, subcategory: trimmedSubcat });
+    setCustomSubcategory('');
+  };
+
+  // Fetch categories and subcategories from exercises
+  useEffect(() => {
+    const fetchCategoriesAndSubcategories = async () => {
+      const { data: exercises } = await supabase
+        .from('exercises')
+        .select('category, subcategory');
+
+      if (exercises) {
+        // Build category -> subcategories mapping
+        const map: Record<string, Set<string>> = {};
+
+        exercises.forEach((ex) => {
+          if (ex.category) {
+            if (!map[ex.category]) {
+              map[ex.category] = new Set();
+            }
+            if (ex.subcategory) {
+              map[ex.category].add(ex.subcategory);
+            }
+          }
+        });
+
+        // Load custom subcategories from localStorage
+        let customSubcats: Record<string, string[]> = {};
+        try {
+          const stored = localStorage.getItem('exercise-custom-subcategories');
+          if (stored) {
+            customSubcats = JSON.parse(stored);
+          }
+        } catch (e) {
+          console.error('Failed to load custom subcategories from localStorage', e);
+        }
+
+        // Merge custom subcategories with database subcategories
+        Object.keys(customSubcats).forEach((cat) => {
+          if (!map[cat]) {
+            map[cat] = new Set();
+          }
+          customSubcats[cat].forEach((subcat) => {
+            map[cat].add(subcat);
+          });
+        });
+
+        // Convert Sets to sorted arrays
+        const finalMap: Record<string, string[]> = {};
+        Object.keys(map).forEach((cat) => {
+          finalMap[cat] = Array.from(map[cat]).sort();
+        });
+
+        setCategorySubcategoryMap(finalMap);
+
+        // Sort categories by predefined order
+        const allCategories = Object.keys(finalMap);
+        const sortedCategories = [
+          ...EXERCISE_CATEGORY_ORDER.filter(cat => allCategories.includes(cat)),
+          ...allCategories.filter(cat => !EXERCISE_CATEGORY_ORDER.includes(cat)).sort()
+        ];
+        setAvailableCategories(sortedCategories);
+      }
+    };
+
+    if (isOpen) {
+      fetchCategoriesAndSubcategories();
+    }
+  }, [isOpen]);
+
   useEffect(() => {
     if (editingExercise) {
       setForm({
@@ -66,6 +188,13 @@ export default function ExerciseFormModal({
         is_stretch: editingExercise.is_stretch || false,
         search_terms: editingExercise.search_terms || '',
       });
+      // Check if category/subcategory are custom (not in lists)
+      if (editingExercise.category && !availableCategories.includes(editingExercise.category)) {
+        setCustomCategory(editingExercise.category);
+      }
+      if (editingExercise.subcategory && categorySubcategoryMap[editingExercise.category]?.length > 0 && !categorySubcategoryMap[editingExercise.category].includes(editingExercise.subcategory)) {
+        setCustomSubcategory(editingExercise.subcategory);
+      }
     } else {
       setForm({
         name: '',
@@ -82,11 +211,17 @@ export default function ExerciseFormModal({
         is_stretch: false,
         search_terms: '',
       });
+      setCustomCategory('');
+      setCustomSubcategory('');
     }
-  }, [editingExercise, isOpen]);
+  }, [editingExercise, isOpen, availableCategories, categorySubcategoryMap]);
 
   const handleSubmit = async () => {
-    if (!form.name || !form.category) {
+    // Use custom values if "Other" is selected
+    const finalCategory = form.category === '__custom__' ? customCategory : form.category;
+    const finalSubcategory = form.subcategory === '__custom__' ? customSubcategory : form.subcategory;
+
+    if (!form.name || !finalCategory) {
       alert('Name and Category are required');
       return;
     }
@@ -95,8 +230,8 @@ export default function ExerciseFormModal({
       ...(editingExercise && { id: editingExercise.id }),
       name: form.name,
       display_name: form.display_name || form.name,
-      category: form.category,
-      subcategory: form.subcategory || null,
+      category: finalCategory,
+      subcategory: finalSubcategory || null,
       description: form.description || null,
       video_url: form.video_url || null,
       tags: form.tags ? form.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
@@ -105,7 +240,7 @@ export default function ExerciseFormModal({
       difficulty: form.difficulty || undefined,
       is_warmup: form.is_warmup,
       is_stretch: form.is_stretch,
-      search_terms: form.search_terms || `${form.name} ${form.category} ${form.tags}`.toLowerCase(),
+      search_terms: form.search_terms || `${form.name} ${finalCategory} ${form.tags}`.toLowerCase(),
     };
 
     await onSave(exerciseData as Omit<Exercise, 'id'> & { id?: string });
@@ -160,25 +295,83 @@ export default function ExerciseFormModal({
               <label className='block text-sm font-medium text-gray-100 mb-1'>
                 Category <span className='text-red-400'>*</span>
               </label>
-              <input
-                type='text'
+              <select
                 value={form.category}
-                onChange={(e) => setForm({ ...form, category: e.target.value })}
-                className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500'
-                placeholder='e.g., Olympic Lifting'
-              />
+                onChange={(e) => {
+                  setForm({ ...form, category: e.target.value, subcategory: '' });
+                  if (e.target.value !== '__custom__') {
+                    setCustomCategory('');
+                  }
+                }}
+                className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 cursor-pointer'
+              >
+                <option value=''>Select a category...</option>
+                {availableCategories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+                <option value='__custom__'>Other (custom)</option>
+              </select>
+              {form.category === '__custom__' && (
+                <input
+                  type='text'
+                  value={customCategory}
+                  onChange={(e) => setCustomCategory(e.target.value)}
+                  className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 mt-2'
+                  placeholder='Enter custom category'
+                />
+              )}
             </div>
             <div>
               <label className='block text-sm font-medium text-gray-100 mb-1'>
                 Subcategory <span className='text-gray-400 text-xs'>(optional)</span>
               </label>
-              <input
-                type='text'
+              <select
                 value={form.subcategory}
-                onChange={(e) => setForm({ ...form, subcategory: e.target.value })}
-                className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500'
-                placeholder='e.g., Clean Variations'
-              />
+                onChange={(e) => {
+                  setForm({ ...form, subcategory: e.target.value });
+                  if (e.target.value !== '__custom__') {
+                    setCustomSubcategory('');
+                  }
+                }}
+                className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 cursor-pointer'
+                disabled={!form.category || form.category === '__custom__'}
+              >
+                <option value=''>None</option>
+                {form.category && form.category !== '__custom__' && categorySubcategoryMap[form.category]?.map((subcat) => (
+                  <option key={subcat} value={subcat}>
+                    {subcat}
+                  </option>
+                ))}
+                {form.category && form.category !== '__custom__' && (
+                  <option value='__custom__'>Other (custom)</option>
+                )}
+              </select>
+              {form.subcategory === '__custom__' && (
+                <div className='flex gap-2 mt-2'>
+                  <input
+                    type='text'
+                    value={customSubcategory}
+                    onChange={(e) => setCustomSubcategory(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addCustomSubcategory();
+                      }
+                    }}
+                    className='flex-1 px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500'
+                    placeholder='Enter custom subcategory'
+                  />
+                  <button
+                    type='button'
+                    onClick={addCustomSubcategory}
+                    className='px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-lg font-medium transition'
+                  >
+                    Add
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
