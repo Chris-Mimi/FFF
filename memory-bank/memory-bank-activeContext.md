@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 6.0
-**Updated:** 2025-11-24 (Session 20 - Exercise Library Complete Import)
+**Version:** 6.1
+**Updated:** 2025-11-25 (Session 21 - Testing & Deployment Preparation)
 
 ---
 
@@ -61,6 +61,19 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-11-25 Session 21):**
+- **Comprehensive Testing & Bug Fixes:**
+  - ✅ **Testing:** 22/25 test cases passed (3-state system, booking flows, athlete pages, integration)
+  - ✅ **Bug Fix #1:** Publish time reverting to 09:00 (2-hour debug - missing sessionTime prop on panel mode PublishModal)
+  - ✅ **Bug Fix #2:** Auto-promote waitlist on booking cancellation (added to cancel route with 10-card tracking)
+  - ✅ **Bug Fix #3:** Auto-promote waitlist on capacity increase (added to SessionManagementModal)
+  - ✅ **Bug Fix #4:** Month view timezone bug (replaced toISOString with formatLocalDate in AthletePageLogbookTab)
+  - ✅ **UX Improvements:** Rep max types in lift chart headers, PR badge color customization (all red for lifts, scaling-based for benchmarks)
+  - ✅ **Exercise Modal:** Category/subcategory dropdowns with localStorage persistence for custom entries
+  - Commits: e05b1e2 (publish time), f992e78 (auto-promotion + timezone), 1e1f4fd (dropdowns)
+  - Branch: main (pushed)
+  - See `project-history/2025-11-25-session-21-testing-deployment-prep.md`
 
 **Completed (2025-11-24 Session 20):**
 - **Exercise Library Complete Import & UI Text Fixes:**
@@ -370,9 +383,12 @@ Athlete Tables (linked to members.id)
 - macOS iCloud Keychain autofill popups (OS behavior, not app bug)
 
 **Lessons Learned:**
+- **2025-11-25 (Session 21):** Component instance search critical - When debugging props, search for ALL component instances in file, not just first match (components often rendered in multiple modes)
+- **2025-11-25 (Session 21):** Timezone consistency prevents day-off bugs - Always use single timezone-aware helper (formatLocalDate), mixing UTC and local causes off-by-one errors
+- **2025-11-25 (Session 21):** TODO comments mark incomplete features - During testing, search for related TODOs to find intentional feature gaps
+- **2025-11-25 (Session 21):** localStorage enables UI persistence - Good for dropdown options, preferences, temporary state without database schema changes
+- **2025-11-25 (Session 21):** Debugging session duration awareness - After 30-45 min stuck, step back and re-evaluate approach systematically
 - **2025-11-24 (Session 20):** Markdown parsing with regex is fragile but effective - Split by `#### ` worked but required careful section parsing for subcategories
-- **2025-11-24 (Session 20):** Conservative difficulty assignment safer than aggressive - When uncertain, defaulting to "intermediate" prevents user confusion
-- **2025-11-24 (Session 20):** Duplicate detection requires database-level checks - Parser found 6 duplicates that weren't obvious in separate markdown files
 - **2025-11-24 (Session 20):** Clean slate imports prevent data corruption - Deleting all records before import ensures no mixed old/new data
 - **2025-11-24 (Session 20):** Text color inheritance issues common in Tailwind - Must explicitly set text color on interactive elements (buttons, inputs)
 - **2025-11-23 (Session 19):** Proactive refactoring strategy works - Refactoring at ~1500 lines (vs waiting for 2000+) enables clean extraction in single session without breaking changes
@@ -439,18 +455,24 @@ Athlete Tables (linked to members.id)
 
 ## 📋 Next Immediate Steps
 
-1. **Exercise Library - Optional Enhancements:**
-   - ✅ **COMPLETED:** Full import of 522 exercises (Session 20)
-   - ✅ Database schema with 8 fields (display_name, subcategory, equipment[], body_parts[], difficulty, is_warmup, is_stretch, search_terms)
-   - ✅ Full-text search with GIN index operational
-   - ✅ Coach CRUD UI functional
+1. **Deployment Preparation (HIGH PRIORITY):**
+   - ✅ **Testing Complete:** 22/25 test cases passed, 4 bugs fixed (Session 21)
+   - ⚠️ **Remaining:** Part 5 - Deployment Checklist
+     - Run production build (npm run build)
+     - Verify environment variables and security
+     - Check RLS policies in Supabase
+     - Browser compatibility testing (Chrome, Firefox, Safari, mobile)
+   - **Optional:** Session cancellation notifications, waitlist promotion notifications
+
+2. **Exercise Library - Optional Enhancements:**
+   - ✅ **COMPLETED:** Full import (522 exercises), category/subcategory dropdowns, localStorage persistence
    - **Optional future enhancements:**
      - Equipment/body_parts filter dropdowns in search
      - Exercise favorites/recently used tracking
      - Video URL integration for exercise demos
      - Exercise usage analytics (frequency in workouts)
 
-2. **Code Maintenance & Refactoring:**
+3. **Code Maintenance & Refactoring:**
    - **File Size Management:** Keep files under ~1500 lines to avoid frequent major refactors
    - ✅ **Completed Refactors:**
      - WorkoutModal.tsx (Session 13: 2256 → 905 lines, 60% reduction)

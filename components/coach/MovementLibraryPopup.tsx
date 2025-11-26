@@ -4,14 +4,24 @@ import { supabase } from '@/lib/supabase';
 import { Library, Search, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { BarbellLift, Benchmark, ForgeBenchmark } from '@/types/movements';
+import MultiSelectDropdown from './MultiSelectDropdown';
+import ExerciseVideoModal from './ExerciseVideoModal';
 
 interface Exercise {
   id: string;
   name: string;
+  display_name?: string;
   category: string;
+  subcategory?: string;
   description: string | null;
   video_url: string | null;
   tags: string[] | null;
+  equipment?: string[] | null;
+  body_parts?: string[] | null;
+  difficulty?: 'beginner' | 'intermediate' | 'advanced';
+  is_warmup?: boolean;
+  is_stretch?: boolean;
+  search_terms?: string;
 }
 
 type TabType = 'exercises' | 'lifts' | 'benchmarks' | 'forge';
@@ -78,6 +88,17 @@ function MovementLibraryPopup({
   const [lifts, setLifts] = useState<BarbellLift[]>([]);
   const [benchmarks, setBenchmarks] = useState<Benchmark[]>([]);
   const [forgeBenchmarks, setForgeBenchmarks] = useState<ForgeBenchmark[]>([]);
+
+  // Filter states (exercises tab only)
+  const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
+  const [selectedBodyParts, setSelectedBodyParts] = useState<string[]>([]);
+  const [availableEquipment, setAvailableEquipment] = useState<string[]>([]);
+  const [availableBodyParts, setAvailableBodyParts] = useState<string[]>([]);
+
+  // Video modal state
+  const [videoModalOpen, setVideoModalOpen] = useState(false);
+  const [selectedVideoUrl, setSelectedVideoUrl] = useState('');
+  const [selectedVideoName, setSelectedVideoName] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [hasFetchedExercises, setHasFetchedExercises] = useState(false);
@@ -187,11 +208,35 @@ function MovementLibraryPopup({
       if (error) throw error;
       setExercises(data || []);
       setHasFetchedExercises(true);
+      // Fetch distinct filter values after exercises loaded
+      fetchDistinctFilters(data || []);
     } catch (error) {
       console.error('Error fetching exercises:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchDistinctFilters = (exercisesData: Exercise[]) => {
+    // Extract distinct equipment values
+    const equipmentSet = new Set<string>();
+    exercisesData.forEach((ex) => {
+      ex.equipment?.forEach((eq) => {
+        if (eq) equipmentSet.add(eq);
+      });
+    });
+    const uniqueEquipment = Array.from(equipmentSet).sort();
+    setAvailableEquipment(uniqueEquipment);
+
+    // Extract distinct body_parts values
+    const bodyPartsSet = new Set<string>();
+    exercisesData.forEach((ex) => {
+      ex.body_parts?.forEach((bp) => {
+        if (bp) bodyPartsSet.add(bp);
+      });
+    });
+    const uniqueBodyParts = Array.from(bodyPartsSet).sort();
+    setAvailableBodyParts(uniqueBodyParts);
   };
 
   const fetchLifts = async () => {
@@ -245,6 +290,19 @@ function MovementLibraryPopup({
     }
   };
 
+  // Video modal handlers
+  const openVideoModal = (videoUrl: string, exerciseName: string) => {
+    setSelectedVideoUrl(videoUrl);
+    setSelectedVideoName(exerciseName);
+    setVideoModalOpen(true);
+  };
+
+  const closeVideoModal = () => {
+    setVideoModalOpen(false);
+    setSelectedVideoUrl('');
+    setSelectedVideoName('');
+  };
+
   useEffect(() => {
     if (isOpen) {
       // Clear search and focus input when opening
@@ -253,37 +311,61 @@ function MovementLibraryPopup({
         searchInputRef.current.focus();
       }
     } else {
-      // Clear search when closing
+      // Clear search and reset filters when closing
       setSearchTerm('');
+      setSelectedEquipment([]);
+      setSelectedBodyParts([]);
     }
   }, [isOpen]);
 
   // Filter exercises by category - memoized
+  // Applies equipment/body_parts filters (OR within groups, AND between groups) then search filter
   const filteredExerciseCategories = useMemo(() => {
+    // Step 1: Apply equipment and body_parts filters
+    let filteredExercises = exercises;
+
+    // Apply equipment filter (OR within: barbell OR dumbbell)
+    if (selectedEquipment.length > 0) {
+      filteredExercises = filteredExercises.filter(exercise =>
+        selectedEquipment.some(eq => exercise.equipment?.includes(eq))
+      );
+    }
+
+    // Apply body_parts filter (OR within: legs OR shoulders)
+    if (selectedBodyParts.length > 0) {
+      filteredExercises = filteredExercises.filter(exercise =>
+        selectedBodyParts.some(bp => exercise.body_parts?.includes(bp))
+      );
+    }
+
+    // Step 2: Apply search filter
+    const trimmedSearch = searchTerm.trim();
+    if (trimmedSearch) {
+      const searchLower = trimmedSearch.toLowerCase();
+      filteredExercises = filteredExercises.filter(
+        exercise =>
+          exercise.name.toLowerCase().includes(searchLower) ||
+          (exercise.display_name && exercise.display_name.toLowerCase().includes(searchLower)) ||
+          exercise.category.toLowerCase().includes(searchLower) ||
+          (exercise.subcategory && exercise.subcategory.toLowerCase().includes(searchLower)) ||
+          exercise.tags?.some(tag => tag.toLowerCase().includes(searchLower)) ||
+          exercise.equipment?.some(eq => eq.toLowerCase().includes(searchLower)) ||
+          exercise.body_parts?.some(bp => bp.toLowerCase().includes(searchLower)) ||
+          (exercise.search_terms && exercise.search_terms.toLowerCase().includes(searchLower))
+      );
+    }
+
+    // Step 3: Group by category
     const grouped: Record<string, Exercise[]> = {};
-    exercises.forEach(exercise => {
+    filteredExercises.forEach(exercise => {
       if (!grouped[exercise.category]) {
         grouped[exercise.category] = [];
       }
       grouped[exercise.category].push(exercise);
     });
 
-    const trimmedSearch = searchTerm.trim();
-    if (!trimmedSearch) return grouped;
-
-    const filtered: Record<string, Exercise[]> = {};
-    Object.entries(grouped).forEach(([category, categoryExercises]) => {
-      const matchingExercises = categoryExercises.filter(
-        exercise =>
-          exercise.name.toLowerCase().includes(trimmedSearch.toLowerCase()) ||
-          exercise.tags?.some(tag => tag.toLowerCase().includes(trimmedSearch.toLowerCase()))
-      );
-      if (matchingExercises.length > 0) {
-        filtered[category] = matchingExercises;
-      }
-    });
-    return filtered;
-  }, [exercises, searchTerm]);
+    return grouped;
+  }, [exercises, selectedEquipment, selectedBodyParts, searchTerm]);
 
   // Filter lifts by category
   const filteredLiftCategories = useMemo(() => {
@@ -492,6 +574,28 @@ function MovementLibraryPopup({
           </p>
         </div>
 
+        {/* Filter Section (Exercises Tab Only) */}
+        {activeTab === 'exercises' && (
+          <div className='px-4 py-3 border-b bg-gray-50'>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
+              <MultiSelectDropdown
+                label='Equipment'
+                options={availableEquipment}
+                selectedValues={selectedEquipment}
+                onChange={setSelectedEquipment}
+                placeholder='All equipment'
+              />
+              <MultiSelectDropdown
+                label='Body Parts'
+                options={availableBodyParts}
+                selectedValues={selectedBodyParts}
+                onChange={setSelectedBodyParts}
+                placeholder='All body parts'
+              />
+            </div>
+          </div>
+        )}
+
         {/* Content Area */}
         <div className='flex-1 overflow-y-auto p-4'>
           {loading ? (
@@ -518,6 +622,17 @@ function MovementLibraryPopup({
                               title={exercise.description || undefined}
                             >
                               {exercise.name}
+                              {exercise.video_url && (
+                                <span
+                                  className='ml-1 cursor-pointer hover:text-teal-500'
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openVideoModal(exercise.video_url!, exercise.name);
+                                  }}
+                                >
+                                  📹
+                                </span>
+                              )}
                             </button>
                           ))}
                         </div>
@@ -609,6 +724,14 @@ function MovementLibraryPopup({
           )}
         </div>
       </div>
+
+      {/* Video Modal */}
+      <ExerciseVideoModal
+        isOpen={videoModalOpen}
+        onClose={closeVideoModal}
+        videoUrl={selectedVideoUrl}
+        exerciseName={selectedVideoName}
+      />
     </div>
   );
 }

@@ -1,7 +1,10 @@
 'use client';
 
 import ExerciseFormModal from '@/components/coach/ExerciseFormModal';
+import MultiSelectDropdown from '@/components/coach/MultiSelectDropdown';
+import { supabase } from '@/lib/supabase';
 import { ChevronDown, ChevronRight, Edit2, Plus, Search, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 // Define category ordering (workout flow)
 const EXERCISE_CATEGORY_ORDER = [
@@ -63,6 +66,8 @@ interface ExercisesTabProps {
   onCloseModal: () => void;
   editingExercise: Exercise | null;
   onSave: (exerciseData: Omit<Exercise, 'id'> & { id?: string }) => Promise<void>;
+  // Video modal
+  onOpenVideoModal: (videoUrl: string, exerciseName: string) => void;
 }
 
 export default function ExercisesTab({
@@ -78,7 +83,42 @@ export default function ExercisesTab({
   onCloseModal,
   editingExercise,
   onSave,
+  onOpenVideoModal,
 }: ExercisesTabProps) {
+  // Filter state
+  const [availableEquipment, setAvailableEquipment] = useState<string[]>([]);
+  const [availableBodyParts, setAvailableBodyParts] = useState<string[]>([]);
+  const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
+  const [selectedBodyParts, setSelectedBodyParts] = useState<string[]>([]);
+
+  // Fetch distinct equipment and body_parts for filters
+  useEffect(() => {
+    const fetchDistinctFilters = async () => {
+      try {
+        const { data: exerciseData, error } = await supabase
+          .from('exercises')
+          .select('equipment, body_parts');
+
+        if (error) throw error;
+
+        const equipmentSet = new Set<string>();
+        const bodyPartsSet = new Set<string>();
+
+        exerciseData?.forEach((ex) => {
+          ex.equipment?.forEach((eq: string) => equipmentSet.add(eq));
+          ex.body_parts?.forEach((bp: string) => bodyPartsSet.add(bp));
+        });
+
+        setAvailableEquipment(Array.from(equipmentSet).sort());
+        setAvailableBodyParts(Array.from(bodyPartsSet).sort());
+      } catch (error) {
+        console.error('Error fetching filter options:', error);
+      }
+    };
+
+    fetchDistinctFilters();
+  }, []);
+
   return (
     <>
       <div className='bg-white rounded-lg shadow p-6'>
@@ -112,19 +152,61 @@ export default function ExercisesTab({
           </div>
         </div>
 
+        {/* Filter Buttons */}
+        <div className='mb-4 flex gap-3'>
+          <MultiSelectDropdown
+            label='Equipment'
+            options={availableEquipment}
+            selectedValues={selectedEquipment}
+            onChange={setSelectedEquipment}
+            placeholder='All Equipment'
+          />
+          <MultiSelectDropdown
+            label='Body Parts'
+            options={availableBodyParts}
+            selectedValues={selectedBodyParts}
+            onChange={setSelectedBodyParts}
+            placeholder='All Body Parts'
+          />
+        </div>
+
         {/* Group by category */}
         {sortCategories(
           exercises
             .filter(ex => {
-              if (!searchTerm.trim()) return true;
-              const searchLower = searchTerm.toLowerCase();
-              return (
-                ex.name.toLowerCase().includes(searchLower) ||
-                (ex.display_name && ex.display_name.toLowerCase().includes(searchLower)) ||
-                ex.category.toLowerCase().includes(searchLower) ||
-                (ex.subcategory && ex.subcategory.toLowerCase().includes(searchLower)) ||
-                (ex.tags && ex.tags.some(tag => tag.toLowerCase().includes(searchLower)))
-              );
+              // Search term filter
+              if (searchTerm.trim()) {
+                const searchLower = searchTerm.toLowerCase();
+                const matchesSearch = (
+                  ex.name.toLowerCase().includes(searchLower) ||
+                  (ex.display_name && ex.display_name.toLowerCase().includes(searchLower)) ||
+                  ex.category.toLowerCase().includes(searchLower) ||
+                  (ex.subcategory && ex.subcategory.toLowerCase().includes(searchLower)) ||
+                  (ex.tags && ex.tags.some(tag => tag.toLowerCase().includes(searchLower))) ||
+                  (ex.equipment && ex.equipment.some(eq => eq.toLowerCase().includes(searchLower))) ||
+                  (ex.body_parts && ex.body_parts.some(bp => bp.toLowerCase().includes(searchLower))) ||
+                  (ex.search_terms && ex.search_terms.toLowerCase().includes(searchLower))
+                );
+                if (!matchesSearch) return false;
+              }
+
+              // Equipment filter (OR within group)
+              if (selectedEquipment.length > 0) {
+                const hasEquipment = selectedEquipment.some(eq =>
+                  ex.equipment?.includes(eq)
+                );
+                if (!hasEquipment) return false;
+              }
+
+              // Body Parts filter (OR within group)
+              if (selectedBodyParts.length > 0) {
+                const hasBodyPart = selectedBodyParts.some(bp =>
+                  ex.body_parts?.includes(bp)
+                );
+                if (!hasBodyPart) return false;
+              }
+
+              return true;
             })
             .reduce((acc, ex) => {
               if (!acc[ex.category]) acc[ex.category] = [];
@@ -166,6 +248,17 @@ export default function ExercisesTab({
                     </div>
                     <h4 className='text-base font-bold text-gray-900 mb-1'>
                       {exercise.display_name || exercise.name}
+                      {exercise.video_url && (
+                        <span
+                          className='ml-2 cursor-pointer text-teal-500 hover:text-teal-600'
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onOpenVideoModal(exercise.video_url!, exercise.display_name || exercise.name);
+                          }}
+                        >
+                          📹
+                        </span>
+                      )}
                     </h4>
                     {exercise.subcategory && (
                       <p className='text-xs text-gray-600 mb-1'>{exercise.subcategory}</p>

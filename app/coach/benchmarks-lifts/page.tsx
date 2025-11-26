@@ -2,6 +2,7 @@
 
 import BenchmarksTab from '@/components/coach/BenchmarksTab';
 import ExercisesTab from '@/components/coach/ExercisesTab';
+import ExerciseVideoModal from '@/components/coach/ExerciseVideoModal';
 import ForgeBenchmarksTab from '@/components/coach/ForgeBenchmarksTab';
 import LiftsTab from '@/components/coach/LiftsTab';
 import ReferencesTab from '@/components/coach/ReferencesTab';
@@ -87,6 +88,17 @@ export default function BenchmarksLiftsManagementPage() {
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
   const [collapsedExerciseCategories, setCollapsedExerciseCategories] = useState<Record<string, boolean>>({});
   const [exerciseSearchTerm, setExerciseSearchTerm] = useState('');
+
+  // Exercise filter state
+  const [availableEquipment, setAvailableEquipment] = useState<string[]>([]);
+  const [availableBodyParts, setAvailableBodyParts] = useState<string[]>([]);
+  const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
+  const [selectedBodyParts, setSelectedBodyParts] = useState<string[]>([]);
+
+  // Video modal state
+  const [videoModalOpen, setVideoModalOpen] = useState(false);
+  const [selectedVideoUrl, setSelectedVideoUrl] = useState('');
+  const [selectedVideoName, setSelectedVideoName] = useState('');
 
   // References state
   interface NamingConvention {
@@ -641,6 +653,19 @@ export default function BenchmarksLiftsManagementPage() {
     }
   };
 
+  // Video modal handlers
+  const openVideoModal = (videoUrl: string, exerciseName: string) => {
+    setSelectedVideoUrl(videoUrl);
+    setSelectedVideoName(exerciseName);
+    setVideoModalOpen(true);
+  };
+
+  const closeVideoModal = () => {
+    setVideoModalOpen(false);
+    setSelectedVideoUrl('');
+    setSelectedVideoName('');
+  };
+
   // Handler functions for tab components
   const handleBenchmarkFormChange = (field: string, value: string | number) => {
     setBenchmarkForm(prev => ({ ...prev, [field]: value }));
@@ -838,6 +863,7 @@ export default function BenchmarksLiftsManagementPage() {
             }}
             editingExercise={editingExercise}
             onSave={handleSaveExercise}
+            onOpenVideoModal={openVideoModal}
           />
         )}
 
@@ -862,6 +888,14 @@ export default function BenchmarksLiftsManagementPage() {
           />
         )}
       </div>
+
+      {/* Video Modal */}
+      <ExerciseVideoModal
+        isOpen={videoModalOpen}
+        onClose={closeVideoModal}
+        videoUrl={selectedVideoUrl}
+        exerciseName={selectedVideoName}
+      />
     </div>
   );
 }
