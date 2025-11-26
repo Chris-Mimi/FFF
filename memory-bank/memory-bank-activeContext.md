@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 6.1
-**Updated:** 2025-11-25 (Session 21 - Testing & Deployment Preparation)
+**Version:** 6.2
+**Updated:** 2025-11-26 (Session 22 - Exercise Filters & Video Playback)
 
 ---
 
@@ -61,6 +61,19 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-11-26 Session 22):**
+- **Exercise Library Filters & Video Playback:**
+  - ✅ **Multi-select filters:** Equipment and body parts dropdowns (OR within groups, AND between groups)
+  - ✅ **Video modal:** Resizable (600x400-1400x900), draggable, YouTube/HTML5 support, 📹 icons
+  - ✅ **Equipment population:** Pattern-matching script populated 421/522 exercises (80.7%), 14 unmatched
+  - ✅ **Enhanced search:** Extended to 8 fields (name, display_name, category, subcategory, tags, equipment, body_parts, search_terms)
+  - ✅ **Critical correction:** "bodyweight" moved from equipment to search_terms (equipment = physical items only)
+  - New files: MultiSelectDropdown.tsx, ExerciseVideoModal.tsx, video-helpers.ts, populate-equipment.ts
+  - Modified: ExercisesTab.tsx, MovementLibraryPopup.tsx, benchmarks-lifts/page.tsx
+  - Commit: a38765d (1,495 insertions, 37 deletions)
+  - Branch: main (pushed)
+  - See `project-history/2025-11-26-session-22-exercise-filters-video.md`
 
 **Completed (2025-11-25 Session 21):**
 - **Comprehensive Testing & Bug Fixes:**
@@ -383,6 +396,10 @@ Athlete Tables (linked to members.id)
 - macOS iCloud Keychain autofill popups (OS behavior, not app bug)
 
 **Lessons Learned:**
+- **2025-11-26 (Session 22):** Pattern ordering critical in rule-based systems - Specific patterns must come before general patterns (db-alt-snatch matched barbell instead of dumbbell until DB patterns moved first)
+- **2025-11-26 (Session 22):** Equipment vs descriptor distinction - Equipment = physical items (barbell, pull-up bar), descriptors = attributes (bodyweight). Trust user domain expertise on semantic differences
+- **2025-11-26 (Session 22):** Search comprehensiveness matters - If users can see/filter by a field, they expect search to work on that field (equipment, body_parts, search_terms)
+- **2025-11-26 (Session 22):** Dry run mode enables safe automation - For batch data operations, always provide preview mode with explicit --apply flag. Let users verify before applying
 - **2025-11-25 (Session 21):** Component instance search critical - When debugging props, search for ALL component instances in file, not just first match (components often rendered in multiple modes)
 - **2025-11-25 (Session 21):** Timezone consistency prevents day-off bugs - Always use single timezone-aware helper (formatLocalDate), mixing UTC and local causes off-by-one errors
 - **2025-11-25 (Session 21):** TODO comments mark incomplete features - During testing, search for related TODOs to find intentional feature gaps
@@ -465,12 +482,13 @@ Athlete Tables (linked to members.id)
    - **Optional:** Session cancellation notifications, waitlist promotion notifications
 
 2. **Exercise Library - Optional Enhancements:**
-   - ✅ **COMPLETED:** Full import (522 exercises), category/subcategory dropdowns, localStorage persistence
-   - **Optional future enhancements:**
-     - Equipment/body_parts filter dropdowns in search
+   - ✅ **COMPLETED (Session 22):** Equipment/body_parts multi-select filters, video modal with 📹 icons, equipment population script (421/522 auto-populated)
+   - ✅ **COMPLETED (Session 21):** Category/subcategory dropdowns with localStorage persistence
+   - ✅ **COMPLETED (Session 20):** Full import (522 exercises)
+   - **Remaining optional enhancements:**
      - Exercise favorites/recently used tracking
-     - Video URL integration for exercise demos
      - Exercise usage analytics (frequency in workouts)
+     - Body parts data population (currently only equipment populated)
 
 3. **Code Maintenance & Refactoring:**
    - **File Size Management:** Keep files under ~1500 lines to avoid frequent major refactors
