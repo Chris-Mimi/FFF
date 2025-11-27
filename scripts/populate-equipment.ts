@@ -177,6 +177,7 @@ async function populateEquipment(dryRun = true) {
   console.log('─'.repeat(80));
 
   const updates: ExerciseUpdate[] = [];
+  const unmatchedExercises: Array<{ name: string; category: string; currentEquipment: string[] | null }> = [];
   let alreadyCorrect = 0;
   let noMatch = 0;
 
@@ -222,6 +223,11 @@ async function populateEquipment(dryRun = true) {
       }
     } else {
       noMatch++;
+      unmatchedExercises.push({
+        name: exercise.name,
+        category: exercise.category,
+        currentEquipment: exercise.equipment,
+      });
       console.log(`⚠️  No match: ${exercise.name} (${exercise.category})`);
     }
   }
@@ -294,10 +300,28 @@ async function populateEquipment(dryRun = true) {
   }
 
   // List exercises with no match for manual review
-  if (noMatch > 0) {
-    console.log('\n⚠️  Exercises requiring manual review (no pattern match):');
-    console.log('   These exercises need equipment assigned via the Coach Library UI');
-    console.log('   or by adding new patterns to the script.\n');
+  if (noMatch > 0 && unmatchedExercises.length > 0) {
+    console.log('\n' + '═'.repeat(80));
+    console.log('⚠️  EXERCISES REQUIRING MANUAL REVIEW');
+    console.log('═'.repeat(80));
+    console.log(`Found ${unmatchedExercises.length} exercises without equipment assignment\n`);
+    console.log('📍 How to assign equipment:');
+    console.log('   1. Open Coach Library page (Benchmarks & Lifts → Exercises tab)');
+    console.log('   2. Find the exercise in the list');
+    console.log('   3. Click the Edit button (pencil icon)');
+    console.log('   4. Enter equipment in the "Equipment" field (comma-separated)');
+    console.log('   5. Save the exercise\n');
+    console.log('📝 Unmatched Exercises:\n');
+
+    unmatchedExercises.forEach((ex, idx) => {
+      console.log(`   ${idx + 1}. ${ex.name}`);
+      console.log(`      Category: ${ex.category}`);
+      console.log(`      Current Equipment: ${(ex.currentEquipment || ['none']).join(', ')}`);
+      console.log('');
+    });
+
+    console.log('💡 Alternatively, add patterns to this script:');
+    console.log('   Edit scripts/populate-equipment.ts and add new pattern rules\n');
   }
 }
 

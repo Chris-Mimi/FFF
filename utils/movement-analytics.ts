@@ -33,6 +33,14 @@ export interface ForgeBenchmarkAnalysis extends MovementFrequency {
   mostCommonScaling?: string;
 }
 
+export interface ExerciseFrequency {
+  id: string;
+  name: string;
+  category: string;
+  count: number;
+  lastProgrammed: string; // ISO date string
+}
+
 export interface DateRangeFilter {
   startDate?: string; // ISO date string (YYYY-MM-DD)
   endDate?: string;   // ISO date string (YYYY-MM-DD)
@@ -346,6 +354,151 @@ export async function getForgeBenchmarkFrequency(filter?: DateRangeFilter): Prom
 export async function getForgeBenchmarkFrequencyById(forgeId: string, filter?: DateRangeFilter): Promise<ForgeBenchmarkAnalysis | null> {
   const allForge = await getForgeBenchmarkFrequency(filter);
   return allForge.find(forge => forge.id === forgeId) || null;
+}
+
+// ============================================
+// Exercise Frequency Analysis
+// ============================================
+
+/**
+ * Get frequency of all exercises programmed within date range
+ * Parses exercise names from WOD section content using regex patterns
+ * @param filter Optional date range filter
+ * @returns Array of exercise frequencies sorted by count (descending)
+ */
+export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<ExerciseFrequency[]> {
+  // Fetch all exercises from database for matching
+  const { data: exercisesData, error: exercisesError } = await supabase
+    .from('exercises')
+    .select('id, name, display_name, category');
+
+  if (exercisesError) {
+    console.error('Error fetching exercises:', exercisesError);
+    return [];
+  }
+
+  // Create lookup maps for fuzzy matching
+  const exercisesByName = new Map<string, { id: string; name: string; category: string }>();
+  exercisesData?.forEach(ex => {
+    // Add by name (lowercase for case-insensitive matching)
+    exercisesByName.set(ex.name.toLowerCase(), { id: ex.id, name: ex.name, category: ex.category });
+    // Also add by display_name if different
+    if (ex.display_name && ex.display_name.toLowerCase() !== ex.name.toLowerCase()) {
+      exercisesByName.set(ex.display_name.toLowerCase(), { id: ex.id, name: ex.name, category: ex.category });
+    }
+  });
+
+  // Fetch WODs
+  let query = supabase
+    .from('wods')
+    .select('id, date, sections');
+
+  if (filter?.startDate) {
+    query = query.gte('date', filter.startDate);
+  }
+  if (filter?.endDate) {
+    query = query.lte('date', filter.endDate);
+  }
+
+  const { data: workouts, error } = await query;
+
+  if (error) {
+    console.error('Error fetching workouts for exercise frequency:', error);
+    return [];
+  }
+
+  // Aggregate exercise data from WOD content
+  const exerciseMap = new Map<string, {
+    id: string;
+    name: string;
+    category: string;
+    count: number;
+    lastProgrammed: string;
+  }>();
+
+  // Regex patterns for extracting exercises (from movement-extraction.ts)
+  // Updated to handle special characters like °, /, . in exercise names
+  const patterns = [
+    // Pattern 1: Number + x + Movement (e.g., "10x Air Squats")
+    /^(?:\d+[\s-]*x[\s-]*|[\d-]+[\s-]*x[\s-]*)([^\n@]+?)(?:\s+x\s+\d+|\s*@|$)/i,
+    // Pattern 2: Bullet/asterisk + Movement (e.g., "* Arm Circles", "* 90° Ext. Rotation (SU)")
+    /^[\s*•\-]+\s*([^\n@]+?)(?:\s+x\s+\d+|\s*@|$)/,
+    // Pattern 3: Number + Movement (e.g., "10 Air Squats")
+    /^(?:\d+[\s-]*)([^\n@]+?)(?:\s+x\s+\d+|\s*@|$)/,
+    // Pattern 4: Rep scheme + Movement (e.g., "21-15-9 Thrusters")
+    /^(?:\d+-\d+(?:-\d+)*[\s-]*)([^\n@]+?)(?:\s+x\s+\d+|\s*@|$)/,
+    // Pattern 5: Plain exercise name (e.g., "Air Squats", "Rope Climbs")
+    /^([^\n@\d*•\-][^\n@]+?)(?:\s+x\s+\d+|\s*@|$)/,
+  ];
+
+  workouts?.forEach(workout => {
+    const sections = workout.sections as Array<{ content?: string }>;
+
+    sections?.forEach(section => {
+      if (!section.content) return;
+
+      const lines = section.content.split('\n');
+
+      lines.forEach(line => {
+        const trimmedLine = line.trim();
+        if (!trimmedLine) return;
+
+        // Try each pattern
+        for (const pattern of patterns) {
+          const match = trimmedLine.match(pattern);
+
+          if (match && match[1]) {
+            let movementText = match[1].trim();
+            // Remove trailing punctuation
+            movementText = movementText.replace(/[,;.!?]+$/, '');
+
+            // Normalize to title case
+            const normalized = movementText
+              .split(/\s+/)
+              .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+              .join(' ')
+              .trim();
+
+            // Try to match against exercises database
+            const exercise = exercisesByName.get(normalized.toLowerCase());
+
+            if (exercise) {
+              const existing = exerciseMap.get(exercise.id);
+
+              if (existing) {
+                existing.count++;
+                if (workout.date > existing.lastProgrammed) {
+                  existing.lastProgrammed = workout.date;
+                }
+              } else {
+                exerciseMap.set(exercise.id, {
+                  id: exercise.id,
+                  name: exercise.name,
+                  category: exercise.category,
+                  count: 1,
+                  lastProgrammed: workout.date,
+                });
+              }
+            }
+
+            break; // Match found, don't try other patterns
+          }
+        }
+      });
+    });
+  });
+
+  // Convert to array and sort by frequency
+  const exerciseAnalysis: ExerciseFrequency[] = Array.from(exerciseMap.values());
+  return exerciseAnalysis.sort((a, b) => b.count - a.count);
+}
+
+/**
+ * Get frequency of a specific exercise by ID
+ */
+export async function getExerciseFrequencyById(exerciseId: string, filter?: DateRangeFilter): Promise<ExerciseFrequency | null> {
+  const allExercises = await getExerciseFrequency(filter);
+  return allExercises.find(ex => ex.id === exerciseId) || null;
 }
 
 // ============================================

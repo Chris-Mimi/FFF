@@ -5,6 +5,7 @@ import MultiSelectDropdown from '@/components/coach/MultiSelectDropdown';
 import { supabase } from '@/lib/supabase';
 import { ChevronDown, ChevronRight, Edit2, Plus, Search, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { getExerciseFrequency, type ExerciseFrequency } from '@/utils/movement-analytics';
 
 // Define category ordering (workout flow)
 const EXERCISE_CATEGORY_ORDER = [
@@ -91,6 +92,11 @@ export default function ExercisesTab({
   const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
   const [selectedBodyParts, setSelectedBodyParts] = useState<string[]>([]);
 
+  // Exercise frequency state
+  const [exerciseFrequencies, setExerciseFrequencies] = useState<Map<string, ExerciseFrequency>>(new Map());
+  const [loadingFrequencies, setLoadingFrequencies] = useState(false);
+  const [usageTimeRange, setUsageTimeRange] = useState<'all' | 1 | 3 | 6 | 12>('all');
+
   // Fetch distinct equipment and body_parts for filters
   useEffect(() => {
     const fetchDistinctFilters = async () => {
@@ -118,6 +124,36 @@ export default function ExercisesTab({
 
     fetchDistinctFilters();
   }, []);
+
+  // Fetch exercise frequencies
+  useEffect(() => {
+    const fetchFrequencies = async () => {
+      setLoadingFrequencies(true);
+      try {
+        // Calculate date filter based on time range
+        let dateFilter = undefined;
+        if (usageTimeRange !== 'all') {
+          const today = new Date();
+          const startDate = new Date();
+          startDate.setMonth(today.getMonth() - usageTimeRange);
+          dateFilter = {
+            startDate: startDate.toISOString().split('T')[0], // YYYY-MM-DD
+          };
+        }
+
+        const frequencies = await getExerciseFrequency(dateFilter);
+        // Convert to Map for O(1) lookups
+        const frequencyMap = new Map(frequencies.map(f => [f.id, f]));
+        setExerciseFrequencies(frequencyMap);
+      } catch (error) {
+        console.error('Error fetching exercise frequencies:', error);
+      } finally {
+        setLoadingFrequencies(false);
+      }
+    };
+
+    fetchFrequencies();
+  }, [usageTimeRange]);
 
   return (
     <>
@@ -153,7 +189,7 @@ export default function ExercisesTab({
         </div>
 
         {/* Filter Buttons */}
-        <div className='mb-4 flex gap-3'>
+        <div className='mb-4 flex gap-3 items-center'>
           <MultiSelectDropdown
             label='Equipment'
             options={availableEquipment}
@@ -168,6 +204,61 @@ export default function ExercisesTab({
             onChange={setSelectedBodyParts}
             placeholder='All Body Parts'
           />
+
+          {/* Usage Time Range Buttons */}
+          <div className='flex items-center gap-2 ml-auto'>
+            <span className='text-sm text-gray-600 font-medium'>Usage:</span>
+            <button
+              onClick={() => setUsageTimeRange('all')}
+              className={`px-3 py-1.5 text-xs font-semibold rounded transition ${
+                usageTimeRange === 'all'
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              All
+            </button>
+            <button
+              onClick={() => setUsageTimeRange(1)}
+              className={`px-3 py-1.5 text-xs font-semibold rounded transition ${
+                usageTimeRange === 1
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              1M
+            </button>
+            <button
+              onClick={() => setUsageTimeRange(3)}
+              className={`px-3 py-1.5 text-xs font-semibold rounded transition ${
+                usageTimeRange === 3
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              3M
+            </button>
+            <button
+              onClick={() => setUsageTimeRange(6)}
+              className={`px-3 py-1.5 text-xs font-semibold rounded transition ${
+                usageTimeRange === 6
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              6M
+            </button>
+            <button
+              onClick={() => setUsageTimeRange(12)}
+              className={`px-3 py-1.5 text-xs font-semibold rounded transition ${
+                usageTimeRange === 12
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              12M
+            </button>
+          </div>
         </div>
 
         {/* Group by category */}
@@ -262,6 +353,27 @@ export default function ExercisesTab({
                     </h4>
                     {exercise.subcategory && (
                       <p className='text-xs text-gray-600 mb-1'>{exercise.subcategory}</p>
+                    )}
+                    {/* Equipment badges */}
+                    {exercise.equipment && exercise.equipment.length > 0 && (
+                      <div className='flex flex-wrap gap-1 mb-1'>
+                        {exercise.equipment.slice(0, 4).map((eq, idx) => (
+                          <span key={idx} className='text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-medium'>
+                            {eq}
+                          </span>
+                        ))}
+                        {exercise.equipment.length > 4 && (
+                          <span className='text-xs text-gray-500'>+{exercise.equipment.length - 4}</span>
+                        )}
+                      </div>
+                    )}
+                    {/* Usage frequency badge */}
+                    {!loadingFrequencies && exerciseFrequencies.has(exercise.id) && (
+                      <div className='mb-1'>
+                        <span className='text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded font-medium'>
+                          Used {exerciseFrequencies.get(exercise.id)!.count}x
+                        </span>
+                      </div>
                     )}
                     {exercise.tags && exercise.tags.length > 0 && (() => {
                       // Filter out tags that are duplicates of body_parts

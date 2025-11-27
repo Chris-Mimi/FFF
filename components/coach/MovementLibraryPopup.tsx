@@ -1,11 +1,13 @@
 'use client';
 
+import { useRecentExercises } from '@/lib/exercise-storage';
 import { supabase } from '@/lib/supabase';
-import { Library, Search, X } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
 import type { BarbellLift, Benchmark, ForgeBenchmark } from '@/types/movements';
-import MultiSelectDropdown from './MultiSelectDropdown';
+import { useUserFavorites } from '@/utils/exercise-favorites';
+import { ChevronDown, ChevronRight, Library, Search, Star, X } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import ExerciseVideoModal from './ExerciseVideoModal';
+import MultiSelectDropdown from './MultiSelectDropdown';
 
 interface Exercise {
   id: string;
@@ -100,6 +102,14 @@ function MovementLibraryPopup({
   const [selectedVideoUrl, setSelectedVideoUrl] = useState('');
   const [selectedVideoName, setSelectedVideoName] = useState('');
 
+  // Favorites and Recently Used hooks
+  const { favorites, favoriteIds, isFavorited, toggleFavorite } = useUserFavorites();
+  const { recentExercises, addRecent } = useRecentExercises();
+
+  // Collapsible sections state
+  const [favoritesCollapsed, setFavoritesCollapsed] = useState(false);
+  const [recentCollapsed, setRecentCollapsed] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const [hasFetchedExercises, setHasFetchedExercises] = useState(false);
   const [hasFetchedLifts, setHasFetchedLifts] = useState(false);
@@ -109,8 +119,8 @@ function MovementLibraryPopup({
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Position and size state for draggable/resizable modal
-  const [librarySize, setLibrarySize] = useState({ width: 800, height: 600 });
-  const [libraryPos, setLibraryPos] = useState({ top: 100, left: 820 }); // Position to right of WorkoutModal
+  const [librarySize, setLibrarySize] = useState({ width: 950, height: 850 });
+  const [libraryPos, setLibraryPos] = useState({ top: 70, left: 770 }); // Position to right of WorkoutModal
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0, top: 0, left: 0 });
@@ -200,6 +210,15 @@ function MovementLibraryPopup({
         break;
     }
   }, [isOpen, activeTab, hasFetchedExercises, hasFetchedLifts, hasFetchedBenchmarks, hasFetchedForge]);
+
+  // Reset filters when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectedEquipment([]);
+      setSelectedBodyParts([]);
+      setSearchTerm('');
+    }
+  }, [isOpen]);
 
   const fetchExercises = async () => {
     setLoading(true);
@@ -428,8 +447,18 @@ function MovementLibraryPopup({
 
   if (!isOpen) return null;
 
-  const handleSelectExercise = (exercise: string) => {
-    onSelectExercise(exercise);
+  const handleSelectExercise = (exerciseName: string, exerciseData?: Exercise) => {
+    onSelectExercise(exerciseName);
+
+    // Track in recently used if we have the exercise data
+    if (exerciseData) {
+      addRecent({
+        id: exerciseData.id,
+        name: exerciseData.name,
+        display_name: exerciseData.display_name,
+        category: exerciseData.category,
+      });
+    }
   };
 
   const handleSelectLift = (lift: BarbellLift) => {
@@ -448,7 +477,7 @@ function MovementLibraryPopup({
   const getGridColumns = () => {
     const contentWidth = librarySize.width - 32; // Account for padding
     const minColWidth = 140;
-    const maxCols = 5;
+    const maxCols = 4;
     const possibleCols = Math.floor(contentWidth / minColWidth);
     const actualCols = Math.min(possibleCols, maxCols);
     return `repeat(${actualCols}, 1fr)`;
@@ -606,7 +635,121 @@ function MovementLibraryPopup({
             <>
               {/* Exercises Tab */}
               {activeTab === 'exercises' && (
-                Object.keys(filteredExerciseCategories).length > 0 ? (
+                <>
+                  {/* Favorites Section */}
+                  {favorites.length > 0 && (
+                    <div className='mb-4'>
+                      <button
+                        onClick={() => setFavoritesCollapsed(!favoritesCollapsed)}
+                        className='w-full flex items-center gap-2 bg-amber-100 px-3 py-2 rounded-t-lg hover:bg-amber-200 transition'
+                      >
+                        {favoritesCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
+                        <Star size={16} className='text-amber-600 fill-amber-600' />
+                        <h4 className='text-sm font-bold text-amber-900 uppercase tracking-wide'>
+                          Favorites ({favorites.length})
+                        </h4>
+                      </button>
+                      {!favoritesCollapsed && (
+                        <div className='grid gap-0 mb-2 bg-amber-50 p-2 rounded-b-lg' style={{ gridTemplateColumns: getGridColumns() }}>
+                          {favorites.map(exercise => (
+                            <div key={exercise.id} className='relative group'>
+                              <button
+                                onClick={() => handleSelectExercise(exercise.display_name || exercise.name, exercise)}
+                                className='w-full text-left px-0.5 py-0.5 hover:bg-[#208479] hover:text-white transition text-xs text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis pr-5'
+                                title={exercise.description || undefined}
+                              >
+                                {exercise.display_name || exercise.name}
+                                {exercise.video_url && (
+                                  <span
+                                    className='ml-1 cursor-pointer hover:text-teal-500'
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      openVideoModal(exercise.video_url!, exercise.display_name || exercise.name);
+                                    }}
+                                  >
+                                    📹
+                                  </span>
+                                )}
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleFavorite(exercise.id);
+                                }}
+                                className='absolute right-0.5 top-0.5 opacity-100 hover:scale-110 transition'
+                                title='Remove from favorites'
+                              >
+                                <Star size={12} className='text-amber-500 fill-amber-500' />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Recently Used Section */}
+                  {recentExercises.length > 0 && (
+                    <div className='mb-4'>
+                      <button
+                        onClick={() => setRecentCollapsed(!recentCollapsed)}
+                        className='w-full flex items-center gap-2 bg-blue-100 px-3 py-2 rounded-t-lg hover:bg-blue-200 transition'
+                      >
+                        {recentCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
+                        <h4 className='text-sm font-bold text-blue-900 uppercase tracking-wide'>
+                          Recently Used ({recentExercises.length})
+                        </h4>
+                      </button>
+                      {!recentCollapsed && (
+                        <div className='grid gap-0 mb-2 bg-blue-50 p-2 rounded-b-lg' style={{ gridTemplateColumns: getGridColumns() }}>
+                          {recentExercises.map(exercise => {
+                            // Find full exercise data from exercises array
+                            const fullExercise = exercises.find(ex => ex.id === exercise.id);
+                            return (
+                              <div key={exercise.id} className='relative group'>
+                                <button
+                                  onClick={() => handleSelectExercise(exercise.display_name || exercise.name, fullExercise)}
+                                  className='w-full text-left px-0.5 py-0.5 hover:bg-[#208479] hover:text-white transition text-xs text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis pr-5'
+                                  title={fullExercise?.description || undefined}
+                                >
+                                  {exercise.display_name || exercise.name}
+                                  {fullExercise?.video_url && (
+                                    <span
+                                      className='ml-1 cursor-pointer hover:text-teal-500'
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        openVideoModal(fullExercise.video_url!, exercise.display_name || exercise.name);
+                                      }}
+                                    >
+                                      📹
+                                    </span>
+                                  )}
+                                </button>
+                                {fullExercise && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toggleFavorite(fullExercise.id);
+                                    }}
+                                    className='absolute right-0.5 top-0.5 opacity-0 group-hover:opacity-100 hover:scale-110 transition'
+                                    title={isFavorited(fullExercise.id) ? 'Remove from favorites' : 'Add to favorites'}
+                                  >
+                                    <Star
+                                      size={12}
+                                      className={isFavorited(fullExercise.id) ? 'text-amber-500 fill-amber-500' : 'text-gray-400'}
+                                    />
+                                  </button>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Category Sections */}
+                  {Object.keys(filteredExerciseCategories).length > 0 ? (
                   <div className='space-y-4'>
                     {sortCategories(filteredExerciseCategories, EXERCISE_CATEGORY_ORDER).map(([category, categoryExercises]) => (
                       <div key={category}>
@@ -615,25 +758,39 @@ function MovementLibraryPopup({
                         </div>
                         <div className='grid gap-0 mb-2' style={{ gridTemplateColumns: getGridColumns() }}>
                           {categoryExercises.map(exercise => (
-                            <button
-                              key={exercise.id}
-                              onClick={() => handleSelectExercise(exercise.name)}
-                              className='text-left px-0.5 py-0.5 hover:bg-[#208479] hover:text-white transition text-xs text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis'
-                              title={exercise.description || undefined}
-                            >
-                              {exercise.name}
-                              {exercise.video_url && (
-                                <span
-                                  className='ml-1 cursor-pointer hover:text-teal-500'
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    openVideoModal(exercise.video_url!, exercise.name);
-                                  }}
-                                >
-                                  📹
-                                </span>
-                              )}
-                            </button>
+                            <div key={exercise.id} className='relative group'>
+                              <button
+                                onClick={() => handleSelectExercise(exercise.display_name || exercise.name, exercise)}
+                                className='w-full text-left px-0.5 py-0.5 hover:bg-[#208479] hover:text-white transition text-xs text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis pr-5'
+                                title={exercise.description || undefined}
+                              >
+                                {exercise.display_name || exercise.name}
+                                {exercise.video_url && (
+                                  <span
+                                    className='ml-1 cursor-pointer hover:text-teal-500'
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      openVideoModal(exercise.video_url!, exercise.name);
+                                    }}
+                                  >
+                                    📹
+                                  </span>
+                                )}
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleFavorite(exercise.id);
+                                }}
+                                className='absolute right-0.5 top-0.5 opacity-0 group-hover:opacity-100 hover:scale-110 transition'
+                                title={isFavorited(exercise.id) ? 'Remove from favorites' : 'Add to favorites'}
+                              >
+                                <Star
+                                  size={12}
+                                  className={isFavorited(exercise.id) ? 'text-amber-500 fill-amber-500' : 'text-gray-400'}
+                                />
+                              </button>
+                            </div>
                           ))}
                         </div>
                       </div>
@@ -643,7 +800,8 @@ function MovementLibraryPopup({
                   <div className='text-center py-8 text-gray-500'>
                     <p className='text-sm'>No exercises found</p>
                   </div>
-                )
+                )}
+                </>
               )}
 
               {/* Lifts Tab */}

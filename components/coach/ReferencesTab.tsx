@@ -3,12 +3,14 @@
 import { ChevronDown, ChevronRight, Edit2, Plus, Save, Trash2, X } from 'lucide-react';
 
 interface NamingConvention {
+  id?: string;
   abbr: string;
-  full: string;
+  full_name: string;
   notes?: string | null;
 }
 
 interface Resource {
+  id?: string;
   name: string;
   description: string;
   url?: string | null;
@@ -31,7 +33,7 @@ interface ReferencesTabProps {
   onToggleSection: (section: string) => void;
   onAddReference: (type: 'naming' | 'resource', category?: string) => void;
   onEditReference: (type: 'naming' | 'resource', item: NamingConvention | Resource, index: number, category?: string) => void;
-  onDeleteReference: (type: 'naming' | 'resource', category: string, index: number) => void;
+  onDeleteReference: (type: 'naming' | 'resource', item: NamingConvention | Resource) => void;
   // Modal props
   showModal: boolean;
   onCloseModal: () => void;
@@ -102,7 +104,7 @@ export default function ReferencesTab({
                 {references.namingConventions?.equipment?.sort((a, b) => a.abbr.localeCompare(b.abbr)).map((item, idx: number) => (
                   <div key={idx} className='flex items-center justify-between py-1 group hover:bg-gray-50 px-2 rounded'>
                     <span className='text-sm text-gray-900'>
-                      <span className='font-bold'>{item.abbr}</span> = {item.full}
+                      <span className='font-bold'>{item.abbr}</span> = {item.full_name}
                       {item.notes && <span className='text-gray-600 ml-2 text-xs'>({item.notes})</span>}
                     </span>
                     <div className='flex gap-1 opacity-0 group-hover:opacity-100'>
@@ -113,7 +115,7 @@ export default function ReferencesTab({
                         <Edit2 size={14} />
                       </button>
                       <button
-                        onClick={() => onDeleteReference('naming', 'equipment', idx)}
+                        onClick={() => onDeleteReference('naming', item)}
                         className='p-1 text-red-600 hover:bg-red-50 rounded'
                       >
                         <Trash2 size={14} />
@@ -147,7 +149,7 @@ export default function ReferencesTab({
                 {references.namingConventions?.movementTypes?.sort((a, b) => a.abbr.localeCompare(b.abbr)).map((item, idx: number) => (
                   <div key={idx} className='flex items-center justify-between py-1 group hover:bg-gray-50 px-2 rounded'>
                     <span className='text-sm text-gray-900'>
-                      <span className='font-bold'>{item.abbr}</span> = {item.full}
+                      <span className='font-bold'>{item.abbr}</span> = {item.full_name}
                     </span>
                     <div className='flex gap-1 opacity-0 group-hover:opacity-100'>
                       <button
@@ -157,7 +159,7 @@ export default function ReferencesTab({
                         <Edit2 size={14} />
                       </button>
                       <button
-                        onClick={() => onDeleteReference('naming', 'movementTypes', idx)}
+                        onClick={() => onDeleteReference('naming', item)}
                         className='p-1 text-red-600 hover:bg-red-50 rounded'
                       >
                         <Trash2 size={14} />
@@ -191,7 +193,7 @@ export default function ReferencesTab({
                 {references.namingConventions?.anatomicalTerms?.sort((a, b) => a.abbr.localeCompare(b.abbr)).map((item, idx: number) => (
                   <div key={idx} className='flex items-center justify-between py-1 group hover:bg-gray-50 px-2 rounded'>
                     <span className='text-sm text-gray-900'>
-                      <span className='font-bold'>{item.abbr}</span> = {item.full}
+                      <span className='font-bold'>{item.abbr}</span> = {item.full_name}
                     </span>
                     <div className='flex gap-1 opacity-0 group-hover:opacity-100'>
                       <button
@@ -201,7 +203,7 @@ export default function ReferencesTab({
                         <Edit2 size={14} />
                       </button>
                       <button
-                        onClick={() => onDeleteReference('naming', 'anatomicalTerms', idx)}
+                        onClick={() => onDeleteReference('naming', item)}
                         className='p-1 text-red-600 hover:bg-red-50 rounded'
                       >
                         <Trash2 size={14} />
@@ -235,7 +237,7 @@ export default function ReferencesTab({
                 {references.namingConventions?.movementPatterns?.sort((a, b) => a.abbr.localeCompare(b.abbr)).map((item, idx: number) => (
                   <div key={idx} className='flex items-center justify-between py-1 group hover:bg-gray-50 px-2 rounded'>
                     <span className='text-sm text-gray-900'>
-                      <span className='font-bold'>{item.abbr}</span> = {item.full}
+                      <span className='font-bold'>{item.abbr}</span> = {item.full_name}
                     </span>
                     <div className='flex gap-1 opacity-0 group-hover:opacity-100'>
                       <button
@@ -245,7 +247,7 @@ export default function ReferencesTab({
                         <Edit2 size={14} />
                       </button>
                       <button
-                        onClick={() => onDeleteReference('naming', 'movementPatterns', idx)}
+                        onClick={() => onDeleteReference('naming', item)}
                         className='p-1 text-red-600 hover:bg-red-50 rounded'
                       >
                         <Trash2 size={14} />
@@ -303,7 +305,7 @@ export default function ReferencesTab({
                         <Edit2 size={14} />
                       </button>
                       <button
-                        onClick={() => onDeleteReference('resource', '', idx)}
+                        onClick={() => onDeleteReference('resource', resource)}
                         className='p-1 text-red-600 hover:bg-red-50 rounded'
                       >
                         <Trash2 size={14} />

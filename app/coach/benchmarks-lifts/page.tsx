@@ -102,12 +102,14 @@ export default function BenchmarksLiftsManagementPage() {
 
   // References state
   interface NamingConvention {
+    id?: string;
     abbr: string;
-    full: string;
+    full_name: string;
     notes?: string | null;
   }
 
   interface Resource {
+    id?: string;
     name: string;
     description: string;
     url?: string | null;
@@ -518,9 +520,34 @@ export default function BenchmarksLiftsManagementPage() {
 
   const fetchReferences = async () => {
     try {
-      const response = await fetch('/programming-references.json');
-      const data = await response.json();
-      setReferences(data);
+      // Fetch naming conventions
+      const { data: namingData, error: namingError } = await supabase
+        .from('naming_conventions')
+        .select('*')
+        .order('abbr');
+
+      if (namingError) throw namingError;
+
+      // Group by category
+      const namingConventions = {
+        equipment: namingData?.filter(n => n.category === 'equipment') || [],
+        movementTypes: namingData?.filter(n => n.category === 'movementTypes') || [],
+        anatomicalTerms: namingData?.filter(n => n.category === 'anatomicalTerms') || [],
+        movementPatterns: namingData?.filter(n => n.category === 'movementPatterns') || [],
+      };
+
+      // Fetch resources
+      const { data: resourcesData, error: resourcesError } = await supabase
+        .from('resources')
+        .select('*')
+        .order('name');
+
+      if (resourcesError) throw resourcesError;
+
+      setReferences({
+        namingConventions,
+        resources: resourcesData || [],
+      });
     } catch (error) {
       console.error('Error loading references:', error);
     }
@@ -534,71 +561,103 @@ export default function BenchmarksLiftsManagementPage() {
     setCollapsedExerciseCategories(prev => ({ ...prev, [category]: !prev[category] }));
   };
 
-  const handleSaveReference = () => {
-    if (!references) return;
-
-    const updatedRefs = { ...references };
-
-    if (referenceType === 'naming') {
-      const category = referenceCategory;
-      const categoryKey = category as keyof typeof updatedRefs.namingConventions;
-
-      if (editingReference) {
-        // Update existing
-        const index = editingReference.index;
-        updatedRefs.namingConventions[categoryKey][index] = {
+  const handleSaveReference = async () => {
+    try {
+      if (referenceType === 'naming') {
+        const namingData = {
+          category: referenceCategory,
           abbr: referenceForm.abbr,
-          full: referenceForm.full,
+          full_name: referenceForm.full,
           notes: referenceForm.notes || null
         };
+
+        if (editingReference && editingReference.id) {
+          // Update existing
+          const { error } = await supabase
+            .from('naming_conventions')
+            .update(namingData)
+            .eq('id', editingReference.id);
+
+          if (error) throw error;
+        } else {
+          // Add new
+          const { error } = await supabase
+            .from('naming_conventions')
+            .insert(namingData);
+
+          if (error) throw error;
+        }
       } else {
-        // Add new
-        updatedRefs.namingConventions[categoryKey].push({
-          abbr: referenceForm.abbr,
-          full: referenceForm.full,
-          notes: referenceForm.notes || null
-        });
-      }
-    } else {
-      // Resource
-      if (editingReference) {
-        const index = editingReference.index;
-        updatedRefs.resources[index] = {
+        // Resource
+        const resourceData = {
           name: referenceForm.name,
           description: referenceForm.description,
           url: referenceForm.url || null,
           category: referenceForm.category
         };
-      } else {
-        updatedRefs.resources.push({
-          name: referenceForm.name,
-          description: referenceForm.description,
-          url: referenceForm.url || null,
-          category: referenceForm.category
-        });
+
+        if (editingReference && editingReference.id) {
+          // Update existing
+          const { error } = await supabase
+            .from('resources')
+            .update(resourceData)
+            .eq('id', editingReference.id);
+
+          if (error) throw error;
+        } else {
+          // Add new
+          const { error } = await supabase
+            .from('resources')
+            .insert(resourceData);
+
+          if (error) throw error;
+        }
       }
+
+      // Refresh data from database
+      await fetchReferences();
+
+      setShowReferenceModal(false);
+      setEditingReference(null);
+      setReferenceForm({ abbr: '', full: '', notes: '', name: '', description: '', url: '', category: '' });
+    } catch (error) {
+      console.error('Error saving reference:', error);
+      alert('Error saving reference. Please try again.');
     }
-
-    setReferences(updatedRefs);
-    // Note: Changes are only in-memory. To persist, would need to save to JSON file
-    setShowReferenceModal(false);
-    setEditingReference(null);
-    setReferenceForm({ abbr: '', full: '', notes: '', name: '', description: '', url: '', category: '' });
   };
 
-  const handleDeleteReference = (type: 'naming' | 'resource', category: string, index: number) => {
-    if (!references || !confirm('Delete this reference?')) return;
+  const handleDeleteReference = async (type: 'naming' | 'resource', item: NamingConvention | Resource) => {
+    if (!confirm('Delete this reference?')) return;
 
-    const updatedRefs = { ...references };
+    try {
+      if (type === 'naming') {
+        const namingItem = item as NamingConvention;
+        if (!namingItem.id) return;
 
-    if (type === 'naming') {
-      const categoryKey = category as keyof typeof updatedRefs.namingConventions;
-      updatedRefs.namingConventions[categoryKey].splice(index, 1);
-    } else {
-      updatedRefs.resources.splice(index, 1);
+        const { error } = await supabase
+          .from('naming_conventions')
+          .delete()
+          .eq('id', namingItem.id);
+
+        if (error) throw error;
+      } else {
+        const resourceItem = item as Resource;
+        if (!resourceItem.id) return;
+
+        const { error } = await supabase
+          .from('resources')
+          .delete()
+          .eq('id', resourceItem.id);
+
+        if (error) throw error;
+      }
+
+      // Refresh data from database
+      await fetchReferences();
+    } catch (error) {
+      console.error('Error deleting reference:', error);
+      alert('Error deleting reference. Please try again.');
     }
-
-    setReferences(updatedRefs);
   };
 
   const handleSaveExercise = async (exerciseData: Omit<Exercise, 'id'> & { id?: string }) => {
@@ -701,7 +760,7 @@ export default function BenchmarksLiftsManagementPage() {
     }
     if (type === 'naming') {
       const namingItem = item as NamingConvention;
-      setReferenceForm({ abbr: namingItem.abbr, full: namingItem.full, notes: namingItem.notes || '', name: '', description: '', url: '', category: '' });
+      setReferenceForm({ abbr: namingItem.abbr, full: namingItem.full_name, notes: namingItem.notes || '', name: '', description: '', url: '', category: '' });
     } else {
       const resourceItem = item as Resource;
       setReferenceForm({ abbr: '', full: '', notes: '', name: resourceItem.name, description: resourceItem.description, url: resourceItem.url || '', category: resourceItem.category });
