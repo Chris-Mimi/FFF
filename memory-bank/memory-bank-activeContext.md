@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 6.2
-**Updated:** 2025-11-26 (Session 22 - Exercise Filters & Video Playback)
+**Version:** 6.3
+**Updated:** 2025-11-27 (Session 23 - Exercise Analytics, Favorites & Programming References)
 
 ---
 
@@ -41,6 +41,9 @@ Coach Tables
 ├─ workout_types (id, name)
 ├─ workout_titles (id, title)
 ├─ exercises (id, name [UNIQUE], display_name, category, subcategory, equipment[], body_parts[], difficulty, is_warmup, is_stretch, search_terms, search_vector [GIN indexed])
+├─ user_exercise_favorites (id, user_id, exercise_id, created_at [UNIQUE user_id + exercise_id])
+├─ naming_conventions (id, category [equipment|movementTypes|anatomicalTerms|movementPatterns], abbr, full_name, notes)
+├─ resources (id, name, description, url, category)
 ├─ tracks (id, name, description, color)
 ├─ weekly_sessions (id, date, time, workout_id, capacity, status)
 ├─ benchmark_workouts (id, name, type, description, display_order)
@@ -61,6 +64,21 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-11-27 Session 23):**
+- **Exercise Analytics, Favorites & Programming References Migration:**
+  - ✅ **Exercise frequency tracking:** Time range filters (All, 1M, 3M, 6M, 12M), purple "Used Xx" badges on exercise cards
+  - ✅ **Enhanced regex patterns:** Now captures exercises with special characters (°, /, .), added fallback pattern for plain names
+  - ✅ **Favorites system:** Star toggle on exercises, favorites section (amber) in Movement Library, database persistence
+  - ✅ **Recently used:** localStorage tracking of last 10 exercises, blue section in Movement Library
+  - ✅ **Display name fixes:** Movement Library now shows formatted names (not slugs) across all sections
+  - ✅ **Programming references migration:** 45 naming conventions + 9 resources migrated from JSON to database (naming_conventions, resources tables)
+  - ✅ **Data cleanup:** Removed "none" from 209 bodyweight exercises, cleared test workouts
+  - New files: exercise-favorites.ts, exercise-storage.ts, 2 database migrations
+  - Modified: ExercisesTab.tsx, MovementLibraryPopup.tsx, benchmarks-lifts/page.tsx, ReferencesTab.tsx, movement-analytics.ts
+  - Commit: f5700aa (1,078 insertions, 99 deletions)
+  - Branch: main (pushed)
+  - See `project-history/2025-11-27-session-23-exercise-analytics-favorites.md`
 
 **Completed (2025-11-26 Session 22):**
 - **Exercise Library Filters & Video Playback:**
@@ -396,6 +414,13 @@ Athlete Tables (linked to members.id)
 - macOS iCloud Keychain autofill popups (OS behavior, not app bug)
 
 **Lessons Learned:**
+- **2025-11-27 (Session 23):** Regex character classes need careful consideration - `\w` only matches letters/digits/underscores, use `[^\n@]+?` for natural language text with special characters (°, /, .)
+- **2025-11-27 (Session 23):** Pattern fallbacks prevent silent failures - Always include catch-all pattern for data that doesn't match expected format (plain exercise names without prefixes)
+- **2025-11-27 (Session 23):** Display names vs database slugs - Consistently use display_name for UI, name for database keys. Never show slugs to users
+- **2025-11-27 (Session 23):** PostgreSQL reserved keywords cause migration failures - Common words like "full", "user", "table", "select" are reserved. Check before naming columns
+- **2025-11-27 (Session 23):** RLS policies can't query auth.users - Authenticated users can't query auth.users table. Use `TO authenticated USING (true)` or auth.jwt() metadata
+- **2025-11-27 (Session 23):** Static files don't persist user changes - Any user-editable data needs database storage. Static files are for code-time configuration only
+- **2025-11-27 (Session 23):** Browser cache can hide React state updates - Hard refresh doesn't always remount components. Navigate away and back to force full lifecycle
 - **2025-11-26 (Session 22):** Pattern ordering critical in rule-based systems - Specific patterns must come before general patterns (db-alt-snatch matched barbell instead of dumbbell until DB patterns moved first)
 - **2025-11-26 (Session 22):** Equipment vs descriptor distinction - Equipment = physical items (barbell, pull-up bar), descriptors = attributes (bodyweight). Trust user domain expertise on semantic differences
 - **2025-11-26 (Session 22):** Search comprehensiveness matters - If users can see/filter by a field, they expect search to work on that field (equipment, body_parts, search_terms)
@@ -481,14 +506,16 @@ Athlete Tables (linked to members.id)
      - Browser compatibility testing (Chrome, Firefox, Safari, mobile)
    - **Optional:** Session cancellation notifications, waitlist promotion notifications
 
-2. **Exercise Library - Optional Enhancements:**
+2. **Exercise Library - Feature Complete:**
+   - ✅ **COMPLETED (Session 23):** Exercise frequency tracking with time range filters, favorites/recently used system
+   - ✅ **COMPLETED (Session 23):** Programming references migrated to database (persistent CRUD)
    - ✅ **COMPLETED (Session 22):** Equipment/body_parts multi-select filters, video modal with 📹 icons, equipment population script (421/522 auto-populated)
    - ✅ **COMPLETED (Session 21):** Category/subcategory dropdowns with localStorage persistence
    - ✅ **COMPLETED (Session 20):** Full import (522 exercises)
-   - **Remaining optional enhancements:**
-     - Exercise favorites/recently used tracking
-     - Exercise usage analytics (frequency in workouts)
+   - **Optional future enhancements:**
      - Body parts data population (currently only equipment populated)
+     - Exercise usage analytics in coach dashboard
+     - Exercise search relevance scoring
 
 3. **Code Maintenance & Refactoring:**
    - **File Size Management:** Keep files under ~1500 lines to avoid frequent major refactors
