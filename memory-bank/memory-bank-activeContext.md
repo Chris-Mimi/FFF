@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 6.3
-**Updated:** 2025-11-27 (Session 23 - Exercise Analytics, Favorites & Programming References)
+**Version:** 6.4
+**Updated:** 2025-11-28 (Session 24 - Analysis Page Unified Movement Tracking & Workout Modal Fix)
 
 ---
 
@@ -64,6 +64,19 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-11-28 Session 24):**
+- **Analysis Page Unified Movement Tracking & Workout Modal Fix:**
+  - ✅ **Workout modal display fix:** Benchmark/forge benchmark descriptions now show in both expanded and collapsed views
+  - ✅ **Unified movement tracking:** Analysis page now tracks lifts, benchmarks, forge benchmarks, and exercises in single searchable interface
+  - ✅ **Display names across Analysis:** All components (search, chips, top exercises, library modal) show formatted names instead of slugs
+  - ✅ **Equipment badges:** Added to search dropdown and Browse Library modal for quick equipment identification
+  - ✅ **Smart category filtering:** Category filters apply only to exercises (not lifts/benchmarks which don't have categories)
+  - ✅ **Movement analytics consolidation:** Using movement-analytics utilities for all 4 movement types (parallel fetch with Promise.all)
+  - Modified: WODSectionComponent.tsx, analysis/page.tsx, StatisticsSection.tsx, ExerciseLibraryPanel.tsx
+  - Commit: f3b1d84 (393 insertions, 248 deletions)
+  - Branch: main (pushed)
+  - See `project-history/2025-11-28-session-24-analysis-unified-tracking.md`
 
 **Completed (2025-11-27 Session 23):**
 - **Exercise Analytics, Favorites & Programming References Migration:**
@@ -414,6 +427,12 @@ Athlete Tables (linked to members.id)
 - macOS iCloud Keychain autofill popups (OS behavior, not app bug)
 
 **Lessons Learned:**
+- **2025-11-28 (Session 24):** Task dependency analysis prevents wasted work - User correctly identified modal display needed fixing before implementing tracking for proper testing. Always consider task dependencies.
+- **2025-11-28 (Session 24):** Structured movement data enables rich UX - Storing complete workout descriptions (not just names) allows context-aware display across multiple views (modal, calendar, athlete log)
+- **2025-11-28 (Session 24):** Different data sources need different tracking - Exercises (parsed from text), Lifts (structured arrays), Benchmarks (structured arrays) require distinct tracking strategies
+- **2025-11-28 (Session 24):** Unified search requires semantic awareness - When combining data from different sources, filter logic must respect differences (category filters don't apply to standardized movements)
+- **2025-11-28 (Session 24):** Component props need full data for rich display - When components need to format data, pass full objects arrays, not just IDs/names. Enables display_name lookup, equipment badges, etc.
+- **2025-11-28 (Session 24):** UI states need consistent fixes - When fixing bugs, apply changes to all component states (expanded AND collapsed views, not just one)
 - **2025-11-27 (Session 23):** Regex character classes need careful consideration - `\w` only matches letters/digits/underscores, use `[^\n@]+?` for natural language text with special characters (°, /, .)
 - **2025-11-27 (Session 23):** Pattern fallbacks prevent silent failures - Always include catch-all pattern for data that doesn't match expected format (plain exercise names without prefixes)
 - **2025-11-27 (Session 23):** Display names vs database slugs - Consistently use display_name for UI, name for database keys. Never show slugs to users
@@ -506,7 +525,9 @@ Athlete Tables (linked to members.id)
      - Browser compatibility testing (Chrome, Firefox, Safari, mobile)
    - **Optional:** Session cancellation notifications, waitlist promotion notifications
 
-2. **Exercise Library - Feature Complete:**
+2. **Exercise Library & Analysis - Feature Complete:**
+   - ✅ **COMPLETED (Session 24):** Analysis page unified movement tracking (lifts, benchmarks, forge benchmarks, exercises)
+   - ✅ **COMPLETED (Session 24):** Workout modal display fix (benchmark/forge descriptions in all views)
    - ✅ **COMPLETED (Session 23):** Exercise frequency tracking with time range filters, favorites/recently used system
    - ✅ **COMPLETED (Session 23):** Programming references migrated to database (persistent CRUD)
    - ✅ **COMPLETED (Session 22):** Equipment/body_parts multi-select filters, video modal with 📹 icons, equipment population script (421/522 auto-populated)
@@ -514,8 +535,8 @@ Athlete Tables (linked to members.id)
    - ✅ **COMPLETED (Session 20):** Full import (522 exercises)
    - **Optional future enhancements:**
      - Body parts data population (currently only equipment populated)
-     - Exercise usage analytics in coach dashboard
-     - Exercise search relevance scoring
+     - Time range filtering for lifts/benchmarks (currently only exercises)
+     - Movement type badges in Analysis search results (color-coded)
 
 3. **Code Maintenance & Refactoring:**
    - **File Size Management:** Keep files under ~1500 lines to avoid frequent major refactors
