@@ -194,81 +194,103 @@ function WODSectionComponent({
               {((section.lifts && section.lifts.length > 0) ||
                 (section.benchmarks && section.benchmarks.length > 0) ||
                 (section.forge_benchmarks && section.forge_benchmarks.length > 0)) && (
-                <div className='space-y-2'>
+                <div className='space-y-3'>
                   {/* Lifts */}
                   {section.lifts && section.lifts.length > 0 && (
-                    <div className='flex flex-wrap gap-2'>
-                      {section.lifts.map((lift, idx) => (
-                        <div
-                          key={idx}
-                          className='flex items-center gap-2 bg-blue-100 text-blue-900 rounded-md px-3 py-1.5 text-sm font-medium border border-blue-300'
-                        >
-                          <GripVertical size={14} className='text-blue-600' />
-                          <span>{formatLift(lift)}</span>
-                          <button
-                            type='button'
-                            onClick={e => {
-                              e.stopPropagation();
-                              onRemoveLift(section.id, idx);
-                            }}
-                            className='text-blue-600 hover:text-blue-800 hover:bg-blue-200 rounded-full p-0.5'
-                            title='Remove lift'
+                    <div className='space-y-2'>
+                      <div className='flex flex-wrap gap-2'>
+                        {section.lifts.map((lift, idx) => (
+                          <div
+                            key={idx}
+                            className='flex items-center gap-2 bg-blue-100 text-blue-900 rounded-md px-3 py-1.5 text-sm font-medium border border-blue-300'
                           >
-                            <X size={14} />
-                          </button>
-                        </div>
-                      ))}
+                            <GripVertical size={14} className='text-blue-600' />
+                            <span>{formatLift(lift)}</span>
+                            <button
+                              type='button'
+                              onClick={e => {
+                                e.stopPropagation();
+                                onRemoveLift(section.id, idx);
+                              }}
+                              className='text-blue-600 hover:text-blue-800 hover:bg-blue-200 rounded-full p-0.5'
+                              title='Remove lift'
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
 
                   {/* Benchmarks */}
                   {section.benchmarks && section.benchmarks.length > 0 && (
-                    <div className='flex flex-wrap gap-2'>
-                      {section.benchmarks.map((benchmark, idx) => (
-                        <div
-                          key={idx}
-                          className='flex items-center gap-2 bg-teal-100 text-teal-900 rounded-md px-3 py-1.5 text-sm font-medium border border-teal-300'
-                        >
-                          <GripVertical size={14} className='text-teal-600' />
-                          <span>{formatBenchmark(benchmark)}</span>
-                          <button
-                            type='button'
-                            onClick={e => {
-                              e.stopPropagation();
-                              onRemoveBenchmark(section.id, idx);
-                            }}
-                            className='text-teal-600 hover:text-teal-800 hover:bg-teal-200 rounded-full p-0.5'
-                            title='Remove benchmark'
+                    <div className='space-y-2'>
+                      <div className='flex flex-wrap gap-2'>
+                        {section.benchmarks.map((benchmark, idx) => (
+                          <div
+                            key={idx}
+                            className='flex items-center gap-2 bg-teal-100 text-teal-900 rounded-md px-3 py-1.5 text-sm font-medium border border-teal-300'
                           >
-                            <X size={14} />
-                          </button>
-                        </div>
+                            <GripVertical size={14} className='text-teal-600' />
+                            <span>{formatBenchmark(benchmark)}</span>
+                            <button
+                              type='button'
+                              onClick={e => {
+                                e.stopPropagation();
+                                onRemoveBenchmark(section.id, idx);
+                              }}
+                              className='text-teal-600 hover:text-teal-800 hover:bg-teal-200 rounded-full p-0.5'
+                              title='Remove benchmark'
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                      {/* Benchmark Descriptions */}
+                      {section.benchmarks.map((benchmark, idx) => (
+                        benchmark.description && (
+                          <div key={`desc-${idx}`} className='whitespace-pre-wrap font-mono text-sm bg-teal-50 p-3 rounded border border-teal-200 text-gray-900'>
+                            {benchmark.description}
+                          </div>
+                        )
                       ))}
                     </div>
                   )}
 
                   {/* Forge Benchmarks */}
                   {section.forge_benchmarks && section.forge_benchmarks.length > 0 && (
-                    <div className='flex flex-wrap gap-2'>
-                      {section.forge_benchmarks.map((forge, idx) => (
-                        <div
-                          key={idx}
-                          className='flex items-center gap-2 bg-cyan-100 text-cyan-900 rounded-md px-3 py-1.5 text-sm font-medium border border-cyan-300'
-                        >
-                          <GripVertical size={14} className='text-cyan-600' />
-                          <span>{formatForgeBenchmark(forge)}</span>
-                          <button
-                            type='button'
-                            onClick={e => {
-                              e.stopPropagation();
-                              onRemoveForgeBenchmark(section.id, idx);
-                            }}
-                            className='text-cyan-600 hover:text-cyan-800 hover:bg-cyan-200 rounded-full p-0.5'
-                            title='Remove forge benchmark'
+                    <div className='space-y-2'>
+                      <div className='flex flex-wrap gap-2'>
+                        {section.forge_benchmarks.map((forge, idx) => (
+                          <div
+                            key={idx}
+                            className='flex items-center gap-2 bg-cyan-100 text-cyan-900 rounded-md px-3 py-1.5 text-sm font-medium border border-cyan-300'
                           >
-                            <X size={14} />
-                          </button>
-                        </div>
+                            <GripVertical size={14} className='text-cyan-600' />
+                            <span>{formatForgeBenchmark(forge)}</span>
+                            <button
+                              type='button'
+                              onClick={e => {
+                                e.stopPropagation();
+                                onRemoveForgeBenchmark(section.id, idx);
+                              }}
+                              className='text-cyan-600 hover:text-cyan-800 hover:bg-cyan-200 rounded-full p-0.5'
+                              title='Remove forge benchmark'
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                      {/* Forge Benchmark Descriptions */}
+                      {section.forge_benchmarks.map((forge, idx) => (
+                        forge.description && (
+                          <div key={`desc-${idx}`} className='whitespace-pre-wrap font-mono text-sm bg-cyan-50 p-3 rounded border border-cyan-200 text-gray-900'>
+                            {forge.description}
+                          </div>
+                        )
                       ))}
                     </div>
                   )}
@@ -293,9 +315,57 @@ function WODSectionComponent({
               onClick={onToggleExpand}
               className='cursor-pointer hover:bg-gray-50 rounded p-2 -m-2'
             >
-              {section.content ? (
-                <div className='text-sm text-gray-900 whitespace-pre-wrap font-mono bg-gray-50 p-2 rounded border border-gray-200 max-h-32 overflow-auto'>
-                  {section.content}
+              {(section.lifts && section.lifts.length > 0) || (section.benchmarks && section.benchmarks.length > 0) || (section.forge_benchmarks && section.forge_benchmarks.length > 0) || section.content ? (
+                <div className='text-sm text-gray-900 space-y-2'>
+                  {/* Lifts */}
+                  {section.lifts && section.lifts.length > 0 && (
+                    <div className='space-y-1'>
+                      {section.lifts.map((lift, liftIdx) => (
+                        <div key={liftIdx} className='font-mono bg-gray-50 p-2 rounded border border-gray-200'>
+                          ≡ {formatLift(lift)}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Benchmarks */}
+                  {section.benchmarks && section.benchmarks.length > 0 && (
+                    <div className='space-y-2'>
+                      <div className='font-mono bg-teal-50 p-2 rounded border border-teal-200 font-medium'>
+                        ★ {section.benchmarks.map(b => formatBenchmark(b)).join(', ')}
+                      </div>
+                      {section.benchmarks.map((benchmark, benchIdx) => (
+                        benchmark.description && (
+                          <div key={benchIdx} className='whitespace-pre-wrap font-mono text-sm bg-gray-50 p-2 rounded border border-gray-200'>
+                            {benchmark.description}
+                          </div>
+                        )
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Forge Benchmarks */}
+                  {section.forge_benchmarks && section.forge_benchmarks.length > 0 && (
+                    <div className='space-y-2'>
+                      <div className='font-mono bg-cyan-50 p-2 rounded border border-cyan-200 font-medium'>
+                        ◆ {section.forge_benchmarks.map(f => formatForgeBenchmark(f)).join(', ')}
+                      </div>
+                      {section.forge_benchmarks.map((forge, forgeIdx) => (
+                        forge.description && (
+                          <div key={forgeIdx} className='whitespace-pre-wrap font-mono text-sm bg-gray-50 p-2 rounded border border-gray-200'>
+                            {forge.description}
+                          </div>
+                        )
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Content */}
+                  {section.content && (
+                    <div className='whitespace-pre-wrap font-mono bg-gray-50 p-2 rounded border border-gray-200 max-h-32 overflow-auto'>
+                      {section.content}
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className='text-sm text-gray-500 italic'>

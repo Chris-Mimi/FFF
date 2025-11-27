@@ -2,6 +2,17 @@
 
 import { Library, X } from 'lucide-react';
 
+interface Exercise {
+  id: string;
+  name: string;
+  display_name: string | null;
+  category: string;
+  subcategory?: string;
+  equipment?: string[];
+  body_parts?: string[];
+  difficulty?: 'beginner' | 'intermediate' | 'advanced';
+}
+
 interface ExerciseWithCount {
   exercise: string;
   count: number;
@@ -13,6 +24,7 @@ interface ExerciseLibraryPanelProps {
   position: { top: number; left: number };
   size: { width: number; height: number };
   exercises: ExerciseWithCount[];
+  allExercises: Exercise[];
   onExerciseSelect: (exercise: string) => void;
   onPositionChange: (position: { top: number; left: number }) => void;
   onSizeChange: (size: { width: number; height: number }) => void;
@@ -24,6 +36,7 @@ export default function ExerciseLibraryPanel({
   position,
   size,
   exercises,
+  allExercises,
   onExerciseSelect,
   onPositionChange,
   onSizeChange,
@@ -83,18 +96,37 @@ export default function ExerciseLibraryPanel({
             gridTemplateColumns: `repeat(${Math.max(2, Math.floor(size.width / 200))}, minmax(0, 1fr))`
           }}
         >
-          {exercises.map((exercise, idx) => (
-            <button
-              key={idx}
-              onClick={() => onExerciseSelect(exercise.exercise)}
-              className='text-left px-3 py-2 border border-gray-300 rounded-lg hover:bg-[#208479] hover:text-white transition group'
-            >
-              <div className='font-medium text-gray-900 group-hover:text-white'>{exercise.exercise}</div>
-              <div className='text-xs text-gray-600 group-hover:text-white'>
-                {exercise.count > 0 ? `${exercise.count}x` : 'Not used yet'}
-              </div>
-            </button>
-          ))}
+          {exercises.map((exercise, idx) => {
+            const exerciseData = allExercises.find(ex =>
+              ex.name === exercise.exercise ||
+              ex.display_name === exercise.exercise ||
+              ex.name.toLowerCase() === exercise.exercise.toLowerCase() ||
+              ex.display_name?.toLowerCase() === exercise.exercise.toLowerCase()
+            );
+            return (
+              <button
+                key={idx}
+                onClick={() => onExerciseSelect(exercise.exercise)}
+                className='text-left px-3 py-2 border border-gray-300 rounded-lg hover:bg-[#208479] hover:text-white transition group'
+              >
+                <div className='font-medium text-gray-900 group-hover:text-white'>
+                  {exerciseData?.display_name || exercise.exercise}
+                </div>
+                {exerciseData?.equipment && exerciseData.equipment.length > 0 && (
+                  <div className='flex gap-1 mt-1 flex-wrap'>
+                    {exerciseData.equipment.map(eq => (
+                      <span key={eq} className='px-1.5 py-0.5 bg-blue-100 text-blue-700 group-hover:bg-blue-200 text-xs rounded'>
+                        {eq}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <div className='text-xs text-gray-600 group-hover:text-white mt-1'>
+                  {exercise.count > 0 ? `${exercise.count}x` : 'Not used yet'}
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 

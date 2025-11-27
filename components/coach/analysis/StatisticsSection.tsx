@@ -5,6 +5,17 @@ import { RefObject } from 'react';
 
 type TimeframePeriod = 0.25 | 1 | 3 | 6 | 12;
 
+interface Exercise {
+  id: string;
+  name: string;
+  display_name: string | null;
+  category: string;
+  subcategory?: string;
+  equipment?: string[];
+  body_parts?: string[];
+  difficulty?: 'beginner' | 'intermediate' | 'advanced';
+}
+
 interface Statistics {
   totalWorkouts: number;
   trackBreakdown: { trackId: string; trackName: string; count: number; color: string }[];
@@ -19,6 +30,7 @@ interface Statistics {
 interface StatisticsSectionProps {
   loading: boolean;
   statistics: Statistics | null;
+  exercises: Exercise[];
   timeframePeriod: TimeframePeriod;
   onTimeframePeriodChange: (period: TimeframePeriod) => void;
   selectedMonth: Date;
@@ -46,6 +58,7 @@ interface StatisticsSectionProps {
 export default function StatisticsSection({
   loading,
   statistics,
+  exercises,
   timeframePeriod,
   onTimeframePeriodChange,
   selectedMonth,
@@ -235,16 +248,38 @@ export default function StatisticsSection({
                 {/* Dropdown Results */}
                 {exerciseSearch && filteredExercises.length > 0 && (
                   <div className='absolute z-10 w-full mt-2 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto'>
-                    {filteredExercises.slice(0, 20).map((exercise, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => onExerciseSelect(exercise.exercise)}
-                        className='w-full px-4 py-3 text-left hover:bg-gray-300 flex justify-between items-center border-b border-gray-100 last:border-b-0'
-                      >
-                        <span className='text-gray-900 font-medium'>{exercise.exercise}</span>
-                        <span className='text-[#208479] font-bold text-sm'>{exercise.count}x</span>
-                      </button>
-                    ))}
+                    {filteredExercises.slice(0, 20).map((exercise, idx) => {
+                      const exerciseData = exercises.find(ex =>
+                        ex.name === exercise.exercise ||
+                        ex.display_name === exercise.exercise ||
+                        ex.name.toLowerCase() === exercise.exercise.toLowerCase() ||
+                        ex.display_name?.toLowerCase() === exercise.exercise.toLowerCase()
+                      );
+                      return (
+                        <button
+                          key={idx}
+                          onClick={() => onExerciseSelect(exercise.exercise)}
+                          className='w-full px-4 py-3 text-left hover:bg-gray-300 flex justify-between items-center border-b border-gray-100 last:border-b-0'
+                        >
+                          <div className='flex-1'>
+                            <div className='text-gray-900 font-medium'>
+                              {exerciseData?.display_name || exercise.exercise}
+                            </div>
+                            {/* Equipment badges */}
+                            {exerciseData?.equipment && exerciseData.equipment.length > 0 && (
+                              <div className='flex gap-1 mt-1'>
+                                {exerciseData.equipment.map(eq => (
+                                  <span key={eq} className='px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded'>
+                                    {eq}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          <span className='text-[#208479] font-bold text-sm ml-2'>{exercise.count}x</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
 
@@ -269,17 +304,26 @@ export default function StatisticsSection({
             {selectedExercises.length > 0 && (
               <div className='mt-4'>
                 <div className='flex flex-wrap gap-2'>
-                  {selectedExercises.map(exercise => {
-                    const count = statistics?.allExerciseFrequency.find(e => e.exercise === exercise)?.count || 0;
+                  {selectedExercises.map(exerciseName => {
+                    const exerciseData = exercises.find(ex =>
+                      ex.name === exerciseName ||
+                      ex.display_name === exerciseName ||
+                      ex.name.toLowerCase() === exerciseName.toLowerCase() ||
+                      ex.display_name?.toLowerCase() === exerciseName.toLowerCase()
+                    );
+                    const count = statistics?.allExerciseFrequency.find(e => e.exercise === exerciseName)?.count || 0;
                     return (
                       <span
-                        key={exercise}
+                        key={exerciseName}
                         className='inline-flex items-center gap-1 px-3 py-2 bg-[#208479] text-white text-sm rounded-full'
                       >
-                        <span className='font-medium'>{exercise}</span>
+                        <span className='font-medium'>{exerciseData?.display_name || exerciseName}</span>
+                        {exerciseData?.equipment && exerciseData.equipment.length > 0 && (
+                          <span className='text-xs opacity-75'>({exerciseData.equipment.join(', ')})</span>
+                        )}
                         <span className='text-xs opacity-90'>({count}x)</span>
                         <button
-                          onClick={() => onRemoveExercise(exercise)}
+                          onClick={() => onRemoveExercise(exerciseName)}
                           className='hover:bg-[#1a6b62] rounded-full p-0.5 ml-1'
                         >
                           <X size={14} />
@@ -367,14 +411,22 @@ export default function StatisticsSection({
                 Top Exercises{selectedCategories.length > 0 && ` (${selectedCategories.join(', ')})`}
               </h3>
               <div className='flex flex-wrap gap-2'>
-                {filteredTopExercises.map((exercise, idx) => (
-                  <span
-                    key={idx}
-                    className='inline-flex items-center px-3 py-2 bg-gray-100 text-gray-900 border-2 border-[#208479] text-sm rounded-full font-medium'
-                  >
-                    {exercise.exercise} ({exercise.count}x)
-                  </span>
-                ))}
+                {filteredTopExercises.map((exercise, idx) => {
+                  const exerciseData = exercises.find(ex =>
+                    ex.name === exercise.exercise ||
+                    ex.display_name === exercise.exercise ||
+                    ex.name.toLowerCase() === exercise.exercise.toLowerCase() ||
+                    ex.display_name?.toLowerCase() === exercise.exercise.toLowerCase()
+                  );
+                  return (
+                    <span
+                      key={idx}
+                      className='inline-flex items-center px-3 py-2 bg-gray-100 text-gray-900 border-2 border-[#208479] text-sm rounded-full font-medium'
+                    >
+                      {exerciseData?.display_name || exercise.exercise} ({exercise.count}x)
+                    </span>
+                  );
+                })}
               </div>
             </div>
           )}

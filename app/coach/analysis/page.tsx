@@ -6,9 +6,53 @@ import StatisticsSection from '@/components/coach/analysis/StatisticsSection';
 import TrackManagementSection from '@/components/coach/analysis/TrackManagementSection';
 import TrackModal from '@/components/coach/analysis/TrackModal';
 import { supabase } from '@/lib/supabase';
+import {
+  getExerciseFrequency,
+  getLiftFrequency,
+  getBenchmarkFrequency,
+  getForgeBenchmarkFrequency,
+  type ExerciseFrequency,
+  type LiftAnalysis,
+  type BenchmarkAnalysis,
+  type ForgeBenchmarkAnalysis
+} from '@/utils/movement-analytics';
 import { ArrowLeft, BarChart3 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+
+// Exercise category ordering (workout flow)
+const CATEGORY_ORDER = [
+  'Warm-up & Mobility',
+  'Olympic Lifting & Barbell Movements',
+  'Compound Exercises',
+  'Gymnastics & Bodyweight',
+  'Core, Abs & Isometric Holds',
+  'Cardio & Conditioning',
+  'Specialty',
+  'Recovery & Stretching',
+];
+
+const sortCategoriesByWorkoutFlow = (categories: string[]): string[] => {
+  return categories.sort((a, b) => {
+    const indexA = CATEGORY_ORDER.indexOf(a);
+    const indexB = CATEGORY_ORDER.indexOf(b);
+    if (indexA === -1 && indexB === -1) return a.localeCompare(b);
+    if (indexA === -1) return 1;
+    if (indexB === -1) return -1;
+    return indexA - indexB;
+  });
+};
+
+interface Exercise {
+  id: string;
+  name: string;
+  display_name: string | null;
+  category: string;
+  subcategory?: string;
+  equipment?: string[];
+  body_parts?: string[];
+  difficulty?: 'beginner' | 'intermediate' | 'advanced';
+}
 
 interface Track {
   id: string;
@@ -39,12 +83,21 @@ interface WOD {
   sections: WODSection[];
 }
 
+interface MovementFrequencyItem {
+  name: string;
+  count: number;
+  type: 'lift' | 'benchmark' | 'forge_benchmark' | 'exercise';
+  category?: string; // For exercises
+}
+
 interface Statistics {
   totalWorkouts: number;
   trackBreakdown: { trackId: string; trackName: string; count: number; color: string }[];
   typeBreakdown: { typeId: string; typeName: string; count: number }[];
-  exerciseFrequency: { exercise: string; count: number }[];
-  allExerciseFrequency: { exercise: string; count: number }[];
+  exerciseFrequency: { exercise: string; count: number }[]; // Legacy - keep for backwards compatibility
+  allExerciseFrequency: { exercise: string; count: number }[]; // Legacy - keep for backwards compatibility
+  movementFrequency: MovementFrequencyItem[]; // New - unified movements
+  allMovementFrequency: MovementFrequencyItem[]; // New - all movements
   totalWODDuration: number;
   averageWODDuration: number;
   durationBreakdown: { range: string; count: number }[];
@@ -56,8 +109,7 @@ export default function AnalysisPage() {
   const router = useRouter();
   const [tracks, setTracks] = useState<Track[]>([]);
   const [workoutTypes, setWorkoutTypes] = useState<WorkoutType[]>([]);
-  const [exercises, setExercises] = useState<Set<string>>(new Set());
-  const [exerciseCategories, setExerciseCategories] = useState<Map<string, string>>(new Map());
+  const [exercises, setExercises] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [timeframePeriod, setTimeframePeriod] = useState<TimeframePeriod>(1);
@@ -140,7 +192,7 @@ export default function AnalysisPage() {
       const [tracksResult, typesResult, exercisesResult] = await Promise.all([
         supabase.from('tracks').select('*').order('name'),
         supabase.from('workout_types').select('*').order('name'),
-        supabase.from('exercises').select('name, category').order('name'),
+        supabase.from('exercises').select('id, name, display_name, category, subcategory, equipment, body_parts, difficulty').order('name'),
       ]);
 
       if (tracksResult.error) throw tracksResult.error;
@@ -150,21 +202,12 @@ export default function AnalysisPage() {
       setTracks(tracksResult.data || []);
       setWorkoutTypes(typesResult.data || []);
 
-      const exerciseSet = new Set<string>();
-      const categoryMap = new Map<string, string>();
-      const categorySet = new Set<string>();
-
-      (exercisesResult.data || []).forEach(ex => {
-        exerciseSet.add(ex.name);
-        if (ex.category) {
-          categoryMap.set(ex.name, ex.category);
-          categorySet.add(ex.category);
-        }
-      });
-
-      setExercises(exerciseSet);
-      setExerciseCategories(categoryMap);
-      setCategories(Array.from(categorySet).sort());
+      if (exercisesResult.data) {
+        setExercises(exercisesResult.data as Exercise[]);
+        // Extract unique categories for filters
+        const uniqueCategories = [...new Set(exercisesResult.data.map((e: Exercise) => e.category))];
+        setCategories(sortCategoriesByWorkoutFlow(uniqueCategories));
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -247,7 +290,7 @@ export default function AnalysisPage() {
           sections: session.wods!.sections,
         }));
 
-      calculateStatistics(wods);
+      calculateStatistics(wods, startDateStr, endDateStr);
     } catch (error) {
       console.error('Error fetching monthly WODs:', error);
     } finally {
@@ -255,7 +298,7 @@ export default function AnalysisPage() {
     }
   };
 
-  const calculateStatistics = (wods: WOD[]) => {
+  const calculateStatistics = async (wods: WOD[], startDate: string, endDate: string) => {
     const totalWorkouts = wods.length;
 
     const trackCounts: Record<string, number> = {};
@@ -295,121 +338,48 @@ export default function AnalysisPage() {
       })
       .sort((a, b) => b.count - a.count);
 
-    const exerciseCounts: Record<string, number> = {};
-    const excludeWords = new Set([
-      'reps', 'rep', 'rounds', 'round', 'minutes', 'minute', 'min', 'mins',
-      'seconds', 'second', 'sec', 'secs', 'meter', 'meters', 'calories', 'cal',
-      'cals', 'each', 'side', 'total', 'amrap', 'emom', 'for', 'time', 'the',
-      'and', 'or', 'of', 'in', 'at', 'to', 'a', 'an', 'with', 'without',
-      'rx', 'scaled', 'beginner', 'intermediate', 'advanced'
+    // Use shared movement frequency utilities - fetch all movement types in parallel
+    const [exerciseAnalysis, liftAnalysis, benchmarkAnalysis, forgeBenchmarkAnalysis] = await Promise.all([
+      getExerciseFrequency({ startDate, endDate }),
+      getLiftFrequency({ startDate, endDate }),
+      getBenchmarkFrequency({ startDate, endDate }),
+      getForgeBenchmarkFrequency({ startDate, endDate }),
     ]);
 
-    const normalizeMovement = (movement: string): string => {
-      return movement
-        .split(/\s+/)
-        .map(word => {
-          if (word.includes('(') || word.includes(')')) {
-            return word;
-          }
-          if (word.includes('-')) {
-            return word.split('-').map(part =>
-              part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
-            ).join('-');
-          }
-          return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-        })
-        .join(' ')
-        .trim();
-    };
-
-    const findMatchingExercise = (movement: string): string | null => {
-      if (exercises.has(movement)) {
-        return movement;
-      }
-
-      const hyphenated = movement.replace(/\s+/g, '-');
-      if (exercises.has(hyphenated)) {
-        return hyphenated;
-      }
-
-      const singular = movement.endsWith('s') ? movement.slice(0, -1) : movement + 's';
-      if (exercises.has(singular)) {
-        return singular;
-      }
-
-      const singularHyphenated = hyphenated.endsWith('s') ? hyphenated.slice(0, -1) : hyphenated + 's';
-      if (exercises.has(singularHyphenated)) {
-        return singularHyphenated;
-      }
-
-      for (const exercise of exercises) {
-        if (exercise === movement ||
-            exercise + 's' === movement ||
-            exercise === movement + 's' ||
-            exercise === hyphenated ||
-            exercise + 's' === hyphenated ||
-            exercise === hyphenated + 's') {
-          return exercise;
-        }
-      }
-
-      const movementWords = movement.split(' ');
-      for (const exercise of exercises) {
-        const exerciseWords = exercise.replace(/-/g, ' ').split(' ');
-        if (exerciseWords.every(word => movementWords.includes(word))) {
-          return exercise;
-        }
-      }
-
-      return null;
-    };
-
-    wods.forEach(wod => {
-      wod.sections.forEach(section => {
-        const lines = section.content.split('\n');
-
-        lines.forEach(line => {
-          const trimmedLine = line.trim();
-          if (!trimmedLine) return;
-
-          const numberXPattern = /^(?:\d+[\s-]*x[\s-]*|[\d-]+[\s-]*x[\s-]*)([\w\s\-()]+?)(?:\s*[@\d]|$)/i;
-          let match = trimmedLine.match(numberXPattern);
-
-          if (!match) {
-            const bulletPattern = /^[\s*•\-]+\s*([\w\s\-()]+?)(?:\s*[@\d]|$)/;
-            match = trimmedLine.match(bulletPattern);
-          }
-
-          if (!match) {
-            const numberPattern = /^(?:\d+[a-z]*[\s-]*)([\w\s\-()]+?)(?:\s*[@\d]|$)/i;
-            match = trimmedLine.match(numberPattern);
-          }
-
-          if (!match) {
-            const repSchemePattern = /^(?:\d+-\d+(?:-\d+)*[\s-]*)([\w\s\-()]+?)(?:\s*[@\d]|$)/;
-            match = trimmedLine.match(repSchemePattern);
-          }
-
-          if (match && match[1]) {
-            let movementText = match[1].trim();
-            movementText = movementText.replace(/[,;.!?]+$/, '');
-
-            const movement = normalizeMovement(movementText);
-
-            const matchedExercise = findMatchingExercise(movement);
-            if (matchedExercise) {
-              exerciseCounts[matchedExercise] = (exerciseCounts[matchedExercise] || 0) + 1;
-            }
-          }
-        });
-      });
-    });
-
-    const allExerciseFrequency = Object.entries(exerciseCounts)
-      .map(([exercise, count]) => ({ exercise, count }))
-      .sort((a, b) => b.count - a.count);
-
+    // Legacy format for backwards compatibility
+    const allExerciseFrequency = exerciseAnalysis.map(ex => ({
+      exercise: ex.name,
+      count: ex.count
+    }));
     const exerciseFrequency = allExerciseFrequency.slice(0, 40);
+
+    // New unified movement frequency
+    const allMovements: MovementFrequencyItem[] = [
+      ...liftAnalysis.map(lift => ({
+        name: lift.name,
+        count: lift.count,
+        type: 'lift' as const,
+      })),
+      ...benchmarkAnalysis.map(benchmark => ({
+        name: benchmark.name,
+        count: benchmark.count,
+        type: 'benchmark' as const,
+      })),
+      ...forgeBenchmarkAnalysis.map(forge => ({
+        name: forge.name,
+        count: forge.count,
+        type: 'forge_benchmark' as const,
+      })),
+      ...exerciseAnalysis.map(ex => ({
+        name: ex.name,
+        count: ex.count,
+        type: 'exercise' as const,
+        category: ex.category,
+      })),
+    ].sort((a, b) => b.count - a.count);
+
+    const allMovementFrequency = allMovements;
+    const movementFrequency = allMovements.slice(0, 40);
 
     let totalWODDuration = 0;
     let wodCount = 0;
@@ -472,6 +442,8 @@ export default function AnalysisPage() {
       typeBreakdown,
       exerciseFrequency,
       allExerciseFrequency,
+      movementFrequency,
+      allMovementFrequency,
       totalWODDuration,
       averageWODDuration,
       durationBreakdown,
@@ -635,13 +607,12 @@ export default function AnalysisPage() {
   const getAllExercisesWithCounts = () => {
     const exerciseList: Array<{ exercise: string; count: number }> = [];
 
-    exercises.forEach(exerciseName => {
-      const exerciseCategory = exerciseCategories.get(exerciseName);
-      if (selectedCategories.length > 0 && (!exerciseCategory || !selectedCategories.includes(exerciseCategory))) {
+    exercises.forEach(ex => {
+      if (selectedCategories.length > 0 && !selectedCategories.includes(ex.category)) {
         return;
       }
 
-      const exerciseData = statistics?.allExerciseFrequency.find(e => e.exercise === exerciseName);
+      const exerciseData = statistics?.allExerciseFrequency.find(e => e.exercise === ex.name);
       const count = exerciseData?.count || 0;
 
       if (showUnusedOnly && count > 0) {
@@ -649,7 +620,7 @@ export default function AnalysisPage() {
       }
 
       exerciseList.push({
-        exercise: exerciseName,
+        exercise: ex.name,
         count: count
       });
     });
@@ -657,19 +628,37 @@ export default function AnalysisPage() {
     return exerciseList.sort((a, b) => a.exercise.localeCompare(b.exercise));
   };
 
-  const filteredExercises = statistics?.allExerciseFrequency.filter(e => {
-    const matchesSearch = e.exercise.toLowerCase().includes(exerciseSearch.toLowerCase());
-    const exerciseCategory = exerciseCategories.get(e.exercise);
-    const matchesCategory = selectedCategories.length === 0 ||
-      (exerciseCategory && selectedCategories.includes(exerciseCategory));
-    return matchesSearch && matchesCategory;
-  }) || [];
+  // Filter movements (lifts, benchmarks, forge benchmarks, exercises) by search and category
+  const filteredExercises = statistics?.allMovementFrequency.filter(movement => {
+    const matchesSearch = movement.name.toLowerCase().includes(exerciseSearch.toLowerCase());
 
-  const filteredTopExercises = statistics?.exerciseFrequency.filter(e => {
-    const exerciseCategory = exerciseCategories.get(e.exercise);
-    return selectedCategories.length === 0 ||
-      (exerciseCategory && selectedCategories.includes(exerciseCategory));
-  }) || [];
+    // Category filtering only applies to exercises
+    if (selectedCategories.length === 0) {
+      return matchesSearch;
+    }
+
+    // For exercises, filter by category
+    if (movement.type === 'exercise' && movement.category) {
+      return matchesSearch && selectedCategories.includes(movement.category);
+    }
+
+    // For lifts/benchmarks/forge benchmarks, include them if no category filter active,
+    // or exclude them if category filtering is active (since they don't have categories)
+    return matchesSearch && selectedCategories.length === 0;
+  }).map(m => ({ exercise: m.name, count: m.count })) || [];
+
+  const filteredTopExercises = statistics?.movementFrequency.filter(movement => {
+    // Category filtering only applies to exercises
+    if (selectedCategories.length === 0) {
+      return true;
+    }
+
+    if (movement.type === 'exercise' && movement.category) {
+      return selectedCategories.includes(movement.category);
+    }
+
+    return selectedCategories.length === 0;
+  }).map(m => ({ exercise: m.name, count: m.count })) || [];
 
   // Handler functions for components
   const handleTrackFormChange = (field: string, value: string) => {
@@ -804,6 +793,7 @@ export default function AnalysisPage() {
         <StatisticsSection
           loading={loading}
           statistics={statistics}
+          exercises={exercises}
           timeframePeriod={timeframePeriod}
           onTimeframePeriodChange={handleTimeframePeriodChange}
           selectedMonth={selectedMonth}
@@ -878,6 +868,7 @@ export default function AnalysisPage() {
         position={libraryPos}
         size={librarySize}
         exercises={getAllExercisesWithCounts()}
+        allExercises={exercises}
         onExerciseSelect={handleExerciseSelect}
         onPositionChange={setLibraryPos}
         onSizeChange={setLibrarySize}
