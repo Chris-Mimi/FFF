@@ -122,6 +122,7 @@ export default function AnalysisPage() {
   const [selectedExercises, setSelectedExercises] = useState<string[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedMovementTypes, setSelectedMovementTypes] = useState<Array<'lift' | 'benchmark' | 'forge_benchmark' | 'exercise'>>([]);
 
   // Exercise Library Panel State
   const [libraryOpen, setLibraryOpen] = useState(false);
@@ -604,6 +605,18 @@ export default function AnalysisPage() {
     setSelectedCategories([]);
   };
 
+  const toggleMovementType = (type: 'lift' | 'benchmark' | 'forge_benchmark' | 'exercise') => {
+    if (selectedMovementTypes.includes(type)) {
+      setSelectedMovementTypes(selectedMovementTypes.filter(t => t !== type));
+    } else {
+      setSelectedMovementTypes([...selectedMovementTypes, type]);
+    }
+  };
+
+  const clearAllMovementTypes = () => {
+    setSelectedMovementTypes([]);
+  };
+
   const getAllExercisesWithCounts = () => {
     const exerciseList: Array<{ exercise: string; count: number }> = [];
 
@@ -628,9 +641,14 @@ export default function AnalysisPage() {
     return exerciseList.sort((a, b) => a.exercise.localeCompare(b.exercise));
   };
 
-  // Filter movements (lifts, benchmarks, forge benchmarks, exercises) by search and category
+  // Filter movements (lifts, benchmarks, forge benchmarks, exercises) by search, category, and movement type
   const filteredExercises = statistics?.allMovementFrequency.filter(movement => {
     const matchesSearch = movement.name.toLowerCase().includes(exerciseSearch.toLowerCase());
+
+    // Movement type filtering
+    if (selectedMovementTypes.length > 0 && !selectedMovementTypes.includes(movement.type)) {
+      return false;
+    }
 
     // Category filtering only applies to exercises
     if (selectedCategories.length === 0) {
@@ -648,6 +666,11 @@ export default function AnalysisPage() {
   }).map(m => ({ exercise: m.name, count: m.count })) || [];
 
   const filteredTopExercises = statistics?.movementFrequency.filter(movement => {
+    // Movement type filtering
+    if (selectedMovementTypes.length > 0 && !selectedMovementTypes.includes(movement.type)) {
+      return false;
+    }
+
     // Category filtering only applies to exercises
     if (selectedCategories.length === 0) {
       return true;
@@ -759,6 +782,7 @@ export default function AnalysisPage() {
 
   const handleClearFilters = () => {
     clearAllCategories();
+    clearAllMovementTypes();
     setShowUnusedOnly(false);
   };
 
@@ -804,6 +828,8 @@ export default function AnalysisPage() {
           categories={categories}
           selectedCategories={selectedCategories}
           onToggleCategory={toggleCategory}
+          selectedMovementTypes={selectedMovementTypes}
+          onToggleMovementType={toggleMovementType}
           showUnusedOnly={showUnusedOnly}
           onToggleUnusedOnly={() => setShowUnusedOnly(!showUnusedOnly)}
           onClearFilters={handleClearFilters}

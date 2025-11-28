@@ -41,6 +41,8 @@ interface StatisticsSectionProps {
   categories: string[];
   selectedCategories: string[];
   onToggleCategory: (category: string) => void;
+  selectedMovementTypes: Array<'lift' | 'benchmark' | 'forge_benchmark' | 'exercise'>;
+  onToggleMovementType: (type: 'lift' | 'benchmark' | 'forge_benchmark' | 'exercise') => void;
   showUnusedOnly: boolean;
   onToggleUnusedOnly: () => void;
   onClearFilters: () => void;
@@ -69,6 +71,8 @@ export default function StatisticsSection({
   categories,
   selectedCategories,
   onToggleCategory,
+  selectedMovementTypes,
+  onToggleMovementType,
   showUnusedOnly,
   onToggleUnusedOnly,
   onClearFilters,
@@ -189,6 +193,55 @@ export default function StatisticsSection({
           <div className='bg-gray-700 border border-gray-500 rounded-lg p-6'>
             <h3 className='text-lg font-bold text-gray-100 mb-4'>Exercise/Movement Search</h3>
 
+            {/* Movement Type Filter Badges */}
+            <div className='mb-4'>
+              <div className='flex items-center gap-2 mb-2'>
+                <span className='text-sm font-medium text-gray-100'>Filter by Movement Type:</span>
+              </div>
+              <div className='flex flex-wrap gap-2'>
+                <button
+                  onClick={() => onToggleMovementType('lift')}
+                  className={`px-3 py-1.5 text-sm rounded-full font-medium transition ${
+                    selectedMovementTypes.includes('lift')
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                  }`}
+                >
+                  Lifts
+                </button>
+                <button
+                  onClick={() => onToggleMovementType('benchmark')}
+                  className={`px-3 py-1.5 text-sm rounded-full font-medium transition ${
+                    selectedMovementTypes.includes('benchmark')
+                      ? 'bg-teal-500 text-white'
+                      : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
+                  }`}
+                >
+                  Benchmarks
+                </button>
+                <button
+                  onClick={() => onToggleMovementType('forge_benchmark')}
+                  className={`px-3 py-1.5 text-sm rounded-full font-medium transition ${
+                    selectedMovementTypes.includes('forge_benchmark')
+                      ? 'bg-cyan-500 text-white'
+                      : 'bg-cyan-100 text-cyan-700 hover:bg-cyan-200'
+                  }`}
+                >
+                  Forge Benchmarks
+                </button>
+                <button
+                  onClick={() => onToggleMovementType('exercise')}
+                  className={`px-3 py-1.5 text-sm rounded-full font-medium transition ${
+                    selectedMovementTypes.includes('exercise')
+                      ? 'bg-[#208479] text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  Exercises
+                </button>
+              </div>
+            </div>
+
             {/* Category Filter Chips */}
             {categories.length > 0 && (
               <div className='mb-4'>
@@ -219,7 +272,7 @@ export default function StatisticsSection({
                   >
                     Unused
                   </button>
-                  {(selectedCategories.length > 0 || showUnusedOnly) && (
+                  {(selectedCategories.length > 0 || selectedMovementTypes.length > 0 || showUnusedOnly) && (
                     <button
                       onClick={onClearFilters}
                       className='px-3 py-1.5 text-sm rounded-full bg-red-100 text-red-700 hover:bg-red-200 font-medium transition'
