@@ -36,6 +36,8 @@ interface PublishedWorkout {
 
 interface AthletePageWorkoutsTabProps {
   userId: string;
+  initialDate?: Date;
+  onDateChange?: (date: Date) => void;
   onNavigateToLogbook?: (date: Date) => void;
 }
 
@@ -89,10 +91,23 @@ function formatForgeBenchmark(forge: ConfiguredForgeBenchmark): { name: string; 
   };
 }
 
-export default function AthletePageWorkoutsTab({ userId, onNavigateToLogbook }: AthletePageWorkoutsTabProps) {
-  const [selectedDate, setSelectedDate] = useState(new Date());
+export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChange, onNavigateToLogbook }: AthletePageWorkoutsTabProps) {
+  const [selectedDate, setSelectedDate] = useState(initialDate || new Date());
   const [workouts, setWorkouts] = useState<PublishedWorkout[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (initialDate) {
+      setSelectedDate(initialDate);
+    }
+  }, [initialDate]);
+
+  // Notify parent when date changes so it can be persisted across tab switches
+  useEffect(() => {
+    if (onDateChange) {
+      onDateChange(selectedDate);
+    }
+  }, [selectedDate, onDateChange]);
 
   useEffect(() => {
     fetchPublishedWorkouts();
@@ -207,6 +222,11 @@ export default function AthletePageWorkoutsTab({ userId, onNavigateToLogbook }: 
     setSelectedDate(newDate);
   };
 
+  const goToToday = () => {
+    const today = new Date();
+    setSelectedDate(today);
+  };
+
   const getWorkoutForDate = (date: Date): PublishedWorkout | undefined => {
     return workouts.find(w => w.date === formatDate(date));
   };
@@ -242,9 +262,17 @@ export default function AthletePageWorkoutsTab({ userId, onNavigateToLogbook }: 
             >
               <ChevronLeft size={24} />
             </button>
-            <span className='text-lg font-semibold text-gray-900 min-w-[200px] text-center'>
-              {weekLabel}
-            </span>
+            <div className='flex items-center gap-3'>
+              <span className='text-lg font-semibold text-gray-900 min-w-[200px] text-center'>
+                {weekLabel}
+              </span>
+              <button
+                onClick={goToToday}
+                className='px-3 py-1 bg-[#208479] hover:bg-[#1a6b62] text-white text-sm rounded-lg font-medium transition'
+              >
+                Today
+              </button>
+            </div>
             <button
               onClick={nextWeek}
               className='p-2 hover:bg-gray-100 rounded-full transition text-gray-900'

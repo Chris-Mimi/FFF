@@ -352,7 +352,7 @@ export default function AnalysisPage() {
       exercise: ex.name,
       count: ex.count
     }));
-    const exerciseFrequency = allExerciseFrequency.slice(0, 40);
+    const exerciseFrequency = allExerciseFrequency.slice(0, 50);
 
     // New unified movement frequency
     const allMovements: MovementFrequencyItem[] = [
@@ -380,7 +380,7 @@ export default function AnalysisPage() {
     ].sort((a, b) => b.count - a.count);
 
     const allMovementFrequency = allMovements;
-    const movementFrequency = allMovements.slice(0, 40);
+    const movementFrequency = allMovements.slice(0, 50);
 
     let totalWODDuration = 0;
     let wodCount = 0;

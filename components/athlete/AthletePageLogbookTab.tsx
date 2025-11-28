@@ -21,9 +21,10 @@ interface AthletePageLogbookTabProps {
   userId: string;
   initialDate?: Date;
   initialViewMode?: 'day' | 'week' | 'month';
+  onDateChange?: (date: Date) => void;
 }
 
-export default function AthletePageLogbookTab({ userId, initialDate, initialViewMode }: AthletePageLogbookTabProps) {
+export default function AthletePageLogbookTab({ userId, initialDate, initialViewMode, onDateChange }: AthletePageLogbookTabProps) {
   const [selectedDate, setSelectedDate] = useState(initialDate || new Date());
   const [viewMode, setViewMode] = useState<'day' | 'week' | 'month'>(initialViewMode || 'week');
   const [expandedWorkoutId, setExpandedWorkoutId] = useState<string | null>(null);
@@ -39,6 +40,13 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
       setSelectedDate(initialDate);
     }
   }, [initialDate]);
+
+  // Notify parent when date changes so it can be persisted across tab switches
+  useEffect(() => {
+    if (onDateChange) {
+      onDateChange(selectedDate);
+    }
+  }, [selectedDate, onDateChange]);
 
   useEffect(() => {
     if (viewMode === 'day') {
@@ -475,6 +483,11 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
     setSelectedDate(newDate);
   };
 
+  const goToToday = () => {
+    const today = new Date();
+    setSelectedDate(today);
+  };
+
   const getMonthCalendarDays = () => {
     const year = selectedDate.getFullYear();
     const month = selectedDate.getMonth();
@@ -543,7 +556,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
               <ChevronLeft size={20} />
             </button>
 
-            <div className='text-center'>
+            <div className='flex items-center gap-4'>
               <h3 className='text-lg font-semibold text-gray-900'>
                 {selectedDate.toLocaleDateString('en-US', {
                   weekday: 'long',
@@ -552,6 +565,12 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                   day: 'numeric'
                 })}
               </h3>
+              <button
+                onClick={goToToday}
+                className='px-3 py-1 bg-[#208479] hover:bg-[#1a6b62] text-white text-sm rounded-lg font-medium transition'
+              >
+                Today
+              </button>
             </div>
 
             <button
@@ -714,11 +733,17 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
               <ChevronLeft size={20} />
             </button>
 
-            <div className='text-center'>
+            <div className='flex items-center gap-4'>
               <h3 className='text-lg font-semibold text-gray-900'>
                 {getWeekDates(selectedDate)[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {' '}
                 {getWeekDates(selectedDate)[6].toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
               </h3>
+              <button
+                onClick={goToToday}
+                className='px-3 py-1 bg-[#208479] hover:bg-[#1a6b62] text-white text-sm rounded-lg font-medium transition'
+              >
+                Today
+              </button>
             </div>
 
             <button
@@ -802,10 +827,16 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
               <ChevronLeft size={20} />
             </button>
 
-            <div className='text-center'>
+            <div className='flex items-center gap-4'>
               <h3 className='text-lg font-semibold text-gray-900'>
                 {selectedDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
               </h3>
+              <button
+                onClick={goToToday}
+                className='px-3 py-1 bg-[#208479] hover:bg-[#1a6b62] text-white text-sm rounded-lg font-medium transition'
+              >
+                Today
+              </button>
             </div>
 
             <button

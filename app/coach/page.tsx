@@ -29,7 +29,16 @@ export default function CoachDashboard() {
 
   // View and navigation state
   const [viewMode, setViewMode] = useState<ViewMode>('weekly');
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(() => {
+    // Initialize from localStorage if available
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('coachCalendarDate');
+      if (saved) {
+        return new Date(saved);
+      }
+    }
+    return new Date();
+  });
   const [focusedDate, setFocusedDate] = useState<Date | null>(null);
 
   // Modal state
@@ -116,6 +125,13 @@ export default function CoachDashboard() {
 
   const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const [isResizingModal, setIsResizingModal] = useState(false);
+
+  // Persist selectedDate to localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('coachCalendarDate', selectedDate.toISOString());
+    }
+  }, [selectedDate]);
 
   // Auth check
   useEffect(() => {

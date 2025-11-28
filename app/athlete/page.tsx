@@ -32,10 +32,26 @@ export default function AthletePage() {
   const [userName, setUserName] = useState('');
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [logbookDate, setLogbookDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(() => {
+    // Initialize from localStorage if available - shared between Logbook and Workouts tabs
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('athleteSelectedDate');
+      if (saved) {
+        return new Date(saved);
+      }
+    }
+    return new Date();
+  });
   const [activeProfileId, setActiveProfileId] = useState<string | null>(null);
   const [familyMembers, setFamilyMembers] = useState<Array<{id: string, display_name: string, relationship: string}>>([]);
   const [selectedProfileName, setSelectedProfileName] = useState('');
+
+  // Persist selectedDate to localStorage (shared between Logbook and Workouts)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('athleteSelectedDate', selectedDate.toISOString());
+    }
+  }, [selectedDate]);
 
   useEffect(() => {
     // Check authentication
@@ -151,13 +167,22 @@ export default function AthletePage() {
       case 'workouts':
         return <AthletePageWorkoutsTab
           userId={activeProfileId}
+          initialDate={selectedDate}
+          onDateChange={setSelectedDate}
           onNavigateToLogbook={(date) => {
-            setLogbookDate(date);
+            setSelectedDate(date);
             setActiveTab('logbook');
           }}
         />;
       case 'logbook':
-        return <AthletePageLogbookTab userId={activeProfileId} initialDate={logbookDate} initialViewMode='day' />;
+        return (
+          <AthletePageLogbookTab
+            userId={activeProfileId}
+            initialDate={selectedDate}
+            initialViewMode='day'
+            onDateChange={setSelectedDate}
+          />
+        );
       case 'benchmarks':
         return <AthletePageBenchmarksTab userId={activeProfileId} />;
       case 'forge-benchmarks':
