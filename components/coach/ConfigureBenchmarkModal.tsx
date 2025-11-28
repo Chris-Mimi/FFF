@@ -244,7 +244,7 @@ function ConfigureBenchmarkModal({
                 value={coachNotes}
                 onChange={e => setCoachNotes(e.target.value)}
                 placeholder='Notes visible to coaches only'
-                className='mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent'
+                className='mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
                 rows={3}
               />
             )}
@@ -264,7 +264,7 @@ function ConfigureBenchmarkModal({
                 value={athleteNotes}
                 onChange={e => setAthleteNotes(e.target.value)}
                 placeholder='Notes visible to athletes'
-                className='mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent'
+                className='mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
                 rows={3}
               />
             )}

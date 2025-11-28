@@ -247,7 +247,7 @@ function ConfigureLiftModal({
                       type='number'
                       value={sets}
                       onChange={e => setSets(Math.max(1, parseInt(e.target.value) || 1))}
-                      className='w-32 px-4 py-3 text-3xl text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent'
+                      className='w-32 px-4 py-3 text-3xl text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
                     />
                     <div className='flex gap-2'>
                       <button
@@ -277,7 +277,7 @@ function ConfigureLiftModal({
                       type='number'
                       value={reps}
                       onChange={e => setReps(Math.max(1, parseInt(e.target.value) || 1))}
-                      className='w-32 px-4 py-3 text-3xl text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent'
+                      className='w-32 px-4 py-3 text-3xl text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
                     />
                     <div className='flex gap-2'>
                       <button
@@ -310,7 +310,7 @@ function ConfigureLiftModal({
                     placeholder='e.g., 75'
                     min='0'
                     max='100'
-                    className='flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent'
+                    className='flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
                   />
                   <span className='text-gray-600 font-semibold'>%</span>
                 </div>
@@ -339,7 +339,7 @@ function ConfigureLiftModal({
                             type='number'
                             value={set.reps}
                             onChange={e => handleUpdateVariableSet(idx, 'reps', parseInt(e.target.value) || 1)}
-                            className='w-full px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent'
+                            className='w-full px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
                             min='1'
                           />
                         </td>
@@ -349,7 +349,7 @@ function ConfigureLiftModal({
                             value={set.percentage_1rm || ''}
                             onChange={e => handleUpdateVariableSet(idx, 'percentage_1rm', e.target.value ? parseInt(e.target.value) : undefined)}
                             placeholder='%'
-                            className='w-full px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent'
+                            className='w-full px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
                             min='0'
                             max='100'
                           />
@@ -452,7 +452,7 @@ function ConfigureLiftModal({
                 value={coachNotes}
                 onChange={e => setCoachNotes(e.target.value)}
                 placeholder='Notes visible to coaches only'
-                className='mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent'
+                className='mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
                 rows={3}
               />
             )}
@@ -472,7 +472,7 @@ function ConfigureLiftModal({
                 value={athleteNotes}
                 onChange={e => setAthleteNotes(e.target.value)}
                 placeholder='Notes visible to athletes'
-                className='mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent'
+                className='mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
                 rows={3}
               />
             )}
