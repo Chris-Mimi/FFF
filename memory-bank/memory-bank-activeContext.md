@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 6.6
-**Updated:** 2025-11-29 (Session 26 - useWorkoutModal Hook Refactoring)
+**Version:** 6.7
+**Updated:** 2025-11-29 (Session 27 - WorkoutModal Component Refactoring)
 
 ---
 
@@ -64,6 +64,21 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-11-29 Session 27 - Mimi):**
+- **WorkoutModal Component Refactoring:**
+  - ✅ **Full testing of Session 26 hook refactor:** All workflows tested (save/edit/publish/unpublish) - working perfectly
+  - ✅ **Environment setup:** Added missing SUPABASE_SERVICE_ROLE_KEY to .env.local (required for publish workflow)
+  - ✅ **WorkoutModal.tsx extraction:** 1,036 → 797 lines (23% reduction, 239 lines saved)
+  - ✅ **Created 2 form components:** SessionTimeEditor (118 lines), WorkoutFormFields (121 lines)
+  - ✅ **Fixed session selection bug:** Replaced direct Set mutation with proper setter (handleSessionSelectionToggle)
+  - ✅ **Eliminated 266 lines of duplication** between panel and modal modes
+  - ✅ **Zero breaking changes:** Panel mode tested and working
+  - **Total refactor impact (Sessions 26-27):** 593 lines removed across useWorkoutModal.ts + WorkoutModal.tsx
+  - Commits: 060ad711 (4 files, 337 insertions, 281 deletions)
+  - Branch: refactor/useWorkoutModal-extraction (pushed, ready to merge after further testing)
+  - **Next session:** Continue refactoring (WorkoutModalHeader, CoachNotesPanel remain) or merge to main
+  - See `project-history/2025-11-29-session-27-WorkoutModal-component-refactor.md`
 
 **Completed (2025-11-29 Session 26 - Mimi):**
 - **useWorkoutModal Hook Refactoring:**
