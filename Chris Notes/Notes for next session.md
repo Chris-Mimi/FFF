@@ -11,7 +11,9 @@ This document is a template with headings to show you where the issue is or wher
 *
 
  # Edit Workout Modal (coach) #
- IMPROVEMENTS/Bug Fixes:
+ IMPROVEMENTS/Bug Fixes: 2 more files to refactor:
+ *  1. Continue refactoring (WorkoutModalHeader, CoachNotesPanel)
+  2. Merge to main (defer remaining to opportunistic refactoring)
  * 
  *
 
@@ -27,10 +29,11 @@ This document is a template with headings to show you where the issue is or wher
 *
 
 # Athlete Published Workouts Page #
+* 
 *
 
 # Athlete Logbook Page #
-*
+* Only exercises show in the Athlete Logbook. Lifts, Benchmarks & Forge Benchmarks just show a title. Workout details show on the Published Workouts page on hover
 
 # Member Management Page #
 *
@@ -96,3 +99,26 @@ This document is a template with headings to show you where the issue is or wher
 
     Github Mimi Mac - FFF Project no expiration token : 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
     We had some issues with this and couldn't get it to work. The old token should stop working in January at which time we can input this one.
+
+    Testing for last session:
+    3. Critical Functionality
+
+  - Section expansion state persists correctly
+  - Active section tracking works for library inserts
+  - Drag-drop preserves section order
+  - Modal resizing maintains position
+  - Movement removal updates UI correctly
+
+  4. Code Review
+
+  - Check WorkoutModal.tsx imports useWorkoutModal correctly
+  - Verify return interface matches expectations
+  - No console errors in browser
+  - State dependencies in useEffect are correct
+
+  5. Edge Cases
+
+  - Empty workout creation works
+  - Editing workout with pending section drop
+  - Time updates for sessions
+  - Apply workout to multiple sessions
