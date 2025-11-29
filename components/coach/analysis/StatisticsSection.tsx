@@ -190,7 +190,7 @@ export default function StatisticsSection({
           </div>
 
           {/* Exercise Search */}
-          <div className='bg-gray-700 border border-gray-500 rounded-lg p-6'>
+          <div className='bg-gray-700 border border-gray-500 rounded-lg p-6' style={{ overflowAnchor: 'none' }}>
             <h3 className='text-lg font-bold text-gray-100 mb-4'>Exercise/Movement Search</h3>
 
             {/* Movement Type Filter Badges */}
@@ -474,7 +474,7 @@ export default function StatisticsSection({
 
           {/* Exercise Frequency */}
           {filteredTopExercises.length > 0 && (
-            <div>
+            <div style={{ overflowAnchor: 'none' }}>
               <h3 className='text-lg font-bold text-gray-100 mb-3'>
                 Top Exercises{selectedCategories.length > 0 && ` (${selectedCategories.join(', ')})`}
               </h3>
