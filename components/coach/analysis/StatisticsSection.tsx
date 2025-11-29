@@ -202,6 +202,7 @@ export default function StatisticsSection({
                 <button
                   onClick={(e) => {
                     e.preventDefault();
+                    e.currentTarget.blur();
                     onToggleMovementType('lift');
                   }}
                   className={`px-3 py-1.5 text-sm rounded-full font-medium transition ${
@@ -215,6 +216,7 @@ export default function StatisticsSection({
                 <button
                   onClick={(e) => {
                     e.preventDefault();
+                    e.currentTarget.blur();
                     onToggleMovementType('benchmark');
                   }}
                   className={`px-3 py-1.5 text-sm rounded-full font-medium transition ${
@@ -228,6 +230,7 @@ export default function StatisticsSection({
                 <button
                   onClick={(e) => {
                     e.preventDefault();
+                    e.currentTarget.blur();
                     onToggleMovementType('forge_benchmark');
                   }}
                   className={`px-3 py-1.5 text-sm rounded-full font-medium transition ${
@@ -241,6 +244,7 @@ export default function StatisticsSection({
                 <button
                   onClick={(e) => {
                     e.preventDefault();
+                    e.currentTarget.blur();
                     onToggleMovementType('exercise');
                   }}
                   className={`px-3 py-1.5 text-sm rounded-full font-medium transition ${
@@ -266,6 +270,7 @@ export default function StatisticsSection({
                       key={category}
                       onClick={(e) => {
                         e.preventDefault();
+                        e.currentTarget.blur();
                         onToggleCategory(category);
                       }}
                       className={`px-3 py-1.5 text-sm rounded-full font-medium transition ${
