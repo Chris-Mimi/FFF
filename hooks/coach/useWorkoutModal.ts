@@ -166,6 +166,7 @@ export interface UseWorkoutModalResult {
   handleNotesResizeStart: (e: React.MouseEvent, corner: string) => void;
   setPublishModalOpen: (open: boolean) => void;
   setApplySessionsOpen: (open: boolean) => void;
+  handleSessionSelectionToggle: (sessionId: string, checked: boolean) => void;
 }
 
 export function useWorkoutModal(
@@ -678,6 +679,18 @@ export function useWorkoutModal(
     setLibraryOpen(false);
   };
 
+  const handleSessionSelectionToggle = (sessionId: string, checked: boolean) => {
+    setSelectedSessionIds(prev => {
+      const newSelected = new Set(prev);
+      if (checked) {
+        newSelected.add(sessionId);
+      } else {
+        newSelected.delete(sessionId);
+      }
+      return newSelected;
+    });
+  };
+
   return {
     // State
     formData,
@@ -765,5 +778,6 @@ export function useWorkoutModal(
     handleNotesResizeStart: modalResizing.handleNotesResizeStart,
     setPublishModalOpen,
     setApplySessionsOpen,
+    handleSessionSelectionToggle,
   };
 }
