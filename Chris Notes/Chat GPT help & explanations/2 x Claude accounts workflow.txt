@@ -1,0 +1,78 @@
+Claude with 2 accounts:
+Claude Project Workflow Cheat Sheet
+1️⃣ Folder Setup
+
+Project folder (live sync):
+Mac: ~/Users/chrishiles/SynologyDrive/CrossFit Hammerschmiede (CFH)/AI Development/forge-functional-fitness'
+PC: C:\Users\Chris\SynologyDrive\ClaudeProjects\MyWebApp - NEED TO EDIT THIS PATH
+
+Backup folder:
+Mac: ~/ClaudeBackups
+PC: D:\ClaudeBackups
+
+All .md, .json, .claude, workflow protocols, and code files live here.
+
+2️⃣ Starting a Session
+
+Open VS Code.
+
+Ensure Synology Drive has fully synced the project folder.
+
+Log in to Claude Code with your personal Anthropic account.
+
+Optional: git pull origin main only if using GitHub for offsite versioning.
+
+3️⃣ During a Session
+
+Work as normal in VS Code with Claude Code.
+
+Save files frequently (Cmd+S / Ctrl+S) to update .md and .claude files.
+
+4️⃣ Ending a Session
+
+Save all files.
+
+Run manual backup (one click):
+
+Mac: Quick Action → “Backup forge-functional-fitness folder”
+
+PC: Shortcut → backup_forge-functional-fitness.ps1
+
+A timestamped folder is created in ClaudeBackups.
+
+Optional GitHub commit & push for code/history:
+
+git add .
+git commit -m "Session complete – Claude context & updates"
+git push origin main
+
+
+Sign out of Claude Code in VS Code if switching accounts.
+
+5️⃣ Switching Devices (Mac ↔ PC)
+
+Make sure Synology Drive has fully synced the latest changes.
+
+Open the project folder on the other device.
+
+Log in with the other Anthropic account.
+
+Continue working immediately — all files, memory bank, and workflow protocols are ready.
+
+6️⃣ Backup Notes
+
+Manual backups are timestamped; keep as many as needed.
+
+Synology NAS Snapshots (optional) provide extra safety: can restore files/folders instantly.
+
+GitHub commits provide offsite versioning (optional).
+
+7️⃣ Tips
+
+Save before leaving VS Code or switching devices — avoids losing unsaved changes.
+
+Do not run concurrent Claude sessions on both accounts in the same folder.
+
+If a file gets corrupted or deleted, restore from the latest manual backup or NAS snapshot.
+
+Keep the backup folder organized — delete old backups only when sure you don’t need them.

@@ -1,0 +1,241 @@
+# Cline (Grok) + Claude Code Workflow #
+
+  When to Use Each Tool
+  Added to workflow-protocols.md (v1.3, 24.10.25):
+
+  1. Task Evaluation Protocol - I must evaluate if Grok is suitable and provide precise prompts
+  2. Git Commit Protocol After Grok Work - Mandatory git status + git diff before commits
+
+  Cline with Grok (FREE):
+  - Single file UI changes
+  - Visual adjustments
+  - Component styling
+  - Quick fixes
+
+  Claude Code (CLI):
+  - Git operations (commits, pushes)
+  - Memory Bank updates
+  - Multi-file features
+  - Reviewing Grok's changes
+
+  ---
+ # Critical Workflow After Grok Makes Changes #
+
+  ALWAYS follow this sequence:
+
+  1. User says: "Grok made changes, check and commit" (or similar)
+  2. Claude Code MUST run:
+  git status
+  3. Claude Code MUST run:
+  git diff
+  3. (or git diff <file> for each modified file)
+  4. Claude Code shows user: What files changed and brief summary
+  5. User confirms: Looks good
+  6. Claude Code commits: All related files together with proper message
+  7. Claude Code pushes: If requested
+
+  NEVER:
+  - ❌ Commit without running git status first
+  - ❌ Commit only some modified files (check ALL)
+  - ❌ Assume you know what changed without verifying
+
+  # Complete Session Close Workflow #
+
+  The 3-Step Process
+
+  Step 1: Commit Code Changes
+
+  Save your actual work (the code you wrote/modified) to Git.
+
+  git add [files you changed]
+  git commit -m "description of what you did"
+
+  Why first? Code is the substance. If your session crashes, at least your work is saved.
+
+  ---
+  Step 2: Update Memory Bank
+
+  Tell Claude: "I have concluded this coding session. Please review our entire chat history since the last memory bank update
+  and perform the memory bank update. This is a multi-step task, so use the Agent."
+
+  Claude will update:
+  - memory-bank-activeContext.md (concise summary)
+  - session_history.md (detailed technical notes)
+
+  Why? Documents what you did so the next Claude session knows where you left off.
+
+  ---
+  Step 3: Commit Memory Bank + Push Everything
+
+  Save the documentation and backup everything to GitHub.
+
+  git add memory-bank/
+  git commit -m "docs: update Memory Bank to v2.XX"
+  git push
+
+  Why? Backs up all your work (code + documentation) to the cloud.
+
+  ---
+  Quick Check
+
+  After Step 3, run git status - you should see:
+  On branch main
+  Your branch is up to date with 'origin/main'.
+  nothing to commit, working tree clean
+
+  This means everything is saved and pushed. ✅
+
+  ---
+  Key Terms
+
+  - Commit = Save changes to Git on your computer (local)
+  - Push = Upload commits from your computer to GitHub (cloud backup)
+  - Memory Bank = Documentation files that help Claude remember your project
+
+  ---
+  Why This Order?
+
+  1. Code first - Most important, save it ASAP
+  2. Memory Bank second - Documents the code changes
+  3. Push last - Backs up everything to GitHub
+
+  If anything crashes mid-process, you've already saved the critical parts.
+
+
+> # I thought "Git" was short for "GitHub", not so? #
+
+⏺ No - they're different things:
+
+  Git
+
+  - Software installed on your computer
+  - Tracks changes to your files (version control)
+  - Works locally (offline, on your machine)
+  - Created in 2005 by Linus Torvalds
+
+  GitHub
+
+  - Website/cloud service (github.com)
+  - Stores Git repositories online
+  - Allows backup and sharing
+  - Owned by Microsoft
+
+  ---
+  The Relationship
+
+  Git = The tool that saves your work locallyGitHub = The online place where you back it up
+
+  Analogy:
+  - Git = Taking photos with your camera
+  - GitHub = Uploading photos to iCloud/Google Photos
+
+  ---
+  Why Both?
+
+  1. Git (local) = Fast, works offline, you control it
+  2. GitHub (cloud) = Backup, accessible anywhere, shareable
+
+  You can use Git without GitHub (just local saving), but GitHub needs Git to work.
+
+  ---
+  In Your Workflow
+
+  - git commit = Save with Git (local)
+  - git push = Upload to GitHub (cloud)
+
+
+ TERMINOLOGY
+# The Weekly/Monthly view. The white area where these 2 buttons live is called "Period Navigation section"
+
+# Ask CC or Gemini
+* Do I have to curate the exercise list in Supabase, if so, how do I get my Excel data into an organised CSV that Supabase can understand - answered - YES
+
+**NOTES for CC:**
+**automatically clean .next and restart the server after any
+  agent makes significant code changes to prevent the recurring issue of Internal Server Error.**
+
+**Naming conventions:**
+"Workout Search Panel",
+"Coach Notes panel",
+"Workout Editor", panel opens when Add Workout is clicked in the daily panel
+"Schedule a Workout" panel opens when Add Workout is clicked in the header
+"Create New Workout" button,
+"Drag & Drop", "Drag Handles"
+"Workout Modal"
+A Modal (short for Modal Window or Modal Dialog) is a design element that appears as a temporary, overlaying box on top of a web page or application interface. It's used to capture the user's focus and requires them to interact with it before they can return to the main application view. Think of a modal as a mini-app window that temporarily pauses the main application flow.
+
+# IMPORTANT SHORTCUTS & INFO #
+1. Hard refresh the page: Cmd+Shift+R (Mac) or Ctrl+Shift+R (Windows)
+  2. If that doesn't work, restart the dev server:
+    - Stop it (PC: Ctrl+C, Mac: Cmd+C in a new terminal window/chat)
+    - Type "npm run dev"
+    - Go back to http://localhost:3000 (or another port depending on the npm run dev response)
+
+    # Link to Claude's complete chat save #
+    ~/.claude/history.jsonl
+
+# Copy/Paste into terminal for server reset:
+    # CURRENT COMMAND (what we just used):
+  lsof -ti:3000 | xargs kill -9 2>/dev/null; lsof -ti:3001 | xargs kill -9 2>/dev/null; lsof -ti:3002 | xargs kill -9
+  2>/dev/null; npm run dev
+
+  # ALTERNATIVE 1 (simpler, Mac/Linux):
+  pkill -9 node && npm run dev
+
+  # ALTERNATIVE 2 (kill specific port):
+  kill -9 $(lsof -ti:3000) && npm run dev
+
+    # Push first, then update Memory Bank.
+
+  Reasoning:
+  1. Git commits capture actual work completed
+  2. Memory Bank references committed work (e.g., "Fixed in commit abc123")
+  3. If session crashes during Memory Bank update, code is already safe in Git
+  4. Memory Bank update is the "bookkeeping" step - code changes are the substance
+
+  Workflow:
+  1. Push commits to GitHub
+  2. Update Memory Bank with session summary
+  3. Commit Memory Bank updates
+
+  # Quick Reference: Using Grok as Backup for Claude Code #
+
+  When to Use Grok
+
+  - Claude Code is throttled (rate limited)
+  - Simple tasks only: bug fixes, UI tweaks, small features
+  - NOT for: complex refactoring, architecture, Memory Bank updates
+
+  How to Switch to Grok in Cline
+
+  1. Open Cline panel in VS Code
+  2. Click "Model" dropdown (top of panel)
+  3. Select: x-ai/grok-code-fast-1 (FREE)
+
+  Working with Grok
+
+  1. Describe task in Cline chat
+  2. Let Grok make changes
+  3. Ask Grok: "Run tsc and eslint to check for errors"
+  4. If clean: Commit with git add . && git commit -m "description"
+  5. If errors: Ask Grok to fix them
+
+  Testing Commands (Grok can run these)
+
+  - TypeScript: npx tsc --noEmit
+  - ESLint: npx eslint .
+  - Or just ask: "Check for TypeScript and ESLint errors"
+
+  Return to Claude Code
+
+  - When throttling ends, start fresh session
+  - Tell Claude: "Update Memory Bank"
+  - Claude reads git history and updates Memory Bank with ALL changes
+
+  Remember
+
+  - ✅ Grok is FREE but less reliable
+  - ✅ Always test Grok's work
+  - ✅ Use for simple tasks only
+  - ✅ Git commits preserve everything
+  - ❌ Don't use Grok for complex features

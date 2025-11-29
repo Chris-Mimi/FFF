@@ -1,0 +1,33 @@
+# Athlete Page Refactor: Rename & Commit Table
+
+| Original File Name        | New File Name                  | Folder Path                 | Git Commit Message |
+|---------------------------|--------------------------------|-----------------------------|------------------|
+| AthleteWorkoutsTab.tsx    | AthletePageWorkoutsTab.tsx     | components/athlete/         | Rename Athlete page component: AthletePageWorkoutsTab |
+| ProfileTab.tsx            | AthletePageProfileTab.tsx      | components/athlete/         | Rename Athlete page component: AthletePageProfileTab |
+| LogbookTab.tsx            | AthletePageLogbookTab.tsx      | components/athlete/         | Rename Athlete page component: AthletePageLogbookTab |
+| BenchmarksTab.tsx         | AthletePageBenchmarksTab.tsx   | components/athlete/         | Rename Athlete page component: AthletePageBenchmarksTab |
+| ForgeBenchmarksTab.tsx    | AthletePageForgeBenchmarksTab.tsx | components/athlete/      | Rename Athlete page component: AthletePageForgeBenchmarksTab |
+| LiftsTab.tsx              | AthletePageLiftsTab.tsx        | components/athlete/         | Rename Athlete page component: AthletePageLiftsTab |
+| RecordsTab.tsx            | AthletePageRecordsTab.tsx      | components/athlete/         | Rename Athlete page component: AthletePageRecordsTab |
+| SecurityTab.tsx           | AthletePageSecurityTab.tsx     | components/athlete/         | Rename Athlete page component: AthletePageSecurityTab |
+
+---
+
+## Step-by-Step Instructions
+
+1. **Open VS Code** and locate the file in `components/athlete/`.
+
+2. **Rename the file** (Right-click → Rename or `F2` / `Enter` on Mac).
+   - Enter the **New File Name** from the table above.
+
+3. **Update imports**
+   - When VS Code prompts: `Update imports for 'OldName.tsx'?` → Click **Yes**.
+   - VS Code will automatically update all references in your project.
+
+4. **Save the file** (`Cmd+S`).
+
+5. **Stage and commit** the rename:
+```bash
+git add components/athlete/<NewFileName>.tsx
+git commit -m "<Git Commit Message>"
+git push origin augment-refactor
