@@ -3,6 +3,9 @@
 import { supabase } from '@/lib/supabase';
 import { useEffect, useState } from 'react';
 import type { BarbellLift, Benchmark, ForgeBenchmark, ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
+import { useSectionManagement } from './useSectionManagement';
+import { useMovementConfiguration } from './useMovementConfiguration';
+import { useModalResizing } from './useModalResizing';
 
 // Format date to YYYY-MM-DD using local timezone
 const formatDateLocal = (date: Date): string => {
@@ -185,11 +188,7 @@ export function useWorkoutModal(
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [libraryOpen, setLibraryOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState<number | null>(null);
   const [libraryKey, setLibraryKey] = useState(0);
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
-  const [lastExpandedSectionId, setLastExpandedSectionId] = useState<string | null>(null);
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [tracks, setTracks] = useState<Track[]>([]);
   const [workoutTypes, setWorkoutTypes] = useState<WorkoutType[]>([]);
   const [sectionTypes, setSectionTypes] = useState<SectionType[]>([]);
@@ -197,12 +196,6 @@ export function useWorkoutModal(
   const [loadingTracks, setLoadingTracks] = useState(false);
   const [notesPanelOpen, setNotesPanelOpen] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
-  const [notesModalSize, setNotesModalSize] = useState({ width: 600, height: 500 });
-  const [notesModalPos, setNotesModalPos] = useState({ bottom: 20, left: 820 });
-  const [isResizingNotes, setIsResizingNotes] = useState(false);
-  const [isDraggingNotes, setIsDraggingNotes] = useState(false);
-  const [resizeStartNotes, setResizeStartNotes] = useState({ x: 0, y: 0, width: 0, height: 0 });
-  const [dragStartNotes, setDragStartNotes] = useState({ x: 0, y: 0, bottom: 0, left: 0 });
   const [publishModalOpen, setPublishModalOpen] = useState(false);
   const [sessionTime, setSessionTime] = useState<string | null>(null);
   const [editingTime, setEditingTime] = useState(false);
@@ -216,13 +209,19 @@ export function useWorkoutModal(
   // State for new session time when creating from scratch
   const [newSessionTime, setNewSessionTime] = useState('09:00');
 
-  // Movement Library state
-  const [liftModalOpen, setLiftModalOpen] = useState(false);
-  const [benchmarkModalOpen, setBenchmarkModalOpen] = useState(false);
-  const [forgeModalOpen, setForgeModalOpen] = useState(false);
-  const [selectedLift, setSelectedLift] = useState<BarbellLift | null>(null);
-  const [selectedBenchmark, setSelectedBenchmark] = useState<Benchmark | null>(null);
-  const [selectedForgeBenchmark, setSelectedForgeBenchmark] = useState<ForgeBenchmark | null>(null);
+  // Initialize extracted hooks
+  const sectionManagement = useSectionManagement({
+    sections: formData.sections,
+    sectionTypes,
+    onSectionsChange: (sections) => setFormData(prev => ({ ...prev, sections })),
+  });
+
+  const movementConfiguration = useMovementConfiguration({
+    sections: formData.sections,
+    onSectionsChange: (sections) => setFormData(prev => ({ ...prev, sections })),
+  });
+
+  const modalResizing = useModalResizing();
 
   // Helper function to ensure time is zero-padded for select dropdown
   const padTime = (time: string): string => {
@@ -300,14 +299,14 @@ export function useWorkoutModal(
             duration: parseInt(pendingSection.duration) || 5,
             content: pendingSection.content,
           };
-          const updatedSections = insertSectionAtCorrectPosition(editingWOD.sections, newSection);
+          const updatedSections = sectionManagement.insertSectionAtCorrectPosition(editingWOD.sections, newSection);
           const allSectionIds = [...editingWOD.sections.map(s => s.id), newSection.id];
 
           setFormData({
             ...editingWOD,
             sections: updatedSections,
           });
-          setExpandedSections(new Set(allSectionIds));
+          sectionManagement.setExpandedSections(new Set(allSectionIds));
         } else if (formData.sections.length === 0 || formData.id !== editingWOD.id) {
           // Only reset formData if:
           // 1. formData is empty (initial state), OR
@@ -315,7 +314,7 @@ export function useWorkoutModal(
           // This prevents StrictMode's second run from overwriting section additions
           setFormData(editingWOD);
           const allSectionIds = editingWOD.sections.map(s => s.id);
-          setExpandedSections(new Set(allSectionIds));
+          sectionManagement.setExpandedSections(new Set(allSectionIds));
         }
 
         // Fetch session time if this WOD is linked to a session
@@ -370,11 +369,11 @@ export function useWorkoutModal(
           sections: templateSections,
         });
         // Expand the first section (Warm-up) and track it
-        setExpandedSections(new Set([templateSections[0].id]));
-        setLastExpandedSectionId(templateSections[0].id);
+        sectionManagement.setExpandedSections(new Set([templateSections[0].id]));
+        sectionManagement.setLastExpandedSectionId(templateSections[0].id);
       }
       setErrors({});
-      setActiveSection(null);
+      sectionManagement.setActiveSection(null);
       setEditingTime(false);
       if (!editingWOD) {
         setSessionTime(null);
@@ -393,30 +392,6 @@ export function useWorkoutModal(
     e.preventDefault();
     e.stopPropagation();
     setIsDragOver(false);
-  };
-
-  const insertSectionAtCorrectPosition = (sections: WODSection[], newSection: WODSection): WODSection[] => {
-    // Get display_order for the new section
-    const newSectionType = sectionTypes.find(t => t.name === newSection.type);
-    if (!newSectionType) {
-      // Fallback: append to end
-      return [...sections, newSection];
-    }
-
-    // Find insertion index
-    let insertIndex = sections.length; // Default to end
-    for (let i = 0; i < sections.length; i++) {
-      const existingSectionType = sectionTypes.find(t => t.name === sections[i].type);
-      if (existingSectionType && existingSectionType.display_order > newSectionType.display_order) {
-        insertIndex = i;
-        break;
-      }
-    }
-
-    // Insert at calculated position
-    const newSections = [...sections];
-    newSections.splice(insertIndex, 0, newSection);
-    return newSections;
   };
 
   const handlePanelDrop = (e: React.DragEvent) => {
@@ -451,139 +426,16 @@ export function useWorkoutModal(
           content: draggedSectionData.content,
         };
         // Insert section at correct position based on section type display_order
-        const updatedSections = insertSectionAtCorrectPosition(formData.sections, newSection);
+        const updatedSections = sectionManagement.insertSectionAtCorrectPosition(formData.sections, newSection);
         setFormData({
           ...formData,
           sections: updatedSections,
         });
         // Expand the new section
-        setExpandedSections(new Set([...expandedSections, newSection.id]));
+        sectionManagement.setExpandedSections(new Set([...sectionManagement.expandedSections, newSection.id]));
       }
     }
   };
-
-  // Handle Notes modal drag (move)
-  const handleNotesDragStart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsDraggingNotes(true);
-    setDragStartNotes({
-      x: e.clientX,
-      y: e.clientY,
-      bottom: notesModalPos.bottom,
-      left: notesModalPos.left,
-    });
-  };
-
-  // Handle Notes modal resize
-  const [resizeCorner, setResizeCorner] = useState<string>('');
-  const handleNotesResizeStart = (e: React.MouseEvent, corner: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsResizingNotes(true);
-    setResizeCorner(corner);
-    setResizeStartNotes({
-      x: e.clientX,
-      y: e.clientY,
-      width: notesModalSize.width,
-      height: notesModalSize.height,
-    });
-  };
-
-  useEffect(() => {
-    if (isDraggingNotes) {
-      const handleMouseMove = (e: MouseEvent) => {
-        const deltaX = e.clientX - dragStartNotes.x;
-        const deltaY = e.clientY - dragStartNotes.y;
-
-        setNotesModalPos({
-          bottom: Math.max(0, dragStartNotes.bottom - deltaY),
-          left: Math.max(0, dragStartNotes.left + deltaX),
-        });
-      };
-
-      const handleMouseUp = () => {
-        setIsDraggingNotes(false);
-      };
-
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-      };
-    }
-
-    if (isResizingNotes) {
-      const handleMouseMove = (e: MouseEvent) => {
-        const deltaX = e.clientX - resizeStartNotes.x;
-        const deltaY = e.clientY - resizeStartNotes.y;
-
-        let newWidth = resizeStartNotes.width;
-        let newHeight = resizeStartNotes.height;
-        let newBottom = notesModalPos.bottom;
-        let newLeft = notesModalPos.left;
-
-        // Handle resize based on corner - ALL expand in drag direction
-        switch (resizeCorner) {
-          case 'se': // Bottom-right: drag down/right = grow
-            newWidth = resizeStartNotes.width + deltaX;
-            newHeight = resizeStartNotes.height + deltaY; // Drag down = taller
-            newBottom = notesModalPos.bottom - deltaY; // Move bottom down
-            break;
-          case 'sw': // Bottom-left: drag down/left = grow
-            newWidth = resizeStartNotes.width - deltaX;
-            newHeight = resizeStartNotes.height + deltaY; // Drag down = taller
-            newLeft = notesModalPos.left + deltaX;
-            newBottom = notesModalPos.bottom - deltaY; // Move bottom down
-            break;
-          case 'ne': // Top-right: drag up/right = grow
-            newWidth = resizeStartNotes.width + deltaX;
-            newHeight = resizeStartNotes.height - deltaY; // Drag up (-Y) = taller
-            newBottom = notesModalPos.bottom - deltaY; // Accommodate growth
-            break;
-          case 'nw': // Top-left: drag up/left = grow
-            newWidth = resizeStartNotes.width - deltaX;
-            newHeight = resizeStartNotes.height - deltaY; // Drag up (-Y) = taller
-            newLeft = notesModalPos.left + deltaX;
-            newBottom = notesModalPos.bottom - deltaY; // Accommodate growth
-            break;
-        }
-
-        // Apply constraints
-        newWidth = Math.max(400, Math.min(1000, newWidth));
-        newHeight = Math.max(300, Math.min(window.innerHeight * 0.9, newHeight));
-        newBottom = Math.max(0, newBottom);
-        newLeft = Math.max(0, newLeft);
-
-        setNotesModalSize({ width: newWidth, height: newHeight });
-
-        // Update position (all corners affect position now)
-        const updates: { left?: number; bottom?: number } = {};
-
-        if (resizeCorner === 'sw' || resizeCorner === 'nw') {
-          updates.left = newLeft;
-        }
-        // All corners affect bottom position
-        updates.bottom = newBottom;
-
-        setNotesModalPos(prev => ({ ...prev, ...updates }));
-      };
-
-      const handleMouseUp = () => {
-        setIsResizingNotes(false);
-        setResizeCorner('');
-      };
-
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-      };
-    }
-  }, [isDraggingNotes, isResizingNotes, dragStartNotes, resizeStartNotes]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleChange = (field: keyof WODFormData, value: any) => {
@@ -646,122 +498,6 @@ export function useWorkoutModal(
     }
   };
 
-  const toggleSectionExpanded = (sectionId: string, sectionIndex?: number) => {
-    setExpandedSections(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(sectionId)) {
-        newSet.delete(sectionId);
-        // Don't clear lastExpandedSectionId when collapsing - keep it as reference for adding new sections
-        // If collapsing and this was the active section, clear activeSection
-        if (sectionIndex !== undefined && activeSection === sectionIndex) {
-          setActiveSection(null);
-        }
-      } else {
-        newSet.add(sectionId);
-        // Track this as the last expanded section
-        setLastExpandedSectionId(sectionId);
-        // Set this as the active section for library insertions
-        if (sectionIndex !== undefined) {
-          setActiveSection(sectionIndex);
-        }
-      }
-      return newSet;
-    });
-  };
-
-  const addSection = () => {
-    // Determine the section type for the new section
-    let newSectionType = 'Warm-up'; // Default fallback
-
-    if (lastExpandedSectionId && sectionTypes.length > 0) {
-      const expandedSection = formData.sections.find(s => s.id === lastExpandedSectionId);
-      if (expandedSection) {
-        // Find the current section type in the ordered list
-        const currentTypeIndex = sectionTypes.findIndex(t => t.name === expandedSection.type);
-        if (currentTypeIndex !== -1 && currentTypeIndex < sectionTypes.length - 1) {
-          // Use the next section type in display_order
-          newSectionType = sectionTypes[currentTypeIndex + 1].name;
-        } else if (currentTypeIndex === sectionTypes.length - 1) {
-          // If we're at the last type, cycle back to first
-          newSectionType = sectionTypes[0].name;
-        }
-      }
-    }
-
-    const newSection: WODSection = {
-      id: `section-${Date.now()}`,
-      type: newSectionType,
-      duration: 5,
-      content: '',
-    };
-
-    setFormData(prev => {
-      // Find the index of the last expanded section
-      const expandedIndex = lastExpandedSectionId
-        ? prev.sections.findIndex(s => s.id === lastExpandedSectionId)
-        : -1;
-
-      // If there's an expanded section, insert after it; otherwise add at the end
-      if (expandedIndex !== -1) {
-        const newSections = [...prev.sections];
-        newSections.splice(expandedIndex + 1, 0, newSection);
-        return { ...prev, sections: newSections };
-      } else {
-        return { ...prev, sections: [...prev.sections, newSection] };
-      }
-    });
-
-    // Collapse all existing sections and expand only the new one
-    setExpandedSections(new Set([newSection.id]));
-    setLastExpandedSectionId(newSection.id);
-  };
-
-  const updateSection = (sectionId: string, updates: Partial<WODSection>) => {
-    setFormData(prev => ({
-      ...prev,
-      sections: prev.sections.map(section =>
-        section.id === sectionId ? { ...section, ...updates } : section
-      ),
-    }));
-  };
-
-  const deleteSection = (sectionId: string) => {
-    setFormData(prev => ({
-      ...prev,
-      sections: prev.sections.filter(section => section.id !== sectionId),
-    }));
-  };
-
-  const handleDragStart = (e: React.DragEvent, index: number) => {
-    setDraggedIndex(index);
-    e.dataTransfer.effectAllowed = 'move';
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-  };
-
-  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
-    e.preventDefault();
-
-    if (draggedIndex === null || draggedIndex === dropIndex) {
-      setDraggedIndex(null);
-      return;
-    }
-
-    const newSections = [...formData.sections];
-    const [draggedSection] = newSections.splice(draggedIndex, 1);
-    newSections.splice(dropIndex, 0, draggedSection);
-
-    setFormData(prev => ({
-      ...prev,
-      sections: newSections,
-    }));
-
-    setDraggedIndex(null);
-  };
-
   const openLibrary = () => {
     // Only open library if there's at least one section
     if (formData.sections.length === 0) {
@@ -770,10 +506,10 @@ export function useWorkoutModal(
     }
 
     // If no section is currently active/expanded, use the first section
-    if (activeSection === null) {
+    if (sectionManagement.activeSection === null) {
       const firstSection = formData.sections[0];
-      setExpandedSections(prev => new Set(prev).add(firstSection.id));
-      setActiveSection(0);
+      sectionManagement.setExpandedSections(prev => new Set(prev).add(firstSection.id));
+      sectionManagement.setActiveSection(0);
     }
 
     setLibraryOpen(true);
@@ -787,9 +523,9 @@ export function useWorkoutModal(
   };
 
   const handleSelectExercise = (exercise: string) => {
-    if (activeSection === null) return;
+    if (sectionManagement.activeSection === null) return;
 
-    const section = formData.sections[activeSection];
+    const section = formData.sections[sectionManagement.activeSection];
     if (!section) return;
 
     // Find the textarea element for the active section to get cursor position
@@ -809,7 +545,7 @@ export function useWorkoutModal(
     // Insert exercise at cleaned cursor position
     const newContent = `${trimmedBefore}${needsNewline ? '\n' : ''}* ${exercise}${afterCursor ? '\n' + afterCursor : ''}`;
 
-    updateSection(section.id, { content: newContent });
+    sectionManagement.updateSection(section.id, { content: newContent });
   };
 
   const getTotalDuration = () => {
@@ -926,110 +662,20 @@ export function useWorkoutModal(
     }
   };
 
-  // Movement Library handlers
+  // Wrapper functions to close library when opening movement modals
   const handleSelectLift = (lift: BarbellLift) => {
-    setSelectedLift(lift);
-    setLiftModalOpen(true);
-    setLibraryOpen(false); // Close library when opening configure modal
+    movementConfiguration.handleSelectLift(lift);
+    setLibraryOpen(false);
   };
 
   const handleSelectBenchmark = (benchmark: Benchmark) => {
-    setSelectedBenchmark(benchmark);
-    setBenchmarkModalOpen(true);
-    setLibraryOpen(false); // Close library when opening configure modal
+    movementConfiguration.handleSelectBenchmark(benchmark);
+    setLibraryOpen(false);
   };
 
   const handleSelectForgeBenchmark = (forge: ForgeBenchmark) => {
-    setSelectedForgeBenchmark(forge);
-    setForgeModalOpen(true);
-    setLibraryOpen(false); // Close library when opening configure modal
-  };
-
-  const handleAddLiftToSection = (sectionId: string, configuredLift: ConfiguredLift) => {
-    setFormData(prev => ({
-      ...prev,
-      sections: prev.sections.map(section =>
-        section.id === sectionId
-          ? {
-              ...section,
-              lifts: [...(section.lifts || []), configuredLift],
-            }
-          : section
-      ),
-    }));
-    // Don't close modal - let user add multiple items
-  };
-
-  const handleAddBenchmarkToSection = (sectionId: string, configuredBenchmark: ConfiguredBenchmark) => {
-    setFormData(prev => ({
-      ...prev,
-      sections: prev.sections.map(section =>
-        section.id === sectionId
-          ? {
-              ...section,
-              benchmarks: [...(section.benchmarks || []), configuredBenchmark],
-            }
-          : section
-      ),
-    }));
-    // Don't close modal - let user add multiple items
-  };
-
-  const handleAddForgeBenchmarkToSection = (sectionId: string, configuredForgeBenchmark: ConfiguredForgeBenchmark) => {
-    setFormData(prev => ({
-      ...prev,
-      sections: prev.sections.map(section =>
-        section.id === sectionId
-          ? {
-              ...section,
-              forge_benchmarks: [...(section.forge_benchmarks || []), configuredForgeBenchmark],
-            }
-          : section
-      ),
-    }));
-    // Don't close modal - let user add multiple items
-  };
-
-  const handleRemoveLift = (sectionId: string, liftIndex: number) => {
-    setFormData(prev => ({
-      ...prev,
-      sections: prev.sections.map(section =>
-        section.id === sectionId
-          ? {
-              ...section,
-              lifts: section.lifts?.filter((_, idx) => idx !== liftIndex),
-            }
-          : section
-      ),
-    }));
-  };
-
-  const handleRemoveBenchmark = (sectionId: string, benchmarkIndex: number) => {
-    setFormData(prev => ({
-      ...prev,
-      sections: prev.sections.map(section =>
-        section.id === sectionId
-          ? {
-              ...section,
-              benchmarks: section.benchmarks?.filter((_, idx) => idx !== benchmarkIndex),
-            }
-          : section
-      ),
-    }));
-  };
-
-  const handleRemoveForgeBenchmark = (sectionId: string, forgeIndex: number) => {
-    setFormData(prev => ({
-      ...prev,
-      sections: prev.sections.map(section =>
-        section.id === sectionId
-          ? {
-              ...section,
-              forge_benchmarks: section.forge_benchmarks?.filter((_, idx) => idx !== forgeIndex),
-            }
-          : section
-      ),
-    }));
+    movementConfiguration.handleSelectForgeBenchmark(forge);
+    setLibraryOpen(false);
   };
 
   return {
@@ -1037,12 +683,12 @@ export function useWorkoutModal(
     formData,
     errors,
     libraryOpen,
-    activeSection,
-    setActiveSection,
+    activeSection: sectionManagement.activeSection,
+    setActiveSection: sectionManagement.setActiveSection,
     libraryKey,
-    expandedSections,
-    lastExpandedSectionId,
-    draggedIndex,
+    expandedSections: sectionManagement.expandedSections,
+    lastExpandedSectionId: sectionManagement.lastExpandedSectionId,
+    draggedIndex: sectionManagement.draggedIndex,
     tracks,
     workoutTypes,
     sectionTypes,
@@ -1050,12 +696,12 @@ export function useWorkoutModal(
     loadingTracks,
     notesPanelOpen,
     isDragOver,
-    notesModalSize,
-    notesModalPos,
-    isResizingNotes,
-    isDraggingNotes,
-    resizeStartNotes,
-    dragStartNotes,
+    notesModalSize: modalResizing.notesModalSize,
+    notesModalPos: modalResizing.notesModalPos,
+    isResizingNotes: modalResizing.isResizingNotes,
+    isDraggingNotes: modalResizing.isDraggingNotes,
+    resizeStartNotes: modalResizing.resizeStartNotes,
+    dragStartNotes: modalResizing.dragStartNotes,
     publishModalOpen,
     sessionTime,
     editingTime,
@@ -1066,12 +712,12 @@ export function useWorkoutModal(
     newSessionTime,
 
     // Movement Library state
-    liftModalOpen,
-    benchmarkModalOpen,
-    forgeModalOpen,
-    selectedLift,
-    selectedBenchmark,
-    selectedForgeBenchmark,
+    liftModalOpen: movementConfiguration.liftModalOpen,
+    benchmarkModalOpen: movementConfiguration.benchmarkModalOpen,
+    forgeModalOpen: movementConfiguration.forgeModalOpen,
+    selectedLift: movementConfiguration.selectedLift,
+    selectedBenchmark: movementConfiguration.selectedBenchmark,
+    selectedForgeBenchmark: movementConfiguration.selectedForgeBenchmark,
 
     // Setters for time editing
     setEditingTime,
@@ -1082,28 +728,28 @@ export function useWorkoutModal(
     handleChange,
     toggleClassTime,
     handleTimeUpdate,
-    toggleSectionExpanded,
-    addSection,
-    updateSection,
-    deleteSection,
-    handleDragStart,
-    handleDragOver,
-    handleDrop,
+    toggleSectionExpanded: sectionManagement.toggleSectionExpanded,
+    addSection: sectionManagement.addSection,
+    updateSection: sectionManagement.updateSection,
+    deleteSection: sectionManagement.deleteSection,
+    handleDragStart: sectionManagement.handleDragStart,
+    handleDragOver: sectionManagement.handleDragOver,
+    handleDrop: sectionManagement.handleDrop,
     openLibrary,
     closeLibrary,
     handleSelectExercise,
     handleSelectLift,
     handleSelectBenchmark,
     handleSelectForgeBenchmark,
-    handleAddLiftToSection,
-    handleAddBenchmarkToSection,
-    handleAddForgeBenchmarkToSection,
-    handleRemoveLift,
-    handleRemoveBenchmark,
-    handleRemoveForgeBenchmark,
-    setLiftModalOpen,
-    setBenchmarkModalOpen,
-    setForgeModalOpen,
+    handleAddLiftToSection: movementConfiguration.handleAddLiftToSection,
+    handleAddBenchmarkToSection: movementConfiguration.handleAddBenchmarkToSection,
+    handleAddForgeBenchmarkToSection: movementConfiguration.handleAddForgeBenchmarkToSection,
+    handleRemoveLift: movementConfiguration.handleRemoveLift,
+    handleRemoveBenchmark: movementConfiguration.handleRemoveBenchmark,
+    handleRemoveForgeBenchmark: movementConfiguration.handleRemoveForgeBenchmark,
+    setLiftModalOpen: movementConfiguration.setLiftModalOpen,
+    setBenchmarkModalOpen: movementConfiguration.setBenchmarkModalOpen,
+    setForgeModalOpen: movementConfiguration.setForgeModalOpen,
     getTotalDuration,
     getElapsedMinutes,
     validate,
@@ -1112,11 +758,11 @@ export function useWorkoutModal(
     handleUnpublish,
     handlePanelDragOver,
     handlePanelDragLeave,
-    insertSectionAtCorrectPosition,
+    insertSectionAtCorrectPosition: sectionManagement.insertSectionAtCorrectPosition,
     handlePanelDrop,
     setNotesPanelOpen,
-    handleNotesDragStart,
-    handleNotesResizeStart,
+    handleNotesDragStart: modalResizing.handleNotesDragStart,
+    handleNotesResizeStart: modalResizing.handleNotesResizeStart,
     setPublishModalOpen,
     setApplySessionsOpen,
   };
