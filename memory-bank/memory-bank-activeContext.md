@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 6.5
-**Updated:** 2025-11-29 (Session 25 - January Launch Planning & Dual-User Workflow Setup)
+**Version:** 6.6
+**Updated:** 2025-11-29 (Session 26 - useWorkoutModal Hook Refactoring)
 
 ---
 
@@ -64,6 +64,18 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-11-29 Session 26 - Mimi):**
+- **useWorkoutModal Hook Refactoring:**
+  - ✅ **Large file analysis:** Analyzed entire codebase, identified 39 files over 300 lines (6 critical files 800+ lines)
+  - ✅ **useWorkoutModal extraction:** 1,123 lines → 769 lines (31% reduction)
+  - ✅ **Created 3 focused hooks:** useSectionManagement (201), useMovementConfiguration (176), useModalResizing (160)
+  - ✅ **Fixed resize jitter bug:** Notes panel resize now stable (captured initial position in start state, removed dependency causing re-renders)
+  - ✅ **Zero breaking changes:** WorkoutModal.tsx required no modifications, interface maintained
+  - ⏸️ **Testing:** 10/13 checklist items passed (save/edit/publish workflows deferred to next session)
+  - Commit: 365b8e0c (4 files, 612 insertions, 427 deletions)
+  - Branch: refactor/useWorkoutModal-extraction (ready to merge after full testing)
+  - See `project-history/2025-11-29-session-26-useWorkoutModal-refactor.md`
 
 **Completed (2025-11-29 Session 25 - Mimi):**
 - **January Launch Planning & Dual-User Workflow Setup:**
@@ -441,6 +453,10 @@ Athlete Tables (linked to members.id)
 - macOS iCloud Keychain autofill popups (OS behavior, not app bug)
 
 **Lessons Learned:**
+- **2025-11-29 (Session 26):** useEffect dependency arrays with self-updating state cause instability - When state in dependency array is updated by the effect itself, fast operations can cause jitter/jumps. Solution: Capture initial values in separate state, remove changing values from dependencies.
+- **2025-11-29 (Session 26):** Hook extraction improves testability without breaking consumers - Extracted 3 sub-hooks from 1,123-line hook, maintained interface compatibility (zero changes to WorkoutModal.tsx). Return sub-hook state via main hook interface for transparent delegation.
+- **2025-11-29 (Session 26):** User testing catches subtle UX bugs - Resize jitter only appeared with fast mouse movement, not slow testing. User immediately recognized regression from previous fix. Always test critical UX flows at realistic speeds.
+- **2025-11-29 (Session 26):** Hybrid refactoring strategy balances impact and effort - Analyze all large files (39 identified), refactor most critical immediately (useWorkoutModal), defer others to opportunistic refactoring when modifying. Prevents over-engineering.
 - **2025-11-29 (Session 25):** 3-way sync causes folder conflicts - Syncing project folder via Synology Drive on 2 Mac users + NAS created nested duplicates. GitHub is sufficient for dual-user collaboration; eliminate cloud sync for code projects.
 - **2025-11-29 (Session 25):** Dual-user paths need documentation flexibility - Workflow protocols with hardcoded paths fail when second user joins. Document as examples, use actual current working directory in practice.
 - **2025-11-28 (Session 24):** Task dependency analysis prevents wasted work - User correctly identified modal display needed fixing before implementing tracking for proper testing. Always consider task dependencies.
