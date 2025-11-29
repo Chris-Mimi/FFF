@@ -87,7 +87,7 @@ export default function StatisticsSection({
   filteredTopExercises,
 }: StatisticsSectionProps) {
   return (
-    <div className='bg-gray-600 rounded-xl shadow-xl p-8'>
+    <div className='bg-gray-600 rounded-xl shadow-xl p-8' style={{ overflowAnchor: 'none' }}>
       <div className='flex justify-between items-center mb-6'>
         <h2 className='text-xl font-bold text-gray-100'>Statistics</h2>
         <div className='flex items-center gap-6'>
