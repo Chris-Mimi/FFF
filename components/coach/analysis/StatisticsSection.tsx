@@ -200,7 +200,10 @@ export default function StatisticsSection({
               </div>
               <div className='flex flex-wrap gap-2'>
                 <button
-                  onClick={() => onToggleMovementType('lift')}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onToggleMovementType('lift');
+                  }}
                   className={`px-3 py-1.5 text-sm rounded-full font-medium transition ${
                     selectedMovementTypes.includes('lift')
                       ? 'bg-blue-500 text-white'
@@ -210,7 +213,10 @@ export default function StatisticsSection({
                   Lifts
                 </button>
                 <button
-                  onClick={() => onToggleMovementType('benchmark')}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onToggleMovementType('benchmark');
+                  }}
                   className={`px-3 py-1.5 text-sm rounded-full font-medium transition ${
                     selectedMovementTypes.includes('benchmark')
                       ? 'bg-teal-500 text-white'
@@ -220,7 +226,10 @@ export default function StatisticsSection({
                   Benchmarks
                 </button>
                 <button
-                  onClick={() => onToggleMovementType('forge_benchmark')}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onToggleMovementType('forge_benchmark');
+                  }}
                   className={`px-3 py-1.5 text-sm rounded-full font-medium transition ${
                     selectedMovementTypes.includes('forge_benchmark')
                       ? 'bg-cyan-500 text-white'
@@ -230,7 +239,10 @@ export default function StatisticsSection({
                   Forge Benchmarks
                 </button>
                 <button
-                  onClick={() => onToggleMovementType('exercise')}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onToggleMovementType('exercise');
+                  }}
                   className={`px-3 py-1.5 text-sm rounded-full font-medium transition ${
                     selectedMovementTypes.includes('exercise')
                       ? 'bg-[#208479] text-white'
@@ -252,7 +264,10 @@ export default function StatisticsSection({
                   {categories.map(category => (
                     <button
                       key={category}
-                      onClick={() => onToggleCategory(category)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        onToggleCategory(category);
+                      }}
                       className={`px-3 py-1.5 text-sm rounded-full font-medium transition ${
                         selectedCategories.includes(category)
                           ? 'bg-[#208479] text-white'
