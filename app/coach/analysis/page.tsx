@@ -115,7 +115,6 @@ export default function AnalysisPage() {
   const [timeframePeriod, setTimeframePeriod] = useState<TimeframePeriod>(1);
   const [statistics, setStatistics] = useState<Statistics | null>(null);
   const [loadingStats, setLoadingStats] = useState(false);
-  const scrollPositionRef = useRef<number>(0);
 
   // Exercise Search State
   const [exerciseSearch, setExerciseSearch] = useState('');
@@ -180,20 +179,8 @@ export default function AnalysisPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedMonth, timeframePeriod, tracks, workoutTypes]);
 
-  useEffect(() => {
-    if (scrollPositionRef.current !== null && scrollPositionRef.current > 0) {
-      const savedPosition = scrollPositionRef.current;
-      scrollPositionRef.current = null;
-
-      // Use setTimeout to ensure DOM has fully updated
-      setTimeout(() => {
-        window.scrollTo({
-          top: savedPosition,
-          behavior: 'instant' as ScrollBehavior
-        });
-      }, 0);
-    }
-  }, [selectedCategories, selectedMovementTypes]);
+  // Removed scroll position restoration - relying on CSS overflow-anchor instead
+  // The manual restoration was fighting with browser behavior
 
   const fetchData = async () => {
     setLoading(true);
@@ -602,9 +589,6 @@ export default function AnalysisPage() {
   };
 
   const toggleCategory = (category: string) => {
-    // Save current scroll position before state change
-    scrollPositionRef.current = window.scrollY;
-
     if (selectedCategories.includes(category)) {
       setSelectedCategories(selectedCategories.filter(c => c !== category));
     } else {
@@ -617,9 +601,6 @@ export default function AnalysisPage() {
   };
 
   const toggleMovementType = (type: 'lift' | 'benchmark' | 'forge_benchmark' | 'exercise') => {
-    // Save current scroll position before state change
-    scrollPositionRef.current = window.scrollY;
-
     if (selectedMovementTypes.includes(type)) {
       setSelectedMovementTypes(selectedMovementTypes.filter(t => t !== type));
     } else {
@@ -703,7 +684,6 @@ export default function AnalysisPage() {
   };
 
   const handleTimeframePeriodChange = (period: TimeframePeriod) => {
-    scrollPositionRef.current = window.scrollY;
     setTimeframePeriod(period);
   };
 
