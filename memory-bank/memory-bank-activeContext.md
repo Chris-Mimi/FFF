@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 6.4
-**Updated:** 2025-11-28 (Session 24 - Analysis Page Unified Movement Tracking & Workout Modal Fix)
+**Version:** 6.5
+**Updated:** 2025-11-29 (Session 25 - January Launch Planning & Dual-User Workflow Setup)
 
 ---
 
@@ -64,6 +64,19 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-11-29 Session 25 - Mimi):**
+- **January Launch Planning & Dual-User Workflow Setup:**
+  - ✅ **Launch timeline established:** 5-week plan (Dec 2 - Jan 5) for production deployment
+  - ✅ **Dual-user Git workflow:** Mimi (mimihiles) and Chris (chrishiles) collaborating via GitHub organization
+  - ✅ **Synology sync conflict resolved:** Eliminated 3-way sync (2 Mac users + NAS) causing folder duplication, switched to GitHub-only workflow
+  - ✅ **Chris Notes folder restored:** Protected folder in `.gitignore` for project reference (never accessed by Claude)
+  - ✅ **Deployment priorities identified:** Week 1 (security + RLS policies), Week 2 (testing), Week 3 (beta launch 5-10 users), Week 4 (bug fixes), Week 5 (public launch)
+  - ✅ **Payment strategy:** Phase 1 manual 10-card tracking (beta), Phase 2 Stripe integration (public launch)
+  - 🎯 **Target launch:** January 2025 (1 month timeline)
+  - 📋 **Outstanding:** Feature tweaks discussion, RLS policies migration, production build verification
+  - See planning notes in this session's chat history
+  - Status: Planning phase (no code changes this session)
 
 **Completed (2025-11-28 Session 24):**
 - **Analysis Page Unified Movement Tracking & Workout Modal Fix:**
@@ -427,6 +440,8 @@ Athlete Tables (linked to members.id)
 - macOS iCloud Keychain autofill popups (OS behavior, not app bug)
 
 **Lessons Learned:**
+- **2025-11-29 (Session 25):** 3-way sync causes folder conflicts - Syncing project folder via Synology Drive on 2 Mac users + NAS created nested duplicates. GitHub is sufficient for dual-user collaboration; eliminate cloud sync for code projects.
+- **2025-11-29 (Session 25):** Dual-user paths need documentation flexibility - Workflow protocols with hardcoded paths fail when second user joins. Document as examples, use actual current working directory in practice.
 - **2025-11-28 (Session 24):** Task dependency analysis prevents wasted work - User correctly identified modal display needed fixing before implementing tracking for proper testing. Always consider task dependencies.
 - **2025-11-28 (Session 24):** Structured movement data enables rich UX - Storing complete workout descriptions (not just names) allows context-aware display across multiple views (modal, calendar, athlete log)
 - **2025-11-28 (Session 24):** Different data sources need different tracking - Exercises (parsed from text), Lifts (structured arrays), Benchmarks (structured arrays) require distinct tracking strategies
@@ -514,53 +529,53 @@ Athlete Tables (linked to members.id)
 
 ---
 
-## 📋 Next Immediate Steps
+## 📋 Next Immediate Steps - JANUARY LAUNCH PLAN (5 Weeks)
 
-1. **Deployment Preparation (HIGH PRIORITY):**
-   - ✅ **Testing Complete:** 22/25 test cases passed, 4 bugs fixed (Session 21)
-   - ⚠️ **Remaining:** Part 5 - Deployment Checklist
-     - Run production build (npm run build)
-     - Verify environment variables and security
-     - Check RLS policies in Supabase
-     - Browser compatibility testing (Chrome, Firefox, Safari, mobile)
-   - **Optional:** Session cancellation notifications, waitlist promotion notifications
+**Target:** Public launch January 2025 | Dual-user workflow: Mimi & Chris via GitHub org
 
-2. **Exercise Library & Analysis - Feature Complete:**
-   - ✅ **COMPLETED (Session 24):** Analysis page unified movement tracking (lifts, benchmarks, forge benchmarks, exercises)
-   - ✅ **COMPLETED (Session 24):** Workout modal display fix (benchmark/forge descriptions in all views)
-   - ✅ **COMPLETED (Session 23):** Exercise frequency tracking with time range filters, favorites/recently used system
-   - ✅ **COMPLETED (Session 23):** Programming references migrated to database (persistent CRUD)
-   - ✅ **COMPLETED (Session 22):** Equipment/body_parts multi-select filters, video modal with 📹 icons, equipment population script (421/522 auto-populated)
-   - ✅ **COMPLETED (Session 21):** Category/subcategory dropdowns with localStorage persistence
-   - ✅ **COMPLETED (Session 20):** Full import (522 exercises)
-   - **Optional future enhancements:**
-     - Body parts data population (currently only equipment populated)
-     - Time range filtering for lifts/benchmarks (currently only exercises)
-     - Movement type badges in Analysis search results (color-coded)
+### Week 1: Security & Infrastructure (Dec 2-8) - CRITICAL
+1. **RLS Policies** (BLOCKING - Security Risk)
+   - Execute `remove-public-rls-policies.sql` migration
+   - Test with isolated accounts (verify data isolation)
+   - Status: PUBLIC access currently enabled for testing
 
-3. **Code Maintenance & Refactoring:**
-   - **File Size Management:** Keep files under ~1500 lines to avoid frequent major refactors
-   - ✅ **Completed Refactors:**
-     - WorkoutModal.tsx (Session 13: 2256 → 905 lines, 60% reduction)
-     - Coach Library page (Session 19: 1776 → 863 lines, 52% reduction)
-     - Analysis page (Session 19: 1522 → 887 lines, 42% reduction)
-   - **Current Large Files (Monitor for Growth):**
-     - `app/coach/schedule/page.tsx` - Under threshold currently
-     - `app/coach/page.tsx` - Monitor if features added
-   - **Strategy:** Proactive refactoring at ~1500 lines prevents disruptive refactors
+2. **Path & Workflow Fixes**
+   - Update `workflow-protocols.md` paths (currently references Chris's paths only)
+   - Document dual-user Git workflow (pull before work, push after)
+   - Verify Chris's NAS folder structure (no nested duplicates)
 
-3. **Testing & Deployment Preparation:**
-   - Test 3-state workflow system in production-like environment (partially complete)
-   - Verify all booking flows work correctly (partially complete)
-   - Test athlete page tab enhancements (Recent sections, Progress Charts, PR badges)
-   - Create deployment checklist
+3. **Build Verification**
+   - Run `npm run build` - verify zero errors
+   - Run `/code-cleanup` for 42 ESLint warnings
+   - Create `.env.example` template
 
-4. **Future Enhancements:**
-   - **Undo after paste/drop:** Toast notification with "Undo" button for ~5 seconds after pasting/dropping workout (currently only "Cancel Copy" before paste, or manual delete after)
-   - Coach ability to edit section types, workout types, exercises
-   - Bulk operations for session/workout management
-   - Improved search/filter capabilities
-   - Member booking system (Phase 2)
+### Week 2: Testing & Refinement (Dec 9-15)
+- Browser compatibility (Chrome, Firefox, Safari, iOS, Android)
+- End-to-end flows (registration, booking, waitlist, logging, 10-card)
+- Edge cases (rebook, late cancel, capacity increase)
+- Data cleanup (delete test workouts/members)
+
+### Week 3: Beta Launch (Dec 16-22)
+- Deploy to hosting (Vercel recommended)
+- Beta with 5-10 trusted members
+- **Payment:** Manual 10-card tracking (no Stripe yet)
+- Daily monitoring, bug reporting channel
+
+### Week 4: Holiday Buffer (Dec 23-29)
+- Critical bug fixes from beta feedback
+- Reduced intensity (Christmas week)
+- Documentation (user guide, FAQ, admin guide)
+
+### Week 5: Public Launch (Dec 30-Jan 5)
+- Stripe integration setup (automated 10-card payments)
+- Final testing & member communication
+- Public registration opens
+- Post-launch monitoring
+
+### Outstanding Decisions
+- **Feature tweaks:** User to specify top 3 priority tweaks before Week 1
+- **Hosting:** Vercel vs Railway (free tier start, upgrade if needed)
+- **Google Calendar:** Required for launch or optional?
 
 ---
 
