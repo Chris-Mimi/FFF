@@ -69,14 +69,15 @@ Athlete Tables (linked to members.id)
 - **January Launch Planning & Dual-User Workflow Setup:**
   - ✅ **Launch timeline established:** 5-week plan (Dec 2 - Jan 5) for production deployment
   - ✅ **Dual-user Git workflow:** Mimi (mimihiles) and Chris (chrishiles) collaborating via GitHub organization
+  - ✅ **GitHub authentication:** Configured personal access token (no expiration) for Mimi's Mac user
   - ✅ **Synology sync conflict resolved:** Eliminated 3-way sync (2 Mac users + NAS) causing folder duplication, switched to GitHub-only workflow
-  - ✅ **Chris Notes folder restored:** Protected folder in `.gitignore` for project reference (never accessed by Claude)
-  - ✅ **Deployment priorities identified:** Week 1 (security + RLS policies), Week 2 (testing), Week 3 (beta launch 5-10 users), Week 4 (bug fixes), Week 5 (public launch)
-  - ✅ **Payment strategy:** Phase 1 manual 10-card tracking (beta), Phase 2 Stripe integration (public launch)
+  - ✅ **Chris Notes cleanup:** Removed 17 bloated files (old chats, exercise backups, binaries), kept 26 useful reference files, now synced via Git
+  - ✅ **Handover test:** Created HANDOVER-TEST.md for Chris to verify dual-user workflow (4 commits pushed successfully)
+  - ⚠️ **Analysis page scroll bug:** Attempted 7+ different fixes (overflow-anchor, preventDefault, blur, scroll preservation) - DEFERRED to Week 1
   - 🎯 **Target launch:** January 2025 (1 month timeline)
-  - 📋 **Outstanding:** Feature tweaks discussion, RLS policies migration, production build verification
-  - See planning notes in this session's chat history
-  - Status: Planning phase (no code changes this session)
+  - 📋 **Outstanding:** RLS policies migration (CRITICAL), production build verification, feature tweaks discussion
+  - Commits: 11 total (Memory Bank, Chris Notes sync/cleanup, handover test, 7 bug fix attempts)
+  - Status: Dual-user workflow operational, deployment planning complete
 
 **Completed (2025-11-28 Session 24):**
 - **Analysis Page Unified Movement Tracking & Workout Modal Fix:**
@@ -548,6 +549,13 @@ Athlete Tables (linked to members.id)
    - Run `npm run build` - verify zero errors
    - Run `/code-cleanup` for 42 ESLint warnings
    - Create `.env.example` template
+
+4. **Analysis Page Scroll Jump Bug** (DEFERRED from Session 25)
+   - Page jumps when clicking category filter buttons while scrolled down
+   - Attempted fixes: overflow-anchor, preventDefault, blur, scroll preservation (all unsuccessful)
+   - Likely needs layout-based solution (fixed-height container or virtualized list)
+   - Location: components/coach/analysis/StatisticsSection.tsx (filter buttons), Top Exercises section
+   - Priority: Medium (UX polish, not blocking)
 
 ### Week 2: Testing & Refinement (Dec 9-15)
 - Browser compatibility (Chrome, Firefox, Safari, iOS, Android)
