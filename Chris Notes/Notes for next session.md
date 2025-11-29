@@ -5,14 +5,14 @@ This document is a template with headings to show you where the issue is or wher
 
 * After every Workout, i take a picture of the whiteboard. I want to be able to upload this picture to the workout and have it displayed on the workout page.
 * Thursday is hideable. Is it complicated to make all days hideable?
-* If I go back in time on the monthly calendar, then switch to another tab, it returns to the current date when I return to the calendar tab. As I have a "today" button, I don't need it to return to the current date.
+* 
 * Make a plan for how we export and then re-import the data from my Google Calendar workouts from the past 5 years.
 *
 *
 
  # Edit Workout Modal (coach) #
  IMPROVEMENTS/Bug Fixes:
- * Configure sets/reps modal input fields are greyed out in Lifts, Benchmarks & Forge Benchmarks.
+ * 
  *
 
 
@@ -21,8 +21,7 @@ This document is a template with headings to show you where the issue is or wher
 * Make the week button a drop down from which I can select 1-8 weeks.
 * fix the timescale selector so it doesn't jump left and right on clicking different timescales. It does this as the timescale indicator on the right shrinks and expands.
 * How many top exercises will display?
-* Make the "Manage Tracks" section collapsible and have it collapsed by default as it will not be used often.
-* Make a note that we have to add filter badges to the Analysis page for Lifts, Benchmarks, and Forge Benchmarks.
+* 
 
 # Calendar View #
 *
@@ -93,3 +92,7 @@ This document is a template with headings to show you where the issue is or wher
     - Testing results: 421/522 exercises auto-populated (80.7%)
     - Lessons learned: 6 key takeaways
     - Statistics: 1.5 hours, ~85K tokens, high user satisfaction
+
+
+    Github Mimi Mac - FFF Project no expiration token : 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
+    We had some issues with this and couldn't get it to work. The old token should stop working in January at which time we can input this one.
