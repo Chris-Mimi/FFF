@@ -185,7 +185,7 @@ export default function AnalysisPage() {
       window.scrollTo(0, scrollPositionRef.current);
       scrollPositionRef.current = 0;
     }
-  }, [statistics]);
+  }, [statistics, selectedCategories, selectedMovementTypes]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -594,6 +594,9 @@ export default function AnalysisPage() {
   };
 
   const toggleCategory = (category: string) => {
+    // Save current scroll position before state change
+    scrollPositionRef.current = window.scrollY;
+
     if (selectedCategories.includes(category)) {
       setSelectedCategories(selectedCategories.filter(c => c !== category));
     } else {
@@ -606,6 +609,9 @@ export default function AnalysisPage() {
   };
 
   const toggleMovementType = (type: 'lift' | 'benchmark' | 'forge_benchmark' | 'exercise') => {
+    // Save current scroll position before state change
+    scrollPositionRef.current = window.scrollY;
+
     if (selectedMovementTypes.includes(type)) {
       setSelectedMovementTypes(selectedMovementTypes.filter(t => t !== type));
     } else {
