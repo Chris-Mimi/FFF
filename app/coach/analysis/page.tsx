@@ -181,9 +181,11 @@ export default function AnalysisPage() {
   }, [selectedMonth, timeframePeriod, tracks, workoutTypes]);
 
   useEffect(() => {
-    if (scrollPositionRef.current > 0) {
-      window.scrollTo(0, scrollPositionRef.current);
-      scrollPositionRef.current = 0;
+    if (scrollPositionRef.current !== null && scrollPositionRef.current > 0) {
+      requestAnimationFrame(() => {
+        window.scrollTo(0, scrollPositionRef.current as number);
+        scrollPositionRef.current = null;
+      });
     }
   }, [statistics, selectedCategories, selectedMovementTypes]);
 
