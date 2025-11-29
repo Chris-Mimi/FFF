@@ -182,12 +182,18 @@ export default function AnalysisPage() {
 
   useEffect(() => {
     if (scrollPositionRef.current !== null && scrollPositionRef.current > 0) {
-      requestAnimationFrame(() => {
-        window.scrollTo(0, scrollPositionRef.current as number);
-        scrollPositionRef.current = null;
-      });
+      const savedPosition = scrollPositionRef.current;
+      scrollPositionRef.current = null;
+
+      // Use setTimeout to ensure DOM has fully updated
+      setTimeout(() => {
+        window.scrollTo({
+          top: savedPosition,
+          behavior: 'instant' as ScrollBehavior
+        });
+      }, 0);
     }
-  }, [statistics, selectedCategories, selectedMovementTypes]);
+  }, [selectedCategories, selectedMovementTypes]);
 
   const fetchData = async () => {
     setLoading(true);
