@@ -1,21 +1,11 @@
 // AthletePageLogbookTab component
 'use client';
 
-import { supabase } from '@/lib/supabase';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
-
-interface WOD {
-  id: string;
-  title: string;
-  date: string;
-  tracks?: { name: string; color: string };
-  workout_types?: { name: string };
-  sections: Array<{ id: string; type: string; content: string; duration?: string }>;
-  published_section_ids?: string[];
-  attended?: boolean; // Past booking = attended
-  booked?: boolean; // Future booking = booked
-}
+import { useLogbookData } from '@/hooks/athlete/useLogbookData';
+import { useWorkoutLogging } from '@/hooks/athlete/useWorkoutLogging';
+import { formatLocalDate, getWeekDates, getMonthCalendarDays, getPublishedSections, WOD } from '@/utils/logbook-utils';
 
 interface AthletePageLogbookTabProps {
   userId: string;
@@ -28,12 +18,18 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
   const [selectedDate, setSelectedDate] = useState(initialDate || new Date());
   const [viewMode, setViewMode] = useState<'day' | 'week' | 'month'>(initialViewMode || 'week');
   const [expandedWorkoutId, setExpandedWorkoutId] = useState<string | null>(null);
-  const [attendedWorkouts, setAttendedWorkouts] = useState<WOD[]>([]);
-  const [wods, setWods] = useState<WOD[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [workoutLogs, setWorkoutLogs] = useState<
-    Record<string, { result: string; notes: string; date: string }>
-  >({});
+
+  // Use extracted hooks
+  const { workouts, workoutLogs, loading, setWorkoutLogs } = useLogbookData({
+    userId,
+    selectedDate,
+    viewMode,
+  });
+
+  const { saveWorkoutLog } = useWorkoutLogging({
+    userId,
+    workoutLogs,
+  });
 
   useEffect(() => {
     if (initialDate) {
@@ -48,477 +44,46 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
     }
   }, [selectedDate, onDateChange]);
 
-  useEffect(() => {
-    if (viewMode === 'day') {
-      fetchWODsForDay();
-    } else if (viewMode === 'week') {
-      fetchAttendedWorkoutsForWeek();
-    } else if (viewMode === 'month') {
-      fetchAttendedWorkoutsForMonth();
-    }
-  }, [selectedDate, viewMode, userId]);
-
-  const fetchWODsForDay = async () => {
-    setLoading(true);
-    try {
-      const dateStr = formatLocalDate(selectedDate);
-
-      // Get workouts for this date
-      const { data: wodsData, error: wodsError } = await supabase
-        .from('wods')
-        .select(`
-          id,
-          title,
-          date,
-          sections,
-          published_section_ids,
-          tracks:track_id (name, color),
-          workout_types:workout_type_id (name)
-        `)
-        .eq('date', dateStr);
-
-      if (wodsError) throw wodsError;
-
-      if (!wodsData || wodsData.length === 0) {
-        setWods([]);
-        setWorkoutLogs({});
-        setLoading(false);
-        return;
-      }
-
-      // Filter to workouts user has booked (past = attended, future = booked)
-      const userWorkouts = await Promise.all(
-        wodsData.map(async (workout) => {
-          // Get session for this workout
-          const { data: sessionData } = await supabase
-            .from('weekly_sessions')
-            .select('id')
-            .eq('workout_id', workout.id)
-            .maybeSingle();
-
-          if (!sessionData) return null;
-
-          // Check if user has confirmed booking
-          const { data: booking } = await supabase
-            .from('bookings')
-            .select('status')
-            .eq('session_id', sessionData.id)
-            .eq('member_id', userId)
-            .eq('status', 'confirmed')
-            .maybeSingle();
-
-          if (!booking) return null;
-
-          const workoutDate = new Date(workout.date);
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          const isPastDate = workoutDate < today;
-
-          return {
-            ...workout,
-            sections: workout.sections || [],
-            tracks: Array.isArray(workout.tracks) ? workout.tracks[0] : workout.tracks,
-            workout_types: Array.isArray(workout.workout_types) ? workout.workout_types[0] : workout.workout_types,
-            attended: isPastDate,
-            booked: !isPastDate,
-          };
-        })
-      );
-
-      const filteredWorkouts = userWorkouts.filter(w => w !== null) as WOD[];
-      setWods(filteredWorkouts);
-
-      // Fetch existing workout logs for attended workouts for this user
-      const { data: logsData, error: logsError } = await supabase
-        .from('workout_logs')
-        .select('*')
-        .eq('workout_date', dateStr)
-        .eq('user_id', userId);
-
-      if (logsError) throw logsError;
-
-      // Convert logs array to object keyed by wod_id
-      interface WorkoutLog {
-        wod_id: string | null;
-        result: string | null;
-        notes: string | null;
-        workout_date: string;
-      }
-      const logsMap: Record<string, { result: string; notes: string; date: string }> = {};
-      (logsData || []).forEach((log: WorkoutLog) => {
-        if (log.wod_id) {
-          logsMap[log.wod_id] = {
-            result: log.result || '',
-            notes: log.notes || '',
-            date: log.workout_date || dateStr,
-          };
-        }
-      });
-      setWorkoutLogs(logsMap);
-    } catch (error) {
-      console.error('Error fetching WODs:', error);
-      setWods([]);
-      setWorkoutLogs({});
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchAttendedWorkoutsForWeek = async () => {
-    setLoading(true);
-    try {
-      const weekDates = getWeekDates(selectedDate);
-      const startStr = formatLocalDate(weekDates[0]);
-      const endStr = formatLocalDate(weekDates[6]);
-
-      // Get workouts for this week
-      const { data: wodsData, error: wodsError } = await supabase
-        .from('wods')
-        .select(`
-          id,
-          title,
-          date,
-          sections,
-          published_section_ids,
-          tracks:track_id (name, color),
-          workout_types:workout_type_id (name)
-        `)
-        .gte('date', startStr)
-        .lte('date', endStr)
-        .order('date', { ascending: true });
-
-      if (wodsError) throw wodsError;
-
-      if (!wodsData || wodsData.length === 0) {
-        setAttendedWorkouts([]);
-        setWorkoutLogs({});
-        setLoading(false);
-        return;
-      }
-
-      // Filter to workouts user has booked (past = attended, future = booked)
-      const userWorkouts = await Promise.all(
-        wodsData.map(async (workout) => {
-          // Get session for this workout
-          const { data: sessionData } = await supabase
-            .from('weekly_sessions')
-            .select('id')
-            .eq('workout_id', workout.id)
-            .maybeSingle();
-
-          if (!sessionData) return null;
-
-          // Check if user has confirmed booking
-          const { data: booking } = await supabase
-            .from('bookings')
-            .select('status')
-            .eq('session_id', sessionData.id)
-            .eq('member_id', userId)
-            .eq('status', 'confirmed')
-            .maybeSingle();
-
-          if (!booking) return null;
-
-          const workoutDate = new Date(workout.date);
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          const isPastDate = workoutDate < today;
-
-          return {
-            ...workout,
-            sections: workout.sections || [],
-            tracks: Array.isArray(workout.tracks) ? workout.tracks[0] : workout.tracks,
-            workout_types: Array.isArray(workout.workout_types) ? workout.workout_types[0] : workout.workout_types,
-            attended: isPastDate,
-            booked: !isPastDate,
-          };
-        })
-      );
-
-      const filteredWorkouts = userWorkouts.filter(w => w !== null) as WOD[];
-      setAttendedWorkouts(filteredWorkouts);
-
-      // Fetch logs for attended workouts
-      const { data: logsData } = await supabase
-        .from('workout_logs')
-        .select('*')
-        .gte('workout_date', startStr)
-        .lte('workout_date', endStr)
-        .eq('user_id', userId);
-
-      const logsMap: Record<string, { result: string; notes: string; date: string }> = {};
-      (logsData || []).forEach((log) => {
-        if (log.wod_id) {
-          logsMap[log.wod_id] = {
-            result: log.result || '',
-            notes: log.notes || '',
-            date: log.workout_date,
-          };
-        }
-      });
-      setWorkoutLogs(logsMap);
-    } catch (error) {
-      console.error('Error fetching attended workouts:', error);
-      setAttendedWorkouts([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchAttendedWorkoutsForMonth = async () => {
-    setLoading(true);
-    try {
-      // Get the full calendar grid date range (including grey days from adjacent months)
-      const calendarDays = getMonthCalendarDays();
-      const startDate = calendarDays[0]; // First day in calendar grid
-      const endDate = calendarDays[calendarDays.length - 1]; // Last day in calendar grid
-
-      const startStr = formatLocalDate(startDate);
-      const endStr = formatLocalDate(endDate);
-
-      // Get workouts for this month
-      const { data: wodsData, error: wodsError } = await supabase
-        .from('wods')
-        .select(`
-          id,
-          title,
-          date,
-          sections,
-          published_section_ids,
-          tracks:track_id (name, color),
-          workout_types:workout_type_id (name)
-        `)
-        .gte('date', startStr)
-        .lte('date', endStr)
-        .order('date', { ascending: true });
-
-      if (wodsError) throw wodsError;
-
-      if (!wodsData || wodsData.length === 0) {
-        setAttendedWorkouts([]);
-        setWorkoutLogs({});
-        setLoading(false);
-        return;
-      }
-
-      // Filter to workouts user has booked (past = attended, future = booked)
-      const userWorkouts = await Promise.all(
-        wodsData.map(async (workout) => {
-          // Get session for this workout
-          const { data: sessionData } = await supabase
-            .from('weekly_sessions')
-            .select('id')
-            .eq('workout_id', workout.id)
-            .maybeSingle();
-
-          if (!sessionData) return null;
-
-          // Check if user has confirmed booking
-          const { data: booking } = await supabase
-            .from('bookings')
-            .select('status')
-            .eq('session_id', sessionData.id)
-            .eq('member_id', userId)
-            .eq('status', 'confirmed')
-            .maybeSingle();
-
-          if (!booking) return null;
-
-          const workoutDate = new Date(workout.date);
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          const isPastDate = workoutDate < today;
-
-          return {
-            ...workout,
-            sections: workout.sections || [],
-            tracks: Array.isArray(workout.tracks) ? workout.tracks[0] : workout.tracks,
-            workout_types: Array.isArray(workout.workout_types) ? workout.workout_types[0] : workout.workout_types,
-            attended: isPastDate,
-            booked: !isPastDate,
-          };
-        })
-      );
-
-      const filteredWorkouts = userWorkouts.filter(w => w !== null) as WOD[];
-      setAttendedWorkouts(filteredWorkouts);
-
-      // Fetch logs for attended workouts
-      const { data: logsData } = await supabase
-        .from('workout_logs')
-        .select('*')
-        .gte('workout_date', startStr)
-        .lte('workout_date', endStr)
-        .eq('user_id', userId);
-
-      const logsMap: Record<string, { result: string; notes: string; date: string }> = {};
-      (logsData || []).forEach((log) => {
-        if (log.wod_id) {
-          logsMap[log.wod_id] = {
-            result: log.result || '',
-            notes: log.notes || '',
-            date: log.workout_date,
-          };
-        }
-      });
-      setWorkoutLogs(logsMap);
-    } catch (error) {
-      console.error('Error fetching attended workouts:', error);
-      setAttendedWorkouts([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getPublishedSections = (wod: WOD) => {
-    if (!wod.published_section_ids || wod.published_section_ids.length === 0) {
-      return wod.sections;
-    }
-    return wod.sections.filter(section =>
-      wod.published_section_ids?.includes(section.id)
-    );
-  };
-
-  const handleSaveWorkoutLog = async (wodId: string) => {
-    const log = workoutLogs[wodId];
-    if (!log || (!log.result && !log.notes)) return;
-
-    try {
-      const dateStr = log.date;
-
-      // Check if a log already exists for this WOD and user
-      const { data: existingLogs, error: fetchError } = await supabase
-        .from('workout_logs')
-        .select('id')
-        .eq('wod_id', wodId)
-        .eq('workout_date', dateStr)
-        .eq('user_id', userId)
-        .single();
-
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        // PGRST116 = no rows returned, which is fine
-        throw fetchError;
-      }
-
-      if (existingLogs) {
-        // Update existing log
-        const { error } = await supabase
-          .from('workout_logs')
-          .update({
-            result: log.result || null,
-            notes: log.notes || null,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', existingLogs.id);
-
-        if (error) throw error;
-      } else {
-        // Insert new log
-        const { error } = await supabase.from('workout_logs').insert({
-          user_id: userId,
-          wod_id: wodId,
-          workout_date: dateStr,
-          result: log.result || null,
-          notes: log.notes || null,
-        });
-
-        if (error) throw error;
-      }
-
-      alert('Workout log saved successfully!');
-    } catch (error) {
-      console.error('Error saving workout log:', error);
-      alert('Failed to save workout log. Please try again.');
-    }
-  };
-
-  const getWeekDates = (date: Date) => {
-    const startOfWeek = new Date(date);
-    const day = startOfWeek.getDay();
-    const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1); // Monday as first day
-    startOfWeek.setDate(diff);
-
-    const weekDates = [];
-    for (let i = 0; i < 7; i++) {
-      const currentDate = new Date(startOfWeek);
-      currentDate.setDate(startOfWeek.getDate() + i);
-      weekDates.push(currentDate);
-    }
-    return weekDates;
-  };
-
+  // Navigation handlers
   const previousDay = () => {
     const newDate = new Date(selectedDate);
-    newDate.setDate(selectedDate.getDate() - 1);
+    newDate.setDate(newDate.getDate() - 1);
     setSelectedDate(newDate);
   };
 
   const nextDay = () => {
     const newDate = new Date(selectedDate);
-    newDate.setDate(selectedDate.getDate() + 1);
+    newDate.setDate(newDate.getDate() + 1);
     setSelectedDate(newDate);
   };
 
   const previousWeek = () => {
     const newDate = new Date(selectedDate);
-    newDate.setDate(selectedDate.getDate() - 7);
+    newDate.setDate(newDate.getDate() - 7);
     setSelectedDate(newDate);
   };
 
   const nextWeek = () => {
     const newDate = new Date(selectedDate);
-    newDate.setDate(selectedDate.getDate() + 7);
+    newDate.setDate(newDate.getDate() + 7);
     setSelectedDate(newDate);
   };
 
   const previousMonth = () => {
     const newDate = new Date(selectedDate);
-    newDate.setMonth(selectedDate.getMonth() - 1);
+    newDate.setMonth(newDate.getMonth() - 1);
     setSelectedDate(newDate);
   };
 
   const nextMonth = () => {
     const newDate = new Date(selectedDate);
-    newDate.setMonth(selectedDate.getMonth() + 1);
+    newDate.setMonth(newDate.getMonth() + 1);
     setSelectedDate(newDate);
   };
 
   const goToToday = () => {
     const today = new Date();
     setSelectedDate(today);
-  };
-
-  const getMonthCalendarDays = () => {
-    const year = selectedDate.getFullYear();
-    const month = selectedDate.getMonth();
-
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-
-    // Get the Monday of the week containing the first day
-    const startDate = new Date(firstDay);
-    const dayOfWeek = firstDay.getDay();
-    const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Monday = 0
-    startDate.setDate(firstDay.getDate() - daysToSubtract);
-
-    const days = [];
-    const currentDate = new Date(startDate);
-
-    // Generate 42 days (6 weeks) to fill the calendar grid
-    for (let i = 0; i < 42; i++) {
-      days.push(new Date(currentDate));
-      currentDate.setDate(currentDate.getDate() + 1);
-    }
-
-    return days;
-  };
-
-  // Helper function to format date as YYYY-MM-DD in local timezone (no UTC conversion)
-  const formatLocalDate = (date: Date): string => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
   };
 
   return (
@@ -584,13 +149,13 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
           {/* Workouts */}
           {loading ? (
             <div className='text-center text-gray-500 py-8'>Loading workouts...</div>
-          ) : wods.length === 0 ? (
+          ) : workouts.length === 0 ? (
             <div className='text-center text-gray-500 py-8'>
               No workouts attended on this date
             </div>
           ) : (
             <div className='space-y-4'>
-              {wods.map(wod => (
+              {workouts.map(wod => (
                 <div key={wod.id} className='border border-gray-200 rounded-lg p-4'>
                   <div className='flex items-center justify-between mb-3'>
                     <div className='flex items-center gap-3'>
@@ -704,7 +269,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
 
                       <div className='flex justify-end'>
                         <button
-                          onClick={() => handleSaveWorkoutLog(wod.id)}
+                          onClick={() => saveWorkoutLog(wod.id)}
                           className='px-6 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white font-medium rounded-lg transition'
                         >
                           Save Log Entry
@@ -761,7 +326,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
             <div className='grid grid-cols-7 gap-4'>
               {getWeekDates(selectedDate).map((date, index) => {
                 const dateStr = formatLocalDate(date);
-                const dayWorkouts = attendedWorkouts.filter(w => w.date === dateStr);
+                const dayWorkouts = workouts.filter(w => w.date === dateStr);
                 const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
 
                 return (
@@ -863,10 +428,10 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
 
               {/* Calendar days */}
               <div className='grid grid-cols-7 gap-1'>
-                {getMonthCalendarDays().map((date, index) => {
+                {getMonthCalendarDays(selectedDate).map((date, index) => {
                   const isCurrentMonth = date.getMonth() === selectedDate.getMonth();
                   const dateStr = formatLocalDate(date);
-                  const dayWorkouts = attendedWorkouts.filter(w => w.date === dateStr);
+                  const dayWorkouts = workouts.filter(w => w.date === dateStr);
                   const hasWorkouts = dayWorkouts.length > 0;
 
                   return (
