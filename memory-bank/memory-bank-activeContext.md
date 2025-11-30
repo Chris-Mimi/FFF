@@ -65,6 +65,20 @@ Athlete Tables (linked to members.id)
 
 ## 📍 Current Status (Last 2 Weeks)
 
+**Completed (2025-11-30 Session 28 - Mimi):**
+- **WorkoutModal Header & Notes Extraction:**
+  - ✅ **WorkoutModal.tsx extraction:** 797 → 612 lines (23% reduction, 185 lines saved)
+  - ✅ **Created 2 components:** WorkoutModalHeader (112 lines), CoachNotesPanel (141 lines)
+  - ✅ **Eliminated 185 lines of duplication** between panel and modal modes
+  - ✅ **Fixed type compatibility:** WorkoutFormFields nullable types (color, workout_id)
+  - ✅ **Zero breaking changes:** Both panel and modal modes tested and working
+  - ✅ **Publish workflow tested:** Save → Re-open → Publish confirmed working
+  - **Total refactor impact (Sessions 26-28):** 778 lines of duplication eliminated
+  - Commits: d3337907 (4 files, 358 insertions, 290 deletions)
+  - Branch: refactor/useWorkoutModal-extraction (pushed, ready to merge)
+  - **Next:** Merge to main or continue with other large files
+  - See `project-history/2025-11-30-session-28-WorkoutModal-header-notes-extraction.md`
+
 **Completed (2025-11-29 Session 27 - Mimi):**
 - **WorkoutModal Component Refactoring:**
   - ✅ **Full testing of Session 26 hook refactor:** All workflows tested (save/edit/publish/unpublish) - working perfectly
@@ -74,10 +88,8 @@ Athlete Tables (linked to members.id)
   - ✅ **Fixed session selection bug:** Replaced direct Set mutation with proper setter (handleSessionSelectionToggle)
   - ✅ **Eliminated 266 lines of duplication** between panel and modal modes
   - ✅ **Zero breaking changes:** Panel mode tested and working
-  - **Total refactor impact (Sessions 26-27):** 593 lines removed across useWorkoutModal.ts + WorkoutModal.tsx
   - Commits: 060ad711 (4 files, 337 insertions, 281 deletions)
-  - Branch: refactor/useWorkoutModal-extraction (pushed, ready to merge after further testing)
-  - **Next session:** Continue refactoring (WorkoutModalHeader, CoachNotesPanel remain) or merge to main
+  - Branch: refactor/useWorkoutModal-extraction (completed in Session 28)
   - See `project-history/2025-11-29-session-27-WorkoutModal-component-refactor.md`
 
 **Completed (2025-11-29 Session 26 - Mimi):**
