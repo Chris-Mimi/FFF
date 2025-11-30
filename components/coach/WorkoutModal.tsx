@@ -6,22 +6,17 @@ import ConfigureBenchmarkModal from '@/components/coach/ConfigureBenchmarkModal'
 import ConfigureForgeBenchmarkModal from '@/components/coach/ConfigureForgeBenchmarkModal';
 import PublishModal from '@/components/coach/PublishModal';
 import WODSectionComponent from '@/components/coach/WODSectionComponent';
-import SessionTimeEditor from '@/components/coach/SessionTimeEditor';
 import WorkoutFormFields from '@/components/coach/WorkoutFormFields';
+import WorkoutModalHeader from '@/components/coach/WorkoutModalHeader';
+import CoachNotesPanel from '@/components/coach/CoachNotesPanel';
 import { useWorkoutModal, WODFormData } from '@/hooks/coach/useWorkoutModal';
 
 // Re-export types for backwards compatibility
 export type { WODFormData, WODSection } from '@/hooks/coach/useWorkoutModal';
 import {
-  Check,
   ChevronDown,
-  Clock,
-  Edit2,
-  FileText,
   Library,
   Plus,
-  Send,
-  X
 } from 'lucide-react';
 
 interface WorkoutModalProps {
@@ -69,176 +64,62 @@ export default function WorkoutModal({
     return (
       <>
         {/* Coach Notes Floating Modal */}
-        {hook.notesPanelOpen && (
-          <div
-            className='fixed z-[70]'
-            style={{
-              bottom: `${hook.notesModalPos.bottom}px`,
-              left: `${hook.notesModalPos.left}px`,
-            }}
-          >
-            <div
-              className='bg-white rounded-lg shadow-2xl flex flex-col relative border-4 border-[#208479]'
-              style={{
-                width: `${hook.notesModalSize.width}px`,
-                height: `${hook.notesModalSize.height}px`,
-              }}
-            >
-              {/* Corner Resize Handles */}
-              <div
-                className='absolute bottom-0 right-0 w-8 h-8 cursor-se-resize z-50'
-                onMouseDown={(e) => hook.handleNotesResizeStart(e, 'se')}
-                title='Drag to resize'
-              >
-                <div className='absolute bottom-0 right-0 w-0 h-0 border-l-[32px] border-l-transparent border-b-[32px] border-b-[#208479] hover:border-b-[#1a6b62] transition'></div>
-              </div>
-              <div
-                className='absolute top-0 right-0 w-8 h-8 cursor-ne-resize z-50'
-                onMouseDown={(e) => hook.handleNotesResizeStart(e, 'ne')}
-                title='Drag to resize'
-              >
-                <div className='absolute top-0 right-0 w-0 h-0 border-l-[32px] border-l-transparent border-t-[32px] border-t-[#208479] hover:border-t-[#1a6b62] transition rounded-tr-lg'></div>
-              </div>
-              <div
-                className='absolute bottom-0 left-0 w-8 h-8 cursor-sw-resize z-50'
-                onMouseDown={(e) => hook.handleNotesResizeStart(e, 'sw')}
-                title='Drag to resize'
-              >
-                <div className='absolute bottom-0 left-0 w-0 h-0 border-r-[32px] border-r-transparent border-b-[32px] border-b-[#208479] hover:border-b-[#1a6b62] transition rounded-bl-lg'></div>
-              </div>
-              <div
-                className='absolute top-0 left-0 w-8 h-8 cursor-nw-resize z-50'
-                onMouseDown={(e) => hook.handleNotesResizeStart(e, 'nw')}
-                title='Drag to resize'
-              >
-                <div className='absolute top-0 left-0 w-0 h-0 border-r-[32px] border-r-transparent border-t-[32px] border-t-[#208479] hover:border-t-[#1a6b62] transition rounded-tl-lg'></div>
-              </div>
-
-              {/* Header - Draggable */}
-              <div
-                className='bg-[#208479] text-white p-4 rounded-t-lg flex justify-between items-center flex-shrink-0 cursor-move'
-                onMouseDown={hook.handleNotesDragStart}
-              >
-                <h2 className='text-xl font-bold'>Coach Notes</h2>
-                <button
-                    onClick={() => {
-                      hook.setNotesPanelOpen(false);
-                      onNotesToggle?.(false);
-                    }}
-                    className='hover:bg-[#1a6b62] p-1 rounded transition'
-                  >
-                    <X size={24} />
-                  </button>
-                </div>
-
-                {/* Content */}
-                <div className='flex-1 overflow-y-auto p-4'>
-                  <textarea
-                    value={hook.formData.coach_notes || ''}
-                    onChange={e => hook.handleChange('coach_notes', e.target.value)}
-                    placeholder='Add private notes about this workout...'
-                    className='w-full h-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 placeholder-gray-400 resize-none text-sm'
-                  />
-                </div>
-
-              {/* Footer */}
-              <div className='border-t p-4 bg-gray-50 rounded-b-lg flex-shrink-0'>
-                <p className='text-xs text-gray-500'>
-                  Notes are private and searchable. Auto-saved when you save the WOD.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
+        <CoachNotesPanel
+          isOpen={hook.notesPanelOpen}
+          notes={hook.formData.coach_notes || ''}
+          mode='floating'
+          position={hook.notesModalPos}
+          size={hook.notesModalSize}
+          onDragStart={hook.handleNotesDragStart}
+          onResizeStart={hook.handleNotesResizeStart}
+          onClose={() => {
+            hook.setNotesPanelOpen(false);
+            onNotesToggle?.(false);
+          }}
+          onChange={(notes) => hook.handleChange('coach_notes', notes)}
+        />
 
         {/* WOD Panel */}
         <div className='fixed left-0 top-[72px] h-[calc(100vh-72px)] w-[800px] bg-white shadow-2xl z-50 flex flex-col border-r-2 border-[#208479] border-t border-gray-400 animate-slide-in-left'>
           {/* Header */}
-          <div className='bg-[#208479] text-white p-4 flex justify-between items-center'>
-            <h2 className='text-xl font-bold'>{editingWOD ? 'Edit Workout' : 'Create New Workout'}</h2>
-            <div className='flex items-center gap-2'>
-              <button
-                onClick={e => {
-                  e.preventDefault();
-                  const newValue = !hook.notesPanelOpen;
-                  hook.setNotesPanelOpen(newValue);
-                  onNotesToggle?.(newValue);
-                }}
-                className={`hover:bg-[#1a6b62] p-2 rounded transition flex items-center gap-2 ${hook.notesPanelOpen ? 'bg-[#1a6b62]' : ''}`}
-                title='Coach Notes'
-              >
-                <FileText size={20} />
-                <span className='text-sm'>Notes</span>
-              </button>
-              {/* Session Time Display/Edit */}
-              <SessionTimeEditor
-                sessionTime={hook.sessionTime}
-                editingTime={hook.editingTime}
-                tempTime={hook.tempTime}
-                newSessionTime={hook.newSessionTime}
-                isNewWorkout={!editingWOD}
-                onEditToggle={hook.setEditingTime}
-                onTimeChange={(time, isNew) => {
-                  isNew ? hook.setNewSessionTime(time) : hook.setTempTime(time);
-                }}
-                onSave={hook.handleTimeUpdate}
-                onTempTimeChange={hook.setTempTime}
-              />
-              {editingWOD?.id && (
-                editingWOD.is_published ? (
-                  <button
-                    onClick={e => {
-                      e.preventDefault();
-                      hook.handleUnpublish();
-                    }}
-                    className='hover:bg-[#1a6b62] p-2 rounded transition flex items-center gap-2'
-                    title='Unpublish Workout'
-                  >
-                    <X size={20} />
-                    <span className='text-sm'>Unpublish</span>
-                  </button>
-                ) : (
-                  <button
-                    onClick={e => {
-                      e.preventDefault();
-                      hook.setPublishModalOpen(true);
-                    }}
-                    className='hover:bg-[#1a6b62] p-2 rounded transition flex items-center gap-2'
-                    title='Publish Workout'
-                  >
-                    <Send size={20} />
-                    <span className='text-sm'>Publish</span>
-                  </button>
-                )
-              )}
-              <button
-                onClick={async e => {
-                  e.preventDefault();
-                  if (hook.validate()) {
-                    // Save any pending time changes first
-                    if (editingWOD && hook.sessionTime && hook.tempTime !== hook.sessionTime.substring(0, 5)) {
-                      await hook.handleTimeUpdate();
-                    }
-                    const dataToSave = {
-                      ...hook.formData,
-                      selectedSessionIds: Array.from(hook.selectedSessionIds),
-                      classTimes: (!editingWOD && hook.selectedSessionIds.size === 0)
-                        ? [hook.newSessionTime]
-                        : hook.formData.classTimes,
-                    };
-                    onSave(dataToSave);
-                    onClose();
-                  }
-                }}
-                className='hover:bg-[#1a6b62] p-1 rounded transition'
-              >
-                <Check size={24} />
-              </button>
-              <button onClick={onClose} className='hover:bg-[#1a6b62] p-1 rounded transition'>
-                <X size={24} />
-              </button>
-            </div>
-          </div>
+          <WorkoutModalHeader
+            editingWOD={editingWOD}
+            notesPanelOpen={hook.notesPanelOpen}
+            sessionTime={hook.sessionTime}
+            editingTime={hook.editingTime}
+            tempTime={hook.tempTime}
+            newSessionTime={hook.newSessionTime}
+            onNotesToggle={(open) => {
+              hook.setNotesPanelOpen(open);
+              onNotesToggle?.(open);
+            }}
+            onTimeEditToggle={hook.setEditingTime}
+            onTimeChange={(time, isNew) => {
+              isNew ? hook.setNewSessionTime(time) : hook.setTempTime(time);
+            }}
+            onTimeSave={hook.handleTimeUpdate}
+            onTempTimeChange={hook.setTempTime}
+            onUnpublish={hook.handleUnpublish}
+            onPublishClick={() => hook.setPublishModalOpen(true)}
+            onSave={async () => {
+              if (hook.validate()) {
+                // Save any pending time changes first
+                if (editingWOD && hook.sessionTime && hook.tempTime !== hook.sessionTime.substring(0, 5)) {
+                  await hook.handleTimeUpdate();
+                }
+                const dataToSave = {
+                  ...hook.formData,
+                  selectedSessionIds: Array.from(hook.selectedSessionIds),
+                  classTimes: (!editingWOD && hook.selectedSessionIds.size === 0)
+                    ? [hook.newSessionTime]
+                    : hook.formData.classTimes,
+                };
+                onSave(dataToSave);
+                onClose();
+              }
+            }}
+            onClose={onClose}
+          />
 
           {/* Content Area - Form Only */}
           <form
@@ -408,91 +289,44 @@ export default function WorkoutModal({
           className={`bg-white rounded-lg shadow-2xl w-full ${hook.notesPanelOpen ? 'max-w-7xl' : 'max-w-5xl'} max-h-[90vh] overflow-hidden flex flex-col transition-all duration-300`}
         >
           {/* Header */}
-          <div className='bg-[#208479] text-white p-4 flex justify-between items-center'>
-            <h2 className='text-xl font-bold'>{editingWOD ? 'Edit Workout' : 'Create New Workout'}</h2>
-            <div className='flex items-center gap-2'>
-              <button
-                onClick={e => {
-                  e.preventDefault();
-                  const newValue = !hook.notesPanelOpen;
-                  hook.setNotesPanelOpen(newValue);
-                  onNotesToggle?.(newValue);
-                }}
-                className={`hover:bg-[#1a6b62] p-2 rounded transition flex items-center gap-2 ${hook.notesPanelOpen ? 'bg-[#1a6b62]' : ''}`}
-                title='Coach Notes'
-              >
-                <FileText size={20} />
-                <span className='text-sm'>Notes</span>
-              </button>
-              {/* Session Time Display/Edit */}
-              <SessionTimeEditor
-                sessionTime={hook.sessionTime}
-                editingTime={hook.editingTime}
-                tempTime={hook.tempTime}
-                newSessionTime={hook.newSessionTime}
-                isNewWorkout={!editingWOD}
-                onEditToggle={hook.setEditingTime}
-                onTimeChange={(time, isNew) => {
-                  isNew ? hook.setNewSessionTime(time) : hook.setTempTime(time);
-                }}
-                onSave={hook.handleTimeUpdate}
-                onTempTimeChange={hook.setTempTime}
-              />
-              {editingWOD?.id && (
-                editingWOD.is_published ? (
-                  <button
-                    onClick={e => {
-                      e.preventDefault();
-                      hook.handleUnpublish();
-                    }}
-                    className='hover:bg-[#1a6b62] p-2 rounded transition flex items-center gap-2'
-                    title='Unpublish Workout'
-                  >
-                    <X size={20} />
-                    <span className='text-sm'>Unpublish</span>
-                  </button>
-                ) : (
-                  <button
-                    onClick={e => {
-                      e.preventDefault();
-                      hook.setPublishModalOpen(true);
-                    }}
-                    className='hover:bg-[#1a6b62] p-2 rounded transition flex items-center gap-2'
-                    title='Publish Workout'
-                  >
-                    <Send size={20} />
-                    <span className='text-sm'>Publish</span>
-                  </button>
-                )
-              )}
-              <button
-                onClick={async e => {
-                  e.preventDefault();
-                  if (hook.validate()) {
-                    // Save any pending time changes first
-                    if (editingWOD && hook.sessionTime && hook.tempTime !== hook.sessionTime.substring(0, 5)) {
-                      await hook.handleTimeUpdate();
-                    }
-                    const dataToSave = {
-                      ...hook.formData,
-                      selectedSessionIds: Array.from(hook.selectedSessionIds),
-                      classTimes: (!editingWOD && hook.selectedSessionIds.size === 0)
-                        ? [hook.newSessionTime]
-                        : hook.formData.classTimes,
-                    };
-                    onSave(dataToSave);
-                    onClose();
-                  }
-                }}
-                className='hover:bg-[#1a6b62] p-1 rounded transition'
-              >
-                <Check size={24} />
-              </button>
-              <button onClick={onClose} className='hover:bg-[#1a6b62] p-1 rounded transition'>
-                <X size={24} />
-              </button>
-            </div>
-          </div>
+          <WorkoutModalHeader
+            editingWOD={editingWOD}
+            notesPanelOpen={hook.notesPanelOpen}
+            sessionTime={hook.sessionTime}
+            editingTime={hook.editingTime}
+            tempTime={hook.tempTime}
+            newSessionTime={hook.newSessionTime}
+            onNotesToggle={(open) => {
+              hook.setNotesPanelOpen(open);
+              onNotesToggle?.(open);
+            }}
+            onTimeEditToggle={hook.setEditingTime}
+            onTimeChange={(time, isNew) => {
+              isNew ? hook.setNewSessionTime(time) : hook.setTempTime(time);
+            }}
+            onTimeSave={hook.handleTimeUpdate}
+            onTempTimeChange={hook.setTempTime}
+            onUnpublish={hook.handleUnpublish}
+            onPublishClick={() => hook.setPublishModalOpen(true)}
+            onSave={async () => {
+              if (hook.validate()) {
+                // Save any pending time changes first
+                if (editingWOD && hook.sessionTime && hook.tempTime !== hook.sessionTime.substring(0, 5)) {
+                  await hook.handleTimeUpdate();
+                }
+                const dataToSave = {
+                  ...hook.formData,
+                  selectedSessionIds: Array.from(hook.selectedSessionIds),
+                  classTimes: (!editingWOD && hook.selectedSessionIds.size === 0)
+                    ? [hook.newSessionTime]
+                    : hook.formData.classTimes,
+                };
+                onSave(dataToSave);
+                onClose();
+              }
+            }}
+            onClose={onClose}
+          />
 
           {/* Content Area */}
           <div className='flex-1 flex overflow-hidden'>
@@ -704,35 +538,16 @@ export default function WorkoutModal({
             </form>
 
             {/* Coach Notes Panel */}
-            {hook.notesPanelOpen && (
-              <div className='w-[400px] bg-gray-50 shadow-xl flex flex-col border-l-2 border-[#208479]'>
-                <div className='bg-[#208479] text-white p-4 flex justify-between items-center'>
-                  <h3 className='text-lg font-bold'>Coach Notes</h3>
-                  <button
-                    onClick={() => {
-                      hook.setNotesPanelOpen(false);
-                      onNotesToggle?.(false);
-                    }}
-                    className='hover:bg-[#1a6b62] p-1 rounded transition'
-                  >
-                    <X size={20} />
-                  </button>
-                </div>
-                <div className='flex-1 overflow-y-auto p-4'>
-                  <textarea
-                    value={hook.formData.coach_notes || ''}
-                    onChange={e => hook.handleChange('coach_notes', e.target.value)}
-                    placeholder='Add private notes about this workout...'
-                    className='w-full h-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 placeholder-gray-400 resize-none text-sm'
-                  />
-                </div>
-                <div className='border-t p-3 bg-white'>
-                  <p className='text-xs text-gray-500'>
-                    Notes are private and searchable. Auto-saved when you save the WOD.
-                  </p>
-                </div>
-              </div>
-            )}
+            <CoachNotesPanel
+              isOpen={hook.notesPanelOpen}
+              notes={hook.formData.coach_notes || ''}
+              mode='side'
+              onClose={() => {
+                hook.setNotesPanelOpen(false);
+                onNotesToggle?.(false);
+              }}
+              onChange={(notes) => hook.handleChange('coach_notes', notes)}
+            />
           </div>
         </div>
       </div>

@@ -8,12 +8,12 @@ interface WorkoutFormFieldsProps {
   formData: WODFormData;
   errors: Record<string, string>;
   workoutTitles: Array<{ id: string; name: string }>;
-  tracks: Array<{ id: string; name: string; color?: string }>;
-  otherSessions: Array<{ id: string; time: string; workout_id?: string }>;
+  tracks: Array<{ id: string; name: string; color?: string | null }>;
+  otherSessions: Array<{ id: string; time: string; workout_id?: string | null }>;
   selectedSessionIds: Set<string>;
   applySessionsOpen: boolean;
   loadingTracks: boolean;
-  onFieldChange: (field: string, value: string | number) => void;
+  onFieldChange: (field: keyof WODFormData, value: any) => void;
   onSessionSelectionToggle: (sessionId: string, checked: boolean) => void;
   onApplySessionsToggle: () => void;
 }
