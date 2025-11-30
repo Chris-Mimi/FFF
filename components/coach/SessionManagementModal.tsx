@@ -164,6 +164,9 @@ export default function SessionManagementModal({
 
   return (
     <>
+      {/* Overlay */}
+      <div className='fixed inset-0 bg-black bg-opacity-30 z-40' onClick={onClose} />
+
       {/* Floating Modal */}
       <div
         className='fixed bg-white rounded-lg shadow-2xl flex flex-col z-50'
@@ -349,9 +352,6 @@ export default function SessionManagementModal({
           </div>
         )}
       </div>
-
-      {/* Overlay */}
-      <div className='fixed inset-0 bg-black bg-opacity-30 z-40' onClick={onClose} />
     </>
   );
 }
