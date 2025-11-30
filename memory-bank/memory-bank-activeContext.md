@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 6.7
-**Updated:** 2025-11-29 (Session 27 - WorkoutModal Component Refactoring)
+**Version:** 6.8
+**Updated:** 2025-11-30 (Session 29 - Component Refactoring Completion)
 
 ---
 
@@ -64,6 +64,22 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-11-30 Session 29 - Mimi):**
+- **Large File Refactoring - SessionManagementModal & AthletePageLogbookTab:**
+  - ✅ **SessionManagementModal extraction:** 944 → 357 lines (62% reduction, 587 lines saved)
+  - ✅ **Created 3 utilities:** modalStateHelpers.ts, bookingHelpers.ts, sessionCapacityHelpers.ts (193 lines total)
+  - ✅ **Created 3 hooks:** useSessionDetails (142), useSessionEditing (160), useBookingManagement (210)
+  - ✅ **Created 3 components:** SessionInfoPanel (162), ManualBookingPanel (68), BookingListItem (95)
+  - ✅ **AthletePageLogbookTab extraction:** 918 → 483 lines (47% reduction, 435 lines saved)
+  - ✅ **Created 2 hooks:** useLogbookData (270), useWorkoutLogging (85) - eliminates 300+ lines of duplication
+  - ✅ **Created utilities:** logbook-utils.ts (date helpers + getPublishedSections)
+  - ✅ **Fixed critical overlay bugs:** Black screen rendering order + opacity syntax (`bg-black bg-opacity-30` → `bg-black/30`)
+  - ✅ **Standardized opacity syntax:** Updated WorkoutModal, NotesModal, app/coach/athletes/page.tsx to modern Tailwind
+  - **Total refactoring impact (Sessions 26-29):** 1,207 lines eliminated, 12 new focused files created
+  - Commits: 1fb6fbec, 8e6cc3a4, a09e3c62, bd564372, 8ad79af5 (14 files changed)
+  - Branch: refactor/useWorkoutModal-extraction (pushed, ready for testing → merge)
+  - See `project-history/2025-11-30-session-29-component-refactoring-completion.md`
 
 **Completed (2025-11-30 Session 28 - Mimi):**
 - **WorkoutModal Header & Notes Extraction:**
