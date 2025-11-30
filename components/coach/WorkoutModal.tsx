@@ -284,7 +284,7 @@ export default function WorkoutModal({
   // Modal mode
   return (
     <>
-      <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4'>
+      <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4'>
         <div
           className={`bg-white rounded-lg shadow-2xl w-full ${hook.notesPanelOpen ? 'max-w-7xl' : 'max-w-5xl'} max-h-[90vh] overflow-hidden flex flex-col transition-all duration-300`}
         >
