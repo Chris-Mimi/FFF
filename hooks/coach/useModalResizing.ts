@@ -17,8 +17,8 @@ export interface UseModalResizingResult {
 }
 
 export function useModalResizing(): UseModalResizingResult {
-  const [notesModalSize, setNotesModalSize] = useState({ width: 600, height: 500 });
-  const [notesModalPos, setNotesModalPos] = useState({ bottom: 20, left: 820 });
+  const [notesModalSize, setNotesModalSize] = useState({ width: 600, height: 700 });
+  const [notesModalPos, setNotesModalPos] = useState({ bottom: 190, left: 800 });
   const [isResizingNotes, setIsResizingNotes] = useState(false);
   const [isDraggingNotes, setIsDraggingNotes] = useState(false);
   const [resizeStartNotes, setResizeStartNotes] = useState({ x: 0, y: 0, width: 0, height: 0, bottom: 0, left: 0 });
