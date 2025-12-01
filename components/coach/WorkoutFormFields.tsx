@@ -13,7 +13,7 @@ interface WorkoutFormFieldsProps {
   selectedSessionIds: Set<string>;
   applySessionsOpen: boolean;
   loadingTracks: boolean;
-  onFieldChange: (field: keyof WODFormData, value: any) => void;
+  onFieldChange: (field: keyof WODFormData, value: WODFormData[keyof WODFormData]) => void;
   onSessionSelectionToggle: (sessionId: string, checked: boolean) => void;
   onApplySessionsToggle: () => void;
 }
