@@ -7,6 +7,12 @@ This document is a template with headings to show you where the issue is or wher
 * Thursday is hideable. Is it complicated to make all days hideable?
 * 
 * Make a plan for how we export and then re-import the data from my Google Calendar workouts from the past 5 years.
+
+* - January 2025 launch timeline (5 weeks)
+  - Week 1 (Dec 2-8) has CRITICAL items:
+    a. RLS policies migration (SECURITY RISK - currently public access)
+    b. Build verification + code cleanup (42 ESLint warnings)
+    c. Analysis page scroll jump bug (deferred from Session 25)
 *
 *
 
@@ -14,7 +20,7 @@ This document is a template with headings to show you where the issue is or wher
  IMPROVEMENTS/Bug Fixes: 2 more files to refactor:
  *  1. Continue refactoring (WorkoutModalHeader, CoachNotesPanel)
   2. Merge to main (defer remaining to opportunistic refactoring)
- * 
+ * Lifts/Benchmarks/ForgeBenchmarks modal must be cleaned up. It is just a copy of the SugarWOD one. Coach notes could go automatically into the Notes for the workout. Athlete Notes automatically into the Athletes Notes section
  *
 
 
@@ -23,17 +29,21 @@ This document is a template with headings to show you where the issue is or wher
 * Make the week button a drop down from which I can select 1-8 weeks.
 * fix the timescale selector so it doesn't jump left and right on clicking different timescales. It does this as the timescale indicator on the right shrinks and expands.
 * How many top exercises will display?
+
+ Auto-update failed · Try claude doctor or npm i -g @anthropic-ai/claude-code
+ 
+
 * 
 
 # Calendar View #
 *
 
 # Athlete Published Workouts Page #
-* 
+* Workouts should show type in the same section as the description or in the section header. Depending on the workout type, another input box opens underneath the section where the Athletes can input a score/time/weight etc. Is this possible to make it automatically appear in the Benchmarks/ForgeBenchmarks/Lifts/ personal records page? For example, strength part is for load.
 *
 
 # Athlete Logbook Page #
-* Only exercises show in the Athlete Logbook. Lifts, Benchmarks & Forge Benchmarks just show a title. Workout details show on the Published Workouts page on hover
+* 
 
 # Member Management Page #
 *
@@ -122,3 +132,104 @@ This document is a template with headings to show you where the issue is or wher
   - Editing workout with pending section drop
   - Time updates for sessions
   - Apply workout to multiple sessions
+
+
+   Testing Checklist - Refactored Components
+
+  1. WorkoutModal (Panel & Modal Modes)
+
+  Panel Mode:
+  - Open panel via calendar date click
+  - Header displays correctly with all buttons (Save, Publish, Notes, Close)
+  - Create new workout → Save → Works
+  - Edit existing workout → Save → Changes persist
+  - Toggle Coach Notes → Floating panel appears at correct position (bottom: 190, left: 800)
+  - Drag notes panel → Position updates
+  - Resize notes panel from all 4 corners → Size updates
+  - Close notes panel → Reopens at last position
+  - Session time edit (inline) → Updates correctly
+  - Publish button (saved workout only) → Works
+  - Close panel → Data cleared
+
+  Modal Mode:
+  - Open modal via "Create Workout" button
+  - Header displays correctly with all buttons
+  - Create new workout → Save → Works
+  - Toggle Coach Notes → Side panel appears (not floating)
+  - Side panel cannot be dragged/resized
+  - Session time edit → Works
+  - Close modal → Data cleared
+
+  2. SessionManagementModal
+
+  Session Details:
+  - Modal opens with correct session data
+  - Capacity displays correctly (X/Y confirmed)
+  - Time displays correctly
+  - Edit capacity inline → Save → Updates
+  - Increase capacity → Waitlist auto-promoted
+  - Decrease capacity below confirmed count → Warning shown
+  - Edit time inline → Save → Updates
+  - Drag modal → Position updates
+  - Resize modal from all 4 corners → Size updates
+
+  Booking Management:
+  - Manual booking dropdown shows available members
+  - Add member to confirmed → Booking created
+  - Add member when full → Goes to waitlist
+  - Mark confirmed as no-show → Status updates
+  - Mark confirmed as late-cancel → Status updates
+  - Undo no-show → Returns to confirmed
+  - Undo late-cancel → Returns to confirmed
+  - Bookings grouped by status (Confirmed, Waitlist, No-Show, Late Cancel)
+  - Cancel session → Status updates to cancelled
+
+  10-Card Tracking:
+  - Manual booking decrements 10-card
+  - No-show decrements 10-card (if not already decremented)
+  - Late-cancel decrements 10-card (if not already decremented)
+  - Undo actions restore 10-card usage
+
+  3. AthletePageLogbookTab
+
+  Day View:
+  - Navigate previous/next day → Workouts load
+  - "Today" button → Jumps to current date
+  - Booked future workout → Shows "Booked" placeholder
+  - Attended past workout → Shows full sections
+  - Published sections only displayed
+  - Result input → Saves correctly
+  - Notes input → Saves correctly
+  - Date input → Saves correctly
+  - "Save Log Entry" → Creates new log
+  - "Save Log Entry" (existing) → Updates log
+  - Empty result/notes → Save button does nothing
+
+  Week View:
+  - Navigate previous/next week → Workouts load
+  - "Today" button → Jumps to current week
+  - 7-day grid displays (Mon-Sun)
+  - Each day shows correct workouts
+  - Booked workouts → Green background, "Booked" text
+  - Attended workouts → White background, title + track color dot
+  - Click workout card → Switches to day view for that date
+  - Days with no workouts → "No workouts" message
+
+  Month View:
+  - Navigate previous/next month → Workouts load
+  - "Today" button → Jumps to current month
+  - Calendar grid displays (42 days, 6 weeks)
+  - Current month days → White background
+  - Adjacent month days → Grey background
+  - Workouts display in correct dates
+  - Booked workouts → Green pill, "Booked"
+  - Attended workouts → Teal pill with title
+  - Click day with workouts → Switches to day view
+  - Days with >2 workouts → Shows "+X more"
+
+  Cross-View:
+  - Switch between views → Date persists
+  - Loading states display correctly
+  - Empty states display correctly
+  - Only user's confirmed bookings shown
+  - Workout logs persist across view switches

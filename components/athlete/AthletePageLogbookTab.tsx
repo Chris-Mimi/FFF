@@ -6,12 +6,40 @@ import { useEffect, useState } from 'react';
 import { useLogbookData } from '@/hooks/athlete/useLogbookData';
 import { useWorkoutLogging } from '@/hooks/athlete/useWorkoutLogging';
 import { formatLocalDate, getWeekDates, getMonthCalendarDays, getPublishedSections, WOD } from '@/utils/logbook-utils';
+import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
 
 interface AthletePageLogbookTabProps {
   userId: string;
   initialDate?: Date;
   initialViewMode?: 'day' | 'week' | 'month';
   onDateChange?: (date: Date) => void;
+}
+
+// Format helper functions for structured movements
+function formatLift(lift: ConfiguredLift): string {
+  if (lift.rep_type === 'constant') {
+    const base = `${lift.name} ${lift.sets}x${lift.reps}`;
+    return lift.percentage_1rm ? `${base} @ ${lift.percentage_1rm}%` : base;
+  } else {
+    const reps = lift.variable_sets?.map(s => s.reps).join('-') || '';
+    return `${lift.name} ${reps}`;
+  }
+}
+
+function formatBenchmark(benchmark: ConfiguredBenchmark): { name: string; description?: string } {
+  const scaling = benchmark.scaling_option ? ` (${benchmark.scaling_option})` : '';
+  return {
+    name: `${benchmark.name}${scaling}`,
+    description: benchmark.description
+  };
+}
+
+function formatForgeBenchmark(forge: ConfiguredForgeBenchmark): { name: string; description?: string } {
+  const scaling = forge.scaling_option ? ` (${forge.scaling_option})` : '';
+  return {
+    name: `${forge.name}${scaling}`,
+    description: forge.description
+  };
 }
 
 export default function AthletePageLogbookTab({ userId, initialDate, initialViewMode, onDateChange }: AthletePageLogbookTabProps) {
@@ -189,12 +217,65 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                             {section.type}
                           </span>
                           {section.duration && (
-                            <span className='text-sm text-gray-500'>{section.duration}</span>
+                            <span className='text-sm text-gray-500'>{section.duration} min</span>
                           )}
                         </div>
-                        <div className='text-sm text-gray-700 whitespace-pre-wrap'>
-                          {section.content}
-                        </div>
+
+                        {/* Lifts (Blue Badges) */}
+                        {section.lifts && section.lifts.length > 0 && (
+                          <div className='space-y-1 mb-2'>
+                            {section.lifts.map((lift, liftIdx) => (
+                              <div key={liftIdx} className='text-xs bg-blue-50 text-blue-900 rounded px-2 py-1'>
+                                <div className='font-semibold'>≡ {formatLift(lift)}</div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Benchmarks (Teal Badges) */}
+                        {section.benchmarks && section.benchmarks.length > 0 && (
+                          <div className='space-y-1 mb-2'>
+                            {section.benchmarks.map((benchmark, bmIdx) => {
+                              const formatted = formatBenchmark(benchmark);
+                              return (
+                                <div key={bmIdx} className='text-xs bg-teal-50 text-teal-900 rounded px-2 py-1'>
+                                  <div className='font-semibold'>≡ {formatted.name}</div>
+                                  {formatted.description && (
+                                    <div className='text-teal-800 whitespace-pre-wrap mt-0.5'>
+                                      {formatted.description}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {/* Forge Benchmarks (Cyan Badges) */}
+                        {section.forge_benchmarks && section.forge_benchmarks.length > 0 && (
+                          <div className='space-y-1 mb-2'>
+                            {section.forge_benchmarks.map((forge, forgeIdx) => {
+                              const formatted = formatForgeBenchmark(forge);
+                              return (
+                                <div key={forgeIdx} className='text-xs bg-cyan-50 text-cyan-900 rounded px-2 py-1'>
+                                  <div className='font-semibold'>≡ {formatted.name}</div>
+                                  {formatted.description && (
+                                    <div className='text-cyan-800 whitespace-pre-wrap mt-0.5'>
+                                      {formatted.description}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {/* Section Content (Exercises and other free-form text) */}
+                        {section.content && (
+                          <div className='text-sm text-gray-700 whitespace-pre-wrap'>
+                            {section.content}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>

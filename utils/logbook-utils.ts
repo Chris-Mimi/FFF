@@ -4,6 +4,7 @@
  */
 
 import { formatDate as formatDateUtil, getWeekDates as getWeekDatesUtil, getMonthDates } from './date-utils';
+import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
 
 // Re-export date utils with logbook-friendly names
 export const formatLocalDate = formatDateUtil;
@@ -19,7 +20,15 @@ export interface WOD {
   date: string;
   tracks?: { name: string; color: string };
   workout_types?: { name: string };
-  sections: Array<{ id: string; type: string; content: string; duration?: string }>;
+  sections: Array<{
+    id: string;
+    type: string;
+    content: string;
+    duration?: string;
+    lifts?: ConfiguredLift[];
+    benchmarks?: ConfiguredBenchmark[];
+    forge_benchmarks?: ConfiguredForgeBenchmark[];
+  }>;
   published_section_ids?: string[];
   attended?: boolean;
   booked?: boolean;
