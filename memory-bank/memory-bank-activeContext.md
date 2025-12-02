@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 6.9
-**Updated:** 2025-12-01 (Session 30 - Refactor Branch Testing & Merge)
+**Version:** 7.0
+**Updated:** 2025-12-02 (Session 31 - Coach Library Improvements)
 
 ---
 
@@ -64,6 +64,30 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-12-02 Session 31 - Mimi):**
+- **Athlete Logbook Badge Display:**
+  - ✅ **Extended WOD interface:** Added lifts[], benchmarks[], forge_benchmarks[] to logbook-utils.ts
+  - ✅ **Format helpers:** Created formatLift, formatBenchmark, formatForgeBenchmark functions
+  - ✅ **Badge rendering:** Color-coded badges (blue=lifts, teal=benchmarks, cyan=forge) in AthletePageLogbookTab
+  - ✅ **Display details:** Shows movement names, scaling options, descriptions alongside exercises
+  - Commit: dfaeef33 - feat(athlete): add structured movement badges to Logbook tab
+
+- **Coach Library Improvements:**
+  - ✅ **Part 1: Database-Driven Workout Types**
+    - Replaced hardcoded arrays with database fetches from workout_types table
+    - Added fetchWorkoutTypes to benchmarks-lifts/page.tsx
+    - Updated BenchmarksTab + ForgeBenchmarksTab dropdowns to use database types
+    - User manages types directly in Supabase (simplified approach)
+  - ✅ **Part 2: Tracks Tab Migration**
+    - Added Tracks as 6th tab in Coach Library (purple theme)
+    - Full Track CRUD: create, edit, delete with inline modal
+    - Track fields: name, description, color picker
+    - Removed Track management from Analysis page (~85 lines)
+    - Analysis page retains read-only track statistics
+  - Commit: 64924865 - feat(coach): database-driven workout types + Tracks tab migration
+  - Files: 4 modified (303 insertions, 112 deletions)
+  - Status: Coach Library consolidation complete, Tracks centralized
 
 **Completed (2025-12-01 Session 30 - Mimi):**
 - **Refactor Branch Testing & Merge (Sessions 26-29):**
