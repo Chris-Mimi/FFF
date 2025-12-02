@@ -47,7 +47,7 @@ interface Exercise {
 
 export default function BenchmarksLiftsManagementPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'benchmarks' | 'forge' | 'lifts' | 'exercises' | 'references'>('benchmarks');
+  const [activeTab, setActiveTab] = useState<'benchmarks' | 'forge' | 'lifts' | 'exercises' | 'references' | 'tracks'>('benchmarks');
   const [loading, setLoading] = useState(true);
 
   // Benchmarks state
@@ -99,6 +99,24 @@ export default function BenchmarksLiftsManagementPage() {
   const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [selectedVideoUrl, setSelectedVideoUrl] = useState('');
   const [selectedVideoName, setSelectedVideoName] = useState('');
+
+  // Workout types state
+  const [workoutTypes, setWorkoutTypes] = useState<Array<{ id: string; name: string }>>([]);
+  const [loadingWorkoutTypes, setLoadingWorkoutTypes] = useState(true);
+
+  // Tracks state
+  interface Track {
+    id: string;
+    name: string;
+    description: string | null;
+    color: string | null;
+  }
+
+  const [tracks, setTracks] = useState<Track[]>([]);
+  const [showTrackModal, setShowTrackModal] = useState(false);
+  const [editingTrack, setEditingTrack] = useState<Track | null>(null);
+  const [trackFormData, setTrackFormData] = useState({ name: '', description: '', color: '#208479' });
+  const [loadingTracks, setLoadingTracks] = useState(true);
 
   // References state
   interface NamingConvention {
@@ -159,6 +177,8 @@ export default function BenchmarksLiftsManagementPage() {
       fetchLifts();
       fetchExercises();
       fetchReferences();
+      fetchWorkoutTypes();
+      fetchTracks();
     }
   }, [loading]);
 
@@ -553,6 +573,114 @@ export default function BenchmarksLiftsManagementPage() {
     }
   };
 
+  const fetchWorkoutTypes = async () => {
+    setLoadingWorkoutTypes(true);
+    const { data, error } = await supabase
+      .from('workout_types')
+      .select('id, name')
+      .order('name');
+
+    if (error) {
+      console.error('Error fetching workout types:', error);
+    } else {
+      setWorkoutTypes(data || []);
+    }
+    setLoadingWorkoutTypes(false);
+  };
+
+  const fetchTracks = async () => {
+    setLoadingTracks(true);
+    const { data, error } = await supabase
+      .from('tracks')
+      .select('*')
+      .order('name');
+
+    if (error) {
+      console.error('Error fetching tracks:', error);
+    } else {
+      setTracks(data || []);
+    }
+    setLoadingTracks(false);
+  };
+
+  const openTrackModal = (track: Track | null = null) => {
+    if (track) {
+      setEditingTrack(track);
+      setTrackFormData({
+        name: track.name,
+        description: track.description || '',
+        color: track.color || '#208479',
+      });
+    } else {
+      setEditingTrack(null);
+      setTrackFormData({ name: '', description: '', color: '#208479' });
+    }
+    setShowTrackModal(true);
+  };
+
+  const handleSaveTrack = async () => {
+    if (!trackFormData.name.trim()) {
+      alert('Track name is required');
+      return;
+    }
+
+    try {
+      if (editingTrack) {
+        // Update existing
+        const { error } = await supabase
+          .from('tracks')
+          .update({
+            name: trackFormData.name,
+            description: trackFormData.description || null,
+            color: trackFormData.color,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', editingTrack.id);
+
+        if (error) throw error;
+      } else {
+        // Create new
+        const { error } = await supabase
+          .from('tracks')
+          .insert([{
+            name: trackFormData.name,
+            description: trackFormData.description || null,
+            color: trackFormData.color,
+          }]);
+
+        if (error) throw error;
+      }
+
+      setShowTrackModal(false);
+      fetchTracks();
+    } catch (error) {
+      console.error('Error saving track:', error);
+      alert('Failed to save track');
+    }
+  };
+
+  const handleDeleteTrack = async (trackId: string) => {
+    if (!confirm('Are you sure you want to delete this track?')) return;
+
+    try {
+      const { error } = await supabase
+        .from('tracks')
+        .delete()
+        .eq('id', trackId);
+
+      if (error) throw error;
+      fetchTracks();
+    } catch (error) {
+      console.error('Error deleting track:', error);
+      alert('Failed to delete track');
+    }
+  };
+
+  const handleTrackFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setTrackFormData(prev => ({ ...prev, [name]: value }));
+  };
+
   const toggleSection = (section: string) => {
     setCollapsedSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
@@ -850,6 +978,16 @@ export default function BenchmarksLiftsManagementPage() {
           >
             References
           </button>
+          <button
+            onClick={() => setActiveTab('tracks')}
+            className={`px-4 py-2 rounded-lg font-medium transition ${
+              activeTab === 'tracks'
+                ? 'bg-purple-600 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            Tracks
+          </button>
         </div>
 
         {/* Tab Content */}
@@ -865,6 +1003,8 @@ export default function BenchmarksLiftsManagementPage() {
             form={benchmarkForm}
             onFormChange={handleBenchmarkFormChange}
             onSave={saveBenchmark}
+            workoutTypes={workoutTypes}
+            loadingWorkoutTypes={loadingWorkoutTypes}
           />
         )}
 
@@ -881,6 +1021,8 @@ export default function BenchmarksLiftsManagementPage() {
             form={forgeForm}
             onFormChange={handleForgeFormChange}
             onSave={saveForge}
+            workoutTypes={workoutTypes}
+            loadingWorkoutTypes={loadingWorkoutTypes}
           />
         )}
 
@@ -945,6 +1087,132 @@ export default function BenchmarksLiftsManagementPage() {
             onFormChange={handleReferenceFormChange}
             onSave={handleSaveReference}
           />
+        )}
+
+        {activeTab === 'tracks' && (
+          <div className='space-y-4'>
+            <div className='flex justify-between items-center'>
+              <h2 className='text-2xl font-bold text-gray-900'>Tracks</h2>
+              <button
+                onClick={() => openTrackModal(null)}
+                className='px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700'
+              >
+                Add Track
+              </button>
+            </div>
+
+            {loadingTracks ? (
+              <div className='text-center py-8 text-gray-500'>Loading tracks...</div>
+            ) : tracks.length === 0 ? (
+              <div className='text-center py-8 text-gray-500'>
+                No tracks yet. Click &quot;Add Track&quot; to create one.
+              </div>
+            ) : (
+              <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'>
+                {tracks.map(track => (
+                  <div
+                    key={track.id}
+                    className='bg-white rounded-lg p-4 border-2 hover:shadow-md transition'
+                    style={{ borderColor: track.color || '#208479' }}
+                  >
+                    <div className='flex justify-between items-start mb-2'>
+                      <h3 className='font-semibold text-gray-900'>{track.name}</h3>
+                      <div className='flex gap-2'>
+                        <button
+                          onClick={() => openTrackModal(track)}
+                          className='text-sm text-blue-600 hover:text-blue-800'
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteTrack(track.id)}
+                          className='text-sm text-red-600 hover:text-red-800'
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                    {track.description && (
+                      <p className='text-sm text-gray-600'>{track.description}</p>
+                    )}
+                    <div
+                      className='mt-2 h-2 rounded'
+                      style={{ backgroundColor: track.color || '#208479' }}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Track Modal */}
+            {showTrackModal && (
+              <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'>
+                <div className='bg-white rounded-lg p-6 w-full max-w-md'>
+                  <h3 className='text-xl font-bold mb-4'>
+                    {editingTrack ? 'Edit Track' : 'Add New Track'}
+                  </h3>
+
+                  <div className='space-y-4'>
+                    <div>
+                      <label className='block text-sm font-medium text-gray-700 mb-2'>
+                        Name <span className='text-red-500'>*</span>
+                      </label>
+                      <input
+                        type='text'
+                        name='name'
+                        value={trackFormData.name}
+                        onChange={handleTrackFormChange}
+                        className='w-full px-4 py-2 border border-gray-300 rounded-lg'
+                        placeholder='e.g., Strength, Olympic Lifting'
+                      />
+                    </div>
+
+                    <div>
+                      <label className='block text-sm font-medium text-gray-700 mb-2'>
+                        Description
+                      </label>
+                      <textarea
+                        name='description'
+                        value={trackFormData.description}
+                        onChange={handleTrackFormChange}
+                        rows={3}
+                        className='w-full px-4 py-2 border border-gray-300 rounded-lg'
+                        placeholder='Optional description...'
+                      />
+                    </div>
+
+                    <div>
+                      <label className='block text-sm font-medium text-gray-700 mb-2'>
+                        Color
+                      </label>
+                      <input
+                        type='color'
+                        name='color'
+                        value={trackFormData.color}
+                        onChange={handleTrackFormChange}
+                        className='w-full h-10 border border-gray-300 rounded-lg'
+                      />
+                    </div>
+                  </div>
+
+                  <div className='flex gap-3 mt-6'>
+                    <button
+                      onClick={handleSaveTrack}
+                      className='flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700'
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={() => setShowTrackModal(false)}
+                      className='flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400'
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         )}
       </div>
 

@@ -3,8 +3,6 @@
 import DateRangePicker from '@/components/coach/analysis/DateRangePicker';
 import ExerciseLibraryPanel from '@/components/coach/analysis/ExerciseLibraryPanel';
 import StatisticsSection from '@/components/coach/analysis/StatisticsSection';
-import TrackManagementSection from '@/components/coach/analysis/TrackManagementSection';
-import TrackModal from '@/components/coach/analysis/TrackModal';
 import { supabase } from '@/lib/supabase';
 import {
   getExerciseFrequency,
@@ -128,15 +126,6 @@ export default function AnalysisPage() {
   const [libraryPos, setLibraryPos] = useState({ top: 100, left: 100 });
   const [librarySize, setLibrarySize] = useState({ width: 600, height: 500 });
   const [showUnusedOnly, setShowUnusedOnly] = useState(false);
-
-  // Track Management Modal State
-  const [trackModalOpen, setTrackModalOpen] = useState(false);
-  const [editingTrack, setEditingTrack] = useState<Track | null>(null);
-  const [trackFormData, setTrackFormData] = useState({
-    name: '',
-    description: '',
-    color: '#208479',
-  });
 
   // Date Range Picker State
   const [dateRangeModalOpen, setDateRangeModalOpen] = useState(false);
@@ -504,73 +493,6 @@ export default function AnalysisPage() {
     return `${startMonthYear} - ${endMonthYear}`;
   };
 
-  const openTrackModal = (track?: Track) => {
-    if (track) {
-      setEditingTrack(track);
-      setTrackFormData({
-        name: track.name,
-        description: track.description || '',
-        color: track.color || '#208479',
-      });
-    } else {
-      setEditingTrack(null);
-      setTrackFormData({
-        name: '',
-        description: '',
-        color: '#208479',
-      });
-    }
-    setTrackModalOpen(true);
-  };
-
-  const handleSaveTrack = async () => {
-    try {
-      if (editingTrack) {
-        const { error } = await supabase
-          .from('tracks')
-          .update({
-            name: trackFormData.name,
-            description: trackFormData.description || null,
-            color: trackFormData.color,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', editingTrack.id);
-
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from('tracks').insert([
-          {
-            name: trackFormData.name,
-            description: trackFormData.description || null,
-            color: trackFormData.color,
-          },
-        ]);
-
-        if (error) throw error;
-      }
-
-      setTrackModalOpen(false);
-      fetchData();
-    } catch (error) {
-      console.error('Error saving track:', error);
-      alert('Error saving track. Please try again.');
-    }
-  };
-
-  const handleDeleteTrack = async (trackId: string) => {
-    if (!confirm('Are you sure you want to delete this track?')) return;
-
-    try {
-      const { error } = await supabase.from('tracks').delete().eq('id', trackId);
-
-      if (error) throw error;
-      fetchData();
-    } catch (error) {
-      console.error('Error deleting track:', error);
-      alert('Error deleting track. Please try again.');
-    }
-  };
-
   const handleExerciseSelect = (exercise: string) => {
     if (!selectedExercises.includes(exercise)) {
       setSelectedExercises([...selectedExercises, exercise]);
@@ -679,10 +601,6 @@ export default function AnalysisPage() {
   }).map(m => ({ exercise: m.name, count: m.count })) || [];
 
   // Handler functions for components
-  const handleTrackFormChange = (field: string, value: string) => {
-    setTrackFormData(prev => ({ ...prev, [field]: value }));
-  };
-
   const handleTimeframePeriodChange = (period: TimeframePeriod) => {
     setTimeframePeriod(period);
   };
@@ -837,26 +755,7 @@ export default function AnalysisPage() {
           onClearAllExercises={clearAllExerciseSelections}
           filteredTopExercises={filteredTopExercises}
         />
-
-        {!loading && (
-          <TrackManagementSection
-            tracks={tracks}
-            loading={loading}
-            onAddTrack={() => openTrackModal()}
-            onEditTrack={openTrackModal}
-            onDeleteTrack={handleDeleteTrack}
-          />
-        )}
       </div>
-
-      <TrackModal
-        isOpen={trackModalOpen}
-        onClose={() => setTrackModalOpen(false)}
-        editingTrack={editingTrack}
-        formData={trackFormData}
-        onFormChange={handleTrackFormChange}
-        onSave={handleSaveTrack}
-      />
 
       <DateRangePicker
         isOpen={dateRangeModalOpen}

@@ -114,6 +114,8 @@ interface ForgeBenchmarksTabProps {
   };
   onFormChange: (field: string, value: string | number) => void;
   onSave: () => void;
+  workoutTypes: Array<{ id: string; name: string }>;
+  loadingWorkoutTypes: boolean;
 }
 
 export default function ForgeBenchmarksTab({
@@ -128,6 +130,8 @@ export default function ForgeBenchmarksTab({
   form,
   onFormChange,
   onSave,
+  workoutTypes,
+  loadingWorkoutTypes,
 }: ForgeBenchmarksTabProps) {
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -222,12 +226,20 @@ export default function ForgeBenchmarksTab({
                   value={form.type}
                   onChange={(e) => onFormChange('type', e.target.value)}
                   className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent cursor-pointer'
+                  disabled={loadingWorkoutTypes}
                 >
-                  <option value='For Time'>For Time</option>
-                  <option value='AMRAP'>AMRAP</option>
-                  <option value='EMOM'>EMOM</option>
-                  <option value='Max Reps'>Max Reps</option>
-                  <option value='Max Weight'>Max Weight</option>
+                  {loadingWorkoutTypes ? (
+                    <option>Loading types...</option>
+                  ) : (
+                    <>
+                      <option value=''>Select type...</option>
+                      {workoutTypes.map(type => (
+                        <option key={type.id} value={type.name}>
+                          {type.name}
+                        </option>
+                      ))}
+                    </>
+                  )}
                 </select>
               </div>
 
