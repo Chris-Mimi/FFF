@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 7.0
-**Updated:** 2025-12-02 (Session 31 - Coach Library Improvements)
+**Version:** 8.0
+**Updated:** 2025-12-03 (Session 32 - Lift Records Enhancement)
 
 ---
 
@@ -58,12 +58,34 @@ Athlete Tables (linked to members.id)
 ├─ athlete_profiles (id, user_id, full_name, emergency_contact)
 ├─ workout_logs (id, user_id, wod_id, result, notes)
 ├─ benchmark_results (id, user_id, benchmark_name, result_value, scaling)
-├─ lift_records (id, user_id, lift_name, rep_max_type, weight, calculated_1rm)
+├─ lift_records (id, user_id, lift_name, weight_kg, reps, rep_max_type ['1RM'|'3RM'|'5RM'|'10RM'], rep_scheme [workout patterns], calculated_1rm, notes, lift_date)
 ```
 
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-12-03 Session 32 - Chris):**
+- **Lift Records Enhancement & Database Schema Fix:**
+  - ✅ **Database Migration:** Created lift_records table migration (20251203_create_lift_records.sql)
+  - ✅ **Schema Design:** Separated rep_scheme (workout patterns: "5x5") from rep_max_type (RM tests: '1RM', '3RM', '5RM', '10RM')
+  - ✅ **XOR Constraint:** Ensures only one rep type field is set per record for data integrity
+  - ✅ **Athlete Logbook Weight Tracking:** UPSERT logic for saving/updating lift records with database persistence
+  - ✅ **Single-line Layout:** Lift title, athlete notes (parentheses), weight input (right-aligned, ml-auto)
+  - ✅ **Default Athlete Notes:** "Record your heaviest set" pre-populated in form
+  - ✅ **Lift Edit Functionality:** Click lift badges in Coach page to edit rep schemes, notes, percentages
+  - ✅ **Form Pre-population:** Edit mode loads existing lift configuration into modal
+  - ✅ **Recent Lifts Delete:** Hover-to-show delete button (right side) with confirmation
+  - ✅ **Rep Scheme Display:** Badges show "5x5", "3x10" from workouts OR "1RM", "3RM" from PR tests
+  - ✅ **Workout Visibility Fix:** Details show 1 hour BEFORE session start (datetime comparison, not date-only)
+  - ✅ **ConfigureLiftModal Cleanup:** Removed coach notes section, removed scaling options
+  - ✅ **Data Cleanup Script:** SQL to remove faulty lift records with UUID keys (cleanup-faulty-lift-records.sql)
+  - ⚠️ **CRITICAL ISSUE:** Migration not yet applied - rep_scheme column missing from database cache
+  - ⚠️ **ACTION REQUIRED (Mimi):** Execute migration in Supabase SQL Editor before testing lift records
+  - Commit: 741ffd4 - feat(lifts): add rep scheme tracking and fix database constraint error
+  - Files: 11 modified (464 insertions, 102 deletions), 2 new files
+  - Status: Code complete and pushed, migration pending execution by Mimi
+  - See `project-history/2025-12-03-session-32-lift-records-enhancement.md`
 
 **Completed (2025-12-02 Session 31 - Mimi):**
 - **Athlete Logbook Badge Display:**
@@ -534,6 +556,9 @@ Athlete Tables (linked to members.id)
 - macOS iCloud Keychain autofill popups (OS behavior, not app bug)
 
 **Lessons Learned:**
+- **2025-12-03 (Session 32):** Semantic data separation prevents constraint violations - Mixing workout rep patterns ("5x5") with RM test values ('1RM') in same column causes CHECK constraint failures. Solution: Use separate columns (rep_scheme vs rep_max_type) with XOR constraint for data integrity.
+- **2025-12-03 (Session 32):** UPSERT pattern for unique constraint handling - Always check for existing records before INSERT when unique constraints apply (user_id + lift_name + date). Use `.maybeSingle()` to handle 0 results gracefully without errors.
+- **2025-12-03 (Session 32):** Migration application vs creation - Creating migration file doesn't apply it to database. Code changes using new schema will fail until migration executes. Always verify schema cache after migrations.
 - **2025-11-29 (Session 26):** useEffect dependency arrays with self-updating state cause instability - When state in dependency array is updated by the effect itself, fast operations can cause jitter/jumps. Solution: Capture initial values in separate state, remove changing values from dependencies.
 - **2025-11-29 (Session 26):** Hook extraction improves testability without breaking consumers - Extracted 3 sub-hooks from 1,123-line hook, maintained interface compatibility (zero changes to WorkoutModal.tsx). Return sub-hook state via main hook interface for transparent delegation.
 - **2025-11-29 (Session 26):** User testing catches subtle UX bugs - Resize jitter only appeared with fast mouse movement, not slow testing. User immediately recognized regression from previous fix. Always test critical UX flows at realistic speeds.
@@ -632,6 +657,12 @@ Athlete Tables (linked to members.id)
 **Target:** Public launch January 2025 | Dual-user workflow: Mimi & Chris via GitHub org
 
 ### Week 1: Security & Infrastructure (Dec 2-8) - CRITICAL
+0. **⚠️ URGENT - Apply lift_records Migration (Session 32)**
+   - Execute `supabase/migrations/20251203_create_lift_records.sql` in Supabase SQL Editor
+   - Creates lift_records table with rep_scheme column for workout patterns
+   - BLOCKING: Lift weight tracking non-functional until applied
+   - Status: Migration file created, execution pending
+
 1. **RLS Policies** (BLOCKING - Security Risk)
    - Execute `remove-public-rls-policies.sql` migration
    - Test with isolated accounts (verify data isolation)
