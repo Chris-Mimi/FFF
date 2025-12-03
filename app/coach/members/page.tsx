@@ -267,6 +267,64 @@ export default function CoachMembersPage() {
     }
   };
 
+  const handleExtendTrial = async (memberId: string, days: number = 30) => {
+    if (!confirm(`Extend trial by ${days} days?`)) {
+      return;
+    }
+
+    setProcessingMemberId(memberId);
+    try {
+      const response = await fetch('/api/members/athlete-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memberId, action: 'extend_trial', days })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to extend trial');
+      }
+
+      alert(data.message || `Trial extended by ${days} days`);
+      await fetchMembersWithAttendance(activeTab, attendanceTimeframe);
+    } catch (error) {
+      console.error('Error extending trial:', error);
+      alert(error instanceof Error ? error.message : 'Failed to extend trial. Please try again.');
+    } finally {
+      setProcessingMemberId(null);
+    }
+  };
+
+  const handleActivateSubscription = async (memberId: string) => {
+    if (!confirm('Activate full subscription? This will remove the trial end date.')) {
+      return;
+    }
+
+    setProcessingMemberId(memberId);
+    try {
+      const response = await fetch('/api/members/athlete-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memberId, action: 'activate' })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to activate subscription');
+      }
+
+      alert(data.message || 'Subscription activated successfully');
+      await fetchMembersWithAttendance(activeTab, attendanceTimeframe);
+    } catch (error) {
+      console.error('Error activating subscription:', error);
+      alert(error instanceof Error ? error.message : 'Failed to activate subscription. Please try again.');
+    } finally {
+      setProcessingMemberId(null);
+    }
+  };
+
   const toggleFilter = (type: MembershipType) => {
     setSelectedFilters(prev =>
       prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
@@ -630,16 +688,45 @@ export default function CoachMembersPage() {
                     </div>
                   )}
                   {activeTab === 'active' && (
-                    <div className="flex gap-2 ml-3">
-                      <button
-                        onClick={() => handleUnapprove(member.id)}
-                        disabled={processingMemberId === member.id}
-                        className="flex items-center gap-1 px-2 py-1 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-orange-400 hover:text-orange-300 rounded transition-colors duration-200 text-xs"
-                        title="Move back to pending"
-                      >
-                        <Clock size={12} />
-                        Unapprove
-                      </button>
+                    <div className="flex flex-col gap-2 ml-3">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleUnapprove(member.id)}
+                          disabled={processingMemberId === member.id}
+                          className="flex items-center gap-1 px-2 py-1 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-orange-400 hover:text-orange-300 rounded transition-colors duration-200 text-xs"
+                          title="Move back to pending"
+                        >
+                          <Clock size={12} />
+                          Unapprove
+                        </button>
+                      </div>
+
+                      {/* Athlete Subscription Management */}
+                      {member.account_type === 'primary' && (
+                        <div className="flex gap-2 pt-1 border-t border-gray-700">
+                          {member.athlete_subscription_status === 'trial' && (
+                            <button
+                              onClick={() => handleExtendTrial(member.id, 30)}
+                              disabled={processingMemberId === member.id}
+                              className="flex items-center gap-1 px-2 py-1 bg-teal-600 hover:bg-teal-700 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded transition-colors duration-200 text-xs"
+                              title="Add 30 days to trial"
+                            >
+                              +30d Trial
+                            </button>
+                          )}
+                          {(member.athlete_subscription_status === 'trial' || member.athlete_subscription_status === 'expired') && (
+                            <button
+                              onClick={() => handleActivateSubscription(member.id)}
+                              disabled={processingMemberId === member.id}
+                              className="flex items-center gap-1 px-2 py-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded transition-colors duration-200 text-xs"
+                              title="Activate full subscription (no expiry)"
+                            >
+                              <Check size={12} />
+                              Activate
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
                   {activeTab === 'blocked' && (

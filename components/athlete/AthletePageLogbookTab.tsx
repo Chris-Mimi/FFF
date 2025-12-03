@@ -76,13 +76,14 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
     try {
       const weight = parseFloat(weightKg);
 
-      // Check if a record already exists for this lift + date + user
+      // Check if a record already exists for this lift + date + user + rep_scheme
       const { data: existingRecord, error: checkError } = await supabase
         .from('lift_records')
         .select('id')
         .eq('user_id', userId)
         .eq('lift_name', liftName)
         .eq('lift_date', liftDate)
+        .eq('rep_scheme', repScheme || null)
         .maybeSingle();
 
       if (checkError) {
@@ -184,9 +185,16 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
           sections.forEach(section => {
             if (section.lifts) {
               section.lifts.forEach((lift) => {
-                const liftKey = `${wod.id}-${section.id}-${lift.name}`;
-                // Find the most recent record for this lift
-                const existingRecord = data.find(r => r.lift_name === lift.name);
+                // Calculate rep scheme for this lift
+                const repScheme = lift.rep_type === 'constant'
+                  ? `${lift.sets || 1}x${lift.reps || 1}`
+                  : lift.variable_sets?.map(s => s.reps).join('-') || '1';
+
+                const liftKey = `${wod.id}-${section.id}-${lift.name}-${repScheme}`;
+                // Find the most recent record for this lift with matching rep_scheme
+                const existingRecord = data.find(r =>
+                  r.lift_name === lift.name && r.rep_scheme === repScheme
+                );
                 if (existingRecord) {
                   newLiftRecords[liftKey] = {
                     lift_name: existingRecord.lift_name,
@@ -382,7 +390,6 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                         {section.lifts && section.lifts.length > 0 && (
                           <div className='space-y-3 mb-2'>
                             {section.lifts.map((lift, liftIdx) => {
-                              const liftKey = `${wod.id}-${section.id}-${lift.name}`;
                               const repsForRecord = lift.rep_type === 'constant' ? (lift.reps || 1) :
                                 (lift.variable_sets && lift.variable_sets.length > 0 ? lift.variable_sets[0].reps : 1);
 
@@ -390,6 +397,9 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                               const repScheme = lift.rep_type === 'constant'
                                 ? `${lift.sets || 1}x${lift.reps || 1}`
                                 : lift.variable_sets?.map(s => s.reps).join('-') || '1';
+
+                              // Include rep_scheme in liftKey to separate lifts with different schemes
+                              const liftKey = `${wod.id}-${section.id}-${lift.name}-${repScheme}`;
 
                               return (
                                 <div key={liftIdx} className='bg-blue-50 text-blue-900 rounded p-2'>

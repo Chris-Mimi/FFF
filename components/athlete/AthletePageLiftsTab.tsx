@@ -46,6 +46,13 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
   const [expandedSections, setExpandedSections] = useState({
     recent: true,
     charts: true,
+    workoutProgress: true,
+  });
+  const [expandedCategories, setExpandedCategories] = useState({
+    Olympic: false,
+    Press: false,
+    Pull: false,
+    Squat: false,
   });
 
   useEffect(() => {
@@ -266,6 +273,55 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
       weight: entry.weight_kg,
       repMaxType: entry.rep_max_type,
       isPR: entry.weight_kg === prsByType.get(entry.rep_max_type || ''),
+    }));
+  };
+
+  // Get unique lift + rep_scheme combinations from workout lifts (not RM tests)
+  const getWorkoutLiftCombinations = () => {
+    const combinations = new Map<string, { liftName: string; repScheme: string; category: string; count: number }>();
+
+    liftHistory.forEach(record => {
+      if (record.rep_scheme) { // Only workout lifts, not RM tests
+        const key = `${record.lift_name}-${record.rep_scheme}`;
+        const lift = lifts.find(l => l.name === record.lift_name);
+
+        if (lift) {
+          if (!combinations.has(key)) {
+            combinations.set(key, {
+              liftName: record.lift_name,
+              repScheme: record.rep_scheme,
+              category: lift.category,
+              count: 0,
+            });
+          }
+          const combo = combinations.get(key)!;
+          combo.count += 1;
+        }
+      }
+    });
+
+    return Array.from(combinations.values());
+  };
+
+  // Get chart data for a specific lift + rep_scheme combination
+  const getWorkoutLiftChartData = (liftName: string, repScheme: string) => {
+    const results = liftHistory
+      .filter(entry => entry.lift_name === liftName && entry.rep_scheme === repScheme)
+      .sort((a, b) => new Date(a.lift_date).getTime() - new Date(b.lift_date).getTime());
+
+    if (results.length === 0) return [];
+
+    // Find PR (max weight) for this combination
+    const prWeight = Math.max(...results.map(r => r.weight_kg));
+
+    return results.map(entry => ({
+      date: new Date(entry.lift_date).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      }),
+      weight: entry.weight_kg,
+      isPR: entry.weight_kg === prWeight,
     }));
   };
 
@@ -512,6 +568,92 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                 );
               })}
             </div>
+          </div>
+        )}
+      </div>
+
+      {/* Workout Lift Progress Section */}
+      <div className='bg-white rounded-lg shadow p-6'>
+        <button
+          onClick={() => setExpandedSections(prev => ({ ...prev, workoutProgress: !prev.workoutProgress }))}
+          className='flex items-center gap-2 text-2xl font-bold text-gray-700 mb-4 hover:text-[#208479] transition'
+        >
+          {expandedSections.workoutProgress ? <ChevronDown size={24} /> : <ChevronRight size={24} />}
+          Workout Lift Progress
+        </button>
+
+        {expandedSections.workoutProgress && (
+          <div>
+            <p className='text-gray-700 mb-6'>Track progress on specific lift patterns from workouts (e.g., Bench Press 5x5).</p>
+
+            {(['Olympic', 'Press', 'Pull', 'Squat'] as const).map(category => {
+              const categoryLifts = getWorkoutLiftCombinations().filter(combo => combo.category === category);
+
+              if (categoryLifts.length === 0) return null;
+
+              return (
+                <div key={category} className='mb-4'>
+                  <button
+                    onClick={() => setExpandedCategories(prev => ({ ...prev, [category]: !prev[category] }))}
+                    className='flex items-center gap-2 text-lg font-bold text-gray-700 mb-3 hover:text-[#208479] transition w-full'
+                  >
+                    {expandedCategories[category] ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
+                    {category} Lifts ({categoryLifts.length})
+                  </button>
+
+                  {expandedCategories[category] && (
+                    <div className='grid grid-cols-1 gap-6 pl-6'>
+                      {categoryLifts.map(combo => {
+                        const chartData = getWorkoutLiftChartData(combo.liftName, combo.repScheme);
+                        if (chartData.length < 2) return null; // Only show charts with 2+ data points
+
+                        return (
+                          <div key={`${combo.liftName}-${combo.repScheme}`} className='border border-sky-300 rounded-lg p-4 bg-gradient-to-br from-[#40E0D0] to-[#AFEEEE]'>
+                            <h4 className='font-bold text-gray-700 mb-3'>
+                              {combo.liftName} {combo.repScheme} <span className='text-sm text-gray-600'>({combo.count} sessions)</span>
+                            </h4>
+                            <ResponsiveContainer width='100%' height={200}>
+                              <LineChart data={chartData}>
+                                <CartesianGrid strokeDasharray='3 3' stroke='white' />
+                                <XAxis dataKey='date' tick={{ fontSize: 12 }} />
+                                <YAxis />
+                                <Tooltip
+                                  content={({ active, payload }) => {
+                                    if (active && payload && payload.length) {
+                                      return (
+                                        <div className='bg-white p-2 border border-gray-300 rounded shadow-lg'>
+                                          <p className='text-xs text-gray-900 font-semibold'>
+                                            {payload[0].payload.date}
+                                          </p>
+                                          <p className='text-xs text-[#208479] font-semibold'>
+                                            {payload[0].payload.weight}kg
+                                          </p>
+                                          {payload[0].payload.isPR && (
+                                            <p className='text-xs text-red-600 font-bold'>PR!</p>
+                                          )}
+                                        </div>
+                                      );
+                                    }
+                                    return null;
+                                  }}
+                                />
+                                <Line
+                                  type='monotone'
+                                  dataKey='weight'
+                                  stroke='#208479'
+                                  strokeWidth={2}
+                                  dot={<CustomDot />}
+                                />
+                              </LineChart>
+                            </ResponsiveContainer>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
