@@ -65,6 +65,27 @@ Athlete Tables (linked to members.id)
 
 ## 📍 Current Status (Last 2 Weeks)
 
+**Completed (2025-12-03 Session 33 - Chris):**
+- **Lift Input Separation & Athlete Subscription Management:**
+  - ✅ **Fixed Lift Input Bug:** Same lift with different rep schemes (e.g., Snatch 5x5 vs 6x6) now have separate input fields
+  - ✅ **Updated liftKey Logic:** Changed from `${wod.id}-${section.id}-${lift.name}` to include `${repScheme}` for unique identification
+  - ✅ **UPSERT Fix:** Database uniqueness check now includes rep_scheme (lift_name + lift_date + rep_scheme)
+  - ✅ **Load Records Fix:** loadLiftRecords() matches by both lift_name AND rep_scheme when fetching existing data
+  - ✅ **Workout Lift Progress Charts:** New collapsible section in AthletePageLiftsTab below Progress Charts
+  - ✅ **Category Grouping:** Charts organized by Olympic, Press, Pull, Squat categories with collapse/expand
+  - ✅ **Rep Scheme Display:** Charts show "Bench Press 5x5 (12 sessions)" with session count
+  - ✅ **PR Tracking:** Red PR badges on highest weight for each lift+rep_scheme combination
+  - ✅ **Chart Requirements:** Only shows charts with 2+ data points for meaningful progress tracking
+  - ✅ **Subscription Management API:** Created `/api/members/athlete-subscription/route.ts`
+  - ✅ **API Actions:** extend_trial (adds days), activate (full subscription), expire (manual expiry)
+  - ✅ **Smart Date Extension:** Extends from current end date if not expired, otherwise from now
+  - ✅ **Coach UI Buttons:** "+30d Trial" (teal) and "Activate" (green) in Active tab for primary members
+  - ✅ **Conditional Display:** Buttons only show for primary accounts, "+30d Trial" for trial status, "Activate" for trial/expired
+  - Commit: 2c066fa - feat(athlete): fix lift input separation and add subscription management
+  - Files: 4 modified (394 insertions, 15 deletions), 1 new file
+  - Status: Complete and pushed to GitHub
+  - **Testing:** Lift input separation working, Workout Lift Progress displaying correctly, Subscription management functional
+
 **Completed (2025-12-03 Session 32 - Chris):**
 - **Lift Records Enhancement & Database Schema Fix:**
   - ✅ **Database Migration:** Created lift_records table migration (20251203_create_lift_records.sql)
@@ -556,6 +577,9 @@ Athlete Tables (linked to members.id)
 - macOS iCloud Keychain autofill popups (OS behavior, not app bug)
 
 **Lessons Learned:**
+- **2025-12-03 (Session 33):** Composite keys prevent data collision - When same entity appears multiple times with variations (e.g., "Snatch 5x5" vs "Snatch 6x6"), include distinguishing field in key. Changed liftKey from `${lift.name}` to `${lift.name}-${repScheme}` fixed input collision bug. Apply to both UI state keys AND database UPSERT checks.
+- **2025-12-03 (Session 33):** Progress charts need minimum data points - Only show charts with 2+ data points for meaningful trends. Single data point provides no progress visualization value.
+- **2025-12-03 (Session 33):** Category grouping improves scalability - When data grows large, collapsible category sections prevent overwhelming users. Added category dropdowns when 10+ workout lift combinations existed.
 - **2025-12-03 (Session 32):** Semantic data separation prevents constraint violations - Mixing workout rep patterns ("5x5") with RM test values ('1RM') in same column causes CHECK constraint failures. Solution: Use separate columns (rep_scheme vs rep_max_type) with XOR constraint for data integrity.
 - **2025-12-03 (Session 32):** UPSERT pattern for unique constraint handling - Always check for existing records before INSERT when unique constraints apply (user_id + lift_name + date). Use `.maybeSingle()` to handle 0 results gracefully without errors.
 - **2025-12-03 (Session 32):** Migration application vs creation - Creating migration file doesn't apply it to database. Code changes using new schema will fail until migration executes. Always verify schema cache after migrations.
