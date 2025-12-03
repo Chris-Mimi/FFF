@@ -31,10 +31,10 @@ async function filterUserWorkouts(
 ): Promise<WOD[]> {
   const userWorkouts = await Promise.all(
     wodsData.map(async (workout) => {
-      // Get session for this workout
+      // Get session for this workout (including time)
       const { data: sessionData } = await supabase
         .from('weekly_sessions')
-        .select('id')
+        .select('id, time')
         .eq('workout_id', workout.id)
         .maybeSingle();
 
@@ -51,10 +51,11 @@ async function filterUserWorkouts(
 
       if (!booking) return null;
 
-      const workoutDate = new Date(workout.date);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const isPastDate = workoutDate < today;
+      // Parse session datetime and subtract 1 hour to determine if workout details should be visible
+      const sessionDateTime = new Date(`${workout.date}T${sessionData.time}`);
+      const oneHourBeforeSession = new Date(sessionDateTime.getTime() - 60 * 60 * 1000);
+      const now = new Date();
+      const shouldShowDetails = now >= oneHourBeforeSession;
 
       return {
         ...workout,
@@ -63,8 +64,8 @@ async function filterUserWorkouts(
         workout_types: Array.isArray(workout.workout_types)
           ? workout.workout_types[0]
           : workout.workout_types,
-        attended: isPastDate,
-        booked: !isPastDate,
+        attended: shouldShowDetails,
+        booked: !shouldShowDetails,
       };
     })
   );

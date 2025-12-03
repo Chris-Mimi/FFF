@@ -20,8 +20,10 @@ export interface UseMovementConfigurationResult {
   // Lift state
   liftModalOpen: boolean;
   selectedLift: BarbellLift | null;
+  editingLift: { sectionId: string; liftIndex: number; lift: ConfiguredLift } | null;
   setLiftModalOpen: (open: boolean) => void;
   handleSelectLift: (lift: BarbellLift) => void;
+  handleEditLift: (sectionId: string, liftIndex: number) => void;
   handleAddLiftToSection: (sectionId: string, configuredLift: ConfiguredLift) => void;
   handleRemoveLift: (sectionId: string, liftIndex: number) => void;
 
@@ -49,6 +51,7 @@ export function useMovementConfiguration({
   // Lift state
   const [liftModalOpen, setLiftModalOpen] = useState(false);
   const [selectedLift, setSelectedLift] = useState<BarbellLift | null>(null);
+  const [editingLift, setEditingLift] = useState<{ sectionId: string; liftIndex: number; lift: ConfiguredLift } | null>(null);
 
   // Benchmark state
   const [benchmarkModalOpen, setBenchmarkModalOpen] = useState(false);
@@ -61,19 +64,55 @@ export function useMovementConfiguration({
   // Lift handlers
   const handleSelectLift = (lift: BarbellLift) => {
     setSelectedLift(lift);
+    setEditingLift(null); // Clear editing state when adding new lift
+    setLiftModalOpen(true);
+  };
+
+  const handleEditLift = (sectionId: string, liftIndex: number) => {
+    const section = sections.find(s => s.id === sectionId);
+    if (!section || !section.lifts || !section.lifts[liftIndex]) return;
+
+    const liftToEdit = section.lifts[liftIndex];
+    // Convert ConfiguredLift back to BarbellLift for modal
+    const barbellLift: BarbellLift = {
+      id: liftToEdit.id,
+      name: liftToEdit.name,
+      category: '', // We don't need category for editing
+      display_order: 0,
+    };
+
+    setSelectedLift(barbellLift);
+    setEditingLift({ sectionId, liftIndex, lift: liftToEdit });
     setLiftModalOpen(true);
   };
 
   const handleAddLiftToSection = (sectionId: string, configuredLift: ConfiguredLift) => {
-    const updatedSections = sections.map(section =>
-      section.id === sectionId
-        ? {
-            ...section,
-            lifts: [...(section.lifts || []), configuredLift],
-          }
-        : section
-    );
-    onSectionsChange(updatedSections);
+    if (editingLift) {
+      // Update mode: replace existing lift
+      const updatedSections = sections.map(section =>
+        section.id === sectionId
+          ? {
+              ...section,
+              lifts: section.lifts?.map((lift, idx) =>
+                idx === editingLift.liftIndex ? configuredLift : lift
+              ),
+            }
+          : section
+      );
+      onSectionsChange(updatedSections);
+      setEditingLift(null); // Clear editing state
+    } else {
+      // Add mode: append new lift
+      const updatedSections = sections.map(section =>
+        section.id === sectionId
+          ? {
+              ...section,
+              lifts: [...(section.lifts || []), configuredLift],
+            }
+          : section
+      );
+      onSectionsChange(updatedSections);
+    }
   };
 
   const handleRemoveLift = (sectionId: string, liftIndex: number) => {
@@ -152,8 +191,10 @@ export function useMovementConfiguration({
     // Lift
     liftModalOpen,
     selectedLift,
+    editingLift,
     setLiftModalOpen,
     handleSelectLift,
+    handleEditLift,
     handleAddLiftToSection,
     handleRemoveLift,
 

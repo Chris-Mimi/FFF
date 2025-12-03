@@ -116,6 +116,7 @@ export interface UseWorkoutModalResult {
   benchmarkModalOpen: boolean;
   forgeModalOpen: boolean;
   selectedLift: BarbellLift | null;
+  editingLift: { sectionId: string; liftIndex: number; lift: ConfiguredLift } | null;
   selectedBenchmark: Benchmark | null;
   selectedForgeBenchmark: ForgeBenchmark | null;
 
@@ -140,6 +141,7 @@ export interface UseWorkoutModalResult {
   closeLibrary: () => void;
   handleSelectExercise: (exercise: string) => void;
   handleSelectLift: (lift: BarbellLift) => void;
+  handleEditLift: (sectionId: string, liftIndex: number) => void;
   handleSelectBenchmark: (benchmark: Benchmark) => void;
   handleSelectForgeBenchmark: (forge: ForgeBenchmark) => void;
   handleAddLiftToSection: (sectionId: string, configuredLift: ConfiguredLift) => void;
@@ -729,6 +731,7 @@ export function useWorkoutModal(
     benchmarkModalOpen: movementConfiguration.benchmarkModalOpen,
     forgeModalOpen: movementConfiguration.forgeModalOpen,
     selectedLift: movementConfiguration.selectedLift,
+    editingLift: movementConfiguration.editingLift,
     selectedBenchmark: movementConfiguration.selectedBenchmark,
     selectedForgeBenchmark: movementConfiguration.selectedForgeBenchmark,
 
@@ -752,6 +755,7 @@ export function useWorkoutModal(
     closeLibrary,
     handleSelectExercise,
     handleSelectLift,
+    handleEditLift: movementConfiguration.handleEditLift,
     handleSelectBenchmark,
     handleSelectForgeBenchmark,
     handleAddLiftToSection: movementConfiguration.handleAddLiftToSection,

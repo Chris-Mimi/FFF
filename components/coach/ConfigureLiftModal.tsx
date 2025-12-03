@@ -7,6 +7,7 @@ import type { BarbellLift, ConfiguredLift, VariableSet, WODSection } from '@/typ
 interface ConfigureLiftModalProps {
   isOpen: boolean;
   lift: BarbellLift | null;
+  editingLift: { sectionId: string; liftIndex: number; lift: ConfiguredLift } | null;
   activeSection: WODSection | null;
   availableSections: WODSection[];
   onClose: () => void;
@@ -16,6 +17,7 @@ interface ConfigureLiftModalProps {
 function ConfigureLiftModal({
   isOpen,
   lift,
+  editingLift,
   activeSection,
   availableSections,
   onClose,
@@ -36,12 +38,9 @@ function ConfigureLiftModal({
     { set_number: 1, reps: 5, percentage_1rm: undefined },
   ]);
 
-  const [scalingOption, setScalingOption] = useState('None');
   const [visibility, setVisibility] = useState<'everyone' | 'coaches' | 'programmers'>('everyone');
-  const [coachNotes, setCoachNotes] = useState('');
-  const [athleteNotes, setAthleteNotes] = useState('');
-  const [coachNotesExpanded, setCoachNotesExpanded] = useState(false);
-  const [athleteNotesExpanded, setAthleteNotesExpanded] = useState(false);
+  const [athleteNotes, setAthleteNotes] = useState('Record heaviest set');
+  const [athleteNotesExpanded, setAthleteNotesExpanded] = useState(true);
 
   // Draggable state
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -53,11 +52,44 @@ function ConfigureLiftModal({
     if (isOpen) {
       // WorkoutModal is 800px wide (panel mode) or max-w-5xl (modal mode ~896px)
       // Position configure modal to the right with some padding
-      const rightX = 820; // 800px + 20px padding
-      const topY = 100; // Top padding
+      const rightX = 790; // 800px + 20px padding
+      const topY = 70; // Top padding
       setPosition({ x: rightX, y: topY });
     }
   }, [isOpen]);
+
+  // Pre-populate form when editing existing lift
+  useEffect(() => {
+    if (editingLift) {
+      const { lift: existingLift, sectionId } = editingLift;
+
+      setSelectedSectionId(sectionId);
+      setRepType(existingLift.rep_type);
+
+      if (existingLift.rep_type === 'constant') {
+        setSets(existingLift.sets || 5);
+        setReps(existingLift.reps || 5);
+        setPercentage(existingLift.percentage_1rm);
+      } else {
+        setVariableSets(existingLift.variable_sets || [{ set_number: 1, reps: 5, percentage_1rm: undefined }]);
+      }
+
+      setVisibility(existingLift.visibility);
+      setAthleteNotes(existingLift.athlete_notes || '');
+      // Expand athlete notes if they exist
+      setAthleteNotesExpanded(!!existingLift.athlete_notes);
+    } else {
+      // Reset to defaults when not editing
+      setRepType('constant');
+      setSets(5);
+      setReps(5);
+      setPercentage(undefined);
+      setVariableSets([{ set_number: 1, reps: 5, percentage_1rm: undefined }]);
+      setVisibility('everyone');
+      setAthleteNotes('Record your heaviest set');
+      setAthleteNotesExpanded(true);
+    }
+  }, [editingLift]);
 
   // Drag handlers
   const handleDragStart = (e: React.MouseEvent) => {
@@ -126,9 +158,7 @@ function ConfigureLiftModal({
       ...(repType === 'constant'
         ? { sets, reps, percentage_1rm: percentage }
         : { variable_sets: variableSets }),
-      scaling_option: scalingOption !== 'None' ? scalingOption : undefined,
       visibility,
-      coach_notes: coachNotes || undefined,
       athlete_notes: athleteNotes || undefined,
     };
 
@@ -199,7 +229,7 @@ function ConfigureLiftModal({
               onClick={handleAdd}
               className='mt-7 px-6 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white rounded-lg font-semibold transition'
             >
-              Add
+              {editingLift ? 'Update' : 'Add'}
             </button>
           </div>
 
@@ -378,26 +408,6 @@ function ConfigureLiftModal({
             </div>
           )}
 
-          {/* Scaling Options */}
-          <div>
-            <div className='flex items-center justify-between mb-2'>
-              <label className='block text-sm font-semibold text-gray-700'>Scaling Options</label>
-              <button className='text-xs text-[#208479] hover:underline'>Edit Track Default</button>
-            </div>
-            <div className='relative'>
-              <select
-                value={scalingOption}
-                onChange={e => setScalingOption(e.target.value)}
-                className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent appearance-none pr-10'
-              >
-                <option>None</option>
-                <option>Rx</option>
-                <option>Scaled</option>
-              </select>
-              <ChevronDown className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none' size={20} />
-            </div>
-          </div>
-
           {/* Visibility */}
           <div>
             <label className='block text-sm font-semibold text-gray-700 mb-2'>Visible to:</label>
@@ -438,24 +448,11 @@ function ConfigureLiftModal({
             </div>
           </div>
 
-          {/* Coach Notes */}
-          <div>
-            <button
-              onClick={() => setCoachNotesExpanded(!coachNotesExpanded)}
-              className='flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition'
-            >
-              <span className={`transform transition ${coachNotesExpanded ? 'rotate-90' : ''}`}>▸</span>
-              Coach notes...
-            </button>
-            {coachNotesExpanded && (
-              <textarea
-                value={coachNotes}
-                onChange={e => setCoachNotes(e.target.value)}
-                placeholder='Notes visible to coaches only'
-                className='mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
-                rows={3}
-              />
-            )}
+          {/* Coach Notes Info */}
+          <div className='bg-gray-100 border border-gray-300 rounded-lg p-3'>
+            <p className='text-xs text-gray-700'>
+              <span className='font-semibold'>For coach notes:</span> Use the <span className='text-[#208479] font-medium'>Coach Notes</span> panel to add workout or section notes visible to coaches only.
+            </p>
           </div>
 
           {/* Athlete Notes */}

@@ -22,6 +22,7 @@ interface LiftRecord {
   reps: number;
   calculated_1rm?: number;
   rep_max_type?: string;
+  rep_scheme?: string;
   notes?: string;
   lift_date: string;
 }
@@ -398,25 +399,44 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
             {recentLifts.length > 0 ? (
               recentLifts.map(lift => (
-                <div key={lift.id} className='flex flex-col p-3 bg-gradient-to-r from-[#AFEEEE] to-[#40E0D0] border border-[#0ABAB5] rounded-lg'>
-<div className='relative mb-2'>
-  <h4 className='font-bold text-gray-700'>{lift.lift_name}</h4>
-  <span className='absolute top-0 right-0 text-xs px-2 py-1 rounded bg-[#AFEEEE] text-gray-900'>
-    {lift.rep_max_type}
-  </span>
-</div>
-<div className='flex items-center justify-between'>
-  <p className='text-lg font-bold text-[#208479] flex-1'>
-    {lift.weight_kg}kg
-  </p>
-  <p className='text-sm text-gray-700 flex-1 text-right'>
-    {new Date(lift.lift_date).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    })}
-  </p>
-</div>
+                <div key={lift.id} className='flex flex-col p-3 bg-gradient-to-r from-[#AFEEEE] to-[#40E0D0] border border-[#0ABAB5] rounded-lg relative group'>
+                  <div className='flex items-start justify-between mb-2'>
+                    <h4 className='font-bold text-gray-700 flex-1'>{lift.lift_name}</h4>
+
+                    <div className='flex items-center gap-2'>
+                      {/* Rep scheme badge */}
+                      {(lift.rep_max_type || lift.rep_scheme) && (
+                        <span className='text-xs px-2 py-1 rounded bg-[#AFEEEE] text-gray-900 whitespace-nowrap'>
+                          {lift.rep_max_type || lift.rep_scheme}
+                        </span>
+                      )}
+
+                      {/* Delete button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteLift(lift.id);
+                        }}
+                        className='p-1 text-gray-600 hover:text-red-600 hover:bg-white/50 rounded transition opacity-0 group-hover:opacity-100'
+                        title='Delete lift record'
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className='flex items-center justify-between'>
+                    <p className='text-lg font-bold text-[#208479] flex-1'>
+                      {lift.weight_kg}kg
+                    </p>
+                    <p className='text-sm text-gray-700 flex-1 text-right'>
+                      {new Date(lift.lift_date).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </p>
+                  </div>
                 </div>
               ))
             ) : (

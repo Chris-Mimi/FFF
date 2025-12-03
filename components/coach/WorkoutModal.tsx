@@ -208,6 +208,7 @@ export default function WorkoutModal({
                     onRemoveLift={hook.handleRemoveLift}
                     onRemoveBenchmark={hook.handleRemoveBenchmark}
                     onRemoveForgeBenchmark={hook.handleRemoveForgeBenchmark}
+                    onEditLift={hook.handleEditLift}
                   />
                 ))}
 
@@ -237,6 +238,7 @@ export default function WorkoutModal({
         <ConfigureLiftModal
           isOpen={hook.liftModalOpen}
           lift={hook.selectedLift}
+          editingLift={hook.editingLift}
           activeSection={hook.activeSection !== null ? hook.formData.sections[hook.activeSection] : null}
           availableSections={hook.formData.sections}
           onClose={() => {
@@ -525,6 +527,7 @@ export default function WorkoutModal({
                       onRemoveLift={hook.handleRemoveLift}
                       onRemoveBenchmark={hook.handleRemoveBenchmark}
                       onRemoveForgeBenchmark={hook.handleRemoveForgeBenchmark}
+                      onEditLift={hook.handleEditLift}
                     />
                   ))}
 
@@ -567,6 +570,7 @@ export default function WorkoutModal({
       <ConfigureLiftModal
         isOpen={hook.liftModalOpen}
         lift={hook.selectedLift}
+        editingLift={hook.editingLift}
         activeSection={hook.activeSection !== null ? hook.formData.sections[hook.activeSection] : null}
         availableSections={hook.formData.sections}
         onClose={() => {

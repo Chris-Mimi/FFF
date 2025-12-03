@@ -63,6 +63,7 @@ function WODSectionComponent({
   onRemoveLift,
   onRemoveBenchmark,
   onRemoveForgeBenchmark,
+  onEditLift,
 }: {
   section: WODSection;
   sectionIndex: number;
@@ -81,6 +82,7 @@ function WODSectionComponent({
   onRemoveLift: (sectionId: string, liftIndex: number) => void;
   onRemoveBenchmark: (sectionId: string, benchmarkIndex: number) => void;
   onRemoveForgeBenchmark: (sectionId: string, forgeIndex: number) => void;
+  onEditLift: (sectionId: string, liftIndex: number) => void;
 }) {
   const endTime = elapsedMinutes + section.duration;
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -202,7 +204,12 @@ function WODSectionComponent({
                         {section.lifts.map((lift, idx) => (
                           <div
                             key={idx}
-                            className='flex items-center gap-2 bg-blue-100 text-blue-900 rounded-md px-3 py-1.5 text-sm font-medium border border-blue-300'
+                            onClick={e => {
+                              e.stopPropagation();
+                              onEditLift(section.id, idx);
+                            }}
+                            className='flex items-center gap-2 bg-blue-100 text-blue-900 rounded-md px-3 py-1.5 text-sm font-medium border border-blue-300 cursor-pointer hover:bg-blue-200 transition'
+                            title='Click to edit lift'
                           >
                             <GripVertical size={14} className='text-blue-600' />
                             <span>{formatLift(lift)}</span>

@@ -169,10 +169,11 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
         const session = booking.weekly_sessions;
         const workout = session?.wods;
 
-        const sessionDate = new Date(session.date);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const isPastDate = sessionDate < today;
+        // Parse session datetime and subtract 1 hour to determine if workout details should be visible
+        const sessionDateTime = new Date(`${session.date}T${session.time}`);
+        const oneHourBeforeSession = new Date(sessionDateTime.getTime() - 60 * 60 * 1000);
+        const now = new Date();
+        const shouldShowDetails = now >= oneHourBeforeSession;
 
         return {
           id: workout?.id || `session-${session.id}`,
@@ -184,8 +185,8 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
           publish_time: session.time, // Use session time, not publish_time
           publish_duration: workout?.publish_duration || 60,
           session_id: session.id,
-          attended: isPastDate,
-          booked: !isPastDate,
+          attended: shouldShowDetails,
+          booked: !shouldShowDetails,
           track: workout?.tracks ? (Array.isArray(workout.tracks) ? workout.tracks[0] : workout.tracks) : null,
         } as PublishedWorkout;
       });
