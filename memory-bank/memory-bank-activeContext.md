@@ -65,6 +65,25 @@ Athlete Tables (linked to members.id)
 
 ## 📍 Current Status (Last 2 Weeks)
 
+**Completed (2025-12-04 Session 34 - Chris):**
+- **Benchmark Scaling Configuration & Result Tracking:**
+  - ✅ **Database Migration:** Created benchmark scaling and results migration (20251204_add_benchmark_scaling_and_results.sql)
+  - ✅ **Schema Design:** Added has_scaling BOOLEAN to benchmark_workouts and forge_benchmarks tables
+  - ✅ **Results Table:** Created benchmark_results with XOR constraint (benchmark_id OR forge_benchmark_id)
+  - ✅ **Schema Migration:** Migrated from old columns (workout_date, result, scaling) to new (result_date, result_value, scaling_level)
+  - ✅ **Coach UI:** Added has_scaling checkbox in Coach Library modals (BenchmarksTab, ForgeBenchmarksTab)
+  - ✅ **Coach CRUD:** Updated save operations to include has_scaling field in INSERT/UPDATE
+  - ✅ **Propagation Fix:** Fixed has_scaling not copying from library to workout configuration (ConfigureBenchmarkModal, ConfigureForgeBenchmarkModal)
+  - ✅ **Athlete Logbook UI:** Added result input boxes with conditional scaling dropdown (only shows when has_scaling !== false)
+  - ✅ **API Route:** Created `/api/benchmark-results/route.ts` with UPSERT logic (checks existing by user_id + benchmark_name + result_date)
+  - ✅ **Type Updates:** Added has_scaling to TypeScript interfaces (Benchmark, ForgeBenchmark, ConfiguredBenchmark, ConfiguredForgeBenchmark)
+  - ✅ **CRUD Operations Fix:** Updated AthletePageBenchmarksTab and AthletePageForgeBenchmarksTab to use new schema
+  - ⚠️ **KNOWN ISSUE:** Benchmark results not saving in Athlete Logbook - requires further debugging (user ran out of session time)
+  - Commit: 7510c41 - feat(benchmarks): add scaling configuration and result tracking
+  - Files: 12 modified (712 insertions, 313 deletions), 2 new files
+  - Status: Code complete and pushed, save functionality debugging pending
+  - **Next Steps:** Debug benchmark result save issue in Athlete Logbook, verify scaling dropdown visibility logic
+
 **Completed (2025-12-03 Session 33 - Chris):**
 - **Lift Input Separation & Athlete Subscription Management:**
   - ✅ **Fixed Lift Input Bug:** Same lift with different rep schemes (e.g., Snatch 5x5 vs 6x6) now have separate input fields
@@ -577,6 +596,9 @@ Athlete Tables (linked to members.id)
 - macOS iCloud Keychain autofill popups (OS behavior, not app bug)
 
 **Lessons Learned:**
+- **2025-12-04 (Session 34):** Schema migrations require component-wide updates - When changing database column names (workout_date → result_date), must update ALL components that query that table, not just new ones. Search for `.workout_date` globally to find all references. Includes interfaces, CRUD operations, and display logic.
+- **2025-12-04 (Session 34):** XOR constraints need both IDs on INSERT - When benchmark_results has XOR constraint (benchmark_id OR forge_benchmark_id), INSERT must include appropriate ID. Fetch from source table (benchmark_workouts or forge_benchmarks) before inserting result.
+- **2025-12-04 (Session 34):** Type field propagation in structured data - When adding boolean flags to structured movement data (has_scaling), must propagate through entire chain: database → TypeScript interfaces → Coach modal state → Configure modal → Workout sections → Athlete display. Missing any link breaks feature.
 - **2025-12-03 (Session 33):** Composite keys prevent data collision - When same entity appears multiple times with variations (e.g., "Snatch 5x5" vs "Snatch 6x6"), include distinguishing field in key. Changed liftKey from `${lift.name}` to `${lift.name}-${repScheme}` fixed input collision bug. Apply to both UI state keys AND database UPSERT checks.
 - **2025-12-03 (Session 33):** Progress charts need minimum data points - Only show charts with 2+ data points for meaningful trends. Single data point provides no progress visualization value.
 - **2025-12-03 (Session 33):** Category grouping improves scalability - When data grows large, collapsible category sections prevent overwhelming users. Added category dropdowns when 10+ workout lift combinations existed.
