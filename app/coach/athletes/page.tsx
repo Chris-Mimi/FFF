@@ -302,9 +302,10 @@ function BenchmarksSection({
   interface BenchmarkResult {
     id: string;
     benchmark_name: string;
-    result: string;
+    result_value: string;
     notes?: string;
-    workout_date: string;
+    result_date: string;
+    scaling_level?: string;
   }
 
   const [results, setResults] = useState<BenchmarkResult[]>([]);
@@ -325,7 +326,7 @@ function BenchmarksSection({
         .from('benchmark_results')
         .select('*')
         .eq('user_id', athleteId)
-        .order('workout_date', { ascending: false });
+        .order('result_date', { ascending: false });
 
       if (error) throw error;
       setResults(data || []);
@@ -366,11 +367,11 @@ function BenchmarksSection({
               <div>
                 <p className='font-semibold text-gray-900'>{result.benchmark_name}</p>
                 <p className='text-sm text-gray-600'>
-                  {new Date(result.workout_date).toLocaleDateString()}
+                  {new Date(result.result_date).toLocaleDateString()}
                 </p>
               </div>
               <div className='text-right'>
-                <p className='font-semibold text-[#208479]'>{result.result}</p>
+                <p className='font-semibold text-[#208479]'>{result.result_value}</p>
                 {result.notes && <p className='text-sm text-gray-600'>{result.notes}</p>}
               </div>
             </div>

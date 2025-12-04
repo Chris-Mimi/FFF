@@ -550,7 +550,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                                     </div>
                                     <div className='flex items-center gap-2 ml-auto'>
                                       {/* Scaling dropdown (if benchmark has scaling) */}
-                                      {benchmark.has_scaling !== false && (
+                                      {(benchmark.has_scaling ?? true) && (
                                         <select
                                           value={benchmarkResults[benchmarkKey]?.scaling_level || 'Rx'}
                                           onChange={e => setBenchmarkResults(prev => ({
@@ -616,7 +616,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                                     </div>
                                     <div className='flex items-center gap-2 ml-auto'>
                                       {/* Scaling dropdown (if benchmark has scaling) */}
-                                      {forge.has_scaling !== false && (
+                                      {(forge.has_scaling ?? true) && (
                                         <select
                                           value={benchmarkResults[forgeKey]?.scaling_level || 'Rx'}
                                           onChange={e => setBenchmarkResults(prev => ({

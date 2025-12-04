@@ -77,7 +77,7 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
         .from('benchmark_results')
         .select('*')
         .eq('user_id', userId)
-        .order('workout_date', { ascending: false });
+        .order('result_date', { ascending: false });
 
       if (error) throw error;
 
@@ -429,22 +429,34 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
             {recentBenchmarks.length > 0 ? (
               recentBenchmarks.map(result => (
-                <div key={result.id} className='flex flex-col p-3 bg-gradient-to-r from-cyan-100 to-cyan-200 border border-cyan-300 rounded-lg'>
-                  <div className='flex items-center gap-2 mb-2'>
+                <div key={result.id} className='group flex flex-col p-3 bg-gradient-to-r from-cyan-100 to-cyan-200 border border-cyan-300 rounded-lg'>
+                  <div className='relative flex items-center gap-2 mb-2'>
                     <h4 className='font-bold text-gray-900'>{result.benchmark_name}</h4>
-                    <span
-                      className={`text-xs px-2 py-1 rounded ${
-                        result.scaling_level === 'Rx'
-                          ? 'bg-red-600 text-white'
-                          : result.scaling_level === 'Sc1'
-                          ? 'bg-blue-800 text-white'
-                          : result.scaling_level === 'Sc2'
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-blue-400 text-white'
-                      }`}
-                    >
-                      {result.scaling_level}
-                    </span>
+                    <div className='ml-auto flex items-center gap-1'>
+                      <span
+                        className={`text-xs px-2 py-1 rounded ${
+                          result.scaling_level === 'Rx'
+                            ? 'bg-red-600 text-white'
+                            : result.scaling_level === 'Sc1'
+                            ? 'bg-blue-800 text-white'
+                            : result.scaling_level === 'Sc2'
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-blue-400 text-white'
+                        }`}
+                      >
+                        {result.scaling_level}
+                      </span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteBenchmark(result.id);
+                        }}
+                        className='p-1 text-gray-600 hover:text-red-600 hover:bg-white/50 rounded transition opacity-0 group-hover:opacity-100'
+                        title='Delete benchmark record'
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </div>
                   <div className='flex items-center justify-between'>
                     <p className='text-lg font-bold text-[#208479]'>{result.result_value}</p>

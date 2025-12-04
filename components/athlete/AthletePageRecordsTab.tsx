@@ -8,9 +8,9 @@ import { useEffect, useState } from 'react';
 interface BenchmarkResult {
   id: string;
   benchmark_name: string;
-  result: string;
-  scaling: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3';
-  workout_date: string;
+  result_value: string;
+  scaling_level: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3';
+  result_date: string;
 }
 
 interface LiftRecord {
@@ -64,7 +64,7 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
         .from('benchmark_results')
         .select('*')
         .eq('user_id', userId)
-        .order('workout_date', { ascending: false });
+        .order('result_date', { ascending: false });
 
       if (resultsError) throw resultsError;
 
@@ -100,24 +100,24 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
           if (!bestResult) {
             bestResult = result;
           } else {
-            const currentPriority = scalingPriority[result.scaling as keyof typeof scalingPriority] || 0;
-            const bestPriority = scalingPriority[bestResult.scaling as keyof typeof scalingPriority] || 0;
+            const currentPriority = scalingPriority[result.scaling_level as keyof typeof scalingPriority] || 0;
+            const bestPriority = scalingPriority[bestResult.scaling_level as keyof typeof scalingPriority] || 0;
 
             // Prioritize higher scaling level
             if (currentPriority > bestPriority) {
               bestResult = result;
             } else if (currentPriority === bestPriority) {
               // Same scaling - compare results
-              const isTimeBased = result.result.includes(':');
+              const isTimeBased = result.result_value.includes(':');
 
               if (isTimeBased) {
                 // For time: lower is better
-                if (timeToSeconds(result.result) < timeToSeconds(bestResult.result)) {
+                if (timeToSeconds(result.result_value) < timeToSeconds(bestResult.result_value)) {
                   bestResult = result;
                 }
               } else {
                 // For reps: higher is better
-                if (parseInt(result.result) > parseInt(bestResult.result)) {
+                if (parseInt(result.result_value) > parseInt(bestResult.result_value)) {
                   bestResult = result;
                 }
               }
@@ -148,24 +148,24 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
           if (!bestResult) {
             bestResult = result;
           } else {
-            const currentPriority = scalingPriority[result.scaling as keyof typeof scalingPriority] || 0;
-            const bestPriority = scalingPriority[bestResult.scaling as keyof typeof scalingPriority] || 0;
+            const currentPriority = scalingPriority[result.scaling_level as keyof typeof scalingPriority] || 0;
+            const bestPriority = scalingPriority[bestResult.scaling_level as keyof typeof scalingPriority] || 0;
 
             // Prioritize higher scaling level
             if (currentPriority > bestPriority) {
               bestResult = result;
             } else if (currentPriority === bestPriority) {
               // Same scaling - compare results
-              const isTimeBased = result.result.includes(':');
+              const isTimeBased = result.result_value.includes(':');
 
               if (isTimeBased) {
                 // For time: lower is better
-                if (timeToSeconds(result.result) < timeToSeconds(bestResult.result)) {
+                if (timeToSeconds(result.result_value) < timeToSeconds(bestResult.result_value)) {
                   bestResult = result;
                 }
               } else {
                 // For reps: higher is better
-                if (parseInt(result.result) > parseInt(bestResult.result)) {
+                if (parseInt(result.result_value) > parseInt(bestResult.result_value)) {
                   bestResult = result;
                 }
               }
@@ -301,22 +301,22 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
                       <h4 className='font-bold text-gray-900'>{pr.benchmark_name}</h4>
                       <span
                         className={`text-xs px-2 py-1 rounded ${
-                          pr.scaling === 'Rx'
+                          pr.scaling_level === 'Rx'
                             ? 'bg-red-600 text-white'
-                            : pr.scaling === 'Sc1'
+                            : pr.scaling_level === 'Sc1'
                             ? 'bg-blue-800 text-white'
-                            : pr.scaling === 'Sc2'
+                            : pr.scaling_level === 'Sc2'
                             ? 'bg-blue-500 text-white'
                             : 'bg-blue-400 text-white'
                         }`}
                       >
-                        {pr.scaling}
+                        {pr.scaling_level}
                       </span>
                     </div>
                     <div className='flex items-center justify-between'>
-                      <p className='text-lg font-bold text-[#208479]'>{pr.result}</p>
+                      <p className='text-lg font-bold text-[#208479]'>{pr.result_value}</p>
                       <span className='text-sm text-gray-600'>
-                        {new Date(pr.workout_date).toLocaleDateString('en-US', {
+                        {new Date(pr.result_value_date).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
                           year: 'numeric',
@@ -351,22 +351,22 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
                       <h4 className='font-bold text-gray-900'>{pr.benchmark_name}</h4>
                       <span
                         className={`text-xs px-2 py-1 rounded ${
-                          pr.scaling === 'Rx'
+                          pr.scaling_level === 'Rx'
                             ? 'bg-red-600 text-white'
-                            : pr.scaling === 'Sc1'
+                            : pr.scaling_level === 'Sc1'
                             ? 'bg-blue-800 text-white'
-                            : pr.scaling === 'Sc2'
+                            : pr.scaling_level === 'Sc2'
                             ? 'bg-blue-500 text-white'
                             : 'bg-blue-400 text-white'
                         }`}
                       >
-                        {pr.scaling}
+                        {pr.scaling_level}
                       </span>
                     </div>
                     <div className='flex items-center justify-between'>
-                      <p className='text-lg font-bold text-[#208479]'>{pr.result}</p>
+                      <p className='text-lg font-bold text-[#208479]'>{pr.result_value}</p>
                       <span className='text-sm text-gray-600'>
-                        {new Date(pr.workout_date).toLocaleDateString('en-US', {
+                        {new Date(pr.result_value_date).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
                           year: 'numeric',

@@ -152,7 +152,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
     setNewTime(entry.result_value_value);
     setNewNotes(entry.notes || '');
     setNewDate(entry.result_value_date);
-    setNewScaling((entry.scaling_level as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3') || 'Rx');
+    setNewScaling((entry.scaling_level_level as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3') || 'Rx');
     setEditingBenchmarkId(entry.id);
   };
 
@@ -232,10 +232,10 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
     // Find best result for each scaling level to mark as PR
     const prsByScaling = new Map<string, BenchmarkResult>();
     results.forEach(result => {
-      const existing = prsByScaling.get(result.scaling || '');
+      const existing = prsByScaling.get(result.scaling_level || '');
 
       if (!existing) {
-        prsByScaling.set(result.scaling || '', result);
+        prsByScaling.set(result.scaling_level || '', result);
       } else {
         // Determine if time-based or rep-based
         const isTimeBased = result.result_value.includes(':');
@@ -245,14 +245,14 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
           const existingSeconds = timeToSeconds(existing.result_value);
           const currentSeconds = timeToSeconds(result.result_value);
           if (currentSeconds < existingSeconds) {
-            prsByScaling.set(result.scaling || '', result);
+            prsByScaling.set(result.scaling_level || '', result);
           }
         } else {
           // For rep-based: higher is better
           const existingReps = parseInt(existing.result_value) || 0;
           const currentReps = parseInt(result.result_value) || 0;
           if (currentReps > existingReps) {
-            prsByScaling.set(result.scaling || '', result);
+            prsByScaling.set(result.scaling_level || '', result);
           }
         }
       }
@@ -267,7 +267,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
         overallBest = pr;
       } else {
         const currentPriority = scalingPriority[pr.scaling_level as keyof typeof scalingPriority] || 0;
-        const bestPriority = scalingPriority[overallBest.scaling as keyof typeof scalingPriority] || 0;
+        const bestPriority = scalingPriority[overallBest.scaling_level as keyof typeof scalingPriority] || 0;
 
         if (currentPriority > bestPriority) {
           overallBest = pr;
@@ -296,7 +296,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
         return parseInt(timeStr) || 0;
       };
 
-      const isPR = prsByScaling.get(entry.scaling || '')?.id === entry.id;
+      const isPR = prsByScaling.get(entry.scaling_level || '')?.id === entry.id;
       const isOverallBest = overallBest?.id === entry.id;
 
       return {
@@ -307,7 +307,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
         }),
         value: timeToSeconds(entry.result_value),
         resultDisplay: entry.result_value,
-        scaling: entry.scaling,
+        scaling: entry.scaling_level,
         isPR: isPR,
         isOverallBest: isOverallBest,
       };
@@ -321,11 +321,11 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
     if (payload.isPR) {
       let badgeColor = '#dc2626'; // Red for Rx (default)
 
-      if (payload.scaling === 'Sc1') {
+      if (payload.scaling_level === 'Sc1') {
         badgeColor = '#1018ee'; // Blue for Sc1
-      } else if (payload.scaling === 'Sc2') {
+      } else if (payload.scaling_level === 'Sc2') {
         badgeColor = '#4146f0'; // Medium blue for Sc2
-      } else if (payload.scaling === 'Sc3') {
+      } else if (payload.scaling_level === 'Sc3') {
         badgeColor = '#6468ef'; // Light blue for Sc3
       }
 
@@ -423,22 +423,34 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
             {recentBenchmarks.length > 0 ? (
               recentBenchmarks.map(result => (
-                <div key={result.id} className='flex flex-col p-3 bg-gradient-to-r from-teal-100 to-teal-200 border border-teal-300 rounded-lg'>
+                <div key={result.id} className='group flex flex-col p-3 bg-gradient-to-r from-teal-100 to-teal-200 border border-teal-300 rounded-lg'>
 <div className='relative mb-2'>
   <h4 className='font-bold text-gray-900'>{result.benchmark_name}</h4>
-  <span
-    className={`absolute top-0 right-0 text-xs px-2 py-1 rounded ${
-      result.scaling === 'Rx'
-        ? 'bg-red-600 text-white'
-        : result.scaling === 'Sc1'
-        ? 'bg-blue-800 text-white'
-        : result.scaling === 'Sc2'
-        ? 'bg-blue-500 text-white'
-        : 'bg-blue-400 text-white'
-    }`}
-  >
-    {result.scaling}
-  </span>
+  <div className='absolute top-0 right-0 flex items-center gap-1'>
+    <span
+      className={`text-xs px-2 py-1 rounded ${
+        result.scaling_level === 'Rx'
+          ? 'bg-red-600 text-white'
+          : result.scaling_level === 'Sc1'
+          ? 'bg-blue-800 text-white'
+          : result.scaling_level === 'Sc2'
+          ? 'bg-blue-500 text-white'
+          : 'bg-blue-400 text-white'
+      }`}
+    >
+      {result.scaling_level}
+    </span>
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        handleDeleteBenchmark(result.id);
+      }}
+      className='p-1 text-gray-600 hover:text-red-600 hover:bg-white/50 rounded transition opacity-0 group-hover:opacity-100'
+      title='Delete benchmark record'
+    >
+      <Trash2 size={14} />
+    </button>
+  </div>
 </div>
                   <div className='flex items-center justify-between'>
                     <p className='text-lg font-bold text-[#208479]'>{result.result_value}</p>
@@ -496,7 +508,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                                     {payload[0].payload.result_valueDisplay}
                                   </p>
                                   <p className='text-xs text-gray-600'>
-                                    {payload[0].payload.scaling}
+                                    {payload[0].payload.scaling_level}
                                   </p>
                                   {payload[0].payload.isPR && (
                                     <p className='text-xs text-red-600 font-bold'>PR!</p>
@@ -650,16 +662,16 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                           <span className='font-semibold text-gray-900'>{entry.result_value}</span>
                           <span
                             className={`text-xs px-2 py-1 rounded ${
-                              entry.scaling === 'Rx'
+                              entry.scaling_level === 'Rx'
                                 ? 'bg-red-600 text-white'
-                                : entry.scaling === 'Sc1'
+                                : entry.scaling_level === 'Sc1'
                                 ? 'bg-blue-800 text-white'
-                                : entry.scaling === 'Sc2'
+                                : entry.scaling_level === 'Sc2'
                                 ? 'bg-blue-500 text-white'
                                 : 'bg-blue-400 text-white'
                             }`}
                           >
-                            {entry.scaling}
+                            {entry.scaling_level}
                           </span>
                         </div>
                         <p className='text-sm text-gray-600'>
@@ -713,7 +725,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                               Result: {payload[0].payload.result_valueDisplay}
                             </p>
                             <p className='text-sm text-gray-100'>
-                              Scaling: {payload[0].payload.scaling}
+                              Scaling: {payload[0].payload.scaling_level}
                             </p>
                           </div>
                         );
