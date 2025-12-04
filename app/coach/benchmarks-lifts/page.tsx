@@ -58,7 +58,8 @@ export default function BenchmarksLiftsManagementPage() {
     name: '',
     type: '',
     description: '',
-    display_order: 0
+    display_order: 0,
+    has_scaling: true
   });
 
   // Forge Benchmarks state
@@ -69,7 +70,8 @@ export default function BenchmarksLiftsManagementPage() {
     name: '',
     type: '',
     description: '',
-    display_order: 0
+    display_order: 0,
+    has_scaling: true
   });
 
   // Lifts state
@@ -222,7 +224,8 @@ export default function BenchmarksLiftsManagementPage() {
         name: benchmark.name,
         type: benchmark.type,
         description: benchmark.description || '',
-        display_order: benchmark.display_order
+        display_order: benchmark.display_order,
+        has_scaling: benchmark.has_scaling ?? true
       });
     } else {
       setEditingBenchmark(null);
@@ -231,7 +234,8 @@ export default function BenchmarksLiftsManagementPage() {
         name: '',
         type: 'For Time',
         description: '',
-        display_order: maxOrder + 1
+        display_order: maxOrder + 1,
+        has_scaling: true
       });
     }
     setShowBenchmarkModal(true);
@@ -248,6 +252,7 @@ export default function BenchmarksLiftsManagementPage() {
             type: benchmarkForm.type,
             description: benchmarkForm.description,
             display_order: benchmarkForm.display_order,
+            has_scaling: benchmarkForm.has_scaling,
             updated_at: new Date().toISOString()
           })
           .eq('id', editingBenchmark.id);
@@ -261,7 +266,8 @@ export default function BenchmarksLiftsManagementPage() {
             name: benchmarkForm.name,
             type: benchmarkForm.type,
             description: benchmarkForm.description,
-            display_order: benchmarkForm.display_order
+            display_order: benchmarkForm.display_order,
+            has_scaling: benchmarkForm.has_scaling
           });
 
         if (error) throw error;
@@ -318,7 +324,8 @@ export default function BenchmarksLiftsManagementPage() {
         name: forge.name,
         type: forge.type,
         description: forge.description || '',
-        display_order: forge.display_order
+        display_order: forge.display_order,
+        has_scaling: forge.has_scaling ?? true
       });
     } else {
       setEditingForge(null);
@@ -327,7 +334,8 @@ export default function BenchmarksLiftsManagementPage() {
         name: '',
         type: 'For Time',
         description: '',
-        display_order: maxOrder + 1
+        display_order: maxOrder + 1,
+        has_scaling: true
       });
     }
     setShowForgeModal(true);
@@ -344,6 +352,7 @@ export default function BenchmarksLiftsManagementPage() {
             type: forgeForm.type,
             description: forgeForm.description,
             display_order: forgeForm.display_order,
+            has_scaling: forgeForm.has_scaling,
             updated_at: new Date().toISOString()
           })
           .eq('id', editingForge.id);
@@ -357,7 +366,8 @@ export default function BenchmarksLiftsManagementPage() {
             name: forgeForm.name,
             type: forgeForm.type,
             description: forgeForm.description,
-            display_order: forgeForm.display_order
+            display_order: forgeForm.display_order,
+            has_scaling: forgeForm.has_scaling
           });
 
         if (error) throw error;
@@ -854,11 +864,11 @@ export default function BenchmarksLiftsManagementPage() {
   };
 
   // Handler functions for tab components
-  const handleBenchmarkFormChange = (field: string, value: string | number) => {
+  const handleBenchmarkFormChange = (field: string, value: string | number | boolean) => {
     setBenchmarkForm(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleForgeFormChange = (field: string, value: string | number) => {
+  const handleForgeFormChange = (field: string, value: string | number | boolean) => {
     setForgeForm(prev => ({ ...prev, [field]: value }));
   };
 

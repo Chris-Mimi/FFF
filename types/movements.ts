@@ -41,6 +41,7 @@ export interface ConfiguredBenchmark {
   name: string;  // e.g., "Fran"
   type: string;  // e.g., "For Time", "AMRAP"
   description?: string;  // Full workout description from database
+  has_scaling?: boolean;  // Whether this benchmark offers scaling options
   scaling_option?: string;
   visibility: 'everyone' | 'coaches' | 'programmers';
   coach_notes?: string;
@@ -56,6 +57,7 @@ export interface ConfiguredForgeBenchmark {
   name: string;
   type: string;
   description?: string;  // Full workout description from database
+  has_scaling?: boolean;  // Whether this benchmark offers scaling options
   scaling_option?: string;
   visibility: 'everyone' | 'coaches' | 'programmers';
   coach_notes?: string;
@@ -79,6 +81,7 @@ export interface Benchmark {
   type: string;
   description?: string;
   display_order: number;
+  has_scaling?: boolean;  // Whether this benchmark offers scaling options (Rx/Sc1/Sc2/Sc3)
 }
 
 export interface ForgeBenchmark {
@@ -87,6 +90,7 @@ export interface ForgeBenchmark {
   type: string;
   description?: string;
   display_order: number;
+  has_scaling?: boolean;  // Whether this benchmark offers scaling options (Rx/Sc1/Sc2/Sc3)
 }
 
 // ============================================

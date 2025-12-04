@@ -16,6 +16,15 @@ interface LiftRecord {
   rep_scheme?: string;
 }
 
+interface BenchmarkResult {
+  benchmark_name: string;
+  benchmark_type: string;
+  result_value: string;
+  scaling_level?: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3';
+  benchmark_id?: string;
+  forge_benchmark_id?: string;
+}
+
 interface AthletePageLogbookTabProps {
   userId: string;
   initialDate?: Date;
@@ -54,6 +63,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
   const [selectedDate, setSelectedDate] = useState(initialDate || new Date());
   const [viewMode, setViewMode] = useState<'day' | 'week' | 'month'>(initialViewMode || 'week');
   const [liftRecords, setLiftRecords] = useState<Record<string, LiftRecord>>({});
+  const [benchmarkResults, setBenchmarkResults] = useState<Record<string, BenchmarkResult>>({});
 
   // Use extracted hooks
   const { workouts, workoutLogs, loading, setWorkoutLogs } = useLogbookData({
@@ -157,6 +167,83 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
       await loadLiftRecords(dateStr);
     } else {
       alert(`Saved ${recordsToSave.length - errorCount} of ${recordsToSave.length} lift records. ${errorCount} failed.`);
+    }
+  };
+
+  // Save benchmark result to database via API
+  const saveBenchmarkResult = async (
+    benchmarkName: string,
+    benchmarkType: string,
+    resultValue: string,
+    resultDate: string,
+    scalingLevel?: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3',
+    benchmarkId?: string,
+    forgeBenchmarkId?: string
+  ) => {
+    if (!resultValue || resultValue.trim() === '') {
+      return; // Don't save if no result entered
+    }
+
+    try {
+      const response = await fetch('/api/benchmark-results', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          benchmarkId,
+          forgeBenchmarkId,
+          benchmarkName,
+          benchmarkType,
+          resultValue,
+          scalingLevel,
+          resultDate
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to save benchmark result');
+      }
+
+      console.log('Benchmark result saved:', data);
+    } catch (error) {
+      console.error('Error saving benchmark result:', error);
+      alert(`Failed to save benchmark result: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  };
+
+  // Save all benchmark results for a workout
+  const saveAllBenchmarkResults = async (dateStr: string) => {
+    const resultsToSave = Object.entries(benchmarkResults).filter(([_, result]) => result.result_value && result.result_value.trim() !== '');
+
+    if (resultsToSave.length === 0) {
+      alert('No benchmark results entered to save');
+      return;
+    }
+
+    let errorCount = 0;
+    for (const [_key, result] of resultsToSave) {
+      try {
+        await saveBenchmarkResult(
+          result.benchmark_name,
+          result.benchmark_type,
+          result.result_value,
+          dateStr,
+          result.scaling_level,
+          result.benchmark_id,
+          result.forge_benchmark_id
+        );
+      } catch (error) {
+        errorCount++;
+      }
+    }
+
+    if (errorCount === 0) {
+      alert('Benchmark results saved successfully!');
+      setBenchmarkResults({});
+    } else {
+      alert(`Saved ${resultsToSave.length - errorCount} of ${resultsToSave.length} benchmark results. ${errorCount} failed.`);
     }
   };
 
@@ -443,38 +530,132 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                           </div>
                         )}
 
-                        {/* Benchmarks (Teal Badges) */}
+                        {/* Benchmarks (Teal Badges) + Result Tracking */}
                         {section.benchmarks && section.benchmarks.length > 0 && (
-                          <div className='space-y-1 mb-2'>
+                          <div className='space-y-2 mb-2'>
                             {section.benchmarks.map((benchmark, bmIdx) => {
                               const formatted = formatBenchmark(benchmark);
+                              const benchmarkKey = `${wod.id}-${section.id}-${benchmark.name}`;
+
                               return (
                                 <div key={bmIdx} className='text-xs bg-teal-50 text-teal-900 rounded px-2 py-1'>
-                                  <div className='font-semibold'>≡ {formatted.name}</div>
-                                  {formatted.description && (
-                                    <div className='text-teal-800 whitespace-pre-wrap mt-0.5'>
-                                      {formatted.description}
+                                  <div className='flex items-start justify-between gap-2'>
+                                    <div className='flex-1'>
+                                      <div className='font-semibold'>≡ {formatted.name}</div>
+                                      {formatted.description && (
+                                        <div className='text-teal-800 whitespace-pre-wrap mt-0.5 mb-1'>
+                                          {formatted.description}
+                                        </div>
+                                      )}
                                     </div>
-                                  )}
+                                    <div className='flex items-center gap-2 ml-auto'>
+                                      {/* Scaling dropdown (if benchmark has scaling) */}
+                                      {benchmark.has_scaling !== false && (
+                                        <select
+                                          value={benchmarkResults[benchmarkKey]?.scaling_level || 'Rx'}
+                                          onChange={e => setBenchmarkResults(prev => ({
+                                            ...prev,
+                                            [benchmarkKey]: {
+                                              benchmark_name: benchmark.name,
+                                              benchmark_type: benchmark.type,
+                                              result_value: prev[benchmarkKey]?.result_value || '',
+                                              scaling_level: e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3',
+                                              benchmark_id: benchmark.id
+                                            }
+                                          }))}
+                                          className='w-14 px-1 py-0.5 text-xs border border-teal-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                                        >
+                                          <option value='Rx'>Rx</option>
+                                          <option value='Sc1'>Sc1</option>
+                                          <option value='Sc2'>Sc2</option>
+                                          <option value='Sc3'>Sc3</option>
+                                        </select>
+                                      )}
+                                      {/* Result input */}
+                                      <input
+                                        type='text'
+                                        placeholder={benchmark.type.includes('Time') ? 'mm:ss' : benchmark.type.includes('AMRAP') ? 'reps' : 'result'}
+                                        value={benchmarkResults[benchmarkKey]?.result_value || ''}
+                                        onChange={e => setBenchmarkResults(prev => ({
+                                          ...prev,
+                                          [benchmarkKey]: {
+                                            benchmark_name: benchmark.name,
+                                            benchmark_type: benchmark.type,
+                                            result_value: e.target.value,
+                                            scaling_level: prev[benchmarkKey]?.scaling_level,
+                                            benchmark_id: benchmark.id
+                                          }
+                                        }))}
+                                        className='w-24 px-2 py-1 text-xs border border-teal-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                                      />
+                                    </div>
+                                  </div>
                                 </div>
                               );
                             })}
                           </div>
                         )}
 
-                        {/* Forge Benchmarks (Cyan Badges) */}
+                        {/* Forge Benchmarks (Cyan Badges) + Result Tracking */}
                         {section.forge_benchmarks && section.forge_benchmarks.length > 0 && (
-                          <div className='space-y-1 mb-2'>
+                          <div className='space-y-2 mb-2'>
                             {section.forge_benchmarks.map((forge, forgeIdx) => {
                               const formatted = formatForgeBenchmark(forge);
+                              const forgeKey = `${wod.id}-${section.id}-forge-${forge.name}`;
+
                               return (
                                 <div key={forgeIdx} className='text-xs bg-cyan-50 text-cyan-900 rounded px-2 py-1'>
-                                  <div className='font-semibold'>≡ {formatted.name}</div>
-                                  {formatted.description && (
-                                    <div className='text-cyan-800 whitespace-pre-wrap mt-0.5'>
-                                      {formatted.description}
+                                  <div className='flex items-start justify-between gap-2'>
+                                    <div className='flex-1'>
+                                      <div className='font-semibold'>≡ {formatted.name}</div>
+                                      {formatted.description && (
+                                        <div className='text-cyan-800 whitespace-pre-wrap mt-0.5 mb-1'>
+                                          {formatted.description}
+                                        </div>
+                                      )}
                                     </div>
-                                  )}
+                                    <div className='flex items-center gap-2 ml-auto'>
+                                      {/* Scaling dropdown (if benchmark has scaling) */}
+                                      {forge.has_scaling !== false && (
+                                        <select
+                                          value={benchmarkResults[forgeKey]?.scaling_level || 'Rx'}
+                                          onChange={e => setBenchmarkResults(prev => ({
+                                            ...prev,
+                                            [forgeKey]: {
+                                              benchmark_name: forge.name,
+                                              benchmark_type: forge.type,
+                                              result_value: prev[forgeKey]?.result_value || '',
+                                              scaling_level: e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3',
+                                              forge_benchmark_id: forge.id
+                                            }
+                                          }))}
+                                          className='w-14 px-1 py-0.5 text-xs border border-cyan-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                                        >
+                                          <option value='Rx'>Rx</option>
+                                          <option value='Sc1'>Sc1</option>
+                                          <option value='Sc2'>Sc2</option>
+                                          <option value='Sc3'>Sc3</option>
+                                        </select>
+                                      )}
+                                      {/* Result input */}
+                                      <input
+                                        type='text'
+                                        placeholder={forge.type.includes('Time') ? 'mm:ss' : forge.type.includes('AMRAP') ? 'reps' : 'result'}
+                                        value={benchmarkResults[forgeKey]?.result_value || ''}
+                                        onChange={e => setBenchmarkResults(prev => ({
+                                          ...prev,
+                                          [forgeKey]: {
+                                            benchmark_name: forge.name,
+                                            benchmark_type: forge.type,
+                                            result_value: e.target.value,
+                                            scaling_level: prev[forgeKey]?.scaling_level,
+                                            forge_benchmark_id: forge.id
+                                          }
+                                        }))}
+                                        className='w-24 px-2 py-1 text-xs border border-cyan-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                                      />
+                                    </div>
+                                  </div>
                                 </div>
                               );
                             })}
@@ -565,6 +746,12 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                           className='px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition'
                         >
                           Save Lift Records
+                        </button>
+                        <button
+                          onClick={() => saveAllBenchmarkResults(workoutLogs[wod.id]?.date || formatLocalDate(selectedDate))}
+                          className='px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition'
+                        >
+                          Save Benchmark Results
                         </button>
                         <button
                           onClick={() => saveWorkoutLog(wod.id)}

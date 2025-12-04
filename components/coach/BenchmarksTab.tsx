@@ -24,8 +24,9 @@ interface BenchmarksTabProps {
     type: string;
     description: string;
     display_order: number;
+    has_scaling: boolean;
   };
-  onFormChange: (field: string, value: string | number) => void;
+  onFormChange: (field: string, value: string | number | boolean) => void;
   onSave: () => void;
   workoutTypes: Array<{ id: string; name: string }>;
   loadingWorkoutTypes: boolean;
@@ -166,6 +167,19 @@ export default function BenchmarksTab({
                   className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent'
                   placeholder='Workout details (e.g., 21-15-9 Thrusters & Pull-ups)'
                 />
+              </div>
+
+              <div className='flex items-center gap-2'>
+                <input
+                  type='checkbox'
+                  id='has_scaling'
+                  checked={form.has_scaling}
+                  onChange={(e) => onFormChange('has_scaling', e.target.checked)}
+                  className='w-4 h-4 text-teal-600 bg-white border-gray-300 rounded focus:ring-teal-500'
+                />
+                <label htmlFor='has_scaling' className='text-sm font-medium text-gray-100 cursor-pointer'>
+                  Has Scaling Options (Rx/Sc1/Sc2/Sc3)
+                </label>
               </div>
 
               <div>

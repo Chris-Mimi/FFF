@@ -45,7 +45,6 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
   const [lifts, setLifts] = useState<Array<{ name: string; category: string }>>([]);
   const [expandedSections, setExpandedSections] = useState({
     recent: true,
-    charts: true,
     workoutProgress: true,
   });
   const [expandedCategories, setExpandedCategories] = useState({
@@ -249,80 +248,72 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
     return <circle cx={cx} cy={cy} r={4} fill='#208479' stroke='#fff' strokeWidth={2} />;
   };
 
-  // Get chart data with PR badges for multiple rep max types
-  const getLiftChartDataAllTypes = (liftName: string) => {
-    const results = liftHistory
-      .filter(entry => entry.lift_name === liftName)
-      .sort((a, b) => new Date(a.lift_date).getTime() - new Date(b.lift_date).getTime());
+  // Get all chart variations for a lift (RM tests + workout patterns)
+  const getAllLiftCharts = (liftName: string) => {
+    const charts: Array<{
+      type: 'RM' | 'workout';
+      label: string;
+      data: Array<{ date: string; weight: number; isPR: boolean }>;
+      count?: number;
+    }> = [];
 
-    // Find best result for each rep max type to mark as PR
-    const prsByType = new Map<string, number>();
-    (['1RM', '3RM', '5RM', '10RM'] as const).forEach(type => {
-      const typeRecords = results.filter(r => r.rep_max_type === type);
-      if (typeRecords.length > 0) {
-        prsByType.set(type, Math.max(...typeRecords.map(r => r.weight_kg)));
+    // Add RM test charts
+    (['1RM', '3RM', '5RM', '10RM'] as const).forEach(rmType => {
+      const results = liftHistory
+        .filter(entry => entry.lift_name === liftName && entry.rep_max_type === rmType)
+        .sort((a, b) => new Date(a.lift_date).getTime() - new Date(b.lift_date).getTime());
+
+      if (results.length >= 2) {
+        const prWeight = Math.max(...results.map(r => r.weight_kg));
+        charts.push({
+          type: 'RM',
+          label: rmType,
+          data: results.map(entry => ({
+            date: new Date(entry.lift_date).toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric',
+            }),
+            weight: entry.weight_kg,
+            isPR: entry.weight_kg === prWeight,
+          })),
+        });
       }
     });
 
-    return results.map(entry => ({
-      date: new Date(entry.lift_date).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      }),
-      weight: entry.weight_kg,
-      repMaxType: entry.rep_max_type,
-      isPR: entry.weight_kg === prsByType.get(entry.rep_max_type || ''),
-    }));
-  };
-
-  // Get unique lift + rep_scheme combinations from workout lifts (not RM tests)
-  const getWorkoutLiftCombinations = () => {
-    const combinations = new Map<string, { liftName: string; repScheme: string; category: string; count: number }>();
-
+    // Add workout pattern charts
+    const workoutPatterns = new Map<string, LiftRecord[]>();
     liftHistory.forEach(record => {
-      if (record.rep_scheme) { // Only workout lifts, not RM tests
-        const key = `${record.lift_name}-${record.rep_scheme}`;
-        const lift = lifts.find(l => l.name === record.lift_name);
-
-        if (lift) {
-          if (!combinations.has(key)) {
-            combinations.set(key, {
-              liftName: record.lift_name,
-              repScheme: record.rep_scheme,
-              category: lift.category,
-              count: 0,
-            });
-          }
-          const combo = combinations.get(key)!;
-          combo.count += 1;
+      if (record.lift_name === liftName && record.rep_scheme) {
+        if (!workoutPatterns.has(record.rep_scheme)) {
+          workoutPatterns.set(record.rep_scheme, []);
         }
+        workoutPatterns.get(record.rep_scheme)!.push(record);
       }
     });
 
-    return Array.from(combinations.values());
-  };
+    workoutPatterns.forEach((records, repScheme) => {
+      if (records.length >= 2) {
+        const sorted = records.sort((a, b) => new Date(a.lift_date).getTime() - new Date(b.lift_date).getTime());
+        const prWeight = Math.max(...sorted.map(r => r.weight_kg));
+        charts.push({
+          type: 'workout',
+          label: repScheme,
+          data: sorted.map(entry => ({
+            date: new Date(entry.lift_date).toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric',
+            }),
+            weight: entry.weight_kg,
+            isPR: entry.weight_kg === prWeight,
+          })),
+          count: records.length,
+        });
+      }
+    });
 
-  // Get chart data for a specific lift + rep_scheme combination
-  const getWorkoutLiftChartData = (liftName: string, repScheme: string) => {
-    const results = liftHistory
-      .filter(entry => entry.lift_name === liftName && entry.rep_scheme === repScheme)
-      .sort((a, b) => new Date(a.lift_date).getTime() - new Date(b.lift_date).getTime());
-
-    if (results.length === 0) return [];
-
-    // Find PR (max weight) for this combination
-    const prWeight = Math.max(...results.map(r => r.weight_kg));
-
-    return results.map(entry => ({
-      date: new Date(entry.lift_date).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      }),
-      weight: entry.weight_kg,
-      isPR: entry.weight_kg === prWeight,
-    }));
+    return charts;
   };
 
   return (
@@ -502,92 +493,26 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
         )}
       </div>
 
-      {/* Progress Charts Section */}
-      <div className='bg-white rounded-lg shadow p-6'>
-        <button
-          onClick={() => setExpandedSections(prev => ({ ...prev, charts: !prev.charts }))}
-          className='flex items-center gap-2 text-2xl font-bold text-gray-700 mb-4 hover:text-[#208479] transition'
-        >
-          {expandedSections.charts ? <ChevronDown size={24} /> : <ChevronRight size={24} />}
-          Progress Charts
-        </button>
-
-        {expandedSections.charts && (
-          <div>
-            <p className='text-gray-700 mb-6'>Visualize your strength gains over time.</p>
-            <div className='grid grid-cols-1 gap-6'>
-              {lifts.slice(0, 6).map(lift => {
-                const chartData = getLiftChartDataAllTypes(lift.name);
-                if (chartData.length < 2) return null; // Only show charts with 2+ data points
-
-                // Determine which rep max types have data
-                const repMaxTypes = Array.from(new Set(chartData.map(d => d.repMaxType).filter(Boolean)));
-                const repMaxLabel = repMaxTypes.length > 0 ? ` (${repMaxTypes.join(', ')})` : '';
-
-                return (
-                  <div key={lift.name} className='border border-sky-300 rounded-lg p-4 bg-gradient-to-br from-[#40E0D0] to-[#AFEEEE]'>
-                    <h4 className='font-bold text-gray-700 mb-3'>{lift.name}{repMaxLabel}</h4>
-                    <ResponsiveContainer width='100%' height={200}>
-                      <LineChart data={chartData}>
-                        <CartesianGrid strokeDasharray='3 3' stroke='white' />
-                        <XAxis dataKey='date' tick={{ fontSize: 12 }} />
-                        <YAxis />
-                        <Tooltip
-                          content={({ active, payload }) => {
-                            if (active && payload && payload.length) {
-                              return (
-                                <div className='bg-white p-2 border border-gray-300 rounded shadow-lg'>
-                                  <p className='text-xs text-gray-900 font-semibold'>
-                                    {payload[0].payload.date}
-                                  </p>
-                                  <p className='text-xs text-[#208479] font-semibold'>
-                                    {payload[0].payload.weight}kg
-                                  </p>
-                                  <p className='text-xs text-gray-700'>
-                                    {payload[0].payload.repMaxType}
-                                  </p>
-                                  {payload[0].payload.isPR && (
-                                    <p className='text-xs text-red-600 font-bold'>PR!</p>
-                                  )}
-                                </div>
-                              );
-                            }
-                            return null;
-                          }}
-                        />
-                        <Line
-                          type='monotone'
-                          dataKey='weight'
-                          stroke='#208479'
-                          strokeWidth={2}
-                          dot={<CustomDot />}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Workout Lift Progress Section */}
+      {/* Lift Progress Section */}
       <div className='bg-white rounded-lg shadow p-6'>
         <button
           onClick={() => setExpandedSections(prev => ({ ...prev, workoutProgress: !prev.workoutProgress }))}
           className='flex items-center gap-2 text-2xl font-bold text-gray-700 mb-4 hover:text-[#208479] transition'
         >
           {expandedSections.workoutProgress ? <ChevronDown size={24} /> : <ChevronRight size={24} />}
-          Workout Lift Progress
+          Lift Progress
         </button>
 
         {expandedSections.workoutProgress && (
           <div>
-            <p className='text-gray-700 mb-6'>Track progress on specific lift patterns from workouts (e.g., Bench Press 5x5).</p>
+            <p className='text-gray-700 mb-6'>Track your strength progress across all lifts, including RM tests and workout patterns.</p>
 
             {(['Olympic', 'Press', 'Pull', 'Squat'] as const).map(category => {
-              const categoryLifts = getWorkoutLiftCombinations().filter(combo => combo.category === category);
+              // Get all lifts in this category that have any chart data
+              const categoryLifts = lifts
+                .filter(lift => lift.category === category)
+                .map(lift => ({ ...lift, charts: getAllLiftCharts(lift.name) }))
+                .filter(lift => lift.charts.length > 0);
 
               if (categoryLifts.length === 0) return null;
 
@@ -602,53 +527,56 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                   </button>
 
                   {expandedCategories[category] && (
-                    <div className='grid grid-cols-1 gap-6 pl-6'>
-                      {categoryLifts.map(combo => {
-                        const chartData = getWorkoutLiftChartData(combo.liftName, combo.repScheme);
-                        if (chartData.length < 2) return null; // Only show charts with 2+ data points
-
-                        return (
-                          <div key={`${combo.liftName}-${combo.repScheme}`} className='border border-sky-300 rounded-lg p-4 bg-gradient-to-br from-[#40E0D0] to-[#AFEEEE]'>
-                            <h4 className='font-bold text-gray-700 mb-3'>
-                              {combo.liftName} {combo.repScheme} <span className='text-sm text-gray-600'>({combo.count} sessions)</span>
-                            </h4>
-                            <ResponsiveContainer width='100%' height={200}>
-                              <LineChart data={chartData}>
-                                <CartesianGrid strokeDasharray='3 3' stroke='white' />
-                                <XAxis dataKey='date' tick={{ fontSize: 12 }} />
-                                <YAxis />
-                                <Tooltip
-                                  content={({ active, payload }) => {
-                                    if (active && payload && payload.length) {
-                                      return (
-                                        <div className='bg-white p-2 border border-gray-300 rounded shadow-lg'>
-                                          <p className='text-xs text-gray-900 font-semibold'>
-                                            {payload[0].payload.date}
-                                          </p>
-                                          <p className='text-xs text-[#208479] font-semibold'>
-                                            {payload[0].payload.weight}kg
-                                          </p>
-                                          {payload[0].payload.isPR && (
-                                            <p className='text-xs text-red-600 font-bold'>PR!</p>
-                                          )}
-                                        </div>
-                                      );
-                                    }
-                                    return null;
-                                  }}
-                                />
-                                <Line
-                                  type='monotone'
-                                  dataKey='weight'
-                                  stroke='#208479'
-                                  strokeWidth={2}
-                                  dot={<CustomDot />}
-                                />
-                              </LineChart>
-                            </ResponsiveContainer>
+                    <div className='space-y-6 pl-6'>
+                      {categoryLifts.map(lift => (
+                        <div key={lift.name} className='space-y-3'>
+                          <h3 className='text-lg font-bold text-gray-800'>{lift.name}</h3>
+                          <div className='grid grid-cols-1 gap-4'>
+                            {lift.charts.map((chart, idx) => (
+                              <div key={`${lift.name}-${chart.label}-${idx}`} className='border border-sky-300 rounded-lg p-4 bg-gradient-to-br from-[#40E0D0] to-[#AFEEEE]'>
+                                <h4 className='font-bold text-gray-700 mb-3'>
+                                  {chart.label}
+                                  {chart.count && <span className='text-sm text-gray-600 ml-2'>({chart.count} sessions)</span>}
+                                </h4>
+                                <ResponsiveContainer width='100%' height={200}>
+                                  <LineChart data={chart.data}>
+                                    <CartesianGrid strokeDasharray='3 3' stroke='white' />
+                                    <XAxis dataKey='date' tick={{ fontSize: 12 }} />
+                                    <YAxis />
+                                    <Tooltip
+                                      content={({ active, payload }) => {
+                                        if (active && payload && payload.length) {
+                                          return (
+                                            <div className='bg-white p-2 border border-gray-300 rounded shadow-lg'>
+                                              <p className='text-xs text-gray-900 font-semibold'>
+                                                {payload[0].payload.date}
+                                              </p>
+                                              <p className='text-xs text-[#208479] font-semibold'>
+                                                {payload[0].payload.weight}kg
+                                              </p>
+                                              {payload[0].payload.isPR && (
+                                                <p className='text-xs text-red-600 font-bold'>PR!</p>
+                                              )}
+                                            </div>
+                                          );
+                                        }
+                                        return null;
+                                      }}
+                                    />
+                                    <Line
+                                      type='monotone'
+                                      dataKey='weight'
+                                      stroke='#208479'
+                                      strokeWidth={2}
+                                      dot={<CustomDot />}
+                                    />
+                                  </LineChart>
+                                </ResponsiveContainer>
+                              </div>
+                            ))}
                           </div>
-                        );
-                      })}
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>

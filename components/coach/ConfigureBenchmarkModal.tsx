@@ -89,6 +89,7 @@ function ConfigureBenchmarkModal({
       name: benchmark.name,
       type: benchmark.type,
       description: benchmark.description || undefined,
+      has_scaling: benchmark.has_scaling,
       scaling_option: scalingOption !== 'None' ? scalingOption : undefined,
       visibility,
       coach_notes: coachNotes || undefined,

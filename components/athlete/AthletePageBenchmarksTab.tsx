@@ -18,10 +18,10 @@ import {
 interface BenchmarkResult {
   id: string;
   benchmark_name: string;
-  result: string;
+  result_value: string;
   notes?: string;
-  workout_date: string;
-  scaling?: string;
+  result_date: string;
+  scaling_level?: string;
 }
 
 interface AthletePageBenchmarksTabProps {
@@ -77,7 +77,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
         .from('benchmark_results')
         .select('*')
         .eq('user_id', userId)
-        .order('workout_date', { ascending: false });
+        .order('result_date', { ascending: false });
 
       if (error) throw error;
 
@@ -94,15 +94,22 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
     if (!selectedBenchmark || !newTime) return;
 
     try {
+      // Get the benchmark details to get ID and type
+      const { data: benchmarkData } = await supabase
+        .from('benchmark_workouts')
+        .select('id, type')
+        .eq('name', selectedBenchmark)
+        .single();
+
       if (editingBenchmarkId) {
         // Update existing benchmark
         const { error } = await supabase
           .from('benchmark_results')
           .update({
-            result: newTime,
+            result_value: newTime,
             notes: newNotes || null,
-            workout_date: newDate,
-            scaling: newScaling,
+            result_date: newDate,
+            scaling_level: newScaling,
             updated_at: new Date().toISOString(),
           })
           .eq('id', editingBenchmarkId);
@@ -112,11 +119,13 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
         // Insert new benchmark
         const { error } = await supabase.from('benchmark_results').insert({
           user_id: userId,
+          benchmark_id: benchmarkData?.id || null,
           benchmark_name: selectedBenchmark,
-          result: newTime,
+          benchmark_type: benchmarkData?.type || 'For Time',
+          result_value: newTime,
           notes: newNotes || null,
-          workout_date: newDate,
-          scaling: newScaling,
+          result_date: newDate,
+          scaling_level: newScaling,
         });
 
         if (error) throw error;
@@ -140,10 +149,10 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
 
   const handleEditBenchmark = (entry: BenchmarkResult) => {
     setSelectedBenchmark(entry.benchmark_name);
-    setNewTime(entry.result);
+    setNewTime(entry.result_value_value);
     setNewNotes(entry.notes || '');
-    setNewDate(entry.workout_date);
-    setNewScaling((entry.scaling as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3') || 'Rx');
+    setNewDate(entry.result_value_date);
+    setNewScaling((entry.scaling_level as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3') || 'Rx');
     setEditingBenchmarkId(entry.id);
   };
 
@@ -167,8 +176,8 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
     const results = benchmarkHistory.filter(entry => entry.benchmark_name === benchmarkName);
     if (results.length === 0) return { rx: null, scaled: null };
 
-    const rxResults = results.filter(r => r.scaling === 'Rx');
-    const scaledResults = results.filter(r => r.scaling !== 'Rx');
+    const rxResults = results.filter(r => r.scaling_level === 'Rx');
+    const scaledResults = results.filter(r => r.scaling_level !== 'Rx');
 
     const timeToSeconds = (timeStr: string) => {
       if (timeStr.includes(':')) {
@@ -182,20 +191,20 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
       if (results.length === 0) return null;
 
       // Determine if time-based (contains colon) or rep-based
-      const isTimeBased = results[0].result.includes(':');
+      const isTimeBased = results[0].result_value.includes(':');
 
       if (isTimeBased) {
         // For time-based: find LOWEST time (best)
         return results.reduce((best, current) => {
-          const bestSeconds = timeToSeconds(best.result);
-          const currentSeconds = timeToSeconds(current.result);
+          const bestSeconds = timeToSeconds(best.result_value);
+          const currentSeconds = timeToSeconds(current.result_value);
           return currentSeconds < bestSeconds ? current : best;
         });
       } else {
         // For rep-based: find HIGHEST reps (best)
         return results.reduce((best, current) => {
-          const bestReps = parseInt(best.result) || 0;
-          const currentReps = parseInt(current.result) || 0;
+          const bestReps = parseInt(best.result_value) || 0;
+          const currentReps = parseInt(current.result_value) || 0;
           return currentReps > bestReps ? current : best;
         });
       }
@@ -210,7 +219,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
   const getBenchmarkChartData = (benchmarkName: string) => {
     const results = benchmarkHistory
       .filter(entry => entry.benchmark_name === benchmarkName)
-      .sort((a, b) => new Date(a.workout_date).getTime() - new Date(b.workout_date).getTime());
+      .sort((a, b) => new Date(a.result_date).getTime() - new Date(b.result_date).getTime());
 
     const timeToSeconds = (timeStr: string) => {
       if (timeStr.includes(':')) {
@@ -229,19 +238,19 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
         prsByScaling.set(result.scaling || '', result);
       } else {
         // Determine if time-based or rep-based
-        const isTimeBased = result.result.includes(':');
+        const isTimeBased = result.result_value.includes(':');
 
         if (isTimeBased) {
           // For time-based: lower is better
-          const existingSeconds = timeToSeconds(existing.result);
-          const currentSeconds = timeToSeconds(result.result);
+          const existingSeconds = timeToSeconds(existing.result_value);
+          const currentSeconds = timeToSeconds(result.result_value);
           if (currentSeconds < existingSeconds) {
             prsByScaling.set(result.scaling || '', result);
           }
         } else {
           // For rep-based: higher is better
-          const existingReps = parseInt(existing.result) || 0;
-          const currentReps = parseInt(result.result) || 0;
+          const existingReps = parseInt(existing.result_value) || 0;
+          const currentReps = parseInt(result.result_value) || 0;
           if (currentReps > existingReps) {
             prsByScaling.set(result.scaling || '', result);
           }
@@ -257,19 +266,19 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
       if (!overallBest) {
         overallBest = pr;
       } else {
-        const currentPriority = scalingPriority[pr.scaling as keyof typeof scalingPriority] || 0;
+        const currentPriority = scalingPriority[pr.scaling_level as keyof typeof scalingPriority] || 0;
         const bestPriority = scalingPriority[overallBest.scaling as keyof typeof scalingPriority] || 0;
 
         if (currentPriority > bestPriority) {
           overallBest = pr;
         } else if (currentPriority === bestPriority) {
-          const isTimeBased = pr.result.includes(':');
+          const isTimeBased = pr.result_value.includes(':');
           if (isTimeBased) {
-            if (timeToSeconds(pr.result) < timeToSeconds(overallBest.result)) {
+            if (timeToSeconds(pr.result_value) < timeToSeconds(overallBest.result_value)) {
               overallBest = pr;
             }
           } else {
-            if (parseInt(pr.result) > parseInt(overallBest.result)) {
+            if (parseInt(pr.result_value) > parseInt(overallBest.result_value)) {
               overallBest = pr;
             }
           }
@@ -291,13 +300,13 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
       const isOverallBest = overallBest?.id === entry.id;
 
       return {
-        date: new Date(entry.workout_date).toLocaleDateString('en-US', {
+        date: new Date(entry.result_date).toLocaleDateString('en-US', {
           month: 'short',
           day: 'numeric',
           year: 'numeric',
         }),
-        value: timeToSeconds(entry.result),
-        resultDisplay: entry.result,
+        value: timeToSeconds(entry.result_value),
+        resultDisplay: entry.result_value,
         scaling: entry.scaling,
         isPR: isPR,
         isOverallBest: isOverallBest,
@@ -337,7 +346,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
     .map(b => {
       const userResults = benchmarkHistory.filter(e => e.benchmark_name === b.name);
       const hasResults = userResults.length > 0;
-      const mostRecentDate = hasResults ? userResults[0].workout_date : null; // Already sorted by date desc
+      const mostRecentDate = hasResults ? userResults[0].result_date : null; // Already sorted by date desc
       return {
         ...b,
         hasResults,
@@ -387,7 +396,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                   <div className='flex items-end justify-between'>
                     <div>
                       <p className='text-xs text-gray-600'>PR:</p>
-                      <p className='text-sm font-bold text-[#208479]'>{bestResult.result}</p>
+                      <p className='text-sm font-bold text-[#208479]'>{bestResult.result_value}</p>
                     </div>
                     {benchmark.count > 0 && (
                       <p className='text-xs text-gray-500'>{benchmark.count}x</p>
@@ -432,9 +441,9 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
   </span>
 </div>
                   <div className='flex items-center justify-between'>
-                    <p className='text-lg font-bold text-[#208479]'>{result.result}</p>
+                    <p className='text-lg font-bold text-[#208479]'>{result.result_value}</p>
                     <p className='text-sm text-gray-600'>
-                      {new Date(result.workout_date).toLocaleDateString('en-US', {
+                      {new Date(result.result_date).toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
                         year: 'numeric',
@@ -484,7 +493,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                                     {payload[0].payload.date}
                                   </p>
                                   <p className='text-xs text-[#208479] font-semibold'>
-                                    {payload[0].payload.resultDisplay}
+                                    {payload[0].payload.result_valueDisplay}
                                   </p>
                                   <p className='text-xs text-gray-600'>
                                     {payload[0].payload.scaling}
@@ -638,7 +647,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                     <div key={entry.id} className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'>
                       <div className='flex-1'>
                         <div className='flex items-center gap-2 mb-1'>
-                          <span className='font-semibold text-gray-900'>{entry.result}</span>
+                          <span className='font-semibold text-gray-900'>{entry.result_value}</span>
                           <span
                             className={`text-xs px-2 py-1 rounded ${
                               entry.scaling === 'Rx'
@@ -654,7 +663,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                           </span>
                         </div>
                         <p className='text-sm text-gray-600'>
-                          {new Date(entry.workout_date).toLocaleDateString('en-US', {
+                          {new Date(entry.result_date).toLocaleDateString('en-US', {
                             month: 'short',
                             day: 'numeric',
                             year: 'numeric',
@@ -701,7 +710,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                               {payload[0].payload.date}
                             </p>
                             <p className='text-sm text-[#83e1b2ff] font-semibold'>
-                              Result: {payload[0].payload.resultDisplay}
+                              Result: {payload[0].payload.result_valueDisplay}
                             </p>
                             <p className='text-sm text-gray-100'>
                               Scaling: {payload[0].payload.scaling}

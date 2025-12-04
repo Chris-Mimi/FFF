@@ -89,6 +89,7 @@ function ConfigureForgeBenchmarkModal({
       name: forgeBenchmark.name,
       type: forgeBenchmark.type,
       description: forgeBenchmark.description || undefined,
+      has_scaling: forgeBenchmark.has_scaling,
       scaling_option: scalingOption !== 'None' ? scalingOption : undefined,
       visibility,
       coach_notes: coachNotes || undefined,
