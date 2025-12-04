@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 8.0
-**Updated:** 2025-12-03 (Session 32 - Lift Records Enhancement)
+**Version:** 8.1
+**Updated:** 2025-12-04 (Session 35 - Benchmark Results Fix Complete)
 
 ---
 
@@ -65,6 +65,21 @@ Athlete Tables (linked to members.id)
 
 ## 📍 Current Status (Last 2 Weeks)
 
+**Completed (2025-12-04 Session 35 - Sonnet):**
+- **Session 34 Completion - Benchmark Results Save Fix & UX Enhancements:**
+  - ✅ **Root Cause Fixed:** Session 34 migration renamed columns (workout_date → result_date, result → result_value, scaling → scaling_level) but 5 component files still used old names
+  - ✅ **Schema Migration Completion:** Updated ALL remaining references in AthletePageForgeBenchmarksTab (query), AthletePageRecordsTab (interface + 10+ refs), AthletePageBenchmarksTab (20+ refs), app/coach/athletes (interface + query + display)
+  - ✅ **Cache Issue Resolution:** Next.js cache required full rebuild (rm -rf .next) to apply file changes - browser hard refresh insufficient
+  - ✅ **Delete Icons Added:** Hover-to-show trash icons on Recent Benchmark cards (both Benchmarks and Forge Benchmarks tabs), matches Lifts tab UX pattern
+  - ✅ **Scaling Dropdown Fix:** Changed condition from `!== false` to `?? true` (nullish coalescing) to properly hide dropdown when has_scaling=false
+  - ✅ **Old Workout Handling:** Workouts created before Session 34 have undefined has_scaling (defaults to true), explicit false requires re-adding benchmark from library
+  - ✅ **Special Benchmarks:** Documented approach for edge cases (Gwen, Lynne) - use Coach Library card description for instructions instead of complex multi-input UI
+  - 🎯 **Session 34 Now Complete:** Benchmark scaling configuration and result tracking FULLY FUNCTIONAL, all save/display issues resolved
+  - Commit: 8c09fc9 - fix(benchmarks): complete Session 34 schema migration and add delete icons
+  - Files: 5 modified (105 insertions, 80 deletions)
+  - Status: Complete and pushed to GitHub
+  - **Testing:** ✅ Benchmark results save successfully, ✅ Display in tabs, ✅ Delete icons work, ✅ Scaling dropdown visibility correct
+
 **Completed (2025-12-04 Session 34 - Chris):**
 - **Benchmark Scaling Configuration & Result Tracking:**
   - ✅ **Database Migration:** Created benchmark scaling and results migration (20251204_add_benchmark_scaling_and_results.sql)
@@ -77,12 +92,11 @@ Athlete Tables (linked to members.id)
   - ✅ **Athlete Logbook UI:** Added result input boxes with conditional scaling dropdown (only shows when has_scaling !== false)
   - ✅ **API Route:** Created `/api/benchmark-results/route.ts` with UPSERT logic (checks existing by user_id + benchmark_name + result_date)
   - ✅ **Type Updates:** Added has_scaling to TypeScript interfaces (Benchmark, ForgeBenchmark, ConfiguredBenchmark, ConfiguredForgeBenchmark)
-  - ✅ **CRUD Operations Fix:** Updated AthletePageBenchmarksTab and AthletePageForgeBenchmarksTab to use new schema
-  - ⚠️ **KNOWN ISSUE:** Benchmark results not saving in Athlete Logbook - requires further debugging (user ran out of session time)
+  - ✅ **CRUD Operations:** Initial implementation in AthletePageBenchmarksTab and AthletePageForgeBenchmarksTab
+  - ⚠️ **KNOWN ISSUE (RESOLVED IN SESSION 35):** Benchmark results not saving - old column names in 5 component files
   - Commit: 7510c41 - feat(benchmarks): add scaling configuration and result tracking
   - Files: 12 modified (712 insertions, 313 deletions), 2 new files
-  - Status: Code complete and pushed, save functionality debugging pending
-  - **Next Steps:** Debug benchmark result save issue in Athlete Logbook, verify scaling dropdown visibility logic
+  - Status: Code complete and pushed, resolved in Session 35
 
 **Completed (2025-12-03 Session 33 - Chris):**
 - **Lift Input Separation & Athlete Subscription Management:**
@@ -596,6 +610,10 @@ Athlete Tables (linked to members.id)
 - macOS iCloud Keychain autofill popups (OS behavior, not app bug)
 
 **Lessons Learned:**
+- **2025-12-04 (Session 35):** Next.js aggressive caching requires manual intervention - Hard browser refresh insufficient when compiled modules cached. Solution: Stop server, `rm -rf .next`, restart. Symptoms: Git shows correct code, browser shows old behavior, grep confirms new code.
+- **2025-12-04 (Session 35):** Nullish coalescing (??) for optional booleans - When boolean can be undefined/true/false, use `(field ?? true)` not `field !== false`. Latter treats undefined as true (shows when shouldn't). Former explicitly defaults undefined to true.
+- **2025-12-04 (Session 35):** Schema migrations are global operations - Renaming columns affects ALL files that query that table, not just new feature files. Must search entire codebase (components/, app/) for old column names. Includes: interfaces, queries (.order, .select), display (result.column_name).
+- **2025-12-04 (Session 35):** Edge case documentation beats complex UI - For rare special cases (Gwen, Lynne needing multiple inputs), document workaround in Coach Library card description instead of building complex multi-input UI. Simple instructions beat overengineering.
 - **2025-12-04 (Session 34):** Schema migrations require component-wide updates - When changing database column names (workout_date → result_date), must update ALL components that query that table, not just new ones. Search for `.workout_date` globally to find all references. Includes interfaces, CRUD operations, and display logic.
 - **2025-12-04 (Session 34):** XOR constraints need both IDs on INSERT - When benchmark_results has XOR constraint (benchmark_id OR forge_benchmark_id), INSERT must include appropriate ID. Fetch from source table (benchmark_workouts or forge_benchmarks) before inserting result.
 - **2025-12-04 (Session 34):** Type field propagation in structured data - When adding boolean flags to structured movement data (has_scaling), must propagate through entire chain: database → TypeScript interfaces → Coach modal state → Configure modal → Workout sections → Athlete display. Missing any link breaks feature.
