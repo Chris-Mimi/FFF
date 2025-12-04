@@ -68,6 +68,10 @@ export default function ExerciseFormModal({
   const [customCategory, setCustomCategory] = useState('');
   const [customSubcategory, setCustomSubcategory] = useState('');
 
+  // State for template selection
+  const [allExercises, setAllExercises] = useState<Exercise[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
+
   // Add custom subcategory to dropdown
   const addCustomSubcategory = () => {
     if (!customSubcategory.trim() || !form.category || form.category === '__custom__') return;
@@ -103,6 +107,68 @@ export default function ExerciseFormModal({
     // Set the form to use this new subcategory
     setForm({ ...form, subcategory: trimmedSubcat });
     setCustomSubcategory('');
+  };
+
+  // Fetch all exercises for template selection
+  useEffect(() => {
+    const fetchAllExercises = async () => {
+      const { data: exercises } = await supabase
+        .from('exercises')
+        .select('*')
+        .order('name');
+
+      if (exercises) {
+        setAllExercises(exercises as Exercise[]);
+      }
+    };
+
+    if (isOpen && !editingExercise) {
+      fetchAllExercises();
+    }
+  }, [isOpen, editingExercise]);
+
+  // Handler for template selection
+  const handleTemplateSelect = (exerciseId: string) => {
+    setSelectedTemplate(exerciseId);
+
+    if (!exerciseId) {
+      // Clear form if "None" selected
+      setForm({
+        name: '',
+        display_name: '',
+        category: '',
+        subcategory: '',
+        description: '',
+        video_url: '',
+        tags: '',
+        equipment: '',
+        body_parts: '',
+        difficulty: undefined,
+        is_warmup: false,
+        is_stretch: false,
+        search_terms: '',
+      });
+      return;
+    }
+
+    const template = allExercises.find(ex => ex.id === exerciseId);
+    if (template) {
+      setForm({
+        name: '', // Keep name empty so user must enter new name
+        display_name: '',
+        category: template.category,
+        subcategory: template.subcategory || '',
+        description: template.description || '',
+        video_url: template.video_url || '',
+        tags: template.tags?.join(', ') || '',
+        equipment: template.equipment?.join(', ') || '',
+        body_parts: template.body_parts?.join(', ') || '',
+        difficulty: template.difficulty || undefined,
+        is_warmup: template.is_warmup || false,
+        is_stretch: template.is_stretch || false,
+        search_terms: '',
+      });
+    }
   };
 
   // Fetch categories and subcategories from exercises
@@ -213,6 +279,7 @@ export default function ExerciseFormModal({
       });
       setCustomCategory('');
       setCustomSubcategory('');
+      setSelectedTemplate('');
     }
   }, [editingExercise, isOpen, availableCategories, categorySubcategoryMap]);
 
@@ -261,6 +328,32 @@ export default function ExerciseFormModal({
         </div>
 
         <div className='space-y-4'>
+          {/* Template Selector (only for new exercises) */}
+          {!editingExercise && (
+            <div className='bg-gray-600 rounded-lg p-4 border-2 border-teal-500'>
+              <label className='block text-sm font-semibold text-gray-100 mb-2'>
+                Start from template (optional)
+              </label>
+              <select
+                value={selectedTemplate}
+                onChange={(e) => handleTemplateSelect(e.target.value)}
+                className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 cursor-pointer'
+              >
+                <option value=''>None - Start from scratch</option>
+                {allExercises.map((exercise) => (
+                  <option key={exercise.id} value={exercise.id}>
+                    {exercise.display_name || exercise.name}
+                  </option>
+                ))}
+              </select>
+              {selectedTemplate && (
+                <p className='text-xs text-gray-300 mt-2'>
+                  ✓ Template loaded. All fields copied except name. Enter a new name to create your exercise.
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Name (Required) */}
           <div>
             <label className='block text-sm font-medium text-gray-100 mb-1'>

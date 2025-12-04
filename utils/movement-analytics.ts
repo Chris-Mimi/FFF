@@ -460,7 +460,20 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
               .trim();
 
             // Try to match against exercises database
-            const exercise = exercisesByName.get(normalized.toLowerCase());
+            // First try exact match
+            let exercise = exercisesByName.get(normalized.toLowerCase());
+
+            // If no exact match, try to find exercise name as prefix
+            // This handles cases like "Push-Up Strict 5 seconds down, 5 seconds up"
+            if (!exercise) {
+              const normalizedLower = normalized.toLowerCase();
+              for (const [dbName, dbExercise] of exercisesByName.entries()) {
+                if (normalizedLower.startsWith(dbName)) {
+                  exercise = dbExercise;
+                  break;
+                }
+              }
+            }
 
             if (exercise) {
               const existing = exerciseMap.get(exercise.id);

@@ -25,6 +25,13 @@ interface BenchmarkResult {
   forge_benchmark_id?: string;
 }
 
+interface SectionResult {
+  time_result: string;
+  reps_result: string;
+  weight_result: string;
+  scaling_level: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '';
+}
+
 interface AthletePageLogbookTabProps {
   userId: string;
   initialDate?: Date;
@@ -64,6 +71,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
   const [viewMode, setViewMode] = useState<'day' | 'week' | 'month'>(initialViewMode || 'week');
   const [liftRecords, setLiftRecords] = useState<Record<string, LiftRecord>>({});
   const [benchmarkResults, setBenchmarkResults] = useState<Record<string, BenchmarkResult>>({});
+  const [sectionResults, setSectionResults] = useState<Record<string, SectionResult>>({});
 
   // Use extracted hooks
   const { workouts, workoutLogs, loading, setWorkoutLogs } = useLogbookData({
@@ -302,11 +310,134 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
     }
   };
 
+  // Load section results for WOD sections
+  const loadSectionResults = async (workoutDate: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('wod_section_results')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('workout_date', workoutDate);
+
+      if (error) {
+        console.error('Error loading section results:', error);
+        return;
+      }
+
+      if (data) {
+        const newSectionResults: Record<string, SectionResult> = {};
+        data.forEach(result => {
+          const key = `${result.wod_id}:::${result.section_id}`;
+          newSectionResults[key] = {
+            time_result: result.time_result || '',
+            reps_result: result.reps_result?.toString() || '',
+            weight_result: result.weight_result?.toString() || '',
+            scaling_level: result.scaling_level || '',
+          };
+        });
+        setSectionResults(newSectionResults);
+      }
+    } catch (error) {
+      console.error('Error loading section results:', error);
+    }
+  };
+
+  // Save section result to database
+  const saveSectionResult = async (wodId: string, sectionId: string, result: SectionResult, workoutDate: string) => {
+    // Don't save if all fields are empty
+    if (!result.time_result && !result.reps_result && !result.weight_result && !result.scaling_level) {
+      return;
+    }
+
+    try {
+      // First check if record exists
+      const { data: existing } = await supabase
+        .from('wod_section_results')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('wod_id', wodId)
+        .eq('section_id', sectionId)
+        .eq('workout_date', workoutDate)
+        .maybeSingle();
+
+      if (existing) {
+        // Update existing record
+        const { error } = await supabase
+          .from('wod_section_results')
+          .update({
+            time_result: result.time_result || null,
+            reps_result: result.reps_result ? parseInt(result.reps_result) : null,
+            weight_result: result.weight_result ? parseFloat(result.weight_result) : null,
+            scaling_level: result.scaling_level || null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', existing.id);
+
+        if (error) {
+          console.error('Error updating section result:', error);
+          throw error;
+        }
+      } else {
+        // Insert new record
+        const { error } = await supabase
+          .from('wod_section_results')
+          .insert({
+            user_id: userId,
+            wod_id: wodId,
+            section_id: sectionId,
+            workout_date: workoutDate,
+            time_result: result.time_result || null,
+            reps_result: result.reps_result ? parseInt(result.reps_result) : null,
+            weight_result: result.weight_result ? parseFloat(result.weight_result) : null,
+            scaling_level: result.scaling_level || null,
+          });
+
+        if (error) {
+          console.error('Error inserting section result:', error);
+          throw error;
+        }
+      }
+    } catch (error) {
+      console.error('Error saving section result:', error);
+      alert(`Failed to save section result: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
+      throw error;
+    }
+  };
+
+  // Save all section results for a workout
+  const saveAllSectionResults = async (workoutDate: string) => {
+    const resultsToSave = Object.entries(sectionResults).filter(([_, result]) =>
+      result.time_result || result.reps_result || result.weight_result || result.scaling_level
+    );
+
+    if (resultsToSave.length === 0) {
+      alert('No section results entered to save');
+      return;
+    }
+
+    let errorCount = 0;
+    for (const [key, result] of resultsToSave) {
+      const [wodId, sectionId] = key.split(':::');
+      try {
+        await saveSectionResult(wodId, sectionId, result, workoutDate);
+      } catch (error) {
+        errorCount++;
+      }
+    }
+
+    if (errorCount === 0) {
+      alert('Section results saved successfully!');
+    } else {
+      alert(`Saved ${resultsToSave.length - errorCount} of ${resultsToSave.length} section results. ${errorCount} failed.`);
+    }
+  };
+
   // Load lift records when workouts or selected date change
   useEffect(() => {
     if (workouts.length > 0 && selectedDate && userId) {
       const dateStr = formatLocalDate(selectedDate);
       loadLiftRecords(dateStr);
+      loadSectionResults(dateStr);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workouts, selectedDate, userId]);
@@ -495,13 +626,6 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                                     {/* Lift Title */}
                                     <div className='font-semibold text-sm'>≡ {formatLift(lift)}</div>
 
-                                    {/* Athlete Notes */}
-                                    {lift.athlete_notes && (
-                                      <div className='text-xs text-blue-800 italic'>
-                                        ({lift.athlete_notes})
-                                      </div>
-                                    )}
-
                                     {/* Weight Input */}
                                     <div className='flex items-center gap-1 ml-auto'>
                                       <label className='text-xs font-medium whitespace-nowrap'>Weight (kg):</label>
@@ -668,56 +792,138 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                             {section.content}
                           </div>
                         )}
+
+                        {/* WOD Section Results - Only for WOD sections */}
+                        {(section.type === 'WOD' || section.type === 'WOD Pt.1' || section.type === 'WOD Pt.2' || section.type === 'WOD Pt.3') && (
+                          <div className='mt-4 pt-4 border-t border-gray-200'>
+                            <div className='grid grid-cols-4 gap-3'>
+                              <div>
+                                <label className='block text-xs font-medium text-gray-700 mb-1'>Time</label>
+                                <input
+                                  type='text'
+                                  value={sectionResults[`${wod.id}:::${section.id}`]?.time_result || ''}
+                                  onChange={e =>
+                                    setSectionResults({
+                                      ...sectionResults,
+                                      [`${wod.id}:::${section.id}`]: {
+                                        ...(sectionResults[`${wod.id}:::${section.id}`] || { time_result: '', reps_result: '', weight_result: '', scaling_level: '' }),
+                                        time_result: e.target.value,
+                                      },
+                                    })
+                                  }
+                                  placeholder='12:34'
+                                  className='w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                                />
+                              </div>
+                              <div>
+                                <label className='block text-xs font-medium text-gray-700 mb-1'>Reps</label>
+                                <input
+                                  type='number'
+                                  value={sectionResults[`${wod.id}:::${section.id}`]?.reps_result || ''}
+                                  onChange={e =>
+                                    setSectionResults({
+                                      ...sectionResults,
+                                      [`${wod.id}:::${section.id}`]: {
+                                        ...(sectionResults[`${wod.id}:::${section.id}`] || { time_result: '', reps_result: '', weight_result: '', scaling_level: '' }),
+                                        reps_result: e.target.value,
+                                      },
+                                    })
+                                  }
+                                  placeholder='156'
+                                  className='w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                                />
+                              </div>
+                              <div>
+                                <label className='block text-xs font-medium text-gray-700 mb-1'>Weight (kg)</label>
+                                <input
+                                  type='number'
+                                  step='0.5'
+                                  value={sectionResults[`${wod.id}:::${section.id}`]?.weight_result || ''}
+                                  onChange={e =>
+                                    setSectionResults({
+                                      ...sectionResults,
+                                      [`${wod.id}:::${section.id}`]: {
+                                        ...(sectionResults[`${wod.id}:::${section.id}`] || { time_result: '', reps_result: '', weight_result: '', scaling_level: '' }),
+                                        weight_result: e.target.value,
+                                      },
+                                    })
+                                  }
+                                  placeholder='60.0'
+                                  className='w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                                />
+                              </div>
+                              <div>
+                                <label className='block text-xs font-medium text-gray-700 mb-1'>Scaling</label>
+                                <select
+                                  value={sectionResults[`${wod.id}:::${section.id}`]?.scaling_level || ''}
+                                  onChange={e =>
+                                    setSectionResults({
+                                      ...sectionResults,
+                                      [`${wod.id}:::${section.id}`]: {
+                                        ...(sectionResults[`${wod.id}:::${section.id}`] || { time_result: '', reps_result: '', weight_result: '', scaling_level: '' }),
+                                        scaling_level: e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '',
+                                      },
+                                    })
+                                  }
+                                  className='w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 bg-white'
+                                >
+                                  <option value=''>-</option>
+                                  <option value='Rx'>Rx</option>
+                                  <option value='Sc1'>Sc1</option>
+                                  <option value='Sc2'>Sc2</option>
+                                  <option value='Sc3'>Sc3</option>
+                                </select>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
 
                   {/* Workout Notes Section */}
                   <div className='mt-6 pt-6 border-t border-gray-200'>
-                    <h4 className='font-semibold text-gray-900 mb-3'>My Notes</h4>
+                    <h4 className='font-semibold text-gray-900 mb-3'>My Notes/Scores</h4>
 
                     <div className='space-y-4'>
-                      <div>
-                        <label className='block text-sm font-medium text-gray-700 mb-2'>Date</label>
-                        <input
-                          type='date'
-                          value={workoutLogs[wod.id]?.date || formatLocalDate(selectedDate)}
-                          onChange={e =>
-                            setWorkoutLogs({
-                              ...workoutLogs,
-                              [wod.id]: {
-                                result: workoutLogs[wod.id]?.result || '',
-                                notes: workoutLogs[wod.id]?.notes || '',
-                                date: e.target.value,
-                              },
-                            })
-                          }
-                          className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
-                        />
-                      </div>
+                      {/* Coach Instructions (Athlete Notes) */}
+                      {(() => {
+                        const allNotes: string[] = [];
+                        const publishedSections = getPublishedSections(wod);
+                        publishedSections.forEach(section => {
+                          // Collect lift athlete notes
+                          section.lifts?.forEach(lift => {
+                            if (lift.athlete_notes) {
+                              allNotes.push(`${lift.name}: ${lift.athlete_notes}`);
+                            }
+                          });
+                          // Collect benchmark athlete notes
+                          section.benchmarks?.forEach(benchmark => {
+                            if (benchmark.athlete_notes) {
+                              allNotes.push(`${benchmark.name}: ${benchmark.athlete_notes}`);
+                            }
+                          });
+                          // Collect forge benchmark athlete notes
+                          section.forge_benchmarks?.forEach(forge => {
+                            if (forge.athlete_notes) {
+                              allNotes.push(`${forge.name}: ${forge.athlete_notes}`);
+                            }
+                          });
+                        });
 
-                      <div>
-                        <label className='block text-sm font-medium text-gray-700 mb-2'>
-                          Result/Time
-                        </label>
-                        <input
-                          type='text'
-                          value={workoutLogs[wod.id]?.result || ''}
-                          onChange={e =>
-                            setWorkoutLogs({
-                              ...workoutLogs,
-                              [wod.id]: {
-                                result: e.target.value,
-                                notes: workoutLogs[wod.id]?.notes || '',
-                                date:
-                                  workoutLogs[wod.id]?.date || formatLocalDate(selectedDate),
-                              },
-                            })
-                          }
-                          placeholder='e.g., 12:45, 15 rounds, 100 kg'
-                          className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
-                        />
-                      </div>
+                        return allNotes.length > 0 ? (
+                          <div className='mb-4'>
+                            <label className='block text-sm font-semibold text-gray-700 mb-2'>Coach Instructions</label>
+                            <div className='bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-1'>
+                              {allNotes.map((note, idx) => (
+                                <div key={idx} className='text-sm text-blue-900'>
+                                  • {note}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : null;
+                      })()}
 
                       <div>
                         <label className='block text-sm font-medium text-gray-700 mb-2'>Notes</label>
@@ -727,10 +933,9 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                             setWorkoutLogs({
                               ...workoutLogs,
                               [wod.id]: {
-                                result: workoutLogs[wod.id]?.result || '',
+                                result: '',
                                 notes: e.target.value,
-                                date:
-                                  workoutLogs[wod.id]?.date || formatLocalDate(selectedDate),
+                                date: formatLocalDate(selectedDate),
                               },
                             })
                           }
@@ -740,15 +945,21 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                         />
                       </div>
 
-                      <div className='flex justify-end gap-3'>
+                      <div className='flex justify-end gap-3 flex-wrap'>
                         <button
-                          onClick={() => saveAllLiftRecords(workoutLogs[wod.id]?.date || formatLocalDate(selectedDate))}
+                          onClick={() => saveAllSectionResults(formatLocalDate(selectedDate))}
+                          className='px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition'
+                        >
+                          Save WOD Scores
+                        </button>
+                        <button
+                          onClick={() => saveAllLiftRecords(formatLocalDate(selectedDate))}
                           className='px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition'
                         >
                           Save Lift Records
                         </button>
                         <button
-                          onClick={() => saveAllBenchmarkResults(workoutLogs[wod.id]?.date || formatLocalDate(selectedDate))}
+                          onClick={() => saveAllBenchmarkResults(formatLocalDate(selectedDate))}
                           className='px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition'
                         >
                           Save Benchmark Results

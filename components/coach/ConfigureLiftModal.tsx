@@ -38,8 +38,7 @@ function ConfigureLiftModal({
     { set_number: 1, reps: 5, percentage_1rm: undefined },
   ]);
 
-  const [visibility, setVisibility] = useState<'everyone' | 'coaches' | 'programmers'>('everyone');
-  const [athleteNotes, setAthleteNotes] = useState('Record heaviest set');
+  const [athleteNotes, setAthleteNotes] = useState('Record your heaviest set');
   const [athleteNotesExpanded, setAthleteNotesExpanded] = useState(true);
 
   // Draggable state
@@ -58,6 +57,21 @@ function ConfigureLiftModal({
     }
   }, [isOpen]);
 
+  // Load athlete notes from localStorage when lift changes
+  useEffect(() => {
+    if (lift && !editingLift) {
+      const storageKey = `athlete_notes_lift_${lift.name}`;
+      const savedNotes = localStorage.getItem(storageKey);
+      if (savedNotes) {
+        setAthleteNotes(savedNotes);
+        setAthleteNotesExpanded(true);
+      } else {
+        setAthleteNotes('Record your heaviest set');
+        setAthleteNotesExpanded(true);
+      }
+    }
+  }, [lift, editingLift]);
+
   // Pre-populate form when editing existing lift
   useEffect(() => {
     if (editingLift) {
@@ -74,7 +88,6 @@ function ConfigureLiftModal({
         setVariableSets(existingLift.variable_sets || [{ set_number: 1, reps: 5, percentage_1rm: undefined }]);
       }
 
-      setVisibility(existingLift.visibility);
       setAthleteNotes(existingLift.athlete_notes || '');
       // Expand athlete notes if they exist
       setAthleteNotesExpanded(!!existingLift.athlete_notes);
@@ -85,7 +98,6 @@ function ConfigureLiftModal({
       setReps(5);
       setPercentage(undefined);
       setVariableSets([{ set_number: 1, reps: 5, percentage_1rm: undefined }]);
-      setVisibility('everyone');
       setAthleteNotes('Record your heaviest set');
       setAthleteNotesExpanded(true);
     }
@@ -158,9 +170,15 @@ function ConfigureLiftModal({
       ...(repType === 'constant'
         ? { sets, reps, percentage_1rm: percentage }
         : { variable_sets: variableSets }),
-      visibility,
+      visibility: 'everyone',
       athlete_notes: athleteNotes || undefined,
     };
+
+    // Save athlete notes to localStorage for future use
+    if (athleteNotes) {
+      const storageKey = `athlete_notes_lift_${lift.name}`;
+      localStorage.setItem(storageKey, athleteNotes);
+    }
 
     onAddToSection(selectedSectionId, configuredLift);
     // Don't close modal - let user add multiple items
@@ -407,53 +425,6 @@ function ConfigureLiftModal({
               </div>
             </div>
           )}
-
-          {/* Visibility */}
-          <div>
-            <label className='block text-sm font-semibold text-gray-700 mb-2'>Visible to:</label>
-            <div className='flex gap-4'>
-              <label className='flex items-center gap-2 cursor-pointer'>
-                <input
-                  type='radio'
-                  name='visibility'
-                  value='everyone'
-                  checked={visibility === 'everyone'}
-                  onChange={e => setVisibility(e.target.value as 'everyone')}
-                  className='w-4 h-4 text-[#208479] focus:ring-[#208479]'
-                />
-                <span className='text-sm text-gray-700'>Everyone</span>
-              </label>
-              <label className='flex items-center gap-2 cursor-pointer'>
-                <input
-                  type='radio'
-                  name='visibility'
-                  value='coaches'
-                  checked={visibility === 'coaches'}
-                  onChange={e => setVisibility(e.target.value as 'coaches')}
-                  className='w-4 h-4 text-[#208479] focus:ring-[#208479]'
-                />
-                <span className='text-sm text-gray-700'>Coaches</span>
-              </label>
-              <label className='flex items-center gap-2 cursor-pointer'>
-                <input
-                  type='radio'
-                  name='visibility'
-                  value='programmers'
-                  checked={visibility === 'programmers'}
-                  onChange={e => setVisibility(e.target.value as 'programmers')}
-                  className='w-4 h-4 text-[#208479] focus:ring-[#208479]'
-                />
-                <span className='text-sm text-gray-700'>Programmers Only</span>
-              </label>
-            </div>
-          </div>
-
-          {/* Coach Notes Info */}
-          <div className='bg-gray-100 border border-gray-300 rounded-lg p-3'>
-            <p className='text-xs text-gray-700'>
-              <span className='font-semibold'>For coach notes:</span> Use the <span className='text-[#208479] font-medium'>Coach Notes</span> panel to add workout or section notes visible to coaches only.
-            </p>
-          </div>
 
           {/* Athlete Notes */}
           <div>

@@ -147,7 +147,7 @@ function WODSectionComponent({
             </div>
 
             {/* Workout Type Dropdown - Only for WOD sections */}
-            {section.type === 'WOD' && (
+            {(section.type === 'WOD' || section.type === 'WOD Pt.1' || section.type === 'WOD Pt.2' || section.type === 'WOD Pt.3') && (
               <div className='flex items-center gap-2'>
                 <label className='text-xs font-semibold text-gray-700'>Type:</label>
                 <select

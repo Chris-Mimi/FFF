@@ -24,11 +24,7 @@ function ConfigureBenchmarkModal({
   const [selectedSectionId, setSelectedSectionId] = useState<string>(
     activeSection?.id || (availableSections.length > 0 ? availableSections[0].id : '')
   );
-  const [scalingOption, setScalingOption] = useState('None');
-  const [visibility, setVisibility] = useState<'everyone' | 'coaches' | 'programmers'>('everyone');
-  const [coachNotes, setCoachNotes] = useState('');
   const [athleteNotes, setAthleteNotes] = useState('');
-  const [coachNotesExpanded, setCoachNotesExpanded] = useState(false);
   const [athleteNotesExpanded, setAthleteNotesExpanded] = useState(false);
 
   // Draggable state
@@ -44,6 +40,21 @@ function ConfigureBenchmarkModal({
       setPosition({ x: rightX, y: topY });
     }
   }, [isOpen]);
+
+  // Load athlete notes from localStorage when benchmark changes
+  useEffect(() => {
+    if (benchmark) {
+      const storageKey = `athlete_notes_benchmark_${benchmark.name}`;
+      const savedNotes = localStorage.getItem(storageKey);
+      if (savedNotes) {
+        setAthleteNotes(savedNotes);
+        setAthleteNotesExpanded(true);
+      } else {
+        setAthleteNotes('');
+        setAthleteNotesExpanded(false);
+      }
+    }
+  }, [benchmark]);
 
   // Drag handlers
   const handleDragStart = (e: React.MouseEvent) => {
@@ -90,11 +101,15 @@ function ConfigureBenchmarkModal({
       type: benchmark.type,
       description: benchmark.description || undefined,
       has_scaling: benchmark.has_scaling,
-      scaling_option: scalingOption !== 'None' ? scalingOption : undefined,
-      visibility,
-      coach_notes: coachNotes || undefined,
+      visibility: 'everyone',
       athlete_notes: athleteNotes || undefined,
     };
+
+    // Save athlete notes to localStorage for future use
+    if (athleteNotes) {
+      const storageKey = `athlete_notes_benchmark_${benchmark.name}`;
+      localStorage.setItem(storageKey, athleteNotes);
+    }
 
     onAddToSection(selectedSectionId, configuredBenchmark);
     // Don't close modal - let user add multiple items
@@ -170,86 +185,6 @@ function ConfigureBenchmarkModal({
               <p className='text-sm text-gray-700'>{benchmark.description}</p>
             </div>
           )}
-
-          {/* Scaling Options */}
-          <div>
-            <div className='flex items-center justify-between mb-2'>
-              <label className='block text-sm font-semibold text-gray-700'>Scaling Options</label>
-              <button className='text-xs text-[#208479] hover:underline'>Edit Track Default</button>
-            </div>
-            <div className='relative'>
-              <select
-                value={scalingOption}
-                onChange={e => setScalingOption(e.target.value)}
-                className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent appearance-none pr-10'
-              >
-                <option>None</option>
-                <option>Rx</option>
-                <option>Scaled</option>
-              </select>
-              <ChevronDown className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none' size={20} />
-            </div>
-          </div>
-
-          {/* Visibility */}
-          <div>
-            <label className='block text-sm font-semibold text-gray-700 mb-2'>Visible to:</label>
-            <div className='flex gap-4'>
-              <label className='flex items-center gap-2 cursor-pointer'>
-                <input
-                  type='radio'
-                  name='visibility'
-                  value='everyone'
-                  checked={visibility === 'everyone'}
-                  onChange={e => setVisibility(e.target.value as 'everyone')}
-                  className='w-4 h-4 text-[#208479] focus:ring-[#208479]'
-                />
-                <span className='text-sm text-gray-700'>Everyone</span>
-              </label>
-              <label className='flex items-center gap-2 cursor-pointer'>
-                <input
-                  type='radio'
-                  name='visibility'
-                  value='coaches'
-                  checked={visibility === 'coaches'}
-                  onChange={e => setVisibility(e.target.value as 'coaches')}
-                  className='w-4 h-4 text-[#208479] focus:ring-[#208479]'
-                />
-                <span className='text-sm text-gray-700'>Coaches</span>
-              </label>
-              <label className='flex items-center gap-2 cursor-pointer'>
-                <input
-                  type='radio'
-                  name='visibility'
-                  value='programmers'
-                  checked={visibility === 'programmers'}
-                  onChange={e => setVisibility(e.target.value as 'programmers')}
-                  className='w-4 h-4 text-[#208479] focus:ring-[#208479]'
-                />
-                <span className='text-sm text-gray-700'>Programmers Only</span>
-              </label>
-            </div>
-          </div>
-
-          {/* Coach Notes */}
-          <div>
-            <button
-              onClick={() => setCoachNotesExpanded(!coachNotesExpanded)}
-              className='flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition'
-            >
-              <span className={`transform transition ${coachNotesExpanded ? 'rotate-90' : ''}`}>▸</span>
-              Coach notes...
-            </button>
-            {coachNotesExpanded && (
-              <textarea
-                value={coachNotes}
-                onChange={e => setCoachNotes(e.target.value)}
-                placeholder='Notes visible to coaches only'
-                className='mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
-                rows={3}
-              />
-            )}
-          </div>
 
           {/* Athlete Notes */}
           <div>

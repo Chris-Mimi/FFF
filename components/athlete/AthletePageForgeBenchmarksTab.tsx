@@ -192,6 +192,10 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
       return parseInt(timeStr) || 0;
     };
 
+    // Check if this is a "hold for time" benchmark (higher is better)
+    const isHoldBenchmark = benchmarkName.toLowerCase().includes('hold') ||
+                           benchmarkName.toLowerCase().includes('hang');
+
     const getBestTime = (results: BenchmarkResult[]) => {
       if (results.length === 0) return null;
 
@@ -199,12 +203,21 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
       const isTimeBased = results[0].result_value.includes(':');
 
       if (isTimeBased) {
-        // For time-based: find LOWEST time (best)
-        return results.reduce((best, current) => {
-          const bestSeconds = timeToSeconds(best.result_value);
-          const currentSeconds = timeToSeconds(current.result_value);
-          return currentSeconds < bestSeconds ? current : best;
-        });
+        if (isHoldBenchmark) {
+          // For hold benchmarks: find HIGHEST time (best)
+          return results.reduce((best, current) => {
+            const bestSeconds = timeToSeconds(best.result_value);
+            const currentSeconds = timeToSeconds(current.result_value);
+            return currentSeconds > bestSeconds ? current : best;
+          });
+        } else {
+          // For regular time benchmarks: find LOWEST time (best)
+          return results.reduce((best, current) => {
+            const bestSeconds = timeToSeconds(best.result_value);
+            const currentSeconds = timeToSeconds(current.result_value);
+            return currentSeconds < bestSeconds ? current : best;
+          });
+        }
       } else {
         // For rep-based: find HIGHEST reps (best)
         return results.reduce((best, current) => {
@@ -234,30 +247,43 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
       return parseInt(timeStr) || 0;
     };
 
+    // Check if this is a "hold for time" benchmark (higher is better)
+    const isHoldBenchmark = benchmarkName.toLowerCase().includes('hold') ||
+                           benchmarkName.toLowerCase().includes('hang');
+
     // Find best result for each scaling level to mark as PR
     const prsByScaling = new Map<string, BenchmarkResult>();
     results.forEach(result => {
-      const existing = prsByScaling.get(result.scaling_level || '');
+      const scalingKey = result.scaling_level || 'Rx'; // Default to Rx for consistency
+      const existing = prsByScaling.get(scalingKey);
 
       if (!existing) {
-        prsByScaling.set(result.scaling_level || '', result);
+        prsByScaling.set(scalingKey, result);
       } else {
         // Determine if time-based or rep-based
         const isTimeBased = result.result_value.includes(':');
 
         if (isTimeBased) {
-          // For time-based: lower is better
+          // For time-based: check if hold/hang (higher is better) or regular (lower is better)
           const existingSeconds = timeToSeconds(existing.result_value);
           const currentSeconds = timeToSeconds(result.result_value);
-          if (currentSeconds < existingSeconds) {
-            prsByScaling.set(result.scaling_level || '', result);
+          if (isHoldBenchmark) {
+            // Hold benchmarks: higher time is better
+            if (currentSeconds > existingSeconds) {
+              prsByScaling.set(scalingKey, result);
+            }
+          } else {
+            // Regular time benchmarks: lower time is better
+            if (currentSeconds < existingSeconds) {
+              prsByScaling.set(scalingKey, result);
+            }
           }
         } else {
           // For rep-based: higher is better
           const existingReps = parseInt(existing.result_value) || 0;
           const currentReps = parseInt(result.result_value) || 0;
           if (currentReps > existingReps) {
-            prsByScaling.set(result.scaling_level || '', result);
+            prsByScaling.set(scalingKey, result);
           }
         }
       }
@@ -279,8 +305,16 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
         } else if (currentPriority === bestPriority) {
           const isTimeBased = pr.result_value.includes(':');
           if (isTimeBased) {
-            if (timeToSeconds(pr.result_value) < timeToSeconds(overallBest.result_value)) {
-              overallBest = pr;
+            if (isHoldBenchmark) {
+              // Hold benchmarks: higher time is better
+              if (timeToSeconds(pr.result_value) > timeToSeconds(overallBest.result_value)) {
+                overallBest = pr;
+              }
+            } else {
+              // Regular time benchmarks: lower time is better
+              if (timeToSeconds(pr.result_value) < timeToSeconds(overallBest.result_value)) {
+                overallBest = pr;
+              }
             }
           } else {
             if (parseInt(pr.result_value) > parseInt(overallBest.result_value)) {
@@ -301,7 +335,7 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
         return parseInt(timeStr) || 0;
       };
 
-      const isPR = prsByScaling.get(entry.scaling_level || '')?.id === entry.id;
+      const isPR = prsByScaling.get(entry.scaling_level || 'Rx')?.id === entry.id;
       const isOverallBest = overallBest?.id === entry.id;
 
       return {
@@ -311,8 +345,8 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
           year: 'numeric',
         }),
         value: timeToSeconds(entry.result_value),
-        resultDisplay: entry.result_value,
-        scaling: entry.scaling_level,
+        result_valueDisplay: entry.result_value,
+        scaling_level: entry.scaling_level,
         isPR: isPR,
         isOverallBest: isOverallBest,
       };
@@ -435,7 +469,7 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
                     <div className='ml-auto flex items-center gap-1'>
                       <span
                         className={`text-xs px-2 py-1 rounded ${
-                          result.scaling_level === 'Rx'
+                          (result.scaling_level || 'Rx') === 'Rx'
                             ? 'bg-red-600 text-white'
                             : result.scaling_level === 'Sc1'
                             ? 'bg-blue-800 text-white'
@@ -444,7 +478,7 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
                             : 'bg-blue-400 text-white'
                         }`}
                       >
-                        {result.scaling_level}
+                        {result.scaling_level || 'Rx'}
                       </span>
                       <button
                         onClick={(e) => {
@@ -491,7 +525,7 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
           <div>
             <p className='text-gray-600 mb-6'>Visualize your improvements over time.</p>
             <div className='grid grid-cols-1 gap-6'>
-              {benchmarks.slice(0, 6).map(benchmark => {
+              {benchmarks.map(benchmark => {
                 const chartData = getBenchmarkChartData(benchmark.name);
                 if (chartData.length < 2) return null; // Only show charts with 2+ data points
                 return (
