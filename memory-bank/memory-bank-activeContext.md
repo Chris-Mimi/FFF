@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 8.1
-**Updated:** 2025-12-04 (Session 35 - Benchmark Results Fix Complete)
+**Version:** 8.2
+**Updated:** 2025-12-05 (Session 37 - Exercise Library UX Enhancements)
 
 ---
 
@@ -64,6 +64,19 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-12-05 Session 37 - Sonnet):**
+- **Exercise Library UX Enhancements:**
+  - ✅ **Autocomplete for Exercise Form:** Added autocomplete to tags, equipment, and body parts fields in ExerciseFormModal
+  - ✅ **Dropdown suggestions:** Show existing values from database as user types, filter already-added values
+  - ✅ **Click to add:** Suggestions auto-append to comma-separated list with proper formatting
+  - ✅ **Category filter buttons:** Added 8 quick-filter buttons above exercise list (Warm-up & Mobility, Oly Lift & Barbell, Compound Exercises, Gymnastics & Bodyweight, Core/Abs/Iso, Cardio & Cond, Strength & Cond, Recovery & Stretching)
+  - ✅ **Shortened button labels:** Display names fit on single line for better layout
+  - ✅ **Combined filtering:** Category filter works with search box and equipment/body parts filters
+  - ✅ **CORS debugging:** Fixed port 3000 conflict caused by multiple dev servers running in Chris's terminals
+  - Commit: e0995ae - feat(coach): add autocomplete and category filters to exercise library
+  - Files: 2 modified (163 insertions, 44 deletions)
+  - Status: Complete, tested, pushed to GitHub
 
 **Completed (2025-12-04 Session 35 - Sonnet):**
 - **Session 34 Completion - Benchmark Results Save Fix & UX Enhancements:**
