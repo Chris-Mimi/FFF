@@ -217,6 +217,7 @@ export function useWorkoutModal(
     sections: formData.sections,
     sectionTypes,
     onSectionsChange: (sections) => setFormData(prev => ({ ...prev, sections })),
+    workoutId: editingWOD?.id || formData.id,
   });
 
   const movementConfiguration = useMovementConfiguration({
@@ -303,21 +304,19 @@ export function useWorkoutModal(
             content: pendingSection.content,
           };
           const updatedSections = sectionManagement.insertSectionAtCorrectPosition(editingWOD.sections, newSection);
-          const allSectionIds = [...editingWOD.sections.map(s => s.id), newSection.id];
 
           setFormData({
             ...editingWOD,
             sections: updatedSections,
           });
-          sectionManagement.setExpandedSections(new Set(allSectionIds));
+          // Expanded sections are loaded from localStorage via workoutId in useSectionManagement
         } else if (formData.sections.length === 0 || formData.id !== editingWOD.id) {
           // Only reset formData if:
           // 1. formData is empty (initial state), OR
           // 2. We're editing a different workout (ID changed)
           // This prevents StrictMode's second run from overwriting section additions
           setFormData(editingWOD);
-          const allSectionIds = editingWOD.sections.map(s => s.id);
-          sectionManagement.setExpandedSections(new Set(allSectionIds));
+          // Expanded sections are loaded from localStorage via workoutId in useSectionManagement
         }
 
         // Fetch session time if this WOD is linked to a session
@@ -371,9 +370,12 @@ export function useWorkoutModal(
           date: formatDateLocal(date),
           sections: templateSections,
         });
-        // Expand the first section (Warm-up) and track it
-        sectionManagement.setExpandedSections(new Set([templateSections[0].id]));
-        sectionManagement.setLastExpandedSectionId(templateSections[0].id);
+        // For new workout (no ID yet), manually expand first section
+        // This is safe because there's no workoutId to load from localStorage
+        if (!editingWOD) {
+          sectionManagement.setExpandedSections(new Set([templateSections[0].id]));
+          sectionManagement.setLastExpandedSectionId(templateSections[0].id);
+        }
       }
       setErrors({});
       sectionManagement.setActiveSection(null);

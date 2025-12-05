@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { WODSection } from './useWorkoutModal';
 
 interface SectionType {
@@ -14,6 +14,7 @@ export interface UseSectionManagementProps {
   sections: WODSection[];
   sectionTypes: SectionType[];
   onSectionsChange: (sections: WODSection[]) => void;
+  workoutId?: string;
 }
 
 export interface UseSectionManagementResult {
@@ -43,11 +44,52 @@ export function useSectionManagement({
   sections,
   sectionTypes,
   onSectionsChange,
+  workoutId,
 }: UseSectionManagementProps): UseSectionManagementResult {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const [lastExpandedSectionId, setLastExpandedSectionId] = useState<string | null>(null);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [activeSection, setActiveSection] = useState<number | null>(null);
+  const [loadedWorkoutId, setLoadedWorkoutId] = useState<string | null>(null);
+
+  // Load expanded sections from localStorage when workoutId changes
+  useEffect(() => {
+    if (typeof window !== 'undefined' && workoutId && workoutId !== loadedWorkoutId && sections.length > 0) {
+      const stored = localStorage.getItem(`workout_expanded_sections_${workoutId}`);
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          // Validate that the stored section IDs still exist
+          const validSectionIds = parsed.filter((id: string) =>
+            sections.some(s => s.id === id)
+          );
+          if (validSectionIds.length > 0) {
+            setExpandedSections(new Set(validSectionIds));
+          } else {
+            // Stored IDs are stale, use first section
+            setExpandedSections(new Set([sections[0].id]));
+          }
+        } catch {
+          // Invalid JSON, set default
+          setExpandedSections(new Set([sections[0].id]));
+        }
+      } else {
+        // No stored state - set default to first section
+        setExpandedSections(new Set([sections[0].id]));
+      }
+      setLoadedWorkoutId(workoutId);
+    }
+  }, [workoutId, loadedWorkoutId, sections]);
+
+  // Save expanded sections to localStorage whenever they change
+  useEffect(() => {
+    if (typeof window !== 'undefined' && workoutId && expandedSections.size > 0) {
+      localStorage.setItem(
+        `workout_expanded_sections_${workoutId}`,
+        JSON.stringify(Array.from(expandedSections))
+      );
+    }
+  }, [expandedSections, workoutId]);
 
   const toggleSectionExpanded = (sectionId: string, sectionIndex?: number) => {
     setExpandedSections(prev => {

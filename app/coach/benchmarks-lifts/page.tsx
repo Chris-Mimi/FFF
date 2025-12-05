@@ -8,7 +8,6 @@ import LiftsTab from '@/components/coach/LiftsTab';
 import ReferencesTab from '@/components/coach/ReferencesTab';
 import { supabase } from '@/lib/supabase';
 import { DragEndEvent } from '@dnd-kit/core';
-import { arrayMove } from '@dnd-kit/sortable';
 import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -208,7 +207,7 @@ export default function BenchmarksLiftsManagementPage() {
       const { data, error } = await supabase
         .from('benchmark_workouts')
         .select('*')
-        .order('display_order', { ascending: true });
+        .order('name', { ascending: true });
 
       if (error) throw error;
       setBenchmarks(data || []);
@@ -405,38 +404,124 @@ export default function BenchmarksLiftsManagementPage() {
   const handleForgeDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
 
-    if (!over || active.id === over.id) {
+    if (!over) {
       return;
     }
 
-    const oldIndex = forgeBenchmarks.findIndex((item) => item.id === active.id);
-    const newIndex = forgeBenchmarks.findIndex((item) => item.id === over.id);
+    // Find the dragged item
+    const draggedItem = forgeBenchmarks.find((item) => item.id === active.id);
+    if (!draggedItem) return;
 
-    const reorderedItems = arrayMove(forgeBenchmarks, oldIndex, newIndex);
+    // Determine target position
+    let targetPosition: number;
 
-    // Update local state immediately for smooth UX
-    setForgeBenchmarks(reorderedItems);
+    if (over.id === active.id) {
+      return; // No change
+    }
 
-    // Update display_order in database
+    // Check if dropping on another benchmark or an empty cell
+    const targetItem = forgeBenchmarks.find((item) => item.id === over.id);
+
+    if (targetItem) {
+      // Dropping on another benchmark - swap positions
+      targetPosition = targetItem.display_order;
+
+      // Swap the two items
+      const updatedBenchmarks = forgeBenchmarks.map(item => {
+        if (item.id === draggedItem.id) {
+          return { ...item, display_order: targetPosition };
+        }
+        if (item.id === targetItem.id) {
+          return { ...item, display_order: draggedItem.display_order };
+        }
+        return item;
+      });
+
+      setForgeBenchmarks(updatedBenchmarks);
+
+      // Update both items in database
+      try {
+        await supabase
+          .from('forge_benchmarks')
+          .update({ display_order: targetPosition })
+          .eq('id', draggedItem.id);
+
+        await supabase
+          .from('forge_benchmarks')
+          .update({ display_order: draggedItem.display_order })
+          .eq('id', targetItem.id);
+      } catch (error: any) {
+        console.error('Error updating order:', error);
+        alert(`Error updating order: ${error.message}`);
+        fetchForgeBenchmarks();
+      }
+    } else {
+      // Dropping on empty cell - extract position from key
+      const emptyKey = over.id as string;
+      if (emptyKey.startsWith('empty-')) {
+        targetPosition = parseInt(emptyKey.replace('empty-', ''));
+
+        const updatedBenchmarks = forgeBenchmarks.map(item => {
+          if (item.id === draggedItem.id) {
+            return { ...item, display_order: targetPosition };
+          }
+          return item;
+        });
+
+        setForgeBenchmarks(updatedBenchmarks);
+
+        // Update only the dragged item
+        try {
+          await supabase
+            .from('forge_benchmarks')
+            .update({ display_order: targetPosition })
+            .eq('id', draggedItem.id);
+        } catch (error: any) {
+          console.error('Error updating order:', error);
+          alert(`Error updating order: ${error.message}`);
+          fetchForgeBenchmarks();
+        }
+      }
+    }
+  };
+
+  const handleInsertForgeRow = async (afterPosition: number) => {
+    if (!confirm(`Insert an empty row below position ${afterPosition}? This will shift all benchmarks below down by 5 positions.`)) {
+      return;
+    }
+
     try {
-      const updates = reorderedItems.map((item, index) => ({
-        id: item.id,
-        display_order: index + 1,
-      }));
+      // Find all benchmarks at or after afterPosition + 1
+      const benchmarksToShift = forgeBenchmarks.filter(b => b.display_order > afterPosition);
 
-      for (const update of updates) {
+      if (benchmarksToShift.length === 0) {
+        alert('No benchmarks to shift. The row below is already empty.');
+        return;
+      }
+
+      // Shift them down by 5
+      const updatedBenchmarks = forgeBenchmarks.map(item => {
+        if (item.display_order > afterPosition) {
+          return { ...item, display_order: item.display_order + 5 };
+        }
+        return item;
+      });
+
+      // Update local state
+      setForgeBenchmarks(updatedBenchmarks);
+
+      // Update database
+      for (const benchmark of benchmarksToShift) {
         const { error } = await supabase
           .from('forge_benchmarks')
-          .update({ display_order: update.display_order })
-          .eq('id', update.id);
+          .update({ display_order: benchmark.display_order + 5 })
+          .eq('id', benchmark.id);
 
         if (error) throw error;
       }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      console.error('Error updating order:', error);
-      alert(`Error updating order: ${error.message}`);
-      // Revert to original order on error
+      console.error('Error inserting row:', error);
+      alert(`Error inserting row: ${error.message}`);
       fetchForgeBenchmarks();
     }
   };
@@ -1025,6 +1110,7 @@ export default function BenchmarksLiftsManagementPage() {
             onEdit={openForgeModal}
             onDelete={deleteForge}
             onDragEnd={handleForgeDragEnd}
+            onInsertRow={handleInsertForgeRow}
             showModal={showForgeModal}
             onCloseModal={() => setShowForgeModal(false)}
             editingForge={editingForge}

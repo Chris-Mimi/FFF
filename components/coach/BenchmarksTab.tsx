@@ -181,18 +181,6 @@ export default function BenchmarksTab({
                   Has Scaling Options (Rx/Sc1/Sc2/Sc3)
                 </label>
               </div>
-
-              <div>
-                <label className='block text-sm font-medium text-gray-100 mb-1'>
-                  Display Order
-                </label>
-                <input
-                  type='number'
-                  value={form.display_order}
-                  onChange={(e) => onFormChange('display_order', parseInt(e.target.value) || 0)}
-                  className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent'
-                />
-              </div>
             </div>
 
             <div className='flex gap-3 mt-6'>

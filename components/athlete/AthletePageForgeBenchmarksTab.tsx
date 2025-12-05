@@ -18,7 +18,10 @@ import {
 interface BenchmarkResult {
   id: string;
   benchmark_name: string;
-  result_value: string;
+  time_result?: string;
+  reps_result?: number;
+  weight_result?: number;
+  result_value?: string; // Legacy field for backward compatibility
   notes?: string;
   result_date: string;
   scaling_level?: string;
@@ -26,6 +29,16 @@ interface BenchmarkResult {
 
 interface AthletePageForgeBenchmarksTabProps {
   userId: string;
+}
+
+// Helper function to get display value from result fields
+function getResultDisplayValue(result: BenchmarkResult): string {
+  // Try new fields first
+  if (result.time_result) return result.time_result;
+  if (result.reps_result) return result.reps_result.toString();
+  if (result.weight_result) return `${result.weight_result}kg`;
+  // Fall back to legacy field
+  return result.result_value || '';
 }
 
 export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageForgeBenchmarksTabProps) {
@@ -91,7 +104,10 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
   };
 
   const handleSaveBenchmark = async () => {
-    if (!selectedBenchmark || !newTime) return;
+    if (!selectedBenchmark || !newTime) {
+      alert('Please enter a result/time value');
+      return;
+    }
 
     try {
       if (editingBenchmarkId) {
@@ -108,33 +124,62 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
           })
           .eq('id', editingBenchmarkId);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Update error:', error);
+          throw error;
+        }
+
+        console.log('Successfully updated benchmark result');
       } else {
         // Fetch forge benchmark details to get ID and type
-        const { data: forgeBenchmark } = await supabase
+        const { data: forgeBenchmark, error: fetchError } = await supabase
           .from('forge_benchmarks')
           .select('id, type')
           .eq('name', selectedBenchmark)
           .single();
 
+        if (fetchError) {
+          console.error('Error fetching forge benchmark:', fetchError);
+          throw fetchError;
+        }
+
         if (!forgeBenchmark) {
           throw new Error('Forge benchmark not found');
         }
 
-        // Insert new entry
-        const { error } = await supabase.from('benchmark_results').insert({
+        console.log('Inserting result for:', selectedBenchmark, {
           user_id: userId,
           forge_benchmark_id: forgeBenchmark.id,
           benchmark_name: selectedBenchmark,
           benchmark_type: forgeBenchmark.type,
           result_value: newTime,
-          notes: newNotes || null,
-          result_date: newDate,
           scaling_level: newScaling,
         });
 
-        if (error) throw error;
+        // Insert new entry
+        const { data: insertedData, error: insertError } = await supabase
+          .from('benchmark_results')
+          .insert({
+            user_id: userId,
+            forge_benchmark_id: forgeBenchmark.id,
+            benchmark_name: selectedBenchmark,
+            benchmark_type: forgeBenchmark.type,
+            result_value: newTime,
+            notes: newNotes || null,
+            result_date: newDate,
+            scaling_level: newScaling,
+          })
+          .select();
+
+        if (insertError) {
+          console.error('Insert error:', insertError);
+          throw insertError;
+        }
+
+        console.log('Successfully inserted benchmark result:', insertedData);
       }
+
+      alert(`Successfully ${editingBenchmarkId ? 'updated' : 'saved'} benchmark result!`);
 
       // Refresh the history
       await fetchBenchmarkHistory();
@@ -146,15 +191,15 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
       setNewScaling('Rx');
       setSelectedBenchmark(null);
       setEditingBenchmarkId(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving benchmark:', error);
-      alert('Failed to save benchmark result. Please try again.');
+      alert(`Failed to save benchmark result: ${error.message}`);
     }
   };
 
   const handleEditBenchmark = (entry: BenchmarkResult) => {
     setSelectedBenchmark(entry.benchmark_name);
-    setNewTime(entry.result_value);
+    setNewTime(getResultDisplayValue(entry));
     setNewNotes(entry.notes || '');
     setNewDate(entry.result_date);
     setNewScaling((entry.scaling_level as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3') || 'Rx');
@@ -200,29 +245,30 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
       if (results.length === 0) return null;
 
       // Determine if time-based (contains colon) or rep-based
-      const isTimeBased = results[0].result_value.includes(':');
+      const firstResultValue = getResultDisplayValue(results[0]);
+      const isTimeBased = firstResultValue.includes(':');
 
       if (isTimeBased) {
         if (isHoldBenchmark) {
           // For hold benchmarks: find HIGHEST time (best)
           return results.reduce((best, current) => {
-            const bestSeconds = timeToSeconds(best.result_value);
-            const currentSeconds = timeToSeconds(current.result_value);
+            const bestSeconds = timeToSeconds(getResultDisplayValue(best));
+            const currentSeconds = timeToSeconds(getResultDisplayValue(current));
             return currentSeconds > bestSeconds ? current : best;
           });
         } else {
           // For regular time benchmarks: find LOWEST time (best)
           return results.reduce((best, current) => {
-            const bestSeconds = timeToSeconds(best.result_value);
-            const currentSeconds = timeToSeconds(current.result_value);
+            const bestSeconds = timeToSeconds(getResultDisplayValue(best));
+            const currentSeconds = timeToSeconds(getResultDisplayValue(current));
             return currentSeconds < bestSeconds ? current : best;
           });
         }
       } else {
         // For rep-based: find HIGHEST reps (best)
         return results.reduce((best, current) => {
-          const bestReps = parseInt(best.result_value) || 0;
-          const currentReps = parseInt(current.result_value) || 0;
+          const bestReps = parseInt(getResultDisplayValue(best)) || 0;
+          const currentReps = parseInt(getResultDisplayValue(current)) || 0;
           return currentReps > bestReps ? current : best;
         });
       }
@@ -261,12 +307,13 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
         prsByScaling.set(scalingKey, result);
       } else {
         // Determine if time-based or rep-based
-        const isTimeBased = result.result_value.includes(':');
+        const resultValue = getResultDisplayValue(result);
+        const isTimeBased = resultValue.includes(':');
 
         if (isTimeBased) {
           // For time-based: check if hold/hang (higher is better) or regular (lower is better)
-          const existingSeconds = timeToSeconds(existing.result_value);
-          const currentSeconds = timeToSeconds(result.result_value);
+          const existingSeconds = timeToSeconds(getResultDisplayValue(existing));
+          const currentSeconds = timeToSeconds(resultValue);
           if (isHoldBenchmark) {
             // Hold benchmarks: higher time is better
             if (currentSeconds > existingSeconds) {
@@ -280,8 +327,8 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
           }
         } else {
           // For rep-based: higher is better
-          const existingReps = parseInt(existing.result_value) || 0;
-          const currentReps = parseInt(result.result_value) || 0;
+          const existingReps = parseInt(getResultDisplayValue(existing)) || 0;
+          const currentReps = parseInt(resultValue) || 0;
           if (currentReps > existingReps) {
             prsByScaling.set(scalingKey, result);
           }
@@ -303,21 +350,22 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
         if (currentPriority > bestPriority) {
           overallBest = pr;
         } else if (currentPriority === bestPriority) {
-          const isTimeBased = pr.result_value.includes(':');
+          const prValue = getResultDisplayValue(pr);
+          const isTimeBased = prValue.includes(':');
           if (isTimeBased) {
             if (isHoldBenchmark) {
               // Hold benchmarks: higher time is better
-              if (timeToSeconds(pr.result_value) > timeToSeconds(overallBest.result_value)) {
+              if (timeToSeconds(prValue) > timeToSeconds(getResultDisplayValue(overallBest))) {
                 overallBest = pr;
               }
             } else {
               // Regular time benchmarks: lower time is better
-              if (timeToSeconds(pr.result_value) < timeToSeconds(overallBest.result_value)) {
+              if (timeToSeconds(prValue) < timeToSeconds(getResultDisplayValue(overallBest))) {
                 overallBest = pr;
               }
             }
           } else {
-            if (parseInt(pr.result_value) > parseInt(overallBest.result_value)) {
+            if (parseInt(prValue) > parseInt(getResultDisplayValue(overallBest))) {
               overallBest = pr;
             }
           }
@@ -337,6 +385,7 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
 
       const isPR = prsByScaling.get(entry.scaling_level || 'Rx')?.id === entry.id;
       const isOverallBest = overallBest?.id === entry.id;
+      const displayValue = getResultDisplayValue(entry);
 
       return {
         date: new Date(entry.result_date).toLocaleDateString('en-US', {
@@ -344,8 +393,8 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
           day: 'numeric',
           year: 'numeric',
         }),
-        value: timeToSeconds(entry.result_value),
-        result_valueDisplay: entry.result_value,
+        value: timeToSeconds(displayValue),
+        result_valueDisplay: displayValue,
         scaling_level: entry.scaling_level,
         isPR: isPR,
         isOverallBest: isOverallBest,
@@ -436,7 +485,7 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
                   <div className='flex items-end justify-between'>
                     <div>
                       <p className='text-xs text-gray-600'>PR:</p>
-                      <p className='text-sm font-bold text-[#208479]'>{bestResult.result_value}</p>
+                      <p className='text-sm font-bold text-[#208479]'>{getResultDisplayValue(bestResult)}</p>
                     </div>
                     {benchmark.count > 0 && (
                       <p className='text-xs text-gray-500'>{benchmark.count}x</p>
@@ -493,7 +542,7 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
                     </div>
                   </div>
                   <div className='flex items-center justify-between'>
-                    <p className='text-lg font-bold text-[#208479]'>{result.result_value}</p>
+                    <p className='text-lg font-bold text-[#208479]'>{getResultDisplayValue(result)}</p>
                     <p className='text-sm text-gray-600'>
                       {new Date(result.result_date).toLocaleDateString('en-US', {
                         month: 'short',
@@ -699,7 +748,7 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
                     <div key={entry.id} className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'>
                       <div className='flex-1'>
                         <div className='flex items-center gap-2 mb-1'>
-                          <span className='font-semibold text-gray-900'>{entry.result_value}</span>
+                          <span className='font-semibold text-gray-900'>{getResultDisplayValue(entry)}</span>
                           <span
                             className={`text-xs px-2 py-1 rounded ${
                               entry.scaling_level === 'Rx'

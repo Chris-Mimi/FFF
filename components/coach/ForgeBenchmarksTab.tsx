@@ -8,6 +8,7 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  useDroppable,
 } from '@dnd-kit/core';
 import {
   rectSortingStrategy,
@@ -96,12 +97,31 @@ function SortableForgeCard({
   );
 }
 
+// Droppable Empty Cell Component
+function DroppableEmptyCell({ position }: { position: number }) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: `empty-${position}`,
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`border border-dashed rounded-lg p-3 min-h-[100px] transition-colors ${
+        isOver
+          ? 'border-cyan-500 bg-cyan-100'
+          : 'border-gray-300 bg-gray-50'
+      }`}
+    />
+  );
+}
+
 interface ForgeBenchmarksTabProps {
   forgeBenchmarks: Benchmark[];
   onAdd: () => void;
   onEdit: (forge: Benchmark) => void;
   onDelete: (id: string) => void;
   onDragEnd: (event: DragEndEvent) => void;
+  onInsertRow: (afterPosition: number) => void;
   // Modal props
   showModal: boolean;
   onCloseModal: () => void;
@@ -125,6 +145,7 @@ export default function ForgeBenchmarksTab({
   onEdit,
   onDelete,
   onDragEnd,
+  onInsertRow,
   showModal,
   onCloseModal,
   editingForge,
@@ -140,6 +161,24 @@ export default function ForgeBenchmarksTab({
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
+  // Create a fixed grid with specific positions
+  // Calculate max slots needed (highest display_order + some buffer)
+  const maxDisplayOrder = forgeBenchmarks.length > 0
+    ? Math.max(...forgeBenchmarks.map(f => f.display_order))
+    : 0;
+  const totalSlots = Math.max(maxDisplayOrder + 10, 25); // At least 25 slots (5 rows)
+
+  // Create a map of display_order to benchmark
+  const benchmarksByPosition = new Map(
+    forgeBenchmarks.map(f => [f.display_order, f])
+  );
+
+  // Generate grid slots grouped by rows (5 per row)
+  const rows: number[][] = [];
+  for (let i = 1; i <= totalSlots; i += 5) {
+    rows.push([i, i + 1, i + 2, i + 3, i + 4]);
+  }
 
   return (
     <>
@@ -174,14 +213,36 @@ export default function ForgeBenchmarksTab({
               items={forgeBenchmarks.map(f => f.id)}
               strategy={rectSortingStrategy}
             >
-              <div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3'>
-                {forgeBenchmarks.map((forge) => (
-                  <SortableForgeCard
-                    key={forge.id}
-                    forge={forge}
-                    onEdit={onEdit}
-                    onDelete={onDelete}
-                  />
+              <div className='space-y-2'>
+                {rows.map((rowPositions, rowIndex) => (
+                  <div key={`row-${rowIndex}`}>
+                    <div className='grid grid-cols-5 gap-3'>
+                      {rowPositions.map((position) => {
+                        const forge = benchmarksByPosition.get(position);
+                        if (forge) {
+                          return (
+                            <SortableForgeCard
+                              key={forge.id}
+                              forge={forge}
+                              onEdit={onEdit}
+                              onDelete={onDelete}
+                            />
+                          );
+                        }
+                        // Empty droppable cell
+                        return <DroppableEmptyCell key={`empty-${position}`} position={position} />;
+                      })}
+                    </div>
+                    {/* Insert Row Below button */}
+                    <div className='flex justify-center mt-1'>
+                      <button
+                        onClick={() => onInsertRow(rowPositions[4])}
+                        className='text-xs text-cyan-600 hover:text-cyan-700 hover:bg-cyan-50 px-3 py-1 rounded transition'
+                      >
+                        + Insert Row Below
+                      </button>
+                    </div>
+                  </div>
                 ))}
               </div>
             </SortableContext>
@@ -268,18 +329,6 @@ export default function ForgeBenchmarksTab({
                 <label htmlFor='forge_has_scaling' className='text-sm font-medium text-gray-100 cursor-pointer'>
                   Has Scaling Options (Rx/Sc1/Sc2/Sc3)
                 </label>
-              </div>
-
-              <div>
-                <label className='block text-sm font-medium text-gray-100 mb-1'>
-                  Display Order
-                </label>
-                <input
-                  type='number'
-                  value={form.display_order}
-                  onChange={(e) => onFormChange('display_order', parseInt(e.target.value) || 0)}
-                  className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent'
-                />
               </div>
             </div>
 

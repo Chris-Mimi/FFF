@@ -170,18 +170,18 @@ function WODSectionComponent({
               <button
                 type='button'
                 onClick={onToggleExpand}
-                className='text-gray-500 hover:text-gray-700 p-1'
+                className='text-gray-600 hover:text-gray-900 hover:bg-gray-200 p-1.5 rounded transition'
                 title={isExpanded ? 'Collapse' : 'Expand'}
               >
                 <ChevronDown
-                  size={16}
+                  size={18}
                   className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`}
                 />
               </button>
               <button
                 type='button'
                 onClick={onDelete}
-                className='text-gray-400 hover:text-red-600 p-1'
+                className='text-gray-400 hover:text-red-600 hover:bg-red-50 p-1.5 rounded transition'
                 title='Delete section'
               >
                 <Trash2 size={16} />
@@ -317,70 +317,7 @@ function WODSectionComponent({
                 Tip: Use * for bullet points, add reps/sets, cut/paste, reorder freely
               </p>
             </div>
-          ) : (
-            <div
-              onClick={onToggleExpand}
-              className='cursor-pointer hover:bg-gray-50 rounded p-2 -m-2'
-            >
-              {(section.lifts && section.lifts.length > 0) || (section.benchmarks && section.benchmarks.length > 0) || (section.forge_benchmarks && section.forge_benchmarks.length > 0) || section.content ? (
-                <div className='text-sm text-gray-900 space-y-2'>
-                  {/* Lifts */}
-                  {section.lifts && section.lifts.length > 0 && (
-                    <div className='space-y-1'>
-                      {section.lifts.map((lift, liftIdx) => (
-                        <div key={liftIdx} className='font-mono bg-gray-50 p-2 rounded border border-gray-200'>
-                          ≡ {formatLift(lift)}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Benchmarks */}
-                  {section.benchmarks && section.benchmarks.length > 0 && (
-                    <div className='space-y-2'>
-                      <div className='font-mono bg-teal-50 p-2 rounded border border-teal-200 font-medium'>
-                        ★ {section.benchmarks.map(b => formatBenchmark(b)).join(', ')}
-                      </div>
-                      {section.benchmarks.map((benchmark, benchIdx) => (
-                        benchmark.description && (
-                          <div key={benchIdx} className='whitespace-pre-wrap font-mono text-sm bg-gray-50 p-2 rounded border border-gray-200'>
-                            {benchmark.description}
-                          </div>
-                        )
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Forge Benchmarks */}
-                  {section.forge_benchmarks && section.forge_benchmarks.length > 0 && (
-                    <div className='space-y-2'>
-                      <div className='font-mono bg-cyan-50 p-2 rounded border border-cyan-200 font-medium'>
-                        ◆ {section.forge_benchmarks.map(f => formatForgeBenchmark(f)).join(', ')}
-                      </div>
-                      {section.forge_benchmarks.map((forge, forgeIdx) => (
-                        forge.description && (
-                          <div key={forgeIdx} className='whitespace-pre-wrap font-mono text-sm bg-gray-50 p-2 rounded border border-gray-200'>
-                            {forge.description}
-                          </div>
-                        )
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Content */}
-                  {section.content && (
-                    <div className='whitespace-pre-wrap font-mono bg-gray-50 p-2 rounded border border-gray-200 max-h-32 overflow-auto'>
-                      {section.content}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className='text-sm text-gray-500 italic'>
-                  No exercises added yet. Click here or Library to add exercises.
-                </div>
-              )}
-            </div>
-          )}
+          ) : null}
         </div>
       </div>
     </div>

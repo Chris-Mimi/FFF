@@ -22,16 +22,30 @@ export async function POST(request: NextRequest) {
       forgeBenchmarkId,
       benchmarkName,
       benchmarkType,
-      resultValue,
+      timeResult,
+      repsResult,
+      weightResult,
       scalingLevel,
       notes,
       resultDate
     } = body;
 
     // Validate required fields
-    if (!userId || !benchmarkName || !benchmarkType || !resultValue) {
+    if (!userId || !benchmarkName || !benchmarkType) {
       return NextResponse.json(
-        { error: 'userId, benchmarkName, benchmarkType, and resultValue are required' },
+        { error: 'userId, benchmarkName, and benchmarkType are required' },
+        { status: 400 }
+      );
+    }
+
+    // At least one result field must be provided (check for non-empty strings)
+    const hasTimeResult = timeResult && timeResult.trim() !== '';
+    const hasRepsResult = repsResult && repsResult.toString().trim() !== '';
+    const hasWeightResult = weightResult && weightResult.toString().trim() !== '';
+
+    if (!hasTimeResult && !hasRepsResult && !hasWeightResult) {
+      return NextResponse.json(
+        { error: 'At least one result field (time, reps, or weight) must be provided' },
         { status: 400 }
       );
     }
@@ -61,12 +75,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Parse numeric fields safely
+    const parsedReps = repsResult && repsResult.toString().trim() !== ''
+      ? parseInt(repsResult.toString())
+      : null;
+    const parsedWeight = weightResult && weightResult.toString().trim() !== ''
+      ? parseFloat(weightResult.toString())
+      : null;
+
     if (existingResult) {
       // Update existing result
       const { error } = await supabaseAdmin
         .from('benchmark_results')
         .update({
-          result_value: resultValue,
+          time_result: hasTimeResult ? timeResult.trim() : null,
+          reps_result: parsedReps,
+          weight_result: parsedWeight,
           scaling_level: scalingLevel || null,
           notes: notes || null,
           updated_at: new Date().toISOString()
@@ -76,7 +100,7 @@ export async function POST(request: NextRequest) {
       if (error) {
         console.error('Error updating result:', error);
         return NextResponse.json(
-          { error: 'Failed to update result' },
+          { error: `Failed to update result: ${error.message}` },
           { status: 500 }
         );
       }
@@ -98,7 +122,9 @@ export async function POST(request: NextRequest) {
           forge_benchmark_id: forgeBenchmarkId || null,
           benchmark_name: benchmarkName,
           benchmark_type: benchmarkType,
-          result_value: resultValue,
+          time_result: hasTimeResult ? timeResult.trim() : null,
+          reps_result: parsedReps,
+          weight_result: parsedWeight,
           scaling_level: scalingLevel || null,
           notes: notes || null,
           result_date: resultDate || new Date().toISOString().split('T')[0]

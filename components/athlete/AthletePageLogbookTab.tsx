@@ -19,7 +19,9 @@ interface LiftRecord {
 interface BenchmarkResult {
   benchmark_name: string;
   benchmark_type: string;
-  result_value: string;
+  time_result?: string;
+  reps_result?: string;
+  weight_result?: string;
   scaling_level?: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3';
   benchmark_id?: string;
   forge_benchmark_id?: string;
@@ -182,14 +184,17 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
   const saveBenchmarkResult = async (
     benchmarkName: string,
     benchmarkType: string,
-    resultValue: string,
+    timeResult: string,
+    repsResult: string,
+    weightResult: string,
     resultDate: string,
     scalingLevel?: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3',
     benchmarkId?: string,
     forgeBenchmarkId?: string
   ) => {
-    if (!resultValue || resultValue.trim() === '') {
-      return; // Don't save if no result entered
+    // Don't save if all result fields are empty
+    if (!timeResult && !repsResult && !weightResult) {
+      return;
     }
 
     try {
@@ -202,7 +207,9 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
           forgeBenchmarkId,
           benchmarkName,
           benchmarkType,
-          resultValue,
+          timeResult,
+          repsResult,
+          weightResult,
           scalingLevel,
           resultDate
         })
@@ -223,7 +230,14 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
 
   // Save all benchmark results for a workout
   const saveAllBenchmarkResults = async (dateStr: string) => {
-    const resultsToSave = Object.entries(benchmarkResults).filter(([_, result]) => result.result_value && result.result_value.trim() !== '');
+    console.log('=== SAVING BENCHMARK RESULTS ===');
+    console.log('All benchmark results state:', benchmarkResults);
+
+    const resultsToSave = Object.entries(benchmarkResults).filter(
+      ([_, result]) => result.time_result || result.reps_result || result.weight_result
+    );
+
+    console.log('Filtered results to save:', resultsToSave);
 
     if (resultsToSave.length === 0) {
       alert('No benchmark results entered to save');
@@ -231,18 +245,33 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
     }
 
     let errorCount = 0;
-    for (const [_key, result] of resultsToSave) {
+    let errors: any[] = [];
+    for (const [key, result] of resultsToSave) {
       try {
+        console.log(`Saving benchmark result [${key}]:`, {
+          name: result.benchmark_name,
+          type: result.benchmark_type,
+          time: result.time_result,
+          reps: result.reps_result,
+          weight: result.weight_result,
+          scaling: result.scaling_level
+        });
+
         await saveBenchmarkResult(
           result.benchmark_name,
           result.benchmark_type,
-          result.result_value,
+          result.time_result || '',
+          result.reps_result || '',
+          result.weight_result || '',
           dateStr,
           result.scaling_level,
           result.benchmark_id,
           result.forge_benchmark_id
         );
+        console.log(`✓ Successfully saved ${result.benchmark_name}`);
       } catch (error) {
+        console.error(`✗ Failed to save ${result.benchmark_name}:`, error);
+        errors.push({ name: result.benchmark_name, error });
         errorCount++;
       }
     }
@@ -251,7 +280,8 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
       alert('Benchmark results saved successfully!');
       setBenchmarkResults({});
     } else {
-      alert(`Saved ${resultsToSave.length - errorCount} of ${resultsToSave.length} benchmark results. ${errorCount} failed.`);
+      console.error('Errors during save:', errors);
+      alert(`Saved ${resultsToSave.length - errorCount} of ${resultsToSave.length} benchmark results. ${errorCount} failed. Check console for details.`);
     }
   };
 
@@ -672,7 +702,59 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                                         </div>
                                       )}
                                     </div>
-                                    <div className='flex items-center gap-2 ml-auto'>
+                                    <div className='flex items-center gap-2 ml-auto flex-wrap'>
+                                      {/* Time input */}
+                                      <input
+                                        type='text'
+                                        placeholder='mm:ss'
+                                        value={benchmarkResults[benchmarkKey]?.time_result || ''}
+                                        onChange={e => setBenchmarkResults(prev => ({
+                                          ...prev,
+                                          [benchmarkKey]: {
+                                            ...prev[benchmarkKey],
+                                            benchmark_name: benchmark.name,
+                                            benchmark_type: benchmark.type,
+                                            time_result: e.target.value,
+                                            benchmark_id: benchmark.id
+                                          }
+                                        }))}
+                                        className='w-20 px-2 py-1 text-xs border border-teal-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                                      />
+                                      {/* Reps input */}
+                                      <input
+                                        type='number'
+                                        placeholder='reps'
+                                        value={benchmarkResults[benchmarkKey]?.reps_result || ''}
+                                        onChange={e => setBenchmarkResults(prev => ({
+                                          ...prev,
+                                          [benchmarkKey]: {
+                                            ...prev[benchmarkKey],
+                                            benchmark_name: benchmark.name,
+                                            benchmark_type: benchmark.type,
+                                            reps_result: e.target.value,
+                                            benchmark_id: benchmark.id
+                                          }
+                                        }))}
+                                        className='w-16 px-2 py-1 text-xs border border-teal-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                                      />
+                                      {/* Weight input */}
+                                      <input
+                                        type='number'
+                                        step='0.5'
+                                        placeholder='kg'
+                                        value={benchmarkResults[benchmarkKey]?.weight_result || ''}
+                                        onChange={e => setBenchmarkResults(prev => ({
+                                          ...prev,
+                                          [benchmarkKey]: {
+                                            ...prev[benchmarkKey],
+                                            benchmark_name: benchmark.name,
+                                            benchmark_type: benchmark.type,
+                                            weight_result: e.target.value,
+                                            benchmark_id: benchmark.id
+                                          }
+                                        }))}
+                                        className='w-16 px-2 py-1 text-xs border border-teal-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                                      />
                                       {/* Scaling dropdown (if benchmark has scaling) */}
                                       {(benchmark.has_scaling ?? true) && (
                                         <select
@@ -680,14 +762,14 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                                           onChange={e => setBenchmarkResults(prev => ({
                                             ...prev,
                                             [benchmarkKey]: {
+                                              ...prev[benchmarkKey],
                                               benchmark_name: benchmark.name,
                                               benchmark_type: benchmark.type,
-                                              result_value: prev[benchmarkKey]?.result_value || '',
                                               scaling_level: e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3',
                                               benchmark_id: benchmark.id
                                             }
                                           }))}
-                                          className='w-14 px-1 py-0.5 text-xs border border-teal-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                                          className='w-14 px-1 py-0.5 text-xs border border-teal-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 bg-white'
                                         >
                                           <option value='Rx'>Rx</option>
                                           <option value='Sc1'>Sc1</option>
@@ -695,23 +777,6 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                                           <option value='Sc3'>Sc3</option>
                                         </select>
                                       )}
-                                      {/* Result input */}
-                                      <input
-                                        type='text'
-                                        placeholder={benchmark.type.includes('Time') ? 'mm:ss' : benchmark.type.includes('AMRAP') ? 'reps' : 'result'}
-                                        value={benchmarkResults[benchmarkKey]?.result_value || ''}
-                                        onChange={e => setBenchmarkResults(prev => ({
-                                          ...prev,
-                                          [benchmarkKey]: {
-                                            benchmark_name: benchmark.name,
-                                            benchmark_type: benchmark.type,
-                                            result_value: e.target.value,
-                                            scaling_level: prev[benchmarkKey]?.scaling_level,
-                                            benchmark_id: benchmark.id
-                                          }
-                                        }))}
-                                        className='w-24 px-2 py-1 text-xs border border-teal-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
-                                      />
                                     </div>
                                   </div>
                                 </div>
@@ -738,7 +803,59 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                                         </div>
                                       )}
                                     </div>
-                                    <div className='flex items-center gap-2 ml-auto'>
+                                    <div className='flex items-center gap-2 ml-auto flex-wrap'>
+                                      {/* Time input */}
+                                      <input
+                                        type='text'
+                                        placeholder='mm:ss'
+                                        value={benchmarkResults[forgeKey]?.time_result || ''}
+                                        onChange={e => setBenchmarkResults(prev => ({
+                                          ...prev,
+                                          [forgeKey]: {
+                                            ...prev[forgeKey],
+                                            benchmark_name: forge.name,
+                                            benchmark_type: forge.type,
+                                            time_result: e.target.value,
+                                            forge_benchmark_id: forge.id
+                                          }
+                                        }))}
+                                        className='w-20 px-2 py-1 text-xs border border-cyan-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                                      />
+                                      {/* Reps input */}
+                                      <input
+                                        type='number'
+                                        placeholder='reps'
+                                        value={benchmarkResults[forgeKey]?.reps_result || ''}
+                                        onChange={e => setBenchmarkResults(prev => ({
+                                          ...prev,
+                                          [forgeKey]: {
+                                            ...prev[forgeKey],
+                                            benchmark_name: forge.name,
+                                            benchmark_type: forge.type,
+                                            reps_result: e.target.value,
+                                            forge_benchmark_id: forge.id
+                                          }
+                                        }))}
+                                        className='w-16 px-2 py-1 text-xs border border-cyan-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                                      />
+                                      {/* Weight input */}
+                                      <input
+                                        type='number'
+                                        step='0.5'
+                                        placeholder='kg'
+                                        value={benchmarkResults[forgeKey]?.weight_result || ''}
+                                        onChange={e => setBenchmarkResults(prev => ({
+                                          ...prev,
+                                          [forgeKey]: {
+                                            ...prev[forgeKey],
+                                            benchmark_name: forge.name,
+                                            benchmark_type: forge.type,
+                                            weight_result: e.target.value,
+                                            forge_benchmark_id: forge.id
+                                          }
+                                        }))}
+                                        className='w-16 px-2 py-1 text-xs border border-cyan-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                                      />
                                       {/* Scaling dropdown (if benchmark has scaling) */}
                                       {(forge.has_scaling ?? true) && (
                                         <select
@@ -746,14 +863,14 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                                           onChange={e => setBenchmarkResults(prev => ({
                                             ...prev,
                                             [forgeKey]: {
+                                              ...prev[forgeKey],
                                               benchmark_name: forge.name,
                                               benchmark_type: forge.type,
-                                              result_value: prev[forgeKey]?.result_value || '',
                                               scaling_level: e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3',
                                               forge_benchmark_id: forge.id
                                             }
                                           }))}
-                                          className='w-14 px-1 py-0.5 text-xs border border-cyan-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                                          className='w-14 px-1 py-0.5 text-xs border border-cyan-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 bg-white'
                                         >
                                           <option value='Rx'>Rx</option>
                                           <option value='Sc1'>Sc1</option>
@@ -761,23 +878,6 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                                           <option value='Sc3'>Sc3</option>
                                         </select>
                                       )}
-                                      {/* Result input */}
-                                      <input
-                                        type='text'
-                                        placeholder={forge.type.includes('Time') ? 'mm:ss' : forge.type.includes('AMRAP') ? 'reps' : 'result'}
-                                        value={benchmarkResults[forgeKey]?.result_value || ''}
-                                        onChange={e => setBenchmarkResults(prev => ({
-                                          ...prev,
-                                          [forgeKey]: {
-                                            benchmark_name: forge.name,
-                                            benchmark_type: forge.type,
-                                            result_value: e.target.value,
-                                            scaling_level: prev[forgeKey]?.scaling_level,
-                                            forge_benchmark_id: forge.id
-                                          }
-                                        }))}
-                                        className='w-24 px-2 py-1 text-xs border border-cyan-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
-                                      />
                                     </div>
                                   </div>
                                 </div>
@@ -793,8 +893,10 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                           </div>
                         )}
 
-                        {/* WOD Section Results - Only for WOD sections */}
-                        {(section.type === 'WOD' || section.type === 'WOD Pt.1' || section.type === 'WOD Pt.2' || section.type === 'WOD Pt.3') && (
+                        {/* WOD Section Results - Only for WOD sections WITHOUT benchmarks/forge benchmarks */}
+                        {(section.type === 'WOD' || section.type === 'WOD Pt.1' || section.type === 'WOD Pt.2' || section.type === 'WOD Pt.3') &&
+                         !section.benchmarks?.length &&
+                         !section.forge_benchmarks?.length && (
                           <div className='mt-4 pt-4 border-t border-gray-200'>
                             <div className='grid grid-cols-4 gap-3'>
                               <div>

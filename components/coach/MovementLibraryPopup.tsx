@@ -7,6 +7,7 @@ import { useUserFavorites } from '@/utils/exercise-favorites';
 import { ChevronDown, ChevronRight, Library, Search, Star, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import ExerciseVideoModal from './ExerciseVideoModal';
+import ExerciseFormModal from './ExerciseFormModal';
 import MultiSelectDropdown from './MultiSelectDropdown';
 
 interface Exercise {
@@ -101,6 +102,18 @@ function MovementLibraryPopup({
   const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [selectedVideoUrl, setSelectedVideoUrl] = useState('');
   const [selectedVideoName, setSelectedVideoName] = useState('');
+
+  // Create modals state
+  const [showCreateBenchmarkModal, setShowCreateBenchmarkModal] = useState(false);
+  const [showCreateForgeModal, setShowCreateForgeModal] = useState(false);
+  const [showCreateLiftModal, setShowCreateLiftModal] = useState(false);
+  const [showCreateExerciseModal, setShowCreateExerciseModal] = useState(false);
+
+  // Form states for creating new items
+  const [benchmarkForm, setBenchmarkForm] = useState({ name: '', type: 'For Time', description: '', has_scaling: true });
+  const [forgeForm, setForgeForm] = useState({ name: '', type: 'For Time', description: '', has_scaling: true });
+  const [liftForm, setLiftForm] = useState({ name: '', category: 'Olympic Lifts' });
+  const [workoutTypes, setWorkoutTypes] = useState<Array<{ id: string; name: string }>>([]);
 
   // Favorites and Recently Used hooks
   const { favorites, favoriteIds, isFavorited, toggleFavorite } = useUserFavorites();
@@ -298,7 +311,7 @@ function MovementLibraryPopup({
       const { data, error } = await supabase
         .from('forge_benchmarks')
         .select('*')
-        .order('display_order');
+        .order('name', { ascending: true });
       if (error) throw error;
       setForgeBenchmarks(data || []);
       setHasFetchedForge(true);
@@ -306,6 +319,142 @@ function MovementLibraryPopup({
       console.error('Error fetching forge benchmarks:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Fetch workout types
+  const fetchWorkoutTypes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('workout_types')
+        .select('id, name')
+        .order('name');
+      if (error) throw error;
+      setWorkoutTypes(data || []);
+    } catch (error) {
+      console.error('Error fetching workout types:', error);
+    }
+  };
+
+  // Create handlers
+  const handleCreateBenchmark = async () => {
+    try {
+      // Get the highest display_order from database
+      const { data: existing } = await supabase
+        .from('benchmark_workouts')
+        .select('display_order')
+        .order('display_order', { ascending: false })
+        .limit(1);
+
+      const maxOrder = existing && existing.length > 0 ? existing[0].display_order : 0;
+
+      const { error } = await supabase
+        .from('benchmark_workouts')
+        .insert({
+          name: benchmarkForm.name,
+          type: benchmarkForm.type,
+          description: benchmarkForm.description || null,
+          has_scaling: benchmarkForm.has_scaling,
+          display_order: maxOrder + 1
+        });
+      if (error) throw error;
+
+      setShowCreateBenchmarkModal(false);
+      setBenchmarkForm({ name: '', type: 'For Time', description: '', has_scaling: true });
+      await fetchBenchmarks();
+    } catch (error: any) {
+      console.error('Error creating benchmark:', error);
+      alert(`Error: ${error.message}`);
+    }
+  };
+
+  const handleCreateForgeBenchmark = async () => {
+    // Validate required fields
+    if (!forgeForm.name.trim()) {
+      alert('Please enter a name for the Forge Benchmark');
+      return;
+    }
+
+    try {
+      // Get the highest display_order from database
+      const { data: existing } = await supabase
+        .from('forge_benchmarks')
+        .select('display_order')
+        .order('display_order', { ascending: false })
+        .limit(1);
+
+      const maxOrder = existing && existing.length > 0 ? existing[0].display_order : 0;
+
+      const { data, error } = await supabase
+        .from('forge_benchmarks')
+        .insert({
+          name: forgeForm.name.trim(),
+          type: forgeForm.type,
+          description: forgeForm.description || null,
+          has_scaling: forgeForm.has_scaling,
+          display_order: maxOrder + 1
+        })
+        .select();
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      console.log('Created forge benchmark:', data);
+      alert('Forge Benchmark created successfully!');
+
+      setShowCreateForgeModal(false);
+      setForgeForm({ name: '', type: 'For Time', description: '', has_scaling: true });
+      await fetchForgeBenchmarks();
+    } catch (error: any) {
+      console.error('Error creating forge benchmark:', error);
+      alert(`Error creating Forge Benchmark: ${error.message}`);
+    }
+  };
+
+  const handleCreateLift = async () => {
+    try {
+      // Get the highest display_order from database
+      const { data: existing } = await supabase
+        .from('barbell_lifts')
+        .select('display_order')
+        .order('display_order', { ascending: false })
+        .limit(1);
+
+      const maxOrder = existing && existing.length > 0 ? existing[0].display_order : 0;
+
+      const { error } = await supabase
+        .from('barbell_lifts')
+        .insert({
+          name: liftForm.name,
+          category: liftForm.category,
+          display_order: maxOrder + 1
+        });
+      if (error) throw error;
+
+      setShowCreateLiftModal(false);
+      setLiftForm({ name: '', category: 'Olympic Lifts' });
+      await fetchLifts();
+    } catch (error: any) {
+      console.error('Error creating lift:', error);
+      alert(`Error: ${error.message}`);
+    }
+  };
+
+  const handleCreateExercise = async (exerciseData: Omit<Exercise, 'id'> & { id?: string }) => {
+    try {
+      const { error } = await supabase
+        .from('exercises')
+        .insert(exerciseData);
+
+      if (error) throw error;
+
+      setShowCreateExerciseModal(false);
+      await fetchExercises();
+    } catch (error: any) {
+      console.error('Error creating exercise:', error);
+      alert(`Error: ${error.message}`);
     }
   };
 
@@ -321,6 +470,13 @@ function MovementLibraryPopup({
     setSelectedVideoUrl('');
     setSelectedVideoName('');
   };
+
+  // Fetch workout types when needed for create modals
+  useEffect(() => {
+    if (showCreateBenchmarkModal || showCreateForgeModal) {
+      fetchWorkoutTypes();
+    }
+  }, [showCreateBenchmarkModal, showCreateForgeModal]);
 
   useEffect(() => {
     if (isOpen) {
@@ -598,9 +754,43 @@ function MovementLibraryPopup({
               className='w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 placeholder-gray-400'
             />
           </div>
-          <p className='text-xs text-gray-600 mt-2'>
-            {totalItems} {getTabLabel()}{totalItems !== 1 ? 's' : ''} found
-          </p>
+          <div className='flex items-center justify-between mt-2'>
+            <p className='text-xs text-gray-600'>
+              {totalItems} {getTabLabel()}{totalItems !== 1 ? 's' : ''} found
+            </p>
+            {activeTab === 'benchmarks' && (
+              <button
+                onClick={() => setShowCreateBenchmarkModal(true)}
+                className='text-xs text-[#208479] hover:text-[#1a6b62] font-semibold flex items-center gap-1 transition'
+              >
+                <span>+ Create New</span>
+              </button>
+            )}
+            {activeTab === 'forge' && (
+              <button
+                onClick={() => setShowCreateForgeModal(true)}
+                className='text-xs text-[#208479] hover:text-[#1a6b62] font-semibold flex items-center gap-1 transition'
+              >
+                <span>+ Create New</span>
+              </button>
+            )}
+            {activeTab === 'lifts' && (
+              <button
+                onClick={() => setShowCreateLiftModal(true)}
+                className='text-xs text-[#208479] hover:text-[#1a6b62] font-semibold flex items-center gap-1 transition'
+              >
+                <span>+ Create New</span>
+              </button>
+            )}
+            {activeTab === 'exercises' && (
+              <button
+                onClick={() => setShowCreateExerciseModal(true)}
+                className='text-xs text-[#208479] hover:text-[#1a6b62] font-semibold flex items-center gap-1 transition'
+              >
+                <span>+ Create New</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Filter Section (Exercises Tab Only) */}
@@ -889,6 +1079,196 @@ function MovementLibraryPopup({
         onClose={closeVideoModal}
         videoUrl={selectedVideoUrl}
         exerciseName={selectedVideoName}
+      />
+
+      {/* Create Benchmark Modal */}
+      {showCreateBenchmarkModal && (
+        <div className='fixed inset-0 z-[200] bg-black/50 flex items-center justify-center p-4'>
+          <div className='bg-gray-500 rounded-lg max-w-lg w-full p-6 shadow-2xl'>
+            <div className='flex justify-between items-center mb-4'>
+              <h3 className='text-xl font-bold text-gray-100'>Add Benchmark</h3>
+              <button onClick={() => setShowCreateBenchmarkModal(false)} className='p-1 hover:bg-gray-600 rounded'>
+                <X size={24} className='text-white' />
+              </button>
+            </div>
+            <div className='space-y-4'>
+              <div>
+                <label className='block text-sm font-medium text-gray-100 mb-1'>Name</label>
+                <input
+                  type='text'
+                  value={benchmarkForm.name}
+                  onChange={(e) => setBenchmarkForm({ ...benchmarkForm, name: e.target.value })}
+                  className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg'
+                  placeholder='e.g., Fran, Helen, Murph'
+                />
+              </div>
+              <div>
+                <label className='block text-sm font-medium text-gray-100 mb-1'>Type</label>
+                <select
+                  value={benchmarkForm.type}
+                  onChange={(e) => setBenchmarkForm({ ...benchmarkForm, type: e.target.value })}
+                  className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg'
+                >
+                  <option value=''>Select type...</option>
+                  {workoutTypes.map(type => (
+                    <option key={type.id} value={type.name}>{type.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className='block text-sm font-medium text-gray-100 mb-1'>Description</label>
+                <textarea
+                  value={benchmarkForm.description}
+                  onChange={(e) => setBenchmarkForm({ ...benchmarkForm, description: e.target.value })}
+                  rows={4}
+                  className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg'
+                  placeholder='Workout details (e.g., 21-15-9 Thrusters & Pull-ups)'
+                />
+              </div>
+              <div className='flex items-center gap-2'>
+                <input
+                  type='checkbox'
+                  id='benchmark_has_scaling'
+                  checked={benchmarkForm.has_scaling}
+                  onChange={(e) => setBenchmarkForm({ ...benchmarkForm, has_scaling: e.target.checked })}
+                  className='w-4 h-4'
+                />
+                <label htmlFor='benchmark_has_scaling' className='text-sm text-gray-100'>Has Scaling Options (Rx/Sc1/Sc2/Sc3)</label>
+              </div>
+            </div>
+            <div className='flex gap-3 mt-6'>
+              <button onClick={handleCreateBenchmark} className='flex-1 px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600'>
+                Create
+              </button>
+              <button onClick={() => setShowCreateBenchmarkModal(false)} className='px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700'>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Forge Benchmark Modal */}
+      {showCreateForgeModal && (
+        <div className='fixed inset-0 z-[200] bg-black/50 flex items-center justify-center p-4'>
+          <div className='bg-gray-500 rounded-lg max-w-lg w-full p-6 shadow-2xl'>
+            <div className='flex justify-between items-center mb-4'>
+              <h3 className='text-xl font-bold text-gray-100'>Add Forge Benchmark</h3>
+              <button onClick={() => setShowCreateForgeModal(false)} className='p-1 hover:bg-gray-600 rounded'>
+                <X size={24} className='text-white' />
+              </button>
+            </div>
+            <div className='space-y-4'>
+              <div>
+                <label className='block text-sm font-medium text-gray-100 mb-1'>Name</label>
+                <input
+                  type='text'
+                  value={forgeForm.name}
+                  onChange={(e) => setForgeForm({ ...forgeForm, name: e.target.value })}
+                  className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg'
+                  placeholder='e.g., Forge 1, Forge 2'
+                />
+              </div>
+              <div>
+                <label className='block text-sm font-medium text-gray-100 mb-1'>Type</label>
+                <select
+                  value={forgeForm.type}
+                  onChange={(e) => setForgeForm({ ...forgeForm, type: e.target.value })}
+                  className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg'
+                >
+                  <option value=''>Select type...</option>
+                  {workoutTypes.map(type => (
+                    <option key={type.id} value={type.name}>{type.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className='block text-sm font-medium text-gray-100 mb-1'>Description</label>
+                <textarea
+                  value={forgeForm.description}
+                  onChange={(e) => setForgeForm({ ...forgeForm, description: e.target.value })}
+                  rows={4}
+                  className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg'
+                  placeholder='Workout details (e.g., 3 Rounds: 15 Box Jumps, 10 HSPU, 5 Power Cleans)'
+                />
+              </div>
+              <div className='flex items-center gap-2'>
+                <input
+                  type='checkbox'
+                  id='forge_has_scaling'
+                  checked={forgeForm.has_scaling}
+                  onChange={(e) => setForgeForm({ ...forgeForm, has_scaling: e.target.checked })}
+                  className='w-4 h-4'
+                />
+                <label htmlFor='forge_has_scaling' className='text-sm text-gray-100'>Has Scaling Options (Rx/Sc1/Sc2/Sc3)</label>
+              </div>
+            </div>
+            <div className='flex gap-3 mt-6'>
+              <button onClick={handleCreateForgeBenchmark} className='flex-1 px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600'>
+                Create
+              </button>
+              <button onClick={() => setShowCreateForgeModal(false)} className='px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700'>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Lift Modal */}
+      {showCreateLiftModal && (
+        <div className='fixed inset-0 z-[200] bg-black/50 flex items-center justify-center p-4'>
+          <div className='bg-gray-500 rounded-lg max-w-lg w-full p-6 shadow-2xl'>
+            <div className='flex justify-between items-center mb-4'>
+              <h3 className='text-xl font-bold text-gray-100'>Add Barbell Lift</h3>
+              <button onClick={() => setShowCreateLiftModal(false)} className='p-1 hover:bg-gray-600 rounded'>
+                <X size={24} className='text-white' />
+              </button>
+            </div>
+            <div className='space-y-4'>
+              <div>
+                <label className='block text-sm font-medium text-gray-100 mb-1'>Name</label>
+                <input
+                  type='text'
+                  value={liftForm.name}
+                  onChange={(e) => setLiftForm({ ...liftForm, name: e.target.value })}
+                  className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg'
+                  placeholder='e.g., Back Squat, Snatch'
+                />
+              </div>
+              <div>
+                <label className='block text-sm font-medium text-gray-100 mb-1'>Category</label>
+                <select
+                  value={liftForm.category}
+                  onChange={(e) => setLiftForm({ ...liftForm, category: e.target.value })}
+                  className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg'
+                >
+                  <option value='Olympic Lifts'>Olympic Lifts</option>
+                  <option value='Squats'>Squats</option>
+                  <option value='Pressing'>Pressing</option>
+                  <option value='Pulling'>Pulling</option>
+                  <option value='Deadlifts'>Deadlifts</option>
+                </select>
+              </div>
+            </div>
+            <div className='flex gap-3 mt-6'>
+              <button onClick={handleCreateLift} className='flex-1 px-4 py-2 bg-blue-400 text-white rounded-lg hover:bg-blue-500'>
+                Create
+              </button>
+              <button onClick={() => setShowCreateLiftModal(false)} className='px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700'>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Exercise Modal */}
+      <ExerciseFormModal
+        isOpen={showCreateExerciseModal}
+        onClose={() => setShowCreateExerciseModal(false)}
+        onSave={handleCreateExercise}
+        editingExercise={null}
       />
     </div>
   );
