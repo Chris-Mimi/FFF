@@ -72,6 +72,11 @@ export default function ExerciseFormModal({
   const [allExercises, setAllExercises] = useState<Exercise[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
 
+  // State for autocomplete suggestions
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
+  const [availableEquipment, setAvailableEquipment] = useState<string[]>([]);
+  const [availableBodyParts, setAvailableBodyParts] = useState<string[]>([]);
+
   // Add custom subcategory to dropdown
   const addCustomSubcategory = () => {
     if (!customSubcategory.trim() || !form.category || form.category === '__custom__') return;
@@ -109,7 +114,7 @@ export default function ExerciseFormModal({
     setCustomSubcategory('');
   };
 
-  // Fetch all exercises for template selection
+  // Fetch all exercises for template selection AND autocomplete suggestions
   useEffect(() => {
     const fetchAllExercises = async () => {
       const { data: exercises } = await supabase
@@ -119,13 +124,28 @@ export default function ExerciseFormModal({
 
       if (exercises) {
         setAllExercises(exercises as Exercise[]);
+
+        // Extract distinct values for autocomplete
+        const tagsSet = new Set<string>();
+        const equipmentSet = new Set<string>();
+        const bodyPartsSet = new Set<string>();
+
+        exercises.forEach((ex) => {
+          if (ex.tags) ex.tags.forEach(tag => tagsSet.add(tag));
+          if (ex.equipment) ex.equipment.forEach(eq => equipmentSet.add(eq));
+          if (ex.body_parts) ex.body_parts.forEach(bp => bodyPartsSet.add(bp));
+        });
+
+        setAvailableTags(Array.from(tagsSet).sort());
+        setAvailableEquipment(Array.from(equipmentSet).sort());
+        setAvailableBodyParts(Array.from(bodyPartsSet).sort());
       }
     };
 
-    if (isOpen && !editingExercise) {
+    if (isOpen) {
       fetchAllExercises();
     }
-  }, [isOpen, editingExercise]);
+  }, [isOpen]);
 
   // Handler for template selection
   const handleTemplateSelect = (exerciseId: string) => {
@@ -313,6 +333,89 @@ export default function ExerciseFormModal({
     await onSave(exerciseData as Omit<Exercise, 'id'> & { id?: string });
   };
 
+  // Autocomplete Input Component
+  const AutocompleteInput = ({
+    value,
+    onChange,
+    suggestions,
+    placeholder,
+    label,
+  }: {
+    value: string;
+    onChange: (value: string) => void;
+    suggestions: string[];
+    placeholder: string;
+    label: string;
+  }) => {
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
+
+    // Get the current word being typed (after last comma)
+    const getCurrentWord = () => {
+      const parts = value.split(',');
+      const currentPart = parts[parts.length - 1].trim();
+      return currentPart;
+    };
+
+    // Update filtered suggestions when input changes
+    useEffect(() => {
+      const currentWord = getCurrentWord();
+      if (currentWord.length > 0) {
+        const filtered = suggestions.filter(
+          (s) =>
+            s.toLowerCase().includes(currentWord.toLowerCase()) &&
+            !value.split(',').map(v => v.trim()).includes(s)
+        );
+        setFilteredSuggestions(filtered);
+        setShowSuggestions(filtered.length > 0);
+      } else {
+        setShowSuggestions(false);
+      }
+    }, [value, suggestions]);
+
+    const handleSuggestionClick = (suggestion: string) => {
+      const parts = value.split(',').map(v => v.trim()).filter(Boolean);
+      parts.pop(); // Remove the incomplete current word
+      parts.push(suggestion);
+      onChange(parts.join(', ') + ', ');
+      setShowSuggestions(false);
+    };
+
+    return (
+      <div className='relative'>
+        <label className='block text-sm font-medium text-gray-100 mb-1'>
+          {label} <span className='text-gray-400 text-xs'>(comma-separated)</span>
+        </label>
+        <input
+          type='text'
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onFocus={() => {
+            const currentWord = getCurrentWord();
+            if (currentWord.length > 0) setShowSuggestions(true);
+          }}
+          onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+          className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500'
+          placeholder={placeholder}
+        />
+        {showSuggestions && filteredSuggestions.length > 0 && (
+          <div className='absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto'>
+            {filteredSuggestions.map((suggestion, index) => (
+              <button
+                key={index}
+                type='button'
+                onClick={() => handleSuggestionClick(suggestion)}
+                className='w-full text-left px-3 py-2 hover:bg-teal-50 text-gray-900 text-sm border-b border-gray-200 last:border-b-0'
+              >
+                {suggestion}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -496,47 +599,32 @@ export default function ExerciseFormModal({
             />
           </div>
 
-          {/* Tags (comma-separated) */}
-          <div>
-            <label className='block text-sm font-medium text-gray-100 mb-1'>
-              Tags <span className='text-gray-400 text-xs'>(comma-separated)</span>
-            </label>
-            <input
-              type='text'
-              value={form.tags}
-              onChange={(e) => setForm({ ...form, tags: e.target.value })}
-              className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500'
-              placeholder='e.g., power, oly, technical'
-            />
-          </div>
+          {/* Tags (comma-separated with autocomplete) */}
+          <AutocompleteInput
+            value={form.tags}
+            onChange={(value) => setForm({ ...form, tags: value })}
+            suggestions={availableTags}
+            placeholder='e.g., power, oly, technical'
+            label='Tags'
+          />
 
-          {/* Equipment (comma-separated) */}
-          <div>
-            <label className='block text-sm font-medium text-gray-100 mb-1'>
-              Equipment <span className='text-gray-400 text-xs'>(comma-separated)</span>
-            </label>
-            <input
-              type='text'
-              value={form.equipment}
-              onChange={(e) => setForm({ ...form, equipment: e.target.value })}
-              className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500'
-              placeholder='e.g., barbell, plates'
-            />
-          </div>
+          {/* Equipment (comma-separated with autocomplete) */}
+          <AutocompleteInput
+            value={form.equipment}
+            onChange={(value) => setForm({ ...form, equipment: value })}
+            suggestions={availableEquipment}
+            placeholder='e.g., barbell, plates'
+            label='Equipment'
+          />
 
-          {/* Body Parts (comma-separated) */}
-          <div>
-            <label className='block text-sm font-medium text-gray-100 mb-1'>
-              Body Parts <span className='text-gray-400 text-xs'>(comma-separated)</span>
-            </label>
-            <input
-              type='text'
-              value={form.body_parts}
-              onChange={(e) => setForm({ ...form, body_parts: e.target.value })}
-              className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500'
-              placeholder='e.g., legs, shoulders, core'
-            />
-          </div>
+          {/* Body Parts (comma-separated with autocomplete) */}
+          <AutocompleteInput
+            value={form.body_parts}
+            onChange={(value) => setForm({ ...form, body_parts: value })}
+            suggestions={availableBodyParts}
+            placeholder='e.g., legs, shoulders, core'
+            label='Body Parts'
+          />
 
           {/* Difficulty */}
           <div>

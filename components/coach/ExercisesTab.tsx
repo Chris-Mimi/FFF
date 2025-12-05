@@ -19,6 +19,14 @@ const EXERCISE_CATEGORY_ORDER = [
   'Recovery & Stretching',
 ];
 
+// Display name mapping for buttons
+const CATEGORY_DISPLAY_NAMES: Record<string, string> = {
+  'Olympic Lifting & Barbell Movements': 'Oly Lift & Barbell',
+  'Core, Abs & Isometric Holds': 'Core, Abs & Iso',
+  'Cardio & Conditioning': 'Cardio & Cond',
+  'Specialty': 'Strength & Cond',
+};
+
 // Sort categories by predefined order
 const sortCategories = (
   grouped: Record<string, Exercise[]>,
@@ -91,6 +99,7 @@ export default function ExercisesTab({
   const [availableBodyParts, setAvailableBodyParts] = useState<string[]>([]);
   const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
   const [selectedBodyParts, setSelectedBodyParts] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   // Exercise frequency state
   const [exerciseFrequencies, setExerciseFrequencies] = useState<Map<string, ExerciseFrequency>>(new Map());
@@ -188,6 +197,23 @@ export default function ExercisesTab({
           </div>
         </div>
 
+        {/* Category Filter Buttons */}
+        <div className='mb-4 flex flex-wrap gap-2'>
+          {EXERCISE_CATEGORY_ORDER.map((category) => (
+            <button
+              key={category}
+              onClick={() => setSelectedCategory(selectedCategory === category ? null : category)}
+              className={`px-3 py-1.5 text-xs font-semibold rounded transition ${
+                selectedCategory === category
+                  ? 'bg-green-600 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              {CATEGORY_DISPLAY_NAMES[category] || category}
+            </button>
+          ))}
+        </div>
+
         {/* Filter Buttons */}
         <div className='mb-4 flex gap-3 items-center'>
           <MultiSelectDropdown
@@ -265,6 +291,11 @@ export default function ExercisesTab({
         {sortCategories(
           exercises
             .filter(ex => {
+              // Category filter
+              if (selectedCategory && ex.category !== selectedCategory) {
+                return false;
+              }
+
               // Search term filter
               if (searchTerm.trim()) {
                 const searchLower = searchTerm.toLowerCase();
