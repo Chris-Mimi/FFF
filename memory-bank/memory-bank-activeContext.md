@@ -78,6 +78,22 @@ Athlete Tables (linked to members.id)
   - Files: 2 modified (163 insertions, 44 deletions)
   - Status: Complete, tested, pushed to GitHub
 
+**Completed (2025-12-04 Session 36 - Sonnet):**
+- **WOD Section Score Tracking & Configure Modal Cleanup:**
+  - ✅ **WOD Section Results:** Created wod_section_results table with time_result/reps_result/weight_result/scaling_level fields
+  - ✅ **Athlete Scoring UI:** Added structured score inputs under WOD/WOD Pt.1/Pt.2/Pt.3 sections with "Save WOD Scores" button
+  - ✅ **Configure Modal Cleanup:** Removed visibility controls, coach notes, scaling options dropdown from all 3 configure modals
+  - ✅ **localStorage Persistence:** Athlete notes auto-save and auto-load per movement name using localStorage
+  - ✅ **Coach Instructions Display:** Athlete notes from lifts/benchmarks/forge benchmarks now appear in dedicated "Coach Instructions" section in logbook
+  - ✅ **Exercise Template Copying:** Added template selector dropdown in ExerciseFormModal to copy all fields except name
+  - ✅ **Hold/Hang Benchmark Fix:** Name-based detection for 4 hold benchmarks (higher time = better) vs regular benchmarks (lower time = better)
+  - ✅ **PR Badge Logic:** Fixed field name mismatches (result_valueDisplay, scaling_level) and null handling for accurate PR display
+  - ✅ **Exercise Counting:** Added prefix matching for exercises with appended text (e.g., "Push-Up Strict 5 seconds down")
+  - ✅ **Progress Charts:** Removed .slice(0, 6) limit to show all benchmarks with 2+ scores
+  - Commit: c5d1ff5 - feat(athlete): add WOD section scoring and clean up configure modals
+  - Files: 10 modified (+607/-326 lines), 1 new database file
+  - Status: Complete, tested, pushed to GitHub
+
 **Completed (2025-12-04 Session 35 - Sonnet):**
 - **Session 34 Completion - Benchmark Results Save Fix & UX Enhancements:**
   - ✅ **Root Cause Fixed:** Session 34 migration renamed columns (workout_date → result_date, result → result_value, scaling → scaling_level) but 5 component files still used old names
