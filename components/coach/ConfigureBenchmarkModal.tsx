@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { GripVertical, ChevronDown } from 'lucide-react';
-import type { Benchmark, ConfiguredBenchmark, WODSection } from '@/types/movements';
+import type { Benchmark, Movement, ConfiguredBenchmark, WODSection } from '@/types/movements';
 
 interface ConfigureBenchmarkModalProps {
   isOpen: boolean;
-  benchmark: Benchmark | null;
+  benchmark: Benchmark | Movement | null;
   activeSection: WODSection | null;
   availableSections: WODSection[];
   onClose: () => void;

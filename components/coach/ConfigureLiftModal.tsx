@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { GripVertical, ChevronDown } from 'lucide-react';
-import type { BarbellLift, ConfiguredLift, VariableSet, WODSection } from '@/types/movements';
+import type { BarbellLift, Movement, ConfiguredLift, VariableSet, WODSection } from '@/types/movements';
 
 interface ConfigureLiftModalProps {
   isOpen: boolean;
-  lift: BarbellLift | null;
+  lift: BarbellLift | Movement | null;
   editingLift: { sectionId: string; liftIndex: number; lift: ConfiguredLift } | null;
   activeSection: WODSection | null;
   availableSections: WODSection[];

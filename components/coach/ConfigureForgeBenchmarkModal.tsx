@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { GripVertical, ChevronDown } from 'lucide-react';
-import type { ForgeBenchmark, ConfiguredForgeBenchmark, WODSection } from '@/types/movements';
+import type { ForgeBenchmark, Movement, ConfiguredForgeBenchmark, WODSection } from '@/types/movements';
 
 interface ConfigureForgeBenchmarkModalProps {
   isOpen: boolean;
-  forgeBenchmark: ForgeBenchmark | null;
+  forgeBenchmark: ForgeBenchmark | Movement | null;
   activeSection: WODSection | null;
   availableSections: WODSection[];
   onClose: () => void;
