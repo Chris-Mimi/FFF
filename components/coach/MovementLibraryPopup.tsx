@@ -27,7 +27,7 @@ interface Exercise {
   search_terms?: string;
 }
 
-type TabType = 'exercises' | 'lifts' | 'benchmarks' | 'forge';
+type TabType = 'exercises' | 'lifts' | 'benchmarks' | 'forge' | 'max_efforts' | 'holds' | 'cardio';
 
 // Define category ordering (workout flow)
 const EXERCISE_CATEGORY_ORDER = [
@@ -91,6 +91,9 @@ function MovementLibraryPopup({
   const [lifts, setLifts] = useState<BarbellLift[]>([]);
   const [benchmarks, setBenchmarks] = useState<Benchmark[]>([]);
   const [forgeBenchmarks, setForgeBenchmarks] = useState<ForgeBenchmark[]>([]);
+  const [maxEfforts, setMaxEfforts] = useState<any[]>([]);
+  const [holds, setHolds] = useState<any[]>([]);
+  const [cardio, setCardio] = useState<any[]>([]);
 
   // Filter states (exercises tab only)
   const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
@@ -128,6 +131,9 @@ function MovementLibraryPopup({
   const [hasFetchedLifts, setHasFetchedLifts] = useState(false);
   const [hasFetchedBenchmarks, setHasFetchedBenchmarks] = useState(false);
   const [hasFetchedForge, setHasFetchedForge] = useState(false);
+  const [hasFetchedMaxEfforts, setHasFetchedMaxEfforts] = useState(false);
+  const [hasFetchedHolds, setHasFetchedHolds] = useState(false);
+  const [hasFetchedCardio, setHasFetchedCardio] = useState(false);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -221,8 +227,17 @@ function MovementLibraryPopup({
       case 'forge':
         if (!hasFetchedForge) fetchForgeBenchmarks();
         break;
+      case 'max_efforts':
+        if (!hasFetchedMaxEfforts) fetchMaxEfforts();
+        break;
+      case 'holds':
+        if (!hasFetchedHolds) fetchHolds();
+        break;
+      case 'cardio':
+        if (!hasFetchedCardio) fetchCardio();
+        break;
     }
-  }, [isOpen, activeTab, hasFetchedExercises, hasFetchedLifts, hasFetchedBenchmarks, hasFetchedForge]);
+  }, [isOpen, activeTab, hasFetchedExercises, hasFetchedLifts, hasFetchedBenchmarks, hasFetchedForge, hasFetchedMaxEfforts, hasFetchedHolds, hasFetchedCardio]);
 
   // Reset filters when modal closes
   useEffect(() => {
@@ -275,8 +290,9 @@ function MovementLibraryPopup({
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('barbell_lifts')
+        .from('movements')
         .select('*')
+        .eq('category', 'lift')
         .order('display_order');
       if (error) throw error;
       setLifts(data || []);
@@ -292,8 +308,9 @@ function MovementLibraryPopup({
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('benchmark_workouts')
+        .from('movements')
         .select('*')
+        .eq('category', 'benchmark')
         .order('display_order');
       if (error) throw error;
       setBenchmarks(data || []);
@@ -309,14 +326,69 @@ function MovementLibraryPopup({
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('forge_benchmarks')
+        .from('movements')
         .select('*')
+        .eq('category', 'forge_benchmark')
         .order('name', { ascending: true });
       if (error) throw error;
       setForgeBenchmarks(data || []);
       setHasFetchedForge(true);
     } catch (error) {
       console.error('Error fetching forge benchmarks:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchMaxEfforts = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('movements')
+        .select('*')
+        .eq('category', 'max_effort')
+        .order('display_order');
+      if (error) throw error;
+      setMaxEfforts(data || []);
+      setHasFetchedMaxEfforts(true);
+    } catch (error) {
+      console.error('Error fetching max efforts:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchHolds = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('movements')
+        .select('*')
+        .eq('category', 'hold')
+        .order('display_order');
+      if (error) throw error;
+      setHolds(data || []);
+      setHasFetchedHolds(true);
+    } catch (error) {
+      console.error('Error fetching holds:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCardio = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('movements')
+        .select('*')
+        .eq('category', 'cardio')
+        .order('display_order');
+      if (error) throw error;
+      setCardio(data || []);
+      setHasFetchedCardio(true);
+    } catch (error) {
+      console.error('Error fetching cardio:', error);
     } finally {
       setLoading(false);
     }
@@ -646,6 +718,9 @@ function MovementLibraryPopup({
       case 'lifts': return 'lift';
       case 'benchmarks': return 'benchmark';
       case 'forge': return 'forge benchmark';
+      case 'max_efforts': return 'max effort';
+      case 'holds': return 'hold';
+      case 'cardio': return 'cardio';
     }
   };
 
@@ -692,10 +767,10 @@ function MovementLibraryPopup({
         </div>
 
         {/* Tabs */}
-        <div className='flex border-b border-gray-300 bg-gray-50'>
+        <div className='flex border-b border-gray-300 bg-gray-50 overflow-x-auto'>
           <button
             onClick={() => setActiveTab('exercises')}
-            className={`flex-1 px-4 py-3 font-semibold transition ${
+            className={`flex-1 px-3 py-3 font-semibold transition text-sm ${
               activeTab === 'exercises'
                 ? 'bg-white text-[#208479] border-b-2 border-[#208479]'
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
@@ -705,7 +780,7 @@ function MovementLibraryPopup({
           </button>
           <button
             onClick={() => setActiveTab('lifts')}
-            className={`flex-1 px-4 py-3 font-semibold transition ${
+            className={`flex-1 px-3 py-3 font-semibold transition text-sm ${
               activeTab === 'lifts'
                 ? 'bg-white text-[#208479] border-b-2 border-[#208479]'
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
@@ -715,7 +790,7 @@ function MovementLibraryPopup({
           </button>
           <button
             onClick={() => setActiveTab('benchmarks')}
-            className={`flex-1 px-4 py-3 font-semibold transition ${
+            className={`flex-1 px-3 py-3 font-semibold transition text-sm ${
               activeTab === 'benchmarks'
                 ? 'bg-white text-[#208479] border-b-2 border-[#208479]'
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
@@ -725,13 +800,43 @@ function MovementLibraryPopup({
           </button>
           <button
             onClick={() => setActiveTab('forge')}
-            className={`flex-1 px-4 py-3 font-semibold transition ${
+            className={`flex-1 px-3 py-3 font-semibold transition text-sm ${
               activeTab === 'forge'
                 ? 'bg-white text-[#208479] border-b-2 border-[#208479]'
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
             }`}
           >
             Forge
+          </button>
+          <button
+            onClick={() => setActiveTab('max_efforts')}
+            className={`flex-1 px-3 py-3 font-semibold transition text-sm whitespace-nowrap ${
+              activeTab === 'max_efforts'
+                ? 'bg-white text-[#208479] border-b-2 border-[#208479]'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            Max Efforts
+          </button>
+          <button
+            onClick={() => setActiveTab('holds')}
+            className={`flex-1 px-3 py-3 font-semibold transition text-sm ${
+              activeTab === 'holds'
+                ? 'bg-white text-[#208479] border-b-2 border-[#208479]'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            Holds
+          </button>
+          <button
+            onClick={() => setActiveTab('cardio')}
+            className={`flex-1 px-3 py-3 font-semibold transition text-sm ${
+              activeTab === 'cardio'
+                ? 'bg-white text-[#208479] border-b-2 border-[#208479]'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            Cardio
           </button>
         </div>
 
