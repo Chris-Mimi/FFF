@@ -109,3 +109,89 @@ export interface WODSection {
   benchmarks?: ConfiguredBenchmark[];
   forge_benchmarks?: ConfiguredForgeBenchmark[];
 }
+
+// ============================================
+// UNIFIED MOVEMENT SYSTEM (New Schema)
+// ============================================
+
+/**
+ * Result Fields Schema
+ * Defines which input fields to show athletes when logging results
+ */
+export interface ResultFields {
+  time?: boolean;              // Show time input (mm:ss)
+  reps?: boolean;              // Show reps input
+  weight?: boolean;            // Show weight input (kg)
+  distance_meters?: boolean;   // Show distance input (meters)
+  duration_seconds?: boolean;  // Show duration input (for holds)
+  scaling?: boolean;           // Show scaling dropdown (Rx/Sc1/Sc2/Sc3)
+  rounds_reps?: boolean;       // Show rounds+reps inputs (for AMRAP)
+}
+
+/**
+ * Movement (Database Table)
+ * Unified table consolidating barbell_lifts, benchmark_workouts, forge_benchmarks
+ */
+export interface Movement {
+  id: string;
+  name: string;                // "Max Strict Push-Ups", "Fran", "Back Squat"
+  category: 'lift' | 'benchmark' | 'forge_benchmark' | 'max_effort' | 'hold' | 'cardio';
+  movement_type: 'for_time' | 'amrap' | 'max_weight' | 'max_reps' | 'max_hold' | 'max_distance';
+  result_fields: ResultFields; // Dynamic input schema
+  description?: string;        // Full workout description
+  has_scaling: boolean;        // Rx/Sc1/Sc2/Sc3 support
+  is_barbell_lift: boolean;    // Special handling for lifts (rep schemes)
+  display_order?: number;      // Sort order in library
+  source_exercise_id?: string; // Link to exercises table (optional)
+  created_at?: string;
+  updated_at?: string;
+}
+
+/**
+ * Movement Result (Database Table)
+ * Unified results table consolidating lift_records, benchmark_results, wod_section_results
+ */
+export interface MovementResult {
+  id: string;
+  movement_id: string;
+  user_id: string;
+
+  // Multi-field results (null if not applicable)
+  time_result?: string;        // "5:23" (mm:ss)
+  reps_result?: number;        // Total reps or max reps
+  weight_result?: number;      // Kilograms
+  distance_result?: number;    // Meters
+  duration_seconds?: number;   // Hold time in seconds
+  rounds_result?: number;      // Complete rounds (AMRAP)
+  scaling_level?: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3';
+
+  // Lift-specific fields
+  rep_scheme?: string;         // '5x5' | '1RM' | '3RM' | '5RM' | '10RM' | '21-15-9'
+  calculated_1rm?: number;     // Estimated 1RM (Epley formula)
+
+  notes?: string;
+  result_date: string;         // YYYY-MM-DD
+  created_at?: string;
+  updated_at?: string;
+}
+
+/**
+ * Configured Movement (Used in WOD Sections)
+ * Extends Movement with coach configuration fields
+ */
+export interface ConfiguredMovement extends Movement {
+  // Coach configuration
+  visibility: 'everyone' | 'coaches' | 'programmers';
+  coach_notes?: string;
+  athlete_notes?: string;
+
+  // Lift-specific configuration (if is_barbell_lift=true)
+  rep_type?: 'constant' | 'variable';
+  sets?: number;
+  reps?: number;
+  percentage_1rm?: number;
+  variable_sets?: VariableSet[];
+
+  // Benchmark-specific (if category=benchmark or forge_benchmark)
+  scaling_option?: string;     // Current scaling selection
+}
