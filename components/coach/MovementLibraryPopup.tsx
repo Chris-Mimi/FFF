@@ -657,6 +657,33 @@ function MovementLibraryPopup({
     );
   }, [forgeBenchmarks, searchTerm]);
 
+  // Filter max efforts
+  const filteredMaxEfforts = useMemo(() => {
+    const trimmedSearch = searchTerm.trim();
+    if (!trimmedSearch) return maxEfforts;
+    return maxEfforts.filter(m =>
+      m.name.toLowerCase().includes(trimmedSearch.toLowerCase())
+    );
+  }, [maxEfforts, searchTerm]);
+
+  // Filter holds
+  const filteredHolds = useMemo(() => {
+    const trimmedSearch = searchTerm.trim();
+    if (!trimmedSearch) return holds;
+    return holds.filter(h =>
+      h.name.toLowerCase().includes(trimmedSearch.toLowerCase())
+    );
+  }, [holds, searchTerm]);
+
+  // Filter cardio
+  const filteredCardio = useMemo(() => {
+    const trimmedSearch = searchTerm.trim();
+    if (!trimmedSearch) return cardio;
+    return cardio.filter(c =>
+      c.name.toLowerCase().includes(trimmedSearch.toLowerCase())
+    );
+  }, [cardio, searchTerm]);
+
   // Calculate total items based on active tab
   const totalItems = useMemo(() => {
     switch (activeTab) {
@@ -668,10 +695,16 @@ function MovementLibraryPopup({
         return filteredBenchmarks.length;
       case 'forge':
         return filteredForgeBenchmarks.length;
+      case 'max_efforts':
+        return filteredMaxEfforts.length;
+      case 'holds':
+        return filteredHolds.length;
+      case 'cardio':
+        return filteredCardio.length;
       default:
         return 0;
     }
-  }, [activeTab, filteredExerciseCategories, filteredLiftCategories, filteredBenchmarks, filteredForgeBenchmarks]);
+  }, [activeTab, filteredExerciseCategories, filteredLiftCategories, filteredBenchmarks, filteredForgeBenchmarks, filteredMaxEfforts, filteredHolds, filteredCardio]);
 
   if (!isOpen) return null;
 
@@ -1170,6 +1203,72 @@ function MovementLibraryPopup({
                 ) : (
                   <div className='text-center py-8 text-gray-500'>
                     <p className='text-sm'>No forge benchmarks found</p>
+                  </div>
+                )
+              )}
+
+              {/* Max Efforts Tab */}
+              {activeTab === 'max_efforts' && (
+                filteredMaxEfforts.length > 0 ? (
+                  <div className='grid gap-0' style={{ gridTemplateColumns: getGridColumns() }}>
+                    {filteredMaxEfforts.map(movement => (
+                      <button
+                        key={movement.id}
+                        onClick={() => onSelectBenchmark(movement)}
+                        className='text-left px-0.5 py-0.5 hover:bg-[#208479] hover:text-white transition text-xs text-gray-900 flex items-center justify-between whitespace-nowrap overflow-hidden'
+                      >
+                        <span className='overflow-hidden text-ellipsis'>{movement.name}</span>
+                        <span className='text-gray-400 hover:text-white ml-1'>→</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className='text-center py-8 text-gray-500'>
+                    <p className='text-sm'>No max effort movements found</p>
+                  </div>
+                )
+              )}
+
+              {/* Holds Tab */}
+              {activeTab === 'holds' && (
+                filteredHolds.length > 0 ? (
+                  <div className='grid gap-0' style={{ gridTemplateColumns: getGridColumns() }}>
+                    {filteredHolds.map(movement => (
+                      <button
+                        key={movement.id}
+                        onClick={() => onSelectBenchmark(movement)}
+                        className='text-left px-0.5 py-0.5 hover:bg-[#208479] hover:text-white transition text-xs text-gray-900 flex items-center justify-between whitespace-nowrap overflow-hidden'
+                      >
+                        <span className='overflow-hidden text-ellipsis'>{movement.name}</span>
+                        <span className='text-gray-400 hover:text-white ml-1'>→</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className='text-center py-8 text-gray-500'>
+                    <p className='text-sm'>No hold movements found</p>
+                  </div>
+                )
+              )}
+
+              {/* Cardio Tab */}
+              {activeTab === 'cardio' && (
+                filteredCardio.length > 0 ? (
+                  <div className='grid gap-0' style={{ gridTemplateColumns: getGridColumns() }}>
+                    {filteredCardio.map(movement => (
+                      <button
+                        key={movement.id}
+                        onClick={() => onSelectBenchmark(movement)}
+                        className='text-left px-0.5 py-0.5 hover:bg-[#208479] hover:text-white transition text-xs text-gray-900 flex items-center justify-between whitespace-nowrap overflow-hidden'
+                      >
+                        <span className='overflow-hidden text-ellipsis'>{movement.name}</span>
+                        <span className='text-gray-400 hover:text-white ml-1'>→</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className='text-center py-8 text-gray-500'>
+                    <p className='text-sm'>No cardio movements found</p>
                   </div>
                 )
               )}
