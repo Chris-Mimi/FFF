@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 8.2
-**Updated:** 2025-12-05 (Session 37 - Exercise Library UX Enhancements)
+**Version:** 8.3
+**Updated:** 2025-12-06 (Session 38 - Unified Movement System Week 2 Complete)
 
 ---
 
@@ -46,9 +46,8 @@ Coach Tables
 ├─ resources (id, name, description, url, category)
 ├─ tracks (id, name, description, color)
 ├─ weekly_sessions (id, date, time, workout_id, capacity, status)
-├─ benchmark_workouts (id, name, type, description, display_order)
-├─ forge_benchmarks (id, name, type, description, display_order)
-├─ barbell_lifts (id, name, category, display_order)
+├─ movements (id, name, category [lift|benchmark|forge_benchmark|max_effort|hold|cardio], movement_type [for_time|amrap|max_weight|max_reps|max_hold|max_distance], result_fields: JSONB, description, has_scaling, is_barbell_lift, display_order, source_exercise_id)
+├─ ⚠️ DEPRECATED: benchmark_workouts, forge_benchmarks, barbell_lifts (replaced by movements table)
 
 Member Tables
 ├─ members (id, email, name, status, membership_types[], account_type: primary|family_member, primary_member_id, display_name, date_of_birth, relationship)
@@ -57,13 +56,42 @@ Member Tables
 Athlete Tables (linked to members.id)
 ├─ athlete_profiles (id, user_id, full_name, emergency_contact)
 ├─ workout_logs (id, user_id, wod_id, result, notes)
-├─ benchmark_results (id, user_id, benchmark_name, result_value, scaling)
-├─ lift_records (id, user_id, lift_name, weight_kg, reps, rep_max_type ['1RM'|'3RM'|'5RM'|'10RM'], rep_scheme [workout patterns], calculated_1rm, notes, lift_date)
+├─ movement_results (id, movement_id, user_id, time_result, reps_result, weight_result, distance_result, duration_seconds, rounds_result, scaling_level, rep_scheme, calculated_1rm, notes, result_date)
+├─ ⚠️ DEPRECATED: benchmark_results, lift_records (replaced by movement_results table)
 ```
 
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-12-06 Session 38 - Sonnet):**
+- **Unified Movement System - Week 2 Complete (Coach UI):**
+  - ✅ **Database Migrations:** Executed all 4 Week 1 migrations successfully
+    - Created movements table (consolidates barbell_lifts, benchmark_workouts, forge_benchmarks)
+    - Created movement_results table (consolidates lift_records, benchmark_results, wod_section_results)
+    - Migrated 85 movements (12 lifts, 25 benchmarks, 23 forge, 15 max efforts, 8 cardio, 2 holds)
+    - Migrated 14 results (7 lift records, 7 benchmark results) with zero data loss
+    - Seeded 28 trackable movements (max efforts, holds, cardio benchmarks)
+  - ✅ **Movement Library Tabs:** Updated MovementLibraryPopup to query movements table by category
+    - Added 3 new tabs: Max Efforts, Holds, Cardio (total 7 tabs: Exercises, Lifts, Benchmarks, Forge, Max Efforts, Holds, Cardio)
+    - All tabs query unified movements table with category filtering
+    - All tabs load without errors and display correct movements
+  - ✅ **Configure Modals:** Updated 3 configure modals to accept Movement type
+    - ConfigureLiftModal now accepts BarbellLift | Movement
+    - ConfigureBenchmarkModal now accepts Benchmark | Movement
+    - ConfigureForgeBenchmarkModal now accepts ForgeBenchmark | Movement
+    - Coach can now browse all tabs and add movements to workouts
+  - ✅ **TypeScript Types:** Extended types/movements.ts with unified movement system interfaces
+    - Added Movement, MovementResult, ResultFields, ConfiguredMovement interfaces
+    - Maintained backward compatibility with existing ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark
+  - ⏳ **Week 3 Pending:** Athlete UI not yet updated - athletes cannot log results for new movement types
+    - AthletePageLogbookTab needs dynamic result inputs based on result_fields
+    - Need to create MovementResultInput component for reusable input rendering
+    - Need to create /app/api/movement-results/route.ts API endpoint
+  - Commits: 2231202a (configure modals), 2bb21828 (MovementLibraryPopup), 03f4b7aa (migrations + types), c07cd746 (debug scripts)
+  - Branch: feature/unified-movement-system (pushed)
+  - Status: Week 2 complete, ready for Week 3 (Athlete UI)
+  - See plan file: ~/.claude/plans/binary-prancing-hippo.md
 
 **Completed (2025-12-05 Session 37 - Sonnet):**
 - **Exercise Library UX Enhancements:**
