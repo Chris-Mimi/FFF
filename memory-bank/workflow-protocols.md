@@ -33,6 +33,46 @@ git reset --hard origin/main
 **❌ Do NOT analyze local changes first**
 **❌ Do NOT make assumptions about what needs fixing**
 
+### STEP 1.75: DATABASE SAFETY PROTOCOL (CRITICAL)
+
+**⚠️ CRITICAL LESSON LEARNED:** Git branches do NOT protect database state!
+
+**BEFORE ANY database changes (migrations, branch switches, destructive operations):**
+
+```bash
+npm run backup
+```
+
+**Mandatory backup scenarios:**
+1. ✅ Before running ANY migration
+2. ✅ Before switching git branches (if branch has migrations)
+3. ✅ Before DROP TABLE, DELETE, TRUNCATE, or ALTER ... DROP COLUMN
+4. ✅ Daily before starting work session
+5. ✅ Before testing new features that write to database
+
+**Backup commands:**
+```bash
+# Create backup
+npm run backup
+
+# List available backups
+npm run restore
+
+# Restore from backup (if disaster strikes)
+npm run restore 2025-12-06
+```
+
+**Required reading before migrations:**
+- See: `PRE_MIGRATION_CHECKLIST.md` (read EVERY TIME)
+- Always review migration SQL files before running
+- Look for: DROP, DELETE, TRUNCATE, ALTER...DROP
+- If destructive: verify backup exists, confirm you can recreate lost data
+
+**Why this matters:**
+- Lost data: Custom Forge Benchmarks, Athlete lift records (Dec 6, 2025 incident)
+- Cause: Assumed git branches protected database (they don't!)
+- Solution: Mandatory backups before ANY risky operation
+
 ### STEP 2:
 **❌ REMEMBER - Relative paths DO NOT WORK!!!:**
 ```

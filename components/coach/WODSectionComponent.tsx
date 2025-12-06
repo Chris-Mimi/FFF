@@ -189,6 +189,144 @@ function WODSectionComponent({
             </div>
           </div>
 
+          {/* Scoring Configuration - Only for WOD sections */}
+          {(section.type === 'WOD' || section.type === 'WOD Pt.1' || section.type === 'WOD Pt.2' || section.type === 'WOD Pt.3') && (
+            <div className='mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200'>
+              <label className='block text-xs font-semibold text-gray-700 mb-2'>
+                📊 Athlete Scoring Fields
+              </label>
+              <div className='grid grid-cols-2 md:grid-cols-4 gap-2'>
+                {/* Time */}
+                <label className='flex items-center gap-2 text-xs cursor-pointer text-gray-900'>
+                  <input
+                    type='checkbox'
+                    checked={section.scoring_fields?.time ?? false}
+                    onChange={e => onUpdate({
+                      scoring_fields: {
+                        ...section.scoring_fields,
+                        time: e.target.checked
+                      }
+                    })}
+                    className='rounded border-gray-300'
+                  />
+                  <span>Time</span>
+                </label>
+
+                {/* Reps */}
+                <label className='flex items-center gap-2 text-xs cursor-pointer text-gray-900'>
+                  <input
+                    type='checkbox'
+                    checked={section.scoring_fields?.reps ?? false}
+                    onChange={e => onUpdate({
+                      scoring_fields: {
+                        ...section.scoring_fields,
+                        reps: e.target.checked
+                      }
+                    })}
+                    className='rounded border-gray-300'
+                  />
+                  <span>Reps</span>
+                </label>
+
+                {/* Rounds + Reps */}
+                <label className='flex items-center gap-2 text-xs cursor-pointer text-gray-900'>
+                  <input
+                    type='checkbox'
+                    checked={section.scoring_fields?.rounds_reps ?? false}
+                    onChange={e => onUpdate({
+                      scoring_fields: {
+                        ...section.scoring_fields,
+                        rounds_reps: e.target.checked
+                      }
+                    })}
+                    className='rounded border-gray-300'
+                  />
+                  <span>Rounds + Reps</span>
+                </label>
+
+                {/* Load */}
+                <label className='flex items-center gap-2 text-xs cursor-pointer text-gray-900'>
+                  <input
+                    type='checkbox'
+                    checked={section.scoring_fields?.load ?? false}
+                    onChange={e => onUpdate({
+                      scoring_fields: {
+                        ...section.scoring_fields,
+                        load: e.target.checked
+                      }
+                    })}
+                    className='rounded border-gray-300'
+                  />
+                  <span>Load (kg)</span>
+                </label>
+
+                {/* Scaling */}
+                <label className='flex items-center gap-2 text-xs cursor-pointer text-gray-900'>
+                  <input
+                    type='checkbox'
+                    checked={section.scoring_fields?.scaling ?? false}
+                    onChange={e => onUpdate({
+                      scoring_fields: {
+                        ...section.scoring_fields,
+                        scaling: e.target.checked
+                      }
+                    })}
+                    className='rounded border-gray-300'
+                  />
+                  <span>Scaling</span>
+                </label>
+
+                {/* Calories */}
+                <label className='flex items-center gap-2 text-xs cursor-pointer text-gray-900'>
+                  <input
+                    type='checkbox'
+                    checked={section.scoring_fields?.calories ?? false}
+                    onChange={e => onUpdate({
+                      scoring_fields: {
+                        ...section.scoring_fields,
+                        calories: e.target.checked
+                      }
+                    })}
+                    className='rounded border-gray-300'
+                  />
+                  <span>Calories</span>
+                </label>
+
+                {/* Metres */}
+                <label className='flex items-center gap-2 text-xs cursor-pointer text-gray-900'>
+                  <input
+                    type='checkbox'
+                    checked={section.scoring_fields?.metres ?? false}
+                    onChange={e => onUpdate({
+                      scoring_fields: {
+                        ...section.scoring_fields,
+                        metres: e.target.checked
+                      }
+                    })}
+                    className='rounded border-gray-300'
+                  />
+                  <span>Metres</span>
+                </label>
+
+                {/* Checkbox */}
+                <label className='flex items-center gap-2 text-xs cursor-pointer text-gray-900'>
+                  <input
+                    type='checkbox'
+                    checked={section.scoring_fields?.checkbox ?? false}
+                    onChange={e => onUpdate({
+                      scoring_fields: {
+                        ...section.scoring_fields,
+                        checkbox: e.target.checked
+                      }
+                    })}
+                    className='rounded border-gray-300'
+                  />
+                  <span>Task ✓</span>
+                </label>
+              </div>
+            </div>
+          )}
+
           {/* Content Preview/Editor */}
           {isExpanded ? (
             <div className='space-y-2'>

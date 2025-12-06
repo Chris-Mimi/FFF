@@ -37,3 +37,7 @@ Thumbs.db
 
 # Misc
 *.log
+
+# Backups (local only - do not commit)
+backups/
+*.backup.json

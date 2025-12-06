@@ -28,10 +28,15 @@ interface BenchmarkResult {
 }
 
 interface SectionResult {
-  time_result: string;
-  reps_result: string;
-  weight_result: string;
-  scaling_level: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '';
+  time_result?: string;
+  reps_result?: string;
+  weight_result?: string;
+  scaling_level?: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '';
+  // NEW: Configurable scoring fields
+  rounds_result?: string;
+  calories_result?: string;
+  metres_result?: string;
+  task_completed?: boolean;
 }
 
 interface AthletePageLogbookTabProps {
@@ -363,6 +368,11 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
             reps_result: result.reps_result?.toString() || '',
             weight_result: result.weight_result?.toString() || '',
             scaling_level: result.scaling_level || '',
+            // NEW fields
+            rounds_result: result.rounds_result?.toString() || '',
+            calories_result: result.calories_result?.toString() || '',
+            metres_result: result.metres_result?.toString() || '',
+            task_completed: result.task_completed || false,
           };
         });
         setSectionResults(newSectionResults);
@@ -375,7 +385,9 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
   // Save section result to database
   const saveSectionResult = async (wodId: string, sectionId: string, result: SectionResult, workoutDate: string) => {
     // Don't save if all fields are empty
-    if (!result.time_result && !result.reps_result && !result.weight_result && !result.scaling_level) {
+    if (!result.time_result && !result.reps_result && !result.weight_result &&
+        !result.scaling_level && !result.rounds_result && !result.calories_result &&
+        !result.metres_result && result.task_completed === undefined) {
       return;
     }
 
@@ -390,17 +402,24 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
         .eq('workout_date', workoutDate)
         .maybeSingle();
 
+      const payload = {
+        time_result: result.time_result || null,
+        reps_result: result.reps_result ? parseInt(result.reps_result) : null,
+        weight_result: result.weight_result ? parseFloat(result.weight_result) : null,
+        scaling_level: result.scaling_level || null,
+        // NEW fields
+        rounds_result: result.rounds_result ? parseInt(result.rounds_result) : null,
+        calories_result: result.calories_result ? parseInt(result.calories_result) : null,
+        metres_result: result.metres_result ? parseFloat(result.metres_result) : null,
+        task_completed: result.task_completed || null,
+        updated_at: new Date().toISOString(),
+      };
+
       if (existing) {
         // Update existing record
         const { error } = await supabase
           .from('wod_section_results')
-          .update({
-            time_result: result.time_result || null,
-            reps_result: result.reps_result ? parseInt(result.reps_result) : null,
-            weight_result: result.weight_result ? parseFloat(result.weight_result) : null,
-            scaling_level: result.scaling_level || null,
-            updated_at: new Date().toISOString(),
-          })
+          .update(payload)
           .eq('id', existing.id);
 
         if (error) {
@@ -412,14 +431,11 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
         const { error } = await supabase
           .from('wod_section_results')
           .insert({
+            ...payload,
             user_id: userId,
             wod_id: wodId,
             section_id: sectionId,
             workout_date: workoutDate,
-            time_result: result.time_result || null,
-            reps_result: result.reps_result ? parseInt(result.reps_result) : null,
-            weight_result: result.weight_result ? parseFloat(result.weight_result) : null,
-            scaling_level: result.scaling_level || null,
           });
 
         if (error) {
@@ -898,85 +914,210 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                          !section.benchmarks?.length &&
                          !section.forge_benchmarks?.length && (
                           <div className='mt-4 pt-4 border-t border-gray-200'>
-                            <div className='grid grid-cols-4 gap-3'>
-                              <div>
-                                <label className='block text-xs font-medium text-gray-700 mb-1'>Time</label>
-                                <input
-                                  type='text'
-                                  value={sectionResults[`${wod.id}:::${section.id}`]?.time_result || ''}
-                                  onChange={e =>
-                                    setSectionResults({
-                                      ...sectionResults,
-                                      [`${wod.id}:::${section.id}`]: {
-                                        ...(sectionResults[`${wod.id}:::${section.id}`] || { time_result: '', reps_result: '', weight_result: '', scaling_level: '' }),
-                                        time_result: e.target.value,
-                                      },
-                                    })
-                                  }
-                                  placeholder='12:34'
-                                  className='w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
-                                />
-                              </div>
-                              <div>
-                                <label className='block text-xs font-medium text-gray-700 mb-1'>Reps</label>
-                                <input
-                                  type='number'
-                                  value={sectionResults[`${wod.id}:::${section.id}`]?.reps_result || ''}
-                                  onChange={e =>
-                                    setSectionResults({
-                                      ...sectionResults,
-                                      [`${wod.id}:::${section.id}`]: {
-                                        ...(sectionResults[`${wod.id}:::${section.id}`] || { time_result: '', reps_result: '', weight_result: '', scaling_level: '' }),
-                                        reps_result: e.target.value,
-                                      },
-                                    })
-                                  }
-                                  placeholder='156'
-                                  className='w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
-                                />
-                              </div>
-                              <div>
-                                <label className='block text-xs font-medium text-gray-700 mb-1'>Weight (kg)</label>
-                                <input
-                                  type='number'
-                                  step='0.5'
-                                  value={sectionResults[`${wod.id}:::${section.id}`]?.weight_result || ''}
-                                  onChange={e =>
-                                    setSectionResults({
-                                      ...sectionResults,
-                                      [`${wod.id}:::${section.id}`]: {
-                                        ...(sectionResults[`${wod.id}:::${section.id}`] || { time_result: '', reps_result: '', weight_result: '', scaling_level: '' }),
-                                        weight_result: e.target.value,
-                                      },
-                                    })
-                                  }
-                                  placeholder='60.0'
-                                  className='w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
-                                />
-                              </div>
-                              <div>
-                                <label className='block text-xs font-medium text-gray-700 mb-1'>Scaling</label>
-                                <select
-                                  value={sectionResults[`${wod.id}:::${section.id}`]?.scaling_level || ''}
-                                  onChange={e =>
-                                    setSectionResults({
-                                      ...sectionResults,
-                                      [`${wod.id}:::${section.id}`]: {
-                                        ...(sectionResults[`${wod.id}:::${section.id}`] || { time_result: '', reps_result: '', weight_result: '', scaling_level: '' }),
-                                        scaling_level: e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '',
-                                      },
-                                    })
-                                  }
-                                  className='w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 bg-white'
-                                >
-                                  <option value=''>-</option>
-                                  <option value='Rx'>Rx</option>
-                                  <option value='Sc1'>Sc1</option>
-                                  <option value='Sc2'>Sc2</option>
-                                  <option value='Sc3'>Sc3</option>
-                                </select>
-                              </div>
-                            </div>
+                            {(() => {
+                              // Use configured fields or fallback to defaults for backward compatibility
+                              const scoringFields = section.scoring_fields || {
+                                time: true,
+                                reps: true,
+                                load: true,
+                                scaling: true
+                              };
+
+                              // Calculate grid columns based on number of active fields
+                              const activeFields = Object.values(scoringFields).filter(Boolean).length;
+                              const gridCols = activeFields <= 2 ? 'grid-cols-2' :
+                                               activeFields === 3 ? 'grid-cols-3' :
+                                               'grid-cols-4';
+
+                              return (
+                                <div className={`grid ${gridCols} gap-3`}>
+                                  {/* Time */}
+                                  {scoringFields.time && (
+                                    <div>
+                                      <label className='block text-xs font-medium text-gray-700 mb-1'>Time</label>
+                                      <input
+                                        type='text'
+                                        value={sectionResults[`${wod.id}:::${section.id}`]?.time_result || ''}
+                                        onChange={e =>
+                                          setSectionResults({
+                                            ...sectionResults,
+                                            [`${wod.id}:::${section.id}`]: {
+                                              ...(sectionResults[`${wod.id}:::${section.id}`] || {}),
+                                              time_result: e.target.value,
+                                            },
+                                          })
+                                        }
+                                        placeholder='12:34'
+                                        className='w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                                      />
+                                    </div>
+                                  )}
+
+                                  {/* Rounds (for AMRAP) */}
+                                  {scoringFields.rounds_reps && (
+                                    <div>
+                                      <label className='block text-xs font-medium text-gray-700 mb-1'>Rounds</label>
+                                      <input
+                                        type='number'
+                                        value={sectionResults[`${wod.id}:::${section.id}`]?.rounds_result || ''}
+                                        onChange={e =>
+                                          setSectionResults({
+                                            ...sectionResults,
+                                            [`${wod.id}:::${section.id}`]: {
+                                              ...(sectionResults[`${wod.id}:::${section.id}`] || {}),
+                                              rounds_result: e.target.value,
+                                            },
+                                          })
+                                        }
+                                        placeholder='15'
+                                        className='w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                                      />
+                                    </div>
+                                  )}
+
+                                  {/* Reps */}
+                                  {(scoringFields.reps || scoringFields.rounds_reps) && (
+                                    <div>
+                                      <label className='block text-xs font-medium text-gray-700 mb-1'>
+                                        {scoringFields.rounds_reps ? '+ Reps' : 'Reps'}
+                                      </label>
+                                      <input
+                                        type='number'
+                                        value={sectionResults[`${wod.id}:::${section.id}`]?.reps_result || ''}
+                                        onChange={e =>
+                                          setSectionResults({
+                                            ...sectionResults,
+                                            [`${wod.id}:::${section.id}`]: {
+                                              ...(sectionResults[`${wod.id}:::${section.id}`] || {}),
+                                              reps_result: e.target.value,
+                                            },
+                                          })
+                                        }
+                                        placeholder={scoringFields.rounds_reps ? '12' : '156'}
+                                        className='w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                                      />
+                                    </div>
+                                  )}
+
+                                  {/* Load/Weight */}
+                                  {scoringFields.load && (
+                                    <div>
+                                      <label className='block text-xs font-medium text-gray-700 mb-1'>Load (kg)</label>
+                                      <input
+                                        type='number'
+                                        step='0.5'
+                                        value={sectionResults[`${wod.id}:::${section.id}`]?.weight_result || ''}
+                                        onChange={e =>
+                                          setSectionResults({
+                                            ...sectionResults,
+                                            [`${wod.id}:::${section.id}`]: {
+                                              ...(sectionResults[`${wod.id}:::${section.id}`] || {}),
+                                              weight_result: e.target.value,
+                                            },
+                                          })
+                                        }
+                                        placeholder='60.0'
+                                        className='w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                                      />
+                                    </div>
+                                  )}
+
+                                  {/* Calories */}
+                                  {scoringFields.calories && (
+                                    <div>
+                                      <label className='block text-xs font-medium text-gray-700 mb-1'>Calories</label>
+                                      <input
+                                        type='number'
+                                        value={sectionResults[`${wod.id}:::${section.id}`]?.calories_result || ''}
+                                        onChange={e =>
+                                          setSectionResults({
+                                            ...sectionResults,
+                                            [`${wod.id}:::${section.id}`]: {
+                                              ...(sectionResults[`${wod.id}:::${section.id}`] || {}),
+                                              calories_result: e.target.value,
+                                            },
+                                          })
+                                        }
+                                        placeholder='120'
+                                        className='w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                                      />
+                                    </div>
+                                  )}
+
+                                  {/* Metres */}
+                                  {scoringFields.metres && (
+                                    <div>
+                                      <label className='block text-xs font-medium text-gray-700 mb-1'>Metres</label>
+                                      <input
+                                        type='number'
+                                        step='0.1'
+                                        value={sectionResults[`${wod.id}:::${section.id}`]?.metres_result || ''}
+                                        onChange={e =>
+                                          setSectionResults({
+                                            ...sectionResults,
+                                            [`${wod.id}:::${section.id}`]: {
+                                              ...(sectionResults[`${wod.id}:::${section.id}`] || {}),
+                                              metres_result: e.target.value,
+                                            },
+                                          })
+                                        }
+                                        placeholder='500.0'
+                                        className='w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                                      />
+                                    </div>
+                                  )}
+
+                                  {/* Task Completion Checkbox */}
+                                  {scoringFields.checkbox && (
+                                    <div>
+                                      <label className='flex items-center gap-2 text-sm text-gray-700 pt-6'>
+                                        <input
+                                          type='checkbox'
+                                          checked={sectionResults[`${wod.id}:::${section.id}`]?.task_completed || false}
+                                          onChange={e =>
+                                            setSectionResults({
+                                              ...sectionResults,
+                                              [`${wod.id}:::${section.id}`]: {
+                                                ...(sectionResults[`${wod.id}:::${section.id}`] || {}),
+                                                task_completed: e.target.checked,
+                                              },
+                                            })
+                                          }
+                                          className='rounded border-gray-300'
+                                        />
+                                        <span>Completed as written</span>
+                                      </label>
+                                    </div>
+                                  )}
+
+                                  {/* Scaling */}
+                                  {scoringFields.scaling && (
+                                    <div>
+                                      <label className='block text-xs font-medium text-gray-700 mb-1'>Scaling</label>
+                                      <select
+                                        value={sectionResults[`${wod.id}:::${section.id}`]?.scaling_level || ''}
+                                        onChange={e =>
+                                          setSectionResults({
+                                            ...sectionResults,
+                                            [`${wod.id}:::${section.id}`]: {
+                                              ...(sectionResults[`${wod.id}:::${section.id}`] || {}),
+                                              scaling_level: e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '',
+                                            },
+                                          })
+                                        }
+                                        className='w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 bg-white'
+                                      >
+                                        <option value=''>-</option>
+                                        <option value='Rx'>Rx</option>
+                                        <option value='Sc1'>Sc1</option>
+                                        <option value='Sc2'>Sc2</option>
+                                        <option value='Sc3'>Sc3</option>
+                                      </select>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })()}
                           </div>
                         )}
                       </div>

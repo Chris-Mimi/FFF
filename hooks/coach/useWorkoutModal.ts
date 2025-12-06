@@ -26,6 +26,18 @@ export interface WODSection {
   lifts?: ConfiguredLift[];
   benchmarks?: ConfiguredBenchmark[];
   forge_benchmarks?: ConfiguredForgeBenchmark[];
+
+  // Configurable scoring fields (determines which inputs athletes see)
+  scoring_fields?: {
+    time?: boolean;           // Show time input (mm:ss)
+    reps?: boolean;           // Show reps input (total)
+    rounds_reps?: boolean;    // Show rounds + reps inputs (AMRAP)
+    load?: boolean;           // Show weight/load input (kg)
+    calories?: boolean;       // Show calories input
+    metres?: boolean;         // Show distance input (metres)
+    checkbox?: boolean;       // Show task completion checkbox
+    scaling?: boolean;        // Show scaling dropdown
+  };
 }
 
 export interface WODFormData {
