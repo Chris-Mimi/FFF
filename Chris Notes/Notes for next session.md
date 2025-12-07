@@ -30,7 +30,8 @@ This document is a template with headings to show you where the issue is or wher
 * fix the timescale selector so it doesn't jump left and right on clicking different timescales. It does this as the timescale indicator on the right shrinks and expands.
 * How many top exercises will display?
 
- Auto-update failed · Try claude doctor or npm i -g @anthropic-ai/claude-code
+ Auto-update failed · Try claude doctor or n
+
  
 
 * 
@@ -40,6 +41,8 @@ This document is a template with headings to show you where the issue is or wher
 
 # Athlete Published Workouts Page #
 * Workouts should show type in the same section as the description or in the section header. Depending on the workout type, another input box opens underneath the section where the Athletes can input a score/time/weight etc. Is this possible to make it automatically appear in the Benchmarks/ForgeBenchmarks/Lifts/ personal records page? For example, strength part is for load.
+
+Claude moved the checkboxes outside the flex container, I don't like this, it looked better before.
 *
 
 # Athlete Logbook Page #
