@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 8.4
-**Updated:** 2025-12-08 (Session 40 - Fixed Configurable Scoring Fields)
+**Version:** 8.5
+**Updated:** 2025-12-08 (Session 41 - Lift Organization WIP)
 
 ---
 
@@ -67,25 +67,27 @@ Athlete Tables (linked to members.id)
 
 ## 📍 Current Status (Last 2 Weeks)
 
+**In Progress (2025-12-08 Session 41 - Sonnet):**
+- **Lift Organization System (INCOMPLETE - Priority for next session):**
+  - ✅ **Date Bug Fixed:** Invalid date in Personal Records tab (used wrong field name)
+  - ✅ **TypeScript Fixed:** Added missing BenchmarkResult interface fields (time_result, reps_result, weight_result)
+  - ✅ **Categories Standardized:** Updated to 'Olympic', 'Squat', 'Press' across all components
+  - ✅ **RLS Policies:** Created coach INSERT/UPDATE/DELETE policies for barbell_lifts (applied)
+  - ✅ **Ordering Synchronized:** Benchmarks alphabetical, Forge Benchmarks by display_order, Lifts by category+display_order
+  - ⚠️ **Drag-Drop WIP:** Attempted grid-based drag-drop for lifts (matching Forge Benchmarks) - NEEDS REFINEMENT
+  - 📋 **User Feedback:** "No, still not correct but I'm out of session time. Mimi can finish the drag and drop in another session"
+
+- Commit: cb8645c "wip: implement lift grid organization and fix date bugs"
+- Files: 6 modified (page.tsx, LiftsTab, MovementLibraryPopup, 3 Athlete components) + Chris Notes
+- Migration Pending: `20251208_update_lift_categories.sql` (update old category names to new)
+- Status: Partially complete, drag-drop needs work
+- See `project-history/2025-12-08-session-41-lift-organization-wip.md`
+
 **Completed (2025-12-08 Session 40 - Sonnet):**
 - **Fixed Configurable Scoring Fields - ALL ISSUES RESOLVED:**
-  - ✅ **Layout Fixed:** Scoring checkboxes moved back inside flex container (WODSectionComponent lines 169-307)
-  - ✅ **Configuration Respected:** Fixed fallback logic in AthletePageLogbookTab line 918 (explicit null check)
-  - ✅ **Universal Item Support:** Scoring fields now work for Lifts, Benchmarks, Forge Benchmarks, Free-form exercises
-  - ✅ **Inline Positioning:** All scoring inputs positioned to right of items using ml-auto flexbox
-  - ✅ **Instructions Logic:** Distinguishes between instructions (italic text) vs exercises (with scoring boxes)
-  - ✅ **Unified Save Function:** Replaced 4 broken save buttons with single working "Save All Results" (lines 453-581)
-  - ✅ **Database Migration Applied:** `20251206_add_benchmark_result_fields.sql` via Dashboard SQL Editor
-  - ✅ **Benchmark Tab Fixed:** Added null checks to timeToSeconds, updated to use time_result/reps_result columns
-  - ✅ **Free-form Persistence:** Fixed key format reconstruction for content items (lines 367-375)
-  - ✅ **Load Functions:** Created loadBenchmarkResultsToSection() and loadLiftResultsToSection() (lines 582-703)
-  - ✅ **Rounds+Reps Logic:** Only combines when values exist (not "0+0" when time used)
-  - ✅ **End-to-End Testing:** Coach configure → Athlete input → Save → Reload → All persists correctly
+  - ✅ Layout, Configuration, Universal Support, Inline Positioning, Instructions Logic
+  - ✅ Unified Save Function, Database Migration, Null Checks, Free-form Persistence
   - 📋 **User Confirmed:** "It's working" - Feature fully functional
-
-- Commit: Pending (ready to commit and push)
-- Files: 3 modified (AthletePageLogbookTab, AthletePageBenchmarksTab, WODSectionComponent) + Chris Notes
-- Status: Complete, tested, working
 - See `project-history/2025-12-08-session-40-fix-configurable-scoring.md`
 
 **Completed (2025-12-06 Session 39 - Sonnet):**
@@ -99,7 +101,16 @@ Athlete Tables (linked to members.id)
 
 ## 🚨 Known Issues (Next Session)
 
-**None - All Session 39/40 issues resolved.**
+**PRIORITY - Session 41 Incomplete Work:**
+1. **Lift Grid Drag-Drop:** Implementation not working correctly (user: "No, still not correct")
+   - **User Requirement:** "Same functionality as the Forge Benchmark tab without the insert row function"
+   - **Current State:** Grid layout implemented, drag-drop behavior needs refinement
+   - **Reference:** ForgeBenchmarksTab.tsx (working implementation)
+   - **Files:** components/coach/LiftsTab.tsx, app/coach/benchmarks-lifts/page.tsx
+
+2. **Migration Pending:** `20251208_update_lift_categories.sql` - Update existing lift categories from old names to new
+   - **Apply via:** Supabase Dashboard SQL Editor
+   - **Purpose:** Change 'Olympic Lifts'→'Olympic', 'Squats'→'Squat', 'Pressing'→'Press', etc.
 
 **Note:** Benchmark descriptions with escaped `\n` migration (`20251206_fix_newlines_after_restore.sql`) still pending execution if needed.
 
@@ -143,16 +154,26 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 41 Priorities (Next Session)
+### Session 42 Priorities (Next Session - PRIORITY)
 
-1. **Optional: Benchmark Descriptions Migration**
+1. **🔴 URGENT: Complete Lift Grid Drag-Drop** (Session 41 incomplete work)
+   - **Goal:** Match Forge Benchmarks drag-drop behavior exactly (no insert row function)
+   - **Reference:** ForgeBenchmarksTab.tsx working implementation
+   - **Test:** Smooth drag, no snap-back, grid positioning works correctly
+   - **Files:** components/coach/LiftsTab.tsx, app/coach/benchmarks-lifts/page.tsx
+
+2. **Apply Pending Migration**
+   - Execute `20251208_update_lift_categories.sql` via Supabase Dashboard SQL Editor
+   - Updates existing lift categories to new naming convention
+
+3. **Optional: Benchmark Descriptions Migration**
    - Execute `20251206_fix_newlines_after_restore.sql` if escaped `\n` still present
 
-2. **User Data Recreation** (If Not Already Done)
+4. **User Data Recreation** (If Not Already Done)
    - Recreate custom Forge Benchmarks (lost in Dec 6 incident)
    - Run `npm run backup` immediately after recreation
 
-3. **Continue with January Launch Plan**
+5. **Continue with January Launch Plan**
    - See Week 1 priorities below
 
 ### JANUARY LAUNCH PLAN (Weeks 1-5)
