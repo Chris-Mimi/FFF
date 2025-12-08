@@ -19,6 +19,9 @@ interface BenchmarkResult {
   id: string;
   benchmark_name: string;
   result_value: string;
+  time_result?: string | null;
+  reps_result?: number | null;
+  weight_result?: number | null;
   notes?: string;
   result_date: string;
   scaling_level?: string;
@@ -55,7 +58,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
       const { data, error } = await supabase
         .from('benchmark_workouts')
         .select('name, type, description')
-        .order('display_order');
+        .order('name');
 
       if (error) throw error;
       setBenchmarks(data || []);

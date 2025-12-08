@@ -68,19 +68,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
         .order('display_order');
 
       if (error) throw error;
-
-      // Custom reorder: Move "Clean" between "Snatch" and "Clean & Jerk"
-      const reorderedLifts = (data || []).slice();
-      const cleanIndex = reorderedLifts.findIndex(l => l.name === 'Clean');
-      const cleanAndJerkIndex = reorderedLifts.findIndex(l => l.name === 'Clean & Jerk');
-
-      if (cleanIndex !== -1 && cleanAndJerkIndex !== -1) {
-        const [cleanLift] = reorderedLifts.splice(cleanIndex, 1);
-        const newCleanAndJerkIndex = reorderedLifts.findIndex(l => l.name === 'Clean & Jerk');
-        reorderedLifts.splice(newCleanAndJerkIndex, 0, cleanLift);
-      }
-
-      setLifts(reorderedLifts);
+      setLifts(data || []);
     } catch (error) {
       console.error('Error fetching lifts:', error);
     }
@@ -324,20 +312,42 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
           Track your strength progress with barbell movements.
         </p>
 
-        <div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3'>
-          {(() => {
-            // Separate olympic lifts (Snatch, Clean, Clean & Jerk) from others
-            const olympicLiftNames = ['Snatch', 'Clean', 'Clean & Jerk'];
-            const nonOlympicLifts = lifts.filter(l => !olympicLiftNames.includes(l.name));
-            const olympicLifts = lifts.filter(l => olympicLiftNames.includes(l.name));
+        {/* Group lifts by category */}
+        {(() => {
+          const CATEGORY_ORDER = ['Olympic', 'Squat', 'Press'];
+          const liftsByCategory: Record<string, typeof lifts> = {};
 
-            // Calculate spacers needed to push olympic lifts to new row (5 columns)
-            const spacersNeeded = nonOlympicLifts.length % 5 === 0 ? 0 : 5 - (nonOlympicLifts.length % 5);
+          lifts.forEach(lift => {
+            if (!liftsByCategory[lift.category]) {
+              liftsByCategory[lift.category] = [];
+            }
+            liftsByCategory[lift.category].push(lift);
+          });
 
-            return (
-              <>
-                {/* Non-olympic lifts */}
-                {nonOlympicLifts.map(lift => {
+          // Sort categories by predefined order, then add any unrecognized categories
+          const allCategories = Object.keys(liftsByCategory);
+          const sortedCategories = [
+            ...CATEGORY_ORDER.filter(cat => liftsByCategory[cat]),
+            ...allCategories.filter(cat => !CATEGORY_ORDER.includes(cat)).sort()
+          ];
+
+          return (
+            <div className='space-y-6'>
+              {sortedCategories.map(category => {
+                const categoryLifts = liftsByCategory[category];
+
+                return (
+                  <div key={category}>
+                    {/* Category Header */}
+                    <div className='bg-[#208479] text-white px-4 py-2 rounded-t-lg mb-2'>
+                      <h4 className='text-sm font-bold uppercase tracking-wide'>
+                        {category} <span className='opacity-75'>({categoryLifts.length})</span>
+                      </h4>
+                    </div>
+
+                    {/* Lifts Grid */}
+                    <div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3'>
+                      {categoryLifts.map(lift => {
                   const prs = getAllRepMaxPRs(lift.name);
                   const liftAttempts = liftHistory.filter(r => r.lift_name === lift.name);
                   const attemptCount = liftAttempts.length;
@@ -374,62 +384,14 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                       )}
                     </div>
                   );
-                })}
-
-                {/* Spacers to push olympic lifts to new row */}
-                {Array.from({ length: spacersNeeded }, (_, i) => (
-                  <div key={`spacer-${i}`} className='invisible'></div>
-                ))}
-
-                {/* Olympic lifts */}
-                {olympicLifts.map(lift => {
-                  const prs = getAllRepMaxPRs(lift.name);
-                  const liftAttempts = liftHistory.filter(r => r.lift_name === lift.name);
-                  const attemptCount = liftAttempts.length;
-
-                  // Find best rep max (prioritize 1RM > 3RM > 5RM > 10RM)
-                  let bestRepMax = null;
-                  let bestWeight = null;
-                  for (const type of ['1RM', '3RM', '5RM', '10RM'] as const) {
-                    if (prs[type] !== null) {
-                      bestRepMax = type;
-                      bestWeight = prs[type];
-                      break;
-                    }
-                  }
-
-                  return (
-                    <div
-                      key={lift.name}
-                      onClick={() => setSelectedLift(lift.name)}
-                      className='group border border-[#0ABAB5] rounded-lg p-3 bg-[#AFEEEE] hover:border-sky-400 hover:bg-[#40E0D0] cursor-pointer transition'
-                    >
-<div className='flex items-center justify-between mb-1'>
-  <h4 className='text-base font-bold text-gray-900'>{lift.name}</h4>
-  {attemptCount > 0 && (
-    <p className='text-xs font-bold text-gray-500'>{attemptCount}x</p>
-  )}
-</div>
-                      {bestRepMax ? (
-                        <div className='flex items-end justify-between'>
-                          <div>
-                            <p className='text-xs text-gray-600'>{bestRepMax}:</p>
-                            <p className='text-sm font-bold text-[#208479]'>{bestWeight}kg</p>
-                          </div>
-                          {attemptCount > 0 && (
-                            <p className='text-xs text-gray-500'>{attemptCount}x</p>
-                          )}
-                        </div>
-                      ) : (
-                        <p className='text-xs text-gray-500 mt-2'>No records yet</p>
-                      )}
+                      })}
                     </div>
-                  );
-                })}
-              </>
-            );
-          })()}
-        </div>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
       </div>
 
       {/* Recent Lifts Section */}

@@ -1,6 +1,23 @@
 'use client';
 
-import { Edit2, Plus, Save, Trash2, X } from 'lucide-react';
+import {
+  closestCenter,
+  DndContext,
+  DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  useDroppable,
+} from '@dnd-kit/core';
+import {
+  rectSortingStrategy,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { Edit2, GripVertical, Plus, Save, Trash2, X } from 'lucide-react';
 
 interface Lift {
   id: string;
@@ -14,6 +31,7 @@ interface LiftsTabProps {
   onAdd: () => void;
   onEdit: (lift: Lift) => void;
   onDelete: (id: string) => void;
+  onDragEnd: (event: DragEndEvent) => void;
   // Modal props
   showModal: boolean;
   onCloseModal: () => void;
@@ -21,10 +39,96 @@ interface LiftsTabProps {
   form: {
     name: string;
     category: string;
-    display_order: number;
   };
   onFormChange: (field: string, value: string | number) => void;
   onSave: () => void;
+}
+
+const CATEGORY_ORDER = ['Olympic', 'Squat', 'Press'];
+
+// Sortable Lift Card Component
+function SortableLiftCard({
+  lift,
+  onEdit,
+  onDelete,
+}: {
+  lift: Lift;
+  onEdit: (lift: Lift) => void;
+  onDelete: (id: string) => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: lift.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      className='border border-gray-300 rounded-lg p-3 bg-blue-200 hover:bg-sky-300 hover:shadow-lg hover:z-10 transition-all group relative'
+    >
+      {/* Drag Handle */}
+      <div
+        {...listeners}
+        className='absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600'
+      >
+        <GripVertical size={18} />
+      </div>
+
+      {/* Edit/Delete Buttons */}
+      <div className='absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition'>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit(lift);
+          }}
+          className='p-1 text-blue-600 hover:bg-blue-50 rounded transition'
+        >
+          <Edit2 size={16} />
+        </button>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(lift.id);
+          }}
+          className='p-1 text-red-600 hover:bg-red-50 rounded transition'
+        >
+          <Trash2 size={16} />
+        </button>
+      </div>
+      <h3 className='text-base font-bold text-gray-900 mb-1'>{lift.name}</h3>
+      <p className='text-sm text-gray-800'>{lift.category}</p>
+    </div>
+  );
+}
+
+// Droppable Empty Cell Component
+function DroppableEmptyCell({ position }: { position: number }) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: `empty-${position}`,
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`border border-dashed rounded-lg p-3 min-h-[100px] transition-colors ${
+        isOver
+          ? 'border-blue-500 bg-blue-100'
+          : 'border-gray-300 bg-gray-50'
+      }`}
+    />
+  );
 }
 
 export default function LiftsTab({
@@ -32,6 +136,7 @@ export default function LiftsTab({
   onAdd,
   onEdit,
   onDelete,
+  onDragEnd,
   showModal,
   onCloseModal,
   editingLift,
@@ -39,10 +144,33 @@ export default function LiftsTab({
   onFormChange,
   onSave,
 }: LiftsTabProps) {
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Group lifts by category
+  const liftsByCategory: Record<string, Lift[]> = {};
+  lifts.forEach(lift => {
+    if (!liftsByCategory[lift.category]) {
+      liftsByCategory[lift.category] = [];
+    }
+    liftsByCategory[lift.category].push(lift);
+  });
+
+  // Sort categories by predefined order, then add any unrecognized categories
+  const allCategories = Object.keys(liftsByCategory);
+  const sortedCategories = [
+    ...CATEGORY_ORDER.filter(cat => liftsByCategory[cat]),
+    ...allCategories.filter(cat => !CATEGORY_ORDER.includes(cat)).sort()
+  ];
+
   return (
     <>
       <div className='bg-white rounded-lg shadow p-6'>
-        <div className='flex justify-between items-center mb-4'>
+        <div className='flex justify-between items-center mb-6'>
           <div className='flex items-center gap-3'>
             <h2 className='text-xl font-bold text-gray-900'>Barbell Lifts</h2>
             <span className='px-3 py-1 bg-blue-300 text-gray-700 rounded-full text-sm font-semibold'>
@@ -58,37 +186,86 @@ export default function LiftsTab({
           </button>
         </div>
 
-        <div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3'>
-          {lifts.map((lift) => (
-            <div
-              key={lift.id}
-              className='border border-gray-300 rounded-lg p-3 bg-blue-200 hover:bg-sky-300 hover:shadow-lg hover:z-10 transition-all group relative'
+        {lifts.length === 0 ? (
+          <div className='text-center py-8 text-gray-500'>
+            No lifts yet. Click &quot;Add Lift&quot; to create one.
+          </div>
+        ) : (
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={onDragEnd}
+          >
+            <SortableContext
+              items={lifts.map(l => l.id)}
+              strategy={rectSortingStrategy}
             >
-              <div className='absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition'>
-                <button
-                  onClick={() => onEdit(lift)}
-                  className='p-1 text-blue-600 hover:bg-blue-50 rounded transition'
-                >
-                  <Edit2 size={16} />
-                </button>
-                <button
-                  onClick={() => onDelete(lift.id)}
-                  className='p-1 text-red-600 hover:bg-red-50 rounded transition'
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-              <h3 className='text-base font-bold text-gray-900 mb-1'>{lift.name}</h3>
-              <p className='text-sm text-gray-800'>{lift.category}</p>
-            </div>
-          ))}
+              <div className='space-y-6'>
+                {sortedCategories.map(category => {
+                  const categoryLifts = liftsByCategory[category];
 
-          {lifts.length === 0 && (
-            <div className='text-center py-8 text-gray-500'>
-              No lifts yet. Click &quot;Add Lift&quot; to create one.
-            </div>
-          )}
-        </div>
+                  // Calculate grid for this category
+                  const maxDisplayOrder = categoryLifts.length > 0
+                    ? Math.max(...categoryLifts.map(l => l.display_order))
+                    : 0;
+                  const totalSlots = Math.max(maxDisplayOrder + 5, 15); // At least 15 slots (3 rows)
+
+                  // Create a map of display_order to lift
+                  const liftsByPosition = new Map(
+                    categoryLifts.map(l => [l.display_order, l])
+                  );
+
+                  // Generate grid slots grouped by rows (5 per row)
+                  const rows: number[][] = [];
+                  for (let i = 1; i <= totalSlots; i += 5) {
+                    rows.push([i, i + 1, i + 2, i + 3, i + 4]);
+                  }
+
+                  return (
+                    <div key={category}>
+                      {/* Category Header */}
+                      <div className='bg-[#208479] text-white px-4 py-2 rounded-t-lg mb-2'>
+                        <h4 className='text-sm font-bold uppercase tracking-wide'>
+                          {category} <span className='opacity-75'>({categoryLifts.length})</span>
+                        </h4>
+                      </div>
+
+                      {/* Grid Layout */}
+                      <div className='space-y-2'>
+                        {rows.map((rowPositions, rowIndex) => (
+                          <div key={`${category}-row-${rowIndex}`}>
+                            <div className='grid grid-cols-5 gap-3'>
+                              {rowPositions.map((position) => {
+                                const lift = liftsByPosition.get(position);
+                                if (lift) {
+                                  return (
+                                    <SortableLiftCard
+                                      key={lift.id}
+                                      lift={lift}
+                                      onEdit={onEdit}
+                                      onDelete={onDelete}
+                                    />
+                                  );
+                                } else {
+                                  return (
+                                    <DroppableEmptyCell
+                                      key={`empty-${category}-${position}`}
+                                      position={position}
+                                    />
+                                  );
+                                }
+                              })}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </SortableContext>
+          </DndContext>
+        )}
       </div>
 
       {/* Lift Modal */}
@@ -130,23 +307,10 @@ export default function LiftsTab({
                   onChange={(e) => onFormChange('category', e.target.value)}
                   className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent cursor-pointer'
                 >
-                  <option value='Squat'>Squat</option>
-                  <option value='Pull'>Pull</option>
-                  <option value='Press'>Press</option>
                   <option value='Olympic'>Olympic</option>
+                  <option value='Squat'>Squat</option>
+                  <option value='Press'>Press</option>
                 </select>
-              </div>
-
-              <div>
-                <label className='block text-sm font-medium text-gray-100 mb-1'>
-                  Display Order
-                </label>
-                <input
-                  type='number'
-                  value={form.display_order}
-                  onChange={(e) => onFormChange('display_order', parseInt(e.target.value) || 0)}
-                  className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent'
-                />
               </div>
             </div>
 

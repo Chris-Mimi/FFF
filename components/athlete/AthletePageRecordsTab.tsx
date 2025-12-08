@@ -316,7 +316,7 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
                     <div className='flex items-center justify-between'>
                       <p className='text-lg font-bold text-[#208479]'>{pr.result_value}</p>
                       <span className='text-sm text-gray-600'>
-                        {new Date(pr.result_value_date).toLocaleDateString('en-US', {
+                        {new Date(pr.result_date).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
                           year: 'numeric',
@@ -366,7 +366,7 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
                     <div className='flex items-center justify-between'>
                       <p className='text-lg font-bold text-[#208479]'>{pr.result_value}</p>
                       <span className='text-sm text-gray-600'>
-                        {new Date(pr.result_value_date).toLocaleDateString('en-US', {
+                        {new Date(pr.result_date).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
                           year: 'numeric',

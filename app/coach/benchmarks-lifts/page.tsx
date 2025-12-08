@@ -79,8 +79,7 @@ export default function BenchmarksLiftsManagementPage() {
   const [editingLift, setEditingLift] = useState<Lift | null>(null);
   const [liftForm, setLiftForm] = useState({
     name: '',
-    category: '',
-    display_order: 0
+    category: ''
   });
 
   // Exercises state
@@ -546,16 +545,13 @@ export default function BenchmarksLiftsManagementPage() {
       setEditingLift(lift);
       setLiftForm({
         name: lift.name,
-        category: lift.category,
-        display_order: lift.display_order
+        category: lift.category
       });
     } else {
       setEditingLift(null);
-      const maxOrder = lifts.length > 0 ? Math.max(...lifts.map(l => l.display_order)) : 0;
       setLiftForm({
         name: '',
-        category: 'Squat',
-        display_order: maxOrder + 1
+        category: 'Olympic'
       });
     }
     setShowLiftModal(true);
@@ -570,20 +566,22 @@ export default function BenchmarksLiftsManagementPage() {
           .update({
             name: liftForm.name,
             category: liftForm.category,
-            display_order: liftForm.display_order,
             updated_at: new Date().toISOString()
           })
           .eq('id', editingLift.id);
 
         if (error) throw error;
       } else {
-        // Create new
+        // Create new - get max display_order for the category
+        const categoryLifts = lifts.filter(l => l.category === liftForm.category);
+        const maxOrder = categoryLifts.length > 0 ? Math.max(...categoryLifts.map(l => l.display_order)) : 0;
+
         const { error } = await supabase
           .from('barbell_lifts')
           .insert({
             name: liftForm.name,
             category: liftForm.category,
-            display_order: liftForm.display_order
+            display_order: maxOrder + 1
           });
 
         if (error) throw error;
@@ -595,6 +593,90 @@ export default function BenchmarksLiftsManagementPage() {
     } catch (error: any) {
       console.error('Error saving lift:', error);
       alert(`Error: ${error.message}`);
+    }
+  };
+
+  const handleLiftDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over) {
+      return;
+    }
+
+    // Find the dragged item
+    const draggedLift = lifts.find(l => l.id === active.id);
+    if (!draggedLift) return;
+
+    // Determine target position
+    let targetPosition: number;
+
+    if (over.id === active.id) {
+      return; // No change
+    }
+
+    // Check if dropping on another lift or an empty cell
+    const targetLift = lifts.find(l => l.id === over.id);
+
+    if (targetLift) {
+      // Dropping on another lift - swap positions
+      targetPosition = targetLift.display_order;
+
+      // Swap the two items
+      const updatedLifts = lifts.map(lift => {
+        if (lift.id === draggedLift.id) {
+          return { ...lift, display_order: targetPosition };
+        }
+        if (lift.id === targetLift.id) {
+          return { ...lift, display_order: draggedLift.display_order };
+        }
+        return lift;
+      });
+
+      setLifts(updatedLifts);
+
+      // Update both items in database
+      try {
+        await supabase
+          .from('barbell_lifts')
+          .update({ display_order: targetPosition })
+          .eq('id', draggedLift.id);
+
+        await supabase
+          .from('barbell_lifts')
+          .update({ display_order: draggedLift.display_order })
+          .eq('id', targetLift.id);
+      } catch (error: any) {
+        console.error('Error updating order:', error);
+        alert(`Error updating order: ${error.message}`);
+        fetchLifts();
+      }
+    } else {
+      // Dropping on empty cell - extract position from key
+      const emptyKey = over.id as string;
+      if (emptyKey.startsWith('empty-')) {
+        targetPosition = parseInt(emptyKey.replace('empty-', ''));
+
+        const updatedLifts = lifts.map(lift => {
+          if (lift.id === draggedLift.id) {
+            return { ...lift, display_order: targetPosition };
+          }
+          return lift;
+        });
+
+        setLifts(updatedLifts);
+
+        // Update only the dragged item
+        try {
+          await supabase
+            .from('barbell_lifts')
+            .update({ display_order: targetPosition })
+            .eq('id', draggedLift.id);
+        } catch (error: any) {
+          console.error('Error updating order:', error);
+          alert(`Error updating order: ${error.message}`);
+          fetchLifts();
+        }
+      }
     }
   };
 
@@ -1128,6 +1210,7 @@ export default function BenchmarksLiftsManagementPage() {
             onAdd={() => openLiftModal()}
             onEdit={openLiftModal}
             onDelete={deleteLift}
+            onDragEnd={handleLiftDragEnd}
             showModal={showLiftModal}
             onCloseModal={() => setShowLiftModal(false)}
             editingLift={editingLift}

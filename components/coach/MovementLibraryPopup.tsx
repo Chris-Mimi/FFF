@@ -42,11 +42,9 @@ const EXERCISE_CATEGORY_ORDER = [
 ];
 
 const LIFT_CATEGORY_ORDER = [
-  'Olympic Lifts',
-  'Squats',
-  'Pressing',
-  'Pulling',
-  'Deadlifts',
+  'Olympic',
+  'Squat',
+  'Press',
 ];
 
 // Sort categories by predefined order
@@ -112,7 +110,7 @@ function MovementLibraryPopup({
   // Form states for creating new items
   const [benchmarkForm, setBenchmarkForm] = useState({ name: '', type: 'For Time', description: '', has_scaling: true });
   const [forgeForm, setForgeForm] = useState({ name: '', type: 'For Time', description: '', has_scaling: true });
-  const [liftForm, setLiftForm] = useState({ name: '', category: 'Olympic Lifts' });
+  const [liftForm, setLiftForm] = useState({ name: '', category: 'Olympic' });
   const [workoutTypes, setWorkoutTypes] = useState<Array<{ id: string; name: string }>>([]);
 
   // Favorites and Recently Used hooks
@@ -294,7 +292,7 @@ function MovementLibraryPopup({
       const { data, error } = await supabase
         .from('benchmark_workouts')
         .select('*')
-        .order('display_order');
+        .order('name');
       if (error) throw error;
       setBenchmarks(data || []);
       setHasFetchedBenchmarks(true);
@@ -311,7 +309,7 @@ function MovementLibraryPopup({
       const { data, error } = await supabase
         .from('forge_benchmarks')
         .select('*')
-        .order('name', { ascending: true });
+        .order('display_order');
       if (error) throw error;
       setForgeBenchmarks(data || []);
       setHasFetchedForge(true);
@@ -434,7 +432,7 @@ function MovementLibraryPopup({
       if (error) throw error;
 
       setShowCreateLiftModal(false);
-      setLiftForm({ name: '', category: 'Olympic Lifts' });
+      setLiftForm({ name: '', category: 'Olympic' });
       await fetchLifts();
     } catch (error: any) {
       console.error('Error creating lift:', error);
@@ -1243,11 +1241,9 @@ function MovementLibraryPopup({
                   onChange={(e) => setLiftForm({ ...liftForm, category: e.target.value })}
                   className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg'
                 >
-                  <option value='Olympic Lifts'>Olympic Lifts</option>
-                  <option value='Squats'>Squats</option>
-                  <option value='Pressing'>Pressing</option>
-                  <option value='Pulling'>Pulling</option>
-                  <option value='Deadlifts'>Deadlifts</option>
+                  <option value='Olympic'>Olympic</option>
+                  <option value='Squat'>Squat</option>
+                  <option value='Press'>Press</option>
                 </select>
               </div>
             </div>

@@ -46,7 +46,7 @@ Claude moved the checkboxes outside the flex container, I don't like this, it lo
 *
 
 # Athlete Logbook Page #
-Personal Records tab has erros
+
 * 
 
 # Member Management Page #
