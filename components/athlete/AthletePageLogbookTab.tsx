@@ -216,6 +216,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
           repsResult,
           weightResult,
           scalingLevel,
+          notes: null, // Add notes field
           resultDate
         })
       });
@@ -230,6 +231,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
     } catch (error) {
       console.error('Error saving benchmark result:', error);
       alert(`Failed to save benchmark result: ${error instanceof Error ? error.message : String(error)}`);
+      throw error; // Re-throw so unified save can count it as error
     }
   };
 
@@ -362,7 +364,16 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
       if (data) {
         const newSectionResults: Record<string, SectionResult> = {};
         data.forEach(result => {
-          const key = `${result.wod_id}:::${result.section_id}`;
+          // Handle content items that have format: sectionId-content-N
+          // Need to convert to triple-colon format: wodId:::sectionId:::content-N
+          let key: string;
+          if (result.section_id.includes('-content-')) {
+            const parts = result.section_id.split('-content-');
+            key = `${result.wod_id}:::${parts[0]}:::content-${parts[1]}`;
+          } else {
+            key = `${result.wod_id}:::${result.section_id}`;
+          }
+
           newSectionResults[key] = {
             time_result: result.time_result || '',
             reps_result: result.reps_result?.toString() || '',
@@ -450,31 +461,255 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
     }
   };
 
-  // Save all section results for a workout
-  const saveAllSectionResults = async (workoutDate: string) => {
+  // UNIFIED SAVE FUNCTION - Handles all scoring data (lifts, benchmarks, forge, content)
+  const saveAllResults = async (workoutDate: string) => {
     const resultsToSave = Object.entries(sectionResults).filter(([_, result]) =>
-      result.time_result || result.reps_result || result.weight_result || result.scaling_level
+      result.time_result || result.reps_result || result.weight_result || result.scaling_level ||
+      result.rounds_result || result.calories_result || result.metres_result || result.task_completed
     );
 
     if (resultsToSave.length === 0) {
-      alert('No section results entered to save');
+      alert('No results entered to save');
       return;
     }
 
+    let savedCount = 0;
     let errorCount = 0;
+    const errors: string[] = [];
+
+    // Find current workout to extract structured data
+    const currentWorkout = workouts.find(w => formatLocalDate(new Date(w.date)) === workoutDate);
+    if (!currentWorkout) {
+      alert('Workout not found');
+      return;
+    }
+
     for (const [key, result] of resultsToSave) {
-      const [wodId, sectionId] = key.split(':::');
       try {
-        await saveSectionResult(wodId, sectionId, result, workoutDate);
+        // Parse key: format is "wodId:::sectionId:::type-idx"
+        const parts = key.split(':::');
+        if (parts.length < 3) continue;
+
+        const [wodId, sectionId, itemIdentifier] = parts;
+        const section = getPublishedSections(currentWorkout).find(s => s.id === sectionId);
+        if (!section) continue;
+
+        // Determine item type
+        if (itemIdentifier.startsWith('lift-')) {
+          // Save as lift record
+          const liftIdx = parseInt(itemIdentifier.replace('lift-', ''));
+          const lift = section.lifts?.[liftIdx];
+          if (lift && result.weight_result) {
+            const repScheme = lift.rep_type === 'constant'
+              ? `${lift.sets || 1}x${lift.reps || 1}`
+              : lift.variable_sets?.map(s => s.reps).join('-') || '1';
+            const reps = lift.rep_type === 'constant' ? (lift.reps || 1) :
+              (lift.variable_sets && lift.variable_sets.length > 0 ? lift.variable_sets[0].reps : 1);
+
+            await saveLiftRecord(lift.name, result.weight_result, reps, workoutDate, repScheme);
+            savedCount++;
+          }
+        } else if (itemIdentifier.startsWith('benchmark-')) {
+          // Save as benchmark result
+          const bmIdx = parseInt(itemIdentifier.replace('benchmark-', ''));
+          const benchmark = section.benchmarks?.[bmIdx];
+          if (benchmark) {
+            // Only combine rounds + reps if they have values (for when didn't finish in time cap)
+            const hasRoundsOrReps = result.rounds_result || result.reps_result;
+            const repsValue = hasRoundsOrReps
+              ? `${result.rounds_result || '0'}+${result.reps_result || '0'}`
+              : '';
+
+            await saveBenchmarkResult(
+              benchmark.name,
+              benchmark.type,
+              result.time_result || '',
+              repsValue,
+              result.weight_result || '',
+              workoutDate,
+              result.scaling_level || 'Rx',
+              benchmark.id
+            );
+            savedCount++;
+          }
+        } else if (itemIdentifier.startsWith('forge-')) {
+          // Save as forge benchmark result
+          const forgeIdx = parseInt(itemIdentifier.replace('forge-', ''));
+          const forge = section.forge_benchmarks?.[forgeIdx];
+          if (forge) {
+            // Only combine rounds + reps if they have values (for when didn't finish in time cap)
+            const hasRoundsOrReps = result.rounds_result || result.reps_result;
+            const repsValue = hasRoundsOrReps
+              ? `${result.rounds_result || '0'}+${result.reps_result || '0'}`
+              : '';
+
+            await saveBenchmarkResult(
+              forge.name,
+              forge.type,
+              result.time_result || '',
+              repsValue,
+              result.weight_result || '',
+              workoutDate,
+              result.scaling_level || 'Rx',
+              undefined,
+              forge.id
+            );
+            savedCount++;
+          }
+        } else if (itemIdentifier.startsWith('content-')) {
+          // Save as general section result (free-form exercise)
+          await saveSectionResult(wodId, `${sectionId}-${itemIdentifier}`, result, workoutDate);
+          savedCount++;
+        }
       } catch (error) {
         errorCount++;
+        errors.push(error instanceof Error ? error.message : 'Unknown error');
+      }
+    }
+
+    // Also save workout notes if present
+    if (workoutLogs[currentWorkout.id]?.notes) {
+      try {
+        await saveWorkoutLog(currentWorkout.id);
+      } catch (error) {
+        errors.push('Failed to save notes');
       }
     }
 
     if (errorCount === 0) {
-      alert('Section results saved successfully!');
+      alert(`Successfully saved ${savedCount} results!`);
+      // Reload data to reflect changes
+      loadLiftRecords(workoutDate);
+      loadSectionResults(workoutDate);
+      loadBenchmarkResultsToSection(workoutDate);
+      loadLiftResultsToSection(workoutDate);
     } else {
-      alert(`Saved ${resultsToSave.length - errorCount} of ${resultsToSave.length} section results. ${errorCount} failed.`);
+      console.error('Save errors:', errors);
+      alert(`Saved ${savedCount} of ${resultsToSave.length} results. ${errorCount} failed. Check console for details.`);
+    }
+  };
+
+  // Load benchmark results and populate sectionResults
+  const loadBenchmarkResultsToSection = async (workoutDate: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('benchmark_results')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('result_date', workoutDate);
+
+      if (error) {
+        console.error('Error loading benchmark results:', error);
+        return;
+      }
+
+      if (data && workouts.length > 0) {
+        const newResults: Record<string, SectionResult> = {};
+
+        // Match benchmarks to workout sections
+        workouts.forEach(wod => {
+          const sections = getPublishedSections(wod);
+          sections.forEach(section => {
+            // Match regular benchmarks
+            section.benchmarks?.forEach((benchmark, idx) => {
+              const matchingResult = data.find(r =>
+                r.benchmark_name === benchmark.name && r.benchmark_id === benchmark.id
+              );
+              if (matchingResult) {
+                const key = `${wod.id}:::${section.id}:::benchmark-${idx}`;
+                newResults[key] = {
+                  time_result: matchingResult.time_result || '',
+                  reps_result: matchingResult.reps_result?.toString() || '',
+                  weight_result: matchingResult.weight_result?.toString() || '',
+                  scaling_level: matchingResult.scaling_level || '',
+                  rounds_result: '',
+                  calories_result: '',
+                  metres_result: '',
+                  task_completed: false,
+                };
+              }
+            });
+
+            // Match forge benchmarks
+            section.forge_benchmarks?.forEach((forge, idx) => {
+              const matchingResult = data.find(r =>
+                r.benchmark_name === forge.name && r.forge_benchmark_id === forge.id
+              );
+              if (matchingResult) {
+                const key = `${wod.id}:::${section.id}:::forge-${idx}`;
+                newResults[key] = {
+                  time_result: matchingResult.time_result || '',
+                  reps_result: matchingResult.reps_result?.toString() || '',
+                  weight_result: matchingResult.weight_result?.toString() || '',
+                  scaling_level: matchingResult.scaling_level || '',
+                  rounds_result: '',
+                  calories_result: '',
+                  metres_result: '',
+                  task_completed: false,
+                };
+              }
+            });
+          });
+        });
+
+        setSectionResults(prev => ({ ...prev, ...newResults }));
+      }
+    } catch (error) {
+      console.error('Error loading benchmark results:', error);
+    }
+  };
+
+  // Load lift records and populate sectionResults
+  const loadLiftResultsToSection = async (workoutDate: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('lift_records')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('lift_date', workoutDate);
+
+      if (error) {
+        console.error('Error loading lift results:', error);
+        return;
+      }
+
+      if (data && workouts.length > 0) {
+        const newResults: Record<string, SectionResult> = {};
+
+        // Match lifts to workout sections
+        workouts.forEach(wod => {
+          const sections = getPublishedSections(wod);
+          sections.forEach(section => {
+            section.lifts?.forEach((lift, idx) => {
+              const repScheme = lift.rep_type === 'constant'
+                ? `${lift.sets || 1}x${lift.reps || 1}`
+                : lift.variable_sets?.map(s => s.reps).join('-') || '1';
+
+              const matchingResult = data.find(r =>
+                r.lift_name === lift.name && r.rep_scheme === repScheme
+              );
+
+              if (matchingResult) {
+                const key = `${wod.id}:::${section.id}:::lift-${idx}`;
+                newResults[key] = {
+                  time_result: '',
+                  reps_result: '',
+                  weight_result: matchingResult.weight_kg?.toString() || '',
+                  scaling_level: '',
+                  rounds_result: '',
+                  calories_result: '',
+                  metres_result: '',
+                  task_completed: false,
+                };
+              }
+            });
+          });
+        });
+
+        setSectionResults(prev => ({ ...prev, ...newResults }));
+      }
+    } catch (error) {
+      console.error('Error loading lift results:', error);
     }
   };
 
@@ -484,6 +719,8 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
       const dateStr = formatLocalDate(selectedDate);
       loadLiftRecords(dateStr);
       loadSectionResults(dateStr);
+      loadBenchmarkResultsToSection(dateStr);
+      loadLiftResultsToSection(dateStr);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workouts, selectedDate, userId]);
@@ -650,143 +887,83 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                           )}
                         </div>
 
-                        {/* Lifts (Blue Badges) + Weight Tracking */}
+                        {/* Lifts (Blue Badges) + Configurable Scoring Fields */}
                         {section.lifts && section.lifts.length > 0 && (
-                          <div className='space-y-3 mb-2'>
+                          <div className='space-y-2 mb-2'>
                             {section.lifts.map((lift, liftIdx) => {
-                              const repsForRecord = lift.rep_type === 'constant' ? (lift.reps || 1) :
-                                (lift.variable_sets && lift.variable_sets.length > 0 ? lift.variable_sets[0].reps : 1);
-
-                              // Format rep scheme for display (e.g., "5x5" or "5-3-1")
-                              const repScheme = lift.rep_type === 'constant'
-                                ? `${lift.sets || 1}x${lift.reps || 1}`
-                                : lift.variable_sets?.map(s => s.reps).join('-') || '1';
-
-                              // Include rep_scheme in liftKey to separate lifts with different schemes
-                              const liftKey = `${wod.id}-${section.id}-${lift.name}-${repScheme}`;
+                              const itemKey = `${wod.id}:::${section.id}:::lift-${liftIdx}`;
+                              const scoringFields = section.scoring_fields || {time: true, reps: true, load: true, scaling: true};
 
                               return (
-                                <div key={liftIdx} className='bg-blue-50 text-blue-900 rounded p-2'>
-                                  {/* Single line: Title, Notes, Weight Input */}
+                                <div key={liftIdx} className='bg-blue-50 text-blue-900 rounded px-2 py-1'>
                                   <div className='flex items-center gap-2 flex-wrap'>
                                     {/* Lift Title */}
-                                    <div className='font-semibold text-sm'>≡ {formatLift(lift)}</div>
+                                    <div className='font-semibold text-xs flex-shrink-0'>≡ {formatLift(lift)}</div>
 
-                                    {/* Weight Input */}
-                                    <div className='flex items-center gap-1 ml-auto'>
-                                      <label className='text-xs font-medium whitespace-nowrap'>Weight (kg):</label>
-                                      <input
-                                        type='number'
-                                        step='0.5'
-                                        min='0'
-                                        placeholder='0'
-                                        value={liftRecords[liftKey]?.weight_kg || ''}
-                                        onChange={e => setLiftRecords(prev => ({
-                                          ...prev,
-                                          [liftKey]: {
-                                            lift_name: lift.name,
-                                            weight_kg: e.target.value,
-                                            reps: repsForRecord,
-                                            rep_scheme: repScheme
-                                          }
-                                        }))}
-                                        className='w-20 px-2 py-1 text-xs border border-blue-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
-                                      />
-                                    </div>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-
-                        {/* Benchmarks (Teal Badges) + Result Tracking */}
-                        {section.benchmarks && section.benchmarks.length > 0 && (
-                          <div className='space-y-2 mb-2'>
-                            {section.benchmarks.map((benchmark, bmIdx) => {
-                              const formatted = formatBenchmark(benchmark);
-                              const benchmarkKey = `${wod.id}-${section.id}-${benchmark.name}`;
-
-                              return (
-                                <div key={bmIdx} className='text-xs bg-teal-50 text-teal-900 rounded px-2 py-1'>
-                                  <div className='flex items-start justify-between gap-2'>
-                                    <div className='flex-1'>
-                                      <div className='font-semibold'>≡ {formatted.name}</div>
-                                      {formatted.description && (
-                                        <div className='text-teal-800 whitespace-pre-wrap mt-0.5 mb-1'>
-                                          {formatted.description}
-                                        </div>
-                                      )}
-                                    </div>
+                                    {/* Configurable Scoring Inputs */}
                                     <div className='flex items-center gap-2 ml-auto flex-wrap'>
-                                      {/* Time input */}
-                                      <input
-                                        type='text'
-                                        placeholder='mm:ss'
-                                        value={benchmarkResults[benchmarkKey]?.time_result || ''}
-                                        onChange={e => setBenchmarkResults(prev => ({
-                                          ...prev,
-                                          [benchmarkKey]: {
-                                            ...prev[benchmarkKey],
-                                            benchmark_name: benchmark.name,
-                                            benchmark_type: benchmark.type,
-                                            time_result: e.target.value,
-                                            benchmark_id: benchmark.id
-                                          }
-                                        }))}
-                                        className='w-20 px-2 py-1 text-xs border border-teal-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
-                                      />
-                                      {/* Reps input */}
-                                      <input
-                                        type='number'
-                                        placeholder='reps'
-                                        value={benchmarkResults[benchmarkKey]?.reps_result || ''}
-                                        onChange={e => setBenchmarkResults(prev => ({
-                                          ...prev,
-                                          [benchmarkKey]: {
-                                            ...prev[benchmarkKey],
-                                            benchmark_name: benchmark.name,
-                                            benchmark_type: benchmark.type,
-                                            reps_result: e.target.value,
-                                            benchmark_id: benchmark.id
-                                          }
-                                        }))}
-                                        className='w-16 px-2 py-1 text-xs border border-teal-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
-                                      />
-                                      {/* Weight input */}
-                                      <input
-                                        type='number'
-                                        step='0.5'
-                                        placeholder='kg'
-                                        value={benchmarkResults[benchmarkKey]?.weight_result || ''}
-                                        onChange={e => setBenchmarkResults(prev => ({
-                                          ...prev,
-                                          [benchmarkKey]: {
-                                            ...prev[benchmarkKey],
-                                            benchmark_name: benchmark.name,
-                                            benchmark_type: benchmark.type,
-                                            weight_result: e.target.value,
-                                            benchmark_id: benchmark.id
-                                          }
-                                        }))}
-                                        className='w-16 px-2 py-1 text-xs border border-teal-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
-                                      />
-                                      {/* Scaling dropdown (if benchmark has scaling) */}
-                                      {(benchmark.has_scaling ?? true) && (
+                                      {scoringFields.time && (
+                                        <input type='text' placeholder='mm:ss'
+                                          value={sectionResults[itemKey]?.time_result || ''}
+                                          onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), time_result: e.target.value}})}
+                                          className='w-16 px-2 py-1 text-xs border border-blue-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
+                                        />
+                                      )}
+                                      {scoringFields.rounds_reps && (
+                                        <>
+                                          <input type='number' placeholder='rnds'
+                                            value={sectionResults[itemKey]?.rounds_result || ''}
+                                            onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), rounds_result: e.target.value}})}
+                                            className='w-14 px-2 py-1 text-xs border border-blue-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
+                                          />
+                                          <span className='text-xs'>+</span>
+                                        </>
+                                      )}
+                                      {(scoringFields.reps || scoringFields.rounds_reps) && (
+                                        <input type='number' placeholder='reps'
+                                          value={sectionResults[itemKey]?.reps_result || ''}
+                                          onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), reps_result: e.target.value}})}
+                                          className='w-14 px-2 py-1 text-xs border border-blue-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
+                                        />
+                                      )}
+                                      {scoringFields.load && (
+                                        <input type='number' step='0.5' placeholder='kg'
+                                          value={sectionResults[itemKey]?.weight_result || ''}
+                                          onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), weight_result: e.target.value}})}
+                                          className='w-16 px-2 py-1 text-xs border border-blue-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
+                                        />
+                                      )}
+                                      {scoringFields.calories && (
+                                        <input type='number' placeholder='cal'
+                                          value={sectionResults[itemKey]?.calories_result || ''}
+                                          onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), calories_result: e.target.value}})}
+                                          className='w-14 px-2 py-1 text-xs border border-blue-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
+                                        />
+                                      )}
+                                      {scoringFields.metres && (
+                                        <input type='number' step='0.1' placeholder='m'
+                                          value={sectionResults[itemKey]?.metres_result || ''}
+                                          onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), metres_result: e.target.value}})}
+                                          className='w-16 px-2 py-1 text-xs border border-blue-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
+                                        />
+                                      )}
+                                      {scoringFields.checkbox && (
+                                        <label className='flex items-center gap-1 text-xs'>
+                                          <input type='checkbox'
+                                            checked={sectionResults[itemKey]?.task_completed || false}
+                                            onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), task_completed: e.target.checked}})}
+                                            className='rounded border-blue-300'
+                                          />
+                                          <span>✓</span>
+                                        </label>
+                                      )}
+                                      {scoringFields.scaling && (
                                         <select
-                                          value={benchmarkResults[benchmarkKey]?.scaling_level || 'Rx'}
-                                          onChange={e => setBenchmarkResults(prev => ({
-                                            ...prev,
-                                            [benchmarkKey]: {
-                                              ...prev[benchmarkKey],
-                                              benchmark_name: benchmark.name,
-                                              benchmark_type: benchmark.type,
-                                              scaling_level: e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3',
-                                              benchmark_id: benchmark.id
-                                            }
-                                          }))}
-                                          className='w-14 px-1 py-0.5 text-xs border border-teal-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 bg-white'
+                                          value={sectionResults[itemKey]?.scaling_level || ''}
+                                          onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), scaling_level: e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | ''}})}
+                                          className='w-14 px-1 py-0.5 text-xs border border-blue-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900 bg-white'
                                         >
+                                          <option value=''>-</option>
                                           <option value='Rx'>Rx</option>
                                           <option value='Sc1'>Sc1</option>
                                           <option value='Sc2'>Sc2</option>
@@ -801,93 +978,182 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                           </div>
                         )}
 
-                        {/* Forge Benchmarks (Cyan Badges) + Result Tracking */}
+                        {/* Benchmarks (Teal Badges) + Configurable Scoring Fields */}
+                        {section.benchmarks && section.benchmarks.length > 0 && (
+                          <div className='space-y-2 mb-2'>
+                            {section.benchmarks.map((benchmark, bmIdx) => {
+                              const formatted = formatBenchmark(benchmark);
+                              const itemKey = `${wod.id}:::${section.id}:::benchmark-${bmIdx}`;
+                              const scoringFields = section.scoring_fields || {time: true, reps: true, load: true, scaling: true};
+
+                              return (
+                                <div key={bmIdx} className='bg-teal-50 text-teal-900 rounded px-2 py-1'>
+                                  <div className='flex items-center gap-2 flex-wrap'>
+                                    {/* Benchmark Title */}
+                                    <div className='font-semibold text-xs flex-shrink-0'>≡ {formatted.name}</div>
+                                    {formatted.description && (
+                                      <div className='text-teal-800 text-xs flex-1 min-w-0'>{formatted.description}</div>
+                                    )}
+
+                                    {/* Configurable Scoring Inputs */}
+                                    <div className='flex items-center gap-2 ml-auto flex-wrap'>
+                                      {scoringFields.time && (
+                                        <input type='text' placeholder='mm:ss'
+                                          value={sectionResults[itemKey]?.time_result || ''}
+                                          onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), time_result: e.target.value}})}
+                                          className='w-16 px-2 py-1 text-xs border border-teal-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
+                                        />
+                                      )}
+                                      {scoringFields.rounds_reps && (
+                                        <>
+                                          <input type='number' placeholder='rnds'
+                                            value={sectionResults[itemKey]?.rounds_result || ''}
+                                            onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), rounds_result: e.target.value}})}
+                                            className='w-14 px-2 py-1 text-xs border border-teal-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
+                                          />
+                                          <span className='text-xs'>+</span>
+                                        </>
+                                      )}
+                                      {(scoringFields.reps || scoringFields.rounds_reps) && (
+                                        <input type='number' placeholder='reps'
+                                          value={sectionResults[itemKey]?.reps_result || ''}
+                                          onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), reps_result: e.target.value}})}
+                                          className='w-14 px-2 py-1 text-xs border border-teal-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
+                                        />
+                                      )}
+                                      {scoringFields.load && (
+                                        <input type='number' step='0.5' placeholder='kg'
+                                          value={sectionResults[itemKey]?.weight_result || ''}
+                                          onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), weight_result: e.target.value}})}
+                                          className='w-16 px-2 py-1 text-xs border border-teal-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
+                                        />
+                                      )}
+                                      {scoringFields.calories && (
+                                        <input type='number' placeholder='cal'
+                                          value={sectionResults[itemKey]?.calories_result || ''}
+                                          onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), calories_result: e.target.value}})}
+                                          className='w-14 px-2 py-1 text-xs border border-teal-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
+                                        />
+                                      )}
+                                      {scoringFields.metres && (
+                                        <input type='number' step='0.1' placeholder='m'
+                                          value={sectionResults[itemKey]?.metres_result || ''}
+                                          onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), metres_result: e.target.value}})}
+                                          className='w-16 px-2 py-1 text-xs border border-teal-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
+                                        />
+                                      )}
+                                      {scoringFields.checkbox && (
+                                        <label className='flex items-center gap-1 text-xs'>
+                                          <input type='checkbox'
+                                            checked={sectionResults[itemKey]?.task_completed || false}
+                                            onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), task_completed: e.target.checked}})}
+                                            className='rounded border-teal-300'
+                                          />
+                                          <span>✓</span>
+                                        </label>
+                                      )}
+                                      {scoringFields.scaling && (
+                                        <select
+                                          value={sectionResults[itemKey]?.scaling_level || ''}
+                                          onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), scaling_level: e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | ''}})}
+                                          className='w-14 px-1 py-0.5 text-xs border border-teal-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900 bg-white'
+                                        >
+                                          <option value=''>-</option>
+                                          <option value='Rx'>Rx</option>
+                                          <option value='Sc1'>Sc1</option>
+                                          <option value='Sc2'>Sc2</option>
+                                          <option value='Sc3'>Sc3</option>
+                                        </select>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {/* Forge Benchmarks (Cyan Badges) + Configurable Scoring Fields */}
                         {section.forge_benchmarks && section.forge_benchmarks.length > 0 && (
                           <div className='space-y-2 mb-2'>
                             {section.forge_benchmarks.map((forge, forgeIdx) => {
                               const formatted = formatForgeBenchmark(forge);
-                              const forgeKey = `${wod.id}-${section.id}-forge-${forge.name}`;
+                              const itemKey = `${wod.id}:::${section.id}:::forge-${forgeIdx}`;
+                              const scoringFields = section.scoring_fields || {time: true, reps: true, load: true, scaling: true};
 
                               return (
-                                <div key={forgeIdx} className='text-xs bg-cyan-50 text-cyan-900 rounded px-2 py-1'>
-                                  <div className='flex items-start justify-between gap-2'>
-                                    <div className='flex-1'>
-                                      <div className='font-semibold'>≡ {formatted.name}</div>
-                                      {formatted.description && (
-                                        <div className='text-cyan-800 whitespace-pre-wrap mt-0.5 mb-1'>
-                                          {formatted.description}
-                                        </div>
-                                      )}
-                                    </div>
+                                <div key={forgeIdx} className='bg-cyan-50 text-cyan-900 rounded px-2 py-1'>
+                                  <div className='flex items-center gap-2 flex-wrap'>
+                                    {/* Forge Benchmark Title */}
+                                    <div className='font-semibold text-xs flex-shrink-0'>≡ {formatted.name}</div>
+                                    {formatted.description && (
+                                      <div className='text-cyan-800 text-xs flex-1 min-w-0'>{formatted.description}</div>
+                                    )}
+
+                                    {/* Configurable Scoring Inputs */}
                                     <div className='flex items-center gap-2 ml-auto flex-wrap'>
-                                      {/* Time input */}
-                                      <input
-                                        type='text'
-                                        placeholder='mm:ss'
-                                        value={benchmarkResults[forgeKey]?.time_result || ''}
-                                        onChange={e => setBenchmarkResults(prev => ({
-                                          ...prev,
-                                          [forgeKey]: {
-                                            ...prev[forgeKey],
-                                            benchmark_name: forge.name,
-                                            benchmark_type: forge.type,
-                                            time_result: e.target.value,
-                                            forge_benchmark_id: forge.id
-                                          }
-                                        }))}
-                                        className='w-20 px-2 py-1 text-xs border border-cyan-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
-                                      />
-                                      {/* Reps input */}
-                                      <input
-                                        type='number'
-                                        placeholder='reps'
-                                        value={benchmarkResults[forgeKey]?.reps_result || ''}
-                                        onChange={e => setBenchmarkResults(prev => ({
-                                          ...prev,
-                                          [forgeKey]: {
-                                            ...prev[forgeKey],
-                                            benchmark_name: forge.name,
-                                            benchmark_type: forge.type,
-                                            reps_result: e.target.value,
-                                            forge_benchmark_id: forge.id
-                                          }
-                                        }))}
-                                        className='w-16 px-2 py-1 text-xs border border-cyan-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
-                                      />
-                                      {/* Weight input */}
-                                      <input
-                                        type='number'
-                                        step='0.5'
-                                        placeholder='kg'
-                                        value={benchmarkResults[forgeKey]?.weight_result || ''}
-                                        onChange={e => setBenchmarkResults(prev => ({
-                                          ...prev,
-                                          [forgeKey]: {
-                                            ...prev[forgeKey],
-                                            benchmark_name: forge.name,
-                                            benchmark_type: forge.type,
-                                            weight_result: e.target.value,
-                                            forge_benchmark_id: forge.id
-                                          }
-                                        }))}
-                                        className='w-16 px-2 py-1 text-xs border border-cyan-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
-                                      />
-                                      {/* Scaling dropdown (if benchmark has scaling) */}
-                                      {(forge.has_scaling ?? true) && (
+                                      {scoringFields.time && (
+                                        <input type='text' placeholder='mm:ss'
+                                          value={sectionResults[itemKey]?.time_result || ''}
+                                          onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), time_result: e.target.value}})}
+                                          className='w-16 px-2 py-1 text-xs border border-cyan-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
+                                        />
+                                      )}
+                                      {scoringFields.rounds_reps && (
+                                        <>
+                                          <input type='number' placeholder='rnds'
+                                            value={sectionResults[itemKey]?.rounds_result || ''}
+                                            onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), rounds_result: e.target.value}})}
+                                            className='w-14 px-2 py-1 text-xs border border-cyan-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
+                                          />
+                                          <span className='text-xs'>+</span>
+                                        </>
+                                      )}
+                                      {(scoringFields.reps || scoringFields.rounds_reps) && (
+                                        <input type='number' placeholder='reps'
+                                          value={sectionResults[itemKey]?.reps_result || ''}
+                                          onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), reps_result: e.target.value}})}
+                                          className='w-14 px-2 py-1 text-xs border border-cyan-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
+                                        />
+                                      )}
+                                      {scoringFields.load && (
+                                        <input type='number' step='0.5' placeholder='kg'
+                                          value={sectionResults[itemKey]?.weight_result || ''}
+                                          onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), weight_result: e.target.value}})}
+                                          className='w-16 px-2 py-1 text-xs border border-cyan-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
+                                        />
+                                      )}
+                                      {scoringFields.calories && (
+                                        <input type='number' placeholder='cal'
+                                          value={sectionResults[itemKey]?.calories_result || ''}
+                                          onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), calories_result: e.target.value}})}
+                                          className='w-14 px-2 py-1 text-xs border border-cyan-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
+                                        />
+                                      )}
+                                      {scoringFields.metres && (
+                                        <input type='number' step='0.1' placeholder='m'
+                                          value={sectionResults[itemKey]?.metres_result || ''}
+                                          onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), metres_result: e.target.value}})}
+                                          className='w-16 px-2 py-1 text-xs border border-cyan-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
+                                        />
+                                      )}
+                                      {scoringFields.checkbox && (
+                                        <label className='flex items-center gap-1 text-xs'>
+                                          <input type='checkbox'
+                                            checked={sectionResults[itemKey]?.task_completed || false}
+                                            onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), task_completed: e.target.checked}})}
+                                            className='rounded border-cyan-300'
+                                          />
+                                          <span>✓</span>
+                                        </label>
+                                      )}
+                                      {scoringFields.scaling && (
                                         <select
-                                          value={benchmarkResults[forgeKey]?.scaling_level || 'Rx'}
-                                          onChange={e => setBenchmarkResults(prev => ({
-                                            ...prev,
-                                            [forgeKey]: {
-                                              ...prev[forgeKey],
-                                              benchmark_name: forge.name,
-                                              benchmark_type: forge.type,
-                                              scaling_level: e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3',
-                                              forge_benchmark_id: forge.id
-                                            }
-                                          }))}
-                                          className='w-14 px-1 py-0.5 text-xs border border-cyan-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 bg-white'
+                                          value={sectionResults[itemKey]?.scaling_level || ''}
+                                          onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), scaling_level: e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | ''}})}
+                                          className='w-14 px-1 py-0.5 text-xs border border-cyan-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900 bg-white'
                                         >
+                                          <option value=''>-</option>
                                           <option value='Rx'>Rx</option>
                                           <option value='Sc1'>Sc1</option>
                                           <option value='Sc2'>Sc2</option>
@@ -903,223 +1169,114 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                         )}
 
                         {/* Section Content (Exercises and other free-form text) */}
-                        {section.content && (
-                          <div className='text-sm text-gray-700 whitespace-pre-wrap'>
-                            {section.content}
-                          </div>
-                        )}
+                        {section.content && (() => {
+                          // Only show scoring fields if section has NO structured items (lifts/benchmarks/forge)
+                          // If it has structured items, content is just instructions/notes
+                          const hasStructuredItems =
+                            (section.lifts && section.lifts.length > 0) ||
+                            (section.benchmarks && section.benchmarks.length > 0) ||
+                            (section.forge_benchmarks && section.forge_benchmarks.length > 0);
 
-                        {/* WOD Section Results - Only for WOD sections WITHOUT benchmarks/forge benchmarks */}
-                        {(section.type === 'WOD' || section.type === 'WOD Pt.1' || section.type === 'WOD Pt.2' || section.type === 'WOD Pt.3') &&
-                         !section.benchmarks?.length &&
-                         !section.forge_benchmarks?.length && (
-                          <div className='mt-4 pt-4 border-t border-gray-200'>
-                            {(() => {
-                              // Use configured fields or fallback to defaults for backward compatibility
-                              const scoringFields = section.scoring_fields || {
-                                time: true,
-                                reps: true,
-                                load: true,
-                                scaling: true
-                              };
+                          if (hasStructuredItems) {
+                            // Just display as instructions/notes
+                            return (
+                              <div className='text-sm text-gray-700 whitespace-pre-wrap italic mt-2'>
+                                {section.content}
+                              </div>
+                            );
+                          }
 
-                              // Calculate grid columns based on number of active fields
-                              const activeFields = Object.values(scoringFields).filter(Boolean).length;
-                              const gridCols = activeFields <= 2 ? 'grid-cols-2' :
-                                               activeFields === 3 ? 'grid-cols-3' :
-                                               'grid-cols-4';
+                          // No structured items - treat content as exercises with scoring fields
+                          return (
+                            <div className='space-y-2'>
+                              {section.content.split('\n').filter(line => line.trim()).map((line, lineIdx) => {
+                                const itemKey = `${wod.id}:::${section.id}:::content-${lineIdx}`;
+                                const scoringFields = section.scoring_fields || {time: true, reps: true, load: true, scaling: true};
 
-                              return (
-                                <div className={`grid ${gridCols} gap-3`}>
-                                  {/* Time */}
-                                  {scoringFields.time && (
-                                    <div>
-                                      <label className='block text-xs font-medium text-gray-700 mb-1'>Time</label>
-                                      <input
-                                        type='text'
-                                        value={sectionResults[`${wod.id}:::${section.id}`]?.time_result || ''}
-                                        onChange={e =>
-                                          setSectionResults({
-                                            ...sectionResults,
-                                            [`${wod.id}:::${section.id}`]: {
-                                              ...(sectionResults[`${wod.id}:::${section.id}`] || {}),
-                                              time_result: e.target.value,
-                                            },
-                                          })
-                                        }
-                                        placeholder='12:34'
-                                        className='w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
-                                      />
-                                    </div>
-                                  )}
+                                return (
+                                  <div key={lineIdx} className='bg-gray-50 text-gray-900 rounded px-2 py-1'>
+                                    <div className='flex items-center gap-2 flex-wrap'>
+                                      {/* Exercise/Content Text */}
+                                      <div className='text-sm flex-shrink-0'>{line}</div>
 
-                                  {/* Rounds (for AMRAP) */}
-                                  {scoringFields.rounds_reps && (
-                                    <div>
-                                      <label className='block text-xs font-medium text-gray-700 mb-1'>Rounds</label>
-                                      <input
-                                        type='number'
-                                        value={sectionResults[`${wod.id}:::${section.id}`]?.rounds_result || ''}
-                                        onChange={e =>
-                                          setSectionResults({
-                                            ...sectionResults,
-                                            [`${wod.id}:::${section.id}`]: {
-                                              ...(sectionResults[`${wod.id}:::${section.id}`] || {}),
-                                              rounds_result: e.target.value,
-                                            },
-                                          })
-                                        }
-                                        placeholder='15'
-                                        className='w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
-                                      />
-                                    </div>
-                                  )}
-
-                                  {/* Reps */}
-                                  {(scoringFields.reps || scoringFields.rounds_reps) && (
-                                    <div>
-                                      <label className='block text-xs font-medium text-gray-700 mb-1'>
-                                        {scoringFields.rounds_reps ? '+ Reps' : 'Reps'}
-                                      </label>
-                                      <input
-                                        type='number'
-                                        value={sectionResults[`${wod.id}:::${section.id}`]?.reps_result || ''}
-                                        onChange={e =>
-                                          setSectionResults({
-                                            ...sectionResults,
-                                            [`${wod.id}:::${section.id}`]: {
-                                              ...(sectionResults[`${wod.id}:::${section.id}`] || {}),
-                                              reps_result: e.target.value,
-                                            },
-                                          })
-                                        }
-                                        placeholder={scoringFields.rounds_reps ? '12' : '156'}
-                                        className='w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
-                                      />
-                                    </div>
-                                  )}
-
-                                  {/* Load/Weight */}
-                                  {scoringFields.load && (
-                                    <div>
-                                      <label className='block text-xs font-medium text-gray-700 mb-1'>Load (kg)</label>
-                                      <input
-                                        type='number'
-                                        step='0.5'
-                                        value={sectionResults[`${wod.id}:::${section.id}`]?.weight_result || ''}
-                                        onChange={e =>
-                                          setSectionResults({
-                                            ...sectionResults,
-                                            [`${wod.id}:::${section.id}`]: {
-                                              ...(sectionResults[`${wod.id}:::${section.id}`] || {}),
-                                              weight_result: e.target.value,
-                                            },
-                                          })
-                                        }
-                                        placeholder='60.0'
-                                        className='w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
-                                      />
-                                    </div>
-                                  )}
-
-                                  {/* Calories */}
-                                  {scoringFields.calories && (
-                                    <div>
-                                      <label className='block text-xs font-medium text-gray-700 mb-1'>Calories</label>
-                                      <input
-                                        type='number'
-                                        value={sectionResults[`${wod.id}:::${section.id}`]?.calories_result || ''}
-                                        onChange={e =>
-                                          setSectionResults({
-                                            ...sectionResults,
-                                            [`${wod.id}:::${section.id}`]: {
-                                              ...(sectionResults[`${wod.id}:::${section.id}`] || {}),
-                                              calories_result: e.target.value,
-                                            },
-                                          })
-                                        }
-                                        placeholder='120'
-                                        className='w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
-                                      />
-                                    </div>
-                                  )}
-
-                                  {/* Metres */}
-                                  {scoringFields.metres && (
-                                    <div>
-                                      <label className='block text-xs font-medium text-gray-700 mb-1'>Metres</label>
-                                      <input
-                                        type='number'
-                                        step='0.1'
-                                        value={sectionResults[`${wod.id}:::${section.id}`]?.metres_result || ''}
-                                        onChange={e =>
-                                          setSectionResults({
-                                            ...sectionResults,
-                                            [`${wod.id}:::${section.id}`]: {
-                                              ...(sectionResults[`${wod.id}:::${section.id}`] || {}),
-                                              metres_result: e.target.value,
-                                            },
-                                          })
-                                        }
-                                        placeholder='500.0'
-                                        className='w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
-                                      />
-                                    </div>
-                                  )}
-
-                                  {/* Task Completion Checkbox */}
-                                  {scoringFields.checkbox && (
-                                    <div>
-                                      <label className='flex items-center gap-2 text-sm text-gray-700 pt-6'>
-                                        <input
-                                          type='checkbox'
-                                          checked={sectionResults[`${wod.id}:::${section.id}`]?.task_completed || false}
-                                          onChange={e =>
-                                            setSectionResults({
-                                              ...sectionResults,
-                                              [`${wod.id}:::${section.id}`]: {
-                                                ...(sectionResults[`${wod.id}:::${section.id}`] || {}),
-                                                task_completed: e.target.checked,
-                                              },
-                                            })
-                                          }
-                                          className='rounded border-gray-300'
+                                      {/* Configurable Scoring Inputs */}
+                                      <div className='flex items-center gap-2 ml-auto flex-wrap'>
+                                      {scoringFields.time && (
+                                        <input type='text' placeholder='mm:ss'
+                                          value={sectionResults[itemKey]?.time_result || ''}
+                                          onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), time_result: e.target.value}})}
+                                          className='w-16 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
                                         />
-                                        <span>Completed as written</span>
-                                      </label>
+                                      )}
+                                      {scoringFields.rounds_reps && (
+                                        <>
+                                          <input type='number' placeholder='rnds'
+                                            value={sectionResults[itemKey]?.rounds_result || ''}
+                                            onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), rounds_result: e.target.value}})}
+                                            className='w-14 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
+                                          />
+                                          <span className='text-xs'>+</span>
+                                        </>
+                                      )}
+                                      {(scoringFields.reps || scoringFields.rounds_reps) && (
+                                        <input type='number' placeholder='reps'
+                                          value={sectionResults[itemKey]?.reps_result || ''}
+                                          onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), reps_result: e.target.value}})}
+                                          className='w-14 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
+                                        />
+                                      )}
+                                      {scoringFields.load && (
+                                        <input type='number' step='0.5' placeholder='kg'
+                                          value={sectionResults[itemKey]?.weight_result || ''}
+                                          onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), weight_result: e.target.value}})}
+                                          className='w-16 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
+                                        />
+                                      )}
+                                      {scoringFields.calories && (
+                                        <input type='number' placeholder='cal'
+                                          value={sectionResults[itemKey]?.calories_result || ''}
+                                          onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), calories_result: e.target.value}})}
+                                          className='w-14 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
+                                        />
+                                      )}
+                                      {scoringFields.metres && (
+                                        <input type='number' step='0.1' placeholder='m'
+                                          value={sectionResults[itemKey]?.metres_result || ''}
+                                          onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), metres_result: e.target.value}})}
+                                          className='w-16 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
+                                        />
+                                      )}
+                                      {scoringFields.checkbox && (
+                                        <label className='flex items-center gap-1 text-xs'>
+                                          <input type='checkbox'
+                                            checked={sectionResults[itemKey]?.task_completed || false}
+                                            onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), task_completed: e.target.checked}})}
+                                            className='rounded border-gray-300'
+                                          />
+                                          <span>✓</span>
+                                        </label>
+                                      )}
+                                      {scoringFields.scaling && (
+                                        <select
+                                          value={sectionResults[itemKey]?.scaling_level || ''}
+                                          onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), scaling_level: e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | ''}})}
+                                          className='w-14 px-1 py-0.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900 bg-white'
+                                        >
+                                          <option value=''>-</option>
+                                          <option value='Rx'>Rx</option>
+                                          <option value='Sc1'>Sc1</option>
+                                          <option value='Sc2'>Sc2</option>
+                                          <option value='Sc3'>Sc3</option>
+                                        </select>
+                                      )}
                                     </div>
-                                  )}
-
-                                  {/* Scaling */}
-                                  {scoringFields.scaling && (
-                                    <div>
-                                      <label className='block text-xs font-medium text-gray-700 mb-1'>Scaling</label>
-                                      <select
-                                        value={sectionResults[`${wod.id}:::${section.id}`]?.scaling_level || ''}
-                                        onChange={e =>
-                                          setSectionResults({
-                                            ...sectionResults,
-                                            [`${wod.id}:::${section.id}`]: {
-                                              ...(sectionResults[`${wod.id}:::${section.id}`] || {}),
-                                              scaling_level: e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '',
-                                            },
-                                          })
-                                        }
-                                        className='w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 bg-white'
-                                      >
-                                        <option value=''>-</option>
-                                        <option value='Rx'>Rx</option>
-                                        <option value='Sc1'>Sc1</option>
-                                        <option value='Sc2'>Sc2</option>
-                                        <option value='Sc3'>Sc3</option>
-                                      </select>
-                                    </div>
-                                  )}
+                                  </div>
                                 </div>
                               );
-                            })()}
+                            })}
                           </div>
-                        )}
+                          );
+                        })()}
                       </div>
                     ))}
                   </div>
@@ -1188,30 +1345,12 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                         />
                       </div>
 
-                      <div className='flex justify-end gap-3 flex-wrap'>
+                      <div className='flex justify-end'>
                         <button
-                          onClick={() => saveAllSectionResults(formatLocalDate(selectedDate))}
-                          className='px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition'
+                          onClick={() => saveAllResults(formatLocalDate(selectedDate))}
+                          className='px-8 py-3 bg-[#208479] hover:bg-[#1a6b62] text-white font-semibold rounded-lg transition shadow-lg'
                         >
-                          Save WOD Scores
-                        </button>
-                        <button
-                          onClick={() => saveAllLiftRecords(formatLocalDate(selectedDate))}
-                          className='px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition'
-                        >
-                          Save Lift Records
-                        </button>
-                        <button
-                          onClick={() => saveAllBenchmarkResults(formatLocalDate(selectedDate))}
-                          className='px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition'
-                        >
-                          Save Benchmark Results
-                        </button>
-                        <button
-                          onClick={() => saveWorkoutLog(wod.id)}
-                          className='px-6 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white font-medium rounded-lg transition'
-                        >
-                          Save Log Entry
+                          Save All Results
                         </button>
                       </div>
                     </div>

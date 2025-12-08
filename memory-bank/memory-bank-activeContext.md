@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 8.3
-**Updated:** 2025-12-06 (Session 39 - Configurable Scoring Fields + Database Safety)
+**Version:** 8.4
+**Updated:** 2025-12-08 (Session 40 - Fixed Configurable Scoring Fields)
 
 ---
 
@@ -67,61 +67,41 @@ Athlete Tables (linked to members.id)
 
 ## 📍 Current Status (Last 2 Weeks)
 
+**Completed (2025-12-08 Session 40 - Sonnet):**
+- **Fixed Configurable Scoring Fields - ALL ISSUES RESOLVED:**
+  - ✅ **Layout Fixed:** Scoring checkboxes moved back inside flex container (WODSectionComponent lines 169-307)
+  - ✅ **Configuration Respected:** Fixed fallback logic in AthletePageLogbookTab line 918 (explicit null check)
+  - ✅ **Universal Item Support:** Scoring fields now work for Lifts, Benchmarks, Forge Benchmarks, Free-form exercises
+  - ✅ **Inline Positioning:** All scoring inputs positioned to right of items using ml-auto flexbox
+  - ✅ **Instructions Logic:** Distinguishes between instructions (italic text) vs exercises (with scoring boxes)
+  - ✅ **Unified Save Function:** Replaced 4 broken save buttons with single working "Save All Results" (lines 453-581)
+  - ✅ **Database Migration Applied:** `20251206_add_benchmark_result_fields.sql` via Dashboard SQL Editor
+  - ✅ **Benchmark Tab Fixed:** Added null checks to timeToSeconds, updated to use time_result/reps_result columns
+  - ✅ **Free-form Persistence:** Fixed key format reconstruction for content items (lines 367-375)
+  - ✅ **Load Functions:** Created loadBenchmarkResultsToSection() and loadLiftResultsToSection() (lines 582-703)
+  - ✅ **Rounds+Reps Logic:** Only combines when values exist (not "0+0" when time used)
+  - ✅ **End-to-End Testing:** Coach configure → Athlete input → Save → Reload → All persists correctly
+  - 📋 **User Confirmed:** "It's working" - Feature fully functional
+
+- Commit: Pending (ready to commit and push)
+- Files: 3 modified (AthletePageLogbookTab, AthletePageBenchmarksTab, WODSectionComponent) + Chris Notes
+- Status: Complete, tested, working
+- See `project-history/2025-12-08-session-40-fix-configurable-scoring.md`
+
 **Completed (2025-12-06 Session 39 - Sonnet):**
-- **Configurable WOD Section Scoring Fields:**
-  - ✅ **Database Migration:** Added 4 columns to wod_section_results (rounds_result, calories_result, metres_result, task_completed)
-  - ✅ **TypeScript Interfaces:** Added scoring_fields to WODSection in types/movements.ts + hooks/coach/useWorkoutModal.ts
-  - ✅ **Coach UI:** 8-checkbox configuration panel in WODSectionComponent (lines 192-328)
-  - ✅ **Athlete UI:** Dynamic conditional input rendering in AthletePageLogbookTab (lines 905-1111)
-  - ✅ **Save/Load Logic:** Updated saveSectionResult and loadSectionResults for 4 new fields
-  - ✅ **8 Field Types:** Time, Reps, Rounds+Reps, Load, Scaling, Calories, Metres, Task ✓
-  - ✅ **Backward Compatible:** Sections without scoring_fields default to showing Time/Reps/Load/Scaling
-  - ⚠️ **Known Issue:** Feature partially working, needs fixes next session (user to provide specific notes)
-
-- **Database Safety System (CRITICAL INFRASTRUCTURE):**
-  - ✅ **Automated Backup Scripts:** backup-critical-data.ts (8 tables), restore-from-backup.ts, verify-all-tables.ts
-  - ✅ **NPM Commands:** `npm run backup` and `npm run restore` added to package.json
-  - ✅ **PRE_MIGRATION_CHECKLIST.md:** 714-line safety documentation
-  - ✅ **Workflow Protocols Updated:** Added STEP 1.75: DATABASE SAFETY PROTOCOL with 5 mandatory backup scenarios
-  - ✅ **Git Configuration:** .gitignore excludes backups/ directory
-  - ✅ **Backup Coverage:** barbell_lifts, benchmark_workouts, forge_benchmarks, lift_records, benchmark_results, wod_section_results, wods, exercises
-
-- **Database Restoration After Data Loss:**
-  - ✅ **Restored Tables:** barbell_lifts (16), benchmark_workouts (21), forge_benchmarks (1), lift_records, benchmark_results
-  - ✅ **5 Restoration Migrations:** restore_movement_tables.sql, restore_lift_records_table.sql, restore_benchmark_results_table.sql, add_configurable_scoring_fields.sql, fix_newlines_after_restore.sql
-  - ✅ **Data Verified:** All tables exist and accessible via verify-all-tables.ts
-  - ⚠️ **Data Lost:** Custom Forge Benchmarks (need recreation), Athlete lift records (user data lost)
-  - 📋 **Lesson Learned:** Git branches ≠ database protection. Migrations run against live database regardless of branch.
-
-- Commit: 66f2aae - feat: add configurable scoring fields and database safety system
-- Files: 16 modified (1,215 insertions, 97 deletions)
-- Status: Complete, committed, ready to push
+- **Configurable WOD Section Scoring Fields (Initial Implementation):**
+  - ✅ Database Migration, TypeScript Interfaces, Coach UI, Athlete UI, 8 Field Types
+  - ⚠️ Had bugs requiring Session 40 fixes
+- **Database Safety System:** Backup/restore scripts, PRE_MIGRATION_CHECKLIST.md, npm commands
 - See `project-history/2025-12-06-session-39-configurable-scoring-and-safety.md`
-
-**Completed (2025-12-05 Session 37 - Sonnet):**
-[Previous sessions truncated for brevity - see project history files]
 
 ---
 
 ## 🚨 Known Issues (Next Session)
 
-**User Feedback Required:**
-1. ❌ Scoring fields checkboxes "not quite right" (user to specify issues)
-2. ❌ Athlete Logbook shows same 4 fields regardless of configuration (may be fixed, needs testing)
-3. ❌ Benchmark descriptions show escaped `\n` (migration created, needs execution)
+**None - All Session 39/40 issues resolved.**
 
-**Root Causes Identified:**
-- Duplicate WODSection interface (FIXED in useWorkoutModal.ts)
-- Scoring fields panel layout (FIXED - moved outside flex container)
-- Need to run `20251206_fix_newlines_after_restore.sql` migration
-
-**To Fix Next Session:**
-- Review user's notes on scoring fields issues
-- Test end-to-end: Coach configures → Athlete sees correct fields
-- Run newline fix migration
-- Verify save/load cycle
-- Test all 8 field combinations
-- Test AMRAP pattern (rounds + reps together)
+**Note:** Benchmark descriptions with escaped `\n` migration (`20251206_fix_newlines_after_restore.sql`) still pending execution if needed.
 
 ---
 
@@ -163,28 +143,17 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 40 Priorities (Next Session)
+### Session 41 Priorities (Next Session)
 
-1. **Fix Configurable Scoring Fields Issues**
-   - Review user's notes on what's wrong
-   - Debug why fields not appearing correctly
-   - Test all 8 field combinations
-   - Verify save/load cycle
-   - Test AMRAP (rounds + reps) pattern
-   - Verify backward compatibility with existing workouts
+1. **Optional: Benchmark Descriptions Migration**
+   - Execute `20251206_fix_newlines_after_restore.sql` if escaped `\n` still present
 
-2. **Run Pending Migration**
-   - Execute `20251206_fix_newlines_after_restore.sql` to fix benchmark descriptions
-
-3. **User Data Recreation**
-   - Recreate custom Forge Benchmarks
+2. **User Data Recreation** (If Not Already Done)
+   - Recreate custom Forge Benchmarks (lost in Dec 6 incident)
    - Run `npm run backup` immediately after recreation
 
-4. **End-to-End Testing**
-   - Coach: Configure scoring fields → Save
-   - Athlete: View workout → See only configured fields → Log results
-   - Coach: View athlete results
-   - Verify data persists across sessions
+3. **Continue with January Launch Plan**
+   - See Week 1 priorities below
 
 ### JANUARY LAUNCH PLAN (Weeks 1-5)
 

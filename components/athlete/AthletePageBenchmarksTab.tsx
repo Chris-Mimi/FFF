@@ -194,32 +194,38 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
     const getBestTime = (results: BenchmarkResult[]) => {
       if (results.length === 0) return null;
 
-      // Determine if time-based (contains colon) or rep-based
-      const isTimeBased = results[0].result_value.includes(':');
+      // Use new column structure: time_result, reps_result, weight_result
+      // Determine if time-based, rep-based, or weight-based
+      const firstResult = results[0];
+      const isTimeBased = firstResult.time_result && firstResult.time_result.includes(':');
+      const isRepBased = firstResult.reps_result || (firstResult.result_value && !firstResult.result_value.includes(':'));
 
       if (isTimeBased) {
         if (isHoldBenchmark) {
           // For hold benchmarks: find HIGHEST time (best)
           return results.reduce((best, current) => {
-            const bestSeconds = timeToSeconds(best.result_value);
-            const currentSeconds = timeToSeconds(current.result_value);
+            const bestSeconds = timeToSeconds(best.time_result || best.result_value || '0:00');
+            const currentSeconds = timeToSeconds(current.time_result || current.result_value || '0:00');
             return currentSeconds > bestSeconds ? current : best;
           });
         } else {
           // For regular time benchmarks: find LOWEST time (best)
           return results.reduce((best, current) => {
-            const bestSeconds = timeToSeconds(best.result_value);
-            const currentSeconds = timeToSeconds(current.result_value);
+            const bestSeconds = timeToSeconds(best.time_result || best.result_value || '99:99');
+            const currentSeconds = timeToSeconds(current.time_result || current.result_value || '99:99');
             return currentSeconds < bestSeconds ? current : best;
           });
         }
-      } else {
+      } else if (isRepBased) {
         // For rep-based: find HIGHEST reps (best)
         return results.reduce((best, current) => {
-          const bestReps = parseInt(best.result_value) || 0;
-          const currentReps = parseInt(current.result_value) || 0;
+          const bestReps = best.reps_result || parseInt(best.result_value || '0') || 0;
+          const currentReps = current.reps_result || parseInt(current.result_value || '0') || 0;
           return currentReps > bestReps ? current : best;
         });
+      } else {
+        // Weight-based or other: return most recent
+        return results[0];
       }
     };
 
@@ -256,12 +262,13 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
         prsByScaling.set(scalingKey, result);
       } else {
         // Determine if time-based or rep-based
-        const isTimeBased = result.result_value.includes(':');
+        const resultValue = result.time_result || result.result_value || '';
+        const isTimeBased = resultValue.includes(':');
 
         if (isTimeBased) {
           // For time-based: check if hold/hang (higher is better) or regular (lower is better)
-          const existingSeconds = timeToSeconds(existing.result_value);
-          const currentSeconds = timeToSeconds(result.result_value);
+          const existingSeconds = timeToSeconds(existing.time_result || existing.result_value);
+          const currentSeconds = timeToSeconds(resultValue);
           if (isHoldBenchmark) {
             // Hold benchmarks: higher time is better
             if (currentSeconds > existingSeconds) {
@@ -275,8 +282,8 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
           }
         } else {
           // For rep-based: higher is better
-          const existingReps = parseInt(existing.result_value) || 0;
-          const currentReps = parseInt(result.result_value) || 0;
+          const existingReps = existing.reps_result || parseInt(existing.result_value || '0') || 0;
+          const currentReps = result.reps_result || parseInt(result.result_value || '0') || 0;
           if (currentReps > existingReps) {
             prsByScaling.set(scalingKey, result);
           }
@@ -298,16 +305,18 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
         if (currentPriority > bestPriority) {
           overallBest = pr;
         } else if (currentPriority === bestPriority) {
-          const isTimeBased = pr.result_value.includes(':');
+          const prValue = pr.time_result || pr.result_value || '';
+          const bestValue = overallBest.time_result || overallBest.result_value || '';
+          const isTimeBased = prValue.includes(':');
           if (isTimeBased) {
             if (isHoldBenchmark) {
               // Hold benchmarks: higher time is better
-              if (timeToSeconds(pr.result_value) > timeToSeconds(overallBest.result_value)) {
+              if (timeToSeconds(prValue) > timeToSeconds(bestValue)) {
                 overallBest = pr;
               }
             } else {
               // Regular time benchmarks: lower time is better
-              if (timeToSeconds(pr.result_value) < timeToSeconds(overallBest.result_value)) {
+              if (timeToSeconds(prValue) < timeToSeconds(bestValue)) {
                 overallBest = pr;
               }
             }
@@ -322,7 +331,8 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
 
     return results.map(entry => {
       // Convert time strings to seconds for charting
-      const timeToSeconds = (timeStr: string) => {
+      const timeToSeconds = (timeStr: string | null | undefined) => {
+        if (!timeStr) return 0;
         if (timeStr.includes(':')) {
           const parts = timeStr.split(':');
           return parseInt(parts[0]) * 60 + parseInt(parts[1]);
@@ -339,8 +349,8 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
           day: 'numeric',
           year: 'numeric',
         }),
-        value: timeToSeconds(entry.result_value),
-        result_valueDisplay: entry.result_value,
+        value: timeToSeconds(entry.time_result || entry.result_value),
+        result_valueDisplay: entry.time_result || entry.result_value || '',
         scaling_level: entry.scaling_level,
         isPR: isPR,
         isOverallBest: isOverallBest,
