@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 8.5
-**Updated:** 2025-12-08 (Session 41 - Lift Organization WIP)
+**Version:** 8.6
+**Updated:** 2025-12-09 (Session 42 - Lift Grid Complete)
 
 ---
 
@@ -67,50 +67,50 @@ Athlete Tables (linked to members.id)
 
 ## 📍 Current Status (Last 2 Weeks)
 
-**In Progress (2025-12-08 Session 41 - Sonnet):**
-- **Lift Organization System (INCOMPLETE - Priority for next session):**
-  - ✅ **Date Bug Fixed:** Invalid date in Personal Records tab (used wrong field name)
-  - ✅ **TypeScript Fixed:** Added missing BenchmarkResult interface fields (time_result, reps_result, weight_result)
-  - ✅ **Categories Standardized:** Updated to 'Olympic', 'Squat', 'Press' across all components
-  - ✅ **RLS Policies:** Created coach INSERT/UPDATE/DELETE policies for barbell_lifts (applied)
-  - ✅ **Ordering Synchronized:** Benchmarks alphabetical, Forge Benchmarks by display_order, Lifts by category+display_order
-  - ⚠️ **Drag-Drop WIP:** Attempted grid-based drag-drop for lifts (matching Forge Benchmarks) - NEEDS REFINEMENT
-  - 📋 **User Feedback:** "No, still not correct but I'm out of session time. Mimi can finish the drag and drop in another session"
-
-- Commit: cb8645c "wip: implement lift grid organization and fix date bugs"
-- Files: 6 modified (page.tsx, LiftsTab, MovementLibraryPopup, 3 Athlete components) + Chris Notes
+**Completed (2025-12-09 Session 42 - Sonnet):**
+- **✅ Lift Grid Drag-Drop COMPLETE:** Replicated Forge Benchmarks pattern exactly
+  - Single unified grid (removed per-category grids)
+  - Fixed empty cell keys (`empty-1` instead of `empty-Olympic-1`)
+  - Drag lift to lift = swap, drag to empty = move
+  - Display order global across all categories
+  - 📋 **User Confirmed:** "working"
+- **✅ Exercise Form Improvements:**
+  - Fixed autocomplete cursor disappearing (moved component outside parent)
+  - Replaced native select with searchable dropdown for templates
+  - Added cursor position tracking for exercise library insertion
+  - Added template selection to Forge Benchmarks tab
+  - 📋 **User Confirmed:** All "working"
+- **✅ Pull Category Added:** Updated to ['Olympic', 'Squat', 'Press', 'Pull']
+- **✅ Database Backup Documentation:** DATABASE-BACKUP-GUIDE.md + quick reference card
+- Commit: e1b0b670 "feat(coach): complete lift grid drag-drop and exercise improvements"
+- Files: 14 modified (10 core + 4 docs/organization)
 - Migration Pending: `20251208_update_lift_categories.sql` (update old category names to new)
-- Status: Partially complete, drag-drop needs work
+- See `project-history/2025-12-09-session-42-lift-grid-complete.md`
+
+**Completed (2025-12-08 Session 41 - Sonnet):**
+- **Lift Organization System (Partial - Completed in Session 42):**
+  - ✅ Date Bug Fixed, TypeScript Fixed, Categories Standardized
+  - ✅ RLS Policies for barbell_lifts
+  - ✅ Ordering Synchronized
+  - ⚠️ Drag-Drop incomplete (fixed in Session 42)
 - See `project-history/2025-12-08-session-41-lift-organization-wip.md`
 
 **Completed (2025-12-08 Session 40 - Sonnet):**
-- **Fixed Configurable Scoring Fields - ALL ISSUES RESOLVED:**
-  - ✅ Layout, Configuration, Universal Support, Inline Positioning, Instructions Logic
-  - ✅ Unified Save Function, Database Migration, Null Checks, Free-form Persistence
-  - 📋 **User Confirmed:** "It's working" - Feature fully functional
+- **Fixed Configurable Scoring Fields - ALL ISSUES RESOLVED**
 - See `project-history/2025-12-08-session-40-fix-configurable-scoring.md`
 
 **Completed (2025-12-06 Session 39 - Sonnet):**
-- **Configurable WOD Section Scoring Fields (Initial Implementation):**
-  - ✅ Database Migration, TypeScript Interfaces, Coach UI, Athlete UI, 8 Field Types
-  - ⚠️ Had bugs requiring Session 40 fixes
-- **Database Safety System:** Backup/restore scripts, PRE_MIGRATION_CHECKLIST.md, npm commands
+- **Configurable WOD Section Scoring Fields + Database Safety System**
 - See `project-history/2025-12-06-session-39-configurable-scoring-and-safety.md`
 
 ---
 
 ## 🚨 Known Issues (Next Session)
 
-**PRIORITY - Session 41 Incomplete Work:**
-1. **Lift Grid Drag-Drop:** Implementation not working correctly (user: "No, still not correct")
-   - **User Requirement:** "Same functionality as the Forge Benchmark tab without the insert row function"
-   - **Current State:** Grid layout implemented, drag-drop behavior needs refinement
-   - **Reference:** ForgeBenchmarksTab.tsx (working implementation)
-   - **Files:** components/coach/LiftsTab.tsx, app/coach/benchmarks-lifts/page.tsx
-
-2. **Migration Pending:** `20251208_update_lift_categories.sql` - Update existing lift categories from old names to new
+**Migration Pending:**
+1. **`20251208_update_lift_categories.sql`** - Update existing lift categories from old names to new
    - **Apply via:** Supabase Dashboard SQL Editor
-   - **Purpose:** Change 'Olympic Lifts'→'Olympic', 'Squats'→'Squat', 'Pressing'→'Press', etc.
+   - **Purpose:** Change 'Olympic Lifts'→'Olympic', 'Squats'→'Squat', 'Pressing'→'Press', 'Deadlifts'→'Pull'
 
 **Note:** Benchmark descriptions with escaped `\n` migration (`20251206_fix_newlines_after_restore.sql`) still pending execution if needed.
 
@@ -154,26 +154,20 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 42 Priorities (Next Session - PRIORITY)
+### Session 43 Priorities (Next Session)
 
-1. **🔴 URGENT: Complete Lift Grid Drag-Drop** (Session 41 incomplete work)
-   - **Goal:** Match Forge Benchmarks drag-drop behavior exactly (no insert row function)
-   - **Reference:** ForgeBenchmarksTab.tsx working implementation
-   - **Test:** Smooth drag, no snap-back, grid positioning works correctly
-   - **Files:** components/coach/LiftsTab.tsx, app/coach/benchmarks-lifts/page.tsx
-
-2. **Apply Pending Migration**
+1. **Apply Pending Migration**
    - Execute `20251208_update_lift_categories.sql` via Supabase Dashboard SQL Editor
    - Updates existing lift categories to new naming convention
 
-3. **Optional: Benchmark Descriptions Migration**
+2. **Optional: Benchmark Descriptions Migration**
    - Execute `20251206_fix_newlines_after_restore.sql` if escaped `\n` still present
 
-4. **User Data Recreation** (If Not Already Done)
+3. **User Data Recreation** (If Not Already Done)
    - Recreate custom Forge Benchmarks (lost in Dec 6 incident)
    - Run `npm run backup` immediately after recreation
 
-5. **Continue with January Launch Plan**
+4. **Continue with January Launch Plan**
    - See Week 1 priorities below
 
 ### JANUARY LAUNCH PLAN (Weeks 1-5)
