@@ -209,6 +209,7 @@ export default function WorkoutModal({
                     onRemoveBenchmark={hook.handleRemoveBenchmark}
                     onRemoveForgeBenchmark={hook.handleRemoveForgeBenchmark}
                     onEditLift={hook.handleEditLift}
+                    onTextareaInteraction={hook.handleTextareaInteraction}
                   />
                 ))}
 
@@ -528,6 +529,7 @@ export default function WorkoutModal({
                       onRemoveBenchmark={hook.handleRemoveBenchmark}
                       onRemoveForgeBenchmark={hook.handleRemoveForgeBenchmark}
                       onEditLift={hook.handleEditLift}
+                      onTextareaInteraction={hook.handleTextareaInteraction}
                     />
                   ))}
 

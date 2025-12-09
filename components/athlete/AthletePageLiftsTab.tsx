@@ -314,7 +314,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
 
         {/* Group lifts by category */}
         {(() => {
-          const CATEGORY_ORDER = ['Olympic', 'Squat', 'Press'];
+          const CATEGORY_ORDER = ['Olympic', 'Squat', 'Press', 'Pull'];
           const liftsByCategory: Record<string, typeof lifts> = {};
 
           lifts.forEach(lift => {

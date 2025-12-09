@@ -64,6 +64,7 @@ function WODSectionComponent({
   onRemoveBenchmark,
   onRemoveForgeBenchmark,
   onEditLift,
+  onTextareaInteraction,
 }: {
   section: WODSection;
   sectionIndex: number;
@@ -83,6 +84,7 @@ function WODSectionComponent({
   onRemoveBenchmark: (sectionId: string, benchmarkIndex: number) => void;
   onRemoveForgeBenchmark: (sectionId: string, forgeIndex: number) => void;
   onEditLift: (sectionId: string, liftIndex: number) => void;
+  onTextareaInteraction?: (sectionId: string, cursorPosition: number) => void;
 }) {
   const endTime = elapsedMinutes + section.duration;
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -446,6 +448,9 @@ function WODSectionComponent({
                 ref={textareaRef}
                 value={section.content}
                 onChange={e => onUpdate({ content: e.target.value })}
+                onClick={e => onTextareaInteraction?.(section.id, e.currentTarget.selectionStart)}
+                onSelect={e => onTextareaInteraction?.(section.id, e.currentTarget.selectionStart)}
+                onBlur={e => onTextareaInteraction?.(section.id, e.currentTarget.selectionStart)}
                 placeholder='Add exercises (one per line):&#10;* Burpees&#10;* Elephant Walk&#10;* ATY Raises'
                 rows={3}
                 data-section-id={section.id}

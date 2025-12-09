@@ -1,7 +1,7 @@
 'use client';
 
 import { supabase } from '@/lib/supabase';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import type { BarbellLift, Benchmark, ForgeBenchmark, ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
 import { useSectionManagement } from './useSectionManagement';
 import { useMovementConfiguration } from './useMovementConfiguration';
@@ -223,6 +223,9 @@ export function useWorkoutModal(
 
   // State for new session time when creating from scratch
   const [newSessionTime, setNewSessionTime] = useState('09:00');
+
+  // Ref to store cursor position when textarea loses focus
+  const lastCursorPositionRef = useRef<Record<string, number>>({});
 
   // Initialize extracted hooks
   const sectionManagement = useSectionManagement({
@@ -545,11 +548,20 @@ export function useWorkoutModal(
     const section = formData.sections[sectionManagement.activeSection];
     if (!section) return;
 
-    // Find the textarea element for the active section to get cursor position
-    const textarea = document.querySelector(`textarea[data-section-id="${section.id}"]`) as HTMLTextAreaElement;
-    if (!textarea) return;
+    // Get cursor position - use stored position if available, otherwise use end of content
+    let cursorPos = section.content.length;
 
-    const cursorPos = textarea.selectionStart;
+    // Check if we have a stored cursor position for this section
+    if (lastCursorPositionRef.current[section.id] !== undefined) {
+      cursorPos = lastCursorPositionRef.current[section.id];
+    } else {
+      // Try to get current cursor position from textarea
+      const textarea = document.querySelector(`textarea[data-section-id="${section.id}"]`) as HTMLTextAreaElement;
+      if (textarea && textarea.selectionStart) {
+        cursorPos = textarea.selectionStart;
+      }
+    }
+
     const beforeCursor = section.content.substring(0, cursorPos);
     const afterCursor = section.content.substring(cursorPos);
 
@@ -559,10 +571,21 @@ export function useWorkoutModal(
     // Check if we need to add a newline (only if there's content before cursor without trailing newline)
     const needsNewline = trimmedBefore.length > 0 && !/\n$/.test(trimmedBefore);
 
-    // Insert exercise at cleaned cursor position
+    // Insert exercise at cursor position
     const newContent = `${trimmedBefore}${needsNewline ? '\n' : ''}* ${exercise}${afterCursor ? '\n' + afterCursor : ''}`;
 
+    // Calculate new cursor position (after the inserted exercise)
+    const newCursorPos = trimmedBefore.length + (needsNewline ? 1 : 0) + exercise.length + 2; // +2 for "* "
+
+    // Store the new cursor position
+    lastCursorPositionRef.current[section.id] = newCursorPos;
+
     sectionManagement.updateSection(section.id, { content: newContent });
+  };
+
+  // Save cursor position when user interacts with textarea
+  const handleTextareaInteraction = (sectionId: string, cursorPosition: number) => {
+    lastCursorPositionRef.current[sectionId] = cursorPosition;
   };
 
   const getTotalDuration = () => {
@@ -768,6 +791,7 @@ export function useWorkoutModal(
     openLibrary,
     closeLibrary,
     handleSelectExercise,
+    handleTextareaInteraction,
     handleSelectLift,
     handleEditLift: movementConfiguration.handleEditLift,
     handleSelectBenchmark,

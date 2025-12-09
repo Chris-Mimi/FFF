@@ -18,6 +18,8 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Edit2, GripVertical, Plus, Save, Trash2, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
 
 interface Benchmark {
   id: string;
@@ -25,6 +27,7 @@ interface Benchmark {
   type: string;
   description: string | null;
   display_order: number;
+  has_scaling?: boolean;
 }
 
 // Sortable Forge Card Component
@@ -162,6 +165,55 @@ export default function ForgeBenchmarksTab({
     })
   );
 
+  // State for template selection
+  const [allForgeBenchmarks, setAllForgeBenchmarks] = useState<Benchmark[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
+
+  // Fetch all forge benchmarks for template selection
+  useEffect(() => {
+    const fetchAllForgeBenchmarks = async () => {
+      const { data } = await supabase
+        .from('forge_benchmarks')
+        .select('*')
+        .order('name');
+
+      if (data) {
+        setAllForgeBenchmarks(data as Benchmark[]);
+      }
+    };
+
+    if (showModal) {
+      fetchAllForgeBenchmarks();
+      // Reset template selection when modal opens
+      if (!editingForge) {
+        setSelectedTemplate('');
+      }
+    }
+  }, [showModal, editingForge]);
+
+  // Handler for template selection
+  const handleTemplateSelect = (forgeId: string) => {
+    setSelectedTemplate(forgeId);
+
+    if (!forgeId) {
+      // Clear form if "None" selected
+      onFormChange('name', '');
+      onFormChange('type', '');
+      onFormChange('description', '');
+      onFormChange('has_scaling', false);
+      return;
+    }
+
+    const template = allForgeBenchmarks.find(f => f.id === forgeId);
+    if (template) {
+      // Keep name empty so user must enter new name
+      onFormChange('name', '');
+      onFormChange('type', template.type);
+      onFormChange('description', template.description || '');
+      onFormChange('has_scaling', template.has_scaling || false);
+    }
+  };
+
   // Create a fixed grid with specific positions
   // Calculate max slots needed (highest display_order + some buffer)
   const maxDisplayOrder = forgeBenchmarks.length > 0
@@ -267,6 +319,32 @@ export default function ForgeBenchmarksTab({
             </div>
 
             <div className='space-y-4'>
+              {/* Template Selection (only show when creating new) */}
+              {!editingForge && (
+                <div className='bg-gray-600 rounded-lg p-4 border-2 border-teal-500'>
+                  <label className='block text-sm font-semibold text-gray-100 mb-2'>
+                    Start from template (optional)
+                  </label>
+                  <select
+                    value={selectedTemplate}
+                    onChange={(e) => handleTemplateSelect(e.target.value)}
+                    className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 cursor-pointer'
+                  >
+                    <option value=''>None - Start from scratch</option>
+                    {allForgeBenchmarks.map((forge) => (
+                      <option key={forge.id} value={forge.id}>
+                        {forge.name}
+                      </option>
+                    ))}
+                  </select>
+                  {selectedTemplate && (
+                    <p className='text-xs text-gray-300 mt-2'>
+                      ✓ Template loaded. All fields copied except name. Enter a new name to create your Forge Benchmark.
+                    </p>
+                  )}
+                </div>
+              )}
+
               <div>
                 <label className='block text-sm font-medium text-gray-100 mb-1'>
                   Name

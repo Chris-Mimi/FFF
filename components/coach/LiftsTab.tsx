@@ -44,7 +44,7 @@ interface LiftsTabProps {
   onSave: () => void;
 }
 
-const CATEGORY_ORDER = ['Olympic', 'Squat', 'Press'];
+const CATEGORY_ORDER = ['Olympic', 'Squat', 'Press', 'Pull'];
 
 // Sortable Lift Card Component
 function SortableLiftCard({
@@ -151,7 +151,18 @@ export default function LiftsTab({
     })
   );
 
-  // Group lifts by category
+  // Calculate global grid size from ALL lifts
+  const maxDisplayOrder = lifts.length > 0
+    ? Math.max(...lifts.map(l => l.display_order))
+    : 0;
+  const totalSlots = Math.max(maxDisplayOrder + 10, 25); // At least 25 slots (5 rows)
+
+  // Create a map of display_order to lift (global)
+  const liftsByPosition = new Map(
+    lifts.map(l => [l.display_order, l])
+  );
+
+  // Group lifts by category for display
   const liftsByCategory: Record<string, Lift[]> = {};
   lifts.forEach(lift => {
     if (!liftsByCategory[lift.category]) {
@@ -166,6 +177,12 @@ export default function LiftsTab({
     ...CATEGORY_ORDER.filter(cat => liftsByCategory[cat]),
     ...allCategories.filter(cat => !CATEGORY_ORDER.includes(cat)).sort()
   ];
+
+  // Generate grid rows (5 per row, global)
+  const rows: number[][] = [];
+  for (let i = 1; i <= totalSlots; i += 5) {
+    rows.push([i, i + 1, i + 2, i + 3, i + 4]);
+  }
 
   return (
     <>
@@ -200,68 +217,28 @@ export default function LiftsTab({
               items={lifts.map(l => l.id)}
               strategy={rectSortingStrategy}
             >
-              <div className='space-y-6'>
-                {sortedCategories.map(category => {
-                  const categoryLifts = liftsByCategory[category];
-
-                  // Calculate grid for this category
-                  const maxDisplayOrder = categoryLifts.length > 0
-                    ? Math.max(...categoryLifts.map(l => l.display_order))
-                    : 0;
-                  const totalSlots = Math.max(maxDisplayOrder + 5, 15); // At least 15 slots (3 rows)
-
-                  // Create a map of display_order to lift
-                  const liftsByPosition = new Map(
-                    categoryLifts.map(l => [l.display_order, l])
-                  );
-
-                  // Generate grid slots grouped by rows (5 per row)
-                  const rows: number[][] = [];
-                  for (let i = 1; i <= totalSlots; i += 5) {
-                    rows.push([i, i + 1, i + 2, i + 3, i + 4]);
-                  }
-
-                  return (
-                    <div key={category}>
-                      {/* Category Header */}
-                      <div className='bg-[#208479] text-white px-4 py-2 rounded-t-lg mb-2'>
-                        <h4 className='text-sm font-bold uppercase tracking-wide'>
-                          {category} <span className='opacity-75'>({categoryLifts.length})</span>
-                        </h4>
-                      </div>
-
-                      {/* Grid Layout */}
-                      <div className='space-y-2'>
-                        {rows.map((rowPositions, rowIndex) => (
-                          <div key={`${category}-row-${rowIndex}`}>
-                            <div className='grid grid-cols-5 gap-3'>
-                              {rowPositions.map((position) => {
-                                const lift = liftsByPosition.get(position);
-                                if (lift) {
-                                  return (
-                                    <SortableLiftCard
-                                      key={lift.id}
-                                      lift={lift}
-                                      onEdit={onEdit}
-                                      onDelete={onDelete}
-                                    />
-                                  );
-                                } else {
-                                  return (
-                                    <DroppableEmptyCell
-                                      key={`empty-${category}-${position}`}
-                                      position={position}
-                                    />
-                                  );
-                                }
-                              })}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+              <div className='space-y-2'>
+                {rows.map((rowPositions, rowIndex) => (
+                  <div key={`row-${rowIndex}`}>
+                    <div className='grid grid-cols-5 gap-3'>
+                      {rowPositions.map((position) => {
+                        const lift = liftsByPosition.get(position);
+                        if (lift) {
+                          return (
+                            <SortableLiftCard
+                              key={lift.id}
+                              lift={lift}
+                              onEdit={onEdit}
+                              onDelete={onDelete}
+                            />
+                          );
+                        }
+                        // Empty droppable cell
+                        return <DroppableEmptyCell key={`empty-${position}`} position={position} />;
+                      })}
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
             </SortableContext>
           </DndContext>
@@ -310,6 +287,7 @@ export default function LiftsTab({
                   <option value='Olympic'>Olympic</option>
                   <option value='Squat'>Squat</option>
                   <option value='Press'>Press</option>
+                  <option value='Pull'>Pull</option>
                 </select>
               </div>
             </div>

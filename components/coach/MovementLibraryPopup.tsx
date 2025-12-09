@@ -45,6 +45,7 @@ const LIFT_CATEGORY_ORDER = [
   'Olympic',
   'Squat',
   'Press',
+  'Pull',
 ];
 
 // Sort categories by predefined order

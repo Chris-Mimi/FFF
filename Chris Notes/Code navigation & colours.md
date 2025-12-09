@@ -16,14 +16,3 @@ Turquoise color
 #a1f0e8ff color name is Turquoise color.
 #66d3d3ff
 
-__Barbell Lifts Section Cards:__
-
-- The className line appears on approximately line 315 (for the non-Olympic lifts cards) and line 355 (for the Olympic lifts cards)
-
-__Recent Lifts Section Cards:__
-
-- The className line appears on approximately line 410
-
-Note: These are approximate line numbers based on the file's current structure. The exact numbers may vary slightly depending on any recent edits or formatting changes.
-
-[#40E0D0]. - [#0ABAB5]

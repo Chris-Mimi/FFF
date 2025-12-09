@@ -572,9 +572,8 @@ export default function BenchmarksLiftsManagementPage() {
 
         if (error) throw error;
       } else {
-        // Create new - get max display_order for the category
-        const categoryLifts = lifts.filter(l => l.category === liftForm.category);
-        const maxOrder = categoryLifts.length > 0 ? Math.max(...categoryLifts.map(l => l.display_order)) : 0;
+        // Create new - get max display_order globally across ALL lifts
+        const maxOrder = lifts.length > 0 ? Math.max(...lifts.map(l => l.display_order)) : 0;
 
         const { error } = await supabase
           .from('barbell_lifts')

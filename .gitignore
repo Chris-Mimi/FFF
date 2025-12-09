@@ -41,3 +41,5 @@ Thumbs.db
 # Backups (local only - do not commit)
 backups/
 *.backup.json
+database-backups/
+*.sql

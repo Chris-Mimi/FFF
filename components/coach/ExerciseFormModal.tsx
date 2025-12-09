@@ -1,7 +1,7 @@
 'use client';
 
 import { X } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 
 // Predefined category order
@@ -40,6 +40,115 @@ interface ExerciseFormModalProps {
   editingExercise: Exercise | null;
 }
 
+// Autocomplete Input Component (moved outside parent to prevent recreation)
+const AutocompleteInput = ({
+  value,
+  onChange,
+  suggestions,
+  placeholder,
+  label,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  suggestions: string[];
+  placeholder: string;
+  label: string;
+}) => {
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Get the current word being typed (after last comma)
+  const getCurrentWord = () => {
+    const parts = value.split(',');
+    const currentPart = parts[parts.length - 1].trim();
+    return currentPart;
+  };
+
+  // Calculate filtered suggestions dynamically (no state needed)
+  const getFilteredSuggestions = () => {
+    const currentWord = getCurrentWord();
+    if (currentWord.length > 0) {
+      return suggestions.filter(
+        (s) =>
+          s.toLowerCase().includes(currentWord.toLowerCase()) &&
+          !value.split(',').map(v => v.trim()).includes(s)
+      );
+    }
+    return [];
+  };
+
+  const filteredSuggestions = getFilteredSuggestions();
+
+  const handleSuggestionClick = (suggestion: string) => {
+    const parts = value.split(',').map(v => v.trim()).filter(Boolean);
+    parts.pop(); // Remove the incomplete current word
+    parts.push(suggestion);
+    onChange(parts.join(', ') + ', ');
+    setShowSuggestions(false);
+    // Refocus input after selection
+    setTimeout(() => inputRef.current?.focus(), 0);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    onChange(newValue);
+
+    // Calculate if we should show suggestions based on new value
+    const parts = newValue.split(',');
+    const currentWord = parts[parts.length - 1].trim();
+
+    if (currentWord.length > 0) {
+      const hasMatches = suggestions.some(s =>
+        s.toLowerCase().includes(currentWord.toLowerCase()) &&
+        !newValue.split(',').map(v => v.trim()).includes(s)
+      );
+      setShowSuggestions(hasMatches);
+    } else {
+      setShowSuggestions(false);
+    }
+  };
+
+  return (
+    <div className='relative'>
+      <label className='block text-sm font-medium text-gray-100 mb-1'>
+        {label} <span className='text-gray-400 text-xs'>(comma-separated)</span>
+      </label>
+      <input
+        ref={inputRef}
+        type='text'
+        value={value}
+        onChange={handleInputChange}
+        onFocus={() => {
+          const currentWord = getCurrentWord();
+          if (currentWord.length > 0 && filteredSuggestions.length > 0) {
+            setShowSuggestions(true);
+          }
+        }}
+        onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+        className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500'
+        placeholder={placeholder}
+      />
+      {showSuggestions && filteredSuggestions.length > 0 && (
+        <div className='absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto'>
+          {filteredSuggestions.map((suggestion, index) => (
+            <button
+              key={index}
+              type='button'
+              onMouseDown={(e) => {
+                e.preventDefault(); // Prevent input blur
+                handleSuggestionClick(suggestion);
+              }}
+              className='w-full text-left px-3 py-2 hover:bg-teal-50 text-gray-900 text-sm border-b border-gray-200 last:border-b-0'
+            >
+              {suggestion}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function ExerciseFormModal({
   isOpen,
   onClose,
@@ -71,6 +180,9 @@ export default function ExerciseFormModal({
   // State for template selection
   const [allExercises, setAllExercises] = useState<Exercise[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
+  const [templateSearchQuery, setTemplateSearchQuery] = useState<string>('');
+  const [showTemplateDropdown, setShowTemplateDropdown] = useState<boolean>(false);
+  const templateInputRef = useRef<HTMLInputElement>(null);
 
   // State for autocomplete suggestions
   const [availableTags, setAvailableTags] = useState<string[]>([]);
@@ -147,9 +259,23 @@ export default function ExerciseFormModal({
     }
   }, [isOpen]);
 
+  // Get filtered exercises based on search query
+  const getFilteredExercises = () => {
+    if (!templateSearchQuery.trim()) {
+      return allExercises;
+    }
+    const query = templateSearchQuery.toLowerCase();
+    return allExercises.filter((exercise) => {
+      const name = (exercise.display_name || exercise.name).toLowerCase();
+      return name.includes(query);
+    });
+  };
+
   // Handler for template selection
-  const handleTemplateSelect = (exerciseId: string) => {
+  const handleTemplateSelect = (exerciseId: string, exerciseName?: string) => {
     setSelectedTemplate(exerciseId);
+    setTemplateSearchQuery(exerciseName || '');
+    setShowTemplateDropdown(false);
 
     if (!exerciseId) {
       // Clear form if "None" selected
@@ -300,8 +426,23 @@ export default function ExerciseFormModal({
       setCustomCategory('');
       setCustomSubcategory('');
       setSelectedTemplate('');
+      setTemplateSearchQuery('');
+      setShowTemplateDropdown(false);
     }
   }, [editingExercise, isOpen, availableCategories, categorySubcategoryMap]);
+
+  // Memoized onChange handlers to prevent AutocompleteInput recreation
+  const handleTagsChange = useCallback((value: string) => {
+    setForm(prev => ({ ...prev, tags: value }));
+  }, []);
+
+  const handleEquipmentChange = useCallback((value: string) => {
+    setForm(prev => ({ ...prev, equipment: value }));
+  }, []);
+
+  const handleBodyPartsChange = useCallback((value: string) => {
+    setForm(prev => ({ ...prev, body_parts: value }));
+  }, []);
 
   const handleSubmit = async () => {
     // Use custom values if "Other" is selected
@@ -333,89 +474,6 @@ export default function ExerciseFormModal({
     await onSave(exerciseData as Omit<Exercise, 'id'> & { id?: string });
   };
 
-  // Autocomplete Input Component
-  const AutocompleteInput = ({
-    value,
-    onChange,
-    suggestions,
-    placeholder,
-    label,
-  }: {
-    value: string;
-    onChange: (value: string) => void;
-    suggestions: string[];
-    placeholder: string;
-    label: string;
-  }) => {
-    const [showSuggestions, setShowSuggestions] = useState(false);
-    const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
-
-    // Get the current word being typed (after last comma)
-    const getCurrentWord = () => {
-      const parts = value.split(',');
-      const currentPart = parts[parts.length - 1].trim();
-      return currentPart;
-    };
-
-    // Update filtered suggestions when input changes
-    useEffect(() => {
-      const currentWord = getCurrentWord();
-      if (currentWord.length > 0) {
-        const filtered = suggestions.filter(
-          (s) =>
-            s.toLowerCase().includes(currentWord.toLowerCase()) &&
-            !value.split(',').map(v => v.trim()).includes(s)
-        );
-        setFilteredSuggestions(filtered);
-        setShowSuggestions(filtered.length > 0);
-      } else {
-        setShowSuggestions(false);
-      }
-    }, [value, suggestions]);
-
-    const handleSuggestionClick = (suggestion: string) => {
-      const parts = value.split(',').map(v => v.trim()).filter(Boolean);
-      parts.pop(); // Remove the incomplete current word
-      parts.push(suggestion);
-      onChange(parts.join(', ') + ', ');
-      setShowSuggestions(false);
-    };
-
-    return (
-      <div className='relative'>
-        <label className='block text-sm font-medium text-gray-100 mb-1'>
-          {label} <span className='text-gray-400 text-xs'>(comma-separated)</span>
-        </label>
-        <input
-          type='text'
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          onFocus={() => {
-            const currentWord = getCurrentWord();
-            if (currentWord.length > 0) setShowSuggestions(true);
-          }}
-          onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-          className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500'
-          placeholder={placeholder}
-        />
-        {showSuggestions && filteredSuggestions.length > 0 && (
-          <div className='absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto'>
-            {filteredSuggestions.map((suggestion, index) => (
-              <button
-                key={index}
-                type='button'
-                onClick={() => handleSuggestionClick(suggestion)}
-                className='w-full text-left px-3 py-2 hover:bg-teal-50 text-gray-900 text-sm border-b border-gray-200 last:border-b-0'
-              >
-                {suggestion}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
-
   if (!isOpen) return null;
 
   return (
@@ -437,18 +495,53 @@ export default function ExerciseFormModal({
               <label className='block text-sm font-semibold text-gray-100 mb-2'>
                 Start from template (optional)
               </label>
-              <select
-                value={selectedTemplate}
-                onChange={(e) => handleTemplateSelect(e.target.value)}
-                className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 cursor-pointer'
-              >
-                <option value=''>None - Start from scratch</option>
-                {allExercises.map((exercise) => (
-                  <option key={exercise.id} value={exercise.id}>
-                    {exercise.display_name || exercise.name}
-                  </option>
-                ))}
-              </select>
+              <div className='relative'>
+                <input
+                  ref={templateInputRef}
+                  type='text'
+                  value={templateSearchQuery}
+                  onChange={(e) => {
+                    setTemplateSearchQuery(e.target.value);
+                    setShowTemplateDropdown(true);
+                  }}
+                  onFocus={() => setShowTemplateDropdown(true)}
+                  onBlur={() => setTimeout(() => setShowTemplateDropdown(false), 200)}
+                  placeholder='Search for an exercise template...'
+                  className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500'
+                />
+                {showTemplateDropdown && (
+                  <div className='absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-y-auto'>
+                    <button
+                      type='button'
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        handleTemplateSelect('', '');
+                      }}
+                      className='w-full text-left px-3 py-2 hover:bg-teal-50 text-gray-600 text-sm border-b border-gray-200 italic'
+                    >
+                      None - Start from scratch
+                    </button>
+                    {getFilteredExercises().map((exercise) => (
+                      <button
+                        key={exercise.id}
+                        type='button'
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          handleTemplateSelect(exercise.id, exercise.display_name || exercise.name);
+                        }}
+                        className='w-full text-left px-3 py-2 hover:bg-teal-50 text-gray-900 text-sm border-b border-gray-200 last:border-b-0'
+                      >
+                        {exercise.display_name || exercise.name}
+                      </button>
+                    ))}
+                    {getFilteredExercises().length === 0 && templateSearchQuery && (
+                      <div className='px-3 py-2 text-gray-500 text-sm italic'>
+                        No exercises found matching &quot;{templateSearchQuery}&quot;
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
               {selectedTemplate && (
                 <p className='text-xs text-gray-300 mt-2'>
                   ✓ Template loaded. All fields copied except name. Enter a new name to create your exercise.
@@ -602,7 +695,7 @@ export default function ExerciseFormModal({
           {/* Tags (comma-separated with autocomplete) */}
           <AutocompleteInput
             value={form.tags}
-            onChange={(value) => setForm({ ...form, tags: value })}
+            onChange={handleTagsChange}
             suggestions={availableTags}
             placeholder='e.g., power, oly, technical'
             label='Tags'
@@ -611,7 +704,7 @@ export default function ExerciseFormModal({
           {/* Equipment (comma-separated with autocomplete) */}
           <AutocompleteInput
             value={form.equipment}
-            onChange={(value) => setForm({ ...form, equipment: value })}
+            onChange={handleEquipmentChange}
             suggestions={availableEquipment}
             placeholder='e.g., barbell, plates'
             label='Equipment'
@@ -620,7 +713,7 @@ export default function ExerciseFormModal({
           {/* Body Parts (comma-separated with autocomplete) */}
           <AutocompleteInput
             value={form.body_parts}
-            onChange={(value) => setForm({ ...form, body_parts: value })}
+            onChange={handleBodyPartsChange}
             suggestions={availableBodyParts}
             placeholder='e.g., legs, shoulders, core'
             label='Body Parts'
