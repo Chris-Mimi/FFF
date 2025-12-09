@@ -202,16 +202,8 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
     }
   };
 
-  const handleDeleteWOD = async (dateKey: string, wodId: string) => {
-    if (wodId.startsWith('session-')) {
-      alert('Cannot delete empty sessions. Click to add workout content instead.');
-      return;
-    }
-
-    if (!confirm('Are you sure you want to delete this workout? The session will return to empty state.')) {
-      return;
-    }
-
+  // Return to empty state (session kept, workout removed)
+  const handleDeleteWODToEmpty = async (wodId: string) => {
     try {
       // Set session workout_id to NULL (session returns to empty state)
       await supabase
@@ -229,6 +221,32 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
       console.error('Error deleting WOD:', error);
       alert('Error deleting WOD. Please try again.');
     }
+  };
+
+  // Permanent delete (completely removes workout from database)
+  const handleDeleteWODPermanently = async (wodId: string) => {
+    try {
+      // Delete the workout (cascade should handle session references)
+      const { error } = await supabase.from('wods').delete().eq('id', wodId);
+      if (error) throw error;
+
+      await fetchWODs();
+      await fetchTracksAndCounts();
+    } catch (error) {
+      console.error('Error permanently deleting WOD:', error);
+      alert('Error permanently deleting WOD. Please try again.');
+    }
+  };
+
+  // Legacy function that returns callback data for modal
+  const handleDeleteWOD = async (dateKey: string, wodId: string) => {
+    if (wodId.startsWith('session-')) {
+      alert('Cannot delete empty sessions. Click to add workout content instead.');
+      return null;
+    }
+
+    // Return wodId so the parent can open the modal
+    return wodId;
   };
 
   const handleDeleteSession = async (sessionId: string) => {
@@ -349,6 +367,8 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
   return {
     handleSaveWOD,
     handleDeleteWOD,
+    handleDeleteWODToEmpty,
+    handleDeleteWODPermanently,
     handleDeleteSession,
     handleCopyWOD,
   };

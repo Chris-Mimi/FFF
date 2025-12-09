@@ -1178,7 +1178,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                             (section.forge_benchmarks && section.forge_benchmarks.length > 0);
 
                           if (hasStructuredItems) {
-                            // Just display as instructions/notes
+                            // Just display as instructions/notes (no scoring inputs)
                             return (
                               <div className='text-sm text-gray-700 whitespace-pre-wrap italic mt-2'>
                                 {section.content}
@@ -1186,65 +1186,97 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                             );
                           }
 
-                          // No structured items - treat content as exercises with scoring fields
+                          // No structured items - check if scoring fields are enabled
+                          const scoringFields = section.scoring_fields || {};
+                          const hasAnyEnabledField = Object.values(scoringFields).some(v => v === true);
+
+                          // If no scoring fields enabled, just show content as text
+                          if (!hasAnyEnabledField) {
+                            return (
+                              <div className='text-sm text-gray-700 whitespace-pre-wrap mt-2'>
+                                {section.content}
+                              </div>
+                            );
+                          }
+
+                          // Scoring fields enabled - show content with ONE set of inputs for the whole section
+                          const itemKey = `${wod.id}:::${section.id}:::content-0`;
+
                           return (
-                            <div className='space-y-2'>
-                              {section.content.split('\n').filter(line => line.trim()).map((line, lineIdx) => {
-                                const itemKey = `${wod.id}:::${section.id}:::content-${lineIdx}`;
-                                const scoringFields = section.scoring_fields || {time: true, reps: true, load: true, scaling: true};
+                            <div className='space-y-3'>
+                              {/* WOD Content Text */}
+                              <div className='text-sm text-gray-700 whitespace-pre-wrap'>
+                                {section.content}
+                              </div>
 
-                                return (
-                                  <div key={lineIdx} className='bg-gray-50 text-gray-900 rounded px-2 py-1'>
-                                    <div className='flex items-center gap-2 flex-wrap'>
-                                      {/* Exercise/Content Text */}
-                                      <div className='text-sm flex-shrink-0'>{line}</div>
+                              {/* Single set of scoring inputs for the entire section */}
+                              <div className='bg-gray-50 rounded px-3 py-2'>
+                                <div className='flex items-center gap-2 flex-wrap'>
+                                  <span className='text-xs font-medium text-gray-600 mr-2'>Your Result:</span>
 
-                                      {/* Configurable Scoring Inputs */}
-                                      <div className='flex items-center gap-2 ml-auto flex-wrap'>
+                                  {/* Configurable Scoring Inputs */}
+                                  <div className='flex items-center gap-2 flex-wrap'>
                                       {scoringFields.time && (
-                                        <input type='text' placeholder='mm:ss'
-                                          value={sectionResults[itemKey]?.time_result || ''}
-                                          onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), time_result: e.target.value}})}
-                                          className='w-16 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
-                                        />
+                                        <div className='flex items-center gap-1'>
+                                          <input type='text' placeholder='mm:ss'
+                                            value={sectionResults[itemKey]?.time_result || ''}
+                                            onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), time_result: e.target.value}})}
+                                            className='w-16 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
+                                          />
+                                        </div>
                                       )}
                                       {scoringFields.rounds_reps && (
                                         <>
-                                          <input type='number' placeholder='rnds'
-                                            value={sectionResults[itemKey]?.rounds_result || ''}
-                                            onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), rounds_result: e.target.value}})}
-                                            className='w-14 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
-                                          />
-                                          <span className='text-xs'>+</span>
+                                          <div className='flex items-center gap-1'>
+                                            <input type='number' placeholder='0'
+                                              value={sectionResults[itemKey]?.rounds_result || ''}
+                                              onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), rounds_result: e.target.value}})}
+                                              className='w-14 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
+                                            />
+                                            <span className='text-xs text-gray-600'>rds</span>
+                                          </div>
+                                          <span className='text-xs text-gray-600'>+</span>
                                         </>
                                       )}
                                       {(scoringFields.reps || scoringFields.rounds_reps) && (
-                                        <input type='number' placeholder='reps'
-                                          value={sectionResults[itemKey]?.reps_result || ''}
-                                          onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), reps_result: e.target.value}})}
-                                          className='w-14 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
-                                        />
+                                        <div className='flex items-center gap-1'>
+                                          <input type='number' placeholder='0'
+                                            value={sectionResults[itemKey]?.reps_result || ''}
+                                            onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), reps_result: e.target.value}})}
+                                            className='w-14 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
+                                          />
+                                          <span className='text-xs text-gray-600'>reps</span>
+                                        </div>
                                       )}
                                       {scoringFields.load && (
-                                        <input type='number' step='0.5' placeholder='kg'
-                                          value={sectionResults[itemKey]?.weight_result || ''}
-                                          onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), weight_result: e.target.value}})}
-                                          className='w-16 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
-                                        />
+                                        <div className='flex items-center gap-1'>
+                                          <input type='number' step='0.5' placeholder='0'
+                                            value={sectionResults[itemKey]?.weight_result || ''}
+                                            onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), weight_result: e.target.value}})}
+                                            className='w-16 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
+                                          />
+                                          <span className='text-xs text-gray-600'>kg</span>
+                                        </div>
                                       )}
                                       {scoringFields.calories && (
-                                        <input type='number' placeholder='cal'
-                                          value={sectionResults[itemKey]?.calories_result || ''}
-                                          onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), calories_result: e.target.value}})}
-                                          className='w-14 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
-                                        />
+                                        <div className='flex items-center gap-1'>
+                                          <input type='number' placeholder='0'
+                                            value={sectionResults[itemKey]?.calories_result || ''}
+                                            onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), calories_result: e.target.value}})}
+                                            className='w-14 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
+                                          />
+                                          <span className='text-xs text-gray-600'>cal</span>
+                                        </div>
                                       )}
                                       {scoringFields.metres && (
-                                        <input type='number' step='0.1' placeholder='m'
-                                          value={sectionResults[itemKey]?.metres_result || ''}
-                                          onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), metres_result: e.target.value}})}
-                                          className='w-16 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
-                                        />
+                                        <div className='flex items-center gap-1'>
+                                          <input type='number' step='0.1' placeholder='0'
+                                            value={sectionResults[itemKey]?.metres_result || ''}
+                                            onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), metres_result: e.target.value}})}
+                                            className='w-16 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
+                                          />
+                                          <span className='text-xs text-gray-600'>m</span>
+                                        </div>
                                       )}
                                       {scoringFields.checkbox && (
                                         <label className='flex items-center gap-1 text-xs'>
@@ -1272,9 +1304,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                                     </div>
                                   </div>
                                 </div>
-                              );
-                            })}
-                          </div>
+                            </div>
                           );
                         })()}
                       </div>

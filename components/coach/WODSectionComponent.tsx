@@ -168,8 +168,10 @@ function WODSectionComponent({
               </div>
             )}
 
-            {/* Scoring Configuration - Only for WOD section types */}
-            {(section.type === 'WOD' || section.type === 'WOD Pt.1' || section.type === 'WOD Pt.2' || section.type === 'WOD Pt.3') && (
+            {/* Scoring Configuration - For WOD and other workout sections */}
+            {(section.type === 'WOD' || section.type === 'WOD Pt.1' || section.type === 'WOD Pt.2' || section.type === 'WOD Pt.3' ||
+              section.type === 'Olympic Lifting' || section.type === 'Skill' || section.type === 'Gymnastics' ||
+              section.type === 'Strength' || section.type === 'Finisher/Bonus') && (
             <div className='flex items-center gap-2 p-2 bg-gray-50 rounded-lg border border-gray-200'>
               <label className='text-xs font-semibold text-gray-700 whitespace-nowrap'>
                 📊 Scoring:

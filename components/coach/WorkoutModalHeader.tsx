@@ -11,6 +11,7 @@ interface WorkoutModalHeaderProps {
   editingTime: boolean;
   tempTime: string;
   newSessionTime: string;
+  hasNotes?: boolean;
   // Callbacks
   onNotesToggle: (open: boolean) => void;
   onTimeEditToggle: (editing: boolean) => void;
@@ -30,6 +31,7 @@ export default function WorkoutModalHeader({
   editingTime,
   tempTime,
   newSessionTime,
+  hasNotes = false,
   onNotesToggle,
   onTimeEditToggle,
   onTimeChange,
@@ -49,10 +51,10 @@ export default function WorkoutModalHeader({
             e.preventDefault();
             onNotesToggle(!notesPanelOpen);
           }}
-          className={`hover:bg-[#1a6b62] p-2 rounded transition flex items-center gap-2 ${notesPanelOpen ? 'bg-[#1a6b62]' : ''}`}
-          title='Coach Notes'
+          className={`hover:bg-[#1a6b62] p-2 rounded transition flex items-center gap-2 ${notesPanelOpen ? 'bg-[#1a6b62]' : ''} ${hasNotes && !notesPanelOpen ? 'bg-teal-500 hover:bg-teal-800' : ''}`}
+          title={hasNotes ? 'Coach Notes (Has content)' : 'Coach Notes (Empty)'}
         >
-          <FileText size={20} />
+          <FileText size={20} className={hasNotes && !notesPanelOpen ? 'text-white' : ''} />
           <span className='text-sm'>Notes</span>
         </button>
         {/* Session Time Display/Edit */}

@@ -28,6 +28,16 @@ export interface WOD {
     lifts?: ConfiguredLift[];
     benchmarks?: ConfiguredBenchmark[];
     forge_benchmarks?: ConfiguredForgeBenchmark[];
+    scoring_fields?: {
+      time?: boolean;
+      reps?: boolean;
+      rounds_reps?: boolean;
+      load?: boolean;
+      calories?: boolean;
+      metres?: boolean;
+      checkbox?: boolean;
+      scaling?: boolean;
+    };
   }>;
   published_section_ids?: string[];
   attended?: boolean;

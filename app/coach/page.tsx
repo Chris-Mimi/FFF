@@ -2,6 +2,7 @@
 
 import WorkoutModal, { WODFormData } from '@/components/coach/WorkoutModal';
 import SessionManagementModal from '@/components/coach/SessionManagementModal';
+import DeleteWorkoutModal from '@/components/coach/DeleteWorkoutModal';
 import { CoachHeader } from '@/components/coach/CoachHeader';
 import { CalendarNav } from '@/components/coach/CalendarNav';
 import CalendarGrid from '@/components/coach/CalendarGrid';
@@ -88,10 +89,14 @@ export default function CoachDashboard() {
     excludedSectionTypes,
   });
 
-  const { handleSaveWOD, handleDeleteWOD, handleDeleteSession, handleCopyWOD } = useWODOperations({
+  const { handleSaveWOD, handleDeleteWOD, handleDeleteWODToEmpty, handleDeleteWODPermanently, handleDeleteSession, handleCopyWOD } = useWODOperations({
     fetchWODs,
     fetchTracksAndCounts,
   });
+
+  // Delete modal state
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deletingWODId, setDeletingWODId] = useState<string | null>(null);
 
   const {
     draggedWOD,
@@ -190,6 +195,15 @@ export default function CoachDashboard() {
 
   const handlePasteWrapper = (date: Date) => {
     handlePasteFromClipboard(date, handleCopyWOD);
+  };
+
+  // Delete workout wrapper - opens modal
+  const handleDeleteWODWrapper = async (dateKey: string, wodId: string) => {
+    const result = await handleDeleteWOD(dateKey, wodId);
+    if (result) {
+      setDeletingWODId(result);
+      setDeleteModalOpen(true);
+    }
   };
 
   const previousPeriod = () => {
@@ -305,7 +319,7 @@ export default function CoachDashboard() {
                 onWODHover={setHoveredWOD}
                 onDragHandleHover={setDragHandleHovered}
                 onCopyWOD={handleCopyToClipboard}
-                onDeleteWOD={handleDeleteWOD}
+                onDeleteWOD={handleDeleteWODWrapper}
                 onDeleteSession={handleDeleteSession}
                 onOpenEditModal={openEditModal}
                 onPasteFromClipboard={handlePasteWrapper}
@@ -421,6 +435,29 @@ export default function CoachDashboard() {
         workoutDate={sessionManagementModal.workoutDate || ''}
         onSessionUpdated={() => {
           fetchWODs();
+        }}
+      />
+
+      {/* Delete Workout Modal */}
+      <DeleteWorkoutModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setDeletingWODId(null);
+        }}
+        onReturnToEmpty={async () => {
+          if (deletingWODId) {
+            await handleDeleteWODToEmpty(deletingWODId);
+            setDeleteModalOpen(false);
+            setDeletingWODId(null);
+          }
+        }}
+        onPermanentDelete={async () => {
+          if (deletingWODId) {
+            await handleDeleteWODPermanently(deletingWODId);
+            setDeleteModalOpen(false);
+            setDeletingWODId(null);
+          }
         }}
       />
     </div>

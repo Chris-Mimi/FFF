@@ -1,6 +1,8 @@
 'use client';
 
 import { X } from 'lucide-react';
+import { useState } from 'react';
+import { linkifyText } from '@/utils/linkify';
 
 interface CoachNotesPanelProps {
   isOpen: boolean;
@@ -27,6 +29,8 @@ export default function CoachNotesPanel({
   onClose,
   onChange,
 }: CoachNotesPanelProps) {
+  const [isEditing, setIsEditing] = useState(false);
+
   if (!isOpen) return null;
 
   // Floating modal (panel mode)
@@ -92,12 +96,23 @@ export default function CoachNotesPanel({
 
           {/* Content */}
           <div className='flex-1 overflow-y-auto p-4'>
-            <textarea
-              value={notes}
-              onChange={e => onChange(e.target.value)}
-              placeholder='Add private notes about this workout...'
-              className='w-full h-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 placeholder-gray-400 resize-none text-sm'
-            />
+            {isEditing || !notes ? (
+              <textarea
+                value={notes}
+                onChange={e => onChange(e.target.value)}
+                onBlur={() => setIsEditing(false)}
+                onFocus={() => setIsEditing(true)}
+                autoFocus={isEditing}
+                placeholder='Add private notes about this workout...'
+                className='w-full h-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 placeholder-gray-400 resize-none text-sm'
+              />
+            ) : (
+              <div
+                onClick={() => setIsEditing(true)}
+                className='w-full h-full px-3 py-2 border border-gray-300 rounded-lg cursor-text text-gray-900 text-sm hover:border-gray-400 transition'
+                dangerouslySetInnerHTML={{ __html: linkifyText(notes) }}
+              />
+            )}
           </div>
 
           {/* Footer */}
@@ -124,12 +139,23 @@ export default function CoachNotesPanel({
         </button>
       </div>
       <div className='flex-1 overflow-y-auto p-4'>
-        <textarea
-          value={notes}
-          onChange={e => onChange(e.target.value)}
-          placeholder='Add private notes about this workout...'
-          className='w-full h-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 placeholder-gray-400 resize-none text-sm'
-        />
+        {isEditing || !notes ? (
+          <textarea
+            value={notes}
+            onChange={e => onChange(e.target.value)}
+            onBlur={() => setIsEditing(false)}
+            onFocus={() => setIsEditing(true)}
+            autoFocus={isEditing}
+            placeholder='Add private notes about this workout...'
+            className='w-full h-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 placeholder-gray-400 resize-none text-sm'
+          />
+        ) : (
+          <div
+            onClick={() => setIsEditing(true)}
+            className='w-full h-full px-3 py-2 border border-gray-300 rounded-lg cursor-text text-gray-900 text-sm hover:border-gray-400 transition'
+            dangerouslySetInnerHTML={{ __html: linkifyText(notes) }}
+          />
+        )}
       </div>
       <div className='border-t p-3 bg-white'>
         <p className='text-xs text-gray-500'>

@@ -89,6 +89,7 @@ export default function WorkoutModal({
             editingTime={hook.editingTime}
             tempTime={hook.tempTime}
             newSessionTime={hook.newSessionTime}
+            hasNotes={!!(hook.formData.coach_notes && hook.formData.coach_notes.trim().length > 0)}
             onNotesToggle={(open) => {
               hook.setNotesPanelOpen(open);
               onNotesToggle?.(open);
@@ -299,6 +300,7 @@ export default function WorkoutModal({
             editingTime={hook.editingTime}
             tempTime={hook.tempTime}
             newSessionTime={hook.newSessionTime}
+            hasNotes={!!(hook.formData.coach_notes && hook.formData.coach_notes.trim().length > 0)}
             onNotesToggle={(open) => {
               hook.setNotesPanelOpen(open);
               onNotesToggle?.(open);
