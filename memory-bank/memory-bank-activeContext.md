@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 8.6
-**Updated:** 2025-12-09 (Session 42 - Lift Grid Complete)
+**Version:** 8.7
+**Updated:** 2025-12-10 (Session 43 - Scoring/Notes/Deletion Enhancements)
 
 ---
 
@@ -66,6 +66,24 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-12-10 Session 43 - Sonnet):**
+- **✅ Scoring Enhancements:**
+  - Fixed athlete view: scoring inputs only show when fields explicitly enabled
+  - Added unit labels to all inputs (kg, reps, rds, cal, m)
+  - Extended scoring config to Olympic Lifting, Skill, Gymnastics, Strength, Finisher/Bonus sections
+  - ONE set of scoring inputs per section (not per line)
+- **✅ Coach Notes Improvements:**
+  - Notes icon shows teal indicator when content exists
+  - Auto-linkify URLs (http://, https://, www.)
+  - Click to edit, URLs become clickable links when viewing
+- **✅ Delete Workout Modal:**
+  - Custom modal replaces browser confirm
+  - Two options: Return to empty state OR Permanently delete
+  - Clear warnings and helper text
+- Commit: 3cd67dca "feat(coach/athlete): enhance scoring, notes, and workout deletion"
+- Files: 11 changed (2 created, 9 modified), +320/-80 lines
+- See `project-history/2025-12-10-session-43-scoring-notes-deletion.md`
 
 **Completed (2025-12-09 Session 42 - Sonnet):**
 - **✅ Lift Grid Drag-Drop COMPLETE:** Replicated Forge Benchmarks pattern exactly
@@ -154,18 +172,19 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 43 Priorities (Next Session)
+### Session 44 Priorities (Next Session)
 
 1. **Apply Pending Migration**
    - Execute `20251208_update_lift_categories.sql` via Supabase Dashboard SQL Editor
    - Updates existing lift categories to new naming convention
 
-2. **Optional: Benchmark Descriptions Migration**
-   - Execute `20251206_fix_newlines_after_restore.sql` if escaped `\n` still present
+2. **Test Session 43 Features**
+   - Test delete modal workflow (return to empty vs permanent delete)
+   - Verify scoring inputs save correctly with unit labels
+   - Test link clicking in coach notes (various URL formats)
 
-3. **User Data Recreation** (If Not Already Done)
-   - Recreate custom Forge Benchmarks (lost in Dec 6 incident)
-   - Run `npm run backup` immediately after recreation
+3. **Optional: Benchmark Descriptions Migration**
+   - Execute `20251206_fix_newlines_after_restore.sql` if escaped `\n` still present
 
 4. **Continue with January Launch Plan**
    - See Week 1 priorities below
