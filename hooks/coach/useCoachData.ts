@@ -10,7 +10,7 @@ interface UseCoachDataProps {
   selectedMovements: string[];
   selectedWorkoutTypes: string[];
   selectedTracks: string[];
-  excludedSectionTypes: string[];
+  includedSectionTypes: string[];
 }
 
 export const useCoachData = ({
@@ -18,7 +18,7 @@ export const useCoachData = ({
   selectedMovements,
   selectedWorkoutTypes,
   selectedTracks,
-  excludedSectionTypes,
+  includedSectionTypes,
 }: UseCoachDataProps) => {
   const [wods, setWods] = useState<Record<string, WODFormData[]>>({});
   const [tracks, setTracks] = useState<Array<{ id: string; name: string }>>([]);
@@ -150,10 +150,28 @@ export const useCoachData = ({
 
     const searchWODs = async () => {
       try {
-        let query = supabase.from('wods').select('*');
+        let query = supabase
+          .from('weekly_sessions')
+          .select(`
+            id,
+            date,
+            time,
+            wods!inner (
+              id,
+              title,
+              track_id,
+              workout_type_id,
+              class_times,
+              max_capacity,
+              sections,
+              coach_notes,
+              is_published,
+              google_event_id
+            )
+          `);
 
         if (selectedTracks.length > 0) {
-          query = query.in('track_id', selectedTracks);
+          query = query.in('wods.track_id', selectedTracks);
         }
 
         const { data, error } = await query.order('date', { ascending: false }).limit(500);
@@ -162,32 +180,53 @@ export const useCoachData = ({
 
         const results: WODFormData[] =
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          data?.map((wod: any) => ({
-            id: wod.id,
-            title: wod.title,
-            track_id: wod.track_id || undefined,
-            workout_type_id: wod.workout_type_id || undefined,
-            classTimes: wod.class_times,
-            maxCapacity: wod.max_capacity,
-            date: wod.date,
-            sections: wod.sections,
-            coach_notes: wod.coach_notes || undefined,
-            is_published: wod.is_published || false,
-            google_event_id: wod.google_event_id || null,
-          })) || [];
+          data?.map((session: any) => {
+            const wod = session.wods;
+            return {
+              id: wod.id,
+              title: wod.title,
+              track_id: wod.track_id || undefined,
+              workout_type_id: wod.workout_type_id || undefined,
+              classTimes: wod.class_times,
+              maxCapacity: wod.max_capacity,
+              date: session.date,
+              time: session.time,
+              sections: wod.sections,
+              coach_notes: wod.coach_notes || undefined,
+              is_published: wod.is_published || false,
+              google_event_id: wod.google_event_id || null,
+            };
+          }) || [];
 
         let filteredResults = results;
 
         if (searchQuery) {
           const searchTerms = searchQuery.trim().toLowerCase().split(/\s+/);
           filteredResults = filteredResults.filter(wod => {
-            const sectionsToSearch = excludedSectionTypes.length > 0
-              ? wod.sections.filter(s => !excludedSectionTypes.includes(s.type))
-              : wod.sections;
+            let combinedText = '';
 
-            const combinedText =
-              `${wod.title} ${wod.coach_notes || ''} ${sectionsToSearch.map(s => s.content).join(' ')}`.toLowerCase();
-            return searchTerms.some(term => combinedText.includes(term));
+            if (includedSectionTypes.length === 0) {
+              // "All" selected - search everything
+              combinedText = `${wod.title} ${wod.coach_notes || ''} ${wod.sections.map(s => s.content).join(' ')}`.toLowerCase();
+            } else {
+              // Specific filters selected
+              const includeNotes = includedSectionTypes.includes('Notes');
+              const sectionTypesToInclude = includedSectionTypes.filter(t => t !== 'Notes');
+
+              const sectionsToSearch = sectionTypesToInclude.length > 0
+                ? wod.sections.filter(s => sectionTypesToInclude.includes(s.type))
+                : [];
+
+              const titleText = wod.title;
+              const notesText = includeNotes ? (wod.coach_notes || '') : '';
+              const sectionsText = sectionsToSearch.map(s => s.content).join(' ');
+
+              combinedText = `${titleText} ${notesText} ${sectionsText}`.toLowerCase();
+            }
+
+            return searchTerms.every(term =>
+              new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(combinedText)
+            );
           });
         }
 
@@ -219,7 +258,7 @@ export const useCoachData = ({
 
     const timeoutId = setTimeout(searchWODs, 300);
     return () => clearTimeout(timeoutId);
-  }, [searchQuery, selectedMovements, selectedWorkoutTypes, selectedTracks, excludedSectionTypes]);
+  }, [searchQuery, selectedMovements, selectedWorkoutTypes, selectedTracks, includedSectionTypes]);
 
   const fetchTracksAndCounts = async () => {
     try {

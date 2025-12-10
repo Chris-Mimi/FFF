@@ -48,6 +48,7 @@ export interface WODFormData {
   classTimes: string[];
   maxCapacity: number;
   date: string;
+  time?: string; // Session time (HH:MM:SS format) from weekly_sessions
   sections: WODSection[];
   coach_notes?: string;
   is_published?: boolean;

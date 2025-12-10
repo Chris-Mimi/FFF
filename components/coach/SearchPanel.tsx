@@ -31,8 +31,8 @@ interface SearchPanelProps {
   onSelectedWorkoutTypesChange: (types: string[]) => void;
   selectedTracks: string[];
   onSelectedTracksChange: (tracks: string[]) => void;
-  excludedSectionTypes: string[];
-  onExcludedSectionTypesChange: (types: string[]) => void;
+  includedSectionTypes: string[];
+  onIncludedSectionTypesChange: (types: string[]) => void;
   movements: Map<string, number>;
   workoutTypes: WorkoutType[];
   tracks: Track[];
@@ -64,8 +64,8 @@ export default function SearchPanel({
   onSelectedWorkoutTypesChange,
   selectedTracks,
   onSelectedTracksChange,
-  excludedSectionTypes,
-  onExcludedSectionTypesChange,
+  includedSectionTypes,
+  onIncludedSectionTypesChange,
   movements,
   workoutTypes,
   tracks,
@@ -96,7 +96,7 @@ export default function SearchPanel({
             onSelectedMovementsChange([]);
             onSelectedWorkoutTypesChange([]);
             onSelectedTracksChange([]);
-            onExcludedSectionTypesChange([]);
+            onIncludedSectionTypesChange([]);
             // Note: movements map should be reset in parent component
           }}
           className='hover:bg-[#1a6b62] p-1 rounded transition'
@@ -245,21 +245,49 @@ export default function SearchPanel({
 
             {/* Section Type Filter Buttons */}
             <div className='mt-3'>
-              <div className='text-xs font-semibold text-gray-700 mb-2'>Exclude from search:</div>
+              <div className='text-xs font-semibold text-gray-700 mb-2'>Include in search:</div>
               <div className='flex flex-wrap gap-2'>
+                <button
+                  onClick={() => {
+                    onIncludedSectionTypesChange([]);
+                  }}
+                  className={`px-3 py-1 rounded-full text-xs font-medium transition ${
+                    includedSectionTypes.length === 0
+                      ? 'bg-[#208479] text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  All
+                </button>
+                <button
+                  onClick={() => {
+                    onIncludedSectionTypesChange(
+                      includedSectionTypes.includes('Notes')
+                        ? includedSectionTypes.filter((t: string) => t !== 'Notes')
+                        : [...includedSectionTypes, 'Notes']
+                    );
+                  }}
+                  className={`px-3 py-1 rounded-full text-xs font-medium transition ${
+                    includedSectionTypes.includes('Notes')
+                      ? 'bg-[#208479] text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  Notes
+                </button>
                 {sectionTypes.map(sectionType => (
                   <button
                     key={sectionType.id}
                     onClick={() => {
-                      onExcludedSectionTypesChange(
-                        excludedSectionTypes.includes(sectionType.name)
-                          ? excludedSectionTypes.filter(t => t !== sectionType.name)
-                          : [...excludedSectionTypes, sectionType.name]
+                      onIncludedSectionTypesChange(
+                        includedSectionTypes.includes(sectionType.name)
+                          ? includedSectionTypes.filter((t: string) => t !== sectionType.name)
+                          : [...includedSectionTypes, sectionType.name]
                       );
                     }}
                     className={`px-3 py-1 rounded-full text-xs font-medium transition ${
-                      excludedSectionTypes.includes(sectionType.name)
-                        ? 'bg-red-500 text-white'
+                      includedSectionTypes.includes(sectionType.name)
+                        ? 'bg-[#208479] text-white'
                         : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                     }`}
                   >
@@ -369,9 +397,8 @@ export default function SearchPanel({
                       day: 'numeric',
                       month: 'long',
                       year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
                     });
+                    const formattedTime = wod.time ? wod.time.substring(0, 5) : '';
                     const searchTerms = searchQuery.trim().split(/\s+/).filter(Boolean);
 
                     return (
@@ -388,7 +415,9 @@ export default function SearchPanel({
                             : 'border border-gray-200 hover:border-[#208479] hover:bg-gray-50'
                         }`}
                       >
-                        <div className='text-xs text-gray-500 mb-1'>{formattedDate}</div>
+                        <div className='text-xs text-gray-500 mb-1'>
+                          {formattedDate}{formattedTime && ` at ${formattedTime}`}
+                        </div>
                         <div
                           className='font-semibold text-sm text-gray-900 mb-2'
                           dangerouslySetInnerHTML={{

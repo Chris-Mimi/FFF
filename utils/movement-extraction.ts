@@ -35,6 +35,8 @@ export const extractMovements = (wods: WODFormData[]): Map<string, number> => {
   const movementCounts = new Map<string, number>();
 
   wods.forEach(wod => {
+    const movementsInThisWod = new Set<string>();
+
     wod.sections.forEach(section => {
       const lines = section.content.split('\n');
 
@@ -78,7 +80,7 @@ export const extractMovements = (wods: WODFormData[]): Map<string, number> => {
             // Preserve the entire phrase including parentheses
             const movement = normalizeMovement(movementText);
             if (movement.length >= 3) {
-              movementCounts.set(movement, (movementCounts.get(movement) || 0) + 1);
+              movementsInThisWod.add(movement);
             }
           } else {
             // Split into words and filter out noise for non-parenthetical movements
@@ -90,12 +92,17 @@ export const extractMovements = (wods: WODFormData[]): Map<string, number> => {
 
               // Only add if movement name is substantial (at least 3 characters)
               if (movement.length >= 3) {
-                movementCounts.set(movement, (movementCounts.get(movement) || 0) + 1);
+                movementsInThisWod.add(movement);
               }
             }
           }
         }
       });
+    });
+
+    // Increment count once per workout
+    movementsInThisWod.forEach(movement => {
+      movementCounts.set(movement, (movementCounts.get(movement) || 0) + 1);
     });
   });
 

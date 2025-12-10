@@ -57,7 +57,7 @@ export default function CoachDashboard() {
   const [selectedMovements, setSelectedMovements] = useState<string[]>([]);
   const [selectedWorkoutTypes, setSelectedWorkoutTypes] = useState<string[]>([]);
   const [selectedTracks, setSelectedTracks] = useState<string[]>([]);
-  const [excludedSectionTypes, setExcludedSectionTypes] = useState<string[]>([]);
+  const [includedSectionTypes, setIncludedSectionTypes] = useState<string[]>([]);
   const [selectedSearchWOD, setSelectedSearchWOD] = useState<WODFormData | null>(null);
   const [hoveredSearchWOD, setHoveredSearchWOD] = useState<WODFormData | null>(null);
   const [notesPanelOpen, setNotesPanelOpen] = useState(false);
@@ -86,7 +86,7 @@ export default function CoachDashboard() {
     selectedMovements,
     selectedWorkoutTypes,
     selectedTracks,
-    excludedSectionTypes,
+    includedSectionTypes,
   });
 
   const { handleSaveWOD, handleDeleteWOD, handleDeleteWODToEmpty, handleDeleteWODPermanently, handleDeleteSession, handleCopyWOD } = useWODOperations({
@@ -366,8 +366,8 @@ export default function CoachDashboard() {
           onSelectedWorkoutTypesChange={setSelectedWorkoutTypes}
           selectedTracks={selectedTracks}
           onSelectedTracksChange={setSelectedTracks}
-          excludedSectionTypes={excludedSectionTypes}
-          onExcludedSectionTypesChange={setExcludedSectionTypes}
+          includedSectionTypes={includedSectionTypes}
+          onIncludedSectionTypesChange={setIncludedSectionTypes}
           movements={movements}
           workoutTypes={workoutTypes}
           tracks={tracks}
