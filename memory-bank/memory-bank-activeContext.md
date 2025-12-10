@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 8.7
-**Updated:** 2025-12-10 (Session 43 - Scoring/Notes/Deletion Enhancements)
+**Version:** 8.8
+**Updated:** 2025-12-10 (Session 44 - Workout Library Search Enhancements)
 
 ---
 
@@ -66,6 +66,18 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-12-10 Session 44 - Sonnet):**
+- **✅ Workout Library Search Enhancements:**
+  - Session times now display correctly from weekly_sessions.time (not 01:00)
+  - Changed filter paradigm from "exclude" to "include" (more efficient)
+  - Added "All" button (default) and "Notes" pseudo-button
+  - Fixed search to use word boundaries (C2 no longer matches Sc2)
+  - Changed to AND logic (all terms must match)
+  - Fixed movement count deduplication (counts per workout, not per section)
+- Commit: eafe9805 "feat(coach): enhance workout library search with session times and include filters"
+- Files: 5 changed, +121/-45 lines
+- See `project-history/2025-12-10-session-44-workout-library-search.md`
 
 **Completed (2025-12-10 Session 43 - Sonnet):**
 - **✅ Scoring Enhancements:**
