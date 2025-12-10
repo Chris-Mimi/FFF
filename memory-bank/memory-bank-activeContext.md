@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 8.9
-**Updated:** 2025-12-10 (Session 45 - Google Calendar HTML Formatting & API Setup)
+**Version:** 9.0
+**Updated:** 2025-12-10 (Session 46 - Google Calendar Fix & UI Improvements)
 
 ---
 
@@ -66,6 +66,27 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-12-10 Session 46 - Sonnet):**
+- **✅ Google Calendar: Fix Structured Movement Formatting:**
+  - Extended formatSectionToHTML to handle lifts, benchmarks, forge_benchmarks (not just content string)
+  - Lifts formatted as bullet points (e.g., "• Back Squat 5x5 @ 80%")
+  - Benchmarks/Forge Benchmarks show bold name + full description with line breaks
+  - Fixes critical bug where Forge Benchmark sections appeared empty in calendar
+- **✅ Publish Modal: Auto-Calculate Duration:**
+  - Duration now auto-calculates from selected sections
+  - Changed to read-only input with visual indication
+  - Updates automatically when section selection changes
+- **✅ Edit Workout Modal Improvements:**
+  - Removed auto-generated notes message from session templates
+  - Notes button now only shows green indicator when coach adds actual notes
+  - Added scoring field checkboxes for "WOD movement practice" section type
+- **✅ Exercises Tab: Reposition Edit/Delete Icons:**
+  - Moved icons from top-right to bottom-right of exercise cards
+  - Fixes issue where long exercise names hid video icon on hover
+- Commit: 6413937 "feat(coach): enhance Google Calendar, publish modal, and UI improvements"
+- Files: 5 changed, +128/-28 lines
+- See `project-history/2025-12-10-session-46-ui-improvements.md`
 
 **Completed (2025-12-10 Session 45 - Sonnet):**
 - **✅ Google Calendar HTML Formatting:**
@@ -156,10 +177,18 @@ Athlete Tables (linked to members.id)
 ## 🚨 Known Issues (Next Session)
 
 **Testing Required:**
-1. **Google Calendar HTML Formatting** - Implementation complete, testing pending
-   - Publish workout from Coach Dashboard
-   - Verify HTML formatting renders correctly in Google Calendar
-   - Verify event appears in Athlete Dashboard
+1. **Google Calendar Publishing with Structured Movements** - Implementation complete, testing pending
+   - Publish workout with Forge Benchmark/Benchmark/Lift from Coach Dashboard
+   - Verify all movement types render correctly in Google Calendar (lifts as bullets, benchmarks with descriptions)
+   - Verify HTML formatting (bold headers, line breaks, clickable URLs)
+   - Verify event appears in Athlete Dashboard → Workouts tab
+2. **Publish Modal Auto-Calculated Duration** - Implementation complete, testing pending
+   - Verify duration auto-calculates when selecting/deselecting sections
+   - Verify read-only field cannot be manually edited
+3. **Notes Button Indicator** - Implementation complete, testing pending
+   - Create new workout from session template
+   - Verify notes button is grey (no auto-generated message)
+   - Add notes manually, verify button turns teal
 
 **Migration Pending:**
 1. **`20251206_fix_newlines_after_restore.sql`** (Optional) - Fix escaped `\n` in benchmark descriptions
@@ -205,20 +234,16 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 46 Priorities (Next Session)
+### Session 47 Priorities (Next Session)
 
-1. **Test Google Calendar Publishing**
-   - Publish workout from Coach Dashboard
-   - Verify HTML formatting renders correctly in Google Calendar (bold headers, bullets, links)
-   - Verify event appears in Athlete Dashboard → Workouts tab
-   - Test unpublish functionality
+1. **Test Session 46 Features**
+   - Test Google Calendar publishing with Forge Benchmark/Benchmark/Lift sections
+   - Test publish modal auto-calculated duration
+   - Test notes button indicator (no auto-generated message)
+   - Test "WOD movement practice" scoring fields
+   - Test exercise card edit/delete icon positioning
 
-2. **Optional: Update Google Calendar Documentation**
-   - Update `GOOGLE_CALENDAR_SETUP.md` with troubleshooting steps
-   - Document organization policy restrictions workaround
-   - Document personal account alternative approach
-
-3. **Continue with January Launch Plan**
+2. **Continue with January Launch Plan**
    - See Week 1 priorities below
 
 ### JANUARY LAUNCH PLAN (Weeks 1-5)
