@@ -68,12 +68,40 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No sections selected' }, { status: 400 });
     }
 
-    // Format event description
+    // Format event description with HTML
+    const formatSectionToHTML = (section: WorkoutSection): string => {
+      // Section header with bold styling
+      const header = `<b>${section.type}</b> (${section.duration} min)`;
+
+      // Convert content to HTML
+      let content = section.content || '';
+
+      // Convert line breaks to HTML breaks
+      content = content.replace(/\n/g, '<br>');
+
+      // Bold lines that look like headers (all caps or starting with numbers like "3 rounds:")
+      content = content.replace(/^([A-Z\s]+:)/gm, '<b>$1</b>');
+      content = content.replace(/^(\d+\s*(rounds?|reps?|min|minutes?|sets?):)/gim, '<b>$1</b>');
+
+      // Make movement lists more readable with bullet points
+      content = content.replace(/^(\d+\s*x?\s*.+)$/gm, '• $1');
+
+      // Auto-linkify URLs
+      content = content.replace(
+        /(https?:\/\/[^\s<]+)/g,
+        '<a href="$1">$1</a>'
+      );
+      content = content.replace(
+        /(www\.[^\s<]+)/g,
+        '<a href="http://$1">$1</a>'
+      );
+
+      return `${header}<br><br>${content}`;
+    };
+
     const description = selectedSections
-      .map(section => {
-        return `${section.type} (${section.duration} min)\n\n${section.content}\n\n---\n`;
-      })
-      .join('\n');
+      .map(formatSectionToHTML)
+      .join('<br><br>─────────────────<br><br>');
 
     // Parse event date and time
     const [year, month, day] = workout.date.split('-');

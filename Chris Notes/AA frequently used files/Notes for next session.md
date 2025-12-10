@@ -17,12 +17,18 @@ This document is a template with headings to show you where the issue is or wher
 *
 
  # Edit Workout Modal (coach) #
- IMPROVEMENTS/Bug Fixes: 2 more files to refactor:
- *  1. Continue refactoring (WorkoutModalHeader, CoachNotesPanel)
-  2. Merge to main (defer remaining to opportunistic refactoring)
- * Lifts/Benchmarks/ForgeBenchmarks modal must be cleaned up. It is just a copy of the SugarWOD one. Coach notes could go automatically into the Notes for the workout. Athlete Notes automatically into the Athletes Notes section
- *
+ IMPROVEMENTS/Bug Fixes:
+ Notes button should change colour if it has content. When I open the notes panel, it has an auto-generated message, meaning the Notes button is always green. Remove the auto-message.
+ I added another section type "WOD Movement practice" give me scoring boxes for this section also.
+ What options do I have for exporting a Workout to Google Calendar with formatting?
 
+  # Publish Workout Modal (coach) #
+ IMPROVEMENTS/Bug Fixes:
+ Duration should be calculated automatically based on the sections added to the workout.
+
+ # Exercises tab (coach) #
+ IMPROVEMENTS/Bug Fixes:
+Move the edit & delete icons to the bottom right of the exercise card as, depending on the length of the name, the video icon gets hidden when I hover over the card.
 
 # Analysis page
 * If I am not at the top of the page, the page jumps when clicking a category filter button.
@@ -30,11 +36,6 @@ This document is a template with headings to show you where the issue is or wher
 * fix the timescale selector so it doesn't jump left and right on clicking different timescales. It does this as the timescale indicator on the right shrinks and expands.
 * How many top exercises will display?
 
- Auto-update failed · Try claude doctor or n
-
- 
-
-* 
 
 # Calendar View #
 *
@@ -42,7 +43,6 @@ This document is a template with headings to show you where the issue is or wher
 # Athlete Published Workouts Page #
 * Workouts should show type in the same section as the description or in the section header. Depending on the workout type, another input box opens underneath the section where the Athletes can input a score/time/weight etc. Is this possible to make it automatically appear in the Benchmarks/ForgeBenchmarks/Lifts/ personal records page? For example, strength part is for load.
 
-Claude moved the checkboxes outside the flex container, I don't like this, it looked better before.
 *
 
 # Athlete Logbook Page #
