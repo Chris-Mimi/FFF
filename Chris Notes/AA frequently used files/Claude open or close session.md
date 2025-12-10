@@ -1,6 +1,6 @@
 # At the START of every Claude session give this prompt:
 
-- Read the workflow-protocols and act on what it says. Be sure to read the reminder about following the exact file paths in the memory-bank files. Then go into Plan Mode and either ask or suggest next steps based on information in the memory-bank-active-Context.md and last project-history file
+- Read the workflow-protocols and act on what it says. Be sure to read the reminder about following the correct absolute file paths in the memory-bank files. Then go into Plan Mode and either ask or suggest next steps based on information in the memory-bank-active-Context.md and last project-history file
 
 # At the CLOSE of every Claude session give this prompt:
 
