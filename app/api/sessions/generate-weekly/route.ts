@@ -104,7 +104,6 @@ export async function POST(request: NextRequest) {
           date: formattedDate,
           title: template.workout_type,
           sections: [], // Empty placeholder
-          coach_notes: `Auto-generated from template. Please add workout content.`,
           class_times: [] // Empty placeholder for class times
         })
         .select()

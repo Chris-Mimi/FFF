@@ -354,7 +354,7 @@ export default function ExercisesTab({
                     key={exercise.id}
                     className='border border-gray-300 rounded-lg p-3 bg-green-50 hover:bg-green-100 hover:shadow-lg hover:z-10 transition-all group relative'
                   >
-                    <div className='absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition'>
+                    <div className='absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition'>
                       <button
                         onClick={() => onEdit(exercise)}
                         className='p-1 text-blue-600 hover:bg-blue-50 rounded transition'

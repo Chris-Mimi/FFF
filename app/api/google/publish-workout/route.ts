@@ -21,12 +21,47 @@ interface PublishConfig {
   eventDurationMinutes: number;
 }
 
+interface VariableSet {
+  set_number: number;
+  reps: number;
+  percentage_1rm?: number;
+}
+
+interface ConfiguredLift {
+  id: string;
+  name: string;
+  rep_type: 'constant' | 'variable';
+  sets?: number;
+  reps?: number;
+  percentage_1rm?: number;
+  variable_sets?: VariableSet[];
+}
+
+interface ConfiguredBenchmark {
+  id: string;
+  name: string;
+  type: string;
+  description?: string;
+  scaling_option?: string;
+}
+
+interface ConfiguredForgeBenchmark {
+  id: string;
+  name: string;
+  type: string;
+  description?: string;
+  scaling_option?: string;
+}
+
 interface WorkoutSection {
   id: string;
   type: string;
   duration: number;
   content: string;
   workout_type_id?: string;
+  lifts?: ConfiguredLift[];
+  benchmarks?: ConfiguredBenchmark[];
+  forge_benchmarks?: ConfiguredForgeBenchmark[];
 }
 
 interface Workout {
@@ -68,35 +103,94 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No sections selected' }, { status: 400 });
     }
 
+    // Format helper functions
+    const formatLift = (lift: ConfiguredLift): string => {
+      if (lift.rep_type === 'constant') {
+        const base = `${lift.name} ${lift.sets}x${lift.reps}`;
+        return lift.percentage_1rm ? `${base} @ ${lift.percentage_1rm}%` : base;
+      } else {
+        // Variable reps: show as "5-3-1" format
+        const reps = lift.variable_sets?.map(s => s.reps).join('-') || '';
+        return `${lift.name} ${reps}`;
+      }
+    };
+
+    const formatBenchmark = (benchmark: ConfiguredBenchmark): string => {
+      const scaling = benchmark.scaling_option ? ` (${benchmark.scaling_option})` : '';
+      return `${benchmark.name}${scaling}`;
+    };
+
+    const formatForgeBenchmark = (forge: ConfiguredForgeBenchmark): string => {
+      const scaling = forge.scaling_option ? ` (${forge.scaling_option})` : '';
+      return `${forge.name}${scaling}`;
+    };
+
     // Format event description with HTML
     const formatSectionToHTML = (section: WorkoutSection): string => {
       // Section header with bold styling
       const header = `<b>${section.type}</b> (${section.duration} min)`;
 
+      const parts: string[] = [];
+
+      // Format lifts
+      if (section.lifts && section.lifts.length > 0) {
+        const liftsHTML = section.lifts.map(lift => `• ${formatLift(lift)}`).join('<br>');
+        parts.push(liftsHTML);
+      }
+
+      // Format benchmarks (with descriptions)
+      if (section.benchmarks && section.benchmarks.length > 0) {
+        section.benchmarks.forEach(benchmark => {
+          parts.push(`<b>${formatBenchmark(benchmark)}</b>`);
+          if (benchmark.description) {
+            // Convert newlines to <br> in description
+            const desc = benchmark.description.replace(/\n/g, '<br>');
+            parts.push(desc);
+          }
+        });
+      }
+
+      // Format forge benchmarks (with descriptions)
+      if (section.forge_benchmarks && section.forge_benchmarks.length > 0) {
+        section.forge_benchmarks.forEach(forge => {
+          parts.push(`<b>${formatForgeBenchmark(forge)}</b>`);
+          if (forge.description) {
+            // Convert newlines to <br> in description
+            const desc = forge.description.replace(/\n/g, '<br>');
+            parts.push(desc);
+          }
+        });
+      }
+
       // Convert content to HTML
-      let content = section.content || '';
+      if (section.content && section.content.trim()) {
+        let content = section.content;
 
-      // Convert line breaks to HTML breaks
-      content = content.replace(/\n/g, '<br>');
+        // Convert line breaks to HTML breaks
+        content = content.replace(/\n/g, '<br>');
 
-      // Bold lines that look like headers (all caps or starting with numbers like "3 rounds:")
-      content = content.replace(/^([A-Z\s]+:)/gm, '<b>$1</b>');
-      content = content.replace(/^(\d+\s*(rounds?|reps?|min|minutes?|sets?):)/gim, '<b>$1</b>');
+        // Bold lines that look like headers (all caps or starting with numbers like "3 rounds:")
+        content = content.replace(/^([A-Z\s]+:)/gm, '<b>$1</b>');
+        content = content.replace(/^(\d+\s*(rounds?|reps?|min|minutes?|sets?):)/gim, '<b>$1</b>');
 
-      // Make movement lists more readable with bullet points
-      content = content.replace(/^(\d+\s*x?\s*.+)$/gm, '• $1');
+        // Make movement lists more readable with bullet points
+        content = content.replace(/^(\d+\s*x?\s*.+)$/gm, '• $1');
 
-      // Auto-linkify URLs
-      content = content.replace(
-        /(https?:\/\/[^\s<]+)/g,
-        '<a href="$1">$1</a>'
-      );
-      content = content.replace(
-        /(www\.[^\s<]+)/g,
-        '<a href="http://$1">$1</a>'
-      );
+        // Auto-linkify URLs
+        content = content.replace(
+          /(https?:\/\/[^\s<]+)/g,
+          '<a href="$1">$1</a>'
+        );
+        content = content.replace(
+          /(www\.[^\s<]+)/g,
+          '<a href="http://$1">$1</a>'
+        );
 
-      return `${header}<br><br>${content}`;
+        parts.push(content);
+      }
+
+      const bodyContent = parts.join('<br><br>');
+      return bodyContent ? `${header}<br><br>${bodyContent}` : header;
     };
 
     const description = selectedSections

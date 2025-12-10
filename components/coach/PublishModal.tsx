@@ -57,6 +57,16 @@ export default function PublishModal({
     }
   }, [sessionTime]);
 
+  // Auto-calculate duration based on selected sections
+  useEffect(() => {
+    if (selectedSectionIds.length > 0) {
+      const totalDuration = sections
+        .filter(s => selectedSectionIds.includes(s.id))
+        .reduce((sum, section) => sum + (section.duration || 0), 0);
+      setEventDurationMinutes(totalDuration);
+    }
+  }, [selectedSectionIds, sections]);
+
   const handleToggleSection = (sectionId: string) => {
     setSelectedSectionIds(prev =>
       prev.includes(sectionId) ? prev.filter(id => id !== sectionId) : [...prev, sectionId]
@@ -145,16 +155,13 @@ export default function PublishModal({
           {/* Duration */}
           <div>
             <label className='block font-semibold text-gray-900 mb-2'>
-              Duration (minutes) <span className='text-red-500'>*</span>
+              Duration (minutes) <span className='text-xs text-gray-500 font-normal'>(auto-calculated)</span>
             </label>
             <input
               type='number'
-              min='15'
-              max='180'
-              step='15'
               value={eventDurationMinutes}
-              onChange={e => setEventDurationMinutes(parseInt(e.target.value))}
-              className='w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#20766a] focus:border-transparent text-gray-900'
+              readOnly
+              className='w-full px-3 py-2 border rounded-lg bg-gray-50 text-gray-900 cursor-not-allowed'
             />
           </div>
 
