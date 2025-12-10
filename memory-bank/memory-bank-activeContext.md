@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 8.8
-**Updated:** 2025-12-10 (Session 44 - Workout Library Search Enhancements)
+**Version:** 8.9
+**Updated:** 2025-12-10 (Session 45 - Google Calendar HTML Formatting & API Setup)
 
 ---
 
@@ -66,6 +66,24 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-12-10 Session 45 - Sonnet):**
+- **✅ Google Calendar HTML Formatting:**
+  - Implemented formatSectionToHTML with bold headers, bullet points, auto-linkify URLs
+  - Changed separator to Unicode divider (─────────────────)
+  - Enhanced readability for athletes viewing workouts in Google Calendar
+- **✅ Google Calendar API Setup:**
+  - Configured .env.local with service account credentials
+  - Created "Forge Functional Fitness" calendar in personal Google account
+  - Resolved organization policy restrictions (service account key creation blocked)
+  - Resolved calendar sharing restrictions (switched from organization to personal calendar)
+  - Status: Configured, ready for testing
+- **✅ Lift Categories Migration Executed:**
+  - Applied 20251208_update_lift_categories.sql via Supabase Dashboard
+  - Updated category names: 'Olympic Lifts'→'Olympic', 'Squats'→'Squat', 'Pressing'→'Press', 'Pulling'+'Deadlifts'→'Pull'
+- Commit: 907fc17 "feat(google): add HTML formatting for Google Calendar events"
+- Files: 2 changed, +44/-16 lines
+- See `project-history/2025-12-10-session-45-google-calendar-html.md`
 
 **Completed (2025-12-10 Session 44 - Sonnet):**
 - **✅ Workout Library Search Enhancements:**
@@ -137,12 +155,15 @@ Athlete Tables (linked to members.id)
 
 ## 🚨 Known Issues (Next Session)
 
-**Migration Pending:**
-1. **`20251208_update_lift_categories.sql`** - Update existing lift categories from old names to new
-   - **Apply via:** Supabase Dashboard SQL Editor
-   - **Purpose:** Change 'Olympic Lifts'→'Olympic', 'Squats'→'Squat', 'Pressing'→'Press', 'Deadlifts'→'Pull'
+**Testing Required:**
+1. **Google Calendar HTML Formatting** - Implementation complete, testing pending
+   - Publish workout from Coach Dashboard
+   - Verify HTML formatting renders correctly in Google Calendar
+   - Verify event appears in Athlete Dashboard
 
-**Note:** Benchmark descriptions with escaped `\n` migration (`20251206_fix_newlines_after_restore.sql`) still pending execution if needed.
+**Migration Pending:**
+1. **`20251206_fix_newlines_after_restore.sql`** (Optional) - Fix escaped `\n` in benchmark descriptions
+   - **Apply via:** Supabase Dashboard SQL Editor (only if needed)
 
 ---
 
@@ -184,21 +205,20 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 44 Priorities (Next Session)
+### Session 46 Priorities (Next Session)
 
-1. **Apply Pending Migration**
-   - Execute `20251208_update_lift_categories.sql` via Supabase Dashboard SQL Editor
-   - Updates existing lift categories to new naming convention
+1. **Test Google Calendar Publishing**
+   - Publish workout from Coach Dashboard
+   - Verify HTML formatting renders correctly in Google Calendar (bold headers, bullets, links)
+   - Verify event appears in Athlete Dashboard → Workouts tab
+   - Test unpublish functionality
 
-2. **Test Session 43 Features**
-   - Test delete modal workflow (return to empty vs permanent delete)
-   - Verify scoring inputs save correctly with unit labels
-   - Test link clicking in coach notes (various URL formats)
+2. **Optional: Update Google Calendar Documentation**
+   - Update `GOOGLE_CALENDAR_SETUP.md` with troubleshooting steps
+   - Document organization policy restrictions workaround
+   - Document personal account alternative approach
 
-3. **Optional: Benchmark Descriptions Migration**
-   - Execute `20251206_fix_newlines_after_restore.sql` if escaped `\n` still present
-
-4. **Continue with January Launch Plan**
+3. **Continue with January Launch Plan**
    - See Week 1 priorities below
 
 ### JANUARY LAUNCH PLAN (Weeks 1-5)
