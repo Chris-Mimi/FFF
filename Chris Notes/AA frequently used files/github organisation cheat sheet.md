@@ -1,223 +1,232 @@
-# Git Branch Management Cheat Sheet
+# Git Commands Cheat Sheet (Idiot-Proof Edition)
 
-## ✅ Branch Setup for Current Project
+## 🚨 CRITICAL: Files with Spaces in Names
 
-### 1. Save all current progress
-```bash```
-git add .
-git commit -m "Save all current progress before branch reorg"
-### 2. Rename current working branch
+**ALWAYS use quotes around file paths that contain spaces!**
 
-Copy code
-git branch -m augment-refactor main-refactor
-### 3. Rename old main branch as backup
+```bash
+# ❌ WRONG - This will fail
+git add Chris Notes/AA frequently used files/Claude open or close session.md
 
-Copy code
-git branch -m main main-legacy
-### 4. Switch to your new main working branch
-
-Copy code
-git checkout main-refactor
-### 5. Push both branches to GitHub
-
-Copy code
-git push origin main-refactor
-git push origin main-legacy
-
-Tip: On GitHub, you can set main-refactor as your default branch in Settings → Branches → Default branch.
-
-## ✅ General Branch Commands
-- Check current branch & status
-```bash```
-
-git status
-git branch
-- Create a new branch
-
-git checkout -b feature/new-component
-- Switch branches
-
-git checkout main-refactor
-git checkout feature/new-component
-- Save work temporarily (stash)
-
-git stash
-- restore later
-
-git stash pop
-- Push a branch to GitHub
-
-
-git push origin branch-name
-- Delete a branch
-
-
-
-
-
-## 🌳 Branch Diagram (Visual Reference)
-
-```text
-GitHub Remote
-├─ main-legacy       <- Backup of original 140kb AthletePage
-├─ main-refactor     <- New stable working branch with refactored components
-├─ feature/new-tab   <- Example feature branch for adding a tab
-├─ bugfix/logbug     <- Example bugfix branch
-└─ archive/old-refactor <- Archived old experimental branch
-
-Local Workspace
-├─ main-refactor      <- Current working branch
-├─ main-legacy       <- Local copy of backup branch
-├─ feature/new-tab   <- Checked out feature branch
-└─ stash             <- Temporary saved changes
+# ✅ CORRECT - Use quotes
+git add "Chris Notes/AA frequently used files/Claude open or close session.md"
 ```
-## Explanation
-- main-legacy
 
-Never edit this branch.
-Pure backup of the original code.
-Can restore files from here if needed.
-- main-refactor
+**Rule of Thumb:** If the file path has ANY spaces, wrap the ENTIRE path in quotes.
 
-Your “default” branch going forward.
-Contains the cleaned-up AthletePage components.
+---
 
-- feature/ & bugfix/ branches
+## 📋 Daily Workflow (Most Common Tasks)
 
-Short-lived branches for new features or fixes.
-
-Merge into main-refactor when done.
-
-- archive/ branches
-
-Keep any old branches you want for historical reference.
-
-Do not edit; only reference.
-
-Stash
-
-Use git stash to temporarily save uncommitted changes without committing.
-
-Restore with git stash pop.
-
-Note: Each local branch can track a corresponding remote branch on GitHub, making switching and merging safe and predictable.
-
-
-
-Git Workflow Cheat Sheet for Branch Management
-1. Check current branch
-bash
-Copy code
+### 1. Check What Changed
+```bash
 git status
-git branch
-Confirms which branch you’re on before making changes.
+```
+**Use this:** Before doing anything else. Shows what files changed.
 
-2. Create a new branch
-bash
-Copy code
-git checkout -b <branch-name>
-Example:
-
-bash
-Copy code
-git checkout -b augment-refactor
-3. Switch branches
-bash
-Copy code
-git checkout <branch-name>
-Example:
-
-bash
-Copy code
-git checkout main
-4. Save uncommitted changes
-bash
-Copy code
+### 2. Save All Changes
+```bash
 git add .
-git commit -m "Save progress"
-Or temporarily stash changes if not ready to commit:
+git commit -m "Your message here"
+```
+**Use this:** To save all your work with a message.
 
-bash
-Copy code
+### 3. Save Specific Files
+```bash
+# For files WITHOUT spaces
+git add path/to/file.ts
+
+# For files WITH spaces (use quotes!)
+git add "Chris Notes/AA frequently used files/my file.md"
+```
+**Use this:** When you only want to save specific files.
+
+### 4. Push to GitHub
+```bash
+git push
+```
+**Use this:** After committing, to backup your work to GitHub.
+
+---
+
+## 🔄 Complete Daily Workflow (Start to Finish)
+
+```bash
+# 1. Check what changed
+git status
+
+# 2. Add all changes (or use quotes for specific files with spaces)
+git add .
+
+# 3. Commit with message
+git commit -m "describe what you changed"
+
+# 4. Push to GitHub
+git push
+```
+
+**Example with session notes:**
+```bash
+git status
+git add "Chris Notes/AA frequently used files/Claude open or close session.md"
+git commit -m "Updated session notes"
+git push
+```
+
+---
+
+## 🆘 Common Problems
+
+### Problem: "git add" Failed
+**Cause:** File path has spaces and you didn't use quotes.
+
+**Fix:**
+```bash
+# Add quotes around the entire path
+git add "Chris Notes/AA frequently used files/your file.md"
+```
+
+### Problem: "git push" Failed
+**Cause:** You haven't committed your changes yet.
+
+**Fix:**
+```bash
+# Commit first, then push
+git add .
+git commit -m "your message"
+git push
+```
+
+### Problem: Forgot What You Changed
+**Solution:**
+```bash
+# See what changed
+git status
+
+# See detailed changes in files
+git diff
+```
+
+---
+
+## 💾 Save Work Temporarily (Stash)
+
+**Use when:** You need to switch tasks but aren't ready to commit.
+
+```bash
+# Save current work temporarily
 git stash
-5. Apply stashed changes
-bash
-Copy code
+
+# Do other work...
+
+# Restore your saved work
 git stash pop
-Restores your stashed changes and removes them from the stash list.
+```
 
-If you want to keep them in stash:
+---
 
-bash
-Copy code
-git stash apply
-6. Update local branch from remote
-bash
-Copy code
-git pull origin <branch-name>
-Makes sure your branch is up to date with GitHub.
+## 🌿 Branch Commands (Less Common)
 
-7. Commit changes
-bash
-Copy code
-git add <file-or-folder>
-git commit -m "Descriptive message"
-Example (per component file):
+### Check Which Branch You're On
+```bash
+git branch
+```
+Current branch shows with `*` next to it.
 
-bash
-Copy code
-git add components/athlete/AthletePageWorkoutsTab.tsx
-git commit -m "Augment TSX refactor: AthletePageWorkoutsTab"
-8. Push changes to GitHub
-bash
-Copy code
-git push origin <branch-name>
-9. Merge branches
-Switch to target branch:
+### Create New Branch
+```bash
+git checkout -b feature/my-new-feature
+```
 
-bash
-Copy code
+### Switch Branches
+```bash
 git checkout main
-Merge source branch:
+```
 
-bash
-Copy code
-git merge augment-refactor
-If conflicts occur, Git will mark them. Resolve conflicts, then commit the merge.
+### Update from GitHub
+```bash
+git pull
+```
 
-# 10. Archiving a branch (safe cleanup) #
+---
 
-Once a feature or refactor is complete and merged, you can archive the branch to keep the repo clean.
+## 📝 Quick Reference Card
 
-Locally:
+| Task | Command |
+|------|---------|
+| Check status | `git status` |
+| Add all files | `git add .` |
+| Add file with spaces | `git add "path with spaces/file.md"` |
+| Commit | `git commit -m "message"` |
+| Push | `git push` |
+| Pull updates | `git pull` |
+| Stash work | `git stash` |
+| Restore stash | `git stash pop` |
 
-bash
-Copy code
-git branch -d <branch-name>      # Safely delete the branch locally if merged
-git branch -D <branch-name>      # Force delete even if not merged (use with caution)
-Remotely on GitHub:
+---
 
-bash
-Copy code
-git push origin --delete <branch-name>   # Removes the branch from the remote list
-Important: Deleting/archiving a branch does not delete the commits. They remain in the repo’s history if merged or referenced elsewhere.
+## ⚡ Most Used Commands (In Order)
 
-Tip: Keep a backup branch or tag if you want to preserve a snapshot for future reference:
+1. `git status` - Always check first
+2. `git add .` - Add all changes (or use quotes for specific files)
+3. `git commit -m "message"` - Save with description
+4. `git push` - Backup to GitHub
 
-bash
-Copy code
-git tag archive/<branch-name>
-git push origin archive/<branch-name>
+**Remember:** If a file path has spaces → use quotes!
 
-✅ Tips:
-Do work → commit per component
-Test locally → npm run dev
-Push branch → git push origin augment-refactor
-Review & fix → commit changes
-Merge to main → test everything
-Archive old branch → keep history safe
-Always pull first to avoid conflicts.
-Commit often with meaningful messages.
-Stash if switching branches mid-work.
-Keep main stable; do experimental work on feature branches.
-Component files can be committed individually for safety.
+---
+
+## 🎯 Project-Specific Paths (Common Files)
+
+```bash
+# Session notes (HAS SPACES - needs quotes!)
+git add "Chris Notes/AA frequently used files/Claude open or close session.md"
+
+# Memory bank files (NO spaces - quotes optional)
+git add memory-bank/memory-bank-activeContext.md
+
+# Project history (NO spaces - quotes optional)
+git add project-history/2025-12-10-session-44-workout-library-search.md
+
+# Multiple files at once
+git add "Chris Notes/AA frequently used files/Claude open or close session.md" memory-bank/memory-bank-activeContext.md
+```
+
+---
+
+## ✅ Current Project Structure
+
+**Main Branch:** `main` (this is your working branch)
+
+**Workflow:**
+- All work happens on `main` branch
+- Commit often
+- Push to GitHub regularly
+- No feature branches needed for solo work
+
+---
+
+## 🚀 Full Session Close Example
+
+```bash
+# 1. Check status
+git status
+
+# 2. Add all changes
+git add .
+
+# 3. Commit with descriptive message
+git commit -m "Session 44: Enhanced workout library search"
+
+# 4. Push to GitHub
+git push
+```
+
+**For specific files with spaces:**
+```bash
+git status
+git add "Chris Notes/AA frequently used files/Claude open or close session.md"
+git add memory-bank/memory-bank-activeContext.md
+git commit -m "Updated session documentation"
+git push
+```
