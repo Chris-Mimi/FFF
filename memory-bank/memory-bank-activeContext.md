@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 9.0
-**Updated:** 2025-12-10 (Session 46 - Google Calendar Fix & UI Improvements)
+**Version:** 10.0
+**Updated:** 2025-12-11 (Session 47 - Re-publish Button)
 
 ---
 
@@ -37,7 +37,7 @@ Users (Supabase Auth)
 ├─ auth.users (id, email)
 
 Coach Tables
-├─ wods (id, date, sections: JSONB [content, lifts[], benchmarks[], forge_benchmarks[], scoring_fields], is_published, publish_time, publish_sections, google_event_id, coach_notes: TEXT)
+├─ wods (id, date, sections: JSONB [content, lifts[], benchmarks[], forge_benchmarks[], scoring_fields], is_published, publish_time, publish_sections, publish_duration, google_event_id, coach_notes: TEXT)
 ├─ section_types (id, name, display_order)
 ├─ workout_types (id, name)
 ├─ workout_titles (id, title)
@@ -66,6 +66,24 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-12-11 Session 47 - Sonnet):**
+- **✅ Re-publish Button with Backwards Compatibility:**
+  - Added "Re-publish" button to Edit Workout modal for re-sending workouts to Google Calendar
+  - Button appears alongside "Unpublish" for published workouts
+  - Opens PublishModal with previously selected sections pre-checked
+  - Backwards compatible with legacy workouts (published before publish_sections field existed)
+  - Legacy workouts: defaults to all sections, session time, calculated duration
+  - New workouts: uses stored publish_sections, publish_time, publish_duration
+  - Updated database queries to fetch publish_sections and publish_duration
+  - Fixed PublishModal state reset when re-opening
+- **✅ Workflow Protocols Update:**
+  - Updated for 2-user Mac profile setup
+  - Added project history reading to session start protocol
+  - Version bumped to 3.0
+- Commit: 66fabb5 "feat(coach): add re-publish button with backwards compatibility"
+- Files: 6 changed, +104/-52 lines
+- See `project-history/2025-12-11-session-47-republish-button.md`
 
 **Completed (2025-12-10 Session 46 - Sonnet):**
 - **✅ Google Calendar: Fix Structured Movement Formatting:**
@@ -177,18 +195,12 @@ Athlete Tables (linked to members.id)
 ## 🚨 Known Issues (Next Session)
 
 **Testing Required:**
-1. **Google Calendar Publishing with Structured Movements** - Implementation complete, testing pending
-   - Publish workout with Forge Benchmark/Benchmark/Lift from Coach Dashboard
-   - Verify all movement types render correctly in Google Calendar (lifts as bullets, benchmarks with descriptions)
-   - Verify HTML formatting (bold headers, line breaks, clickable URLs)
-   - Verify event appears in Athlete Dashboard → Workouts tab
-2. **Publish Modal Auto-Calculated Duration** - Implementation complete, testing pending
-   - Verify duration auto-calculates when selecting/deselecting sections
-   - Verify read-only field cannot be manually edited
-3. **Notes Button Indicator** - Implementation complete, testing pending
-   - Create new workout from session template
-   - Verify notes button is grey (no auto-generated message)
-   - Add notes manually, verify button turns teal
+1. **Re-publish Button** - Implementation complete, testing pending
+   - Test with legacy workout (no publish_sections): verify all sections pre-selected
+   - Test with new workout (has publish_sections): verify stored sections pre-selected
+   - Verify Google Calendar event updates (not duplicates)
+   - Verify athlete view updates to show new section selection
+   - Verify database fields (publish_sections, publish_duration) save correctly after re-publish
 
 **Migration Pending:**
 1. **`20251206_fix_newlines_after_restore.sql`** (Optional) - Fix escaped `\n` in benchmark descriptions

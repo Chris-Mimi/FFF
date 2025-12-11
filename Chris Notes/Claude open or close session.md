@@ -1,6 +1,25 @@
 # At the START of every Claude session give this prompt:
-Read the workflow-protocols and act on what it says. Be sure to read the reminder about following the exact file paths in the memory-bank files
-- . Then go into Plan Mode and either ask or suggest next steps based on information in the memory-bank-active-Context.md and last project-history file
+git pull
+
+
+1. Git sync check:
+git fetch origin
+git status
+(pull if behind)
+
+2. **Read in ONE parallel call (COPY EXACTLY!!!):**
+/Users/chrishiles/SynologyDrive/CrossFit Hammerschmiede (CFH)/AI Development/forge-functional-fitness/memory-bank/workflow-protocols.md
+/Users/chrishiles/SynologyDrive/CrossFit Hammerschmiede (CFH)/AI Development/forge-functional-fitness/memory-bank/memory-bank-activeContext.md
+/Users/chrishiles/SynologyDrive/CrossFit Hammerschmiede (CFH)/AI Development/forge-functional-fitness/memory-bank/memory-bank-techContext.md
+/Users/chrishiles/SynologyDrive/CrossFit Hammerschmiede (CFH)/AI Development/forge-functional-fitness/memory-bank/memory-bank-systemPatterns.md
+
+3. Follow remaining steps in workflow-protocols.md
+This format:
+Line 1: Git sync FIRST (I must do this before reading anything)
+Line 2: Four exact file paths (no chance to use wrong paths)
+Line 3: Defer to workflow-protocols for rest (read latest project history, backup reminder)
+Then read the workflow-protocols and act on what it says. 
+Then go into Plan Mode and either ask or suggest next steps based on information in the memory-bank-active-Context.md and last project-history file
 
 # At the CLOSE of every Claude session give this prompt:
 
