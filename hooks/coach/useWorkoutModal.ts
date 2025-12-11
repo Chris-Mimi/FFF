@@ -55,6 +55,8 @@ export interface WODFormData {
   workout_publish_status?: string | null; // 'draft' | 'published' | null (null = no workout)
   google_event_id?: string | null;
   publish_time?: string; // Time workout was/will be published (HH:MM:SS format)
+  publish_sections?: string[]; // Section IDs that are published
+  publish_duration?: number; // Duration in minutes
   booking_info?: {
     session_id: string;
     confirmed_count: number;

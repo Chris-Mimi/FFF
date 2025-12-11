@@ -50,12 +50,17 @@ export default function PublishModal({
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Update eventTime whenever sessionTime changes
+  // Reset state when modal opens or currentPublishConfig changes
   useEffect(() => {
-    if (sessionTime) {
-      setEventTime(formatTime(sessionTime));
+    if (isOpen) {
+      setSelectedSectionIds(currentPublishConfig?.selectedSectionIds || []);
+      const time = sessionTime
+        ? formatTime(sessionTime)
+        : (currentPublishConfig?.eventTime || '09:00');
+      setEventTime(time);
+      setEventDurationMinutes(currentPublishConfig?.eventDurationMinutes || 60);
     }
-  }, [sessionTime]);
+  }, [isOpen, currentPublishConfig, sessionTime]);
 
   // Auto-calculate duration based on selected sections
   useEffect(() => {

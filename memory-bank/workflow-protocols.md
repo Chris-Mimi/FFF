@@ -1,39 +1,69 @@
 # Workflow Protocols
 
-**Version:** 2.1
-**Updated:** 2025-11-09
+**Version:** 3.0
+**Updated:** 2025-12-11
 
 ---
 
 ## ⛔️ SESSION START PROTOCOL (CRITICAL)
 
+**Project Context:** 2 users working on separate Mac profiles. Git sync required at start of EVERY session.
+
 ### STEP 1: Read This File First
 **ALWAYS read workflow-protocols.md BEFORE other memory bank files.**
 
-### STEP 1.5: Git Sync FIRST (MANDATORY)
-**BEFORE reading Memory Bank, check Git status:**
+### STEP 2: Git Sync Check (MANDATORY - 2-User Setup)
+**Run these commands at the start of EVERY session:**
 
 ```bash
 git fetch origin
 git status
 ```
 
-**If user mentions ANY of these phrases:**
-- "pushed to GitHub"
-- "git is ahead"
-- "committed and pushed"
-- "GitHub has the latest"
+**Then evaluate:**
 
-**Then IMMEDIATELY run:**
+**If branch is behind origin/main:**
 ```bash
-git reset --hard origin/main
+git pull origin main
 ```
 
-**✅ Trust user statements about GitHub**
-**❌ Do NOT analyze local changes first**
-**❌ Do NOT make assumptions about what needs fixing**
+**If user explicitly says "I pushed from other profile" or "GitHub is ahead":**
+```bash
+git reset --hard origin/main  # Trust user, force sync
+```
 
-### STEP 1.75: DATABASE SAFETY PROTOCOL (CRITICAL)
+**Why this matters:**
+- 2 users on separate Mac profiles work independently
+- User may have pushed from other profile in previous session
+- Always sync before starting work to avoid conflicts
+
+### STEP 3: Read Memory Bank Files
+**User will provide exact file paths in session start prompt.**
+Read all three files in ONE parallel call:
+- memory-bank-activeContext.md
+- memory-bank-techContext.md
+- memory-bank-systemPatterns.md
+
+### STEP 4: Read Latest Project History
+**ALWAYS read the most recent project-history file:**
+
+```bash
+ls -t project-history/ | head -1
+```
+
+Then read that file to understand what was done in the last session.
+
+### STEP 5: Database Backup Reminder
+**Ask user if daily backup has been done (if first session of the day).**
+
+### STEP 6: Never Read Chris Notes Folder
+**ABSOLUTELY NEVER read:**
+- ❌ `Chris Notes/` directory
+- ❌ Any path containing "Chris Notes"
+
+---
+
+## 🛡️ DATABASE SAFETY PROTOCOL (CRITICAL)
 
 **⚠️ CRITICAL LESSON LEARNED:** Git branches do NOT protect database state!
 
@@ -72,26 +102,6 @@ npm run restore 2025-12-06
 - Lost data: Custom Forge Benchmarks, Athlete lift records (Dec 6, 2025 incident)
 - Cause: Assumed git branches protected database (they don't!)
 - Solution: Mandatory backups before ANY risky operation
-
-### STEP 2:
-**❌ REMEMBER - Relative paths DO NOT WORK!!!:**
-```
-memory-bank/memory-bank-activeContext.md  ← Read tool will fail
-```
-
-Read Memory Bank Files (Absolute Paths Required)
-
-**Read in ONE parallel call (COPY EXACTLY!!!):**
-```
-/Users/chrishiles/SynologyDrive/CrossFit Hammerschmiede (CFH)/AI Development/forge-functional-fitness/memory-bank/memory-bank-activeContext.md
-/Users/chrishiles/SynologyDrive/CrossFit Hammerschmiede (CFH)/AI Development/forge-functional-fitness/memory-bank/memory-bank-techContext.md
-/Users/chrishiles/SynologyDrive/CrossFit Hammerschmiede (CFH)/AI Development/forge-functional-fitness/memory-bank/memory-bank-systemPatterns.md
-```
-
-### STEP 3: Never Read Chris Notes Folder unless specifically requested
-**ABSOLUTELY NEVER read:**
-- ❌ `Chris Notes/` directory
-- ❌ Any path containing "Chris Notes"
 
 ---
 

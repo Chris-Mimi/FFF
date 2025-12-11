@@ -1,7 +1,7 @@
 'use client';
 
 import SessionTimeEditor from '@/components/coach/SessionTimeEditor';
-import { Check, FileText, Send, X } from 'lucide-react';
+import { Check, FileText, RefreshCw, Send, X } from 'lucide-react';
 import { WODFormData } from '@/hooks/coach/useWorkoutModal';
 
 interface WorkoutModalHeaderProps {
@@ -71,17 +71,30 @@ export default function WorkoutModalHeader({
         />
         {editingWOD?.id && (
           editingWOD.is_published ? (
-            <button
-              onClick={e => {
-                e.preventDefault();
-                onUnpublish();
-              }}
-              className='hover:bg-[#1a6b62] p-2 rounded transition flex items-center gap-2'
-              title='Unpublish Workout'
-            >
-              <X size={20} />
-              <span className='text-sm'>Unpublish</span>
-            </button>
+            <>
+              <button
+                onClick={e => {
+                  e.preventDefault();
+                  onPublishClick();
+                }}
+                className='hover:bg-[#1a6b62] p-2 rounded transition flex items-center gap-2'
+                title='Re-publish to Google Calendar'
+              >
+                <RefreshCw size={20} />
+                <span className='text-sm'>Re-publish</span>
+              </button>
+              <button
+                onClick={e => {
+                  e.preventDefault();
+                  onUnpublish();
+                }}
+                className='hover:bg-[#1a6b62] p-2 rounded transition flex items-center gap-2'
+                title='Unpublish Workout'
+              >
+                <X size={20} />
+                <span className='text-sm'>Unpublish</span>
+              </button>
+            </>
           ) : (
             <button
               onClick={e => {

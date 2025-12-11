@@ -280,6 +280,15 @@ export default function WorkoutModal({
           sections={hook.formData.sections}
           workoutDate={date}
           sessionTime={publishSessionTime}
+          currentPublishConfig={
+            editingWOD?.is_published
+              ? {
+                  selectedSectionIds: editingWOD.publish_sections || hook.formData.sections.map(s => s.id),
+                  eventTime: editingWOD.publish_time || publishSessionTime || '09:00',
+                  eventDurationMinutes: editingWOD.publish_duration || hook.formData.sections.reduce((sum, s) => sum + (s.duration || 0), 0),
+                }
+              : null
+          }
         />
       </>
     );
@@ -614,6 +623,15 @@ export default function WorkoutModal({
         sections={hook.formData.sections}
         workoutDate={date}
         sessionTime={publishSessionTime}
+        currentPublishConfig={
+          editingWOD?.is_published
+            ? {
+                selectedSectionIds: editingWOD.publish_sections || hook.formData.sections.map(s => s.id),
+                eventTime: editingWOD.publish_time || publishSessionTime || '09:00',
+                eventDurationMinutes: editingWOD.publish_duration || hook.formData.sections.reduce((sum, s) => sum + (s.duration || 0), 0),
+              }
+            : null
+        }
       />
     </>
   );
