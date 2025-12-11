@@ -88,7 +88,7 @@ Read Memory Bank Files (Absolute Paths Required)
 /Users/chrishiles/SynologyDrive/CrossFit Hammerschmiede (CFH)/AI Development/forge-functional-fitness/memory-bank/memory-bank-systemPatterns.md
 ```
 
-### STEP 3: Never Read Chris Notes Folder
+### STEP 3: Never Read Chris Notes Folder unless specifically requested
 **ABSOLUTELY NEVER read:**
 - ❌ `Chris Notes/` directory
 - ❌ Any path containing "Chris Notes"
@@ -170,6 +170,8 @@ Proceed with [approach]?
 - `SessionManagementModal.tsx` = Manage Session popup
 
 ### UI Components (Standard Terms)
+**Coach Login Page:** main workout programming interface separate from athlete
+**Athlete Login Page:** athlete workout logbook, records etc separate login from coach
 **Layout:** Modal, Panel, Dropdown, Popover, Tooltip
 **Navigation:** Arrows, Breadcrumbs, Tabs, Sidebar
 **Interactive:** Button, Toggle, Checkbox, Radio button, Input field, Textarea
@@ -183,11 +185,10 @@ Proceed with [approach]?
 
 ## 🎯 TOKEN EFFICIENCY
 
-**MANDATE:** Keep sessions under 50% context usage.
+**MANDATE:** Keep sessions under 70% context usage.
 
 **Monitoring:**
-- **50%/60%/70%:** Alert user and await instructions as to how to proceed
-- **80%:** STOP work, finish current task, ask for Memory Bank update
+- **50%/60%/70%/80%:** Alert user and await instructions as to how to proceed
 
 ---
 
