@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.1
-**Updated:** 2025-12-12 (Session 48 - Athlete UI Fixes)
+**Version:** 10.2
+**Updated:** 2025-12-12 (Session 49 - Workout Naming System)
 
 ---
 
@@ -37,7 +37,7 @@ Users (Supabase Auth)
 ├─ auth.users (id, email)
 
 Coach Tables
-├─ wods (id, date, sections: JSONB [content, lifts[], benchmarks[], forge_benchmarks[], scoring_fields], is_published, publish_time, publish_sections, publish_duration, google_event_id, coach_notes: TEXT)
+├─ wods (id, date, session_type: TEXT, workout_name: TEXT, workout_week: TEXT, sections: JSONB [content, lifts[], benchmarks[], forge_benchmarks[], scoring_fields], is_published, publish_time, publish_sections, publish_duration, google_event_id, coach_notes: TEXT, title: TEXT [DEPRECATED - use session_type])
 ├─ section_types (id, name, display_order)
 ├─ workout_types (id, name)
 ├─ workout_titles (id, title)
@@ -63,9 +63,37 @@ Athlete Tables (linked to members.id)
 ├─ wod_section_results (id, user_id, wod_id, section_id, workout_date, time_result, reps_result, weight_result, scaling_level, rounds_result, calories_result, metres_result, task_completed)
 ```
 
+**New in Session 49 - Workout Naming System:**
+- `wods.session_type` - Replaces title (WOD, Foundations, Kids & Teens, etc.)
+- `wods.workout_name` - Optional name for tracking repeated workouts (e.g., "Overhead Fest", "Fran")
+- `wods.workout_week` - ISO week format YYYY-Www (e.g., "2025-W50"), auto-calculated from date
+- Unique workout identifier: `workout_name + workout_week` (NULL workout_name falls back to date)
+- Index: `idx_wods_workout_name_week` on (workout_name, workout_week)
+
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-12-12 Session 49 - Sonnet):**
+- **✅ Workout Naming System (Movement Frequency Fix):**
+  - Implemented database schema for tracking unique workouts by name+week
+  - Added `session_type`, `workout_name`, `workout_week` columns to wods table
+  - Unique identifier: `workout_name + workout_week` (e.g., "Overhead Fest" in "2025-W50")
+  - Updated all 4 movement analytics functions (lifts, benchmarks, forge benchmarks, exercises)
+  - Backwards compatible: NULL workout_name falls back to date counting
+  - Migration executed via Supabase Dashboard (gitignored)
+  - **Pending:** UI implementation for workout_name input field (next session)
+- **✅ Orphaned Workout Logs Deletion:**
+  - Implemented automatic deletion of logs for deleted workouts
+  - Logs removed from database when coach views athlete logbook tab
+  - No more "Deleted Workout" entries
+- **✅ Save Button Validation Fix:**
+  - Changed validation to allow notes-only OR scoring-only OR both
+  - Button text changed "Save All Results" → "Save"
+  - Fixed error showing when athlete entered notes without scoring data
+- Commit: a7344faa "feat(coach/athlete): implement workout naming system"
+- Files: 3 changed (+94/-41 lines), 1 migration executed
+- See `project-history/2025-12-12-session-49-workout-naming-system.md`
 
 **Completed (2025-12-12 Session 48 - Sonnet):**
 - **✅ Athlete Workout Display Fixes:**
@@ -87,8 +115,7 @@ Athlete Tables (linked to members.id)
   - Replaced failing foreign key join with manual two-query approach
   - Shows workout titles correctly (not UUIDs)
   - Displays "Deleted Workout" for orphaned logs
-  - **Open Item:** Decide whether to hide or delete orphaned logs (next session)
-- Commit: [pending commit hash after push]
+- Commit: [See Session 48 history]
 - Files: 5 changed
 - See `project-history/2025-12-12-session-48-athlete-ui-fixes.md`
 
@@ -219,13 +246,12 @@ Athlete Tables (linked to members.id)
 
 ## 🚨 Known Issues (Next Session)
 
-**Decision Needed:**
-1. **Orphaned Workout Logs** - Logs for deleted workouts currently show as "Deleted Workout"
-   - **Option A:** Hide in UI (keep data, filter out when displaying)
-   - **Option B:** Add cleanup button (manual deletion)
-   - **Option C:** Cascade delete (automatic, requires DB migration)
-   - **Recommendation:** Option A (safe, reversible)
-   - **Decision:** Pending user input
+**UI Implementation Pending:**
+1. **Workout Naming System - Coach Interface**
+   - Add `workout_name` input field to coach workout creation modal
+   - Auto-calculate `workout_week` from selected date
+   - Test frequency counts with named workouts (verify accuracy)
+   - **Expected Result:** Same workout repeated in same week counts as 1x
 
 **Testing Required:**
 1. **Re-publish Button** - Implementation complete, testing pending
@@ -279,11 +305,12 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 49 Priorities (Next Session)
+### Session 50 Priorities (Next Session)
 
-1. **Orphaned Logs Decision**
-   - Decide on handling approach (hide/delete/cascade)
-   - Implement chosen solution
+1. **Workout Naming System UI**
+   - Add `workout_name` input field to coach workout creation interface
+   - Auto-calculate `workout_week` from selected date
+   - Test with actual named workouts to verify frequency counts
 
 2. **Test Session 47 Features**
    - Test re-publish button with legacy and new workouts

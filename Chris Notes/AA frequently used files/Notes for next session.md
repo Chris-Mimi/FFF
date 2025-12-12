@@ -18,6 +18,8 @@ This document is a template with headings to show you where the issue is or wher
     c. Analysis page scroll jump bug (deferred from Session 25)
 *
 *
+# Athletes tab (coach) #
+ Review which info should show in the workout logs
 
  # Edit Workout Modal (coach) #
  IMPROVEMENTS/Bug Fixes:
@@ -43,6 +45,7 @@ This document is a template with headings to show you where the issue is or wher
 
 # Athlete Published Workouts Page #
 SHould only show the days on which athlete has attended a workout. For example, if athletes have not attended a workout on a day, the day should not be displayed.
+* 
 *
 
 # Athlete Logbook Page #
