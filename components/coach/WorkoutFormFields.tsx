@@ -47,10 +47,10 @@ export default function WorkoutFormFields({
         </p>
       </div>
 
-      {/* Title */}
+      {/* Session Type */}
       <div>
         <label className='block text-sm font-semibold mb-2 text-gray-900'>
-          Workout Title <span className='text-red-500'>*</span>
+          Session Type <span className='text-red-500'>*</span>
         </label>
         <div className='relative'>
           <input
@@ -58,7 +58,7 @@ export default function WorkoutFormFields({
             list='workout-titles'
             value={formData.title}
             onChange={e => onFieldChange('title', e.target.value)}
-            placeholder='Select or type custom title...'
+            placeholder='Select or type (e.g., WOD, Foundations, Kids & Teens)...'
             className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 placeholder-gray-400 ${
               errors.title ? 'border-red-500' : 'border-gray-300'
             }`}
@@ -160,6 +160,23 @@ export default function WorkoutFormFields({
             </div>
           )}
         </div>
+      </div>
+
+      {/* Workout Name Input */}
+      <div>
+        <label className='block text-sm font-semibold mb-2 text-gray-900'>
+          Workout Name <span className='text-gray-500 text-xs font-normal'>(Optional)</span>
+        </label>
+        <input
+          type='text'
+          value={formData.workout_name || ''}
+          onChange={e => onFieldChange('workout_name', e.target.value)}
+          placeholder='e.g., "Overhead Fest", "Fran"'
+          className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 placeholder-gray-400'
+        />
+        <p className='text-xs text-gray-500 mt-1'>
+          Use for repeated workouts to track frequency accurately
+        </p>
       </div>
     </>
   );

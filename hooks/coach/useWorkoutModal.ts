@@ -15,6 +15,22 @@ const formatDateLocal = (date: Date): string => {
   return `${year}-${month}-${day}`;
 };
 
+// Calculate ISO week format: YYYY-Www (e.g., "2025-W50")
+// Matches PostgreSQL's TO_CHAR(date, 'IYYY') || '-W' || TO_CHAR(date, 'IW')
+const calculateWorkoutWeek = (date: Date): string => {
+  // Get ISO week date (Thursday of current week determines the year)
+  const tempDate = new Date(date.getTime());
+  tempDate.setHours(0, 0, 0, 0);
+  // Thursday of current week
+  tempDate.setDate(tempDate.getDate() + 4 - (tempDate.getDay() || 7));
+  // January 4 is always in week 1
+  const yearStart = new Date(tempDate.getFullYear(), 0, 4);
+  // Calculate week number
+  const weekNo = Math.ceil((((tempDate.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  const isoYear = tempDate.getFullYear();
+  return `${isoYear}-W${String(weekNo).padStart(2, '0')}`;
+};
+
 export interface WODSection {
   id: string;
   type: string;
@@ -43,6 +59,9 @@ export interface WODSection {
 export interface WODFormData {
   id?: string;
   title: string;
+  session_type?: string; // Replaces 'title' field (WOD, Foundations, Kids & Teens, etc.)
+  workout_name?: string; // Optional workout name for tracking repeated workouts
+  workout_week?: string; // Auto-calculated ISO week (YYYY-Www)
   track_id?: string;
   workout_type_id?: string;
   classTimes: string[];
@@ -196,6 +215,9 @@ export function useWorkoutModal(
 ): UseWorkoutModalResult {
   const [formData, setFormData] = useState<WODFormData>({
     title: '',
+    session_type: '',
+    workout_name: '',
+    workout_week: calculateWorkoutWeek(date),
     track_id: '',
     workout_type_id: '',
     classTimes: [],
@@ -381,6 +403,9 @@ export function useWorkoutModal(
 
         setFormData({
           title: '',
+          session_type: '',
+          workout_name: '',
+          workout_week: calculateWorkoutWeek(date),
           track_id: '',
           workout_type_id: '',
           classTimes: [],
@@ -462,7 +487,17 @@ export function useWorkoutModal(
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleChange = (field: keyof WODFormData, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    // If date changes, recalculate workout_week
+    if (field === 'date') {
+      const dateObj = new Date(value);
+      setFormData(prev => ({
+        ...prev,
+        date: value,
+        workout_week: calculateWorkoutWeek(dateObj),
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, [field]: value }));
+    }
     // Clear error for this field
     if (errors[field]) {
       setErrors(prev => {

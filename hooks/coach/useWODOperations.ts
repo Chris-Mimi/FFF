@@ -28,6 +28,9 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
           .from('wods')
           .update({
             title: wodData.title,
+            session_type: wodData.session_type || wodData.title,
+            workout_name: wodData.workout_name || null,
+            workout_week: wodData.workout_week,
             track_id: wodData.track_id || null,
             workout_type_id: wodData.workout_type_id || null,
             class_times: wodData.classTimes,
@@ -63,6 +66,9 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
               .insert([
                 {
                   title: wodData.title,
+                  session_type: wodData.session_type || wodData.title,
+                  workout_name: wodData.workout_name || null,
+                  workout_week: wodData.workout_week,
                   track_id: wodData.track_id || null,
                   workout_type_id: wodData.workout_type_id || null,
                   class_times: wodData.classTimes,
@@ -96,6 +102,9 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
           .insert([
             {
               title: wodData.title,
+              session_type: wodData.session_type || wodData.title,
+              workout_name: wodData.workout_name || null,
+              workout_week: wodData.workout_week,
               track_id: wodData.track_id || null,
               workout_type_id: wodData.workout_type_id || null,
               class_times: wodData.classTimes,
@@ -156,6 +165,9 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
               .insert([
                 {
                   title: wodData.title,
+                  session_type: wodData.session_type || wodData.title,
+                  workout_name: wodData.workout_name || null,
+                  workout_week: wodData.workout_week,
                   track_id: wodData.track_id || null,
                   workout_type_id: wodData.workout_type_id || null,
                   class_times: wodData.classTimes,
@@ -294,11 +306,24 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
         timesToCreate = wod.classTimes;
       }
 
+      // Calculate workout_week for target date
+      const targetDateCopy = new Date(targetDate);
+      targetDateCopy.setHours(0, 0, 0, 0);
+      const tempDate = new Date(targetDateCopy.getTime());
+      tempDate.setDate(tempDate.getDate() + 4 - (tempDate.getDay() || 7));
+      const yearStart = new Date(tempDate.getFullYear(), 0, 4);
+      const weekNo = Math.ceil((((tempDate.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+      const isoYear = tempDate.getFullYear();
+      const targetWorkoutWeek = `${isoYear}-W${String(weekNo).padStart(2, '0')}`;
+
       const { data: newWorkout, error: workoutError } = await supabase
         .from('wods')
         .insert([
           {
             title: wod.title,
+            session_type: wod.session_type || wod.title,
+            workout_name: wod.workout_name || null,
+            workout_week: targetWorkoutWeek,
             track_id: wod.track_id || null,
             workout_type_id: wod.workout_type_id || null,
             class_times: timesToCreate,

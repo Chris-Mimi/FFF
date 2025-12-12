@@ -51,6 +51,9 @@ export const useCoachData = ({
           wods (
             id,
             title,
+            session_type,
+            workout_name,
+            workout_week,
             track_id,
             workout_type_id,
             class_times,
@@ -101,6 +104,9 @@ export const useCoachData = ({
           grouped[dateKey].push({
             id: workout.id,
             title: workout.title,
+            session_type: workout.session_type || undefined,
+            workout_name: workout.workout_name || undefined,
+            workout_week: workout.workout_week || undefined,
             track_id: workout.track_id || undefined,
             workout_type_id: workout.workout_type_id || undefined,
             classTimes: workout.class_times,
@@ -163,6 +169,9 @@ export const useCoachData = ({
             wods!inner (
               id,
               title,
+              session_type,
+              workout_name,
+              workout_week,
               track_id,
               workout_type_id,
               class_times,
@@ -189,6 +198,9 @@ export const useCoachData = ({
             return {
               id: wod.id,
               title: wod.title,
+              session_type: wod.session_type || undefined,
+              workout_name: wod.workout_name || undefined,
+              workout_week: wod.workout_week || undefined,
               track_id: wod.track_id || undefined,
               workout_type_id: wod.workout_type_id || undefined,
               classTimes: wod.class_times,

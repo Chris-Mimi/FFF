@@ -83,7 +83,9 @@ async function main() {
     { name: 'benchmark_results', desc: 'Athlete benchmark results (CRITICAL USER DATA)' },
     { name: 'wod_section_results', desc: 'WOD results (CRITICAL USER DATA)' },
     { name: 'wods', desc: 'Programmed workouts' },
+    { name: 'weekly_sessions', desc: 'Scheduled sessions (CRITICAL)' },
     { name: 'exercises', desc: 'Exercise library' },
+    { name: 'tracks', desc: 'Workout tracks' },
   ];
 
   const results: Record<string, boolean> = {};
