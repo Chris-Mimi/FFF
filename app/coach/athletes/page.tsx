@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, User, Trophy, Dumbbell, BookOpen, Plus } from 'lucide-react';
+import { getCurrentUser } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 
 interface AthleteProfile {
@@ -32,7 +33,6 @@ export default function CoachAthletesPage() {
   useEffect(() => {
     // Check authentication
     const checkAuth = async () => {
-      const { getCurrentUser } = await import('@/lib/auth');
       const currentUser = await getCurrentUser();
 
       if (!currentUser) {
@@ -506,7 +506,7 @@ function LogbookSection({ athleteId }: { athleteId?: string }) {
         .select(
           `
           *,
-          wods (
+          wod:wod_id (
             title,
             date
           )
@@ -544,7 +544,7 @@ function LogbookSection({ athleteId }: { athleteId?: string }) {
             <div key={log.id} className='p-4 bg-gray-50 rounded-lg'>
               <div className='flex items-start justify-between mb-2'>
                 <div>
-                  <p className='font-semibold text-gray-900'>{log.wods?.title || 'Workout'}</p>
+                  <p className='font-semibold text-gray-900'>{log.wod?.title || 'Workout'}</p>
                   <p className='text-sm text-gray-600'>
                     {new Date(log.workout_date).toLocaleDateString()}
                   </p>

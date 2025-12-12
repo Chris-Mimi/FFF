@@ -6,6 +6,7 @@ import ExerciseVideoModal from '@/components/coach/ExerciseVideoModal';
 import ForgeBenchmarksTab from '@/components/coach/ForgeBenchmarksTab';
 import LiftsTab from '@/components/coach/LiftsTab';
 import ReferencesTab from '@/components/coach/ReferencesTab';
+import { getCurrentUser } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import { DragEndEvent } from '@dnd-kit/core';
 import { ArrowLeft } from 'lucide-react';
@@ -183,7 +184,6 @@ export default function BenchmarksLiftsManagementPage() {
   }, [loading]);
 
   const checkAuth = async () => {
-    const { getCurrentUser } = await import('@/lib/auth');
     const currentUser = await getCurrentUser();
 
     if (!currentUser) {

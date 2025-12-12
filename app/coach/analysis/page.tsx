@@ -3,6 +3,7 @@
 import DateRangePicker from '@/components/coach/analysis/DateRangePicker';
 import ExerciseLibraryPanel from '@/components/coach/analysis/ExerciseLibraryPanel';
 import StatisticsSection from '@/components/coach/analysis/StatisticsSection';
+import { getCurrentUser, signOut } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import {
   getExerciseFrequency,
@@ -140,7 +141,6 @@ export default function AnalysisPage() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { getCurrentUser } = await import('@/lib/auth');
       const currentUser = await getCurrentUser();
 
       if (!currentUser) {
@@ -436,7 +436,6 @@ export default function AnalysisPage() {
   };
 
   const handleLogout = async () => {
-    const { signOut } = await import('@/lib/auth');
     await signOut();
     router.push('/login');
   };

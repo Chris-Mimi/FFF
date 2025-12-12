@@ -233,6 +233,10 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
   };
 
   const getPublishedSections = (workout: PublishedWorkout): WorkoutSection[] => {
+    // Backwards compatibility: if publish_sections is null/empty, show all sections
+    if (!workout.publish_sections || workout.publish_sections.length === 0) {
+      return workout.sections;
+    }
     return workout.sections.filter(section =>
       workout.publish_sections.includes(section.id)
     );

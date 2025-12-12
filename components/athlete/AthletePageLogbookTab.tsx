@@ -878,13 +878,105 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                       <div className='space-y-3 mb-4'>
                     {getPublishedSections(wod).map(section => (
                       <div key={section.id} className='bg-gray-50 rounded-lg p-3'>
-                        <div className='flex items-center justify-between mb-2'>
+                        <div className='flex items-center gap-3 flex-wrap mb-2'>
                           <span className='text-sm font-medium text-[#208479] uppercase'>
                             {section.type}
                           </span>
                           {section.duration && (
                             <span className='text-sm text-gray-500'>{section.duration} min</span>
                           )}
+
+                          {/* Inline Scoring Inputs for free-form content sections */}
+                          {(() => {
+                            // Only show inline scoring for sections WITHOUT lifts/benchmarks/forge
+                            const hasStructuredItems =
+                              (section.lifts && section.lifts.length > 0) ||
+                              (section.benchmarks && section.benchmarks.length > 0) ||
+                              (section.forge_benchmarks && section.forge_benchmarks.length > 0);
+
+                            if (hasStructuredItems) return null;
+
+                            const scoringFields = section.scoring_fields || {};
+                            const hasAnyEnabledField = Object.values(scoringFields).some(v => v === true);
+
+                            if (!hasAnyEnabledField) return null;
+
+                            const itemKey = `${wod.id}:::${section.id}:::content-0`;
+
+                            return (
+                              <div className='flex items-center gap-2 ml-auto flex-wrap'>
+                                <span className='text-xs font-medium text-gray-600'>Result:</span>
+                                {scoringFields.time && (
+                                  <input type='text' placeholder='mm:ss'
+                                    value={sectionResults[itemKey]?.time_result || ''}
+                                    onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), time_result: e.target.value}})}
+                                    className='w-16 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
+                                  />
+                                )}
+                                {scoringFields.rounds_reps && (
+                                  <>
+                                    <input type='number' placeholder='rds'
+                                      value={sectionResults[itemKey]?.rounds_result || ''}
+                                      onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), rounds_result: e.target.value}})}
+                                      className='w-14 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
+                                    />
+                                    <span className='text-xs'>+</span>
+                                  </>
+                                )}
+                                {(scoringFields.reps || scoringFields.rounds_reps) && (
+                                  <input type='number' placeholder='reps'
+                                    value={sectionResults[itemKey]?.reps_result || ''}
+                                    onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), reps_result: e.target.value}})}
+                                    className='w-14 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
+                                  />
+                                )}
+                                {scoringFields.load && (
+                                  <input type='number' step='0.5' placeholder='kg'
+                                    value={sectionResults[itemKey]?.weight_result || ''}
+                                    onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), weight_result: e.target.value}})}
+                                    className='w-16 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
+                                  />
+                                )}
+                                {scoringFields.calories && (
+                                  <input type='number' placeholder='cal'
+                                    value={sectionResults[itemKey]?.calories_result || ''}
+                                    onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), calories_result: e.target.value}})}
+                                    className='w-14 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
+                                  />
+                                )}
+                                {scoringFields.metres && (
+                                  <input type='number' step='0.1' placeholder='m'
+                                    value={sectionResults[itemKey]?.metres_result || ''}
+                                    onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), metres_result: e.target.value}})}
+                                    className='w-16 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
+                                  />
+                                )}
+                                {scoringFields.checkbox && (
+                                  <label className='flex items-center gap-1 text-xs'>
+                                    <input type='checkbox'
+                                      checked={sectionResults[itemKey]?.task_completed || false}
+                                      onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), task_completed: e.target.checked}})}
+                                      className='rounded border-gray-300'
+                                    />
+                                    <span>✓</span>
+                                  </label>
+                                )}
+                                {scoringFields.scaling && (
+                                  <select
+                                    value={sectionResults[itemKey]?.scaling_level || ''}
+                                    onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), scaling_level: e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | ''}})}
+                                    className='w-14 px-1 py-0.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900 bg-white'
+                                  >
+                                    <option value=''>-</option>
+                                    <option value='Rx'>Rx</option>
+                                    <option value='Sc1'>Sc1</option>
+                                    <option value='Sc2'>Sc2</option>
+                                    <option value='Sc3'>Sc3</option>
+                                  </select>
+                                )}
+                              </div>
+                            );
+                          })()}
                         </div>
 
                         {/* Lifts (Blue Badges) + Configurable Scoring Fields */}
@@ -892,7 +984,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                           <div className='space-y-2 mb-2'>
                             {section.lifts.map((lift, liftIdx) => {
                               const itemKey = `${wod.id}:::${section.id}:::lift-${liftIdx}`;
-                              const scoringFields = section.scoring_fields || {time: true, reps: true, load: true, scaling: true};
+                              const scoringFields = section.scoring_fields || {};
 
                               return (
                                 <div key={liftIdx} className='bg-blue-50 text-blue-900 rounded px-2 py-1'>
@@ -984,7 +1076,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                             {section.benchmarks.map((benchmark, bmIdx) => {
                               const formatted = formatBenchmark(benchmark);
                               const itemKey = `${wod.id}:::${section.id}:::benchmark-${bmIdx}`;
-                              const scoringFields = section.scoring_fields || {time: true, reps: true, load: true, scaling: true};
+                              const scoringFields = section.scoring_fields || {};
 
                               return (
                                 <div key={bmIdx} className='bg-teal-50 text-teal-900 rounded px-2 py-1'>
@@ -1079,7 +1171,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                             {section.forge_benchmarks.map((forge, forgeIdx) => {
                               const formatted = formatForgeBenchmark(forge);
                               const itemKey = `${wod.id}:::${section.id}:::forge-${forgeIdx}`;
-                              const scoringFields = section.scoring_fields || {time: true, reps: true, load: true, scaling: true};
+                              const scoringFields = section.scoring_fields || {};
 
                               return (
                                 <div key={forgeIdx} className='bg-cyan-50 text-cyan-900 rounded px-2 py-1'>
@@ -1199,111 +1291,10 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                             );
                           }
 
-                          // Scoring fields enabled - show content with ONE set of inputs for the whole section
-                          const itemKey = `${wod.id}:::${section.id}:::content-0`;
-
+                          // Scoring fields enabled - show content only (scoring inputs now inline in header)
                           return (
-                            <div className='space-y-3'>
-                              {/* WOD Content Text */}
-                              <div className='text-sm text-gray-700 whitespace-pre-wrap'>
-                                {section.content}
-                              </div>
-
-                              {/* Single set of scoring inputs for the entire section */}
-                              <div className='bg-gray-50 rounded px-3 py-2'>
-                                <div className='flex items-center gap-2 flex-wrap'>
-                                  <span className='text-xs font-medium text-gray-600 mr-2'>Your Result:</span>
-
-                                  {/* Configurable Scoring Inputs */}
-                                  <div className='flex items-center gap-2 flex-wrap'>
-                                      {scoringFields.time && (
-                                        <div className='flex items-center gap-1'>
-                                          <input type='text' placeholder='mm:ss'
-                                            value={sectionResults[itemKey]?.time_result || ''}
-                                            onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), time_result: e.target.value}})}
-                                            className='w-16 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
-                                          />
-                                        </div>
-                                      )}
-                                      {scoringFields.rounds_reps && (
-                                        <>
-                                          <div className='flex items-center gap-1'>
-                                            <input type='number' placeholder='0'
-                                              value={sectionResults[itemKey]?.rounds_result || ''}
-                                              onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), rounds_result: e.target.value}})}
-                                              className='w-14 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
-                                            />
-                                            <span className='text-xs text-gray-600'>rds</span>
-                                          </div>
-                                          <span className='text-xs text-gray-600'>+</span>
-                                        </>
-                                      )}
-                                      {(scoringFields.reps || scoringFields.rounds_reps) && (
-                                        <div className='flex items-center gap-1'>
-                                          <input type='number' placeholder='0'
-                                            value={sectionResults[itemKey]?.reps_result || ''}
-                                            onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), reps_result: e.target.value}})}
-                                            className='w-14 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
-                                          />
-                                          <span className='text-xs text-gray-600'>reps</span>
-                                        </div>
-                                      )}
-                                      {scoringFields.load && (
-                                        <div className='flex items-center gap-1'>
-                                          <input type='number' step='0.5' placeholder='0'
-                                            value={sectionResults[itemKey]?.weight_result || ''}
-                                            onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), weight_result: e.target.value}})}
-                                            className='w-16 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
-                                          />
-                                          <span className='text-xs text-gray-600'>kg</span>
-                                        </div>
-                                      )}
-                                      {scoringFields.calories && (
-                                        <div className='flex items-center gap-1'>
-                                          <input type='number' placeholder='0'
-                                            value={sectionResults[itemKey]?.calories_result || ''}
-                                            onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), calories_result: e.target.value}})}
-                                            className='w-14 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
-                                          />
-                                          <span className='text-xs text-gray-600'>cal</span>
-                                        </div>
-                                      )}
-                                      {scoringFields.metres && (
-                                        <div className='flex items-center gap-1'>
-                                          <input type='number' step='0.1' placeholder='0'
-                                            value={sectionResults[itemKey]?.metres_result || ''}
-                                            onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), metres_result: e.target.value}})}
-                                            className='w-16 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
-                                          />
-                                          <span className='text-xs text-gray-600'>m</span>
-                                        </div>
-                                      )}
-                                      {scoringFields.checkbox && (
-                                        <label className='flex items-center gap-1 text-xs'>
-                                          <input type='checkbox'
-                                            checked={sectionResults[itemKey]?.task_completed || false}
-                                            onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), task_completed: e.target.checked}})}
-                                            className='rounded border-gray-300'
-                                          />
-                                          <span>✓</span>
-                                        </label>
-                                      )}
-                                      {scoringFields.scaling && (
-                                        <select
-                                          value={sectionResults[itemKey]?.scaling_level || ''}
-                                          onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), scaling_level: e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | ''}})}
-                                          className='w-14 px-1 py-0.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900 bg-white'
-                                        >
-                                          <option value=''>-</option>
-                                          <option value='Rx'>Rx</option>
-                                          <option value='Sc1'>Sc1</option>
-                                          <option value='Sc2'>Sc2</option>
-                                          <option value='Sc3'>Sc3</option>
-                                        </select>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
+                            <div className='text-sm text-gray-700 whitespace-pre-wrap mt-2'>
+                              {section.content}
                             </div>
                           );
                         })()}
