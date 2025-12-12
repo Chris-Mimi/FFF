@@ -501,25 +501,42 @@ function LogbookSection({ athleteId }: { athleteId?: string }) {
     if (!athleteId) return;
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // Fetch workout logs
+      const { data: logsData, error: logsError } = await supabase
         .from('workout_logs')
-        .select(
-          `
-          *,
-          wod:wod_id (
-            title,
-            date
-          )
-        `
-        )
+        .select('*')
         .eq('user_id', athleteId)
         .order('workout_date', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching workout logs:', error);
-        throw error;
+      if (logsError) {
+        console.error('Error fetching workout logs:', logsError);
+        throw logsError;
       }
-      setLogs(data || []);
+
+      // Get unique workout IDs (excluding nulls)
+      const workoutIds = [...new Set(logsData?.map(log => log.wod_id).filter(Boolean) || [])];
+
+      // Fetch workout details if we have IDs
+      let workoutsMap: Record<string, any> = {};
+      if (workoutIds.length > 0) {
+        const { data: workoutsData } = await supabase
+          .from('wods')
+          .select('id, title, date')
+          .in('id', workoutIds);
+
+        workoutsMap = (workoutsData || []).reduce((acc, wod) => {
+          acc[wod.id] = wod;
+          return acc;
+        }, {} as Record<string, any>);
+      }
+
+      // Attach workout data to logs
+      const enrichedLogs = (logsData || []).map(log => ({
+        ...log,
+        workout: log.wod_id ? workoutsMap[log.wod_id] : null
+      }));
+
+      setLogs(enrichedLogs);
     } catch (error) {
       console.error('Error fetching workout logs:', error);
       setLogs([]);
@@ -544,7 +561,9 @@ function LogbookSection({ athleteId }: { athleteId?: string }) {
             <div key={log.id} className='p-4 bg-gray-50 rounded-lg'>
               <div className='flex items-start justify-between mb-2'>
                 <div>
-                  <p className='font-semibold text-gray-900'>{log.wod?.title || 'Workout'}</p>
+                  <p className='font-semibold text-gray-900'>
+                    {log.workout?.title || <span className='text-gray-400 italic'>Deleted Workout</span>}
+                  </p>
                   <p className='text-sm text-gray-600'>
                     {new Date(log.workout_date).toLocaleDateString()}
                   </p>
