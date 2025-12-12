@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.0
-**Updated:** 2025-12-11 (Session 47 - Re-publish Button)
+**Version:** 10.1
+**Updated:** 2025-12-12 (Session 48 - Athlete UI Fixes)
 
 ---
 
@@ -66,6 +66,31 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-12-12 Session 48 - Sonnet):**
+- **✅ Athlete Workout Display Fixes:**
+  - Fixed missing details for Dec 8 workout (publish_sections: null handling)
+  - Added backwards compatibility: shows all sections when publish_sections null/empty
+  - Dec 10 missing circle expected (no track assigned)
+- **✅ Scoring Layout Optimization:**
+  - Moved scoring inputs inline with section title (saves vertical space)
+  - Changed from separate box below to inline: `[WARM-UP 10min | Result: ___ ___]`
+- **✅ Fixed Incorrect Default Scoring Fields:**
+  - Removed hardcoded defaults {time, reps, load, scaling} from 3 locations
+  - Now only shows scoring inputs when coach explicitly enables them
+  - Fixed in: Lifts, Benchmarks, Forge Benchmarks sections
+- **✅ Coach Library Tab Error Fix:**
+  - Changed dynamic imports to static imports in 3 coach pages
+  - Fixed `Cannot read properties of undefined (reading 'split')` error
+  - Pages: benchmarks-lifts, analysis, athletes
+- **✅ Athletes Tab Logbook Query Fix:**
+  - Replaced failing foreign key join with manual two-query approach
+  - Shows workout titles correctly (not UUIDs)
+  - Displays "Deleted Workout" for orphaned logs
+  - **Open Item:** Decide whether to hide or delete orphaned logs (next session)
+- Commit: [pending commit hash after push]
+- Files: 5 changed
+- See `project-history/2025-12-12-session-48-athlete-ui-fixes.md`
 
 **Completed (2025-12-11 Session 47 - Sonnet):**
 - **✅ Re-publish Button with Backwards Compatibility:**
@@ -194,6 +219,14 @@ Athlete Tables (linked to members.id)
 
 ## 🚨 Known Issues (Next Session)
 
+**Decision Needed:**
+1. **Orphaned Workout Logs** - Logs for deleted workouts currently show as "Deleted Workout"
+   - **Option A:** Hide in UI (keep data, filter out when displaying)
+   - **Option B:** Add cleanup button (manual deletion)
+   - **Option C:** Cascade delete (automatic, requires DB migration)
+   - **Recommendation:** Option A (safe, reversible)
+   - **Decision:** Pending user input
+
 **Testing Required:**
 1. **Re-publish Button** - Implementation complete, testing pending
    - Test with legacy workout (no publish_sections): verify all sections pre-selected
@@ -246,16 +279,17 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 47 Priorities (Next Session)
+### Session 49 Priorities (Next Session)
 
-1. **Test Session 46 Features**
-   - Test Google Calendar publishing with Forge Benchmark/Benchmark/Lift sections
-   - Test publish modal auto-calculated duration
-   - Test notes button indicator (no auto-generated message)
-   - Test "WOD movement practice" scoring fields
-   - Test exercise card edit/delete icon positioning
+1. **Orphaned Logs Decision**
+   - Decide on handling approach (hide/delete/cascade)
+   - Implement chosen solution
 
-2. **Continue with January Launch Plan**
+2. **Test Session 47 Features**
+   - Test re-publish button with legacy and new workouts
+   - Verify Google Calendar updates correctly
+
+3. **Continue with January Launch Plan**
    - See Week 1 priorities below
 
 ### JANUARY LAUNCH PLAN (Weeks 1-5)
