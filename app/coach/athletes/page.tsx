@@ -478,13 +478,14 @@ function LiftsSection({ athleteId, onAddResult }: { athleteId?: string; onAddRes
 function LogbookSection({ athleteId }: { athleteId?: string }) {
   interface WorkoutLog {
     id: string;
+    wod_id?: string;
     workout_date: string;
     result?: string;
     notes?: string;
-    wods?: {
+    workout?: {
       title: string;
       date: string;
-    };
+    } | null;
   }
 
   const [logs, setLogs] = useState<WorkoutLog[]>([]);
@@ -530,13 +531,34 @@ function LogbookSection({ athleteId }: { athleteId?: string }) {
         }, {} as Record<string, any>);
       }
 
-      // Attach workout data to logs
+      // Attach workout data to logs and filter out orphaned logs
       const enrichedLogs = (logsData || []).map(log => ({
         ...log,
         workout: log.wod_id ? workoutsMap[log.wod_id] : null
       }));
 
-      setLogs(enrichedLogs);
+      // Identify orphaned logs (no matching workout)
+      const orphanedLogIds = enrichedLogs
+        .filter(log => log.wod_id && !log.workout)
+        .map(log => log.id);
+
+      // Delete orphaned logs from database
+      if (orphanedLogIds.length > 0) {
+        const { error: deleteError } = await supabase
+          .from('workout_logs')
+          .delete()
+          .in('id', orphanedLogIds);
+
+        if (deleteError) {
+          console.error('Error deleting orphaned logs:', deleteError);
+        } else {
+          console.log(`Deleted ${orphanedLogIds.length} orphaned workout logs`);
+        }
+      }
+
+      // Only show logs with valid workouts
+      const validLogs = enrichedLogs.filter(log => log.workout);
+      setLogs(validLogs);
     } catch (error) {
       console.error('Error fetching workout logs:', error);
       setLogs([]);

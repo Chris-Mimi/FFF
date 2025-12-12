@@ -461,21 +461,12 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
     }
   };
 
-  // UNIFIED SAVE FUNCTION - Handles all scoring data (lifts, benchmarks, forge, content)
+  // UNIFIED SAVE FUNCTION - Handles all scoring data (lifts, benchmarks, forge, content) and notes
   const saveAllResults = async (workoutDate: string) => {
     const resultsToSave = Object.entries(sectionResults).filter(([_, result]) =>
       result.time_result || result.reps_result || result.weight_result || result.scaling_level ||
       result.rounds_result || result.calories_result || result.metres_result || result.task_completed
     );
-
-    if (resultsToSave.length === 0) {
-      alert('No results entered to save');
-      return;
-    }
-
-    let savedCount = 0;
-    let errorCount = 0;
-    const errors: string[] = [];
 
     // Find current workout to extract structured data
     const currentWorkout = workouts.find(w => formatLocalDate(new Date(w.date)) === workoutDate);
@@ -483,6 +474,19 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
       alert('Workout not found');
       return;
     }
+
+    // Check if there are notes to save
+    const hasNotes = workoutLogs[currentWorkout.id]?.notes?.trim();
+
+    // If no results AND no notes, show error
+    if (resultsToSave.length === 0 && !hasNotes) {
+      alert('No results or notes to save');
+      return;
+    }
+
+    let savedCount = 0;
+    let errorCount = 0;
+    const errors: string[] = [];
 
     for (const [key, result] of resultsToSave) {
       try {
@@ -1371,7 +1375,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                           onClick={() => saveAllResults(formatLocalDate(selectedDate))}
                           className='px-8 py-3 bg-[#208479] hover:bg-[#1a6b62] text-white font-semibold rounded-lg transition shadow-lg'
                         >
-                          Save All Results
+                          Save
                         </button>
                       </div>
                     </div>

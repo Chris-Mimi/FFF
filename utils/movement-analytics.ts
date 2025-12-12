@@ -58,7 +58,7 @@ export interface DateRangeFilter {
 export async function getLiftFrequency(filter?: DateRangeFilter): Promise<LiftAnalysis[]> {
   let query = supabase
     .from('wods')
-    .select('id, date, sections');
+    .select('id, date, workout_name, workout_week, sections');
 
   if (filter?.startDate) {
     query = query.gte('date', filter.startDate);
@@ -74,11 +74,11 @@ export async function getLiftFrequency(filter?: DateRangeFilter): Promise<LiftAn
     return [];
   }
 
-  // Aggregate lift data
+  // Aggregate lift data (count unique workouts by name+week or date)
   const liftMap = new Map<string, {
     id: string;
     name: string;
-    count: number;
+    uniqueWorkouts: Set<string>;
     lastUsed: string;
     totalSets: number;
     totalReps: number;
@@ -86,6 +86,11 @@ export async function getLiftFrequency(filter?: DateRangeFilter): Promise<LiftAn
   }>();
 
   workouts?.forEach(workout => {
+    // Create unique workout identifier: workout_name+workout_week if available, else date
+    const workoutKey = workout.workout_name && workout.workout_week
+      ? `${workout.workout_name}_${workout.workout_week}`
+      : workout.date;
+
     const sections = workout.sections as Array<{
       lifts?: ConfiguredLift[];
     }>;
@@ -95,7 +100,7 @@ export async function getLiftFrequency(filter?: DateRangeFilter): Promise<LiftAn
         const existing = liftMap.get(lift.id);
 
         if (existing) {
-          existing.count++;
+          existing.uniqueWorkouts.add(workoutKey);
           if (workout.date > existing.lastUsed) {
             existing.lastUsed = workout.date;
           }
@@ -106,7 +111,7 @@ export async function getLiftFrequency(filter?: DateRangeFilter): Promise<LiftAn
           liftMap.set(lift.id, {
             id: lift.id,
             name: lift.name,
-            count: 1,
+            uniqueWorkouts: new Set([workoutKey]),
             lastUsed: workout.date,
             totalSets: lift.sets || 0,
             totalReps: lift.reps || 0,
@@ -119,8 +124,9 @@ export async function getLiftFrequency(filter?: DateRangeFilter): Promise<LiftAn
 
   // Convert to array and calculate averages
   const liftAnalysis: LiftAnalysis[] = Array.from(liftMap.values()).map(lift => {
-    const avgSets = lift.count > 0 ? lift.totalSets / lift.count : undefined;
-    const avgReps = lift.count > 0 ? lift.totalReps / lift.count : undefined;
+    const count = lift.uniqueWorkouts.size;
+    const avgSets = count > 0 ? lift.totalSets / count : undefined;
+    const avgReps = count > 0 ? lift.totalReps / count : undefined;
 
     // Find most common percentage
     let mostCommonPercentage: number | undefined;
@@ -136,7 +142,7 @@ export async function getLiftFrequency(filter?: DateRangeFilter): Promise<LiftAn
     return {
       id: lift.id,
       name: lift.name,
-      count: lift.count,
+      count: count,
       lastUsed: lift.lastUsed,
       avgSets: avgSets ? Math.round(avgSets * 10) / 10 : undefined,
       avgReps: avgReps ? Math.round(avgReps * 10) / 10 : undefined,
@@ -166,7 +172,7 @@ export async function getLiftFrequencyById(liftId: string, filter?: DateRangeFil
 export async function getBenchmarkFrequency(filter?: DateRangeFilter): Promise<BenchmarkAnalysis[]> {
   let query = supabase
     .from('wods')
-    .select('id, date, sections');
+    .select('id, date, workout_name, workout_week, sections');
 
   if (filter?.startDate) {
     query = query.gte('date', filter.startDate);
@@ -182,17 +188,22 @@ export async function getBenchmarkFrequency(filter?: DateRangeFilter): Promise<B
     return [];
   }
 
-  // Aggregate benchmark data
+  // Aggregate benchmark data (count unique workouts by name+week or date)
   const benchmarkMap = new Map<string, {
     id: string;
     name: string;
     type: string;
-    count: number;
+    uniqueWorkouts: Set<string>;
     lastUsed: string;
     scalingOptions: string[];
   }>();
 
   workouts?.forEach(workout => {
+    // Create unique workout identifier
+    const workoutKey = workout.workout_name && workout.workout_week
+      ? `${workout.workout_name}_${workout.workout_week}`
+      : workout.date;
+
     const sections = workout.sections as Array<{
       benchmarks?: ConfiguredBenchmark[];
     }>;
@@ -202,7 +213,7 @@ export async function getBenchmarkFrequency(filter?: DateRangeFilter): Promise<B
         const existing = benchmarkMap.get(benchmark.id);
 
         if (existing) {
-          existing.count++;
+          existing.uniqueWorkouts.add(workoutKey);
           if (workout.date > existing.lastUsed) {
             existing.lastUsed = workout.date;
           }
@@ -214,7 +225,7 @@ export async function getBenchmarkFrequency(filter?: DateRangeFilter): Promise<B
             id: benchmark.id,
             name: benchmark.name,
             type: benchmark.type,
-            count: 1,
+            uniqueWorkouts: new Set([workoutKey]),
             lastUsed: workout.date,
             scalingOptions: benchmark.scaling_option ? [benchmark.scaling_option] : [],
           });
@@ -239,7 +250,7 @@ export async function getBenchmarkFrequency(filter?: DateRangeFilter): Promise<B
       id: benchmark.id,
       name: benchmark.name,
       type: benchmark.type,
-      count: benchmark.count,
+      count: benchmark.uniqueWorkouts.size,
       lastUsed: benchmark.lastUsed,
       mostCommonScaling,
     };
@@ -266,7 +277,7 @@ export async function getBenchmarkFrequencyById(benchmarkId: string, filter?: Da
 export async function getForgeBenchmarkFrequency(filter?: DateRangeFilter): Promise<ForgeBenchmarkAnalysis[]> {
   let query = supabase
     .from('wods')
-    .select('id, date, sections');
+    .select('id, date, workout_name, workout_week, sections');
 
   if (filter?.startDate) {
     query = query.gte('date', filter.startDate);
@@ -282,17 +293,22 @@ export async function getForgeBenchmarkFrequency(filter?: DateRangeFilter): Prom
     return [];
   }
 
-  // Aggregate forge benchmark data
+  // Aggregate forge benchmark data (count unique workouts by name+week or date)
   const forgeMap = new Map<string, {
     id: string;
     name: string;
     type: string;
-    count: number;
+    uniqueWorkouts: Set<string>;
     lastUsed: string;
     scalingOptions: string[];
   }>();
 
   workouts?.forEach(workout => {
+    // Create unique workout identifier
+    const workoutKey = workout.workout_name && workout.workout_week
+      ? `${workout.workout_name}_${workout.workout_week}`
+      : workout.date;
+
     const sections = workout.sections as Array<{
       forge_benchmarks?: ConfiguredForgeBenchmark[];
     }>;
@@ -302,7 +318,7 @@ export async function getForgeBenchmarkFrequency(filter?: DateRangeFilter): Prom
         const existing = forgeMap.get(forge.id);
 
         if (existing) {
-          existing.count++;
+          existing.uniqueWorkouts.add(workoutKey);
           if (workout.date > existing.lastUsed) {
             existing.lastUsed = workout.date;
           }
@@ -314,7 +330,7 @@ export async function getForgeBenchmarkFrequency(filter?: DateRangeFilter): Prom
             id: forge.id,
             name: forge.name,
             type: forge.type,
-            count: 1,
+            uniqueWorkouts: new Set([workoutKey]),
             lastUsed: workout.date,
             scalingOptions: forge.scaling_option ? [forge.scaling_option] : [],
           });
@@ -339,7 +355,7 @@ export async function getForgeBenchmarkFrequency(filter?: DateRangeFilter): Prom
       id: forge.id,
       name: forge.name,
       type: forge.type,
-      count: forge.count,
+      count: forge.uniqueWorkouts.size,
       lastUsed: forge.lastUsed,
       mostCommonScaling,
     };
@@ -391,7 +407,7 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
   // Fetch WODs
   let query = supabase
     .from('wods')
-    .select('id, date, sections');
+    .select('id, date, workout_name, workout_week, sections');
 
   if (filter?.startDate) {
     query = query.gte('date', filter.startDate);
@@ -407,12 +423,12 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
     return [];
   }
 
-  // Aggregate exercise data from WOD content
+  // Aggregate exercise data from WOD content (count unique workouts by name+week or date)
   const exerciseMap = new Map<string, {
     id: string;
     name: string;
     category: string;
-    count: number;
+    uniqueWorkouts: Set<string>;
     lastProgrammed: string;
   }>();
 
@@ -432,6 +448,11 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
   ];
 
   workouts?.forEach(workout => {
+    // Create unique workout identifier
+    const workoutKey = workout.workout_name && workout.workout_week
+      ? `${workout.workout_name}_${workout.workout_week}`
+      : workout.date;
+
     const sections = workout.sections as Array<{ content?: string }>;
 
     sections?.forEach(section => {
@@ -479,7 +500,7 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
               const existing = exerciseMap.get(exercise.id);
 
               if (existing) {
-                existing.count++;
+                existing.uniqueWorkouts.add(workoutKey);
                 if (workout.date > existing.lastProgrammed) {
                   existing.lastProgrammed = workout.date;
                 }
@@ -488,7 +509,7 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
                   id: exercise.id,
                   name: exercise.name,
                   category: exercise.category,
-                  count: 1,
+                  uniqueWorkouts: new Set([workoutKey]),
                   lastProgrammed: workout.date,
                 });
               }
@@ -502,7 +523,13 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
   });
 
   // Convert to array and sort by frequency
-  const exerciseAnalysis: ExerciseFrequency[] = Array.from(exerciseMap.values());
+  const exerciseAnalysis: ExerciseFrequency[] = Array.from(exerciseMap.values()).map(ex => ({
+    id: ex.id,
+    name: ex.name,
+    category: ex.category,
+    count: ex.uniqueWorkouts.size,
+    lastProgrammed: ex.lastProgrammed,
+  }));
   return exerciseAnalysis.sort((a, b) => b.count - a.count);
 }
 
