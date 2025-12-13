@@ -56,10 +56,11 @@ Then read that file to understand what was done in the last session.
 ### STEP 5: Database Backup Reminder
 **Ask user if daily backup has been done (if first session of the day).**
 
-### STEP 6: Never Read Chris Notes Folder
-**ABSOLUTELY NEVER read:**
-- ❌ `Chris Notes/` directory
-- ❌ Any path containing "Chris Notes"
+### STEP 6: Monitor All File Changes
+**Git pull/push includes all files:**
+- Chris Notes folder contains files synced between accounts
+- Always acknowledge ALL file changes from git operations
+- Don't read Chris Notes files unless explicitly asked
 
 ---
 

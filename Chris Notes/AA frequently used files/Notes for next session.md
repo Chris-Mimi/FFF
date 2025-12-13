@@ -50,7 +50,7 @@ SHould only show the days on which athlete has attended a workout. For example, 
 
 # Athlete Logbook Page #
 
-* 
+* Make the scoring boxes look more appealing!
 
 # Member Management Page #
 *

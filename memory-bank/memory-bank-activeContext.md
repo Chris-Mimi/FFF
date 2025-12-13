@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.2
-**Updated:** 2025-12-12 (Session 49 - Workout Naming System)
+**Version:** 10.3
+**Updated:** 2025-12-13 (Session 51 - Athlete Logbook UI Improvements)
 
 ---
 
@@ -73,6 +73,26 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-12-13 Session 51 - Sonnet):**
+- **✅ Athlete Logbook Scoring Input Improvements:**
+  - Added visible unit labels outside inputs (kg, cal, m, rds, reps)
+  - Changed placeholders from units to descriptive text (Load, Cal, Distance, Rounds, Reps)
+  - Increased input widths: reps/calories w-14→w-16, metres w-16→w-20
+  - Changed text alignment from left to center for better appearance
+  - Applied to all 4 logbook sections: Free-form (gray), Lifts (blue), Benchmarks (teal), Forge Benchmarks (cyan)
+- **✅ Workflow Protocols Update:**
+  - Updated STEP 6: Changed "Never Read Chris Notes" to "Monitor All File Changes"
+  - Chris Notes folder synced between accounts, acknowledge all git changes
+  - Don't read Chris Notes unless explicitly asked
+- **✅ Session Close Checklist Created:**
+  - Created `Chris Notes/AA frequently used files/session-close-checklist.md`
+  - Documented correct order: Memory Bank → Project History → Backup → Git Add → Commit → Push
+  - **Critical:** Backup BEFORE git operations (ensures backup files included in commit)
+  - Includes verification checklist and common mistakes
+- Commit: [Pending]
+- Files: 2 modified (AthletePageLogbookTab.tsx, workflow-protocols.md), 1 created (session-close-checklist.md)
+- See `project-history/2025-12-13-session-51-athlete-logbook-ui.md` (to be created)
 
 **Completed (2025-12-12 Session 49 - Sonnet):**
 - **✅ Workout Naming System (Movement Frequency Fix):**
