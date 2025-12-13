@@ -14,3 +14,30 @@ Commit all changes, then, following the file conventions in the project-history/
 
 # Note for Chris #
 Only update to memory bank with at least 15% (better 20%) before auto-compact. I did it on the 6.11 with 13% context left before auto-compact and Claude managed to update the memory bank with just 1% to spare!
+
+# Supabase Backup Info #
+Not quite - adjust the timing: Start of every session:
+
+git pull
+✅ Get latest code changes BEFORE making risky changes:
+
+npm run backup
+✅ Create safety checkpoint
+# Don't need to backup:
+After every git pull ❌
+If just reading/testing code ❌
+Multiple times in same session ❌
+# DO backup before:
+Database migrations ✅
+Bulk deletions ✅
+Testing new database features ✅
+Major refactors ✅
+# Mimi's current status:
+✅ Already has baseline backup
+✅ Protected for next risky change
+✅ Good to go
+# Workflow:
+Start session → git pull
+About to do risky work → npm run backup
+Make changes
+If breaks → npm run restore 2025-12-13
