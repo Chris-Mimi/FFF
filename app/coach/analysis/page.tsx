@@ -559,7 +559,8 @@ export default function AnalysisPage() {
 
   // Filter movements (lifts, benchmarks, forge benchmarks, exercises) by search, category, and movement type
   const filteredExercises = statistics?.allMovementFrequency.filter(movement => {
-    const matchesSearch = movement.name.toLowerCase().includes(exerciseSearch.toLowerCase());
+    const searchTerms = exerciseSearch.toLowerCase().trim().split(/\s+/).filter(term => term.length > 0);
+    const matchesSearch = searchTerms.length === 0 || searchTerms.every(term => movement.name.toLowerCase().includes(term));
 
     // Movement type filtering
     if (selectedMovementTypes.length > 0 && !selectedMovementTypes.includes(movement.type)) {

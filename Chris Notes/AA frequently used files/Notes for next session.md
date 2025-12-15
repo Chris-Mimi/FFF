@@ -37,7 +37,8 @@ This document is a template with headings to show you where the issue is or wher
 * If I am not at the top of the page, the page jumps when clicking a category filter button.
 * Make the week button a drop down from which I can select 1-8 weeks.
 * fix the timescale selector so it doesn't jump left and right on clicking different timescales. It does this as the timescale indicator on the right shrinks and expands.
-* How many top exercises will display?
+* Is it possible Make the week button a drop down from which I can select 1-8 weeks.
+* 
 
 
 # Calendar View #

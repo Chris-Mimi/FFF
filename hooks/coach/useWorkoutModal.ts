@@ -18,16 +18,19 @@ const formatDateLocal = (date: Date): string => {
 // Calculate ISO week format: YYYY-Www (e.g., "2025-W50")
 // Matches PostgreSQL's TO_CHAR(date, 'IYYY') || '-W' || TO_CHAR(date, 'IW')
 const calculateWorkoutWeek = (date: Date): string => {
-  // Get ISO week date (Thursday of current week determines the year)
-  const tempDate = new Date(date.getTime());
-  tempDate.setHours(0, 0, 0, 0);
-  // Thursday of current week
-  tempDate.setDate(tempDate.getDate() + 4 - (tempDate.getDay() || 7));
-  // January 4 is always in week 1
-  const yearStart = new Date(tempDate.getFullYear(), 0, 4);
-  // Calculate week number
-  const weekNo = Math.ceil((((tempDate.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
-  const isoYear = tempDate.getFullYear();
+  // Use UTC to avoid timezone shifts
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  // Set to nearest Thursday (current date + 4 - current day of week)
+  const dayOfWeek = d.getUTCDay() || 7; // 1=Mon, 7=Sun
+  d.setUTCDate(d.getUTCDate() + 4 - dayOfWeek);
+  // Get year of Thursday (ISO year)
+  const isoYear = d.getUTCFullYear();
+  // Get first Thursday of ISO year (Jan 4 is always in week 1)
+  const jan4 = new Date(Date.UTC(isoYear, 0, 4));
+  const jan4DayOfWeek = jan4.getUTCDay() || 7;
+  const firstThursday = new Date(Date.UTC(isoYear, 0, 4 + (4 - jan4DayOfWeek)));
+  // Calculate week number (weeks between first Thursday and current Thursday + 1)
+  const weekNo = Math.floor((d.getTime() - firstThursday.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1;
   return `${isoYear}-W${String(weekNo).padStart(2, '0')}`;
 };
 
@@ -535,16 +538,24 @@ export function useWorkoutModal(
         return;
       }
 
-      // Also update the workout's publish_time for Athlete page display
+      // Also update the workout's publish_time and class_times for Athlete page display
       if (formData.id) {
         await supabase
           .from('wods')
-          .update({ publish_time: timeWithSeconds })
+          .update({
+            publish_time: timeWithSeconds,
+            class_times: [timeWithSeconds]
+          })
           .eq('id', formData.id);
       }
 
       // Set sessionTime with seconds to match DB format
       setSessionTime(timeWithSeconds);
+      // Update formData.classTimes to reflect the change
+      setFormData(prev => ({
+        ...prev,
+        classTimes: [timeWithSeconds]
+      }));
       setEditingTime(false);
       // Trigger parent refresh to update card
       if (onTimeUpdated) {
