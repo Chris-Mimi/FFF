@@ -102,7 +102,7 @@ interface Statistics {
   durationBreakdown: { range: string; count: number }[];
 }
 
-type TimeframePeriod = 0.25 | 1 | 3 | 6 | 12;
+type TimeframePeriod = 0.25 | 0.5 | 0.75 | 1 | 1.25 | 1.5 | 1.75 | 2 | 3 | 6 | 12;
 
 export default function AnalysisPage() {
   const router = useRouter();
@@ -209,16 +209,13 @@ export default function AnalysisPage() {
       let endDate: Date;
       let startDate: Date;
 
-      if (timeframePeriod === 0.25) {
-        const selectedDate = new Date(selectedMonth);
-        const dayOfWeek = selectedDate.getDay();
-        const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+      if (timeframePeriod <= 2) {
+        // Week-based calculation - go backwards from today (0.25 = 1 week, 0.5 = 2 weeks, ..., 2 = 8 weeks)
+        endDate = new Date(selectedMonth);
 
-        startDate = new Date(selectedDate);
-        startDate.setDate(selectedDate.getDate() - daysFromMonday);
-
-        endDate = new Date(startDate);
-        endDate.setDate(startDate.getDate() + 6);
+        const numWeeks = Math.round(timeframePeriod * 4);
+        startDate = new Date(endDate);
+        startDate.setDate(endDate.getDate() - (numWeeks * 7) + 1);
       } else {
         endDate = new Date(year, month + 1, 0);
         startDate = new Date(year, month - timeframePeriod + 1, 1);
@@ -443,11 +440,13 @@ export default function AnalysisPage() {
   const changeMonth = (direction: 'prev' | 'next') => {
     setSelectedMonth(prev => {
       const newDate = new Date(prev);
-      if (timeframePeriod === 0.25) {
+      if (timeframePeriod <= 2) {
+        // Week-based navigation
+        const numWeeks = Math.round(timeframePeriod * 4);
         if (direction === 'prev') {
-          newDate.setDate(newDate.getDate() - 7);
+          newDate.setDate(newDate.getDate() - (numWeeks * 7));
         } else {
-          newDate.setDate(newDate.getDate() + 7);
+          newDate.setDate(newDate.getDate() + (numWeeks * 7));
         }
       } else {
         if (direction === 'prev') {
@@ -465,23 +464,16 @@ export default function AnalysisPage() {
   };
 
   const getTimeframeLabel = () => {
-    if (timeframePeriod === 0.25) {
-      const selectedDate = new Date(selectedMonth);
-      const dayOfWeek = selectedDate.getDay();
-      const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    if (timeframePeriod <= 2) {
+      // Week-based display - go backwards from today (1-8 weeks)
+      const endDate = new Date(selectedMonth);
 
-      const startDate = new Date(selectedDate);
-      startDate.setDate(selectedDate.getDate() - daysFromMonday);
-
-      const endDate = new Date(startDate);
-      endDate.setDate(startDate.getDate() + 6);
+      const numWeeks = Math.round(timeframePeriod * 4);
+      const startDate = new Date(endDate);
+      startDate.setDate(endDate.getDate() - (numWeeks * 7) + 1);
 
       const formatDate = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
       return `${formatDate(startDate)} - ${formatDate(endDate)}`;
-    }
-
-    if (timeframePeriod === 1) {
-      return formatMonthYear(selectedMonth);
     }
 
     const endDate = new Date(selectedMonth);
@@ -603,6 +595,13 @@ export default function AnalysisPage() {
   // Handler functions for components
   const handleTimeframePeriodChange = (period: TimeframePeriod) => {
     setTimeframePeriod(period);
+    // When switching to week-based view, align to current date instead of month start
+    if (period <= 2) {
+      const wasMonthBased = timeframePeriod > 2;
+      if (wasMonthBased) {
+        setSelectedMonth(new Date()); // Reset to today when switching from months to weeks
+      }
+    }
   };
 
   const handleOpenDateRangePicker = () => {
@@ -641,8 +640,15 @@ export default function AnalysisPage() {
   };
 
   const handleDateRangeApply = (monthsDiff: number, daysDiff: number) => {
+    // Map days to week periods (0.25 = 1 week, 0.5 = 2 weeks, etc.)
     if (daysDiff <= 7) setTimeframePeriod(0.25);
-    else if (monthsDiff === 1) setTimeframePeriod(1);
+    else if (daysDiff <= 14) setTimeframePeriod(0.5);
+    else if (daysDiff <= 21) setTimeframePeriod(0.75);
+    else if (daysDiff <= 28) setTimeframePeriod(1);
+    else if (daysDiff <= 35) setTimeframePeriod(1.25);
+    else if (daysDiff <= 42) setTimeframePeriod(1.5);
+    else if (daysDiff <= 49) setTimeframePeriod(1.75);
+    else if (daysDiff <= 56) setTimeframePeriod(2);
     else if (monthsDiff === 3) setTimeframePeriod(3);
     else if (monthsDiff === 6) setTimeframePeriod(6);
     else if (monthsDiff === 12) setTimeframePeriod(12);

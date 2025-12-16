@@ -3,7 +3,7 @@
 import { BarChart3, ChevronLeft, ChevronRight, Library, X } from 'lucide-react';
 import { RefObject } from 'react';
 
-type TimeframePeriod = 0.25 | 1 | 3 | 6 | 12;
+type TimeframePeriod = 0.25 | 0.5 | 0.75 | 1 | 1.25 | 1.5 | 1.75 | 2 | 3 | 6 | 12;
 
 interface Exercise {
   id: string;
@@ -93,7 +93,30 @@ export default function StatisticsSection({
         <div className='flex items-center gap-6'>
           {/* Timeframe Period Selector */}
           <div className='flex items-center gap-2 bg-gray-100 rounded-lg p-1'>
-            {([0.25, 1, 3, 6, 12] as TimeframePeriod[]).map(period => (
+            {/* Week Dropdown */}
+            <select
+              value={timeframePeriod <= 2 ? timeframePeriod : ''}
+              onChange={(e) => {
+                e.preventDefault();
+                const value = parseFloat(e.target.value);
+                if (value) onTimeframePeriodChange(value as TimeframePeriod);
+              }}
+              className={`px-3 py-1.5 rounded-md font-semibold text-sm transition cursor-pointer ${
+                timeframePeriod <= 2
+                  ? 'bg-[#208479] text-white'
+                  : 'text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              <option value="" disabled>Weeks</option>
+              {[1, 2, 3, 4, 5, 6, 7, 8].map(weeks => (
+                <option key={weeks} value={weeks * 0.25}>
+                  {weeks} Week{weeks > 1 ? 's' : ''}
+                </option>
+              ))}
+            </select>
+
+            {/* Month Buttons */}
+            {([3, 6, 12] as TimeframePeriod[]).map(period => (
               <button
                 key={period}
                 onClick={(e) => {
@@ -106,7 +129,7 @@ export default function StatisticsSection({
                     : 'text-gray-700 hover:bg-gray-300'
                 }`}
               >
-                {period === 0.25 ? '1 Week' : period === 1 ? '1 Month' : `${period} Months`}
+                {`${period} Months`}
               </button>
             ))}
           </div>

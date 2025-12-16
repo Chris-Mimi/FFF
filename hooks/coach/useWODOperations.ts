@@ -306,14 +306,16 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
         timesToCreate = wod.classTimes;
       }
 
-      // Calculate workout_week for target date
+      // Calculate workout_week for target date (UTC-based to match PostgreSQL)
       const targetDateCopy = new Date(targetDate);
-      targetDateCopy.setHours(0, 0, 0, 0);
-      const tempDate = new Date(targetDateCopy.getTime());
-      tempDate.setDate(tempDate.getDate() + 4 - (tempDate.getDay() || 7));
-      const yearStart = new Date(tempDate.getFullYear(), 0, 4);
-      const weekNo = Math.ceil((((tempDate.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
-      const isoYear = tempDate.getFullYear();
+      const d = new Date(Date.UTC(targetDateCopy.getFullYear(), targetDateCopy.getMonth(), targetDateCopy.getDate()));
+      const dayOfWeek = d.getUTCDay() || 7;
+      d.setUTCDate(d.getUTCDate() + 4 - dayOfWeek);
+      const isoYear = d.getUTCFullYear();
+      const jan4 = new Date(Date.UTC(isoYear, 0, 4));
+      const jan4DayOfWeek = jan4.getUTCDay() || 7;
+      const firstThursday = new Date(Date.UTC(isoYear, 0, 4 + (4 - jan4DayOfWeek)));
+      const weekNo = Math.floor((d.getTime() - firstThursday.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1;
       const targetWorkoutWeek = `${isoYear}-W${String(weekNo).padStart(2, '0')}`;
 
       const { data: newWorkout, error: workoutError } = await supabase

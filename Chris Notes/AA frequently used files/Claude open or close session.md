@@ -8,7 +8,9 @@
 
 # At the CLOSE of every Claude session give this prompt:
 
-Commit all changes, then, following the file conventions in the project-history/2025-11-03-memory-optimization.md & memory-bank/workflow-protocols.md update the memory bank not forgetting to add the next project history file. Then, finally push to GitHub.
+1. Following the file conventions in the project-history/2025-11-03-memory-optimization.md & memory-bank/workflow-protocols.md update the memory bank
+2. Create the next project history file
+3. Then, finally push to GitHub.
 # ALWAYS - Ask before updating the memory bank/memory-bank-activeContext.md file in case there is not enough session time/token usage left!
 
 
