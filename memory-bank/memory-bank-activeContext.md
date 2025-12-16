@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.4
-**Updated:** 2025-12-15 (Session 52 - Workout Naming System Testing + Analysis UI)
+**Version:** 10.5
+**Updated:** 2025-12-16 (Session 53 - Re-publish Testing + Bug Fixes)
 
 ---
 
@@ -74,6 +74,31 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-12-16 Session 53 - Sonnet):**
+- **✅ Re-publish Button Testing (Session 47 Feature):**
+  - Tested re-publish functionality with existing workouts
+  - Verified Google Calendar updates correctly (no duplicates)
+  - Found and fixed critical bug: edits not included in re-publish
+- **✅ Auto-save Before Re-publish:**
+  - Added auto-save to handlePublish() function (useWorkoutModal.ts:697-700)
+  - Workout content now saves automatically before publishing to Google Calendar
+  - Prevents data loss when users edit and re-publish without manual save
+- **✅ Section Ordering Bug Fix:**
+  - Fixed first "Add Section" click after opening Edit Workout modal
+  - Root cause: lastExpandedSectionId not initialized when loading from localStorage
+  - Now properly initializes to first expanded section (useSectionManagement.ts:56-87)
+  - Correct section type now added in proper order on first click
+- **✅ Athlete Logbook Time Display:**
+  - Added workout time display to athlete logbook (day view)
+  - Shows only time (e.g., "17:15") since date already in header
+  - Added time field to WOD interface (logbook-utils.ts:21)
+  - Session time fetched from weekly_sessions and passed through useLogbookData
+- **✅ Verification:**
+  - Confirmed lift_records migration already executed (table exists in database)
+  - Created database verification script: scripts/check-republish.ts
+- Commit: fc7f85c "fix(coach/athlete): re-publish auto-save, section ordering, and logbook time display"
+- Files: 6 changed (+62/-3 lines)
 
 **Completed (2025-12-15 Session 52 - Sonnet):**
 - **✅ Workout Naming System - UI Already Implemented (Session 50):**
@@ -149,17 +174,11 @@ Athlete Tables (linked to members.id)
 
 ## 🚨 Known Issues (Next Session)
 
-**Testing Required:**
-1. **Re-publish Button** - Implementation complete, testing pending
-   - Test with legacy workout (no publish_sections): verify all sections pre-selected
-   - Test with new workout (has publish_sections): verify stored sections pre-selected
-   - Verify Google Calendar event updates (not duplicates)
-   - Verify athlete view updates to show new section selection
-   - Verify database fields (publish_sections, publish_duration) save correctly after re-publish
-
 **Migration Pending:**
 1. **`20251206_fix_newlines_after_restore.sql`** (Optional) - Fix escaped `\n` in benchmark descriptions
    - **Apply via:** Supabase Dashboard SQL Editor (only if needed)
+
+**No Critical Issues:** All Session 47 features tested and working
 
 ---
 
@@ -201,22 +220,13 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 53 Priorities (Next Session)
+### Session 54 Priorities (Next Session)
 
-1. **Test Session 47 Features**
-   - Test re-publish button with legacy and new workouts
-   - Verify Google Calendar updates correctly
-
-2. **Continue with January Launch Plan**
-   - See Week 1 priorities below
+**Continue with January Launch Plan - Week 1 priorities below**
 
 ### JANUARY LAUNCH PLAN (Weeks 1-5)
 
 **Week 1: Security & Infrastructure (Dec 2-8) - CRITICAL**
-
-0. **⚠️ URGENT - Apply lift_records Migration (Session 32)**
-   - Execute `supabase/migrations/20251203_create_lift_records.sql`
-   - Status: Migration file created, execution pending
 
 1. **RLS Policies** (BLOCKING - Security Risk)
    - Execute `remove-public-rls-policies.sql`
