@@ -18,6 +18,7 @@ export interface WOD {
   id: string;
   title: string;
   date: string;
+  time?: string;
   tracks?: { name: string; color: string };
   workout_types?: { name: string };
   sections: Array<{

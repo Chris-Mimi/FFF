@@ -694,6 +694,11 @@ export function useWorkoutModal(
 
   const handlePublish = async (publishConfig: any) => {
     try {
+      // Auto-save workout content before publishing
+      if (onSave && editingWOD?.id) {
+        await onSave(formData);
+      }
+
       const response = await fetch('/api/google/publish-workout', {
         method: 'POST',
         headers: {

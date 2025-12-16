@@ -865,9 +865,11 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                       )}
                       <h3 className='text-lg font-semibold text-gray-900'>{wod.title}</h3>
                     </div>
-                    <span className='text-sm text-gray-500'>
-                      {new Date(wod.date).toLocaleDateString()}
-                    </span>
+                    {wod.time && (
+                      <span className='text-sm text-gray-500'>
+                        {wod.time.slice(0, 5)}
+                      </span>
+                    )}
                   </div>
 
                   {wod.booked ? (

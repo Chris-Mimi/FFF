@@ -65,17 +65,22 @@ export function useSectionManagement({
           );
           if (validSectionIds.length > 0) {
             setExpandedSections(new Set(validSectionIds));
+            // Set last expanded to the first valid stored section
+            setLastExpandedSectionId(validSectionIds[0]);
           } else {
             // Stored IDs are stale, use first section
             setExpandedSections(new Set([sections[0].id]));
+            setLastExpandedSectionId(sections[0].id);
           }
         } catch {
           // Invalid JSON, set default
           setExpandedSections(new Set([sections[0].id]));
+          setLastExpandedSectionId(sections[0].id);
         }
       } else {
         // No stored state - set default to first section
         setExpandedSections(new Set([sections[0].id]));
+        setLastExpandedSectionId(sections[0].id);
       }
       setLoadedWorkoutId(workoutId);
     }

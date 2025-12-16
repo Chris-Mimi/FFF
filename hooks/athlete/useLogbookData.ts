@@ -59,6 +59,7 @@ async function filterUserWorkouts(
 
       return {
         ...workout,
+        time: sessionData.time,
         sections: workout.sections || [],
         tracks: Array.isArray(workout.tracks) ? workout.tracks[0] : workout.tracks,
         workout_types: Array.isArray(workout.workout_types)
