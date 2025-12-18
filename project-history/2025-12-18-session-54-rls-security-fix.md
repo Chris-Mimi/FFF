@@ -175,6 +175,66 @@ CREATE POLICY "Authenticated users can view users table" ON auth.users
 
 ---
 
+### 7. ✅ Auth Callback Route Implementation
+
+**Problem:** Email confirmation links redirected to root with token hash, but no handler existed
+
+**Symptoms:**
+- Signup email confirmation landed on Next.js default page
+- URL showed: `http://localhost:3000/#access_token=...&type=signup`
+- Users couldn't complete signup flow without direct password login
+
+**Root Cause:** Missing `/auth/callback` route to handle Supabase auth tokens
+
+**Fix Applied:**
+```typescript
+// app/auth/callback/route.ts - Created
+- Exchanges code for session
+- Reads user metadata for role
+- Redirects coach → /coach, athlete → /athlete
+```
+
+**Supabase Configuration Updated:**
+- Site URL: Set to `http://localhost:3001`
+- Redirect URLs: Added `http://localhost:3001/auth/callback`
+
+**Result:** Email confirmation flow working ✅
+
+---
+
+### 8. ✅ RLS Isolation Testing (Full Verification)
+
+**Test Accounts Created:**
+- Account A: info@crossfit-hammerschmiede.com (athlete with workout data)
+- Account B: (second athlete account)
+
+**Tests Performed:**
+
+1. **Account A Login:**
+   - ✅ Can view own athlete profile
+   - ✅ Can view own workout logs
+   - ✅ Can enter results in logbook
+   - ✅ Cannot see Account B's data
+
+2. **Account B Login:**
+   - ✅ Can view own athlete profile
+   - ✅ Can view own workout logs (different from Account A)
+   - ✅ Cannot see Account A's data
+
+3. **Cross-Account Verification:**
+   - ✅ Each athlete sees only their own data
+   - ✅ RLS policies enforcing user_id isolation
+   - ✅ No data leakage between accounts
+
+**SQL Verification:**
+- ✅ USER policies active: `auth.uid() = user_id`
+- ✅ COACH policies active: `role = 'coach'`
+- ✅ 0 PUBLIC policies on athlete data tables
+
+**Result:** Data isolation fully verified ✅
+
+---
+
 ## 📊 Files Changed
 
 **SQL Migrations Created:**
@@ -183,18 +243,29 @@ CREATE POLICY "Authenticated users can view users table" ON auth.users
 
 **Code Files Modified:**
 1. `hooks/athlete/useLogbookData.ts` - Enhanced error logging (lines 145-150)
+2. `package.json` - Dev server port configuration (temporarily locked to 3001, then unlocked)
+
+**Code Files Created:**
+1. `app/auth/callback/route.ts` - Auth callback handler for email confirmation flow
 
 **Documentation Updated:**
 1. `memory-bank/memory-bank-activeContext.md` - Version 10.5 → 10.6
    - Added Session 54 completion details
    - Marked RLS as completed in January Launch Plan
    - Added backup script limitation to Known Issues
+2. `project-history/2025-12-18-session-54-rls-security-fix.md` - This document
 
 ---
 
 ## 🔄 Git Operations
 
-**Status:** Files modified but not yet committed
+**Commit 1 (Already Pushed):**
+- Commit: b9507a9
+- Files: hooks/athlete/useLogbookData.ts, memory-bank/memory-bank-activeContext.md, project-history/2025-12-18-session-54-rls-security-fix.md
+- Message: "fix(security): implement RLS policies - remove PUBLIC access from athlete data"
+
+**Pending Commit 2:**
+- Files: app/auth/callback/route.ts, package.json, project-history/2025-12-18-session-54-rls-security-fix.md
 
 **Recommended Commit:**
 ```bash

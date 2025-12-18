@@ -1,0 +1,34 @@
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function GET(request: NextRequest) {
+  const requestUrl = new URL(request.url);
+  const code = requestUrl.searchParams.get('code');
+  const next = requestUrl.searchParams.get('next') ?? '/';
+
+  if (code) {
+    const supabase = createRouteHandlerClient({ cookies });
+    await supabase.auth.exchangeCodeForSession(code);
+  }
+
+  // Get user to determine redirect
+  const supabase = createRouteHandlerClient({ cookies });
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    const role = user.user_metadata?.role;
+
+    // Redirect based on role
+    if (role === 'coach') {
+      return NextResponse.redirect(new URL('/coach', requestUrl.origin));
+    } else if (role === 'athlete') {
+      return NextResponse.redirect(new URL('/athlete', requestUrl.origin));
+    }
+  }
+
+  // Default redirect
+  return NextResponse.redirect(new URL(next, requestUrl.origin));
+}

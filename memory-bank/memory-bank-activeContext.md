@@ -89,6 +89,15 @@ Athlete Tables (linked to members.id)
 - **✅ Enhanced Error Logging:**
   - Added detailed error logging to useLogbookData.ts (lines 145-150)
   - Logs error message, code, details, and hint for debugging
+- **✅ Auth Callback Route:**
+  - Created app/auth/callback/route.ts for email confirmation flow
+  - Fixed signup/password reset email redirects
+  - Configured Supabase redirect URLs (http://localhost:3001/auth/callback)
+- **✅ RLS Isolation Testing:**
+  - Tested with 2 independent athlete accounts
+  - Verified each account can only see their own data
+  - Confirmed no data leakage between accounts
+  - Full isolation working correctly
 - **⚠️ Known Issue - Backup Script:**
   - `npm run backup` doesn't capture athlete data with RLS enabled (uses anon key)
   - Backup shows 0 records for wod_section_results despite 11 existing
@@ -96,8 +105,10 @@ Athlete Tables (linked to members.id)
 - **📝 Files Created:**
   - `database/remove-public-rls-policies-CORRECTED.sql` (corrected policy names)
   - `database/add-missing-rls-policies.sql` (comprehensive policy additions)
-- Commit: [pending]
-- Files: 3 changed (2 SQL files created, 1 TypeScript file modified)
+  - `app/auth/callback/route.ts` (auth callback handler)
+- Commit 1: b9507a9 (pushed)
+- Commit 2: [pending - auth callback + testing]
+- Files: 5 changed total (2 SQL, 3 TypeScript, 2 documentation)
 
 **Completed (2025-12-16 Session 53 - Sonnet):**
 - **✅ Re-publish Button Testing (Session 47 Feature):**
