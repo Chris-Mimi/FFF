@@ -274,7 +274,7 @@ export default function BenchmarksLiftsManagementPage() {
       setShowBenchmarkModal(false);
       fetchBenchmarks();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error saving benchmark:', error);
       alert(`Error: ${error.message}`);
     }
@@ -294,7 +294,7 @@ export default function BenchmarksLiftsManagementPage() {
       if (error) throw error;
       fetchBenchmarks();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting benchmark:', error);
       alert(`Error: ${error.message}`);
     }
@@ -374,7 +374,7 @@ export default function BenchmarksLiftsManagementPage() {
       setShowForgeModal(false);
       fetchForgeBenchmarks();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error saving forge benchmark:', error);
       alert(`Error: ${error.message}`);
     }
@@ -394,7 +394,7 @@ export default function BenchmarksLiftsManagementPage() {
       if (error) throw error;
       fetchForgeBenchmarks();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting forge benchmark:', error);
       alert(`Error: ${error.message}`);
     }
@@ -449,7 +449,7 @@ export default function BenchmarksLiftsManagementPage() {
           .from('forge_benchmarks')
           .update({ display_order: draggedItem.display_order })
           .eq('id', targetItem.id);
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Error updating order:', error);
         alert(`Error updating order: ${error.message}`);
         fetchForgeBenchmarks();
@@ -475,7 +475,7 @@ export default function BenchmarksLiftsManagementPage() {
             .from('forge_benchmarks')
             .update({ display_order: targetPosition })
             .eq('id', draggedItem.id);
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.error('Error updating order:', error);
           alert(`Error updating order: ${error.message}`);
           fetchForgeBenchmarks();
@@ -518,7 +518,7 @@ export default function BenchmarksLiftsManagementPage() {
 
         if (error) throw error;
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error inserting row:', error);
       alert(`Error inserting row: ${error.message}`);
       fetchForgeBenchmarks();
@@ -589,7 +589,7 @@ export default function BenchmarksLiftsManagementPage() {
       setShowLiftModal(false);
       fetchLifts();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error saving lift:', error);
       alert(`Error: ${error.message}`);
     }
@@ -644,7 +644,7 @@ export default function BenchmarksLiftsManagementPage() {
           .from('barbell_lifts')
           .update({ display_order: draggedLift.display_order })
           .eq('id', targetLift.id);
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Error updating order:', error);
         alert(`Error updating order: ${error.message}`);
         fetchLifts();
@@ -670,7 +670,7 @@ export default function BenchmarksLiftsManagementPage() {
             .from('barbell_lifts')
             .update({ display_order: targetPosition })
             .eq('id', draggedLift.id);
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.error('Error updating order:', error);
           alert(`Error updating order: ${error.message}`);
           fetchLifts();
@@ -693,7 +693,7 @@ export default function BenchmarksLiftsManagementPage() {
       if (error) throw error;
       fetchLifts();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting lift:', error);
       alert(`Error: ${error.message}`);
     }
@@ -990,7 +990,7 @@ export default function BenchmarksLiftsManagementPage() {
       setEditingExercise(null);
       fetchExercises();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error saving exercise:', error);
       alert(`Error: ${error.message}`);
     }
@@ -1010,7 +1010,7 @@ export default function BenchmarksLiftsManagementPage() {
       if (error) throw error;
       fetchExercises();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting exercise:', error);
       alert(`Error: ${error.message}`);
     }

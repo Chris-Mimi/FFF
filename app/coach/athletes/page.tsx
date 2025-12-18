@@ -17,6 +17,12 @@ interface AthleteProfile {
   weight_kg: number | null;
 }
 
+interface WOD {
+  id: string;
+  title: string | null;
+  date: string | null;
+}
+
 export default function CoachAthletesPage() {
   const router = useRouter();
   const [athletes, setAthletes] = useState<AthleteProfile[]>([]);
@@ -518,17 +524,17 @@ function LogbookSection({ athleteId }: { athleteId?: string }) {
       const workoutIds = [...new Set(logsData?.map(log => log.wod_id).filter(Boolean) || [])];
 
       // Fetch workout details if we have IDs
-      let workoutsMap: Record<string, any> = {};
+      let workoutsMap: Record<string, WOD> = {};
       if (workoutIds.length > 0) {
         const { data: workoutsData } = await supabase
           .from('wods')
           .select('id, title, date')
           .in('id', workoutIds);
 
-        workoutsMap = (workoutsData || []).reduce((acc, wod) => {
+        workoutsMap = (workoutsData || []).reduce((acc: Record<string, WOD>, wod: WOD) => {
           acc[wod.id] = wod;
           return acc;
-        }, {} as Record<string, any>);
+        }, {});
       }
 
       // Attach workout data to logs and filter out orphaned logs

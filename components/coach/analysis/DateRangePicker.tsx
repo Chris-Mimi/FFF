@@ -2,8 +2,6 @@
 
 import { X } from 'lucide-react';
 
-type TimeframePeriod = 0.25 | 1 | 3 | 6 | 12;
-
 interface DateRangePickerProps {
   isOpen: boolean;
   onClose: () => void;
@@ -18,7 +16,6 @@ interface DateRangePickerProps {
   onEndYearInputChange: (value: string) => void;
   onStartYearBlur: () => void;
   onEndYearBlur: () => void;
-  timeframePeriod: TimeframePeriod;
   onApply: (monthsDiff: number, daysDiff: number) => void;
   onToday: () => void;
   isDragging: boolean;
@@ -42,7 +39,6 @@ export default function DateRangePicker({
   onEndYearInputChange,
   onStartYearBlur,
   onEndYearBlur,
-  timeframePeriod,
   onApply,
   onToday,
   isDragging,

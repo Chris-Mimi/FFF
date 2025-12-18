@@ -191,7 +191,7 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
       setNewScaling('Rx');
       setSelectedBenchmark(null);
       setEditingBenchmarkId(null);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error saving benchmark:', error);
       alert(`Failed to save benchmark result: ${error.message}`);
     }

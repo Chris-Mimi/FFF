@@ -361,7 +361,7 @@ function MovementLibraryPopup({
       setShowCreateBenchmarkModal(false);
       setBenchmarkForm({ name: '', type: 'For Time', description: '', has_scaling: true });
       await fetchBenchmarks();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating benchmark:', error);
       alert(`Error: ${error.message}`);
     }
@@ -406,7 +406,7 @@ function MovementLibraryPopup({
       setShowCreateForgeModal(false);
       setForgeForm({ name: '', type: 'For Time', description: '', has_scaling: true });
       await fetchForgeBenchmarks();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating forge benchmark:', error);
       alert(`Error creating Forge Benchmark: ${error.message}`);
     }
@@ -435,7 +435,7 @@ function MovementLibraryPopup({
       setShowCreateLiftModal(false);
       setLiftForm({ name: '', category: 'Olympic' });
       await fetchLifts();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating lift:', error);
       alert(`Error: ${error.message}`);
     }
@@ -451,7 +451,7 @@ function MovementLibraryPopup({
 
       setShowCreateExerciseModal(false);
       await fetchExercises();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating exercise:', error);
       alert(`Error: ${error.message}`);
     }

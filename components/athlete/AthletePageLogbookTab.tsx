@@ -252,7 +252,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
     }
 
     let errorCount = 0;
-    let errors: any[] = [];
+    const errors: Array<{ benchmark_name: string; error: string }> = [];
     for (const [key, result] of resultsToSave) {
       try {
         console.log(`Saving benchmark result [${key}]:`, {

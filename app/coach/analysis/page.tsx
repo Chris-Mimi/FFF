@@ -777,7 +777,6 @@ export default function AnalysisPage() {
         onEndYearInputChange={setEndYearInput}
         onStartYearBlur={handleStartYearBlur}
         onEndYearBlur={handleEndYearBlur}
-        timeframePeriod={timeframePeriod}
         onApply={handleDateRangeApply}
         onToday={handleDateRangeToday}
         isDragging={isDragging}
