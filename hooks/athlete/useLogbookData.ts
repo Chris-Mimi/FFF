@@ -142,8 +142,12 @@ export function useLogbookData({
       if (logsError) throw logsError;
 
       setWorkoutLogs(mapWorkoutLogs(logsData, dateStr));
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching WODs:', error);
+      console.error('Error message:', error?.message);
+      console.error('Error code:', error?.code);
+      console.error('Error details:', error?.details);
+      console.error('Error hint:', error?.hint);
       setWorkouts([]);
       setWorkoutLogs({});
     } finally {

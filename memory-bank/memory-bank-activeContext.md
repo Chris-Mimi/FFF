@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.5
-**Updated:** 2025-12-16 (Session 53 - Re-publish Testing + Bug Fixes)
+**Version:** 10.6
+**Updated:** 2025-12-18 (Session 54 - RLS Security Fix)
 
 ---
 
@@ -74,6 +74,30 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-12-18 Session 54 - Sonnet):**
+- **✅ RLS Security Fix (CRITICAL - Production Blocking):**
+  - Executed `remove-public-rls-policies-CORRECTED.sql` migration
+  - Removed PUBLIC access from `workout_logs`, `wod_section_results`, `wods` tables
+  - Added missing COACH policies for `wods` table (4 policies: SELECT, INSERT, UPDATE, DELETE)
+  - Added missing COACH policies for `wod_section_results` table (4 policies)
+  - Added ATHLETE read-only policy for published wods
+  - Added USER policies for `wod_section_results` (4 policies)
+  - Fixed `auth.users` GRANT permissions for FK validation (GRANT SELECT to authenticated/anon roles)
+  - SQL verification: 0 PUBLIC policies remain on athlete data tables
+  - Live testing: Athlete logbook working correctly
+- **✅ Enhanced Error Logging:**
+  - Added detailed error logging to useLogbookData.ts (lines 145-150)
+  - Logs error message, code, details, and hint for debugging
+- **⚠️ Known Issue - Backup Script:**
+  - `npm run backup` doesn't capture athlete data with RLS enabled (uses anon key)
+  - Backup shows 0 records for wod_section_results despite 11 existing
+  - Future: Update backup script to use service_role key for admin access
+- **📝 Files Created:**
+  - `database/remove-public-rls-policies-CORRECTED.sql` (corrected policy names)
+  - `database/add-missing-rls-policies.sql` (comprehensive policy additions)
+- Commit: [pending]
+- Files: 3 changed (2 SQL files created, 1 TypeScript file modified)
 
 **Completed (2025-12-16 Session 53 - Sonnet):**
 - **✅ Re-publish Button Testing (Session 47 Feature):**
@@ -178,7 +202,13 @@ Athlete Tables (linked to members.id)
 1. **`20251206_fix_newlines_after_restore.sql`** (Optional) - Fix escaped `\n` in benchmark descriptions
    - **Apply via:** Supabase Dashboard SQL Editor (only if needed)
 
-**No Critical Issues:** All Session 47 features tested and working
+**System Improvements Needed:**
+1. **Backup Script RLS Limitation:**
+   - Current backup script uses anon key, blocked by RLS policies
+   - Doesn't capture athlete data (wod_section_results, athlete_profiles, etc.)
+   - Solution: Update script to use service_role key for admin-level backups
+
+**No Critical Blocking Issues**
 
 ---
 
@@ -220,7 +250,7 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 54 Priorities (Next Session)
+### Session 55 Priorities (Next Session)
 
 **Continue with January Launch Plan - Week 1 priorities below**
 
@@ -228,10 +258,11 @@ npm run restore 2025-12-06  # Restore specific date
 
 **Week 1: Security & Infrastructure (Dec 2-8) - CRITICAL**
 
-1. **RLS Policies** (BLOCKING - Security Risk)
-   - Execute `remove-public-rls-policies.sql`
-   - Test with isolated accounts
-   - Status: PUBLIC access enabled for testing
+1. **✅ RLS Policies** (COMPLETED - Session 54)
+   - ✅ Removed PUBLIC access from athlete data tables
+   - ✅ Added coach and user-based policies
+   - ✅ Fixed auth.users GRANT permissions
+   - ✅ Tested with isolated accounts - working correctly
 
 2. **Build Verification**
    - Run `npm run build`
