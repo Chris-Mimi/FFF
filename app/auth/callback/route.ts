@@ -1,4 +1,4 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -8,24 +8,41 @@ export async function GET(request: NextRequest) {
   const next = requestUrl.searchParams.get('next') ?? '/';
 
   if (code) {
-    const supabase = createRouteHandlerClient({ cookies });
+    const cookieStore = await cookies();
+
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            );
+          },
+        },
+      }
+    );
+
     await supabase.auth.exchangeCodeForSession(code);
-  }
 
-  // Get user to determine redirect
-  const supabase = createRouteHandlerClient({ cookies });
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    // Get user to determine redirect
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  if (user) {
-    const role = user.user_metadata?.role;
+    if (user) {
+      const role = user.user_metadata?.role;
 
-    // Redirect based on role
-    if (role === 'coach') {
-      return NextResponse.redirect(new URL('/coach', requestUrl.origin));
-    } else if (role === 'athlete') {
-      return NextResponse.redirect(new URL('/athlete', requestUrl.origin));
+      // Redirect based on role
+      if (role === 'coach') {
+        return NextResponse.redirect(new URL('/coach', requestUrl.origin));
+      } else if (role === 'athlete') {
+        return NextResponse.redirect(new URL('/athlete', requestUrl.origin));
+      }
     }
   }
 
