@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.7
-**Updated:** 2025-12-18 (Session 54 - RLS + Build Verification Complete)
+**Version:** 10.8
+**Updated:** 2025-12-19 (Session 55 - Analysis Page "Unused" Button + Notes Formatting)
 
 ---
 
@@ -74,6 +74,40 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-12-19 Session 55 - Sonnet):**
+- **✅ Analysis Page "Unused" Button Fix:**
+  - Fixed Unused button to filter main search dropdown (previously only filtered Library Panel)
+  - Added `showUnusedOnly` check to `filteredExercises` calculation (page.tsx:562-565)
+  - Changed dropdown visibility to show when `exerciseSearch || showUnusedOnly` (StatisticsSection.tsx:345)
+  - Removed 20-item slice limit that stopped at "Backwards Walk" (StatisticsSection.tsx:347)
+- **✅ Movement Type Labels:**
+  - Added color-coded type badges to Analysis dropdown (Lift=purple, Benchmark=teal, Forge=cyan, Exercise=gray)
+  - Distinguishes programming context (strength lift vs WOD exercise)
+  - Modified both page.tsx and StatisticsSection.tsx to pass/display type field
+- **✅ Notes Formatting Toolbar:**
+  - Added formatting toolbar to CoachNotesPanel.tsx (accessed via Edit/Create Workout Modal → Notes button)
+  - Supports: Bold (**), Italic (_), Underline (<u>), Bullet lists, Numbered lists, H1/H2/H3 headings
+  - Fixed toolbar blur issue using `onMouseDown` with `preventDefault()` instead of `onClick`
+  - Fixed toolbar visibility condition from `isEditing || !notes` to `isEditing`
+- **✅ Dead Code Cleanup:**
+  - Archived NotesModal.tsx → `_archive/NotesModal.tsx.unused` (never triggered, dead code)
+  - Commented out imports and render block in app/coach/page.tsx
+  - Verified no other code paths use standalone notes modal
+- **✅ Production Build Fixes:**
+  - Fixed 12 TypeScript errors exposed during cleanup
+  - Changed `error: any` → `error: unknown` with proper instanceof checks
+  - Added type definitions for MovementResultInput.tsx (missing exports)
+  - Fixed boolean casts with `!!` operator
+  - Fixed type assertions for benchmark `has_scaling` property
+  - Production build now succeeds
+- **⚠️ Known Issue - Notes Markdown Display:**
+  - Formatting toolbar inserts markdown syntax but doesn't render as HTML
+  - `linkifyText()` only converts URLs, doesn't parse markdown
+  - Need to add markdown-to-HTML renderer (e.g., react-markdown)
+- Commit: (pending) "feat(coach): Analysis Unused button, movement type labels, notes formatting toolbar"
+- Files: 10 changed (2 core Analysis files, CoachNotesPanel, 1 archived, 6 build error fixes)
+- See `project-history/2025-12-19-session-55-analysis-unused-notes-formatting.md`
 
 **Completed (2025-12-18 Session 54 - Sonnet):**
 - **✅ RLS Security Fix (CRITICAL - Production Blocking):**
@@ -217,6 +251,13 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 🚨 Known Issues (Next Session)
+
+**UI Enhancement Needed:**
+1. **Notes Markdown Rendering:**
+   - Formatting toolbar inserts markdown syntax (`**bold**`, `_italic_`, etc.)
+   - Display doesn't render markdown as HTML - shows raw syntax
+   - Solution: Replace or enhance `linkifyText()` with markdown-to-HTML renderer (e.g., react-markdown)
+   - Location: CoachNotesPanel.tsx lines 211, 285
 
 **Migration Pending:**
 1. **`20251206_fix_newlines_after_restore.sql`** (Optional) - Fix escaped `\n` in benchmark descriptions

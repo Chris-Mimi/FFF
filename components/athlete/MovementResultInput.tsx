@@ -1,5 +1,16 @@
 import React from 'react';
-import { Movement, MovementResult, ResultFields } from '@/types/movements';
+
+type ResultFields = Record<string, unknown>;
+type MovementResult = Record<string, unknown>;
+
+type Movement = {
+  id?: string;
+  name?: string;
+  description?: string;
+  result_fields: ResultFields;
+  category?: string;
+  has_scaling?: boolean;
+};
 
 interface MovementResultInputProps {
   movement: Movement;
@@ -85,23 +96,23 @@ export function MovementResultInput({
         {/* Dynamic input fields based on result_fields */}
         <div className='flex items-center gap-2 ml-auto flex-wrap'>
           {/* Time input (mm:ss format) */}
-          {resultFields.time && (
+          {\!\!(resultFields.time as boolean) && (
             <input
               type='text'
               placeholder='mm:ss'
-              value={value.time_result || ''}
+              value={(value.time_result as string) || ''}
               onChange={(e) => updateField('time_result', e.target.value)}
               className={`w-20 px-2 py-1 text-xs border ${getBorderColor()} rounded focus:ring-2 focus:border-transparent text-gray-900`}
             />
           )}
 
           {/* Rounds input (for AMRAP) */}
-          {resultFields.rounds_reps && (
+          {!!(resultFields.rounds_reps as boolean) && (
             <>
               <input
                 type='number'
                 placeholder='rounds'
-                value={value.rounds_result || ''}
+                value={(value.rounds_result as string) || ''}
                 onChange={(e) => updateField('rounds_result', parseInt(e.target.value) || '')}
                 className={`w-20 px-2 py-1 text-xs border ${getBorderColor()} rounded focus:ring-2 focus:border-transparent text-gray-900`}
               />
@@ -110,55 +121,55 @@ export function MovementResultInput({
           )}
 
           {/* Reps input */}
-          {(resultFields.reps || resultFields.rounds_reps) && (
+          {\!\!(resultFields.reps || resultFields.rounds_reps) && (
             <input
               type='number'
               placeholder='reps'
-              value={value.reps_result || ''}
+              value={(value.reps_result as string) || ''}
               onChange={(e) => updateField('reps_result', parseInt(e.target.value) || '')}
               className={`w-20 px-2 py-1 text-xs border ${getBorderColor()} rounded focus:ring-2 focus:border-transparent text-gray-900`}
             />
           )}
 
           {/* Weight input (kg) */}
-          {resultFields.weight && (
+          {\!\!(resultFields.weight as boolean) && (
             <input
               type='number'
               step='0.5'
               placeholder='kg'
-              value={value.weight_result || ''}
+              value={(value.weight_result as string) || ''}
               onChange={(e) => updateField('weight_result', parseFloat(e.target.value) || '')}
               className={`w-20 px-2 py-1 text-xs border ${getBorderColor()} rounded focus:ring-2 focus:border-transparent text-gray-900`}
             />
           )}
 
           {/* Distance input (meters) */}
-          {resultFields.distance_meters && (
+          {\!\!(resultFields.distance_meters as boolean) && (
             <input
               type='number'
               step='0.1'
               placeholder='meters'
-              value={value.distance_result || ''}
+              value={(value.distance_result as string) || ''}
               onChange={(e) => updateField('distance_result', parseFloat(e.target.value) || '')}
               className={`w-24 px-2 py-1 text-xs border ${getBorderColor()} rounded focus:ring-2 focus:border-transparent text-gray-900`}
             />
           )}
 
           {/* Duration input (seconds for holds) */}
-          {resultFields.duration_seconds && (
+          {\!\!(resultFields.duration_seconds as boolean) && (
             <input
               type='number'
               placeholder='seconds'
-              value={value.duration_seconds || ''}
+              value={(value.duration_seconds as string) || ''}
               onChange={(e) => updateField('duration_seconds', parseInt(e.target.value) || '')}
               className={`w-20 px-2 py-1 text-xs border ${getBorderColor()} rounded focus:ring-2 focus:border-transparent text-gray-900`}
             />
           )}
 
           {/* Scaling dropdown */}
-          {resultFields.scaling && (movement.has_scaling ?? true) && (
+          {\!\!(resultFields.scaling as boolean) && (movement.has_scaling ?? true) && (
             <select
-              value={value.scaling_level || 'Rx'}
+              value={(value.scaling_level as string) || 'Rx'}
               onChange={(e) => updateField('scaling_level', e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3')}
               className={`px-2 py-1 text-xs border ${getBorderColor()} rounded focus:ring-2 focus:border-transparent text-gray-900`}
             >

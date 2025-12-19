@@ -1,7 +1,7 @@
 'use client';
 
-import { X } from 'lucide-react';
-import { useState } from 'react';
+import { X, Bold, Italic, Underline as UnderlineIcon, List, ListOrdered, Heading1, Heading2, Heading3 } from 'lucide-react';
+import { useState, useRef } from 'react';
 import { linkifyText } from '@/utils/linkify';
 
 interface CoachNotesPanelProps {
@@ -30,6 +30,73 @@ export default function CoachNotesPanel({
   onChange,
 }: CoachNotesPanelProps) {
   const [isEditing, setIsEditing] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const applyFormatting = (format: string) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = notes.substring(start, end);
+    const beforeText = notes.substring(0, start);
+    const afterText = notes.substring(end);
+
+    let newText = '';
+    let cursorOffset = 0;
+
+    switch (format) {
+      case 'bold':
+        newText = `${beforeText}**${selectedText || 'bold text'}**${afterText}`;
+        cursorOffset = selectedText ? 2 : 2;
+        break;
+      case 'italic':
+        newText = `${beforeText}_${selectedText || 'italic text'}_${afterText}`;
+        cursorOffset = selectedText ? 1 : 1;
+        break;
+      case 'underline':
+        newText = `${beforeText}<u>${selectedText || 'underlined text'}</u>${afterText}`;
+        cursorOffset = selectedText ? 3 : 3;
+        break;
+      case 'bullet':
+        const bulletText = selectedText || 'List item';
+        newText = `${beforeText}\n- ${bulletText}${afterText}`;
+        cursorOffset = 3;
+        break;
+      case 'numbered':
+        const numberedText = selectedText || 'List item';
+        newText = `${beforeText}\n1. ${numberedText}${afterText}`;
+        cursorOffset = 4;
+        break;
+      case 'h1':
+        newText = `${beforeText}\n# ${selectedText || 'Heading 1'}${afterText}`;
+        cursorOffset = 3;
+        break;
+      case 'h2':
+        newText = `${beforeText}\n## ${selectedText || 'Heading 2'}${afterText}`;
+        cursorOffset = 4;
+        break;
+      case 'h3':
+        newText = `${beforeText}\n### ${selectedText || 'Heading 3'}${afterText}`;
+        cursorOffset = 5;
+        break;
+      default:
+        return;
+    }
+
+    onChange(newText);
+
+    // Restore cursor position
+    setTimeout(() => {
+      if (selectedText) {
+        textarea.setSelectionRange(start + cursorOffset, end + cursorOffset);
+      } else {
+        const newCursorPos = start + cursorOffset + (format === 'bold' ? 9 : format === 'italic' ? 11 : format === 'underline' ? 16 : format.startsWith('h') ? (format === 'h1' ? 9 : format === 'h2' ? 10 : 11) : 9);
+        textarea.setSelectionRange(newCursorPos, newCursorPos);
+      }
+      textarea.focus();
+    }, 0);
+  };
 
   if (!isOpen) return null;
 
@@ -95,21 +162,52 @@ export default function CoachNotesPanel({
           </div>
 
           {/* Content */}
-          <div className='flex-1 overflow-y-auto p-4'>
-            {isEditing || !notes ? (
+          <div className='flex-1 overflow-y-auto p-4 flex flex-col'>
+            {(isEditing || !notes) && (
+              <div className='flex gap-1 mb-2 p-2 bg-gray-100 rounded-lg border border-gray-300 flex-shrink-0'>
+                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('bold'); }} className='p-2 hover:bg-white rounded transition' title='Bold'>
+                  <Bold size={16} />
+                </button>
+                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('italic'); }} className='p-2 hover:bg-white rounded transition' title='Italic'>
+                  <Italic size={16} />
+                </button>
+                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('underline'); }} className='p-2 hover:bg-white rounded transition' title='Underline'>
+                  <UnderlineIcon size={16} />
+                </button>
+                <div className='w-px bg-gray-300 mx-1'></div>
+                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('bullet'); }} className='p-2 hover:bg-white rounded transition' title='Bullet List'>
+                  <List size={16} />
+                </button>
+                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('numbered'); }} className='p-2 hover:bg-white rounded transition' title='Numbered List'>
+                  <ListOrdered size={16} />
+                </button>
+                <div className='w-px bg-gray-300 mx-1'></div>
+                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('h1'); }} className='p-2 hover:bg-white rounded transition' title='Heading 1'>
+                  <Heading1 size={16} />
+                </button>
+                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('h2'); }} className='p-2 hover:bg-white rounded transition' title='Heading 2'>
+                  <Heading2 size={16} />
+                </button>
+                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('h3'); }} className='p-2 hover:bg-white rounded transition' title='Heading 3'>
+                  <Heading3 size={16} />
+                </button>
+              </div>
+            )}
+            {isEditing ? (
               <textarea
+                ref={textareaRef}
                 value={notes}
                 onChange={e => onChange(e.target.value)}
                 onBlur={() => setIsEditing(false)}
                 onFocus={() => setIsEditing(true)}
                 autoFocus={isEditing}
                 placeholder='Add private notes about this workout...'
-                className='w-full h-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 placeholder-gray-400 resize-none text-sm'
+                className='flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 placeholder-gray-400 resize-none text-sm'
               />
             ) : (
               <div
                 onClick={() => setIsEditing(true)}
-                className='w-full h-full px-3 py-2 border border-gray-300 rounded-lg cursor-text text-gray-900 text-sm hover:border-gray-400 transition'
+                className='flex-1 px-3 py-2 border border-gray-300 rounded-lg cursor-text text-gray-900 text-sm hover:border-gray-400 transition'
                 dangerouslySetInnerHTML={{ __html: linkifyText(notes) }}
               />
             )}
@@ -138,21 +236,52 @@ export default function CoachNotesPanel({
           <X size={20} />
         </button>
       </div>
-      <div className='flex-1 overflow-y-auto p-4'>
-        {isEditing || !notes ? (
+      <div className='flex-1 overflow-y-auto p-4 flex flex-col'>
+        {(isEditing || !notes) && (
+          <div className='flex gap-1 mb-2 p-2 bg-gray-100 rounded-lg border border-gray-300 flex-shrink-0'>
+            <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('bold'); }} className='p-2 hover:bg-white rounded transition' title='Bold'>
+              <Bold size={16} />
+            </button>
+            <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('italic'); }} className='p-2 hover:bg-white rounded transition' title='Italic'>
+              <Italic size={16} />
+            </button>
+            <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('underline'); }} className='p-2 hover:bg-white rounded transition' title='Underline'>
+              <UnderlineIcon size={16} />
+            </button>
+            <div className='w-px bg-gray-300 mx-1'></div>
+            <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('bullet'); }} className='p-2 hover:bg-white rounded transition' title='Bullet List'>
+              <List size={16} />
+            </button>
+            <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('numbered'); }} className='p-2 hover:bg-white rounded transition' title='Numbered List'>
+              <ListOrdered size={16} />
+            </button>
+            <div className='w-px bg-gray-300 mx-1'></div>
+            <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('h1'); }} className='p-2 hover:bg-white rounded transition' title='Heading 1'>
+              <Heading1 size={16} />
+            </button>
+            <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('h2'); }} className='p-2 hover:bg-white rounded transition' title='Heading 2'>
+              <Heading2 size={16} />
+            </button>
+            <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('h3'); }} className='p-2 hover:bg-white rounded transition' title='Heading 3'>
+              <Heading3 size={16} />
+            </button>
+          </div>
+        )}
+        {isEditing ? (
           <textarea
+            ref={textareaRef}
             value={notes}
             onChange={e => onChange(e.target.value)}
             onBlur={() => setIsEditing(false)}
             onFocus={() => setIsEditing(true)}
             autoFocus={isEditing}
             placeholder='Add private notes about this workout...'
-            className='w-full h-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 placeholder-gray-400 resize-none text-sm'
+            className='flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 placeholder-gray-400 resize-none text-sm'
           />
         ) : (
           <div
             onClick={() => setIsEditing(true)}
-            className='w-full h-full px-3 py-2 border border-gray-300 rounded-lg cursor-text text-gray-900 text-sm hover:border-gray-400 transition'
+            className='flex-1 px-3 py-2 border border-gray-300 rounded-lg cursor-text text-gray-900 text-sm hover:border-gray-400 transition'
             dangerouslySetInnerHTML={{ __html: linkifyText(notes) }}
           />
         )}

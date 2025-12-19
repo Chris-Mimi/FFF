@@ -278,7 +278,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
         console.log(`✓ Successfully saved ${result.benchmark_name}`);
       } catch (error) {
         console.error(`✗ Failed to save ${result.benchmark_name}:`, error);
-        errors.push({ name: result.benchmark_name, error });
+        errors.push({ benchmark_name: result.benchmark_name, error: error instanceof Error ? error.message : 'Unknown error' });
         errorCount++;
       }
     }

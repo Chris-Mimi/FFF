@@ -223,7 +223,7 @@ export default function BenchmarksLiftsManagementPage() {
         type: benchmark.type,
         description: benchmark.description || '',
         display_order: benchmark.display_order,
-        has_scaling: benchmark.has_scaling ?? true
+        has_scaling: (benchmark as { has_scaling?: boolean }).has_scaling ?? true
       });
     } else {
       setEditingBenchmark(null);
@@ -273,10 +273,9 @@ export default function BenchmarksLiftsManagementPage() {
 
       setShowBenchmarkModal(false);
       fetchBenchmarks();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: unknown) {
       console.error('Error saving benchmark:', error);
-      alert(`Error: ${error.message}`);
+      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -293,10 +292,9 @@ export default function BenchmarksLiftsManagementPage() {
 
       if (error) throw error;
       fetchBenchmarks();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: unknown) {
       console.error('Error deleting benchmark:', error);
-      alert(`Error: ${error.message}`);
+      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -323,7 +321,7 @@ export default function BenchmarksLiftsManagementPage() {
         type: forge.type,
         description: forge.description || '',
         display_order: forge.display_order,
-        has_scaling: forge.has_scaling ?? true
+        has_scaling: (forge as { has_scaling?: boolean }).has_scaling ?? true
       });
     } else {
       setEditingForge(null);
@@ -376,7 +374,7 @@ export default function BenchmarksLiftsManagementPage() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: unknown) {
       console.error('Error saving forge benchmark:', error);
-      alert(`Error: ${error.message}`);
+      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -396,7 +394,7 @@ export default function BenchmarksLiftsManagementPage() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: unknown) {
       console.error('Error deleting forge benchmark:', error);
-      alert(`Error: ${error.message}`);
+      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -451,7 +449,7 @@ export default function BenchmarksLiftsManagementPage() {
           .eq('id', targetItem.id);
       } catch (error: unknown) {
         console.error('Error updating order:', error);
-        alert(`Error updating order: ${error.message}`);
+        alert(`Error updating order: ${error instanceof Error ? error.message : 'Unknown error'}`);
         fetchForgeBenchmarks();
       }
     } else {
@@ -477,7 +475,7 @@ export default function BenchmarksLiftsManagementPage() {
             .eq('id', draggedItem.id);
         } catch (error: unknown) {
           console.error('Error updating order:', error);
-          alert(`Error updating order: ${error.message}`);
+          alert(`Error updating order: ${error instanceof Error ? error.message : 'Unknown error'}`);
           fetchForgeBenchmarks();
         }
       }
@@ -520,7 +518,7 @@ export default function BenchmarksLiftsManagementPage() {
       }
     } catch (error: unknown) {
       console.error('Error inserting row:', error);
-      alert(`Error inserting row: ${error.message}`);
+      alert(`Error inserting row: ${error instanceof Error ? error.message : 'Unknown error'}`);
       fetchForgeBenchmarks();
     }
   };
@@ -591,7 +589,7 @@ export default function BenchmarksLiftsManagementPage() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: unknown) {
       console.error('Error saving lift:', error);
-      alert(`Error: ${error.message}`);
+      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -646,7 +644,7 @@ export default function BenchmarksLiftsManagementPage() {
           .eq('id', targetLift.id);
       } catch (error: unknown) {
         console.error('Error updating order:', error);
-        alert(`Error updating order: ${error.message}`);
+        alert(`Error updating order: ${error instanceof Error ? error.message : 'Unknown error'}`);
         fetchLifts();
       }
     } else {
@@ -672,7 +670,7 @@ export default function BenchmarksLiftsManagementPage() {
             .eq('id', draggedLift.id);
         } catch (error: unknown) {
           console.error('Error updating order:', error);
-          alert(`Error updating order: ${error.message}`);
+          alert(`Error updating order: ${error instanceof Error ? error.message : 'Unknown error'}`);
           fetchLifts();
         }
       }
@@ -695,7 +693,7 @@ export default function BenchmarksLiftsManagementPage() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: unknown) {
       console.error('Error deleting lift:', error);
-      alert(`Error: ${error.message}`);
+      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -992,7 +990,7 @@ export default function BenchmarksLiftsManagementPage() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: unknown) {
       console.error('Error saving exercise:', error);
-      alert(`Error: ${error.message}`);
+      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -1012,7 +1010,7 @@ export default function BenchmarksLiftsManagementPage() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: unknown) {
       console.error('Error deleting exercise:', error);
-      alert(`Error: ${error.message}`);
+      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 

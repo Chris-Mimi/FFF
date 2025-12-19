@@ -1,8 +1,8 @@
 'use client';
 
 import { WODFormData } from './WorkoutModal';
-import { X } from 'lucide-react';
-import { useEffect } from 'react';
+import { X, Bold, Italic, Underline as UnderlineIcon, List, ListOrdered, Heading1, Heading2, Heading3 } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 
 interface NotesModalProps {
   isOpen: boolean;
@@ -33,6 +33,74 @@ export default function NotesModal({
   resizeStart,
   onResizeStartChange,
 }: NotesModalProps) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const applyFormatting = (format: string) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = notesDraft.substring(start, end);
+    const beforeText = notesDraft.substring(0, start);
+    const afterText = notesDraft.substring(end);
+
+    let newText = '';
+    let cursorOffset = 0;
+
+    switch (format) {
+      case 'bold':
+        newText = `${beforeText}**${selectedText || 'bold text'}**${afterText}`;
+        cursorOffset = selectedText ? 2 : 2;
+        break;
+      case 'italic':
+        newText = `${beforeText}_${selectedText || 'italic text'}_${afterText}`;
+        cursorOffset = selectedText ? 1 : 1;
+        break;
+      case 'underline':
+        newText = `${beforeText}<u>${selectedText || 'underlined text'}</u>${afterText}`;
+        cursorOffset = selectedText ? 3 : 3;
+        break;
+      case 'bullet':
+        const bulletText = selectedText || 'List item';
+        newText = `${beforeText}\n- ${bulletText}${afterText}`;
+        cursorOffset = 3;
+        break;
+      case 'numbered':
+        const numberedText = selectedText || 'List item';
+        newText = `${beforeText}\n1. ${numberedText}${afterText}`;
+        cursorOffset = 4;
+        break;
+      case 'h1':
+        newText = `${beforeText}\n# ${selectedText || 'Heading 1'}${afterText}`;
+        cursorOffset = 3;
+        break;
+      case 'h2':
+        newText = `${beforeText}\n## ${selectedText || 'Heading 2'}${afterText}`;
+        cursorOffset = 4;
+        break;
+      case 'h3':
+        newText = `${beforeText}\n### ${selectedText || 'Heading 3'}${afterText}`;
+        cursorOffset = 5;
+        break;
+      default:
+        return;
+    }
+
+    onNotesDraftChange(newText);
+
+    // Restore cursor position
+    setTimeout(() => {
+      if (selectedText) {
+        textarea.setSelectionRange(start + cursorOffset, end + cursorOffset);
+      } else {
+        const newCursorPos = start + cursorOffset + (format === 'bold' ? 9 : format === 'italic' ? 11 : format === 'underline' ? 16 : format.startsWith('h') ? (format === 'h1' ? 9 : format === 'h2' ? 10 : 11) : 9);
+        textarea.setSelectionRange(newCursorPos, newCursorPos);
+      }
+      textarea.focus();
+    }, 0);
+  };
+
   useEffect(() => {
     if (!isResizing) return;
 
@@ -159,7 +227,79 @@ export default function NotesModal({
                 <label className='block text-sm font-semibold mb-2 text-gray-900'>
                   Notes
                 </label>
+
+                {/* Formatting Toolbar */}
+                <div className='flex gap-1 mb-2 p-2 bg-gray-100 rounded-lg border border-gray-300'>
+                  <button
+                    type='button'
+                    onClick={() => applyFormatting('bold')}
+                    className='p-2 hover:bg-white rounded transition'
+                    title='Bold (**text**)'
+                  >
+                    <Bold size={18} />
+                  </button>
+                  <button
+                    type='button'
+                    onClick={() => applyFormatting('italic')}
+                    className='p-2 hover:bg-white rounded transition'
+                    title='Italic (_text_)'
+                  >
+                    <Italic size={18} />
+                  </button>
+                  <button
+                    type='button'
+                    onClick={() => applyFormatting('underline')}
+                    className='p-2 hover:bg-white rounded transition'
+                    title='Underline (<u>text</u>)'
+                  >
+                    <UnderlineIcon size={18} />
+                  </button>
+                  <div className='w-px bg-gray-300 mx-1'></div>
+                  <button
+                    type='button'
+                    onClick={() => applyFormatting('bullet')}
+                    className='p-2 hover:bg-white rounded transition'
+                    title='Bullet List (- item)'
+                  >
+                    <List size={18} />
+                  </button>
+                  <button
+                    type='button'
+                    onClick={() => applyFormatting('numbered')}
+                    className='p-2 hover:bg-white rounded transition'
+                    title='Numbered List (1. item)'
+                  >
+                    <ListOrdered size={18} />
+                  </button>
+                  <div className='w-px bg-gray-300 mx-1'></div>
+                  <button
+                    type='button'
+                    onClick={() => applyFormatting('h1')}
+                    className='p-2 hover:bg-white rounded transition'
+                    title='Heading 1 (# text)'
+                  >
+                    <Heading1 size={18} />
+                  </button>
+                  <button
+                    type='button'
+                    onClick={() => applyFormatting('h2')}
+                    className='p-2 hover:bg-white rounded transition'
+                    title='Heading 2 (## text)'
+                  >
+                    <Heading2 size={18} />
+                  </button>
+                  <button
+                    type='button'
+                    onClick={() => applyFormatting('h3')}
+                    className='p-2 hover:bg-white rounded transition'
+                    title='Heading 3 (### text)'
+                  >
+                    <Heading3 size={18} />
+                  </button>
+                </div>
+
                 <textarea
+                  ref={textareaRef}
                   value={notesDraft}
                   onChange={e => onNotesDraftChange(e.target.value)}
                   placeholder='Add private notes about this workout...&#10;&#10;Examples:&#10;- Athlete feedback&#10;- Scaling options used&#10;- Time management notes&#10;- Equipment setup details&#10;- Modifications made'

@@ -550,29 +550,42 @@ export default function AnalysisPage() {
   };
 
   // Filter movements (lifts, benchmarks, forge benchmarks, exercises) by search, category, and movement type
-  const filteredExercises = statistics?.allMovementFrequency.filter(movement => {
-    const searchTerms = exerciseSearch.toLowerCase().trim().split(/\s+/).filter(term => term.length > 0);
-    const matchesSearch = searchTerms.length === 0 || searchTerms.every(term => movement.name.toLowerCase().includes(term));
-
-    // Movement type filtering
-    if (selectedMovementTypes.length > 0 && !selectedMovementTypes.includes(movement.type)) {
-      return false;
+  // When showUnusedOnly is active, include ALL exercises from library with counts
+  const filteredExercises = (() => {
+    if (showUnusedOnly) {
+      // Use getAllExercisesWithCounts which includes library exercises with 0 counts
+      return getAllExercisesWithCounts().filter(item => {
+        const searchTerms = exerciseSearch.toLowerCase().trim().split(/\s+/).filter(term => term.length > 0);
+        const matchesSearch = searchTerms.length === 0 || searchTerms.every(term => item.exercise.toLowerCase().includes(term));
+        return matchesSearch;
+      });
     }
 
-    // Category filtering only applies to exercises
-    if (selectedCategories.length === 0) {
-      return matchesSearch;
-    }
+    // Normal mode: only show movements that were used in workouts
+    return statistics?.allMovementFrequency.filter(movement => {
+      const searchTerms = exerciseSearch.toLowerCase().trim().split(/\s+/).filter(term => term.length > 0);
+      const matchesSearch = searchTerms.length === 0 || searchTerms.every(term => movement.name.toLowerCase().includes(term));
 
-    // For exercises, filter by category
-    if (movement.type === 'exercise' && movement.category) {
-      return matchesSearch && selectedCategories.includes(movement.category);
-    }
+      // Movement type filtering
+      if (selectedMovementTypes.length > 0 && !selectedMovementTypes.includes(movement.type)) {
+        return false;
+      }
 
-    // For lifts/benchmarks/forge benchmarks, include them if no category filter active,
-    // or exclude them if category filtering is active (since they don't have categories)
-    return matchesSearch && selectedCategories.length === 0;
-  }).map(m => ({ exercise: m.name, count: m.count })) || [];
+      // Category filtering only applies to exercises
+      if (selectedCategories.length === 0) {
+        return matchesSearch;
+      }
+
+      // For exercises, filter by category
+      if (movement.type === 'exercise' && movement.category) {
+        return matchesSearch && selectedCategories.includes(movement.category);
+      }
+
+      // For lifts/benchmarks/forge benchmarks, include them if no category filter active,
+      // or exclude them if category filtering is active (since they don't have categories)
+      return matchesSearch && selectedCategories.length === 0;
+    }).map(m => ({ exercise: m.name, count: m.count, type: m.type, category: m.category })) || [];
+  })();
 
   const filteredTopExercises = statistics?.movementFrequency.filter(movement => {
     // Movement type filtering

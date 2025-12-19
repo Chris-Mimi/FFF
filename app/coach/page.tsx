@@ -8,7 +8,7 @@ import { CalendarNav } from '@/components/coach/CalendarNav';
 import CalendarGrid from '@/components/coach/CalendarGrid';
 import SearchPanel from '@/components/coach/SearchPanel';
 import QuickEditPanel from '@/components/coach/QuickEditPanel';
-import NotesModal from '@/components/coach/NotesModal';
+// import NotesModal from '@/components/coach/NotesModal'; // ARCHIVED: Dead code - never triggered
 import { getCurrentUser, signOut } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -409,8 +409,8 @@ export default function CoachDashboard() {
         }}
       />
 
-      {/* Notes Modal */}
-      {notesPanel.isOpen && notesPanel.wod && (
+      {/* Notes Modal - ARCHIVED: Dead code, never triggered */}
+      {/* {notesPanel.isOpen && notesPanel.wod && (
         <NotesModal
           isOpen={notesPanel.isOpen}
           wod={notesPanel.wod}
@@ -425,7 +425,7 @@ export default function CoachDashboard() {
           onSave={handleSaveNotes}
           onClose={closeNotesPanel}
         />
-      )}
+      )} */}
 
       {/* Session Management Modal */}
       <SessionManagementModal

@@ -193,7 +193,7 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
       setEditingBenchmarkId(null);
     } catch (error: unknown) {
       console.error('Error saving benchmark:', error);
-      alert(`Failed to save benchmark result: ${error.message}`);
+      alert(`Failed to save benchmark result: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 

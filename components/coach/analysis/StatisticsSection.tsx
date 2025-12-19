@@ -48,7 +48,7 @@ interface StatisticsSectionProps {
   onClearFilters: () => void;
   exerciseSearch: string;
   onExerciseSearchChange: (value: string) => void;
-  filteredExercises: { exercise: string; count: number }[];
+  filteredExercises: { exercise: string; count: number; type?: 'lift' | 'benchmark' | 'forge_benchmark' | 'exercise'; category?: string }[];
   onExerciseSelect: (exercise: string) => void;
   onOpenLibrary: () => void;
   selectedExercises: string[];
@@ -342,9 +342,9 @@ export default function StatisticsSection({
                 />
 
                 {/* Dropdown Results */}
-                {exerciseSearch && filteredExercises.length > 0 && (
+                {(exerciseSearch || showUnusedOnly) && filteredExercises.length > 0 && (
                   <div className='absolute z-10 w-full mt-2 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto'>
-                    {filteredExercises.slice(0, 20).map((exercise, idx) => {
+                    {filteredExercises.map((exercise, idx) => {
                       const exerciseData = exercises.find(ex =>
                         ex.name === exercise.exercise ||
                         ex.display_name === exercise.exercise ||
@@ -358,8 +358,24 @@ export default function StatisticsSection({
                           className='w-full px-4 py-3 text-left hover:bg-gray-300 flex justify-between items-center border-b border-gray-100 last:border-b-0'
                         >
                           <div className='flex-1'>
-                            <div className='text-gray-900 font-medium'>
-                              {exerciseData?.display_name || exercise.exercise}
+                            <div className='flex items-center gap-2'>
+                              <div className='text-gray-900 font-medium'>
+                                {exerciseData?.display_name || exercise.exercise}
+                              </div>
+                              {/* Movement type badge */}
+                              {exercise.type && (
+                                <span className={`px-2 py-0.5 text-xs rounded font-medium ${
+                                  exercise.type === 'lift' ? 'bg-purple-100 text-purple-700' :
+                                  exercise.type === 'benchmark' ? 'bg-teal-100 text-teal-700' :
+                                  exercise.type === 'forge_benchmark' ? 'bg-cyan-100 text-cyan-700' :
+                                  'bg-gray-100 text-gray-700'
+                                }`}>
+                                  {exercise.type === 'lift' ? 'Lift' :
+                                   exercise.type === 'benchmark' ? 'Benchmark' :
+                                   exercise.type === 'forge_benchmark' ? 'Forge' :
+                                   'Exercise'}
+                                </span>
+                              )}
                             </div>
                             {/* Equipment badges */}
                             {exerciseData?.equipment && exerciseData.equipment.length > 0 && (
