@@ -206,6 +206,7 @@ export interface UseWorkoutModalResult {
   setPublishModalOpen: (open: boolean) => void;
   setApplySessionsOpen: (open: boolean) => void;
   handleSessionSelectionToggle: (sessionId: string, checked: boolean) => void;
+  handleTextareaInteraction: (sectionId: string, cursorPosition: number) => void;
 }
 
 export function useWorkoutModal(

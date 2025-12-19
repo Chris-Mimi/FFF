@@ -243,9 +243,9 @@ export default function ExerciseFormModal({
         const bodyPartsSet = new Set<string>();
 
         exercises.forEach((ex) => {
-          if (ex.tags) ex.tags.forEach(tag => tagsSet.add(tag));
-          if (ex.equipment) ex.equipment.forEach(eq => equipmentSet.add(eq));
-          if (ex.body_parts) ex.body_parts.forEach(bp => bodyPartsSet.add(bp));
+          if (ex.tags) ex.tags.forEach((tag: string) => tagsSet.add(tag));
+          if (ex.equipment) ex.equipment.forEach((eq: string) => equipmentSet.add(eq));
+          if (ex.body_parts) ex.body_parts.forEach((bp: string) => bodyPartsSet.add(bp));
         });
 
         setAvailableTags(Array.from(tagsSet).sort());

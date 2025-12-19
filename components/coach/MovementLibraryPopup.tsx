@@ -363,7 +363,7 @@ function MovementLibraryPopup({
       await fetchBenchmarks();
     } catch (error: unknown) {
       console.error('Error creating benchmark:', error);
-      alert(`Error: ${error.message}`);
+      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -408,7 +408,7 @@ function MovementLibraryPopup({
       await fetchForgeBenchmarks();
     } catch (error: unknown) {
       console.error('Error creating forge benchmark:', error);
-      alert(`Error creating Forge Benchmark: ${error.message}`);
+      alert(`Error creating Forge Benchmark: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -437,7 +437,7 @@ function MovementLibraryPopup({
       await fetchLifts();
     } catch (error: unknown) {
       console.error('Error creating lift:', error);
-      alert(`Error: ${error.message}`);
+      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -453,7 +453,7 @@ function MovementLibraryPopup({
       await fetchExercises();
     } catch (error: unknown) {
       console.error('Error creating exercise:', error);
-      alert(`Error: ${error.message}`);
+      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 

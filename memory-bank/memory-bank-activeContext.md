@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.8
-**Updated:** 2025-12-19 (Session 55 - Analysis Page "Unused" Button + Notes Formatting)
+**Version:** 10.9
+**Updated:** 2025-12-19 (Session 56 - Notes Markdown Rendering + Search Cleanup)
 
 ---
 
@@ -74,6 +74,43 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-12-19 Session 56 - Sonnet):**
+- **✅ Notes Markdown Rendering (HIGH PRIORITY):**
+  - Installed react-markdown, remark-gfm, rehype-raw libraries
+  - Replaced `linkifyText()` with ReactMarkdown component in CoachNotesPanel.tsx
+  - Added Tailwind typography plugin for prose styling
+  - Custom component overrides preserve URL linking functionality
+  - Panel opens in formatted view mode, raw markdown only when editing
+  - Created tailwind.config.ts with typography configuration
+- **✅ Auto-List Continuation:**
+  - Implemented Enter key handler for automatic list continuation
+  - Auto-continues bullet lists (- ) with proper indentation
+  - Auto-increments numbered lists (1. 2. 3.)
+  - Press Enter twice on empty item to exit list mode
+  - Location: CoachNotesPanel.tsx handleKeyDown function (lines 37-112)
+- **✅ Search Terms Cleanup:**
+  - Created cleanup-search-terms.ts script to remove duplicated search terms
+  - Removed terms that duplicate name, category, subcategory, tags, equipment, or body_parts
+  - Checked both whole terms and word parts (for hyphenated terms like "strength-endurance")
+  - Result: 476 exercises with empty search_terms (will auto-generate), 60 with unique terms only
+  - Total processed: 536 exercises
+- **✅ YouTube Timestamp Preservation:**
+  - Enhanced getEmbedUrl() in video-helpers.ts to preserve timestamps
+  - Extracts timestamp from YouTube URL parameters (t or start)
+  - Supports multiple formats: 77s, 1m30s, plain seconds
+  - Converts to embed URL ?start=N parameter
+  - Videos now start at saved timestamp instead of beginning
+- **✅ Production Build Fixes:**
+  - Fixed 6 TypeScript errors blocking build
+  - MovementResultInput.tsx: Changed `{\!\!` to `{!!}` for boolean casting (6 instances)
+  - ExerciseFormModal.tsx: Added explicit type annotations to forEach callbacks
+  - MovementLibraryPopup.tsx: Fixed error handling with instanceof checks (4 locations)
+  - useWorkoutModal.ts: Added handleTextareaInteraction to interface
+  - Production build succeeds
+- Commit: (pending) "feat(coach): complete notes markdown rendering, search cleanup, YouTube timestamps"
+- Files: 10 changed (4 core features, 4 build fixes, 1 new config, 1 new script)
+- See `project-history/2025-12-19-session-56-notes-markdown-search-cleanup.md`
 
 **Completed (2025-12-19 Session 55 - Sonnet):**
 - **✅ Analysis Page "Unused" Button Fix:**
@@ -251,13 +288,6 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 🚨 Known Issues (Next Session)
-
-**UI Enhancement Needed:**
-1. **Notes Markdown Rendering:**
-   - Formatting toolbar inserts markdown syntax (`**bold**`, `_italic_`, etc.)
-   - Display doesn't render markdown as HTML - shows raw syntax
-   - Solution: Replace or enhance `linkifyText()` with markdown-to-HTML renderer (e.g., react-markdown)
-   - Location: CoachNotesPanel.tsx lines 211, 285
 
 **Migration Pending:**
 1. **`20251206_fix_newlines_after_restore.sql`** (Optional) - Fix escaped `\n` in benchmark descriptions

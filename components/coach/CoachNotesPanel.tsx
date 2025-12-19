@@ -2,7 +2,9 @@
 
 import { X, Bold, Italic, Underline as UnderlineIcon, List, ListOrdered, Heading1, Heading2, Heading3 } from 'lucide-react';
 import { useState, useRef } from 'react';
-import { linkifyText } from '@/utils/linkify';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
 
 interface CoachNotesPanelProps {
   isOpen: boolean;
@@ -32,6 +34,83 @@ export default function CoachNotesPanel({
   const [isEditing, setIsEditing] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      const textarea = textareaRef.current;
+      if (!textarea) return;
+
+      const cursorPos = textarea.selectionStart;
+      const textBeforeCursor = notes.substring(0, cursorPos);
+      const textAfterCursor = notes.substring(cursorPos);
+
+      // Find the current line
+      const lines = textBeforeCursor.split('\n');
+      const currentLine = lines[lines.length - 1];
+
+      // Check for bullet list (- )
+      const bulletMatch = currentLine.match(/^(\s*)- (.*)$/);
+      if (bulletMatch) {
+        const indent = bulletMatch[1];
+        const content = bulletMatch[2];
+
+        // If line has only marker (empty item), exit list mode
+        if (content.trim() === '') {
+          e.preventDefault();
+          const newText = textBeforeCursor.slice(0, -2) + '\n' + textAfterCursor;
+          onChange(newText);
+          setTimeout(() => {
+            textarea.setSelectionRange(cursorPos - 1, cursorPos - 1);
+            textarea.focus();
+          }, 0);
+          return;
+        }
+
+        // Continue bullet list
+        e.preventDefault();
+        const newText = textBeforeCursor + '\n' + indent + '- ' + textAfterCursor;
+        onChange(newText);
+        setTimeout(() => {
+          const newPos = cursorPos + indent.length + 3;
+          textarea.setSelectionRange(newPos, newPos);
+          textarea.focus();
+        }, 0);
+        return;
+      }
+
+      // Check for numbered list (1. 2. etc.)
+      const numberedMatch = currentLine.match(/^(\s*)(\d+)\.\s+(.*)$/);
+      if (numberedMatch) {
+        const indent = numberedMatch[1];
+        const currentNum = parseInt(numberedMatch[2]);
+        const content = numberedMatch[3];
+
+        // If line has only marker (empty item), exit list mode
+        if (content.trim() === '') {
+          e.preventDefault();
+          const newText = textBeforeCursor.slice(0, -(currentNum.toString().length + 2)) + '\n' + textAfterCursor;
+          onChange(newText);
+          setTimeout(() => {
+            textarea.setSelectionRange(cursorPos - currentNum.toString().length - 1, cursorPos - currentNum.toString().length - 1);
+            textarea.focus();
+          }, 0);
+          return;
+        }
+
+        // Continue numbered list
+        e.preventDefault();
+        const nextNum = currentNum + 1;
+        const newText = textBeforeCursor + '\n' + indent + nextNum + '. ' + textAfterCursor;
+        onChange(newText);
+        setTimeout(() => {
+          const newPos = cursorPos + indent.length + nextNum.toString().length + 3;
+          textarea.setSelectionRange(newPos, newPos);
+          textarea.focus();
+        }, 0);
+        return;
+      }
+    }
+  };
+
   const applyFormatting = (format: string) => {
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -59,13 +138,15 @@ export default function CoachNotesPanel({
         cursorOffset = selectedText ? 3 : 3;
         break;
       case 'bullet':
-        const bulletText = selectedText || 'List item';
-        newText = `${beforeText}\n- ${bulletText}${afterText}`;
+        newText = selectedText
+          ? `${beforeText}\n- ${selectedText}${afterText}`
+          : `${beforeText}\n- ${afterText}`;
         cursorOffset = 3;
         break;
       case 'numbered':
-        const numberedText = selectedText || 'List item';
-        newText = `${beforeText}\n1. ${numberedText}${afterText}`;
+        newText = selectedText
+          ? `${beforeText}\n1. ${selectedText}${afterText}`
+          : `${beforeText}\n1. ${afterText}`;
         cursorOffset = 4;
         break;
       case 'h1':
@@ -91,7 +172,16 @@ export default function CoachNotesPanel({
       if (selectedText) {
         textarea.setSelectionRange(start + cursorOffset, end + cursorOffset);
       } else {
-        const newCursorPos = start + cursorOffset + (format === 'bold' ? 9 : format === 'italic' ? 11 : format === 'underline' ? 16 : format.startsWith('h') ? (format === 'h1' ? 9 : format === 'h2' ? 10 : 11) : 9);
+        let placeholderLength = 0;
+        if (format === 'bold') placeholderLength = 9; // 'bold text'
+        else if (format === 'italic') placeholderLength = 11; // 'italic text'
+        else if (format === 'underline') placeholderLength = 16; // 'underlined text'
+        else if (format === 'h1') placeholderLength = 9; // 'Heading 1'
+        else if (format === 'h2') placeholderLength = 10; // 'Heading 2'
+        else if (format === 'h3') placeholderLength = 11; // 'Heading 3'
+        // bullet and numbered have no placeholder, cursor stays after marker
+
+        const newCursorPos = start + cursorOffset + placeholderLength;
         textarea.setSelectionRange(newCursorPos, newCursorPos);
       }
       textarea.focus();
@@ -163,7 +253,7 @@ export default function CoachNotesPanel({
 
           {/* Content */}
           <div className='flex-1 overflow-y-auto p-4 flex flex-col'>
-            {(isEditing || !notes) && (
+            {isEditing && (
               <div className='flex gap-1 mb-2 p-2 bg-gray-100 rounded-lg border border-gray-300 flex-shrink-0'>
                 <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('bold'); }} className='p-2 hover:bg-white rounded transition' title='Bold'>
                   <Bold size={16} />
@@ -198,6 +288,7 @@ export default function CoachNotesPanel({
                 ref={textareaRef}
                 value={notes}
                 onChange={e => onChange(e.target.value)}
+                onKeyDown={handleKeyDown}
                 onBlur={() => setIsEditing(false)}
                 onFocus={() => setIsEditing(true)}
                 autoFocus={isEditing}
@@ -208,8 +299,39 @@ export default function CoachNotesPanel({
               <div
                 onClick={() => setIsEditing(true)}
                 className='flex-1 px-3 py-2 border border-gray-300 rounded-lg cursor-text text-gray-900 text-sm hover:border-gray-400 transition'
-                dangerouslySetInnerHTML={{ __html: linkifyText(notes) }}
-              />
+              >
+                {notes ? (
+                  <div className='prose prose-sm max-w-none'>
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      rehypePlugins={[rehypeRaw]}
+                      components={{
+                        a: ({ node, ...props }) => (
+                          <a
+                            {...props}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 underline"
+                          />
+                        ),
+                        p: ({ node, ...props }) => <p {...props} className="mb-2" />,
+                        ul: ({ node, ...props }) => <ul {...props} className="list-disc ml-4 mb-2" />,
+                        ol: ({ node, ...props }) => <ol {...props} className="list-decimal ml-4 mb-2" />,
+                        li: ({ node, ...props }) => <li {...props} className="mb-1" />,
+                        h1: ({ node, ...props }) => <h1 {...props} className="text-xl font-bold mb-2 mt-4" />,
+                        h2: ({ node, ...props }) => <h2 {...props} className="text-lg font-bold mb-2 mt-3" />,
+                        h3: ({ node, ...props }) => <h3 {...props} className="text-base font-bold mb-1 mt-2" />,
+                        strong: ({ node, ...props }) => <strong {...props} className="font-bold" />,
+                        em: ({ node, ...props }) => <em {...props} className="italic" />,
+                      }}
+                    >
+                      {notes}
+                    </ReactMarkdown>
+                  </div>
+                ) : (
+                  <p className='text-gray-400 italic'>Click to add notes...</p>
+                )}
+              </div>
             )}
           </div>
 
@@ -237,7 +359,7 @@ export default function CoachNotesPanel({
         </button>
       </div>
       <div className='flex-1 overflow-y-auto p-4 flex flex-col'>
-        {(isEditing || !notes) && (
+        {isEditing && (
           <div className='flex gap-1 mb-2 p-2 bg-gray-100 rounded-lg border border-gray-300 flex-shrink-0'>
             <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('bold'); }} className='p-2 hover:bg-white rounded transition' title='Bold'>
               <Bold size={16} />
@@ -272,6 +394,7 @@ export default function CoachNotesPanel({
             ref={textareaRef}
             value={notes}
             onChange={e => onChange(e.target.value)}
+            onKeyDown={handleKeyDown}
             onBlur={() => setIsEditing(false)}
             onFocus={() => setIsEditing(true)}
             autoFocus={isEditing}
@@ -282,8 +405,39 @@ export default function CoachNotesPanel({
           <div
             onClick={() => setIsEditing(true)}
             className='flex-1 px-3 py-2 border border-gray-300 rounded-lg cursor-text text-gray-900 text-sm hover:border-gray-400 transition'
-            dangerouslySetInnerHTML={{ __html: linkifyText(notes) }}
-          />
+          >
+            {notes ? (
+              <div className='prose prose-sm max-w-none'>
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  rehypePlugins={[rehypeRaw]}
+                  components={{
+                    a: ({ node, ...props }) => (
+                      <a
+                        {...props}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 underline"
+                      />
+                    ),
+                    p: ({ node, ...props }) => <p {...props} className="mb-2" />,
+                    ul: ({ node, ...props }) => <ul {...props} className="list-disc ml-4 mb-2" />,
+                    ol: ({ node, ...props }) => <ol {...props} className="list-decimal ml-4 mb-2" />,
+                    li: ({ node, ...props }) => <li {...props} className="mb-1" />,
+                    h1: ({ node, ...props }) => <h1 {...props} className="text-xl font-bold mb-2 mt-4" />,
+                    h2: ({ node, ...props }) => <h2 {...props} className="text-lg font-bold mb-2 mt-3" />,
+                    h3: ({ node, ...props }) => <h3 {...props} className="text-base font-bold mb-1 mt-2" />,
+                    strong: ({ node, ...props }) => <strong {...props} className="font-bold" />,
+                    em: ({ node, ...props }) => <em {...props} className="italic" />,
+                  }}
+                >
+                  {notes}
+                </ReactMarkdown>
+              </div>
+            ) : (
+              <p className='text-gray-400 italic'>Click to add notes...</p>
+            )}
+          </div>
         )}
       </div>
       <div className='border-t p-3 bg-white'>

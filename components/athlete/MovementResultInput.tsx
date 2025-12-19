@@ -96,7 +96,7 @@ export function MovementResultInput({
         {/* Dynamic input fields based on result_fields */}
         <div className='flex items-center gap-2 ml-auto flex-wrap'>
           {/* Time input (mm:ss format) */}
-          {\!\!(resultFields.time as boolean) && (
+          {!!(resultFields.time as boolean) && (
             <input
               type='text'
               placeholder='mm:ss'
@@ -121,7 +121,7 @@ export function MovementResultInput({
           )}
 
           {/* Reps input */}
-          {\!\!(resultFields.reps || resultFields.rounds_reps) && (
+          {!!(resultFields.reps || resultFields.rounds_reps) && (
             <input
               type='number'
               placeholder='reps'
@@ -132,7 +132,7 @@ export function MovementResultInput({
           )}
 
           {/* Weight input (kg) */}
-          {\!\!(resultFields.weight as boolean) && (
+          {!!(resultFields.weight as boolean) && (
             <input
               type='number'
               step='0.5'
@@ -144,7 +144,7 @@ export function MovementResultInput({
           )}
 
           {/* Distance input (meters) */}
-          {\!\!(resultFields.distance_meters as boolean) && (
+          {!!(resultFields.distance_meters as boolean) && (
             <input
               type='number'
               step='0.1'
@@ -156,7 +156,7 @@ export function MovementResultInput({
           )}
 
           {/* Duration input (seconds for holds) */}
-          {\!\!(resultFields.duration_seconds as boolean) && (
+          {!!(resultFields.duration_seconds as boolean) && (
             <input
               type='number'
               placeholder='seconds'
@@ -167,7 +167,7 @@ export function MovementResultInput({
           )}
 
           {/* Scaling dropdown */}
-          {\!\!(resultFields.scaling as boolean) && (movement.has_scaling ?? true) && (
+          {!!(resultFields.scaling as boolean) && (movement.has_scaling ?? true) && (
             <select
               value={(value.scaling_level as string) || 'Rx'}
               onChange={(e) => updateField('scaling_level', e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3')}
