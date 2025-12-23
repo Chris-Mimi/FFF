@@ -16,6 +16,18 @@ interface WorkoutSection {
   forge_benchmarks?: ConfiguredForgeBenchmark[];
 }
 
+interface SectionResult {
+  section_id: string;
+  time_result?: string;
+  reps_result?: number;
+  weight_result?: number;
+  rounds_result?: number;
+  calories_result?: number;
+  metres_result?: number;
+  scaling_level?: string;
+  task_completed?: boolean;
+}
+
 interface PublishedWorkout {
   id: string;
   title: string;
@@ -32,6 +44,7 @@ interface PublishedWorkout {
     name: string;
     color: string;
   };
+  results?: SectionResult[];
 }
 
 interface AthletePageWorkoutsTabProps {
@@ -191,6 +204,28 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
         } as PublishedWorkout;
       });
 
+      // Fetch section results for these workouts
+      const workoutIds = workoutsFromBookings
+        .filter(w => w.attended)
+        .map(w => w.id);
+
+      if (workoutIds.length > 0) {
+        const { data: results, error: resultsError } = await supabase
+          .from('wod_section_results')
+          .select('section_id, time_result, reps_result, weight_result, rounds_result, calories_result, metres_result, scaling_level, task_completed, wod_id')
+          .in('wod_id', workoutIds)
+          .eq('user_id', userId);
+
+        if (resultsError) {
+          console.error('Error fetching results:', resultsError);
+        }
+
+        // Attach results to workouts
+        workoutsFromBookings.forEach(workout => {
+          workout.results = results?.filter(r => r.wod_id === workout.id) || [];
+        });
+      }
+
       setWorkouts(workoutsFromBookings);
     } catch (error) {
       console.error('Error fetching workouts:', error);
@@ -289,20 +324,24 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
         </div>
       </div>
 
-      {/* Weekly Calendar */}
-      <div className='grid grid-cols-7 gap-4'>
+      {/* Weekly Calendar - Only show days with workouts */}
+      <div className='grid gap-4' style={{ gridTemplateColumns: `repeat(${weekDates.filter(date => getWorkoutForDate(date)).length || 1}, minmax(0, 1fr))` }}>
         {weekDates.map((date, index) => {
           const workout = getWorkoutForDate(date);
+
+          // Skip days without workouts
+          if (!workout) return null;
+
           const isToday = formatDate(new Date()) === formatDate(date);
           const dayName = date.toLocaleDateString('en-GB', { weekday: 'short' });
 
           return (
             <div
               key={index}
-              onClick={() => workout && onNavigateToLogbook?.(date)}
+              onClick={() => onNavigateToLogbook?.(date)}
               className={`bg-white rounded-lg shadow-md overflow-hidden ${
                 isToday ? 'ring-4 ring-[#7dd3c0]' : 'border border-gray-400'
-              } ${workout ? 'cursor-pointer hover:shadow-lg transition-shadow' : ''}`}
+              } cursor-pointer hover:shadow-lg transition-shadow`}
             >
               {/* Day Header */}
               <div className={`p-3 text-center ${
@@ -327,7 +366,7 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
               <div className='p-3 min-h-[200px]'>
                 {loading ? (
                   <div className='text-center text-gray-400 text-sm py-4'>Loading...</div>
-                ) : workout ? (
+                ) : (
                   workout.booked ? (
                     // Future booked session - show "Booked" placeholder
                     <div className='flex flex-col items-center justify-center h-full py-8'>
@@ -357,7 +396,23 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
                       </div>
 
                       {/* Published Sections */}
-                      {getPublishedSections(workout).map(section => (
+                      {getPublishedSections(workout).map(section => {
+                        // Match by section ID - results may have -content-0 suffix
+                        const sectionResult = workout.results?.find(r =>
+                          r.section_id === section.id || r.section_id.startsWith(section.id + '-content')
+                        );
+                        const hasResultData = sectionResult && (
+                          sectionResult.time_result ||
+                          sectionResult.reps_result ||
+                          sectionResult.rounds_result ||
+                          sectionResult.weight_result ||
+                          sectionResult.calories_result ||
+                          sectionResult.metres_result ||
+                          sectionResult.scaling_level ||
+                          (sectionResult.task_completed !== undefined && sectionResult.task_completed !== null)
+                        );
+
+                        return (
                         <div key={section.id} className='border-l-2 border-[#208479] pl-2'>
                           <div className='text-xs font-semibold text-[#208479] mb-1'>
                             {section.type} ({section.duration} min)
@@ -417,12 +472,28 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
                               {section.content}
                             </div>
                           )}
+
+                          {/* Section Result */}
+                          {hasResultData && (
+                            <div className='bg-green-50 border border-green-200 rounded p-2 mt-2'>
+                              <div className='text-xs font-bold text-green-900 mb-1'>Your Result:</div>
+                              <div className='text-xs text-green-800 space-y-0.5'>
+                                {sectionResult.time_result && <div>Time: {sectionResult.time_result}</div>}
+                                {sectionResult.reps_result && <div>Reps: {sectionResult.reps_result}</div>}
+                                {sectionResult.rounds_result && <div>Rounds: {sectionResult.rounds_result}</div>}
+                                {sectionResult.weight_result && <div>Weight: {sectionResult.weight_result} kg</div>}
+                                {sectionResult.calories_result && <div>Calories: {sectionResult.calories_result}</div>}
+                                {sectionResult.metres_result && <div>Distance: {sectionResult.metres_result} m</div>}
+                                {sectionResult.scaling_level && <div>Scaling: {sectionResult.scaling_level}</div>}
+                                {sectionResult.task_completed !== null && <div>{sectionResult.task_completed ? '✓ Completed' : '○ Not Completed'}</div>}
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )
-                ) : (
-                  <div className='text-center text-gray-400 text-sm py-8'>No workout</div>
                 )}
               </div>
             </div>

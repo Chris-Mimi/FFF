@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.10
-**Updated:** 2025-12-23 (Session 57 - Bug Fixes: Exercise Parsing, Notes Modal, Publish RLS)
+**Version:** 10.11
+**Updated:** 2025-12-23 (Session 58 - Athlete Workouts Tab Results Display)
 
 ---
 
@@ -74,6 +74,49 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-12-23 Session 58 - Sonnet):**
+- **✅ Athlete Workouts Tab - Results Display:**
+  - Fixed results not appearing in Published Workouts tab workout cards
+  - Root cause: Section ID mismatch between workout sections and wod_section_results table
+  - Workout sections: `section-1764750292053-2`, Results table: `section-1764750292053-2-content-0`
+  - Solution: Changed section result lookup to match by prefix using `startsWith(section.id + '-content')`
+  - File: components/athlete/AthletePageWorkoutsTab.tsx (lines 403-406)
+  - Moved result display from before section content to after (lines 476-491)
+  - Results now show at bottom of each section with green background
+  - Displays: time, reps, rounds, weight, calories, distance, scaling level, task completion
+- **✅ Publish Modal - Pre-select All Sections:**
+  - Changed default behavior to pre-select all sections for publishing
+  - Allows coach to deselect any unwanted sections
+  - File: components/coach/PublishModal.tsx (lines 44-46, 56)
+  - Used `sections.map(s => s.id)` for default selectedSectionIds
+- **✅ Google Calendar - Section Separator Removal:**
+  - Removed horizontal separator lines between sections in Google Calendar events
+  - Changed from `'<br><br>─────────────────<br><br>'` to `'<br><br>'`
+  - File: app/api/google/publish-workout/route.ts (lines 207-209)
+- **✅ Google Calendar - Re-publish After Manual Delete:**
+  - Fixed republish not creating new event after manual deletion from Google Calendar
+  - Added try/catch around calendar.events.update()
+  - On 404 error, creates new event instead of failing
+  - File: app/api/google/publish-workout/route.ts (lines 262-279)
+- **✅ Coach Notes - Line Break Preservation:**
+  - Fixed line breaks not preserved when copying from Google Calendar events
+  - Added remark-breaks plugin to ReactMarkdown
+  - Changed from require() to ES6 import syntax
+  - File: components/coach/CoachNotesPanel.tsx (line 4, 76)
+- **✅ WOD Section Types - Added WOD Pt. 4, 5, 6:**
+  - Added three new section types to section_types table
+  - Display orders: 16, 17, 18
+  - Description: "Workout of the Day (main conditioning piece)"
+  - Created via script: scripts/add-wod-parts-correct.ts
+- **✅ Athlete Workouts Tab - Show Only Days with Workouts:**
+  - Changed grid to only display days where athlete completed workouts
+  - Removed empty day cards, expanded remaining cards horizontally
+  - Used dynamic grid columns: `repeat(N, minmax(0, 1fr))` where N = workout count
+  - File: components/athlete/AthletePageWorkoutsTab.tsx (lines 328-333)
+- Commit: (pending) "feat(athlete): display results in workouts tab, show only workout days"
+- Files: 5 changed (AthletePageWorkoutsTab, PublishModal, publish-workout route, CoachNotesPanel, new script)
+- See `project-history/2025-12-23-session-58-athlete-workouts-results.md`
 
 **Completed (2025-12-23 Session 57 - Sonnet):**
 - **✅ Exercise Parsing Bug Fix (CRITICAL):**

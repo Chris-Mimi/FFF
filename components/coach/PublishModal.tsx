@@ -42,7 +42,7 @@ export default function PublishModal({
     : (currentPublishConfig?.eventTime || '09:00');
 
   const [selectedSectionIds, setSelectedSectionIds] = useState<string[]>(
-    currentPublishConfig?.selectedSectionIds || []
+    currentPublishConfig?.selectedSectionIds || sections.map(s => s.id)
   );
   const [eventTime, setEventTime] = useState(initialTime);
   const [eventDurationMinutes, setEventDurationMinutes] = useState(
@@ -53,14 +53,14 @@ export default function PublishModal({
   // Reset state when modal opens or currentPublishConfig changes
   useEffect(() => {
     if (isOpen) {
-      setSelectedSectionIds(currentPublishConfig?.selectedSectionIds || []);
+      setSelectedSectionIds(currentPublishConfig?.selectedSectionIds || sections.map(s => s.id));
       const time = sessionTime
         ? formatTime(sessionTime)
         : (currentPublishConfig?.eventTime || '09:00');
       setEventTime(time);
       setEventDurationMinutes(currentPublishConfig?.eventDurationMinutes || 60);
     }
-  }, [isOpen, currentPublishConfig, sessionTime]);
+  }, [isOpen, currentPublishConfig, sessionTime, sections]);
 
   // Auto-calculate duration based on selected sections
   useEffect(() => {

@@ -206,7 +206,7 @@ export async function POST(request: NextRequest) {
 
     const description = selectedSections
       .map(formatSectionToHTML)
-      .join('<br><br>─────────────────<br><br>');
+      .join('<br><br>');
 
     // Parse event date and time
     const [year, month, day] = workout.date.split('-');
@@ -260,13 +260,23 @@ export async function POST(request: NextRequest) {
         };
 
         if (workout.google_event_id) {
-          // Update existing event
-          const response = await calendar.events.update({
-            calendarId: process.env.GOOGLE_CALENDAR_ID,
-            eventId: workout.google_event_id,
-            requestBody: event,
-          });
-          calendarEventId = response.data.id!;
+          // Try to update existing event, create new if it doesn't exist
+          try {
+            const response = await calendar.events.update({
+              calendarId: process.env.GOOGLE_CALENDAR_ID,
+              eventId: workout.google_event_id,
+              requestBody: event,
+            });
+            calendarEventId = response.data.id!;
+          } catch (updateError: unknown) {
+            // Event was deleted from calendar, create new one
+            console.log('Event not found in calendar, creating new event');
+            const response = await calendar.events.insert({
+              calendarId: process.env.GOOGLE_CALENDAR_ID,
+              requestBody: event,
+            });
+            calendarEventId = response.data.id!;
+          }
         } else {
           // Create new event
           const response = await calendar.events.insert({

@@ -5,6 +5,7 @@ import { useState, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
+import remarkBreaks from 'remark-breaks';
 
 interface CoachNotesPanelProps {
   isOpen: boolean;
@@ -303,7 +304,7 @@ export default function CoachNotesPanel({
                 {notes ? (
                   <div className='prose prose-sm max-w-none'>
                     <ReactMarkdown
-                      remarkPlugins={[remarkGfm]}
+                      remarkPlugins={[remarkGfm, remarkBreaks]}
                       rehypePlugins={[rehypeRaw]}
                       components={{
                         a: ({ node, ...props }) => (
