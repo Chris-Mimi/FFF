@@ -43,3 +43,7 @@ Start session → git pull
 About to do risky work → npm run backup
 Make changes
 If breaks → npm run restore 2025-12-13
+
+# If Claude Code is not in side bar #
+* Open Coammand Pallete (Cmd+Shift+P)
+* Type "Claude Code: Open in side bar"

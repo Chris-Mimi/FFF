@@ -461,10 +461,14 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
       const lines = section.content.split('\n');
 
       lines.forEach(line => {
-        const trimmedLine = line.trim();
-        if (!trimmedLine) return;
+        // Split by + to handle multiple exercises on same line (e.g., "* Exercise A + * Exercise B")
+        const parts = line.split('+').map(p => p.trim());
 
-        // Try each pattern
+        parts.forEach(part => {
+          const trimmedLine = part.trim();
+          if (!trimmedLine) return;
+
+          // Try each pattern
         for (const pattern of patterns) {
           const match = trimmedLine.match(pattern);
 
@@ -518,6 +522,7 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
             break; // Match found, don't try other patterns
           }
         }
+        });
       });
     });
   });

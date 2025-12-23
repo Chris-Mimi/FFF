@@ -41,8 +41,12 @@ export const extractMovements = (wods: WODFormData[]): Map<string, number> => {
       const lines = section.content.split('\n');
 
       lines.forEach(line => {
-        const trimmedLine = line.trim();
-        if (!trimmedLine) return;
+        // Split by + to handle multiple exercises on same line (e.g., "* Exercise A + * Exercise B")
+        const parts = line.split('+').map(p => p.trim());
+
+        parts.forEach(part => {
+          const trimmedLine = part.trim();
+          if (!trimmedLine) return;
 
         // Pattern 1: Number + x + Movement (e.g., "10x Air Squats", "10x Pass Throughs (PVC)")
         const numberXPattern = /^(?:\d+[\s-]*x[\s-]*|[\d-]+[\s-]*x[\s-]*)([\w\s\-()]+?)(?:\s*[@\d]|$)/i;
@@ -97,6 +101,7 @@ export const extractMovements = (wods: WODFormData[]): Map<string, number> => {
             }
           }
         }
+        });
       });
     });
 
