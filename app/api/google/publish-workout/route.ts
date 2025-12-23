@@ -74,23 +74,34 @@ interface Workout {
 
 export async function POST(request: NextRequest) {
   try {
-    const { workoutId, publishConfig } = (await request.json()) as {
+    console.log('[API] Received publish request');
+
+    const body = await request.json();
+    console.log('[API] Request body:', JSON.stringify(body, null, 2));
+
+    const { workoutId, publishConfig } = body as {
       workoutId: string;
       publishConfig: PublishConfig;
     };
 
+    console.log('[API] Parsed - workoutId:', workoutId, 'publishConfig:', publishConfig);
+
     if (!workoutId || !publishConfig) {
+      console.log('[API] Missing fields - workoutId:', !!workoutId, 'publishConfig:', !!publishConfig);
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Fetch the workout from database
-    const { data: workout, error: fetchError } = await supabase
+    // Fetch the workout from database (use admin client to bypass RLS)
+    const { data: workout, error: fetchError } = await supabaseAdmin
       .from('wods')
       .select('id, title, date, sections, google_event_id')
       .eq('id', workoutId)
       .single();
 
+    console.log('[API] Database query result - workout:', !!workout, 'error:', fetchError);
+
     if (fetchError || !workout) {
+      console.log('[API] Workout not found - fetchError:', fetchError, 'workout:', workout);
       return NextResponse.json({ error: 'Workout not found' }, { status: 404 });
     }
 
@@ -270,8 +281,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Update workout in database
-    const { error: updateError } = await supabase
+    // Update workout in database (use admin client to bypass RLS)
+    const { error: updateError } = await supabaseAdmin
       .from('wods')
       .update({
         is_published: true,
@@ -351,8 +362,8 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Missing workoutId' }, { status: 400 });
     }
 
-    // Fetch the workout
-    const { data: workout, error: fetchError } = await supabase
+    // Fetch the workout (use admin client to bypass RLS)
+    const { data: workout, error: fetchError } = await supabaseAdmin
       .from('wods')
       .select('google_event_id')
       .eq('id', workoutId)
@@ -390,8 +401,8 @@ export async function DELETE(request: NextRequest) {
       }
     }
 
-    // Update workout in database
-    const { error: updateError } = await supabase
+    // Update workout in database (use admin client to bypass RLS)
+    const { error: updateError } = await supabaseAdmin
       .from('wods')
       .update({
         is_published: false,

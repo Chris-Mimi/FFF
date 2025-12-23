@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.9
-**Updated:** 2025-12-19 (Session 56 - Notes Markdown Rendering + Search Cleanup)
+**Version:** 10.10
+**Updated:** 2025-12-23 (Session 57 - Bug Fixes: Exercise Parsing, Notes Modal, Publish RLS)
 
 ---
 
@@ -74,6 +74,41 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-12-23 Session 57 - Sonnet):**
+- **✅ Exercise Parsing Bug Fix (CRITICAL):**
+  - Fixed multiple exercises per line only detecting first exercise
+  - Issue: `* Box Step Up + * Shuttle Run` only showed "Box Step Up" in Analytics/Library
+  - Root cause: Line-by-line parsing with single match per line in both utilities
+  - Solution: Split each line by `+` before parsing, process each part independently
+  - Files: utils/movement-extraction.ts (lines 40-111), utils/movement-analytics.ts (lines 461-534)
+  - Both Analytics page and Coach Library Exercises tab now detect all exercises correctly
+- **✅ Notes Modal Drag Boundary Fix:**
+  - Fixed Notes modal dragging too far up (header disappearing under page header)
+  - Goal: Match Exercise library modal behavior (both can reach viewport top at y=0)
+  - Removed HEADER_HEIGHT restriction entirely: `maxBottom = window.innerHeight - notesModalSize.height`
+  - Added notesModalSize to useEffect dependencies to prevent stale closure bug
+  - File: hooks/coach/useModalResizing.ts (lines 56-154)
+  - User confirmed: "Notes modal: ok" ✅
+- **✅ Publish Workout RLS Blocking Fix (CRITICAL):**
+  - Fixed "Workout not found" 404 error when publishing workouts
+  - Root cause: API route using regular `supabase` client blocked by Session 54 RLS policies
+  - Solution: Changed ALL 4 database queries to use `supabaseAdmin` (bypasses RLS)
+  - Queries updated: Fetch workout (line 95), Update publish (line 285), Fetch for unpublish (line 366), Update unpublish (line 405)
+  - File: app/api/google/publish-workout/route.ts
+  - Added debug logging for troubleshooting (can be removed later)
+  - File: hooks/coach/useWorkoutModal.ts (improved error messages)
+  - User confirmed: "Working" ✅
+- **✅ Build Fixes:**
+  - Fixed TypeScript errors in scripts/cleanup-search-terms.ts
+  - Added explicit type annotations: `(term: string)`, `(t: string)` for lambda parameters
+  - Production build succeeds
+- **⚠️ Lesson Learned:**
+  - Committed exercise parsing fix (bba54f7) before user testing - user corrected with "Don't commit/push until I've tested"
+  - User preference: Wait for explicit approval before committing bug fixes
+- Commit: (pending) "fix(coach): notes modal drag, publish RLS, exercise parsing"
+- Files: 6 changed (2 movement utilities, 1 modal hook, 1 API route, 1 client hook, 1 script)
+- See `project-history/2025-12-23-session-57-bug-fixes.md`
 
 **Completed (2025-12-19 Session 56 - Sonnet):**
 - **✅ Notes Markdown Rendering (HIGH PRIORITY):**
@@ -341,9 +376,13 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 55 Priorities (Next Session)
+### Session 58 Priorities (Next Session)
 
-**Continue with January Launch Plan - Week 1 priorities below**
+**Week 2: Testing Phase** - Begin comprehensive validation before January Beta Launch
+- All Week 1 critical tasks complete (RLS policies, build verification)
+- Three bugs discovered and fixed during Session 57 (exercise parsing, notes modal, publish RLS)
+- Testing plan created in plan mode (see ~/.claude/plans/effervescent-wibbling-reef.md)
+- Ready to begin systematic manual validation of all features
 
 ### JANUARY LAUNCH PLAN (Weeks 1-5)
 

@@ -700,19 +700,27 @@ export function useWorkoutModal(
         await onSave(formData);
       }
 
+      const requestBody = {
+        workoutId: editingWOD?.id,
+        publishConfig,
+      };
+
+      console.log('Publishing workout - Request body:', requestBody);
+
       const response = await fetch('/api/google/publish-workout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          workoutId: editingWOD?.id,
-          publishConfig,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
+      console.log('Publish response status:', response.status);
+      const responseData = await response.json();
+      console.log('Publish response data:', responseData);
+
       if (!response.ok) {
-        throw new Error('Failed to publish workout');
+        throw new Error(`Failed to publish workout: ${responseData.error || responseData.details || 'Unknown error'}`);
       }
 
       if (onTimeUpdated) {

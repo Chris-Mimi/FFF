@@ -59,8 +59,12 @@ export function useModalResizing(): UseModalResizingResult {
         const deltaX = e.clientX - dragStartNotes.x;
         const deltaY = e.clientY - dragStartNotes.y;
 
+        // Calculate max bottom value (allows modal to reach viewport top, same as Exercise library)
+        // bottom = distance from viewport bottom, so larger bottom = higher on screen
+        const maxBottom = window.innerHeight - notesModalSize.height;
+
         setNotesModalPos({
-          bottom: Math.max(0, dragStartNotes.bottom - deltaY),
+          bottom: Math.max(0, Math.min(maxBottom, dragStartNotes.bottom - deltaY)),
           left: Math.max(0, dragStartNotes.left + deltaX),
         });
       };
@@ -147,7 +151,7 @@ export function useModalResizing(): UseModalResizingResult {
         document.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [isDraggingNotes, isResizingNotes, dragStartNotes, resizeStartNotes, resizeCorner]);
+  }, [isDraggingNotes, isResizingNotes, dragStartNotes, resizeStartNotes, resizeCorner, notesModalSize]);
 
   return {
     notesModalSize,
