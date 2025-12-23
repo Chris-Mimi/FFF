@@ -76,12 +76,13 @@ interface MovementLibraryPopupProps {
 // Movement Library Popup Component
 function MovementLibraryPopup({
   isOpen,
-  onClose,
+  onClose: parentOnClose,
   onSelectExercise,
   onSelectLift,
   onSelectBenchmark,
   onSelectForgeBenchmark,
 }: MovementLibraryPopupProps) {
+  const onClose = parentOnClose;
   const [activeTab, setActiveTab] = useState<TabType>('exercises');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -358,7 +359,7 @@ function MovementLibraryPopup({
         });
       if (error) throw error;
 
-      setShowCreateBenchmarkModal(false);
+      () => setShowCreateBenchmarkModal(false)();
       setBenchmarkForm({ name: '', type: 'For Time', description: '', has_scaling: true });
       await fetchBenchmarks();
     } catch (error: unknown) {
@@ -403,7 +404,7 @@ function MovementLibraryPopup({
       console.log('Created forge benchmark:', data);
       alert('Forge Benchmark created successfully!');
 
-      setShowCreateForgeModal(false);
+      () => setShowCreateForgeModal(false)();
       setForgeForm({ name: '', type: 'For Time', description: '', has_scaling: true });
       await fetchForgeBenchmarks();
     } catch (error: unknown) {
@@ -432,7 +433,7 @@ function MovementLibraryPopup({
         });
       if (error) throw error;
 
-      setShowCreateLiftModal(false);
+      () => setShowCreateLiftModal(false)();
       setLiftForm({ name: '', category: 'Olympic' });
       await fetchLifts();
     } catch (error: unknown) {
@@ -1083,9 +1084,9 @@ function MovementLibraryPopup({
       {/* Create Benchmark Modal */}
       {showCreateBenchmarkModal && (
         <div className='fixed inset-0 z-[200] bg-black/50 flex items-center justify-center p-4'>
-          <div className='bg-gray-500 rounded-lg max-w-lg w-full p-6 shadow-2xl'>
+          <div className='bg-white rounded-lg max-w-lg w-full p-6 shadow-2xl' onClick={(e) => e.stopPropagation()}>
             <div className='flex justify-between items-center mb-4'>
-              <h3 className='text-xl font-bold text-gray-100'>Add Benchmark</h3>
+              <h3 className='text-xl font-bold text-gray-900'>Add Benchmark</h3>
               <button onClick={() => setShowCreateBenchmarkModal(false)} className='p-1 hover:bg-gray-600 rounded'>
                 <X size={24} className='text-white' />
               </button>
@@ -1149,8 +1150,8 @@ function MovementLibraryPopup({
 
       {/* Create Forge Benchmark Modal */}
       {showCreateForgeModal && (
-        <div className='fixed inset-0 z-[200] bg-black/50 flex items-center justify-center p-4'>
-          <div className='bg-gray-500 rounded-lg max-w-lg w-full p-6 shadow-2xl'>
+        <div className='fixed inset-0 z-[200] bg-black/50 flex items-center justify-center p-4' onClick={(e) => e.stopPropagation()}>
+          <div className='bg-gray-500 rounded-lg max-w-lg w-full p-6 shadow-2xl' onClick={(e) => e.stopPropagation()}>
             <div className='flex justify-between items-center mb-4'>
               <h3 className='text-xl font-bold text-gray-100'>Add Forge Benchmark</h3>
               <button onClick={() => setShowCreateForgeModal(false)} className='p-1 hover:bg-gray-600 rounded'>
@@ -1216,8 +1217,8 @@ function MovementLibraryPopup({
 
       {/* Create Lift Modal */}
       {showCreateLiftModal && (
-        <div className='fixed inset-0 z-[200] bg-black/50 flex items-center justify-center p-4'>
-          <div className='bg-gray-500 rounded-lg max-w-lg w-full p-6 shadow-2xl'>
+        <div className='fixed inset-0 z-[200] bg-black/50 flex items-center justify-center p-4' onClick={(e) => e.stopPropagation()}>
+          <div className='bg-gray-500 rounded-lg max-w-lg w-full p-6 shadow-2xl' onClick={(e) => e.stopPropagation()}>
             <div className='flex justify-between items-center mb-4'>
               <h3 className='text-xl font-bold text-gray-100'>Add Barbell Lift</h3>
               <button onClick={() => setShowCreateLiftModal(false)} className='p-1 hover:bg-gray-600 rounded'>

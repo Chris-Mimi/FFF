@@ -477,8 +477,8 @@ export default function ExerciseFormModal({
   if (!isOpen) return null;
 
   return (
-    <div className='fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center p-4' onClick={onClose}>
-      <div className='bg-gray-500 rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl' onClick={(e) => e.stopPropagation()}>
+    <div className='fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center p-4'>
+      <div className='bg-gray-500 rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl'>
         <div className='flex justify-between items-center mb-4'>
           <h3 className='text-xl font-bold text-gray-100'>
             {editingExercise ? 'Edit Exercise' : 'Add Exercise'}
