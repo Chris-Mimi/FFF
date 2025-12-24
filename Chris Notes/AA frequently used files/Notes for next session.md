@@ -18,9 +18,8 @@ This document is a template with headings to show you where the issue is or wher
     c. Analysis page scroll jump bug (deferred from Session 25)
 *
 *
-# Athletes tab (coach) #
- Review which info should show in the workout logs
-
+# Workout Library tab (coach) #
+When I have a workout selected the Notes appear in edit mode, they should appear in preview mode
  # Edit Workout Modal (coach) #
  IMPROVEMENTS/Bug Fixes:
 

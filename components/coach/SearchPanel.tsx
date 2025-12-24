@@ -2,6 +2,10 @@
 
 import { WODFormData } from './WorkoutModal';
 import { GripVertical, Search, X } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
+import remarkBreaks from 'remark-breaks';
 
 interface WorkoutType {
   id: string;
@@ -574,8 +578,32 @@ export default function SearchPanel({
                       <div className='font-semibold text-sm text-gray-900 mb-1'>
                         Coach Notes
                       </div>
-                      <div className='text-sm text-gray-700 whitespace-pre-wrap'>
-                        {selectedSearchWOD.coach_notes}
+                      <div className='text-sm text-gray-700 prose prose-sm max-w-none'>
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm, remarkBreaks]}
+                          rehypePlugins={[rehypeRaw]}
+                          components={{
+                            a: ({ node, ...props }) => (
+                              <a
+                                {...props}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:text-blue-800 underline"
+                              />
+                            ),
+                            p: ({ node, ...props }) => <p {...props} className="mb-2" />,
+                            ul: ({ node, ...props }) => <ul {...props} className="list-disc ml-4 mb-2" />,
+                            ol: ({ node, ...props }) => <ol {...props} className="list-decimal ml-4 mb-2" />,
+                            li: ({ node, ...props }) => <li {...props} className="mb-1" />,
+                            h1: ({ node, ...props }) => <h1 {...props} className="text-lg font-bold mb-2 mt-3" />,
+                            h2: ({ node, ...props }) => <h2 {...props} className="text-base font-bold mb-2 mt-2" />,
+                            h3: ({ node, ...props }) => <h3 {...props} className="text-sm font-bold mb-1 mt-2" />,
+                            strong: ({ node, ...props }) => <strong {...props} className="font-bold" />,
+                            em: ({ node, ...props }) => <em {...props} className="italic" />,
+                          }}
+                        >
+                          {selectedSearchWOD.coach_notes}
+                        </ReactMarkdown>
                       </div>
                     </div>
                   )}
