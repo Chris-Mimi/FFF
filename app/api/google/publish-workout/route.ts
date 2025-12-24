@@ -218,8 +218,12 @@ export async function POST(request: NextRequest) {
       parseInt(hours),
       parseInt(minutes)
     );
+
+    // Round duration to nearest hour (e.g., 63 min → 60 min, 67 min → 60 min, 90 min → 120 min)
+    const roundedDurationMinutes = Math.round(publishConfig.eventDurationMinutes / 60) * 60;
+
     const endDateTime = new Date(
-      startDateTime.getTime() + publishConfig.eventDurationMinutes * 60000
+      startDateTime.getTime() + roundedDurationMinutes * 60000
     );
 
     // Check if Google Calendar is configured

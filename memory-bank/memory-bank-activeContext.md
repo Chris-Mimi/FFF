@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.12
-**Updated:** 2025-12-23 (Session 59 - Modal Closing Behavior Fix)
+**Version:** 10.13
+**Updated:** 2025-12-24 (Session 60 - Coach Notes UX & Google Calendar Duration)
 
 ---
 
@@ -74,6 +74,30 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-12-24 Session 60 - Sonnet):**
+- **✅ Coach Notes Modal UX Improvements:**
+  - Fixed click-to-edit behavior requiring double-click
+  - Root cause: onBlur handler was triggering on mouseDown, immediately exiting edit mode
+  - Added Edit/Preview toggle button in modal header
+  - Implemented scroll position preservation when switching between edit/preview modes
+  - Preview mode: Shows formatted markdown (ReactMarkdown with remarkGfm, remarkBreaks, rehypeRaw)
+  - Edit mode: Shows raw markdown with formatting toolbar (bold, italic, underline, lists, headings)
+  - File: components/coach/CoachNotesPanel.tsx
+  - Changes:
+    - Line 35-60: Added isEditing state, toggleEditMode() function with scroll preservation
+    - Line 247-263: Added Edit/Preview toggle button to floating mode header
+    - Line 268-336: Conditional rendering of toolbar and edit/preview content
+    - Line 355-369: Added Edit/Preview toggle to side panel mode header
+    - Line 371-442: Conditional rendering for side panel mode
+- **✅ Google Calendar Event Duration Rounding:**
+  - Changed event duration to round to nearest hour instead of exact minutes
+  - Examples: 63 min → 60 min, 67 min → 60 min, 90 min → 120 min
+  - Improves calendar readability for athletes
+  - File: app/api/google/publish-workout/route.ts (line 222-227)
+  - Formula: `Math.round(durationMinutes / 60) * 60`
+- Commit: (pending)
+- Files: 2 changed (CoachNotesPanel.tsx, route.ts)
 
 **Completed (2025-12-23 Session 59 - Sonnet):**
 - **✅ Modal Closing Behavior Fix:**
