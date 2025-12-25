@@ -42,7 +42,7 @@ export default function PublishModal({
     : (currentPublishConfig?.eventTime || '09:00');
 
   const [selectedSectionIds, setSelectedSectionIds] = useState<string[]>(
-    currentPublishConfig?.selectedSectionIds || sections.map(s => s.id)
+    sections.map(s => s.id)
   );
   const [eventTime, setEventTime] = useState(initialTime);
   const [eventDurationMinutes, setEventDurationMinutes] = useState(
@@ -53,7 +53,23 @@ export default function PublishModal({
   // Reset state when modal opens or currentPublishConfig changes
   useEffect(() => {
     if (isOpen) {
-      setSelectedSectionIds(currentPublishConfig?.selectedSectionIds || sections.map(s => s.id));
+      // Calculate initial section selection
+      // If previously published, merge old selection with any new sections
+      let initialSelection: string[];
+      if (currentPublishConfig?.selectedSectionIds) {
+        const allSectionIds = sections.map(s => s.id);
+        const oldSelection = currentPublishConfig.selectedSectionIds;
+        // Include all previously selected sections that still exist
+        const validOldSelection = oldSelection.filter(id => allSectionIds.includes(id));
+        // Add any new sections that weren't in the old config
+        const newSections = allSectionIds.filter(id => !oldSelection.includes(id));
+        initialSelection = [...validOldSelection, ...newSections];
+      } else {
+        // First time publishing - select all sections
+        initialSelection = sections.map(s => s.id);
+      }
+
+      setSelectedSectionIds(initialSelection);
       const time = sessionTime
         ? formatTime(sessionTime)
         : (currentPublishConfig?.eventTime || '09:00');
@@ -131,29 +147,49 @@ export default function PublishModal({
               Select Sections for Athletes <span className='text-red-500'>*</span>
             </h3>
             <div className='space-y-2'>
-              {sections.map(section => (
-                <label
-                  key={section.id}
-                  className='flex items-start gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer'
-                >
-                  <input
-                    type='checkbox'
-                    checked={selectedSectionIds.includes(section.id)}
-                    onChange={() => handleToggleSection(section.id)}
-                    className='mt-1 h-4 w-4 text-[#20766a] focus:ring-[#20766a] rounded'
-                  />
-                  <div className='flex-1'>
-                    <div className='font-medium text-gray-900'>
-                      {section.type} ({section.duration} min)
-                    </div>
-                    {section.content && (
-                      <div className='text-sm text-gray-600 mt-1 line-clamp-2'>
-                        {section.content}
+              {sections.map(section => {
+                // Build preview text showing what's in this section
+                const previewParts: string[] = [];
+
+                if (section.lifts && section.lifts.length > 0) {
+                  previewParts.push(`${section.lifts.length} lift${section.lifts.length > 1 ? 's' : ''}`);
+                }
+                if (section.benchmarks && section.benchmarks.length > 0) {
+                  previewParts.push(`${section.benchmarks.length} benchmark${section.benchmarks.length > 1 ? 's' : ''}`);
+                }
+                if (section.forge_benchmarks && section.forge_benchmarks.length > 0) {
+                  previewParts.push(`${section.forge_benchmarks.length} forge benchmark${section.forge_benchmarks.length > 1 ? 's' : ''}`);
+                }
+
+                const hasStructuredContent = previewParts.length > 0;
+                const preview = hasStructuredContent
+                  ? previewParts.join(', ')
+                  : section.content;
+
+                return (
+                  <label
+                    key={section.id}
+                    className='flex items-start gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer'
+                  >
+                    <input
+                      type='checkbox'
+                      checked={selectedSectionIds.includes(section.id)}
+                      onChange={() => handleToggleSection(section.id)}
+                      className='mt-1 h-4 w-4 text-[#20766a] focus:ring-[#20766a] rounded'
+                    />
+                    <div className='flex-1'>
+                      <div className='font-medium text-gray-900'>
+                        {section.type} ({section.duration} min)
                       </div>
-                    )}
-                  </div>
-                </label>
-              ))}
+                      {preview && (
+                        <div className='text-sm text-gray-600 mt-1 line-clamp-2'>
+                          {preview}
+                        </div>
+                      )}
+                    </div>
+                  </label>
+                );
+              })}
             </div>
           </div>
 
@@ -177,16 +213,86 @@ export default function PublishModal({
               <div className='space-y-3'>
                 {sections
                   .filter(s => selectedSectionIds.includes(s.id))
-                  .map(section => (
-                    <div key={section.id} className='bg-white p-3 rounded border'>
-                      <div className='font-medium text-[#20766a] mb-1'>
-                        {section.type} ({section.duration} min)
+                  .map(section => {
+                    // Format helpers (match API route logic)
+                    const formatLift = (lift: any): string => {
+                      if (lift.rep_type === 'constant') {
+                        const base = `${lift.name} ${lift.sets}x${lift.reps}`;
+                        return lift.percentage_1rm ? `${base} @ ${lift.percentage_1rm}%` : base;
+                      } else {
+                        const reps = lift.variable_sets?.map((s: any) => s.reps).join('-') || '';
+                        return `${lift.name} ${reps}`;
+                      }
+                    };
+
+                    const formatBenchmark = (benchmark: any): string => {
+                      const scaling = benchmark.scaling_option ? ` (${benchmark.scaling_option})` : '';
+                      return `${benchmark.name}${scaling}`;
+                    };
+
+                    const formatForgeBenchmark = (forge: any): string => {
+                      const scaling = forge.scaling_option ? ` (${forge.scaling_option})` : '';
+                      return `${forge.name}${scaling}`;
+                    };
+
+                    return (
+                      <div key={section.id} className='bg-white p-3 rounded border'>
+                        <div className='font-medium text-[#20766a] mb-2'>
+                          {section.type} ({section.duration} min)
+                        </div>
+
+                        <div className='text-sm text-gray-700 space-y-2'>
+                          {/* Lifts */}
+                          {section.lifts && section.lifts.length > 0 && (
+                            <div>
+                              {section.lifts.map((lift: any, idx: number) => (
+                                <div key={idx}>• {formatLift(lift)}</div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Benchmarks */}
+                          {section.benchmarks && section.benchmarks.length > 0 && (
+                            <div className='space-y-1'>
+                              {section.benchmarks.map((benchmark: any, idx: number) => (
+                                <div key={idx}>
+                                  <div className='font-semibold'>{formatBenchmark(benchmark)}</div>
+                                  {benchmark.description && (
+                                    <div className='text-xs text-gray-600 whitespace-pre-wrap mt-0.5'>
+                                      {benchmark.description}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Forge Benchmarks */}
+                          {section.forge_benchmarks && section.forge_benchmarks.length > 0 && (
+                            <div className='space-y-1'>
+                              {section.forge_benchmarks.map((forge: any, idx: number) => (
+                                <div key={idx}>
+                                  <div className='font-semibold'>{formatForgeBenchmark(forge)}</div>
+                                  {forge.description && (
+                                    <div className='text-xs text-gray-600 whitespace-pre-wrap mt-0.5'>
+                                      {forge.description}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Content */}
+                          {section.content && (
+                            <div className='whitespace-pre-wrap'>
+                              {section.content}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <div className='text-sm text-gray-700 whitespace-pre-wrap'>
-                        {section.content}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
               </div>
             </div>
           )}

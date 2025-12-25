@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.13
-**Updated:** 2025-12-24 (Session 60 - Coach Notes UX & Google Calendar Duration)
+**Version:** 10.14
+**Updated:** 2025-12-25 (Session 61 - Benchmark RLS Fix & Publish Modal Improvements)
 
 ---
 
@@ -75,6 +75,38 @@ Athlete Tables (linked to members.id)
 
 ## 📍 Current Status (Last 2 Weeks)
 
+**Completed (2025-12-25 Session 61 - Sonnet):**
+- **✅ Benchmark RLS Policy Fix (CRITICAL):**
+  - Issue: Unable to create benchmarks - "new row violates row-level security policy"
+  - Root cause: Migration 20251105_add_coach_permissions_benchmarks_lifts.sql was never applied
+  - JWT token contained coach role, but INSERT/UPDATE/DELETE policies were missing
+  - Applied missing RLS policies via Supabase SQL Editor:
+    - `Coaches can insert benchmark workouts` (WITH CHECK auth.jwt() -> 'user_metadata' ->> 'role' = 'coach')
+    - `Coaches can update benchmark workouts` (USING auth.jwt() -> 'user_metadata' ->> 'role' = 'coach')
+    - `Coaches can delete benchmark workouts` (USING auth.jwt() -> 'user_metadata' ->> 'role' = 'coach')
+  - forge_benchmarks policies already existed
+  - File: Created diagnostic migrations (not needed - used direct SQL approach)
+- **✅ Publish Modal Preview Improvements:**
+  - Issue: Preview only showed section.content, not benchmarks/lifts/forge benchmarks
+  - Added structured content rendering matching Google Calendar API format
+  - File: components/coach/PublishModal.tsx
+  - Changes:
+    - Lines 178-259: Added format helpers and conditional rendering for lifts/benchmarks/forge benchmarks
+    - Lines 134-176: Section checkboxes now show summary ("1 benchmark, 2 lifts")
+    - Displays benchmark/forge benchmark descriptions (whitespace-pre-wrap)
+    - Matches API route formatting exactly
+- **✅ Publish Modal Section Auto-Selection Fix:**
+  - Issue: New sections added after initial publish weren't pre-selected
+  - Root cause: `currentPublishConfig.selectedSectionIds` only contained old section IDs
+  - Solution: Merge old selection + new sections in useEffect
+  - File: components/coach/PublishModal.tsx (lines 54-79)
+  - Preserves manually deselected sections, auto-includes new ones
+- **✅ Code Cleanup:**
+  - Removed debug JWT logging from benchmarks-lifts/page.tsx
+  - Simplified error handling in saveBenchmark() and saveForge()
+- Commit: (pending)
+- Files: 4 changed (PublishModal.tsx, benchmarks-lifts/page.tsx, 2 diagnostic migrations created but not needed)
+
 **Completed (2025-12-24 Session 60 - Sonnet):**
 - **✅ Coach Notes Modal UX Improvements:**
   - Fixed click-to-edit behavior requiring double-click
@@ -96,7 +128,7 @@ Athlete Tables (linked to members.id)
   - Improves calendar readability for athletes
   - File: app/api/google/publish-workout/route.ts (line 222-227)
   - Formula: `Math.round(durationMinutes / 60) * 60`
-- Commit: (pending)
+- Commit: ebf509b "fix(coach): prevent modals from closing on backdrop click"
 - Files: 2 changed (CoachNotesPanel.tsx, route.ts)
 
 **Completed (2025-12-23 Session 59 - Sonnet):**

@@ -275,7 +275,8 @@ export default function BenchmarksLiftsManagementPage() {
       fetchBenchmarks();
     } catch (error: unknown) {
       console.error('Error saving benchmark:', error);
-      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      alert(`Error saving benchmark: ${message}`);
     }
   };
 
@@ -371,10 +372,10 @@ export default function BenchmarksLiftsManagementPage() {
 
       setShowForgeModal(false);
       fetchForgeBenchmarks();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: unknown) {
       console.error('Error saving forge benchmark:', error);
-      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      alert(`Error saving forge benchmark: ${message}`);
     }
   };
 
