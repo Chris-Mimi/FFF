@@ -72,7 +72,7 @@ interface Workout {
   google_event_id?: string;
   workout_name?: string;
   track_id?: string;
-  tracks?: { name: string } | null;
+  tracks?: { name: string } | { name: string }[] | null;
 }
 
 export async function POST(request: NextRequest) {
@@ -253,7 +253,15 @@ export async function POST(request: NextRequest) {
 
         // Create or update calendar event
         // Title priority: workout_name > track name > session_type (deprecated title field)
-        const workoutTitle = workout.workout_name || workout.tracks?.name || workout.title;
+        let trackName: string | undefined;
+        if (workout.tracks) {
+          if (Array.isArray(workout.tracks)) {
+            trackName = workout.tracks[0]?.name;
+          } else {
+            trackName = (workout.tracks as { name: string }).name;
+          }
+        }
+        const workoutTitle = workout.workout_name || trackName || workout.title;
         const event = {
           summary: `${workoutTitle} - ${new Date(workout.date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}`,
           description: description,

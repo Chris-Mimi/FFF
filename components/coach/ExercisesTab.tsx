@@ -15,7 +15,7 @@ const EXERCISE_CATEGORY_ORDER = [
   'Gymnastics & Bodyweight',
   'Core, Abs & Isometric Holds',
   'Cardio & Conditioning',
-  'Specialty',
+  'Strength & Functional Conditioning',
   'Recovery & Stretching',
 ];
 
@@ -24,7 +24,7 @@ const CATEGORY_DISPLAY_NAMES: Record<string, string> = {
   'Olympic Lifting & Barbell Movements': 'Oly Lift & Barbell',
   'Core, Abs & Isometric Holds': 'Core, Abs & Iso',
   'Cardio & Conditioning': 'Cardio & Cond',
-  'Specialty': 'Strength & Cond',
+  'Strength & Functional Conditioning': 'Strength & Cond',
 };
 
 // Sort categories by predefined order

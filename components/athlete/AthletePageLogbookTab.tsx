@@ -865,7 +865,12 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                           style={{ backgroundColor: wod.tracks.color || '#208479' }}
                         />
                       )}
-                      <h3 className='text-lg font-semibold text-gray-900'>{wod.title}</h3>
+                      <h3 className='text-lg font-semibold text-gray-900'>
+                        {wod.session_type || wod.title}
+                        {(wod.workout_name || wod.tracks?.name) && (
+                          <span className='text-gray-600'> - {wod.workout_name || wod.tracks?.name}</span>
+                        )}
+                      </h3>
                     </div>
                     {wod.time && (
                       <span className='text-sm text-gray-500'>
@@ -1539,7 +1544,10 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                                   />
                                 )}
                                 <span className='text-xs font-medium text-gray-900 truncate'>
-                                  {wod.title}
+                                  {wod.session_type || wod.title}
+                                  {(wod.workout_name || wod.tracks?.name) && (
+                                    <span className='text-gray-600'> - {wod.workout_name || wod.tracks?.name}</span>
+                                  )}
                                 </span>
                               </div>
                             )}
@@ -1639,7 +1647,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                                   : 'bg-[#208479] text-white'
                               }`}
                             >
-                              {wod.booked ? 'Booked' : wod.title}
+                              {wod.booked ? 'Booked' : `${wod.session_type || wod.title}${(wod.workout_name || wod.tracks?.name) ? ` - ${wod.workout_name || wod.tracks?.name}` : ''}`}
                             </div>
                           ))}
                           {dayWorkouts.length > 2 && (

@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.16
-**Updated:** 2025-12-28 (Session 62 - WOD Sections & Parsing Fixes)
+**Version:** 10.17
+**Updated:** 2025-12-28 (Session 63 - UI Fixes & Display Improvements)
 
 ---
 
@@ -74,6 +74,40 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-12-28 Session 63 - Sonnet):**
+- **✅ Strength & Conditioning Filter Fix:**
+  - Fixed "Strength & Cond" filter not working in Coach Library
+  - Root cause: Category name mismatch - code used 'Specialty', database used 'Strength & Functional Conditioning'
+  - Files changed:
+    - components/coach/ExercisesTab.tsx (lines 18, 27): Changed 'Specialty' → 'Strength & Functional Conditioning'
+    - components/coach/MovementLibraryPopup.tsx (line 40): Changed 'Specialty' → 'Strength & Functional Conditioning'
+- **✅ Calendar Hover Display Improvement:**
+  - Changed hover popover to show workout name or track name instead of session type
+  - Example: "Endurance #25.43" instead of "Endurance" or "Mixed Modal" instead of "WOD"
+  - Files changed:
+    - components/coach/CalendarGrid.tsx:
+      - Line 49: Added tracks prop to CalendarGridProps interface
+      - Lines 116-120: Added getTrackName() helper function
+      - Line 188: Added title attribute to show workout/track name on hover (browser tooltip)
+      - Line 291: Changed popover header to show `workout_name || track_name || title`
+    - app/coach/page.tsx (line 303): Passed tracks prop to CalendarGrid
+    - app/api/google/publish-workout/route.ts:
+      - Line 75: Updated Workout interface to handle array type for tracks
+      - Lines 256-263: Fixed track name extraction with proper TypeScript handling
+- **✅ Athlete Logbook Display Enhancement:**
+  - Updated Athlete Logbook to show "Session Type - Workout Name" or "Session Type - Track Name"
+  - Example: "Endurance - Endurance #25.43" or "WOD - Mixed Modal"
+  - Applied to all 3 view modes: Day view, Week view, Month view calendar
+  - Files changed:
+    - utils/logbook-utils.ts (lines 20-21): Added session_type and workout_name to WOD interface
+    - hooks/athlete/useLogbookData.ts (lines 114-115): Added fields to Supabase query
+    - components/athlete/AthletePageLogbookTab.tsx:
+      - Lines 868-873: Updated day view title to show session_type + workout_name/track_name
+      - Lines 1547-1550: Updated week view to show session_type + workout_name/track_name
+      - Line 1650: Updated month view calendar to show session_type + workout_name/track_name
+- Commit: (pending)
+- Files: 8 changed (ExercisesTab, MovementLibraryPopup, CalendarGrid, coach page, publish-workout route, logbook-utils, useLogbookData, AthletePageLogbookTab)
 
 **Completed (2025-12-28 Session 62 - Sonnet):**
 - **✅ WOD Pt.4, Pt.5, Pt.6 Section Support:**

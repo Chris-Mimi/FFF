@@ -111,6 +111,8 @@ export function useLogbookData({
         .select(`
           id,
           title,
+          session_type,
+          workout_name,
           date,
           sections,
           published_section_ids,

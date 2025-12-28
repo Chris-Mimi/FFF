@@ -46,6 +46,7 @@ interface CalendarGridProps {
   viewMode: 'weekly' | 'monthly';
   displayDates: Date[];
   wods: Record<string, WODFormData[]>;
+  tracks: Array<{ id: string; name: string }>;
   selectedDate: Date;
   focusedDate: Date | null;
   copiedWOD: WODFormData | null;
@@ -79,6 +80,7 @@ export default function CalendarGrid({
   viewMode,
   displayDates,
   wods,
+  tracks,
   selectedDate,
   focusedDate,
   copiedWOD,
@@ -102,6 +104,13 @@ export default function CalendarGrid({
   onSessionManagementClick,
 }: CalendarGridProps) {
   const [thursdayCollapsed, setThursdayCollapsed] = useState(true);
+
+  // Helper function to get track name from track_id
+  const getTrackName = (trackId?: string): string | undefined => {
+    if (!trackId) return undefined;
+    const track = tracks.find(t => t.id === trackId);
+    return track?.name;
+  };
 
   /**
    * Renders a WOD card with all interactive elements
@@ -143,7 +152,6 @@ export default function CalendarGrid({
         onMouseEnter={() => !isEmptySession && onWODHover(cardId)}
         onMouseLeave={() => onWODHover(null)}
         className={`workout-card ${marginBottom} ${padding} ${roundedClass} ${textSize} transition group relative cursor-pointer ${cardClasses} ${hoveredWOD === cardId ? 'z-50' : 'z-10'}`}
-        title={isEmptySession ? 'Click to add workout' : 'Click to edit workout'}
         onClick={(e) => {
           const target = e.target as HTMLElement;
           // Don't interfere with button clicks (booking badge, action buttons)
@@ -177,6 +185,7 @@ export default function CalendarGrid({
               className={`${titleSize} flex-1 min-w-0 truncate ${
                 isPublished ? 'text-white' : isEmptySession ? 'text-gray-600' : 'text-gray-900'
               }`}
+              title={isEmptySession ? 'Click to add workout' : (wod.workout_name || getTrackName(wod.track_id) || undefined)}
             >
               {wod.title}
             </div>
@@ -279,7 +288,7 @@ export default function CalendarGrid({
         {/* Hover Popover - Only for workouts with content */}
         {!isEmptySession && hoveredWOD === cardId && dragHandleHovered !== cardId && (
           <div className='absolute left-0 top-full w-80 bg-white border-2 border-[#208479] rounded-lg shadow-2xl p-4 z-[200] max-h-96 overflow-y-auto'>
-            <div className='text-sm font-bold text-gray-900 mb-3'>{wod.title}</div>
+            <div className='text-sm font-bold text-gray-900 mb-3'>{wod.workout_name || getTrackName(wod.track_id) || wod.title}</div>
             <div className='space-y-3'>
               {wod.sections && wod.sections.length > 0 ? (
                 wod.sections

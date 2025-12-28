@@ -17,6 +17,8 @@ export const getMonthCalendarDays = getMonthDates;
 export interface WOD {
   id: string;
   title: string;
+  session_type?: string;
+  workout_name?: string;
   date: string;
   time?: string;
   tracks?: { name: string; color: string };

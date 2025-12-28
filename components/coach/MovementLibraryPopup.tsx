@@ -37,7 +37,7 @@ const EXERCISE_CATEGORY_ORDER = [
   'Gymnastics & Bodyweight',
   'Core, Abs & Isometric Holds',
   'Cardio & Conditioning',
-  'Specialty',
+  'Strength & Functional Conditioning',
   'Recovery & Stretching',
 ];
 

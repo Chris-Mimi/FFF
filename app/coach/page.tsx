@@ -300,6 +300,7 @@ export default function CoachDashboard() {
                 viewMode={viewMode}
                 displayDates={displayDates}
                 wods={wods}
+                tracks={tracks}
                 selectedDate={selectedDate}
                 focusedDate={focusedDate}
                 copiedWOD={copiedWOD}
