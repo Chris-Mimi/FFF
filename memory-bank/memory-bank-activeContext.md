@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.15
-**Updated:** 2025-12-28 (Session 62 - Benchmark Description Display Fixes)
+**Version:** 10.16
+**Updated:** 2025-12-28 (Session 62 - WOD Sections & Parsing Fixes)
 
 ---
 
@@ -76,25 +76,41 @@ Athlete Tables (linked to members.id)
 ## 📍 Current Status (Last 2 Weeks)
 
 **Completed (2025-12-28 Session 62 - Sonnet):**
-- **✅ Benchmark Description Display in Workout Modal:**
-  - Issue: Only benchmark name appeared in Create/Edit Workout modal badges, not full description
-  - Fixed format functions to return objects instead of strings: `{ name, description, exercises }`
+- **✅ WOD Pt.4, Pt.5, Pt.6 Section Support:**
+  - Added three new WOD section types to support same functionality as WOD Pt.1-3
+  - Workout type dropdown and scoring configuration now appear for all WOD parts (Pt.1-6)
   - File: components/coach/WODSectionComponent.tsx
   - Changes:
-    - Lines 35-51: Updated formatBenchmark() and formatForgeBenchmark() to return objects
-    - Lines 379-420: Added description display below benchmark badges with whitespace-pre-wrap
-    - Lines 427-467: Added description display below forge benchmark badges
-    - Descriptions appear in teal/cyan boxes matching badge colors
-- **✅ Athlete Logbook Layout Fix:**
-  - Issue: Benchmark name appeared inline with movements/scoring inputs
-  - Changed layout to vertical stack: name at top, description/movements below, scoring inputs at bottom
-  - File: components/athlete/AthletePageLogbookTab.tsx
+    - Line 152: Added WOD Pt.4, Pt.5, Pt.6 to workout type dropdown conditional
+    - Line 172: Added WOD Pt.4, Pt.5, Pt.6 to scoring configuration conditional
+- **✅ Google Calendar Event Title Priority:**
+  - Changed event titles to prioritize workout_name over track name over session_type
+  - Example: "Overhead Fest - Thu, 28 Dec" instead of "WOD - Thu, 28 Dec"
+  - File: app/api/google/publish-workout/route.ts
   - Changes:
-    - Lines 1121-1134: Changed from flex to space-y-1, name on separate line
-    - Lines 1236-1249: Applied same layout to forge benchmarks
-    - Removed ml-auto from scoring inputs, removed flex-1 min-w-0 from description
+    - Lines 67-76: Updated Workout interface to include workout_name, track_id, tracks relation
+    - Line 97: Updated SELECT query to fetch workout_name, track_id, tracks(name)
+    - Lines 255-258: Changed event summary to use `workout_name || tracks?.name || title`
+- **✅ Exercise Parsing Fix for Comma-Separated Values (CRITICAL):**
+  - Fixed exercises not appearing in Analysis page when separated by commas
+  - Example: "Burpee x 10, Push-Up Strict x 25, Forward Lunge x 50, Abmat Sit-up x 100, Airsquat x 150"
+  - Root cause: Parsing only split by '+' symbols, not commas
+  - Solution: Changed regex from `split('+')` to `split(/[+,]/)`
+  - Files changed:
+    - utils/movement-analytics.ts (lines 469, 563, 651)
+    - utils/movement-extraction.ts (line 45)
+  - Applies to section content, benchmark descriptions, and forge benchmark descriptions
+- **✅ Calendar Card Benchmark Description Display:**
+  - Fixed calendar cards showing only benchmark names without full descriptions
+  - Changed format functions to return objects with description field
+  - File: components/coach/CalendarGrid.tsx
+  - Changes:
+    - Lines 27-43: Updated formatBenchmark() and formatForgeBenchmark() to return objects
+    - Lines 311-317: Added benchmark description display with whitespace-pre-wrap
+    - Lines 331-336: Added forge benchmark description display with whitespace-pre-wrap
+    - Shows description if exists, otherwise shows exercises array
 - Commit: (pending)
-- Files: 2 changed (WODSectionComponent.tsx, AthletePageLogbookTab.tsx)
+- Files: 5 changed (WODSectionComponent.tsx, publish-workout route.ts, movement-analytics.ts, movement-extraction.ts, CalendarGrid.tsx)
 
 **Completed (2025-12-25 Session 61 - Sonnet):**
 - **✅ Benchmark RLS Policy Fix (CRITICAL):**

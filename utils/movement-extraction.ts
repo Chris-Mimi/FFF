@@ -41,8 +41,8 @@ export const extractMovements = (wods: WODFormData[]): Map<string, number> => {
       const lines = section.content.split('\n');
 
       lines.forEach(line => {
-        // Split by + to handle multiple exercises on same line (e.g., "* Exercise A + * Exercise B")
-        const parts = line.split('+').map(p => p.trim());
+        // Split by both '+' and ',' to handle multiple exercises on same line
+        const parts = line.split(/[+,]/).map(p => p.trim());
 
         parts.forEach(part => {
           const trimmedLine = part.trim();

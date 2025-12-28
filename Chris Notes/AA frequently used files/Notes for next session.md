@@ -6,8 +6,7 @@ This document is a template with headings to show you where the issue is or wher
 * After every Workout, i take a picture of the whiteboard. I want to be able to upload this picture to the workout and have it displayed on the workout page.
 * Thursday is hideable. Is it complicated to make all days hideable?
 
-* Currently, exercises, Benchmarks, Lifts & Forge benchmarks are calculated at how many times they have been used. If a day has the same workout (most times the case) they are calculated multiple times. I want to know how many times they have been used in unique workouts. 
-
+* Cards in the calendar do not show the details of Benchmarks & Forge Benchmarks, just the names
 
 * Make a plan for how we export and then re-import the data from my Google Calendar workouts from the past 5 years.
 

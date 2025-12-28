@@ -70,6 +70,9 @@ interface Workout {
   date: string;
   sections: WorkoutSection[];
   google_event_id?: string;
+  workout_name?: string;
+  track_id?: string;
+  tracks?: { name: string } | null;
 }
 
 export async function POST(request: NextRequest) {
@@ -94,7 +97,7 @@ export async function POST(request: NextRequest) {
     // Fetch the workout from database (use admin client to bypass RLS)
     const { data: workout, error: fetchError } = await supabaseAdmin
       .from('wods')
-      .select('id, title, date, sections, google_event_id')
+      .select('id, title, date, sections, google_event_id, workout_name, track_id, tracks(name)')
       .eq('id', workoutId)
       .single();
 
@@ -249,8 +252,10 @@ export async function POST(request: NextRequest) {
         const calendar = google.calendar({ version: 'v3', auth });
 
         // Create or update calendar event
+        // Title priority: workout_name > track name > session_type (deprecated title field)
+        const workoutTitle = workout.workout_name || workout.tracks?.name || workout.title;
         const event = {
-          summary: `${workout.title} - ${new Date(workout.date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}`,
+          summary: `${workoutTitle} - ${new Date(workout.date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}`,
           description: description,
           location: 'The Forge Functional Fitness, Bergwerkstrasse 10, Pforzen, Bavaria',
           start: {
