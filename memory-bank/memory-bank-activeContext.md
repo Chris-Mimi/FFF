@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.14
-**Updated:** 2025-12-25 (Session 61 - Benchmark RLS Fix & Publish Modal Improvements)
+**Version:** 10.15
+**Updated:** 2025-12-28 (Session 62 - Benchmark Description Display Fixes)
 
 ---
 
@@ -74,6 +74,27 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2025-12-28 Session 62 - Sonnet):**
+- **✅ Benchmark Description Display in Workout Modal:**
+  - Issue: Only benchmark name appeared in Create/Edit Workout modal badges, not full description
+  - Fixed format functions to return objects instead of strings: `{ name, description, exercises }`
+  - File: components/coach/WODSectionComponent.tsx
+  - Changes:
+    - Lines 35-51: Updated formatBenchmark() and formatForgeBenchmark() to return objects
+    - Lines 379-420: Added description display below benchmark badges with whitespace-pre-wrap
+    - Lines 427-467: Added description display below forge benchmark badges
+    - Descriptions appear in teal/cyan boxes matching badge colors
+- **✅ Athlete Logbook Layout Fix:**
+  - Issue: Benchmark name appeared inline with movements/scoring inputs
+  - Changed layout to vertical stack: name at top, description/movements below, scoring inputs at bottom
+  - File: components/athlete/AthletePageLogbookTab.tsx
+  - Changes:
+    - Lines 1121-1134: Changed from flex to space-y-1, name on separate line
+    - Lines 1236-1249: Applied same layout to forge benchmarks
+    - Removed ml-auto from scoring inputs, removed flex-1 min-w-0 from description
+- Commit: (pending)
+- Files: 2 changed (WODSectionComponent.tsx, AthletePageLogbookTab.tsx)
 
 **Completed (2025-12-25 Session 61 - Sonnet):**
 - **✅ Benchmark RLS Policy Fix (CRITICAL):**

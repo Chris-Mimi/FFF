@@ -32,14 +32,22 @@ function formatLift(lift: ConfiguredLift): string {
   }
 }
 
-function formatBenchmark(benchmark: ConfiguredBenchmark): string {
+function formatBenchmark(benchmark: ConfiguredBenchmark): { name: string; description?: string; exercises?: string[] } {
   const scaling = benchmark.scaling_option ? ` (${benchmark.scaling_option})` : '';
-  return `${benchmark.name}${scaling}`;
+  return {
+    name: `${benchmark.name}${scaling}`,
+    description: benchmark.description,
+    exercises: benchmark.exercises
+  };
 }
 
-function formatForgeBenchmark(forge: ConfiguredForgeBenchmark): string {
+function formatForgeBenchmark(forge: ConfiguredForgeBenchmark): { name: string; description?: string; exercises?: string[] } {
   const scaling = forge.scaling_option ? ` (${forge.scaling_option})` : '';
-  return `${forge.name}${scaling}`;
+  return {
+    name: `${forge.name}${scaling}`,
+    description: forge.description,
+    exercises: forge.exercises
+  };
 }
 
 // ============================================
@@ -376,32 +384,44 @@ function WODSectionComponent({
                   {section.benchmarks && section.benchmarks.length > 0 && (
                     <div className='space-y-2'>
                       <div className='flex flex-wrap gap-2'>
-                        {section.benchmarks.map((benchmark, idx) => (
-                          <div
-                            key={idx}
-                            className='flex items-center gap-2 bg-teal-100 text-teal-900 rounded-md px-3 py-1.5 text-sm font-medium border border-teal-300'
-                          >
-                            <GripVertical size={14} className='text-teal-600' />
-                            <span>{formatBenchmark(benchmark)}</span>
-                            <button
-                              type='button'
-                              onClick={e => {
-                                e.stopPropagation();
-                                onRemoveBenchmark(section.id, idx);
-                              }}
-                              className='text-teal-600 hover:text-teal-800 hover:bg-teal-200 rounded-full p-0.5'
-                              title='Remove benchmark'
+                        {section.benchmarks.map((benchmark, idx) => {
+                          const formatted = formatBenchmark(benchmark);
+                          return (
+                            <div
+                              key={idx}
+                              className='flex items-center gap-2 bg-teal-100 text-teal-900 rounded-md px-3 py-1.5 text-sm font-medium border border-teal-300'
                             >
-                              <X size={14} />
-                            </button>
-                          </div>
-                        ))}
+                              <GripVertical size={14} className='text-teal-600' />
+                              <span>{formatted.name}</span>
+                              <button
+                                type='button'
+                                onClick={e => {
+                                  e.stopPropagation();
+                                  onRemoveBenchmark(section.id, idx);
+                                }}
+                                className='text-teal-600 hover:text-teal-800 hover:bg-teal-200 rounded-full p-0.5'
+                                title='Remove benchmark'
+                              >
+                                <X size={14} />
+                              </button>
+                            </div>
+                          );
+                        })}
                       </div>
                       {/* Benchmark Descriptions */}
+                      {section.benchmarks.map((benchmark, idx) => {
+                        const formatted = formatBenchmark(benchmark);
+                        return formatted.description ? (
+                          <div key={`description-${idx}`} className='text-sm bg-teal-50 p-3 rounded border border-teal-200 text-teal-800 whitespace-pre-wrap'>
+                            {formatted.description}
+                          </div>
+                        ) : null;
+                      })}
+                      {/* Benchmark Exercises */}
                       {section.benchmarks.map((benchmark, idx) => (
-                        benchmark.description && (
-                          <div key={`desc-${idx}`} className='whitespace-pre-wrap font-mono text-sm bg-teal-50 p-3 rounded border border-teal-200 text-gray-900'>
-                            {benchmark.description}
+                        benchmark.exercises && benchmark.exercises.length > 0 && (
+                          <div key={`exercises-${idx}`} className='text-sm bg-teal-50 p-3 rounded border border-teal-200 text-gray-700'>
+                            {benchmark.exercises.join(' • ')}
                           </div>
                         )
                       ))}
@@ -412,32 +432,44 @@ function WODSectionComponent({
                   {section.forge_benchmarks && section.forge_benchmarks.length > 0 && (
                     <div className='space-y-2'>
                       <div className='flex flex-wrap gap-2'>
-                        {section.forge_benchmarks.map((forge, idx) => (
-                          <div
-                            key={idx}
-                            className='flex items-center gap-2 bg-cyan-100 text-cyan-900 rounded-md px-3 py-1.5 text-sm font-medium border border-cyan-300'
-                          >
-                            <GripVertical size={14} className='text-cyan-600' />
-                            <span>{formatForgeBenchmark(forge)}</span>
-                            <button
-                              type='button'
-                              onClick={e => {
-                                e.stopPropagation();
-                                onRemoveForgeBenchmark(section.id, idx);
-                              }}
-                              className='text-cyan-600 hover:text-cyan-800 hover:bg-cyan-200 rounded-full p-0.5'
-                              title='Remove forge benchmark'
+                        {section.forge_benchmarks.map((forge, idx) => {
+                          const formatted = formatForgeBenchmark(forge);
+                          return (
+                            <div
+                              key={idx}
+                              className='flex items-center gap-2 bg-cyan-100 text-cyan-900 rounded-md px-3 py-1.5 text-sm font-medium border border-cyan-300'
                             >
-                              <X size={14} />
-                            </button>
-                          </div>
-                        ))}
+                              <GripVertical size={14} className='text-cyan-600' />
+                              <span>{formatted.name}</span>
+                              <button
+                                type='button'
+                                onClick={e => {
+                                  e.stopPropagation();
+                                  onRemoveForgeBenchmark(section.id, idx);
+                                }}
+                                className='text-cyan-600 hover:text-cyan-800 hover:bg-cyan-200 rounded-full p-0.5'
+                                title='Remove forge benchmark'
+                              >
+                                <X size={14} />
+                              </button>
+                            </div>
+                          );
+                        })}
                       </div>
                       {/* Forge Benchmark Descriptions */}
+                      {section.forge_benchmarks.map((forge, idx) => {
+                        const formatted = formatForgeBenchmark(forge);
+                        return formatted.description ? (
+                          <div key={`description-${idx}`} className='text-sm bg-cyan-50 p-3 rounded border border-cyan-200 text-cyan-800 whitespace-pre-wrap'>
+                            {formatted.description}
+                          </div>
+                        ) : null;
+                      })}
+                      {/* Forge Benchmark Exercises */}
                       {section.forge_benchmarks.map((forge, idx) => (
-                        forge.description && (
-                          <div key={`desc-${idx}`} className='whitespace-pre-wrap font-mono text-sm bg-cyan-50 p-3 rounded border border-cyan-200 text-gray-900'>
-                            {forge.description}
+                        forge.exercises && forge.exercises.length > 0 && (
+                          <div key={`exercises-${idx}`} className='text-sm bg-cyan-50 p-3 rounded border border-cyan-200 text-gray-700'>
+                            {forge.exercises.join(' • ')}
                           </div>
                         )
                       ))}

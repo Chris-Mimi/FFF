@@ -40,7 +40,8 @@ export interface ConfiguredBenchmark {
   id: string;  // References benchmark_workouts.id
   name: string;  // e.g., "Fran"
   type: string;  // e.g., "For Time", "AMRAP"
-  description?: string;  // Full workout description from database
+  description?: string;  // Full workout description with rep schemes
+  exercises?: string[];  // Array of exercise names from library
   has_scaling?: boolean;  // Whether this benchmark offers scaling options
   scaling_option?: string;
   visibility: 'everyone' | 'coaches' | 'programmers';
@@ -56,7 +57,8 @@ export interface ConfiguredForgeBenchmark {
   id: string;  // References forge_benchmarks.id
   name: string;
   type: string;
-  description?: string;  // Full workout description from database
+  description?: string;  // Full workout description with rep schemes
+  exercises?: string[];  // Array of exercise names from library
   has_scaling?: boolean;  // Whether this benchmark offers scaling options
   scaling_option?: string;
   visibility: 'everyone' | 'coaches' | 'programmers';

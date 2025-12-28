@@ -453,12 +453,16 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
       ? `${workout.workout_name}_${workout.workout_week}`
       : workout.date;
 
-    const sections = workout.sections as Array<{ content?: string }>;
+    const sections = workout.sections as Array<{
+      content?: string;
+      benchmarks?: Array<{ exercises?: string[]; description?: string }>;
+      forge_benchmarks?: Array<{ exercises?: string[]; description?: string }>;
+    }>;
 
     sections?.forEach(section => {
-      if (!section.content) return;
-
-      const lines = section.content.split('\n');
+      // Extract exercises from section content (if present)
+      if (section.content) {
+        const lines = section.content.split('\n');
 
       lines.forEach(line => {
         // Split by + to handle multiple exercises on same line (e.g., "* Exercise A + * Exercise B")
@@ -523,6 +527,181 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
           }
         }
         });
+      });
+      }
+
+      // Extract exercises from benchmarks
+      section.benchmarks?.forEach(benchmark => {
+        benchmark.exercises?.forEach(exerciseName => {
+          // Find exercise in database by name
+          const exercise = exercisesByName.get(exerciseName.toLowerCase());
+          if (exercise) {
+            const existing = exerciseMap.get(exercise.id);
+            if (existing) {
+              existing.uniqueWorkouts.add(workoutKey);
+              if (workout.date > existing.lastProgrammed) {
+                existing.lastProgrammed = workout.date;
+              }
+            } else {
+              exerciseMap.set(exercise.id, {
+                id: exercise.id,
+                name: exercise.name,
+                category: exercise.category,
+                uniqueWorkouts: new Set([workoutKey]),
+                lastProgrammed: workout.date,
+              });
+            }
+          }
+        });
+
+        // Also parse benchmark description field using same patterns as section content
+        if (benchmark.description) {
+          const lines = benchmark.description.split('\n');
+
+          lines.forEach(line => {
+            const parts = line.split('+').map(p => p.trim());
+
+            parts.forEach(part => {
+              const trimmedLine = part.trim();
+              if (!trimmedLine) return;
+
+              for (const pattern of patterns) {
+                const match = trimmedLine.match(pattern);
+
+                if (match && match[1]) {
+                  let movementText = match[1].trim();
+                  movementText = movementText.replace(/[,;.!?]+$/, '');
+
+                  const normalized = movementText
+                    .split(/\s+/)
+                    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                    .join(' ')
+                    .trim();
+
+                  let exercise = exercisesByName.get(normalized.toLowerCase());
+
+                  if (!exercise) {
+                    const normalizedLower = normalized.toLowerCase();
+                    for (const [dbName, dbExercise] of exercisesByName.entries()) {
+                      if (normalizedLower.startsWith(dbName)) {
+                        exercise = dbExercise;
+                        break;
+                      }
+                    }
+                  }
+
+                  if (exercise) {
+                    const existing = exerciseMap.get(exercise.id);
+
+                    if (existing) {
+                      existing.uniqueWorkouts.add(workoutKey);
+                      if (workout.date > existing.lastProgrammed) {
+                        existing.lastProgrammed = workout.date;
+                      }
+                    } else {
+                      exerciseMap.set(exercise.id, {
+                        id: exercise.id,
+                        name: exercise.name,
+                        category: exercise.category,
+                        uniqueWorkouts: new Set([workoutKey]),
+                        lastProgrammed: workout.date,
+                      });
+                    }
+                  }
+
+                  break;
+                }
+              }
+            });
+          });
+        }
+      });
+
+      // Extract exercises from forge benchmarks
+      section.forge_benchmarks?.forEach(forge => {
+        forge.exercises?.forEach(exerciseName => {
+          // Find exercise in database by name
+          const exercise = exercisesByName.get(exerciseName.toLowerCase());
+          if (exercise) {
+            const existing = exerciseMap.get(exercise.id);
+            if (existing) {
+              existing.uniqueWorkouts.add(workoutKey);
+              if (workout.date > existing.lastProgrammed) {
+                existing.lastProgrammed = workout.date;
+              }
+            } else {
+              exerciseMap.set(exercise.id, {
+                id: exercise.id,
+                name: exercise.name,
+                category: exercise.category,
+                uniqueWorkouts: new Set([workoutKey]),
+                lastProgrammed: workout.date,
+              });
+            }
+          }
+        });
+
+        // Also parse forge benchmark description field using same patterns as section content
+        if (forge.description) {
+          const lines = forge.description.split('\n');
+
+          lines.forEach(line => {
+            const parts = line.split('+').map(p => p.trim());
+
+            parts.forEach(part => {
+              const trimmedLine = part.trim();
+              if (!trimmedLine) return;
+
+              for (const pattern of patterns) {
+                const match = trimmedLine.match(pattern);
+
+                if (match && match[1]) {
+                  let movementText = match[1].trim();
+                  movementText = movementText.replace(/[,;.!?]+$/, '');
+
+                  const normalized = movementText
+                    .split(/\s+/)
+                    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                    .join(' ')
+                    .trim();
+
+                  let exercise = exercisesByName.get(normalized.toLowerCase());
+
+                  if (!exercise) {
+                    const normalizedLower = normalized.toLowerCase();
+                    for (const [dbName, dbExercise] of exercisesByName.entries()) {
+                      if (normalizedLower.startsWith(dbName)) {
+                        exercise = dbExercise;
+                        break;
+                      }
+                    }
+                  }
+
+                  if (exercise) {
+                    const existing = exerciseMap.get(exercise.id);
+
+                    if (existing) {
+                      existing.uniqueWorkouts.add(workoutKey);
+                      if (workout.date > existing.lastProgrammed) {
+                        existing.lastProgrammed = workout.date;
+                      }
+                    } else {
+                      exerciseMap.set(exercise.id, {
+                        id: exercise.id,
+                        name: exercise.name,
+                        category: exercise.category,
+                        uniqueWorkouts: new Set([workoutKey]),
+                        lastProgrammed: workout.date,
+                      });
+                    }
+                  }
+
+                  break;
+                }
+              }
+            });
+          });
+        }
       });
     });
   });

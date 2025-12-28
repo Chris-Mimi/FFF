@@ -3,6 +3,7 @@
 import { Send, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { WODSection } from './WorkoutModal';
+import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark, VariableSet } from '@/types/movements';
 
 interface PublishModalProps {
   isOpen: boolean;
@@ -215,22 +216,22 @@ export default function PublishModal({
                   .filter(s => selectedSectionIds.includes(s.id))
                   .map(section => {
                     // Format helpers (match API route logic)
-                    const formatLift = (lift: any): string => {
+                    const formatLift = (lift: ConfiguredLift): string => {
                       if (lift.rep_type === 'constant') {
                         const base = `${lift.name} ${lift.sets}x${lift.reps}`;
                         return lift.percentage_1rm ? `${base} @ ${lift.percentage_1rm}%` : base;
                       } else {
-                        const reps = lift.variable_sets?.map((s: any) => s.reps).join('-') || '';
+                        const reps = lift.variable_sets?.map((s: VariableSet) => s.reps).join('-') || '';
                         return `${lift.name} ${reps}`;
                       }
                     };
 
-                    const formatBenchmark = (benchmark: any): string => {
+                    const formatBenchmark = (benchmark: ConfiguredBenchmark): string => {
                       const scaling = benchmark.scaling_option ? ` (${benchmark.scaling_option})` : '';
                       return `${benchmark.name}${scaling}`;
                     };
 
-                    const formatForgeBenchmark = (forge: any): string => {
+                    const formatForgeBenchmark = (forge: ConfiguredForgeBenchmark): string => {
                       const scaling = forge.scaling_option ? ` (${forge.scaling_option})` : '';
                       return `${forge.name}${scaling}`;
                     };
@@ -245,7 +246,7 @@ export default function PublishModal({
                           {/* Lifts */}
                           {section.lifts && section.lifts.length > 0 && (
                             <div>
-                              {section.lifts.map((lift: any, idx: number) => (
+                              {section.lifts.map((lift, idx) => (
                                 <div key={idx}>• {formatLift(lift)}</div>
                               ))}
                             </div>
@@ -254,12 +255,12 @@ export default function PublishModal({
                           {/* Benchmarks */}
                           {section.benchmarks && section.benchmarks.length > 0 && (
                             <div className='space-y-1'>
-                              {section.benchmarks.map((benchmark: any, idx: number) => (
+                              {section.benchmarks.map((benchmark, idx) => (
                                 <div key={idx}>
                                   <div className='font-semibold'>{formatBenchmark(benchmark)}</div>
-                                  {benchmark.description && (
-                                    <div className='text-xs text-gray-600 whitespace-pre-wrap mt-0.5'>
-                                      {benchmark.description}
+                                  {benchmark.exercises && benchmark.exercises.length > 0 && (
+                                    <div className='text-xs text-gray-600 mt-0.5'>
+                                      {benchmark.exercises.join(' • ')}
                                     </div>
                                   )}
                                 </div>
@@ -270,12 +271,12 @@ export default function PublishModal({
                           {/* Forge Benchmarks */}
                           {section.forge_benchmarks && section.forge_benchmarks.length > 0 && (
                             <div className='space-y-1'>
-                              {section.forge_benchmarks.map((forge: any, idx: number) => (
+                              {section.forge_benchmarks.map((forge, idx) => (
                                 <div key={idx}>
                                   <div className='font-semibold'>{formatForgeBenchmark(forge)}</div>
-                                  {forge.description && (
-                                    <div className='text-xs text-gray-600 whitespace-pre-wrap mt-0.5'>
-                                      {forge.description}
+                                  {forge.exercises && forge.exercises.length > 0 && (
+                                    <div className='text-xs text-gray-600 mt-0.5'>
+                                      {forge.exercises.join(' • ')}
                                     </div>
                                   )}
                                 </div>

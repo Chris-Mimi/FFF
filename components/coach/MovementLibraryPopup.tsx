@@ -359,7 +359,7 @@ function MovementLibraryPopup({
         });
       if (error) throw error;
 
-      () => setShowCreateBenchmarkModal(false)();
+      setShowCreateBenchmarkModal(false);
       setBenchmarkForm({ name: '', type: 'For Time', description: '', has_scaling: true });
       await fetchBenchmarks();
     } catch (error: unknown) {
@@ -404,7 +404,7 @@ function MovementLibraryPopup({
       console.log('Created forge benchmark:', data);
       alert('Forge Benchmark created successfully!');
 
-      () => setShowCreateForgeModal(false)();
+      setShowCreateForgeModal(false);
       setForgeForm({ name: '', type: 'For Time', description: '', has_scaling: true });
       await fetchForgeBenchmarks();
     } catch (error: unknown) {
@@ -433,7 +433,7 @@ function MovementLibraryPopup({
         });
       if (error) throw error;
 
-      () => setShowCreateLiftModal(false)();
+      setShowCreateLiftModal(false);
       setLiftForm({ name: '', category: 'Olympic' });
       await fetchLifts();
     } catch (error: unknown) {

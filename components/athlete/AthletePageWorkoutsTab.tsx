@@ -88,19 +88,21 @@ function formatLift(lift: ConfiguredLift): string {
   }
 }
 
-function formatBenchmark(benchmark: ConfiguredBenchmark): { name: string; description?: string } {
+function formatBenchmark(benchmark: ConfiguredBenchmark): { name: string; description?: string; exercises?: string[] } {
   const scaling = benchmark.scaling_option ? ` (${benchmark.scaling_option})` : '';
   return {
     name: `${benchmark.name}${scaling}`,
-    description: benchmark.description
+    description: benchmark.description,
+    exercises: benchmark.exercises
   };
 }
 
-function formatForgeBenchmark(forge: ConfiguredForgeBenchmark): { name: string; description?: string } {
+function formatForgeBenchmark(forge: ConfiguredForgeBenchmark): { name: string; description?: string; exercises?: string[] } {
   const scaling = forge.scaling_option ? ` (${forge.scaling_option})` : '';
   return {
     name: `${forge.name}${scaling}`,
-    description: forge.description
+    description: forge.description,
+    exercises: forge.exercises
   };
 }
 
@@ -440,7 +442,10 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
                                     <div key={bmIdx} className='text-xs bg-teal-50 text-teal-900 rounded px-2 py-1'>
                                       <div className='font-semibold'>≡ {formatted.name}</div>
                                       {formatted.description && (
-                                        <div className='text-teal-800 whitespace-pre-wrap mt-0.5'>{formatted.description}</div>
+                                        <div className='text-teal-800 mt-0.5 whitespace-pre-wrap'>{formatted.description}</div>
+                                      )}
+                                      {!formatted.description && formatted.exercises && formatted.exercises.length > 0 && (
+                                        <div className='text-teal-800 mt-0.5'>{formatted.exercises.join(' • ')}</div>
                                       )}
                                     </div>
                                   );
@@ -457,7 +462,10 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
                                     <div key={forgeIdx} className='text-xs bg-cyan-50 text-cyan-900 rounded px-2 py-1'>
                                       <div className='font-semibold'>≡ {formatted.name}</div>
                                       {formatted.description && (
-                                        <div className='text-cyan-800 whitespace-pre-wrap mt-0.5'>{formatted.description}</div>
+                                        <div className='text-cyan-800 mt-0.5 whitespace-pre-wrap'>{formatted.description}</div>
+                                      )}
+                                      {!formatted.description && formatted.exercises && formatted.exercises.length > 0 && (
+                                        <div className='text-cyan-800 mt-0.5'>{formatted.exercises.join(' • ')}</div>
                                       )}
                                     </div>
                                   );

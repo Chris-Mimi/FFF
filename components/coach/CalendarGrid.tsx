@@ -24,19 +24,19 @@ function formatLift(lift: ConfiguredLift): string {
   }
 }
 
-function formatBenchmark(benchmark: ConfiguredBenchmark): { name: string; description?: string } {
+function formatBenchmark(benchmark: ConfiguredBenchmark): { name: string; exercises?: string[] } {
   const scaling = benchmark.scaling_option ? ` (${benchmark.scaling_option})` : '';
   return {
     name: `${benchmark.name}${scaling}`,
-    description: benchmark.description
+    exercises: benchmark.exercises
   };
 }
 
-function formatForgeBenchmark(forge: ConfiguredForgeBenchmark): { name: string; description?: string } {
+function formatForgeBenchmark(forge: ConfiguredForgeBenchmark): { name: string; exercises?: string[] } {
   const scaling = forge.scaling_option ? ` (${forge.scaling_option})` : '';
   return {
     name: `${forge.name}${scaling}`,
-    description: forge.description
+    exercises: forge.exercises
   };
 }
 
@@ -307,8 +307,8 @@ export default function CalendarGrid({
                             return (
                               <div key={bmIdx} className='text-xs text-teal-900 bg-teal-50 rounded px-2 py-1'>
                                 <div className='font-semibold'>≡ {formatted.name}</div>
-                                {formatted.description && (
-                                  <div className='text-teal-800 whitespace-pre-wrap mt-0.5'>{formatted.description}</div>
+                                {formatted.exercises && formatted.exercises.length > 0 && (
+                                  <div className='text-teal-800 mt-0.5'>{formatted.exercises.join(' • ')}</div>
                                 )}
                               </div>
                             );
@@ -323,8 +323,8 @@ export default function CalendarGrid({
                             return (
                               <div key={forgeIdx} className='text-xs text-cyan-900 bg-cyan-50 rounded px-2 py-1'>
                                 <div className='font-semibold'>≡ {formatted.name}</div>
-                                {formatted.description && (
-                                  <div className='text-cyan-800 whitespace-pre-wrap mt-0.5'>{formatted.description}</div>
+                                {formatted.exercises && formatted.exercises.length > 0 && (
+                                  <div className='text-cyan-800 mt-0.5'>{formatted.exercises.join(' • ')}</div>
                                 )}
                               </div>
                             );

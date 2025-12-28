@@ -57,19 +57,21 @@ function formatLift(lift: ConfiguredLift): string {
   }
 }
 
-function formatBenchmark(benchmark: ConfiguredBenchmark): { name: string; description?: string } {
+function formatBenchmark(benchmark: ConfiguredBenchmark): { name: string; description?: string; exercises?: string[] } {
   const scaling = benchmark.scaling_option ? ` (${benchmark.scaling_option})` : '';
   return {
     name: `${benchmark.name}${scaling}`,
-    description: benchmark.description
+    description: benchmark.description,
+    exercises: benchmark.exercises
   };
 }
 
-function formatForgeBenchmark(forge: ConfiguredForgeBenchmark): { name: string; description?: string } {
+function formatForgeBenchmark(forge: ConfiguredForgeBenchmark): { name: string; description?: string; exercises?: string[] } {
   const scaling = forge.scaling_option ? ` (${forge.scaling_option})` : '';
   return {
     name: `${forge.name}${scaling}`,
-    description: forge.description
+    description: forge.description,
+    exercises: forge.exercises
   };
 }
 
@@ -1116,15 +1118,20 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
 
                               return (
                                 <div key={bmIdx} className='bg-teal-50 text-teal-900 rounded px-2 py-1'>
-                                  <div className='flex items-center gap-2 flex-wrap'>
+                                  <div className='space-y-1'>
                                     {/* Benchmark Title */}
-                                    <div className='font-semibold text-xs flex-shrink-0'>≡ {formatted.name}</div>
+                                    <div className='font-semibold text-xs'>≡ {formatted.name}</div>
+
+                                    {/* Description/Exercises */}
                                     {formatted.description && (
-                                      <div className='text-teal-800 text-xs flex-1 min-w-0'>{formatted.description}</div>
+                                      <div className='text-teal-800 text-xs whitespace-pre-wrap'>{formatted.description}</div>
+                                    )}
+                                    {!formatted.description && formatted.exercises && formatted.exercises.length > 0 && (
+                                      <div className='text-teal-800 text-xs'>{formatted.exercises.join(' • ')}</div>
                                     )}
 
                                     {/* Configurable Scoring Inputs */}
-                                    <div className='flex items-center gap-2 ml-auto flex-wrap'>
+                                    <div className='flex items-center gap-2 flex-wrap'>
                                       {scoringFields.time && (
                                         <input type='text' placeholder='mm:ss'
                                           value={sectionResults[itemKey]?.time_result || ''}
@@ -1226,15 +1233,20 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
 
                               return (
                                 <div key={forgeIdx} className='bg-cyan-50 text-cyan-900 rounded px-2 py-1'>
-                                  <div className='flex items-center gap-2 flex-wrap'>
+                                  <div className='space-y-1'>
                                     {/* Forge Benchmark Title */}
-                                    <div className='font-semibold text-xs flex-shrink-0'>≡ {formatted.name}</div>
+                                    <div className='font-semibold text-xs'>≡ {formatted.name}</div>
+
+                                    {/* Description/Exercises */}
                                     {formatted.description && (
-                                      <div className='text-cyan-800 text-xs flex-1 min-w-0'>{formatted.description}</div>
+                                      <div className='text-cyan-800 text-xs whitespace-pre-wrap'>{formatted.description}</div>
+                                    )}
+                                    {!formatted.description && formatted.exercises && formatted.exercises.length > 0 && (
+                                      <div className='text-cyan-800 text-xs'>{formatted.exercises.join(' • ')}</div>
                                     )}
 
                                     {/* Configurable Scoring Inputs */}
-                                    <div className='flex items-center gap-2 ml-auto flex-wrap'>
+                                    <div className='flex items-center gap-2 flex-wrap'>
                                       {scoringFields.time && (
                                         <input type='text' placeholder='mm:ss'
                                           value={sectionResults[itemKey]?.time_result || ''}
