@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.17
-**Updated:** 2025-12-28 (Session 63 - UI Fixes & Display Improvements)
+**Version:** 10.18
+**Updated:** 2026-01-11 (Session 64 - Workout Library Display Enhancement)
 
 ---
 
@@ -74,6 +74,27 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2026-01-11 Session 64 - Sonnet):**
+- **✅ Supabase DNS Resolution Fix:**
+  - Issue: "Failed to fetch" error on login - DNS resolution failed
+  - Root cause: Supabase free tier auto-pauses projects after 7 days of inactivity
+  - DNS records removed for paused projects (NXDOMAIN globally)
+  - Solution: User resumed project from Supabase Dashboard
+  - Prevention: Upgrade to Pro ($25/month) or visit app every few days
+- **✅ Workout Library Search Display Enhancement:**
+  - Added workout name and track display to search result cards
+  - Shows format: "Workout Name • Track Name" (whichever exists)
+  - Applied to all 3 locations: search cards, hover popover, detail view header
+  - File: components/coach/SearchPanel.tsx
+  - Changes:
+    - Line 407: Added trackName lookup from tracks array
+    - Lines 426-431: Added workout_name/track conditional display in search cards
+    - Lines 443-448: Added workout_name/track to hover popover header
+    - Lines 512-517: Added workout_name/track to detail view header
+- Commit: (pending)
+- Files: 1 changed (SearchPanel.tsx)
+- See: `project-history/2026-01-11-session-64-workout-library-display-enhancement.md`
 
 **Completed (2025-12-28 Session 63 - Sonnet):**
 - **✅ Strength & Conditioning Filter Fix:**

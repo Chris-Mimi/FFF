@@ -404,6 +404,7 @@ export default function SearchPanel({
                     });
                     const formattedTime = wod.time ? wod.time.substring(0, 5) : '';
                     const searchTerms = searchQuery.trim().split(/\s+/).filter(Boolean);
+                    const trackName = wod.track_id ? tracks.find(t => t.id === wod.track_id)?.name : null;
 
                     return (
                       <div
@@ -422,6 +423,13 @@ export default function SearchPanel({
                         <div className='text-xs text-gray-500 mb-1'>
                           {formattedDate}{formattedTime && ` at ${formattedTime}`}
                         </div>
+                        {(wod.workout_name || trackName) && (
+                          <div className='text-xs font-medium text-gray-700 mb-1'>
+                            {wod.workout_name && <span>{wod.workout_name}</span>}
+                            {wod.workout_name && trackName && <span className='text-gray-400'> • </span>}
+                            {trackName && <span>{trackName}</span>}
+                          </div>
+                        )}
                         <div
                           className='font-semibold text-sm text-gray-900 mb-2'
                           dangerouslySetInnerHTML={{
@@ -440,6 +448,13 @@ export default function SearchPanel({
                         {/* Hover Popover - Full WOD Preview */}
                         {hoveredWOD?.id === wod.id && (
                           <div className='absolute inset-0 bg-white border-2 border-[#208479] rounded-lg shadow-2xl p-4 z-[200] overflow-y-auto'>
+                            {(wod.workout_name || trackName) && (
+                              <div className='text-xs font-medium text-gray-700 mb-1'>
+                                {wod.workout_name && <span>{wod.workout_name}</span>}
+                                {wod.workout_name && trackName && <span className='text-gray-400'> • </span>}
+                                {trackName && <span>{trackName}</span>}
+                              </div>
+                            )}
                             <div className='text-sm font-bold text-gray-900 mb-3'>{wod.title}</div>
                             <div className='space-y-3'>
                               {wod.sections.map((section, idx) => (
@@ -509,6 +524,13 @@ export default function SearchPanel({
                       <GripVertical size={20} className='text-gray-400 mt-1 flex-shrink-0' />
                     </div>
                     <div className='flex-1'>
+                      {(selectedSearchWOD.workout_name || (selectedSearchWOD.track_id && tracks.find(t => t.id === selectedSearchWOD.track_id)?.name)) && (
+                        <div className='text-sm font-medium text-gray-700 mb-1'>
+                          {selectedSearchWOD.workout_name && <span>{selectedSearchWOD.workout_name}</span>}
+                          {selectedSearchWOD.workout_name && selectedSearchWOD.track_id && tracks.find(t => t.id === selectedSearchWOD.track_id)?.name && <span className='text-gray-400'> • </span>}
+                          {selectedSearchWOD.track_id && <span>{tracks.find(t => t.id === selectedSearchWOD.track_id)?.name}</span>}
+                        </div>
+                      )}
                       <h3 className='font-bold text-lg text-gray-900 mb-1'>
                         {selectedSearchWOD.title}
                       </h3>
