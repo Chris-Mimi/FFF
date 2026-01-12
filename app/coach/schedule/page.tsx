@@ -197,6 +197,7 @@ export default function CoachSchedulePage() {
   };
 
   const handleToggleActive = async (template: SessionTemplate) => {
+    const scrollPosition = window.scrollY;
     try {
       const { error } = await supabase
         .from('session_templates')
@@ -208,6 +209,9 @@ export default function CoachSchedulePage() {
 
       if (error) throw error;
       await fetchTemplates();
+      requestAnimationFrame(() => {
+        window.scrollTo(0, scrollPosition);
+      });
     } catch (error) {
       console.error('Error toggling template:', error);
       alert('Failed to update template. Please try again.');
@@ -223,7 +227,7 @@ export default function CoachSchedulePage() {
     }
   };
 
-  const handleGenerateWeek = async () => {
+  const handleGenerateWeek = async (startDate?: string) => {
     if (templates.filter(t => t.active).length === 0) {
       alert('No active templates found. Please create and activate at least one template first.');
       return;
@@ -236,7 +240,7 @@ export default function CoachSchedulePage() {
       const response = await fetch('/api/sessions/generate-weekly', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}) // Uses default (next Monday)
+        body: JSON.stringify(startDate ? { start_date: startDate } : {})
       });
 
       const data = await response.json();
@@ -253,6 +257,27 @@ export default function CoachSchedulePage() {
     } finally {
       setGenerating(false);
     }
+  };
+
+  const handleGenerateCurrentWeek = async () => {
+    // Calculate Monday of current week
+    const today = new Date();
+    const day = today.getDay();
+    const diff = day === 0 ? -6 : 1 - day; // Sunday: go back 6 days, others: calculate from Monday
+    const monday = new Date(today);
+    monday.setDate(today.getDate() + diff);
+
+    // Format as YYYY-MM-DD
+    const year = monday.getFullYear();
+    const month = String(monday.getMonth() + 1).padStart(2, '0');
+    const dayNum = String(monday.getDate()).padStart(2, '0');
+    const formattedDate = `${year}-${month}-${dayNum}`;
+
+    await handleGenerateWeek(formattedDate);
+  };
+
+  const handleGenerateNextWeek = async () => {
+    await handleGenerateWeek(); // Uses default (next Monday)
   };
 
   const getDayLabel = (dayNumber: number) => {
@@ -359,6 +384,7 @@ export default function CoachSchedulePage() {
   };
 
   const handleToggleTitleActive = async (title: WorkoutTitle) => {
+    const scrollPosition = window.scrollY;
     try {
       const { error } = await supabase
         .from('workout_titles')
@@ -370,6 +396,9 @@ export default function CoachSchedulePage() {
 
       if (error) throw error;
       await fetchWorkoutTitles();
+      requestAnimationFrame(() => {
+        window.scrollTo(0, scrollPosition);
+      });
     } catch (error) {
       console.error('Error toggling workout title:', error);
       alert('Failed to update workout title. Please try again.');
@@ -395,13 +424,22 @@ export default function CoachSchedulePage() {
                 Add Template
               </button>
               <button
-                onClick={handleGenerateWeek}
+                onClick={handleGenerateCurrentWeek}
+                disabled={generating || templates.filter(t => t.active).length === 0}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200"
+                title="Generate sessions for current week from active templates"
+              >
+                <Calendar size={18} />
+                {generating ? 'Generating...' : 'Current Week'}
+              </button>
+              <button
+                onClick={handleGenerateNextWeek}
                 disabled={generating || templates.filter(t => t.active).length === 0}
                 className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200"
                 title="Generate sessions for next week from active templates"
               >
                 <Calendar size={18} />
-                {generating ? 'Generating...' : 'Generate Next Week'}
+                {generating ? 'Generating...' : 'Next Week'}
               </button>
               <button
                 onClick={() => router.push('/coach')}

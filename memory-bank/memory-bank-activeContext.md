@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.18
-**Updated:** 2026-01-11 (Session 64 - Workout Library Display Enhancement)
+**Version:** 10.19
+**Updated:** 2026-01-12 (Session 65 - Athlete Workouts & Schedule Page Fixes)
 
 ---
 
@@ -74,6 +74,34 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2026-01-12 Session 65 - Sonnet):**
+- **✅ Athlete Workouts Tab - Weekly Selector Fix:**
+  - Issue: "Today" button jumping to wrong week (11 Jan showed 12-18 Jan instead of 6-12 Jan)
+  - Root cause: Week calculation treating Sunday as start of next week instead of end of current week
+  - Solution: Fixed getWeekDates() to handle Sunday correctly (go back 6 days to find Monday)
+  - File: components/athlete/AthletePageWorkoutsTab.tsx (lines 239-253)
+  - Formula: `const diff = day === 0 ? -6 : 1 - day`
+- **✅ Athlete Workouts Tab - Results Display Order:**
+  - Issue: Results showing "Reps" before "Rounds" (incorrect priority)
+  - Solution: Swapped display order to Time → Rounds → Reps → Weight → Calories → Distance
+  - File: components/athlete/AthletePageWorkoutsTab.tsx (lines 494-495)
+- **✅ Schedule Page - Week Generation Buttons:**
+  - Renamed "Generate Next Week" → "Next Week" (purple button)
+  - Added "Current Week" button (blue button) - generates sessions from Monday of current week
+  - Both buttons use same date calculation logic (consistent with Athlete tab fix)
+  - Files: app/coach/schedule/page.tsx
+    - Lines 226-277: Added handleGenerateCurrentWeek() and refactored handleGenerateWeek()
+    - Lines 397-414: Added both buttons to header
+- **✅ Schedule Page - Toggle Scroll Jump Fix:**
+  - Issue: Page jumping to top when toggling template/title active/inactive
+  - Solution: Preserve scroll position with requestAnimationFrame after state update
+  - Files: app/coach/schedule/page.tsx
+    - Lines 200-214: handleToggleActive() preserves scroll
+    - Lines 387-401: handleToggleTitleActive() preserves scroll
+- Commit: (pending)
+- Files: 2 changed (AthletePageWorkoutsTab.tsx, schedule/page.tsx)
+- See: `project-history/2026-01-12-session-65-athlete-workouts-schedule-fixes.md`
 
 **Completed (2026-01-11 Session 64 - Sonnet):**
 - **✅ Supabase DNS Resolution Fix:**

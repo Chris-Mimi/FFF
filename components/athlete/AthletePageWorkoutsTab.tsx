@@ -238,11 +238,15 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
 
   const getWeekDates = (date: Date): Date[] => {
     const curr = new Date(date);
-    const first = curr.getDate() - curr.getDay() + 1; // Monday
+    const day = curr.getDay();
+    const diff = day === 0 ? -6 : 1 - day; // Sunday: go back 6 days, others: calculate from Monday
+    const monday = new Date(curr);
+    monday.setDate(curr.getDate() + diff);
+
     const dates = [];
     for (let i = 0; i < 7; i++) {
-      const d = new Date(curr);
-      d.setDate(first + i);
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
       dates.push(d);
     }
     return dates;
@@ -487,8 +491,8 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
                               <div className='text-xs font-bold text-green-900 mb-1'>Your Result:</div>
                               <div className='text-xs text-green-800 space-y-0.5'>
                                 {sectionResult.time_result && <div>Time: {sectionResult.time_result}</div>}
-                                {sectionResult.reps_result && <div>Reps: {sectionResult.reps_result}</div>}
                                 {sectionResult.rounds_result && <div>Rounds: {sectionResult.rounds_result}</div>}
+                                {sectionResult.reps_result && <div>Reps: {sectionResult.reps_result}</div>}
                                 {sectionResult.weight_result && <div>Weight: {sectionResult.weight_result} kg</div>}
                                 {sectionResult.calories_result && <div>Calories: {sectionResult.calories_result}</div>}
                                 {sectionResult.metres_result && <div>Distance: {sectionResult.metres_result} m</div>}
