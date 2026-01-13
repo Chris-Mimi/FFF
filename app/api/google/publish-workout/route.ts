@@ -67,6 +67,7 @@ interface WorkoutSection {
 interface Workout {
   id: string;
   title: string;
+  session_type: string;
   date: string;
   sections: WorkoutSection[];
   google_event_id?: string;
@@ -97,7 +98,7 @@ export async function POST(request: NextRequest) {
     // Fetch the workout from database (use admin client to bypass RLS)
     const { data: workout, error: fetchError } = await supabaseAdmin
       .from('wods')
-      .select('id, title, date, sections, google_event_id, workout_name, track_id, tracks(name)')
+      .select('id, title, session_type, date, sections, google_event_id, workout_name, track_id, tracks(name)')
       .eq('id', workoutId)
       .single();
 
@@ -140,9 +141,9 @@ export async function POST(request: NextRequest) {
     };
 
     // Format event description with HTML
-    const formatSectionToHTML = (section: WorkoutSection): string => {
-      // Section header with bold styling
-      const header = `<b>${section.type}</b> (${section.duration} min)`;
+    const formatSectionToHTML = (section: WorkoutSection, startMin: number, endMin: number): string => {
+      // Section header with bold styling and running time
+      const header = `<b>${section.type}</b> ${section.duration} mins (${startMin}-${endMin})`;
 
       const parts: string[] = [];
 
@@ -207,9 +208,17 @@ export async function POST(request: NextRequest) {
       return bodyContent ? `${header}<br><br>${bodyContent}` : header;
     };
 
-    const description = selectedSections
-      .map(formatSectionToHTML)
-      .join('<br><br>');
+    // Calculate running time for each section
+    let cumulativeTime = 0;
+    const formattedSections = selectedSections.map(section => {
+      const duration = section.duration || 0;
+      const startMin = cumulativeTime + 1;
+      const endMin = cumulativeTime + duration;
+      cumulativeTime = endMin;
+      return formatSectionToHTML(section, startMin, endMin);
+    });
+
+    const description = formattedSections.join('<br><br>');
 
     // Parse event date and time
     const [year, month, day] = workout.date.split('-');
@@ -263,7 +272,7 @@ export async function POST(request: NextRequest) {
         }
         const workoutTitle = workout.workout_name || trackName || workout.title;
         const event = {
-          summary: `${workoutTitle} - ${new Date(workout.date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}`,
+          summary: `${workoutTitle} - ${workout.session_type}`,
           description: description,
           location: 'The Forge Functional Fitness, Bergwerkstrasse 10, Pforzen, Bavaria',
           start: {

@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.19
-**Updated:** 2026-01-12 (Session 65 - Athlete Workouts & Schedule Page Fixes)
+**Version:** 10.20
+**Updated:** 2026-01-13 (Session 66 - Google Calendar & Search Fixes)
 
 ---
 
@@ -74,6 +74,45 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2026-01-13 Session 66 - Sonnet):**
+- **✅ Google Calendar Event Title Format:**
+  - Changed title format from "Workout Name - Date" to "Workout Name - Session Type"
+  - Example: "Overhead Fest - WOD" instead of "Overhead Fest - Thu, 28 Dec"
+  - File: app/api/google/publish-workout/route.ts
+  - Changes:
+    - Line 70: Added session_type to Workout interface
+    - Line 101: Added session_type to query
+    - Line 267: Changed event summary to use session_type instead of date
+- **✅ Google Calendar Running Time Display:**
+  - Added cumulative running time to section headers in calendar events
+  - Format: "Section Name X mins (start-end)"
+  - Example: "Warm-up 12 mins (1-12)", "Gymnastics 16 mins (13-28)", "WOD 20 mins (29-48)"
+  - File: app/api/google/publish-workout/route.ts
+  - Changes:
+    - Line 146: Updated formatSectionToHTML() signature with startMin/endMin params
+    - Lines 211-221: Added cumulative time calculation before formatting
+- **✅ Workout Library Search - Regex Escape Fix:**
+  - Fixed crash when typing special regex characters (parentheses, brackets)
+  - Issue: "Uncaught SyntaxError: Invalid regular expression: /(()/gi: Unterminated group"
+  - Solution: Added escapeRegex() helper to escape special characters before creating RegExp
+  - File: utils/search-utils.ts
+  - Changes:
+    - Lines 6-8: Added escapeRegex() helper function
+    - Line 21: Escape search terms before creating RegExp
+- **✅ Workout Library Search - Phrase Matching:**
+  - Changed search from word-by-word to exact phrase matching
+  - Issue: "Toes to Bar (s" found workouts with "toes" separately, not the phrase
+  - Solution: Treat entire query as single phrase instead of splitting by spaces
+  - Files:
+    - hooks/coach/useCoachData.ts (lines 219-246): Changed from searchTerms array to searchPhrase
+    - components/coach/SearchPanel.tsx (line 406): Pass entire query as single-item array
+- **✅ Workout Library Search - Include workout_name Field:**
+  - Added workout_name to search text alongside title, coach_notes, and section content
+  - File: hooks/coach/useCoachData.ts (lines 226, 237, 241)
+- Commit: (pending)
+- Files: 3 changed (publish-workout route.ts, search-utils.ts, useCoachData.ts, SearchPanel.tsx)
+- See: `project-history/2026-01-13-session-66-google-calendar-search-fixes.md`
 
 **Completed (2026-01-12 Session 65 - Sonnet):**
 - **✅ Athlete Workouts Tab - Weekly Selector Fix:**

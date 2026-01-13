@@ -403,7 +403,7 @@ export default function SearchPanel({
                       year: 'numeric',
                     });
                     const formattedTime = wod.time ? wod.time.substring(0, 5) : '';
-                    const searchTerms = searchQuery.trim().split(/\s+/).filter(Boolean);
+                    const searchTerms = searchQuery.trim() ? [searchQuery.trim()] : [];
                     const trackName = wod.track_id ? tracks.find(t => t.id === wod.track_id)?.name : null;
 
                     return (

@@ -217,13 +217,13 @@ export const useCoachData = ({
         let filteredResults = results;
 
         if (searchQuery) {
-          const searchTerms = searchQuery.trim().toLowerCase().split(/\s+/);
+          const searchPhrase = searchQuery.trim();
           filteredResults = filteredResults.filter(wod => {
             let combinedText = '';
 
             if (includedSectionTypes.length === 0) {
               // "All" selected - search everything
-              combinedText = `${wod.title} ${wod.coach_notes || ''} ${wod.sections.map(s => s.content).join(' ')}`.toLowerCase();
+              combinedText = `${wod.title} ${wod.workout_name || ''} ${wod.coach_notes || ''} ${wod.sections.map(s => s.content).join(' ')}`;
             } else {
               // Specific filters selected
               const includeNotes = includedSectionTypes.includes('Notes');
@@ -234,15 +234,15 @@ export const useCoachData = ({
                 : [];
 
               const titleText = wod.title;
+              const workoutNameText = wod.workout_name || '';
               const notesText = includeNotes ? (wod.coach_notes || '') : '';
               const sectionsText = sectionsToSearch.map(s => s.content).join(' ');
 
-              combinedText = `${titleText} ${notesText} ${sectionsText}`.toLowerCase();
+              combinedText = `${titleText} ${workoutNameText} ${notesText} ${sectionsText}`;
             }
 
-            return searchTerms.every(term =>
-              new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(combinedText)
-            );
+            const escapedPhrase = searchPhrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            return new RegExp(escapedPhrase, 'i').test(combinedText);
           });
         }
 
