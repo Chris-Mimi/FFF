@@ -6,6 +6,7 @@ import ExerciseVideoModal from '@/components/coach/ExerciseVideoModal';
 import ForgeBenchmarksTab from '@/components/coach/ForgeBenchmarksTab';
 import LiftsTab from '@/components/coach/LiftsTab';
 import ReferencesTab from '@/components/coach/ReferencesTab';
+import ProgrammingNotesTab from '@/components/coach/ProgrammingNotesTab';
 import { getCurrentUser } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import { DragEndEvent } from '@dnd-kit/core';
@@ -47,7 +48,7 @@ interface Exercise {
 
 export default function BenchmarksLiftsManagementPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'benchmarks' | 'forge' | 'lifts' | 'exercises' | 'references' | 'tracks'>('benchmarks');
+  const [activeTab, setActiveTab] = useState<'benchmarks' | 'forge' | 'lifts' | 'exercises' | 'references' | 'tracks' | 'notes'>('benchmarks');
   const [loading, setLoading] = useState(true);
 
   // Benchmarks state
@@ -1093,7 +1094,7 @@ export default function BenchmarksLiftsManagementPage() {
             </button>
             <div>
               <h1 className='text-3xl font-bold text-gray-900'>Coach Library</h1>
-              <p className='text-sm text-gray-600'>Manage benchmarks, lifts, exercises, and programming references</p>
+              <p className='text-sm text-gray-600'>Manage benchmarks, lifts, exercises, programming references, and notes</p>
             </div>
           </div>
         </div>
@@ -1162,6 +1163,16 @@ export default function BenchmarksLiftsManagementPage() {
             }`}
           >
             Tracks
+          </button>
+          <button
+            onClick={() => setActiveTab('notes')}
+            className={`px-4 py-2 rounded-lg font-medium transition ${
+              activeTab === 'notes'
+                ? 'bg-orange-500 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            Programming Notes
           </button>
         </div>
 
@@ -1391,6 +1402,8 @@ export default function BenchmarksLiftsManagementPage() {
             )}
           </div>
         )}
+
+        {activeTab === 'notes' && <ProgrammingNotesTab />}
       </div>
 
       {/* Video Modal */}

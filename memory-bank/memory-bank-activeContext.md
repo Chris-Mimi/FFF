@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.20
-**Updated:** 2026-01-13 (Session 66 - Google Calendar & Search Fixes)
+**Version:** 10.21
+**Updated:** 2026-01-14 (Session 67 - Programming Notes Tab)
 
 ---
 
@@ -50,6 +50,8 @@ Coach Tables
 ├─ benchmark_workouts (id, name, type, description, display_order, has_scaling)
 ├─ forge_benchmarks (id, name, type, description, display_order, has_scaling)
 ├─ barbell_lifts (id, name, category, display_order)
+├─ programming_notes (id, user_id, title, content [markdown], folder_id, created_at, updated_at)
+├─ note_folders (id, user_id, name, display_order, created_at, updated_at)
 
 Member Tables
 ├─ members (id, email, name, status, membership_types[], account_type: primary|family_member, primary_member_id, display_name, date_of_birth, relationship)
@@ -74,6 +76,36 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2026-01-14 Session 67 - Sonnet):**
+- **✅ Programming Notes Tab - Coach Library:**
+  - Added full-featured note-taking system for workout planning and reference
+  - Features:
+    - CRUD operations for notes with title, markdown content, timestamps
+    - Folder organization with create, rename, delete operations
+    - Drag-and-drop notes between folders and "Unfiled" section
+    - Search functionality filtering by title and content
+    - Collapsible folder sections with note counts
+    - Preview mode with ReactMarkdown rendering (remarkGfm, rehypeRaw)
+    - Edit mode with formatting toolbar (bold, italic, underline, lists, headings)
+    - Right-click context menu for quick folder moves
+  - Database schema:
+    - programming_notes table (id, user_id, title, content, folder_id, timestamps)
+    - note_folders table (id, user_id, name, display_order, timestamps)
+    - RLS policies restrict to coaches only
+    - Cascading delete: folder deletion sets notes.folder_id to NULL
+  - Libraries: @dnd-kit/core for drag-and-drop, ReactMarkdown for preview
+  - Files:
+    - components/coach/ProgrammingNotesTab.tsx (complete implementation)
+    - supabase/migrations/20260114_add_programming_notes.sql
+    - supabase/migrations/20260114_add_note_folders.sql
+    - app/coach/benchmarks-lifts/page.tsx (added "Programming Notes" tab)
+  - Bug fixes after auto-compaction:
+    - Restored missing closing paren in folder map return statement
+    - Removed remarkBreaks plugin causing double line breaks in preview
+- Commit: (pending)
+- Files: 3 changed + 2 migrations
+- See: `project-history/2026-01-14-session-67-programming-notes.md`
 
 **Completed (2026-01-13 Session 66 - Sonnet):**
 - **✅ Google Calendar Event Title Format:**
