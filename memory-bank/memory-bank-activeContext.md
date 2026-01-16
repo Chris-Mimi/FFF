@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.21
-**Updated:** 2026-01-14 (Session 67 - Programming Notes Tab)
+**Version:** 10.22
+**Updated:** 2026-01-16 (Session 68 - UI Fixes and Google Calendar Title)
 
 ---
 
@@ -76,6 +76,46 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2026-01-16 Session 68 - Sonnet):**
+- **✅ Programming Notes Hyperlink Styling:**
+  - Fixed hyperlinks in Programming Notes tab to show light blue color with bold on hover
+  - Used ReactMarkdown custom components instead of Tailwind prose classes
+  - Added text-gray-900 to preview, search box, and title input to fix greyed-out text
+  - File: components/coach/ProgrammingNotesTab.tsx (lines 726-743)
+- **✅ Variable Rep Lift Percentage Display:**
+  - Fixed percentage display to show ALL percentages when every set has a value defined
+  - Changed from showing first percentage only to showing all: "40-40-50-50-50-50-50%"
+  - Applied across all components: WODSectionComponent, CalendarGrid, AthletePageLogbookTab, AthletePageWorkoutsTab
+  - Only shows percentages if ALL sets have them defined (no undefined/null values)
+  - Files:
+    - components/coach/WODSectionComponent.tsx (lines 28-43)
+    - components/coach/CalendarGrid.tsx (lines 17-36)
+    - components/athlete/AthletePageLogbookTab.tsx (lines 50-69)
+    - components/athlete/AthletePageWorkoutsTab.tsx (lines 98-117)
+    - app/api/google/publish-workout/route.ts (lines 126-141)
+- **✅ Google Calendar Event Title Format:**
+  - Changed to use workout.title (session type) instead of workout.session_type
+  - Fixed titles showing "WOD" instead of actual types like "Kids & Teens" or "Foundations"
+  - Root cause: Database stores type in `title` field, not `session_type` field
+  - File: app/api/google/publish-workout/route.ts (lines 285-289)
+- **✅ Family Member Workout Results RLS:**
+  - Fixed "row-level security policy violation" when family members save workout results
+  - Root cause: Foreign key constraints referenced auth.users table, but family members only exist in members table
+  - Changed foreign key constraints to reference members(id) instead of auth.users(id)
+  - Applied to wod_section_results, lift_records, benchmark_results tables
+  - File: supabase/migrations/20260116_add_wod_section_results_family_rls.sql
+  - Example family members: Cody (85d9ec49...), Neo (8e4d1ad3...) under primary account 84280ec0...
+- **✅ Section Duration "0" Display Fix:**
+  - Hidden "0 min" display for sections with 0 duration (e.g., "Whiteboard Intro")
+  - Changed condition to only show duration when `(section.duration > 0)`
+  - Applied to both Athlete Logbook and Athlete Workouts tabs
+  - Files:
+    - components/athlete/AthletePageLogbookTab.tsx (line 943)
+    - components/athlete/AthletePageWorkoutsTab.tsx (line 481)
+- Commit: (pending)
+- Files: 9 changed + 1 migration
+- See: `project-history/2026-01-16-session-68-ui-fixes-google-calendar.md`
 
 **Completed (2026-01-14 Session 67 - Sonnet):**
 - **✅ Programming Notes Tab - Coach Library:**

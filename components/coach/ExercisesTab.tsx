@@ -150,7 +150,15 @@ export default function ExercisesTab({
           };
         }
 
-        const frequencies = await getExerciseFrequency(dateFilter);
+        const frequencies = await Promise.race([
+          getExerciseFrequency(dateFilter),
+          new Promise<ExerciseFrequency[]>((resolve) =>
+            setTimeout(() => {
+              console.warn('Exercise frequency fetch timed out after 10 seconds');
+              resolve([]);
+            }, 10000)
+          )
+        ]);
         // Convert to Map for O(1) lookups
         const frequencyMap = new Map(frequencies.map(f => [f.id, f]));
         setExerciseFrequencies(frequencyMap);

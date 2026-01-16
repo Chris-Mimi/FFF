@@ -62,16 +62,28 @@ export default function CoachSchedulePage() {
   const [savingTitle, setSavingTitle] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
+
     // Check authentication
     const checkAuth = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      if (!user && !cancelled) {
         router.push('/login');
       }
     };
-    checkAuth();
-    fetchTemplates();
-    fetchWorkoutTitles();
+
+    const loadData = async () => {
+      await checkAuth();
+      if (!cancelled) {
+        await Promise.all([fetchTemplates(), fetchWorkoutTitles()]);
+      }
+    };
+
+    loadData();
+
+    return () => {
+      cancelled = true;
+    };
   }, [router]);
 
   const fetchWorkoutTitles = async () => {

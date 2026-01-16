@@ -103,6 +103,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     console.log('[API] Database query result - workout:', !!workout, 'error:', fetchError);
+    console.log('[API] Workout data - workout_name:', workout?.workout_name, 'session_type:', workout?.session_type, 'track_id:', workout?.track_id);
 
     if (fetchError || !workout) {
       console.log('[API] Workout not found - fetchError:', fetchError, 'workout:', workout);
@@ -126,7 +127,18 @@ export async function POST(request: NextRequest) {
       } else {
         // Variable reps: show as "5-3-1" format
         const reps = lift.variable_sets?.map(s => s.reps).join('-') || '';
-        return `${lift.name} ${reps}`;
+        const percentages = lift.variable_sets?.map(s => s.percentage_1rm) || [];
+
+        let base = `${lift.name} ${reps}`;
+
+        // Only show percentages if ALL sets have them defined (no undefined/null values)
+        const allHavePercentages = percentages.length > 0 && percentages.every(p => p !== undefined && p !== null);
+        if (allHavePercentages) {
+          // Show ALL percentages for each set: "40-40-50-50-50-50-50%"
+          base += ` @ ${percentages.join('-')}%`;
+        }
+
+        return base;
       }
     };
 
@@ -271,8 +283,10 @@ export async function POST(request: NextRequest) {
           }
         }
         const workoutTitle = workout.workout_name || trackName || workout.title;
+        console.log('[API] Title logic - workout_name:', workout.workout_name, 'trackName:', trackName, 'title:', workout.title);
+        console.log('[API] Final workoutTitle:', workoutTitle, 'Event summary will be:', `${workoutTitle} - ${workout.title}`);
         const event = {
-          summary: `${workoutTitle} - ${workout.session_type}`,
+          summary: `${workoutTitle} - ${workout.title}`,
           description: description,
           location: 'The Forge Functional Fitness, Bergwerkstrasse 10, Pforzen, Bavaria',
           start: {

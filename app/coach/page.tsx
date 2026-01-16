@@ -140,6 +140,8 @@ export default function CoachDashboard() {
 
   // Auth check
   useEffect(() => {
+    let cancelled = false;
+
     const checkAuth = async () => {
       const currentUser = await getCurrentUser();
 
@@ -154,6 +156,8 @@ export default function CoachDashboard() {
         return;
       }
 
+      if (cancelled) return;
+
       setUser({
         role,
         name: currentUser.user_metadata?.full_name || currentUser.email || 'Coach',
@@ -164,6 +168,10 @@ export default function CoachDashboard() {
     };
 
     checkAuth();
+
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 

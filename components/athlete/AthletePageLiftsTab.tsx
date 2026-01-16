@@ -245,48 +245,58 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
       count?: number;
     }> = [];
 
-    // Add RM test charts
-    (['1RM', '3RM', '5RM', '10RM'] as const).forEach(rmType => {
-      const results = liftHistory
-        .filter(entry => entry.lift_name === liftName && entry.rep_max_type === rmType)
-        .sort((a, b) => new Date(a.lift_date).getTime() - new Date(b.lift_date).getTime());
+    // Helper function to extract max reps from rep scheme
+    const getMaxRepsFromScheme = (repScheme: string): number | null => {
+      // Extract all numbers from scheme like "10-8-5-5-5-5-5"
+      const reps = repScheme.split('-').map(r => parseInt(r.trim())).filter(n => !isNaN(n));
+      if (reps.length === 0) return null;
+      // Return the smallest number (working weight reps, not warmup)
+      return Math.min(...reps);
+    };
 
-      if (results.length >= 2) {
-        const prWeight = Math.max(...results.map(r => r.weight_kg));
-        charts.push({
-          type: 'RM',
-          label: rmType,
-          data: results.map(entry => ({
-            date: new Date(entry.lift_date).toLocaleDateString('en-US', {
-              month: 'short',
-              day: 'numeric',
-              year: 'numeric',
-            }),
-            weight: entry.weight_kg,
-            isPR: entry.weight_kg === prWeight,
-          })),
-        });
-      }
-    });
+    // Group all records by max reps (combine RM tests and workout patterns)
+    const repGroups = new Map<number, LiftRecord[]>();
 
-    // Add workout pattern charts
-    const workoutPatterns = new Map<string, LiftRecord[]>();
     liftHistory.forEach(record => {
-      if (record.lift_name === liftName && record.rep_scheme) {
-        if (!workoutPatterns.has(record.rep_scheme)) {
-          workoutPatterns.set(record.rep_scheme, []);
+      if (record.lift_name !== liftName) return;
+
+      let reps: number | null = null;
+
+      // From RM tests
+      if (record.rep_max_type) {
+        const match = record.rep_max_type.match(/^(\d+)RM$/);
+        if (match) {
+          reps = parseInt(match[1]);
         }
-        workoutPatterns.get(record.rep_scheme)!.push(record);
+      }
+      // From workout patterns
+      else if (record.rep_scheme) {
+        reps = getMaxRepsFromScheme(record.rep_scheme);
+      }
+
+      if (reps !== null) {
+        if (!repGroups.has(reps)) {
+          repGroups.set(reps, []);
+        }
+        repGroups.get(reps)!.push(record);
       }
     });
 
-    workoutPatterns.forEach((records, repScheme) => {
+    // Create charts for each rep group with 2+ entries
+    repGroups.forEach((records, reps) => {
       if (records.length >= 2) {
         const sorted = records.sort((a, b) => new Date(a.lift_date).getTime() - new Date(b.lift_date).getTime());
         const prWeight = Math.max(...sorted.map(r => r.weight_kg));
+
+        // Label based on standard RM if applicable
+        let label = `${reps} Rep${reps > 1 ? 's' : ''}`;
+        if ([1, 3, 5, 10].includes(reps)) {
+          label = `${reps}RM`;
+        }
+
         charts.push({
-          type: 'workout',
-          label: repScheme,
+          type: 'RM',
+          label,
           data: sorted.map(entry => ({
             date: new Date(entry.lift_date).toLocaleDateString('en-US', {
               month: 'short',
@@ -299,6 +309,13 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
           count: records.length,
         });
       }
+    });
+
+    // Sort charts by rep count
+    charts.sort((a, b) => {
+      const repsA = parseInt(a.label);
+      const repsB = parseInt(b.label);
+      return repsA - repsB;
     });
 
     return charts;

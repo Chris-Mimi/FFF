@@ -222,7 +222,23 @@ export default function PublishModal({
                         return lift.percentage_1rm ? `${base} @ ${lift.percentage_1rm}%` : base;
                       } else {
                         const reps = lift.variable_sets?.map((s: VariableSet) => s.reps).join('-') || '';
-                        return `${lift.name} ${reps}`;
+                        const percentages = lift.variable_sets?.map((s: VariableSet) => s.percentage_1rm) || [];
+
+                        let base = `${lift.name} ${reps}`;
+
+                        const definedPercentages = percentages.filter(p => p !== undefined && p !== null);
+                        if (definedPercentages.length > 0) {
+                          const percentageString = percentages
+                            .map(p => p !== undefined && p !== null ? p.toString() : '')
+                            .filter(p => p !== '')
+                            .join('-');
+
+                          if (percentageString) {
+                            base += ` @ ${percentageString}%`;
+                          }
+                        }
+
+                        return base;
                       }
                     };
 

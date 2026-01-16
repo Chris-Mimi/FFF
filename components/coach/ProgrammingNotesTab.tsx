@@ -523,7 +523,7 @@ export default function ProgrammingNotesTab() {
               type='text'
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className='w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm'
+              className='w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm text-gray-900'
               placeholder='Search notes...'
             />
             {searchQuery && (
@@ -639,7 +639,7 @@ export default function ProgrammingNotesTab() {
                   type='text'
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className='flex-1 text-2xl font-bold border-b-2 border-gray-200 focus:border-teal-500 outline-none px-2 py-1'
+                  className='flex-1 text-2xl font-bold border-b-2 border-gray-200 focus:border-teal-500 outline-none px-2 py-1 text-gray-900'
                   placeholder='Note Title'
                 />
                 <div className='flex gap-2'>
@@ -723,10 +723,20 @@ export default function ProgrammingNotesTab() {
 
               {/* Preview Mode */}
               {!isEditing && (
-                <div className='flex-1 min-h-0 border border-gray-300 rounded-lg p-4 overflow-y-auto prose prose-sm max-w-none whitespace-pre-wrap'>
+                <div className='flex-1 min-h-0 border border-gray-300 rounded-lg p-4 overflow-y-auto prose prose-sm max-w-none whitespace-pre-wrap text-gray-900'>
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm]}
                     rehypePlugins={[rehypeRaw]}
+                    components={{
+                      a: ({ node, ...props }) => (
+                        <a
+                          {...props}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-500 hover:font-bold underline"
+                        />
+                      ),
+                    }}
                   >
                     {content || '*No content yet*'}
                   </ReactMarkdown>

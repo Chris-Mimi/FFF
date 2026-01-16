@@ -28,6 +28,21 @@ interface SectionResult {
   task_completed?: boolean;
 }
 
+interface LiftResult {
+  lift_name: string;
+  weight_kg: number;
+  reps: number;
+  rep_scheme: string;
+}
+
+interface BenchmarkResult {
+  benchmark_name: string;
+  time_result?: string;
+  reps_result?: string;
+  weight_result?: string;
+  scaling_level?: string;
+}
+
 interface PublishedWorkout {
   id: string;
   title: string;
@@ -45,6 +60,8 @@ interface PublishedWorkout {
     color: string;
   };
   results?: SectionResult[];
+  liftResults?: LiftResult[];
+  benchmarkResults?: BenchmarkResult[];
 }
 
 interface AthletePageWorkoutsTabProps {
@@ -84,7 +101,18 @@ function formatLift(lift: ConfiguredLift): string {
     return lift.percentage_1rm ? `${base} @ ${lift.percentage_1rm}%` : base;
   } else {
     const reps = lift.variable_sets?.map(s => s.reps).join('-') || '';
-    return `${lift.name} ${reps}`;
+    const percentages = lift.variable_sets?.map(s => s.percentage_1rm) || [];
+
+    let base = `${lift.name} ${reps}`;
+
+    // Only show percentages if ALL sets have them defined (no undefined/null values)
+    const allHavePercentages = percentages.length > 0 && percentages.every(p => p !== undefined && p !== null);
+    if (allHavePercentages) {
+      // Show ALL percentages for each set: "40-40-50-50-50-50-50%"
+      base += ` @ ${percentages.join('-')}%`;
+    }
+
+    return base;
   }
 }
 
@@ -210,8 +238,12 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
       const workoutIds = workoutsFromBookings
         .filter(w => w.attended)
         .map(w => w.id);
+      const workoutDates = workoutsFromBookings
+        .filter(w => w.attended)
+        .map(w => w.date);
 
       if (workoutIds.length > 0) {
+        // Fetch WOD section results
         const { data: results, error: resultsError } = await supabase
           .from('wod_section_results')
           .select('section_id, time_result, reps_result, weight_result, rounds_result, calories_result, metres_result, scaling_level, task_completed, wod_id')
@@ -222,9 +254,33 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
           console.error('Error fetching results:', resultsError);
         }
 
+        // Fetch lift records
+        const { data: liftRecords, error: liftError } = await supabase
+          .from('lift_records')
+          .select('lift_name, weight_kg, reps, rep_scheme, lift_date')
+          .in('lift_date', workoutDates)
+          .eq('user_id', userId);
+
+        if (liftError) {
+          console.error('Error fetching lift records:', liftError);
+        }
+
+        // Fetch benchmark results
+        const { data: benchmarkResults, error: benchmarkError } = await supabase
+          .from('benchmark_results')
+          .select('benchmark_name, time_result, reps_result, weight_result, scaling_level, result_date')
+          .in('result_date', workoutDates)
+          .eq('user_id', userId);
+
+        if (benchmarkError) {
+          console.error('Error fetching benchmark results:', benchmarkError);
+        }
+
         // Attach results to workouts
         workoutsFromBookings.forEach(workout => {
           workout.results = results?.filter(r => r.wod_id === workout.id) || [];
+          workout.liftResults = liftRecords?.filter(r => r.lift_date === workout.date) || [];
+          workout.benchmarkResults = benchmarkResults?.filter(r => r.result_date === workout.date) || [];
         });
       }
 
@@ -421,7 +477,8 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
                         return (
                         <div key={section.id} className='border-l-2 border-[#208479] pl-2'>
                           <div className='text-xs font-semibold text-[#208479] mb-1'>
-                            {section.type} ({section.duration} min)
+                            {section.type}
+                            {(section.duration > 0) && ` (${section.duration} min)`}
                           </div>
 
                           {/* Structured Movements */}
@@ -429,11 +486,25 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
                             {/* Lifts */}
                             {section.lifts && section.lifts.length > 0 && (
                               <div className='space-y-1'>
-                                {section.lifts.map((lift, liftIdx) => (
-                                  <div key={liftIdx} className='text-xs bg-blue-50 text-blue-900 rounded px-2 py-1'>
-                                    <div className='font-semibold'>≡ {formatLift(lift)}</div>
-                                  </div>
-                                ))}
+                                {section.lifts.map((lift, liftIdx) => {
+                                  const repScheme = lift.rep_type === 'constant'
+                                    ? `${lift.sets || 1}x${lift.reps || 1}`
+                                    : lift.variable_sets?.map(s => s.reps).join('-') || '1';
+                                  const liftResult = workout.liftResults?.find(r =>
+                                    r.lift_name === lift.name && r.rep_scheme === repScheme
+                                  );
+
+                                  return (
+                                    <div key={liftIdx} className='text-xs bg-blue-50 text-blue-900 rounded px-2 py-1'>
+                                      <div className='font-semibold'>≡ {formatLift(lift)}</div>
+                                      {liftResult && (
+                                        <div className='mt-1 text-blue-800 font-medium'>
+                                          ✓ {liftResult.reps} reps @ {liftResult.weight_kg} kg
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
                               </div>
                             )}
 
@@ -442,6 +513,10 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
                               <div className='space-y-1'>
                                 {section.benchmarks.map((benchmark, bmIdx) => {
                                   const formatted = formatBenchmark(benchmark);
+                                  const benchmarkResult = workout.benchmarkResults?.find(r =>
+                                    r.benchmark_name === benchmark.name
+                                  );
+
                                   return (
                                     <div key={bmIdx} className='text-xs bg-teal-50 text-teal-900 rounded px-2 py-1'>
                                       <div className='font-semibold'>≡ {formatted.name}</div>
@@ -450,6 +525,14 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
                                       )}
                                       {!formatted.description && formatted.exercises && formatted.exercises.length > 0 && (
                                         <div className='text-teal-800 mt-0.5'>{formatted.exercises.join(' • ')}</div>
+                                      )}
+                                      {benchmarkResult && (
+                                        <div className='mt-1 text-teal-800 font-medium'>
+                                          ✓ {benchmarkResult.time_result && `Time: ${benchmarkResult.time_result}`}
+                                          {benchmarkResult.reps_result && ` Reps: ${benchmarkResult.reps_result}`}
+                                          {benchmarkResult.weight_result && ` Weight: ${benchmarkResult.weight_result} kg`}
+                                          {benchmarkResult.scaling_level && ` (${benchmarkResult.scaling_level})`}
+                                        </div>
                                       )}
                                     </div>
                                   );
@@ -462,6 +545,10 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
                               <div className='space-y-1'>
                                 {section.forge_benchmarks.map((forge, forgeIdx) => {
                                   const formatted = formatForgeBenchmark(forge);
+                                  const forgeResult = workout.benchmarkResults?.find(r =>
+                                    r.benchmark_name === forge.name
+                                  );
+
                                   return (
                                     <div key={forgeIdx} className='text-xs bg-cyan-50 text-cyan-900 rounded px-2 py-1'>
                                       <div className='font-semibold'>≡ {formatted.name}</div>
@@ -470,6 +557,14 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
                                       )}
                                       {!formatted.description && formatted.exercises && formatted.exercises.length > 0 && (
                                         <div className='text-cyan-800 mt-0.5'>{formatted.exercises.join(' • ')}</div>
+                                      )}
+                                      {forgeResult && (
+                                        <div className='mt-1 text-cyan-800 font-medium'>
+                                          ✓ {forgeResult.time_result && `Time: ${forgeResult.time_result}`}
+                                          {forgeResult.reps_result && ` Reps: ${forgeResult.reps_result}`}
+                                          {forgeResult.weight_result && ` Weight: ${forgeResult.weight_result} kg`}
+                                          {forgeResult.scaling_level && ` (${forgeResult.scaling_level})`}
+                                        </div>
                                       )}
                                     </div>
                                   );

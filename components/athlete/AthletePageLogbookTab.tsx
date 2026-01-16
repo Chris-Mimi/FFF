@@ -53,7 +53,18 @@ function formatLift(lift: ConfiguredLift): string {
     return lift.percentage_1rm ? `${base} @ ${lift.percentage_1rm}%` : base;
   } else {
     const reps = lift.variable_sets?.map(s => s.reps).join('-') || '';
-    return `${lift.name} ${reps}`;
+    const percentages = lift.variable_sets?.map(s => s.percentage_1rm) || [];
+
+    let base = `${lift.name} ${reps}`;
+
+    // Only show percentages if ALL sets have them defined (no undefined/null values)
+    const allHavePercentages = percentages.length > 0 && percentages.every(p => p !== undefined && p !== null);
+    if (allHavePercentages) {
+      // Show ALL percentages for each set: "40-40-50-50-50-50-50%"
+      base += ` @ ${percentages.join('-')}%`;
+    }
+
+    return base;
   }
 }
 
@@ -388,7 +399,12 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
             task_completed: result.task_completed || false,
           };
         });
-        setSectionResults(newSectionResults);
+        console.log('[loadSectionResults] Setting results, keys:', Object.keys(newSectionResults));
+        setSectionResults(prev => {
+          const updated = { ...prev, ...newSectionResults };
+          console.log('[loadSectionResults] Updated state keys:', Object.keys(updated));
+          return updated;
+        });
       }
     } catch (error) {
       console.error('Error loading section results:', error);
@@ -509,8 +525,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
             const repScheme = lift.rep_type === 'constant'
               ? `${lift.sets || 1}x${lift.reps || 1}`
               : lift.variable_sets?.map(s => s.reps).join('-') || '1';
-            const reps = lift.rep_type === 'constant' ? (lift.reps || 1) :
-              (lift.variable_sets && lift.variable_sets.length > 0 ? lift.variable_sets[0].reps : 1);
+            const reps = parseInt(result.reps_result || '0') || 0;
 
             await saveLiftRecord(lift.name, result.weight_result, reps, workoutDate, repScheme);
             savedCount++;
@@ -668,6 +683,8 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
   // Load lift records and populate sectionResults
   const loadLiftResultsToSection = async (workoutDate: string) => {
     try {
+      console.log('[loadLiftResultsToSection] Starting load for date:', workoutDate, 'workouts.length:', workouts.length);
+
       const { data, error } = await supabase
         .from('lift_records')
         .select('*')
@@ -679,11 +696,15 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
         return;
       }
 
+      console.log('[loadLiftResultsToSection] Fetched records:', data?.length || 0);
+
       if (data && workouts.length > 0) {
         const newResults: Record<string, SectionResult> = {};
 
         // Match lifts to workout sections
         workouts.forEach(wod => {
+          if (wod.date !== workoutDate) return; // Only process workouts for this date
+
           const sections = getPublishedSections(wod);
           sections.forEach(section => {
             section.lifts?.forEach((lift, idx) => {
@@ -695,11 +716,13 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                 r.lift_name === lift.name && r.rep_scheme === repScheme
               );
 
+              const key = `${wod.id}:::${section.id}:::lift-${idx}`;
+
               if (matchingResult) {
-                const key = `${wod.id}:::${section.id}:::lift-${idx}`;
+                console.log('[loadLiftResultsToSection] Matched lift:', lift.name, 'reps:', matchingResult.reps, 'weight:', matchingResult.weight_kg, 'key:', key);
                 newResults[key] = {
                   time_result: '',
-                  reps_result: '',
+                  reps_result: matchingResult.reps?.toString() || '',
                   weight_result: matchingResult.weight_kg?.toString() || '',
                   scaling_level: '',
                   rounds_result: '',
@@ -712,7 +735,14 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
           });
         });
 
-        setSectionResults(prev => ({ ...prev, ...newResults }));
+        console.log('[loadLiftResultsToSection] Setting results, keys:', Object.keys(newResults));
+        setSectionResults(prev => {
+          const updated = { ...prev, ...newResults };
+          console.log('[loadLiftResultsToSection] Updated state keys:', Object.keys(updated));
+          return updated;
+        });
+      } else {
+        console.log('[loadLiftResultsToSection] Skipped - no data or no workouts');
       }
     } catch (error) {
       console.error('Error loading lift results:', error);
@@ -721,13 +751,28 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
 
   // Load lift records when workouts or selected date change
   useEffect(() => {
-    if (workouts.length > 0 && selectedDate && userId) {
-      const dateStr = formatLocalDate(selectedDate);
-      loadLiftRecords(dateStr);
-      loadSectionResults(dateStr);
-      loadBenchmarkResultsToSection(dateStr);
-      loadLiftResultsToSection(dateStr);
-    }
+    let cancelled = false;
+
+    const loadAllData = async () => {
+      if (workouts.length > 0 && selectedDate && userId && !cancelled) {
+        const dateStr = formatLocalDate(selectedDate);
+        console.log('[useEffect] Loading all data for date:', dateStr, 'workouts:', workouts.length);
+
+        // Run sequentially to avoid race conditions with state updates
+        if (!cancelled) await loadLiftRecords(dateStr);
+        if (!cancelled) await loadSectionResults(dateStr);
+        if (!cancelled) await loadBenchmarkResultsToSection(dateStr);
+        if (!cancelled) await loadLiftResultsToSection(dateStr);
+
+        if (!cancelled) console.log('[useEffect] All data loaded');
+      }
+    };
+
+    loadAllData();
+
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workouts, selectedDate, userId]);
 
@@ -895,7 +940,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                           <span className='text-sm font-medium text-[#208479] uppercase'>
                             {section.type}
                           </span>
-                          {section.duration && (
+                          {(section.duration > 0) && (
                             <span className='text-sm text-gray-500'>{section.duration} min</span>
                           )}
 

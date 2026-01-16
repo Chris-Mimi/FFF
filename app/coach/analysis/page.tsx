@@ -162,9 +162,19 @@ export default function AnalysisPage() {
   }, [router]);
 
   useEffect(() => {
-    if (tracks.length > 0 && workoutTypes.length > 0) {
-      fetchMonthlyWODs();
-    }
+    let cancelled = false;
+
+    const loadData = async () => {
+      if (tracks.length > 0 && workoutTypes.length > 0 && !cancelled) {
+        await fetchMonthlyWODs();
+      }
+    };
+
+    loadData();
+
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedMonth, timeframePeriod, tracks, workoutTypes]);
 

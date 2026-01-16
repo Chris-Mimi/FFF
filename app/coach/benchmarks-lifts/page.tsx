@@ -169,19 +169,43 @@ export default function BenchmarksLiftsManagementPage() {
   });
 
   useEffect(() => {
-    checkAuth();
+    let cancelled = false;
+
+    const runAuth = async () => {
+      if (!cancelled) {
+        await checkAuth();
+      }
+    };
+
+    runAuth();
+
+    return () => {
+      cancelled = true;
+    };
   }, [router]);
 
   useEffect(() => {
-    if (!loading) {
-      fetchBenchmarks();
-      fetchForgeBenchmarks();
-      fetchLifts();
-      fetchExercises();
-      fetchReferences();
-      fetchWorkoutTypes();
-      fetchTracks();
-    }
+    let cancelled = false;
+
+    const loadData = async () => {
+      if (!loading && !cancelled) {
+        await Promise.all([
+          fetchBenchmarks(),
+          fetchForgeBenchmarks(),
+          fetchLifts(),
+          fetchExercises(),
+          fetchReferences(),
+          fetchWorkoutTypes(),
+          fetchTracks(),
+        ]);
+      }
+    };
+
+    loadData();
+
+    return () => {
+      cancelled = true;
+    };
   }, [loading]);
 
   const checkAuth = async () => {
@@ -990,9 +1014,11 @@ export default function BenchmarksLiftsManagementPage() {
       setEditingExercise(null);
       fetchExercises();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: unknown) {
+    } catch (error: any) {
       console.error('Error saving exercise:', error);
-      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('Error details:', JSON.stringify(error, null, 2));
+      const errorMessage = error?.message || error?.error_description || error?.msg || 'Unknown error';
+      alert(`Error saving exercise: ${errorMessage}`);
     }
   };
 
@@ -1172,7 +1198,7 @@ export default function BenchmarksLiftsManagementPage() {
                 : 'bg-white text-gray-700 hover:bg-gray-50'
             }`}
           >
-            Programming Notes
+            Programming Aids
           </button>
         </div>
 
