@@ -13,9 +13,16 @@ import * as path from 'path';
 
 dotenv.config({ path: '.env.local' });
 
+// Use service role key to bypass RLS and access all tables
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
 );
 
 const BACKUP_DIR = path.join(process.cwd(), 'backups');
@@ -76,16 +83,37 @@ async function main() {
   console.log('');
 
   const criticalTables = [
+    // Movement & Workout Definitions
     { name: 'barbell_lifts', desc: 'Lift definitions' },
     { name: 'benchmark_workouts', desc: 'CrossFit benchmarks' },
     { name: 'forge_benchmarks', desc: 'Custom gym benchmarks' },
+    { name: 'exercises', desc: 'Exercise library' },
+    { name: 'tracks', desc: 'Workout tracks' },
+    { name: 'section_types', desc: 'WOD section types' },
+    { name: 'workout_types', desc: 'Workout type definitions' },
+    { name: 'workout_titles', desc: 'Workout title templates' },
+    { name: 'naming_conventions', desc: 'Movement naming standards' },
+    { name: 'resources', desc: 'Reference resources' },
+
+    // Programmed Workouts & Sessions
+    { name: 'wods', desc: 'Programmed workouts (CRITICAL)' },
+    { name: 'weekly_sessions', desc: 'Scheduled sessions (CRITICAL)' },
+
+    // User & Membership Data
+    { name: 'members', desc: 'Gym members (CRITICAL USER DATA)' },
+    { name: 'bookings', desc: 'Session bookings (CRITICAL USER DATA)' },
+    { name: 'athlete_profiles', desc: 'Athlete profiles (CRITICAL USER DATA)' },
+
+    // Athlete Performance Data
     { name: 'lift_records', desc: 'Athlete lift results (CRITICAL USER DATA)' },
     { name: 'benchmark_results', desc: 'Athlete benchmark results (CRITICAL USER DATA)' },
     { name: 'wod_section_results', desc: 'WOD results (CRITICAL USER DATA)' },
-    { name: 'wods', desc: 'Programmed workouts' },
-    { name: 'weekly_sessions', desc: 'Scheduled sessions (CRITICAL)' },
-    { name: 'exercises', desc: 'Exercise library' },
-    { name: 'tracks', desc: 'Workout tracks' },
+    { name: 'workout_logs', desc: 'Athlete workout logs (CRITICAL USER DATA)' },
+
+    // Coach Tools
+    { name: 'programming_notes', desc: 'Coach programming notes' },
+    { name: 'note_folders', desc: 'Programming note folders' },
+    { name: 'user_exercise_favorites', desc: 'User exercise favorites' },
   ];
 
   const results: Record<string, boolean> = {};

@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.22
-**Updated:** 2026-01-16 (Session 68 - UI Fixes and Google Calendar Title)
+**Version:** 10.23
+**Updated:** 2026-01-17 (Session 68 Continuation - Google Calendar, Capacity, Backup)
 
 ---
 
@@ -76,6 +76,36 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2026-01-17 Session 68 Continuation - Sonnet):**
+- **✅ Google Calendar Zero Duration Display:**
+  - Hidden duration/time info from Google Calendar events when section duration is 0
+  - Conditionally show `${duration} mins (${startMin}-${endMin})` only when duration > 0
+  - File: app/api/google/publish-workout/route.ts (lines 157-159)
+- **✅ Unlimited Max Capacity Option:**
+  - Added 0 = unlimited capacity option for workout sessions
+  - Changed input min from '1' to '0' in WorkoutFormFields
+  - Updated validation to accept 0-30 range (was 1-30)
+  - Added helper text: "0 = unlimited capacity"
+  - Files:
+    - components/coach/WorkoutFormFields.tsx (lines 104, 113)
+    - hooks/coach/useWorkoutModal.ts (lines 667-668)
+- **✅ Unlimited Section Duration Input:**
+  - Removed max='60' constraint from duration input field
+  - Allows coaches to enter any number of minutes (no longer limited to 60)
+  - No complications - duration is just arithmetic for running time calculations
+  - File: components/coach/WODSectionComponent.tsx (line 159)
+- **✅ Comprehensive Database Backup Script:**
+  - **CRITICAL UPGRADE:** Expanded from 10 tables to 22 tables
+  - Changed from anon key to service role key (bypasses RLS for complete backup)
+  - Added 12 missing tables: members, bookings, athlete_profiles, programming_notes, note_folders, and more
+  - Organized into categories: Movement/Workout Definitions (10), Programmed Workouts (2), User/Membership Data (3), Athlete Performance (4), Coach Tools (3)
+  - Successfully tested: 879 records across 22 tables backed up
+  - File: scripts/backup-critical-data.ts (lines 16-26, 78-117)
+  - **RESOLVED:** Known issue from activeContext (line 432-436) about RLS limitation
+- Commit: (pending)
+- Files: 5 changed
+- See: `project-history/2026-01-16-session-68-ui-fixes-google-calendar.md` (to be updated)
 
 **Completed (2026-01-16 Session 68 - Sonnet):**
 - **✅ Programming Notes Hyperlink Styling:**
@@ -467,12 +497,6 @@ Athlete Tables (linked to members.id)
 **Migration Pending:**
 1. **`20251206_fix_newlines_after_restore.sql`** (Optional) - Fix escaped `\n` in benchmark descriptions
    - **Apply via:** Supabase Dashboard SQL Editor (only if needed)
-
-**System Improvements Needed:**
-1. **Backup Script RLS Limitation:**
-   - Current backup script uses anon key, blocked by RLS policies
-   - Doesn't capture athlete data (wod_section_results, athlete_profiles, etc.)
-   - Solution: Update script to use service_role key for admin-level backups
 
 **No Critical Blocking Issues**
 

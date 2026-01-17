@@ -101,7 +101,7 @@ export default function WorkoutFormFields({
               type='number'
               value={formData.maxCapacity}
               onChange={e => onFieldChange('maxCapacity', parseInt(e.target.value) || 0)}
-              min='1'
+              min='0'
               max='30'
               className={`w-32 px-3 py-1.5 text-sm border rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 ${
                 errors.maxCapacity ? 'border-red-500' : 'border-gray-300'
@@ -110,7 +110,7 @@ export default function WorkoutFormFields({
             {errors.maxCapacity && (
               <p className='text-red-500 text-sm mt-1'>{errors.maxCapacity}</p>
             )}
-            <p className='text-xs text-gray-500 mt-1'>Session times are managed via schedule templates</p>
+            <p className='text-xs text-gray-500 mt-1'>0 = unlimited capacity</p>
           </div>
 
           {/* Apply to Other Sessions Dropdown */}

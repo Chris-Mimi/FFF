@@ -154,8 +154,9 @@ export async function POST(request: NextRequest) {
 
     // Format event description with HTML
     const formatSectionToHTML = (section: WorkoutSection, startMin: number, endMin: number): string => {
-      // Section header with bold styling and running time
-      const header = `<b>${section.type}</b> ${section.duration} mins (${startMin}-${endMin})`;
+      // Section header with bold styling and running time (hide if duration is 0)
+      const timeInfo = section.duration > 0 ? ` ${section.duration} mins (${startMin}-${endMin})` : '';
+      const header = `<b>${section.type}</b>${timeInfo}`;
 
       const parts: string[] = [];
 

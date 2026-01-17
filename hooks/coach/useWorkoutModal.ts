@@ -664,8 +664,8 @@ export function useWorkoutModal(
       newErrors.sections = 'Add at least one section';
     }
 
-    if (formData.maxCapacity < 1 || formData.maxCapacity > 30) {
-      newErrors.maxCapacity = 'Capacity must be between 1 and 30';
+    if (formData.maxCapacity < 0 || formData.maxCapacity > 30) {
+      newErrors.maxCapacity = 'Capacity must be between 0 and 30 (0 = unlimited)';
     }
 
     setErrors(newErrors);

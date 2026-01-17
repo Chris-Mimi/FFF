@@ -157,7 +157,6 @@ function WODSectionComponent({
                 value={section.duration}
                 onChange={e => onUpdate({ duration: parseInt(e.target.value) || 0 })}
                 min='0'
-                max='60'
                 className='w-16 px-2 py-1 border border-gray-300 rounded text-center focus:ring-2 focus:ring-[#208479] focus:border-transparent bg-white text-gray-900'
               />
               <span className='text-gray-700'>mins</span>

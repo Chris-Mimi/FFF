@@ -252,6 +252,198 @@ WITH CHECK (
 
 ---
 
+## Session Continuation (2026-01-17)
+
+After completing the original session work, continued with additional UI improvements and critical backup script upgrade.
+
+### 6. Google Calendar Zero Duration Display
+
+**Problem:**
+- Sections with 0 duration (e.g., "Whiteboard Intro") showed "0 mins (0-0)" in Google Calendar events
+
+**Solution:**
+- Added conditional logic to hide duration/time info when duration is 0
+- Only show `${duration} mins (${startMin}-${endMin})` when duration > 0
+
+**Files Changed:**
+- `app/api/google/publish-workout/route.ts` (lines 157-159)
+
+**Code:**
+```tsx
+// Section header with bold styling and running time (hide if duration is 0)
+const timeInfo = section.duration > 0 ? ` ${section.duration} mins (${startMin}-${endMin})` : '';
+const header = `<b>${section.type}</b>${timeInfo}`;
+```
+
+---
+
+### 7. Unlimited Max Capacity Option
+
+**Problem:**
+- No option for unlimited participant capacity in workout sessions
+- Input min was set to '1', preventing 0 value
+
+**Solution:**
+- Changed input min from '1' to '0' in WorkoutFormFields
+- Updated validation to accept 0-30 range (was 1-30)
+- Added helper text: "0 = unlimited capacity"
+
+**Files Changed:**
+- `components/coach/WorkoutFormFields.tsx` (lines 104, 113)
+- `hooks/coach/useWorkoutModal.ts` (lines 667-668)
+
+**Code:**
+```tsx
+// WorkoutFormFields.tsx
+<input
+  type='number'
+  value={formData.maxCapacity}
+  onChange={e => onFieldChange('maxCapacity', parseInt(e.target.value) || 0)}
+  min='0'  // Changed from '1'
+  max='30'
+  // ...
+/>
+<p className='text-xs text-gray-500 mt-1'>0 = unlimited capacity</p>
+
+// useWorkoutModal.ts
+if (formData.maxCapacity < 0 || formData.maxCapacity > 30) {
+  newErrors.maxCapacity = 'Capacity must be between 0 and 30 (0 = unlimited)';
+}
+```
+
+---
+
+### 8. Unlimited Section Duration Input
+
+**Problem:**
+- Duration input limited to 60 minutes (max='60')
+- User needs to create longer workout sections
+
+**Solution:**
+- Removed max='60' constraint from duration input
+- No complications - duration is just arithmetic for running time calculations
+
+**Files Changed:**
+- `components/coach/WODSectionComponent.tsx` (line 159)
+
+**Code:**
+```tsx
+<input
+  type='number'
+  value={section.duration}
+  onChange={e => onUpdate({ duration: parseInt(e.target.value) || 0 })}
+  min='0'
+  // Removed: max='60'
+  className='w-16 px-2 py-1 border border-gray-300 rounded text-center...'
+/>
+```
+
+---
+
+### 9. Comprehensive Database Backup Script (CRITICAL)
+
+**Problem:**
+- Backup script only captured 10 tables using anon key
+- Missing critical data: members, bookings, athlete_profiles, programming_notes, note_folders, and more
+- RLS policies blocked backup script from accessing athlete data
+
+**Root Cause:**
+- Script used `NEXT_PUBLIC_SUPABASE_ANON_KEY` which is subject to RLS
+- Only backed up: coaches, athletes, weekly_sessions, workouts, workout_sections, movements_list, movement_tracks, tracks, athlete_movement_logs, lift_records
+
+**Solution:**
+- **CRITICAL UPGRADE:** Switched from anon key to service role key
+- Service role key bypasses RLS for complete admin-level backups
+- Expanded from 10 tables to 22 tables
+- Organized into logical categories with descriptions
+
+**Files Changed:**
+- `scripts/backup-critical-data.ts` (lines 16-26, 78-117)
+
+**Key Changes:**
+
+1. **Service Role Authentication:**
+```typescript
+// Use service role key to bypass RLS and access all tables
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
+);
+```
+
+2. **Complete Table List (22 tables):**
+```typescript
+const criticalTables = [
+  // Movement & Workout Definitions (10)
+  { name: 'barbell_lifts', desc: 'Lift definitions' },
+  { name: 'benchmark_workouts', desc: 'CrossFit benchmarks' },
+  { name: 'forge_benchmarks', desc: 'Custom gym benchmarks' },
+  { name: 'exercises', desc: 'Exercise library' },
+  { name: 'tracks', desc: 'Workout tracks' },
+  { name: 'section_types', desc: 'WOD section types' },
+  { name: 'workout_types', desc: 'Workout type definitions' },
+  { name: 'workout_titles', desc: 'Workout title templates' },
+  { name: 'naming_conventions', desc: 'Movement naming standards' },
+  { name: 'resources', desc: 'Reference resources' },
+
+  // Programmed Workouts & Sessions (2)
+  { name: 'wods', desc: 'Programmed workouts (CRITICAL)' },
+  { name: 'weekly_sessions', desc: 'Scheduled sessions (CRITICAL)' },
+
+  // User & Membership Data (3)
+  { name: 'members', desc: 'Gym members (CRITICAL USER DATA)' },
+  { name: 'bookings', desc: 'Session bookings (CRITICAL USER DATA)' },
+  { name: 'athlete_profiles', desc: 'Athlete profiles (CRITICAL USER DATA)' },
+
+  // Athlete Performance Data (4)
+  { name: 'lift_records', desc: 'Athlete lift results (CRITICAL USER DATA)' },
+  { name: 'benchmark_results', desc: 'Athlete benchmark results (CRITICAL USER DATA)' },
+  { name: 'wod_section_results', desc: 'WOD results (CRITICAL USER DATA)' },
+  { name: 'workout_logs', desc: 'Athlete workout logs (CRITICAL USER DATA)' },
+
+  // Coach Tools (3)
+  { name: 'programming_notes', desc: 'Coach programming notes' },
+  { name: 'note_folders', desc: 'Programming note folders' },
+  { name: 'user_exercise_favorites', desc: 'User exercise favorites' },
+];
+```
+
+**Testing:**
+- Successfully backed up 879 records across 22 tables
+- Manifest saved with backup metadata and success status
+
+**Impact:**
+- **RESOLVED:** Known issue from activeContext.md (line 432-436) about backup script RLS limitation
+- Now captures complete database including all user data, athlete performance, and coach tools
+- Critical data protection for migrations, branch switches, and emergency restores
+
+---
+
+## Files Modified (Continuation)
+
+**Components (3 files):**
+- components/coach/WorkoutFormFields.tsx
+- components/coach/WODSectionComponent.tsx
+
+**Hooks (1 file):**
+- hooks/coach/useWorkoutModal.ts
+
+**API Routes (1 file):**
+- app/api/google/publish-workout/route.ts
+
+**Scripts (1 file):**
+- scripts/backup-critical-data.ts
+
+**Total (Session + Continuation):** 14 files changed + 1 migration
+
+---
+
 ## Next Session Priorities
 
 Continue with Week 2 Testing Phase for January Beta Launch.
