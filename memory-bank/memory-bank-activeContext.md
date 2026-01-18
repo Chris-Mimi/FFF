@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.23
-**Updated:** 2026-01-17 (Session 68 Continuation - Google Calendar, Capacity, Backup)
+**Version:** 10.24
+**Updated:** 2026-01-18 (Session 69 - Lift Modal UX, Unlimited Capacity)
 
 ---
 
@@ -76,6 +76,48 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2026-01-18 Session 69 - Sonnet):**
+- **✅ Configure Lift Modal - Variable Reps Defaults:**
+  - Changed default from 1 set (5 reps) to 7 sets
+  - Default values: 10, 6, 5, 5, 5, 5, 5 reps @ 40, 50, 60, 70, 80, 85, 90%
+  - Applied to both initial state and reset-to-defaults logic
+  - File: components/coach/ConfigureLiftModal.tsx (lines 37-45, 100-108)
+- **✅ Configure Lift Modal - Per-Row Delete Buttons:**
+  - Added X icon delete button on each row in variable reps table
+  - Removed "Remove Set" button (obsolete)
+  - Delete function re-numbers remaining sets after deletion
+  - Disabled when only 1 set remains
+  - Files: components/coach/ConfigureLiftModal.tsx (lines 4, 146-154, 405-414, 421-428)
+- **✅ Configure Lift Modal - "Add to Section" Text Color:**
+  - Fixed greyed-out dropdown text
+  - Added `text-gray-900` class to select element
+  - File: components/coach/ConfigureLiftModal.tsx (line 235)
+- **✅ Unlimited Capacity (0) Support:**
+  - **Database Migration:** Created migration to allow capacity >= 0 (was >= 1)
+  - **Validation:** Updated validateCapacity() to accept 0 as unlimited
+  - **Session Info Panel:**
+    - Display shows "Unlimited" when capacity is 0
+    - Input min changed from '1' to '0'
+    - Added helper text "0 = unlimited"
+  - **Session Management Modal:**
+    - Confirmed bookings header shows "X/∞" when capacity is 0
+  - **Manual Booking Panel:**
+    - Shows "Unlimited spots available" when capacity is 0
+  - **Calendar Booking Badge:**
+    - Capacity 0 always shows green (not red)
+    - Display shows "X/∞" instead of "X/0"
+    - Tooltip shows "unlimited" instead of "0 capacity"
+  - Files:
+    - supabase/migrations/20260118_allow_unlimited_capacity.sql (NEW)
+    - lib/coach/sessionCapacityHelpers.ts (lines 19-26)
+    - components/coach/SessionInfoPanel.tsx (lines 115-145)
+    - components/coach/SessionManagementModal.tsx (line 252)
+    - components/coach/ManualBookingPanel.tsx (lines 55-59)
+    - components/coach/CalendarGrid.tsx (lines 218-233)
+- Commit: (pending)
+- Files: 7 changed + 1 migration
+- See: `project-history/2026-01-18-session-69-lift-modal-unlimited-capacity.md`
 
 **Completed (2026-01-17 Session 68 Continuation - Sonnet):**
 - **✅ Google Calendar Zero Duration Display:**

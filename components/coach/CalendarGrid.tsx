@@ -216,19 +216,21 @@ export default function CalendarGrid({
                   onSessionManagementClick(wod.booking_info!.session_id, wod.date);
                 }}
                 className={`flex-shrink-0 text-[10px] font-bold text-white rounded px-1 py-0.5 hover:opacity-80 transition cursor-pointer ${
-                  wod.booking_info.waitlist_count > 0
-                    ? 'bg-purple-600'
-                    : wod.booking_info.confirmed_count >= wod.booking_info.capacity
-                      ? 'bg-red-600'
-                      : wod.booking_info.confirmed_count >= wod.booking_info.capacity * 0.8
-                        ? 'bg-yellow-600'
-                        : 'bg-green-600'
+                  wod.booking_info.capacity === 0
+                    ? 'bg-green-600'
+                    : wod.booking_info.waitlist_count > 0
+                      ? 'bg-purple-600'
+                      : wod.booking_info.confirmed_count >= wod.booking_info.capacity
+                        ? 'bg-red-600'
+                        : wod.booking_info.confirmed_count >= wod.booking_info.capacity * 0.8
+                          ? 'bg-yellow-600'
+                          : 'bg-green-600'
                 }`}
-                title={`Click to manage session - ${wod.booking_info.confirmed_count} confirmed / ${wod.booking_info.capacity} capacity${
+                title={`Click to manage session - ${wod.booking_info.confirmed_count} confirmed / ${wod.booking_info.capacity === 0 ? 'unlimited' : wod.booking_info.capacity} capacity${
                   wod.booking_info.waitlist_count > 0 ? ` (+${wod.booking_info.waitlist_count} waitlist)` : ''
                 }`}
               >
-                {wod.booking_info.confirmed_count}/{wod.booking_info.capacity}
+                {wod.booking_info.confirmed_count}/{wod.booking_info.capacity === 0 ? '∞' : wod.booking_info.capacity}
                 {wod.booking_info.waitlist_count > 0 ? ` +${wod.booking_info.waitlist_count}` : ''}
               </button>
             )}

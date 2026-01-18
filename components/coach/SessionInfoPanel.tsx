@@ -112,33 +112,36 @@ export default function SessionInfoPanel({
           <Users size={18} />
           <span className='font-medium'>Capacity:</span>
           {editingCapacity ? (
-            <div className='flex items-center gap-2'>
-              <input
-                type='number'
-                min='1'
-                value={newCapacity}
-                onChange={e => onCapacityChange(parseInt(e.target.value))}
-                className='w-20 px-2 py-1 border rounded text-sm'
-              />
-              <button
-                onClick={onUpdateCapacity}
-                className='px-3 py-1 bg-[#208479] text-white rounded hover:bg-[#1a6b62] text-sm'
-              >
-                Save
-              </button>
-              <button
-                onClick={() => {
-                  onCapacityEdit(false);
-                  onCapacityChange(session.capacity);
-                }}
-                className='px-3 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 text-sm'
-              >
-                Cancel
-              </button>
+            <div className='flex flex-col gap-1'>
+              <div className='flex items-center gap-2'>
+                <input
+                  type='number'
+                  min='0'
+                  value={newCapacity}
+                  onChange={e => onCapacityChange(parseInt(e.target.value))}
+                  className='w-20 px-2 py-1 border rounded text-sm'
+                />
+                <button
+                  onClick={onUpdateCapacity}
+                  className='px-3 py-1 bg-[#208479] text-white rounded hover:bg-[#1a6b62] text-sm'
+                >
+                  Save
+                </button>
+                <button
+                  onClick={() => {
+                    onCapacityEdit(false);
+                    onCapacityChange(session.capacity);
+                  }}
+                  className='px-3 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 text-sm'
+                >
+                  Cancel
+                </button>
+              </div>
+              <p className='text-xs text-gray-500'>0 = unlimited</p>
             </div>
           ) : (
             <>
-              <span>{session.capacity} spots</span>
+              <span>{session.capacity === 0 ? 'Unlimited' : `${session.capacity} spots`}</span>
               <button
                 onClick={() => onCapacityEdit(true)}
                 className='p-1 text-gray-500 hover:text-[#208479]'

@@ -16,8 +16,13 @@ export function validateCapacity(
   newCapacity: number,
   confirmedCount: number
 ): { valid: boolean; message?: string } {
-  if (newCapacity < 1) {
-    return { valid: false, message: 'Capacity must be at least 1' };
+  if (newCapacity < 0) {
+    return { valid: false, message: 'Capacity cannot be negative' };
+  }
+
+  // 0 = unlimited capacity, skip confirmed count check
+  if (newCapacity === 0) {
+    return { valid: true };
   }
 
   if (newCapacity < confirmedCount) {

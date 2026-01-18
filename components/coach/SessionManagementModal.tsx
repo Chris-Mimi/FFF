@@ -249,7 +249,7 @@ export default function SessionManagementModal({
               {/* Confirmed Bookings */}
               <div>
                 <h3 className='text-base font-semibold text-gray-800 mb-2'>
-                  Confirmed Bookings ({confirmedBookings.length}/{sessionDetails.session.capacity})
+                  Confirmed Bookings ({confirmedBookings.length}/{sessionDetails.session.capacity === 0 ? '∞' : sessionDetails.session.capacity})
                 </h3>
                 {confirmedBookings.length === 0 ? (
                   <p className='text-gray-500 text-xs'>No confirmed bookings yet</p>

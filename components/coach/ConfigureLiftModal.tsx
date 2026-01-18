@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { GripVertical, ChevronDown } from 'lucide-react';
+import { GripVertical, ChevronDown, X } from 'lucide-react';
 import type { BarbellLift, ConfiguredLift, VariableSet, WODSection } from '@/types/movements';
 
 interface ConfigureLiftModalProps {
@@ -35,7 +35,13 @@ function ConfigureLiftModal({
 
   // Variable reps state
   const [variableSets, setVariableSets] = useState<VariableSet[]>([
-    { set_number: 1, reps: 5, percentage_1rm: undefined },
+    { set_number: 1, reps: 10, percentage_1rm: 40 },
+    { set_number: 2, reps: 6, percentage_1rm: 50 },
+    { set_number: 3, reps: 5, percentage_1rm: 60 },
+    { set_number: 4, reps: 5, percentage_1rm: 70 },
+    { set_number: 5, reps: 5, percentage_1rm: 80 },
+    { set_number: 6, reps: 5, percentage_1rm: 85 },
+    { set_number: 7, reps: 5, percentage_1rm: 90 },
   ]);
 
   const [athleteNotes, setAthleteNotes] = useState('Record your heaviest set');
@@ -97,7 +103,15 @@ function ConfigureLiftModal({
       setSets(5);
       setReps(5);
       setPercentage(undefined);
-      setVariableSets([{ set_number: 1, reps: 5, percentage_1rm: undefined }]);
+      setVariableSets([
+        { set_number: 1, reps: 10, percentage_1rm: 40 },
+        { set_number: 2, reps: 6, percentage_1rm: 50 },
+        { set_number: 3, reps: 5, percentage_1rm: 60 },
+        { set_number: 4, reps: 5, percentage_1rm: 70 },
+        { set_number: 5, reps: 5, percentage_1rm: 80 },
+        { set_number: 6, reps: 5, percentage_1rm: 85 },
+        { set_number: 7, reps: 5, percentage_1rm: 90 },
+      ]);
       setAthleteNotes('Record your heaviest set');
       setAthleteNotesExpanded(true);
     }
@@ -143,9 +157,13 @@ function ConfigureLiftModal({
     ]);
   };
 
-  const handleRemoveSet = () => {
+  const handleDeleteSet = (indexToDelete: number) => {
     if (variableSets.length > 1) {
-      setVariableSets(prev => prev.slice(0, -1));
+      setVariableSets(prev => {
+        const newSets = prev.filter((_, idx) => idx !== indexToDelete);
+        // Re-number the sets
+        return newSets.map((set, idx) => ({ ...set, set_number: idx + 1 }));
+      });
     }
   };
 
@@ -232,7 +250,7 @@ function ConfigureLiftModal({
                 <select
                   value={selectedSectionId}
                   onChange={e => setSelectedSectionId(e.target.value)}
-                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent appearance-none pr-10'
+                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent appearance-none pr-10 text-gray-900'
                 >
                   {availableSections.map(section => (
                     <option key={section.id} value={section.id}>
@@ -376,6 +394,7 @@ function ConfigureLiftModal({
                       <th className='px-4 py-2 text-left text-sm font-semibold text-gray-600'>Set</th>
                       <th className='px-4 py-2 text-left text-sm font-semibold text-gray-600'>Reps</th>
                       <th className='px-4 py-2 text-left text-sm font-semibold text-gray-600'>Percentage</th>
+                      <th className='px-4 py-2 text-center text-sm font-semibold text-gray-600'></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -402,25 +421,28 @@ function ConfigureLiftModal({
                             max='100'
                           />
                         </td>
+                        <td className='px-4 py-2 text-center'>
+                          <button
+                            onClick={() => handleDeleteSet(idx)}
+                            disabled={variableSets.length <= 1}
+                            className='p-1 text-red-600 hover:bg-red-50 rounded transition disabled:text-gray-300 disabled:cursor-not-allowed'
+                            title='Delete this set'
+                          >
+                            <X size={18} />
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
 
-              <div className='flex gap-2'>
+              <div>
                 <button
                   onClick={handleAddSet}
-                  className='flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition'
+                  className='w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition'
                 >
                   + Add Set
-                </button>
-                <button
-                  onClick={handleRemoveSet}
-                  disabled={variableSets.length <= 1}
-                  className='flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition disabled:bg-gray-300 disabled:cursor-not-allowed'
-                >
-                  − Remove Set
                 </button>
               </div>
             </div>

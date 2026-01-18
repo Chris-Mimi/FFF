@@ -53,9 +53,11 @@ export default function ManualBookingPanel({
         </button>
       </div>
       <p className='text-xs text-gray-600 mt-2'>
-        {confirmedCount >= capacity
-          ? '⚠️ Session is full - member will be added to waitlist'
-          : `${capacity - confirmedCount} spot(s) available`}
+        {capacity === 0
+          ? 'Unlimited spots available'
+          : confirmedCount >= capacity
+            ? '⚠️ Session is full - member will be added to waitlist'
+            : `${capacity - confirmedCount} spot(s) available`}
       </p>
     </div>
   );
