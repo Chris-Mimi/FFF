@@ -15,8 +15,8 @@ lsof -i :3000-3009
 #Take note of the PID (process ID) if you want to kill selectively.
 #Kill all processes in that port range
 
-kill -9 $(lsof -t -i :3000-3009)
 
+kill -9 $(lsof -t -i :3000-3009)
 # This forcibly stops all processes using those ports.
 # Safe for local dev — your code files and Git branches are unaffected.
 # Any dev servers you kill will need to be restarted.
@@ -47,6 +47,5 @@ chmod +x dev-start.sh
 # Then just run:
 
 ./dev-start.sh
-
 
 # Every time, it clears old servers and starts fresh.

@@ -83,6 +83,16 @@ export async function POST(request: NextRequest) {
       ? parseFloat(weightResult.toString())
       : null;
 
+    // Determine result_value for display (backwards compatibility)
+    let resultValue = '';
+    if (hasTimeResult) {
+      resultValue = timeResult.trim();
+    } else if (hasRepsResult) {
+      resultValue = repsResult.toString().trim();
+    } else if (hasWeightResult) {
+      resultValue = weightResult.toString().trim();
+    }
+
     if (existingResult) {
       // Update existing result
       const { error } = await supabaseAdmin
@@ -91,6 +101,7 @@ export async function POST(request: NextRequest) {
           time_result: hasTimeResult ? timeResult.trim() : null,
           reps_result: parsedReps,
           weight_result: parsedWeight,
+          result_value: resultValue, // Also populate result_value for backwards compatibility
           scaling_level: scalingLevel || null,
           notes: notes || null,
           updated_at: new Date().toISOString()
@@ -125,6 +136,7 @@ export async function POST(request: NextRequest) {
           time_result: hasTimeResult ? timeResult.trim() : null,
           reps_result: parsedReps,
           weight_result: parsedWeight,
+          result_value: resultValue, // Also populate result_value for backwards compatibility
           scaling_level: scalingLevel || null,
           notes: notes || null,
           result_date: resultDate || new Date().toISOString().split('T')[0]

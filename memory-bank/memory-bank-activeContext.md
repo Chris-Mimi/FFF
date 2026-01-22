@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.24
-**Updated:** 2026-01-18 (Session 69 - Lift Modal UX, Unlimited Capacity)
+**Version:** 10.25
+**Updated:** 2026-01-22 (Session 70 - Synology Sync Fix, Benchmark Display Fix)
 
 ---
 
@@ -76,6 +76,28 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2026-01-22 Session 70 - Opus):**
+- **✅ Synology Drive Sync Crisis Resolution:**
+  - Discovered 241 conflict folders from infinite sync loop
+  - Root cause: node_modules file locking during npm reinstall + Synology sync
+  - Cleaned up conflicts from local machine and Synology Drive server
+  - Found 354,045 files in manual backups folder (10 copies with node_modules)
+  - Removed node_modules/.next/.git from all 10 manual backups
+  - Configured Synology Drive to exclude: node_modules, .next, .git
+  - Key learning: `.synologyignore` does NOT work - use Synology Drive Client settings
+  - Manual backup size: 869MB → 10MB per backup (exclude regeneratable folders)
+- **✅ Benchmark Display Fix - Logbook Results:**
+  - Issue: Benchmark results recorded via Logbook not showing on Benchmark Workouts cards
+  - Root cause: Logbook saved to time_result/reps_result/weight_result, cards displayed result_value
+  - API fix: Now populates result_value when saving for backwards compatibility
+  - Display fix: Cards check time_result/reps_result/weight_result as fallbacks
+  - Files:
+    - app/api/benchmark-results/route.ts (lines 86-94, 104, 128)
+    - components/athlete/AthletePageBenchmarksTab.tsx (lines 155, 447, 504, 710)
+- Commit: (pending)
+- Files: 2 changed
+- See: `project-history/2026-01-22-session-70-synology-benchmark-fix.md`
 
 **Completed (2026-01-18 Session 69 - Sonnet):**
 - **✅ Configure Lift Modal - Variable Reps Defaults:**

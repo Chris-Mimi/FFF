@@ -152,7 +152,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
 
   const handleEditBenchmark = (entry: BenchmarkResult) => {
     setSelectedBenchmark(entry.benchmark_name);
-    setNewTime(entry.result_value);
+    setNewTime(entry.result_value || entry.time_result || entry.reps_result?.toString() || entry.weight_result?.toString() || '');
     setNewNotes(entry.notes || '');
     setNewDate(entry.result_date);
     setNewScaling((entry.scaling_level as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3') || 'Rx');
@@ -443,7 +443,9 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                   <div className='flex items-end justify-between'>
                     <div>
                       <p className='text-xs text-gray-600'>PR:</p>
-                      <p className='text-sm font-bold text-[#208479]'>{bestResult.result_value}</p>
+                      <p className='text-sm font-bold text-[#208479]'>
+                        {bestResult.result_value || bestResult.time_result || bestResult.reps_result || bestResult.weight_result}
+                      </p>
                     </div>
                     {benchmark.count > 0 && (
                       <p className='text-xs text-gray-500'>{benchmark.count}x</p>
@@ -500,7 +502,9 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
   </div>
 </div>
                   <div className='flex items-center justify-between'>
-                    <p className='text-lg font-bold text-[#208479]'>{result.result_value}</p>
+                    <p className='text-lg font-bold text-[#208479]'>
+                      {result.result_value || result.time_result || result.reps_result || result.weight_result}
+                    </p>
                     <p className='text-sm text-gray-600'>
                       {new Date(result.result_date).toLocaleDateString('en-US', {
                         month: 'short',
@@ -706,7 +710,9 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                     <div key={entry.id} className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'>
                       <div className='flex-1'>
                         <div className='flex items-center gap-2 mb-1'>
-                          <span className='font-semibold text-gray-900'>{entry.result_value}</span>
+                          <span className='font-semibold text-gray-900'>
+                            {entry.result_value || entry.time_result || entry.reps_result || entry.weight_result}
+                          </span>
                           <span
                             className={`text-xs px-2 py-1 rounded ${
                               entry.scaling_level === 'Rx'

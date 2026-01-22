@@ -4,7 +4,8 @@
 /Users/chrishiles/SynologyDrive/CrossFit Hammerschmiede (CFH)/AI Development/forge-functional-fitness/memory-bank/workflow-protocols.md
 /Users/chrishiles/SynologyDrive/CrossFit Hammerschmiede (CFH)/AI Development/forge-functional-fitness/memory-bank/memory-bank-activeContext.md
 /Users/chrishiles/SynologyDrive/CrossFit Hammerschmiede (CFH)/AI Development/forge-functional-fitness/memory-bank/memory-bank-techContext.md
-/Users/chrishiles/SynologyDrive/CrossFit Hammerschmiede (CFH)/AI Development/forge-functional-fitness/memory-bank/memory-bank-systemPatterns.mdThen go into Plan Mode and either ask or suggest next steps based on information in the memory-bank-active-Context.md and last project-history file
+/Users/chrishiles/SynologyDrive/CrossFit Hammerschmiede (CFH)/AI Development/forge-functional-fitness/memory-bank/memory-bank-systemPatterns.md
+Then go into Plan Mode and either ask or suggest next steps based on information in the memory-bank-active-Context.md and last project-history file
 
 # At the CLOSE of every Claude session give this prompt:
 
@@ -47,3 +48,8 @@ If breaks → npm run restore 2025-12-13
 # If Claude Code is not in side bar #
 * Open Command Pallete (Cmd+Shift+P)
 * Type "Claude Code: Open in side bar"
+
+Manual backups going forward:
+Manual backups: Exclude node_modules, .next, .git folders
+Synology sync will remain stable with exclusions
+To restore backup: Copy files + run npm install
