@@ -1,6 +1,6 @@
 'use client';
 
-import { BarChart3, Calendar, Dumbbell, LogOut, Plus, UserCheck, Users } from 'lucide-react';
+import { BarChart3, Calendar, Dumbbell, Image, LogOut, Plus, UserCheck, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface CoachHeaderProps {
@@ -67,6 +67,13 @@ export const CoachHeader = ({
           >
             <Dumbbell size={18} />
             Coach Library
+          </button>
+          <button
+            onClick={() => router.push('/coach/whiteboard')}
+            className='flex items-center gap-2 bg-[#1a6b62] hover:bg-teal-800 px-4 py-2 rounded-lg transition'
+          >
+            <Image size={18} />
+            Whiteboard
           </button>
           <button
             onClick={onLogout}
