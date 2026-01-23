@@ -75,7 +75,8 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
       // Process regular benchmark PRs with proper scaling hierarchy and best result logic
       const scalingPriority = { 'Rx': 4, 'Sc1': 3, 'Sc2': 2, 'Sc3': 1 };
 
-      const timeToSeconds = (timeStr: string) => {
+      const timeToSeconds = (timeStr: string | null | undefined) => {
+        if (!timeStr) return 0;
         if (timeStr.includes(':')) {
           const parts = timeStr.split(':');
           return parseInt(parts[0]) * 60 + parseInt(parts[1]);
@@ -108,6 +109,10 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
               bestResult = result;
             } else if (currentPriority === bestPriority) {
               // Same scaling - compare results
+              if (!result.result_value || !bestResult.result_value) {
+                // Skip comparison if either value is null
+                return;
+              }
               const isTimeBased = result.result_value.includes(':');
 
               if (isTimeBased) {
@@ -156,6 +161,10 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
               bestResult = result;
             } else if (currentPriority === bestPriority) {
               // Same scaling - compare results
+              if (!result.result_value || !bestResult.result_value) {
+                // Skip comparison if either value is null
+                return;
+              }
               const isTimeBased = result.result_value.includes(':');
 
               if (isTimeBased) {

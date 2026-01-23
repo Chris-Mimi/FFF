@@ -5,6 +5,7 @@ import AthletePageBenchmarksTab from '@/components/athlete/AthletePageBenchmarks
 import AthletePageForgeBenchmarksTab from '@/components/athlete/AthletePageForgeBenchmarksTab';
 import AthletePageLiftsTab from '@/components/athlete/AthletePageLiftsTab';
 import AthletePageLogbookTab from '@/components/athlete/AthletePageLogbookTab';
+import AthletePagePhotosTab from '@/components/athlete/AthletePagePhotosTab';
 import AthletePageProfileTab from '@/components/athlete/AthletePageProfileTab';
 import AthletePageRecordsTab from '@/components/athlete/AthletePageRecordsTab';
 import AthletePageSecurityTab from '@/components/athlete/AthletePageSecurityTab';
@@ -14,7 +15,10 @@ import {
   Award,
   BookOpen,
   Calendar,
+  ChevronLeft,
+  ChevronRight,
   Dumbbell,
+  Image,
   LogOut,
   Shield,
   Target,
@@ -22,9 +26,9 @@ import {
   User,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-type TabName = 'profile' | 'workouts' | 'logbook' | 'benchmarks' | 'forge-benchmarks' | 'lifts' | 'records' | 'security';
+type TabName = 'profile' | 'workouts' | 'logbook' | 'benchmarks' | 'forge-benchmarks' | 'lifts' | 'records' | 'photos' | 'security';
 
 export default function AthletePage() {
   const router = useRouter();
@@ -32,6 +36,7 @@ export default function AthletePage() {
   const [userName, setUserName] = useState('');
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showScrollHint, setShowScrollHint] = useState(false);
   const [selectedDate, setSelectedDate] = useState(() => {
     // Initialize from localStorage if available - shared between Logbook and Workouts tabs
     if (typeof window !== 'undefined') {
@@ -45,6 +50,37 @@ export default function AthletePage() {
   const [activeProfileId, setActiveProfileId] = useState<string | null>(null);
   const [familyMembers, setFamilyMembers] = useState<Array<{id: string, display_name: string, relationship: string}>>([]);
   const [selectedProfileName, setSelectedProfileName] = useState('');
+  const tabsNavRef = useRef<HTMLDivElement>(null);
+
+  // Check if tabs need scrolling
+  useEffect(() => {
+    if (loading) return; // Don't check until content is loaded
+
+    const checkScroll = () => {
+      if (tabsNavRef.current) {
+        const hasScroll = tabsNavRef.current.scrollWidth > tabsNavRef.current.clientWidth;
+        setShowScrollHint(hasScroll);
+      }
+    };
+
+    // Check after content renders
+    const timeoutId = setTimeout(checkScroll, 200);
+
+    window.addEventListener('resize', checkScroll);
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', checkScroll);
+    };
+  }, [loading]);
+
+  const scrollTabs = (direction: 'left' | 'right') => {
+    if (tabsNavRef.current) {
+      tabsNavRef.current.scrollTo({
+        left: direction === 'right' ? tabsNavRef.current.scrollWidth : 0,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   // Persist selectedDate to localStorage (shared between Logbook and Workouts)
   useEffect(() => {
@@ -155,6 +191,7 @@ export default function AthletePage() {
     { id: 'forge-benchmarks' as TabName, label: 'Forge Benchmarks', icon: Target },
     { id: 'lifts' as TabName, label: 'Barbell Lifts', icon: Dumbbell },
     { id: 'records' as TabName, label: 'Personal Records', icon: Award },
+    { id: 'photos' as TabName, label: 'Whiteboard Photos', icon: Image },
     { id: 'security' as TabName, label: 'Access & Security', icon: Shield },
   ];
 
@@ -191,6 +228,8 @@ export default function AthletePage() {
         return <AthletePageLiftsTab userId={activeProfileId} />;
       case 'records':
         return <AthletePageRecordsTab userId={activeProfileId} />;
+      case 'photos':
+        return <AthletePagePhotosTab />;
       case 'security':
         return <AthletePageSecurityTab />;
       default:
@@ -259,8 +298,8 @@ export default function AthletePage() {
 
       {/* Tab Navigation */}
       <div className='bg-white border-b border-gray-200'>
-        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-          <nav className='flex space-x-8 overflow-x-auto'>
+        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative'>
+          <nav ref={tabsNavRef} className='flex space-x-8 overflow-x-auto overscroll-contain scrollbar-hide'>
             {tabs.map(tab => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -283,6 +322,25 @@ export default function AthletePage() {
               );
             })}
           </nav>
+          {/* Scroll buttons - show when overflow exists */}
+          {showScrollHint && (
+            <>
+              <button
+                onClick={() => scrollTabs('left')}
+                className='absolute left-0 top-1/2 -translate-y-1/2 bg-gray-200/80 hover:bg-gray-300/90 p-1 rounded-full shadow transition z-10'
+                aria-label='Scroll left'
+              >
+                <ChevronLeft size={16} className='text-gray-600' />
+              </button>
+              <button
+                onClick={() => scrollTabs('right')}
+                className='absolute right-0 top-1/2 -translate-y-1/2 bg-gray-200/80 hover:bg-gray-300/90 p-1 rounded-full shadow transition z-10'
+                aria-label='Scroll right'
+              >
+                <ChevronRight size={16} className='text-gray-600' />
+              </button>
+            </>
+          )}
         </div>
       </div>
 

@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.25
-**Updated:** 2026-01-22 (Session 70 - Synology Sync Fix, Benchmark Display Fix)
+**Version:** 10.26
+**Updated:** 2026-01-23 (Session 71 - Whiteboard Photos Tab Navigation UX)
 
 ---
 
@@ -76,6 +76,35 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2026-01-23 Session 71 - Sonnet):**
+- **✅ Athlete Page Tab Navigation UX:**
+  - Fixed runtime error: "Cannot access 'tabs' before initialization"
+  - Removed tabs from useEffect dependency array (static constant)
+  - Added scroll detection after loading completes
+  - Implemented clickable chevron buttons for tab scrolling
+  - Buttons scroll all the way left/right in one click
+  - Made buttons smaller and less intrusive (gray semi-transparent)
+  - Added overscroll-contain to prevent swipe-back navigation
+  - File: app/athlete/page.tsx (lines 56-83, 287-304)
+- **✅ Personal Records Tab Null Safety:**
+  - Fixed "Cannot read properties of null (reading 'includes')" error
+  - Added null checks in timeToSeconds() function
+  - Added null checks before comparing result values
+  - File: components/athlete/AthletePageRecordsTab.tsx (lines 78-84, 110-116)
+- **✅ Whiteboard Photos Tab (Athlete View):**
+  - Created new tab showing weekly whiteboard photos
+  - Week-based navigation (Previous/Today/Next)
+  - Photo grid with click-to-view modal
+  - Full-screen modal with caption display
+  - File: components/athlete/AthletePagePhotosTab.tsx (new component)
+- **🔄 Whiteboard Photo Thumbnails in Workouts (Not Yet Tested):**
+  - Added photo fetching and thumbnail display to workout cards
+  - Shows small thumbnails at bottom of each workout card
+  - File: components/athlete/AthletePageWorkoutsTab.tsx (photo integration)
+- Commit: (pending)
+- Files: 6 changed (athlete page, globals.css, 3 athlete components, 1 coach component)
+- See: `project-history/2026-01-23-session-71-whiteboard-photos-tab-nav.md` (to be created)
 
 **Completed (2026-01-22 Session 70 - Opus):**
 - **✅ Synology Drive Sync Crisis Resolution:**

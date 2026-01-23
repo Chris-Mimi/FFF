@@ -1,7 +1,7 @@
 'use client';
 
 import { supabase } from '@/lib/supabase';
-import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, Image as ImageIcon, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
 
@@ -41,6 +41,13 @@ interface BenchmarkResult {
   reps_result?: string;
   weight_result?: string;
   scaling_level?: string;
+}
+
+interface WhiteboardPhoto {
+  id: string;
+  photo_label: string;
+  photo_url: string;
+  caption?: string | null;
 }
 
 interface PublishedWorkout {
@@ -138,6 +145,9 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
   const [selectedDate, setSelectedDate] = useState(initialDate || new Date());
   const [workouts, setWorkouts] = useState<PublishedWorkout[]>([]);
   const [loading, setLoading] = useState(true);
+  const [weekPhotos, setWeekPhotos] = useState<WhiteboardPhoto[]>([]);
+  const [selectedPhoto, setSelectedPhoto] = useState<WhiteboardPhoto | null>(null);
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
 
   useEffect(() => {
     if (initialDate) {
@@ -154,7 +164,41 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
 
   useEffect(() => {
     fetchPublishedWorkouts();
+    fetchWeekPhotos();
   }, [selectedDate, userId]);
+
+  const getWeekNumber = (date: Date): number => {
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+  };
+
+  const fetchWeekPhotos = async () => {
+    try {
+      const weekNumber = getWeekNumber(selectedDate);
+      const isoWeek = `${selectedDate.getFullYear()}-W${weekNumber.toString().padStart(2, '0')}`;
+
+      const response = await fetch(`/api/whiteboard-photos?week=${isoWeek}`);
+      if (!response.ok) throw new Error('Failed to fetch photos');
+      const data = await response.json();
+      setWeekPhotos(data);
+    } catch (error) {
+      console.error('Error fetching week photos:', error);
+      setWeekPhotos([]);
+    }
+  };
+
+  const handleViewPhoto = (photo: WhiteboardPhoto) => {
+    setSelectedPhoto(photo);
+    setShowPhotoModal(true);
+  };
+
+  const handleClosePhotoModal = () => {
+    setShowPhotoModal(false);
+    setSelectedPhoto(null);
+  };
 
   const formatDate = (date: Date) => {
     const year = date.getFullYear();
@@ -599,6 +643,34 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
                         </div>
                         );
                       })}
+
+                      {/* Whiteboard Photo Thumbnails */}
+                      {!workout.booked && weekPhotos.length > 0 && (
+                        <div className='mt-4 pt-3 border-t border-gray-200'>
+                          <div className='flex items-center gap-2 mb-2'>
+                            <ImageIcon size={14} className='text-gray-600' />
+                            <span className='text-xs font-semibold text-gray-700'>Whiteboard Photos</span>
+                          </div>
+                          <div className='flex gap-2 overflow-x-auto'>
+                            {weekPhotos.map((photo) => (
+                              <div
+                                key={photo.id}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleViewPhoto(photo);
+                                }}
+                                className='flex-shrink-0 cursor-pointer hover:opacity-80 transition'
+                              >
+                                <img
+                                  src={photo.photo_url}
+                                  alt={photo.photo_label}
+                                  className='w-16 h-16 object-cover rounded border border-gray-300'
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )
                 )}
@@ -607,6 +679,31 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
           );
         })}
       </div>
+
+      {/* Photo Modal */}
+      {showPhotoModal && selectedPhoto && (
+        <div className='fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4'
+          onClick={handleClosePhotoModal}>
+          <div className='relative max-w-4xl max-h-[90vh] bg-white rounded-lg overflow-hidden'
+            onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={handleClosePhotoModal}
+              className='absolute top-4 right-4 bg-white text-gray-700 p-2 rounded-full hover:bg-gray-100 z-10'
+            >
+              <X size={20} />
+            </button>
+            <img
+              src={selectedPhoto.photo_url}
+              alt={selectedPhoto.photo_label}
+              className='w-full h-full object-contain'
+            />
+            <div className='absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-4'>
+              <p className='font-medium'>{selectedPhoto.photo_label}</p>
+              {selectedPhoto.caption && <p className='text-sm'>{selectedPhoto.caption}</p>}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
