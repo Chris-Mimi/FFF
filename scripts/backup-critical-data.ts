@@ -114,6 +114,11 @@ async function main() {
     { name: 'programming_notes', desc: 'Coach programming notes' },
     { name: 'note_folders', desc: 'Programming note folders' },
     { name: 'user_exercise_favorites', desc: 'User exercise favorites' },
+    { name: 'whiteboard_photos', desc: 'Whiteboard photo metadata' },
+    { name: 'session_templates', desc: 'Session scheduling templates' },
+
+    // Additional Athlete Data
+    { name: 'movement_results', desc: 'Athlete movement results (CRITICAL USER DATA)' },
   ];
 
   const results: Record<string, boolean> = {};
