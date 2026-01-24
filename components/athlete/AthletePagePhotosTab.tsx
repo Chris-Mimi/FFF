@@ -138,18 +138,20 @@ export default function AthletePagePhotosTab() {
             <h2 className='text-xl font-bold text-gray-900 mb-4'>
               Whiteboard Photos ({photos.length})
             </h2>
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
               {photos.map((photo) => (
                 <div
                   key={photo.id}
                   className='border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition cursor-pointer'
                   onClick={() => handleViewPhoto(photo)}
                 >
-                  <img
-                    src={photo.photo_url}
-                    alt={photo.photo_label}
-                    className='w-full h-48 object-cover'
-                  />
+                  <div className='h-48 overflow-y-auto'>
+                    <img
+                      src={photo.photo_url}
+                      alt={photo.photo_label}
+                      className='w-full'
+                    />
+                  </div>
                   <div className='p-3 space-y-1'>
                     <p className='font-medium text-gray-900'>{photo.photo_label}</p>
                     {photo.caption && <p className='text-sm text-gray-600'>{photo.caption}</p>}
@@ -163,22 +165,30 @@ export default function AthletePagePhotosTab() {
 
       {/* Full-Screen Modal */}
       {showModal && selectedPhoto && (
-        <div className='fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4'>
-          <div className='relative max-w-4xl max-h-[90vh] bg-white rounded-lg overflow-hidden'>
-            <button
-              onClick={handleCloseModal}
-              className='absolute top-4 right-4 bg-white text-gray-700 p-2 rounded-full hover:bg-gray-100 z-10'
+        <div
+          className='fixed inset-0 bg-black bg-opacity-90 z-50 overflow-y-auto cursor-pointer'
+          onClick={handleCloseModal}
+        >
+          <div className='min-h-full flex items-center justify-center p-4'>
+            <div
+              className='relative cursor-default'
+              onClick={(e) => e.stopPropagation()}
             >
-              <X size={20} />
-            </button>
-            <img
-              src={selectedPhoto.photo_url}
-              alt={selectedPhoto.photo_label}
-              className='w-full h-full object-contain'
-            />
-            <div className='absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-4'>
-              <p className='font-medium'>{selectedPhoto.photo_label}</p>
-              {selectedPhoto.caption && <p className='text-sm'>{selectedPhoto.caption}</p>}
+              <button
+                onClick={handleCloseModal}
+                className='absolute -top-12 right-0 bg-white text-gray-700 p-2 rounded-full hover:bg-gray-100 z-10 shadow-lg'
+              >
+                <X size={24} />
+              </button>
+              <img
+                src={selectedPhoto.photo_url}
+                alt={selectedPhoto.photo_label}
+                className='max-w-[90vw] max-h-[85vh] object-contain rounded-lg'
+              />
+              <div className='mt-2 bg-black bg-opacity-70 text-white p-3 rounded-lg'>
+                <p className='font-medium'>{selectedPhoto.photo_label}</p>
+                {selectedPhoto.caption && <p className='text-sm mt-1'>{selectedPhoto.caption}</p>}
+              </div>
             </div>
           </div>
         </div>

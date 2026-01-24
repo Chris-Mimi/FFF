@@ -17,11 +17,12 @@ export default function WhiteboardUploadPanel({
   onWeekChange,
   onPhotoUploaded,
 }: WhiteboardUploadPanelProps) {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [photoLabel, setPhotoLabel] = useState('');
   const [caption, setCaption] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [selectedDate, setSelectedDate] = useState('');
 
   const getWeekNumber = (date: Date): number => {
@@ -41,41 +42,65 @@ export default function WhiteboardUploadPanel({
   };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      alert('Please select an image file (JPEG, PNG, HEIC)');
-      return;
+    const validFiles: File[] = [];
+    const urls: string[] = [];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert(`${file.name}: Not an image file, skipping`);
+        continue;
+      }
+
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        alert(`${file.name}: File size must be less than 5MB, skipping`);
+        continue;
+      }
+
+      validFiles.push(file);
+      urls.push(URL.createObjectURL(file));
     }
 
-    // Validate file size (5MB limit)
-    if (file.size > 5 * 1024 * 1024) {
-      alert('File size must be less than 5MB');
-      return;
-    }
+    // Clean up old preview URLs
+    previewUrls.forEach(url => URL.revokeObjectURL(url));
 
-    setSelectedFile(file);
-
-    // Create preview URL
-    const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
+    setSelectedFiles(validFiles);
+    setPreviewUrls(urls);
   };
 
   const clearSelection = () => {
-    setSelectedFile(null);
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-    }
-    setPreviewUrl(null);
+    previewUrls.forEach(url => URL.revokeObjectURL(url));
+    setSelectedFiles([]);
+    setPreviewUrls([]);
     setPhotoLabel('');
     setCaption('');
+    setUploadProgress(0);
+  };
+
+  // Parse filename like "2025 week 49.1" to extract week info
+  const parseWeekFromFilename = (filename: string): { week: string; label: string } | null => {
+    // Pattern: "YYYY week WW.N" or "YYYY week WW"
+    const match = filename.match(/(\d{4})\s*week\s*(\d{1,2})(?:\.(\d+))?/i);
+    if (match) {
+      const year = match[1];
+      const weekNum = match[2].padStart(2, '0');
+      const partNum = match[3] || '';
+      const week = `${year}-W${weekNum}`;
+      const label = partNum ? `Week ${weekNum}.${partNum}` : `Week ${weekNum}`;
+      return { week, label };
+    }
+    return null;
   };
 
   const handleUpload = async () => {
-    if (!selectedFile || !photoLabel.trim()) {
-      alert('Please select a file and provide a label');
+    if (selectedFiles.length === 0) {
+      alert('Please select at least one file');
       return;
     }
 
@@ -85,74 +110,85 @@ export default function WhiteboardUploadPanel({
     }
 
     setUploading(true);
+    setUploadProgress(0);
+
+    // Track display orders per week
+    const weekOrders: Record<string, number> = {};
+
     try {
-      // Generate unique filename
-      const fileExt = selectedFile.name.split('.').pop();
-      const fileName = `${crypto.randomUUID()}.${fileExt}`;
-      const storagePath = `${selectedWeek}/${fileName}`;
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        setUploadProgress(i + 1);
 
-      console.log('Uploading photo:', { storagePath, userId, selectedWeek, photoLabel: photoLabel.trim() });
+        // Try to parse week from filename, fall back to selected week
+        const parsed = parseWeekFromFilename(file.name);
+        const targetWeek = parsed?.week || selectedWeek;
+        const fileLabel = parsed?.label || photoLabel.trim() || `Photo ${i + 1}`;
 
-      // Upload to Supabase Storage
-      const { error: uploadError } = await supabase.storage
-        .from('whiteboard-photos')
-        .upload(storagePath, selectedFile, {
-          cacheControl: '3600',
-          upsert: false,
+        // Get display order for this week (fetch once per week)
+        if (weekOrders[targetWeek] === undefined) {
+          const response = await fetch(`/api/whiteboard-photos?week=${targetWeek}`);
+          const existingPhotos = await response.json();
+          weekOrders[targetWeek] = existingPhotos.length;
+        }
+
+        // Generate unique filename
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${crypto.randomUUID()}.${fileExt}`;
+        const storagePath = `${targetWeek}/${fileName}`;
+
+        console.log(`Uploading photo ${i + 1}/${selectedFiles.length}:`, { storagePath, fileLabel, targetWeek });
+
+        // Upload to Supabase Storage
+        const { error: uploadError } = await supabase.storage
+          .from('whiteboard-photos')
+          .upload(storagePath, file, {
+            cacheControl: '3600',
+            upsert: false,
+          });
+
+        if (uploadError) {
+          console.error('Storage upload error:', uploadError);
+          throw uploadError;
+        }
+
+        // Get public URL
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from('whiteboard-photos').getPublicUrl(storagePath);
+
+        // Save to database with parsed week
+        const dbResponse = await fetch('/api/whiteboard-photos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            workout_week: targetWeek,
+            photo_label: fileLabel,
+            photo_url: publicUrl,
+            storage_path: storagePath,
+            caption: caption.trim() || null,
+            uploaded_by: userId,
+            display_order: weekOrders[targetWeek]++,
+          }),
         });
 
-      if (uploadError) {
-        console.error('Storage upload error:', uploadError);
-        throw uploadError;
+        if (!dbResponse.ok) {
+          const errorData = await dbResponse.json();
+          console.error('Database save error:', errorData);
+          throw new Error(`Failed to save photo metadata: ${errorData.error || 'Unknown error'}`);
+        }
       }
-
-      // Get public URL
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from('whiteboard-photos').getPublicUrl(storagePath);
-
-      console.log('Photo uploaded to storage, public URL:', publicUrl);
-
-      // Get next display order
-      const response = await fetch(`/api/whiteboard-photos?week=${selectedWeek}`);
-      const existingPhotos = await response.json();
-      const nextOrder = existingPhotos.length;
-
-      console.log('Saving to database with uploaded_by:', userId);
-
-      // Save to database
-      const dbResponse = await fetch('/api/whiteboard-photos', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          workout_week: selectedWeek,
-          photo_label: photoLabel.trim(),
-          photo_url: publicUrl,
-          storage_path: storagePath,
-          caption: caption.trim() || null,
-          uploaded_by: userId,
-          display_order: nextOrder,
-        }),
-      });
-
-      if (!dbResponse.ok) {
-        const errorData = await dbResponse.json();
-        console.error('Database save error:', errorData);
-        throw new Error(`Failed to save photo metadata: ${errorData.error || 'Unknown error'}`);
-      }
-
-      const savedPhoto = await dbResponse.json();
-      console.log('Photo saved successfully:', savedPhoto);
 
       // Success
       clearSelection();
       onPhotoUploaded();
-      alert('Photo uploaded successfully!');
+      alert(`${selectedFiles.length} photo${selectedFiles.length > 1 ? 's' : ''} uploaded successfully!`);
     } catch (error) {
       console.error('Error uploading photo:', error);
       alert(`Failed to upload photo: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -177,15 +213,16 @@ export default function WhiteboardUploadPanel({
       {/* Photo Label */}
       <div>
         <label className='block text-sm font-medium text-gray-700 mb-2'>
-          Photo Label <span className='text-red-500'>*</span>
+          Base Label (optional - defaults to &quot;Photo&quot;)
         </label>
         <input
           type='text'
           value={photoLabel}
           onChange={(e) => setPhotoLabel(e.target.value)}
-          placeholder='e.g., 2026 week 4.1'
+          placeholder='e.g., Workout, WOD, Session'
           className='w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500'
         />
+        <p className='text-xs text-gray-500 mt-1'>Multiple files auto-numbered: Label 1, Label 2, etc.</p>
       </div>
 
       {/* Caption */}
@@ -203,12 +240,13 @@ export default function WhiteboardUploadPanel({
       {/* File Upload */}
       <div>
         <label className='block text-sm font-medium text-gray-700 mb-2'>
-          Photo File <span className='text-red-500'>*</span>
+          Photo Files <span className='text-red-500'>*</span>
         </label>
         <div className='relative'>
           <input
             type='file'
             accept='image/*'
+            multiple
             onChange={handleFileSelect}
             className='hidden'
             id='photo-file-input'
@@ -218,14 +256,16 @@ export default function WhiteboardUploadPanel({
             className='flex items-center justify-center gap-2 w-full px-4 py-3 bg-teal-600 text-white rounded-lg font-medium cursor-pointer hover:bg-teal-700 transition'
           >
             <Upload size={18} />
-            {selectedFile ? selectedFile.name : 'Choose Photo File'}
+            {selectedFiles.length > 0
+              ? `${selectedFiles.length} photo${selectedFiles.length > 1 ? 's' : ''} selected`
+              : 'Choose Photo Files'}
           </label>
         </div>
-        <p className='text-xs text-gray-500 mt-1'>Max file size: 5MB (JPEG, PNG, HEIC)</p>
+        <p className='text-xs text-gray-500 mt-1'>Select multiple files. Max 5MB each (JPEG, PNG, HEIC)</p>
       </div>
 
-      {/* Preview */}
-      {previewUrl && (
+      {/* Preview Grid */}
+      {previewUrls.length > 0 && (
         <div className='relative bg-gray-100 rounded-lg p-4'>
           <button
             onClick={clearSelection}
@@ -233,8 +273,15 @@ export default function WhiteboardUploadPanel({
           >
             <X size={16} />
           </button>
-          <div className='flex justify-center items-center'>
-            <img src={previewUrl} alt='Preview' className='max-w-full max-h-96 object-contain rounded-lg' />
+          <div className='grid grid-cols-3 gap-2'>
+            {previewUrls.map((url, idx) => (
+              <img
+                key={idx}
+                src={url}
+                alt={`Preview ${idx + 1}`}
+                className='w-full h-24 object-cover rounded-lg'
+              />
+            ))}
           </div>
         </div>
       )}
@@ -242,15 +289,19 @@ export default function WhiteboardUploadPanel({
       {/* Upload Button */}
       <button
         onClick={handleUpload}
-        disabled={!selectedFile || !photoLabel.trim() || uploading}
+        disabled={selectedFiles.length === 0 || uploading}
         className={`w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg font-medium transition ${
-          uploading || !selectedFile || !photoLabel.trim()
+          uploading || selectedFiles.length === 0
             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
             : 'bg-teal-600 text-white hover:bg-teal-700'
         }`}
       >
         <Upload size={18} />
-        {uploading ? 'Uploading...' : 'Upload Photo'}
+        {uploading
+          ? `Uploading ${uploadProgress}/${selectedFiles.length}...`
+          : selectedFiles.length > 1
+            ? `Upload ${selectedFiles.length} Photos`
+            : 'Upload Photo'}
       </button>
     </div>
   );

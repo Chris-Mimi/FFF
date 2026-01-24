@@ -682,24 +682,30 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
 
       {/* Photo Modal */}
       {showPhotoModal && selectedPhoto && (
-        <div className='fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4'
-          onClick={handleClosePhotoModal}>
-          <div className='relative max-w-4xl max-h-[90vh] bg-white rounded-lg overflow-hidden'
-            onClick={(e) => e.stopPropagation()}>
-            <button
-              onClick={handleClosePhotoModal}
-              className='absolute top-4 right-4 bg-white text-gray-700 p-2 rounded-full hover:bg-gray-100 z-10'
+        <div
+          className='fixed inset-0 bg-black bg-opacity-90 z-50 overflow-y-auto cursor-pointer'
+          onClick={handleClosePhotoModal}
+        >
+          <div className='min-h-full flex items-center justify-center p-4'>
+            <div
+              className='relative cursor-default'
+              onClick={(e) => e.stopPropagation()}
             >
-              <X size={20} />
-            </button>
-            <img
-              src={selectedPhoto.photo_url}
-              alt={selectedPhoto.photo_label}
-              className='w-full h-full object-contain'
-            />
-            <div className='absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-4'>
-              <p className='font-medium'>{selectedPhoto.photo_label}</p>
-              {selectedPhoto.caption && <p className='text-sm'>{selectedPhoto.caption}</p>}
+              <button
+                onClick={handleClosePhotoModal}
+                className='absolute -top-12 right-0 bg-white text-gray-700 p-2 rounded-full hover:bg-gray-100 z-10 shadow-lg'
+              >
+                <X size={24} />
+              </button>
+              <img
+                src={selectedPhoto.photo_url}
+                alt={selectedPhoto.photo_label}
+                className='max-w-[90vw] max-h-[85vh] object-contain rounded-lg'
+              />
+              <div className='mt-2 bg-black bg-opacity-70 text-white p-3 rounded-lg'>
+                <p className='font-medium'>{selectedPhoto.photo_label}</p>
+                {selectedPhoto.caption && <p className='text-sm mt-1'>{selectedPhoto.caption}</p>}
+              </div>
             </div>
           </div>
         </div>

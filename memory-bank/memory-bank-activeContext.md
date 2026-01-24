@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.26
-**Updated:** 2026-01-23 (Session 71 - Whiteboard Photos Tab Navigation UX)
+**Version:** 10.27
+**Updated:** 2026-01-24 (Session 72 - Whiteboard Upload & Gallery Improvements)
 
 ---
 
@@ -77,34 +77,43 @@ Athlete Tables (linked to members.id)
 
 ## 📍 Current Status (Last 2 Weeks)
 
+**Completed (2026-01-24 Session 72 - Opus):**
+- **✅ Multi-File Upload for Whiteboard Photos:**
+  - Added `multiple` attribute to file input for batch uploads
+  - Preview grid shows all selected photos before upload
+  - Progress indicator shows upload status (e.g., "Uploading 3/5...")
+  - Auto-numbering for labels when multiple files (e.g., "Photo 1", "Photo 2")
+  - File: components/coach/WhiteboardUploadPanel.tsx
+- **✅ Auto-Parse Week from Filename:**
+  - Parses filenames like "2025 week 49.1" to extract week info
+  - Auto-assigns photos to correct week (e.g., "2025-W49")
+  - Auto-generates label from filename (e.g., "Week 49.1")
+  - Falls back to selected week if filename doesn't match pattern
+- **✅ Week Navigation for Coach Whiteboard:**
+  - Added Previous/Today/Next buttons to browse weeks
+  - Photos now display for any selected week, not just current
+  - File: app/coach/whiteboard/page.tsx
+- **✅ Photo Card & Modal Improvements:**
+  - Cards now scrollable within container (top-justified)
+  - Grid changed from 3 columns to 2 columns for better viewing
+  - Modals improved: click backdrop to close, better image sizing
+  - Fixed greyed-out edit input boxes (added text-gray-900)
+  - Applied to both Coach and Athlete Whiteboard views
+  - Files: WhiteboardGallery.tsx, AthletePagePhotosTab.tsx, AthletePageWorkoutsTab.tsx
+- Commit: (pending)
+- Files: 5 changed
+- See: `project-history/2026-01-24-session-72-whiteboard-upload-improvements.md`
+
 **Completed (2026-01-23 Session 71 - Sonnet):**
 - **✅ Athlete Page Tab Navigation UX:**
   - Fixed runtime error: "Cannot access 'tabs' before initialization"
-  - Removed tabs from useEffect dependency array (static constant)
-  - Added scroll detection after loading completes
   - Implemented clickable chevron buttons for tab scrolling
-  - Buttons scroll all the way left/right in one click
-  - Made buttons smaller and less intrusive (gray semi-transparent)
   - Added overscroll-contain to prevent swipe-back navigation
-  - File: app/athlete/page.tsx (lines 56-83, 287-304)
-- **✅ Personal Records Tab Null Safety:**
-  - Fixed "Cannot read properties of null (reading 'includes')" error
-  - Added null checks in timeToSeconds() function
-  - Added null checks before comparing result values
-  - File: components/athlete/AthletePageRecordsTab.tsx (lines 78-84, 110-116)
 - **✅ Whiteboard Photos Tab (Athlete View):**
   - Created new tab showing weekly whiteboard photos
-  - Week-based navigation (Previous/Today/Next)
-  - Photo grid with click-to-view modal
-  - Full-screen modal with caption display
-  - File: components/athlete/AthletePagePhotosTab.tsx (new component)
-- **🔄 Whiteboard Photo Thumbnails in Workouts (Not Yet Tested):**
-  - Added photo fetching and thumbnail display to workout cards
-  - Shows small thumbnails at bottom of each workout card
-  - File: components/athlete/AthletePageWorkoutsTab.tsx (photo integration)
-- Commit: (pending)
-- Files: 6 changed (athlete page, globals.css, 3 athlete components, 1 coach component)
-- See: `project-history/2026-01-23-session-71-whiteboard-photos-tab-nav.md` (to be created)
+  - Week-based navigation with photo grid and full-screen modal
+- Commit: 2c24416
+- See: `project-history/2026-01-23-session-71-whiteboard-photos-tab-nav.md`
 
 **Completed (2026-01-22 Session 70 - Opus):**
 - **✅ Synology Drive Sync Crisis Resolution:**

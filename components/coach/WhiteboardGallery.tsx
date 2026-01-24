@@ -100,12 +100,15 @@ export default function WhiteboardGallery({
       </h2>
 
       {/* Photo Grid */}
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+      <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
         {photos.map((photo) => (
           <div key={photo.id} className='border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition'>
-            {/* Photo */}
-            <div className='relative cursor-pointer' onClick={() => handleViewPhoto(photo)}>
-              <img src={photo.photo_url} alt={photo.photo_label} className='w-full h-48 object-cover' />
+            {/* Photo - scrollable container */}
+            <div
+              className='relative h-48 overflow-y-auto cursor-pointer'
+              onClick={() => handleViewPhoto(photo)}
+            >
+              <img src={photo.photo_url} alt={photo.photo_label} className='w-full' />
             </div>
 
             {/* Details */}
@@ -117,13 +120,13 @@ export default function WhiteboardGallery({
                     type='text'
                     value={editForm.photo_label}
                     onChange={(e) => setEditForm({ ...editForm, photo_label: e.target.value })}
-                    className='w-full px-2 py-1 border rounded text-sm'
+                    className='w-full px-2 py-1 border rounded text-sm text-gray-900'
                     placeholder='Photo label'
                   />
                   <textarea
                     value={editForm.caption}
                     onChange={(e) => setEditForm({ ...editForm, caption: e.target.value })}
-                    className='w-full px-2 py-1 border rounded text-sm'
+                    className='w-full px-2 py-1 border rounded text-sm text-gray-900'
                     placeholder='Caption (optional)'
                     rows={2}
                   />
@@ -172,22 +175,28 @@ export default function WhiteboardGallery({
 
       {/* Full-Screen Modal */}
       {showModal && selectedPhoto && (
-        <div className='fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4'>
-          <div className='relative max-w-4xl max-h-[90vh] bg-white rounded-lg overflow-hidden'>
+        <div
+          className='fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4 cursor-pointer'
+          onClick={handleCloseModal}
+        >
+          <div
+            className='relative max-w-4xl max-h-[90vh] cursor-default'
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
               onClick={handleCloseModal}
-              className='absolute top-4 right-4 bg-white text-gray-700 p-2 rounded-full hover:bg-gray-100 z-10'
+              className='absolute -top-12 right-0 bg-white text-gray-700 p-2 rounded-full hover:bg-gray-100 z-10 shadow-lg'
             >
-              <X size={20} />
+              <X size={24} />
             </button>
             <img
               src={selectedPhoto.photo_url}
               alt={selectedPhoto.photo_label}
-              className='w-full h-full object-contain'
+              className='max-w-full max-h-[80vh] object-contain rounded-lg'
             />
-            <div className='absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-4'>
+            <div className='mt-2 bg-black bg-opacity-70 text-white p-3 rounded-lg'>
               <p className='font-medium'>{selectedPhoto.photo_label}</p>
-              {selectedPhoto.caption && <p className='text-sm'>{selectedPhoto.caption}</p>}
+              {selectedPhoto.caption && <p className='text-sm mt-1'>{selectedPhoto.caption}</p>}
             </div>
           </div>
         </div>
