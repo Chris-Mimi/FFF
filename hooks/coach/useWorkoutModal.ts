@@ -636,6 +636,8 @@ export function useWorkoutModal(
   // Save cursor position when user interacts with textarea
   const handleTextareaInteraction = (sectionId: string, cursorPosition: number) => {
     lastCursorPositionRef.current[sectionId] = cursorPosition;
+    // Update lastExpandedSectionId so Add Section knows which section is active
+    sectionManagement.setLastExpandedSectionId(sectionId);
   };
 
   const getTotalDuration = () => {

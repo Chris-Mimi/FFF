@@ -16,8 +16,7 @@ export async function GET(request: NextRequest) {
     let query = supabaseAdmin
       .from('whiteboard_photos')
       .select('*')
-      .order('display_order', { ascending: true })
-      .order('created_at', { ascending: true });
+      .order('photo_label', { ascending: true });
 
     if (week) {
       query = query.eq('workout_week', week);

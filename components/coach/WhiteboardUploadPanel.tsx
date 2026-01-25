@@ -242,24 +242,21 @@ export default function WhiteboardUploadPanel({
         <label className='block text-sm font-medium text-gray-700 mb-2'>
           Photo Files <span className='text-red-500'>*</span>
         </label>
-        <div className='relative'>
+        <div className='relative overflow-hidden rounded-lg group'>
           <input
             type='file'
             accept='image/*'
             multiple
             onChange={handleFileSelect}
-            className='hidden'
-            id='photo-file-input'
+            className='absolute inset-0 w-full h-full opacity-0 cursor-pointer'
+            style={{ fontSize: '100px' }}
           />
-          <label
-            htmlFor='photo-file-input'
-            className='flex items-center justify-center gap-2 w-full px-4 py-3 bg-teal-600 text-white rounded-lg font-medium cursor-pointer hover:bg-teal-700 transition'
-          >
+          <div className='flex items-center justify-center gap-2 w-full px-4 py-3 bg-teal-600 text-white rounded-lg font-medium pointer-events-none group-hover:bg-teal-700 transition'>
             <Upload size={18} />
             {selectedFiles.length > 0
               ? `${selectedFiles.length} photo${selectedFiles.length > 1 ? 's' : ''} selected`
               : 'Choose Photo Files'}
-          </label>
+          </div>
         </div>
         <p className='text-xs text-gray-500 mt-1'>Select multiple files. Max 5MB each (JPEG, PNG, HEIC)</p>
       </div>
