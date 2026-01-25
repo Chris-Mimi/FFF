@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.27
-**Updated:** 2026-01-24 (Session 72 - Whiteboard Upload & Gallery Improvements)
+**Version:** 10.28
+**Updated:** 2026-01-25 (Session 73 - Whiteboard Cross-Browser Fix & Add Section)
 
 ---
 
@@ -76,6 +76,27 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2026-01-25 Session 73 - Opus):**
+- **✅ Whiteboard Upload Cross-Browser Fix:**
+  - Issue: "Choose Photo Files" button not working on Mimi's Chrome profile
+  - Root cause: Programmatic `.click()` on hidden file input blocked by browser
+  - Solution: Overlay invisible input over styled button (direct click, not programmatic)
+  - Added group-hover for visual feedback
+  - File: components/coach/WhiteboardUploadPanel.tsx
+- **✅ Whiteboard Photos Ordering:**
+  - Changed from display_order/created_at to photo_label ordering
+  - Photos now display in date order (Week 49.1, Week 49.2, etc.)
+  - File: app/api/whiteboard-photos/route.ts
+- **✅ Add Section Reliability Improvement:**
+  - Issue: First click on "Add Section" sometimes failed to detect active section
+  - Root cause: lastExpandedSectionId not updated when clicking inside textarea
+  - Solution: Update lastExpandedSectionId in handleTextareaInteraction
+  - File: hooks/coach/useWorkoutModal.ts
+  - **Note:** Still intermittent - may need additional focus handlers on other inputs
+- Commit: d339d80e
+- Files: 3 changed
+- See: `project-history/2026-01-25-session-73-whiteboard-cross-browser-fix.md`
 
 **Completed (2026-01-24 Session 72 - Opus):**
 - **✅ Multi-File Upload for Whiteboard Photos:**
