@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.28
-**Updated:** 2026-01-25 (Session 73 - Whiteboard Cross-Browser Fix & Add Section)
+**Version:** 10.29
+**Updated:** 2026-01-26 (Session 74 - Whiteboard Photos in Logbook & Photo Navigation)
 
 ---
 
@@ -76,6 +76,29 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2026-01-26 Session 74 - Opus):**
+- **✅ Whiteboard Photos in Athlete Logbook Tab:**
+  - Added whiteboard photos section at bottom of Logbook tab
+  - Photos fetched for current week based on selected date
+  - 2-column grid with click-to-enlarge modal
+  - Files: components/athlete/AthletePageLogbookTab.tsx
+- **✅ Photo Navigation Arrows (All Photo Modals):**
+  - Added prev/next navigation arrows to all whiteboard photo modals
+  - Navigation only shows when >1 photo, wraps at ends
+  - Added photo counter (e.g., "2 / 5") to modal footer
+  - Files updated:
+    - components/athlete/AthletePageWorkoutsTab.tsx (Published Workouts)
+    - components/athlete/AthletePageLogbookTab.tsx (Athlete Logbook)
+    - components/athlete/AthletePagePhotosTab.tsx (Whiteboard tab)
+    - components/coach/WhiteboardGallery.tsx (Coach Whiteboard)
+- **✅ Renamed "Whiteboard Photos" → "Whiteboard":**
+  - Tab label in app/athlete/page.tsx
+  - Section headers in AthletePagePhotosTab, AthletePageLogbookTab, AthletePageWorkoutsTab
+- **✅ Fixed TypeScript Error:**
+  - Fixed pre-existing type error: section.duration type check
+  - File: components/athlete/AthletePageLogbookTab.tsx (line 943)
+- See: `project-history/2026-01-26-session-74-whiteboard-logbook-navigation.md`
 
 **Completed (2026-01-25 Session 73 - Opus):**
 - **✅ Whiteboard Upload Cross-Browser Fix:**

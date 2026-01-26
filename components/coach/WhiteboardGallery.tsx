@@ -1,7 +1,7 @@
 'use client';
 
 import { WhiteboardPhoto } from '@/app/coach/whiteboard/page';
-import { Edit2, Trash2, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Edit2, Trash2, X } from 'lucide-react';
 import { useState } from 'react';
 
 interface WhiteboardGalleryProps {
@@ -30,6 +30,20 @@ export default function WhiteboardGallery({
   const handleCloseModal = () => {
     setShowModal(false);
     setSelectedPhoto(null);
+  };
+
+  const handlePreviousPhoto = () => {
+    if (!selectedPhoto || photos.length === 0) return;
+    const currentIndex = photos.findIndex(p => p.id === selectedPhoto.id);
+    const prevIndex = currentIndex > 0 ? currentIndex - 1 : photos.length - 1;
+    setSelectedPhoto(photos[prevIndex]);
+  };
+
+  const handleNextPhoto = () => {
+    if (!selectedPhoto || photos.length === 0) return;
+    const currentIndex = photos.findIndex(p => p.id === selectedPhoto.id);
+    const nextIndex = currentIndex < photos.length - 1 ? currentIndex + 1 : 0;
+    setSelectedPhoto(photos[nextIndex]);
   };
 
   const handleEditClick = (photo: WhiteboardPhoto) => {
@@ -179,6 +193,16 @@ export default function WhiteboardGallery({
           className='fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4 cursor-pointer'
           onClick={handleCloseModal}
         >
+          {/* Previous Arrow */}
+          {photos.length > 1 && (
+            <button
+              onClick={(e) => { e.stopPropagation(); handlePreviousPhoto(); }}
+              className='absolute left-4 top-1/2 -translate-y-1/2 bg-white text-gray-700 p-3 rounded-full hover:bg-gray-100 z-10 shadow-lg'
+            >
+              <ChevronLeft size={28} />
+            </button>
+          )}
+
           <div
             className='relative max-w-4xl max-h-[90vh] cursor-default'
             onClick={(e) => e.stopPropagation()}
@@ -197,8 +221,23 @@ export default function WhiteboardGallery({
             <div className='mt-2 bg-black bg-opacity-70 text-white p-3 rounded-lg'>
               <p className='font-medium'>{selectedPhoto.photo_label}</p>
               {selectedPhoto.caption && <p className='text-sm mt-1'>{selectedPhoto.caption}</p>}
+              {photos.length > 1 && (
+                <p className='text-xs text-gray-400 mt-1'>
+                  {photos.findIndex(p => p.id === selectedPhoto.id) + 1} / {photos.length}
+                </p>
+              )}
             </div>
           </div>
+
+          {/* Next Arrow */}
+          {photos.length > 1 && (
+            <button
+              onClick={(e) => { e.stopPropagation(); handleNextPhoto(); }}
+              className='absolute right-4 top-1/2 -translate-y-1/2 bg-white text-gray-700 p-3 rounded-full hover:bg-gray-100 z-10 shadow-lg'
+            >
+              <ChevronRight size={28} />
+            </button>
+          )}
         </div>
       )}
     </div>

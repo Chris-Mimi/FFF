@@ -1,7 +1,7 @@
 // AthletePageLogbookTab component
 'use client';
 
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useLogbookData } from '@/hooks/athlete/useLogbookData';
 import { useWorkoutLogging } from '@/hooks/athlete/useWorkoutLogging';
@@ -37,6 +37,16 @@ interface SectionResult {
   calories_result?: string;
   metres_result?: string;
   task_completed?: boolean;
+}
+
+interface WhiteboardPhoto {
+  id: string;
+  workout_week: string;
+  photo_label: string;
+  photo_url: string;
+  caption?: string | null;
+  display_order: number;
+  created_at: string;
 }
 
 interface AthletePageLogbookTabProps {
@@ -92,6 +102,12 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
   const [liftRecords, setLiftRecords] = useState<Record<string, LiftRecord>>({});
   const [benchmarkResults, setBenchmarkResults] = useState<Record<string, BenchmarkResult>>({});
   const [sectionResults, setSectionResults] = useState<Record<string, SectionResult>>({});
+
+  // Whiteboard photos state
+  const [whiteboardPhotos, setWhiteboardPhotos] = useState<WhiteboardPhoto[]>([]);
+  const [photosLoading, setPhotosLoading] = useState(false);
+  const [selectedPhoto, setSelectedPhoto] = useState<WhiteboardPhoto | null>(null);
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
 
   // Use extracted hooks
   const { workouts, workoutLogs, loading, setWorkoutLogs } = useLogbookData({
@@ -831,6 +847,63 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
     setSelectedDate(today);
   };
 
+  // Whiteboard photos helpers
+  const getWeekNumber = (date: Date): number => {
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+  };
+
+  const fetchWhiteboardPhotos = async () => {
+    const weekNumber = getWeekNumber(selectedDate);
+    const isoWeek = `${selectedDate.getFullYear()}-W${weekNumber.toString().padStart(2, '0')}`;
+
+    setPhotosLoading(true);
+    try {
+      const response = await fetch(`/api/whiteboard-photos?week=${isoWeek}`);
+      if (!response.ok) throw new Error('Failed to fetch photos');
+      const data = await response.json();
+      setWhiteboardPhotos(data);
+    } catch (error) {
+      console.error('Error fetching whiteboard photos:', error);
+      setWhiteboardPhotos([]);
+    } finally {
+      setPhotosLoading(false);
+    }
+  };
+
+  // Fetch whiteboard photos when selected date changes
+  useEffect(() => {
+    fetchWhiteboardPhotos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDate]);
+
+  const handleViewPhoto = (photo: WhiteboardPhoto) => {
+    setSelectedPhoto(photo);
+    setShowPhotoModal(true);
+  };
+
+  const handleClosePhotoModal = () => {
+    setShowPhotoModal(false);
+    setSelectedPhoto(null);
+  };
+
+  const handlePreviousPhoto = () => {
+    if (!selectedPhoto || whiteboardPhotos.length === 0) return;
+    const currentIndex = whiteboardPhotos.findIndex(p => p.id === selectedPhoto.id);
+    const prevIndex = currentIndex > 0 ? currentIndex - 1 : whiteboardPhotos.length - 1;
+    setSelectedPhoto(whiteboardPhotos[prevIndex]);
+  };
+
+  const handleNextPhoto = () => {
+    if (!selectedPhoto || whiteboardPhotos.length === 0) return;
+    const currentIndex = whiteboardPhotos.findIndex(p => p.id === selectedPhoto.id);
+    const nextIndex = currentIndex < whiteboardPhotos.length - 1 ? currentIndex + 1 : 0;
+    setSelectedPhoto(whiteboardPhotos[nextIndex]);
+  };
+
   return (
     <div className='bg-white rounded-lg shadow p-6'>
       <div className='flex items-center justify-between mb-6'>
@@ -940,7 +1013,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                           <span className='text-sm font-medium text-[#208479] uppercase'>
                             {section.type}
                           </span>
-                          {(section.duration > 0) && (
+                          {(section.duration && Number(section.duration) > 0) && (
                             <span className='text-sm text-gray-500'>{section.duration} min</span>
                           )}
 
@@ -1706,6 +1779,99 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Whiteboard Photos Section */}
+      <div className='mt-8 pt-6 border-t border-gray-200'>
+        <h3 className='text-xl font-bold text-gray-900 mb-4'>
+          Whiteboard - Week {getWeekNumber(selectedDate)}
+        </h3>
+
+        {photosLoading ? (
+          <div className='text-center text-gray-500 py-8'>Loading photos...</div>
+        ) : whiteboardPhotos.length === 0 ? (
+          <div className='text-center text-gray-500 py-8'>
+            No whiteboard photos for this week
+          </div>
+        ) : (
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            {whiteboardPhotos.map((photo) => (
+              <div
+                key={photo.id}
+                className='border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition cursor-pointer'
+                onClick={() => handleViewPhoto(photo)}
+              >
+                <div className='h-48 overflow-y-auto'>
+                  <img
+                    src={photo.photo_url}
+                    alt={photo.photo_label}
+                    className='w-full'
+                  />
+                </div>
+                <div className='p-3 space-y-1'>
+                  <p className='font-medium text-gray-900'>{photo.photo_label}</p>
+                  {photo.caption && <p className='text-sm text-gray-600'>{photo.caption}</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Full-Screen Photo Modal */}
+      {showPhotoModal && selectedPhoto && (
+        <div
+          className='fixed inset-0 bg-black bg-opacity-90 z-50 overflow-y-auto cursor-pointer'
+          onClick={handleClosePhotoModal}
+        >
+          <div className='min-h-full flex items-center justify-center p-4'>
+            {/* Previous Arrow */}
+            {whiteboardPhotos.length > 1 && (
+              <button
+                onClick={(e) => { e.stopPropagation(); handlePreviousPhoto(); }}
+                className='absolute left-4 top-1/2 -translate-y-1/2 bg-white text-gray-700 p-3 rounded-full hover:bg-gray-100 z-10 shadow-lg'
+              >
+                <ChevronLeft size={28} />
+              </button>
+            )}
+
+            <div
+              className='relative cursor-default'
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={handleClosePhotoModal}
+                className='absolute -top-12 right-0 bg-white text-gray-700 p-2 rounded-full hover:bg-gray-100 z-10 shadow-lg'
+              >
+                <X size={24} />
+              </button>
+              <img
+                src={selectedPhoto.photo_url}
+                alt={selectedPhoto.photo_label}
+                className='max-w-[90vw] max-h-[85vh] object-contain rounded-lg'
+              />
+              <div className='mt-2 bg-black bg-opacity-70 text-white p-3 rounded-lg'>
+                <p className='font-medium'>{selectedPhoto.photo_label}</p>
+                {selectedPhoto.caption && <p className='text-sm mt-1'>{selectedPhoto.caption}</p>}
+                {whiteboardPhotos.length > 1 && (
+                  <p className='text-xs text-gray-400 mt-1'>
+                    {whiteboardPhotos.findIndex(p => p.id === selectedPhoto.id) + 1} / {whiteboardPhotos.length}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Next Arrow */}
+            {whiteboardPhotos.length > 1 && (
+              <button
+                onClick={(e) => { e.stopPropagation(); handleNextPhoto(); }}
+                className='absolute right-4 top-1/2 -translate-y-1/2 bg-white text-gray-700 p-3 rounded-full hover:bg-gray-100 z-10 shadow-lg'
+              >
+                <ChevronRight size={28} />
+              </button>
+            )}
+          </div>
         </div>
       )}
     </div>

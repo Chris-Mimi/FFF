@@ -200,6 +200,20 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
     setSelectedPhoto(null);
   };
 
+  const handlePreviousPhoto = () => {
+    if (!selectedPhoto || weekPhotos.length === 0) return;
+    const currentIndex = weekPhotos.findIndex(p => p.id === selectedPhoto.id);
+    const prevIndex = currentIndex > 0 ? currentIndex - 1 : weekPhotos.length - 1;
+    setSelectedPhoto(weekPhotos[prevIndex]);
+  };
+
+  const handleNextPhoto = () => {
+    if (!selectedPhoto || weekPhotos.length === 0) return;
+    const currentIndex = weekPhotos.findIndex(p => p.id === selectedPhoto.id);
+    const nextIndex = currentIndex < weekPhotos.length - 1 ? currentIndex + 1 : 0;
+    setSelectedPhoto(weekPhotos[nextIndex]);
+  };
+
   const formatDate = (date: Date) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -649,7 +663,7 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
                         <div className='mt-4 pt-3 border-t border-gray-200'>
                           <div className='flex items-center gap-2 mb-2'>
                             <ImageIcon size={14} className='text-gray-600' />
-                            <span className='text-xs font-semibold text-gray-700'>Whiteboard Photos</span>
+                            <span className='text-xs font-semibold text-gray-700'>Whiteboard</span>
                           </div>
                           <div className='flex gap-2 overflow-x-auto'>
                             {weekPhotos.map((photo) => (
@@ -687,6 +701,16 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
           onClick={handleClosePhotoModal}
         >
           <div className='min-h-full flex items-center justify-center p-4'>
+            {/* Previous Arrow */}
+            {weekPhotos.length > 1 && (
+              <button
+                onClick={(e) => { e.stopPropagation(); handlePreviousPhoto(); }}
+                className='absolute left-4 top-1/2 -translate-y-1/2 bg-white text-gray-700 p-3 rounded-full hover:bg-gray-100 z-10 shadow-lg'
+              >
+                <ChevronLeft size={28} />
+              </button>
+            )}
+
             <div
               className='relative cursor-default'
               onClick={(e) => e.stopPropagation()}
@@ -705,8 +729,23 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
               <div className='mt-2 bg-black bg-opacity-70 text-white p-3 rounded-lg'>
                 <p className='font-medium'>{selectedPhoto.photo_label}</p>
                 {selectedPhoto.caption && <p className='text-sm mt-1'>{selectedPhoto.caption}</p>}
+                {weekPhotos.length > 1 && (
+                  <p className='text-xs text-gray-400 mt-1'>
+                    {weekPhotos.findIndex(p => p.id === selectedPhoto.id) + 1} / {weekPhotos.length}
+                  </p>
+                )}
               </div>
             </div>
+
+            {/* Next Arrow */}
+            {weekPhotos.length > 1 && (
+              <button
+                onClick={(e) => { e.stopPropagation(); handleNextPhoto(); }}
+                className='absolute right-4 top-1/2 -translate-y-1/2 bg-white text-gray-700 p-3 rounded-full hover:bg-gray-100 z-10 shadow-lg'
+              >
+                <ChevronRight size={28} />
+              </button>
+            )}
           </div>
         </div>
       )}

@@ -191,7 +191,7 @@ export default function AthletePage() {
     { id: 'forge-benchmarks' as TabName, label: 'Forge Benchmarks', icon: Target },
     { id: 'lifts' as TabName, label: 'Barbell Lifts', icon: Dumbbell },
     { id: 'records' as TabName, label: 'Personal Records', icon: Award },
-    { id: 'photos' as TabName, label: 'Whiteboard Photos', icon: Image },
+    { id: 'photos' as TabName, label: 'Whiteboard', icon: Image },
     { id: 'security' as TabName, label: 'Access & Security', icon: Shield },
   ];
 

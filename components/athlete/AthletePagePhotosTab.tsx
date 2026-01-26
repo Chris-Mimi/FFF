@@ -93,6 +93,20 @@ export default function AthletePagePhotosTab() {
     setSelectedPhoto(null);
   };
 
+  const handlePreviousPhoto = () => {
+    if (!selectedPhoto || photos.length === 0) return;
+    const currentIndex = photos.findIndex(p => p.id === selectedPhoto.id);
+    const prevIndex = currentIndex > 0 ? currentIndex - 1 : photos.length - 1;
+    setSelectedPhoto(photos[prevIndex]);
+  };
+
+  const handleNextPhoto = () => {
+    if (!selectedPhoto || photos.length === 0) return;
+    const currentIndex = photos.findIndex(p => p.id === selectedPhoto.id);
+    const nextIndex = currentIndex < photos.length - 1 ? currentIndex + 1 : 0;
+    setSelectedPhoto(photos[nextIndex]);
+  };
+
   return (
     <div className='space-y-4'>
       {/* Week Navigation */}
@@ -136,7 +150,7 @@ export default function AthletePagePhotosTab() {
         ) : (
           <>
             <h2 className='text-xl font-bold text-gray-900 mb-4'>
-              Whiteboard Photos ({photos.length})
+              Whiteboard ({photos.length})
             </h2>
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
               {photos.map((photo) => (
@@ -170,6 +184,16 @@ export default function AthletePagePhotosTab() {
           onClick={handleCloseModal}
         >
           <div className='min-h-full flex items-center justify-center p-4'>
+            {/* Previous Arrow */}
+            {photos.length > 1 && (
+              <button
+                onClick={(e) => { e.stopPropagation(); handlePreviousPhoto(); }}
+                className='absolute left-4 top-1/2 -translate-y-1/2 bg-white text-gray-700 p-3 rounded-full hover:bg-gray-100 z-10 shadow-lg'
+              >
+                <ChevronLeft size={28} />
+              </button>
+            )}
+
             <div
               className='relative cursor-default'
               onClick={(e) => e.stopPropagation()}
@@ -188,8 +212,23 @@ export default function AthletePagePhotosTab() {
               <div className='mt-2 bg-black bg-opacity-70 text-white p-3 rounded-lg'>
                 <p className='font-medium'>{selectedPhoto.photo_label}</p>
                 {selectedPhoto.caption && <p className='text-sm mt-1'>{selectedPhoto.caption}</p>}
+                {photos.length > 1 && (
+                  <p className='text-xs text-gray-400 mt-1'>
+                    {photos.findIndex(p => p.id === selectedPhoto.id) + 1} / {photos.length}
+                  </p>
+                )}
               </div>
             </div>
+
+            {/* Next Arrow */}
+            {photos.length > 1 && (
+              <button
+                onClick={(e) => { e.stopPropagation(); handleNextPhoto(); }}
+                className='absolute right-4 top-1/2 -translate-y-1/2 bg-white text-gray-700 p-3 rounded-full hover:bg-gray-100 z-10 shadow-lg'
+              >
+                <ChevronRight size={28} />
+              </button>
+            )}
           </div>
         </div>
       )}
