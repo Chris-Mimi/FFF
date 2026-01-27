@@ -596,7 +596,7 @@ export default function SearchPanel({
 
                   {/* Coach Notes */}
                   {selectedSearchWOD.coach_notes && (
-                    <div className='bg-yellow-50 rounded-lg border border-yellow-200 p-3'>
+                    <div className='bg-teal-50 rounded-lg border border-gray-200 p-3'>
                       <div className='font-semibold text-sm text-gray-900 mb-1'>
                         Coach Notes
                       </div>

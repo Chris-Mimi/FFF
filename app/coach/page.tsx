@@ -196,6 +196,13 @@ export default function CoachDashboard() {
     setIsModalOpen(true);
   };
 
+  const openEditModalWithNotes = (wod: WODFormData) => {
+    setEditingWOD(wod);
+    setModalDate(new Date(wod.date));
+    setNotesPanelOpen(true);
+    setIsModalOpen(true);
+  };
+
   // Wrapper functions for drag/drop that curry handleCopyWOD
   const handleDropWrapper = (e: React.DragEvent, date: Date) => {
     handleDrop(e, date, handleCopyWOD);
@@ -331,6 +338,7 @@ export default function CoachDashboard() {
                 onDeleteWOD={handleDeleteWODWrapper}
                 onDeleteSession={handleDeleteSession}
                 onOpenEditModal={openEditModal}
+                onOpenEditModalWithNotes={openEditModalWithNotes}
                 onPasteFromClipboard={handlePasteWrapper}
                 onCopyWODToDate={handleCopyWOD}
                 onSessionManagementClick={(sessionId, workoutDate) => {
@@ -350,11 +358,15 @@ export default function CoachDashboard() {
       {isModalOpen && (
         <WorkoutModal
           isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
+          onClose={() => {
+            setIsModalOpen(false);
+            setNotesPanelOpen(false);
+          }}
           date={modalDate}
           editingWOD={editingWOD}
           onSave={(wodData) => handleSaveWOD(wodData, editingWOD, modalDate)}
           initialNotesOpen={notesPanelOpen}
+          onNotesToggle={setNotesPanelOpen}
           onTimeUpdated={fetchWODs}
           isPanel={true}
           panelOffset={searchPanelOpen ? 800 : quickEditMode ? 400 : 0}

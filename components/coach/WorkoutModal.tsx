@@ -53,7 +53,8 @@ export default function WorkoutModal({
     editingWOD,
     onSave,
     onClose,
-    onTimeUpdated
+    onTimeUpdated,
+    initialNotesOpen
   );
 
   if (!isOpen) return null;

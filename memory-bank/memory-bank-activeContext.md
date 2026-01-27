@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.29
-**Updated:** 2026-01-26 (Session 74 - Whiteboard Photos in Logbook & Photo Navigation)
+**Version:** 10.30
+**Updated:** 2026-01-28 (Session 75 - Coach Notes in Calendar Popover & Notes Indicator)
 
 ---
 
@@ -76,6 +76,31 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2026-01-28 Session 75 - Sonnet):**
+- **✅ Coach Notes in Calendar Popover:**
+  - Added coach notes section to workout hover popover (monthly & weekly views)
+  - Displays below sections with pale teal background (bg-teal-50)
+  - Only shows when notes exist, preserves formatting
+  - File: components/coach/CalendarGrid.tsx (lines 376-382)
+- **✅ Workout Library Modal Notes Styling:**
+  - Changed coach notes background from yellow (bg-yellow-50) to pale teal (bg-teal-50)
+  - Matches calendar popover styling
+  - File: components/coach/SearchPanel.tsx (line 599)
+- **✅ Notes Indicator on Workout Cards:**
+  - Added small "N" indicator on cards when coach notes exist
+  - Pale teal background (bg-teal-50) with darker teal text
+  - Clickable - opens workout modal with notes panel automatically
+  - Files:
+    - components/coach/CalendarGrid.tsx (lines 204-216)
+    - hooks/coach/useWorkoutModal.ts (added initialNotesOpen parameter)
+    - components/coach/WorkoutModal.tsx (passes initialNotesOpen to hook)
+    - app/coach/page.tsx (openEditModalWithNotes handler)
+- **✅ Removed Published Icon:**
+  - Removed 📊 icon from workout cards
+  - Card color (dark teal) already indicates published status
+  - File: components/coach/CalendarGrid.tsx
+- See: `project-history/2026-01-28-session-75-coach-notes-calendar-indicator.md`
 
 **Completed (2026-01-26 Session 74 - Opus):**
 - **✅ Whiteboard Photos in Athlete Logbook Tab:**

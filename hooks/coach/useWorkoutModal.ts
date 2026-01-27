@@ -215,7 +215,8 @@ export function useWorkoutModal(
   editingWOD?: WODFormData | null,
   onSave?: (wod: WODFormData) => void,
   onClose?: () => void,
-  onTimeUpdated?: () => void
+  onTimeUpdated?: () => void,
+  initialNotesOpen: boolean = false
 ): UseWorkoutModalResult {
   const [formData, setFormData] = useState<WODFormData>({
     title: '',
@@ -238,7 +239,7 @@ export function useWorkoutModal(
   const [sectionTypes, setSectionTypes] = useState<SectionType[]>([]);
   const [workoutTitles, setWorkoutTitles] = useState<WorkoutTitle[]>([]);
   const [loadingTracks, setLoadingTracks] = useState(false);
-  const [notesPanelOpen, setNotesPanelOpen] = useState(false);
+  const [notesPanelOpen, setNotesPanelOpen] = useState(initialNotesOpen);
   const [isDragOver, setIsDragOver] = useState(false);
   const [publishModalOpen, setPublishModalOpen] = useState(false);
   const [sessionTime, setSessionTime] = useState<string | null>(null);
@@ -255,6 +256,11 @@ export function useWorkoutModal(
 
   // Ref to store cursor position when textarea loses focus
   const lastCursorPositionRef = useRef<Record<string, number>>({});
+
+  // Update notes panel when initialNotesOpen changes
+  useEffect(() => {
+    setNotesPanelOpen(initialNotesOpen);
+  }, [initialNotesOpen]);
 
   // Initialize extracted hooks
   const sectionManagement = useSectionManagement({

@@ -78,6 +78,7 @@ interface CalendarGridProps {
   onDeleteWOD: (dateKey: string, wodId: string) => void;
   onDeleteSession: (sessionId: string) => void;
   onOpenEditModal: (wod: WODFormData) => void;
+  onOpenEditModalWithNotes?: (wod: WODFormData) => void;
   onPasteFromClipboard: (date: Date) => void;
   onCopyWODToDate: (wod: WODFormData, date: Date, sessionId: string) => void;
   onSessionManagementClick: (sessionId: string, workoutDate: string) => void;
@@ -110,6 +111,7 @@ export default function CalendarGrid({
   onDeleteWOD,
   onDeleteSession,
   onOpenEditModal,
+  onOpenEditModalWithNotes,
   onPasteFromClipboard,
   onCopyWODToDate,
   onSessionManagementClick,
@@ -201,11 +203,18 @@ export default function CalendarGrid({
               {wod.title}
             </div>
 
-            {/* Published Icon */}
-            {isPublished && (
-              <span className='flex-shrink-0 text-xs' title='Published for athlete logging'>
-                📊
-              </span>
+            {/* Notes Indicator */}
+            {wod.coach_notes && wod.coach_notes.trim() && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenEditModalWithNotes?.(wod);
+                }}
+                className='flex-shrink-0 text-[10px] font-semibold bg-teal-50 text-teal-700 rounded px-1 py-0.5 hover:bg-teal-100 transition cursor-pointer'
+                title='Click to view coach notes'
+              >
+                N
+              </button>
             )}
 
             {/* Booking Info */}
@@ -372,6 +381,14 @@ export default function CalendarGrid({
                 <div className='text-xs text-gray-500 italic'>No workout sections</div>
               )}
             </div>
+
+            {/* Coach Notes */}
+            {wod.coach_notes && wod.coach_notes.trim() && (
+              <div className='mt-3 pt-3 px-3 pb-2 border-t border-gray-200 bg-teal-50 rounded'>
+                <div className='text-xs font-semibold text-gray-700 mb-1'>Coach Notes:</div>
+                <div className='text-xs text-gray-600 whitespace-pre-wrap'>{wod.coach_notes}</div>
+              </div>
+            )}
           </div>
         )}
       </div>
