@@ -51,6 +51,7 @@ export default function MemberBookingPage() {
     relationship: 'child' as 'spouse' | 'child' | 'other'
   });
   const [bookingForMemberId, setBookingForMemberId] = useState<string | null>(null);
+  const [filter, setFilter] = useState<'all' | 'booked'>('all');
 
   useEffect(() => {
     checkAuth();
@@ -510,11 +511,13 @@ export default function MemberBookingPage() {
                         : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
                     }`}
                   >
-                    <TrendingUp size={18} />
+                    {athleteStatus.hasAccess ? (
+                      <ChevronLeft size={18} />
+                    ) : (
+                      <TrendingUp size={18} />
+                    )}
                     {athleteStatus.hasAccess
-                      ? athleteStatus.status === 'trial'
-                        ? 'Athlete Page (Trial)'
-                        : 'Athlete Page'
+                      ? 'back'
                       : 'Unlock Athlete Page'}
                   </button>
                 </Link>
@@ -537,14 +540,14 @@ export default function MemberBookingPage() {
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={handlePreviousWeek}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors duration-200"
+            className="p-2 bg-gray-800 hover:bg-gray-700 text-white rounded-full transition-colors duration-200"
+            title="Previous Week"
           >
-            <ChevronLeft size={18} />
-            Previous Week
+            <ChevronLeft size={24} />
           </button>
 
           <div className="text-center">
-            <h2 className="text-xl font-bold text-white">
+            <h2 className="text-sm md:text-lg font-bold text-white">
               {weekStart.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} -{' '}
               {new Date(weekStart.getTime() + 6 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
             </h2>
@@ -552,10 +555,10 @@ export default function MemberBookingPage() {
 
           <button
             onClick={handleNextWeek}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors duration-200"
+            className="p-2 bg-gray-800 hover:bg-gray-700 text-white rounded-full transition-colors duration-200"
+            title="Next Week"
           >
-            Next Week
-            <ChevronRight size={18} />
+            <ChevronRight size={24} />
           </button>
         </div>
 
@@ -567,9 +570,9 @@ export default function MemberBookingPage() {
                 <h3 className="text-white font-semibold text-sm">Select who you&apos;re booking for:</h3>
                 <button
                   onClick={openAddModal}
-                  className="px-3 py-1 bg-teal-500 hover:bg-teal-600 text-white rounded text-xs font-medium transition-colors"
+                  className="px-2 py-0.5 bg-teal-500 hover:bg-teal-600 text-white rounded text-xs font-medium transition-colors whitespace-nowrap"
                 >
-                  + Add Family Member
+                  + Family
                 </button>
               </div>
 
@@ -616,6 +619,30 @@ export default function MemberBookingPage() {
           </div>
         )}
 
+        {/* Filter Buttons */}
+        <div className="flex gap-2 mb-6">
+          <button
+            onClick={() => setFilter('all')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              filter === 'all'
+                ? 'bg-teal-500 text-white'
+                : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+            }`}
+          >
+            All
+          </button>
+          <button
+            onClick={() => setFilter('booked')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              filter === 'booked'
+                ? 'bg-teal-500 text-white'
+                : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+            }`}
+          >
+            Booked
+          </button>
+        </div>
+
         {/* Sessions List */}
         {loading ? (
           <div className="text-center py-12">
@@ -631,8 +658,24 @@ export default function MemberBookingPage() {
         ) : (
           <div className="space-y-6">
             {/* Group sessions by day */}
-            {Array.from(new Set(sessions.map(s => s.date))).map((date) => {
-              const daySessions = sessions.filter(s => s.date === date);
+            {(() => {
+              // Filter sessions based on filter state
+              const filteredSessions = filter === 'booked'
+                ? sessions.filter(s => s.user_booking_status === 'confirmed' || s.user_booking_status === 'waitlist')
+                : sessions;
+
+              if (filteredSessions.length === 0) {
+                return (
+                  <div className="bg-gray-800 rounded-lg p-12 text-center border border-gray-700">
+                    <Calendar size={48} className="mx-auto text-gray-600 mb-4" />
+                    <p className="text-gray-400 text-lg mb-2">No booked sessions this week</p>
+                    <p className="text-gray-500 text-sm">Click &quot;All&quot; to view available sessions</p>
+                  </div>
+                );
+              }
+
+              return Array.from(new Set(filteredSessions.map(s => s.date))).map((date) => {
+                const daySessions = filteredSessions.filter(s => s.date === date);
 
               return (
                 <div key={date}>
@@ -727,7 +770,8 @@ export default function MemberBookingPage() {
                   </div>
                 </div>
               );
-            })}
+              });
+            })()}
           </div>
         )}
       </div>

@@ -1138,7 +1138,22 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                                 <div key={liftIdx} className='bg-blue-50 text-blue-900 rounded px-2 py-1'>
                                   <div className='flex items-center gap-2 flex-wrap'>
                                     {/* Lift Title */}
-                                    <div className='font-semibold text-xs flex-shrink-0'>≡ {formatLift(lift)}</div>
+                                    <div className='font-semibold text-xs flex-shrink-0'>
+                                      {lift.rep_type === 'variable' && lift.variable_sets && lift.variable_sets.length > 0 ? (
+                                        <>
+                                          <div>≡ {lift.name} {lift.variable_sets.map(s => s.reps).join('-')}</div>
+                                          {(() => {
+                                            const percentages = lift.variable_sets.map(s => s.percentage_1rm);
+                                            const allHavePercentages = percentages.every(p => p !== undefined && p !== null);
+                                            return allHavePercentages ? (
+                                              <div>@ {percentages.join('-')}%</div>
+                                            ) : null;
+                                          })()}
+                                        </>
+                                      ) : (
+                                        <>≡ {formatLift(lift)}</>
+                                      )}
+                                    </div>
 
                                     {/* Configurable Scoring Inputs */}
                                     <div className='flex items-center gap-2 ml-auto flex-wrap'>

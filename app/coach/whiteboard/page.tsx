@@ -81,6 +81,19 @@ export default function WhiteboardPage() {
     return `${year}-W${week.toString().padStart(2, '0')}`;
   };
 
+  const getWeekDateRange = (isoWeek: string): string => {
+    const { year, week } = parseIsoWeek(isoWeek);
+    // Calculate Monday of ISO week
+    const jan4 = new Date(Date.UTC(year, 0, 4));
+    const dayOfWeek = jan4.getUTCDay() || 7;
+    const monday = new Date(jan4);
+    monday.setUTCDate(jan4.getUTCDate() - dayOfWeek + 1 + (week - 1) * 7);
+    const sunday = new Date(monday);
+    sunday.setUTCDate(monday.getUTCDate() + 6);
+    const formatDate = (d: Date) => `${d.getUTCDate().toString().padStart(2, '0')}.${(d.getUTCMonth() + 1).toString().padStart(2, '0')}`;
+    return `${year} ${formatDate(monday)}-${formatDate(sunday)}`;
+  };
+
   const navigateWeek = (direction: 'prev' | 'next') => {
     const { year, week } = parseIsoWeek(selectedWeek);
     let newYear = year;
@@ -172,7 +185,7 @@ export default function WhiteboardPage() {
               Previous
             </button>
             <div className='flex items-center gap-3'>
-              <span className='text-lg font-semibold text-gray-900'>{selectedWeek}</span>
+              <span className='text-lg font-semibold text-gray-900'>{getWeekDateRange(selectedWeek)}</span>
               <button
                 onClick={goToCurrentWeek}
                 className='px-3 py-1 text-sm bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition'

@@ -1,7 +1,7 @@
 'use client';
 
 import { supabase } from '@/lib/supabase';
-import { Calendar, ChevronLeft, ChevronRight, Image as ImageIcon, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Image as ImageIcon, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
 
@@ -405,47 +405,33 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
 
   return (
     <div className='space-y-4 md:space-y-6'>
-      {/* Header */}
-      <div className='bg-white rounded-lg shadow p-4 md:p-6'>
-        <div className='flex flex-col md:flex-row items-start md:items-center justify-between gap-4'>
-          {/* Title Section */}
-          <div className='flex items-center gap-3'>
-            <Calendar className='text-[#208479] hidden sm:block' size={32} />
-            <div>
-              <h2 className='text-xl md:text-2xl font-bold text-gray-900'>Published Workouts</h2>
-              <p className='text-xs md:text-sm text-gray-600 hidden sm:block'>View your weekly training schedule</p>
-            </div>
-          </div>
-
-          {/* Week Navigation */}
-          <div className='flex items-center gap-2 md:gap-4 w-full md:w-auto justify-between md:justify-end'>
-            <button
-              onClick={previousWeek}
-              className='p-2 hover:bg-gray-100 rounded-full transition text-gray-900 flex-shrink-0'
-              title='Previous Week'
-            >
-              <ChevronLeft size={24} />
-            </button>
-            <div className='flex items-center gap-2 md:gap-3 flex-1 md:flex-initial justify-center'>
-              <span className='text-sm md:text-lg font-semibold text-gray-900 text-center'>
-                {weekLabel}
-              </span>
-              <button
-                onClick={goToToday}
-                className='px-2 md:px-3 py-1 bg-[#208479] hover:bg-[#1a6b62] text-white text-xs md:text-sm rounded-lg font-medium transition flex-shrink-0'
-              >
-                Today
-              </button>
-            </div>
-            <button
-              onClick={nextWeek}
-              className='p-2 hover:bg-gray-100 rounded-full transition text-gray-900 flex-shrink-0'
-              title='Next Week'
-            >
-              <ChevronRight size={24} />
-            </button>
-          </div>
+      {/* Week Navigation */}
+      <div className='flex items-center justify-between bg-white rounded-lg shadow-sm p-4'>
+        <button
+          onClick={previousWeek}
+          className='p-2 hover:bg-gray-100 rounded-full transition text-gray-900'
+          title='Previous Week'
+        >
+          <ChevronLeft size={24} />
+        </button>
+        <div className='flex items-center gap-2 md:gap-3'>
+          <span className='text-sm md:text-lg font-semibold text-gray-900'>
+            {weekLabel}
+          </span>
+          <button
+            onClick={goToToday}
+            className='px-2 md:px-3 py-1 bg-[#208479] hover:bg-[#1a6b62] text-white text-xs md:text-sm rounded-lg font-medium transition'
+          >
+            Today
+          </button>
         </div>
+        <button
+          onClick={nextWeek}
+          className='p-2 hover:bg-gray-100 rounded-full transition text-gray-900'
+          title='Next Week'
+        >
+          <ChevronRight size={24} />
+        </button>
       </div>
 
       {/* Weekly Calendar - Only show days with workouts */}

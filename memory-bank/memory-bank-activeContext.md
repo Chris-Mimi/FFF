@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.31
-**Updated:** 2026-01-29 (Session 76 - Athlete Mobile Optimization)
+**Version:** 10.32
+**Updated:** 2026-01-29 (Session 77 - Mobile UI Refinements)
 
 ---
 
@@ -76,6 +76,44 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2026-01-29 Session 77 - Sonnet):**
+- **✅ Book a Class Tab Navigation Refinement:**
+  - Removed "Previous Week"/"Next Week" text labels (arrow icons only)
+  - Reduced week date range font size: text-sm (mobile), text-lg (desktop)
+  - Changed back button from TrendingUp icon to ChevronLeft arrow
+  - Button text changed from "Athlete Page" to "back"
+  - File: app/member/book/page.tsx
+- **✅ Add Family Member Button Optimization:**
+  - Reduced button size from px-3 py-1 to px-2 py-0.5
+  - Shortened text from "+ Add Family Member" to "+ Family"
+  - Added whitespace-nowrap to prevent wrapping
+  - File: app/member/book/page.tsx
+- **✅ Book a Class Filter Buttons:**
+  - Added "All" and "Booked" filter toggle buttons
+  - Default view shows all sessions ("All")
+  - "Booked" filter shows only confirmed/waitlist bookings
+  - Filter persists during week navigation
+  - Empty state message when no booked sessions
+  - File: app/member/book/page.tsx
+- **✅ Published Workouts Tab Header Cleanup:**
+  - Removed large header section with Calendar icon and title
+  - Simplified to compact navigation bar matching other tabs
+  - Week date label font: text-sm (mobile), text-lg (desktop)
+  - Removed unused Calendar import
+  - File: components/athlete/AthletePageWorkoutsTab.tsx
+- **✅ Whiteboard Tab Date Display:**
+  - Navigation header shows date range: "12 Jan - 18 Jan 2026"
+  - Photo card header shows: "2026 Week 3 (5 photos)"
+  - Added helper functions: getWeekDateRange(), getWeekLabel()
+  - File: components/athlete/AthletePagePhotosTab.tsx
+- **✅ Athlete Logbook Variable Rep Display:**
+  - Variable rep lifts now display on 2 lines in day view
+  - Line 1: Lift name + reps (e.g., "≡ Back Squat 10-6-5-5-5-5-5")
+  - Line 2: Percentages (e.g., "@ 40-50-60-70-80-85-90%")
+  - Same font size (text-xs) for both lines to prevent screen overflow
+  - File: components/athlete/AthletePageLogbookTab.tsx (lines 1141-1156)
+- See: `project-history/2026-01-29-session-77-mobile-ui-refinements.md`
 
 **Completed (2026-01-29 Session 76 - Sonnet):**
 - **✅ Athlete Page Mobile Optimization:**

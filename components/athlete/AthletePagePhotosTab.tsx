@@ -43,6 +43,25 @@ export default function AthletePagePhotosTab() {
     return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
   };
 
+  const getWeekDateRange = (isoWeek: string): string => {
+    const [year, week] = isoWeek.split('-W').map(Number);
+    // Calculate Monday of ISO week
+    const jan4 = new Date(Date.UTC(year, 0, 4));
+    const dayOfWeek = jan4.getUTCDay() || 7;
+    const monday = new Date(jan4);
+    monday.setUTCDate(jan4.getUTCDate() - dayOfWeek + 1 + (week - 1) * 7);
+    const sunday = new Date(monday);
+    sunday.setUTCDate(monday.getUTCDate() + 6);
+
+    const formatDate = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    return `${formatDate(monday)} - ${formatDate(sunday)} ${year}`;
+  };
+
+  const getWeekLabel = (isoWeek: string): string => {
+    const [year, week] = isoWeek.split('-W');
+    return `${year} Week ${parseInt(week, 10)}`;
+  };
+
   const fetchPhotos = async () => {
     setLoading(true);
     try {
@@ -119,7 +138,7 @@ export default function AthletePagePhotosTab() {
           <ChevronLeft size={24} />
         </button>
         <div className='flex items-center gap-2 md:gap-3'>
-          <span className='text-sm md:text-lg font-semibold text-gray-900'>Week {selectedWeek}</span>
+          <span className='text-sm md:text-lg font-semibold text-gray-900'>{getWeekDateRange(selectedWeek)}</span>
           <button
             onClick={() => navigateWeek('today')}
             className='px-2 md:px-3 py-1 bg-[#208479] hover:bg-[#1a6b62] text-white text-xs md:text-sm rounded-lg font-medium transition'
@@ -144,13 +163,13 @@ export default function AthletePagePhotosTab() {
           </div>
         ) : photos.length === 0 ? (
           <div className='flex flex-col items-center justify-center py-12 text-gray-500'>
-            <p className='text-lg font-medium'>No photos for week {selectedWeek}</p>
+            <p className='text-lg font-medium'>No photos for {getWeekLabel(selectedWeek)}</p>
             <p className='text-sm'>Check back later for whiteboard photos from your coaches!</p>
           </div>
         ) : (
           <>
             <h2 className='text-xl font-bold text-gray-900 mb-4'>
-              Whiteboard ({photos.length})
+              {getWeekLabel(selectedWeek)} ({photos.length})
             </h2>
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
               {photos.map((photo) => (

@@ -110,7 +110,7 @@ export default function WhiteboardGallery({
   return (
     <div className='bg-white rounded-lg shadow-md p-6'>
       <h2 className='text-xl font-bold text-gray-900 mb-4'>
-        Photos for Week {selectedWeek} ({photos.length})
+        Whiteboard Week {selectedWeek.split('-W')[1]} ({photos.length})
       </h2>
 
       {/* Photo Grid */}
