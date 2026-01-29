@@ -186,13 +186,13 @@ export default function AthletePage() {
   const tabs = [
     { id: 'profile' as TabName, label: 'Profile', icon: User },
     { id: 'workouts' as TabName, label: 'Workouts', icon: Calendar },
-    { id: 'logbook' as TabName, label: 'Athlete Logbook', icon: BookOpen },
-    { id: 'benchmarks' as TabName, label: 'Benchmark Workouts', icon: Trophy },
-    { id: 'forge-benchmarks' as TabName, label: 'Forge Benchmarks', icon: Target },
-    { id: 'lifts' as TabName, label: 'Barbell Lifts', icon: Dumbbell },
-    { id: 'records' as TabName, label: 'Personal Records', icon: Award },
+    { id: 'logbook' as TabName, label: 'Logbook', icon: BookOpen },
+    { id: 'benchmarks' as TabName, label: 'Benchmarks', icon: Trophy },
+    { id: 'forge-benchmarks' as TabName, label: 'Forge', icon: Target },
+    { id: 'lifts' as TabName, label: 'Lifts', icon: Dumbbell },
+    { id: 'records' as TabName, label: 'Records', icon: Award },
     { id: 'photos' as TabName, label: 'Whiteboard', icon: Image },
-    { id: 'security' as TabName, label: 'Access & Security', icon: Shield },
+    { id: 'security' as TabName, label: 'Security', icon: Shield },
   ];
 
   const renderTabContent = () => {
@@ -253,9 +253,9 @@ export default function AthletePage() {
       {/* Header */}
       <div className='bg-white shadow'>
         <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-          <div className='flex justify-between items-center py-4'>
-            <div>
-              <h1 className='text-3xl font-bold text-gray-900'>The Forge</h1>
+          <div className='flex flex-col sm:flex-row sm:justify-between sm:items-center py-4 gap-4'>
+            <div className='flex-1'>
+              <h1 className='text-2xl sm:text-3xl font-bold text-gray-900'>The Forge</h1>
               <p className='text-sm text-gray-600'>Welcome back, {userName}</p>
               {/* Profile Selector */}
               {(familyMembers.length > 0 || activeProfileId) && (
@@ -264,7 +264,7 @@ export default function AthletePage() {
                   <select
                     value={activeProfileId || ''}
                     onChange={(e) => handleProfileChange(e.target.value)}
-                    className='px-3 py-1 bg-white border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-2 focus:ring-[#208479] focus:border-transparent cursor-pointer'
+                    className='w-full sm:w-auto px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-2 focus:ring-[#208479] focus:border-transparent cursor-pointer'
                   >
                     <option value={userId || ''}>{userName}</option>
                     {familyMembers.map(member => (
@@ -276,20 +276,20 @@ export default function AthletePage() {
                 </div>
               )}
             </div>
-            <div className='flex items-center gap-3'>
+            <div className='flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3'>
               <button
                 onClick={() => router.push('/member/book')}
-                className='flex items-center gap-2 bg-[#208479] hover:bg-[#1a6b62] text-white px-6 py-3 rounded-lg font-medium transition'
+                className='flex items-center justify-center gap-2 bg-[#208479] hover:bg-[#1a6b62] text-white px-6 py-3 rounded-lg font-medium transition min-h-[44px]'
               >
                 <Calendar size={18} />
-                Book a Class
+                <span>Book a Class</span>
               </button>
               <button
                 onClick={handleLogout}
-                className='flex items-center gap-2 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition text-gray-700'
+                className='flex items-center justify-center gap-2 px-4 py-3 bg-gray-200 hover:bg-gray-300 rounded-lg transition text-gray-700 min-h-[44px]'
               >
                 <LogOut size={18} />
-                Logout
+                <span>Logout</span>
               </button>
             </div>
           </div>
@@ -298,8 +298,8 @@ export default function AthletePage() {
 
       {/* Tab Navigation */}
       <div className='bg-white border-b border-gray-200'>
-        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative'>
-          <nav ref={tabsNavRef} className='flex space-x-8 overflow-x-auto overscroll-contain scrollbar-hide'>
+        <div className='max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 relative'>
+          <nav ref={tabsNavRef} className='flex space-x-2 sm:space-x-4 md:space-x-8 overflow-x-auto overscroll-contain scrollbar-hide'>
             {tabs.map(tab => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -308,7 +308,7 @@ export default function AthletePage() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`
-                    flex items-center gap-2 py-4 px-3 border-b-2 font-medium text-sm whitespace-nowrap transition
+                    flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-3 px-2 sm:px-3 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap transition min-w-[60px] sm:min-w-0
                     ${
                       isActive
                         ? 'border-[#208479] text-[#208479]'
@@ -316,28 +316,28 @@ export default function AthletePage() {
                     }
                   `}
                 >
-                  <Icon size={18} />
-                  {tab.label}
+                  <Icon size={20} className="flex-shrink-0" />
+                  <span className="text-[10px] sm:text-xs md:text-sm leading-tight text-center sm:text-left">{tab.label}</span>
                 </button>
               );
             })}
           </nav>
-          {/* Scroll buttons - show when overflow exists */}
+          {/* Scroll buttons - hidden on mobile, shown on desktop when overflow exists */}
           {showScrollHint && (
             <>
               <button
                 onClick={() => scrollTabs('left')}
-                className='absolute left-0 top-1/2 -translate-y-1/2 bg-gray-200/80 hover:bg-gray-300/90 p-1 rounded-full shadow transition z-10'
+                className='hidden md:block absolute left-0 top-1/2 -translate-y-1/2 bg-gray-200/90 hover:bg-gray-300/90 p-2 rounded-full shadow-md transition z-10'
                 aria-label='Scroll left'
               >
-                <ChevronLeft size={16} className='text-gray-600' />
+                <ChevronLeft size={20} className='text-gray-700' />
               </button>
               <button
                 onClick={() => scrollTabs('right')}
-                className='absolute right-0 top-1/2 -translate-y-1/2 bg-gray-200/80 hover:bg-gray-300/90 p-1 rounded-full shadow transition z-10'
+                className='hidden md:block absolute right-0 top-1/2 -translate-y-1/2 bg-gray-200/90 hover:bg-gray-300/90 p-2 rounded-full shadow-md transition z-10'
                 aria-label='Scroll right'
               >
-                <ChevronRight size={16} className='text-gray-600' />
+                <ChevronRight size={20} className='text-gray-700' />
               </button>
             </>
           )}

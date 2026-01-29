@@ -113,26 +113,26 @@ export default function AthletePagePhotosTab() {
       <div className='flex items-center justify-between bg-white rounded-lg shadow-sm p-4'>
         <button
           onClick={() => navigateWeek('prev')}
-          className='flex items-center gap-1 px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-800 transition'
+          className='p-2 hover:bg-gray-100 rounded-full transition text-gray-900'
+          title='Previous Week'
         >
-          <ChevronLeft size={18} />
-          Previous
+          <ChevronLeft size={24} />
         </button>
-        <div className='flex items-center gap-3'>
-          <span className='text-lg font-semibold text-gray-900'>Week {selectedWeek}</span>
+        <div className='flex items-center gap-2 md:gap-3'>
+          <span className='text-sm md:text-lg font-semibold text-gray-900'>Week {selectedWeek}</span>
           <button
             onClick={() => navigateWeek('today')}
-            className='px-3 py-1 bg-teal-100 hover:bg-teal-200 text-teal-700 rounded-lg text-sm transition'
+            className='px-2 md:px-3 py-1 bg-[#208479] hover:bg-[#1a6b62] text-white text-xs md:text-sm rounded-lg font-medium transition'
           >
             Today
           </button>
         </div>
         <button
           onClick={() => navigateWeek('next')}
-          className='flex items-center gap-1 px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-800 transition'
+          className='p-2 hover:bg-gray-100 rounded-full transition text-gray-900'
+          title='Next Week'
         >
-          Next
-          <ChevronRight size={18} />
+          <ChevronRight size={24} />
         </button>
       </div>
 

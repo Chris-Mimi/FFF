@@ -53,6 +53,7 @@ interface WhiteboardPhoto {
 interface PublishedWorkout {
   id: string;
   title: string;
+  workout_name?: string;
   date: string;
   track_id: string;
   sections: WorkoutSection[];
@@ -244,6 +245,7 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
             wods (
               id,
               title,
+              workout_name,
               track_id,
               sections,
               publish_sections,
@@ -279,6 +281,7 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
         return {
           id: workout?.id || `session-${session.id}`,
           title: workout?.title || 'Workout',
+          workout_name: workout?.workout_name,
           date: session.date,
           track_id: workout?.track_id || '',
           sections: workout?.sections || [],
@@ -401,41 +404,42 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
   const weekLabel = `${weekDates[0].toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} - ${weekDates[6].toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`;
 
   return (
-    <div className='space-y-6'>
+    <div className='space-y-4 md:space-y-6'>
       {/* Header */}
-      <div className='bg-white rounded-lg shadow p-6'>
-        <div className='flex items-center justify-between'>
+      <div className='bg-white rounded-lg shadow p-4 md:p-6'>
+        <div className='flex flex-col md:flex-row items-start md:items-center justify-between gap-4'>
+          {/* Title Section */}
           <div className='flex items-center gap-3'>
-            <Calendar className='text-[#208479]' size={32} />
+            <Calendar className='text-[#208479] hidden sm:block' size={32} />
             <div>
-              <h2 className='text-2xl font-bold text-gray-900'>Published Workouts</h2>
-              <p className='text-sm text-gray-600'>View your weekly training schedule</p>
+              <h2 className='text-xl md:text-2xl font-bold text-gray-900'>Published Workouts</h2>
+              <p className='text-xs md:text-sm text-gray-600 hidden sm:block'>View your weekly training schedule</p>
             </div>
           </div>
 
           {/* Week Navigation */}
-          <div className='flex items-center gap-4'>
+          <div className='flex items-center gap-2 md:gap-4 w-full md:w-auto justify-between md:justify-end'>
             <button
               onClick={previousWeek}
-              className='p-2 hover:bg-gray-100 rounded-full transition text-gray-900'
+              className='p-2 hover:bg-gray-100 rounded-full transition text-gray-900 flex-shrink-0'
               title='Previous Week'
             >
               <ChevronLeft size={24} />
             </button>
-            <div className='flex items-center gap-3'>
-              <span className='text-lg font-semibold text-gray-900 min-w-[200px] text-center'>
+            <div className='flex items-center gap-2 md:gap-3 flex-1 md:flex-initial justify-center'>
+              <span className='text-sm md:text-lg font-semibold text-gray-900 text-center'>
                 {weekLabel}
               </span>
               <button
                 onClick={goToToday}
-                className='px-3 py-1 bg-[#208479] hover:bg-[#1a6b62] text-white text-sm rounded-lg font-medium transition'
+                className='px-2 md:px-3 py-1 bg-[#208479] hover:bg-[#1a6b62] text-white text-xs md:text-sm rounded-lg font-medium transition flex-shrink-0'
               >
                 Today
               </button>
             </div>
             <button
               onClick={nextWeek}
-              className='p-2 hover:bg-gray-100 rounded-full transition text-gray-900'
+              className='p-2 hover:bg-gray-100 rounded-full transition text-gray-900 flex-shrink-0'
               title='Next Week'
             >
               <ChevronRight size={24} />
@@ -445,7 +449,7 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
       </div>
 
       {/* Weekly Calendar - Only show days with workouts */}
-      <div className='grid gap-4' style={{ gridTemplateColumns: `repeat(${weekDates.filter(date => getWorkoutForDate(date)).length || 1}, minmax(0, 1fr))` }}>
+      <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4'>
         {weekDates.map((date, index) => {
           const workout = getWorkoutForDate(date);
 
@@ -464,7 +468,7 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
               } cursor-pointer hover:shadow-lg transition-shadow`}
             >
               {/* Day Header */}
-              <div className={`p-3 text-center ${
+              <div className={`p-4 md:p-3 text-center ${
                 isToday
                   ? 'bg-cyan-100 text-gray-900'
                   : workout?.attended
@@ -476,14 +480,24 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
                 <div className='text-sm font-semibold'>{dayName}</div>
                 <div className='text-sm font-bold'>
                   {workout
-                    ? `${date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} at ${workout.publish_time}`
+                    ? `${date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} at ${workout.publish_time.slice(0, 5)}`
                     : date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
                   }
                 </div>
+
+                {/* Mobile-Only: Workout Title & Name - visible only on small screens */}
+                {workout && (
+                  <div className='mt-2 md:hidden'>
+                    <div className='text-sm font-semibold'>{workout.title}</div>
+                    {workout.workout_name && (
+                      <div className='text-xs mt-1 opacity-90'>{workout.workout_name}</div>
+                    )}
+                  </div>
+                )}
               </div>
 
-              {/* Workout Content */}
-              <div className='p-3 min-h-[200px]'>
+              {/* Workout Content - HIDDEN on mobile, VISIBLE on desktop */}
+              <div className='hidden md:block p-3 min-h-[200px]'>
                 {loading ? (
                   <div className='text-center text-gray-400 text-sm py-4'>Loading...</div>
                 ) : (
@@ -492,7 +506,7 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
                     <div className='flex flex-col items-center justify-center h-full py-8'>
                       <div className='text-center'>
                         <div className='text-lg font-bold text-[#208479] mb-2'>Booked</div>
-                        <div className='text-xs text-gray-600'>{workout.publish_time}</div>
+                        <div className='text-xs text-gray-600'>{workout.publish_time.slice(0, 5)}</div>
                         <div className='text-xs text-gray-500 mt-1'>Workout details available closer to date</div>
                       </div>
                     </div>
@@ -512,7 +526,7 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
 
                       {/* Event Time */}
                       <div className='text-xs text-gray-600'>
-                        {workout.publish_time} ({workout.publish_duration} min)
+                        {workout.publish_time.slice(0, 5)} ({workout.publish_duration} min)
                       </div>
 
                       {/* Published Sections */}

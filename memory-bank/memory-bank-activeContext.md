@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.30
-**Updated:** 2026-01-28 (Session 75 - Coach Notes in Calendar Popover & Notes Indicator)
+**Version:** 10.31
+**Updated:** 2026-01-29 (Session 76 - Athlete Mobile Optimization)
 
 ---
 
@@ -76,6 +76,39 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2026-01-29 Session 76 - Sonnet):**
+- **✅ Athlete Page Mobile Optimization:**
+  - Header layout: Stacks vertically on mobile, side-by-side on desktop
+  - Tab navigation: Icon above label on mobile, side-by-side on desktop
+  - Shortened tab names for mobile readability (Logbook, Benchmarks, Forge, Lifts, Records, Security)
+  - Hidden scroll arrows on mobile (md:block)
+  - Added proper touch targets (min-h-[44px])
+  - Responsive text sizing throughout
+  - Files: app/athlete/page.tsx, app/layout.tsx (viewport meta)
+- **✅ Workouts Tab Mobile Optimization:**
+  - Mobile compact view: Header + title only
+  - Desktop view: Full details unchanged
+  - Responsive grid: 1 col mobile → 5 cols XL
+  - Date navigation: Stacks on mobile with responsive sizing
+  - Added workout_name field to interface and SQL
+  - File: components/athlete/AthletePageWorkoutsTab.tsx
+- **✅ Logbook Navigation Standardization:**
+  - Updated Day/Week/Month navigation to match Workouts tab style
+  - Rounded-full buttons with size 24 chevrons
+  - Added title attributes (Previous Day, Next Day, etc.)
+  - Responsive gap spacing (gap-2 md:gap-3)
+  - Responsive text sizing (text-sm md:text-lg)
+  - File: components/athlete/AthletePageLogbookTab.tsx
+- **✅ Whiteboard Tab Navigation:**
+  - Arrow-only navigation (no text labels) matching Workouts tab
+  - File: components/athlete/AthletePagePhotosTab.tsx
+- **✅ Time Display Without Seconds:**
+  - Removed seconds from all time displays in Workouts tab
+  - Applied .slice(0, 5) to show HH:MM format
+  - Locations: card header, booked workouts, event time
+  - File: components/athlete/AthletePageWorkoutsTab.tsx
+- See: `project-history/2026-01-29-session-76-athlete-mobile-optimization.md`
 
 **Completed (2026-01-28 Session 75 - Sonnet):**
 - **✅ Coach Notes in Calendar Popover:**

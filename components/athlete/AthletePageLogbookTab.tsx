@@ -934,13 +934,14 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
           <div className='flex items-center justify-between mb-6'>
             <button
               onClick={previousDay}
-              className='p-2 hover:bg-gray-100 rounded-lg transition text-gray-900'
+              className='p-2 hover:bg-gray-100 rounded-full transition text-gray-900'
+              title='Previous Day'
             >
-              <ChevronLeft size={20} />
+              <ChevronLeft size={24} />
             </button>
 
-            <div className='flex items-center gap-4'>
-              <h3 className='text-lg font-semibold text-gray-900'>
+            <div className='flex items-center gap-2 md:gap-3'>
+              <h3 className='text-sm md:text-lg font-semibold text-gray-900'>
                 {selectedDate.toLocaleDateString('en-US', {
                   weekday: 'long',
                   year: 'numeric',
@@ -950,7 +951,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
               </h3>
               <button
                 onClick={goToToday}
-                className='px-3 py-1 bg-[#208479] hover:bg-[#1a6b62] text-white text-sm rounded-lg font-medium transition'
+                className='px-2 md:px-3 py-1 bg-[#208479] hover:bg-[#1a6b62] text-white text-xs md:text-sm rounded-lg font-medium transition'
               >
                 Today
               </button>
@@ -958,9 +959,10 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
 
             <button
               onClick={nextDay}
-              className='p-2 hover:bg-gray-100 rounded-lg transition text-gray-900'
+              className='p-2 hover:bg-gray-100 rounded-full transition text-gray-900'
+              title='Next Day'
             >
-              <ChevronRight size={20} />
+              <ChevronRight size={24} />
             </button>
           </div>
 
@@ -1593,19 +1595,20 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
           <div className='flex items-center justify-between mb-6'>
             <button
               onClick={previousWeek}
-              className='p-2 hover:bg-gray-100 rounded-lg transition text-gray-900'
+              className='p-2 hover:bg-gray-100 rounded-full transition text-gray-900'
+              title='Previous Week'
             >
-              <ChevronLeft size={20} />
+              <ChevronLeft size={24} />
             </button>
 
-            <div className='flex items-center gap-4'>
-              <h3 className='text-lg font-semibold text-gray-900'>
+            <div className='flex items-center gap-2 md:gap-3'>
+              <h3 className='text-sm md:text-lg font-semibold text-gray-900'>
                 {getWeekDates(selectedDate)[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {' '}
                 {getWeekDates(selectedDate)[6].toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
               </h3>
               <button
                 onClick={goToToday}
-                className='px-3 py-1 bg-[#208479] hover:bg-[#1a6b62] text-white text-sm rounded-lg font-medium transition'
+                className='px-2 md:px-3 py-1 bg-[#208479] hover:bg-[#1a6b62] text-white text-xs md:text-sm rounded-lg font-medium transition'
               >
                 Today
               </button>
@@ -1613,9 +1616,10 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
 
             <button
               onClick={nextWeek}
-              className='p-2 hover:bg-gray-100 rounded-lg transition text-gray-900'
+              className='p-2 hover:bg-gray-100 rounded-full transition text-gray-900'
+              title='Next Week'
             >
-              <ChevronRight size={20} />
+              <ChevronRight size={24} />
             </button>
           </div>
 
@@ -1690,18 +1694,19 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
           <div className='flex items-center justify-between mb-6'>
             <button
               onClick={previousMonth}
-              className='p-2 hover:bg-gray-100 rounded-lg transition text-gray-900'
+              className='p-2 hover:bg-gray-100 rounded-full transition text-gray-900'
+              title='Previous Month'
             >
-              <ChevronLeft size={20} />
+              <ChevronLeft size={24} />
             </button>
 
-            <div className='flex items-center gap-4'>
-              <h3 className='text-lg font-semibold text-gray-900'>
+            <div className='flex items-center gap-2 md:gap-3'>
+              <h3 className='text-sm md:text-lg font-semibold text-gray-900'>
                 {selectedDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
               </h3>
               <button
                 onClick={goToToday}
-                className='px-3 py-1 bg-[#208479] hover:bg-[#1a6b62] text-white text-sm rounded-lg font-medium transition'
+                className='px-2 md:px-3 py-1 bg-[#208479] hover:bg-[#1a6b62] text-white text-xs md:text-sm rounded-lg font-medium transition'
               >
                 Today
               </button>
@@ -1709,9 +1714,10 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
 
             <button
               onClick={nextMonth}
-              className='p-2 hover:bg-gray-100 rounded-lg transition text-gray-900'
+              className='p-2 hover:bg-gray-100 rounded-full transition text-gray-900'
+              title='Next Month'
             >
-              <ChevronRight size={20} />
+              <ChevronRight size={24} />
             </button>
           </div>
 
