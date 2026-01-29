@@ -2,7 +2,7 @@
 
 import { WODFormData } from '@/components/coach/WorkoutModal';
 import { getWeekNumber } from '@/utils/date-utils';
-import { Calendar, CalendarDays, Plus } from 'lucide-react';
+import { Calendar, CalendarDays, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 
 type ViewMode = 'weekly' | 'monthly';
 
@@ -65,23 +65,24 @@ export const CalendarNav = ({
         </div>
 
         {/* Period Navigation */}
-        <div className='flex justify-between items-center'>
+        <div className='flex justify-between items-center gap-2'>
           <button
             onClick={onPreviousPeriod}
-            className='px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-900 font-medium'
+            className='p-2 md:px-4 md:py-2 bg-gray-200 hover:bg-gray-300 rounded-full md:rounded-lg text-gray-900 font-medium'
+            title={viewMode === 'weekly' ? 'Previous Week' : 'Previous Month'}
           >
-            {viewMode === 'weekly' ? 'Previous Week' : 'Previous Month'}
+            <ChevronLeft size={24} />
           </button>
-          <div className='flex items-center gap-4'>
+          <div className='flex items-center gap-2 md:gap-4 flex-1 justify-center'>
             <button
               onClick={onTodayClick}
-              className='px-3 py-1 bg-[#208479] hover:bg-[#1a6b62] rounded text-white text-sm font-medium transition'
+              className='px-2 py-1 md:px-3 md:py-1 bg-[#208479] hover:bg-[#1a6b62] rounded text-white text-xs md:text-sm font-medium transition'
             >
               Today
             </button>
             <button
               onClick={() => onAddWorkout(focusedDate || new Date())}
-              className='w-10 h-10 bg-teal-600 hover:bg-teal-700 rounded-lg shadow-md flex items-center justify-center transition'
+              className='w-8 h-8 md:w-10 md:h-10 bg-teal-600 hover:bg-teal-700 rounded-lg shadow-md flex items-center justify-center transition'
               title={focusedDate ? `Add workout to ${focusedDate.toLocaleDateString('en-GB', {
                 weekday: 'long',
                 day: 'numeric',
@@ -89,17 +90,18 @@ export const CalendarNav = ({
                 year: 'numeric',
               })}` : 'Add workout'}
             >
-              <Plus size={24} strokeWidth={2.5} className='text-white' />
+              <Plus size={20} strokeWidth={2.5} className='text-white md:hidden' />
+              <Plus size={24} strokeWidth={2.5} className='text-white hidden md:block' />
             </button>
-            <h2 className='text-xl font-semibold text-gray-900'>
+            <h2 className='text-sm md:text-xl font-semibold text-gray-900'>
               {viewMode === 'weekly' ? (
                 <>
-                  Week {getWeekNumber(weekDates[0])} -{' '}
-                  {weekDates[0].toLocaleDateString('en-GB', {
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric',
-                  })}
+                  <span className='md:hidden'>
+                    {weekDates[0].toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} - {weekDates[6].toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                  </span>
+                  <span className='hidden md:inline'>
+                    Week {getWeekNumber(weekDates[0])} - {weekDates[0].toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </span>
                 </>
               ) : (
                 <>
@@ -110,18 +112,19 @@ export const CalendarNav = ({
             {copiedWOD && (
               <button
                 onClick={onCancelCopy}
-                className='text-xs px-3 py-1.5 bg-red-500 text-white rounded hover:bg-red-600 transition'
+                className='text-xs px-2 py-1 md:px-3 md:py-1.5 bg-red-500 text-white rounded hover:bg-red-600 transition'
                 title='Cancel copy mode'
               >
-                Cancel Copy
+                Cancel
               </button>
             )}
           </div>
           <button
             onClick={onNextPeriod}
-            className='px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-900 font-medium'
+            className='p-2 md:px-4 md:py-2 bg-gray-200 hover:bg-gray-300 rounded-full md:rounded-lg text-gray-900 font-medium'
+            title={viewMode === 'weekly' ? 'Next Week' : 'Next Month'}
           >
-            {viewMode === 'weekly' ? 'Next Week' : 'Next Month'}
+            <ChevronRight size={24} />
           </button>
         </div>
       </div>

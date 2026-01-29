@@ -131,6 +131,15 @@ function MovementLibraryPopup({
 
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  // Mobile detection for responsive layout
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   // Position and size state for draggable/resizable modal
   const [librarySize, setLibrarySize] = useState({ width: 950, height: 850 });
   const [libraryPos, setLibraryPos] = useState({ top: 70, left: 770 }); // Position to right of WorkoutModal
@@ -651,32 +660,34 @@ function MovementLibraryPopup({
 
   return (
     <div
-      className='fixed z-[100]'
-      style={{
+      className={`fixed z-[100] ${isMobile ? 'inset-0' : ''}`}
+      style={isMobile ? {} : {
         top: `${libraryPos.top}px`,
         left: `${libraryPos.left}px`,
       }}
     >
       <div
-        className='bg-white rounded-lg shadow-2xl flex flex-col relative border-4 border-[#208479]'
-        style={{
+        className={`bg-white shadow-2xl flex flex-col relative ${isMobile ? 'h-full' : 'rounded-lg border-4 border-[#208479]'}`}
+        style={isMobile ? {} : {
           width: `${librarySize.width}px`,
           height: `${librarySize.height}px`,
         }}
       >
-        {/* Bottom-right resize handle */}
-        <div
-          className='absolute bottom-0 right-0 w-6 h-6 cursor-se-resize z-50'
-          onMouseDown={handleResizeStart}
-          title='Drag to resize'
-        >
-          <div className='absolute bottom-0 right-0 w-0 h-0 border-l-[24px] border-l-transparent border-b-[24px] border-b-[#208479] hover:border-b-[#1a6b62] transition'></div>
-        </div>
+        {/* Bottom-right resize handle - desktop only */}
+        {!isMobile && (
+          <div
+            className='absolute bottom-0 right-0 w-6 h-6 cursor-se-resize z-50'
+            onMouseDown={handleResizeStart}
+            title='Drag to resize'
+          >
+            <div className='absolute bottom-0 right-0 w-0 h-0 border-l-[24px] border-l-transparent border-b-[24px] border-b-[#208479] hover:border-b-[#1a6b62] transition'></div>
+          </div>
+        )}
 
-        {/* Header - Draggable */}
+        {/* Header - Draggable on desktop only */}
         <div
-          className='bg-[#208479] text-white p-4 flex justify-between items-center rounded-t-lg cursor-move flex-shrink-0'
-          onMouseDown={handleLibraryDragStart}
+          className={`bg-[#208479] text-white p-3 lg:p-4 flex justify-between items-center flex-shrink-0 ${isMobile ? '' : 'rounded-t-lg cursor-move'}`}
+          onMouseDown={isMobile ? undefined : handleLibraryDragStart}
         >
           <h3 className='font-bold flex items-center gap-2'>
             <Library size={20} />

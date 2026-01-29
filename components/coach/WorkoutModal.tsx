@@ -80,8 +80,8 @@ export default function WorkoutModal({
           onChange={(notes) => hook.handleChange('coach_notes', notes)}
         />
 
-        {/* WOD Panel */}
-        <div className='fixed left-0 top-[72px] h-[calc(100vh-72px)] w-[800px] bg-white shadow-2xl z-50 flex flex-col border-r-2 border-[#208479] border-t border-gray-400 animate-slide-in-left'>
+        {/* WOD Panel - full width on mobile, 800px on desktop */}
+        <div className='fixed left-0 top-[72px] h-[calc(100vh-72px)] w-full lg:w-[800px] bg-white shadow-2xl z-50 flex flex-col border-r-2 border-[#208479] border-t border-gray-400 animate-slide-in-left'>
           {/* Header */}
           <WorkoutModalHeader
             editingWOD={editingWOD}
@@ -182,7 +182,7 @@ export default function WorkoutModal({
                     className='px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white text-sm font-medium rounded-lg flex items-center gap-2 transition'
                   >
                     <Plus size={16} />
-                    Add Section
+                    Section
                   </button>
                 </div>
               </div>
@@ -217,7 +217,7 @@ export default function WorkoutModal({
 
                 {hook.formData.sections.length === 0 && (
                   <div className='text-center py-8 text-gray-500'>
-                    <p>No sections yet. Click &quot;Add Section&quot; to get started.</p>
+                    <p>No sections yet. Click &quot;+ Section&quot; to get started.</p>
                   </div>
                 )}
               </div>
@@ -512,7 +512,7 @@ export default function WorkoutModal({
                       className='px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white text-sm font-medium rounded-lg flex items-center gap-2 transition'
                     >
                       <Plus size={16} />
-                      Add Section
+                      Section
                     </button>
                   </div>
                 </div>
@@ -547,7 +547,7 @@ export default function WorkoutModal({
 
                   {hook.formData.sections.length === 0 && (
                     <div className='text-center py-8 text-gray-500'>
-                      <p>No sections yet. Click &quot;Add Section&quot; to get started.</p>
+                      <p>No sections yet. Click &quot;+ Section&quot; to get started.</p>
                     </div>
                   )}
                 </div>

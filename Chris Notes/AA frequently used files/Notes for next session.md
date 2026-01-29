@@ -2,11 +2,8 @@ This document is a template with headings to show you where the issue is or wher
 
 # FIRST. FIX BUGS MAKE IMPROVEMENTS #
 # Coach Login #
-
-* After every Workout, i take a picture of the whiteboard. I want to be able to upload this picture to the workout and have it displayed on the workout page.
-* Thursday is hideable. Is it complicated to make all days hideable?
-
-* Cards in the calendar do not show the details of Benchmarks & Forge Benchmarks, just the names
+# Movement library #
+If I search "rings" it returns all workouts with "hamstrings" in the description. The search needs to be more accurate.
 
 * Make a plan for how we export and then re-import the data from my Google Calendar workouts from the past 5 years.
 
@@ -18,11 +15,10 @@ This document is a template with headings to show you where the issue is or wher
 *
 *
 # Workout Library tab (coach) #
-When I have a workout selected the Notes appear in edit mode, they should appear in preview mode
+
  # Edit Workout Modal (coach) #
  IMPROVEMENTS/Bug Fixes:
 
- What options do I have for exporting a Workout to Google Calendar with formatting?
 
   # Publish Workout Modal (coach) #
  IMPROVEMENTS/Bug Fixes:

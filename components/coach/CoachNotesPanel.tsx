@@ -218,20 +218,101 @@ export default function CoachNotesPanel({
   // Floating modal (panel mode)
   if (mode === 'floating') {
     return (
-      <div
-        className='fixed z-[70]'
-        style={{
-          bottom: `${position?.bottom || 20}px`,
-          left: `${position?.left || 820}px`,
-        }}
-      >
+      <>
+        {/* Mobile: Full screen overlay */}
+        <div className='lg:hidden fixed inset-0 z-[80] bg-white flex flex-col'>
+          {/* Header */}
+          <div className='bg-[#208479] text-white p-3 flex justify-between items-center flex-shrink-0'>
+            <h2 className='text-lg font-bold'>Coach Notes</h2>
+            <div className='flex gap-2 items-center'>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleEditMode();
+                }}
+                className='px-2 py-1 bg-white text-[#208479] rounded text-sm font-medium hover:bg-gray-100 transition'
+              >
+                {isEditing ? 'Preview' : 'Edit'}
+              </button>
+              <button
+                onClick={onClose}
+                className='hover:bg-[#1a6b62] p-1 rounded transition'
+              >
+                <X size={22} />
+              </button>
+            </div>
+          </div>
+          {/* Content */}
+          <div className='flex-1 overflow-y-auto p-3 flex flex-col'>
+            {isEditing && (
+              <div className='flex gap-1 mb-2 p-2 bg-gray-100 rounded-lg border border-gray-300 flex-shrink-0 flex-wrap'>
+                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('bold'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Bold'>
+                  <Bold size={16} />
+                </button>
+                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('italic'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Italic'>
+                  <Italic size={16} />
+                </button>
+                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('underline'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Underline'>
+                  <UnderlineIcon size={16} />
+                </button>
+                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('bullet'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Bullet List'>
+                  <List size={16} />
+                </button>
+                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('numbered'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Numbered List'>
+                  <ListOrdered size={16} />
+                </button>
+                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('h1'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Heading 1'>
+                  <Heading1 size={16} />
+                </button>
+                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('h2'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Heading 2'>
+                  <Heading2 size={16} />
+                </button>
+                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('h3'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Heading 3'>
+                  <Heading3 size={16} />
+                </button>
+              </div>
+            )}
+            {isEditing ? (
+              <textarea
+                ref={textareaRef}
+                value={notes}
+                onChange={(e) => onChange(e.target.value)}
+                onKeyDown={handleKeyDown}
+                className='flex-1 w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#208479] resize-none text-gray-900'
+                placeholder='Add notes for this workout...'
+              />
+            ) : (
+              <div
+                ref={previewRef}
+                className='flex-1 prose prose-sm max-w-none text-gray-900 overflow-y-auto'
+              >
+                {notes ? (
+                  <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} rehypePlugins={[rehypeRaw]} components={{
+                    a: ({...props}) => <a {...props} className='text-blue-500 font-normal hover:font-bold' target='_blank' rel='noopener noreferrer' />,
+                  }}>{notes}</ReactMarkdown>
+                ) : (
+                  <p className='text-gray-400 italic'>No notes yet. Click Edit to add notes.</p>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Desktop: Floating panel */}
         <div
-          className='bg-white rounded-lg shadow-2xl flex flex-col relative border-4 border-[#208479]'
+          className='hidden lg:block fixed z-[70]'
           style={{
-            width: `${size?.width || 600}px`,
-            height: `${size?.height || 400}px`,
+            bottom: `${position?.bottom || 20}px`,
+            left: `${position?.left || 820}px`,
           }}
         >
+          <div
+            className='bg-white rounded-lg shadow-2xl flex flex-col relative border-4 border-[#208479]'
+            style={{
+              width: `${size?.width || 600}px`,
+              height: `${size?.height || 400}px`,
+            }}
+          >
           {/* Corner Resize Handles */}
           <div
             className='absolute bottom-0 right-0 w-8 h-8 cursor-se-resize z-50'
@@ -374,6 +455,7 @@ export default function CoachNotesPanel({
           </div>
         </div>
       </div>
+      </>
     );
   }
 

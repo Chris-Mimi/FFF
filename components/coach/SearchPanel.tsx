@@ -88,10 +88,10 @@ export default function SearchPanel({
   if (!isOpen) return null;
 
   return (
-    <div className='fixed right-0 top-[72px] h-[calc(100vh-72px)] w-[800px] bg-white shadow-2xl z-50 flex flex-col border-l-2 border-[#208479] border-t border-gray-400 animate-slide-in-right'>
+    <div className='fixed right-0 top-0 lg:top-[72px] h-screen lg:h-[calc(100vh-72px)] w-full lg:w-[800px] bg-white shadow-2xl z-50 flex flex-col border-l-2 border-[#208479] border-t border-gray-400 animate-slide-in-right'>
       {/* Header */}
-      <div className='bg-[#208479] text-white p-4 flex justify-between items-center'>
-        <h2 className='text-xl font-bold'>Workout Library</h2>
+      <div className='bg-[#208479] text-white p-3 lg:p-4 flex justify-between items-center'>
+        <h2 className='text-lg lg:text-xl font-bold'>Workout Library</h2>
         <button
           onClick={() => {
             onClose();

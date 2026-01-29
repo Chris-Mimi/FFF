@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.32
-**Updated:** 2026-01-29 (Session 77 - Mobile UI Refinements)
+**Version:** 10.33
+**Updated:** 2026-01-29 (Session 78 - Coach Mobile Optimization)
 
 ---
 
@@ -76,6 +76,25 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2026-01-29 Session 78 - Opus):**
+- **✅ Coach Dashboard Mobile Optimization:**
+  - Fixed CoachNotesPanel syntax error (missing closing fragment tag `</>`)
+  - Changed "Add Section" button text to "+ Section" (WorkoutModal.tsx)
+  - SearchPanel now full-screen on mobile (`w-full lg:w-[800px]`)
+  - MovementLibraryPopup full-screen on mobile with isMobile state detection
+- **✅ MovementLibraryPopup Mobile Display:**
+  - Added window resize listener for mobile detection (`< 1024px`)
+  - Mobile: Full-screen overlay with `inset-0`, no inline positioning
+  - Desktop: Original draggable/resizable behavior preserved
+  - Hidden resize handle on mobile
+  - Disabled drag functionality on mobile
+  - File: components/coach/MovementLibraryPopup.tsx
+- **✅ SearchPanel Mobile Display:**
+  - Made Workout Library panel full-screen on mobile
+  - Responsive width: `w-full lg:w-[800px]`
+  - File: components/coach/SearchPanel.tsx
+- See: `project-history/2026-01-29-session-78-coach-mobile-optimization.md`
 
 **Completed (2026-01-29 Session 77 - Sonnet):**
 - **✅ Book a Class Tab Navigation Refinement:**

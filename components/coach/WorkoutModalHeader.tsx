@@ -43,19 +43,19 @@ export default function WorkoutModalHeader({
   onClose,
 }: WorkoutModalHeaderProps) {
   return (
-    <div className='bg-[#208479] text-white p-4 flex justify-between items-center'>
-      <h2 className='text-xl font-bold'>{editingWOD ? 'Edit Workout' : 'Create New Workout'}</h2>
-      <div className='flex items-center gap-2'>
+    <div className='bg-[#208479] text-white p-2 md:p-4 flex justify-between items-center gap-2'>
+      <h2 className='text-sm md:text-xl font-bold whitespace-nowrap'>{editingWOD ? 'Edit' : 'New'}<span className='hidden md:inline'> Workout</span></h2>
+      <div className='flex items-center gap-1 md:gap-2 flex-wrap justify-end'>
         <button
           onClick={e => {
             e.preventDefault();
             onNotesToggle(!notesPanelOpen);
           }}
-          className={`hover:bg-[#1a6b62] p-2 rounded transition flex items-center gap-2 ${notesPanelOpen ? 'bg-[#1a6b62]' : ''} ${hasNotes && !notesPanelOpen ? 'bg-teal-500 hover:bg-teal-800' : ''}`}
+          className={`hover:bg-[#1a6b62] p-1.5 md:p-2 rounded transition flex items-center gap-1 md:gap-2 ${notesPanelOpen ? 'bg-[#1a6b62]' : ''} ${hasNotes && !notesPanelOpen ? 'bg-teal-500 hover:bg-teal-800' : ''}`}
           title={hasNotes ? 'Coach Notes (Has content)' : 'Coach Notes (Empty)'}
         >
-          <FileText size={20} className={hasNotes && !notesPanelOpen ? 'text-white' : ''} />
-          <span className='text-sm'>Notes</span>
+          <FileText size={18} className={hasNotes && !notesPanelOpen ? 'text-white' : ''} />
+          <span className='hidden md:inline text-sm'>Notes</span>
         </button>
         {/* Session Time Display/Edit */}
         <SessionTimeEditor
@@ -77,22 +77,22 @@ export default function WorkoutModalHeader({
                   e.preventDefault();
                   onPublishClick();
                 }}
-                className='hover:bg-[#1a6b62] p-2 rounded transition flex items-center gap-2'
+                className='hover:bg-[#1a6b62] p-1.5 md:p-2 rounded transition flex items-center gap-1 md:gap-2'
                 title='Re-publish to Google Calendar'
               >
-                <RefreshCw size={20} />
-                <span className='text-sm'>Re-publish</span>
+                <RefreshCw size={18} />
+                <span className='hidden md:inline text-sm'>Re-publish</span>
               </button>
               <button
                 onClick={e => {
                   e.preventDefault();
                   onUnpublish();
                 }}
-                className='hover:bg-[#1a6b62] p-2 rounded transition flex items-center gap-2'
+                className='hover:bg-[#1a6b62] p-1.5 md:p-2 rounded transition flex items-center gap-1 md:gap-2'
                 title='Unpublish Workout'
               >
-                <X size={20} />
-                <span className='text-sm'>Unpublish</span>
+                <X size={18} />
+                <span className='hidden md:inline text-sm'>Unpublish</span>
               </button>
             </>
           ) : (
@@ -101,11 +101,11 @@ export default function WorkoutModalHeader({
                 e.preventDefault();
                 onPublishClick();
               }}
-              className='hover:bg-[#1a6b62] p-2 rounded transition flex items-center gap-2'
+              className='hover:bg-[#1a6b62] p-1.5 md:p-2 rounded transition flex items-center gap-1 md:gap-2'
               title='Publish Workout'
             >
-              <Send size={20} />
-              <span className='text-sm'>Publish</span>
+              <Send size={18} />
+              <span className='hidden md:inline text-sm'>Publish</span>
             </button>
           )
         )}
@@ -115,11 +115,12 @@ export default function WorkoutModalHeader({
             await onSave();
           }}
           className='hover:bg-[#1a6b62] p-1 rounded transition'
+          title='Save'
         >
-          <Check size={24} />
+          <Check size={22} />
         </button>
-        <button onClick={onClose} className='hover:bg-[#1a6b62] p-1 rounded transition'>
-          <X size={24} />
+        <button onClick={onClose} className='hover:bg-[#1a6b62] p-1 rounded transition' title='Close'>
+          <X size={22} />
         </button>
       </div>
     </div>

@@ -307,9 +307,9 @@ export default function CalendarGrid({
           </div>
         )}
 
-        {/* Hover Popover - Only for workouts with content */}
+        {/* Hover Popover - Only for workouts with content, hidden on mobile (tap goes to modal instead) */}
         {!isEmptySession && hoveredWOD === cardId && dragHandleHovered !== cardId && (
-          <div className='absolute left-0 top-full w-80 bg-white border-2 border-[#208479] rounded-lg shadow-2xl p-4 z-[200] max-h-96 overflow-y-auto'>
+          <div className='hidden md:block absolute left-0 top-full w-80 bg-white border-2 border-[#208479] rounded-lg shadow-2xl p-4 z-[200] max-h-96 overflow-y-auto'>
             <div className='text-sm font-bold text-gray-900 mb-3'>{wod.workout_name || getTrackName(wod.track_id) || wod.title}</div>
             <div className='space-y-3'>
               {wod.sections && wod.sections.length > 0 ? (
@@ -404,8 +404,9 @@ export default function CalendarGrid({
     const isToday = formatDate(new Date()) === dateKey;
     const isCurrentMonth = date.getMonth() === selectedDate.getMonth();
     const isSelected = focusedDate && formatDate(date) === formatDate(focusedDate);
-    const minHeight = isMonthlyView ? 'min-h-[120px]' : 'min-h-[300px]';
-    const padding = isMonthlyView ? 'p-2' : 'p-4';
+    // Responsive min-height: smaller on mobile
+    const minHeight = isMonthlyView ? 'min-h-[120px]' : 'min-h-[150px] md:min-h-[300px]';
+    const padding = isMonthlyView ? 'p-2' : 'p-2 md:p-4';
     const dayNumberClass = isCurrentMonth ? 'text-[#208479]' : 'text-gray-400';
 
     if (isMonthlyView) {
@@ -472,12 +473,13 @@ export default function CalendarGrid({
             }
           }}
         >
-          {/* Day Header */}
-          <div className='mb-3'>
-            <div className='font-bold text-lg text-gray-900'>
-              {date.toLocaleDateString('en-GB', { weekday: 'long' })}
+          {/* Day Header - responsive text sizing */}
+          <div className='mb-2 md:mb-3'>
+            <div className='font-bold text-sm md:text-lg text-gray-900'>
+              <span className='md:hidden'>{date.toLocaleDateString('en-GB', { weekday: 'short' })}</span>
+              <span className='hidden md:inline'>{date.toLocaleDateString('en-GB', { weekday: 'long' })}</span>
             </div>
-            <div className='text-sm text-gray-700'>
+            <div className='text-xs md:text-sm text-gray-700'>
               {date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
             </div>
           </div>
@@ -506,13 +508,16 @@ export default function CalendarGrid({
     const daysToShow = thursdayCollapsed
       ? ['Mon', 'Tue', 'Wed', 'Fri', 'Sat', 'Sun']
       : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    const gridCols = thursdayCollapsed ? 'grid-cols-6' : 'grid-cols-7';
+    // Responsive grid: 3 cols mobile, 4 cols md, 6-7 cols lg+
+    const gridCols = thursdayCollapsed
+      ? 'grid-cols-3 md:grid-cols-4 lg:grid-cols-6'
+      : 'grid-cols-3 md:grid-cols-4 lg:grid-cols-7';
 
     return (
       /* Month View with Week Numbers */
       <div className='w-full max-w-none px-4'>
-        {/* Weekday Headers */}
-        <div className='flex gap-2 mb-2'>
+        {/* Weekday Headers - hidden on mobile since grid is responsive */}
+        <div className='hidden lg:flex gap-2 mb-2'>
           {/* Week number column header */}
           <div className='w-8'></div>
           {/* Day headers */}
@@ -552,8 +557,8 @@ export default function CalendarGrid({
 
           return (
             <div key={weekIdx} className='flex gap-2 mb-2'>
-              {/* Week Number - Teal Box */}
-              <div className='w-8 flex items-center justify-center text-xs font-semibold text-white bg-[#208479] rounded'>
+              {/* Week Number - Teal Box, hidden on mobile */}
+              <div className='hidden lg:flex w-8 items-center justify-center text-xs font-semibold text-white bg-[#208479] rounded'>
                 {weekNumber}
               </div>
 
@@ -568,7 +573,10 @@ export default function CalendarGrid({
     );
   } else {
     // Weekly view - 2 weeks
-    const gridCols = thursdayCollapsed ? 'grid-cols-6' : 'grid-cols-7';
+    // Responsive grid: 1 col mobile, 2 cols sm, 3 cols md, 6-7 cols lg+
+    const gridCols = thursdayCollapsed
+      ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6'
+      : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7';
     const firstWeekDates = displayDates.slice(0, 7);
     const filteredFirstWeek = thursdayCollapsed
       ? firstWeekDates.filter((date) => date.getDay() !== 4)

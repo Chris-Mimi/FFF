@@ -265,23 +265,25 @@ export default function CoachDashboard() {
         onLogout={handleLogout}
       />
 
-      {/* Calendar Content */}
+      {/* Calendar Content - hidden on mobile when modal open, pushed on desktop */}
       <div
         className={`flex flex-col transition-all duration-300 ${
+          isModalOpen ? 'hidden lg:flex' : ''
+        } ${
           isModalOpen && searchPanelOpen
             ? ''
             : isModalOpen && quickEditMode && searchPanelOpen
-            ? 'ml-[800px] mr-[1200px]'
+            ? 'lg:ml-[800px] lg:mr-[1200px]'
             : isModalOpen && quickEditMode
-            ? 'ml-[800px] mr-[400px]'
+            ? 'lg:ml-[800px] lg:mr-[400px]'
             : quickEditMode && searchPanelOpen
-            ? 'mr-[1200px]'
+            ? 'lg:mr-[1200px]'
             : quickEditMode
-            ? 'mr-[800px]'
+            ? 'lg:mr-[800px]'
             : isModalOpen
-            ? 'ml-[800px]'
+            ? 'lg:ml-[800px]'
             : searchPanelOpen
-            ? 'mr-[800px]'
+            ? 'lg:mr-[800px]'
             : ''
         }`}
       >
