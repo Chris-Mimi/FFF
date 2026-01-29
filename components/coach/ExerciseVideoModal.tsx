@@ -17,6 +17,9 @@ export default function ExerciseVideoModal({
   videoUrl,
   exerciseName,
 }: ExerciseVideoModalProps) {
+  // Mobile detection
+  const [isMobile, setIsMobile] = useState(false);
+
   // Modal size and position state
   const [modalSize, setModalSize] = useState({ width: 800, height: 600 });
   const [modalPos, setModalPos] = useState({ top: 100, left: 400 });
@@ -27,6 +30,14 @@ export default function ExerciseVideoModal({
 
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Check for mobile screen
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Process video URL
   const { type, embedUrl } = getEmbedUrl(videoUrl);
@@ -155,8 +166,10 @@ export default function ExerciseVideoModal({
 
       {/* Modal */}
       <div
-        className='fixed bg-black border border-gray-700 rounded-lg shadow-2xl z-[110] flex flex-col'
-        style={{
+        className={`fixed bg-black shadow-2xl z-[110] flex flex-col ${
+          isMobile ? 'inset-0' : 'border border-gray-700 rounded-lg'
+        }`}
+        style={isMobile ? {} : {
           top: `${modalPos.top}px`,
           left: `${modalPos.left}px`,
           width: `${modalSize.width}px`,
@@ -166,8 +179,10 @@ export default function ExerciseVideoModal({
       >
         {/* Header */}
         <div
-          className='flex items-center justify-between px-4 py-3 bg-gray-900 border-b border-gray-700 rounded-t-lg cursor-move'
-          onMouseDown={handleDragStart}
+          className={`flex items-center justify-between px-4 py-3 bg-gray-900 border-b border-gray-700 ${
+            isMobile ? '' : 'rounded-t-lg cursor-move'
+          }`}
+          onMouseDown={isMobile ? undefined : handleDragStart}
         >
           <div className='flex items-center gap-2 text-white'>
             <span className='text-lg'>📹</span>
@@ -223,14 +238,16 @@ export default function ExerciseVideoModal({
           )}
         </div>
 
-        {/* Resize handle (bottom-right corner) */}
-        <div
-          className='absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize'
-          onMouseDown={handleResizeStart}
-          style={{
-            background: 'linear-gradient(135deg, transparent 50%, #4b5563 50%)',
-          }}
-        />
+        {/* Resize handle (bottom-right corner) - desktop only */}
+        {!isMobile && (
+          <div
+            className='absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize'
+            onMouseDown={handleResizeStart}
+            style={{
+              background: 'linear-gradient(135deg, transparent 50%, #4b5563 50%)',
+            }}
+          />
+        )}
       </div>
     </>
   );

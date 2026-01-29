@@ -94,6 +94,16 @@ Athlete Tables (linked to members.id)
   - Made Workout Library panel full-screen on mobile
   - Responsive width: `w-full lg:w-[800px]`
   - File: components/coach/SearchPanel.tsx
+- **✅ Movement Library Search Fix:**
+  - Fixed "rings" matching "hamstrings" (substring match issue)
+  - Added `matchesWordBoundary()` helper with regex `\b` word boundaries
+  - Applied to exercises, lifts, benchmarks, and forge benchmarks search
+  - File: components/coach/MovementLibraryPopup.tsx
+- **✅ Exercise Video Modal Mobile Display:**
+  - Fixed video appearing zoomed in on mobile (800x600px exceeded screen)
+  - Mobile: Full-screen overlay with `inset-0`
+  - Desktop: Original draggable/resizable behavior preserved
+  - File: components/coach/ExerciseVideoModal.tsx
 - See: `project-history/2026-01-29-session-78-coach-mobile-optimization.md`
 
 **Completed (2026-01-29 Session 77 - Sonnet):**

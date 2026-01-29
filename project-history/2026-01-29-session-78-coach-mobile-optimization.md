@@ -72,10 +72,43 @@ For MovementLibraryPopup, we couldn't use pure CSS responsive classes because:
 - Consistent with Tailwind's `lg:` responsive prefix
 - Matches other mobile optimizations in the codebase
 
+### 5. Movement Library Search - Word Boundary Fix
+- **Issue:** Searching "rings" returned exercises containing "hamstrings"
+- **Root Cause:** Search used `.includes()` which matches substrings
+- **Solution:** Added `matchesWordBoundary()` helper function with regex word boundaries:
+  ```typescript
+  const matchesWordBoundary = (text: string, searchTerm: string): boolean => {
+    if (!text || !searchTerm) return false;
+    const escaped = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`\\b${escaped}\\b`, 'i');
+    return regex.test(text);
+  };
+  ```
+- **Applied to:** Exercises, lifts, benchmarks, and forge benchmarks search
+- **File:** `components/coach/MovementLibraryPopup.tsx`
+
+### 6. Exercise Video Modal Mobile Display
+- **Issue:** Video modal appeared "zoomed in" on mobile (content cut off)
+- **Root Cause:** Fixed 800x600px dimensions exceeded mobile screen size
+- **Solution:** Added mobile detection and full-screen display:
+  - Mobile: `inset-0` for full-screen, no drag/resize
+  - Desktop: Original draggable/resizable behavior preserved
+- **File:** `components/coach/ExerciseVideoModal.tsx`
+
+## Files Changed
+
+1. `components/coach/CoachNotesPanel.tsx` - Syntax fix
+2. `components/coach/WorkoutModal.tsx` - Button text change
+3. `components/coach/SearchPanel.tsx` - Responsive width
+4. `components/coach/MovementLibraryPopup.tsx` - Mobile full-screen + search fix
+5. `components/coach/ExerciseVideoModal.tsx` - Mobile full-screen
+
 ## Testing Notes
 
 - Tested on mobile viewport
 - SearchPanel now accessible via Library button in header
 - MovementLibraryPopup now accessible via Library button in WorkoutModal
-- Both components display full-screen on mobile
+- Exercise video modal displays full-screen on mobile
+- Search for "rings" no longer returns "hamstrings" results
+- All components display full-screen on mobile
 - Desktop functionality unchanged

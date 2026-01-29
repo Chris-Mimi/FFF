@@ -10,6 +10,14 @@ import ExerciseVideoModal from './ExerciseVideoModal';
 import ExerciseFormModal from './ExerciseFormModal';
 import MultiSelectDropdown from './MultiSelectDropdown';
 
+// Word boundary search - matches whole words only (e.g., "rings" won't match "hamstrings")
+const matchesWordBoundary = (text: string, searchTerm: string): boolean => {
+  if (!text || !searchTerm) return false;
+  const escaped = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp(`\\b${escaped}\\b`, 'i');
+  return regex.test(text);
+};
+
 interface Exercise {
   id: string;
   name: string;
@@ -522,20 +530,19 @@ function MovementLibraryPopup({
       );
     }
 
-    // Step 2: Apply search filter
+    // Step 2: Apply search filter (word boundary matching - "rings" won't match "hamstrings")
     const trimmedSearch = searchTerm.trim();
     if (trimmedSearch) {
-      const searchLower = trimmedSearch.toLowerCase();
       filteredExercises = filteredExercises.filter(
         exercise =>
-          exercise.name.toLowerCase().includes(searchLower) ||
-          (exercise.display_name && exercise.display_name.toLowerCase().includes(searchLower)) ||
-          exercise.category.toLowerCase().includes(searchLower) ||
-          (exercise.subcategory && exercise.subcategory.toLowerCase().includes(searchLower)) ||
-          exercise.tags?.some(tag => tag.toLowerCase().includes(searchLower)) ||
-          exercise.equipment?.some(eq => eq.toLowerCase().includes(searchLower)) ||
-          exercise.body_parts?.some(bp => bp.toLowerCase().includes(searchLower)) ||
-          (exercise.search_terms && exercise.search_terms.toLowerCase().includes(searchLower))
+          matchesWordBoundary(exercise.name, trimmedSearch) ||
+          matchesWordBoundary(exercise.display_name || '', trimmedSearch) ||
+          matchesWordBoundary(exercise.category, trimmedSearch) ||
+          matchesWordBoundary(exercise.subcategory || '', trimmedSearch) ||
+          exercise.tags?.some(tag => matchesWordBoundary(tag, trimmedSearch)) ||
+          exercise.equipment?.some(eq => matchesWordBoundary(eq, trimmedSearch)) ||
+          exercise.body_parts?.some(bp => matchesWordBoundary(bp, trimmedSearch)) ||
+          matchesWordBoundary(exercise.search_terms || '', trimmedSearch)
       );
     }
 
@@ -567,7 +574,7 @@ function MovementLibraryPopup({
     const filtered: Record<string, BarbellLift[]> = {};
     Object.entries(grouped).forEach(([category, categoryLifts]) => {
       const matchingLifts = categoryLifts.filter(lift =>
-        lift.name.toLowerCase().includes(trimmedSearch.toLowerCase())
+        matchesWordBoundary(lift.name, trimmedSearch)
       );
       if (matchingLifts.length > 0) {
         filtered[category] = matchingLifts;
@@ -581,7 +588,7 @@ function MovementLibraryPopup({
     const trimmedSearch = searchTerm.trim();
     if (!trimmedSearch) return benchmarks;
     return benchmarks.filter(b =>
-      b.name.toLowerCase().includes(trimmedSearch.toLowerCase())
+      matchesWordBoundary(b.name, trimmedSearch)
     );
   }, [benchmarks, searchTerm]);
 
@@ -590,7 +597,7 @@ function MovementLibraryPopup({
     const trimmedSearch = searchTerm.trim();
     if (!trimmedSearch) return forgeBenchmarks;
     return forgeBenchmarks.filter(f =>
-      f.name.toLowerCase().includes(trimmedSearch.toLowerCase())
+      matchesWordBoundary(f.name, trimmedSearch)
     );
   }, [forgeBenchmarks, searchTerm]);
 
