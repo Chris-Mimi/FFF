@@ -10,6 +10,7 @@ interface UseCoachDataProps {
   selectedMovements: string[];
   selectedWorkoutTypes: string[];
   selectedTracks: string[];
+  selectedSessionTypes: string[];
   includedSectionTypes: string[];
 }
 
@@ -18,6 +19,7 @@ export const useCoachData = ({
   selectedMovements,
   selectedWorkoutTypes,
   selectedTracks,
+  selectedSessionTypes,
   includedSectionTypes,
 }: UseCoachDataProps) => {
   const [wods, setWods] = useState<Record<string, WODFormData[]>>({});
@@ -25,6 +27,8 @@ export const useCoachData = ({
   const [trackCounts, setTrackCounts] = useState<Record<string, number>>({});
   const [workoutTypes, setWorkoutTypes] = useState<Array<{ id: string; name: string }>>([]);
   const [workoutTypeCounts, setWorkoutTypeCounts] = useState<Record<string, number>>({});
+  const [sessionTypes, setSessionTypes] = useState<string[]>([]);
+  const [sessionTypeCounts, setSessionTypeCounts] = useState<Record<string, number>>({});
   const [sectionTypes, setSectionTypes] = useState<Array<{ id: string; name: string; display_order: number }>>([]);
   const [searchResults, setSearchResults] = useState<WODFormData[]>([]);
   const [movements, setMovements] = useState<Map<string, number>>(new Map());
@@ -152,7 +156,8 @@ export const useCoachData = ({
       !searchQuery &&
       !selectedMovements.length &&
       !selectedWorkoutTypes.length &&
-      !selectedTracks.length
+      !selectedTracks.length &&
+      !selectedSessionTypes.length
     ) {
       setSearchResults([]);
       setMovements(new Map());
@@ -180,9 +185,11 @@ export const useCoachData = ({
               sections,
               coach_notes,
               is_published,
+              workout_publish_status,
               google_event_id
             )
-          `);
+          `)
+          .eq('wods.workout_publish_status', 'published');
 
         if (selectedTracks.length > 0) {
           query = query.in('wods.track_id', selectedTracks);
@@ -264,6 +271,12 @@ export const useCoachData = ({
           );
         }
 
+        if (selectedSessionTypes.length > 0) {
+          filteredResults = filteredResults.filter(wod =>
+            wod.title && selectedSessionTypes.includes(wod.title)
+          );
+        }
+
         setSearchResults(filteredResults);
 
         const allMovements = extractMovements(filteredResults);
@@ -275,7 +288,7 @@ export const useCoachData = ({
 
     const timeoutId = setTimeout(searchWODs, 300);
     return () => clearTimeout(timeoutId);
-  }, [searchQuery, selectedMovements, selectedWorkoutTypes, selectedTracks, includedSectionTypes]);
+  }, [searchQuery, selectedMovements, selectedWorkoutTypes, selectedTracks, selectedSessionTypes, includedSectionTypes]);
 
   const fetchTracksAndCounts = async () => {
     try {
@@ -303,20 +316,39 @@ export const useCoachData = ({
       if (sectionTypesError) throw sectionTypesError;
       setSectionTypes(sectionTypesData || []);
 
-      const { data: wodsData, error: wodsError } = await supabase
-        .from('wods')
-        .select('track_id, sections, workout_publish_status')
-        .eq('workout_publish_status', 'published');
+      // Query from weekly_sessions to match search results (excludes orphaned wods)
+      const { data: sessionsData, error: sessionsError } = await supabase
+        .from('weekly_sessions')
+        .select(`
+          wods!inner (
+            track_id,
+            title,
+            sections,
+            workout_publish_status
+          )
+        `)
+        .eq('wods.workout_publish_status', 'published');
 
-      if (wodsError) throw wodsError;
+      if (sessionsError) throw sessionsError;
 
       const trackCountsMap: Record<string, number> = {};
       const workoutTypeCountsMap: Record<string, number> = {};
+      const sessionTypeCountsMap: Record<string, number> = {};
+      const uniqueSessionTypes = new Set<string>();
 
-      wodsData?.forEach((wod: { track_id: string | null; sections: any[] }) => {
+      sessionsData?.forEach((session: any) => {
+        const wod = session.wods;
+        if (!wod) return;
+
         // Count tracks
         if (wod.track_id) {
           trackCountsMap[wod.track_id] = (trackCountsMap[wod.track_id] || 0) + 1;
+        }
+
+        // Count session types (stored in title field)
+        if (wod.title) {
+          uniqueSessionTypes.add(wod.title);
+          sessionTypeCountsMap[wod.title] = (sessionTypeCountsMap[wod.title] || 0) + 1;
         }
 
         // Count workout types from sections
@@ -329,6 +361,8 @@ export const useCoachData = ({
 
       setTrackCounts(trackCountsMap);
       setWorkoutTypeCounts(workoutTypeCountsMap);
+      setSessionTypes(Array.from(uniqueSessionTypes).sort());
+      setSessionTypeCounts(sessionTypeCountsMap);
     } catch (error) {
       console.error('Error fetching tracks and counts:', error);
     }
@@ -341,6 +375,8 @@ export const useCoachData = ({
     trackCounts,
     workoutTypes,
     workoutTypeCounts,
+    sessionTypes,
+    sessionTypeCounts,
     sectionTypes,
     searchResults,
     setSearchResults,

@@ -10,11 +10,11 @@ import ExerciseVideoModal from './ExerciseVideoModal';
 import ExerciseFormModal from './ExerciseFormModal';
 import MultiSelectDropdown from './MultiSelectDropdown';
 
-// Word boundary search - matches whole words only (e.g., "rings" won't match "hamstrings")
+// Word boundary at START only - "Deadl" matches "Deadlift", but "rings" won't match "hamstrings"
 const matchesWordBoundary = (text: string, searchTerm: string): boolean => {
   if (!text || !searchTerm) return false;
   const escaped = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const regex = new RegExp(`\\b${escaped}\\b`, 'i');
+  const regex = new RegExp(`\\b${escaped}`, 'i');
   return regex.test(text);
 };
 

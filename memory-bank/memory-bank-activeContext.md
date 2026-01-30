@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.35
-**Updated:** 2026-01-30 (Session 80 - Analysis Deduplication + Section Stats)
+**Version:** 10.36
+**Updated:** 2026-01-30 (Session 81 - Session Types Filter + Search Fix)
 
 ---
 
@@ -76,6 +76,23 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2026-01-30 Session 81 - Opus):**
+- **✅ Session Types Filter in Workout Library:**
+  - Added "Session Types" filter section to left panel (WOD, Foundations, Kids & Teens, etc.)
+  - Added sessionTypes and sessionTypeCounts state variables
+  - Filter only includes published workouts (not drafts or orphaned records)
+  - Files: hooks/coach/useCoachData.ts, app/coach/page.tsx, components/coach/SearchPanel.tsx
+- **✅ Track/Type Counts Query Fix:**
+  - Fixed count mismatch (e.g., showing 10 for Foundations, but only 8 results)
+  - Root cause: Counts queried from `wods` table directly, search queried from `weekly_sessions`
+  - Solution: Changed `fetchTracksAndCounts()` to query from `weekly_sessions` joined with published `wods`
+  - File: hooks/coach/useCoachData.ts
+- **✅ Movement Library Search Prefix Matching:**
+  - Changed word boundary regex from `\b...\b` (both sides) to `\b...` (start only)
+  - "Deadl" now matches "Deadlift" while "rings" still won't match "hamstrings"
+  - File: components/coach/MovementLibraryPopup.tsx
+- See: `project-history/2026-01-30-session-81-session-types-filter.md`
 
 **Completed (2026-01-30 Session 80 - Sonnet):**
 - **✅ Analysis Page Deduplication Fix:**

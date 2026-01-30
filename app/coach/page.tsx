@@ -57,6 +57,7 @@ export default function CoachDashboard() {
   const [selectedMovements, setSelectedMovements] = useState<string[]>([]);
   const [selectedWorkoutTypes, setSelectedWorkoutTypes] = useState<string[]>([]);
   const [selectedTracks, setSelectedTracks] = useState<string[]>([]);
+  const [selectedSessionTypes, setSelectedSessionTypes] = useState<string[]>([]);
   const [includedSectionTypes, setIncludedSectionTypes] = useState<string[]>([]);
   const [selectedSearchWOD, setSelectedSearchWOD] = useState<WODFormData | null>(null);
   const [hoveredSearchWOD, setHoveredSearchWOD] = useState<WODFormData | null>(null);
@@ -76,6 +77,8 @@ export default function CoachDashboard() {
     trackCounts,
     workoutTypes,
     workoutTypeCounts,
+    sessionTypes,
+    sessionTypeCounts,
     sectionTypes,
     searchResults,
     movements,
@@ -87,6 +90,7 @@ export default function CoachDashboard() {
     selectedMovements,
     selectedWorkoutTypes,
     selectedTracks,
+    selectedSessionTypes,
     includedSectionTypes,
   });
 
@@ -390,14 +394,18 @@ export default function CoachDashboard() {
           onSelectedWorkoutTypesChange={setSelectedWorkoutTypes}
           selectedTracks={selectedTracks}
           onSelectedTracksChange={setSelectedTracks}
+          selectedSessionTypes={selectedSessionTypes}
+          onSelectedSessionTypesChange={setSelectedSessionTypes}
           includedSectionTypes={includedSectionTypes}
           onIncludedSectionTypesChange={setIncludedSectionTypes}
           movements={movements}
           workoutTypes={workoutTypes}
           tracks={tracks}
+          sessionTypes={sessionTypes}
           sectionTypes={sectionTypes}
           trackCounts={trackCounts}
           workoutTypeCounts={workoutTypeCounts}
+          sessionTypeCounts={sessionTypeCounts}
           selectedSearchWOD={selectedSearchWOD}
           onSelectedSearchWODChange={setSelectedSearchWOD}
           hoveredWOD={hoveredSearchWOD}

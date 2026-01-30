@@ -35,14 +35,18 @@ interface SearchPanelProps {
   onSelectedWorkoutTypesChange: (types: string[]) => void;
   selectedTracks: string[];
   onSelectedTracksChange: (tracks: string[]) => void;
+  selectedSessionTypes: string[];
+  onSelectedSessionTypesChange: (types: string[]) => void;
   includedSectionTypes: string[];
   onIncludedSectionTypesChange: (types: string[]) => void;
   movements: Map<string, number>;
   workoutTypes: WorkoutType[];
   tracks: Track[];
+  sessionTypes: string[];
   sectionTypes: SectionType[];
   trackCounts: Record<string, number>;
   workoutTypeCounts: Record<string, number>;
+  sessionTypeCounts: Record<string, number>;
   selectedSearchWOD: WODFormData | null;
   onSelectedSearchWODChange: (wod: WODFormData | null) => void;
   hoveredWOD: WODFormData | null;
@@ -69,14 +73,18 @@ export default function SearchPanel({
   onSelectedWorkoutTypesChange,
   selectedTracks,
   onSelectedTracksChange,
+  selectedSessionTypes,
+  onSelectedSessionTypesChange,
   includedSectionTypes,
   onIncludedSectionTypesChange,
   movements,
   workoutTypes,
   tracks,
+  sessionTypes,
   sectionTypes,
   trackCounts,
   workoutTypeCounts,
+  sessionTypeCounts,
   selectedSearchWOD,
   onSelectedSearchWODChange,
   hoveredWOD,
@@ -102,6 +110,7 @@ export default function SearchPanel({
             onSelectedMovementsChange([]);
             onSelectedWorkoutTypesChange([]);
             onSelectedTracksChange([]);
+            onSelectedSessionTypesChange([]);
             onIncludedSectionTypesChange([]);
             // Note: movements map should be reset in parent component
           }}
@@ -227,6 +236,42 @@ export default function SearchPanel({
               )}
             </div>
           </details>
+
+          {/* Session Types Section */}
+          <details className='border-b' open>
+            <summary className='px-3 py-2 font-semibold text-sm text-gray-900 cursor-pointer hover:bg-gray-100'>
+              Session Types
+            </summary>
+            <div className='px-2 py-2 space-y-1'>
+              {sessionTypes.map(sessionType => (
+                <button
+                  key={sessionType}
+                  onClick={() => {
+                    onSelectedSessionTypesChange(
+                      selectedSessionTypes.includes(sessionType)
+                        ? selectedSessionTypes.filter(t => t !== sessionType)
+                        : [...selectedSessionTypes, sessionType]
+                    );
+                  }}
+                  className={`w-full text-left px-2 py-1 rounded text-xs flex justify-between items-center transition ${
+                    selectedSessionTypes.includes(sessionType)
+                      ? 'bg-[#208479] text-white'
+                      : 'hover:bg-gray-200 text-gray-900'
+                  }`}
+                >
+                  <span className='truncate'>{sessionType}</span>
+                  <span
+                    className={`text-xs ml-1 ${selectedSessionTypes.includes(sessionType) ? 'opacity-75' : 'text-gray-500'}`}
+                  >
+                    {sessionTypeCounts[sessionType] || 0}
+                  </span>
+                </button>
+              ))}
+              {sessionTypes.length === 0 && (
+                <p className='text-xs text-gray-500 px-2 py-1'>No session types found</p>
+              )}
+            </div>
+          </details>
         </div>
 
         {/* RIGHT SIDE - Search and Results */}
@@ -305,7 +350,8 @@ export default function SearchPanel({
             {(searchQuery ||
               selectedMovements.length > 0 ||
               selectedWorkoutTypes.length > 0 ||
-              selectedTracks.length > 0) && (
+              selectedTracks.length > 0 ||
+              selectedSessionTypes.length > 0) && (
               <div className='flex flex-wrap gap-2 mt-3'>
                 {searchQuery && (
                   <span className='inline-flex items-center gap-1 px-2 py-1 bg-[#208479] text-white text-xs rounded-full'>
@@ -378,6 +424,24 @@ export default function SearchPanel({
                     </span>
                   ) : null;
                 })}
+                {selectedSessionTypes.map(sessionType => (
+                  <span
+                    key={sessionType}
+                    className='inline-flex items-center gap-1 px-2 py-1 bg-[#208479] text-white text-xs rounded-full'
+                  >
+                    {sessionType}
+                    <button
+                      onClick={() =>
+                        onSelectedSessionTypesChange(
+                          selectedSessionTypes.filter(t => t !== sessionType)
+                        )
+                      }
+                      className='hover:bg-[#1a6b62] rounded-full p-0.5'
+                    >
+                      <X size={12} />
+                    </button>
+                  </span>
+                ))}
               </div>
             )}
           </div>
@@ -387,7 +451,8 @@ export default function SearchPanel({
             (searchQuery ||
               selectedMovements.length > 0 ||
               selectedWorkoutTypes.length > 0 ||
-              selectedTracks.length > 0) && (
+              selectedTracks.length > 0 ||
+              selectedSessionTypes.length > 0) && (
               <div className='flex-1 overflow-y-auto p-4'>
                 <h3 className='font-semibold text-gray-900 mb-3'>
                   Results ({searchResults.length})
