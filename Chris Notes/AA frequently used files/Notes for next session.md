@@ -1,9 +1,12 @@
 This document is a template with headings to show you where the issue is or where the improvement needs to be. Headings appear inside "#". If they are not followed by a "*" and text, ignore them, otherwise, read the text and act accordingly.
 
+# Mobile URL #
+http://192.168.178.75:3000
+
+
 # FIRST. FIX BUGS MAKE IMPROVEMENTS #
 # Coach Login #
 # Movement library #
-If I search "rings" it returns all workouts with "hamstrings" in the description. The search needs to be more accurate.
 
 * Make a plan for how we export and then re-import the data from my Google Calendar workouts from the past 5 years.
 

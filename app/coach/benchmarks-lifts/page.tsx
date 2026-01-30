@@ -1111,16 +1111,17 @@ export default function BenchmarksLiftsManagementPage() {
       {/* Header */}
       <div className='bg-white shadow'>
         <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-          <div className='flex items-center gap-4 py-4'>
+          <div className='flex items-center gap-2 md:gap-4 py-2 md:py-4'>
             <button
               onClick={() => router.push('/coach')}
-              className='p-2 hover:bg-gray-100 rounded-lg transition text-gray-700'
+              className='flex items-center gap-1 p-1.5 md:p-2 hover:bg-gray-100 rounded-lg transition text-gray-700 text-sm'
             >
-              <ArrowLeft size={24} />
+              <ArrowLeft size={20} className='md:w-6 md:h-6' />
+              <span className='md:hidden'>Back</span>
             </button>
             <div>
-              <h1 className='text-3xl font-bold text-gray-900'>Coach Library</h1>
-              <p className='text-sm text-gray-600'>Manage benchmarks, lifts, exercises, programming references, and notes</p>
+              <h1 className='text-xl md:text-3xl font-bold text-gray-900'>Coach Library</h1>
+              <p className='text-xs md:text-sm text-gray-600 hidden md:block'>Manage benchmarks, lifts, exercises, programming references, and notes</p>
             </div>
           </div>
         </div>
@@ -1129,40 +1130,40 @@ export default function BenchmarksLiftsManagementPage() {
       {/* Main Content */}
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
         {/* Tabs */}
-        <div className='flex gap-2 mb-6'>
+        <div className='flex gap-1 md:gap-2 mb-4 md:mb-6 overflow-x-auto pb-2'>
           <button
             onClick={() => setActiveTab('benchmarks')}
-            className={`px-4 py-2 rounded-lg font-medium transition ${
+            className={`px-2 md:px-4 py-1.5 md:py-2 rounded-lg font-medium transition text-xs md:text-base whitespace-nowrap ${
               activeTab === 'benchmarks'
                 ? 'bg-teal-500 text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-50'
             }`}
           >
-            Benchmark Workouts
+            Benchmarks
           </button>
           <button
             onClick={() => setActiveTab('forge')}
-            className={`px-4 py-2 rounded-lg font-medium transition ${
+            className={`px-2 md:px-4 py-1.5 md:py-2 rounded-lg font-medium transition text-xs md:text-base whitespace-nowrap ${
               activeTab === 'forge'
                 ? 'bg-cyan-500 text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-50'
             }`}
           >
-            Forge Benchmarks
+            Forge
           </button>
           <button
             onClick={() => setActiveTab('lifts')}
-            className={`px-4 py-2 rounded-lg font-medium transition ${
+            className={`px-2 md:px-4 py-1.5 md:py-2 rounded-lg font-medium transition text-xs md:text-base whitespace-nowrap ${
               activeTab === 'lifts'
                 ? 'bg-blue-400 text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-50'
             }`}
           >
-            Barbell Lifts
+            Lifts
           </button>
           <button
             onClick={() => setActiveTab('exercises')}
-            className={`px-4 py-2 rounded-lg font-medium transition ${
+            className={`px-2 md:px-4 py-1.5 md:py-2 rounded-lg font-medium transition text-xs md:text-base whitespace-nowrap ${
               activeTab === 'exercises'
                 ? 'bg-green-500 text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-50'
@@ -1172,17 +1173,17 @@ export default function BenchmarksLiftsManagementPage() {
           </button>
           <button
             onClick={() => setActiveTab('references')}
-            className={`px-4 py-2 rounded-lg font-medium transition ${
+            className={`px-2 md:px-4 py-1.5 md:py-2 rounded-lg font-medium transition text-xs md:text-base whitespace-nowrap ${
               activeTab === 'references'
                 ? 'bg-gray-600 text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-50'
             }`}
           >
-            References
+            Refs
           </button>
           <button
             onClick={() => setActiveTab('tracks')}
-            className={`px-4 py-2 rounded-lg font-medium transition ${
+            className={`px-2 md:px-4 py-1.5 md:py-2 rounded-lg font-medium transition text-xs md:text-base whitespace-nowrap ${
               activeTab === 'tracks'
                 ? 'bg-purple-600 text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-50'
@@ -1192,13 +1193,13 @@ export default function BenchmarksLiftsManagementPage() {
           </button>
           <button
             onClick={() => setActiveTab('notes')}
-            className={`px-4 py-2 rounded-lg font-medium transition ${
+            className={`px-2 md:px-4 py-1.5 md:py-2 rounded-lg font-medium transition text-xs md:text-base whitespace-nowrap ${
               activeTab === 'notes'
                 ? 'bg-orange-500 text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-50'
             }`}
           >
-            Programming Aids
+            Aids
           </button>
         </div>
 

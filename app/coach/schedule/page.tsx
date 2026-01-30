@@ -422,48 +422,48 @@ export default function CoachSchedulePage() {
       {/* Header */}
       <header className="bg-gray-800 border-b border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-white">Weekly Schedule Templates</h1>
-              <p className="text-gray-400 text-sm mt-1">Define your recurring weekly class schedule</p>
+              <h1 className="text-xl md:text-2xl font-bold text-white">Schedule Templates</h1>
+              <p className="text-gray-400 text-xs md:text-sm mt-1 hidden md:block">Define your recurring weekly class schedule</p>
             </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => handleOpenModal()}
-                className="flex items-center gap-2 px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-lg transition-colors duration-200"
-              >
-                <Plus size={18} />
-                Add Template
-              </button>
+            <div className="grid grid-cols-2 md:flex md:items-center gap-2 md:gap-3">
               <button
                 onClick={handleGenerateCurrentWeek}
                 disabled={generating || templates.filter(t => t.active).length === 0}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200"
+                className="flex items-center justify-center gap-1 md:gap-2 px-2 md:px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200 text-sm md:text-base"
                 title="Generate sessions for current week from active templates"
               >
-                <Calendar size={18} />
-                {generating ? 'Generating...' : 'Current Week'}
+                <Calendar size={16} className="md:w-[18px] md:h-[18px]" />
+                {generating ? '...' : 'This Week'}
               </button>
               <button
                 onClick={handleGenerateNextWeek}
                 disabled={generating || templates.filter(t => t.active).length === 0}
-                className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200"
+                className="flex items-center justify-center gap-1 md:gap-2 px-2 md:px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200 text-sm md:text-base"
                 title="Generate sessions for next week from active templates"
               >
-                <Calendar size={18} />
-                {generating ? 'Generating...' : 'Next Week'}
+                <Calendar size={16} className="md:w-[18px] md:h-[18px]" />
+                {generating ? '...' : 'Next Week'}
+              </button>
+              <button
+                onClick={() => handleOpenModal()}
+                className="flex items-center justify-center gap-1 md:gap-2 px-2 md:px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-lg transition-colors duration-200 text-sm md:text-base"
+              >
+                <Plus size={16} className="md:w-[18px] md:h-[18px]" />
+                Template
               </button>
               <button
                 onClick={() => router.push('/coach')}
-                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors duration-200"
+                className="px-2 md:px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors duration-200 text-sm md:text-base"
               >
-                Back to Dashboard
+                Back
               </button>
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200"
+                className="col-span-2 md:col-span-1 flex items-center justify-center gap-1 md:gap-2 px-2 md:px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 text-sm md:text-base"
               >
-                <LogOut size={18} />
+                <LogOut size={16} className="md:w-[18px] md:h-[18px]" />
                 Logout
               </button>
             </div>
@@ -502,33 +502,30 @@ export default function CoachSchedulePage() {
                   {/* Day Header */}
                   <h2 className="text-lg font-bold text-teal-400 mb-3">{day.label}</h2>
 
-                  {/* Templates Grid - 5 columns */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                  {/* Templates Grid */}
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-4">
                     {dayTemplates.map((template) => (
                       <div
                         key={template.id}
-                        className={`bg-gray-800 rounded-lg p-4 border ${
+                        className={`bg-gray-800 rounded-lg p-2 md:p-4 border ${
                           template.active ? 'border-gray-700' : 'border-gray-800 opacity-60'
                         } hover:border-gray-600 transition-colors duration-200`}
                       >
-                        <div className="flex gap-3">
+                        <div className="flex gap-2 md:gap-3">
                           {/* Left side - Info */}
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <h3 className="text-lg font-semibold text-white">
-                                {formatTime(template.time)} <span className="text-sm text-gray-200">({template.default_capacity})</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-2">
+                              <h3 className="text-sm md:text-lg font-semibold text-white">
+                                {formatTime(template.time)} <span className="text-xs md:text-sm text-gray-200">({template.default_capacity})</span>
                               </h3>
                               {!template.active && (
-                                <span className="px-2 py-0.5 bg-gray-700 text-gray-400 text-xs rounded-full">
-                                  Inactive
+                                <span className="px-1 md:px-2 py-0.5 bg-gray-700 text-gray-400 text-[10px] md:text-xs rounded-full">
+                                  Off
                                 </span>
                               )}
                             </div>
-
-                            <div className="space-y-1 text-sm">
-                              <div>
-                                <span className="text-white font-medium">{template.workout_type}</span>
-                              </div>
+                            <div className="text-xs md:text-sm">
+                              <span className="text-white font-medium truncate block">{template.workout_type}</span>
                             </div>
                           </div>
 
@@ -536,31 +533,31 @@ export default function CoachSchedulePage() {
                           <div className="flex flex-col gap-1">
                             <button
                               onClick={() => handleToggleActive(template)}
-                              className={`w-14 h-7 rounded-full transition-colors duration-200 flex items-center px-1 ${
+                              className={`w-10 md:w-14 h-5 md:h-7 rounded-full transition-colors duration-200 flex items-center px-0.5 md:px-1 ${
                                 template.active
                                   ? 'bg-teal-500/20 hover:bg-teal-500/30 justify-end'
                                   : 'bg-gray-700 hover:bg-gray-600 justify-start'
                               }`}
                               title={template.active ? 'Deactivate' : 'Activate'}
                             >
-                              <div className={`w-5 h-5 rounded-full transition-colors duration-200 ${
+                              <div className={`w-4 md:w-5 h-4 md:h-5 rounded-full transition-colors duration-200 ${
                                 template.active ? 'bg-teal-500' : 'bg-gray-400'
                               }`} />
                             </button>
                             <div className="flex gap-1">
                               <button
                                 onClick={() => handleOpenModal(template)}
-                                className="p-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors duration-200"
+                                className="p-1 md:p-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors duration-200"
                                 title="Edit"
                               >
-                                <Edit2 size={16} />
+                                <Edit2 size={14} className="md:w-4 md:h-4" />
                               </button>
                               <button
                                 onClick={() => handleDelete(template.id)}
-                                className="p-1.5 bg-red-600 hover:bg-red-700 text-white rounded transition-colors duration-200"
+                                className="p-1 md:p-1.5 bg-red-600 hover:bg-red-700 text-white rounded transition-colors duration-200"
                                 title="Delete"
                               >
-                                <Trash2 size={16} />
+                                <Trash2 size={14} className="md:w-4 md:h-4" />
                               </button>
                             </div>
                           </div>

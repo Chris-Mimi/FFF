@@ -151,16 +151,19 @@ export default function WhiteboardPage() {
   return (
     <div className='min-h-screen bg-gray-50'>
       {/* Header */}
-      <header className='bg-[#208479] text-white p-4 shadow-lg sticky top-0 z-50'>
-        <div className='max-w-7xl mx-auto flex items-center gap-4'>
-          <button
-            onClick={() => router.push('/coach')}
-            className='flex items-center gap-2 hover:bg-teal-800 px-3 py-2 rounded-lg transition'
-          >
-            <ArrowLeft size={20} />
-            Back to Dashboard
-          </button>
-          <h1 className='text-2xl font-bold'>Whiteboard Photos</h1>
+      <header className='bg-[#208479] text-white p-2 md:p-4 shadow-lg sticky top-0 z-50'>
+        <div className='max-w-7xl mx-auto flex items-center justify-between gap-2 md:gap-4'>
+          <div className='flex items-center gap-2 md:gap-4'>
+            <button
+              onClick={() => router.push('/coach')}
+              className='flex items-center gap-1 md:gap-2 hover:bg-teal-800 px-2 md:px-3 py-1.5 md:py-2 rounded-lg transition text-sm md:text-base'
+            >
+              <ArrowLeft size={16} className='md:w-5 md:h-5' />
+              <span className='hidden md:inline'>Back to Dashboard</span>
+              <span className='md:hidden'>Back</span>
+            </button>
+            <h1 className='text-lg md:text-2xl font-bold'>Whiteboard</h1>
+          </div>
         </div>
       </header>
 

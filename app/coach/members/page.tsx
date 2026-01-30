@@ -418,24 +418,24 @@ export default function CoachMembersPage() {
     <div className="min-h-screen bg-gray-900">
       {/* Header */}
       <header className="bg-gray-800 border-b border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 md:py-4">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-white">Member Management</h1>
-              <p className="text-gray-400 text-sm mt-1">Approve and manage gym members</p>
+              <h1 className="text-lg md:text-2xl font-bold text-white">Members</h1>
+              <p className="text-gray-400 text-xs md:text-sm mt-1 hidden md:block">Approve and manage gym members</p>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="grid grid-cols-2 md:flex md:items-center gap-2 md:gap-4">
               <button
                 onClick={() => router.push('/coach')}
-                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors duration-200"
+                className="flex items-center justify-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors duration-200 text-sm md:text-base"
               >
-                Back to Dashboard
+                Back
               </button>
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200"
+                className="flex items-center justify-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 text-sm md:text-base"
               >
-                <LogOut size={18} />
+                <LogOut size={16} className="md:w-[18px] md:h-[18px]" />
                 Logout
               </button>
             </div>
@@ -444,24 +444,24 @@ export default function CoachMembersPage() {
       </header>
 
       {/* Tabs */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-        <div className="flex gap-2 border-b border-gray-700">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-3 md:mt-6">
+        <div className="flex gap-1 md:gap-2 border-b border-gray-700">
           <button
             onClick={() => setActiveTab('active')}
-            className={`px-6 py-3 font-medium transition-colors duration-200 border-b-2 ${
+            className={`px-3 md:px-6 py-2 md:py-3 font-medium transition-colors duration-200 border-b-2 text-sm md:text-base ${
               activeTab === 'active'
                 ? 'border-teal-500 text-teal-500'
                 : 'border-transparent text-gray-400 hover:text-gray-300'
             }`}
           >
-            <div className="flex items-center gap-2">
-              <UserCheck size={18} />
+            <div className="flex items-center gap-1 md:gap-2">
+              <UserCheck size={16} className="md:w-[18px] md:h-[18px]" />
               Active
             </div>
           </button>
           <button
             onClick={() => setActiveTab('pending')}
-            className={`px-6 py-3 font-medium transition-colors duration-200 border-b-2 ${
+            className={`px-3 md:px-6 py-2 md:py-3 font-medium transition-colors duration-200 border-b-2 text-sm md:text-base ${
               activeTab === 'pending'
                 ? 'border-teal-500 text-teal-500'
                 : pendingCount > 0
@@ -469,11 +469,11 @@ export default function CoachMembersPage() {
                 : 'border-transparent text-gray-400 hover:text-gray-300'
             }`}
           >
-            <div className="flex items-center gap-2">
-              <Clock size={18} />
+            <div className="flex items-center gap-1 md:gap-2">
+              <Clock size={16} className="md:w-[18px] md:h-[18px]" />
               Pending
               {pendingCount > 0 && activeTab !== 'pending' && (
-                <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-orange-500 rounded-full">
+                <span className="inline-flex items-center justify-center w-4 h-4 md:w-5 md:h-5 text-[10px] md:text-xs font-bold text-white bg-orange-500 rounded-full">
                   {pendingCount}
                 </span>
               )}
@@ -481,14 +481,14 @@ export default function CoachMembersPage() {
           </button>
           <button
             onClick={() => setActiveTab('blocked')}
-            className={`px-6 py-3 font-medium transition-colors duration-200 border-b-2 ${
+            className={`px-3 md:px-6 py-2 md:py-3 font-medium transition-colors duration-200 border-b-2 text-sm md:text-base ${
               activeTab === 'blocked'
                 ? 'border-teal-500 text-teal-500'
                 : 'border-transparent text-gray-400 hover:text-gray-300'
             }`}
           >
-            <div className="flex items-center gap-2">
-              <UserX size={18} />
+            <div className="flex items-center gap-1 md:gap-2">
+              <UserX size={16} className="md:w-[18px] md:h-[18px]" />
               Blocked
             </div>
           </button>
@@ -513,9 +513,6 @@ export default function CoachMembersPage() {
               <option value="365">Last 12 months</option>
               <option value="all">All Time</option>
             </select>
-            <span className="text-xs text-gray-500">
-              Click to change timeframe for attendance counts
-            </span>
           </div>
         </div>
       )}
@@ -523,32 +520,34 @@ export default function CoachMembersPage() {
       {/* Filters */}
       {members.length > 0 && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-2">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm text-gray-400 font-medium">Filter by type:</span>
-            {(Object.keys(MEMBERSHIP_TYPE_LABELS) as MembershipType[]).map(type => (
-              <button
-                key={type}
-                onClick={() => toggleFilter(type)}
-                className={`flex flex-col items-center px-2.5 py-1 rounded text-xs font-medium transition ${
-                  selectedFilters.includes(type)
-                    ? MEMBERSHIP_TYPE_COLORS[type].active
-                    : MEMBERSHIP_TYPE_COLORS[type].inactive
-                }`}
-              >
-                <span>{MEMBERSHIP_TYPE_LABELS[type]}</span>
-                <span className="text-[10px] opacity-75">{membershipCounts[type]}</span>
-              </button>
-            ))}
-            {selectedFilters.length > 0 && (
-              <button
-                onClick={() => setSelectedFilters([])}
-                className="px-2.5 py-1 rounded text-xs font-medium bg-red-600 text-white hover:bg-red-700 transition"
-              >
-                Clear ({filteredMembers.length})
-              </button>
-            )}
-            <div className="ml-auto px-3 py-1 bg-gray-700 rounded text-xs font-medium text-gray-300">
-              Total Athletes: {totalActiveAthletes}
+          <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2">
+            <span className="text-xs md:text-sm text-gray-400 font-medium">Member Type:</span>
+            <div className="flex items-center gap-1 md:gap-2 flex-wrap">
+              {(Object.keys(MEMBERSHIP_TYPE_LABELS) as MembershipType[]).map(type => (
+                <button
+                  key={type}
+                  onClick={() => toggleFilter(type)}
+                  className={`flex flex-col items-center px-2 md:px-2.5 py-0.5 md:py-1 rounded text-xs font-medium transition ${
+                    selectedFilters.includes(type)
+                      ? MEMBERSHIP_TYPE_COLORS[type].active
+                      : MEMBERSHIP_TYPE_COLORS[type].inactive
+                  }`}
+                >
+                  <span>{MEMBERSHIP_TYPE_LABELS[type]}</span>
+                  <span className="text-[10px] opacity-75">{membershipCounts[type]}</span>
+                </button>
+              ))}
+              {selectedFilters.length > 0 && (
+                <button
+                  onClick={() => setSelectedFilters([])}
+                  className="px-2 md:px-2.5 py-0.5 md:py-1 rounded text-xs font-medium bg-red-600 text-white hover:bg-red-700 transition"
+                >
+                  Clear ({filteredMembers.length})
+                </button>
+              )}
+              <div className="ml-auto px-2 md:px-3 py-0.5 md:py-1 bg-gray-700 rounded text-xs font-medium text-gray-300">
+                Total: {totalActiveAthletes}
+              </div>
             </div>
           </div>
         </div>
