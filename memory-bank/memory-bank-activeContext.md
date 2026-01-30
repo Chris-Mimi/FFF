@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.33
-**Updated:** 2026-01-29 (Session 78 - Coach Mobile Optimization)
+**Version:** 10.34
+**Updated:** 2026-01-30 (Session 79 - Analysis Mobile + Avatar Fix)
 
 ---
 
@@ -76,6 +76,43 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2026-01-30 Session 79 - Opus):**
+- **✅ Athlete Profile Images on Coach Athletes Tab:**
+  - Fixed profile images not displaying despite being uploaded
+  - Added avatar_url to AthleteProfile interface
+  - Added avatar_url to Supabase query select
+  - Updated UI to display images in both list and detail views
+  - File: app/coach/athletes/page.tsx
+- **✅ Analysis Tab Mobile Optimization:**
+  - Header/controls stack vertically on mobile
+  - Timeframe selector: compact week dropdown (1W-8W), shorter month labels (3M, 6M, 12M)
+  - Date navigation: smaller buttons, narrower display
+  - Summary cards: 3-column grid with smaller text
+  - Duration distribution: 4-column grid on mobile
+  - Movement type filters: shorter labels (Bench, Forge)
+  - Search section: stacks vertically on mobile
+  - Track breakdown: smaller elements
+  - Workout type grid: 3-column on mobile
+  - Top exercises: smaller pills
+  - File: components/coach/analysis/StatisticsSection.tsx
+- **✅ Mobile Category Name Mapping:**
+  - Added MOBILE_CATEGORY_NAMES mapping for shorter category labels
+  - Warm-up & Mobility → Warm-up
+  - Olympic Lifting & Barbell Movements → Oly Lift
+  - Compound Exercises → Compound
+  - Gymnastics & Bodyweight → Gymnastics
+  - Core, Abs & Isometric Holds → Core & Iso
+  - Cardio & Conditioning → Cardio
+  - Recovery & Stretching → Recovery
+  - Strength & Functional Conditioning → Strength
+  - File: components/coach/analysis/StatisticsSection.tsx
+- **✅ Date Range Picker Mobile Centering:**
+  - Fixed popup not centered on mobile screens
+  - Mobile: Centered modal with backdrop, tap outside to close
+  - Desktop: Original positioned/draggable popup preserved
+  - File: components/coach/analysis/DateRangePicker.tsx
+- See: `project-history/2026-01-30-session-79-analysis-mobile-avatar-fix.md`
 
 **Completed (2026-01-29 Session 78 - Opus):**
 - **✅ Coach Dashboard Mobile Optimization:**

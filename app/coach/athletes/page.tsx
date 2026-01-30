@@ -15,6 +15,7 @@ interface AthleteProfile {
   phone_number: string | null;
   height_cm: number | null;
   weight_kg: number | null;
+  avatar_url: string | null;
 }
 
 interface WOD {
@@ -64,7 +65,7 @@ export default function CoachAthletesPage() {
     try {
       const { data, error } = await supabase
         .from('athlete_profiles')
-        .select('id, user_id, full_name, email, date_of_birth, phone_number, height_cm, weight_kg')
+        .select('id, user_id, full_name, email, date_of_birth, phone_number, height_cm, weight_kg, avatar_url')
         .order('full_name', { ascending: true });
 
       if (error) throw error;
@@ -86,54 +87,60 @@ export default function CoachAthletesPage() {
       {/* Header */}
       <div className='bg-white shadow'>
         <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-          <div className='flex items-center gap-4 py-4'>
+          <div className='flex items-center gap-2 md:gap-4 py-2 md:py-4'>
             <button
               onClick={handleBackToDashboard}
-              className='p-2 hover:bg-gray-100 rounded-lg transition text-gray-700'
+              className='flex items-center gap-1 p-1.5 md:p-2 hover:bg-gray-100 rounded-lg transition text-gray-700 text-sm md:text-base'
             >
-              <ArrowLeft size={24} />
+              <ArrowLeft size={20} className='md:w-6 md:h-6' />
+              <span className='md:hidden'>Back</span>
             </button>
             <div>
-              <h1 className='text-3xl font-bold text-gray-900'>Athletes</h1>
-              <p className='text-sm text-gray-600'>View and manage athlete data</p>
+              <h1 className='text-xl md:text-3xl font-bold text-gray-900'>Athletes</h1>
+              <p className='text-xs md:text-sm text-gray-600 hidden md:block'>View and manage athlete data</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
-        <div className='grid grid-cols-12 gap-6'>
+      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8'>
+        <div className='grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6'>
           {/* Athletes List */}
-          <div className='col-span-4'>
-            <div className='bg-white rounded-lg shadow p-6'>
-              <h2 className='text-xl font-bold text-gray-900 mb-4'>All Athletes</h2>
+          <div className='md:col-span-4'>
+            <div className='bg-white rounded-lg shadow p-3 md:p-6'>
+              <h2 className='text-lg md:text-xl font-bold text-gray-900 mb-3 md:mb-4'>All Athletes</h2>
 
               {loading ? (
                 <p className='text-gray-500 text-center py-4'>Loading athletes...</p>
               ) : athletes.length === 0 ? (
                 <p className='text-gray-500 text-center py-4'>No athletes found</p>
               ) : (
-                <div className='space-y-2'>
+                <div className='space-y-1 md:space-y-2 max-h-[200px] md:max-h-none overflow-y-auto'>
                   {athletes.map(athlete => (
                     <button
                       key={athlete.id}
                       onClick={() => setSelectedAthlete(athlete)}
-                      className={`w-full text-left p-4 rounded-lg border-2 transition ${
+                      className={`w-full text-left p-2 md:p-4 rounded-lg border-2 transition ${
                         selectedAthlete?.id === athlete.id
                           ? 'border-[#208479] bg-teal-50'
                           : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                       }`}
                     >
-                      <div className='flex items-center gap-3'>
-                        <div className='w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center'>
-                          <User size={20} className='text-gray-400' />
+                      <div className='flex items-center gap-2 md:gap-3'>
+                        <div className='w-8 h-8 md:w-10 md:h-10 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden'>
+                          {athlete.avatar_url ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={athlete.avatar_url} alt={athlete.full_name || 'Athlete'} className='w-full h-full object-cover' />
+                          ) : (
+                            <User size={16} className='md:w-5 md:h-5 text-gray-400' />
+                          )}
                         </div>
-                        <div>
-                          <p className='font-semibold text-gray-900'>
+                        <div className='min-w-0'>
+                          <p className='font-semibold text-gray-900 text-sm md:text-base truncate'>
                             {athlete.full_name || 'Unnamed Athlete'}
                           </p>
-                          <p className='text-sm text-gray-600'>{athlete.email || 'No email'}</p>
+                          <p className='text-xs md:text-sm text-gray-600 truncate'>{athlete.email || 'No email'}</p>
                         </div>
                       </div>
                     </button>
@@ -144,30 +151,35 @@ export default function CoachAthletesPage() {
           </div>
 
           {/* Athlete Details */}
-          <div className='col-span-8'>
+          <div className='md:col-span-8'>
             {!selectedAthlete ? (
-              <div className='bg-white rounded-lg shadow p-12 text-center text-gray-500'>
+              <div className='hidden md:block bg-white rounded-lg shadow p-12 text-center text-gray-500'>
                 <User size={48} className='mx-auto mb-4 text-gray-300' />
                 <p className='text-lg'>Select an athlete to view their data</p>
               </div>
             ) : (
-              <div className='space-y-6'>
+              <div className='space-y-4 md:space-y-6'>
                 {/* Athlete Header */}
-                <div className='bg-white rounded-lg shadow p-6'>
-                  <div className='flex items-center gap-4 mb-6'>
-                    <div className='w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center'>
-                      <User size={32} className='text-gray-400' />
+                <div className='bg-white rounded-lg shadow p-3 md:p-6'>
+                  <div className='flex items-center gap-3 md:gap-4 mb-4 md:mb-6'>
+                    <div className='w-12 h-12 md:w-20 md:h-20 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden'>
+                      {selectedAthlete.avatar_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={selectedAthlete.avatar_url} alt={selectedAthlete.full_name || 'Athlete'} className='w-full h-full object-cover' />
+                      ) : (
+                        <User size={24} className='md:w-8 md:h-8 text-gray-400' />
+                      )}
                     </div>
-                    <div>
-                      <h2 className='text-2xl font-bold text-gray-900'>
+                    <div className='min-w-0'>
+                      <h2 className='text-lg md:text-2xl font-bold text-gray-900 truncate'>
                         {selectedAthlete.full_name || 'Unnamed Athlete'}
                       </h2>
-                      <p className='text-gray-600'>{selectedAthlete.email || 'No email'}</p>
+                      <p className='text-sm md:text-base text-gray-600 truncate'>{selectedAthlete.email || 'No email'}</p>
                     </div>
                   </div>
 
                   {/* Profile Info */}
-                  <div className='grid grid-cols-2 gap-4 pt-4 border-t border-gray-200'>
+                  <div className='grid grid-cols-2 gap-2 md:gap-4 pt-3 md:pt-4 border-t border-gray-200'>
                     {selectedAthlete.date_of_birth && (
                       <div>
                         <p className='text-sm text-gray-600'>Date of Birth</p>
@@ -209,42 +221,42 @@ export default function CoachAthletesPage() {
                     <nav className='flex'>
                       <button
                         onClick={() => setActiveSection('benchmarks')}
-                        className={`flex items-center gap-2 px-6 py-4 border-b-2 font-medium text-sm transition ${
+                        className={`flex items-center gap-1 md:gap-2 px-3 md:px-6 py-2 md:py-4 border-b-2 font-medium text-xs md:text-sm transition ${
                           activeSection === 'benchmarks'
                             ? 'border-[#208479] text-[#208479]'
                             : 'border-transparent text-gray-500 hover:text-gray-700'
                         }`}
                       >
-                        <Trophy size={18} />
+                        <Trophy size={14} className='md:w-[18px] md:h-[18px]' />
                         Benchmarks
                       </button>
                       <button
                         onClick={() => setActiveSection('lifts')}
-                        className={`flex items-center gap-2 px-6 py-4 border-b-2 font-medium text-sm transition ${
+                        className={`flex items-center gap-1 md:gap-2 px-3 md:px-6 py-2 md:py-4 border-b-2 font-medium text-xs md:text-sm transition ${
                           activeSection === 'lifts'
                             ? 'border-[#208479] text-[#208479]'
                             : 'border-transparent text-gray-500 hover:text-gray-700'
                         }`}
                       >
-                        <Dumbbell size={18} />
+                        <Dumbbell size={14} className='md:w-[18px] md:h-[18px]' />
                         Lifts
                       </button>
                       <button
                         onClick={() => setActiveSection('logbook')}
-                        className={`flex items-center gap-2 px-6 py-4 border-b-2 font-medium text-sm transition ${
+                        className={`flex items-center gap-1 md:gap-2 px-3 md:px-6 py-2 md:py-4 border-b-2 font-medium text-xs md:text-sm transition ${
                           activeSection === 'logbook'
                             ? 'border-[#208479] text-[#208479]'
                             : 'border-transparent text-gray-500 hover:text-gray-700'
                         }`}
                       >
-                        <BookOpen size={18} />
+                        <BookOpen size={14} className='md:w-[18px] md:h-[18px]' />
                         Logbook
                       </button>
                     </nav>
                   </div>
 
                   {/* Section Content */}
-                  <div className='p-6'>
+                  <div className='p-3 md:p-6'>
                     {activeSection === 'benchmarks' && (
                       <BenchmarksSection
                         athleteId={selectedAthlete.user_id}

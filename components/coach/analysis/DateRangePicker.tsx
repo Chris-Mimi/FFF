@@ -51,18 +51,8 @@ export default function DateRangePicker({
 
   const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
-  return (
-    <div
-      className='fixed bg-white rounded-lg shadow-2xl w-80 border-2 border-[#208479] z-50'
-      style={{
-        top: `${position.y}px`,
-        left: `${position.x}px`,
-        cursor: isDragging ? 'grabbing' : 'default'
-      }}
-      onMouseMove={onDragMove}
-      onMouseUp={onDragEnd}
-      onMouseLeave={onDragEnd}
-    >
+  const pickerContent = (
+    <>
       <div
         className='bg-[#208479] text-white px-4 py-2 rounded-t-lg flex justify-between items-center cursor-grab active:cursor-grabbing'
         onMouseDown={(e) => {
@@ -191,6 +181,37 @@ export default function DateRangePicker({
           </button>
         </div>
       </div>
-    </div>
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile: centered modal with backdrop */}
+      <div
+        className='md:hidden fixed inset-0 z-40 flex items-start justify-center pt-20 bg-black/30'
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
+      >
+        <div className='bg-white rounded-lg shadow-2xl w-[calc(100%-2rem)] max-w-80 border-2 border-[#208479]'>
+          {pickerContent}
+        </div>
+      </div>
+
+      {/* Desktop: positioned popup */}
+      <div
+        className='hidden md:block fixed bg-white rounded-lg shadow-2xl w-80 border-2 border-[#208479] z-50'
+        style={{
+          top: `${position.y}px`,
+          left: `${position.x}px`,
+          cursor: isDragging ? 'grabbing' : 'default'
+        }}
+        onMouseMove={onDragMove}
+        onMouseUp={onDragEnd}
+        onMouseLeave={onDragEnd}
+      >
+        {pickerContent}
+      </div>
+    </>
   );
 }

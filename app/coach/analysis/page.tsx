@@ -15,7 +15,7 @@ import {
   type BenchmarkAnalysis,
   type ForgeBenchmarkAnalysis
 } from '@/utils/movement-analytics';
-import { ArrowLeft, BarChart3 } from 'lucide-react';
+import { ArrowLeft, BarChart3, LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
@@ -730,31 +730,59 @@ export default function AnalysisPage() {
   return (
     <div className='min-h-screen bg-gray-400'>
       {/* Header */}
-      <header className='bg-[#208479] text-white p-4 shadow-md sticky top-0 z-40'>
-        <div className='max-w-7xl mx-auto flex justify-between items-center'>
-          <div className='flex items-center gap-4'>
-            <button
-              onClick={() => router.push('/coach')}
-              className='hover:bg-[#1a6b62] p-2 rounded transition flex items-center gap-2'
-            >
-              <ArrowLeft size={20} />
-              Back to Dashboard
-            </button>
-            <div className='flex items-center gap-2'>
-              <BarChart3 size={24} />
-              <h1 className='text-2xl font-bold'>Workout Analysis</h1>
+      <header className='bg-[#208479] text-white p-2 md:p-4 shadow-md sticky top-0 z-40'>
+        <div className='max-w-7xl mx-auto'>
+          {/* Mobile layout */}
+          <div className='md:hidden'>
+            <div className='flex items-center justify-between mb-2'>
+              <div className='flex items-center gap-2'>
+                <BarChart3 size={20} />
+                <h1 className='text-lg font-bold'>Analysis</h1>
+              </div>
+            </div>
+            <div className='grid grid-cols-2 gap-2'>
+              <button
+                onClick={() => router.push('/coach')}
+                className='flex items-center justify-center gap-1 bg-[#1a6b62] hover:bg-teal-800 px-2 py-1.5 rounded-lg transition text-sm'
+              >
+                <ArrowLeft size={16} />
+                Back
+              </button>
+              <button
+                onClick={handleLogout}
+                className='flex items-center justify-center gap-1 bg-white text-[#208479] font-semibold px-2 py-1.5 rounded-lg hover:bg-gray-300 transition text-sm'
+              >
+                <LogOut size={16} />
+                Logout
+              </button>
             </div>
           </div>
-          <button
-            onClick={handleLogout}
-            className='px-4 py-2 bg-white text-[#208479] font-semibold rounded hover:bg-gray-300 transition'
-          >
-            Logout
-          </button>
+          {/* Desktop layout */}
+          <div className='hidden md:flex justify-between items-center'>
+            <div className='flex items-center gap-4'>
+              <button
+                onClick={() => router.push('/coach')}
+                className='hover:bg-[#1a6b62] p-2 rounded transition flex items-center gap-2'
+              >
+                <ArrowLeft size={20} />
+                Back to Dashboard
+              </button>
+              <div className='flex items-center gap-2'>
+                <BarChart3 size={24} />
+                <h1 className='text-2xl font-bold'>Workout Analysis</h1>
+              </div>
+            </div>
+            <button
+              onClick={handleLogout}
+              className='px-4 py-2 bg-white text-[#208479] font-semibold rounded hover:bg-gray-300 transition'
+            >
+              Logout
+            </button>
+          </div>
         </div>
       </header>
 
-      <div className='max-w-7xl mx-auto p-6 space-y-6' style={{ minHeight: 'calc(100vh - 200px)' }}>
+      <div className='max-w-7xl mx-auto p-3 md:p-6 space-y-4 md:space-y-6' style={{ minHeight: 'calc(100vh - 200px)' }}>
         <StatisticsSection
           loading={loading}
           statistics={statistics}
