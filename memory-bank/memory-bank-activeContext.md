@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.34
-**Updated:** 2026-01-30 (Session 79 - Analysis Mobile + Avatar Fix)
+**Version:** 10.35
+**Updated:** 2026-01-30 (Session 80 - Analysis Deduplication + Section Stats)
 
 ---
 
@@ -76,6 +76,52 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2026-01-30 Session 80 - Sonnet):**
+- **✅ Analysis Page Deduplication Fix:**
+  - Fixed duplicate movement counting (Karen showing 3x instead of 1x when same workout repeated in week)
+  - Root cause: Movement analytics queried directly from `wods` table with orphaned records
+  - Solution: Changed all 4 frequency functions to query from `weekly_sessions` with published filter
+  - Added workout deduplication using `workout_name + workout_week` as unique identifier
+  - File: utils/movement-analytics.ts (all 4 frequency functions)
+- **✅ Selected Exercise Count Fix:**
+  - Fixed selected exercise info button showing 0x count for benchmarks/lifts
+  - Changed from using `exerciseFrequency` to `allMovementFrequency`
+  - File: components/coach/analysis/StatisticsSection.tsx
+- **✅ Track/Type Breakdown Deduplication:**
+  - Fixed track breakdown showing inflated counts (6x Benchmark Workouts instead of 2x)
+  - Applied deduplication logic before counting tracks and workout types
+  - File: app/coach/analysis/page.tsx
+- **✅ Workout Week Auto-Calculation:**
+  - Prevented future NULL workout_week values
+  - Application level: Added `calculateWorkoutWeek()` in useWODOperations.ts
+  - Database level: Created trigger to auto-calculate on INSERT/UPDATE
+  - Migration: supabase/migrations/20260130_add_workout_week_trigger.sql
+  - Utility: utils/date-utils.ts (calculateWorkoutWeek function)
+- **✅ Total vs Unique Workouts:**
+  - Added separate counts: Total Workouts (all published instances) vs Unique Workouts (distinct designs)
+  - Changed summary cards from 3-column to 4-column grid (2-column on mobile)
+  - File: app/coach/analysis/page.tsx, components/coach/analysis/StatisticsSection.tsx
+- **✅ Section Type Usage Statistics:**
+  - Added breakdown showing usage counts for: Skill, Gymnastics, Strength, Olympic Lifting, Finisher/Bonus, Accessory
+  - Includes total duration tracking for each section type
+  - File: app/coach/analysis/page.tsx
+- **✅ Exercise Library Panel Mobile Optimization:**
+  - Made library panel mobile-responsive with full-screen modal
+  - 2-column grid on mobile with compact text sizes
+  - Moved Library button above search box to prevent overlap
+  - File: components/coach/analysis/ExerciseLibraryPanel.tsx
+- **✅ Workout Library Track Counts Fix:**
+  - Fixed discrepancy between Library (63 workouts) and Analysis (51 workouts)
+  - Root cause: Library counted all workouts (published + unpublished)
+  - Solution: Filter `fetchTracksAndCounts()` to only published workouts
+  - File: hooks/coach/useCoachData.ts
+- **✅ Workout Type Counts on Load:**
+  - Fixed Workout Types not showing counts when library opens
+  - Added `workoutTypeCounts` calculation in `fetchTracksAndCounts()`
+  - Counts now display immediately for both Tracks and Workout Types
+  - Files: hooks/coach/useCoachData.ts, app/coach/page.tsx, components/coach/SearchPanel.tsx
+- See: `project-history/2026-01-30-session-80-analysis-fixes.md`
 
 **Completed (2026-01-30 Session 79 - Opus):**
 - **✅ Athlete Profile Images on Coach Athletes Tab:**

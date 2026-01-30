@@ -29,12 +29,23 @@ interface Exercise {
   difficulty?: 'beginner' | 'intermediate' | 'advanced';
 }
 
+interface MovementFrequencyItem {
+  name: string;
+  count: number;
+  type: 'lift' | 'benchmark' | 'forge_benchmark' | 'exercise';
+  category?: string;
+}
+
 interface Statistics {
   totalWorkouts: number;
+  totalUniqueWorkouts: number;
   trackBreakdown: { trackId: string; trackName: string; count: number; color: string }[];
   typeBreakdown: { typeId: string; typeName: string; count: number }[];
+  sectionTypeBreakdown: { sectionType: string; count: number; totalDuration: number }[];
   exerciseFrequency: { exercise: string; count: number }[];
   allExerciseFrequency: { exercise: string; count: number }[];
+  movementFrequency: MovementFrequencyItem[];
+  allMovementFrequency: MovementFrequencyItem[];
   totalWODDuration: number;
   averageWODDuration: number;
   durationBreakdown: { range: string; count: number }[];
@@ -181,10 +192,14 @@ export default function StatisticsSection({
           {/* Summary Cards with Duration Distribution */}
           <div className='flex flex-col lg:flex-row gap-4 lg:gap-6 lg:items-start'>
             {/* Summary Cards */}
-            <div className='grid grid-cols-3 gap-2 md:gap-4'>
+            <div className='grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4'>
               <div className='bg-gradient-to-br from-[#208479] to-[#1a6b62] text-white rounded-lg p-2 md:p-4'>
                 <div className='text-[10px] md:text-xs font-semibold opacity-90'>Total Workouts</div>
                 <div className='text-lg md:text-2xl font-bold'>{statistics.totalWorkouts}</div>
+              </div>
+              <div className='bg-gradient-to-br from-teal-500 to-teal-600 text-white rounded-lg p-2 md:p-4'>
+                <div className='text-[10px] md:text-xs font-semibold opacity-90'>Unique Workouts</div>
+                <div className='text-lg md:text-2xl font-bold'>{statistics.totalUniqueWorkouts}</div>
               </div>
               <div className='bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-lg p-2 md:p-4'>
                 <div className='text-[10px] md:text-xs font-semibold opacity-90'>Avg WOD</div>
@@ -335,19 +350,30 @@ export default function StatisticsSection({
               </div>
             )}
 
-            {/* Search Input with Browse Library Button */}
-            <div className='flex flex-col md:flex-row gap-2 items-stretch md:items-start'>
-              <div className='flex-1 relative'>
-                <input
-                  type='text'
-                  value={exerciseSearch}
-                  onChange={(e) => onExerciseSearchChange(e.target.value)}
-                  placeholder='Search exercises...'
-                  autoComplete='off'
-                  readOnly
-                  onFocus={(e) => e.currentTarget.removeAttribute('readonly')}
-                  className='w-full px-3 md:px-4 py-2 md:py-3 border border-gray-400 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-50 text-sm md:text-base'
-                />
+            {/* Browse Library Button */}
+            <div className='mb-3'>
+              <button
+                onClick={onOpenLibrary}
+                className='w-full flex items-center justify-center gap-2 px-3 md:px-4 py-2 md:py-3 bg-[#208479] hover:bg-[#1a6b62] text-white rounded-lg font-medium transition text-sm md:text-base'
+              >
+                <Library size={18} className='md:w-5 md:h-5' />
+                <span className='md:hidden'>Library</span>
+                <span className='hidden md:inline'>Browse Library</span>
+              </button>
+            </div>
+
+            {/* Search Input */}
+            <div className='relative'>
+              <input
+                type='text'
+                value={exerciseSearch}
+                onChange={(e) => onExerciseSearchChange(e.target.value)}
+                placeholder='Search exercises...'
+                autoComplete='off'
+                readOnly
+                onFocus={(e) => e.currentTarget.removeAttribute('readonly')}
+                className='w-full px-3 md:px-4 py-2 md:py-3 border border-gray-400 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-50 text-sm md:text-base'
+              />
 
                 {/* Dropdown Results */}
                 {(exerciseSearch || showUnusedOnly) && filteredExercises.length > 0 && (
@@ -408,17 +434,6 @@ export default function StatisticsSection({
                     No exercises found matching &quot;{exerciseSearch}&quot;
                   </div>
                 )}
-              </div>
-
-              {/* Browse Library Button */}
-              <button
-                onClick={onOpenLibrary}
-                className='flex items-center justify-center gap-2 px-3 md:px-4 py-2 md:py-3 bg-[#208479] hover:bg-[#1a6b62] text-white rounded-lg font-medium transition whitespace-nowrap text-sm md:text-base'
-              >
-                <Library size={18} className='md:w-5 md:h-5' />
-                <span className='md:hidden'>Library</span>
-                <span className='hidden md:inline'>Browse Library</span>
-              </button>
             </div>
 
             {/* Selected Exercises as Chips */}
@@ -432,7 +447,7 @@ export default function StatisticsSection({
                       ex.name.toLowerCase() === exerciseName.toLowerCase() ||
                       ex.display_name?.toLowerCase() === exerciseName.toLowerCase()
                     );
-                    const count = statistics?.allExerciseFrequency.find(e => e.exercise === exerciseName)?.count || 0;
+                    const count = statistics?.allMovementFrequency.find(m => m.name === exerciseName)?.count || 0;
                     return (
                       <span
                         key={exerciseName}
@@ -519,6 +534,31 @@ export default function StatisticsSection({
                     <div className='text-[10px] md:text-sm text-gray-700 font-medium mt-0.5 md:mt-1 truncate'>
                       {type.typeName}
                     </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Section Type Breakdown */}
+          {statistics.sectionTypeBreakdown.length > 0 && (
+            <div>
+              <h3 className='text-base md:text-lg font-bold text-gray-100 mb-2 md:mb-3'>Section Types Used</h3>
+              <div className='grid grid-cols-3 md:grid-cols-6 gap-2 md:gap-3'>
+                {statistics.sectionTypeBreakdown.map(section => (
+                  <div
+                    key={section.sectionType}
+                    className='bg-gray-50 rounded-lg p-2 md:p-4 text-center border border-gray-200'
+                  >
+                    <div className='text-lg md:text-2xl font-bold text-blue-600'>{section.count}x</div>
+                    <div className='text-[10px] md:text-sm text-gray-700 font-medium mt-0.5 md:mt-1 truncate'>
+                      {section.sectionType}
+                    </div>
+                    {section.totalDuration > 0 && (
+                      <div className='text-xs md:text-sm text-gray-600 font-semibold mt-1'>
+                        {section.totalDuration}m
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

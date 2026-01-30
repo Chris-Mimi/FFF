@@ -2,7 +2,7 @@
 
 import { WODFormData } from '@/components/coach/WorkoutModal';
 import { supabase } from '@/lib/supabase';
-import { formatDate } from '@/utils/date-utils';
+import { formatDate, calculateWorkoutWeek } from '@/utils/date-utils';
 
 interface UseWODOperationsProps {
   fetchWODs: () => Promise<void>;
@@ -16,6 +16,7 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
     modalDate: Date
   ) => {
     const dateKey = formatDate(modalDate);
+    const workoutWeek = calculateWorkoutWeek(modalDate);
 
     try {
       // Check if we're editing a real workout (not an empty session with 'session-{uuid}' id)
@@ -30,7 +31,7 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
             title: wodData.title,
             session_type: wodData.session_type || wodData.title,
             workout_name: wodData.workout_name || null,
-            workout_week: wodData.workout_week,
+            workout_week: workoutWeek,
             track_id: wodData.track_id || null,
             workout_type_id: wodData.workout_type_id || null,
             class_times: wodData.classTimes,
@@ -68,7 +69,7 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
                   title: wodData.title,
                   session_type: wodData.session_type || wodData.title,
                   workout_name: wodData.workout_name || null,
-                  workout_week: wodData.workout_week,
+                  workout_week: workoutWeek,
                   track_id: wodData.track_id || null,
                   workout_type_id: wodData.workout_type_id || null,
                   class_times: wodData.classTimes,
@@ -104,7 +105,7 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
               title: wodData.title,
               session_type: wodData.session_type || wodData.title,
               workout_name: wodData.workout_name || null,
-              workout_week: wodData.workout_week,
+              workout_week: workoutWeek,
               track_id: wodData.track_id || null,
               workout_type_id: wodData.workout_type_id || null,
               class_times: wodData.classTimes,
@@ -167,7 +168,7 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
                   title: wodData.title,
                   session_type: wodData.session_type || wodData.title,
                   workout_name: wodData.workout_name || null,
-                  workout_week: wodData.workout_week,
+                  workout_week: workoutWeek,
                   track_id: wodData.track_id || null,
                   workout_type_id: wodData.workout_type_id || null,
                   class_times: wodData.classTimes,
@@ -306,17 +307,8 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
         timesToCreate = wod.classTimes;
       }
 
-      // Calculate workout_week for target date (UTC-based to match PostgreSQL)
-      const targetDateCopy = new Date(targetDate);
-      const d = new Date(Date.UTC(targetDateCopy.getFullYear(), targetDateCopy.getMonth(), targetDateCopy.getDate()));
-      const dayOfWeek = d.getUTCDay() || 7;
-      d.setUTCDate(d.getUTCDate() + 4 - dayOfWeek);
-      const isoYear = d.getUTCFullYear();
-      const jan4 = new Date(Date.UTC(isoYear, 0, 4));
-      const jan4DayOfWeek = jan4.getUTCDay() || 7;
-      const firstThursday = new Date(Date.UTC(isoYear, 0, 4 + (4 - jan4DayOfWeek)));
-      const weekNo = Math.floor((d.getTime() - firstThursday.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1;
-      const targetWorkoutWeek = `${isoYear}-W${String(weekNo).padStart(2, '0')}`;
+      // Calculate workout_week for target date
+      const targetWorkoutWeek = calculateWorkoutWeek(targetDate);
 
       const { data: newWorkout, error: workoutError } = await supabase
         .from('wods')

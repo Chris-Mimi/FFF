@@ -75,6 +75,7 @@ export default function CoachDashboard() {
     tracks,
     trackCounts,
     workoutTypes,
+    workoutTypeCounts,
     sectionTypes,
     searchResults,
     movements,
@@ -396,6 +397,7 @@ export default function CoachDashboard() {
           tracks={tracks}
           sectionTypes={sectionTypes}
           trackCounts={trackCounts}
+          workoutTypeCounts={workoutTypeCounts}
           selectedSearchWOD={selectedSearchWOD}
           onSelectedSearchWODChange={setSelectedSearchWOD}
           hoveredWOD={hoveredSearchWOD}

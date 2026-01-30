@@ -80,6 +80,8 @@ interface WOD {
   workout_type_id: string | null;
   date: string;
   sections: WODSection[];
+  workout_name: string | null;
+  workout_week: string | null;
 }
 
 interface MovementFrequencyItem {
@@ -91,8 +93,10 @@ interface MovementFrequencyItem {
 
 interface Statistics {
   totalWorkouts: number;
+  totalUniqueWorkouts: number;
   trackBreakdown: { trackId: string; trackName: string; count: number; color: string }[];
   typeBreakdown: { typeId: string; typeName: string; count: number }[];
+  sectionTypeBreakdown: { sectionType: string; count: number; totalDuration: number }[];
   exerciseFrequency: { exercise: string; count: number }[]; // Legacy - keep for backwards compatibility
   allExerciseFrequency: { exercise: string; count: number }[]; // Legacy - keep for backwards compatibility
   movementFrequency: MovementFrequencyItem[]; // New - unified movements
@@ -247,7 +251,9 @@ export default function AnalysisPage() {
             track_id,
             workout_type_id,
             sections,
-            workout_publish_status
+            workout_publish_status,
+            workout_name,
+            workout_week
           )
         `)
         .gte('date', startDateStr)
@@ -267,6 +273,8 @@ export default function AnalysisPage() {
           workout_type_id: string | null;
           sections: WODSection[];
           workout_publish_status: string | null;
+          workout_name: string | null;
+          workout_week: string | null;
         } | null;
       }
 
@@ -280,6 +288,8 @@ export default function AnalysisPage() {
           workout_type_id: session.wods!.workout_type_id,
           date: session.date,
           sections: session.wods!.sections,
+          workout_name: session.wods!.workout_name,
+          workout_week: session.wods!.workout_week,
         }));
 
       calculateStatistics(wods, startDateStr, endDateStr);
@@ -291,10 +301,27 @@ export default function AnalysisPage() {
   };
 
   const calculateStatistics = async (wods: WOD[], startDate: string, endDate: string) => {
+    // Count total workout sessions (all published workouts)
     const totalWorkouts = wods.length;
 
-    const trackCounts: Record<string, number> = {};
+    // Deduplicate workouts by workout_name + workout_week (same logic as movement analytics)
+    const uniqueWorkouts = new Map<string, WOD>();
     wods.forEach(wod => {
+      const workoutKey = wod.workout_name && wod.workout_week
+        ? `${wod.workout_name}_${wod.workout_week}`
+        : wod.date;
+
+      // Only keep the first occurrence of each unique workout
+      if (!uniqueWorkouts.has(workoutKey)) {
+        uniqueWorkouts.set(workoutKey, wod);
+      }
+    });
+
+    const deduplicatedWods = Array.from(uniqueWorkouts.values());
+    const totalUniqueWorkouts = deduplicatedWods.length;
+
+    const trackCounts: Record<string, number> = {};
+    deduplicatedWods.forEach(wod => {
       if (wod.track_id) {
         trackCounts[wod.track_id] = (trackCounts[wod.track_id] || 0) + 1;
       }
@@ -313,7 +340,7 @@ export default function AnalysisPage() {
       .sort((a, b) => b.count - a.count);
 
     const typeCounts: Record<string, number> = {};
-    wods.forEach(wod => {
+    deduplicatedWods.forEach(wod => {
       if (wod.workout_type_id) {
         typeCounts[wod.workout_type_id] = (typeCounts[wod.workout_type_id] || 0) + 1;
       }
@@ -328,6 +355,36 @@ export default function AnalysisPage() {
           count,
         };
       })
+      .sort((a, b) => b.count - a.count);
+
+    // Section Type Breakdown - count specific section types in unique workouts and track total duration
+    const targetSectionTypes = ['Skill', 'Gymnastics', 'Strength', 'Olympic Lifting', 'Finisher/Bonus', 'Accessory'];
+    const sectionTypeCounts: Record<string, number> = {};
+    const sectionTypeDurations: Record<string, number> = {};
+
+    deduplicatedWods.forEach(wod => {
+      wod.sections.forEach(section => {
+        if (targetSectionTypes.includes(section.type)) {
+          sectionTypeCounts[section.type] = (sectionTypeCounts[section.type] || 0) + 1;
+
+          // Add duration if present
+          if (section.duration) {
+            const duration = parseInt(section.duration);
+            if (!isNaN(duration)) {
+              sectionTypeDurations[section.type] = (sectionTypeDurations[section.type] || 0) + duration;
+            }
+          }
+        }
+      });
+    });
+
+    const sectionTypeBreakdown = targetSectionTypes
+      .map(sectionType => ({
+        sectionType,
+        count: sectionTypeCounts[sectionType] || 0,
+        totalDuration: sectionTypeDurations[sectionType] || 0,
+      }))
+      .filter(item => item.count > 0)
       .sort((a, b) => b.count - a.count);
 
     // Use shared movement frequency utilities - fetch all movement types in parallel
@@ -385,7 +442,7 @@ export default function AnalysisPage() {
       '60+ mins': 0,
     };
 
-    wods.forEach(wod => {
+    deduplicatedWods.forEach(wod => {
       const wodSections = wod.sections.filter(s => s.type === 'WOD');
       if (wodSections.length > 0) {
         let wodTotalDuration = 0;
@@ -430,8 +487,10 @@ export default function AnalysisPage() {
 
     setStatistics({
       totalWorkouts,
+      totalUniqueWorkouts,
       trackBreakdown,
       typeBreakdown,
+      sectionTypeBreakdown,
       exerciseFrequency,
       allExerciseFrequency,
       movementFrequency,

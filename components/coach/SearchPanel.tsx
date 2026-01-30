@@ -42,6 +42,7 @@ interface SearchPanelProps {
   tracks: Track[];
   sectionTypes: SectionType[];
   trackCounts: Record<string, number>;
+  workoutTypeCounts: Record<string, number>;
   selectedSearchWOD: WODFormData | null;
   onSelectedSearchWODChange: (wod: WODFormData | null) => void;
   hoveredWOD: WODFormData | null;
@@ -75,6 +76,7 @@ export default function SearchPanel({
   tracks,
   sectionTypes,
   trackCounts,
+  workoutTypeCounts,
   selectedSearchWOD,
   onSelectedSearchWODChange,
   hoveredWOD,
@@ -158,9 +160,7 @@ export default function SearchPanel({
             </summary>
             <div className='px-2 py-2 space-y-1'>
               {workoutTypes.map(type => {
-                const count = searchResults.filter(wod =>
-                  wod.sections.some(section => section.workout_type_id === type.id)
-                ).length;
+                const count = workoutTypeCounts[type.id] || 0;
                 return (
                   <button
                     key={type.id}

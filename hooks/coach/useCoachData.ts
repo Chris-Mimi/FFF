@@ -24,6 +24,7 @@ export const useCoachData = ({
   const [tracks, setTracks] = useState<Array<{ id: string; name: string }>>([]);
   const [trackCounts, setTrackCounts] = useState<Record<string, number>>({});
   const [workoutTypes, setWorkoutTypes] = useState<Array<{ id: string; name: string }>>([]);
+  const [workoutTypeCounts, setWorkoutTypeCounts] = useState<Record<string, number>>({});
   const [sectionTypes, setSectionTypes] = useState<Array<{ id: string; name: string; display_order: number }>>([]);
   const [searchResults, setSearchResults] = useState<WODFormData[]>([]);
   const [movements, setMovements] = useState<Map<string, number>>(new Map());
@@ -302,18 +303,32 @@ export const useCoachData = ({
       if (sectionTypesError) throw sectionTypesError;
       setSectionTypes(sectionTypesData || []);
 
-      const { data: wodsData, error: wodsError } = await supabase.from('wods').select('track_id');
+      const { data: wodsData, error: wodsError } = await supabase
+        .from('wods')
+        .select('track_id, sections, workout_publish_status')
+        .eq('workout_publish_status', 'published');
 
       if (wodsError) throw wodsError;
 
-      const counts: Record<string, number> = {};
-      wodsData?.forEach((wod: { track_id: string | null }) => {
+      const trackCountsMap: Record<string, number> = {};
+      const workoutTypeCountsMap: Record<string, number> = {};
+
+      wodsData?.forEach((wod: { track_id: string | null; sections: any[] }) => {
+        // Count tracks
         if (wod.track_id) {
-          counts[wod.track_id] = (counts[wod.track_id] || 0) + 1;
+          trackCountsMap[wod.track_id] = (trackCountsMap[wod.track_id] || 0) + 1;
         }
+
+        // Count workout types from sections
+        wod.sections?.forEach((section: any) => {
+          if (section.workout_type_id) {
+            workoutTypeCountsMap[section.workout_type_id] = (workoutTypeCountsMap[section.workout_type_id] || 0) + 1;
+          }
+        });
       });
 
-      setTrackCounts(counts);
+      setTrackCounts(trackCountsMap);
+      setWorkoutTypeCounts(workoutTypeCountsMap);
     } catch (error) {
       console.error('Error fetching tracks and counts:', error);
     }
@@ -325,6 +340,7 @@ export const useCoachData = ({
     tracks,
     trackCounts,
     workoutTypes,
+    workoutTypeCounts,
     sectionTypes,
     searchResults,
     setSearchResults,

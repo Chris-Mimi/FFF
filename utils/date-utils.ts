@@ -89,3 +89,21 @@ export const getDisplayDateRange = (dates: Date[]): string => {
 
   return `${formatMonthDay(firstDate)} - ${formatMonthDay(lastDate)}`;
 };
+
+/**
+ * Calculate ISO week string for a given date (YYYY-Www format)
+ * Uses UTC-based calculation to match PostgreSQL behavior
+ * @param date - Date to calculate week for
+ * @returns ISO week string (e.g., "2026-W05")
+ */
+export const calculateWorkoutWeek = (date: Date): string => {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayOfWeek = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayOfWeek);
+  const isoYear = d.getUTCFullYear();
+  const jan4 = new Date(Date.UTC(isoYear, 0, 4));
+  const jan4DayOfWeek = jan4.getUTCDay() || 7;
+  const firstThursday = new Date(Date.UTC(isoYear, 0, 4 + (4 - jan4DayOfWeek)));
+  const weekNo = Math.floor((d.getTime() - firstThursday.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1;
+  return `${isoYear}-W${String(weekNo).padStart(2, '0')}`;
+};

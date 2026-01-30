@@ -239,3 +239,23 @@ A Modal (short for Modal Window or Modal Dialog) is a design element that appear
   - ✅ Use for simple tasks only
   - ✅ Git commits preserve everything
   - ❌ Don't use Grok for complex features
+
+  # Analysis page #
+  Function: These are pinned exercises for quick reference tracking.
+
+When you click an exercise from the search results, it creates a chip/button showing:
+
+Exercise name (e.g., "Karen")
+Equipment (if any) - shown in parentheses
+Count (e.g., "3x") - how many times it was programmed in the current timeframe
+X button - removes it from your pinned list
+Purpose:
+
+Track multiple exercises at once - Pin several exercises to compare their usage counts side-by-side
+Quick reference - See at a glance how often specific movements are programmed
+Persistent view - Stays visible even when you clear the search box
+Actions:
+
+Remove individual: Click the X button on any chip
+Remove all: Click "Clear All" button below the chips
+Note: This doesn't filter any data - it's purely for visual tracking. The statistics and exercise lists remain unchanged; these chips just let you "bookmark" exercises you're monitoring.
