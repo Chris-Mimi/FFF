@@ -3,7 +3,7 @@
 import ExerciseFormModal from '@/components/coach/ExerciseFormModal';
 import MultiSelectDropdown from '@/components/coach/MultiSelectDropdown';
 import { supabase } from '@/lib/supabase';
-import { ChevronDown, ChevronRight, Edit2, Plus, Search, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronRight, Edit2, Plus, Search, Trash2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { getExerciseFrequency, type ExerciseFrequency } from '@/utils/movement-analytics';
 
@@ -172,22 +172,40 @@ export default function ExercisesTab({
     fetchFrequencies();
   }, [usageTimeRange]);
 
+  // Check if any filters are active
+  const hasActiveFilters =
+    selectedCategory !== null ||
+    selectedEquipment.length > 0 ||
+    selectedBodyParts.length > 0 ||
+    usageTimeRange !== 'all' ||
+    searchTerm !== '';
+
+  // Clear all filters
+  const clearAllFilters = () => {
+    setSelectedCategory(null);
+    setSelectedEquipment([]);
+    setSelectedBodyParts([]);
+    setUsageTimeRange('all');
+    onSearchChange('');
+  };
+
   return (
     <>
       <div className='bg-white rounded-lg shadow p-6'>
         <div className='flex justify-between items-center mb-4'>
-          <div className='flex items-center gap-3'>
-            <h2 className='text-xl font-bold text-gray-900'>Exercise Library</h2>
-            <span className='px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold'>
+          <div className='flex items-center gap-1 sm:gap-2 md:gap-3'>
+            <h2 className='text-sm sm:text-base md:text-xl font-bold text-gray-900'>Exercise Library</h2>
+            <span className='px-1.5 sm:px-2 md:px-3 py-0.5 sm:py-1 bg-green-100 text-green-700 rounded-full text-[10px] sm:text-xs md:text-sm font-semibold'>
               {exercises.length}
             </span>
           </div>
           <button
             onClick={onAdd}
-            className='px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition flex items-center gap-2'
+            className='px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition flex items-center gap-1 sm:gap-2 text-[10px] sm:text-xs md:text-base'
           >
-            <Plus size={20} />
-            Add Exercise
+            <Plus size={16} className='sm:w-5 sm:h-5' />
+            <span className='hidden sm:inline'>Add Exercise</span>
+            <span className='sm:hidden'>Add</span>
           </button>
         </div>
 
@@ -223,7 +241,7 @@ export default function ExercisesTab({
         </div>
 
         {/* Filter Buttons */}
-        <div className='mb-4 flex gap-3 items-center'>
+        <div className='mb-4 flex flex-wrap gap-2 sm:gap-3 items-end'>
           <MultiSelectDropdown
             label='Equipment'
             options={availableEquipment}
@@ -239,12 +257,23 @@ export default function ExercisesTab({
             placeholder='All Body Parts'
           />
 
+          {/* Clear Filters Button */}
+          {hasActiveFilters && (
+            <button
+              onClick={clearAllFilters}
+              className='p-1.5 sm:p-2 bg-gray-200 hover:bg-gray-300 rounded transition flex items-center justify-center text-gray-700'
+              title='Clear all filters'
+            >
+              <X size={16} className='sm:w-[18px] sm:h-[18px]' />
+            </button>
+          )}
+
           {/* Usage Time Range Buttons */}
-          <div className='flex items-center gap-2 ml-auto'>
-            <span className='text-sm text-gray-600 font-medium'>Usage:</span>
+          <div className='flex items-center gap-1 sm:gap-2 w-full sm:w-auto sm:ml-auto'>
+            <span className='text-[10px] sm:text-xs md:text-sm text-gray-600 font-medium'>Usage:</span>
             <button
               onClick={() => setUsageTimeRange('all')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded transition ${
+              className={`px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-semibold rounded transition ${
                 usageTimeRange === 'all'
                   ? 'bg-purple-600 text-white'
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -254,7 +283,7 @@ export default function ExercisesTab({
             </button>
             <button
               onClick={() => setUsageTimeRange(1)}
-              className={`px-3 py-1.5 text-xs font-semibold rounded transition ${
+              className={`px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-semibold rounded transition ${
                 usageTimeRange === 1
                   ? 'bg-purple-600 text-white'
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -264,7 +293,7 @@ export default function ExercisesTab({
             </button>
             <button
               onClick={() => setUsageTimeRange(3)}
-              className={`px-3 py-1.5 text-xs font-semibold rounded transition ${
+              className={`px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-semibold rounded transition ${
                 usageTimeRange === 3
                   ? 'bg-purple-600 text-white'
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -274,7 +303,7 @@ export default function ExercisesTab({
             </button>
             <button
               onClick={() => setUsageTimeRange(6)}
-              className={`px-3 py-1.5 text-xs font-semibold rounded transition ${
+              className={`px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-semibold rounded transition ${
                 usageTimeRange === 6
                   ? 'bg-purple-600 text-white'
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -284,7 +313,7 @@ export default function ExercisesTab({
             </button>
             <button
               onClick={() => setUsageTimeRange(12)}
-              className={`px-3 py-1.5 text-xs font-semibold rounded transition ${
+              className={`px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-semibold rounded transition ${
                 usageTimeRange === 12
                   ? 'bg-purple-600 text-white'
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'

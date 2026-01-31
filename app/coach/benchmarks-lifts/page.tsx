@@ -1110,30 +1110,30 @@ export default function BenchmarksLiftsManagementPage() {
     <div className='min-h-screen bg-gray-400'>
       {/* Header */}
       <div className='bg-white shadow'>
-        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-          <div className='flex items-center gap-2 md:gap-4 py-2 md:py-4'>
+        <div className='max-w-7xl mx-auto px-2 sm:px-4 lg:px-8'>
+          <div className='flex items-center gap-1 sm:gap-2 md:gap-4 py-2 md:py-4'>
             <button
               onClick={() => router.push('/coach')}
-              className='flex items-center gap-1 p-1.5 md:p-2 hover:bg-gray-100 rounded-lg transition text-gray-700 text-sm'
+              className='flex items-center gap-1 p-1 sm:p-1.5 md:p-2 hover:bg-gray-100 rounded-lg transition text-gray-700 text-xs sm:text-sm'
             >
-              <ArrowLeft size={20} className='md:w-6 md:h-6' />
+              <ArrowLeft size={16} className='sm:w-5 sm:h-5 md:w-6 md:h-6' />
               <span className='md:hidden'>Back</span>
             </button>
             <div>
-              <h1 className='text-xl md:text-3xl font-bold text-gray-900'>Coach Library</h1>
-              <p className='text-xs md:text-sm text-gray-600 hidden md:block'>Manage benchmarks, lifts, exercises, programming references, and notes</p>
+              <h1 className='text-base sm:text-xl md:text-3xl font-bold text-gray-900'>Coach Library</h1>
+              <p className='text-[10px] sm:text-xs md:text-sm text-gray-600 hidden md:block'>Manage benchmarks, lifts, exercises, programming references, and notes</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
+      <div className='max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-2 sm:py-4 md:py-8'>
         {/* Tabs */}
-        <div className='flex gap-1 md:gap-2 mb-4 md:mb-6 overflow-x-auto pb-2'>
+        <div className='flex gap-1 sm:gap-1.5 md:gap-2 mb-2 sm:mb-4 md:mb-6 overflow-x-auto pb-2'>
           <button
             onClick={() => setActiveTab('benchmarks')}
-            className={`px-2 md:px-4 py-1.5 md:py-2 rounded-lg font-medium transition text-xs md:text-base whitespace-nowrap ${
+            className={`px-1.5 sm:px-2 md:px-4 py-1 sm:py-1.5 md:py-2 rounded-lg font-medium transition text-[10px] sm:text-xs md:text-base whitespace-nowrap ${
               activeTab === 'benchmarks'
                 ? 'bg-teal-500 text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-50'
@@ -1143,7 +1143,7 @@ export default function BenchmarksLiftsManagementPage() {
           </button>
           <button
             onClick={() => setActiveTab('forge')}
-            className={`px-2 md:px-4 py-1.5 md:py-2 rounded-lg font-medium transition text-xs md:text-base whitespace-nowrap ${
+            className={`px-1.5 sm:px-2 md:px-4 py-1 sm:py-1.5 md:py-2 rounded-lg font-medium transition text-[10px] sm:text-xs md:text-base whitespace-nowrap ${
               activeTab === 'forge'
                 ? 'bg-cyan-500 text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-50'
@@ -1153,7 +1153,7 @@ export default function BenchmarksLiftsManagementPage() {
           </button>
           <button
             onClick={() => setActiveTab('lifts')}
-            className={`px-2 md:px-4 py-1.5 md:py-2 rounded-lg font-medium transition text-xs md:text-base whitespace-nowrap ${
+            className={`px-1.5 sm:px-2 md:px-4 py-1 sm:py-1.5 md:py-2 rounded-lg font-medium transition text-[10px] sm:text-xs md:text-base whitespace-nowrap ${
               activeTab === 'lifts'
                 ? 'bg-blue-400 text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-50'
@@ -1163,7 +1163,7 @@ export default function BenchmarksLiftsManagementPage() {
           </button>
           <button
             onClick={() => setActiveTab('exercises')}
-            className={`px-2 md:px-4 py-1.5 md:py-2 rounded-lg font-medium transition text-xs md:text-base whitespace-nowrap ${
+            className={`px-1.5 sm:px-2 md:px-4 py-1 sm:py-1.5 md:py-2 rounded-lg font-medium transition text-[10px] sm:text-xs md:text-base whitespace-nowrap ${
               activeTab === 'exercises'
                 ? 'bg-green-500 text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-50'
@@ -1173,7 +1173,7 @@ export default function BenchmarksLiftsManagementPage() {
           </button>
           <button
             onClick={() => setActiveTab('references')}
-            className={`px-2 md:px-4 py-1.5 md:py-2 rounded-lg font-medium transition text-xs md:text-base whitespace-nowrap ${
+            className={`px-1.5 sm:px-2 md:px-4 py-1 sm:py-1.5 md:py-2 rounded-lg font-medium transition text-[10px] sm:text-xs md:text-base whitespace-nowrap ${
               activeTab === 'references'
                 ? 'bg-gray-600 text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-50'
@@ -1183,7 +1183,7 @@ export default function BenchmarksLiftsManagementPage() {
           </button>
           <button
             onClick={() => setActiveTab('tracks')}
-            className={`px-2 md:px-4 py-1.5 md:py-2 rounded-lg font-medium transition text-xs md:text-base whitespace-nowrap ${
+            className={`px-1.5 sm:px-2 md:px-4 py-1 sm:py-1.5 md:py-2 rounded-lg font-medium transition text-[10px] sm:text-xs md:text-base whitespace-nowrap ${
               activeTab === 'tracks'
                 ? 'bg-purple-600 text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-50'
@@ -1193,7 +1193,7 @@ export default function BenchmarksLiftsManagementPage() {
           </button>
           <button
             onClick={() => setActiveTab('notes')}
-            className={`px-2 md:px-4 py-1.5 md:py-2 rounded-lg font-medium transition text-xs md:text-base whitespace-nowrap ${
+            className={`px-1.5 sm:px-2 md:px-4 py-1 sm:py-1.5 md:py-2 rounded-lg font-medium transition text-[10px] sm:text-xs md:text-base whitespace-nowrap ${
               activeTab === 'notes'
                 ? 'bg-orange-500 text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-50'

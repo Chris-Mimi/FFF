@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.36
-**Updated:** 2026-01-30 (Session 81 - Session Types Filter + Search Fix)
+**Version:** 10.37
+**Updated:** 2026-01-31 (Session 82 - Coach Library Mobile Optimization)
 
 ---
 
@@ -76,6 +76,22 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2026-01-31 Session 82 - Sonnet):**
+- **✅ Coach Library Mobile Optimization:**
+  - **Forge & Lifts Tabs:** 2-column grid on mobile, working drag-and-drop
+  - **Touch Sensor:** Added TouchSensor to @dnd-kit with activation constraints (delay: 100, tolerance: 8)
+  - **Mobile Drag Handles:** Made visible on mobile (md:opacity-0), added touch-action: none
+  - **Grid Layout:** Changed to `grid-cols-2 md:grid-cols-3 lg:grid-cols-5`
+  - **Exercises Tab:** Responsive "Add Exercise" button, wrapping usage filters
+  - **Clear Filters Button:** Added "x" button next to Equipment/Body Parts dropdowns
+  - Files: components/coach/ForgeBenchmarksTab.tsx, LiftsTab.tsx, ExercisesTab.tsx
+- **✅ Responsive Sizing Pattern:**
+  - Text: `text-[10px] sm:text-xs md:text-base`
+  - Padding: `p-1.5 sm:p-2 md:p-3`
+  - Buttons: "Add" on mobile, "Add Exercise" on larger screens
+  - Applied consistently across all Coach Library tabs
+- See: `project-history/2026-01-31-session-82-coach-library-mobile.md`
 
 **Completed (2026-01-30 Session 81 - Opus):**
 - **✅ Session Types Filter in Workout Library:**

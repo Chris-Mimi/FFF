@@ -6,7 +6,8 @@ http://192.168.178.75:3000
 
 # FIRST. FIX BUGS MAKE IMPROVEMENTS #
 # Coach Login #
-# Movement library #
+# Coach library #
+All equipment & Body Parts lists need optimising
 
 * Make a plan for how we export and then re-import the data from my Google Calendar workouts from the past 5 years.
 
@@ -18,6 +19,7 @@ http://192.168.178.75:3000
 *
 *
 # Workout Library tab (coach) #
+Make another panel on the left featuring the different session types (Foundations, WOD etc) y
 
  # Edit Workout Modal (coach) #
  IMPROVEMENTS/Bug Fixes:

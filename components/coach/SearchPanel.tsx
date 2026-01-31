@@ -1,11 +1,12 @@
 'use client';
 
 import { WODFormData } from './WorkoutModal';
-import { GripVertical, Search, X } from 'lucide-react';
+import { GripVertical, Search, X, Menu } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import remarkBreaks from 'remark-breaks';
+import { useState } from 'react';
 
 interface WorkoutType {
   id: string;
@@ -95,13 +96,25 @@ export default function SearchPanel({
   onCreateWorkout,
   highlightText,
 }: SearchPanelProps) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   if (!isOpen) return null;
 
   return (
     <div className='fixed right-0 top-0 lg:top-[72px] h-screen lg:h-[calc(100vh-72px)] w-full lg:w-[800px] bg-white shadow-2xl z-50 flex flex-col border-l-2 border-[#208479] border-t border-gray-400 animate-slide-in-right'>
       {/* Header */}
       <div className='bg-[#208479] text-white p-3 lg:p-4 flex justify-between items-center'>
-        <h2 className='text-lg lg:text-xl font-bold'>Workout Library</h2>
+        <div className='flex items-center gap-2'>
+          {/* Mobile Filter Toggle */}
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className='lg:hidden hover:bg-[#1a6b62] p-1 rounded transition'
+            title='Toggle Filters'
+          >
+            <Menu size={20} />
+          </button>
+          <h2 className='text-base sm:text-lg lg:text-xl font-bold'>Workout Library</h2>
+        </div>
         <button
           onClick={() => {
             onClose();
@@ -112,6 +125,7 @@ export default function SearchPanel({
             onSelectedTracksChange([]);
             onSelectedSessionTypesChange([]);
             onIncludedSectionTypesChange([]);
+            setSidebarOpen(false);
             // Note: movements map should be reset in parent component
           }}
           className='hover:bg-[#1a6b62] p-1 rounded transition'
@@ -121,9 +135,22 @@ export default function SearchPanel({
       </div>
 
       {/* Two-Column Layout */}
-      <div className='flex-1 flex overflow-hidden'>
+      <div className='flex-1 flex overflow-hidden relative'>
         {/* LEFT SIDEBAR - Filters */}
-        <div className='w-[200px] border-r overflow-y-auto bg-gray-50'>
+        <div className={`${
+          sidebarOpen ? 'absolute inset-0 z-10' : 'hidden'
+        } lg:relative lg:block w-full lg:w-[200px] border-r overflow-y-auto bg-gray-50`}>
+          {/* Mobile Header */}
+          <div className='lg:hidden flex justify-between items-center p-3 border-b bg-[#208479] text-white sticky top-0 z-10'>
+            <h3 className='font-semibold'>Filters</h3>
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className='hover:bg-[#1a6b62] p-1 rounded transition'
+            >
+              <X size={20} />
+            </button>
+          </div>
+
           {/* Movements Section */}
           <details className='border-b' open>
             <summary className='px-3 py-2 font-semibold text-sm text-gray-900 cursor-pointer hover:bg-gray-100'>
@@ -277,9 +304,9 @@ export default function SearchPanel({
         {/* RIGHT SIDE - Search and Results */}
         <div className='flex-1 flex flex-col overflow-hidden'>
           {/* Search Bar */}
-          <div className='p-4 border-b'>
+          <div className='p-2 sm:p-3 lg:p-4 border-b'>
             <div className='relative'>
-              <Search className='absolute left-3 top-3 text-gray-400' size={18} />
+              <Search className='absolute left-2 sm:left-3 top-2 sm:top-3 text-gray-400' size={16} />
               <input
                 type='text'
                 value={searchQuery}
@@ -288,19 +315,19 @@ export default function SearchPanel({
                 autoComplete='off'
                 readOnly
                 onFocus={e => e.currentTarget.removeAttribute('readonly')}
-                className='w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[#208479] focus:border-transparent'
+                className='w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-1.5 sm:py-2 text-sm border border-gray-300 rounded-lg bg-white text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[#208479] focus:border-transparent'
               />
             </div>
 
             {/* Section Type Filter Buttons */}
-            <div className='mt-3'>
-              <div className='text-xs font-semibold text-gray-700 mb-2'>Include in search:</div>
-              <div className='flex flex-wrap gap-2'>
+            <div className='mt-2 sm:mt-3'>
+              <div className='text-[10px] sm:text-xs font-semibold text-gray-700 mb-1 sm:mb-2'>Include in search:</div>
+              <div className='flex flex-wrap gap-1 sm:gap-2'>
                 <button
                   onClick={() => {
                     onIncludedSectionTypesChange([]);
                   }}
-                  className={`px-3 py-1 rounded-full text-xs font-medium transition ${
+                  className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium transition ${
                     includedSectionTypes.length === 0
                       ? 'bg-[#208479] text-white'
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -316,7 +343,7 @@ export default function SearchPanel({
                         : [...includedSectionTypes, 'Notes']
                     );
                   }}
-                  className={`px-3 py-1 rounded-full text-xs font-medium transition ${
+                  className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium transition ${
                     includedSectionTypes.includes('Notes')
                       ? 'bg-[#208479] text-white'
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -324,25 +351,99 @@ export default function SearchPanel({
                 >
                   Notes
                 </button>
-                {sectionTypes.map(sectionType => (
-                  <button
-                    key={sectionType.id}
-                    onClick={() => {
-                      onIncludedSectionTypesChange(
-                        includedSectionTypes.includes(sectionType.name)
-                          ? includedSectionTypes.filter((t: string) => t !== sectionType.name)
-                          : [...includedSectionTypes, sectionType.name]
-                      );
-                    }}
-                    className={`px-3 py-1 rounded-full text-xs font-medium transition ${
-                      includedSectionTypes.includes(sectionType.name)
-                        ? 'bg-[#208479] text-white'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    }`}
-                  >
-                    {sectionType.name}
-                  </button>
-                ))}
+                {(() => {
+                  const nonWodSections = sectionTypes.filter(st => st.name !== 'WOD' && !st.name.startsWith('WOD Pt.'));
+                  const finalPrepIndex = nonWodSections.findIndex(st => st.name === 'Final prep/Info' || st.name === 'WOD Final Prep & Info');
+                  const sectionsBeforeFinalPrep = finalPrepIndex >= 0 ? nonWodSections.slice(0, finalPrepIndex + 1) : nonWodSections;
+                  const sectionsAfterFinalPrep = finalPrepIndex >= 0 ? nonWodSections.slice(finalPrepIndex + 1) : [];
+
+                  return (
+                    <>
+                      {/* Section types up to and including Final prep/Info */}
+                      {sectionsBeforeFinalPrep.map(sectionType => (
+                        <button
+                          key={sectionType.id}
+                          onClick={() => {
+                            onIncludedSectionTypesChange(
+                              includedSectionTypes.includes(sectionType.name)
+                                ? includedSectionTypes.filter((t: string) => t !== sectionType.name)
+                                : [...includedSectionTypes, sectionType.name]
+                            );
+                          }}
+                          className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium transition ${
+                            includedSectionTypes.includes(sectionType.name)
+                              ? 'bg-[#208479] text-white'
+                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          }`}
+                        >
+                          {sectionType.name}
+                        </button>
+                      ))}
+
+                      {/* WOD (All Parts) Button - immediately after Final prep/Info */}
+                      {(() => {
+                        const wodSections = sectionTypes.filter(st =>
+                          st.name === 'WOD' || st.name.startsWith('WOD Pt.')
+                        );
+                        const allWodSelected = wodSections.every(st => includedSectionTypes.includes(st.name));
+                        const someWodSelected = wodSections.some(st => includedSectionTypes.includes(st.name));
+
+                        return wodSections.length > 0 ? (
+                          <button
+                            onClick={() => {
+                              const wodSectionNames = wodSections.map(st => st.name);
+                              if (allWodSelected) {
+                                // Remove all WOD sections
+                                onIncludedSectionTypesChange(
+                                  includedSectionTypes.filter((t: string) => !wodSectionNames.includes(t))
+                                );
+                              } else {
+                                // Add all WOD sections
+                                const newTypes = [...includedSectionTypes];
+                                wodSectionNames.forEach(name => {
+                                  if (!newTypes.includes(name)) {
+                                    newTypes.push(name);
+                                  }
+                                });
+                                onIncludedSectionTypesChange(newTypes);
+                              }
+                            }}
+                            className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium transition ${
+                              allWodSelected
+                                ? 'bg-[#208479] text-white'
+                                : someWodSelected
+                                ? 'bg-[#208479] bg-opacity-50 text-white'
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                            }`}
+                          >
+                            WOD (All Parts)
+                          </button>
+                        ) : null;
+                      })()}
+
+                      {/* Remaining section types after Final prep/Info */}
+                      {sectionsAfterFinalPrep.map(sectionType => (
+                        <button
+                          key={sectionType.id}
+                          onClick={() => {
+                            onIncludedSectionTypesChange(
+                              includedSectionTypes.includes(sectionType.name)
+                                ? includedSectionTypes.filter((t: string) => t !== sectionType.name)
+                                : [...includedSectionTypes, sectionType.name]
+                            );
+                          }}
+                          className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium transition ${
+                            includedSectionTypes.includes(sectionType.name)
+                              ? 'bg-[#208479] text-white'
+                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          }`}
+                        >
+                          {sectionType.name}
+                        </button>
+                      ))}
+                    </>
+                  );
+                })()}
               </div>
             </div>
 
@@ -352,22 +453,23 @@ export default function SearchPanel({
               selectedWorkoutTypes.length > 0 ||
               selectedTracks.length > 0 ||
               selectedSessionTypes.length > 0) && (
-              <div className='flex flex-wrap gap-2 mt-3'>
+              <div className='flex flex-wrap gap-1 sm:gap-2 mt-2 sm:mt-3'>
                 {searchQuery && (
-                  <span className='inline-flex items-center gap-1 px-2 py-1 bg-[#208479] text-white text-xs rounded-full'>
+                  <span className='inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-[#208479] text-white text-[10px] sm:text-xs rounded-full'>
                     Search: &quot;{searchQuery}&quot;
                     <button
                       onClick={() => onSearchQueryChange('')}
                       className='hover:bg-[#1a6b62] rounded-full p-0.5'
                     >
-                      <X size={12} />
+                      <X size={10} className='sm:hidden' />
+                      <X size={12} className='hidden sm:block' />
                     </button>
                   </span>
                 )}
                 {selectedMovements.map(movement => (
                   <span
                     key={movement}
-                    className='inline-flex items-center gap-1 px-2 py-1 bg-[#208479] text-white text-xs rounded-full'
+                    className='inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-[#208479] text-white text-[10px] sm:text-xs rounded-full'
                   >
                     {movement}
                     <button
@@ -378,7 +480,8 @@ export default function SearchPanel({
                       }
                       className='hover:bg-[#1a6b62] rounded-full p-0.5'
                     >
-                      <X size={12} />
+                      <X size={10} className='sm:hidden' />
+                      <X size={12} className='hidden sm:block' />
                     </button>
                   </span>
                 ))}
@@ -387,7 +490,7 @@ export default function SearchPanel({
                   return type ? (
                     <span
                       key={typeId}
-                      className='inline-flex items-center gap-1 px-2 py-1 bg-[#208479] text-white text-xs rounded-full'
+                      className='inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-[#208479] text-white text-[10px] sm:text-xs rounded-full'
                     >
                       {type.name}
                       <button
@@ -398,7 +501,8 @@ export default function SearchPanel({
                         }
                         className='hover:bg-[#1a6b62] rounded-full p-0.5'
                       >
-                        <X size={12} />
+                        <X size={10} className='sm:hidden' />
+                        <X size={12} className='hidden sm:block' />
                       </button>
                     </span>
                   ) : null;
@@ -408,7 +512,7 @@ export default function SearchPanel({
                   return track ? (
                     <span
                       key={trackId}
-                      className='inline-flex items-center gap-1 px-2 py-1 bg-[#208479] text-white text-xs rounded-full'
+                      className='inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-[#208479] text-white text-[10px] sm:text-xs rounded-full'
                     >
                       {track.name}
                       <button
@@ -419,7 +523,8 @@ export default function SearchPanel({
                         }
                         className='hover:bg-[#1a6b62] rounded-full p-0.5'
                       >
-                        <X size={12} />
+                        <X size={10} className='sm:hidden' />
+                        <X size={12} className='hidden sm:block' />
                       </button>
                     </span>
                   ) : null;
@@ -427,7 +532,7 @@ export default function SearchPanel({
                 {selectedSessionTypes.map(sessionType => (
                   <span
                     key={sessionType}
-                    className='inline-flex items-center gap-1 px-2 py-1 bg-[#208479] text-white text-xs rounded-full'
+                    className='inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-[#208479] text-white text-[10px] sm:text-xs rounded-full'
                   >
                     {sessionType}
                     <button
@@ -438,7 +543,8 @@ export default function SearchPanel({
                       }
                       className='hover:bg-[#1a6b62] rounded-full p-0.5'
                     >
-                      <X size={12} />
+                      <X size={10} className='sm:hidden' />
+                      <X size={12} className='hidden sm:block' />
                     </button>
                   </span>
                 ))}
@@ -453,11 +559,11 @@ export default function SearchPanel({
               selectedWorkoutTypes.length > 0 ||
               selectedTracks.length > 0 ||
               selectedSessionTypes.length > 0) && (
-              <div className='flex-1 overflow-y-auto p-4'>
-                <h3 className='font-semibold text-gray-900 mb-3'>
+              <div className='flex-1 overflow-y-auto p-2 sm:p-4'>
+                <h3 className='font-semibold text-sm sm:text-base text-gray-900 mb-2 sm:mb-3'>
                   Results ({searchResults.length})
                 </h3>
-                <div className='space-y-3 relative'>
+                <div className='space-y-2 sm:space-y-3 relative'>
                   {searchResults.map(wod => {
                     const wodSection = wod.sections.find(s => s.type.toLowerCase() === 'wod');
                     const wodDate = new Date(wod.date);
@@ -479,40 +585,40 @@ export default function SearchPanel({
                         onClick={() => onSelectedSearchWODChange(wod)}
                         onMouseEnter={() => onHoveredWODChange(wod)}
                         onMouseLeave={() => onHoveredWODChange(null)}
-                        className={`p-3 bg-white rounded-lg cursor-pointer transition relative min-h-[80px] w-3/4 ${
+                        className={`p-2 sm:p-3 bg-white rounded-lg cursor-pointer transition relative min-h-[60px] sm:min-h-[80px] w-full lg:w-3/4 ${
                           hoveredWOD?.id === wod.id
                             ? 'border-0'
                             : 'border border-gray-200 hover:border-[#208479] hover:bg-gray-50'
                         }`}
                       >
-                        <div className='text-xs text-gray-500 mb-1'>
+                        <div className='text-[10px] sm:text-xs text-gray-500 mb-1'>
                           {formattedDate}{formattedTime && ` at ${formattedTime}`}
                         </div>
                         {(wod.workout_name || trackName) && (
-                          <div className='text-xs font-medium text-gray-700 mb-1'>
+                          <div className='text-[10px] sm:text-xs font-medium text-gray-700 mb-1'>
                             {wod.workout_name && <span>{wod.workout_name}</span>}
                             {wod.workout_name && trackName && <span className='text-gray-400'> • </span>}
                             {trackName && <span>{trackName}</span>}
                           </div>
                         )}
                         <div
-                          className='font-semibold text-sm text-gray-900 mb-2'
+                          className='font-semibold text-xs sm:text-sm text-gray-900 mb-1 sm:mb-2'
                           dangerouslySetInnerHTML={{
                             __html: highlightText(wod.title, searchTerms),
                           }}
                         />
                         {wodSection && (
                           <div
-                            className='text-xs text-gray-700 whitespace-pre-wrap line-clamp-3'
+                            className='text-[10px] sm:text-xs text-gray-700 whitespace-pre-wrap line-clamp-2 sm:line-clamp-3'
                             dangerouslySetInnerHTML={{
                               __html: highlightText(wodSection.content, searchTerms),
                             }}
                           />
                         )}
 
-                        {/* Hover Popover - Full WOD Preview */}
+                        {/* Hover Popover - Full WOD Preview (Desktop Only) */}
                         {hoveredWOD?.id === wod.id && (
-                          <div className='absolute inset-0 bg-white border-2 border-[#208479] rounded-lg shadow-2xl p-4 z-[200] overflow-y-auto'>
+                          <div className='hidden lg:block absolute inset-0 bg-white border-2 border-[#208479] rounded-lg shadow-2xl p-4 z-[200] overflow-y-auto'>
                             {(wod.workout_name || trackName) && (
                               <div className='text-xs font-medium text-gray-700 mb-1'>
                                 {wod.workout_name && <span>{wod.workout_name}</span>}
@@ -540,7 +646,7 @@ export default function SearchPanel({
                     );
                   })}
                   {searchResults.length === 0 && (
-                    <p className='text-sm text-gray-500'>No results found</p>
+                    <p className='text-xs sm:text-sm text-gray-500'>No results found</p>
                   )}
                 </div>
               </div>
@@ -548,21 +654,21 @@ export default function SearchPanel({
 
           {/* WOD Detail View */}
           {selectedSearchWOD && (
-            <div className='flex-1 overflow-y-auto p-4'>
+            <div className='flex-1 overflow-y-auto p-2 sm:p-3 lg:p-4'>
               <button
                 onClick={() => onSelectedSearchWODChange(null)}
-                className='text-sm text-[#208479] hover:text-[#1a6b62] mb-4 flex items-center gap-1'
+                className='text-xs sm:text-sm text-[#208479] hover:text-[#1a6b62] mb-2 sm:mb-4 flex items-center gap-1'
               >
                 ← Back to results
               </button>
 
               {/* Draggable Entire WOD */}
               <div
-                className='hover:bg-gray-50 p-2 rounded-lg transition'
+                className='hover:bg-gray-50 p-1 sm:p-2 rounded-lg transition'
                 id={`wod-${selectedSearchWOD.id}`}
               >
-                <div className='space-y-4'>
-                  <div className='flex items-start gap-2'>
+                <div className='space-y-2 sm:space-y-4'>
+                  <div className='flex items-start gap-1 sm:gap-2'>
                     <div
                       draggable
                       onDragStart={e => {
@@ -584,34 +690,34 @@ export default function SearchPanel({
                         }
                         onDragStart(e, selectedSearchWOD, selectedSearchWOD.date);
                       }}
-                      className='cursor-move'
+                      className='cursor-move hidden sm:block'
                     >
                       <GripVertical size={20} className='text-gray-400 mt-1 flex-shrink-0' />
                     </div>
                     <div className='flex-1'>
                       {(selectedSearchWOD.workout_name || (selectedSearchWOD.track_id && tracks.find(t => t.id === selectedSearchWOD.track_id)?.name)) && (
-                        <div className='text-sm font-medium text-gray-700 mb-1'>
+                        <div className='text-xs sm:text-sm font-medium text-gray-700 mb-1'>
                           {selectedSearchWOD.workout_name && <span>{selectedSearchWOD.workout_name}</span>}
                           {selectedSearchWOD.workout_name && selectedSearchWOD.track_id && tracks.find(t => t.id === selectedSearchWOD.track_id)?.name && <span className='text-gray-400'> • </span>}
                           {selectedSearchWOD.track_id && <span>{tracks.find(t => t.id === selectedSearchWOD.track_id)?.name}</span>}
                         </div>
                       )}
-                      <h3 className='font-bold text-lg text-gray-900 mb-1'>
+                      <h3 className='font-bold text-base sm:text-lg text-gray-900 mb-1'>
                         {selectedSearchWOD.title}
                       </h3>
-                      <p className='text-xs text-gray-600'>
+                      <p className='text-[10px] sm:text-xs text-gray-600'>
                         {new Date(selectedSearchWOD.date).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
 
                   {/* Sections with individual drag handles */}
-                  <div className='space-y-3'>
+                  <div className='space-y-2 sm:space-y-3'>
                     {selectedSearchWOD.sections.map((section, idx) => (
                       <div
                         key={idx}
                         id={`section-${selectedSearchWOD.id}-${idx}`}
-                        className='bg-white rounded-lg border border-gray-200 p-3 hover:border-[#208479] transition flex gap-2'
+                        className='bg-white rounded-lg border border-gray-200 p-2 sm:p-3 hover:border-[#208479] transition flex gap-1 sm:gap-2'
                       >
                         <div
                           draggable
@@ -637,7 +743,7 @@ export default function SearchPanel({
                               content: section.content,
                             });
                           }}
-                          className='cursor-move'
+                          className='cursor-move hidden sm:block'
                         >
                           <GripVertical
                             size={16}
@@ -645,13 +751,13 @@ export default function SearchPanel({
                           />
                         </div>
                         <div className='flex-1'>
-                          <div className='font-semibold text-sm text-gray-900 mb-1'>
+                          <div className='font-semibold text-xs sm:text-sm text-gray-900 mb-0.5 sm:mb-1'>
                             {section.type}
                           </div>
-                          <div className='text-xs text-gray-500 mb-2'>
+                          <div className='text-[10px] sm:text-xs text-gray-500 mb-1 sm:mb-2'>
                             {section.duration} min
                           </div>
-                          <div className='text-sm text-gray-700 whitespace-pre-wrap'>
+                          <div className='text-xs sm:text-sm text-gray-700 whitespace-pre-wrap'>
                             {section.content}
                           </div>
                         </div>
@@ -661,11 +767,11 @@ export default function SearchPanel({
 
                   {/* Coach Notes */}
                   {selectedSearchWOD.coach_notes && (
-                    <div className='bg-teal-50 rounded-lg border border-gray-200 p-3'>
-                      <div className='font-semibold text-sm text-gray-900 mb-1'>
+                    <div className='bg-teal-50 rounded-lg border border-gray-200 p-2 sm:p-3'>
+                      <div className='font-semibold text-xs sm:text-sm text-gray-900 mb-0.5 sm:mb-1'>
                         Coach Notes
                       </div>
-                      <div className='text-sm text-gray-700 prose prose-sm max-w-none'>
+                      <div className='text-xs sm:text-sm text-gray-700 prose prose-sm max-w-none'>
                         <ReactMarkdown
                           remarkPlugins={[remarkGfm, remarkBreaks]}
                           rehypePlugins={[rehypeRaw]}
@@ -698,14 +804,14 @@ export default function SearchPanel({
               </div>
 
               {/* Action Buttons */}
-              <div className='flex gap-2 pt-4'>
+              <div className='flex gap-2 pt-2 sm:pt-4'>
                 <button
                   onClick={() => {
                     onEditWOD(selectedSearchWOD);
                     onClose();
                     onSelectedSearchWODChange(null);
                   }}
-                  className='flex-1 px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white rounded-lg font-medium transition'
+                  className='flex-1 px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base bg-[#208479] hover:bg-[#1a6b62] text-white rounded-lg font-medium transition'
                 >
                   Edit WOD
                 </button>
@@ -716,13 +822,13 @@ export default function SearchPanel({
       </div>
 
       {/* Footer */}
-      <div className='border-t p-4'>
+      <div className='border-t p-2 sm:p-3 lg:p-4'>
         <button
           onClick={() => {
             onCreateWorkout(new Date(), true);
             onSelectedSearchWODChange(null);
           }}
-          className='w-full px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white rounded-lg font-medium transition'
+          className='w-full px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base bg-[#208479] hover:bg-[#1a6b62] text-white rounded-lg font-medium transition'
         >
           + Create New Workout
         </button>
