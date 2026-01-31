@@ -1,7 +1,7 @@
 'use client';
 
 import { supabase } from '@/lib/supabase';
-import { Calendar, Upload, X } from 'lucide-react';
+import { Calendar, Upload, X, Info } from 'lucide-react';
 import { useState } from 'react';
 
 // Browser-compatible UUID v4 generator
@@ -216,56 +216,84 @@ export default function WhiteboardUploadPanel({
   };
 
   return (
-    <div className='bg-white rounded-lg shadow-md p-6 space-y-4'>
-      <h2 className='text-xl font-bold text-gray-900'>Upload Whiteboard Photo</h2>
+    <div className='bg-white rounded-lg shadow-md p-4 space-y-3'>
+      <h2 className='text-lg font-bold text-gray-900'>Upload Whiteboard Photo</h2>
 
-      {/* Week Selector */}
-      <div>
-        <label className='block text-sm font-medium text-gray-700 mb-2'>
-          <Calendar size={16} className='inline mr-2' />
-          Select Date (Week: {selectedWeek})
-        </label>
-        <input
-          type='date'
-          value={selectedDate}
-          onChange={(e) => handleDateChange(e.target.value)}
-          className='w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500'
-        />
+      {/* 2-Column Grid for Inputs */}
+      <div className='grid grid-cols-2 gap-3'>
+        {/* Week Selector */}
+        <div>
+          <label className='block text-xs font-medium text-gray-700 mb-1'>
+            <Calendar size={14} className='inline mr-1' />
+            Date (Week: {selectedWeek})
+          </label>
+          <input
+            type='date'
+            value={selectedDate}
+            onChange={(e) => handleDateChange(e.target.value)}
+            className='w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500'
+          />
+        </div>
+
+        {/* Photo Label */}
+        <div>
+          <label className='flex items-center gap-1 text-xs font-medium text-gray-700 mb-1'>
+            Base Label (optional)
+            <div className='relative group'>
+              <Info size={12} className='text-gray-400 cursor-help' />
+              <div className='absolute right-0 bottom-full mb-1 hidden group-hover:block bg-gray-800 text-white text-[10px] px-2 py-1 rounded whitespace-nowrap z-10'>
+                Multiple files auto-numbered: Label1, Label2, etc.
+              </div>
+            </div>
+          </label>
+          <input
+            type='text'
+            value={photoLabel}
+            onChange={(e) => setPhotoLabel(e.target.value)}
+            placeholder='e.g., Week 5.'
+            className='w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500'
+          />
+        </div>
+
+        {/* Caption - spans full width */}
+        <div className='col-span-2'>
+          <label className='block text-xs font-medium text-gray-700 mb-1'>Caption (Optional)</label>
+          <textarea
+            value={caption}
+            onChange={(e) => setCaption(e.target.value)}
+            placeholder='Add a description...'
+            rows={2}
+            className='w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500'
+          />
+        </div>
       </div>
 
-      {/* Photo Label */}
-      <div>
-        <label className='block text-sm font-medium text-gray-700 mb-2'>
-          Base Label (optional - defaults to &quot;Photo&quot;)
-        </label>
-        <input
-          type='text'
-          value={photoLabel}
-          onChange={(e) => setPhotoLabel(e.target.value)}
-          placeholder='e.g., Workout, WOD, Session'
-          className='w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500'
-        />
-        <p className='text-xs text-gray-500 mt-1'>Multiple files auto-numbered: Label 1, Label 2, etc.</p>
-      </div>
+      {/* Preview Grid */}
+      {previewUrls.length > 0 && (
+        <div className='relative bg-gray-100 rounded-lg p-2'>
+          <button
+            onClick={clearSelection}
+            className='absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 z-10'
+          >
+            <X size={14} />
+          </button>
+          <div className='grid grid-cols-3 gap-2'>
+            {previewUrls.map((url, idx) => (
+              <img
+                key={idx}
+                src={url}
+                alt={`Preview ${idx + 1}`}
+                className='w-full h-20 object-cover rounded-lg'
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
-      {/* Caption */}
-      <div>
-        <label className='block text-sm font-medium text-gray-700 mb-2'>Caption (Optional)</label>
-        <textarea
-          value={caption}
-          onChange={(e) => setCaption(e.target.value)}
-          placeholder='Add a description...'
-          rows={2}
-          className='w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500'
-        />
-      </div>
-
-      {/* File Upload */}
-      <div>
-        <label className='block text-sm font-medium text-gray-700 mb-2'>
-          Photo Files <span className='text-red-500'>*</span>
-        </label>
-        <div className='relative overflow-hidden rounded-lg group'>
+      {/* Action Buttons - Side by Side */}
+      <div className='flex gap-2'>
+        {/* Choose Files Button */}
+        <div className='relative overflow-hidden rounded-lg group flex-1'>
           <input
             type='file'
             accept='image/*'
@@ -274,55 +302,30 @@ export default function WhiteboardUploadPanel({
             className='absolute inset-0 w-full h-full opacity-0 cursor-pointer'
             style={{ fontSize: '100px' }}
           />
-          <div className='flex items-center justify-center gap-2 w-full px-4 py-3 bg-teal-600 text-white rounded-lg font-medium pointer-events-none group-hover:bg-teal-700 transition'>
-            <Upload size={18} />
+          <div className='flex items-center justify-center gap-1 w-full px-2 py-1.5 bg-teal-600 text-white text-xs rounded-lg font-medium pointer-events-none group-hover:bg-teal-700 transition'>
+            <Upload size={14} />
             {selectedFiles.length > 0
-              ? `${selectedFiles.length} photo${selectedFiles.length > 1 ? 's' : ''} selected`
-              : 'Choose Photo Files'}
+              ? `${selectedFiles.length} photo${selectedFiles.length > 1 ? 's' : ''}`
+              : 'Choose Photos'}
           </div>
         </div>
-        <p className='text-xs text-gray-500 mt-1'>Select multiple files. Max 5MB each (JPEG, PNG, HEIC)</p>
+
+        {/* Upload Button */}
+        <button
+          onClick={handleUpload}
+          disabled={selectedFiles.length === 0 || uploading}
+          className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-2 text-xs rounded-lg font-medium transition ${
+            uploading || selectedFiles.length === 0
+              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              : 'bg-green-600 text-white hover:bg-green-700'
+          }`}
+        >
+          <Upload size={14} />
+          {uploading
+            ? `Uploading ${uploadProgress}/${selectedFiles.length}...`
+            : 'Upload'}
+        </button>
       </div>
-
-      {/* Preview Grid */}
-      {previewUrls.length > 0 && (
-        <div className='relative bg-gray-100 rounded-lg p-4'>
-          <button
-            onClick={clearSelection}
-            className='absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 z-10'
-          >
-            <X size={16} />
-          </button>
-          <div className='grid grid-cols-3 gap-2'>
-            {previewUrls.map((url, idx) => (
-              <img
-                key={idx}
-                src={url}
-                alt={`Preview ${idx + 1}`}
-                className='w-full h-24 object-cover rounded-lg'
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Upload Button */}
-      <button
-        onClick={handleUpload}
-        disabled={selectedFiles.length === 0 || uploading}
-        className={`w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg font-medium transition ${
-          uploading || selectedFiles.length === 0
-            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            : 'bg-teal-600 text-white hover:bg-teal-700'
-        }`}
-      >
-        <Upload size={18} />
-        {uploading
-          ? `Uploading ${uploadProgress}/${selectedFiles.length}...`
-          : selectedFiles.length > 1
-            ? `Upload ${selectedFiles.length} Photos`
-            : 'Upload Photo'}
-      </button>
     </div>
   );
 }

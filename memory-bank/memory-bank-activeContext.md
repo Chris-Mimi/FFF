@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.38
-**Updated:** 2026-01-31 (Session 83 - Coach Mobile Optimization Continued)
+**Version:** 10.39
+**Updated:** 2026-01-31 (Session 84 - Whiteboard Mobile Upload Fix & UI Optimization)
 
 ---
 
@@ -76,6 +76,29 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2026-01-31 Session 84 - Sonnet):**
+- **✅ Whiteboard Upload Mobile Compatibility Fix:**
+  - Fixed "crypto.randomUUID is not a function" error on mobile browsers
+  - Added browser-compatible `generateUUID()` function (works on Android/iOS)
+  - Root cause: Mobile browsers (Android/iOS) strip original filenames from photo library
+  - File: components/coach/WhiteboardUploadPanel.tsx
+- **✅ Multi-File Upload Auto-Numbering Fix:**
+  - Fixed base label auto-numbering (e.g., "Week 5." → Week 5.1, Week 5.2, Week 5.3)
+  - Previously all files got same label when using base label field
+  - Now properly appends number for multiple files
+  - File: components/coach/WhiteboardUploadPanel.tsx
+- **✅ Whiteboard Upload Panel UI Optimization:**
+  - Compact 2-column layout for all inputs (Date + Base Label side-by-side)
+  - Caption field spans full width below
+  - Side-by-side Choose Photos & Upload buttons
+  - Smaller text sizes (text-xs labels, text-sm inputs)
+  - Reduced padding throughout (p-4 panel, px-2 py-1.5 inputs)
+  - Added info icon tooltip for Base Label with hover explanation
+  - Smaller preview thumbnails (h-20)
+  - Mobile-friendly on both phone and desktop
+  - File: components/coach/WhiteboardUploadPanel.tsx
+- See: `project-history/2026-01-31-session-84-whiteboard-mobile-upload-fix.md`
 
 **Completed (2026-01-31 Session 83 - Opus):**
 - **✅ Coach Library Refs Tab Mobile Optimization:**
