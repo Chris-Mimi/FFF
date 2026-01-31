@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.37
-**Updated:** 2026-01-31 (Session 82 - Coach Library Mobile Optimization)
+**Version:** 10.38
+**Updated:** 2026-01-31 (Session 83 - Coach Mobile Optimization Continued)
 
 ---
 
@@ -76,6 +76,29 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2026-01-31 Session 83 - Opus):**
+- **✅ Coach Library Refs Tab Mobile Optimization:**
+  - Changed padding/spacing to responsive `p-3 sm:p-4 md:p-6`
+  - Changed grids from 3 columns to `grid-cols-1 sm:grid-cols-2 md:grid-cols-3`
+  - Made edit/delete buttons visible on mobile: `md:opacity-0 md:group-hover:opacity-100`
+  - Made section headers responsive with shortened labels on mobile
+  - Made modal full-screen on mobile
+  - File: components/coach/ReferencesTab.tsx
+- **✅ Coach Library Aids Tab Mobile Optimization:**
+  - Implemented collapsible sidebar drawer for mobile (collapsed by default)
+  - Toggle button shows "Notes (X)" with expand/collapse arrow
+  - When expanded, shows drawer with max-height 40vh for folder list
+  - Content area gets full height on mobile: `h-[calc(100vh-180px)]`
+  - Selecting a note auto-closes drawer
+  - Fixed textarea text color (was grey, added `text-gray-900`)
+  - File: components/coach/ProgrammingNotesTab.tsx
+- **✅ Whiteboard Date Navigation Mobile Optimization:**
+  - Made nav buttons icon-only on mobile: `<span className='hidden sm:inline'>Previous</span>`
+  - Compact date text: `text-xs sm:text-base md:text-lg`
+  - Compact Today button: `text-[10px] sm:text-sm`
+  - File: app/coach/whiteboard/page.tsx
+- See: `project-history/2026-01-31-session-83-coach-mobile-continued.md`
 
 **Completed (2026-01-31 Session 82 - Sonnet):**
 - **✅ Coach Library Mobile Optimization:**

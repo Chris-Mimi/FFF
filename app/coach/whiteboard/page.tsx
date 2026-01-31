@@ -168,7 +168,7 @@ export default function WhiteboardPage() {
       </header>
 
       {/* Main Content */}
-      <main className='max-w-7xl mx-auto p-6 space-y-6'>
+      <main className='max-w-7xl mx-auto p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4 md:space-y-6'>
         {/* Upload Panel */}
         <WhiteboardUploadPanel
           userId={userId!}
@@ -178,29 +178,31 @@ export default function WhiteboardPage() {
         />
 
         {/* Week Navigation */}
-        <div className='bg-white rounded-lg shadow-md p-4'>
-          <div className='flex items-center justify-between'>
+        <div className='bg-white rounded-lg shadow-md p-2 sm:p-4'>
+          <div className='flex items-center justify-between gap-1 sm:gap-2'>
             <button
               onClick={() => navigateWeek('prev')}
-              className='flex items-center gap-1 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition'
+              className='flex items-center gap-1 p-1.5 sm:px-3 sm:py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition'
+              title='Previous Week'
             >
               <ChevronLeft size={20} />
-              Previous
+              <span className='hidden sm:inline'>Previous</span>
             </button>
-            <div className='flex items-center gap-3'>
-              <span className='text-lg font-semibold text-gray-900'>{getWeekDateRange(selectedWeek)}</span>
+            <div className='flex items-center gap-1 sm:gap-3'>
+              <span className='text-xs sm:text-base md:text-lg font-semibold text-gray-900'>{getWeekDateRange(selectedWeek)}</span>
               <button
                 onClick={goToCurrentWeek}
-                className='px-3 py-1 text-sm bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition'
+                className='px-2 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-sm bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition'
               >
                 Today
               </button>
             </div>
             <button
               onClick={() => navigateWeek('next')}
-              className='flex items-center gap-1 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition'
+              className='flex items-center gap-1 p-1.5 sm:px-3 sm:py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition'
+              title='Next Week'
             >
-              Next
+              <span className='hidden sm:inline'>Next</span>
               <ChevronRight size={20} />
             </button>
           </div>

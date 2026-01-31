@@ -66,6 +66,9 @@ export default function ProgrammingNotesTab() {
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Mobile sidebar state
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
   // Fetch notes
   const fetchNotes = async () => {
     try {
@@ -432,7 +435,7 @@ export default function ProgrammingNotesTab() {
             moveNoteToFolder(note.id, targetFolder?.id || null);
           }
         }}
-        className={`w-full text-left p-2 rounded-lg text-sm transition cursor-move ${
+        className={`w-full text-left p-1.5 sm:p-2 rounded-lg text-xs sm:text-sm transition cursor-move ${
           selectedNote?.id === note.id
             ? 'bg-teal-50 text-teal-900'
             : 'hover:bg-gray-100 text-gray-700'
@@ -440,7 +443,7 @@ export default function ProgrammingNotesTab() {
         title='Drag to move or right-click'
       >
         <div className='font-medium truncate'>{note.title}</div>
-        <div className='text-xs text-gray-500 mt-0.5'>
+        <div className='text-[10px] sm:text-xs text-gray-500 mt-0.5'>
           {new Date(note.updated_at).toLocaleDateString()}
         </div>
       </button>
@@ -492,46 +495,54 @@ export default function ProgrammingNotesTab() {
       onDragCancel={handleDragCancel}
     >
     <div className='bg-white rounded-lg shadow'>
-      <div className='grid grid-cols-12 gap-4 h-[calc(100vh-240px)]'>
-        {/* Notes List - Left Sidebar */}
-        <div className='col-span-3 border-r border-gray-200 p-4 overflow-y-auto'>
-          <div className='flex items-center justify-between mb-4'>
-            <h3 className='text-lg font-semibold text-gray-900'>My Notes</h3>
-            <div className='flex gap-2'>
-              <button
-                onClick={() => setShowFolderModal(true)}
-                className='p-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition'
-                title='New Folder'
-              >
-                <FolderPlus size={20} />
-              </button>
-              <button
-                onClick={createNote}
-                disabled={saving}
-                className='p-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition disabled:opacity-50'
-                title='New Note'
-              >
-                <Plus size={20} />
-              </button>
-            </div>
-          </div>
+      {/* Mobile Sidebar Toggle */}
+      <div className='md:hidden flex items-center justify-between p-2 border-b border-gray-200'>
+        <button
+          onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+          className='flex items-center gap-2 px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm'
+        >
+          <Folder size={16} />
+          <span>Notes ({notes.length})</span>
+          {mobileSidebarOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+        </button>
+        <div className='flex gap-1'>
+          <button
+            onClick={() => setShowFolderModal(true)}
+            className='p-1.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition'
+            title='New Folder'
+          >
+            <FolderPlus size={16} />
+          </button>
+          <button
+            onClick={createNote}
+            disabled={saving}
+            className='p-1.5 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition disabled:opacity-50'
+            title='New Note'
+          >
+            <Plus size={16} />
+          </button>
+        </div>
+      </div>
 
+      {/* Mobile Sidebar Drawer */}
+      {mobileSidebarOpen && (
+        <div className='md:hidden border-b border-gray-200 p-2 max-h-[40vh] overflow-y-auto bg-gray-50'>
           {/* Search Bar */}
-          <div className='relative mb-4'>
-            <Search className='absolute left-3 top-1/2 -translate-y-1/2 text-gray-400' size={18} />
+          <div className='relative mb-2'>
+            <Search className='absolute left-2 top-1/2 -translate-y-1/2 text-gray-400' size={14} />
             <input
               type='text'
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className='w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm text-gray-900'
+              className='w-full pl-7 pr-7 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-xs text-gray-900'
               placeholder='Search notes...'
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600'
+                className='absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600'
               >
-                <X size={18} />
+                <X size={14} />
               </button>
             )}
           </div>
@@ -539,18 +550,135 @@ export default function ProgrammingNotesTab() {
           <div className='space-y-1'>
             {/* Unfiled Notes */}
             {filteredNotes.filter(n => !n.folder_id).length > 0 && (
-              <DroppableFolder id='unfiled' className='mb-2'>
+              <DroppableFolder id='unfiled' className='mb-1'>
                 <button
                   onClick={() => setCollapsedFolders({ ...collapsedFolders, unfiled: !collapsedFolders.unfiled })}
-                  className='w-full flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg text-gray-700'
+                  className='w-full flex items-center gap-1 p-1.5 hover:bg-gray-100 rounded-lg text-gray-700'
                 >
-                  {collapsedFolders.unfiled ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
-                  <Folder size={16} className='text-gray-500' />
-                  <span className='text-sm font-medium'>Unfiled</span>
-                  <span className='text-xs text-gray-500 ml-auto'>{filteredNotes.filter(n => !n.folder_id).length}</span>
+                  {collapsedFolders.unfiled ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
+                  <Folder size={12} className='text-gray-500' />
+                  <span className='text-xs font-medium'>Unfiled</span>
+                  <span className='text-[10px] text-gray-500 ml-auto'>{filteredNotes.filter(n => !n.folder_id).length}</span>
                 </button>
                 {!collapsedFolders.unfiled && (
-                  <div className='ml-6 mt-1 space-y-1'>
+                  <div className='ml-4 mt-1 space-y-0.5'>
+                    {filteredNotes.filter(n => !n.folder_id).map(note => (
+                      <button
+                        key={note.id}
+                        onClick={() => { selectNote(note); setMobileSidebarOpen(false); }}
+                        className={`w-full text-left p-1.5 rounded text-xs transition ${
+                          selectedNote?.id === note.id
+                            ? 'bg-teal-50 text-teal-900'
+                            : 'hover:bg-gray-100 text-gray-700'
+                        }`}
+                      >
+                        <div className='font-medium truncate'>{note.title}</div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </DroppableFolder>
+            )}
+
+            {/* Folders */}
+            {folders.map(folder => {
+              const folderNotes = filteredNotes.filter(n => n.folder_id === folder.id);
+              if (searchQuery && folderNotes.length === 0) return null;
+
+              return (
+                <DroppableFolder key={folder.id} id={`folder-${folder.id}`} className='mb-1'>
+                  <button
+                    onClick={() => setCollapsedFolders({ ...collapsedFolders, [folder.id]: !collapsedFolders[folder.id] })}
+                    className='w-full flex items-center gap-1 p-1.5 hover:bg-gray-100 rounded-lg text-gray-700'
+                  >
+                    {collapsedFolders[folder.id] ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
+                    <Folder size={12} className='text-orange-500' />
+                    <span className='text-xs font-medium truncate'>{folder.name}</span>
+                    <span className='text-[10px] text-gray-500 ml-auto'>{folderNotes.length}</span>
+                  </button>
+                  {!collapsedFolders[folder.id] && (
+                    <div className='ml-4 mt-1 space-y-0.5'>
+                      {folderNotes.map(note => (
+                        <button
+                          key={note.id}
+                          onClick={() => { selectNote(note); setMobileSidebarOpen(false); }}
+                          className={`w-full text-left p-1.5 rounded text-xs transition ${
+                            selectedNote?.id === note.id
+                              ? 'bg-teal-50 text-teal-900'
+                              : 'hover:bg-gray-100 text-gray-700'
+                          }`}
+                        >
+                          <div className='font-medium truncate'>{note.title}</div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </DroppableFolder>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <div className='md:grid md:grid-cols-12 gap-2 md:gap-4 h-[calc(100vh-180px)] md:h-[calc(100vh-240px)]'>
+        {/* Notes List - Left Sidebar (Desktop only) */}
+        <div className='hidden md:block md:col-span-3 md:border-r border-gray-200 p-4 overflow-y-auto'>
+          <div className='flex items-center justify-between mb-2 md:mb-4'>
+            <h3 className='text-sm sm:text-base md:text-lg font-semibold text-gray-900'>My Notes</h3>
+            <div className='flex gap-1 sm:gap-2'>
+              <button
+                onClick={() => setShowFolderModal(true)}
+                className='p-1.5 sm:p-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition'
+                title='New Folder'
+              >
+                <FolderPlus size={16} className='sm:w-5 sm:h-5' />
+              </button>
+              <button
+                onClick={createNote}
+                disabled={saving}
+                className='p-1.5 sm:p-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition disabled:opacity-50'
+                title='New Note'
+              >
+                <Plus size={16} className='sm:w-5 sm:h-5' />
+              </button>
+            </div>
+          </div>
+
+          {/* Search Bar */}
+          <div className='relative mb-2 md:mb-4'>
+            <Search className='absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 text-gray-400' size={16} />
+            <input
+              type='text'
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className='w-full pl-8 sm:pl-10 pr-8 sm:pr-10 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-xs sm:text-sm text-gray-900'
+              placeholder='Search notes...'
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className='absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600'
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
+
+          <div className='space-y-1'>
+            {/* Unfiled Notes */}
+            {filteredNotes.filter(n => !n.folder_id).length > 0 && (
+              <DroppableFolder id='unfiled' className='mb-1 sm:mb-2'>
+                <button
+                  onClick={() => setCollapsedFolders({ ...collapsedFolders, unfiled: !collapsedFolders.unfiled })}
+                  className='w-full flex items-center gap-1 sm:gap-2 p-1.5 sm:p-2 hover:bg-gray-100 rounded-lg text-gray-700'
+                >
+                  {collapsedFolders.unfiled ? <ChevronRight size={14} className='sm:w-4 sm:h-4' /> : <ChevronDown size={14} className='sm:w-4 sm:h-4' />}
+                  <Folder size={14} className='sm:w-4 sm:h-4 text-gray-500' />
+                  <span className='text-xs sm:text-sm font-medium'>Unfiled</span>
+                  <span className='text-[10px] sm:text-xs text-gray-500 ml-auto'>{filteredNotes.filter(n => !n.folder_id).length}</span>
+                </button>
+                {!collapsedFolders.unfiled && (
+                  <div className='ml-4 sm:ml-6 mt-1 space-y-1'>
                     {filteredNotes.filter(n => !n.folder_id).map(note => (
                       <DraggableNote key={note.id} note={note} />
                     ))}
@@ -565,39 +693,39 @@ export default function ProgrammingNotesTab() {
               if (searchQuery && folderNotes.length === 0) return null; // Hide empty folders when searching
 
               return (
-              <DroppableFolder key={folder.id} id={`folder-${folder.id}`} className='mb-2'>
-                <div className='w-full flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg text-gray-700 group'>
+              <DroppableFolder key={folder.id} id={`folder-${folder.id}`} className='mb-1 sm:mb-2'>
+                <div className='w-full flex items-center gap-1 sm:gap-2 p-1.5 sm:p-2 hover:bg-gray-100 rounded-lg text-gray-700 group'>
                   <button
                     onClick={() => setCollapsedFolders({ ...collapsedFolders, [folder.id]: !collapsedFolders[folder.id] })}
-                    className='flex items-center gap-2 flex-1'
+                    className='flex items-center gap-1 sm:gap-2 flex-1'
                   >
-                    {collapsedFolders[folder.id] ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
-                    <Folder size={16} className='text-orange-500' />
-                    <span className='text-sm font-medium'>{folder.name}</span>
-                    <span className='text-xs text-gray-500 ml-auto'>{folderNotes.length}</span>
+                    {collapsedFolders[folder.id] ? <ChevronRight size={14} className='sm:w-4 sm:h-4' /> : <ChevronDown size={14} className='sm:w-4 sm:h-4' />}
+                    <Folder size={14} className='sm:w-4 sm:h-4 text-orange-500' />
+                    <span className='text-xs sm:text-sm font-medium truncate'>{folder.name}</span>
+                    <span className='text-[10px] sm:text-xs text-gray-500 ml-auto'>{folderNotes.length}</span>
                   </button>
                   <div className='relative'>
                     <button
                       onClick={() => setShowFolderMenu(showFolderMenu === folder.id ? null : folder.id)}
-                      className='p-1 hover:bg-gray-200 rounded opacity-0 group-hover:opacity-100 transition'
+                      className='p-1 hover:bg-gray-200 rounded md:opacity-0 md:group-hover:opacity-100 transition'
                     >
                       <MoreVertical size={14} />
                     </button>
                     {showFolderMenu === folder.id && (
-                      <div className='absolute right-0 top-6 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[120px]'>
+                      <div className='absolute right-0 top-6 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[100px] sm:min-w-[120px]'>
                         <button
                           onClick={() => {
                             const newName = prompt('Rename folder:', folder.name);
                             if (newName) renameFolder(folder.id, newName);
                             setShowFolderMenu(null);
                           }}
-                          className='w-full px-3 py-2 text-left text-sm hover:bg-gray-100'
+                          className='w-full px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs sm:text-sm hover:bg-gray-100'
                         >
                           Rename
                         </button>
                         <button
                           onClick={() => deleteFolder(folder.id)}
-                          className='w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50'
+                          className='w-full px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs sm:text-sm text-red-600 hover:bg-red-50'
                         >
                           Delete
                         </button>
@@ -606,7 +734,7 @@ export default function ProgrammingNotesTab() {
                   </div>
                 </div>
                 {!collapsedFolders[folder.id] && (
-                  <div className='ml-6 mt-1 space-y-1'>
+                  <div className='ml-4 sm:ml-6 mt-1 space-y-1'>
                     {filteredNotes.filter(n => n.folder_id === folder.id).map(note => (
                       <DraggableNote key={note.id} note={note} />
                     ))}
@@ -618,61 +746,61 @@ export default function ProgrammingNotesTab() {
 
             {/* Empty States */}
             {searchQuery && filteredNotes.length === 0 && (
-              <p className='text-sm text-gray-500 text-center py-8'>
+              <p className='text-xs sm:text-sm text-gray-500 text-center py-4 sm:py-8'>
                 No notes found matching &quot;{searchQuery}&quot;
               </p>
             )}
 
             {!searchQuery && notes.length === 0 && folders.length === 0 && (
-              <p className='text-sm text-gray-500 text-center py-8'>No notes or folders yet!</p>
+              <p className='text-xs sm:text-sm text-gray-500 text-center py-4 sm:py-8'>No notes or folders yet!</p>
             )}
           </div>
         </div>
 
         {/* Editor - Right Panel */}
-        <div className='col-span-9 p-4 flex flex-col min-h-0'>
+        <div className='md:col-span-9 p-2 sm:p-3 md:p-4 flex flex-col min-h-0 h-full'>
           {selectedNote ? (
             <>
               {/* Title and Actions */}
-              <div className='flex items-center gap-4 mb-4 flex-shrink-0'>
+              <div className='flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 mb-2 sm:mb-4 flex-shrink-0'>
                 <input
                   type='text'
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className='flex-1 text-2xl font-bold border-b-2 border-gray-200 focus:border-teal-500 outline-none px-2 py-1 text-gray-900'
+                  className='flex-1 text-base sm:text-xl md:text-2xl font-bold border-b-2 border-gray-200 focus:border-teal-500 outline-none px-1 sm:px-2 py-1 text-gray-900'
                   placeholder='Note Title'
                 />
-                <div className='flex gap-2'>
+                <div className='flex gap-1 sm:gap-2 justify-end'>
                   <button
                     onClick={() => setIsEditing(!isEditing)}
-                    className='px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition flex items-center gap-2'
+                    className='px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 bg-gray-100 text-gray-700 text-xs sm:text-sm md:text-base rounded-lg hover:bg-gray-200 transition flex items-center gap-1 sm:gap-2'
                   >
                     {isEditing ? (
                       <>
-                        <Eye size={16} />
-                        Preview
+                        <Eye size={14} className='sm:w-4 sm:h-4' />
+                        <span className='hidden sm:inline'>Preview</span>
                       </>
                     ) : (
                       <>
-                        <Edit2 size={16} />
-                        Edit
+                        <Edit2 size={14} className='sm:w-4 sm:h-4' />
+                        <span className='hidden sm:inline'>Edit</span>
                       </>
                     )}
                   </button>
                   <button
                     onClick={saveNote}
                     disabled={saving}
-                    className='px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition disabled:opacity-50 flex items-center gap-2'
+                    className='px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 bg-teal-500 text-white text-xs sm:text-sm md:text-base rounded-lg hover:bg-teal-600 transition disabled:opacity-50 flex items-center gap-1 sm:gap-2'
                   >
-                    <Save size={16} />
-                    {saving ? 'Saving...' : 'Save'}
+                    <Save size={14} className='sm:w-4 sm:h-4' />
+                    <span className='hidden sm:inline'>{saving ? 'Saving...' : 'Save'}</span>
                   </button>
                   <button
                     onClick={() => deleteNote(selectedNote.id)}
-                    className='px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition flex items-center gap-2'
+                    className='px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 bg-red-500 text-white text-xs sm:text-sm md:text-base rounded-lg hover:bg-red-600 transition flex items-center gap-1 sm:gap-2'
                   >
-                    <Trash2 size={16} />
-                    Delete
+                    <Trash2 size={14} className='sm:w-4 sm:h-4' />
+                    <span className='hidden sm:inline'>Delete</span>
                   </button>
                 </div>
               </div>
@@ -681,32 +809,32 @@ export default function ProgrammingNotesTab() {
               {isEditing && (
                 <>
                   {/* Formatting Toolbar */}
-                  <div className='flex gap-1 mb-3 p-2 bg-gray-100 rounded-lg border border-gray-300 flex-shrink-0'>
-                    <button type='button' onClick={() => applyFormatting('bold')} className='p-2 hover:bg-white rounded transition text-gray-700' title='Bold'>
-                      <Bold size={16} />
+                  <div className='flex flex-wrap gap-0.5 sm:gap-1 mb-2 sm:mb-3 p-1 sm:p-2 bg-gray-100 rounded-lg border border-gray-300 flex-shrink-0'>
+                    <button type='button' onClick={() => applyFormatting('bold')} className='p-1.5 sm:p-2 hover:bg-white rounded transition text-gray-700' title='Bold'>
+                      <Bold size={14} className='sm:w-4 sm:h-4' />
                     </button>
-                    <button type='button' onClick={() => applyFormatting('italic')} className='p-2 hover:bg-white rounded transition text-gray-700' title='Italic'>
-                      <Italic size={16} />
+                    <button type='button' onClick={() => applyFormatting('italic')} className='p-1.5 sm:p-2 hover:bg-white rounded transition text-gray-700' title='Italic'>
+                      <Italic size={14} className='sm:w-4 sm:h-4' />
                     </button>
-                    <button type='button' onClick={() => applyFormatting('underline')} className='p-2 hover:bg-white rounded transition text-gray-700' title='Underline'>
-                      <UnderlineIcon size={16} />
+                    <button type='button' onClick={() => applyFormatting('underline')} className='p-1.5 sm:p-2 hover:bg-white rounded transition text-gray-700' title='Underline'>
+                      <UnderlineIcon size={14} className='sm:w-4 sm:h-4' />
                     </button>
-                    <div className='w-px bg-gray-300 mx-1'></div>
-                    <button type='button' onClick={() => applyFormatting('h1')} className='p-2 hover:bg-white rounded transition text-gray-700' title='Heading 1'>
-                      <Type size={16} className='font-bold' />
+                    <div className='w-px bg-gray-300 mx-0.5 sm:mx-1 hidden sm:block'></div>
+                    <button type='button' onClick={() => applyFormatting('h1')} className='p-1.5 sm:p-2 hover:bg-white rounded transition text-gray-700' title='Heading 1'>
+                      <Type size={14} className='sm:w-4 sm:h-4 font-bold' />
                     </button>
-                    <button type='button' onClick={() => applyFormatting('h2')} className='p-2 hover:bg-white rounded transition text-gray-700' title='Heading 2'>
-                      <Type size={14} />
+                    <button type='button' onClick={() => applyFormatting('h2')} className='p-1.5 sm:p-2 hover:bg-white rounded transition text-gray-700' title='Heading 2'>
+                      <Type size={12} className='sm:w-3.5 sm:h-3.5' />
                     </button>
-                    <button type='button' onClick={() => applyFormatting('h3')} className='p-2 hover:bg-white rounded transition text-gray-700' title='Heading 3'>
-                      <Type size={12} />
+                    <button type='button' onClick={() => applyFormatting('h3')} className='p-1.5 sm:p-2 hover:bg-white rounded transition text-gray-700' title='Heading 3'>
+                      <Type size={10} className='sm:w-3 sm:h-3' />
                     </button>
-                    <div className='w-px bg-gray-300 mx-1'></div>
-                    <button type='button' onClick={() => applyFormatting('bullet')} className='p-2 hover:bg-white rounded transition text-gray-700' title='Bullet List'>
-                      <List size={16} />
+                    <div className='w-px bg-gray-300 mx-0.5 sm:mx-1 hidden sm:block'></div>
+                    <button type='button' onClick={() => applyFormatting('bullet')} className='p-1.5 sm:p-2 hover:bg-white rounded transition text-gray-700' title='Bullet List'>
+                      <List size={14} className='sm:w-4 sm:h-4' />
                     </button>
-                    <button type='button' onClick={() => applyFormatting('numbered')} className='p-2 hover:bg-white rounded transition text-gray-700' title='Numbered List'>
-                      <ListOrdered size={16} />
+                    <button type='button' onClick={() => applyFormatting('numbered')} className='p-1.5 sm:p-2 hover:bg-white rounded transition text-gray-700' title='Numbered List'>
+                      <ListOrdered size={14} className='sm:w-4 sm:h-4' />
                     </button>
                   </div>
 
@@ -715,7 +843,7 @@ export default function ProgrammingNotesTab() {
                     ref={textareaRef}
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
-                    className='flex-1 min-h-0 border border-gray-300 rounded-lg p-4 font-mono text-sm resize-none focus:ring-2 focus:ring-teal-500 focus:border-transparent'
+                    className='flex-1 min-h-[150px] md:min-h-0 border border-gray-300 rounded-lg p-2 sm:p-3 md:p-4 font-mono text-xs sm:text-sm resize-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900'
                     placeholder='Start typing your notes here... (supports Markdown)'
                   />
                 </>
@@ -723,7 +851,7 @@ export default function ProgrammingNotesTab() {
 
               {/* Preview Mode */}
               {!isEditing && (
-                <div className='flex-1 min-h-0 border border-gray-300 rounded-lg p-4 overflow-y-auto prose prose-sm max-w-none whitespace-pre-wrap text-gray-900'>
+                <div className='flex-1 min-h-[150px] md:min-h-0 border border-gray-300 rounded-lg p-2 sm:p-3 md:p-4 overflow-y-auto prose prose-sm max-w-none whitespace-pre-wrap text-gray-900'>
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm]}
                     rehypePlugins={[rehypeRaw]}
@@ -746,8 +874,8 @@ export default function ProgrammingNotesTab() {
           ) : (
             <div className='flex-1 flex items-center justify-center text-gray-500'>
               <div className='text-center'>
-                <p className='text-lg mb-2'>No note selected</p>
-                <p className='text-sm'>Select a note from the list or create a new one</p>
+                <p className='text-sm sm:text-base md:text-lg mb-1 sm:mb-2'>No note selected</p>
+                <p className='text-xs sm:text-sm'>Select a note from the list or create a new one</p>
               </div>
             </div>
           )}
@@ -756,9 +884,9 @@ export default function ProgrammingNotesTab() {
 
       {/* Folder Modal */}
       {showFolderModal && (
-        <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'>
-          <div className='bg-white rounded-lg p-6 w-full max-w-md'>
-            <h3 className='text-xl font-bold mb-4'>Create Folder</h3>
+        <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4'>
+          <div className='bg-white rounded-lg p-4 sm:p-6 w-full max-w-md'>
+            <h3 className='text-lg sm:text-xl font-bold mb-3 sm:mb-4'>Create Folder</h3>
             <input
               type='text'
               value={folderName}
@@ -770,15 +898,15 @@ export default function ProgrammingNotesTab() {
                   setFolderName('');
                 }
               }}
-              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
+              className='w-full px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-900'
               placeholder='Folder name...'
               autoFocus
             />
-            <div className='flex gap-3 mt-6'>
+            <div className='flex gap-2 sm:gap-3 mt-4 sm:mt-6'>
               <button
                 onClick={createFolder}
                 disabled={!folderName.trim()}
-                className='flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition disabled:opacity-50 disabled:cursor-not-allowed'
+                className='flex-1 px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition disabled:opacity-50 disabled:cursor-not-allowed'
               >
                 Create
               </button>
@@ -787,7 +915,7 @@ export default function ProgrammingNotesTab() {
                   setShowFolderModal(false);
                   setFolderName('');
                 }}
-                className='flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition'
+                className='flex-1 px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition'
               >
                 Cancel
               </button>
