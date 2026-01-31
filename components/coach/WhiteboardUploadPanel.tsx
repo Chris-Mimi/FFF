@@ -4,6 +4,15 @@ import { supabase } from '@/lib/supabase';
 import { Calendar, Upload, X } from 'lucide-react';
 import { useState } from 'react';
 
+// Browser-compatible UUID v4 generator
+const generateUUID = (): string => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
+
 interface WhiteboardUploadPanelProps {
   userId: string;
   selectedWeek: string;
@@ -123,7 +132,23 @@ export default function WhiteboardUploadPanel({
         // Try to parse week from filename, fall back to selected week
         const parsed = parseWeekFromFilename(file.name);
         const targetWeek = parsed?.week || selectedWeek;
-        const fileLabel = parsed?.label || photoLabel.trim() || `Photo ${i + 1}`;
+
+        // Generate label: parsed from filename > base label + number > Photo N
+        let fileLabel: string;
+        if (parsed?.label) {
+          // Filename was successfully parsed (e.g., "2026 Week 3.1")
+          fileLabel = parsed.label;
+        } else if (photoLabel.trim()) {
+          // User provided base label - auto-number if multiple files
+          if (selectedFiles.length > 1) {
+            fileLabel = `${photoLabel.trim()}${i + 1}`;
+          } else {
+            fileLabel = photoLabel.trim();
+          }
+        } else {
+          // No filename parse, no base label - default numbering
+          fileLabel = `Photo ${i + 1}`;
+        }
 
         // Get display order for this week (fetch once per week)
         if (weekOrders[targetWeek] === undefined) {
@@ -134,10 +159,8 @@ export default function WhiteboardUploadPanel({
 
         // Generate unique filename
         const fileExt = file.name.split('.').pop();
-        const fileName = `${crypto.randomUUID()}.${fileExt}`;
+        const fileName = `${generateUUID()}.${fileExt}`;
         const storagePath = `${targetWeek}/${fileName}`;
-
-        console.log(`Uploading photo ${i + 1}/${selectedFiles.length}:`, { storagePath, fileLabel, targetWeek });
 
         // Upload to Supabase Storage
         const { error: uploadError } = await supabase.storage
