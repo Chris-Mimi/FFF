@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.39
-**Updated:** 2026-01-31 (Session 84 - Whiteboard Mobile Upload Fix & UI Optimization)
+**Version:** 10.40
+**Updated:** 2026-01-31 (Session 85 - AthletePageLogbookTab Phase 2 Refactoring)
 
 ---
 
@@ -76,6 +76,27 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2026-01-31 Session 85 - Sonnet):**
+- **✅ AthletePageLogbookTab Phase 2 Refactoring - Custom Hooks Extraction:**
+  - Reduced main component from 1,607 → 1,267 lines (340 line reduction)
+  - Overall progress: 1,900 → 1,267 lines (633 lines removed, 33% reduction)
+  - Created 5 new custom hooks (594 lines total):
+    - useAthleteLogbookState.ts (99 lines) - Manages 9 state variables
+    - useAthleteNavigation.ts (69 lines) - Date navigation functions (previousDay, nextDay, etc.)
+    - usePhotoHandling.ts (99 lines) - Photo modal + whiteboard fetching
+    - useLiftManagement.ts (180 lines) - Lift CRUD operations
+    - useBenchmarkManagement.ts (147 lines) - Benchmark CRUD operations
+  - Build successful with no new errors
+  - User tested Phase 2: All functionality working correctly
+  - Files: hooks/athlete/ (5 new files), components/athlete/AthletePageLogbookTab.tsx (modified)
+- **✅ Development Server Restart Alias:**
+  - Created `restart` bash alias for one-command server restart
+  - Kills all processes on ports 3000-3009 + starts npm run dev
+  - Instructions saved in: Chris Notes/AA frequently used files/free-ports info & help
+  - File: ~/.zshrc (alias added)
+- **📋 Next Phase:** Phase 3 - Extract 5 utility files (~180 line reduction target)
+- See: `project-history/2026-01-31-session-85-logbook-phase-2-refactoring.md`
 
 **Completed (2026-01-31 Session 84 - Sonnet):**
 - **✅ Whiteboard Upload Mobile Compatibility Fix:**
@@ -973,12 +994,23 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 60 Priorities (Next Session)
+### Session 86 Priorities (Next Session - Chris User Profile)
 
-**Week 2: Testing Phase** - Begin comprehensive validation before January Beta Launch
+**⚡ START: Phase 3 - Extract Utility Functions from AthletePageLogbookTab**
+- Create 5 utility files in `utils/logbook/` directory
+- Target: Remove ~180 lines from main component
+- Files to create:
+  1. dateNavigation.ts (40 lines) - Date arithmetic functions
+  2. photoHandlers.ts (50 lines) - ISO week calculation, photo navigation
+  3. formatters.ts (40 lines) - formatLift, formatBenchmark, formatForgeBenchmark
+  4. savingLogic.ts (30 lines) - saveSectionResult, saveAllResults
+  5. loadingLogic.ts (20 lines) - loadSectionResults, loadLiftResultsToSection
+- Update hooks from Phase 2 to import these utilities
+- Goal: Main component → ~1,100 lines (from 1,267)
+- See approved refactoring plan at: ~/.claude/plans/graceful-squishing-kitten.md
+
+**Week 2: Testing Phase** - Parallel work when refactoring complete
 - All Week 1 critical tasks complete (RLS policies, build verification)
-- Modal closing behavior fixed (Session 59)
-- Testing plan created in plan mode (see testing plan file)
 - Ready to begin systematic manual validation of all features
 
 ### JANUARY LAUNCH PLAN (Weeks 1-5)

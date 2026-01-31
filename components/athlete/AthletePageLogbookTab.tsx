@@ -2,51 +2,28 @@
 'use client';
 
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useLogbookData } from '@/hooks/athlete/useLogbookData';
 import { useWorkoutLogging } from '@/hooks/athlete/useWorkoutLogging';
+import { useAthleteLogbookState } from '@/hooks/athlete/useAthleteLogbookState';
+import { useAthleteNavigation } from '@/hooks/athlete/useAthleteNavigation';
+import { usePhotoHandling } from '@/hooks/athlete/usePhotoHandling';
+import { useLiftManagement } from '@/hooks/athlete/useLiftManagement';
+import { useBenchmarkManagement } from '@/hooks/athlete/useBenchmarkManagement';
 import { formatLocalDate, getWeekDates, getMonthCalendarDays, getPublishedSections } from '@/utils/logbook-utils';
 import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
 import { supabase } from '@/lib/supabase';
-
-interface LiftRecord {
-  lift_name: string;
-  weight_kg: string;
-  reps: number;
-  rep_scheme?: string;
-}
-
-interface BenchmarkResult {
-  benchmark_name: string;
-  benchmark_type: string;
-  time_result?: string;
-  reps_result?: string;
-  weight_result?: string;
-  scaling_level?: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3';
-  benchmark_id?: string;
-  forge_benchmark_id?: string;
-}
+import ScoringFieldInputs from './logbook/ScoringFieldInputs';
 
 interface SectionResult {
   time_result?: string;
   reps_result?: string;
   weight_result?: string;
   scaling_level?: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '';
-  // NEW: Configurable scoring fields
   rounds_result?: string;
   calories_result?: string;
   metres_result?: string;
   task_completed?: boolean;
-}
-
-interface WhiteboardPhoto {
-  id: string;
-  workout_week: string;
-  photo_label: string;
-  photo_url: string;
-  caption?: string | null;
-  display_order: number;
-  created_at: string;
 }
 
 interface AthletePageLogbookTabProps {
@@ -97,19 +74,30 @@ function formatForgeBenchmark(forge: ConfiguredForgeBenchmark): { name: string; 
 }
 
 export default function AthletePageLogbookTab({ userId, initialDate, initialViewMode, onDateChange }: AthletePageLogbookTabProps) {
-  const [selectedDate, setSelectedDate] = useState(initialDate || new Date());
-  const [viewMode, setViewMode] = useState<'day' | 'week' | 'month'>(initialViewMode || 'week');
-  const [liftRecords, setLiftRecords] = useState<Record<string, LiftRecord>>({});
-  const [benchmarkResults, setBenchmarkResults] = useState<Record<string, BenchmarkResult>>({});
-  const [sectionResults, setSectionResults] = useState<Record<string, SectionResult>>({});
+  // State management via custom hook
+  const state = useAthleteLogbookState(initialDate, initialViewMode);
+  const {
+    selectedDate,
+    setSelectedDate,
+    viewMode,
+    setViewMode,
+    liftRecords,
+    setLiftRecords,
+    benchmarkResults,
+    setBenchmarkResults,
+    sectionResults,
+    setSectionResults,
+    whiteboardPhotos,
+    setWhiteboardPhotos,
+    photosLoading,
+    setPhotosLoading,
+    selectedPhoto,
+    setSelectedPhoto,
+    showPhotoModal,
+    setShowPhotoModal,
+  } = state;
 
-  // Whiteboard photos state
-  const [whiteboardPhotos, setWhiteboardPhotos] = useState<WhiteboardPhoto[]>([]);
-  const [photosLoading, setPhotosLoading] = useState(false);
-  const [selectedPhoto, setSelectedPhoto] = useState<WhiteboardPhoto | null>(null);
-  const [showPhotoModal, setShowPhotoModal] = useState(false);
-
-  // Use extracted hooks
+  // Use extracted data hooks
   const { workouts, workoutLogs, loading, setWorkoutLogs } = useLogbookData({
     userId,
     selectedDate,
@@ -121,260 +109,31 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
     workoutLogs,
   });
 
-  // Save lift record to database (upsert: update if exists, insert if new)
-  const saveLiftRecord = async (liftName: string, weightKg: string, reps: number, liftDate: string, repScheme?: string) => {
-    if (!weightKg || parseFloat(weightKg) <= 0) {
-      return; // Don't save if no weight entered
-    }
+  // Navigation handlers via custom hook
+  const navigation = useAthleteNavigation(selectedDate, setSelectedDate);
+  const { previousDay, nextDay, previousWeek, nextWeek, previousMonth, nextMonth, goToToday } = navigation;
 
-    try {
-      const weight = parseFloat(weightKg);
+  // Photo handling via custom hook
+  const photoHandlers = usePhotoHandling(
+    selectedDate,
+    whiteboardPhotos,
+    setWhiteboardPhotos,
+    photosLoading,
+    setPhotosLoading,
+    selectedPhoto,
+    setSelectedPhoto,
+    setShowPhotoModal
+  );
+  const { handleViewPhoto, handleClosePhotoModal, handlePreviousPhoto, handleNextPhoto, getWeekNumber } = photoHandlers;
 
-      // Check if a record already exists for this lift + date + user + rep_scheme
-      const { data: existingRecord, error: checkError } = await supabase
-        .from('lift_records')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('lift_name', liftName)
-        .eq('lift_date', liftDate)
-        .eq('rep_scheme', repScheme || null)
-        .maybeSingle();
+  // Lift management via custom hook
+  const liftHandlers = useLiftManagement(userId, liftRecords, setLiftRecords, workouts);
+  const { saveLiftRecord, loadLiftRecords } = liftHandlers;
 
-      if (checkError) {
-        console.error('Error checking existing lift record:', checkError);
-        alert(`Failed to check lift record: ${checkError.message || JSON.stringify(checkError)}`);
-        return;
-      }
+  // Benchmark management via custom hook
+  const benchmarkHandlers = useBenchmarkManagement(userId, benchmarkResults, setBenchmarkResults);
+  const { saveBenchmarkResult } = benchmarkHandlers;
 
-      if (existingRecord) {
-        // Update existing record
-        const { error } = await supabase
-          .from('lift_records')
-          .update({
-            weight_kg: weight,
-            reps: reps,
-            rep_scheme: repScheme || null,
-          })
-          .eq('id', existingRecord.id);
-
-        if (error) {
-          console.error('Error updating lift record:', error);
-          alert(`Failed to update lift record: ${error.message || JSON.stringify(error)}`);
-          return;
-        }
-      } else {
-        // Insert new record
-        const { error } = await supabase
-          .from('lift_records')
-          .insert({
-            user_id: userId,
-            lift_name: liftName,
-            weight_kg: weight,
-            reps: reps,
-            rep_scheme: repScheme || null,
-            lift_date: liftDate,
-          });
-
-        if (error) {
-          console.error('Error inserting lift record:', error);
-          alert(`Failed to insert lift record: ${error.message || JSON.stringify(error)}`);
-          return;
-        }
-      }
-    } catch (error) {
-      console.error('Error saving lift record (catch):', error);
-      alert(`Failed to save lift record: ${error instanceof Error ? error.message : String(error)}`);
-    }
-  };
-
-  // Save all lift records for a workout
-  const saveAllLiftRecords = async (dateStr: string) => {
-    const recordsToSave = Object.entries(liftRecords).filter(([_, record]) => record.weight_kg && parseFloat(record.weight_kg) > 0);
-
-    if (recordsToSave.length === 0) {
-      alert('No lift weights entered to save');
-      return;
-    }
-
-    let errorCount = 0;
-    for (const [_liftKey, record] of recordsToSave) {
-      try {
-        await saveLiftRecord(record.lift_name, record.weight_kg, record.reps, dateStr, record.rep_scheme);
-      } catch (error) {
-        errorCount++;
-      }
-    }
-
-    if (errorCount === 0) {
-      alert('Lift records saved successfully!');
-      // Reload the lift records to show updated values
-      await loadLiftRecords(dateStr);
-    } else {
-      alert(`Saved ${recordsToSave.length - errorCount} of ${recordsToSave.length} lift records. ${errorCount} failed.`);
-    }
-  };
-
-  // Save benchmark result to database via API
-  const saveBenchmarkResult = async (
-    benchmarkName: string,
-    benchmarkType: string,
-    timeResult: string,
-    repsResult: string,
-    weightResult: string,
-    resultDate: string,
-    scalingLevel?: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3',
-    benchmarkId?: string,
-    forgeBenchmarkId?: string
-  ) => {
-    // Don't save if all result fields are empty
-    if (!timeResult && !repsResult && !weightResult) {
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/benchmark-results', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId,
-          benchmarkId,
-          forgeBenchmarkId,
-          benchmarkName,
-          benchmarkType,
-          timeResult,
-          repsResult,
-          weightResult,
-          scalingLevel,
-          notes: null, // Add notes field
-          resultDate
-        })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to save benchmark result');
-      }
-
-      console.log('Benchmark result saved:', data);
-    } catch (error) {
-      console.error('Error saving benchmark result:', error);
-      alert(`Failed to save benchmark result: ${error instanceof Error ? error.message : String(error)}`);
-      throw error; // Re-throw so unified save can count it as error
-    }
-  };
-
-  // Save all benchmark results for a workout
-  const saveAllBenchmarkResults = async (dateStr: string) => {
-    console.log('=== SAVING BENCHMARK RESULTS ===');
-    console.log('All benchmark results state:', benchmarkResults);
-
-    const resultsToSave = Object.entries(benchmarkResults).filter(
-      ([_, result]) => result.time_result || result.reps_result || result.weight_result
-    );
-
-    console.log('Filtered results to save:', resultsToSave);
-
-    if (resultsToSave.length === 0) {
-      alert('No benchmark results entered to save');
-      return;
-    }
-
-    let errorCount = 0;
-    const errors: Array<{ benchmark_name: string; error: string }> = [];
-    for (const [key, result] of resultsToSave) {
-      try {
-        console.log(`Saving benchmark result [${key}]:`, {
-          name: result.benchmark_name,
-          type: result.benchmark_type,
-          time: result.time_result,
-          reps: result.reps_result,
-          weight: result.weight_result,
-          scaling: result.scaling_level
-        });
-
-        await saveBenchmarkResult(
-          result.benchmark_name,
-          result.benchmark_type,
-          result.time_result || '',
-          result.reps_result || '',
-          result.weight_result || '',
-          dateStr,
-          result.scaling_level,
-          result.benchmark_id,
-          result.forge_benchmark_id
-        );
-        console.log(`✓ Successfully saved ${result.benchmark_name}`);
-      } catch (error) {
-        console.error(`✗ Failed to save ${result.benchmark_name}:`, error);
-        errors.push({ benchmark_name: result.benchmark_name, error: error instanceof Error ? error.message : 'Unknown error' });
-        errorCount++;
-      }
-    }
-
-    if (errorCount === 0) {
-      alert('Benchmark results saved successfully!');
-      setBenchmarkResults({});
-    } else {
-      console.error('Errors during save:', errors);
-      alert(`Saved ${resultsToSave.length - errorCount} of ${resultsToSave.length} benchmark results. ${errorCount} failed. Check console for details.`);
-    }
-  };
-
-  // Load existing lift records for displayed workouts
-  const loadLiftRecords = async (workoutDate: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('lift_records')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('lift_date', workoutDate)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error loading lift records:', error);
-        return;
-      }
-
-      if (data) {
-        // Find the workout for this date to build proper keys
-        const dayWorkouts = workouts.filter(w => w.date === workoutDate);
-        const newLiftRecords: Record<string, LiftRecord> = {};
-
-        dayWorkouts.forEach(wod => {
-          const sections = getPublishedSections(wod);
-          sections.forEach(section => {
-            if (section.lifts) {
-              section.lifts.forEach((lift) => {
-                // Calculate rep scheme for this lift
-                const repScheme = lift.rep_type === 'constant'
-                  ? `${lift.sets || 1}x${lift.reps || 1}`
-                  : lift.variable_sets?.map(s => s.reps).join('-') || '1';
-
-                const liftKey = `${wod.id}-${section.id}-${lift.name}-${repScheme}`;
-                // Find the most recent record for this lift with matching rep_scheme
-                const existingRecord = data.find(r =>
-                  r.lift_name === lift.name && r.rep_scheme === repScheme
-                );
-                if (existingRecord) {
-                  newLiftRecords[liftKey] = {
-                    lift_name: existingRecord.lift_name,
-                    weight_kg: existingRecord.weight_kg.toString(),
-                    reps: existingRecord.reps,
-                    rep_scheme: existingRecord.rep_scheme || undefined,
-                  };
-                }
-              });
-            }
-          });
-        });
-
-        setLiftRecords(prev => ({ ...prev, ...newLiftRecords }));
-      }
-    } catch (error) {
-      console.error('Error loading lift records:', error);
-    }
-  };
 
   // Load section results for WOD sections
   const loadSectionResults = async (workoutDate: string) => {
@@ -805,104 +564,6 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
     }
   }, [selectedDate, onDateChange]);
 
-  // Navigation handlers
-  const previousDay = () => {
-    const newDate = new Date(selectedDate);
-    newDate.setDate(newDate.getDate() - 1);
-    setSelectedDate(newDate);
-  };
-
-  const nextDay = () => {
-    const newDate = new Date(selectedDate);
-    newDate.setDate(newDate.getDate() + 1);
-    setSelectedDate(newDate);
-  };
-
-  const previousWeek = () => {
-    const newDate = new Date(selectedDate);
-    newDate.setDate(newDate.getDate() - 7);
-    setSelectedDate(newDate);
-  };
-
-  const nextWeek = () => {
-    const newDate = new Date(selectedDate);
-    newDate.setDate(newDate.getDate() + 7);
-    setSelectedDate(newDate);
-  };
-
-  const previousMonth = () => {
-    const newDate = new Date(selectedDate);
-    newDate.setMonth(newDate.getMonth() - 1);
-    setSelectedDate(newDate);
-  };
-
-  const nextMonth = () => {
-    const newDate = new Date(selectedDate);
-    newDate.setMonth(newDate.getMonth() + 1);
-    setSelectedDate(newDate);
-  };
-
-  const goToToday = () => {
-    const today = new Date();
-    setSelectedDate(today);
-  };
-
-  // Whiteboard photos helpers
-  const getWeekNumber = (date: Date): number => {
-    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-    const dayNum = d.getUTCDay() || 7;
-    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
-  };
-
-  const fetchWhiteboardPhotos = async () => {
-    const weekNumber = getWeekNumber(selectedDate);
-    const isoWeek = `${selectedDate.getFullYear()}-W${weekNumber.toString().padStart(2, '0')}`;
-
-    setPhotosLoading(true);
-    try {
-      const response = await fetch(`/api/whiteboard-photos?week=${isoWeek}`);
-      if (!response.ok) throw new Error('Failed to fetch photos');
-      const data = await response.json();
-      setWhiteboardPhotos(data);
-    } catch (error) {
-      console.error('Error fetching whiteboard photos:', error);
-      setWhiteboardPhotos([]);
-    } finally {
-      setPhotosLoading(false);
-    }
-  };
-
-  // Fetch whiteboard photos when selected date changes
-  useEffect(() => {
-    fetchWhiteboardPhotos();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDate]);
-
-  const handleViewPhoto = (photo: WhiteboardPhoto) => {
-    setSelectedPhoto(photo);
-    setShowPhotoModal(true);
-  };
-
-  const handleClosePhotoModal = () => {
-    setShowPhotoModal(false);
-    setSelectedPhoto(null);
-  };
-
-  const handlePreviousPhoto = () => {
-    if (!selectedPhoto || whiteboardPhotos.length === 0) return;
-    const currentIndex = whiteboardPhotos.findIndex(p => p.id === selectedPhoto.id);
-    const prevIndex = currentIndex > 0 ? currentIndex - 1 : whiteboardPhotos.length - 1;
-    setSelectedPhoto(whiteboardPhotos[prevIndex]);
-  };
-
-  const handleNextPhoto = () => {
-    if (!selectedPhoto || whiteboardPhotos.length === 0) return;
-    const currentIndex = whiteboardPhotos.findIndex(p => p.id === selectedPhoto.id);
-    const nextIndex = currentIndex < whiteboardPhotos.length - 1 ? currentIndex + 1 : 0;
-    setSelectedPhoto(whiteboardPhotos[nextIndex]);
-  };
 
   return (
     <div className='bg-white rounded-lg shadow p-6'>
@@ -1037,92 +698,17 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                             const itemKey = `${wod.id}:::${section.id}:::content-0`;
 
                             return (
-                              <div className='flex items-center gap-2 ml-auto flex-wrap'>
-                                <span className='text-xs font-medium text-gray-600'>Result:</span>
-                                {scoringFields.time && (
-                                  <input type='text' placeholder='mm:ss'
-                                    value={sectionResults[itemKey]?.time_result || ''}
-                                    onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), time_result: e.target.value}})}
-                                    className='w-16 px-2 py-1 text-xs text-center border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
-                                  />
-                                )}
-                                {scoringFields.rounds_reps && (
-                                  <>
-                                    <div className='flex items-center gap-1'>
-                                      <input type='number' placeholder='Rounds'
-                                        value={sectionResults[itemKey]?.rounds_result || ''}
-                                        onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), rounds_result: e.target.value}})}
-                                        className='w-14 px-2 py-1 text-xs text-center border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
-                                      />
-                                      <span className='text-xs text-gray-600'>rds</span>
-                                    </div>
-                                    <span className='text-xs'>+</span>
-                                  </>
-                                )}
-                                {(scoringFields.reps || scoringFields.rounds_reps) && (
-                                  <div className='flex items-center gap-1'>
-                                    <input type='number' placeholder='Reps'
-                                      value={sectionResults[itemKey]?.reps_result || ''}
-                                      onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), reps_result: e.target.value}})}
-                                      className='w-16 px-2 py-1 text-xs text-center border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
-                                    />
-                                    <span className='text-xs text-gray-600'>reps</span>
-                                  </div>
-                                )}
-                                {scoringFields.load && (
-                                  <div className='flex items-center gap-1'>
-                                    <input type='number' step='0.5' placeholder='Load'
-                                      value={sectionResults[itemKey]?.weight_result || ''}
-                                      onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), weight_result: e.target.value}})}
-                                      className='w-16 px-2 py-1 text-xs text-center border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
-                                    />
-                                    <span className='text-xs text-gray-600'>kg</span>
-                                  </div>
-                                )}
-                                {scoringFields.calories && (
-                                  <div className='flex items-center gap-1'>
-                                    <input type='number' placeholder='Cal'
-                                      value={sectionResults[itemKey]?.calories_result || ''}
-                                      onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), calories_result: e.target.value}})}
-                                      className='w-16 px-2 py-1 text-xs text-center border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
-                                    />
-                                    <span className='text-xs text-gray-600'>cal</span>
-                                  </div>
-                                )}
-                                {scoringFields.metres && (
-                                  <div className='flex items-center gap-1'>
-                                    <input type='number' step='0.1' placeholder='Distance'
-                                      value={sectionResults[itemKey]?.metres_result || ''}
-                                      onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), metres_result: e.target.value}})}
-                                      className='w-20 px-2 py-1 text-xs text-center border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
-                                    />
-                                    <span className='text-xs text-gray-600'>m</span>
-                                  </div>
-                                )}
-                                {scoringFields.checkbox && (
-                                  <label className='flex items-center gap-1 text-xs'>
-                                    <input type='checkbox'
-                                      checked={sectionResults[itemKey]?.task_completed || false}
-                                      onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), task_completed: e.target.checked}})}
-                                      className='rounded border-gray-300'
-                                    />
-                                    <span>✓</span>
-                                  </label>
-                                )}
-                                {scoringFields.scaling && (
-                                  <select
-                                    value={sectionResults[itemKey]?.scaling_level || ''}
-                                    onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), scaling_level: e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | ''}})}
-                                    className='w-14 px-1 py-0.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900 bg-white'
-                                  >
-                                    <option value=''>-</option>
-                                    <option value='Rx'>Rx</option>
-                                    <option value='Sc1'>Sc1</option>
-                                    <option value='Sc2'>Sc2</option>
-                                    <option value='Sc3'>Sc3</option>
-                                  </select>
-                                )}
-                              </div>
+                              <ScoringFieldInputs
+                                scoringFields={scoringFields}
+                                values={sectionResults[itemKey] || {}}
+                                onChange={(updates) =>
+                                  setSectionResults({
+                                    ...sectionResults,
+                                    [itemKey]: { ...(sectionResults[itemKey] || {}), ...updates },
+                                  })
+                                }
+                                variant='default'
+                              />
                             );
                           })()}
                         </div>
@@ -1156,91 +742,18 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                                     </div>
 
                                     {/* Configurable Scoring Inputs */}
-                                    <div className='flex items-center gap-2 ml-auto flex-wrap'>
-                                      {scoringFields.time && (
-                                        <input type='text' placeholder='mm:ss'
-                                          value={sectionResults[itemKey]?.time_result || ''}
-                                          onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), time_result: e.target.value}})}
-                                          className='w-16 px-2 py-1 text-xs text-center border border-blue-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
-                                        />
-                                      )}
-                                      {scoringFields.rounds_reps && (
-                                        <>
-                                          <div className='flex items-center gap-1'>
-                                            <input type='number' placeholder='Rounds'
-                                              value={sectionResults[itemKey]?.rounds_result || ''}
-                                              onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), rounds_result: e.target.value}})}
-                                              className='w-14 px-2 py-1 text-xs text-center border border-blue-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
-                                            />
-                                            <span className='text-xs text-blue-700'>rds</span>
-                                          </div>
-                                          <span className='text-xs'>+</span>
-                                        </>
-                                      )}
-                                      {(scoringFields.reps || scoringFields.rounds_reps) && (
-                                        <div className='flex items-center gap-1'>
-                                          <input type='number' placeholder='Reps'
-                                            value={sectionResults[itemKey]?.reps_result || ''}
-                                            onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), reps_result: e.target.value}})}
-                                            className='w-16 px-2 py-1 text-xs text-center border border-blue-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
-                                          />
-                                          <span className='text-xs text-blue-700'>reps</span>
-                                        </div>
-                                      )}
-                                      {scoringFields.load && (
-                                        <div className='flex items-center gap-1'>
-                                          <input type='number' step='0.5' placeholder='Load'
-                                            value={sectionResults[itemKey]?.weight_result || ''}
-                                            onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), weight_result: e.target.value}})}
-                                            className='w-16 px-2 py-1 text-xs text-center border border-blue-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
-                                          />
-                                          <span className='text-xs text-blue-700'>kg</span>
-                                        </div>
-                                      )}
-                                      {scoringFields.calories && (
-                                        <div className='flex items-center gap-1'>
-                                          <input type='number' placeholder='Cal'
-                                            value={sectionResults[itemKey]?.calories_result || ''}
-                                            onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), calories_result: e.target.value}})}
-                                            className='w-16 px-2 py-1 text-xs text-center border border-blue-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
-                                          />
-                                          <span className='text-xs text-blue-700'>cal</span>
-                                        </div>
-                                      )}
-                                      {scoringFields.metres && (
-                                        <div className='flex items-center gap-1'>
-                                          <input type='number' step='0.1' placeholder='Distance'
-                                            value={sectionResults[itemKey]?.metres_result || ''}
-                                            onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), metres_result: e.target.value}})}
-                                            className='w-20 px-2 py-1 text-xs text-center border border-blue-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
-                                          />
-                                          <span className='text-xs text-blue-700'>m</span>
-                                        </div>
-                                      )}
-                                      {scoringFields.checkbox && (
-                                        <label className='flex items-center gap-1 text-xs'>
-                                          <input type='checkbox'
-                                            checked={sectionResults[itemKey]?.task_completed || false}
-                                            onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), task_completed: e.target.checked}})}
-                                            className='rounded border-blue-300'
-                                          />
-                                          <span>✓</span>
-                                        </label>
-                                      )}
-                                      {scoringFields.scaling && (
-                                        <select
-                                          value={sectionResults[itemKey]?.scaling_level || ''}
-                                          onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), scaling_level: e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | ''}})}
-                                          className='w-14 px-1 py-0.5 text-xs border border-blue-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900 bg-white'
-                                        >
-                                          <option value=''>-</option>
-                                          <option value='Rx'>Rx</option>
-                                          <option value='Sc1'>Sc1</option>
-                                          <option value='Sc2'>Sc2</option>
-                                          <option value='Sc3'>Sc3</option>
-                                        </select>
-                                      )}
-                                    </div>
+                                    <ScoringFieldInputs
+                                      scoringFields={scoringFields}
+                                      values={sectionResults[itemKey] || {}}
+                                      onChange={(updates) =>
+                                        setSectionResults({
+                                          ...sectionResults,
+                                          [itemKey]: { ...(sectionResults[itemKey] || {}), ...updates },
+                                        })
+                                      }
+                                      variant='lift'
+                                      showLabel={false}
+                                    />
                                   </div>
                                 </div>
                               );
@@ -1271,91 +784,18 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                                     )}
 
                                     {/* Configurable Scoring Inputs */}
-                                    <div className='flex items-center gap-2 flex-wrap'>
-                                      {scoringFields.time && (
-                                        <input type='text' placeholder='mm:ss'
-                                          value={sectionResults[itemKey]?.time_result || ''}
-                                          onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), time_result: e.target.value}})}
-                                          className='w-16 px-2 py-1 text-xs text-center border border-teal-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
-                                        />
-                                      )}
-                                      {scoringFields.rounds_reps && (
-                                        <>
-                                          <div className='flex items-center gap-1'>
-                                            <input type='number' placeholder='Rounds'
-                                              value={sectionResults[itemKey]?.rounds_result || ''}
-                                              onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), rounds_result: e.target.value}})}
-                                              className='w-14 px-2 py-1 text-xs text-center border border-teal-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
-                                            />
-                                            <span className='text-xs text-teal-700'>rds</span>
-                                          </div>
-                                          <span className='text-xs'>+</span>
-                                        </>
-                                      )}
-                                      {(scoringFields.reps || scoringFields.rounds_reps) && (
-                                        <div className='flex items-center gap-1'>
-                                          <input type='number' placeholder='Reps'
-                                            value={sectionResults[itemKey]?.reps_result || ''}
-                                            onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), reps_result: e.target.value}})}
-                                            className='w-16 px-2 py-1 text-xs text-center border border-teal-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
-                                          />
-                                          <span className='text-xs text-teal-700'>reps</span>
-                                        </div>
-                                      )}
-                                      {scoringFields.load && (
-                                        <div className='flex items-center gap-1'>
-                                          <input type='number' step='0.5' placeholder='Load'
-                                            value={sectionResults[itemKey]?.weight_result || ''}
-                                            onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), weight_result: e.target.value}})}
-                                            className='w-16 px-2 py-1 text-xs text-center border border-teal-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
-                                          />
-                                          <span className='text-xs text-teal-700'>kg</span>
-                                        </div>
-                                      )}
-                                      {scoringFields.calories && (
-                                        <div className='flex items-center gap-1'>
-                                          <input type='number' placeholder='Cal'
-                                            value={sectionResults[itemKey]?.calories_result || ''}
-                                            onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), calories_result: e.target.value}})}
-                                            className='w-16 px-2 py-1 text-xs text-center border border-teal-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
-                                          />
-                                          <span className='text-xs text-teal-700'>cal</span>
-                                        </div>
-                                      )}
-                                      {scoringFields.metres && (
-                                        <div className='flex items-center gap-1'>
-                                          <input type='number' step='0.1' placeholder='Distance'
-                                            value={sectionResults[itemKey]?.metres_result || ''}
-                                            onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), metres_result: e.target.value}})}
-                                            className='w-20 px-2 py-1 text-xs text-center border border-teal-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
-                                          />
-                                          <span className='text-xs text-teal-700'>m</span>
-                                        </div>
-                                      )}
-                                      {scoringFields.checkbox && (
-                                        <label className='flex items-center gap-1 text-xs'>
-                                          <input type='checkbox'
-                                            checked={sectionResults[itemKey]?.task_completed || false}
-                                            onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), task_completed: e.target.checked}})}
-                                            className='rounded border-teal-300'
-                                          />
-                                          <span>✓</span>
-                                        </label>
-                                      )}
-                                      {scoringFields.scaling && (
-                                        <select
-                                          value={sectionResults[itemKey]?.scaling_level || ''}
-                                          onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), scaling_level: e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | ''}})}
-                                          className='w-14 px-1 py-0.5 text-xs border border-teal-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900 bg-white'
-                                        >
-                                          <option value=''>-</option>
-                                          <option value='Rx'>Rx</option>
-                                          <option value='Sc1'>Sc1</option>
-                                          <option value='Sc2'>Sc2</option>
-                                          <option value='Sc3'>Sc3</option>
-                                        </select>
-                                      )}
-                                    </div>
+                                    <ScoringFieldInputs
+                                      scoringFields={scoringFields}
+                                      values={sectionResults[itemKey] || {}}
+                                      onChange={(updates) =>
+                                        setSectionResults({
+                                          ...sectionResults,
+                                          [itemKey]: { ...(sectionResults[itemKey] || {}), ...updates },
+                                        })
+                                      }
+                                      variant='benchmark'
+                                      showLabel={false}
+                                    />
                                   </div>
                                 </div>
                               );
@@ -1386,91 +826,18 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                                     )}
 
                                     {/* Configurable Scoring Inputs */}
-                                    <div className='flex items-center gap-2 flex-wrap'>
-                                      {scoringFields.time && (
-                                        <input type='text' placeholder='mm:ss'
-                                          value={sectionResults[itemKey]?.time_result || ''}
-                                          onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), time_result: e.target.value}})}
-                                          className='w-16 px-2 py-1 text-xs text-center border border-cyan-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
-                                        />
-                                      )}
-                                      {scoringFields.rounds_reps && (
-                                        <>
-                                          <div className='flex items-center gap-1'>
-                                            <input type='number' placeholder='Rounds'
-                                              value={sectionResults[itemKey]?.rounds_result || ''}
-                                              onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), rounds_result: e.target.value}})}
-                                              className='w-14 px-2 py-1 text-xs text-center border border-cyan-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
-                                            />
-                                            <span className='text-xs text-cyan-700'>rds</span>
-                                          </div>
-                                          <span className='text-xs'>+</span>
-                                        </>
-                                      )}
-                                      {(scoringFields.reps || scoringFields.rounds_reps) && (
-                                        <div className='flex items-center gap-1'>
-                                          <input type='number' placeholder='Reps'
-                                            value={sectionResults[itemKey]?.reps_result || ''}
-                                            onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), reps_result: e.target.value}})}
-                                            className='w-16 px-2 py-1 text-xs text-center border border-cyan-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
-                                          />
-                                          <span className='text-xs text-cyan-700'>reps</span>
-                                        </div>
-                                      )}
-                                      {scoringFields.load && (
-                                        <div className='flex items-center gap-1'>
-                                          <input type='number' step='0.5' placeholder='Load'
-                                            value={sectionResults[itemKey]?.weight_result || ''}
-                                            onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), weight_result: e.target.value}})}
-                                            className='w-16 px-2 py-1 text-xs text-center border border-cyan-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
-                                          />
-                                          <span className='text-xs text-cyan-700'>kg</span>
-                                        </div>
-                                      )}
-                                      {scoringFields.calories && (
-                                        <div className='flex items-center gap-1'>
-                                          <input type='number' placeholder='Cal'
-                                            value={sectionResults[itemKey]?.calories_result || ''}
-                                            onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), calories_result: e.target.value}})}
-                                            className='w-16 px-2 py-1 text-xs text-center border border-cyan-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
-                                          />
-                                          <span className='text-xs text-cyan-700'>cal</span>
-                                        </div>
-                                      )}
-                                      {scoringFields.metres && (
-                                        <div className='flex items-center gap-1'>
-                                          <input type='number' step='0.1' placeholder='Distance'
-                                            value={sectionResults[itemKey]?.metres_result || ''}
-                                            onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), metres_result: e.target.value}})}
-                                            className='w-20 px-2 py-1 text-xs text-center border border-cyan-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900'
-                                          />
-                                          <span className='text-xs text-cyan-700'>m</span>
-                                        </div>
-                                      )}
-                                      {scoringFields.checkbox && (
-                                        <label className='flex items-center gap-1 text-xs'>
-                                          <input type='checkbox'
-                                            checked={sectionResults[itemKey]?.task_completed || false}
-                                            onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), task_completed: e.target.checked}})}
-                                            className='rounded border-cyan-300'
-                                          />
-                                          <span>✓</span>
-                                        </label>
-                                      )}
-                                      {scoringFields.scaling && (
-                                        <select
-                                          value={sectionResults[itemKey]?.scaling_level || ''}
-                                          onChange={e => setSectionResults({...sectionResults, [itemKey]: {...(sectionResults[itemKey] || {}), scaling_level: e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | ''}})}
-                                          className='w-14 px-1 py-0.5 text-xs border border-cyan-300 rounded focus:ring-2 focus:ring-[#208479] text-gray-900 bg-white'
-                                        >
-                                          <option value=''>-</option>
-                                          <option value='Rx'>Rx</option>
-                                          <option value='Sc1'>Sc1</option>
-                                          <option value='Sc2'>Sc2</option>
-                                          <option value='Sc3'>Sc3</option>
-                                        </select>
-                                      )}
-                                    </div>
+                                    <ScoringFieldInputs
+                                      scoringFields={scoringFields}
+                                      values={sectionResults[itemKey] || {}}
+                                      onChange={(updates) =>
+                                        setSectionResults({
+                                          ...sectionResults,
+                                          [itemKey]: { ...(sectionResults[itemKey] || {}), ...updates },
+                                        })
+                                      }
+                                      variant='forge'
+                                      showLabel={false}
+                                    />
                                   </div>
                                 </div>
                               );

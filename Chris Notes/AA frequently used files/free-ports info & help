@@ -49,3 +49,35 @@ chmod +x dev-start.sh
 ./dev-start.sh
 
 # Every time, it clears old servers and starts fresh.
+
+---
+
+# ⚡ QUICKEST METHOD: Bash Alias (ONE WORD COMMAND) #
+
+## Implementation Instructions:
+
+1. **Add alias to your shell config:**
+   ```bash
+   echo "alias restart='kill -9 \$(lsof -t -i :3000-3009) 2>/dev/null; npm run dev'" >> ~/.zshrc
+   ```
+
+2. **Reload your config:**
+   ```bash
+   source ~/.zshrc
+   ```
+
+3. **Use it (just type one word):**
+   ```bash
+   restart
+   ```
+
+## What it does:
+- Kills all processes on ports 3000-3009
+- Starts `npm run dev`
+- All in one command
+
+## Notes:
+- This alias is already installed in your ~/.zshrc
+- Works from any directory within the project
+- No need to remember two separate commands anymore
+- The `2>/dev/null` suppresses error messages if no processes are running

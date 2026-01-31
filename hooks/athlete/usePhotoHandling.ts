@@ -1,0 +1,99 @@
+'use client';
+
+import { useEffect, Dispatch, SetStateAction } from 'react';
+
+interface WhiteboardPhoto {
+  id: string;
+  workout_week: string;
+  photo_label: string;
+  photo_url: string;
+  caption?: string | null;
+  display_order: number;
+  created_at: string;
+}
+
+export interface PhotoHandlers {
+  handleViewPhoto: (photo: WhiteboardPhoto) => void;
+  handleClosePhotoModal: () => void;
+  handlePreviousPhoto: () => void;
+  handleNextPhoto: () => void;
+  fetchWhiteboardPhotos: () => Promise<void>;
+  getWeekNumber: (date: Date) => number;
+}
+
+export function usePhotoHandling(
+  selectedDate: Date,
+  whiteboardPhotos: WhiteboardPhoto[],
+  setWhiteboardPhotos: Dispatch<SetStateAction<WhiteboardPhoto[]>>,
+  photosLoading: boolean,
+  setPhotosLoading: Dispatch<SetStateAction<boolean>>,
+  selectedPhoto: WhiteboardPhoto | null,
+  setSelectedPhoto: Dispatch<SetStateAction<WhiteboardPhoto | null>>,
+  setShowPhotoModal: Dispatch<SetStateAction<boolean>>
+): PhotoHandlers {
+  // Calculate ISO week number
+  const getWeekNumber = (date: Date): number => {
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+  };
+
+  const fetchWhiteboardPhotos = async () => {
+    const weekNumber = getWeekNumber(selectedDate);
+    const isoWeek = `${selectedDate.getFullYear()}-W${weekNumber.toString().padStart(2, '0')}`;
+
+    setPhotosLoading(true);
+    try {
+      const response = await fetch(`/api/whiteboard-photos?week=${isoWeek}`);
+      if (!response.ok) throw new Error('Failed to fetch photos');
+      const data = await response.json();
+      setWhiteboardPhotos(data);
+    } catch (error) {
+      console.error('Error fetching whiteboard photos:', error);
+      setWhiteboardPhotos([]);
+    } finally {
+      setPhotosLoading(false);
+    }
+  };
+
+  // Fetch whiteboard photos when selected date changes
+  useEffect(() => {
+    fetchWhiteboardPhotos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDate]);
+
+  const handleViewPhoto = (photo: WhiteboardPhoto) => {
+    setSelectedPhoto(photo);
+    setShowPhotoModal(true);
+  };
+
+  const handleClosePhotoModal = () => {
+    setShowPhotoModal(false);
+    setSelectedPhoto(null);
+  };
+
+  const handlePreviousPhoto = () => {
+    if (!selectedPhoto || whiteboardPhotos.length === 0) return;
+    const currentIndex = whiteboardPhotos.findIndex(p => p.id === selectedPhoto.id);
+    const prevIndex = currentIndex > 0 ? currentIndex - 1 : whiteboardPhotos.length - 1;
+    setSelectedPhoto(whiteboardPhotos[prevIndex]);
+  };
+
+  const handleNextPhoto = () => {
+    if (!selectedPhoto || whiteboardPhotos.length === 0) return;
+    const currentIndex = whiteboardPhotos.findIndex(p => p.id === selectedPhoto.id);
+    const nextIndex = currentIndex < whiteboardPhotos.length - 1 ? currentIndex + 1 : 0;
+    setSelectedPhoto(whiteboardPhotos[nextIndex]);
+  };
+
+  return {
+    handleViewPhoto,
+    handleClosePhotoModal,
+    handlePreviousPhoto,
+    handleNextPhoto,
+    fetchWhiteboardPhotos,
+    getWeekNumber,
+  };
+}
