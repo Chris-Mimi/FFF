@@ -98,6 +98,59 @@ export default function SearchPanel({
 }: SearchPanelProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Helper to render section content with structured data (lifts, benchmarks, forge benchmarks)
+  const renderSectionContent = (section: any) => {
+    const parts: React.ReactElement[] = [];
+
+    // Add lifts
+    if (section.lifts && section.lifts.length > 0) {
+      section.lifts.forEach((lift: any, idx: number) => {
+        if (lift.name) {
+          parts.push(
+            <div key={`lift-${idx}`} className='font-medium text-[#208479]'>
+              • {lift.name}
+            </div>
+          );
+        }
+      });
+    }
+
+    // Add benchmarks
+    if (section.benchmarks && section.benchmarks.length > 0) {
+      section.benchmarks.forEach((benchmark: any, idx: number) => {
+        parts.push(
+          <div key={`benchmark-${idx}`} className='font-medium text-[#208479]'>
+            • {benchmark.name}
+            {benchmark.description && <span className='font-normal text-gray-700'> - {benchmark.description}</span>}
+          </div>
+        );
+      });
+    }
+
+    // Add forge benchmarks
+    if (section.forge_benchmarks && section.forge_benchmarks.length > 0) {
+      section.forge_benchmarks.forEach((forge: any, idx: number) => {
+        parts.push(
+          <div key={`forge-${idx}`} className='font-medium text-[#208479]'>
+            • {forge.name}
+            {forge.description && <span className='font-normal text-gray-700'> - {forge.description}</span>}
+          </div>
+        );
+      });
+    }
+
+    // Add text content
+    if (section.content && section.content.trim()) {
+      parts.push(
+        <div key='content' className='whitespace-pre-wrap'>
+          {section.content}
+        </div>
+      );
+    }
+
+    return parts.length > 0 ? <>{parts}</> : null;
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -682,8 +735,8 @@ export default function SearchPanel({
                                     {section.type}
                                     {section.duration > 0 && ` (${section.duration} min)`}
                                   </div>
-                                  <div className='text-xs text-gray-700 whitespace-pre-wrap'>
-                                    {section.content}
+                                  <div className='text-xs text-gray-700'>
+                                    {renderSectionContent(section)}
                                   </div>
                                 </div>
                               ))}
@@ -805,8 +858,8 @@ export default function SearchPanel({
                           <div className='text-[10px] sm:text-xs text-gray-500 mb-1 sm:mb-2'>
                             {section.duration} min
                           </div>
-                          <div className='text-xs sm:text-sm text-gray-700 whitespace-pre-wrap'>
-                            {section.content}
+                          <div className='text-xs sm:text-sm text-gray-700'>
+                            {renderSectionContent(section)}
                           </div>
                         </div>
                       </div>
