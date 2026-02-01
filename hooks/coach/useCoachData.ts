@@ -229,9 +229,37 @@ export const useCoachData = ({
           filteredResults = filteredResults.filter(wod => {
             let combinedText = '';
 
+            // Helper function to extract structured movement data from sections
+            const getStructuredMovements = (sections: any[]) => {
+              return sections.flatMap(section => {
+                const movements: string[] = [];
+
+                // Extract lift names
+                section.lifts?.forEach((lift: any) => {
+                  if (lift.name) movements.push(lift.name);
+                });
+
+                // Extract benchmark exercises
+                section.benchmarks?.forEach((benchmark: any) => {
+                  if (benchmark.name) movements.push(benchmark.name);
+                  if (benchmark.exercises) movements.push(...benchmark.exercises);
+                });
+
+                // Extract forge benchmark exercises
+                section.forge_benchmarks?.forEach((forge: any) => {
+                  if (forge.name) movements.push(forge.name);
+                  if (forge.exercises) movements.push(...forge.exercises);
+                });
+
+                return movements;
+              }).join(' ');
+            };
+
             if (includedSectionTypes.length === 0) {
               // "All" selected - search everything
-              combinedText = `${wod.title} ${wod.workout_name || ''} ${wod.coach_notes || ''} ${wod.sections.map(s => s.content).join(' ')}`;
+              const sectionsContent = wod.sections.map(s => s.content).join(' ');
+              const structuredMovements = getStructuredMovements(wod.sections);
+              combinedText = `${wod.title} ${wod.workout_name || ''} ${wod.coach_notes || ''} ${sectionsContent} ${structuredMovements}`;
             } else {
               // Specific filters selected
               const includeNotes = includedSectionTypes.includes('Notes');
@@ -245,8 +273,9 @@ export const useCoachData = ({
               const workoutNameText = wod.workout_name || '';
               const notesText = includeNotes ? (wod.coach_notes || '') : '';
               const sectionsText = sectionsToSearch.map(s => s.content).join(' ');
+              const structuredMovements = getStructuredMovements(sectionsToSearch);
 
-              combinedText = `${titleText} ${workoutNameText} ${notesText} ${sectionsText}`;
+              combinedText = `${titleText} ${workoutNameText} ${notesText} ${sectionsText} ${structuredMovements}`;
             }
 
             const escapedPhrase = searchPhrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
