@@ -565,8 +565,50 @@ export default function SearchPanel({
                 </h3>
                 <div className='space-y-2 sm:space-y-3 relative'>
                   {searchResults.map(wod => {
-                    // Show first section with content (not just WOD section)
-                    const previewSection = wod.sections.find(s => s.content && s.content.trim().length > 0);
+                    // Helper to generate preview text from structured data
+                    const getPreviewText = (section: any): string => {
+                      const parts: string[] = [];
+
+                      // Add lifts
+                      if (section.lifts && section.lifts.length > 0) {
+                        section.lifts.forEach((lift: any) => {
+                          if (lift.name) parts.push(lift.name);
+                        });
+                      }
+
+                      // Add benchmarks
+                      if (section.benchmarks && section.benchmarks.length > 0) {
+                        section.benchmarks.forEach((benchmark: any) => {
+                          if (benchmark.name) parts.push(benchmark.name);
+                          if (benchmark.description) parts.push(`(${benchmark.description})`);
+                        });
+                      }
+
+                      // Add forge benchmarks
+                      if (section.forge_benchmarks && section.forge_benchmarks.length > 0) {
+                        section.forge_benchmarks.forEach((forge: any) => {
+                          if (forge.name) parts.push(forge.name);
+                          if (forge.description) parts.push(`(${forge.description})`);
+                        });
+                      }
+
+                      // Add text content
+                      if (section.content && section.content.trim()) {
+                        parts.push(section.content);
+                      }
+
+                      return parts.join(' • ');
+                    };
+
+                    // Show first section with content OR structured data
+                    const previewSection = wod.sections.find(s => {
+                      const hasContent = s.content && s.content.trim().length > 0;
+                      const hasLifts = s.lifts && s.lifts.length > 0;
+                      const hasBenchmarks = s.benchmarks && s.benchmarks.length > 0;
+                      const hasForgeBenchmarks = s.forge_benchmarks && s.forge_benchmarks.length > 0;
+                      return hasContent || hasLifts || hasBenchmarks || hasForgeBenchmarks;
+                    });
+                    const previewText = previewSection ? getPreviewText(previewSection) : '';
                     const wodDate = new Date(wod.date);
                     const formattedDate = wodDate.toLocaleDateString('en-GB', {
                       weekday: 'long',
@@ -608,7 +650,7 @@ export default function SearchPanel({
                             __html: highlightText(wod.title, searchTerms),
                           }}
                         />
-                        {previewSection && (
+                        {previewSection && previewText && (
                           <>
                             <div className='text-[10px] sm:text-xs font-medium text-[#208479] mb-0.5'>
                               {previewSection.type}
@@ -616,7 +658,7 @@ export default function SearchPanel({
                             <div
                               className='text-[10px] sm:text-xs text-gray-700 whitespace-pre-wrap line-clamp-2 sm:line-clamp-3'
                               dangerouslySetInnerHTML={{
-                                __html: highlightText(previewSection.content, searchTerms),
+                                __html: highlightText(previewText, searchTerms),
                               }}
                             />
                           </>
