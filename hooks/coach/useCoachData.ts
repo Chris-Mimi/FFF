@@ -227,32 +227,6 @@ export const useCoachData = ({
         if (searchQuery) {
           const searchPhrase = searchQuery.trim();
 
-          // DEBUG: Log search query and ALL workouts before filtering
-          console.log('[Search Debug] Starting search for:', searchPhrase);
-          console.log('[Search Debug] Total workouts before filter:', results.length);
-
-          // Find Karen specifically
-          const karenWorkout = results.find(w => w.workout_name?.toLowerCase().includes('karen'));
-          if (karenWorkout) {
-            console.log('[Search Debug] FOUND KAREN before filtering:', {
-              title: karenWorkout.title,
-              workout_name: karenWorkout.workout_name,
-              sections: karenWorkout.sections.map(s => ({
-                type: s.type,
-                content: s.content?.substring(0, 100),
-                benchmarks: s.benchmarks,
-                forge_benchmarks: s.forge_benchmarks,
-                lifts: s.lifts,
-                // Log ALL keys in the section to see what's actually there
-                allKeys: Object.keys(s)
-              }))
-            });
-          } else {
-            console.log('[Search Debug] Karen NOT FOUND in results before filtering');
-          }
-
-          let debugCount = 0;
-
           filteredResults = filteredResults.filter(wod => {
             let combinedText = '';
 
@@ -266,16 +240,16 @@ export const useCoachData = ({
                   if (lift.name) movements.push(lift.name);
                 });
 
-                // Extract benchmark exercises
+                // Extract benchmark name and description (description contains movements like "150 Wallball Shots")
                 section.benchmarks?.forEach((benchmark: any) => {
                   if (benchmark.name) movements.push(benchmark.name);
-                  if (benchmark.exercises) movements.push(...benchmark.exercises);
+                  if (benchmark.description) movements.push(benchmark.description);
                 });
 
-                // Extract forge benchmark exercises
+                // Extract forge benchmark name and description
                 section.forge_benchmarks?.forEach((forge: any) => {
                   if (forge.name) movements.push(forge.name);
-                  if (forge.exercises) movements.push(...forge.exercises);
+                  if (forge.description) movements.push(forge.description);
                 });
 
                 return movements;
@@ -306,28 +280,8 @@ export const useCoachData = ({
             }
 
             const escapedPhrase = searchPhrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const matches = new RegExp(escapedPhrase, 'i').test(combinedText);
-
-            // DEBUG: Log first 3 results and specifically Karen
-            if (debugCount < 3 || wod.workout_name?.toLowerCase().includes('karen')) {
-              console.log(`[Search Debug] ${matches ? 'MATCH' : 'NO MATCH'} - ${wod.title} / ${wod.workout_name || 'no name'}`, {
-                sections: wod.sections.map(s => ({
-                  type: s.type,
-                  content: s.content?.substring(0, 100),
-                  benchmarks: s.benchmarks,
-                  forge_benchmarks: s.forge_benchmarks,
-                  lifts: s.lifts
-                })),
-                structuredMovements: getStructuredMovements(wod.sections),
-                combinedText: combinedText.substring(0, 200) + '...'
-              });
-              debugCount++;
-            }
-
-            return matches;
+            return new RegExp(escapedPhrase, 'i').test(combinedText);
           });
-
-          console.log('[Search Debug] Total results:', filteredResults.length);
         }
 
         if (selectedMovements.length > 0) {
