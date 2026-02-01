@@ -565,7 +565,8 @@ export default function SearchPanel({
                 </h3>
                 <div className='space-y-2 sm:space-y-3 relative'>
                   {searchResults.map(wod => {
-                    const wodSection = wod.sections.find(s => s.type.toLowerCase() === 'wod');
+                    // Show first section with content (not just WOD section)
+                    const previewSection = wod.sections.find(s => s.content && s.content.trim().length > 0);
                     const wodDate = new Date(wod.date);
                     const formattedDate = wodDate.toLocaleDateString('en-GB', {
                       weekday: 'long',
@@ -607,13 +608,18 @@ export default function SearchPanel({
                             __html: highlightText(wod.title, searchTerms),
                           }}
                         />
-                        {wodSection && (
-                          <div
-                            className='text-[10px] sm:text-xs text-gray-700 whitespace-pre-wrap line-clamp-2 sm:line-clamp-3'
-                            dangerouslySetInnerHTML={{
-                              __html: highlightText(wodSection.content, searchTerms),
-                            }}
-                          />
+                        {previewSection && (
+                          <>
+                            <div className='text-[10px] sm:text-xs font-medium text-[#208479] mb-0.5'>
+                              {previewSection.type}
+                            </div>
+                            <div
+                              className='text-[10px] sm:text-xs text-gray-700 whitespace-pre-wrap line-clamp-2 sm:line-clamp-3'
+                              dangerouslySetInnerHTML={{
+                                __html: highlightText(previewSection.content, searchTerms),
+                              }}
+                            />
+                          </>
                         )}
 
                         {/* Hover Popover - Full WOD Preview (Desktop Only) */}
