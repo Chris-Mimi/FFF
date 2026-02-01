@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.40
-**Updated:** 2026-01-31 (Session 85 - AthletePageLogbookTab Phase 2 Refactoring)
+**Version:** 10.41
+**Updated:** 2026-02-01 (Session 86 - Coach Workout Library Search & Drag-and-Drop Fix)
 
 ---
 
@@ -76,6 +76,39 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2026-02-01 Session 86 - Sonnet):**
+- **✅ Coach Workout Library Search Fix - Structured Data:**
+  - Fixed search not finding benchmarks by exercise names (e.g., "Wallball" → "Karen")
+  - Root cause: Search only looked in `section.content` text, not in structured `section.benchmarks[].description`
+  - Added `getStructuredMovements()` helper to extract from lifts, benchmarks, forge benchmarks
+  - File: hooks/coach/useCoachData.ts (lines 234-257)
+- **✅ Search Result Display - Card Preview:**
+  - Fixed cards showing "WOD" label only, missing lift/benchmark details
+  - Changed preview to find first section with content OR structured data
+  - Added section type label to preview
+  - File: components/coach/SearchPanel.tsx
+- **✅ Search Result Display - Hover & Detail Views:**
+  - Fixed hover popup and detail view not showing lifts/benchmarks
+  - Created `renderSectionContent()` helper to render all structured data
+  - File: components/coach/SearchPanel.tsx (lines 102-153)
+- **✅ Lift Formatting - Sets/Reps/Percentages:**
+  - Fixed lifts showing name only, missing sets/reps/percentage details
+  - Used existing formatter functions: `formatLift()`, `formatBenchmark()`, `formatForgeBenchmark()`
+  - Now displays: "Power Snatch 5x3 @ 75%" or "Back Squat 10-6-5-5-5-5-5 @ 40-50-60-70-80-85-90%"
+  - Files: components/coach/SearchPanel.tsx, utils/logbook/formatters.ts
+- **✅ Drag-and-Drop Fix - Structured Data Transfer:**
+  - Fixed dragging sections with lifts/benchmarks creating empty sections when dropped
+  - Root cause: Drag handlers only passed `{type, duration, content}`, not structured arrays
+  - Updated SearchPanel, useQuickEdit, and useWorkoutModal to include structured fields
+  - Replaced `any` types with proper TypeScript types (ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark)
+  - Files:
+    - components/coach/SearchPanel.tsx (lines 56-66, 740-747)
+    - hooks/coach/useQuickEdit.ts (lines 16-23, 25-34, 44-53)
+    - hooks/coach/useWorkoutModal.ts (lines 350-358, 480-488)
+- Build successful with no errors
+- Commits: 2be76cd3, f71b0942, 07f86c41, 1e8319ef, 9b6200fa, bcb76544
+- See: `project-history/2026-02-01-session-86-workout-library-search-drag-fix.md`
 
 **Completed (2026-01-31 Session 85 - Sonnet):**
 - **✅ AthletePageLogbookTab Phase 2 Refactoring - Custom Hooks Extraction:**
