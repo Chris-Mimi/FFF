@@ -226,6 +226,11 @@ export const useCoachData = ({
 
         if (searchQuery) {
           const searchPhrase = searchQuery.trim();
+
+          // DEBUG: Log search query
+          console.log('[Search Debug] Starting search for:', searchPhrase);
+          let debugCount = 0;
+
           filteredResults = filteredResults.filter(wod => {
             let combinedText = '';
 
@@ -279,8 +284,28 @@ export const useCoachData = ({
             }
 
             const escapedPhrase = searchPhrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            return new RegExp(escapedPhrase, 'i').test(combinedText);
+            const matches = new RegExp(escapedPhrase, 'i').test(combinedText);
+
+            // DEBUG: Log first 3 results and specifically Karen
+            if (debugCount < 3 || wod.workout_name?.toLowerCase().includes('karen')) {
+              console.log(`[Search Debug] ${matches ? 'MATCH' : 'NO MATCH'} - ${wod.title} / ${wod.workout_name || 'no name'}`, {
+                sections: wod.sections.map(s => ({
+                  type: s.type,
+                  content: s.content?.substring(0, 100),
+                  benchmarks: s.benchmarks,
+                  forge_benchmarks: s.forge_benchmarks,
+                  lifts: s.lifts
+                })),
+                structuredMovements: getStructuredMovements(wod.sections),
+                combinedText: combinedText.substring(0, 200) + '...'
+              });
+              debugCount++;
+            }
+
+            return matches;
           });
+
+          console.log('[Search Debug] Total results:', filteredResults.length);
         }
 
         if (selectedMovements.length > 0) {
