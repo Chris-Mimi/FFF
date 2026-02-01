@@ -227,8 +227,30 @@ export const useCoachData = ({
         if (searchQuery) {
           const searchPhrase = searchQuery.trim();
 
-          // DEBUG: Log search query
+          // DEBUG: Log search query and ALL workouts before filtering
           console.log('[Search Debug] Starting search for:', searchPhrase);
+          console.log('[Search Debug] Total workouts before filter:', results.length);
+
+          // Find Karen specifically
+          const karenWorkout = results.find(w => w.workout_name?.toLowerCase().includes('karen'));
+          if (karenWorkout) {
+            console.log('[Search Debug] FOUND KAREN before filtering:', {
+              title: karenWorkout.title,
+              workout_name: karenWorkout.workout_name,
+              sections: karenWorkout.sections.map(s => ({
+                type: s.type,
+                content: s.content?.substring(0, 100),
+                benchmarks: s.benchmarks,
+                forge_benchmarks: s.forge_benchmarks,
+                lifts: s.lifts,
+                // Log ALL keys in the section to see what's actually there
+                allKeys: Object.keys(s)
+              }))
+            });
+          } else {
+            console.log('[Search Debug] Karen NOT FOUND in results before filtering');
+          }
+
           let debugCount = 0;
 
           filteredResults = filteredResults.filter(wod => {
