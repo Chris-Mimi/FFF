@@ -1,6 +1,7 @@
 'use client';
 
 import { WODFormData, WODSection } from '@/components/coach/WorkoutModal';
+import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
 import { supabase } from '@/lib/supabase';
 import { useState } from 'react';
 
@@ -16,11 +17,21 @@ export const useQuickEdit = ({ fetchWODs, fetchTracksAndCounts }: UseQuickEditPr
     type: string;
     duration: string;
     content: string;
+    lifts?: ConfiguredLift[];
+    benchmarks?: ConfiguredBenchmark[];
+    forge_benchmarks?: ConfiguredForgeBenchmark[];
   } | null>(null);
 
   const handleSectionDragStart = (
     e: React.DragEvent,
-    section: { type: string; duration: string; content: string }
+    section: {
+      type: string;
+      duration: string;
+      content: string;
+      lifts?: ConfiguredLift[];
+      benchmarks?: ConfiguredBenchmark[];
+      forge_benchmarks?: ConfiguredForgeBenchmark[];
+    }
   ) => {
     setDraggedSection(section);
     e.dataTransfer.effectAllowed = 'copy';
@@ -47,6 +58,9 @@ export const useQuickEdit = ({ fetchWODs, fetchTracksAndCounts }: UseQuickEditPr
         type: draggedSection.type,
         duration: parseInt(draggedSection.duration) || 5,
         content: draggedSection.content,
+        lifts: draggedSection.lifts,
+        benchmarks: draggedSection.benchmarks,
+        forge_benchmarks: draggedSection.forge_benchmarks,
       };
       setQuickEditWOD({
         ...quickEditWOD,

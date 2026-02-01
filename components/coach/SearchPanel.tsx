@@ -1,6 +1,6 @@
 'use client';
 
-import { WODFormData } from './WorkoutModal';
+import { WODFormData, WODSection } from './WorkoutModal';
 import { GripVertical, Search, X, Menu } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -8,6 +8,7 @@ import rehypeRaw from 'rehype-raw';
 import remarkBreaks from 'remark-breaks';
 import { useState } from 'react';
 import { formatLift, formatBenchmark, formatForgeBenchmark } from '@/utils/logbook/formatters';
+import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
 
 interface WorkoutType {
   id: string;
@@ -56,7 +57,14 @@ interface SearchPanelProps {
   onDragStart: (e: React.DragEvent, wod: WODFormData, sourceDate: string) => void;
   onSectionDragStart: (
     e: React.DragEvent,
-    section: { type: string; duration: string; content: string }
+    section: {
+      type: string;
+      duration: string;
+      content: string;
+      lifts?: ConfiguredLift[];
+      benchmarks?: ConfiguredBenchmark[];
+      forge_benchmarks?: ConfiguredForgeBenchmark[];
+    }
   ) => void;
   onEditWOD: (wod: WODFormData) => void;
   onCreateWorkout: (date: Date, fromSearch: boolean) => void;
@@ -100,12 +108,12 @@ export default function SearchPanel({
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Helper to render section content with structured data (lifts, benchmarks, forge benchmarks)
-  const renderSectionContent = (section: any) => {
+  const renderSectionContent = (section: WODSection) => {
     const parts: React.ReactElement[] = [];
 
     // Add lifts with full details (sets, reps, percentage)
     if (section.lifts && section.lifts.length > 0) {
-      section.lifts.forEach((lift: any, idx: number) => {
+      section.lifts.forEach((lift: ConfiguredLift, idx: number) => {
         const formatted = formatLift(lift);
         parts.push(
           <div key={`lift-${idx}`} className='font-medium text-[#208479]'>
@@ -117,7 +125,7 @@ export default function SearchPanel({
 
     // Add benchmarks with name and description
     if (section.benchmarks && section.benchmarks.length > 0) {
-      section.benchmarks.forEach((benchmark: any, idx: number) => {
+      section.benchmarks.forEach((benchmark: ConfiguredBenchmark, idx: number) => {
         const { name, description } = formatBenchmark(benchmark);
         parts.push(
           <div key={`benchmark-${idx}`} className='font-medium text-[#208479]'>
@@ -130,7 +138,7 @@ export default function SearchPanel({
 
     // Add forge benchmarks with name and description
     if (section.forge_benchmarks && section.forge_benchmarks.length > 0) {
-      section.forge_benchmarks.forEach((forge: any, idx: number) => {
+      section.forge_benchmarks.forEach((forge: ConfiguredForgeBenchmark, idx: number) => {
         const { name, description } = formatForgeBenchmark(forge);
         parts.push(
           <div key={`forge-${idx}`} className='font-medium text-[#208479]'>
@@ -621,19 +629,19 @@ export default function SearchPanel({
                 <div className='space-y-2 sm:space-y-3 relative'>
                   {searchResults.map(wod => {
                     // Helper to generate preview text from structured data
-                    const getPreviewText = (section: any): string => {
+                    const getPreviewText = (section: WODSection): string => {
                       const parts: string[] = [];
 
                       // Add lifts with full details (sets, reps, percentage)
                       if (section.lifts && section.lifts.length > 0) {
-                        section.lifts.forEach((lift: any) => {
+                        section.lifts.forEach((lift: ConfiguredLift) => {
                           parts.push(formatLift(lift));
                         });
                       }
 
                       // Add benchmarks with name and description
                       if (section.benchmarks && section.benchmarks.length > 0) {
-                        section.benchmarks.forEach((benchmark: any) => {
+                        section.benchmarks.forEach((benchmark: ConfiguredBenchmark) => {
                           const { name, description } = formatBenchmark(benchmark);
                           parts.push(description ? `${name} - ${description}` : name);
                         });
@@ -641,7 +649,7 @@ export default function SearchPanel({
 
                       // Add forge benchmarks with name and description
                       if (section.forge_benchmarks && section.forge_benchmarks.length > 0) {
-                        section.forge_benchmarks.forEach((forge: any) => {
+                        section.forge_benchmarks.forEach((forge: ConfiguredForgeBenchmark) => {
                           const { name, description } = formatForgeBenchmark(forge);
                           parts.push(description ? `${name} - ${description}` : name);
                         });
@@ -844,6 +852,9 @@ export default function SearchPanel({
                               type: section.type,
                               duration: String(section.duration),
                               content: section.content,
+                              lifts: section.lifts,
+                              benchmarks: section.benchmarks,
+                              forge_benchmarks: section.forge_benchmarks,
                             });
                           }}
                           className='cursor-move hidden sm:block'
