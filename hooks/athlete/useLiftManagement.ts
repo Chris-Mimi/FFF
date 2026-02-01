@@ -2,8 +2,7 @@
 
 import { Dispatch, SetStateAction } from 'react';
 import { supabase } from '@/lib/supabase';
-import type { WorkoutWithDetails } from '@/types/workout';
-import { getPublishedSections } from '@/utils/logbook-utils';
+import { getPublishedSections, type WOD } from '@/utils/logbook-utils';
 
 interface LiftRecord {
   lift_name: string;
@@ -22,7 +21,7 @@ export function useLiftManagement(
   userId: string,
   liftRecords: Record<string, LiftRecord>,
   setLiftRecords: Dispatch<SetStateAction<Record<string, LiftRecord>>>,
-  workouts: WorkoutWithDetails[]
+  workouts: WOD[]
 ): LiftManagementHandlers {
   // Save lift record to database (upsert: update if exists, insert if new)
   const saveLiftRecord = async (liftName: string, weightKg: string, reps: number, liftDate: string, repScheme?: string) => {

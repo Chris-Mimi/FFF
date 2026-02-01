@@ -14,6 +14,9 @@ import { formatLocalDate, getWeekDates, getMonthCalendarDays, getPublishedSectio
 import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
 import { supabase } from '@/lib/supabase';
 import ScoringFieldInputs from './logbook/ScoringFieldInputs';
+import { formatLift, formatBenchmark, formatForgeBenchmark } from '@/utils/logbook/formatters';
+import { saveSectionResult } from '@/utils/logbook/savingLogic';
+import { loadSectionResults, loadBenchmarkResultsToSection, loadLiftResultsToSection } from '@/utils/logbook/loadingLogic';
 
 interface SectionResult {
   time_result?: string;
@@ -31,46 +34,6 @@ interface AthletePageLogbookTabProps {
   initialDate?: Date;
   initialViewMode?: 'day' | 'week' | 'month';
   onDateChange?: (date: Date) => void;
-}
-
-// Format helper functions for structured movements
-function formatLift(lift: ConfiguredLift): string {
-  if (lift.rep_type === 'constant') {
-    const base = `${lift.name} ${lift.sets}x${lift.reps}`;
-    return lift.percentage_1rm ? `${base} @ ${lift.percentage_1rm}%` : base;
-  } else {
-    const reps = lift.variable_sets?.map(s => s.reps).join('-') || '';
-    const percentages = lift.variable_sets?.map(s => s.percentage_1rm) || [];
-
-    let base = `${lift.name} ${reps}`;
-
-    // Only show percentages if ALL sets have them defined (no undefined/null values)
-    const allHavePercentages = percentages.length > 0 && percentages.every(p => p !== undefined && p !== null);
-    if (allHavePercentages) {
-      // Show ALL percentages for each set: "40-40-50-50-50-50-50%"
-      base += ` @ ${percentages.join('-')}%`;
-    }
-
-    return base;
-  }
-}
-
-function formatBenchmark(benchmark: ConfiguredBenchmark): { name: string; description?: string; exercises?: string[] } {
-  const scaling = benchmark.scaling_option ? ` (${benchmark.scaling_option})` : '';
-  return {
-    name: `${benchmark.name}${scaling}`,
-    description: benchmark.description,
-    exercises: benchmark.exercises
-  };
-}
-
-function formatForgeBenchmark(forge: ConfiguredForgeBenchmark): { name: string; description?: string; exercises?: string[] } {
-  const scaling = forge.scaling_option ? ` (${forge.scaling_option})` : '';
-  return {
-    name: `${forge.name}${scaling}`,
-    description: forge.description,
-    exercises: forge.exercises
-  };
 }
 
 export default function AthletePageLogbookTab({ userId, initialDate, initialViewMode, onDateChange }: AthletePageLogbookTabProps) {
@@ -135,123 +98,18 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
   const { saveBenchmarkResult } = benchmarkHandlers;
 
 
-  // Load section results for WOD sections
-  const loadSectionResults = async (workoutDate: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('wod_section_results')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('workout_date', workoutDate);
-
-      if (error) {
-        console.error('Error loading section results:', error);
-        return;
-      }
-
-      if (data) {
-        const newSectionResults: Record<string, SectionResult> = {};
-        data.forEach(result => {
-          // Handle content items that have format: sectionId-content-N
-          // Need to convert to triple-colon format: wodId:::sectionId:::content-N
-          let key: string;
-          if (result.section_id.includes('-content-')) {
-            const parts = result.section_id.split('-content-');
-            key = `${result.wod_id}:::${parts[0]}:::content-${parts[1]}`;
-          } else {
-            key = `${result.wod_id}:::${result.section_id}`;
-          }
-
-          newSectionResults[key] = {
-            time_result: result.time_result || '',
-            reps_result: result.reps_result?.toString() || '',
-            weight_result: result.weight_result?.toString() || '',
-            scaling_level: result.scaling_level || '',
-            // NEW fields
-            rounds_result: result.rounds_result?.toString() || '',
-            calories_result: result.calories_result?.toString() || '',
-            metres_result: result.metres_result?.toString() || '',
-            task_completed: result.task_completed || false,
-          };
-        });
-        console.log('[loadSectionResults] Setting results, keys:', Object.keys(newSectionResults));
-        setSectionResults(prev => {
-          const updated = { ...prev, ...newSectionResults };
-          console.log('[loadSectionResults] Updated state keys:', Object.keys(updated));
-          return updated;
-        });
-      }
-    } catch (error) {
-      console.error('Error loading section results:', error);
-    }
+  // Wrapper functions that use utilities and update state
+  const loadSectionResultsWrapper = async (workoutDate: string) => {
+    const newResults = await loadSectionResults(userId, workoutDate);
+    setSectionResults(prev => {
+      const updated = { ...prev, ...newResults };
+      console.log('[loadSectionResults] Updated state keys:', Object.keys(updated));
+      return updated;
+    });
   };
 
-  // Save section result to database
-  const saveSectionResult = async (wodId: string, sectionId: string, result: SectionResult, workoutDate: string) => {
-    // Don't save if all fields are empty
-    if (!result.time_result && !result.reps_result && !result.weight_result &&
-        !result.scaling_level && !result.rounds_result && !result.calories_result &&
-        !result.metres_result && result.task_completed === undefined) {
-      return;
-    }
-
-    try {
-      // First check if record exists
-      const { data: existing } = await supabase
-        .from('wod_section_results')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('wod_id', wodId)
-        .eq('section_id', sectionId)
-        .eq('workout_date', workoutDate)
-        .maybeSingle();
-
-      const payload = {
-        time_result: result.time_result || null,
-        reps_result: result.reps_result ? parseInt(result.reps_result) : null,
-        weight_result: result.weight_result ? parseFloat(result.weight_result) : null,
-        scaling_level: result.scaling_level || null,
-        // NEW fields
-        rounds_result: result.rounds_result ? parseInt(result.rounds_result) : null,
-        calories_result: result.calories_result ? parseInt(result.calories_result) : null,
-        metres_result: result.metres_result ? parseFloat(result.metres_result) : null,
-        task_completed: result.task_completed || null,
-        updated_at: new Date().toISOString(),
-      };
-
-      if (existing) {
-        // Update existing record
-        const { error } = await supabase
-          .from('wod_section_results')
-          .update(payload)
-          .eq('id', existing.id);
-
-        if (error) {
-          console.error('Error updating section result:', error);
-          throw error;
-        }
-      } else {
-        // Insert new record
-        const { error } = await supabase
-          .from('wod_section_results')
-          .insert({
-            ...payload,
-            user_id: userId,
-            wod_id: wodId,
-            section_id: sectionId,
-            workout_date: workoutDate,
-          });
-
-        if (error) {
-          console.error('Error inserting section result:', error);
-          throw error;
-        }
-      }
-    } catch (error) {
-      console.error('Error saving section result:', error);
-      alert(`Failed to save section result: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
-      throw error;
-    }
+  const saveSectionResultWrapper = async (wodId: string, sectionId: string, result: SectionResult, workoutDate: string) => {
+    await saveSectionResult(userId, wodId, sectionId, result, workoutDate);
   };
 
   // UNIFIED SAVE FUNCTION - Handles all scoring data (lifts, benchmarks, forge, content) and notes
@@ -354,7 +212,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
           }
         } else if (itemIdentifier.startsWith('content-')) {
           // Save as general section result (free-form exercise)
-          await saveSectionResult(wodId, `${sectionId}-${itemIdentifier}`, result, workoutDate);
+          await saveSectionResultWrapper(wodId, `${sectionId}-${itemIdentifier}`, result, workoutDate);
           savedCount++;
         }
       } catch (error) {
@@ -376,152 +234,23 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
       alert(`Successfully saved ${savedCount} results!`);
       // Reload data to reflect changes
       loadLiftRecords(workoutDate);
-      loadSectionResults(workoutDate);
-      loadBenchmarkResultsToSection(workoutDate);
-      loadLiftResultsToSection(workoutDate);
+      loadSectionResultsWrapper(workoutDate);
+      loadBenchmarkResultsToSectionWrapper(workoutDate);
+      loadLiftResultsToSectionWrapper(workoutDate);
     } else {
       console.error('Save errors:', errors);
       alert(`Saved ${savedCount} of ${resultsToSave.length} results. ${errorCount} failed. Check console for details.`);
     }
   };
 
-  // Load benchmark results and populate sectionResults
-  const loadBenchmarkResultsToSection = async (workoutDate: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('benchmark_results')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('result_date', workoutDate);
-
-      if (error) {
-        console.error('Error loading benchmark results:', error);
-        return;
-      }
-
-      if (data && workouts.length > 0) {
-        const newResults: Record<string, SectionResult> = {};
-
-        // Match benchmarks to workout sections
-        workouts.forEach(wod => {
-          const sections = getPublishedSections(wod);
-          sections.forEach(section => {
-            // Match regular benchmarks
-            section.benchmarks?.forEach((benchmark, idx) => {
-              const matchingResult = data.find(r =>
-                r.benchmark_name === benchmark.name && r.benchmark_id === benchmark.id
-              );
-              if (matchingResult) {
-                const key = `${wod.id}:::${section.id}:::benchmark-${idx}`;
-                newResults[key] = {
-                  time_result: matchingResult.time_result || '',
-                  reps_result: matchingResult.reps_result?.toString() || '',
-                  weight_result: matchingResult.weight_result?.toString() || '',
-                  scaling_level: matchingResult.scaling_level || '',
-                  rounds_result: '',
-                  calories_result: '',
-                  metres_result: '',
-                  task_completed: false,
-                };
-              }
-            });
-
-            // Match forge benchmarks
-            section.forge_benchmarks?.forEach((forge, idx) => {
-              const matchingResult = data.find(r =>
-                r.benchmark_name === forge.name && r.forge_benchmark_id === forge.id
-              );
-              if (matchingResult) {
-                const key = `${wod.id}:::${section.id}:::forge-${idx}`;
-                newResults[key] = {
-                  time_result: matchingResult.time_result || '',
-                  reps_result: matchingResult.reps_result?.toString() || '',
-                  weight_result: matchingResult.weight_result?.toString() || '',
-                  scaling_level: matchingResult.scaling_level || '',
-                  rounds_result: '',
-                  calories_result: '',
-                  metres_result: '',
-                  task_completed: false,
-                };
-              }
-            });
-          });
-        });
-
-        setSectionResults(prev => ({ ...prev, ...newResults }));
-      }
-    } catch (error) {
-      console.error('Error loading benchmark results:', error);
-    }
+  const loadBenchmarkResultsToSectionWrapper = async (workoutDate: string) => {
+    const newResults = await loadBenchmarkResultsToSection(userId, workoutDate, workouts);
+    setSectionResults(prev => ({ ...prev, ...newResults }));
   };
 
-  // Load lift records and populate sectionResults
-  const loadLiftResultsToSection = async (workoutDate: string) => {
-    try {
-      console.log('[loadLiftResultsToSection] Starting load for date:', workoutDate, 'workouts.length:', workouts.length);
-
-      const { data, error } = await supabase
-        .from('lift_records')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('lift_date', workoutDate);
-
-      if (error) {
-        console.error('Error loading lift results:', error);
-        return;
-      }
-
-      console.log('[loadLiftResultsToSection] Fetched records:', data?.length || 0);
-
-      if (data && workouts.length > 0) {
-        const newResults: Record<string, SectionResult> = {};
-
-        // Match lifts to workout sections
-        workouts.forEach(wod => {
-          if (wod.date !== workoutDate) return; // Only process workouts for this date
-
-          const sections = getPublishedSections(wod);
-          sections.forEach(section => {
-            section.lifts?.forEach((lift, idx) => {
-              const repScheme = lift.rep_type === 'constant'
-                ? `${lift.sets || 1}x${lift.reps || 1}`
-                : lift.variable_sets?.map(s => s.reps).join('-') || '1';
-
-              const matchingResult = data.find(r =>
-                r.lift_name === lift.name && r.rep_scheme === repScheme
-              );
-
-              const key = `${wod.id}:::${section.id}:::lift-${idx}`;
-
-              if (matchingResult) {
-                console.log('[loadLiftResultsToSection] Matched lift:', lift.name, 'reps:', matchingResult.reps, 'weight:', matchingResult.weight_kg, 'key:', key);
-                newResults[key] = {
-                  time_result: '',
-                  reps_result: matchingResult.reps?.toString() || '',
-                  weight_result: matchingResult.weight_kg?.toString() || '',
-                  scaling_level: '',
-                  rounds_result: '',
-                  calories_result: '',
-                  metres_result: '',
-                  task_completed: false,
-                };
-              }
-            });
-          });
-        });
-
-        console.log('[loadLiftResultsToSection] Setting results, keys:', Object.keys(newResults));
-        setSectionResults(prev => {
-          const updated = { ...prev, ...newResults };
-          console.log('[loadLiftResultsToSection] Updated state keys:', Object.keys(updated));
-          return updated;
-        });
-      } else {
-        console.log('[loadLiftResultsToSection] Skipped - no data or no workouts');
-      }
-    } catch (error) {
-      console.error('Error loading lift results:', error);
-    }
+  const loadLiftResultsToSectionWrapper = async (workoutDate: string) => {
+    const newResults = await loadLiftResultsToSection(userId, workoutDate, workouts);
+    setSectionResults(prev => ({ ...prev, ...newResults }));
   };
 
   // Load lift records when workouts or selected date change
@@ -535,9 +264,9 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
 
         // Run sequentially to avoid race conditions with state updates
         if (!cancelled) await loadLiftRecords(dateStr);
-        if (!cancelled) await loadSectionResults(dateStr);
-        if (!cancelled) await loadBenchmarkResultsToSection(dateStr);
-        if (!cancelled) await loadLiftResultsToSection(dateStr);
+        if (!cancelled) await loadSectionResultsWrapper(dateStr);
+        if (!cancelled) await loadBenchmarkResultsToSectionWrapper(dateStr);
+        if (!cancelled) await loadLiftResultsToSectionWrapper(dateStr);
 
         if (!cancelled) console.log('[useEffect] All data loaded');
       }

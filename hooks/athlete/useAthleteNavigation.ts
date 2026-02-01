@@ -1,6 +1,15 @@
 'use client';
 
 import { Dispatch, SetStateAction } from 'react';
+import {
+  calculatePreviousDay,
+  calculateNextDay,
+  calculatePreviousWeek,
+  calculateNextWeek,
+  calculatePreviousMonth,
+  calculateNextMonth,
+  getTodayDate
+} from '@/utils/logbook/dateNavigation';
 
 export interface NavigationHandlers {
   previousDay: () => void;
@@ -17,44 +26,31 @@ export function useAthleteNavigation(
   setSelectedDate: Dispatch<SetStateAction<Date>>
 ): NavigationHandlers {
   const previousDay = () => {
-    const newDate = new Date(selectedDate);
-    newDate.setDate(newDate.getDate() - 1);
-    setSelectedDate(newDate);
+    setSelectedDate(calculatePreviousDay(selectedDate));
   };
 
   const nextDay = () => {
-    const newDate = new Date(selectedDate);
-    newDate.setDate(newDate.getDate() + 1);
-    setSelectedDate(newDate);
+    setSelectedDate(calculateNextDay(selectedDate));
   };
 
   const previousWeek = () => {
-    const newDate = new Date(selectedDate);
-    newDate.setDate(newDate.getDate() - 7);
-    setSelectedDate(newDate);
+    setSelectedDate(calculatePreviousWeek(selectedDate));
   };
 
   const nextWeek = () => {
-    const newDate = new Date(selectedDate);
-    newDate.setDate(newDate.getDate() + 7);
-    setSelectedDate(newDate);
+    setSelectedDate(calculateNextWeek(selectedDate));
   };
 
   const previousMonth = () => {
-    const newDate = new Date(selectedDate);
-    newDate.setMonth(newDate.getMonth() - 1);
-    setSelectedDate(newDate);
+    setSelectedDate(calculatePreviousMonth(selectedDate));
   };
 
   const nextMonth = () => {
-    const newDate = new Date(selectedDate);
-    newDate.setMonth(newDate.getMonth() + 1);
-    setSelectedDate(newDate);
+    setSelectedDate(calculateNextMonth(selectedDate));
   };
 
   const goToToday = () => {
-    const today = new Date();
-    setSelectedDate(today);
+    setSelectedDate(getTodayDate());
   };
 
   return {

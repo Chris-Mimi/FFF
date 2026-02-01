@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, Dispatch, SetStateAction } from 'react';
+import { getWeekNumber as getWeekNumberUtil, formatISOWeek } from '@/utils/logbook/photoHandlers';
 
 interface WhiteboardPhoto {
   id: string;
@@ -31,18 +32,11 @@ export function usePhotoHandling(
   setSelectedPhoto: Dispatch<SetStateAction<WhiteboardPhoto | null>>,
   setShowPhotoModal: Dispatch<SetStateAction<boolean>>
 ): PhotoHandlers {
-  // Calculate ISO week number
-  const getWeekNumber = (date: Date): number => {
-    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-    const dayNum = d.getUTCDay() || 7;
-    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
-  };
+  // Re-export utility function through interface
+  const getWeekNumber = getWeekNumberUtil;
 
   const fetchWhiteboardPhotos = async () => {
-    const weekNumber = getWeekNumber(selectedDate);
-    const isoWeek = `${selectedDate.getFullYear()}-W${weekNumber.toString().padStart(2, '0')}`;
+    const isoWeek = formatISOWeek(selectedDate);
 
     setPhotosLoading(true);
     try {
