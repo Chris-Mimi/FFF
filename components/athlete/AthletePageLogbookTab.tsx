@@ -1,7 +1,7 @@
 // AthletePageLogbookTab component
 'use client';
 
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+// Icons now used in extracted components
 import { useEffect } from 'react';
 import { useLogbookData } from '@/hooks/athlete/useLogbookData';
 import { useWorkoutLogging } from '@/hooks/athlete/useWorkoutLogging';
@@ -10,10 +10,15 @@ import { useAthleteNavigation } from '@/hooks/athlete/useAthleteNavigation';
 import { usePhotoHandling } from '@/hooks/athlete/usePhotoHandling';
 import { useLiftManagement } from '@/hooks/athlete/useLiftManagement';
 import { useBenchmarkManagement } from '@/hooks/athlete/useBenchmarkManagement';
-import { formatLocalDate, getWeekDates, getMonthCalendarDays, getPublishedSections } from '@/utils/logbook-utils';
+import { formatLocalDate, getPublishedSections } from '@/utils/logbook-utils';
 import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
 import { supabase } from '@/lib/supabase';
 import ScoringFieldInputs from './logbook/ScoringFieldInputs';
+import NavigationControls from './logbook/NavigationControls';
+import WeekView from './logbook/WeekView';
+import MonthView from './logbook/MonthView';
+import WhiteboardSection from './logbook/WhiteboardSection';
+import PhotoModal from './logbook/PhotoModal';
 import { formatLift, formatBenchmark, formatForgeBenchmark } from '@/utils/logbook/formatters';
 import { saveSectionResult } from '@/utils/logbook/savingLogic';
 import { loadSectionResults, loadBenchmarkResultsToSection, loadLiftResultsToSection } from '@/utils/logbook/loadingLogic';
@@ -320,41 +325,13 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
       {/* Day View */}
       {viewMode === 'day' && (
         <div>
-          {/* Date Navigation */}
-          <div className='flex items-center justify-between mb-6'>
-            <button
-              onClick={previousDay}
-              className='p-2 hover:bg-gray-100 rounded-full transition text-gray-900'
-              title='Previous Day'
-            >
-              <ChevronLeft size={24} />
-            </button>
-
-            <div className='flex items-center gap-2 md:gap-3'>
-              <h3 className='text-sm md:text-lg font-semibold text-gray-900'>
-                {selectedDate.toLocaleDateString('en-US', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
-              </h3>
-              <button
-                onClick={goToToday}
-                className='px-2 md:px-3 py-1 bg-[#208479] hover:bg-[#1a6b62] text-white text-xs md:text-sm rounded-lg font-medium transition'
-              >
-                Today
-              </button>
-            </div>
-
-            <button
-              onClick={nextDay}
-              className='p-2 hover:bg-gray-100 rounded-full transition text-gray-900'
-              title='Next Day'
-            >
-              <ChevronRight size={24} />
-            </button>
-          </div>
+          <NavigationControls
+            viewMode='day'
+            selectedDate={selectedDate}
+            onPrevious={previousDay}
+            onNext={nextDay}
+            onToday={goToToday}
+          />
 
           {/* Workouts */}
           {loading ? (
@@ -702,294 +679,58 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
       {/* Week View */}
       {viewMode === 'week' && (
         <div>
-          {/* Week Navigation */}
-          <div className='flex items-center justify-between mb-6'>
-            <button
-              onClick={previousWeek}
-              className='p-2 hover:bg-gray-100 rounded-full transition text-gray-900'
-              title='Previous Week'
-            >
-              <ChevronLeft size={24} />
-            </button>
-
-            <div className='flex items-center gap-2 md:gap-3'>
-              <h3 className='text-sm md:text-lg font-semibold text-gray-900'>
-                {getWeekDates(selectedDate)[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {' '}
-                {getWeekDates(selectedDate)[6].toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-              </h3>
-              <button
-                onClick={goToToday}
-                className='px-2 md:px-3 py-1 bg-[#208479] hover:bg-[#1a6b62] text-white text-xs md:text-sm rounded-lg font-medium transition'
-              >
-                Today
-              </button>
-            </div>
-
-            <button
-              onClick={nextWeek}
-              className='p-2 hover:bg-gray-100 rounded-full transition text-gray-900'
-              title='Next Week'
-            >
-              <ChevronRight size={24} />
-            </button>
-          </div>
-
-          {/* Week Grid */}
-          {loading ? (
-            <div className='text-center text-gray-500 py-8'>Loading workouts...</div>
-          ) : (
-            <div className='grid grid-cols-7 gap-4'>
-              {getWeekDates(selectedDate).map((date, index) => {
-                const dateStr = formatLocalDate(date);
-                const dayWorkouts = workouts.filter(w => w.date === dateStr);
-                const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
-
-                return (
-                  <div key={index} className='bg-gray-50 rounded-lg p-3 min-h-[200px]'>
-                    <div className='text-center mb-3'>
-                      <div className='text-sm font-semibold text-gray-900'>{dayName}</div>
-                      <div className='text-sm text-gray-600'>
-                        {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      </div>
-                    </div>
-
-                    {dayWorkouts.length > 0 ? (
-                      <div className='space-y-2'>
-                        {dayWorkouts.map(wod => (
-                          <button
-                            key={wod.id}
-                            onClick={() => {
-                              setSelectedDate(date);
-                              setViewMode('day');
-                            }}
-                            className={`w-full text-left p-2 rounded border hover:shadow-sm transition ${
-                              wod.booked ? 'bg-[#7dd3c0] border-[#7dd3c0]' : 'bg-white'
-                            }`}
-                          >
-                            {wod.booked ? (
-                              <div className='text-xs font-bold text-gray-900 text-center'>Booked</div>
-                            ) : (
-                              <div className='flex items-center gap-2 mb-1'>
-                                {wod.tracks && (
-                                  <div
-                                    className='w-2 h-2 rounded-full flex-shrink-0'
-                                    style={{ backgroundColor: wod.tracks.color || '#208479' }}
-                                  />
-                                )}
-                                <span className='text-xs font-medium text-gray-900 truncate'>
-                                  {wod.session_type || wod.title}
-                                  {(wod.workout_name || wod.tracks?.name) && (
-                                    <span className='text-gray-600'> - {wod.workout_name || wod.tracks?.name}</span>
-                                  )}
-                                </span>
-                              </div>
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className='text-xs text-gray-400 text-center mt-8'>No workouts</div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+          <NavigationControls
+            viewMode='week'
+            selectedDate={selectedDate}
+            onPrevious={previousWeek}
+            onNext={nextWeek}
+            onToday={goToToday}
+          />
+          <WeekView
+            selectedDate={selectedDate}
+            workouts={workouts}
+            loading={loading}
+            onDateSelect={setSelectedDate}
+            onViewModeChange={setViewMode}
+          />
         </div>
       )}
 
       {/* Month View */}
       {viewMode === 'month' && (
         <div>
-          {/* Month Navigation */}
-          <div className='flex items-center justify-between mb-6'>
-            <button
-              onClick={previousMonth}
-              className='p-2 hover:bg-gray-100 rounded-full transition text-gray-900'
-              title='Previous Month'
-            >
-              <ChevronLeft size={24} />
-            </button>
-
-            <div className='flex items-center gap-2 md:gap-3'>
-              <h3 className='text-sm md:text-lg font-semibold text-gray-900'>
-                {selectedDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-              </h3>
-              <button
-                onClick={goToToday}
-                className='px-2 md:px-3 py-1 bg-[#208479] hover:bg-[#1a6b62] text-white text-xs md:text-sm rounded-lg font-medium transition'
-              >
-                Today
-              </button>
-            </div>
-
-            <button
-              onClick={nextMonth}
-              className='p-2 hover:bg-gray-100 rounded-full transition text-gray-900'
-              title='Next Month'
-            >
-              <ChevronRight size={24} />
-            </button>
-          </div>
-
-          {/* Calendar Grid */}
-          {loading ? (
-            <div className='text-center text-gray-500 py-8'>Loading workouts...</div>
-          ) : (
-            <div>
-              {/* Day headers */}
-              <div className='grid grid-cols-7 gap-1 mb-2'>
-                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
-                  <div key={day} className='p-2 text-center text-sm font-medium text-gray-500'>
-                    {day}
-                  </div>
-                ))}
-              </div>
-
-              {/* Calendar days */}
-              <div className='grid grid-cols-7 gap-1'>
-                {getMonthCalendarDays(selectedDate).map((date, index) => {
-                  const isCurrentMonth = date.getMonth() === selectedDate.getMonth();
-                  const dateStr = formatLocalDate(date);
-                  const dayWorkouts = workouts.filter(w => w.date === dateStr);
-                  const hasWorkouts = dayWorkouts.length > 0;
-
-                  return (
-                    <div
-                      key={index}
-                      className={`min-h-[100px] p-2 border border-gray-200 ${
-                        isCurrentMonth ? 'bg-white' : 'bg-gray-50'
-                      } ${hasWorkouts ? 'cursor-pointer hover:shadow-sm' : ''}`}
-                      onClick={() => {
-                        if (hasWorkouts) {
-                          setSelectedDate(date);
-                          setViewMode('day');
-                        }
-                      }}
-                    >
-                      <div className={`text-sm ${isCurrentMonth ? 'text-gray-900' : 'text-gray-400'}`}>
-                        {date.getDate()}
-                      </div>
-
-                      {hasWorkouts && (
-                        <div className='mt-1'>
-                          {dayWorkouts.slice(0, 2).map(wod => (
-                            <div
-                              key={wod.id}
-                              className={`text-xs rounded px-1 py-0.5 mb-1 truncate ${
-                                wod.booked
-                                  ? 'bg-[#7dd3c0] text-gray-900 font-bold'
-                                  : 'bg-[#208479] text-white'
-                              }`}
-                            >
-                              {wod.booked ? 'Booked' : `${wod.session_type || wod.title}${(wod.workout_name || wod.tracks?.name) ? ` - ${wod.workout_name || wod.tracks?.name}` : ''}`}
-                            </div>
-                          ))}
-                          {dayWorkouts.length > 2 && (
-                            <div className='text-xs text-gray-500'>+{dayWorkouts.length - 2} more</div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+          <NavigationControls
+            viewMode='month'
+            selectedDate={selectedDate}
+            onPrevious={previousMonth}
+            onNext={nextMonth}
+            onToday={goToToday}
+          />
+          <MonthView
+            selectedDate={selectedDate}
+            workouts={workouts}
+            loading={loading}
+            onDateSelect={setSelectedDate}
+            onViewModeChange={setViewMode}
+          />
         </div>
       )}
 
-      {/* Whiteboard Photos Section */}
-      <div className='mt-8 pt-6 border-t border-gray-200'>
-        <h3 className='text-xl font-bold text-gray-900 mb-4'>
-          Whiteboard - Week {getWeekNumber(selectedDate)}
-        </h3>
+      <WhiteboardSection
+        photos={whiteboardPhotos}
+        loading={photosLoading}
+        weekNumber={getWeekNumber(selectedDate)}
+        onPhotoClick={handleViewPhoto}
+      />
 
-        {photosLoading ? (
-          <div className='text-center text-gray-500 py-8'>Loading photos...</div>
-        ) : whiteboardPhotos.length === 0 ? (
-          <div className='text-center text-gray-500 py-8'>
-            No whiteboard photos for this week
-          </div>
-        ) : (
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-            {whiteboardPhotos.map((photo) => (
-              <div
-                key={photo.id}
-                className='border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition cursor-pointer'
-                onClick={() => handleViewPhoto(photo)}
-              >
-                <div className='h-48 overflow-y-auto'>
-                  <img
-                    src={photo.photo_url}
-                    alt={photo.photo_label}
-                    className='w-full'
-                  />
-                </div>
-                <div className='p-3 space-y-1'>
-                  <p className='font-medium text-gray-900'>{photo.photo_label}</p>
-                  {photo.caption && <p className='text-sm text-gray-600'>{photo.caption}</p>}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Full-Screen Photo Modal */}
       {showPhotoModal && selectedPhoto && (
-        <div
-          className='fixed inset-0 bg-black bg-opacity-90 z-50 overflow-y-auto cursor-pointer'
-          onClick={handleClosePhotoModal}
-        >
-          <div className='min-h-full flex items-center justify-center p-4'>
-            {/* Previous Arrow */}
-            {whiteboardPhotos.length > 1 && (
-              <button
-                onClick={(e) => { e.stopPropagation(); handlePreviousPhoto(); }}
-                className='absolute left-4 top-1/2 -translate-y-1/2 bg-white text-gray-700 p-3 rounded-full hover:bg-gray-100 z-10 shadow-lg'
-              >
-                <ChevronLeft size={28} />
-              </button>
-            )}
-
-            <div
-              className='relative cursor-default'
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                onClick={handleClosePhotoModal}
-                className='absolute -top-12 right-0 bg-white text-gray-700 p-2 rounded-full hover:bg-gray-100 z-10 shadow-lg'
-              >
-                <X size={24} />
-              </button>
-              <img
-                src={selectedPhoto.photo_url}
-                alt={selectedPhoto.photo_label}
-                className='max-w-[90vw] max-h-[85vh] object-contain rounded-lg'
-              />
-              <div className='mt-2 bg-black bg-opacity-70 text-white p-3 rounded-lg'>
-                <p className='font-medium'>{selectedPhoto.photo_label}</p>
-                {selectedPhoto.caption && <p className='text-sm mt-1'>{selectedPhoto.caption}</p>}
-                {whiteboardPhotos.length > 1 && (
-                  <p className='text-xs text-gray-400 mt-1'>
-                    {whiteboardPhotos.findIndex(p => p.id === selectedPhoto.id) + 1} / {whiteboardPhotos.length}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Next Arrow */}
-            {whiteboardPhotos.length > 1 && (
-              <button
-                onClick={(e) => { e.stopPropagation(); handleNextPhoto(); }}
-                className='absolute right-4 top-1/2 -translate-y-1/2 bg-white text-gray-700 p-3 rounded-full hover:bg-gray-100 z-10 shadow-lg'
-              >
-                <ChevronRight size={28} />
-              </button>
-            )}
-          </div>
-        </div>
+        <PhotoModal
+          photo={selectedPhoto}
+          photos={whiteboardPhotos}
+          onClose={handleClosePhotoModal}
+          onPrevious={handlePreviousPhoto}
+          onNext={handleNextPhoto}
+        />
       )}
     </div>
   );
