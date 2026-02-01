@@ -7,6 +7,7 @@ import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import remarkBreaks from 'remark-breaks';
 import { useState } from 'react';
+import { formatLift, formatBenchmark, formatForgeBenchmark } from '@/utils/logbook/formatters';
 
 interface WorkoutType {
   id: string;
@@ -102,38 +103,39 @@ export default function SearchPanel({
   const renderSectionContent = (section: any) => {
     const parts: React.ReactElement[] = [];
 
-    // Add lifts
+    // Add lifts with full details (sets, reps, percentage)
     if (section.lifts && section.lifts.length > 0) {
       section.lifts.forEach((lift: any, idx: number) => {
-        if (lift.name) {
-          parts.push(
-            <div key={`lift-${idx}`} className='font-medium text-[#208479]'>
-              • {lift.name}
-            </div>
-          );
-        }
-      });
-    }
-
-    // Add benchmarks
-    if (section.benchmarks && section.benchmarks.length > 0) {
-      section.benchmarks.forEach((benchmark: any, idx: number) => {
+        const formatted = formatLift(lift);
         parts.push(
-          <div key={`benchmark-${idx}`} className='font-medium text-[#208479]'>
-            • {benchmark.name}
-            {benchmark.description && <span className='font-normal text-gray-700'> - {benchmark.description}</span>}
+          <div key={`lift-${idx}`} className='font-medium text-[#208479]'>
+            • {formatted}
           </div>
         );
       });
     }
 
-    // Add forge benchmarks
+    // Add benchmarks with name and description
+    if (section.benchmarks && section.benchmarks.length > 0) {
+      section.benchmarks.forEach((benchmark: any, idx: number) => {
+        const { name, description } = formatBenchmark(benchmark);
+        parts.push(
+          <div key={`benchmark-${idx}`} className='font-medium text-[#208479]'>
+            • {name}
+            {description && <span className='font-normal text-gray-700'> - {description}</span>}
+          </div>
+        );
+      });
+    }
+
+    // Add forge benchmarks with name and description
     if (section.forge_benchmarks && section.forge_benchmarks.length > 0) {
       section.forge_benchmarks.forEach((forge: any, idx: number) => {
+        const { name, description } = formatForgeBenchmark(forge);
         parts.push(
           <div key={`forge-${idx}`} className='font-medium text-[#208479]'>
-            • {forge.name}
-            {forge.description && <span className='font-normal text-gray-700'> - {forge.description}</span>}
+            • {name}
+            {description && <span className='font-normal text-gray-700'> - {description}</span>}
           </div>
         );
       });
@@ -622,26 +624,26 @@ export default function SearchPanel({
                     const getPreviewText = (section: any): string => {
                       const parts: string[] = [];
 
-                      // Add lifts
+                      // Add lifts with full details (sets, reps, percentage)
                       if (section.lifts && section.lifts.length > 0) {
                         section.lifts.forEach((lift: any) => {
-                          if (lift.name) parts.push(lift.name);
+                          parts.push(formatLift(lift));
                         });
                       }
 
-                      // Add benchmarks
+                      // Add benchmarks with name and description
                       if (section.benchmarks && section.benchmarks.length > 0) {
                         section.benchmarks.forEach((benchmark: any) => {
-                          if (benchmark.name) parts.push(benchmark.name);
-                          if (benchmark.description) parts.push(`(${benchmark.description})`);
+                          const { name, description } = formatBenchmark(benchmark);
+                          parts.push(description ? `${name} - ${description}` : name);
                         });
                       }
 
-                      // Add forge benchmarks
+                      // Add forge benchmarks with name and description
                       if (section.forge_benchmarks && section.forge_benchmarks.length > 0) {
                         section.forge_benchmarks.forEach((forge: any) => {
-                          if (forge.name) parts.push(forge.name);
-                          if (forge.description) parts.push(`(${forge.description})`);
+                          const { name, description } = formatForgeBenchmark(forge);
+                          parts.push(description ? `${name} - ${description}` : name);
                         });
                       }
 
