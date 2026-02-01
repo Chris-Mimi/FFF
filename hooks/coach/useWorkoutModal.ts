@@ -352,6 +352,9 @@ export function useWorkoutModal(
             type: pendingSection.type,
             duration: parseInt(pendingSection.duration) || 5,
             content: pendingSection.content,
+            lifts: pendingSection.lifts,
+            benchmarks: pendingSection.benchmarks,
+            forge_benchmarks: pendingSection.forge_benchmarks,
           };
           const updatedSections = sectionManagement.insertSectionAtCorrectPosition(editingWOD.sections, newSection);
 
@@ -482,6 +485,9 @@ export function useWorkoutModal(
           type: draggedSectionData.type,
           duration: parseInt(draggedSectionData.duration) || 5,
           content: draggedSectionData.content,
+          lifts: draggedSectionData.lifts,
+          benchmarks: draggedSectionData.benchmarks,
+          forge_benchmarks: draggedSectionData.forge_benchmarks,
         };
         // Insert section at correct position based on section type display_order
         const updatedSections = sectionManagement.insertSectionAtCorrectPosition(formData.sections, newSection);
