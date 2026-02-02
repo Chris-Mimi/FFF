@@ -27,6 +27,8 @@ interface Member {
   membership_types: MembershipType[];
   ten_card_purchase_date: string | null;
   ten_card_sessions_used: number;
+  ten_card_total?: number;
+  ten_card_expiry_date?: string | null;
   attendance_count?: number;
 }
 

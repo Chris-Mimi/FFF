@@ -41,6 +41,9 @@ export default function MemberBookingPage() {
     hasAccess: boolean;
     status: 'trial' | 'active' | 'expired';
     trialEnd: string | null;
+    tenCardRemaining: number;
+    tenCardExpired: boolean;
+    using10Card: boolean;
   } | null>(null);
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
   const [showFamilyModal, setShowFamilyModal] = useState(false);
@@ -70,10 +73,10 @@ export default function MemberBookingPage() {
       return;
     }
 
-    // Check if user is a member and get athlete access info
+    // Check if user is a member and get athlete access info (including 10-card)
     const { data: member } = await supabase
       .from('members')
-      .select('id, email, status, athlete_subscription_status, athlete_subscription_end')
+      .select('id, email, status, athlete_subscription_status, athlete_subscription_end, ten_card_sessions_used, ten_card_total, ten_card_expiry_date')
       .eq('id', authUser.id)
       .single();
 
@@ -89,18 +92,32 @@ export default function MemberBookingPage() {
       return;
     }
 
-    // Check athlete access
+    // Check athlete access (subscription or 10-card)
     const now = new Date();
     const trialEnd = member.athlete_subscription_end ? new Date(member.athlete_subscription_end) : null;
-    const hasAccess = !!(
+    const hasSubscription = !!(
       member.athlete_subscription_status === 'active' ||
       (member.athlete_subscription_status === 'trial' && trialEnd && trialEnd > now)
     );
 
+    // Calculate 10-card status
+    const tenCardTotal = member.ten_card_total || 10;
+    const tenCardUsed = member.ten_card_sessions_used || 0;
+    const tenCardRemaining = tenCardTotal - tenCardUsed;
+    const tenCardExpiryDate = member.ten_card_expiry_date ? new Date(member.ten_card_expiry_date) : null;
+    const tenCardExpired = !!(tenCardExpiryDate && tenCardExpiryDate < now);
+    const hasTenCardSessions = tenCardRemaining > 0 && !tenCardExpired;
+
+    // User has access if they have subscription OR 10-card sessions
+    const hasAccess = hasSubscription || hasTenCardSessions;
+
     setAthleteStatus({
       hasAccess,
       status: member.athlete_subscription_status,
-      trialEnd: member.athlete_subscription_end
+      trialEnd: member.athlete_subscription_end,
+      tenCardRemaining,
+      tenCardExpired,
+      using10Card: !hasSubscription && hasTenCardSessions
     });
 
     setUser({ id: authUser.id, email: authUser.email || '' });
@@ -533,6 +550,47 @@ export default function MemberBookingPage() {
           </div>
         </div>
       </header>
+
+      {/* Low Sessions Warning Banner */}
+      {athleteStatus?.using10Card && athleteStatus.tenCardRemaining <= 2 && athleteStatus.tenCardRemaining > 0 && (
+        <div className="bg-yellow-900/50 border-b border-yellow-700">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="bg-yellow-500 rounded-full p-1">
+                  <span className="text-yellow-900 font-bold text-sm px-1">{athleteStatus.tenCardRemaining}</span>
+                </div>
+                <p className="text-yellow-200">
+                  <span className="font-semibold">Low sessions!</span> You have {athleteStatus.tenCardRemaining} session{athleteStatus.tenCardRemaining > 1 ? 's' : ''} remaining on your 10-card.
+                </p>
+              </div>
+              <Link href="/athlete?tab=payment">
+                <button className="bg-yellow-500 hover:bg-yellow-400 text-yellow-900 font-semibold px-4 py-1.5 rounded-lg text-sm transition-colors">
+                  Buy More Sessions
+                </button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* No Sessions Warning Banner */}
+      {athleteStatus && !athleteStatus.hasAccess && (
+        <div className="bg-red-900/50 border-b border-red-700">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+            <div className="flex items-center justify-between">
+              <p className="text-red-200">
+                <span className="font-semibold">No active subscription or sessions.</span> Purchase a subscription or 10-card to book classes.
+              </p>
+              <Link href="/athlete?tab=payment">
+                <button className="bg-red-500 hover:bg-red-400 text-white font-semibold px-4 py-1.5 rounded-lg text-sm transition-colors">
+                  View Payment Options
+                </button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-12">

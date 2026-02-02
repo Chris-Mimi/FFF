@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.41
-**Updated:** 2026-02-01 (Session 86 - Coach Workout Library Search & Drag-and-Drop Fix)
+**Version:** 10.42
+**Updated:** 2026-02-02 (Session 87 - Stripe Payment System Setup)
 
 ---
 
@@ -76,6 +76,35 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2026-02-02 Session 87 - Opus):**
+- **✅ Stripe Payment System - Full Implementation:**
+  - Completed Phases 1-6 from payment plan (database schema, API routes, webhooks, UI)
+  - Database: Created `subscriptions` table with RLS policies
+  - Added to `members`: stripe_customer_id, ten_card_expiry_date, ten_card_total
+  - Files created:
+    - supabase/migrations/20260201_add_subscriptions_table.sql
+    - lib/stripe.ts (Stripe client initialization)
+    - app/api/stripe/create-checkout/route.ts
+    - app/api/stripe/webhook/route.ts
+    - app/api/stripe/customer-portal/route.ts
+    - components/athlete/AthletePagePaymentTab.tsx
+- **✅ Stripe CLI Setup for Local Development:**
+  - Installed Stripe CLI via Homebrew
+  - Fixed Homebrew permissions: `sudo chown -R chrishiles /opt/homebrew`
+  - Configured webhook forwarding: `stripe listen --forward-to localhost:3000/api/stripe/webhook`
+- **✅ Webhook Signature Verification Fix:**
+  - Root cause: .env.local had duplicate key name `STRIPE_WEBHOOK_SECRET=STRIPE_WEBHOOK_SECRET=whsec_...`
+  - Fixed to: `STRIPE_WEBHOOK_SECRET=whsec_...`
+  - All webhook events now processing correctly (200 status)
+- **✅ Payment Tab UI Polish:**
+  - Updated "Manage Subscription" link hover to `hover:text-teal-600 hover:underline`
+- **✅ Tested Payment Flows:**
+  - 10-card purchase: Working (activates 10 sessions, 90-day expiry)
+  - Monthly subscription: Working
+  - Yearly subscription: Working
+  - Customer portal: Working
+- See: `project-history/2026-02-02-session-87-stripe-payment-setup.md`
 
 **Completed (2026-02-01 Session 86 - Sonnet):**
 - **✅ Coach Workout Library Search Fix - Structured Data:**

@@ -1,7 +1,7 @@
 'use client';
 
 import { supabase } from '@/lib/supabase';
-import { RefreshCw, X } from 'lucide-react';
+import { RefreshCw, X, CreditCard, Calendar, Package } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 interface TenCardModalProps {
@@ -12,6 +12,10 @@ interface TenCardModalProps {
     name: string;
     ten_card_purchase_date: string | null;
     ten_card_sessions_used: number;
+    ten_card_total?: number;
+    ten_card_expiry_date?: string | null;
+    athlete_subscription_status?: 'trial' | 'active' | 'expired';
+    athlete_subscription_end?: string | null;
   } | null;
   onUpdate: () => void;
 }
@@ -22,19 +26,38 @@ export default function TenCardModal({
   member,
   onUpdate,
 }: TenCardModalProps) {
+  const [activeSection, setActiveSection] = useState<'10card' | 'subscription'>('10card');
+
+  // 10-card state
   const [purchaseDate, setPurchaseDate] = useState(() => {
     if (!member?.ten_card_purchase_date) return '';
     const dateStr = member.ten_card_purchase_date;
-    // Extract YYYY-MM-DD from timestamp (handles both 'T' and space separators)
     return dateStr.includes('T') ? dateStr.split('T')[0] : dateStr.split(' ')[0];
   });
   const [sessionsUsed, setSessionsUsed] = useState(member?.ten_card_sessions_used || 0);
+  const [tenCardTotal, setTenCardTotal] = useState(member?.ten_card_total || 10);
+  const [tenCardExpiry, setTenCardExpiry] = useState(() => {
+    if (!member?.ten_card_expiry_date) return '';
+    const dateStr = member.ten_card_expiry_date;
+    return dateStr.includes('T') ? dateStr.split('T')[0] : dateStr.split(' ')[0];
+  });
+
+  // Subscription state
+  const [subscriptionStatus, setSubscriptionStatus] = useState<'trial' | 'active' | 'expired'>(
+    member?.athlete_subscription_status || 'expired'
+  );
+  const [subscriptionEnd, setSubscriptionEnd] = useState(() => {
+    if (!member?.athlete_subscription_end) return '';
+    const dateStr = member.athlete_subscription_end;
+    return dateStr.includes('T') ? dateStr.split('T')[0] : dateStr.split(' ')[0];
+  });
+
   const [loading, setLoading] = useState(false);
 
   // Update state when member prop changes (after refresh)
   useEffect(() => {
     if (member) {
-      // Format timestamp to YYYY-MM-DD for date input
+      // 10-card fields
       let formattedDate = '';
       if (member.ten_card_purchase_date) {
         const dateStr = member.ten_card_purchase_date;
@@ -42,6 +65,23 @@ export default function TenCardModal({
       }
       setPurchaseDate(formattedDate);
       setSessionsUsed(member.ten_card_sessions_used || 0);
+      setTenCardTotal(member.ten_card_total || 10);
+
+      let formattedExpiry = '';
+      if (member.ten_card_expiry_date) {
+        const dateStr = member.ten_card_expiry_date;
+        formattedExpiry = dateStr.includes('T') ? dateStr.split('T')[0] : dateStr.split(' ')[0];
+      }
+      setTenCardExpiry(formattedExpiry);
+
+      // Subscription fields
+      setSubscriptionStatus(member.athlete_subscription_status || 'expired');
+      let formattedSubEnd = '';
+      if (member.athlete_subscription_end) {
+        const dateStr = member.athlete_subscription_end;
+        formattedSubEnd = dateStr.includes('T') ? dateStr.split('T')[0] : dateStr.split(' ')[0];
+      }
+      setSubscriptionEnd(formattedSubEnd);
     }
   }, [member]);
 
@@ -78,32 +118,42 @@ export default function TenCardModal({
     setLoading(true);
     try {
       // Recalculate sessions_used based on confirmed bookings after purchase date
-      const recalculatedSessions = await recalculateSessionsUsed(purchaseDate);
+      const recalculatedSessions = activeSection === '10card'
+        ? await recalculateSessionsUsed(purchaseDate)
+        : sessionsUsed;
 
-      console.log('🛟 TenCardModal save:', member.id, 'purchase_date:', purchaseDate, 'recalculated sessions:', recalculatedSessions);
+      console.log('🛟 PaymentModal save:', member.id);
+
+      const updateData: Record<string, unknown> = {};
+
+      if (activeSection === '10card') {
+        updateData.ten_card_purchase_date = purchaseDate || null;
+        updateData.ten_card_sessions_used = recalculatedSessions;
+        updateData.ten_card_total = tenCardTotal;
+        updateData.ten_card_expiry_date = tenCardExpiry || null;
+      } else {
+        updateData.athlete_subscription_status = subscriptionStatus;
+        updateData.athlete_subscription_end = subscriptionEnd || null;
+      }
 
       const { data, error } = await supabase
         .from('members')
-        .update({
-          ten_card_purchase_date: purchaseDate || null,
-          ten_card_sessions_used: recalculatedSessions
-        })
+        .update(updateData)
         .eq('id', member.id);
 
       console.log('🗃️ Supabase update result - data:', data, 'error:', error);
 
       if (error) {
-        console.error('📛 Supabase error updating 10-card info:', error);
+        console.error('📛 Supabase error updating payment info:', error);
         throw error;
       }
 
-      console.log('✅ 10-card modal save successful, calling onUpdate()...');
+      console.log('✅ Payment modal save successful, calling onUpdate()...');
       onUpdate();
-      console.log('📡 onUpdate() called (should fetch and refresh data)');
       onClose();
     } catch (error) {
-      console.error('❌ Error updating 10-card info:', error);
-      alert('Failed to update 10-card information\n\nCheck console for details');
+      console.error('❌ Error updating payment info:', error);
+      alert('Failed to update payment information\n\nCheck console for details');
     } finally {
       setLoading(false);
     }
@@ -119,8 +169,8 @@ export default function TenCardModal({
     setSessionsUsed(0);
   };
 
-  const sessionsRemaining = 10 - sessionsUsed;
-  const isNearExpiry = sessionsUsed >= 9;
+  const sessionsRemaining = tenCardTotal - sessionsUsed;
+  const isNearExpiry = sessionsUsed >= tenCardTotal - 1;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -128,14 +178,40 @@ export default function TenCardModal({
         {/* Header */}
         <div className="bg-[#208479] text-white p-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <RefreshCw size={24} />
-            <h2 className="text-xl font-bold">10-Card Management</h2>
+            <CreditCard size={24} />
+            <h2 className="text-xl font-bold">Payment Management</h2>
           </div>
           <button
             onClick={onClose}
             className="p-1 hover:bg-white/20 rounded transition"
           >
             <X size={24} />
+          </button>
+        </div>
+
+        {/* Section Tabs */}
+        <div className="flex border-b">
+          <button
+            onClick={() => setActiveSection('10card')}
+            className={`flex-1 py-3 px-4 text-sm font-medium flex items-center justify-center gap-2 transition ${
+              activeSection === '10card'
+                ? 'bg-purple-50 text-purple-700 border-b-2 border-purple-500'
+                : 'text-gray-500 hover:bg-gray-50'
+            }`}
+          >
+            <Package size={18} />
+            10-Card
+          </button>
+          <button
+            onClick={() => setActiveSection('subscription')}
+            className={`flex-1 py-3 px-4 text-sm font-medium flex items-center justify-center gap-2 transition ${
+              activeSection === 'subscription'
+                ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-500'
+                : 'text-gray-500 hover:bg-gray-50'
+            }`}
+          >
+            <Calendar size={18} />
+            Subscription
           </button>
         </div>
 
@@ -147,75 +223,198 @@ export default function TenCardModal({
               <h3 className="text-lg font-semibold text-gray-800 mb-2">
                 {member.name}
               </h3>
-              <div className={`text-sm font-medium px-3 py-1 rounded inline-block ${
-                isNearExpiry
-                  ? 'bg-red-100 text-red-800'
-                  : 'bg-green-100 text-green-800'
-              }`}>
-                {sessionsUsed}/10 sessions used
-                {sessionsRemaining > 0 && ` • ${sessionsRemaining} remaining`}
-              </div>
-              {isNearExpiry && (
+              {activeSection === '10card' ? (
+                <div className={`text-sm font-medium px-3 py-1 rounded inline-block ${
+                  isNearExpiry
+                    ? 'bg-red-100 text-red-800'
+                    : 'bg-green-100 text-green-800'
+                }`}>
+                  {sessionsUsed}/{tenCardTotal} sessions used
+                  {sessionsRemaining > 0 && ` • ${sessionsRemaining} remaining`}
+                </div>
+              ) : (
+                <div className={`text-sm font-medium px-3 py-1 rounded inline-block ${
+                  subscriptionStatus === 'active'
+                    ? 'bg-green-100 text-green-800'
+                    : subscriptionStatus === 'trial'
+                    ? 'bg-blue-100 text-blue-800'
+                    : 'bg-gray-100 text-gray-600'
+                }`}>
+                  {subscriptionStatus === 'active' ? 'Active Subscription' :
+                   subscriptionStatus === 'trial' ? 'Trial' : 'Expired'}
+                </div>
+              )}
+              {activeSection === '10card' && isNearExpiry && (
                 <p className="text-red-600 text-xs mt-2 font-medium">
                   ⚠️ Next session will complete this card
                 </p>
               )}
             </div>
 
-            {/* Purchase Date */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                10-Card Purchase/Activation Date
-              </label>
-              <input
-                type="date"
-                value={purchaseDate}
-                onChange={(e) => setPurchaseDate(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Sessions used counter starts from this date.
-              </p>
-            </div>
-
-            {/* Sessions Used - Auto-calculated */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Sessions Used (Auto-calculated)
-              </label>
-              <div className="flex items-center gap-3">
-                <div className="flex-1 px-3 py-2 border border-gray-300 bg-gray-50 rounded-md text-gray-700 font-medium">
-                  {sessionsUsed}/10
+            {activeSection === '10card' ? (
+              <>
+                {/* Purchase Date */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    10-Card Purchase/Activation Date
+                  </label>
+                  <input
+                    type="date"
+                    value={purchaseDate}
+                    onChange={(e) => setPurchaseDate(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Sessions used counter starts from this date.
+                  </p>
                 </div>
-                <button
-                  onClick={async () => {
-                    const count = await recalculateSessionsUsed(purchaseDate);
-                    setSessionsUsed(count);
-                  }}
-                  disabled={!purchaseDate}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-sm rounded-lg transition"
-                >
-                  Preview
-                </button>
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                Click Preview to see count based on current purchase date. Saved automatically when you save changes.
-              </p>
-            </div>
 
-            {/* Reset Button */}
-            <div className="pt-4 border-t">
-              <button
-                onClick={handleResetCard}
-                className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition"
-              >
-                <RefreshCw size={18} />
-                Reset Card
-              </button>
-              <p className="text-xs text-gray-500 mt-2">
-                This will set purchase date to today and reset sessions to 0.
-              </p>
-            </div>
+                {/* Total Sessions */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Total Sessions
+                  </label>
+                  <select
+                    value={tenCardTotal}
+                    onChange={(e) => setTenCardTotal(Number(e.target.value))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900"
+                  >
+                    <option value={5}>5 sessions</option>
+                    <option value={10}>10 sessions (standard)</option>
+                    <option value={20}>20 sessions</option>
+                  </select>
+                </div>
+
+                {/* Expiry Date */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Expiry Date (optional)
+                  </label>
+                  <input
+                    type="date"
+                    value={tenCardExpiry}
+                    onChange={(e) => setTenCardExpiry(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Leave empty for no expiry. Sessions cannot be used after this date.
+                  </p>
+                </div>
+
+                {/* Sessions Used - Auto-calculated */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Sessions Used (Auto-calculated)
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 px-3 py-2 border border-gray-300 bg-gray-50 rounded-md text-gray-700 font-medium">
+                      {sessionsUsed}/{tenCardTotal}
+                    </div>
+                    <button
+                      onClick={async () => {
+                        const count = await recalculateSessionsUsed(purchaseDate);
+                        setSessionsUsed(count);
+                      }}
+                      disabled={!purchaseDate}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-sm rounded-lg transition"
+                    >
+                      Preview
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Click Preview to see count based on current purchase date.
+                  </p>
+                </div>
+
+                {/* Reset Button */}
+                <div className="pt-4 border-t">
+                  <button
+                    onClick={handleResetCard}
+                    className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition"
+                  >
+                    <RefreshCw size={18} />
+                    Reset Card
+                  </button>
+                  <p className="text-xs text-gray-500 mt-2">
+                    This will set purchase date to today and reset sessions to 0.
+                  </p>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Subscription Status */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Subscription Status
+                  </label>
+                  <select
+                    value={subscriptionStatus}
+                    onChange={(e) => setSubscriptionStatus(e.target.value as 'trial' | 'active' | 'expired')}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                  >
+                    <option value="expired">Expired / None</option>
+                    <option value="trial">Trial</option>
+                    <option value="active">Active (Paid)</option>
+                  </select>
+                </div>
+
+                {/* Subscription End Date */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {subscriptionStatus === 'trial' ? 'Trial End Date' : 'Subscription End Date'}
+                  </label>
+                  <input
+                    type="date"
+                    value={subscriptionEnd}
+                    onChange={(e) => setSubscriptionEnd(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    {subscriptionStatus === 'active'
+                      ? 'Leave empty for unlimited access. Otherwise, access expires on this date.'
+                      : subscriptionStatus === 'trial'
+                      ? 'Trial access ends on this date.'
+                      : 'No active subscription.'}
+                  </p>
+                </div>
+
+                {/* Quick Actions */}
+                <div className="pt-4 border-t space-y-3">
+                  <p className="text-sm font-medium text-gray-700">Quick Actions</p>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => {
+                        const endDate = new Date();
+                        endDate.setDate(endDate.getDate() + 30);
+                        setSubscriptionStatus('trial');
+                        setSubscriptionEnd(endDate.toISOString().split('T')[0]);
+                      }}
+                      className="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 text-sm rounded-lg transition"
+                    >
+                      Grant 30-day Trial
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSubscriptionStatus('active');
+                        setSubscriptionEnd('');
+                      }}
+                      className="px-3 py-1.5 bg-green-100 hover:bg-green-200 text-green-700 text-sm rounded-lg transition"
+                    >
+                      Activate (Unlimited)
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSubscriptionStatus('expired');
+                        setSubscriptionEnd(new Date().toISOString().split('T')[0]);
+                      }}
+                      className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 text-sm rounded-lg transition"
+                    >
+                      Expire Now
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
 

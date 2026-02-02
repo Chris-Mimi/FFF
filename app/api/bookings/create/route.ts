@@ -78,10 +78,14 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Check if member is active (and get 10-card info)
+    // Check if member is active and get payment/subscription info
     const { data: member } = await supabase
       .from('members')
-      .select('id, status, membership_types, ten_card_sessions_used')
+      .select(`
+        id, status, membership_types,
+        ten_card_sessions_used, ten_card_total, ten_card_expiry_date,
+        athlete_subscription_status, athlete_subscription_end
+      `)
       .eq('id', bookingMemberId)
       .single();
 
@@ -89,6 +93,39 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Only active members can book sessions' },
         { status: 403 }
+      );
+    }
+
+    // Check payment access (subscription or 10-card)
+    const now = new Date();
+    const hasActiveSubscription =
+      member.athlete_subscription_status === 'active' ||
+      (member.athlete_subscription_status === 'trial' &&
+       member.athlete_subscription_end &&
+       new Date(member.athlete_subscription_end) > now);
+
+    const tenCardTotal = member.ten_card_total || 10;
+    const tenCardUsed = member.ten_card_sessions_used || 0;
+    const tenCardRemaining = tenCardTotal - tenCardUsed;
+    const tenCardExpired = member.ten_card_expiry_date && new Date(member.ten_card_expiry_date) < now;
+    const hasTenCardSessions = tenCardRemaining > 0 && !tenCardExpired;
+
+    // Determine if we should use 10-card (only if no active subscription and has sessions)
+    const use10Card = !hasActiveSubscription && hasTenCardSessions;
+
+    // Block booking if no payment method available
+    if (!hasActiveSubscription && !hasTenCardSessions) {
+      let errorMessage = 'No active subscription or sessions available. ';
+      if (tenCardExpired) {
+        errorMessage += 'Your 10-card has expired.';
+      } else if (tenCardRemaining <= 0) {
+        errorMessage += 'Your 10-card sessions are exhausted.';
+      } else {
+        errorMessage += 'Please purchase a subscription or 10-card.';
+      }
+      return NextResponse.json(
+        { error: errorMessage },
+        { status: 402 } // Payment Required
       );
     }
 
@@ -150,16 +187,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Increment 10-card sessions used if member has 10-card membership
-    if (booking.status === 'confirmed' && member.membership_types?.includes('ten_card')) {
+    // Increment 10-card sessions used if using 10-card payment method
+    let newTenCardRemaining = tenCardRemaining;
+    if (booking.status === 'confirmed' && use10Card) {
       try {
-        console.log('🐾 10-card increment: Member', bookingMemberId, 'has', member.membership_types, 'starting count:', member.ten_card_sessions_used);
+        console.log('🐾 10-card increment: Member', bookingMemberId, 'starting count:', tenCardUsed, 'of', tenCardTotal);
 
         // Increment the sessions used counter
         const { error: updateError } = await supabase
           .from('members')
           .update({
-            ten_card_sessions_used: member.ten_card_sessions_used + 1
+            ten_card_sessions_used: tenCardUsed + 1
           })
           .eq('id', bookingMemberId);
 
@@ -167,7 +205,8 @@ export async function POST(request: NextRequest) {
           console.error('Failed to increment 10-card sessions:', updateError);
           // Don't fail the booking for this - just log it
         } else {
-          console.log('✅ 10-card incremented to:', member.ten_card_sessions_used + 1);
+          newTenCardRemaining = tenCardRemaining - 1;
+          console.log('✅ 10-card incremented. Remaining sessions:', newTenCardRemaining);
         }
       } catch (error) {
         console.error('Error handling 10-card logic:', error);
@@ -178,19 +217,47 @@ export async function POST(request: NextRequest) {
     // TODO: Create notification for coach if waitlist
     // TODO: Send confirmation email (Phase 3)
 
-    return NextResponse.json(
-      {
-        success: true,
-        message: bookingStatus === 'confirmed'
-          ? 'Session booked successfully'
-          : 'Added to waitlist. Coach will be notified.',
-        booking: {
-          id: booking.id,
-          status: booking.status
-        }
-      },
-      { status: 201 }
-    );
+    // Build response with payment info for UI warnings
+    const response: {
+      success: boolean;
+      message: string;
+      booking: { id: string; status: string };
+      paymentInfo?: {
+        type: 'subscription' | '10card';
+        sessionsRemaining?: number;
+        lowSessionsWarning?: boolean;
+      };
+    } = {
+      success: true,
+      message: bookingStatus === 'confirmed'
+        ? 'Session booked successfully'
+        : 'Added to waitlist. Coach will be notified.',
+      booking: {
+        id: booking.id,
+        status: booking.status
+      }
+    };
+
+    // Add 10-card warning if applicable
+    if (use10Card && booking.status === 'confirmed') {
+      response.paymentInfo = {
+        type: '10card',
+        sessionsRemaining: newTenCardRemaining,
+        lowSessionsWarning: newTenCardRemaining <= 2
+      };
+
+      if (newTenCardRemaining <= 2 && newTenCardRemaining > 0) {
+        response.message += ` (${newTenCardRemaining} session${newTenCardRemaining > 1 ? 's' : ''} remaining on your 10-card)`;
+      } else if (newTenCardRemaining === 0) {
+        response.message += ' (This was your last 10-card session!)';
+      }
+    } else if (hasActiveSubscription) {
+      response.paymentInfo = {
+        type: 'subscription'
+      };
+    }
+
+    return NextResponse.json(response, { status: 201 });
 
   } catch (error) {
     console.error('Book session error:', error);

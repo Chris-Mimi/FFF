@@ -5,6 +5,7 @@ import AthletePageBenchmarksTab from '@/components/athlete/AthletePageBenchmarks
 import AthletePageForgeBenchmarksTab from '@/components/athlete/AthletePageForgeBenchmarksTab';
 import AthletePageLiftsTab from '@/components/athlete/AthletePageLiftsTab';
 import AthletePageLogbookTab from '@/components/athlete/AthletePageLogbookTab';
+import AthletePagePaymentTab from '@/components/athlete/AthletePagePaymentTab';
 import AthletePagePhotosTab from '@/components/athlete/AthletePagePhotosTab';
 import AthletePageProfileTab from '@/components/athlete/AthletePageProfileTab';
 import AthletePageRecordsTab from '@/components/athlete/AthletePageRecordsTab';
@@ -17,6 +18,7 @@ import {
   Calendar,
   ChevronLeft,
   ChevronRight,
+  CreditCard,
   Dumbbell,
   Image,
   LogOut,
@@ -25,14 +27,23 @@ import {
   Trophy,
   User,
 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useRef, useState, Suspense } from 'react';
 
-type TabName = 'profile' | 'workouts' | 'logbook' | 'benchmarks' | 'forge-benchmarks' | 'lifts' | 'records' | 'photos' | 'security';
+type TabName = 'profile' | 'workouts' | 'logbook' | 'benchmarks' | 'forge-benchmarks' | 'lifts' | 'records' | 'photos' | 'payment' | 'security';
 
-export default function AthletePage() {
+function AthletePageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<TabName>('profile');
+
+  // Handle URL tab parameter (e.g., /athlete?tab=payment)
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam && ['profile', 'workouts', 'logbook', 'benchmarks', 'forge-benchmarks', 'lifts', 'records', 'photos', 'payment', 'security'].includes(tabParam)) {
+      setActiveTab(tabParam as TabName);
+    }
+  }, [searchParams]);
   const [userName, setUserName] = useState('');
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -192,6 +203,7 @@ export default function AthletePage() {
     { id: 'lifts' as TabName, label: 'Lifts', icon: Dumbbell },
     { id: 'records' as TabName, label: 'Records', icon: Award },
     { id: 'photos' as TabName, label: 'Whiteboard', icon: Image },
+    { id: 'payment' as TabName, label: 'Payment', icon: CreditCard },
     { id: 'security' as TabName, label: 'Security', icon: Shield },
   ];
 
@@ -230,6 +242,8 @@ export default function AthletePage() {
         return <AthletePageRecordsTab userId={activeProfileId} />;
       case 'photos':
         return <AthletePagePhotosTab />;
+      case 'payment':
+        return <AthletePagePaymentTab userId={userId} />;
       case 'security':
         return <AthletePageSecurityTab />;
       default:
@@ -347,5 +361,14 @@ export default function AthletePage() {
       {/* Tab Content */}
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>{renderTabContent()}</div>
     </div>
+  );
+}
+
+// Wrap with Suspense for useSearchParams
+export default function AthletePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-400 flex items-center justify-center">Loading...</div>}>
+      <AthletePageContent />
+    </Suspense>
   );
 }

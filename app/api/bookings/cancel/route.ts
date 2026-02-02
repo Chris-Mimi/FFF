@@ -117,32 +117,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Decrement 10-card sessions if booking was confirmed and member has 10-card
+    // Refund 10-card session if booking was confirmed and member has used sessions
+    // (We refund if ten_card_sessions_used > 0, meaning they've used their 10-card)
     if (booking.status === 'confirmed') {
       const { data: member } = await supabase
         .from('members')
-        .select('membership_types, ten_card_sessions_used')
+        .select('ten_card_sessions_used, athlete_subscription_status')
         .eq('id', booking.member_id)
         .single();
 
-      if (member?.membership_types?.includes('ten_card') && member.ten_card_sessions_used > 0) {
+      // Only refund if member doesn't have active subscription (was using 10-card)
+      // and has used at least one session
+      const hasActiveSubscription = member?.athlete_subscription_status === 'active';
+      const tenCardUsed = member?.ten_card_sessions_used || 0;
+
+      if (!hasActiveSubscription && tenCardUsed > 0) {
         try {
-          console.log('🔄 10-card decrement: Member', booking.member_id, 'cancelling, current:', member.ten_card_sessions_used);
+          console.log('🔄 10-card refund: Member', booking.member_id, 'cancelling, current:', tenCardUsed);
 
           const { error: updateError } = await supabase
             .from('members')
             .update({
-              ten_card_sessions_used: member.ten_card_sessions_used - 1
+              ten_card_sessions_used: tenCardUsed - 1
             })
             .eq('id', booking.member_id);
 
           if (updateError) {
-            console.error('Failed to decrement 10-card sessions:', updateError);
+            console.error('Failed to refund 10-card session:', updateError);
           } else {
-            console.log('✅ 10-card decremented to:', member.ten_card_sessions_used - 1);
+            console.log('✅ 10-card refunded. New count:', tenCardUsed - 1);
           }
         } catch (error) {
-          console.error('Error handling 10-card decrement:', error);
+          console.error('Error handling 10-card refund:', error);
         }
       }
     }
@@ -166,20 +172,26 @@ export async function POST(request: NextRequest) {
           .update({ status: 'confirmed', updated_at: new Date().toISOString() })
           .eq('id', firstWaitlist.id);
 
-        // Increment 10-card if applicable
+        // Increment 10-card if member doesn't have active subscription
         const { data: promotedMember } = await supabase
           .from('members')
-          .select('membership_types, ten_card_sessions_used')
+          .select('athlete_subscription_status, ten_card_sessions_used, ten_card_total')
           .eq('id', firstWaitlist.member_id)
           .single();
 
-        if (promotedMember?.membership_types?.includes('ten_card')) {
+        const promotedHasSubscription = promotedMember?.athlete_subscription_status === 'active';
+        const promotedTenCardUsed = promotedMember?.ten_card_sessions_used || 0;
+        const promotedTenCardTotal = promotedMember?.ten_card_total || 10;
+        const promotedHasTenCard = promotedTenCardUsed < promotedTenCardTotal;
+
+        if (!promotedHasSubscription && promotedHasTenCard) {
           await supabase
             .from('members')
             .update({
-              ten_card_sessions_used: (promotedMember.ten_card_sessions_used || 0) + 1
+              ten_card_sessions_used: promotedTenCardUsed + 1
             })
             .eq('id', firstWaitlist.member_id);
+          console.log('✅ 10-card incremented for promoted member:', firstWaitlist.member_id);
         }
 
         console.log('✅ Promoted waitlist member to confirmed:', firstWaitlist.member_id);
