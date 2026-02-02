@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.42
-**Updated:** 2026-02-02 (Session 87 - Stripe Payment System Setup)
+**Version:** 10.43
+**Updated:** 2026-02-02 (Session 88 - Ready for Stripe Testing)
 
 ---
 
@@ -76,6 +76,15 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2026-02-02 Session 88 - Sonnet):**
+- **✅ Stripe Payment System - Ready for Testing:**
+  - Previous session (87) completed full Stripe implementation with webhook fixes
+  - Coach Payments tab fully implemented with subscription + 10-card management
+  - All environment variables configured, webhook listener ready
+  - Session ended before testing due to time constraints
+  - **Next steps:** Delete duplicate test subscriptions, test purchase flow end-to-end
+  - See: Session 87 below for full implementation details
 
 **Completed (2026-02-02 Session 87 - Opus):**
 - **✅ Stripe Payment System - Full Implementation:**
@@ -1056,9 +1065,21 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 86 Priorities (Next Session - Chris User Profile)
+### Session 89 Priorities (Next Session - Mimi User Profile)
 
-**⚡ START: Phase 3 - Extract Utility Functions from AthletePageLogbookTab**
+**⚡ PRIORITY: Complete Stripe Payment Testing**
+1. **Delete Duplicate Subscriptions:** Run SQL in Supabase to clean test data
+2. **Verify Stripe Listener:** Ensure `stripe listen` running in Terminal 2
+3. **Test Purchase Flow:** Make ONE test subscription purchase from athlete page
+4. **Verify Coach Payments Tab:** Check subscription displays correctly with proper dates
+5. **If Successful:** Proceed to Task 2 (auto-decrement 10-card on booking)
+
+**Stripe Admin Tools Roadmap (In Order):**
+- Task 1: ✅ Coach admin tools (manual subscription/10-card management) - COMPLETED Session 87
+- Task 2: ⏳ 10-card auto-decrement on class booking - PENDING
+- Task 3: ⏳ Low session warning (≤2 sessions remaining) - PENDING
+
+**DEFERRED: Phase 3 - Extract Utility Functions from AthletePageLogbookTab**
 - Create 5 utility files in `utils/logbook/` directory
 - Target: Remove ~180 lines from main component
 - Files to create:

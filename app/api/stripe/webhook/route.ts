@@ -143,13 +143,14 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
   }
 
   const now = new Date();
-  // Access period timestamps from subscription object (Stripe v20+)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const subData = subscription as any;
-  const periodEndTimestamp = subData.current_period_end || 0;
-  const periodStartTimestamp = subData.current_period_start || 0;
-  const periodEnd = new Date(periodEndTimestamp * 1000);
-  const periodStart = new Date(periodStartTimestamp * 1000);
+
+  // Stripe timestamps are in seconds, need to convert to milliseconds
+  const periodEnd = subscription.current_period_end
+    ? new Date(subscription.current_period_end * 1000)
+    : now;
+  const periodStart = subscription.current_period_start
+    ? new Date(subscription.current_period_start * 1000)
+    : now;
 
   // Determine plan type from price
   let planType: 'monthly' | 'yearly' = 'monthly';
@@ -171,7 +172,7 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
               subscription.status === 'trialing' ? 'trialing' : 'cancelled',
       current_period_start: periodStart.toISOString(),
       current_period_end: periodEnd.toISOString(),
-      cancel_at_period_end: subData.cancel_at_period_end || false,
+      cancel_at_period_end: subscription.cancel_at_period_end || false,
       updated_at: now.toISOString(),
     }, {
       onConflict: 'stripe_subscription_id'
@@ -261,15 +262,13 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
   console.log(`Payment failed for member ${member.id} (${member.email})`);
 
   // Update subscription status to past_due if it's a subscription invoice
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const invoiceData = invoice as any;
-  if (invoiceData.subscription) {
+  if (invoice.subscription) {
     await supabaseAdmin
       .from('subscriptions')
       .update({
         status: 'past_due',
         updated_at: new Date().toISOString(),
       })
-      .eq('stripe_subscription_id', invoiceData.subscription as string);
+      .eq('stripe_subscription_id', invoice.subscription as string);
   }
 }

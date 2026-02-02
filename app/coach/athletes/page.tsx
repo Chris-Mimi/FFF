@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, User, Trophy, Dumbbell, BookOpen, Plus } from 'lucide-react';
+import { ArrowLeft, User, Trophy, Dumbbell, BookOpen, Plus, CreditCard } from 'lucide-react';
 import { getCurrentUser } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 
@@ -29,7 +29,7 @@ export default function CoachAthletesPage() {
   const [athletes, setAthletes] = useState<AthleteProfile[]>([]);
   const [selectedAthlete, setSelectedAthlete] = useState<AthleteProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeSection, setActiveSection] = useState<'benchmarks' | 'lifts' | 'logbook'>(
+  const [activeSection, setActiveSection] = useState<'benchmarks' | 'lifts' | 'logbook' | 'payments'>(
     'benchmarks'
   );
 
@@ -252,6 +252,17 @@ export default function CoachAthletesPage() {
                         <BookOpen size={14} className='md:w-[18px] md:h-[18px]' />
                         Logbook
                       </button>
+                      <button
+                        onClick={() => setActiveSection('payments')}
+                        className={`flex items-center gap-1 md:gap-2 px-3 md:px-6 py-2 md:py-4 border-b-2 font-medium text-xs md:text-sm transition ${
+                          activeSection === 'payments'
+                            ? 'border-[#208479] text-[#208479]'
+                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                        }`}
+                      >
+                        <CreditCard size={14} className='md:w-[18px] md:h-[18px]' />
+                        Payments
+                      </button>
                     </nav>
                   </div>
 
@@ -271,6 +282,9 @@ export default function CoachAthletesPage() {
                     )}
                     {activeSection === 'logbook' && (
                       <LogbookSection athleteId={selectedAthlete.user_id} />
+                    )}
+                    {activeSection === 'payments' && (
+                      <PaymentsSection memberId={selectedAthlete.user_id} />
                     )}
                   </div>
                 </div>
@@ -613,6 +627,323 @@ function LogbookSection({ athleteId }: { athleteId?: string }) {
               {log.notes && <p className='text-sm text-gray-700 mt-2'>{log.notes}</p>}
             </div>
           ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Payments Section Component
+function PaymentsSection({ memberId }: { memberId?: string }) {
+  interface MemberData {
+    id: string;
+    email: string;
+    stripe_customer_id: string | null;
+    ten_card_sessions_used: number | null;
+    ten_card_total: number | null;
+    ten_card_expiry_date: string | null;
+  }
+
+  interface Subscription {
+    id: string;
+    stripe_subscription_id: string | null;
+    plan_type: 'monthly' | 'yearly' | null;
+    status: string;
+    current_period_start: string | null;
+    current_period_end: string | null;
+    cancel_at_period_end: boolean;
+  }
+
+  const [memberData, setMemberData] = useState<MemberData | null>(null);
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [actualMemberId, setActualMemberId] = useState<string | null>(null);
+
+  // 10-card form state
+  const [tenCardTotal, setTenCardTotal] = useState('10');
+  const [tenCardUsed, setTenCardUsed] = useState('0');
+  const [tenCardExpiry, setTenCardExpiry] = useState('');
+
+  useEffect(() => {
+    if (memberId) {
+      fetchPaymentData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [memberId]);
+
+  const fetchPaymentData = async () => {
+    if (!memberId) return;
+    setLoading(true);
+    try {
+      console.log('[Payment] Starting fetch for user_id:', memberId);
+
+      // First, get athlete email from athlete_profiles
+      const { data: athlete, error: athleteError } = await supabase
+        .from('athlete_profiles')
+        .select('email')
+        .eq('user_id', memberId)
+        .single();
+
+      console.log('[Payment] Athlete query result:', { athlete, error: athleteError });
+
+      if (athleteError) {
+        console.error('Error fetching athlete:', athleteError);
+        throw athleteError;
+      }
+
+      if (!athlete?.email) {
+        throw new Error('Athlete email not found');
+      }
+
+      // Fetch member data by email (handles case where athlete_profiles.user_id ≠ members.id)
+      const { data: member, error: memberError } = await supabase
+        .from('members')
+        .select('id, email, stripe_customer_id, ten_card_sessions_used, ten_card_total, ten_card_expiry_date')
+        .eq('email', athlete.email)
+        .single();
+
+      console.log('[Payment] Member query result:', { member, error: memberError });
+
+      if (memberError) throw memberError;
+      setMemberData(member);
+      setActualMemberId(member.id); // Store actual member ID for updates
+
+      // Set form values
+      if (member) {
+        setTenCardTotal(String(member.ten_card_total || 10));
+        setTenCardUsed(String(member.ten_card_sessions_used || 0));
+        setTenCardExpiry(member.ten_card_expiry_date ? member.ten_card_expiry_date.split('T')[0] : '');
+      }
+
+      // Fetch subscriptions using actual member.id
+      console.log('[Payment] Querying subscriptions for member_id:', member.id);
+      const { data: subs, error: subsError } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('member_id', member.id)
+        .order('created_at', { ascending: false });
+
+      console.log('[Payment] Subscriptions query result:', { subs, error: subsError });
+
+      if (subsError) throw subsError;
+      setSubscriptions(subs || []);
+    } catch (error) {
+      console.error('Error fetching payment data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave10Card = async () => {
+    if (!actualMemberId) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('members')
+        .update({
+          ten_card_total: parseInt(tenCardTotal) || 10,
+          ten_card_sessions_used: parseInt(tenCardUsed) || 0,
+          ten_card_expiry_date: tenCardExpiry || null,
+        })
+        .eq('id', actualMemberId);
+
+      if (error) throw error;
+      alert('10-card updated successfully!');
+      fetchPaymentData();
+    } catch (error) {
+      console.error('Error updating 10-card:', error);
+      alert('Failed to update 10-card. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleReset10Card = async () => {
+    if (!actualMemberId) return;
+    if (!confirm('Reset 10-card to 0 sessions used?')) return;
+
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('members')
+        .update({
+          ten_card_sessions_used: 0,
+        })
+        .eq('id', actualMemberId);
+
+      if (error) throw error;
+      alert('10-card reset successfully!');
+      fetchPaymentData();
+    } catch (error) {
+      console.error('Error resetting 10-card:', error);
+      alert('Failed to reset 10-card. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancelSubscription = async (subscriptionId: string) => {
+    if (!confirm('Cancel this subscription? It will remain active until the end of the current period.')) return;
+
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('subscriptions')
+        .update({
+          status: 'cancelled',
+          cancel_at_period_end: true,
+        })
+        .eq('id', subscriptionId);
+
+      if (error) throw error;
+      alert('Subscription cancelled successfully!');
+      fetchPaymentData();
+    } catch (error) {
+      console.error('Error cancelling subscription:', error);
+      alert('Failed to cancel subscription. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return <p className='text-gray-500 text-center py-8'>Loading payment data...</p>;
+  }
+
+  const sessionsRemaining = (memberData?.ten_card_total || 10) - (memberData?.ten_card_sessions_used || 0);
+  const isExpired = memberData?.ten_card_expiry_date && new Date(memberData.ten_card_expiry_date) < new Date();
+
+  return (
+    <div className='space-y-6'>
+      <h3 className='text-lg font-bold text-gray-900'>Payment Management</h3>
+
+      {/* Subscriptions */}
+      <div className='bg-gray-50 rounded-lg p-4'>
+        <h4 className='font-semibold text-gray-900 mb-3'>Subscriptions</h4>
+        {subscriptions.length === 0 ? (
+          <p className='text-sm text-gray-600'>No active subscriptions</p>
+        ) : (
+          <div className='space-y-3'>
+            {subscriptions.map(sub => (
+              <div key={sub.id} className='bg-white rounded-lg p-3 border border-gray-200'>
+                <div className='flex items-center justify-between mb-2'>
+                  <div>
+                    <p className='font-semibold text-gray-900 capitalize'>{sub.plan_type || 'Unknown'} Plan</p>
+                    <p className='text-sm text-gray-600'>Status: {sub.status}</p>
+                  </div>
+                  <span
+                    className={`px-2 py-1 text-xs font-medium rounded ${
+                      sub.status === 'active'
+                        ? 'bg-green-100 text-green-700'
+                        : sub.status === 'cancelled'
+                        ? 'bg-gray-100 text-gray-700'
+                        : 'bg-red-100 text-red-700'
+                    }`}
+                  >
+                    {sub.status}
+                  </span>
+                </div>
+                {sub.current_period_end && (
+                  <p className='text-xs text-gray-600 mb-2'>
+                    Period ends: {new Date(sub.current_period_end).toLocaleDateString()}
+                  </p>
+                )}
+                {sub.status === 'active' && !sub.cancel_at_period_end && (
+                  <button
+                    onClick={() => handleCancelSubscription(sub.id)}
+                    disabled={saving}
+                    className='text-sm text-red-600 hover:text-red-700 font-medium disabled:opacity-50'
+                  >
+                    Cancel Subscription
+                  </button>
+                )}
+                {sub.cancel_at_period_end && (
+                  <p className='text-xs text-amber-600'>Will cancel at period end</p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 10-Card Management */}
+      <div className='bg-gray-50 rounded-lg p-4'>
+        <h4 className='font-semibold text-gray-900 mb-3'>10-Card Sessions</h4>
+
+        {/* Current Status */}
+        <div className='bg-white rounded-lg p-3 border border-gray-200 mb-4'>
+          <div className='flex items-center justify-between mb-2'>
+            <p className='text-sm text-gray-600'>Sessions Remaining</p>
+            <p className={`text-2xl font-bold ${sessionsRemaining <= 2 ? 'text-red-600' : 'text-[#208479]'}`}>
+              {sessionsRemaining} / {memberData?.ten_card_total || 10}
+            </p>
+          </div>
+          {memberData?.ten_card_expiry_date && (
+            <p className={`text-xs ${isExpired ? 'text-red-600' : 'text-gray-600'}`}>
+              {isExpired ? 'Expired: ' : 'Expires: '}
+              {new Date(memberData.ten_card_expiry_date).toLocaleDateString()}
+            </p>
+          )}
+        </div>
+
+        {/* Edit Form */}
+        <div className='space-y-3'>
+          <div className='grid grid-cols-2 gap-3'>
+            <div>
+              <label className='block text-sm font-medium text-gray-700 mb-1'>Total Sessions</label>
+              <input
+                type='number'
+                value={tenCardTotal}
+                onChange={e => setTenCardTotal(e.target.value)}
+                className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+              />
+            </div>
+            <div>
+              <label className='block text-sm font-medium text-gray-700 mb-1'>Sessions Used</label>
+              <input
+                type='number'
+                value={tenCardUsed}
+                onChange={e => setTenCardUsed(e.target.value)}
+                className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className='block text-sm font-medium text-gray-700 mb-1'>Expiry Date (optional)</label>
+            <input
+              type='date'
+              value={tenCardExpiry}
+              onChange={e => setTenCardExpiry(e.target.value)}
+              className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+            />
+          </div>
+
+          <div className='flex gap-2'>
+            <button
+              onClick={handleSave10Card}
+              disabled={saving}
+              className='flex-1 px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white font-medium rounded-lg transition disabled:opacity-50'
+            >
+              Save Changes
+            </button>
+            <button
+              onClick={handleReset10Card}
+              disabled={saving}
+              className='px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg transition disabled:opacity-50'
+            >
+              Reset to 0
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Stripe Customer Info */}
+      {memberData?.stripe_customer_id && (
+        <div className='bg-gray-50 rounded-lg p-4'>
+          <h4 className='font-semibold text-gray-900 mb-2'>Stripe Info</h4>
+          <p className='text-xs text-gray-600 font-mono break-all'>{memberData.stripe_customer_id}</p>
         </div>
       )}
     </div>
