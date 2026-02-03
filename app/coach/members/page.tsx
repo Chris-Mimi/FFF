@@ -632,6 +632,24 @@ export default function CoachMembersPage() {
                           {member.ten_card_sessions_used || 0}/10
                         </button>
                       )}
+                      {member.membership_types?.includes('wellpass') && (
+                        <button
+                          onClick={() => setTenCardModal({ isOpen: true, member })}
+                          className="px-2 py-0.5 rounded text-xs font-medium transition cursor-pointer bg-orange-600 text-white hover:bg-orange-700"
+                          title="Manage Wellpass"
+                        >
+                          Wp
+                        </button>
+                      )}
+                      {member.membership_types?.includes('member') && (
+                        <button
+                          onClick={() => setTenCardModal({ isOpen: true, member })}
+                          className="px-2 py-0.5 rounded text-xs font-medium transition cursor-pointer bg-blue-600 text-white hover:bg-blue-700"
+                          title="Manage Membership"
+                        >
+                          Mb
+                        </button>
+                      )}
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
                       <div>

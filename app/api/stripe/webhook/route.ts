@@ -106,7 +106,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   if (productType === '10card') {
     // Activate 10-card
-    const expiryDate = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000); // 90 days from now
+    const expiryDate = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000); // 12 months from now
 
     await supabaseAdmin
       .from('members')
@@ -121,8 +121,48 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
     console.log(`10-card activated for member ${memberId}`);
   } else if (session.subscription) {
-    // Subscription is handled by subscription.created event
-    console.log(`Subscription ${session.subscription} created for member ${memberId}`);
+    // Set initial subscription dates (subscription.created event will update with exact dates)
+    const subscriptionEndDate = productType === 'monthly'
+      ? new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
+      : new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000); // 365 days from now
+
+    // Update member status
+    await supabaseAdmin
+      .from('members')
+      .update({
+        athlete_subscription_status: 'active',
+        athlete_subscription_end: subscriptionEndDate.toISOString(),
+        updated_at: now.toISOString(),
+      })
+      .eq('id', memberId);
+
+    // Get member's stripe_customer_id for subscriptions table
+    const { data: memberData } = await supabaseAdmin
+      .from('members')
+      .select('stripe_customer_id')
+      .eq('id', memberId)
+      .single();
+
+    // Create initial subscription record (will be updated by subscription.created event)
+    if (memberData?.stripe_customer_id) {
+      await supabaseAdmin
+        .from('subscriptions')
+        .upsert({
+          member_id: memberId,
+          stripe_subscription_id: session.subscription as string,
+          stripe_customer_id: memberData.stripe_customer_id,
+          plan_type: productType === 'monthly' ? 'monthly' : 'yearly',
+          status: 'active',
+          current_period_start: now.toISOString(),
+          current_period_end: subscriptionEndDate.toISOString(),
+          cancel_at_period_end: false,
+          updated_at: now.toISOString(),
+        }, {
+          onConflict: 'stripe_subscription_id'
+        });
+    }
+
+    console.log(`Subscription ${session.subscription} activated for member ${memberId} (${productType})`);
   }
 }
 

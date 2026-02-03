@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.44
-**Updated:** 2026-02-03 (Session 89 - Access Tiers & Approval Flow)
+**Version:** 10.45
+**Updated:** 2026-02-03 (Session 90 - Stripe Payment Color Coding)
 
 ---
 
@@ -76,6 +76,33 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2026-02-03 Session 90 - Sonnet):**
+- **✅ Stripe Payment System Color Coding:**
+  - **Athlete Payment Tab (AthletePagePaymentTab.tsx):**
+    - Monthly subscriptions: Blue theme (blue-100 bg, blue-600 icon/text)
+    - Yearly subscriptions: Teal theme (teal-100 bg, teal-600 icon/text)
+    - 10-Card: Purple theme (purple-100 bg, purple-600 icon/text)
+    - Active status displays correct colors based on plan_type
+    - 12-month validity text for 10-card
+  - **Coach Athletes Payments Tab (app/coach/athletes/page.tsx):**
+    - Monthly Plan text: blue-600
+    - Yearly Plan text: green-600
+    - Monthly Active badge: blue-100/blue-700
+    - Yearly Active badge: green-100/green-700
+    - 10-Card Sessions heading: purple-600
+    - Sessions counter: purple-600 (red warning for ≤2 sessions)
+  - **Webhook Improvements (app/api/stripe/webhook/route.ts):**
+    - 10-card expiry: 365 days (12 months)
+    - Subscription dates set immediately on checkout.session.completed
+    - Subscription record created in subscriptions table before subscription.created event
+  - **Booking System Fixes (app/api/bookings/):**
+    - create/route.ts: Separated 10-card from athlete subscription logic
+    - create/route.ts: Added safety check Math.min() to prevent counter exceeding 10
+    - create/route.ts: Enhanced warnings at 3, 2, 1, 0 sessions remaining
+    - cancel/route.ts: Implemented 12-hour grace period for 10-card refunds
+    - cancel/route.ts: Fixed refund logic to check membership_types instead of athlete_subscription_status
+- See: `project-history/2026-02-03-session-90-stripe-color-coding.md`
 
 **Completed (2026-02-03 Session 89 - Opus):**
 - **✅ Access Tiers for Athlete Page:**

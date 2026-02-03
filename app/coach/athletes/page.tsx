@@ -829,12 +829,22 @@ function PaymentsSection({ memberId }: { memberId?: string }) {
               <div key={sub.id} className='bg-white rounded-lg p-3 border border-gray-200'>
                 <div className='flex items-center justify-between mb-2'>
                   <div>
-                    <p className='font-semibold text-gray-900 capitalize'>{sub.plan_type || 'Unknown'} Plan</p>
+                    <p className={`font-semibold capitalize ${
+                      sub.plan_type === 'monthly' ? 'text-blue-600' :
+                      sub.plan_type === 'yearly' ? 'text-green-600' :
+                      'text-gray-900'
+                    }`}>
+                      {sub.plan_type || 'Unknown'} Plan
+                    </p>
                     <p className='text-sm text-gray-600'>Status: {sub.status}</p>
                   </div>
                   <span
                     className={`px-2 py-1 text-xs font-medium rounded ${
-                      sub.status === 'active'
+                      sub.status === 'active' && sub.plan_type === 'monthly'
+                        ? 'bg-blue-100 text-blue-700'
+                        : sub.status === 'active' && sub.plan_type === 'yearly'
+                        ? 'bg-green-100 text-green-700'
+                        : sub.status === 'active'
                         ? 'bg-green-100 text-green-700'
                         : sub.status === 'cancelled'
                         ? 'bg-gray-100 text-gray-700'
@@ -853,7 +863,7 @@ function PaymentsSection({ memberId }: { memberId?: string }) {
                   <button
                     onClick={() => handleCancelSubscription(sub.id)}
                     disabled={saving}
-                    className='text-sm text-red-600 hover:text-red-700 font-medium disabled:opacity-50'
+                    className='px-3 py-1.5 text-sm text-red-600 hover:text-white hover:bg-red-600 font-medium border border-red-600 rounded transition-colors disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-red-600'
                   >
                     Cancel Subscription
                   </button>
@@ -869,13 +879,13 @@ function PaymentsSection({ memberId }: { memberId?: string }) {
 
       {/* 10-Card Management */}
       <div className='bg-gray-50 rounded-lg p-4'>
-        <h4 className='font-semibold text-gray-900 mb-3'>10-Card Sessions</h4>
+        <h4 className='font-semibold text-purple-600 mb-3'>10-Card Sessions</h4>
 
         {/* Current Status */}
         <div className='bg-white rounded-lg p-3 border border-gray-200 mb-4'>
           <div className='flex items-center justify-between mb-2'>
             <p className='text-sm text-gray-600'>Sessions Remaining</p>
-            <p className={`text-2xl font-bold ${sessionsRemaining <= 2 ? 'text-red-600' : 'text-[#208479]'}`}>
+            <p className={`text-2xl font-bold ${sessionsRemaining <= 2 ? 'text-red-600' : 'text-purple-600'}`}>
               {sessionsRemaining} / {memberData?.ten_card_total || 10}
             </p>
           </div>

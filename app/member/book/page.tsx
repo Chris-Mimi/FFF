@@ -400,7 +400,17 @@ export default function MemberBookingPage() {
       const data = await response.json();
 
       if (!response.ok) {
+        // User-facing errors (402 = Payment Required) - show message without console error
+        if (response.status === 402) {
+          alert(data.error || 'Payment required');
+          return;
+        }
         throw new Error(data.error || 'Failed to book session');
+      }
+
+      // Show success message with any warnings
+      if (data.message) {
+        alert(data.message);
       }
 
       await fetchSessions();
@@ -440,6 +450,11 @@ export default function MemberBookingPage() {
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to cancel booking');
+      }
+
+      // Show cancellation message with refund status
+      if (data.message) {
+        alert(data.message);
       }
 
       await fetchSessions();

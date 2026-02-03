@@ -117,23 +117,40 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Refund 10-card session if booking was confirmed and member has used sessions
-    // (We refund if ten_card_sessions_used > 0, meaning they've used their 10-card)
+    // Refund 10-card session with grace period
+    let refundMessage = '';
     if (booking.status === 'confirmed') {
+      // Fetch session to check timing
+      const { data: session } = await supabase
+        .from('weekly_sessions')
+        .select('date, time')
+        .eq('id', booking.session_id)
+        .single();
+
       const { data: member } = await supabase
         .from('members')
-        .select('ten_card_sessions_used, athlete_subscription_status')
+        .select('ten_card_sessions_used, membership_types')
         .eq('id', booking.member_id)
         .single();
 
-      // Only refund if member doesn't have active subscription (was using 10-card)
-      // and has used at least one session
-      const hasActiveSubscription = member?.athlete_subscription_status === 'active';
+      const hasTenCardMembership = member?.membership_types?.includes('ten_card') || false;
       const tenCardUsed = member?.ten_card_sessions_used || 0;
 
-      if (!hasActiveSubscription && tenCardUsed > 0) {
+      // Calculate grace period (12 hours before class)
+      const GRACE_PERIOD_HOURS = 12;
+      let withinGracePeriod = false;
+
+      if (session) {
+        const sessionDateTime = new Date(`${session.date}T${session.time}`);
+        const now = new Date();
+        const hoursUntilSession = (sessionDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+        withinGracePeriod = hoursUntilSession >= GRACE_PERIOD_HOURS;
+      }
+
+      // Refund if: 10-card member, has used sessions, and within grace period
+      if (hasTenCardMembership && tenCardUsed > 0 && withinGracePeriod) {
         try {
-          console.log('🔄 10-card refund: Member', booking.member_id, 'cancelling, current:', tenCardUsed);
+          console.log('🔄 10-card refund: Member', booking.member_id, 'cancelling within grace period, current:', tenCardUsed);
 
           const { error: updateError } = await supabase
             .from('members')
@@ -146,10 +163,14 @@ export async function POST(request: NextRequest) {
             console.error('Failed to refund 10-card session:', updateError);
           } else {
             console.log('✅ 10-card refunded. New count:', tenCardUsed - 1);
+            refundMessage = ' Your 10-card session has been refunded.';
           }
         } catch (error) {
           console.error('Error handling 10-card refund:', error);
         }
+      } else if (hasTenCardMembership && !withinGracePeriod) {
+        console.log('⏰ 10-card NOT refunded: Outside grace period (less than 12 hours before class)');
+        refundMessage = ' Note: 10-card session NOT refunded (cancellation less than 12 hours before class).';
       }
     }
 
@@ -172,19 +193,19 @@ export async function POST(request: NextRequest) {
           .update({ status: 'confirmed', updated_at: new Date().toISOString() })
           .eq('id', firstWaitlist.id);
 
-        // Increment 10-card if member doesn't have active subscription
+        // Increment 10-card if promoted member has 10-card membership
         const { data: promotedMember } = await supabase
           .from('members')
-          .select('athlete_subscription_status, ten_card_sessions_used, ten_card_total')
+          .select('membership_types, ten_card_sessions_used, ten_card_total')
           .eq('id', firstWaitlist.member_id)
           .single();
 
-        const promotedHasSubscription = promotedMember?.athlete_subscription_status === 'active';
+        const promotedHasTenCardMembership = promotedMember?.membership_types?.includes('ten_card') || false;
         const promotedTenCardUsed = promotedMember?.ten_card_sessions_used || 0;
         const promotedTenCardTotal = promotedMember?.ten_card_total || 10;
-        const promotedHasTenCard = promotedTenCardUsed < promotedTenCardTotal;
+        const promotedHasSessions = promotedTenCardUsed < promotedTenCardTotal;
 
-        if (!promotedHasSubscription && promotedHasTenCard) {
+        if (promotedHasTenCardMembership && promotedHasSessions) {
           await supabase
             .from('members')
             .update({
@@ -204,7 +225,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        message: 'Booking cancelled successfully'
+        message: `Booking cancelled successfully.${refundMessage}`
       },
       { status: 200 }
     );
