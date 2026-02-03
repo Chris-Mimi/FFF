@@ -10,6 +10,7 @@ import AthletePagePhotosTab from '@/components/athlete/AthletePagePhotosTab';
 import AthletePageProfileTab from '@/components/athlete/AthletePageProfileTab';
 import AthletePageRecordsTab from '@/components/athlete/AthletePageRecordsTab';
 import AthletePageSecurityTab from '@/components/athlete/AthletePageSecurityTab';
+import UpgradePrompt from '@/components/athlete/UpgradePrompt';
 import { getCurrentUser, signOut } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import {
@@ -61,6 +62,7 @@ function AthletePageContent() {
   const [activeProfileId, setActiveProfileId] = useState<string | null>(null);
   const [familyMembers, setFamilyMembers] = useState<Array<{id: string, display_name: string, relationship: string}>>([]);
   const [selectedProfileName, setSelectedProfileName] = useState('');
+  const [hasFullAccess, setHasFullAccess] = useState(false);
   const tabsNavRef = useRef<HTMLDivElement>(null);
 
   // Check if tabs need scrolling
@@ -129,31 +131,16 @@ function AthletePageContent() {
         const { data: subscriptionData, error: rpcError } = await supabase
           .rpc('get_primary_subscription_status', { member_uuid: user.id });
 
-        if (rpcError) {
-          console.error('RPC Error:', rpcError);
-          alert(`Subscription check error: ${rpcError.message}`);
-          router.push('/member/book');
-          return;
+        let fullAccess = false;
+        if (!rpcError && subscriptionData && subscriptionData.length > 0) {
+          const { subscription_status, subscription_end } = subscriptionData[0];
+          const now = new Date();
+          const trialEnd = subscription_end ? new Date(subscription_end) : null;
+          fullAccess =
+            subscription_status === 'active' ||
+            (subscription_status === 'trial' && !!trialEnd && trialEnd > now);
         }
-
-        if (!subscriptionData || subscriptionData.length === 0) {
-          alert('Unable to verify subscription status. Please contact the coach.');
-          router.push('/member/book');
-          return;
-        }
-
-        const { subscription_status, subscription_end } = subscriptionData[0];
-        const now = new Date();
-        const trialEnd = subscription_end ? new Date(subscription_end) : null;
-        const hasAccess =
-          subscription_status === 'active' ||
-          (subscription_status === 'trial' && trialEnd && trialEnd > now);
-
-        if (!hasAccess) {
-          alert('Your athlete page access has expired. Please contact the coach to renew.');
-          router.push('/member/book');
-          return;
-        }
+        setHasFullAccess(fullAccess);
 
         setUserName(member.display_name || member.name);
         setUserId(user.id);
@@ -195,20 +182,26 @@ function AthletePageContent() {
   }
 
   const tabs = [
-    { id: 'profile' as TabName, label: 'Profile', icon: User },
-    { id: 'workouts' as TabName, label: 'Workouts', icon: Calendar },
-    { id: 'logbook' as TabName, label: 'Logbook', icon: BookOpen },
-    { id: 'benchmarks' as TabName, label: 'Benchmarks', icon: Trophy },
-    { id: 'forge-benchmarks' as TabName, label: 'Forge', icon: Target },
-    { id: 'lifts' as TabName, label: 'Lifts', icon: Dumbbell },
-    { id: 'records' as TabName, label: 'Records', icon: Award },
-    { id: 'photos' as TabName, label: 'Whiteboard', icon: Image },
-    { id: 'payment' as TabName, label: 'Payment', icon: CreditCard },
-    { id: 'security' as TabName, label: 'Security', icon: Shield },
+    { id: 'profile' as TabName, label: 'Profile', icon: User, requiresFullAccess: false },
+    { id: 'workouts' as TabName, label: 'Workouts', icon: Calendar, requiresFullAccess: true },
+    { id: 'logbook' as TabName, label: 'Logbook', icon: BookOpen, requiresFullAccess: true },
+    { id: 'benchmarks' as TabName, label: 'Benchmarks', icon: Trophy, requiresFullAccess: true },
+    { id: 'forge-benchmarks' as TabName, label: 'Forge', icon: Target, requiresFullAccess: true },
+    { id: 'lifts' as TabName, label: 'Lifts', icon: Dumbbell, requiresFullAccess: true },
+    { id: 'records' as TabName, label: 'Records', icon: Award, requiresFullAccess: true },
+    { id: 'photos' as TabName, label: 'Whiteboard', icon: Image, requiresFullAccess: true },
+    { id: 'payment' as TabName, label: 'Payment', icon: CreditCard, requiresFullAccess: false },
+    { id: 'security' as TabName, label: 'Security', icon: Shield, requiresFullAccess: false },
   ];
 
   const renderTabContent = () => {
     if (!userId || !activeProfileId) return null;
+
+    // Check if current tab requires full access
+    const currentTab = tabs.find(t => t.id === activeTab);
+    if (currentTab?.requiresFullAccess && !hasFullAccess) {
+      return <UpgradePrompt onNavigateToPayment={() => setActiveTab('payment')} />;
+    }
 
     switch (activeTab) {
       case 'profile':
@@ -317,6 +310,7 @@ function AthletePageContent() {
             {tabs.map(tab => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
+              const isRestricted = tab.requiresFullAccess && !hasFullAccess;
               return (
                 <button
                   key={tab.id}
@@ -324,11 +318,14 @@ function AthletePageContent() {
                   className={`
                     flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-3 px-2 sm:px-3 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap transition min-w-[60px] sm:min-w-0
                     ${
-                      isActive
-                        ? 'border-[#208479] text-[#208479]'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      isRestricted
+                        ? 'border-transparent text-gray-400 opacity-60'
+                        : isActive
+                          ? 'border-[#208479] text-[#208479]'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                     }
                   `}
+                  title={isRestricted ? 'Subscribe to unlock' : undefined}
                 >
                   <Icon size={20} className="flex-shrink-0" />
                   <span className="text-[10px] sm:text-xs md:text-sm leading-tight text-center sm:text-left">{tab.label}</span>

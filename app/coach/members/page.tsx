@@ -269,6 +269,35 @@ export default function CoachMembersPage() {
     }
   };
 
+  const handleStartTrial = async (memberId: string, days: number = 30) => {
+    if (!confirm(`Start ${days}-day athlete trial for this member?`)) {
+      return;
+    }
+
+    setProcessingMemberId(memberId);
+    try {
+      const response = await fetch('/api/members/athlete-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memberId, action: 'start_trial', days })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to start trial');
+      }
+
+      alert(data.message || `${days}-day trial started`);
+      await fetchMembersWithAttendance(activeTab, attendanceTimeframe);
+    } catch (error) {
+      console.error('Error starting trial:', error);
+      alert(error instanceof Error ? error.message : 'Failed to start trial. Please try again.');
+    } finally {
+      setProcessingMemberId(null);
+    }
+  };
+
   const handleExtendTrial = async (memberId: string, days: number = 30) => {
     if (!confirm(`Extend trial by ${days} days?`)) {
       return;
@@ -705,6 +734,16 @@ export default function CoachMembersPage() {
                       {/* Athlete Subscription Management */}
                       {member.account_type === 'primary' && (
                         <div className="flex gap-2 pt-1 border-t border-gray-700">
+                          {(!member.athlete_subscription_status || member.athlete_subscription_status === 'expired') && (
+                            <button
+                              onClick={() => handleStartTrial(member.id, 30)}
+                              disabled={processingMemberId === member.id}
+                              className="flex items-center gap-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded transition-colors duration-200 text-xs"
+                              title="Start 30-day athlete trial"
+                            >
+                              Start Trial
+                            </button>
+                          )}
                           {member.athlete_subscription_status === 'trial' && (
                             <button
                               onClick={() => handleExtendTrial(member.id, 30)}

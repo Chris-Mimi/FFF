@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.43
-**Updated:** 2026-02-02 (Session 88 - Ready for Stripe Testing)
+**Version:** 10.44
+**Updated:** 2026-02-03 (Session 89 - Access Tiers & Approval Flow)
 
 ---
 
@@ -76,6 +76,29 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2026-02-03 Session 89 - Opus):**
+- **✅ Access Tiers for Athlete Page:**
+  - FREE tabs (all active members): Profile, Payment, Security + Book a Class
+  - PAID tabs (subscription/trial only): Workouts, Logbook, Benchmarks, Forge, Lifts, Records, Whiteboard
+  - Greyed-out styling for restricted tabs (opacity-60, text-gray-400)
+  - Created `UpgradePrompt.tsx` component for non-paying members clicking restricted tabs
+  - File: app/athlete/page.tsx (added hasFullAccess state, requiresFullAccess property on tabs)
+- **✅ Separated Member Approval from Trial Grant:**
+  - Approve = sets member.status to 'active' (booking access only)
+  - Start Trial = separate coach action for full athlete page access (30-day trial)
+  - Modified: app/api/members/approve/route.ts (no longer grants trial)
+  - Added start_trial action to: app/api/members/athlete-subscription/route.ts
+  - Added "Start Trial" button to: app/coach/members/page.tsx
+- **✅ Fixed 10-Card Display Bug:**
+  - Issue: Test account showed "10 sessions remaining" without purchasing 10-card
+  - Fix: Check `ten_card_expiry_date` exists before showing 10-card status
+  - File: components/athlete/AthletePagePaymentTab.tsx (added has10Card check)
+- **✅ Fixed Stripe Type Errors:**
+  - Webhook route: Cast subscription/invoice to `any` for property access
+  - lib/stripe.ts: Removed explicit API version to use SDK default
+  - app/athlete/page.tsx: Fixed boolean type error with !!trialEnd
+- See: `project-history/2026-02-03-session-89-access-tiers-approval-flow.md`
 
 **Completed (2026-02-02 Session 88 - Sonnet):**
 - **✅ Stripe Payment System - Ready for Testing:**
@@ -1065,14 +1088,12 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 89 Priorities (Next Session - Mimi User Profile)
+### Session 90 Priorities
 
-**⚡ PRIORITY: Complete Stripe Payment Testing**
-1. **Delete Duplicate Subscriptions:** Run SQL in Supabase to clean test data
-2. **Verify Stripe Listener:** Ensure `stripe listen` running in Terminal 2
-3. **Test Purchase Flow:** Make ONE test subscription purchase from athlete page
-4. **Verify Coach Payments Tab:** Check subscription displays correctly with proper dates
-5. **If Successful:** Proceed to Task 2 (auto-decrement 10-card on booking)
+**⚡ Access Tiers Complete - Ready for Testing:**
+1. **Test Access Tiers:** Verify greyed tabs work correctly for non-paying members
+2. **Test Start Trial:** Verify coach can grant 30-day trial via Coach Members page
+3. **Test Stripe Payments:** Complete end-to-end purchase flow testing
 
 **Stripe Admin Tools Roadmap (In Order):**
 - Task 1: ✅ Coach admin tools (manual subscription/10-card management) - COMPLETED Session 87

@@ -51,6 +51,20 @@ export async function POST(request: NextRequest) {
     };
 
     switch (action) {
+      case 'start_trial': {
+        // Start a new trial (for members with no current athlete access)
+        const trialDays = days || 30;
+        const trialEnd = new Date(now.getTime() + trialDays * 24 * 60 * 60 * 1000);
+
+        updateData = {
+          athlete_subscription_status: 'trial',
+          athlete_subscription_end: trialEnd.toISOString(),
+          athlete_trial_start: now.toISOString(),
+          updated_at: now.toISOString()
+        };
+        break;
+      }
+
       case 'extend_trial': {
         // Extend trial by adding days to current end date (or from now if expired)
         const daysToAdd = days || 30; // Default 30 days
@@ -93,7 +107,7 @@ export async function POST(request: NextRequest) {
 
       default:
         return NextResponse.json(
-          { error: 'Invalid action. Use: extend_trial, activate, or expire' },
+          { error: 'Invalid action. Use: start_trial, extend_trial, activate, or expire' },
           { status: 400 }
         );
     }

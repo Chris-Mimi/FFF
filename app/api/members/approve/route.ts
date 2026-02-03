@@ -47,18 +47,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Calculate trial period (30 days from now)
+    // Approve member (booking access only - no athlete page trial)
     const now = new Date();
-    const trialEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // +30 days
 
-    // Approve member and start athlete trial
     const { data: updatedMember, error: updateError } = await supabaseAdmin
       .from('members')
       .update({
         status: 'active',
-        athlete_trial_start: now.toISOString(),
-        athlete_subscription_status: 'trial',
-        athlete_subscription_end: trialEnd.toISOString(),
         updated_at: now.toISOString()
       })
       .eq('id', memberId)
@@ -79,14 +74,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        message: 'Member approved successfully',
+        message: 'Member approved - can now book classes',
         member: {
           id: updatedMember.id,
           email: updatedMember.email,
           name: updatedMember.name,
-          status: updatedMember.status,
-          athlete_trial_start: updatedMember.athlete_trial_start,
-          athlete_subscription_end: updatedMember.athlete_subscription_end
+          status: updatedMember.status
         }
       },
       { status: 200 }

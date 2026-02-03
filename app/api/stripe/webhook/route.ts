@@ -145,11 +145,13 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
   const now = new Date();
 
   // Stripe timestamps are in seconds, need to convert to milliseconds
-  const periodEnd = subscription.current_period_end
-    ? new Date(subscription.current_period_end * 1000)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sub = subscription as any;
+  const periodEnd = sub.current_period_end
+    ? new Date(sub.current_period_end * 1000)
     : now;
-  const periodStart = subscription.current_period_start
-    ? new Date(subscription.current_period_start * 1000)
+  const periodStart = sub.current_period_start
+    ? new Date(sub.current_period_start * 1000)
     : now;
 
   // Determine plan type from price
@@ -262,13 +264,15 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
   console.log(`Payment failed for member ${member.id} (${member.email})`);
 
   // Update subscription status to past_due if it's a subscription invoice
-  if (invoice.subscription) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const inv = invoice as any;
+  if (inv.subscription) {
     await supabaseAdmin
       .from('subscriptions')
       .update({
         status: 'past_due',
         updated_at: new Date().toISOString(),
       })
-      .eq('stripe_subscription_id', invoice.subscription as string);
+      .eq('stripe_subscription_id', inv.subscription as string);
   }
 }

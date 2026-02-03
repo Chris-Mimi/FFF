@@ -123,8 +123,10 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
     );
   }
 
-  const tenCardRemaining = (paymentStatus?.tenCardTotal || 10) - (paymentStatus?.tenCardUsed || 0);
-  const tenCardExpired = paymentStatus?.tenCardExpiry && new Date(paymentStatus.tenCardExpiry) < new Date();
+  // Only calculate 10-card if one is actually activated (has expiry date)
+  const has10Card = !!paymentStatus?.tenCardExpiry;
+  const tenCardRemaining = has10Card ? (paymentStatus?.tenCardTotal || 10) - (paymentStatus?.tenCardUsed || 0) : 0;
+  const tenCardExpired = has10Card && new Date(paymentStatus!.tenCardExpiry!) < new Date();
   const hasActiveSubscription = paymentStatus?.subscriptionStatus === 'active';
   const hasTrial = paymentStatus?.subscriptionStatus === 'trial' &&
     paymentStatus?.subscriptionEnd &&
@@ -169,12 +171,14 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
 
           {/* 10-Card Status */}
           <div className="flex items-start gap-4">
-            <div className={`p-3 rounded-lg ${tenCardRemaining > 0 && !tenCardExpired ? 'bg-teal-100' : 'bg-gray-100'}`}>
-              <Package className={tenCardRemaining > 0 && !tenCardExpired ? 'text-teal-600' : 'text-gray-400'} size={24} />
+            <div className={`p-3 rounded-lg ${has10Card && tenCardRemaining > 0 && !tenCardExpired ? 'bg-teal-100' : 'bg-gray-100'}`}>
+              <Package className={has10Card && tenCardRemaining > 0 && !tenCardExpired ? 'text-teal-600' : 'text-gray-400'} size={24} />
             </div>
             <div>
               <h3 className="font-medium text-gray-900">10-Card Sessions</h3>
-              {tenCardExpired ? (
+              {!has10Card ? (
+                <p className="text-gray-500">No 10-card purchased</p>
+              ) : tenCardExpired ? (
                 <p className="text-red-500">Expired</p>
               ) : tenCardRemaining > 0 ? (
                 <p className="text-teal-600">
@@ -183,9 +187,9 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
               ) : (
                 <p className="text-gray-500">No sessions available</p>
               )}
-              {paymentStatus?.tenCardExpiry && !tenCardExpired && (
+              {has10Card && !tenCardExpired && (
                 <p className="text-xs text-gray-400 mt-1">
-                  Expires: {new Date(paymentStatus.tenCardExpiry).toLocaleDateString()}
+                  Expires: {new Date(paymentStatus!.tenCardExpiry!).toLocaleDateString()}
                 </p>
               )}
             </div>
