@@ -73,17 +73,25 @@ export default function LoginPage() {
 
       // If Supabase says "email not confirmed", check if this is a pending member
       if (errorMessage.toLowerCase().includes('email not confirmed')) {
-        const { data: member } = await supabase
-          .from('members')
-          .select('id, status')
-          .eq('email', email.toLowerCase())
-          .single();
+        try {
+          const response = await fetch('/api/members/check-status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email.toLowerCase() })
+          });
 
-        if (member?.status === 'pending') {
-          setError('Your account is pending approval. Please wait for coach approval.');
-        } else if (member?.status === 'blocked') {
-          setError('Your account has been blocked. Please contact the coach.');
-        } else {
+          const data = await response.json();
+
+          if (data.exists && data.status === 'pending') {
+            setError('Your account is pending approval. Please wait for coach approval.');
+          } else if (data.exists && data.status === 'blocked') {
+            setError('Your account has been blocked. Please contact the coach.');
+          } else {
+            // No member record or member is active (shouldn't reach here normally)
+            setError('Please check your email for a confirmation link before signing in.');
+          }
+        } catch (err) {
+          console.error('Failed to check member status:', err);
           setError('Please check your email for a confirmation link before signing in.');
         }
       } else {

@@ -97,7 +97,7 @@ export default function RegisterMemberPage() {
       // Success
       setSuccess(true);
       setTimeout(() => {
-        router.push('/');
+        router.push('/login');
       }, 4000);
 
     } catch (error) {
@@ -273,7 +273,7 @@ export default function RegisterMemberPage() {
         {/* Login Link */}
         <div className="mt-6 text-center text-sm text-gray-400">
           Already have an account?{' '}
-          <Link href="/" className="text-teal-500 hover:text-teal-400 font-medium">
+          <Link href="/login" className="text-teal-500 hover:text-teal-400 font-medium">
             Sign In
           </Link>
         </div>
