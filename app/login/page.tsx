@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signInWithEmail, getUserRole, signOut } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import { AlertCircle, Loader2 } from 'lucide-react';
 
@@ -31,11 +32,12 @@ export default function LoginPage() {
 
       if (role === 'coach') {
         router.push('/coach');
+        return;
       } else if (role === 'athlete') {
         router.push('/athlete');
+        return;
       } else {
         // Check if user is a member
-        const { supabase } = await import('@/lib/supabase');
         const { data: member } = await supabase
           .from('members')
           .select('id, status')
@@ -44,25 +46,49 @@ export default function LoginPage() {
 
         if (member) {
           if (member.status === 'pending') {
+            // Sign out immediately (don't await to prevent navigation cascade)
+            signOut();
             setError('Your account is pending approval. Please wait for coach approval.');
-            await signOut();
+            setLoading(false);
             return;
           } else if (member.status === 'blocked') {
+            // Sign out immediately (don't await to prevent navigation cascade)
+            signOut();
             setError('Your account has been blocked. Please contact the coach.');
-            await signOut();
+            setLoading(false);
             return;
           } else {
             router.push('/member/book');
+            return;
           }
         } else {
           router.push('/athlete');
+          return;
         }
       }
     } catch (err) {
       console.error('Login error:', err);
       const errorMessage =
         err instanceof Error ? err.message : 'Failed to sign in. Please check your credentials.';
-      setError(errorMessage);
+
+      // If Supabase says "email not confirmed", check if this is a pending member
+      if (errorMessage.toLowerCase().includes('email not confirmed')) {
+        const { data: member } = await supabase
+          .from('members')
+          .select('id, status')
+          .eq('email', email.toLowerCase())
+          .single();
+
+        if (member?.status === 'pending') {
+          setError('Your account is pending approval. Please wait for coach approval.');
+        } else if (member?.status === 'blocked') {
+          setError('Your account has been blocked. Please contact the coach.');
+        } else {
+          setError('Please check your email for a confirmation link before signing in.');
+        }
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setLoading(false);
     }

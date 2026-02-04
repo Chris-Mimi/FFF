@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.45
-**Updated:** 2026-02-03 (Session 90 - Stripe Payment Color Coding)
+**Version:** 10.46
+**Updated:** 2026-02-04 (Session 91 - Auth Redirect & Member Registration Fixes)
 
 ---
 
@@ -76,6 +76,37 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2026-02-04 Session 91 - Opus):**
+- **✅ Root Page Auth Redirect (app/page.tsx):**
+  - Replaced default Next.js template with auth-aware redirect page
+  - Processes Supabase hash tokens from email confirmation links
+  - Signs out auto-created session, redirects all users to /login
+  - Branded loading spinner (The Forge - Functional Fitness)
+- **✅ Member Registration Email Confirmation Fix:**
+  - admin.createUser email_confirm param unreliable
+  - Added explicit updateUserById call to confirm email after creation
+  - File: app/api/members/register/route.ts
+- **✅ Login Page Pending Member Handling:**
+  - Intercepts "email not confirmed" error from Supabase
+  - Checks members table to show "Your account is pending approval" instead
+  - Fixed navigation cascade: signOut() called without await to prevent popup chain
+  - Replaced dynamic imports with top-level import to fix login hang
+  - File: app/login/page.tsx
+- **✅ Member Registration Flow Tested End-to-End:**
+  - Register at /auth/register-member → success message → redirect to /login
+  - Login attempt with pending account → "Your account is pending approval" message
+  - Coach approval required before login succeeds
+  - No confirmation email (coach approval IS the gatekeeper)
+- See: `project-history/2026-02-04-session-91-auth-redirect-member-registration.md`
+
+**TESTING PAUSED — Resume in Next Session:**
+- Member registration flow verified working
+- **NEXT: Continue from step 3 of Coach approval flow** — approve test account (chris@the-forge-functional-fitness.de) via Coach Members page, then login should redirect to /member/book
+- Then continue with remaining tests:
+  1. Test access tiers (greyed tabs for non-paying members on /athlete page)
+  2. Test Start Trial (coach grants 30-day trial)
+  3. Test Stripe payments end-to-end
 
 **Completed (2026-02-03 Session 90 - Sonnet):**
 - **✅ Stripe Payment System Color Coding:**
@@ -1115,12 +1146,15 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 90 Priorities
+### Session 92 Priorities
 
-**⚡ Access Tiers Complete - Ready for Testing:**
-1. **Test Access Tiers:** Verify greyed tabs work correctly for non-paying members
-2. **Test Start Trial:** Verify coach can grant 30-day trial via Coach Members page
-3. **Test Stripe Payments:** Complete end-to-end purchase flow testing
+**⚡ RESUME TESTING FROM SESSION 91 (where we left off):**
+1. **Approve test member** (chris@the-forge-functional-fitness.de) via Coach Members page → verify login redirects to /member/book
+2. **Test Access Tiers:** Log in as member without subscription → verify greyed tabs on /athlete page
+3. **Test Start Trial:** Coach grants 30-day trial via Coach Members page → verify full access unlocks
+4. **Test Stripe Payments:** Complete end-to-end purchase flow testing
+
+**Test account in database:** chris@the-forge-functional-fitness.de (status: pending, role: member)
 
 **Stripe Admin Tools Roadmap (In Order):**
 - Task 1: ✅ Coach admin tools (manual subscription/10-card management) - COMPLETED Session 87

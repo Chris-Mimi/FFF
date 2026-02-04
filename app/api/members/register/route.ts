@@ -99,6 +99,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Explicitly confirm email (createUser email_confirm can be unreliable)
+    await supabaseAdmin.auth.admin.updateUserById(authData.user.id, {
+      email_confirm: true
+    });
+
     // Create member record in members table
     const { data: memberData, error: memberError } = await supabaseAdmin
       .from('members')
