@@ -166,22 +166,14 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className='mt-6 text-center'>
-          <p className='text-gray-600'>
-            Don&apos;t have an account?{' '}
-            <Link href='/signup' className='text-[#208479] hover:text-[#1a6b62] font-medium'>
-              Sign up
-            </Link>
-          </p>
-        </div>
-
-        <div className='mt-4 text-center'>
-          <p className='text-gray-600 text-sm'>
-            New member?{' '}
-            <Link href='/auth/register-member' className='text-[#208479] hover:text-[#1a6b62] font-medium'>
-              Register for class booking
-            </Link>
-          </p>
+        <div className='mt-6 pt-6 border-t border-gray-200'>
+          <Link
+            href='/auth/register-member'
+            className='block w-full text-center bg-white border-2 border-[#208479] text-[#208479] hover:bg-[#208479] hover:text-white font-semibold py-3 rounded-lg transition'
+          >
+            <div className='text-sm'>New Member?</div>
+            <div>Register for Class Booking</div>
+          </Link>
         </div>
 
         <div className='mt-4 text-center'>

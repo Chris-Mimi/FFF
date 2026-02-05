@@ -1,6 +1,6 @@
 'use client';
 
-import { BarChart3, Calendar, Dumbbell, Image, LogOut, Plus, UserCheck, Users } from 'lucide-react';
+import { BarChart3, Calendar, Dumbbell, Image, LogOut, Plus, Settings, UserCheck, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface CoachHeaderProps {
@@ -63,6 +63,10 @@ export const CoachHeader = ({
               <Image size={18} />
               Whiteboard
             </button>
+            <button onClick={() => router.push('/coach/admin')} className='flex items-center gap-2 bg-[#1a6b62] hover:bg-teal-800 px-4 py-2 rounded-lg transition'>
+              <Settings size={18} />
+              Admin
+            </button>
             <button onClick={onLogout} className='flex items-center gap-2 bg-[#1a6b62] hover:bg-teal-800 px-4 py-2 rounded-lg transition'>
               <LogOut size={18} />
               Logout
@@ -70,7 +74,7 @@ export const CoachHeader = ({
           </div>
         </div>
 
-        {/* Mobile: 2-column, 4-row grid layout */}
+        {/* Mobile: 2-column, 5-row grid layout */}
         <div className='lg:hidden'>
           <div className='text-center mb-2'>
             <h1 className='text-base font-bold'>The Forge</h1>
@@ -106,6 +110,10 @@ export const CoachHeader = ({
             <button onClick={() => router.push('/coach/whiteboard')} className={buttonClass}>
               <Image size={iconSize} />
               <span>Whiteboard</span>
+            </button>
+            <button onClick={() => router.push('/coach/admin')} className={buttonClass}>
+              <Settings size={iconSize} />
+              <span>Admin</span>
             </button>
             <button onClick={onLogout} className={buttonClass}>
               <LogOut size={iconSize} />
