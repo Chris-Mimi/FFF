@@ -36,14 +36,17 @@ export const useCoachData = ({
 
   const fetchWODs = async () => {
     try {
-      // Fetch all bookings
-      const { data: allBookings, error: bookingsError } = await supabase
-        .from('bookings')
-        .select('session_id, status');
+      // Calculate date range: ±90 days from today
+      const today = new Date();
+      const startDate = new Date(today);
+      startDate.setDate(startDate.getDate() - 90);
+      const endDate = new Date(today);
+      endDate.setDate(endDate.getDate() + 90);
 
-      if (bookingsError) throw bookingsError;
+      const startDateStr = startDate.toISOString().split('T')[0];
+      const endDateStr = endDate.toISOString().split('T')[0];
 
-      // Fetch sessions with related WODs
+      // Fetch sessions with related WODs (date filtered for performance)
       const { data, error } = await supabase
         .from('weekly_sessions')
         .select(`
@@ -73,12 +76,28 @@ export const useCoachData = ({
             publish_duration
           )
         `)
+        .gte('date', startDateStr)
+        .lte('date', endDateStr)
         .order('date', { ascending: true })
         .order('time', { ascending: true });
 
       if (error) {
         console.error('Error fetching sessions:', error);
         throw error;
+      }
+
+      // Only fetch bookings for the filtered sessions (performance optimization)
+      const sessionIds = data?.map(s => s.id) || [];
+      let allBookings: Array<{session_id: string; status: string}> = [];
+
+      if (sessionIds.length > 0) {
+        const { data: bookingsData, error: bookingsError } = await supabase
+          .from('bookings')
+          .select('session_id, status')
+          .in('session_id', sessionIds);
+
+        if (bookingsError) throw bookingsError;
+        allBookings = bookingsData || [];
       }
 
       const grouped: Record<string, WODFormData[]> = {};
@@ -166,6 +185,11 @@ export const useCoachData = ({
 
     const searchWODs = async () => {
       try {
+        // Search last 180 days (6 months) for performance
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setDate(sixMonthsAgo.getDate() - 180);
+        const sixMonthsAgoStr = sixMonthsAgo.toISOString().split('T')[0];
+
         let query = supabase
           .from('weekly_sessions')
           .select(`
@@ -189,7 +213,8 @@ export const useCoachData = ({
               google_event_id
             )
           `)
-          .eq('wods.workout_publish_status', 'published');
+          .eq('wods.workout_publish_status', 'published')
+          .gte('date', sixMonthsAgoStr);
 
         if (selectedTracks.length > 0) {
           query = query.in('wods.track_id', selectedTracks);
@@ -346,6 +371,11 @@ export const useCoachData = ({
       if (sectionTypesError) throw sectionTypesError;
       setSectionTypes(sectionTypesData || []);
 
+      // Count last 180 days (6 months) for performance
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setDate(sixMonthsAgo.getDate() - 180);
+      const sixMonthsAgoStr = sixMonthsAgo.toISOString().split('T')[0];
+
       // Query from weekly_sessions to match search results (excludes orphaned wods)
       const { data: sessionsData, error: sessionsError } = await supabase
         .from('weekly_sessions')
@@ -357,7 +387,8 @@ export const useCoachData = ({
             workout_publish_status
           )
         `)
-        .eq('wods.workout_publish_status', 'published');
+        .eq('wods.workout_publish_status', 'published')
+        .gte('date', sixMonthsAgoStr);
 
       if (sessionsError) throw sessionsError;
 
