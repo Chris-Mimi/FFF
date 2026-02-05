@@ -136,12 +136,27 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       })
       .eq('id', memberId);
 
-    // Get member's stripe_customer_id for subscriptions table
+    // Get member data for athlete profile creation
     const { data: memberData } = await supabaseAdmin
       .from('members')
-      .select('stripe_customer_id')
+      .select('stripe_customer_id, email, name')
       .eq('id', memberId)
       .single();
+
+    // Create athlete_profiles record if doesn't exist (makes member visible in Athletes tab)
+    if (memberData) {
+      await supabaseAdmin
+        .from('athlete_profiles')
+        .upsert({
+          user_id: memberId,
+          full_name: memberData.name,
+          email: memberData.email,
+        }, {
+          onConflict: 'user_id'
+        });
+
+      console.log(`Athlete profile created for member ${memberId}`);
+    }
 
     // Create initial subscription record (will be updated by subscription.created event)
     if (memberData?.stripe_customer_id) {

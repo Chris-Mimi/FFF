@@ -92,6 +92,8 @@ export default function CoachDashboard() {
     selectedTracks,
     selectedSessionTypes,
     includedSectionTypes,
+    selectedDate,
+    viewMode,
   });
 
   const { handleSaveWOD, handleDeleteWOD, handleDeleteWODToEmpty, handleDeleteWODPermanently, handleDeleteSession, handleCopyWOD } = useWODOperations({
@@ -168,7 +170,7 @@ export default function CoachDashboard() {
         name: currentUser.user_metadata?.full_name || currentUser.email || 'Coach',
       });
 
-      fetchWODs();
+      // Fetch tracks/counts once on mount (doesn't need re-fetching)
       fetchTracksAndCounts();
     };
 
@@ -179,6 +181,14 @@ export default function CoachDashboard() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
+
+  // Re-fetch when date or view mode changes
+  useEffect(() => {
+    if (user) {
+      fetchWODs();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDate, viewMode]);
 
   const handleLogout = async () => {
     try {

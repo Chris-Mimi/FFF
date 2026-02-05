@@ -13,7 +13,7 @@ export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState<'athlete' | 'coach'>('athlete');
+  const [role] = useState<'coach'>('coach');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -45,59 +45,13 @@ export default function SignupPage() {
         throw new Error('Signup failed');
       }
 
-      // Create member record for booking system (all users need this)
-      const { error: memberError } = await supabase.from('members').insert({
-        id: user.id,
-        email: email,
-        name: fullName,
-        status: 'pending',
-        account_type: 'primary',
-      });
-
-      if (memberError) {
-        console.error('Error creating member:', memberError);
-        // Continue - member can be created later by coach if needed
-      }
-
-      // Create athlete profile if role is athlete (using service role API to bypass RLS)
-      if (role === 'athlete') {
-        try {
-          const response = await fetch('/api/athlete/create-profile', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              userId: user.id,
-              fullName: fullName,
-              email: email,
-            }),
-          });
-
-          const data = await response.json();
-
-          if (!response.ok) {
-            console.error('Error creating athlete profile:', data.error);
-            throw new Error(data.error || 'Failed to create athlete profile');
-          }
-
-          console.log('Athlete profile created:', data.profileId);
-        } catch (profileError) {
-          console.error('Athlete profile creation failed:', profileError);
-          // Show error to user - this is important for athlete functionality
-          setError('Account created but athlete profile setup failed. Please contact support.');
-          setLoading(false);
-          return;
-        }
-      }
+      // Coach accounts don't need member records (coach role is set in user_roles table)
 
       setSuccess(true);
 
-      // Redirect after 3 seconds
+      // Redirect to coach dashboard after 3 seconds
       setTimeout(() => {
-        if (role === 'coach') {
-          router.push('/coach');
-        } else {
-          router.push('/athlete');
-        }
+        router.push('/coach');
       }, 3000);
     } catch (err) {
       console.error('Signup error:', err);
@@ -115,13 +69,14 @@ export default function SignupPage() {
         <div className='text-center mb-8'>
           <h1 className='text-4xl font-bold text-gray-800 mb-2'>The Forge</h1>
           <p className='text-gray-600'>Functional Fitness</p>
+          <p className='text-sm text-gray-500 mt-2'>Coach Registration</p>
         </div>
 
         {success ? (
           <div className='text-center py-8'>
             <CheckCircle size={64} className='text-green-500 mx-auto mb-4' />
-            <h2 className='text-2xl font-bold text-gray-900 mb-2'>Account Created!</h2>
-            <p className='text-gray-600'>Redirecting you to your dashboard...</p>
+            <h2 className='text-2xl font-bold text-gray-900 mb-2'>Coach Account Created!</h2>
+            <p className='text-gray-600'>Redirecting you to your coach dashboard...</p>
           </div>
         ) : (
           <form onSubmit={handleSignup} className='space-y-6'>
@@ -193,36 +148,6 @@ export default function SignupPage() {
               />
             </div>
 
-            <div>
-              <label className='block text-sm font-medium text-gray-700 mb-3'>I am a...</label>
-              <div className='space-y-2'>
-                <label className='flex items-center p-3 border-2 border-gray-300 rounded-lg cursor-pointer hover:border-[#208479] transition'>
-                  <input
-                    type='radio'
-                    name='role'
-                    value='athlete'
-                    checked={role === 'athlete'}
-                    onChange={e => setRole(e.target.value as 'athlete')}
-                    className='w-4 h-4 text-[#208479] focus:ring-[#208479]'
-                    disabled={loading}
-                  />
-                  <span className='ml-3 text-gray-900 font-medium'>Athlete</span>
-                </label>
-                <label className='flex items-center p-3 border-2 border-gray-300 rounded-lg cursor-pointer hover:border-[#208479] transition'>
-                  <input
-                    type='radio'
-                    name='role'
-                    value='coach'
-                    checked={role === 'coach'}
-                    onChange={e => setRole(e.target.value as 'coach')}
-                    className='w-4 h-4 text-[#208479] focus:ring-[#208479]'
-                    disabled={loading}
-                  />
-                  <span className='ml-3 text-gray-900 font-medium'>Coach</span>
-                </label>
-              </div>
-            </div>
-
             {error && (
               <div className='bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3'>
                 <AlertCircle size={20} className='text-red-600 flex-shrink-0 mt-0.5' />
@@ -238,10 +163,10 @@ export default function SignupPage() {
               {loading ? (
                 <>
                   <Loader2 size={20} className='animate-spin' />
-                  Creating account...
+                  Creating coach account...
                 </>
               ) : (
-                'Create Account'
+                'Create Coach Account'
               )}
             </button>
           </form>
