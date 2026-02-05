@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.47
-**Updated:** 2026-02-04 (Session 92 - Member Registration Mobile Testing & Memory Bank Cleanup)
+**Version:** 10.48
+**Updated:** 2026-02-05 (Session 93 - Coach Athletes Mobile Optimization & Family Member Fixes)
 
 ---
 
@@ -76,6 +76,35 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2026-02-05 Session 93 - Opus 4.5):**
+- **✅ Coach Athletes Page - Mobile Optimization:**
+  - Payments tab: Adjusted padding, text sizes, spacing for mobile
+  - Shortened button text ("Save" → "Save", "Reset to 0" → "Reset")
+  - Shortened labels ("Total", "Used", "Expiry")
+  - File: app/coach/athletes/page.tsx (PaymentsSection)
+- **✅ Coach Athletes Page - Tabs Overflow Fix:**
+  - Added `overflow-x-auto` and `min-w-max` to tab nav
+  - Hidden icons on mobile (`hidden md:block`)
+  - Shortened tab labels ("Bench", "Lifts", "Log", "Pay")
+  - File: app/coach/athletes/page.tsx (lines 218-267)
+- **✅ Delete Duplicates SQL Bug Fix:**
+  - Original SQL only partitioned by `email`, deleting family members who share same email
+  - Fixed: Now partitions by BOTH `email` AND `full_name`
+  - Created cheatsheet: Chris Notes/supabase-delete-cheatsheet.md
+- **✅ Family Member Payment Data Fix:**
+  - Family members have no email in athlete_profiles, causing "Athlete email not found" error
+  - Fix: Query members table by ID first, fall back to email lookup only if needed
+  - File: app/coach/athletes/page.tsx (fetchPaymentData function)
+- **✅ 10-Card Section Conditional Display:**
+  - 10-Card management section was showing for all athletes (default 10/10)
+  - Fix: Only show if member has `ten_card` in `membership_types` array
+  - Added `membership_types` to MemberData interface and query
+  - File: app/coach/athletes/page.tsx
+- **✅ Restored Cody to athlete_profiles:**
+  - Family member accidentally deleted by faulty SQL (email-only partition)
+  - Restored with correct member ID from members table
+- See: `project-history/2026-02-05-session-93-coach-athletes-mobile-family-fixes.md`
 
 **Completed (2026-02-04 Session 91 - Opus):**
 - **✅ Root Page Auth Redirect (app/page.tsx):**
@@ -220,41 +249,9 @@ Athlete Tables (linked to members.id)
   - Customer portal: Working
 - See: `project-history/2026-02-02-session-87-stripe-payment-setup.md`
 
-**Completed (2026-02-01 Session 86 - Sonnet):**
-- **✅ Coach Workout Library Search Fix - Structured Data:**
-  - Fixed search not finding benchmarks by exercise names (e.g., "Wallball" → "Karen")
-  - Root cause: Search only looked in `section.content` text, not in structured `section.benchmarks[].description`
-  - Added `getStructuredMovements()` helper to extract from lifts, benchmarks, forge benchmarks
-  - File: hooks/coach/useCoachData.ts (lines 234-257)
-- **✅ Search Result Display - Card Preview:**
-  - Fixed cards showing "WOD" label only, missing lift/benchmark details
-  - Changed preview to find first section with content OR structured data
-  - Added section type label to preview
-  - File: components/coach/SearchPanel.tsx
-- **✅ Search Result Display - Hover & Detail Views:**
-  - Fixed hover popup and detail view not showing lifts/benchmarks
-  - Created `renderSectionContent()` helper to render all structured data
-  - File: components/coach/SearchPanel.tsx (lines 102-153)
-- **✅ Lift Formatting - Sets/Reps/Percentages:**
-  - Fixed lifts showing name only, missing sets/reps/percentage details
-  - Used existing formatter functions: `formatLift()`, `formatBenchmark()`, `formatForgeBenchmark()`
-  - Now displays: "Power Snatch 5x3 @ 75%" or "Back Squat 10-6-5-5-5-5-5 @ 40-50-60-70-80-85-90%"
-  - Files: components/coach/SearchPanel.tsx, utils/logbook/formatters.ts
-- **✅ Drag-and-Drop Fix - Structured Data Transfer:**
-  - Fixed dragging sections with lifts/benchmarks creating empty sections when dropped
-  - Root cause: Drag handlers only passed `{type, duration, content}`, not structured arrays
-  - Updated SearchPanel, useQuickEdit, and useWorkoutModal to include structured fields
-  - Replaced `any` types with proper TypeScript types (ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark)
-  - Files:
-    - components/coach/SearchPanel.tsx (lines 56-66, 740-747)
-    - hooks/coach/useQuickEdit.ts (lines 16-23, 25-34, 44-53)
-    - hooks/coach/useWorkoutModal.ts (lines 350-358, 480-488)
-- Build successful with no errors
-- Commits: 2be76cd3, f71b0942, 07f86c41, 1e8319ef, 9b6200fa, bcb76544
-- See: `project-history/2026-02-01-session-86-workout-library-search-drag-fix.md`
-
-**Older Sessions (57-86):**
+**Older Sessions (57-87):**
 See `project-history/` folder for detailed implementation history including:
+- Workout Library search/drag-drop fixes (Session 86)
 - Mobile optimization (Sessions 76-85)
 - Analysis page fixes (Session 80)
 - Whiteboard features (Sessions 72-74)
@@ -314,20 +311,21 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 92 Priorities
+### Session 94 Priorities
 
-**⚡ RESUME TESTING FROM SESSION 91 (where we left off):**
-1. **Approve test member** (chris@the-forge-functional-fitness.de) via Coach Members page → verify login redirects to /member/book
-2. **Test Access Tiers:** Log in as member without subscription → verify greyed tabs on /athlete page
-3. **Test Start Trial:** Coach grants 30-day trial via Coach Members page → verify full access unlocks
-4. **Test Stripe Payments:** Complete end-to-end purchase flow testing
-
-**Test account in database:** chris@the-forge-functional-fitness.de (status: pending, role: member)
+**✅ Member Registration & Booking System Complete:**
+- Registration flow tested (desktop + mobile)
+- Coach approval flow working
+- Access tiers implemented (greyed tabs for non-paying members)
+- Stripe payments working (monthly/yearly/10-card)
 
 **Stripe Admin Tools Roadmap (In Order):**
 - Task 1: ✅ Coach admin tools (manual subscription/10-card management) - COMPLETED Session 87
-- Task 2: ⏳ 10-card auto-decrement on class booking - PENDING
-- Task 3: ⏳ Low session warning (≤2 sessions remaining) - PENDING
+- Task 2: ⏳ 10-card auto-decrement on class booking - IN PROGRESS (booking creates, refunds work)
+- Task 3: ✅ Low session warning (≤2 sessions remaining) - COMPLETED Session 90
+
+**Pending Polish:**
+- Continue mobile optimization for other Coach pages as needed
 
 **DEFERRED: Phase 3 - Extract Utility Functions from AthletePageLogbookTab**
 - Create 5 utility files in `utils/logbook/` directory

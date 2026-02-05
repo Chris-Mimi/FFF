@@ -216,52 +216,52 @@ export default function CoachAthletesPage() {
                 </div>
 
                 {/* Section Tabs */}
-                <div className='bg-white rounded-lg shadow'>
-                  <div className='border-b border-gray-200'>
-                    <nav className='flex'>
+                <div className='bg-white rounded-lg shadow overflow-hidden'>
+                  <div className='border-b border-gray-200 overflow-x-auto'>
+                    <nav className='flex min-w-max'>
                       <button
                         onClick={() => setActiveSection('benchmarks')}
-                        className={`flex items-center gap-1 md:gap-2 px-3 md:px-6 py-2 md:py-4 border-b-2 font-medium text-xs md:text-sm transition ${
+                        className={`flex items-center gap-1 md:gap-2 px-2.5 md:px-6 py-2.5 md:py-4 border-b-2 font-medium text-xs md:text-sm transition whitespace-nowrap ${
                           activeSection === 'benchmarks'
                             ? 'border-[#208479] text-[#208479]'
                             : 'border-transparent text-gray-500 hover:text-gray-700'
                         }`}
                       >
-                        <Trophy size={14} className='md:w-[18px] md:h-[18px]' />
-                        Benchmarks
+                        <Trophy size={14} className='hidden md:block md:w-[18px] md:h-[18px]' />
+                        Bench
                       </button>
                       <button
                         onClick={() => setActiveSection('lifts')}
-                        className={`flex items-center gap-1 md:gap-2 px-3 md:px-6 py-2 md:py-4 border-b-2 font-medium text-xs md:text-sm transition ${
+                        className={`flex items-center gap-1 md:gap-2 px-2.5 md:px-6 py-2.5 md:py-4 border-b-2 font-medium text-xs md:text-sm transition whitespace-nowrap ${
                           activeSection === 'lifts'
                             ? 'border-[#208479] text-[#208479]'
                             : 'border-transparent text-gray-500 hover:text-gray-700'
                         }`}
                       >
-                        <Dumbbell size={14} className='md:w-[18px] md:h-[18px]' />
+                        <Dumbbell size={14} className='hidden md:block md:w-[18px] md:h-[18px]' />
                         Lifts
                       </button>
                       <button
                         onClick={() => setActiveSection('logbook')}
-                        className={`flex items-center gap-1 md:gap-2 px-3 md:px-6 py-2 md:py-4 border-b-2 font-medium text-xs md:text-sm transition ${
+                        className={`flex items-center gap-1 md:gap-2 px-2.5 md:px-6 py-2.5 md:py-4 border-b-2 font-medium text-xs md:text-sm transition whitespace-nowrap ${
                           activeSection === 'logbook'
                             ? 'border-[#208479] text-[#208479]'
                             : 'border-transparent text-gray-500 hover:text-gray-700'
                         }`}
                       >
-                        <BookOpen size={14} className='md:w-[18px] md:h-[18px]' />
-                        Logbook
+                        <BookOpen size={14} className='hidden md:block md:w-[18px] md:h-[18px]' />
+                        Log
                       </button>
                       <button
                         onClick={() => setActiveSection('payments')}
-                        className={`flex items-center gap-1 md:gap-2 px-3 md:px-6 py-2 md:py-4 border-b-2 font-medium text-xs md:text-sm transition ${
+                        className={`flex items-center gap-1 md:gap-2 px-2.5 md:px-6 py-2.5 md:py-4 border-b-2 font-medium text-xs md:text-sm transition whitespace-nowrap ${
                           activeSection === 'payments'
                             ? 'border-[#208479] text-[#208479]'
                             : 'border-transparent text-gray-500 hover:text-gray-700'
                         }`}
                       >
-                        <CreditCard size={14} className='md:w-[18px] md:h-[18px]' />
-                        Payments
+                        <CreditCard size={14} className='hidden md:block md:w-[18px] md:h-[18px]' />
+                        Pay
                       </button>
                     </nav>
                   </div>
@@ -642,6 +642,7 @@ function PaymentsSection({ memberId }: { memberId?: string }) {
     ten_card_sessions_used: number | null;
     ten_card_total: number | null;
     ten_card_expiry_date: string | null;
+    membership_types: string[] | null;
   }
 
   interface Subscription {
@@ -678,34 +679,49 @@ function PaymentsSection({ memberId }: { memberId?: string }) {
     try {
       console.log('[Payment] Starting fetch for user_id:', memberId);
 
-      // First, get athlete email from athlete_profiles
-      const { data: athlete, error: athleteError } = await supabase
-        .from('athlete_profiles')
-        .select('email')
-        .eq('user_id', memberId)
-        .single();
-
-      console.log('[Payment] Athlete query result:', { athlete, error: athleteError });
-
-      if (athleteError) {
-        console.error('Error fetching athlete:', athleteError);
-        throw athleteError;
-      }
-
-      if (!athlete?.email) {
-        throw new Error('Athlete email not found');
-      }
-
-      // Fetch member data by email (handles case where athlete_profiles.user_id ≠ members.id)
-      const { data: member, error: memberError } = await supabase
+      // First try to get member data directly by ID (works for family members who have no email)
+      let member = null;
+      const { data: memberById, error: memberByIdError } = await supabase
         .from('members')
-        .select('id, email, stripe_customer_id, ten_card_sessions_used, ten_card_total, ten_card_expiry_date')
-        .eq('email', athlete.email)
+        .select('id, email, stripe_customer_id, ten_card_sessions_used, ten_card_total, ten_card_expiry_date, membership_types')
+        .eq('id', memberId)
         .single();
 
-      console.log('[Payment] Member query result:', { member, error: memberError });
+      console.log('[Payment] Member by ID query result:', { memberById, error: memberByIdError });
 
-      if (memberError) throw memberError;
+      if (memberById) {
+        member = memberById;
+      } else {
+        // Fall back to email lookup for cases where athlete_profiles.user_id ≠ members.id
+        const { data: athlete, error: athleteError } = await supabase
+          .from('athlete_profiles')
+          .select('email')
+          .eq('user_id', memberId)
+          .single();
+
+        console.log('[Payment] Athlete query result:', { athlete, error: athleteError });
+
+        if (athleteError || !athlete?.email) {
+          console.log('[Payment] No member found by ID or email');
+          setLoading(false);
+          return;
+        }
+
+        const { data: memberByEmail, error: memberByEmailError } = await supabase
+          .from('members')
+          .select('id, email, stripe_customer_id, ten_card_sessions_used, ten_card_total, ten_card_expiry_date, membership_types')
+          .eq('email', athlete.email)
+          .single();
+
+        console.log('[Payment] Member by email query result:', { memberByEmail, error: memberByEmailError });
+
+        if (memberByEmailError) throw memberByEmailError;
+        member = memberByEmail;
+      }
+
+      console.log('[Payment] Final member result:', { member });
+
+      if (!member) return;
       setMemberData(member);
       setActualMemberId(member.id); // Store actual member ID for updates
 
@@ -815,31 +831,31 @@ function PaymentsSection({ memberId }: { memberId?: string }) {
   const isExpired = memberData?.ten_card_expiry_date && new Date(memberData.ten_card_expiry_date) < new Date();
 
   return (
-    <div className='space-y-6'>
-      <h3 className='text-lg font-bold text-gray-900'>Payment Management</h3>
+    <div className='space-y-4 md:space-y-6'>
+      <h3 className='text-base md:text-lg font-bold text-gray-900'>Payment Management</h3>
 
       {/* Subscriptions */}
-      <div className='bg-gray-50 rounded-lg p-4'>
-        <h4 className='font-semibold text-gray-900 mb-3'>Subscriptions</h4>
+      <div className='bg-gray-50 rounded-lg p-3 md:p-4'>
+        <h4 className='font-semibold text-gray-900 mb-2 md:mb-3 text-sm md:text-base'>Subscriptions</h4>
         {subscriptions.length === 0 ? (
-          <p className='text-sm text-gray-600'>No active subscriptions</p>
+          <p className='text-xs md:text-sm text-gray-600'>No active subscriptions</p>
         ) : (
-          <div className='space-y-3'>
+          <div className='space-y-2 md:space-y-3'>
             {subscriptions.map(sub => (
-              <div key={sub.id} className='bg-white rounded-lg p-3 border border-gray-200'>
-                <div className='flex items-center justify-between mb-2'>
-                  <div>
-                    <p className={`font-semibold capitalize ${
+              <div key={sub.id} className='bg-white rounded-lg p-2.5 md:p-3 border border-gray-200'>
+                <div className='flex items-start justify-between gap-2 mb-2'>
+                  <div className='min-w-0'>
+                    <p className={`font-semibold capitalize text-sm md:text-base ${
                       sub.plan_type === 'monthly' ? 'text-blue-600' :
                       sub.plan_type === 'yearly' ? 'text-green-600' :
                       'text-gray-900'
                     }`}>
                       {sub.plan_type || 'Unknown'} Plan
                     </p>
-                    <p className='text-sm text-gray-600'>Status: {sub.status}</p>
+                    <p className='text-xs md:text-sm text-gray-600'>Status: {sub.status}</p>
                   </div>
                   <span
-                    className={`px-2 py-1 text-xs font-medium rounded ${
+                    className={`px-2 py-1 text-xs font-medium rounded flex-shrink-0 ${
                       sub.status === 'active' && sub.plan_type === 'monthly'
                         ? 'bg-blue-100 text-blue-700'
                         : sub.status === 'active' && sub.plan_type === 'yearly'
@@ -856,16 +872,16 @@ function PaymentsSection({ memberId }: { memberId?: string }) {
                 </div>
                 {sub.current_period_end && (
                   <p className='text-xs text-gray-600 mb-2'>
-                    Period ends: {new Date(sub.current_period_end).toLocaleDateString()}
+                    Ends: {new Date(sub.current_period_end).toLocaleDateString()}
                   </p>
                 )}
                 {sub.status === 'active' && !sub.cancel_at_period_end && (
                   <button
                     onClick={() => handleCancelSubscription(sub.id)}
                     disabled={saving}
-                    className='px-3 py-1.5 text-sm text-red-600 hover:text-white hover:bg-red-600 font-medium border border-red-600 rounded transition-colors disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-red-600'
+                    className='w-full md:w-auto px-3 py-2 md:py-1.5 text-xs md:text-sm text-red-600 hover:text-white hover:bg-red-600 font-medium border border-red-600 rounded transition-colors disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-red-600'
                   >
-                    Cancel Subscription
+                    Cancel
                   </button>
                 )}
                 {sub.cancel_at_period_end && (
@@ -877,82 +893,84 @@ function PaymentsSection({ memberId }: { memberId?: string }) {
         )}
       </div>
 
-      {/* 10-Card Management */}
-      <div className='bg-gray-50 rounded-lg p-4'>
-        <h4 className='font-semibold text-purple-600 mb-3'>10-Card Sessions</h4>
+      {/* 10-Card Management - Only show if member has ten_card membership */}
+      {memberData?.membership_types?.includes('ten_card') && (
+        <div className='bg-gray-50 rounded-lg p-3 md:p-4'>
+          <h4 className='font-semibold text-purple-600 mb-2 md:mb-3 text-sm md:text-base'>10-Card Sessions</h4>
 
-        {/* Current Status */}
-        <div className='bg-white rounded-lg p-3 border border-gray-200 mb-4'>
-          <div className='flex items-center justify-between mb-2'>
-            <p className='text-sm text-gray-600'>Sessions Remaining</p>
-            <p className={`text-2xl font-bold ${sessionsRemaining <= 2 ? 'text-red-600' : 'text-purple-600'}`}>
-              {sessionsRemaining} / {memberData?.ten_card_total || 10}
-            </p>
+          {/* Current Status */}
+          <div className='bg-white rounded-lg p-2.5 md:p-3 border border-gray-200 mb-3 md:mb-4'>
+            <div className='flex items-center justify-between mb-1 md:mb-2'>
+              <p className='text-xs md:text-sm text-gray-600'>Sessions Remaining</p>
+              <p className={`text-xl md:text-2xl font-bold ${sessionsRemaining <= 2 ? 'text-red-600' : 'text-purple-600'}`}>
+                {sessionsRemaining} / {memberData?.ten_card_total || 10}
+              </p>
+            </div>
+            {memberData?.ten_card_expiry_date && (
+              <p className={`text-xs ${isExpired ? 'text-red-600' : 'text-gray-600'}`}>
+                {isExpired ? 'Expired: ' : 'Expires: '}
+                {new Date(memberData.ten_card_expiry_date).toLocaleDateString()}
+              </p>
+            )}
           </div>
-          {memberData?.ten_card_expiry_date && (
-            <p className={`text-xs ${isExpired ? 'text-red-600' : 'text-gray-600'}`}>
-              {isExpired ? 'Expired: ' : 'Expires: '}
-              {new Date(memberData.ten_card_expiry_date).toLocaleDateString()}
-            </p>
-          )}
-        </div>
 
-        {/* Edit Form */}
-        <div className='space-y-3'>
-          <div className='grid grid-cols-2 gap-3'>
+          {/* Edit Form */}
+          <div className='space-y-2 md:space-y-3'>
+            <div className='grid grid-cols-2 gap-2 md:gap-3'>
+              <div>
+                <label className='block text-xs md:text-sm font-medium text-gray-700 mb-1'>Total</label>
+                <input
+                  type='number'
+                  value={tenCardTotal}
+                  onChange={e => setTenCardTotal(e.target.value)}
+                  className='w-full px-2 md:px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 text-sm md:text-base'
+                />
+              </div>
+              <div>
+                <label className='block text-xs md:text-sm font-medium text-gray-700 mb-1'>Used</label>
+                <input
+                  type='number'
+                  value={tenCardUsed}
+                  onChange={e => setTenCardUsed(e.target.value)}
+                  className='w-full px-2 md:px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 text-sm md:text-base'
+                />
+              </div>
+            </div>
+
             <div>
-              <label className='block text-sm font-medium text-gray-700 mb-1'>Total Sessions</label>
+              <label className='block text-xs md:text-sm font-medium text-gray-700 mb-1'>Expiry (optional)</label>
               <input
-                type='number'
-                value={tenCardTotal}
-                onChange={e => setTenCardTotal(e.target.value)}
-                className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                type='date'
+                value={tenCardExpiry}
+                onChange={e => setTenCardExpiry(e.target.value)}
+                className='w-full px-2 md:px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 text-sm md:text-base'
               />
             </div>
-            <div>
-              <label className='block text-sm font-medium text-gray-700 mb-1'>Sessions Used</label>
-              <input
-                type='number'
-                value={tenCardUsed}
-                onChange={e => setTenCardUsed(e.target.value)}
-                className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
-              />
+
+            <div className='flex gap-2'>
+              <button
+                onClick={handleSave10Card}
+                disabled={saving}
+                className='flex-1 px-3 md:px-4 py-2.5 md:py-2 bg-[#208479] hover:bg-[#1a6b62] text-white font-medium rounded-lg transition disabled:opacity-50 text-sm md:text-base'
+              >
+                Save
+              </button>
+              <button
+                onClick={handleReset10Card}
+                disabled={saving}
+                className='px-3 md:px-4 py-2.5 md:py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg transition disabled:opacity-50 text-sm md:text-base'
+              >
+                Reset
+              </button>
             </div>
           </div>
-
-          <div>
-            <label className='block text-sm font-medium text-gray-700 mb-1'>Expiry Date (optional)</label>
-            <input
-              type='date'
-              value={tenCardExpiry}
-              onChange={e => setTenCardExpiry(e.target.value)}
-              className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
-            />
-          </div>
-
-          <div className='flex gap-2'>
-            <button
-              onClick={handleSave10Card}
-              disabled={saving}
-              className='flex-1 px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white font-medium rounded-lg transition disabled:opacity-50'
-            >
-              Save Changes
-            </button>
-            <button
-              onClick={handleReset10Card}
-              disabled={saving}
-              className='px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg transition disabled:opacity-50'
-            >
-              Reset to 0
-            </button>
-          </div>
         </div>
-      </div>
+      )}
 
       {/* Stripe Customer Info */}
       {memberData?.stripe_customer_id && (
-        <div className='bg-gray-50 rounded-lg p-4'>
-          <h4 className='font-semibold text-gray-900 mb-2'>Stripe Info</h4>
+        <div className='bg-gray-50 rounded-lg p-3 md:p-4'>
+          <h4 className='font-semibold text-gray-900 mb-1 md:mb-2 text-sm md:text-base'>Stripe Info</h4>
           <p className='text-xs text-gray-600 font-mono break-all'>{memberData.stripe_customer_id}</p>
         </div>
       )}
