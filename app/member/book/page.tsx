@@ -263,6 +263,11 @@ export default function MemberBookingPage() {
       return;
     }
 
+    if (!familyFormData.date_of_birth) {
+      alert('Please enter a date of birth');
+      return;
+    }
+
     setProcessing('family-add');
     try {
       const { error } = await supabase
@@ -885,12 +890,13 @@ export default function MemberBookingPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Date of Birth (Optional)
+                    Date of Birth *
                   </label>
                   <input
                     type="date"
                     value={familyFormData.date_of_birth}
                     onChange={(e) => setFamilyFormData({ ...familyFormData, date_of_birth: e.target.value })}
+                    required
                     className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-teal-500"
                   />
                 </div>

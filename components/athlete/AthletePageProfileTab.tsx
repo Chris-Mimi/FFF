@@ -71,7 +71,7 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
         // No athlete_profiles - might be a family member, get name from members table
         const { data: memberData } = await supabase
           .from('members')
-          .select('name, email')
+          .select('name, email, date_of_birth, phone')
           .eq('id', userId)
           .single();
 
@@ -79,8 +79,8 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
           setProfile({
             full_name: memberData.name || '',
             email: memberData.email || '',
-            date_of_birth: '',
-            phone_number: '',
+            date_of_birth: memberData.date_of_birth || '',
+            phone_number: memberData.phone || '',
             height_cm: '',
             weight_kg: '',
             emergency_contact_name: '',
