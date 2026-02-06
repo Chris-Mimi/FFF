@@ -11,6 +11,8 @@ type MemberStatus = 'pending' | 'active' | 'blocked' | 'subscriptions';
 
 type MembershipType = 'member' | 'drop_in' | 'ten_card' | 'wellpass' | 'hansefit' | 'trial';
 
+type ClassType = 'ekt' | 't' | 'cfk' | 'cft';
+
 interface Member {
   id: string;
   email: string;
@@ -30,6 +32,8 @@ interface Member {
   ten_card_total?: number;
   ten_card_expiry_date?: string | null;
   attendance_count?: number;
+  date_of_birth: string | null;
+  class_types: ClassType[];
 }
 
 const MEMBERSHIP_TYPE_LABELS: Record<MembershipType, string> = {
@@ -50,6 +54,20 @@ const MEMBERSHIP_TYPE_COLORS: Record<MembershipType, { active: string; inactive:
   trial: { active: 'bg-amber-600 text-white', inactive: 'bg-gray-700 text-gray-300 hover:bg-amber-600/20' },
 };
 
+const CLASS_TYPE_LABELS: Record<ClassType, string> = {
+  ekt: 'EKT',
+  t: 'T',
+  cfk: 'CFK',
+  cft: 'CFT',
+};
+
+const CLASS_TYPE_COLORS: Record<ClassType, { active: string; inactive: string }> = {
+  ekt: { active: 'bg-cyan-600 text-white', inactive: 'bg-gray-700 text-gray-300 hover:bg-cyan-600/20' },
+  t: { active: 'bg-indigo-600 text-white', inactive: 'bg-gray-700 text-gray-300 hover:bg-indigo-600/20' },
+  cfk: { active: 'bg-rose-600 text-white', inactive: 'bg-gray-700 text-gray-300 hover:bg-rose-600/20' },
+  cft: { active: 'bg-violet-600 text-white', inactive: 'bg-gray-700 text-gray-300 hover:bg-violet-600/20' },
+};
+
 export default function CoachMembersPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<MemberStatus>('active');
@@ -57,7 +75,8 @@ export default function CoachMembersPage() {
   const [loading, setLoading] = useState(true);
   const [processingMemberId, setProcessingMemberId] = useState<string | null>(null);
   const [selectedFilters, setSelectedFilters] = useState<MembershipType[]>([]);
-  const [ageFilter, setAgeFilter] = useState<'all' | 'adults' | 'kids' | '7-16' | '>7'>('all');
+  const [selectedClassTypes, setSelectedClassTypes] = useState<ClassType[]>([]);
+  const [ageFilter, setAgeFilter] = useState<'all' | 'adults' | 'kids' | '<7' | '7-11' | '12-16' | '7-16'>('all');
   const [tenCardModal, setTenCardModal] = useState<{
     isOpen: boolean;
     member: Member | null;
@@ -371,6 +390,12 @@ export default function CoachMembersPage() {
     );
   };
 
+  const toggleClassTypeFilter = (type: ClassType) => {
+    setSelectedClassTypes(prev =>
+      prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
+    );
+  };
+
   const handleToggleMembershipType = async (memberId: string, type: MembershipType, currentTypes: MembershipType[]) => {
     try {
       const newTypes = currentTypes.includes(type)
@@ -393,6 +418,32 @@ export default function CoachMembersPage() {
     } catch (error) {
       console.error('Error updating membership types:', error);
       alert('Failed to update membership type');
+    }
+  };
+
+  const handleToggleClassType = async (memberId: string, type: ClassType, currentClassTypes: ClassType[]) => {
+    try {
+      // Toggle type in array - add if not present, remove if present
+      const newClassTypes = currentClassTypes.includes(type)
+        ? currentClassTypes.filter(t => t !== type)
+        : [...currentClassTypes, type];
+
+      const { error } = await supabase
+        .from('members')
+        .update({ class_types: newClassTypes })
+        .eq('id', memberId);
+
+      if (error) throw error;
+
+      // Update local state
+      setMembers(prevMembers =>
+        prevMembers.map(m =>
+          m.id === memberId ? { ...m, class_types: newClassTypes } : m
+        )
+      );
+    } catch (error) {
+      console.error('Error updating class types:', error);
+      alert('Failed to update class types');
     }
   };
 
@@ -448,10 +499,20 @@ export default function CoachMembersPage() {
       const age = getAge(member.date_of_birth);
       return age !== null && age >= 7 && age <= 16;
     });
-  } else if (ageFilter === '>7') {
+  } else if (ageFilter === '<7') {
     filteredMembers = filteredMembers.filter(member => {
       const age = getAge(member.date_of_birth);
-      return age !== null && age > 7;
+      return age !== null && age < 7;
+    });
+  } else if (ageFilter === '7-11') {
+    filteredMembers = filteredMembers.filter(member => {
+      const age = getAge(member.date_of_birth);
+      return age !== null && age >= 7 && age <= 11;
+    });
+  } else if (ageFilter === '12-16') {
+    filteredMembers = filteredMembers.filter(member => {
+      const age = getAge(member.date_of_birth);
+      return age !== null && age >= 12 && age <= 16;
     });
   }
 
@@ -459,6 +520,13 @@ export default function CoachMembersPage() {
   if (selectedFilters.length > 0) {
     filteredMembers = filteredMembers.filter(member =>
       member.membership_types?.some(type => selectedFilters.includes(type))
+    );
+  }
+
+  // Class type filter (for kids programs)
+  if (selectedClassTypes.length > 0) {
+    filteredMembers = filteredMembers.filter(member =>
+      member.class_types?.some(type => selectedClassTypes.includes(type))
     );
   }
 
@@ -620,10 +688,10 @@ export default function CoachMembersPage() {
               <select
                 value={ageFilter}
                 onChange={(e) => {
-                  const newFilter = e.target.value as 'all' | 'adults' | 'kids' | '7-16' | '>7';
+                  const newFilter = e.target.value as 'all' | 'adults' | 'kids' | '<7' | '7-11' | '12-16' | '7-16';
                   setAgeFilter(newFilter);
                   // Clear membership filters that aren't available for kids
-                  if (newFilter === 'kids' || newFilter === '7-16' || newFilter === '>7') {
+                  if (newFilter === 'kids' || newFilter === '7-16' || newFilter === '<7' || newFilter === '7-11' || newFilter === '12-16') {
                     setSelectedFilters(prev => prev.filter(type => ['member', 'ten_card', 'wellpass'].includes(type)));
                   }
                 }}
@@ -632,8 +700,10 @@ export default function CoachMembersPage() {
                 <option value="all">All</option>
                 <option value="adults">Adults</option>
                 <option value="kids">Kids (&lt;16)</option>
+                <option value="12-16">12-16</option>
                 <option value="7-16">7-16</option>
-                <option value=">7">&gt;7</option>
+                <option value="7-11">7-11</option>
+                <option value="<7">&lt;7</option>
               </select>
             </div>
 
@@ -644,7 +714,7 @@ export default function CoachMembersPage() {
                 {(Object.keys(MEMBERSHIP_TYPE_LABELS) as MembershipType[])
                   .filter(type => {
                     // Show only Mb, 10, Wp for kids age filters
-                    if (ageFilter === 'kids' || ageFilter === '7-16' || ageFilter === '>7') {
+                    if (ageFilter === 'kids' || ageFilter === '7-16' || ageFilter === '<7' || ageFilter === '7-11' || ageFilter === '12-16') {
                       return ['member', 'ten_card', 'wellpass'].includes(type);
                     }
                     return true;
@@ -676,6 +746,36 @@ export default function CoachMembersPage() {
                 </div>
               </div>
             </div>
+
+            {/* Class Type Filters (only show for kids) */}
+            {(ageFilter === 'kids' || ageFilter === '7-16' || ageFilter === '<7' || ageFilter === '7-11' || ageFilter === '12-16') && (
+              <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2">
+                <span className="text-xs md:text-sm text-gray-400 font-medium">Class:</span>
+                <div className="flex items-center gap-1 md:gap-2 flex-wrap">
+                  {(Object.keys(CLASS_TYPE_LABELS) as ClassType[]).map(type => (
+                    <button
+                      key={type}
+                      onClick={() => toggleClassTypeFilter(type)}
+                      className={`px-2 md:px-2.5 py-0.5 md:py-1 rounded text-xs font-medium transition ${
+                        selectedClassTypes.includes(type)
+                          ? CLASS_TYPE_COLORS[type].active
+                          : CLASS_TYPE_COLORS[type].inactive
+                      }`}
+                    >
+                      {CLASS_TYPE_LABELS[type]}
+                    </button>
+                  ))}
+                  {selectedClassTypes.length > 0 && (
+                    <button
+                      onClick={() => setSelectedClassTypes([])}
+                      className="px-2 md:px-2.5 py-0.5 md:py-1 rounded text-xs font-medium bg-red-600 text-white hover:bg-red-700 transition"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -808,6 +908,32 @@ export default function CoachMembersPage() {
                         );
                       })}
                     </div>
+
+                    {/* Class Type Buttons (only for kids <16) */}
+                    {(() => {
+                      const age = getAge(member.date_of_birth);
+                      return age !== null && age < 16;
+                    })() && (
+                      <div className="flex gap-2 mt-2 flex-wrap">
+                        <span className="text-xs text-gray-400 font-medium self-center">Class:</span>
+                        {(Object.keys(CLASS_TYPE_LABELS) as ClassType[]).map(type => {
+                          const isSelected = member.class_types?.includes(type) || false;
+                          return (
+                            <button
+                              key={type}
+                              onClick={() => handleToggleClassType(member.id, type, member.class_types || [])}
+                              className={`px-2 py-1 rounded text-xs font-medium cursor-pointer transition ${
+                                isSelected
+                                  ? CLASS_TYPE_COLORS[type].active
+                                  : CLASS_TYPE_COLORS[type].inactive
+                              }`}
+                            >
+                              {CLASS_TYPE_LABELS[type]}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
 
                   {/* Actions */}

@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.48
-**Updated:** 2026-02-05 (Session 93 - Coach Athletes Mobile Optimization & Family Member Fixes)
+**Version:** 10.49
+**Updated:** 2026-02-06 (Session 94 - Kids Programs Class Filtering & Age Ranges)
 
 ---
 
@@ -54,7 +54,7 @@ Coach Tables
 ├─ note_folders (id, user_id, name, display_order, created_at, updated_at)
 
 Member Tables
-├─ members (id, email, name, status, membership_types[], account_type: primary|family_member, primary_member_id, display_name, date_of_birth, relationship)
+├─ members (id, email, name, status, membership_types[], account_type: primary|family_member, primary_member_id, display_name, date_of_birth, relationship, class_types[] [ekt|t|cfk|cft])
 ├─ bookings (id, session_id, member_id, status: confirmed|waitlist|cancelled|no_show|late_cancel)
 
 Athlete Tables (linked to members.id)
@@ -76,6 +76,25 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2026-02-06 Session 94 - Sonnet 4.5):**
+- **✅ Kids Programs Class Type System:**
+  - Database: Added `class_types TEXT[]` column to members table (allows multiple selections)
+  - Class types: EKT (Elternkind Turnen), T (Turnen), CFK (CrossFit Kids), CFT (CrossFit Teens)
+  - Class type buttons on member cards (only for kids <16)
+  - Class type filter buttons (only visible when kids age filter selected)
+  - Multiple class types can be selected per member (toggle on/off)
+  - Files: database/add-class-type.sql, app/coach/members/page.tsx
+- **✅ Enhanced Age Filtering for Kids Programs:**
+  - Added age range filters: <7, 7-11, 12-16, 7-16 (in addition to Kids <16, Adults, All)
+  - Age filter dropdown reordered: All, Adults, Kids (<16), 12-16, 7-16, 7-11, <7
+  - All kids filters restrict membership buttons to Mb/10/Wp only
+  - All kids filters show class type filter buttons
+  - File: app/coach/members/page.tsx
+- **✅ Age Filter Bug Fix:**
+  - Fixed >7 filter to <7 (user correction)
+  - File: app/coach/members/page.tsx
+- See: `project-history/2026-02-06-session-94-kids-class-filtering.md`
 
 **Completed (2026-02-05 Session 93 - Opus 4.5):**
 - **✅ Coach Athletes Page - Mobile Optimization:**
@@ -211,45 +230,7 @@ Athlete Tables (linked to members.id)
   - app/athlete/page.tsx: Fixed boolean type error with !!trialEnd
 - See: `project-history/2026-02-03-session-89-access-tiers-approval-flow.md`
 
-**Completed (2026-02-02 Session 88 - Sonnet):**
-- **✅ Stripe Payment System - Ready for Testing:**
-  - Previous session (87) completed full Stripe implementation with webhook fixes
-  - Coach Payments tab fully implemented with subscription + 10-card management
-  - All environment variables configured, webhook listener ready
-  - Session ended before testing due to time constraints
-  - **Next steps:** Delete duplicate test subscriptions, test purchase flow end-to-end
-  - See: Session 87 below for full implementation details
-
-**Completed (2026-02-02 Session 87 - Opus):**
-- **✅ Stripe Payment System - Full Implementation:**
-  - Completed Phases 1-6 from payment plan (database schema, API routes, webhooks, UI)
-  - Database: Created `subscriptions` table with RLS policies
-  - Added to `members`: stripe_customer_id, ten_card_expiry_date, ten_card_total
-  - Files created:
-    - supabase/migrations/20260201_add_subscriptions_table.sql
-    - lib/stripe.ts (Stripe client initialization)
-    - app/api/stripe/create-checkout/route.ts
-    - app/api/stripe/webhook/route.ts
-    - app/api/stripe/customer-portal/route.ts
-    - components/athlete/AthletePagePaymentTab.tsx
-- **✅ Stripe CLI Setup for Local Development:**
-  - Installed Stripe CLI via Homebrew
-  - Fixed Homebrew permissions: `sudo chown -R chrishiles /opt/homebrew`
-  - Configured webhook forwarding: `stripe listen --forward-to localhost:3000/api/stripe/webhook`
-- **✅ Webhook Signature Verification Fix:**
-  - Root cause: .env.local had duplicate key name `STRIPE_WEBHOOK_SECRET=STRIPE_WEBHOOK_SECRET=whsec_...`
-  - Fixed to: `STRIPE_WEBHOOK_SECRET=whsec_...`
-  - All webhook events now processing correctly (200 status)
-- **✅ Payment Tab UI Polish:**
-  - Updated "Manage Subscription" link hover to `hover:text-teal-600 hover:underline`
-- **✅ Tested Payment Flows:**
-  - 10-card purchase: Working (activates 10 sessions, 90-day expiry)
-  - Monthly subscription: Working
-  - Yearly subscription: Working
-  - Customer portal: Working
-- See: `project-history/2026-02-02-session-87-stripe-payment-setup.md`
-
-**Older Sessions (57-87):**
+**Older Sessions (57-88):**
 See `project-history/` folder for detailed implementation history including:
 - Workout Library search/drag-drop fixes (Session 86)
 - Mobile optimization (Sessions 76-85)
