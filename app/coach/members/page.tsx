@@ -57,7 +57,7 @@ export default function CoachMembersPage() {
   const [loading, setLoading] = useState(true);
   const [processingMemberId, setProcessingMemberId] = useState<string | null>(null);
   const [selectedFilters, setSelectedFilters] = useState<MembershipType[]>([]);
-  const [ageFilter, setAgeFilter] = useState<'all' | 'adults' | 'kids'>('all');
+  const [ageFilter, setAgeFilter] = useState<'all' | 'adults' | 'kids' | '7-16' | '>7'>('all');
   const [tenCardModal, setTenCardModal] = useState<{
     isOpen: boolean;
     member: Member | null;
@@ -443,6 +443,16 @@ export default function CoachMembersPage() {
       const age = getAge(member.date_of_birth);
       return age === null || age >= 16;
     });
+  } else if (ageFilter === '7-16') {
+    filteredMembers = filteredMembers.filter(member => {
+      const age = getAge(member.date_of_birth);
+      return age !== null && age >= 7 && age <= 16;
+    });
+  } else if (ageFilter === '>7') {
+    filteredMembers = filteredMembers.filter(member => {
+      const age = getAge(member.date_of_birth);
+      return age !== null && age > 7;
+    });
   }
 
   // Membership type filter
@@ -610,10 +620,10 @@ export default function CoachMembersPage() {
               <select
                 value={ageFilter}
                 onChange={(e) => {
-                  const newFilter = e.target.value as 'all' | 'adults' | 'kids';
+                  const newFilter = e.target.value as 'all' | 'adults' | 'kids' | '7-16' | '>7';
                   setAgeFilter(newFilter);
                   // Clear membership filters that aren't available for kids
-                  if (newFilter === 'kids') {
+                  if (newFilter === 'kids' || newFilter === '7-16' || newFilter === '>7') {
                     setSelectedFilters(prev => prev.filter(type => ['member', 'ten_card', 'wellpass'].includes(type)));
                   }
                 }}
@@ -622,6 +632,8 @@ export default function CoachMembersPage() {
                 <option value="all">All</option>
                 <option value="adults">Adults</option>
                 <option value="kids">Kids (&lt;16)</option>
+                <option value="7-16">7-16</option>
+                <option value=">7">&gt;7</option>
               </select>
             </div>
 
@@ -631,8 +643,8 @@ export default function CoachMembersPage() {
               <div className="flex items-center gap-1 md:gap-2 flex-wrap">
                 {(Object.keys(MEMBERSHIP_TYPE_LABELS) as MembershipType[])
                   .filter(type => {
-                    // Show only Mb, 10, Wp for kids
-                    if (ageFilter === 'kids') {
+                    // Show only Mb, 10, Wp for kids age filters
+                    if (ageFilter === 'kids' || ageFilter === '7-16' || ageFilter === '>7') {
                       return ['member', 'ten_card', 'wellpass'].includes(type);
                     }
                     return true;
