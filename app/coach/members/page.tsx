@@ -7,7 +7,7 @@ import { Check, Clock, LogOut, UserCheck, UserX, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-type MemberStatus = 'pending' | 'active' | 'blocked';
+type MemberStatus = 'pending' | 'active' | 'blocked' | 'subscriptions';
 
 type MembershipType = 'member' | 'drop_in' | 'ten_card' | 'wellpass' | 'hansefit' | 'trial';
 
@@ -98,10 +98,18 @@ export default function CoachMembersPage() {
     setLoading(true);
     try {
       // First get the members
-      const { data: membersData, error: membersError } = await supabase
-        .from('members')
-        .select('*')
-        .eq('status', status)
+      let query = supabase.from('members').select('*');
+
+      // Handle subscriptions tab separately (shows active members with athlete access)
+      if (status === 'subscriptions') {
+        query = query
+          .eq('status', 'active')
+          .in('athlete_subscription_status', ['trial', 'active']);
+      } else {
+        query = query.eq('status', status);
+      }
+
+      const { data: membersData, error: membersError } = await query
         .order('created_at', { ascending: false });
 
       if (membersError) {
@@ -521,6 +529,19 @@ export default function CoachMembersPage() {
             <div className="flex items-center gap-1 md:gap-2">
               <UserX size={16} className="md:w-[18px] md:h-[18px]" />
               Blocked
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveTab('subscriptions')}
+            className={`px-3 md:px-6 py-2 md:py-3 font-medium transition-colors duration-200 border-b-2 text-sm md:text-base ${
+              activeTab === 'subscriptions'
+                ? 'border-teal-500 text-teal-500'
+                : 'border-transparent text-gray-400 hover:text-gray-300'
+            }`}
+          >
+            <div className="flex items-center gap-1 md:gap-2">
+              <Check size={16} className="md:w-[18px] md:h-[18px]" />
+              Subscriptions
             </div>
           </button>
         </div>
