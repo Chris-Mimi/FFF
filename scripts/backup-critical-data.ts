@@ -74,6 +74,32 @@ async function createBackupManifest(results: Record<string, boolean>) {
   return manifest;
 }
 
+async function discoverTables(): Promise<string[]> {
+  console.log('🔍 Discovering tables in public schema...\n');
+
+  const { data, error } = await supabase.rpc('get_public_tables');
+
+  if (error) {
+    // Fallback: use known tables if RPC not available
+    console.log('   ⚠️  RPC not available, using fallback table list');
+    return KNOWN_TABLES;
+  }
+
+  const tables = (data as { tablename: string }[]).map(r => r.tablename).sort();
+  console.log(`   Found ${tables.length} tables\n`);
+  return tables;
+}
+
+// Fallback list in case RPC function doesn't exist yet
+const KNOWN_TABLES = [
+  'athlete_profiles', 'barbell_lifts', 'benchmark_results', 'benchmark_workouts',
+  'bookings', 'exercises', 'forge_benchmarks', 'lift_records', 'members',
+  'movement_results', 'naming_conventions', 'note_folders', 'programming_notes',
+  'resources', 'section_types', 'session_templates', 'subscriptions', 'tracks',
+  'user_exercise_favorites', 'weekly_sessions', 'whiteboard_photos',
+  'wod_section_results', 'wods', 'workout_logs', 'workout_titles', 'workout_types',
+];
+
 async function main() {
   console.log('═'.repeat(60));
   console.log('🛡️  CRITICAL DATA BACKUP');
@@ -82,49 +108,18 @@ async function main() {
   console.log('═'.repeat(60));
   console.log('');
 
-  const criticalTables = [
-    // Movement & Workout Definitions
-    { name: 'barbell_lifts', desc: 'Lift definitions' },
-    { name: 'benchmark_workouts', desc: 'CrossFit benchmarks' },
-    { name: 'forge_benchmarks', desc: 'Custom gym benchmarks' },
-    { name: 'exercises', desc: 'Exercise library' },
-    { name: 'tracks', desc: 'Workout tracks' },
-    { name: 'section_types', desc: 'WOD section types' },
-    { name: 'workout_types', desc: 'Workout type definitions' },
-    { name: 'workout_titles', desc: 'Workout title templates' },
-    { name: 'naming_conventions', desc: 'Movement naming standards' },
-    { name: 'resources', desc: 'Reference resources' },
+  const tables = await discoverTables();
 
-    // Programmed Workouts & Sessions
-    { name: 'wods', desc: 'Programmed workouts (CRITICAL)' },
-    { name: 'weekly_sessions', desc: 'Scheduled sessions (CRITICAL)' },
-
-    // User & Membership Data
-    { name: 'members', desc: 'Gym members (CRITICAL USER DATA)' },
-    { name: 'bookings', desc: 'Session bookings (CRITICAL USER DATA)' },
-    { name: 'athlete_profiles', desc: 'Athlete profiles (CRITICAL USER DATA)' },
-
-    // Athlete Performance Data
-    { name: 'lift_records', desc: 'Athlete lift results (CRITICAL USER DATA)' },
-    { name: 'benchmark_results', desc: 'Athlete benchmark results (CRITICAL USER DATA)' },
-    { name: 'wod_section_results', desc: 'WOD results (CRITICAL USER DATA)' },
-    { name: 'workout_logs', desc: 'Athlete workout logs (CRITICAL USER DATA)' },
-
-    // Coach Tools
-    { name: 'programming_notes', desc: 'Coach programming notes' },
-    { name: 'note_folders', desc: 'Programming note folders' },
-    { name: 'user_exercise_favorites', desc: 'User exercise favorites' },
-    { name: 'whiteboard_photos', desc: 'Whiteboard photo metadata' },
-    { name: 'session_templates', desc: 'Session scheduling templates' },
-
-    // Additional Athlete Data
-    { name: 'movement_results', desc: 'Athlete movement results (CRITICAL USER DATA)' },
-  ];
+  // Check for new tables not in known list
+  const newTables = tables.filter(t => !KNOWN_TABLES.includes(t));
+  if (newTables.length > 0) {
+    console.log(`🆕 New tables found: ${newTables.join(', ')}\n`);
+  }
 
   const results: Record<string, boolean> = {};
 
-  for (const table of criticalTables) {
-    results[table.name] = await backupTable(table.name, table.desc);
+  for (const tableName of tables) {
+    results[tableName] = await backupTable(tableName, tableName);
   }
 
   console.log('');
@@ -138,6 +133,7 @@ async function main() {
     console.log('⚠️  SOME BACKUPS FAILED - Check errors above');
   }
 
+  console.log(`📊 Total tables backed up: ${Object.values(results).filter(v => v).length}/${tables.length}`);
   console.log('═'.repeat(60));
   console.log('');
   console.log('💡 Next steps:');

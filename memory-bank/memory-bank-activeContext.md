@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.49
-**Updated:** 2026-02-06 (Session 94 - Kids Programs Class Filtering & Age Ranges)
+**Version:** 10.50
+**Updated:** 2026-02-06 (Session 95 - Backup Auto-Discovery, Google Calendar Types, Class Type Colors)
 
 ---
 
@@ -76,6 +76,36 @@ Athlete Tables (linked to members.id)
 ---
 
 ## 📍 Current Status (Last 2 Weeks)
+
+**Completed (2026-02-06 Session 95 - Opus 4.6):**
+- **✅ Backup Script Auto-Discovery:**
+  - Backup now auto-discovers all tables via `get_public_tables()` RPC function
+  - Falls back to hardcoded list if RPC not available
+  - Alerts when new tables found that aren't in known list
+  - Added missing `subscriptions` table to backup
+  - Requires SQL function in Supabase: `CREATE FUNCTION get_public_tables()` (see session history)
+  - File: scripts/backup-critical-data.ts
+- **✅ Google Calendar Workout Type Display:**
+  - Workout type (AMRAP, For Time, etc.) now shows in Google Calendar event descriptions
+  - Looks up workout_type_id from workout_types table
+  - Format: **Workout - AMRAP** 15 mins (1-15)
+  - No change if section has no workout type selected
+  - File: app/api/google/publish-workout/route.ts
+- **✅ Class Type Button Color Fix (Tailwind Safelist):**
+  - Added safelist to tailwind.config.ts for dynamically-referenced colors
+  - Fixed: bg-indigo-600, bg-violet-600, bg-cyan-600, bg-rose-600
+  - Colors were being purged by Tailwind JIT as they only appeared in JS objects
+  - File: tailwind.config.ts
+- **✅ Class Type Label Change:**
+  - Renamed "T" (Turnen) display label to "Tu" for clarity
+  - Database key remains `t` unchanged
+  - File: app/coach/members/page.tsx
+- **✅ Coach Email Confirmation:**
+  - Confirmed mimi.hiles@web.de email in Supabase Auth (was blocking login)
+- **✅ Deployment Cost Estimate:**
+  - Created Chris Notes/deployment-cost-estimate.md
+  - Production: ~€74/month (Supabase Pro €25 + Stripe fees ~€47.50 + domain ~€1.50)
+- See: `project-history/2026-02-06-session-95-backup-autodiscovery-calendar-types.md`
 
 **Completed (2026-02-06 Session 94 - Sonnet 4.5):**
 - **✅ Kids Programs Class Type System:**
@@ -207,31 +237,9 @@ Athlete Tables (linked to members.id)
     - cancel/route.ts: Fixed refund logic to check membership_types instead of athlete_subscription_status
 - See: `project-history/2026-02-03-session-90-stripe-color-coding.md`
 
-**Completed (2026-02-03 Session 89 - Opus):**
-- **✅ Access Tiers for Athlete Page:**
-  - FREE tabs (all active members): Profile, Payment, Security + Book a Class
-  - PAID tabs (subscription/trial only): Workouts, Logbook, Benchmarks, Forge, Lifts, Records, Whiteboard
-  - Greyed-out styling for restricted tabs (opacity-60, text-gray-400)
-  - Created `UpgradePrompt.tsx` component for non-paying members clicking restricted tabs
-  - File: app/athlete/page.tsx (added hasFullAccess state, requiresFullAccess property on tabs)
-- **✅ Separated Member Approval from Trial Grant:**
-  - Approve = sets member.status to 'active' (booking access only)
-  - Start Trial = separate coach action for full athlete page access (30-day trial)
-  - Modified: app/api/members/approve/route.ts (no longer grants trial)
-  - Added start_trial action to: app/api/members/athlete-subscription/route.ts
-  - Added "Start Trial" button to: app/coach/members/page.tsx
-- **✅ Fixed 10-Card Display Bug:**
-  - Issue: Test account showed "10 sessions remaining" without purchasing 10-card
-  - Fix: Check `ten_card_expiry_date` exists before showing 10-card status
-  - File: components/athlete/AthletePagePaymentTab.tsx (added has10Card check)
-- **✅ Fixed Stripe Type Errors:**
-  - Webhook route: Cast subscription/invoice to `any` for property access
-  - lib/stripe.ts: Removed explicit API version to use SDK default
-  - app/athlete/page.tsx: Fixed boolean type error with !!trialEnd
-- See: `project-history/2026-02-03-session-89-access-tiers-approval-flow.md`
-
-**Older Sessions (57-88):**
+**Older Sessions (57-89):**
 See `project-history/` folder for detailed implementation history including:
+- Access tiers & approval flow (Session 89)
 - Workout Library search/drag-drop fixes (Session 86)
 - Mobile optimization (Sessions 76-85)
 - Analysis page fixes (Session 80)
@@ -249,6 +257,8 @@ See `project-history/` folder for detailed implementation history including:
 **Migration Pending:**
 1. **`20251206_fix_newlines_after_restore.sql`** (Optional) - Fix escaped `\n` in benchmark descriptions
    - **Apply via:** Supabase Dashboard SQL Editor (only if needed)
+2. **`get_public_tables()` RPC function** - Required for backup auto-discovery
+   - **Apply via:** Supabase SQL Editor (see project-history/2026-02-06-session-95)
 
 **No Critical Blocking Issues**
 
@@ -292,7 +302,7 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 94 Priorities
+### Session 96 Priorities
 
 **✅ Member Registration & Booking System Complete:**
 - Registration flow tested (desktop + mobile)

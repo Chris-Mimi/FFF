@@ -56,7 +56,7 @@ const MEMBERSHIP_TYPE_COLORS: Record<MembershipType, { active: string; inactive:
 
 const CLASS_TYPE_LABELS: Record<ClassType, string> = {
   ekt: 'EKT',
-  t: 'T',
+  t: 'Tu',
   cfk: 'CFK',
   cft: 'CFT',
 };

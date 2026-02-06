@@ -115,6 +115,22 @@ export async function POST(request: NextRequest) {
       publishConfig.selectedSectionIds.includes(section.id)
     );
 
+    // Look up workout type names for sections that have a workout_type_id
+    const workoutTypeIds = selectedSections
+      .map(s => s.workout_type_id)
+      .filter((id): id is string => !!id);
+
+    let workoutTypeMap: Record<string, string> = {};
+    if (workoutTypeIds.length > 0) {
+      const { data: types } = await supabaseAdmin
+        .from('workout_types')
+        .select('id, name')
+        .in('id', workoutTypeIds);
+      if (types) {
+        workoutTypeMap = Object.fromEntries(types.map(t => [t.id, t.name]));
+      }
+    }
+
     if (selectedSections.length === 0) {
       return NextResponse.json({ error: 'No sections selected' }, { status: 400 });
     }
@@ -156,7 +172,9 @@ export async function POST(request: NextRequest) {
     const formatSectionToHTML = (section: WorkoutSection, startMin: number, endMin: number): string => {
       // Section header with bold styling and running time (hide if duration is 0)
       const timeInfo = section.duration > 0 ? ` ${section.duration} mins (${startMin}-${endMin})` : '';
-      const header = `<b>${section.type}</b>${timeInfo}`;
+      const typeName = section.workout_type_id ? workoutTypeMap[section.workout_type_id] : undefined;
+      const typeLabel = typeName ? ` - ${typeName}` : '';
+      const header = `<b>${section.type}${typeLabel}</b>${timeInfo}`;
 
       const parts: string[] = [];
 
