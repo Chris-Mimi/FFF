@@ -57,6 +57,7 @@ export default function CoachMembersPage() {
   const [loading, setLoading] = useState(true);
   const [processingMemberId, setProcessingMemberId] = useState<string | null>(null);
   const [selectedFilters, setSelectedFilters] = useState<MembershipType[]>([]);
+  const [ageFilter, setAgeFilter] = useState<'all' | 'adults' | 'kids'>('all');
   const [tenCardModal, setTenCardModal] = useState<{
     isOpen: boolean;
     member: Member | null;
@@ -415,11 +416,41 @@ export default function CoachMembersPage() {
   };
 
   // Filter members based on selected membership types
-  const filteredMembers = selectedFilters.length === 0
-    ? members
-    : members.filter(member =>
-        member.membership_types?.some(type => selectedFilters.includes(type))
-      );
+  // Helper function to calculate age from date of birth
+  const getAge = (dateOfBirth: string | null): number | null => {
+    if (!dateOfBirth) return null;
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  // Apply filters
+  let filteredMembers = members;
+
+  // Age filter
+  if (ageFilter === 'kids') {
+    filteredMembers = filteredMembers.filter(member => {
+      const age = getAge(member.date_of_birth);
+      return age !== null && age < 16;
+    });
+  } else if (ageFilter === 'adults') {
+    filteredMembers = filteredMembers.filter(member => {
+      const age = getAge(member.date_of_birth);
+      return age === null || age >= 16;
+    });
+  }
+
+  // Membership type filter
+  if (selectedFilters.length > 0) {
+    filteredMembers = filteredMembers.filter(member =>
+      member.membership_types?.some(type => selectedFilters.includes(type))
+    );
+  }
 
   const getMembershipTypeCounts = () => {
     const counts: Record<MembershipType, number> = {
@@ -572,10 +603,41 @@ export default function CoachMembersPage() {
       {/* Filters */}
       {members.length > 0 && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-2">
-          <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2">
-            <span className="text-xs md:text-sm text-gray-400 font-medium">Member Type:</span>
-            <div className="flex items-center gap-1 md:gap-2 flex-wrap">
-              {(Object.keys(MEMBERSHIP_TYPE_LABELS) as MembershipType[]).map(type => (
+          <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+            {/* Age Filter Dropdown */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs md:text-sm text-gray-400 font-medium">Age:</span>
+              <select
+                value={ageFilter}
+                onChange={(e) => {
+                  const newFilter = e.target.value as 'all' | 'adults' | 'kids';
+                  setAgeFilter(newFilter);
+                  // Clear membership filters that aren't available for kids
+                  if (newFilter === 'kids') {
+                    setSelectedFilters(prev => prev.filter(type => ['member', 'ten_card', 'wellpass'].includes(type)));
+                  }
+                }}
+                className="px-2 md:px-3 py-1 bg-gray-700 border border-gray-600 rounded text-xs md:text-sm text-white focus:outline-none focus:border-teal-500"
+              >
+                <option value="all">All</option>
+                <option value="adults">Adults</option>
+                <option value="kids">Kids (&lt;16)</option>
+              </select>
+            </div>
+
+            {/* Membership Type Filters */}
+            <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2 flex-1">
+              <span className="text-xs md:text-sm text-gray-400 font-medium">Member Type:</span>
+              <div className="flex items-center gap-1 md:gap-2 flex-wrap">
+                {(Object.keys(MEMBERSHIP_TYPE_LABELS) as MembershipType[])
+                  .filter(type => {
+                    // Show only Mb, 10, Wp for kids
+                    if (ageFilter === 'kids') {
+                      return ['member', 'ten_card', 'wellpass'].includes(type);
+                    }
+                    return true;
+                  })
+                  .map(type => (
                 <button
                   key={type}
                   onClick={() => toggleFilter(type)}
@@ -589,16 +651,17 @@ export default function CoachMembersPage() {
                   <span className="text-[10px] opacity-75">{membershipCounts[type]}</span>
                 </button>
               ))}
-              {selectedFilters.length > 0 && (
-                <button
-                  onClick={() => setSelectedFilters([])}
-                  className="px-2 md:px-2.5 py-0.5 md:py-1 rounded text-xs font-medium bg-red-600 text-white hover:bg-red-700 transition"
-                >
-                  Clear ({filteredMembers.length})
-                </button>
-              )}
-              <div className="ml-auto px-2 md:px-3 py-0.5 md:py-1 bg-gray-700 rounded text-xs font-medium text-gray-300">
-                Total: {totalActiveAthletes}
+                {selectedFilters.length > 0 && (
+                  <button
+                    onClick={() => setSelectedFilters([])}
+                    className="px-2 md:px-2.5 py-0.5 md:py-1 rounded text-xs font-medium bg-red-600 text-white hover:bg-red-700 transition"
+                  >
+                    Clear ({filteredMembers.length})
+                  </button>
+                )}
+                <div className="ml-auto px-2 md:px-3 py-0.5 md:py-1 bg-gray-700 rounded text-xs font-medium text-gray-300">
+                  Total: {filteredMembers.length}
+                </div>
               </div>
             </div>
           </div>
