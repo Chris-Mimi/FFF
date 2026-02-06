@@ -131,6 +131,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Create athlete_profiles entry so member appears in Athletes tab
+    const { error: athleteProfileError } = await supabaseAdmin
+      .from('athlete_profiles')
+      .insert({
+        user_id: authData.user.id,
+        full_name: name.trim(),
+        email: email.toLowerCase()
+      });
+
+    if (athleteProfileError) {
+      console.error('Athlete profile creation error:', athleteProfileError);
+      // Don't fail registration if athlete profile creation fails - can be added later
+    }
+
     // TODO: Create in-app notification for coaches about new pending member
     // This will be implemented in Phase 3 (Notifications)
 
