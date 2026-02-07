@@ -129,7 +129,6 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
           throw error;
         }
 
-        console.log('Successfully updated benchmark result');
       } else {
         // Fetch forge benchmark details to get ID and type
         const { data: forgeBenchmark, error: fetchError } = await supabase
@@ -146,15 +145,6 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
         if (!forgeBenchmark) {
           throw new Error('Forge benchmark not found');
         }
-
-        console.log('Inserting result for:', selectedBenchmark, {
-          user_id: userId,
-          forge_benchmark_id: forgeBenchmark.id,
-          benchmark_name: selectedBenchmark,
-          benchmark_type: forgeBenchmark.type,
-          result_value: newTime,
-          scaling_level: newScaling,
-        });
 
         // Insert new entry
         const { data: insertedData, error: insertError } = await supabase
@@ -176,7 +166,6 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
           throw insertError;
         }
 
-        console.log('Successfully inserted benchmark result:', insertedData);
       }
 
       alert(`Successfully ${editingBenchmarkId ? 'updated' : 'saved'} benchmark result!`);

@@ -8,7 +8,6 @@ export async function POST(request: NextRequest) {
     const authHeader = request.headers.get('Authorization');
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      console.log('❌ No Authorization header found');
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
@@ -16,7 +15,6 @@ export async function POST(request: NextRequest) {
     }
 
     const accessToken = authHeader.replace('Bearer ', '');
-    console.log('✅ Found access token in header');
 
     // Create Supabase client with auth token
     const supabase = createClient(
@@ -54,7 +52,7 @@ export async function POST(request: NextRequest) {
     // Fetch booking to verify ownership
     const { data: booking, error: fetchError } = await supabase
       .from('bookings')
-      .select('*')
+      .select('id, member_id, status, session_id')
       .eq('id', bookingId)
       .single();
 
@@ -72,26 +70,16 @@ export async function POST(request: NextRequest) {
       .eq('id', booking.member_id)
       .single();
 
-    console.log('🔍 Authorization check:', {
-      authenticated_user: user.id,
-      booking_member_id: booking.member_id,
-      booking_member_data: bookingMember,
-      member_fetch_error: memberError
-    });
-
     const canCancel =
       booking.member_id === user.id || // User's own booking
       bookingMember?.primary_member_id === user.id; // Family member's booking
 
     if (!canCancel) {
-      console.log('❌ Authorization failed - cannot cancel');
       return NextResponse.json(
         { error: 'You can only cancel your own bookings' },
         { status: 403 }
       );
     }
-
-    console.log('✅ Authorization passed');
 
     if (booking.status === 'cancelled') {
       return NextResponse.json(
@@ -150,8 +138,6 @@ export async function POST(request: NextRequest) {
       // Refund if: 10-card member, has used sessions, and within grace period
       if (hasTenCardMembership && tenCardUsed > 0 && withinGracePeriod) {
         try {
-          console.log('🔄 10-card refund: Member', booking.member_id, 'cancelling within grace period, current:', tenCardUsed);
-
           const { error: updateError } = await supabase
             .from('members')
             .update({
@@ -162,14 +148,12 @@ export async function POST(request: NextRequest) {
           if (updateError) {
             console.error('Failed to refund 10-card session:', updateError);
           } else {
-            console.log('✅ 10-card refunded. New count:', tenCardUsed - 1);
             refundMessage = ' Your 10-card session has been refunded.';
           }
         } catch (error) {
           console.error('Error handling 10-card refund:', error);
         }
       } else if (hasTenCardMembership && !withinGracePeriod) {
-        console.log('⏰ 10-card NOT refunded: Outside grace period (less than 12 hours before class)');
         refundMessage = ' Note: 10-card session NOT refunded (cancellation less than 12 hours before class).';
       }
     }
@@ -212,10 +196,8 @@ export async function POST(request: NextRequest) {
               ten_card_sessions_used: promotedTenCardUsed + 1
             })
             .eq('id', firstWaitlist.member_id);
-          console.log('✅ 10-card incremented for promoted member:', firstWaitlist.member_id);
         }
 
-        console.log('✅ Promoted waitlist member to confirmed:', firstWaitlist.member_id);
         // TODO: Send notification to promoted member (Phase 3)
       }
     }

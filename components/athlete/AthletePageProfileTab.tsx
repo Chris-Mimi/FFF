@@ -3,6 +3,7 @@
 
 import { supabase } from '@/lib/supabase';
 import { Edit2, User } from 'lucide-react';
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
 interface AthletePageProfileTabProps {
@@ -32,26 +33,22 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
   }, [userId]);
 
   const fetchProfile = async () => {
-    console.log('Fetching profile for user:', userId);
     setLoading(true);
     try {
       // Get the most recent profile (in case there are duplicates)
       const { data, error } = await supabase
         .from('athlete_profiles')
-        .select('*')
+        .select('full_name, email, date_of_birth, phone_number, height_cm, weight_kg, emergency_contact_name, emergency_contact_phone, avatar_url')
         .eq('user_id', userId)
         .order('updated_at', { ascending: false })
         .limit(1)
         .maybeSingle();
-
-      console.log('Profile fetch result:', { data, error });
 
       if (error) {
         throw error;
       }
 
       if (data) {
-        console.log('Setting profile data from database:', data);
         setProfile({
           full_name: data.full_name || '',
           email: data.email || '',
@@ -67,7 +64,6 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
           setAvatarUrl(data.avatar_url);
         }
       } else {
-        console.log('No profile data found - checking members table for family member');
         // No athlete_profiles - might be a family member, get name from members table
         const { data: memberData } = await supabase
           .from('members')
@@ -88,7 +84,6 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
             avatar_url: '',
           });
         } else {
-          console.log('No member data found either, resetting to empty profile');
           // Reset to empty profile for new users/family members
           setProfile({
             full_name: '',
@@ -157,20 +152,11 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
   };
 
   const handleSaveProfile = async () => {
-    console.log('Starting profile save for user:', userId);
-    console.log('Profile data to save:', profile);
-
     // Verify session exists
     const {
       data: { session },
       error: sessionError,
     } = await supabase.auth.getSession();
-    console.log('Current session:', {
-      hasSession: !!session,
-      userId: session?.user?.id,
-      sessionError,
-    });
-
     if (!session) {
       alert('No active session found. Please logout and login again.');
       return;
@@ -186,8 +172,6 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
         .limit(1)
         .maybeSingle();
 
-      console.log('Existing profile check:', { existingProfile, fetchError });
-
       const profileData = {
         user_id: userId,
         full_name: profile.full_name || null,
@@ -201,8 +185,6 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
         avatar_url: avatarUrl || null,
       };
 
-      console.log('Formatted profile data:', profileData);
-
       // Always update members.name for consistency
       if (profile.full_name) {
         await supabase
@@ -213,7 +195,6 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
 
       if (existingProfile) {
         // Update existing profile (for primary account holder)
-        console.log('Updating existing profile with id:', existingProfile.id);
         const { data, error } = await supabase
           .from('athlete_profiles')
           .update({
@@ -222,8 +203,6 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
           })
           .eq('id', existingProfile.id)
           .select();
-
-        console.log('Update result:', { data, error });
 
         if (error) throw error;
         alert('Profile updated successfully!');
@@ -255,10 +234,9 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
         {/* Profile Picture */}
         <div className='flex items-center gap-4'>
           <div className='relative'>
-            <div className='w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden'>
+            <div className='relative w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden'>
               {avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={avatarUrl} alt='Profile' className='w-full h-full object-cover' />
+                <Image src={avatarUrl} alt='Profile' fill className='object-cover' />
               ) : (
                 <User size={40} className='text-gray-400' />
               )}

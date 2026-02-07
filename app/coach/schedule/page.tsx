@@ -1,6 +1,7 @@
 'use client';
 
 import { signOut } from '@/lib/auth';
+import { authFetch } from '@/lib/auth-fetch';
 import { supabase } from '@/lib/supabase';
 import { Calendar, Edit2, LogOut, Plus, Trash2, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -249,9 +250,8 @@ export default function CoachSchedulePage() {
     setGenerationResult(null);
 
     try {
-      const response = await fetch('/api/sessions/generate-weekly', {
+      const response = await authFetch('/api/sessions/generate-weekly', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(startDate ? { start_date: startDate } : {})
       });
 

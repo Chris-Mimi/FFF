@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { stripe, getPriceId, isSubscription, ProductType } from '@/lib/stripe';
+import { requireAuth, isAuthError } from '@/lib/auth-api';
 
 // Use service role for admin operations
 const supabaseAdmin = createClient(
@@ -16,6 +17,9 @@ const supabaseAdmin = createClient(
 
 export async function POST(request: NextRequest) {
   try {
+    const user = await requireAuth(request);
+    if (isAuthError(user)) return user;
+
     const body = await request.json();
     const { productType, memberId } = body as { productType: ProductType; memberId: string };
 
@@ -78,7 +82,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Build checkout session params
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    if (!process.env.NEXT_PUBLIC_APP_URL) {
+      throw new Error('NEXT_PUBLIC_APP_URL environment variable is required');
+    }
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
 
     // Create checkout session
     const session = await stripe.checkout.sessions.create({

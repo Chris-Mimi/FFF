@@ -147,8 +147,6 @@ function ExerciseLibraryPopup({
 
   // Filter exercises across all categories - memoized to ensure recalculation
   const filteredCategories = useMemo(() => {
-    console.log('Recalculating filtered categories. searchTerm:', JSON.stringify(searchTerm), 'length:', searchTerm.length);
-
     // Group exercises by category
     const grouped: Record<string, Exercise[]> = {};
 
@@ -160,14 +158,11 @@ function ExerciseLibraryPopup({
     });
 
     const trimmedSearch = searchTerm.trim();
-    console.log('Trimmed search:', JSON.stringify(trimmedSearch), 'length:', trimmedSearch.length);
 
     if (!trimmedSearch) {
-      console.log('Search is empty, returning all exercises');
       return grouped;
     }
 
-    console.log('Search has value, filtering...');
     // With search term - filter exercises in each category
     const filtered: Record<string, Exercise[]> = {};
     Object.entries(grouped).forEach(([category, categoryExercises]) => {
@@ -180,7 +175,6 @@ function ExerciseLibraryPopup({
         filtered[category] = matchingExercises;
       }
     });
-    console.log('Returning filtered results');
     return filtered;
   }, [exercises, searchTerm]);
 

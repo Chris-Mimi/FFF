@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { requireCoach, isAuthError } from '@/lib/auth-api';
 
 // Use service role for admin operations
 const supabaseAdmin = createClient(
@@ -15,6 +16,9 @@ const supabaseAdmin = createClient(
 
 export async function POST(request: NextRequest) {
   try {
+    const coach = await requireCoach(request);
+    if (isAuthError(coach)) return coach;
+
     const body = await request.json();
     const { memberId } = body;
 
@@ -29,7 +33,7 @@ export async function POST(request: NextRequest) {
     // Fetch member to verify they exist
     const { data: member, error: fetchError } = await supabaseAdmin
       .from('members')
-      .select('*')
+      .select('id, status')
       .eq('id', memberId)
       .single();
 

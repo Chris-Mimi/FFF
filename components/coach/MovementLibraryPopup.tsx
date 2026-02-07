@@ -418,7 +418,6 @@ function MovementLibraryPopup({
         throw error;
       }
 
-      console.log('Created forge benchmark:', data);
       alert('Forge Benchmark created successfully!');
 
       setShowCreateForgeModal(false);

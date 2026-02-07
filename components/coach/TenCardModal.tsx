@@ -106,7 +106,6 @@ export default function TenCardModal({
       }
 
       const count = bookings?.length || 0;
-      console.log(`📊 Recalculated sessions: ${count} bookings (confirmed + no_show + late_cancel) since ${purchaseDateStr}`);
       return count;
     } catch (error) {
       console.error('Error recalculating sessions:', error);
@@ -122,8 +121,6 @@ export default function TenCardModal({
         ? await recalculateSessionsUsed(purchaseDate)
         : sessionsUsed;
 
-      console.log('🛟 PaymentModal save:', member.id);
-
       const updateData: Record<string, unknown> = {};
 
       if (activeSection === '10card') {
@@ -136,19 +133,14 @@ export default function TenCardModal({
         updateData.athlete_subscription_end = subscriptionEnd || null;
       }
 
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('members')
         .update(updateData)
         .eq('id', member.id);
 
-      console.log('🗃️ Supabase update result - data:', data, 'error:', error);
-
       if (error) {
-        console.error('📛 Supabase error updating payment info:', error);
         throw error;
       }
-
-      console.log('✅ Payment modal save successful, calling onUpdate()...');
       onUpdate();
       onClose();
     } catch (error) {

@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch } from '@/lib/auth-fetch';
 import { supabase } from '@/lib/supabase';
 import { CreditCard, Calendar, Package, ExternalLink, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -80,9 +81,8 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
     setError(null);
 
     try {
-      const response = await fetch('/api/stripe/create-checkout', {
+      const response = await authFetch('/api/stripe/create-checkout', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ productType, memberId: userId }),
       });
 
@@ -109,9 +109,8 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
     setError(null);
 
     try {
-      const response = await fetch('/api/stripe/customer-portal', {
+      const response = await authFetch('/api/stripe/customer-portal', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ memberId: userId }),
       });
 

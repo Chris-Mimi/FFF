@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { requireCoach, isAuthError } from '@/lib/auth-api';
 
 // Use service role for admin operations
 const supabaseAdmin = createClient(
@@ -23,6 +24,9 @@ interface SessionTemplate {
 
 export async function POST(request: NextRequest) {
   try {
+    const coach = await requireCoach(request);
+    if (isAuthError(coach)) return coach;
+
     const body = await request.json();
     const { start_date } = body; // Optional: YYYY-MM-DD format
 
@@ -43,7 +47,7 @@ export async function POST(request: NextRequest) {
     // Fetch all active session templates
     const { data: templates, error: templatesError } = await supabaseAdmin
       .from('session_templates')
-      .select('*')
+      .select('id, day_of_week, time, workout_type, default_capacity')
       .eq('active', true)
       .order('day_of_week', { ascending: true });
 
@@ -93,7 +97,6 @@ export async function POST(request: NextRequest) {
         .single();
 
       if (existingSession) {
-        console.log(`Session already exists for ${formattedDate} at ${template.time}, skipping`);
         continue;
       }
 

@@ -113,25 +113,11 @@ npm run restore 2025-12-06
 ### Evaluation Decision Tree
 
 **Ask yourself:**
-1. **Is this Cline/Grok suitable?**
-   - ✅ Single file modification
-   - ✅ UI/visual changes
-   - ✅ Component styling
-   - ✅ Simple bug fixes
-   - → **Recommend Cline/Grok**
-
-2. **Is this Task Agent suitable?**
+1.  **Is this Task Agent suitable?**
    - ✅ 3+ distinct steps
    - ✅ Multi-file search/exploration
    - ✅ Repetitive changes across files
    - → **Recommend Agent**
-
-3. **Is this Claude Code direct work?**
-   - ✅ Multi-file feature (3+ files)
-   - ✅ Git operations
-   - ✅ Memory Bank updates
-   - ✅ Complex logic/debugging
-   - ** Suggest yourself for the task **
 
 ### Required Output Format
 
@@ -139,7 +125,7 @@ npm run restore 2025-12-06
 ```
 Task: [brief description]
 Complexity: [single-file/multi-file/exploratory/etc]
-Best approach: [Cline/Agent/Me directly]
+Best approach: [Agent/Me directly]
 Reasoning: [one sentence why]
 
 Proceed with [approach]?
@@ -150,8 +136,6 @@ Proceed with [approach]?
 - **NEVER** start implementation without this evaluation
 - **NEVER** skip asking user for approval of approach
 - **ALWAYS** provide this evaluation even if task seems obvious
-
-**Cost awareness:** Cline ($0.10-0.15) vs Claude Code direct ($0.20+ with context usage)
 
 ---
 
@@ -205,11 +189,6 @@ Proceed with [approach]?
 
 ## 🤖 AI ASSISTANT SELECTION
 
-### When to Use Cline/Grok (VS Code)
-**Best for:**
-- Single-file edits
-- UI tweaks with immediate preview
-- TypeScript refactoring
 
 **Requirements:**
 - ⚠️ Subagents MUST be enabled (50-70% cost savings)
@@ -232,65 +211,11 @@ Proceed with [approach]?
 ### Decision Matrix
 | Task | Use | Why |
 |:---|:---|:---|
-| "Change button color" | Cline | Single file, instant preview |
 | "Refactor auth system" | Claude Code | Multi-file, complex |
 | "Fix RLS policies" | Claude Code | Backend debugging |
 | "Update Memory Bank" | Claude Code | Designed for it |
 | "New feature (3+ files)" | Claude Code | Needs agents |
 
----
-
-## 🔄 CLINE/GROK INTEGRATION
-
-### Task Evaluation (MANDATORY)
-**When user requests task, evaluate if Cline/Grok is suitable:**
-
-**✅ Grok suitable:**
-- Single file modification
-- UI/visual changes
-- Component styling
-- Simple bug fixes
-
-**❌ Use Claude Code:**
-- Multi-file changes
-- Git operations
-- Memory Bank updates
-- Complex logic/debugging
-
-### Grok Prompt Format
-```
-[Short title]
-
-[Specific problem description]
-
-Fix [exact file and line numbers]:
-- [What to change]
-- [Expected behavior]
-- [How to test]
-```
-
-### Git Commit Protocol After Grok Work (MANDATORY)
-**When user says "Grok made changes, check and commit":**
-
-1. **ALWAYS run `git status` FIRST** - See ALL modified files
-2. **ALWAYS run `git diff`** - Review ALL changes
-3. Show user summary of changes
-4. Wait for confirmation if unexpected
-5. Commit all related files together
-6. Push only if requested
-
-**Why:** Grok can modify multiple files silently. Prevents partial commits and lost work.
-
-**Example:**
-```bash
-git status              # See what changed
-git diff app/coach/page.tsx
-git diff components/WorkoutModal.tsx
-# Show summaries, get confirmation
-git add app/coach/page.tsx components/WorkoutModal.tsx
-git commit -m "fix(coach): proper message"
-git push                # Only if requested
-```
 
 **NEVER:**
 - ❌ Commit without `git status` first

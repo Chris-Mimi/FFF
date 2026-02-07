@@ -1,6 +1,7 @@
 'use client';
 
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
 interface WhiteboardPhoto {
@@ -179,10 +180,13 @@ export default function AthletePagePhotosTab() {
                   onClick={() => handleViewPhoto(photo)}
                 >
                   <div className='h-48 overflow-y-auto'>
-                    <img
+                    <Image
                       src={photo.photo_url}
                       alt={photo.photo_label}
-                      className='w-full'
+                      width={0}
+                      height={0}
+                      sizes='100vw'
+                      className='w-full h-auto'
                     />
                   </div>
                   <div className='p-3 space-y-1'>
@@ -223,10 +227,13 @@ export default function AthletePagePhotosTab() {
               >
                 <X size={24} />
               </button>
-              <img
+              <Image
                 src={selectedPhoto.photo_url}
                 alt={selectedPhoto.photo_label}
-                className='max-w-[90vw] max-h-[85vh] object-contain rounded-lg'
+                width={0}
+                height={0}
+                sizes='90vw'
+                className='max-w-[90vw] max-h-[85vh] object-contain rounded-lg w-auto h-auto'
               />
               <div className='mt-2 bg-black bg-opacity-70 text-white p-3 rounded-lg'>
                 <p className='font-medium'>{selectedPhoto.photo_label}</p>

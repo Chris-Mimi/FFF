@@ -22,7 +22,7 @@ export async function loadSectionResults(
   try {
     const { data, error } = await supabase
       .from('wod_section_results')
-      .select('*')
+      .select('section_id, wod_id, time_result, reps_result, weight_result, scaling_level, rounds_result, calories_result, metres_result, task_completed')
       .eq('user_id', userId)
       .eq('workout_date', workoutDate);
 
@@ -55,7 +55,6 @@ export async function loadSectionResults(
           task_completed: result.task_completed || false,
         };
       });
-      console.log('[loadSectionResults] Setting results, keys:', Object.keys(newSectionResults));
       return newSectionResults;
     }
   } catch (error) {
@@ -75,7 +74,7 @@ export async function loadBenchmarkResultsToSection(
   try {
     const { data, error } = await supabase
       .from('benchmark_results')
-      .select('*')
+      .select('benchmark_name, benchmark_id, forge_benchmark_id, time_result, reps_result, weight_result, scaling_level')
       .eq('user_id', userId)
       .eq('result_date', workoutDate);
 
@@ -150,11 +149,9 @@ export async function loadLiftResultsToSection(
   workouts: WOD[]
 ): Promise<Record<string, SectionResult>> {
   try {
-    console.log('[loadLiftResultsToSection] Starting load for date:', workoutDate, 'workouts.length:', workouts.length);
-
     const { data, error } = await supabase
       .from('lift_records')
-      .select('*')
+      .select('lift_name, rep_scheme, reps, weight_kg')
       .eq('user_id', userId)
       .eq('lift_date', workoutDate);
 
@@ -162,8 +159,6 @@ export async function loadLiftResultsToSection(
       console.error('Error loading lift results:', error);
       return {};
     }
-
-    console.log('[loadLiftResultsToSection] Fetched records:', data?.length || 0);
 
     if (data && workouts.length > 0) {
       const newResults: Record<string, SectionResult> = {};
@@ -186,7 +181,6 @@ export async function loadLiftResultsToSection(
             const key = `${wod.id}:::${section.id}:::lift-${idx}`;
 
             if (matchingResult) {
-              console.log('[loadLiftResultsToSection] Matched lift:', lift.name, 'reps:', matchingResult.reps, 'weight:', matchingResult.weight_kg, 'key:', key);
               newResults[key] = {
                 time_result: '',
                 reps_result: matchingResult.reps?.toString() || '',
@@ -202,10 +196,7 @@ export async function loadLiftResultsToSection(
         });
       });
 
-      console.log('[loadLiftResultsToSection] Setting results, keys:', Object.keys(newResults));
       return newResults;
-    } else {
-      console.log('[loadLiftResultsToSection] Skipped - no data or no workouts');
     }
   } catch (error) {
     console.error('Error loading lift results:', error);

@@ -108,7 +108,6 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
     const newResults = await loadSectionResults(userId, workoutDate);
     setSectionResults(prev => {
       const updated = { ...prev, ...newResults };
-      console.log('[loadSectionResults] Updated state keys:', Object.keys(updated));
       return updated;
     });
   };
@@ -265,15 +264,12 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
     const loadAllData = async () => {
       if (workouts.length > 0 && selectedDate && userId && !cancelled) {
         const dateStr = formatLocalDate(selectedDate);
-        console.log('[useEffect] Loading all data for date:', dateStr, 'workouts:', workouts.length);
-
         // Run sequentially to avoid race conditions with state updates
         if (!cancelled) await loadLiftRecords(dateStr);
         if (!cancelled) await loadSectionResultsWrapper(dateStr);
         if (!cancelled) await loadBenchmarkResultsToSectionWrapper(dateStr);
         if (!cancelled) await loadLiftResultsToSectionWrapper(dateStr);
 
-        if (!cancelled) console.log('[useEffect] All data loaded');
       }
     };
 

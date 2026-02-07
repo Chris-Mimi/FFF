@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
+import { requireCoach, isAuthError } from '@/lib/auth-api';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
 
     let query = supabaseAdmin
       .from('whiteboard_photos')
-      .select('*')
+      .select('id, workout_week, photo_label, photo_url, caption, display_order, created_at')
       .order('photo_label', { ascending: true });
 
     if (week) {
@@ -26,7 +27,7 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Error fetching whiteboard photos:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to fetch whiteboard photos' }, { status: 500 });
     }
 
     return NextResponse.json(data);
@@ -39,6 +40,9 @@ export async function GET(request: NextRequest) {
 // POST /api/whiteboard-photos
 export async function POST(request: NextRequest) {
   try {
+    const coach = await requireCoach(request);
+    if (isAuthError(coach)) return coach;
+
     const body = await request.json();
     const { workout_week, photo_label, photo_url, storage_path, caption, uploaded_by, display_order } = body;
 
@@ -50,15 +54,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('API: Attempting to insert photo with uploaded_by:', uploaded_by);
-
     // Verify user exists in auth.users if uploaded_by is provided
     let validatedUploadedBy = null;
     if (uploaded_by) {
       const { data: userExists } = await supabaseAdmin.auth.admin.getUserById(uploaded_by);
       if (userExists.user) {
         validatedUploadedBy = uploaded_by;
-        console.log('API: User verified in auth.users');
       } else {
         console.warn('API: User not found in auth.users, setting uploaded_by to NULL');
       }
@@ -80,10 +81,9 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Error creating whiteboard photo:', error);
-      return NextResponse.json({ error: error.message, details: error }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to create whiteboard photo' }, { status: 500 });
     }
 
-    console.log('API: Photo created successfully:', data.id);
     return NextResponse.json(data, { status: 201 });
   } catch (error) {
     console.error('Server error:', error);
@@ -94,6 +94,9 @@ export async function POST(request: NextRequest) {
 // PATCH /api/whiteboard-photos/:id (handled via query param)
 export async function PATCH(request: NextRequest) {
   try {
+    const coach = await requireCoach(request);
+    if (isAuthError(coach)) return coach;
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
@@ -119,7 +122,7 @@ export async function PATCH(request: NextRequest) {
 
     if (error) {
       console.error('Error updating whiteboard photo:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to update whiteboard photo' }, { status: 500 });
     }
 
     return NextResponse.json(data);
@@ -132,6 +135,9 @@ export async function PATCH(request: NextRequest) {
 // DELETE /api/whiteboard-photos?id=xxx
 export async function DELETE(request: NextRequest) {
   try {
+    const coach = await requireCoach(request);
+    if (isAuthError(coach)) return coach;
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
@@ -168,7 +174,7 @@ export async function DELETE(request: NextRequest) {
 
     if (deleteError) {
       console.error('Error deleting whiteboard photo:', deleteError);
-      return NextResponse.json({ error: deleteError.message }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to delete whiteboard photo' }, { status: 500 });
     }
 
     return NextResponse.json({ message: 'Photo deleted successfully' });

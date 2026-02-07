@@ -1,6 +1,7 @@
 'use client';
 
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import Image from 'next/image';
 
 interface WhiteboardPhoto {
   id: string;
@@ -56,10 +57,13 @@ export default function PhotoModal({
           >
             <X size={24} />
           </button>
-          <img
+          <Image
             src={photo.photo_url}
             alt={photo.photo_label}
-            className='max-w-[90vw] max-h-[85vh] object-contain rounded-lg'
+            width={0}
+            height={0}
+            sizes='90vw'
+            className='max-w-[90vw] max-h-[85vh] object-contain rounded-lg w-auto h-auto'
           />
           <div className='mt-2 bg-black bg-opacity-70 text-white p-3 rounded-lg'>
             <p className='font-medium'>{photo.photo_label}</p>

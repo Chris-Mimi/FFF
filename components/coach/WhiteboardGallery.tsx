@@ -1,7 +1,9 @@
 'use client';
 
 import { WhiteboardPhoto } from '@/app/coach/whiteboard/page';
+import { authFetch } from '@/lib/auth-fetch';
 import { ChevronLeft, ChevronRight, Edit2, Trash2, X } from 'lucide-react';
+import Image from 'next/image';
 import { useState } from 'react';
 
 interface WhiteboardGalleryProps {
@@ -61,9 +63,8 @@ export default function WhiteboardGallery({
 
   const handleSaveEdit = async (photoId: string) => {
     try {
-      const response = await fetch(`/api/whiteboard-photos?id=${photoId}`, {
+      const response = await authFetch(`/api/whiteboard-photos?id=${photoId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           photo_label: editForm.photo_label.trim(),
           caption: editForm.caption.trim() || null,
@@ -86,7 +87,7 @@ export default function WhiteboardGallery({
     }
 
     try {
-      const response = await fetch(`/api/whiteboard-photos?id=${photoId}`, {
+      const response = await authFetch(`/api/whiteboard-photos?id=${photoId}`, {
         method: 'DELETE',
       });
 
@@ -122,7 +123,7 @@ export default function WhiteboardGallery({
               className='relative h-48 overflow-y-auto cursor-pointer'
               onClick={() => handleViewPhoto(photo)}
             >
-              <img src={photo.photo_url} alt={photo.photo_label} className='w-full' />
+              <Image src={photo.photo_url} alt={photo.photo_label} width={0} height={0} sizes='100vw' className='w-full h-auto' />
             </div>
 
             {/* Details */}
@@ -213,10 +214,13 @@ export default function WhiteboardGallery({
             >
               <X size={24} />
             </button>
-            <img
+            <Image
               src={selectedPhoto.photo_url}
               alt={selectedPhoto.photo_label}
-              className='max-w-full max-h-[80vh] object-contain rounded-lg'
+              width={0}
+              height={0}
+              sizes='90vw'
+              className='max-w-full max-h-[80vh] object-contain rounded-lg w-auto h-auto'
             />
             <div className='mt-2 bg-black bg-opacity-70 text-white p-3 rounded-lg'>
               <p className='font-medium'>{selectedPhoto.photo_label}</p>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, User, Trophy, Dumbbell, BookOpen, Plus, CreditCard } from 'lucide-react';
+import Image from 'next/image';
 import { getCurrentUser } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 
@@ -128,10 +129,9 @@ export default function CoachAthletesPage() {
                       }`}
                     >
                       <div className='flex items-center gap-2 md:gap-3'>
-                        <div className='w-8 h-8 md:w-10 md:h-10 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden'>
+                        <div className='relative w-8 h-8 md:w-10 md:h-10 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden'>
                           {athlete.avatar_url ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={athlete.avatar_url} alt={athlete.full_name || 'Athlete'} className='w-full h-full object-cover' />
+                            <Image src={athlete.avatar_url} alt={athlete.full_name || 'Athlete'} fill className='object-cover' />
                           ) : (
                             <User size={16} className='md:w-5 md:h-5 text-gray-400' />
                           )}
@@ -162,10 +162,9 @@ export default function CoachAthletesPage() {
                 {/* Athlete Header */}
                 <div className='bg-white rounded-lg shadow p-3 md:p-6'>
                   <div className='flex items-center gap-3 md:gap-4 mb-4 md:mb-6'>
-                    <div className='w-12 h-12 md:w-20 md:h-20 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden'>
+                    <div className='relative w-12 h-12 md:w-20 md:h-20 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden'>
                       {selectedAthlete.avatar_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={selectedAthlete.avatar_url} alt={selectedAthlete.full_name || 'Athlete'} className='w-full h-full object-cover' />
+                        <Image src={selectedAthlete.avatar_url} alt={selectedAthlete.full_name || 'Athlete'} fill className='object-cover' />
                       ) : (
                         <User size={24} className='md:w-8 md:h-8 text-gray-400' />
                       )}
@@ -356,7 +355,7 @@ function BenchmarksSection({
     try {
       const { data, error } = await supabase
         .from('benchmark_results')
-        .select('*')
+        .select('id, benchmark_name, result_value, notes, result_date, scaling_level')
         .eq('user_id', athleteId)
         .order('result_date', { ascending: false });
 
@@ -443,7 +442,7 @@ function LiftsSection({ athleteId, onAddResult }: { athleteId?: string; onAddRes
     try {
       const { data, error } = await supabase
         .from('lift_records')
-        .select('*')
+        .select('id, lift_name, weight_kg, reps, calculated_1rm, rep_max_type, notes, lift_date')
         .eq('user_id', athleteId)
         .order('lift_date', { ascending: false });
 
@@ -515,8 +514,8 @@ function LogbookSection({ athleteId }: { athleteId?: string }) {
     result?: string;
     notes?: string;
     workout?: {
-      title: string;
-      date: string;
+      title: string | null;
+      date: string | null;
     } | null;
   }
 
@@ -537,7 +536,7 @@ function LogbookSection({ athleteId }: { athleteId?: string }) {
       // Fetch workout logs
       const { data: logsData, error: logsError } = await supabase
         .from('workout_logs')
-        .select('*')
+        .select('id, wod_id, workout_date, result, notes')
         .eq('user_id', athleteId)
         .order('workout_date', { ascending: false });
 
@@ -584,7 +583,7 @@ function LogbookSection({ athleteId }: { athleteId?: string }) {
         if (deleteError) {
           console.error('Error deleting orphaned logs:', deleteError);
         } else {
-          console.log(`Deleted ${orphanedLogIds.length} orphaned workout logs`);
+          // Orphaned logs cleaned up
         }
       }
 
@@ -677,8 +676,6 @@ function PaymentsSection({ memberId }: { memberId?: string }) {
     if (!memberId) return;
     setLoading(true);
     try {
-      console.log('[Payment] Starting fetch for user_id:', memberId);
-
       // First try to get member data directly by ID (works for family members who have no email)
       let member = null;
       const { data: memberById, error: memberByIdError } = await supabase
@@ -686,8 +683,6 @@ function PaymentsSection({ memberId }: { memberId?: string }) {
         .select('id, email, stripe_customer_id, ten_card_sessions_used, ten_card_total, ten_card_expiry_date, membership_types')
         .eq('id', memberId)
         .single();
-
-      console.log('[Payment] Member by ID query result:', { memberById, error: memberByIdError });
 
       if (memberById) {
         member = memberById;
@@ -699,10 +694,7 @@ function PaymentsSection({ memberId }: { memberId?: string }) {
           .eq('user_id', memberId)
           .single();
 
-        console.log('[Payment] Athlete query result:', { athlete, error: athleteError });
-
         if (athleteError || !athlete?.email) {
-          console.log('[Payment] No member found by ID or email');
           setLoading(false);
           return;
         }
@@ -713,13 +705,9 @@ function PaymentsSection({ memberId }: { memberId?: string }) {
           .eq('email', athlete.email)
           .single();
 
-        console.log('[Payment] Member by email query result:', { memberByEmail, error: memberByEmailError });
-
         if (memberByEmailError) throw memberByEmailError;
         member = memberByEmail;
       }
-
-      console.log('[Payment] Final member result:', { member });
 
       if (!member) return;
       setMemberData(member);
@@ -733,14 +721,11 @@ function PaymentsSection({ memberId }: { memberId?: string }) {
       }
 
       // Fetch subscriptions using actual member.id
-      console.log('[Payment] Querying subscriptions for member_id:', member.id);
       const { data: subs, error: subsError } = await supabase
         .from('subscriptions')
-        .select('*')
+        .select('id, stripe_subscription_id, plan_type, status, current_period_start, current_period_end, cancel_at_period_end')
         .eq('member_id', member.id)
         .order('created_at', { ascending: false });
-
-      console.log('[Payment] Subscriptions query result:', { subs, error: subsError });
 
       if (subsError) throw subsError;
       setSubscriptions(subs || []);

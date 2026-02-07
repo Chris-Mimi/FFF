@@ -8,7 +8,6 @@ export async function POST(request: NextRequest) {
     const authHeader = request.headers.get('Authorization');
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      console.log('❌ No Authorization header found');
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
@@ -16,7 +15,6 @@ export async function POST(request: NextRequest) {
     }
 
     const accessToken = authHeader.replace('Bearer ', '');
-    console.log('✅ Found access token in header');
 
     // Create Supabase client with auth token
     const supabase = createClient(
@@ -184,8 +182,6 @@ export async function POST(request: NextRequest) {
     let newTenCardRemaining = tenCardRemaining;
     if (booking.status === 'confirmed' && use10Card) {
       try {
-        console.log('🐾 10-card increment: Member', bookingMemberId, 'starting count:', tenCardUsed, 'of', tenCardTotal);
-
         // Safety check: ensure counter doesn't exceed total
         const newSessionsUsed = Math.min(tenCardUsed + 1, tenCardTotal);
 
@@ -202,7 +198,6 @@ export async function POST(request: NextRequest) {
           // Don't fail the booking for this - just log it
         } else {
           newTenCardRemaining = tenCardTotal - newSessionsUsed;
-          console.log('✅ 10-card incremented. Remaining sessions:', newTenCardRemaining);
         }
       } catch (error) {
         console.error('Error handling 10-card logic:', error);

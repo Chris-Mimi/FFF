@@ -1,7 +1,9 @@
 'use client';
 
+import { authFetch } from '@/lib/auth-fetch';
 import { supabase } from '@/lib/supabase';
 import { Calendar, Upload, X, Info } from 'lucide-react';
+import Image from 'next/image';
 import { useState } from 'react';
 
 // Browser-compatible UUID v4 generator
@@ -181,9 +183,8 @@ export default function WhiteboardUploadPanel({
         } = supabase.storage.from('whiteboard-photos').getPublicUrl(storagePath);
 
         // Save to database with parsed week
-        const dbResponse = await fetch('/api/whiteboard-photos', {
+        const dbResponse = await authFetch('/api/whiteboard-photos', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             workout_week: targetWeek,
             photo_label: fileLabel,
@@ -279,10 +280,14 @@ export default function WhiteboardUploadPanel({
           </button>
           <div className='grid grid-cols-3 gap-2'>
             {previewUrls.map((url, idx) => (
-              <img
+              <Image
                 key={idx}
                 src={url}
                 alt={`Preview ${idx + 1}`}
+                width={0}
+                height={0}
+                sizes='33vw'
+                unoptimized
                 className='w-full h-20 object-cover rounded-lg'
               />
             ))}

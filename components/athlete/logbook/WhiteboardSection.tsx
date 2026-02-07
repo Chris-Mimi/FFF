@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+
 interface WhiteboardPhoto {
   id: string;
   workout_week: string;
@@ -44,10 +46,13 @@ export default function WhiteboardSection({
               onClick={() => onPhotoClick(photo)}
             >
               <div className='h-48 overflow-y-auto'>
-                <img
+                <Image
                   src={photo.photo_url}
                   alt={photo.photo_label}
-                  className='w-full'
+                  width={0}
+                  height={0}
+                  sizes='100vw'
+                  className='w-full h-auto'
                 />
               </div>
               <div className='p-3 space-y-1'>

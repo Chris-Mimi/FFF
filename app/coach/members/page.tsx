@@ -2,6 +2,7 @@
 
 import TenCardModal from '@/components/coach/TenCardModal';
 import { signOut } from '@/lib/auth';
+import { authFetch } from '@/lib/auth-fetch';
 import { supabase } from '@/lib/supabase';
 import { Check, Clock, LogOut, UserCheck, UserX, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -114,11 +115,10 @@ export default function CoachMembersPage() {
   const fetchMembersWithAttendance = async (status: MemberStatus, timeframe: 7 | 30 | 365 | 'all') => {
     // Convert 'all' to null for the RPC call (no date filter)
     const daysParam = timeframe === 'all' ? null : timeframe;
-    console.log('🚀 fetchMembersWithAttendance starting, status:', status, 'timeframe:', timeframe, 'daysParam:', daysParam);
     setLoading(true);
     try {
       // First get the members
-      let query = supabase.from('members').select('*');
+      let query = supabase.from('members').select('id, email, name, display_name, phone, status, account_type, primary_member_id, athlete_trial_start, athlete_subscription_status, athlete_subscription_end, created_at, membership_types, ten_card_purchase_date, ten_card_sessions_used, ten_card_total, ten_card_expiry_date, date_of_birth, class_types');
 
       // Handle subscriptions tab separately (shows active members with athlete access)
       if (status === 'subscriptions') {
@@ -137,29 +137,31 @@ export default function CoachMembersPage() {
         throw membersError;
       }
 
-      // Then get attendance counts for each member
-      const membersWithAttendance = await Promise.all(
-        (membersData || []).map(async (member) => {
-          try {
-            const { data: attendanceData, error: attendanceError } = await supabase.rpc(
-              'get_member_attendance_count',
-              { p_member_id: member.id, p_days_back: daysParam }
-            );
+      // Batch fetch attendance counts in a single query (eliminates N+1)
+      const memberIds = (membersData || []).map(m => m.id);
+      let attendanceMap: Record<string, number> = {};
 
-            if (attendanceError) {
-              console.error('❌ Attendance fetch error for member', member.id, attendanceError);
-              return { ...member, attendance_count: 0 };
-            }
+      if (memberIds.length > 0) {
+        const { data: attendanceData, error: attendanceError } = await supabase.rpc(
+          'get_all_members_attendance',
+          { p_member_ids: memberIds, p_days_back: daysParam }
+        );
 
-            return { ...member, attendance_count: attendanceData || 0 };
-          } catch (error) {
-            console.error('❌ Attendance query failed for member', member.id, error);
-            return { ...member, attendance_count: 0 };
-          }
-        })
-      );
+        if (!attendanceError && attendanceData) {
+          attendanceMap = Object.fromEntries(
+            attendanceData.map((row: { member_id: string; attendance_count: number }) => [
+              row.member_id,
+              row.attendance_count,
+            ])
+          );
+        }
+      }
 
-      console.log('✅ fetchMembersWithAttendance success:', membersWithAttendance.length, 'members');
+      const membersWithAttendance = (membersData || []).map(member => ({
+        ...member,
+        attendance_count: attendanceMap[member.id] || 0,
+      }));
+
       setMembers(membersWithAttendance);
     } catch (error) {
       console.error('💥 fetchMembersWithAttendance failed:', error);
@@ -172,9 +174,8 @@ export default function CoachMembersPage() {
   const handleApprove = async (memberId: string) => {
     setProcessingMemberId(memberId);
     try {
-      const response = await fetch('/api/members/approve', {
+      const response = await authFetch('/api/members/approve', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ memberId })
       });
 
@@ -205,9 +206,8 @@ export default function CoachMembersPage() {
 
     setProcessingMemberId(memberId);
     try {
-      const response = await fetch('/api/members/block', {
+      const response = await authFetch('/api/members/block', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ memberId })
       });
 
@@ -238,9 +238,8 @@ export default function CoachMembersPage() {
 
     setProcessingMemberId(memberId);
     try {
-      const response = await fetch('/api/members/unapprove', {
+      const response = await authFetch('/api/members/unapprove', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ memberId })
       });
 
@@ -271,9 +270,8 @@ export default function CoachMembersPage() {
 
     setProcessingMemberId(memberId);
     try {
-      const response = await fetch('/api/members/unblock', {
+      const response = await authFetch('/api/members/unblock', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ memberId })
       });
 
@@ -304,9 +302,8 @@ export default function CoachMembersPage() {
 
     setProcessingMemberId(memberId);
     try {
-      const response = await fetch('/api/members/athlete-subscription', {
+      const response = await authFetch('/api/members/athlete-subscription', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ memberId, action: 'start_trial', days })
       });
 
@@ -333,9 +330,8 @@ export default function CoachMembersPage() {
 
     setProcessingMemberId(memberId);
     try {
-      const response = await fetch('/api/members/athlete-subscription', {
+      const response = await authFetch('/api/members/athlete-subscription', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ memberId, action: 'extend_trial', days })
       });
 
@@ -362,9 +358,8 @@ export default function CoachMembersPage() {
 
     setProcessingMemberId(memberId);
     try {
-      const response = await fetch('/api/members/athlete-subscription', {
+      const response = await authFetch('/api/members/athlete-subscription', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ memberId, action: 'activate' })
       });
 

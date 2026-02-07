@@ -11,7 +11,6 @@ export async function getCurrentUser(): Promise<User | null> {
       data: { user },
       error,
     } = await supabase.auth.getUser();
-    console.log('getCurrentUser result:', { user: user?.id, email: user?.email, error });
     if (error) throw error;
     return user;
   } catch (error) {
@@ -62,18 +61,12 @@ export async function requireAuth(): Promise<User> {
  */
 export async function signInWithEmail(email: string, password: string) {
   try {
-    console.log('Attempting sign in for:', email);
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
     if (error) throw error;
-    console.log('Sign in successful:', {
-      userId: data.user?.id,
-      email: data.user?.email,
-      session: !!data.session,
-    });
     return data;
   } catch (error) {
     console.error('Error signing in:', error);

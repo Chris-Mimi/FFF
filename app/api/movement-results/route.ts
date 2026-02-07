@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { requireCoach, isAuthError } from '@/lib/auth-api';
 
 // Use service role for admin operations
 const supabaseAdmin = createClient(
@@ -25,6 +26,9 @@ function calculateOneRepMax(weight: number, reps: number): number {
 
 export async function POST(request: NextRequest) {
   try {
+    const coach = await requireCoach(request);
+    if (isAuthError(coach)) return coach;
+
     const body = await request.json();
     const {
       userId,

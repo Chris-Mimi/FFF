@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch } from '@/lib/auth-fetch';
 import { Dispatch, SetStateAction } from 'react';
 
 interface BenchmarkResult {
@@ -51,9 +52,8 @@ export function useBenchmarkManagement(
     }
 
     try {
-      const response = await fetch('/api/benchmark-results', {
+      const response = await authFetch('/api/benchmark-results', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId,
           benchmarkId,
@@ -75,7 +75,6 @@ export function useBenchmarkManagement(
         throw new Error(data.error || 'Failed to save benchmark result');
       }
 
-      console.log('Benchmark result saved:', data);
     } catch (error) {
       console.error('Error saving benchmark result:', error);
       alert(`Failed to save benchmark result: ${error instanceof Error ? error.message : String(error)}`);
@@ -85,14 +84,9 @@ export function useBenchmarkManagement(
 
   // Save all benchmark results for a workout
   const saveAllBenchmarkResults = async (dateStr: string) => {
-    console.log('=== SAVING BENCHMARK RESULTS ===');
-    console.log('All benchmark results state:', benchmarkResults);
-
     const resultsToSave = Object.entries(benchmarkResults).filter(
       ([_, result]) => result.time_result || result.reps_result || result.weight_result
     );
-
-    console.log('Filtered results to save:', resultsToSave);
 
     if (resultsToSave.length === 0) {
       alert('No benchmark results entered to save');
@@ -103,15 +97,6 @@ export function useBenchmarkManagement(
     const errors: Array<{ benchmark_name: string; error: string }> = [];
     for (const [key, result] of resultsToSave) {
       try {
-        console.log(`Saving benchmark result [${key}]:`, {
-          name: result.benchmark_name,
-          type: result.benchmark_type,
-          time: result.time_result,
-          reps: result.reps_result,
-          weight: result.weight_result,
-          scaling: result.scaling_level
-        });
-
         await saveBenchmarkResult(
           result.benchmark_name,
           result.benchmark_type,
@@ -123,7 +108,6 @@ export function useBenchmarkManagement(
           result.benchmark_id,
           result.forge_benchmark_id
         );
-        console.log(`✓ Successfully saved ${result.benchmark_name}`);
       } catch (error) {
         console.error(`✗ Failed to save ${result.benchmark_name}:`, error);
         errors.push({ benchmark_name: result.benchmark_name, error: error instanceof Error ? error.message : 'Unknown error' });

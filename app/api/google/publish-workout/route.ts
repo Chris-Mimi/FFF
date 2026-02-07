@@ -1,7 +1,7 @@
-import { supabase } from '@/lib/supabase';
 import { google } from 'googleapis';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { requireCoach, isAuthError } from '@/lib/auth-api';
 
 // Service role client for bypassing RLS
 const supabaseAdmin = createClient(
@@ -78,20 +78,17 @@ interface Workout {
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('[API] Received publish request');
+    const coach = await requireCoach(request);
+    if (isAuthError(coach)) return coach;
 
     const body = await request.json();
-    console.log('[API] Request body:', JSON.stringify(body, null, 2));
 
     const { workoutId, publishConfig } = body as {
       workoutId: string;
       publishConfig: PublishConfig;
     };
 
-    console.log('[API] Parsed - workoutId:', workoutId, 'publishConfig:', publishConfig);
-
     if (!workoutId || !publishConfig) {
-      console.log('[API] Missing fields - workoutId:', !!workoutId, 'publishConfig:', !!publishConfig);
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
@@ -102,11 +99,7 @@ export async function POST(request: NextRequest) {
       .eq('id', workoutId)
       .single();
 
-    console.log('[API] Database query result - workout:', !!workout, 'error:', fetchError);
-    console.log('[API] Workout data - workout_name:', workout?.workout_name, 'session_type:', workout?.session_type, 'track_id:', workout?.track_id);
-
     if (fetchError || !workout) {
-      console.log('[API] Workout not found - fetchError:', fetchError, 'workout:', workout);
       return NextResponse.json({ error: 'Workout not found' }, { status: 404 });
     }
 
@@ -302,8 +295,6 @@ export async function POST(request: NextRequest) {
           }
         }
         const workoutTitle = workout.workout_name || trackName || workout.title;
-        console.log('[API] Title logic - workout_name:', workout.workout_name, 'trackName:', trackName, 'title:', workout.title);
-        console.log('[API] Final workoutTitle:', workoutTitle, 'Event summary will be:', `${workoutTitle} - ${workout.title}`);
         const event = {
           summary: `${workoutTitle} - ${workout.title}`,
           description: description,
@@ -329,7 +320,6 @@ export async function POST(request: NextRequest) {
             calendarEventId = response.data.id!;
           } catch (updateError: unknown) {
             // Event was deleted from calendar, create new one
-            console.log('Event not found in calendar, creating new event');
             const response = await calendar.events.insert({
               calendarId: process.env.GOOGLE_CALENDAR_ID,
               requestBody: event,
@@ -415,7 +405,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error publishing workout:', error);
     return NextResponse.json(
-      { error: 'Failed to publish workout', details: (error as Error).message },
+      { error: 'Failed to publish workout' },
       { status: 500 }
     );
   }
@@ -424,6 +414,9 @@ export async function POST(request: NextRequest) {
 // Unpublish endpoint
 export async function DELETE(request: NextRequest) {
   try {
+    const coach = await requireCoach(request);
+    if (isAuthError(coach)) return coach;
+
     const { searchParams } = new URL(request.url);
     const workoutId = searchParams.get('workoutId');
 
@@ -504,7 +497,7 @@ export async function DELETE(request: NextRequest) {
   } catch (error) {
     console.error('Error unpublishing workout:', error);
     return NextResponse.json(
-      { error: 'Failed to unpublish workout', details: (error as Error).message },
+      { error: 'Failed to unpublish workout' },
       { status: 500 }
     );
   }

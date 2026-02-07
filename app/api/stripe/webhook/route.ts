@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
       }
 
       default:
-        console.log(`Unhandled event type: ${event.type}`);
+        // Unhandled event type - no action needed
     }
 
     return NextResponse.json({ received: true });
@@ -119,7 +119,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       })
       .eq('id', memberId);
 
-    console.log(`10-card activated for member ${memberId}`);
   } else if (session.subscription) {
     // Set initial subscription dates (subscription.created event will update with exact dates)
     const subscriptionEndDate = productType === 'monthly'
@@ -155,7 +154,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
           onConflict: 'user_id'
         });
 
-      console.log(`Athlete profile created for member ${memberId}`);
     }
 
     // Create initial subscription record (will be updated by subscription.created event)
@@ -177,7 +175,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
         });
     }
 
-    console.log(`Subscription ${session.subscription} activated for member ${memberId} (${productType})`);
   }
 }
 
@@ -247,7 +244,6 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
       .eq('id', member.id);
   }
 
-  console.log(`Subscription ${subscription.id} updated for member ${member.id}`);
 }
 
 // Handle subscription cancellation
@@ -296,7 +292,6 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
       .eq('id', member.id);
   }
 
-  console.log(`Subscription ${subscription.id} cancelled for member ${member.id}`);
 }
 
 // Handle failed payment
@@ -314,9 +309,6 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
     console.error(`No member found for customer ${customerId}`);
     return;
   }
-
-  // Log the failed payment (could also send notification email here)
-  console.log(`Payment failed for member ${member.id} (${member.email})`);
 
   // Update subscription status to past_due if it's a subscription invoice
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch } from '@/lib/auth-fetch';
 import { supabase } from '@/lib/supabase';
 import { useEffect, useState, useRef } from 'react';
 import type { BarbellLift, Benchmark, ForgeBenchmark, ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
@@ -719,19 +720,12 @@ export function useWorkoutModal(
         publishConfig,
       };
 
-      console.log('Publishing workout - Request body:', requestBody);
-
-      const response = await fetch('/api/google/publish-workout', {
+      const response = await authFetch('/api/google/publish-workout', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(requestBody),
       });
 
-      console.log('Publish response status:', response.status);
       const responseData = await response.json();
-      console.log('Publish response data:', responseData);
 
       if (!response.ok) {
         throw new Error(`Failed to publish workout: ${responseData.error || responseData.details || 'Unknown error'}`);
@@ -758,7 +752,7 @@ export function useWorkoutModal(
     }
 
     try {
-      const response = await fetch(`/api/google/publish-workout?workoutId=${editingWOD?.id}`, {
+      const response = await authFetch(`/api/google/publish-workout?workoutId=${editingWOD?.id}`, {
         method: 'DELETE',
       });
 
