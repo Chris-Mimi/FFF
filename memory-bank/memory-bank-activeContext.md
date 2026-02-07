@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.60
-**Updated:** 2026-02-07 (Session 97 - Pre-Deployment Audit Fixes)
+**Version:** 10.70
+**Updated:** 2026-02-07 (Session 98 - Large Component Refactoring)
 
 ---
 
@@ -77,19 +77,17 @@ Athlete Tables (linked to members.id)
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-07 Session 98 - Opus 4.6):**
+- **✅ Audit #13 Email confirmation** — Verified already enabled in Supabase
+- **✅ Audit #15 Large component refactoring** — All 3 coach pages reduced:
+  - `athletes/page.tsx`: 1,263 → 323 lines (6 extracted components)
+  - `benchmarks-lifts/page.tsx`: 1,445 → 328 lines (7 hooks + 1 component)
+  - `members/page.tsx`: 1,035 → 229 lines (2 hooks + 2 components + 1 types file)
+- 20 new files created, build passes clean
+- See: `project-history/2026-02-07-session-98-large-component-refactoring.md`
+
 **Completed (2026-02-07 Session 97 - Opus 4.6):**
-- **✅ Pre-Deployment Audit Fixes (Continued from Session 96):**
-  - **#7 Console.log cleanup** — Removed 18 console.logs across 6 files (webhook, whiteboard-photos, generate-weekly, ExerciseLibraryPopup, MovementLibraryPopup, TenCardModal)
-  - **#14 Error detail exposure** — Fixed 7 instances in publish-workout and whiteboard-photos routes (removed `error.message` / `details` from client responses)
-  - **#5 N+1 query** — Replaced N individual attendance queries with single batch RPC call `get_all_members_attendance` in coach/members/page.tsx
-  - **#6 Middleware** — Created `middleware.ts` for centralized route protection using `@supabase/ssr`, updated `lib/supabase.ts` to `createBrowserClient`
-  - **#8 next/image** — Converted all 10 raw `<img>` tags to `next/image` across 7 files. Added `images.remotePatterns` for Supabase storage in next.config.ts
-  - **#10 Security headers** — Already done in next.config.ts (confirmed)
-  - **#11 select('*')** — Replaced with explicit columns in 8 API routes + 5 page/component files + loadingLogic.ts (3 queries). Fixed pre-existing type mismatch in WorkoutLog interface
-  - **#12 DB indexes** — Created `database/add-audit-indexes.sql` with indexes for benchmark_results, lift_records, workout_logs, wod_section_results, whiteboard_photos, athlete_profiles, subscriptions. Applied to Supabase
-  - **#4 Error boundaries** — Verified error.tsx exists at app root, /coach, /athlete, /member
-- **New files:** middleware.ts, lib/auth-api.ts, lib/auth-fetch.ts, app/error.tsx, app/coach/error.tsx, app/athlete/error.tsx, app/member/error.tsx, database/add-audit-indexes.sql
-- Build passes clean throughout all changes
+- Pre-deployment audit fixes: #5 N+1 query, #6 middleware, #7 console.logs, #8 next/image, #11 select('*'), #12 DB indexes, #14 error exposure
 - See: `project-history/2026-02-07-session-97-pre-deployment-audit-fixes.md`
 
 **Completed (2026-02-06 Session 95 - Opus 4.6):**
@@ -104,12 +102,7 @@ Athlete Tables (linked to members.id)
 - Coach athletes mobile optimization, family member fixes, delete duplicates SQL fix
 - See: `project-history/2026-02-05-session-93-coach-athletes-mobile-family-fixes.md`
 
-**Completed (2026-02-04 Sessions 91/92):**
-- Root page auth redirect, member registration flow, mobile testing, memory bank cleanup
-- See: `project-history/2026-02-04-session-91-auth-redirect-member-registration.md`
-- See: `project-history/2026-02-04-session-92-member-registration-mobile-testing.md`
-
-**Older Sessions (57-90):**
+**Older Sessions (57-92):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -117,10 +110,11 @@ See `project-history/` folder for detailed implementation history
 ## 🚨 Known Issues / Remaining Audit Items
 
 **Audit Items Remaining (LOW priority):**
-- **#13** Auto-confirmed emails — Requires Supabase Dashboard config (not code)
-- **#15** Large components >1000 lines — Refactoring (coach/athletes, benchmarks-lifts, members)
 - **#16** No favicon — Needs gym logo asset
 - **#17** Missing OG/Meta tags
+
+**Other Known Issues:**
+- Athletes page: Previously logged benchmarks/lifts may not display for some athletes (pre-existing, needs investigation)
 
 **Migration Pending:**
 1. **`get_public_tables()` RPC function** - Required for backup auto-discovery
@@ -166,23 +160,17 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 98 Priorities
+### Session 99 Priorities
 
-**Pre-Deployment Audit Status:**
-- ✅ #1-12, #14 completed (Sessions 96-97)
-- Remaining: #13, #15, #16, #17 (all LOW priority)
+**Pre-Deployment Audit — Nearly Complete:**
+- ✅ #1-15 all completed (Sessions 96-98)
+- Remaining: #16 (favicon, needs asset), #17 (meta tags)
 - Full audit findings: `Chris Notes/pre-deployment-audit-findings.md`
 
-**Ready for Deployment:**
-- All CRITICAL and HIGH audit items resolved
-- All MEDIUM items resolved
-- Build passing clean
-- Security headers, middleware, error boundaries, auth all in place
-
 **Pending Polish (LOW):**
-- #15 Large component refactoring (coach/athletes 1264 lines, benchmarks-lifts 1445 lines)
-- #16 Favicon (needs gym logo)
+- #16 Favicon (needs gym logo asset)
 - #17 OG/Meta tags
+- Athletes page benchmarks/lifts display issue (investigate)
 - Analysis page scroll jump bug (DEFERRED)
 
 ---

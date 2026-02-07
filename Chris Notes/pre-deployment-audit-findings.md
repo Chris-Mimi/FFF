@@ -191,8 +191,8 @@ Affected files (10+):
 
 ### Remaining (LOW priority)
 
-- [ ] **#13 Email confirmation** — Requires Supabase Dashboard config (not code). Go to Authentication → Settings → disable "Auto-confirm emails"
-- [ ] **#15 Large components** — Refactoring: coach/athletes (1264 lines), benchmarks-lifts (1445 lines), members (1040 lines)
+- [x] **#13 Email confirmation** (Session 98) — Verified: Supabase "Confirm email" already enabled
+- [x] **#15 Large components** (Session 98) — Refactored all 3 files: athletes (1263→323), benchmarks-lifts (1445→328), members (1035→229). Created 20 new extraction files (6 components + 9 hooks + 1 types + 4 component files)
 - [ ] **#16 Favicon** — Needs gym logo asset file
 - [ ] **#17 Meta tags** — Add Open Graph, Twitter card, theme color to layout.tsx metadata
 
@@ -213,4 +213,4 @@ Affected files (10+):
 - Build passes clean — all changes compile
 - `NEXT_PUBLIC_APP_URL` env var must be set in `.env.local` for Stripe routes to work locally
 - All CRITICAL, HIGH, and MEDIUM items are resolved
-- Only LOW priority items (#13, #15, #16, #17) remain
+- Only LOW priority items (#16, #17) remain — #13 and #15 completed in Session 98

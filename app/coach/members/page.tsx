@@ -1,446 +1,58 @@
 'use client';
 
 import TenCardModal from '@/components/coach/TenCardModal';
+import MemberCard from '@/components/coach/members/MemberCard';
+import MemberFilters from '@/components/coach/members/MemberFilters';
+import { useMemberData } from '@/hooks/coach/useMemberData';
+import { useMemberActions } from '@/hooks/coach/useMemberActions';
 import { signOut } from '@/lib/auth';
-import { authFetch } from '@/lib/auth-fetch';
-import { supabase } from '@/lib/supabase';
-import { Check, Clock, LogOut, UserCheck, UserX, X } from 'lucide-react';
+import { Member } from '@/types/member';
+import { Check, Clock, LogOut, UserCheck, UserX } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-
-type MemberStatus = 'pending' | 'active' | 'blocked' | 'subscriptions';
-
-type MembershipType = 'member' | 'drop_in' | 'ten_card' | 'wellpass' | 'hansefit' | 'trial';
-
-type ClassType = 'ekt' | 't' | 'cfk' | 'cft';
-
-interface Member {
-  id: string;
-  email: string;
-  name: string;
-  display_name: string | null;
-  phone: string | null;
-  status: MemberStatus;
-  account_type: 'primary' | 'family_member';
-  primary_member_id: string | null;
-  athlete_trial_start: string | null;
-  athlete_subscription_status: 'trial' | 'active' | 'expired';
-  athlete_subscription_end: string | null;
-  created_at: string;
-  membership_types: MembershipType[];
-  ten_card_purchase_date: string | null;
-  ten_card_sessions_used: number;
-  ten_card_total?: number;
-  ten_card_expiry_date?: string | null;
-  attendance_count?: number;
-  date_of_birth: string | null;
-  class_types: ClassType[];
-}
-
-const MEMBERSHIP_TYPE_LABELS: Record<MembershipType, string> = {
-  member: 'Mb',
-  drop_in: 'Di',
-  ten_card: '10',
-  wellpass: 'Wp',
-  hansefit: 'Hf',
-  trial: 'Pt',
-};
-
-const MEMBERSHIP_TYPE_COLORS: Record<MembershipType, { active: string; inactive: string }> = {
-  member: { active: 'bg-blue-600 text-white', inactive: 'bg-gray-700 text-gray-300 hover:bg-blue-600/20' },
-  drop_in: { active: 'bg-emerald-600 text-white', inactive: 'bg-gray-700 text-gray-300 hover:bg-emerald-600/20' },
-  ten_card: { active: 'bg-purple-600 text-white', inactive: 'bg-gray-700 text-gray-300 hover:bg-purple-600/20' },
-  wellpass: { active: 'bg-orange-600 text-white', inactive: 'bg-gray-700 text-gray-300 hover:bg-orange-600/20' },
-  hansefit: { active: 'bg-pink-600 text-white', inactive: 'bg-gray-700 text-gray-300 hover:bg-pink-600/20' },
-  trial: { active: 'bg-amber-600 text-white', inactive: 'bg-gray-700 text-gray-300 hover:bg-amber-600/20' },
-};
-
-const CLASS_TYPE_LABELS: Record<ClassType, string> = {
-  ekt: 'EKT',
-  t: 'Tu',
-  cfk: 'CFK',
-  cft: 'CFT',
-};
-
-const CLASS_TYPE_COLORS: Record<ClassType, { active: string; inactive: string }> = {
-  ekt: { active: 'bg-cyan-600 text-white', inactive: 'bg-gray-700 text-gray-300 hover:bg-cyan-600/20' },
-  t: { active: 'bg-indigo-600 text-white', inactive: 'bg-gray-700 text-gray-300 hover:bg-indigo-600/20' },
-  cfk: { active: 'bg-rose-600 text-white', inactive: 'bg-gray-700 text-gray-300 hover:bg-rose-600/20' },
-  cft: { active: 'bg-violet-600 text-white', inactive: 'bg-gray-700 text-gray-300 hover:bg-violet-600/20' },
-};
+import { useState } from 'react';
 
 export default function CoachMembersPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<MemberStatus>('active');
-  const [members, setMembers] = useState<Member[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [processingMemberId, setProcessingMemberId] = useState<string | null>(null);
-  const [selectedFilters, setSelectedFilters] = useState<MembershipType[]>([]);
-  const [selectedClassTypes, setSelectedClassTypes] = useState<ClassType[]>([]);
-  const [ageFilter, setAgeFilter] = useState<'all' | 'adults' | 'kids' | '<7' | '7-11' | '12-16' | '7-16'>('all');
   const [tenCardModal, setTenCardModal] = useState<{
     isOpen: boolean;
     member: Member | null;
   }>({ isOpen: false, member: null });
-  const [attendanceTimeframe, setAttendanceTimeframe] = useState<7 | 30 | 365 | 'all'>('all');
-  const [pendingCount, setPendingCount] = useState(0);
 
-  useEffect(() => {
-    // Check authentication (simple check for now)
-    const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.push('/login');
-      }
-    };
-    checkAuth();
-    fetchMembersWithAttendance(activeTab, attendanceTimeframe);
-    fetchPendingCount(); // Fetch pending count on mount and when tab changes
-  }, [activeTab, attendanceTimeframe, router]);
+  const {
+    activeTab,
+    setActiveTab,
+    members,
+    setMembers,
+    loading,
+    filteredMembers,
+    selectedFilters,
+    setSelectedFilters,
+    selectedClassTypes,
+    setSelectedClassTypes,
+    ageFilter,
+    attendanceTimeframe,
+    setAttendanceTimeframe,
+    pendingCount,
+    membershipCounts,
+    refreshData,
+    refreshPendingCount,
+    toggleFilter,
+    toggleClassTypeFilter,
+    handleAgeFilterChange,
+  } = useMemberData();
 
-  const fetchPendingCount = async () => {
-    try {
-      const { count, error } = await supabase
-        .from('members')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'pending');
-
-      if (error) throw error;
-      setPendingCount(count || 0);
-    } catch (error) {
-      console.error('Error fetching pending count:', error);
-    }
-  };
-
-  const fetchMembersWithAttendance = async (status: MemberStatus, timeframe: 7 | 30 | 365 | 'all') => {
-    // Convert 'all' to null for the RPC call (no date filter)
-    const daysParam = timeframe === 'all' ? null : timeframe;
-    setLoading(true);
-    try {
-      // First get the members
-      let query = supabase.from('members').select('id, email, name, display_name, phone, status, account_type, primary_member_id, athlete_trial_start, athlete_subscription_status, athlete_subscription_end, created_at, membership_types, ten_card_purchase_date, ten_card_sessions_used, ten_card_total, ten_card_expiry_date, date_of_birth, class_types');
-
-      // Handle subscriptions tab separately (shows active members with athlete access)
-      if (status === 'subscriptions') {
-        query = query
-          .eq('status', 'active')
-          .in('athlete_subscription_status', ['trial', 'active']);
-      } else {
-        query = query.eq('status', status);
-      }
-
-      const { data: membersData, error: membersError } = await query
-        .order('created_at', { ascending: false });
-
-      if (membersError) {
-        console.error('❌ fetchMembers error:', membersError);
-        throw membersError;
-      }
-
-      // Batch fetch attendance counts in a single query (eliminates N+1)
-      const memberIds = (membersData || []).map(m => m.id);
-      let attendanceMap: Record<string, number> = {};
-
-      if (memberIds.length > 0) {
-        const { data: attendanceData, error: attendanceError } = await supabase.rpc(
-          'get_all_members_attendance',
-          { p_member_ids: memberIds, p_days_back: daysParam }
-        );
-
-        if (!attendanceError && attendanceData) {
-          attendanceMap = Object.fromEntries(
-            attendanceData.map((row: { member_id: string; attendance_count: number }) => [
-              row.member_id,
-              row.attendance_count,
-            ])
-          );
-        }
-      }
-
-      const membersWithAttendance = (membersData || []).map(member => ({
-        ...member,
-        attendance_count: attendanceMap[member.id] || 0,
-      }));
-
-      setMembers(membersWithAttendance);
-    } catch (error) {
-      console.error('💥 fetchMembersWithAttendance failed:', error);
-      setLoading(false); // Make sure loading ends even on error
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleApprove = async (memberId: string) => {
-    setProcessingMemberId(memberId);
-    try {
-      const response = await authFetch('/api/members/approve', {
-        method: 'POST',
-        body: JSON.stringify({ memberId })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to approve member');
-      }
-
-      // Show success message
-      alert(data.message || 'Member approved successfully');
-
-      // Refresh members list and pending count
-      await fetchMembersWithAttendance(activeTab, attendanceTimeframe);
-      await fetchPendingCount();
-    } catch (error) {
-      console.error('Error approving member:', error);
-      alert(error instanceof Error ? error.message : 'Failed to approve member. Please try again.');
-    } finally {
-      setProcessingMemberId(null);
-    }
-  };
-
-  const handleBlock = async (memberId: string) => {
-    if (!confirm('Are you sure you want to block this member? They will lose access to their account.')) {
-      return;
-    }
-
-    setProcessingMemberId(memberId);
-    try {
-      const response = await authFetch('/api/members/block', {
-        method: 'POST',
-        body: JSON.stringify({ memberId })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to block member');
-      }
-
-      // Show success message
-      alert(data.message || 'Member blocked successfully');
-
-      // Refresh members list and pending count
-      await fetchMembersWithAttendance(activeTab, attendanceTimeframe);
-      await fetchPendingCount();
-    } catch (error) {
-      console.error('Error blocking member:', error);
-      alert(error instanceof Error ? error.message : 'Failed to block member. Please try again.');
-    } finally {
-      setProcessingMemberId(null);
-    }
-  };
-
-  const handleUnapprove = async (memberId: string) => {
-    if (!confirm('Move this member back to pending status? This will clear their trial period.')) {
-      return;
-    }
-
-    setProcessingMemberId(memberId);
-    try {
-      const response = await authFetch('/api/members/unapprove', {
-        method: 'POST',
-        body: JSON.stringify({ memberId })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to unapprove member');
-      }
-
-      // Show success message
-      alert(data.message || 'Member moved back to pending status');
-
-      // Refresh members list and pending count
-      await fetchMembersWithAttendance(activeTab, attendanceTimeframe);
-      await fetchPendingCount();
-    } catch (error) {
-      console.error('Error unapproving member:', error);
-      alert(error instanceof Error ? error.message : 'Failed to unapprove member. Please try again.');
-    } finally {
-      setProcessingMemberId(null);
-    }
-  };
-
-  const handleUnblock = async (memberId: string) => {
-    if (!confirm('Unblock this member? They will be moved to pending status and need re-approval.')) {
-      return;
-    }
-
-    setProcessingMemberId(memberId);
-    try {
-      const response = await authFetch('/api/members/unblock', {
-        method: 'POST',
-        body: JSON.stringify({ memberId })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to unblock member');
-      }
-
-      // Show success message
-      alert(data.message || 'Member unblocked and moved to pending status');
-
-      // Refresh members list and pending count
-      await fetchMembersWithAttendance(activeTab, attendanceTimeframe);
-      await fetchPendingCount();
-    } catch (error) {
-      console.error('Error unblocking member:', error);
-      alert(error instanceof Error ? error.message : 'Failed to unblock member. Please try again.');
-    } finally {
-      setProcessingMemberId(null);
-    }
-  };
-
-  const handleStartTrial = async (memberId: string, days: number = 30) => {
-    if (!confirm(`Start ${days}-day athlete trial for this member?`)) {
-      return;
-    }
-
-    setProcessingMemberId(memberId);
-    try {
-      const response = await authFetch('/api/members/athlete-subscription', {
-        method: 'POST',
-        body: JSON.stringify({ memberId, action: 'start_trial', days })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to start trial');
-      }
-
-      alert(data.message || `${days}-day trial started`);
-      await fetchMembersWithAttendance(activeTab, attendanceTimeframe);
-    } catch (error) {
-      console.error('Error starting trial:', error);
-      alert(error instanceof Error ? error.message : 'Failed to start trial. Please try again.');
-    } finally {
-      setProcessingMemberId(null);
-    }
-  };
-
-  const handleExtendTrial = async (memberId: string, days: number = 30) => {
-    if (!confirm(`Extend trial by ${days} days?`)) {
-      return;
-    }
-
-    setProcessingMemberId(memberId);
-    try {
-      const response = await authFetch('/api/members/athlete-subscription', {
-        method: 'POST',
-        body: JSON.stringify({ memberId, action: 'extend_trial', days })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to extend trial');
-      }
-
-      alert(data.message || `Trial extended by ${days} days`);
-      await fetchMembersWithAttendance(activeTab, attendanceTimeframe);
-    } catch (error) {
-      console.error('Error extending trial:', error);
-      alert(error instanceof Error ? error.message : 'Failed to extend trial. Please try again.');
-    } finally {
-      setProcessingMemberId(null);
-    }
-  };
-
-  const handleActivateSubscription = async (memberId: string) => {
-    if (!confirm('Activate full subscription? This will remove the trial end date.')) {
-      return;
-    }
-
-    setProcessingMemberId(memberId);
-    try {
-      const response = await authFetch('/api/members/athlete-subscription', {
-        method: 'POST',
-        body: JSON.stringify({ memberId, action: 'activate' })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to activate subscription');
-      }
-
-      alert(data.message || 'Subscription activated successfully');
-      await fetchMembersWithAttendance(activeTab, attendanceTimeframe);
-    } catch (error) {
-      console.error('Error activating subscription:', error);
-      alert(error instanceof Error ? error.message : 'Failed to activate subscription. Please try again.');
-    } finally {
-      setProcessingMemberId(null);
-    }
-  };
-
-  const toggleFilter = (type: MembershipType) => {
-    setSelectedFilters(prev =>
-      prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
-    );
-  };
-
-  const toggleClassTypeFilter = (type: ClassType) => {
-    setSelectedClassTypes(prev =>
-      prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
-    );
-  };
-
-  const handleToggleMembershipType = async (memberId: string, type: MembershipType, currentTypes: MembershipType[]) => {
-    try {
-      const newTypes = currentTypes.includes(type)
-        ? currentTypes.filter(t => t !== type)
-        : [...currentTypes, type];
-
-      const { error } = await supabase
-        .from('members')
-        .update({ membership_types: newTypes })
-        .eq('id', memberId);
-
-      if (error) throw error;
-
-      // Update local state
-      setMembers(prevMembers =>
-        prevMembers.map(m =>
-          m.id === memberId ? { ...m, membership_types: newTypes } : m
-        )
-      );
-    } catch (error) {
-      console.error('Error updating membership types:', error);
-      alert('Failed to update membership type');
-    }
-  };
-
-  const handleToggleClassType = async (memberId: string, type: ClassType, currentClassTypes: ClassType[]) => {
-    try {
-      // Toggle type in array - add if not present, remove if present
-      const newClassTypes = currentClassTypes.includes(type)
-        ? currentClassTypes.filter(t => t !== type)
-        : [...currentClassTypes, type];
-
-      const { error } = await supabase
-        .from('members')
-        .update({ class_types: newClassTypes })
-        .eq('id', memberId);
-
-      if (error) throw error;
-
-      // Update local state
-      setMembers(prevMembers =>
-        prevMembers.map(m =>
-          m.id === memberId ? { ...m, class_types: newClassTypes } : m
-        )
-      );
-    } catch (error) {
-      console.error('Error updating class types:', error);
-      alert('Failed to update class types');
-    }
-  };
+  const {
+    processingMemberId,
+    handleApprove,
+    handleBlock,
+    handleUnapprove,
+    handleUnblock,
+    handleStartTrial,
+    handleExtendTrial,
+    handleActivateSubscription,
+    handleToggleMembershipType,
+    handleToggleClassType,
+  } = useMemberActions(refreshData, refreshPendingCount, setMembers);
 
   const handleLogout = async () => {
     try {
@@ -450,112 +62,6 @@ export default function CoachMembersPage() {
       console.error('Logout error:', error);
     }
   };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  // Filter members based on selected membership types
-  // Helper function to calculate age from date of birth
-  const getAge = (dateOfBirth: string | null): number | null => {
-    if (!dateOfBirth) return null;
-    const today = new Date();
-    const birthDate = new Date(dateOfBirth);
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    return age;
-  };
-
-  // Apply filters
-  let filteredMembers = members;
-
-  // Age filter
-  if (ageFilter === 'kids') {
-    filteredMembers = filteredMembers.filter(member => {
-      const age = getAge(member.date_of_birth);
-      return age !== null && age < 16;
-    });
-  } else if (ageFilter === 'adults') {
-    filteredMembers = filteredMembers.filter(member => {
-      const age = getAge(member.date_of_birth);
-      return age === null || age >= 16;
-    });
-  } else if (ageFilter === '7-16') {
-    filteredMembers = filteredMembers.filter(member => {
-      const age = getAge(member.date_of_birth);
-      return age !== null && age >= 7 && age <= 16;
-    });
-  } else if (ageFilter === '<7') {
-    filteredMembers = filteredMembers.filter(member => {
-      const age = getAge(member.date_of_birth);
-      return age !== null && age < 7;
-    });
-  } else if (ageFilter === '7-11') {
-    filteredMembers = filteredMembers.filter(member => {
-      const age = getAge(member.date_of_birth);
-      return age !== null && age >= 7 && age <= 11;
-    });
-  } else if (ageFilter === '12-16') {
-    filteredMembers = filteredMembers.filter(member => {
-      const age = getAge(member.date_of_birth);
-      return age !== null && age >= 12 && age <= 16;
-    });
-  }
-
-  // Membership type filter
-  if (selectedFilters.length > 0) {
-    filteredMembers = filteredMembers.filter(member =>
-      member.membership_types?.some(type => selectedFilters.includes(type))
-    );
-  }
-
-  // Class type filter (for kids programs)
-  if (selectedClassTypes.length > 0) {
-    filteredMembers = filteredMembers.filter(member =>
-      member.class_types?.some(type => selectedClassTypes.includes(type))
-    );
-  }
-
-  const getMembershipTypeCounts = () => {
-    const counts: Record<MembershipType, number> = {
-      member: 0,
-      drop_in: 0,
-      ten_card: 0,
-      wellpass: 0,
-      hansefit: 0,
-      trial: 0,
-    };
-
-    members.forEach(member => {
-      member.membership_types?.forEach(type => {
-        counts[type]++;
-      });
-    });
-
-    return counts;
-  };
-
-  const getTrialStatus = (member: Member) => {
-    if (member.athlete_subscription_status === 'trial' && member.athlete_subscription_end) {
-      const daysLeft = Math.ceil(
-        (new Date(member.athlete_subscription_end).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
-      );
-      return daysLeft > 0 ? `${daysLeft} days left` : 'Expired';
-    }
-    return member.athlete_subscription_status === 'active' ? 'Active' : 'No access';
-  };
-
-  const membershipCounts = getMembershipTypeCounts();
-  const totalActiveAthletes = members.length;
 
   return (
     <div className="min-h-screen bg-gray-900">
@@ -651,129 +157,22 @@ export default function CoachMembersPage() {
         </div>
       </div>
 
-      {/* Attendance Timeframe Selector */}
-      {members.length > 0 && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-400 font-medium">Attendance timeframe:</span>
-            <select
-              value={attendanceTimeframe}
-              onChange={(e) => {
-                const value = e.target.value;
-                setAttendanceTimeframe(value === 'all' ? 'all' : parseInt(value) as 7 | 30 | 365);
-              }}
-              className="px-3 py-1 bg-gray-700 text-white rounded text-sm border border-gray-600"
-            >
-              <option value="7">Last 7 days</option>
-              <option value="30">Last 30 days</option>
-              <option value="365">Last 12 months</option>
-              <option value="all">All Time</option>
-            </select>
-          </div>
-        </div>
-      )}
-
       {/* Filters */}
-      {members.length > 0 && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-2">
-          <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
-            {/* Age Filter Dropdown */}
-            <div className="flex items-center gap-2">
-              <span className="text-xs md:text-sm text-gray-400 font-medium">Age:</span>
-              <select
-                value={ageFilter}
-                onChange={(e) => {
-                  const newFilter = e.target.value as 'all' | 'adults' | 'kids' | '<7' | '7-11' | '12-16' | '7-16';
-                  setAgeFilter(newFilter);
-                  // Clear membership filters that aren't available for kids
-                  if (newFilter === 'kids' || newFilter === '7-16' || newFilter === '<7' || newFilter === '7-11' || newFilter === '12-16') {
-                    setSelectedFilters(prev => prev.filter(type => ['member', 'ten_card', 'wellpass'].includes(type)));
-                  }
-                }}
-                className="px-2 md:px-3 py-1 bg-gray-700 border border-gray-600 rounded text-xs md:text-sm text-white focus:outline-none focus:border-teal-500"
-              >
-                <option value="all">All</option>
-                <option value="adults">Adults</option>
-                <option value="kids">Kids (&lt;16)</option>
-                <option value="12-16">12-16</option>
-                <option value="7-16">7-16</option>
-                <option value="7-11">7-11</option>
-                <option value="<7">&lt;7</option>
-              </select>
-            </div>
-
-            {/* Membership Type Filters */}
-            <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2 flex-1">
-              <span className="text-xs md:text-sm text-gray-400 font-medium">Member Type:</span>
-              <div className="flex items-center gap-1 md:gap-2 flex-wrap">
-                {(Object.keys(MEMBERSHIP_TYPE_LABELS) as MembershipType[])
-                  .filter(type => {
-                    // Show only Mb, 10, Wp for kids age filters
-                    if (ageFilter === 'kids' || ageFilter === '7-16' || ageFilter === '<7' || ageFilter === '7-11' || ageFilter === '12-16') {
-                      return ['member', 'ten_card', 'wellpass'].includes(type);
-                    }
-                    return true;
-                  })
-                  .map(type => (
-                <button
-                  key={type}
-                  onClick={() => toggleFilter(type)}
-                  className={`flex flex-col items-center px-2 md:px-2.5 py-0.5 md:py-1 rounded text-xs font-medium transition ${
-                    selectedFilters.includes(type)
-                      ? MEMBERSHIP_TYPE_COLORS[type].active
-                      : MEMBERSHIP_TYPE_COLORS[type].inactive
-                  }`}
-                >
-                  <span>{MEMBERSHIP_TYPE_LABELS[type]}</span>
-                  <span className="text-[10px] opacity-75">{membershipCounts[type]}</span>
-                </button>
-              ))}
-                {selectedFilters.length > 0 && (
-                  <button
-                    onClick={() => setSelectedFilters([])}
-                    className="px-2 md:px-2.5 py-0.5 md:py-1 rounded text-xs font-medium bg-red-600 text-white hover:bg-red-700 transition"
-                  >
-                    Clear ({filteredMembers.length})
-                  </button>
-                )}
-                <div className="ml-auto px-2 md:px-3 py-0.5 md:py-1 bg-gray-700 rounded text-xs font-medium text-gray-300">
-                  Total: {filteredMembers.length}
-                </div>
-              </div>
-            </div>
-
-            {/* Class Type Filters (only show for kids) */}
-            {(ageFilter === 'kids' || ageFilter === '7-16' || ageFilter === '<7' || ageFilter === '7-11' || ageFilter === '12-16') && (
-              <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2">
-                <span className="text-xs md:text-sm text-gray-400 font-medium">Class:</span>
-                <div className="flex items-center gap-1 md:gap-2 flex-wrap">
-                  {(Object.keys(CLASS_TYPE_LABELS) as ClassType[]).map(type => (
-                    <button
-                      key={type}
-                      onClick={() => toggleClassTypeFilter(type)}
-                      className={`px-2 md:px-2.5 py-0.5 md:py-1 rounded text-xs font-medium transition ${
-                        selectedClassTypes.includes(type)
-                          ? CLASS_TYPE_COLORS[type].active
-                          : CLASS_TYPE_COLORS[type].inactive
-                      }`}
-                    >
-                      {CLASS_TYPE_LABELS[type]}
-                    </button>
-                  ))}
-                  {selectedClassTypes.length > 0 && (
-                    <button
-                      onClick={() => setSelectedClassTypes([])}
-                      className="px-2 md:px-2.5 py-0.5 md:py-1 rounded text-xs font-medium bg-red-600 text-white hover:bg-red-700 transition"
-                    >
-                      Clear
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      <MemberFilters
+        attendanceTimeframe={attendanceTimeframe}
+        onTimeframeChange={setAttendanceTimeframe}
+        ageFilter={ageFilter}
+        onAgeFilterChange={handleAgeFilterChange}
+        selectedFilters={selectedFilters}
+        onToggleFilter={toggleFilter}
+        onClearFilters={() => setSelectedFilters([])}
+        membershipCounts={membershipCounts}
+        filteredCount={filteredMembers.length}
+        selectedClassTypes={selectedClassTypes}
+        onToggleClassType={toggleClassTypeFilter}
+        onClearClassTypes={() => setSelectedClassTypes([])}
+        hasMembers={members.length > 0}
+      />
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-12">
@@ -797,227 +196,22 @@ export default function CoachMembersPage() {
         ) : (
           <div className="grid gap-2">
             {filteredMembers.map((member) => (
-              <div
+              <MemberCard
                 key={member.id}
-                className="bg-gray-800 rounded-lg p-3 border border-gray-700 hover:border-gray-600 transition-colors duration-200"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="text-base font-semibold text-white">{member.display_name || member.name}</h3>
-                      {member.account_type === 'family_member' && (
-                        <span className="px-1.5 py-0.5 bg-purple-500/20 text-purple-300 text-xs rounded-full">
-                          Family
-                        </span>
-                      )}
-                      {member.membership_types?.includes('ten_card') && (
-                        <button
-                          onClick={() => setTenCardModal({ isOpen: true, member })}
-                          className={`px-2 py-0.5 rounded text-xs font-medium transition cursor-pointer ${
-                            member.ten_card_sessions_used >= 9
-                              ? 'bg-red-600 text-white hover:bg-red-700'
-                              : 'bg-purple-600 text-white hover:bg-purple-700'
-                          }`}
-                          title="Manage 10-card"
-                        >
-                          {member.ten_card_sessions_used || 0}/10
-                        </button>
-                      )}
-                      {member.membership_types?.includes('wellpass') && (
-                        <button
-                          onClick={() => setTenCardModal({ isOpen: true, member })}
-                          className="px-2 py-0.5 rounded text-xs font-medium transition cursor-pointer bg-orange-600 text-white hover:bg-orange-700"
-                          title="Manage Wellpass"
-                        >
-                          Wp
-                        </button>
-                      )}
-                      {member.membership_types?.includes('member') && (
-                        <button
-                          onClick={() => setTenCardModal({ isOpen: true, member })}
-                          className="px-2 py-0.5 rounded text-xs font-medium transition cursor-pointer bg-blue-600 text-white hover:bg-blue-700"
-                          title="Manage Membership"
-                        >
-                          Mb
-                        </button>
-                      )}
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
-                      <div>
-                        <span className="text-gray-400">Email:</span>{' '}
-                        <span className="text-white">{member.email}</span>
-                      </div>
-                      {member.phone && (
-                        <div>
-                          <span className="text-gray-400">Phone:</span>{' '}
-                          <span className="text-white">{member.phone}</span>
-                        </div>
-                      )}
-                      <div>
-                        <span className="text-gray-400">Registered:</span>{' '}
-                        <span className="text-white">{formatDate(member.created_at)}</span>
-                      </div>
-                      {activeTab === 'active' && (
-                        <>
-                          <div>
-                            <span className="text-gray-400">Attendance:</span>{' '}
-                            <span className="font-medium text-white">
-                              {member.attendance_count}x
-                            </span>
-                          </div>
-                          <div>
-                            <span className="text-gray-400">Athlete Trial:</span>{' '}
-                            <span className={`font-medium ${
-                              member.athlete_subscription_status === 'trial' ? 'text-teal-400' :
-                              member.athlete_subscription_status === 'active' ? 'text-green-400' :
-                              'text-gray-500'
-                            }`}>
-                              {getTrialStatus(member)}
-                            </span>
-                          </div>
-                        </>
-                      )}
-                    </div>
-
-                    {/* Membership Type Checkboxes */}
-                    <div className="flex gap-2 mt-2 flex-wrap">
-                      {(Object.keys(MEMBERSHIP_TYPE_LABELS) as MembershipType[]).map(type => {
-                        const isChecked = member.membership_types?.includes(type) || false;
-                        return (
-                          <label
-                            key={type}
-                            className={`flex items-center gap-1 px-2 py-1 rounded text-xs cursor-pointer transition ${
-                              isChecked
-                                ? MEMBERSHIP_TYPE_COLORS[type].active
-                                : MEMBERSHIP_TYPE_COLORS[type].inactive
-                            }`}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={isChecked}
-                              onChange={() => handleToggleMembershipType(member.id, type, member.membership_types || [])}
-                              className="w-3 h-3 rounded"
-                            />
-                            <span>{MEMBERSHIP_TYPE_LABELS[type]}</span>
-                          </label>
-                        );
-                      })}
-                    </div>
-
-                    {/* Class Type Buttons (only for kids <16) */}
-                    {(() => {
-                      const age = getAge(member.date_of_birth);
-                      return age !== null && age < 16;
-                    })() && (
-                      <div className="flex gap-2 mt-2 flex-wrap">
-                        <span className="text-xs text-gray-400 font-medium self-center">Class:</span>
-                        {(Object.keys(CLASS_TYPE_LABELS) as ClassType[]).map(type => {
-                          const isSelected = member.class_types?.includes(type) || false;
-                          return (
-                            <button
-                              key={type}
-                              onClick={() => handleToggleClassType(member.id, type, member.class_types || [])}
-                              className={`px-2 py-1 rounded text-xs font-medium cursor-pointer transition ${
-                                isSelected
-                                  ? CLASS_TYPE_COLORS[type].active
-                                  : CLASS_TYPE_COLORS[type].inactive
-                              }`}
-                            >
-                              {CLASS_TYPE_LABELS[type]}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Actions */}
-                  {activeTab === 'pending' && (
-                    <div className="flex gap-2 ml-3">
-                      <button
-                        onClick={() => handleApprove(member.id)}
-                        disabled={processingMemberId === member.id}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-teal-500 hover:bg-teal-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200 text-sm"
-                      >
-                        <Check size={16} />
-                        Approve
-                      </button>
-                      <button
-                        onClick={() => handleBlock(member.id)}
-                        disabled={processingMemberId === member.id}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200 text-sm"
-                      >
-                        <X size={16} />
-                        Block
-                      </button>
-                    </div>
-                  )}
-                  {activeTab === 'active' && (
-                    <div className="flex flex-col gap-2 ml-3">
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleUnapprove(member.id)}
-                          disabled={processingMemberId === member.id}
-                          className="flex items-center gap-1 px-2 py-1 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-orange-400 hover:text-orange-300 rounded transition-colors duration-200 text-xs"
-                          title="Move back to pending"
-                        >
-                          <Clock size={12} />
-                          Unapprove
-                        </button>
-                      </div>
-
-                      {/* Athlete Subscription Management */}
-                      {member.account_type === 'primary' && (
-                        <div className="flex gap-2 pt-1 border-t border-gray-700">
-                          {(!member.athlete_subscription_status || member.athlete_subscription_status === 'expired') && (
-                            <button
-                              onClick={() => handleStartTrial(member.id, 30)}
-                              disabled={processingMemberId === member.id}
-                              className="flex items-center gap-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded transition-colors duration-200 text-xs"
-                              title="Start 30-day athlete trial"
-                            >
-                              Start Trial
-                            </button>
-                          )}
-                          {member.athlete_subscription_status === 'trial' && (
-                            <button
-                              onClick={() => handleExtendTrial(member.id, 30)}
-                              disabled={processingMemberId === member.id}
-                              className="flex items-center gap-1 px-2 py-1 bg-teal-600 hover:bg-teal-700 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded transition-colors duration-200 text-xs"
-                              title="Add 30 days to trial"
-                            >
-                              +30d Trial
-                            </button>
-                          )}
-                          {(member.athlete_subscription_status === 'trial' || member.athlete_subscription_status === 'expired') && (
-                            <button
-                              onClick={() => handleActivateSubscription(member.id)}
-                              disabled={processingMemberId === member.id}
-                              className="flex items-center gap-1 px-2 py-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded transition-colors duration-200 text-xs"
-                              title="Activate full subscription (no expiry)"
-                            >
-                              <Check size={12} />
-                              Activate
-                            </button>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  {activeTab === 'blocked' && (
-                    <div className="flex gap-2 ml-3">
-                      <button
-                        onClick={() => handleUnblock(member.id)}
-                        disabled={processingMemberId === member.id}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-green-500 hover:bg-green-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200 text-sm"
-                      >
-                        <Check size={16} />
-                        Unblock
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
+                member={member}
+                activeTab={activeTab}
+                processingMemberId={processingMemberId}
+                onApprove={handleApprove}
+                onBlock={handleBlock}
+                onUnapprove={handleUnapprove}
+                onUnblock={handleUnblock}
+                onStartTrial={handleStartTrial}
+                onExtendTrial={handleExtendTrial}
+                onActivateSubscription={handleActivateSubscription}
+                onToggleMembershipType={handleToggleMembershipType}
+                onToggleClassType={handleToggleClassType}
+                onOpenTenCard={(m) => setTenCardModal({ isOpen: true, member: m })}
+              />
             ))}
           </div>
         )}
@@ -1028,7 +222,7 @@ export default function CoachMembersPage() {
         isOpen={tenCardModal.isOpen}
         onClose={() => setTenCardModal({ isOpen: false, member: null })}
         member={tenCardModal.member}
-        onUpdate={() => fetchMembersWithAttendance(activeTab, attendanceTimeframe)}
+        onUpdate={refreshData}
       />
     </div>
   );
