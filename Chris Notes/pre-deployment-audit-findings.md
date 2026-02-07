@@ -173,76 +173,44 @@ Affected files (10+):
 
 ## Fix Progress
 
-- [ ] #1 Admin API auth
-- [ ] #2 Stripe route auth
-- [ ] #3 Localhost fallback
-- [ ] #4 Error boundaries
-- [ ] #5 N+1 query
-- [ ] #6 Middleware
-- [ ] #7 Console.logs
-- [ ] #8 next/image
-- [ ] #9 Viewport metadata
-- [ ] #10 Security headers
-- [ ] #11 select('*')
-- [ ] #12 DB indexes
-- [ ] #13 Email confirmation
-- [ ] #14 Error exposure
-- [ ] #15 Large components
-- [ ] #16 Favicon
-- [ ] #17 Meta tags
+### Completed (Sessions 96-97, 2026-02-06/07)
 
+- [x] **#1 Admin API auth** (Session 96) — Auth added to 9 admin API routes + whiteboard-photos POST/PATCH/DELETE
+- [x] **#2 Stripe route auth** (Session 96) — create-checkout and customer-portal now require authenticated user
+- [x] **#3 Localhost fallback** (Session 96) — Both Stripe routes throw if `NEXT_PUBLIC_APP_URL` missing
+- [x] **#4 Error boundaries** (Session 96) — Created `error.tsx` at app root, /coach, /athlete, /member
+- [x] **#5 N+1 query** (Session 97) — Replaced N individual attendance queries with batch RPC `get_all_members_attendance`
+- [x] **#6 Middleware** (Session 97) — Created `middleware.ts` for centralized route protection using `@supabase/ssr`; updated `lib/supabase.ts` to `createBrowserClient`
+- [x] **#7 Console.logs** (Sessions 96-97) — Removed 18 console.logs across 6 files
+- [x] **#8 next/image** (Session 97) — Converted all 10 raw `<img>` tags to `next/image` across 7 files; added `images.remotePatterns` in next.config.ts
+- [x] **#9 Viewport metadata** (Session 96) — Moved to separate `export const viewport` in layout.tsx
+- [x] **#10 Security headers** (Already existed) — Confirmed in next.config.ts (X-Frame-Options, X-Content-Type-Options, Referrer-Policy, HSTS, Permissions-Policy)
+- [x] **#11 select('*')** (Session 97) — Replaced with explicit columns in 8 API routes + 5 pages/components + loadingLogic.ts
+- [x] **#12 DB indexes** (Session 97) — Created and applied `database/add-audit-indexes.sql` with indexes for 7 tables
+- [x] **#14 Error exposure** (Session 97) — Fixed 7 instances in publish-workout and whiteboard-photos routes
 
-COPIED FROM END OF LAST SESSION:
-Completed This Session
-New files created:
-auth-api.ts — Server-side auth helpers (requireAuth, requireCoach, isAuthError)
-auth-fetch.ts — Client-side authFetch wrapper that auto-includes auth headers
-[pre-deployment-audit-findings.md](Chris Notes/pre-deployment-audit-findings.md) — Full audit findings
-CRITICAL fixes applied:
-Auth added to 9 admin API routes: approve, block, unapprove, unblock, athlete-subscription, generate-weekly, publish-workout (POST+DELETE), benchmark-results, movement-results
-Auth added to whiteboard-photos POST/PATCH/DELETE (GET stays open for athletes)
-Auth added to Stripe routes — create-checkout and customer-portal now require authenticated user
-Localhost fallback removed — Both Stripe routes now throw if NEXT_PUBLIC_APP_URL is missing
-Viewport metadata fixed — Moved from metadata to separate export const viewport
-Frontend updated — All 13+ fetch calls across 6 files now use authFetch
-Files modified (API routes):
-app/api/members/approve/route.ts
-app/api/members/block/route.ts
-app/api/members/unapprove/route.ts
-app/api/members/unblock/route.ts
-app/api/members/athlete-subscription/route.ts
-app/api/sessions/generate-weekly/route.ts
-app/api/google/publish-workout/route.ts
-app/api/benchmark-results/route.ts
-app/api/movement-results/route.ts
-app/api/whiteboard-photos/route.ts
-app/api/stripe/create-checkout/route.ts
-app/api/stripe/customer-portal/route.ts
-Files modified (frontend):
-app/layout.tsx (viewport fix)
-app/coach/members/page.tsx (7 calls → authFetch)
-app/coach/schedule/page.tsx (1 call → authFetch)
-hooks/coach/useWorkoutModal.ts (2 calls → authFetch)
-hooks/athlete/useBenchmarkManagement.ts (1 call → authFetch)
-components/coach/WhiteboardUploadPanel.tsx (1 call → authFetch)
-components/coach/WhiteboardGallery.tsx (2 calls → authFetch)
-components/athlete/AthletePagePaymentTab.tsx (2 calls → authFetch)
-Still Remaining (next session)
-#	Task	Severity
-1	Add error.tsx error boundaries	CRITICAL
-2	Remove debug console.log statements (~30+)	HIGH
-3	Add security headers to next.config.ts	MEDIUM
-4	Stop exposing error details to client	MEDIUM
-5	N+1 query fix on Members page	HIGH
-6	Run npm run build to verify all changes compile	HIGH
-Important: You should run npm run build at the start of next session to verify everything compiles before continuing. The NEXT_PUBLIC_APP_URL env var must be set in .env.local for the Stripe routes to work locally now.
+### Remaining (LOW priority)
 
-Is it safe for me to trigger auto-compact here? We are at 90%
-96%!
-No — start a new session instead. At 96% there's not enough room left to do useful work after compaction.
+- [ ] **#13 Email confirmation** — Requires Supabase Dashboard config (not code). Go to Authentication → Settings → disable "Auto-confirm emails"
+- [ ] **#15 Large components** — Refactoring: coach/athletes (1264 lines), benchmarks-lifts (1445 lines), members (1040 lines)
+- [ ] **#16 Favicon** — Needs gym logo asset file
+- [ ] **#17 Meta tags** — Add Open Graph, Twitter card, theme color to layout.tsx metadata
 
-All critical fixes are saved to disk. Next session priorities:
+### New Files Created During Audit
 
-npm run build to verify changes compile
-Add NEXT_PUBLIC_APP_URL=http://localhost:3000 to .env.local
-Remaining items from [pre-deployment-audit-findings.md](Chris Notes/pre-deployment-audit-findings.md)
+| File | Purpose |
+|:-----|:--------|
+| `lib/auth-api.ts` | Server-side auth helpers (`requireAuth`, `requireCoach`) |
+| `lib/auth-fetch.ts` | Client-side `authFetch` wrapper with auto auth headers |
+| `middleware.ts` | Next.js middleware for centralized route protection |
+| `app/error.tsx` | Root error boundary |
+| `app/coach/error.tsx` | Coach section error boundary |
+| `app/athlete/error.tsx` | Athlete section error boundary |
+| `app/member/error.tsx` | Member section error boundary |
+| `database/add-audit-indexes.sql` | Performance indexes (already applied to Supabase) |
+
+### Notes for Next Session
+- Build passes clean — all changes compile
+- `NEXT_PUBLIC_APP_URL` env var must be set in `.env.local` for Stripe routes to work locally
+- All CRITICAL, HIGH, and MEDIUM items are resolved
+- Only LOW priority items (#13, #15, #16, #17) remain
