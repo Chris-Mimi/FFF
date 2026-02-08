@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.70
-**Updated:** 2026-02-07 (Session 98 - Large Component Refactoring)
+**Version:** 10.71
+**Updated:** 2026-02-07 (Session 99 - Lift Records & Recharts Fixes)
 
 ---
 
@@ -77,6 +77,13 @@ Athlete Tables (linked to members.id)
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-07 Session 99 - Opus 4.6):**
+- **✅ Lift Records DB Fix** — Fixed rep_type_xor constraint violation (rep_max_type XOR rep_scheme)
+- **✅ Recharts Stability** — Pinned to 3.3.0 (removed ^) to prevent tooltip breakage from auto-upgrades
+- **✅ UX Polish** — Logo on athlete dashboard, mobile-optimized Book a Class, auth fixes
+- **⚠️ KNOWN ISSUE: Lifts Tab Edit/Save** — Manual edit of lift records failing (needs investigation)
+- See: `project-history/2026-02-07-session-99-lift-records-recharts-fixes.md`
+
 **Completed (2026-02-07 Session 98 - Opus 4.6):**
 - **✅ Audit #13 Email confirmation** — Verified already enabled in Supabase
 - **✅ Audit #15 Large component refactoring** — All 3 coach pages reduced:
@@ -98,11 +105,7 @@ Athlete Tables (linked to members.id)
 - Kids programs class type system, enhanced age filtering
 - See: `project-history/2026-02-06-session-94-kids-class-filtering.md`
 
-**Completed (2026-02-05 Session 93 - Opus 4.5):**
-- Coach athletes mobile optimization, family member fixes, delete duplicates SQL fix
-- See: `project-history/2026-02-05-session-93-coach-athletes-mobile-family-fixes.md`
-
-**Older Sessions (57-92):**
+**Older Sessions (57-93):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -114,6 +117,7 @@ See `project-history/` folder for detailed implementation history
 - **#17** Missing OG/Meta tags
 
 **Other Known Issues:**
+- **⚠️ Lifts Tab Edit/Save Failure** — Manual editing of lift records fails (Session 99 discovery, needs investigation next session)
 - Athletes page: Previously logged benchmarks/lifts may not display for some athletes (pre-existing, needs investigation)
 
 **Migration Pending:**
@@ -160,7 +164,10 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 99 Priorities
+### Session 100 Priorities
+
+**URGENT:**
+- **Fix Lifts Tab Edit/Save** — Investigate why manual lift record editing fails
 
 **Pre-Deployment Audit — Nearly Complete:**
 - ✅ #1-15 all completed (Sessions 96-98)
