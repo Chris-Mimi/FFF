@@ -747,11 +747,17 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                 </select>
               </div>
               <ResponsiveContainer width='100%' height={300}>
-                <LineChart data={getLiftChartData(chartLift, chartRepMaxType)}>
+                <LineChart
+                  data={getLiftChartData(chartLift, chartRepMaxType)}
+                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                >
                   <CartesianGrid strokeDasharray='3 3' stroke='white' />
                   <XAxis dataKey='date' tick={{ fill: '#f3f4f6' }} />
                   <YAxis tick={{ fill: '#f3f4f6' }} />
                   <Tooltip
+                    cursor={false}
+                    isAnimationActive={false}
+                    allowEscapeViewBox={{ x: true, y: true }}
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
                         return (
@@ -780,6 +786,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                     stroke='#208479'
                     strokeWidth={2}
                     dot={<CustomDot />}
+                    activeDot={{ r: 8, strokeWidth: 2, stroke: '#fff' }}
                   />
                 </LineChart>
               </ResponsiveContainer>

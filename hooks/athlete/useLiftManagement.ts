@@ -32,6 +32,13 @@ export function useLiftManagement(
     try {
       const weight = parseFloat(weightKg);
 
+      // Derive rep_max_type from reps count (only when no rep_scheme — DB constraint: XOR)
+      const repMaxMap: Record<number, string> = { 1: '1RM', 3: '3RM', 5: '5RM', 10: '10RM' };
+      const repMaxType = repScheme ? null : (repMaxMap[reps] || null);
+
+      // Calculate estimated 1RM using Epley formula (for reps > 1)
+      const calculated1rm = reps > 1 ? Math.round(weight * (1 + reps / 30) * 10) / 10 : null;
+
       // Check if a record already exists for this lift + date + user + rep_scheme
       const { data: existingRecord, error: checkError } = await supabase
         .from('lift_records')
@@ -56,6 +63,8 @@ export function useLiftManagement(
             weight_kg: weight,
             reps: reps,
             rep_scheme: repScheme || null,
+            rep_max_type: repMaxType,
+            calculated_1rm: calculated1rm,
           })
           .eq('id', existingRecord.id);
 
@@ -74,6 +83,8 @@ export function useLiftManagement(
             weight_kg: weight,
             reps: reps,
             rep_scheme: repScheme || null,
+            rep_max_type: repMaxType,
+            calculated_1rm: calculated1rm,
             lift_date: liftDate,
           });
 

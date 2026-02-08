@@ -1,7 +1,42 @@
 // AthletePageSecurityTab component
 'use client';
 
+import { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase';
+
 export default function AthletePageSecurityTab() {
+  const [memberSince, setMemberSince] = useState<string | null>(null);
+  const [lastLogin, setLastLogin] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchAccountInfo = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Member since from members table
+      const { data: member } = await supabase
+        .from('members')
+        .select('created_at')
+        .eq('id', user.id)
+        .single();
+
+      if (member?.created_at) {
+        setMemberSince(new Date(member.created_at).toLocaleDateString('en-US', {
+          year: 'numeric', month: 'long', day: 'numeric'
+        }));
+      }
+
+      // Last login from Supabase Auth
+      if (user.last_sign_in_at) {
+        setLastLogin(new Date(user.last_sign_in_at).toLocaleDateString('en-US', {
+          year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+        }));
+      }
+    };
+
+    fetchAccountInfo();
+  }, []);
+
   return (
     <div className='bg-white rounded-lg shadow p-6'>
       <h2 className='text-2xl font-bold text-gray-900 mb-6'>Access & Security</h2>
@@ -35,11 +70,11 @@ export default function AthletePageSecurityTab() {
             </div>
             <div>
               <label className='block text-sm font-medium text-gray-700'>Member Since</label>
-              <p className='text-gray-900'>Loading...</p>
+              <p className='text-gray-900'>{memberSince || 'Not available'}</p>
             </div>
             <div>
               <label className='block text-sm font-medium text-gray-700'>Last Login</label>
-              <p className='text-gray-900'>Loading...</p>
+              <p className='text-gray-900'>{lastLogin || 'Not available'}</p>
             </div>
           </div>
         </div>

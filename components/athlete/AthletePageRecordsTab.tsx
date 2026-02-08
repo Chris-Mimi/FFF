@@ -17,7 +17,8 @@ interface LiftRecord {
   id: string;
   lift_name: string;
   weight_kg: number;
-  rep_max_type: '1RM' | '3RM' | '5RM' | '10RM';
+  rep_max_type: '1RM' | '3RM' | '5RM' | '10RM' | null;
+  rep_scheme?: string | null;
   calculated_1rm?: number;
   lift_date: string;
 }
@@ -198,10 +199,11 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
 
       if (liftError) throw liftError;
 
-      // Group by lift name and rep max type, find highest weight for each
+      // Group by lift name and rep type (rep_max_type or rep_scheme), find highest weight for each
       const liftMap = new Map<string, LiftRecord>();
       (liftData || []).forEach(record => {
-        const key = `${record.lift_name}-${record.rep_max_type}`;
+        const repKey = record.rep_max_type || record.rep_scheme || 'unknown';
+        const key = `${record.lift_name}-${repKey}`;
         const existing = liftMap.get(key);
 
         if (!existing || record.weight_kg > existing.weight_kg) {
@@ -209,21 +211,7 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
         }
       });
 
-      // Keep only the best result per lift (prioritize 1RM, then 3RM, then 5RM, then 10RM)
-      const finalLiftPRs = new Map<string, LiftRecord>();
-      liftMap.forEach((record, key) => {
-        const liftName = record.lift_name;
-        const existing = finalLiftPRs.get(liftName);
-
-        const repMaxPriority = { '1RM': 4, '3RM': 3, '5RM': 2, '10RM': 1 };
-        const currentPriority = repMaxPriority[record.rep_max_type as keyof typeof repMaxPriority] || 0;
-        const existingPriority = existing ? repMaxPriority[existing.rep_max_type as keyof typeof repMaxPriority] || 0 : 0;
-
-        if (!existing || currentPriority > existingPriority ||
-            (currentPriority === existingPriority && record.weight_kg > existing.weight_kg)) {
-          finalLiftPRs.set(liftName, record);
-        }
-      });
+      // Note: We show ALL grouped records (per lift+rep_type combo), not just one per lift name
 
       setLiftPRs(Array.from(liftMap.values()));
     } catch (error) {
@@ -409,7 +397,7 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
                     <div className='flex items-start justify-between mb-2'>
                       <h4 className='font-bold text-gray-900'>{pr.lift_name}</h4>
                       <span className='text-xs px-2 py-1 rounded bg-[#a1f0e8ff] text-gray-700'>
-                        {pr.rep_max_type}
+                        {pr.rep_max_type || pr.rep_scheme || '—'}
                       </span>
                     </div>
                     <div className='flex items-center justify-between'>

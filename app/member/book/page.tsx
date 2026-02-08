@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { Calendar, Users, Clock, LogOut, ChevronLeft, ChevronRight, X, Check, TrendingUp, Edit2, Trash2, User } from 'lucide-react';
+import { Calendar, Users, Clock, LogOut, ChevronLeft, ChevronRight, X, Check, Edit2, Trash2, User } from 'lucide-react';
 import { signOut } from '@/lib/auth';
+import Image from 'next/image';
 import Link from 'next/link';
 
 interface WeeklySession {
@@ -533,37 +534,28 @@ export default function MemberBookingPage() {
       {/* Header */}
       <header className="bg-gray-800 border-b border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h1 className="text-2xl font-bold text-white">Book a Class</h1>
-              <p className="text-gray-400 text-sm mt-1">Reserve your spot in upcoming sessions</p>
+              <div className="flex items-center gap-3">
+                <Image src="/icon.png" alt="The Forge logo" width={48} height={48} className="w-14 h-14 sm:w-16 sm:h-16 object-contain" />
+                <div>
+                  <h1 className="text-xl sm:text-2xl font-bold text-white">Book a Class</h1>
+                  <p className="text-gray-400 text-xs sm:text-sm">Reserve your spot in upcoming sessions</p>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-3">
-              {athleteStatus && (
-                <Link href="/athlete">
-                  <button
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors duration-200 ${
-                      athleteStatus.hasAccess
-                        ? 'bg-teal-500 hover:bg-teal-600 text-white'
-                        : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
-                    }`}
-                  >
-                    {athleteStatus.hasAccess ? (
-                      <ChevronLeft size={18} />
-                    ) : (
-                      <TrendingUp size={18} />
-                    )}
-                    {athleteStatus.hasAccess
-                      ? 'back'
-                      : 'Unlock Athlete Page'}
-                  </button>
-                </Link>
-              )}
+            <div className="flex items-center gap-2">
+              <Link href="/athlete">
+                <button className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg transition-colors duration-200 min-h-[44px] text-xs sm:text-sm bg-teal-500 hover:bg-teal-600 text-white">
+                  <ChevronLeft size={16} />
+                  Back
+                </button>
+              </Link>
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200"
+                className="flex items-center justify-center gap-1.5 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 min-h-[44px] text-xs sm:text-sm"
               >
-                <LogOut size={18} />
+                <LogOut size={16} />
                 Logout
               </button>
             </div>
@@ -575,18 +567,18 @@ export default function MemberBookingPage() {
       {athleteStatus?.using10Card && athleteStatus.tenCardRemaining <= 2 && athleteStatus.tenCardRemaining > 0 && (
         <div className="bg-yellow-900/50 border-b border-yellow-700">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div className="flex items-center gap-3">
-                <div className="bg-yellow-500 rounded-full p-1">
+                <div className="bg-yellow-500 rounded-full p-1 flex-shrink-0">
                   <span className="text-yellow-900 font-bold text-sm px-1">{athleteStatus.tenCardRemaining}</span>
                 </div>
-                <p className="text-yellow-200">
-                  <span className="font-semibold">Low sessions!</span> You have {athleteStatus.tenCardRemaining} session{athleteStatus.tenCardRemaining > 1 ? 's' : ''} remaining on your 10-card.
+                <p className="text-yellow-200 text-sm">
+                  <span className="font-semibold">Low sessions!</span> {athleteStatus.tenCardRemaining} session{athleteStatus.tenCardRemaining > 1 ? 's' : ''} remaining.
                 </p>
               </div>
-              <Link href="/athlete?tab=payment">
-                <button className="bg-yellow-500 hover:bg-yellow-400 text-yellow-900 font-semibold px-4 py-1.5 rounded-lg text-sm transition-colors">
-                  Buy More Sessions
+              <Link href="/athlete?tab=payment" className="self-end sm:self-auto">
+                <button className="bg-yellow-500 hover:bg-yellow-400 text-yellow-900 font-semibold px-4 py-2 rounded-lg text-sm transition-colors min-h-[44px]">
+                  Buy More
                 </button>
               </Link>
             </div>
@@ -598,13 +590,13 @@ export default function MemberBookingPage() {
       {athleteStatus && !athleteStatus.hasAccess && (
         <div className="bg-red-900/50 border-b border-red-700">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-            <div className="flex items-center justify-between">
-              <p className="text-red-200">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <p className="text-red-200 text-sm">
                 <span className="font-semibold">No active subscription or sessions.</span> Purchase a subscription or 10-card to book classes.
               </p>
-              <Link href="/athlete?tab=payment">
-                <button className="bg-red-500 hover:bg-red-400 text-white font-semibold px-4 py-1.5 rounded-lg text-sm transition-colors">
-                  View Payment Options
+              <Link href="/athlete?tab=payment" className="self-end sm:self-auto">
+                <button className="bg-red-500 hover:bg-red-400 text-white font-semibold px-4 py-2 rounded-lg text-sm transition-colors min-h-[44px]">
+                  Payment Options
                 </button>
               </Link>
             </div>
@@ -827,7 +819,7 @@ export default function MemberBookingPage() {
                               <button
                                 onClick={() => handleBook(session.id)}
                                 disabled={processing === session.id}
-                                className="px-3 py-1.5 bg-teal-500 hover:bg-teal-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm rounded transition-colors duration-200 whitespace-nowrap"
+                                className="px-4 py-2.5 sm:px-3 sm:py-1.5 bg-teal-500 hover:bg-teal-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm rounded-lg sm:rounded transition-colors duration-200 whitespace-nowrap min-h-[44px] sm:min-h-0"
                               >
                                 {processing === session.id ? 'Booking...' : 'Book'}
                               </button>
@@ -835,7 +827,7 @@ export default function MemberBookingPage() {
                               <button
                                 onClick={() => handleCancel(session.id, session.user_booking_id!)}
                                 disabled={processing === session.id}
-                                className="flex items-center gap-1.5 px-2 py-1.5 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm rounded transition-colors duration-200"
+                                className="flex items-center justify-center gap-1.5 px-3 py-2.5 sm:px-2 sm:py-1.5 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm rounded-lg sm:rounded transition-colors duration-200 min-h-[44px] sm:min-h-0"
                               >
                                 <X size={16} />
                                 {processing === session.id ? 'Canceling...' : 'Cancel'}

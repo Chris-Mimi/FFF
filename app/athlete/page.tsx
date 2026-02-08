@@ -28,6 +28,7 @@ import {
   Trophy,
   User,
 } from 'lucide-react';
+import NextImage from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState, Suspense } from 'react';
 
@@ -262,7 +263,10 @@ function AthletePageContent() {
         <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
           <div className='flex flex-col sm:flex-row sm:justify-between sm:items-center py-4 gap-4'>
             <div className='flex-1'>
-              <h1 className='text-2xl sm:text-3xl font-bold text-gray-900'>The Forge</h1>
+              <div className='flex items-center gap-3'>
+                <NextImage src="/icon.png" alt="The Forge logo" width={48} height={48} className='w-14 h-14 sm:w-16 sm:h-16 object-contain' />
+                <h1 className='text-2xl sm:text-3xl font-bold text-gray-900'>The Forge</h1>
+              </div>
               <p className='text-sm text-gray-600'>Welcome back, {userName}</p>
               {/* Profile Selector */}
               {(familyMembers.length > 0 || activeProfileId) && (
