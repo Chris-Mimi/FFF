@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.71
-**Updated:** 2026-02-07 (Session 99 - Lift Records & Recharts Fixes)
+**Version:** 10.80
+**Updated:** 2026-02-09 (Session 100 - RM Test Feature, Mobile Optimization, Recharts Fixes)
 
 ---
 
@@ -77,35 +77,32 @@ Athlete Tables (linked to members.id)
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-09 Session 100 - Opus 4.6):**
+- **✅ RM Test Feature** — Coach can mark lifts as RM tests (1RM/3RM/5RM/10RM), auto-saves to `rep_max_type` for lift cards & Progress Charts
+- **✅ Recharts Version Sync** — Fixed tooltip/grid issues on Mimi's profile (`npm install` needed per OS profile)
+- **✅ SVG Focus Outline Fix** — Removed blue outline on chart click across all 3 athlete tabs
+- **✅ Progress Chart Cleanup** — Only shows `rep_max_type` records (not `rep_scheme`)
+- **✅ Duration "0" Fix** — Fixed React `{0 && ...}` falsy rendering in logbook sections
+- **✅ Mobile Optimization** — Lifts, Benchmarks, Forge Benchmarks tabs all optimized (responsive padding, grids, charts, modals, touch targets)
+- See: `project-history/2026-02-09-session-100-rm-test-mobile-optimization.md`
+
 **Completed (2026-02-07 Session 99 - Opus 4.6):**
-- **✅ Lift Records DB Fix** — Fixed rep_type_xor constraint violation (rep_max_type XOR rep_scheme)
-- **✅ Recharts Stability** — Pinned to 3.3.0 (removed ^) to prevent tooltip breakage from auto-upgrades
-- **✅ UX Polish** — Logo on athlete dashboard, mobile-optimized Book a Class, auth fixes
-- **⚠️ KNOWN ISSUE: Lifts Tab Edit/Save** — Manual edit of lift records failing (needs investigation)
+- Lift Records DB Fix (rep_type_xor), Recharts pinned to 3.3.0, UX polish
 - See: `project-history/2026-02-07-session-99-lift-records-recharts-fixes.md`
 
 **Completed (2026-02-07 Session 98 - Opus 4.6):**
-- **✅ Audit #13 Email confirmation** — Verified already enabled in Supabase
-- **✅ Audit #15 Large component refactoring** — All 3 coach pages reduced:
-  - `athletes/page.tsx`: 1,263 → 323 lines (6 extracted components)
-  - `benchmarks-lifts/page.tsx`: 1,445 → 328 lines (7 hooks + 1 component)
-  - `members/page.tsx`: 1,035 → 229 lines (2 hooks + 2 components + 1 types file)
-- 20 new files created, build passes clean
+- Audit #13/#15: Large component refactoring (3 coach pages, 20 new files)
 - See: `project-history/2026-02-07-session-98-large-component-refactoring.md`
 
 **Completed (2026-02-07 Session 97 - Opus 4.6):**
-- Pre-deployment audit fixes: #5 N+1 query, #6 middleware, #7 console.logs, #8 next/image, #11 select('*'), #12 DB indexes, #14 error exposure
+- Pre-deployment audit fixes: #5-#14
 - See: `project-history/2026-02-07-session-97-pre-deployment-audit-fixes.md`
 
 **Completed (2026-02-06 Session 95 - Opus 4.6):**
 - Backup auto-discovery, Google Calendar workout types, class type color fix
 - See: `project-history/2026-02-06-session-95-backup-autodiscovery-calendar-types.md`
 
-**Completed (2026-02-06 Session 94 - Sonnet 4.5):**
-- Kids programs class type system, enhanced age filtering
-- See: `project-history/2026-02-06-session-94-kids-class-filtering.md`
-
-**Older Sessions (57-93):**
+**Older Sessions (57-94):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -117,8 +114,8 @@ See `project-history/` folder for detailed implementation history
 - **#17** Missing OG/Meta tags
 
 **Other Known Issues:**
-- **⚠️ Lifts Tab Edit/Save Failure** — Manual editing of lift records fails (Session 99 discovery, needs investigation next session)
-- Athletes page: Previously logged benchmarks/lifts may not display for some athletes (pre-existing, needs investigation)
+- **⚠️ Lifts Tab Edit/Save Failure** — Manual editing of lift records fails (Session 99 discovery, still needs investigation)
+- Athletes page: Previously logged benchmarks/lifts may not display for some athletes (pre-existing)
 
 **Migration Pending:**
 1. **`get_public_tables()` RPC function** - Required for backup auto-discovery
@@ -164,15 +161,14 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 100 Priorities
+### Session 101 Priorities
 
 **URGENT:**
-- **Fix Lifts Tab Edit/Save** — Investigate why manual lift record editing fails
+- **Fix Lifts Tab Edit/Save** — Investigate why manual lift record editing fails (carried from Session 99)
 
 **Pre-Deployment Audit — Nearly Complete:**
 - ✅ #1-15 all completed (Sessions 96-98)
 - Remaining: #16 (favicon, needs asset), #17 (meta tags)
-- Full audit findings: `Chris Notes/pre-deployment-audit-findings.md`
 
 **Pending Polish (LOW):**
 - #16 Favicon (needs gym logo asset)
@@ -192,4 +188,4 @@ npm run restore 2025-12-06  # Restore specific date
 
 ---
 
-**File Size:** ~4.3KB
+**File Size:** ~4.5KB

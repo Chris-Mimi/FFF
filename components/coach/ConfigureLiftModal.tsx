@@ -44,6 +44,9 @@ function ConfigureLiftModal({
     { set_number: 7, reps: 5, percentage_1rm: 90 },
   ]);
 
+  // RM Test state
+  const [rmTest, setRmTest] = useState<'1RM' | '3RM' | '5RM' | '10RM' | null>(null);
+
   const [athleteNotes, setAthleteNotes] = useState('Record your heaviest set');
   const [athleteNotesExpanded, setAthleteNotesExpanded] = useState(true);
 
@@ -94,11 +97,13 @@ function ConfigureLiftModal({
         setVariableSets(existingLift.variable_sets || [{ set_number: 1, reps: 5, percentage_1rm: undefined }]);
       }
 
+      setRmTest(existingLift.rm_test || null);
       setAthleteNotes(existingLift.athlete_notes || '');
       // Expand athlete notes if they exist
       setAthleteNotesExpanded(!!existingLift.athlete_notes);
     } else {
       // Reset to defaults when not editing
+      setRmTest(null);
       setRepType('constant');
       setSets(5);
       setReps(5);
@@ -185,9 +190,11 @@ function ConfigureLiftModal({
       id: lift.id,
       name: lift.name,
       rep_type: repType,
-      ...(repType === 'constant'
-        ? { sets, reps, percentage_1rm: percentage }
-        : { variable_sets: variableSets }),
+      ...(rmTest
+        ? { sets: 1, reps: parseInt(rmTest.replace('RM', '')), rm_test: rmTest }
+        : repType === 'constant'
+          ? { sets, reps, percentage_1rm: percentage }
+          : { variable_sets: variableSets }),
       visibility: 'everyone',
       athlete_notes: athleteNotes || undefined,
     };
@@ -204,6 +211,9 @@ function ConfigureLiftModal({
 
   // Format display text for drag handle
   const getDisplayText = () => {
+    if (rmTest) {
+      return `${lift.name} ${rmTest}`;
+    }
     if (repType === 'constant') {
       const base = `${lift.name} ${sets}x${reps}`;
       return percentage ? `${base} @ ${percentage}%` : base;
@@ -270,39 +280,106 @@ function ConfigureLiftModal({
           </div>
 
           {/* Drag Preview */}
-          <div className='bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center gap-2 text-gray-700'>
+          <div className={`rounded-lg p-3 flex items-center gap-2 text-gray-700 ${
+            rmTest ? 'bg-amber-50 border border-amber-300' : 'bg-blue-50 border border-blue-200'
+          }`}>
             <GripVertical size={20} className='text-gray-400' />
             <span className='font-semibold'>{getDisplayText()}</span>
           </div>
 
-          {/* Constant/Variable Tabs */}
-          <div className='border-b border-gray-300'>
-            <div className='flex'>
+          {/* RM Test Toggle */}
+          <div className='bg-amber-50 border border-amber-200 rounded-lg p-3'>
+            <div className='flex items-center justify-between'>
+              <div>
+                <label className='text-sm font-semibold text-gray-700'>RM Test</label>
+                <p className='text-xs text-gray-500'>Auto-saves to lift cards & progress charts</p>
+              </div>
               <button
-                onClick={() => setRepType('constant')}
-                className={`flex-1 px-4 py-3 font-semibold transition ${
-                  repType === 'constant'
-                    ? 'bg-white text-[#208479] border-b-2 border-[#208479]'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                onClick={() => {
+                  if (rmTest) {
+                    setRmTest(null);
+                  } else {
+                    setRmTest('1RM');
+                    setRepType('constant');
+                    setSets(1);
+                    setReps(1);
+                  }
+                }}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
+                  rmTest ? 'bg-amber-500' : 'bg-gray-300'
                 }`}
               >
-                Constant Reps
-              </button>
-              <button
-                onClick={() => setRepType('variable')}
-                className={`flex-1 px-4 py-3 font-semibold transition ${
-                  repType === 'variable'
-                    ? 'bg-white text-[#208479] border-b-2 border-[#208479]'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                }`}
-              >
-                Variable Reps
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
+                  rmTest ? 'translate-x-6' : 'translate-x-1'
+                }`} />
               </button>
             </div>
+            {rmTest && (
+              <div className='mt-3 flex gap-2'>
+                {(['1RM', '3RM', '5RM', '10RM'] as const).map(type => (
+                  <button
+                    key={type}
+                    onClick={() => {
+                      setRmTest(type);
+                      setRepType('constant');
+                      setSets(1);
+                      setReps(parseInt(type.replace('RM', '')));
+                    }}
+                    className={`flex-1 px-3 py-2 rounded-lg text-sm font-semibold transition ${
+                      rmTest === type
+                        ? 'bg-amber-500 text-white'
+                        : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    {type}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
+          {/* Constant/Variable Tabs - hidden when RM test active */}
+          {!rmTest && (
+            <>
+              <div className='border-b border-gray-300'>
+                <div className='flex'>
+                  <button
+                    onClick={() => setRepType('constant')}
+                    className={`flex-1 px-4 py-3 font-semibold transition ${
+                      repType === 'constant'
+                        ? 'bg-white text-[#208479] border-b-2 border-[#208479]'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    }`}
+                  >
+                    Constant Reps
+                  </button>
+                  <button
+                    onClick={() => setRepType('variable')}
+                    className={`flex-1 px-4 py-3 font-semibold transition ${
+                      repType === 'variable'
+                        ? 'bg-white text-[#208479] border-b-2 border-[#208479]'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    }`}
+                  >
+                    Variable Reps
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* RM Test Summary */}
+          {rmTest && (
+            <div className='text-center py-4'>
+              <div className='text-4xl font-bold text-amber-600'>{rmTest}</div>
+              <div className='text-sm text-gray-500 mt-1'>
+                {parseInt(rmTest.replace('RM', ''))} rep max test
+              </div>
+            </div>
+          )}
+
           {/* Constant Reps Content */}
-          {repType === 'constant' && (
+          {!rmTest && repType === 'constant' && (
             <div className='space-y-4'>
               <div className='flex items-center gap-8 justify-center'>
                 {/* Sets */}
@@ -385,7 +462,7 @@ function ConfigureLiftModal({
           )}
 
           {/* Variable Reps Content */}
-          {repType === 'variable' && (
+          {!rmTest && repType === 'variable' && (
             <div className='space-y-4'>
               <div className='border border-gray-300 rounded-lg overflow-hidden'>
                 <table className='w-full'>

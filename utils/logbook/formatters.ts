@@ -5,6 +5,9 @@ import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } fr
  */
 
 export function formatLift(lift: ConfiguredLift): string {
+  if (lift.rm_test) {
+    return `${lift.name} ${lift.rm_test}`;
+  }
   if (lift.rep_type === 'constant') {
     const base = `${lift.name} ${lift.sets}x${lift.reps}`;
     return lift.percentage_1rm ? `${base} @ ${lift.percentage_1rm}%` : base;

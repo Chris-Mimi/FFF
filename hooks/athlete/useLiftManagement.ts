@@ -39,15 +39,23 @@ export function useLiftManagement(
       // Calculate estimated 1RM using Epley formula (for reps > 1)
       const calculated1rm = reps > 1 ? Math.round(weight * (1 + reps / 30) * 10) / 10 : null;
 
-      // Check if a record already exists for this lift + date + user + rep_scheme
-      const { data: existingRecord, error: checkError } = await supabase
+      // Check if a record already exists for this lift + date + user
+      let query = supabase
         .from('lift_records')
         .select('id')
         .eq('user_id', userId)
         .eq('lift_name', liftName)
-        .eq('lift_date', liftDate)
-        .eq('rep_scheme', repScheme || null)
-        .maybeSingle();
+        .eq('lift_date', liftDate);
+
+      if (repScheme) {
+        query = query.eq('rep_scheme', repScheme);
+      } else if (repMaxType) {
+        query = query.eq('rep_max_type', repMaxType);
+      } else {
+        query = query.is('rep_scheme', null).is('rep_max_type', null);
+      }
+
+      const { data: existingRecord, error: checkError } = await query.maybeSingle();
 
       if (checkError) {
         console.error('Error checking existing lift record:', checkError);
@@ -152,16 +160,26 @@ export function useLiftManagement(
           sections.forEach(section => {
             if (section.lifts) {
               section.lifts.forEach((lift) => {
-                // Calculate rep scheme for this lift
-                const repScheme = lift.rep_type === 'constant'
-                  ? `${lift.sets || 1}x${lift.reps || 1}`
-                  : lift.variable_sets?.map(s => s.reps).join('-') || '1';
+                let liftKey: string;
+                let existingRecord;
 
-                const liftKey = `${wod.id}-${section.id}-${lift.name}-${repScheme}`;
-                // Find the most recent record for this lift with matching rep_scheme
-                const existingRecord = data.find(r =>
-                  r.lift_name === lift.name && r.rep_scheme === repScheme
-                );
+                if (lift.rm_test) {
+                  // RM test: match by rep_max_type
+                  liftKey = `${wod.id}-${section.id}-${lift.name}-${lift.rm_test}`;
+                  existingRecord = data.find(r =>
+                    r.lift_name === lift.name && r.rep_max_type === lift.rm_test
+                  );
+                } else {
+                  // Regular lift: match by rep_scheme
+                  const repScheme = lift.rep_type === 'constant'
+                    ? `${lift.sets || 1}x${lift.reps || 1}`
+                    : lift.variable_sets?.map(s => s.reps).join('-') || '1';
+                  liftKey = `${wod.id}-${section.id}-${lift.name}-${repScheme}`;
+                  existingRecord = data.find(r =>
+                    r.lift_name === lift.name && r.rep_scheme === repScheme
+                  );
+                }
+
                 if (existingRecord) {
                   newLiftRecords[liftKey] = {
                     lift_name: existingRecord.lift_name,

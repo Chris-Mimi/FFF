@@ -22,6 +22,9 @@ interface SectionType {
 // ============================================
 
 function formatLift(lift: ConfiguredLift): string {
+  if (lift.rm_test) {
+    return `${lift.name} ${lift.rm_test}`;
+  }
   if (lift.rep_type === 'constant') {
     const base = `${lift.name} ${lift.sets}x${lift.reps}`;
     return lift.percentage_1rm ? `${base} @ ${lift.percentage_1rm}%` : base;
@@ -368,10 +371,14 @@ function WODSectionComponent({
                               e.stopPropagation();
                               onEditLift(section.id, idx);
                             }}
-                            className='flex items-center gap-2 bg-blue-100 text-blue-900 rounded-md px-3 py-1.5 text-sm font-medium border border-blue-300 cursor-pointer hover:bg-blue-200 transition'
-                            title='Click to edit lift'
+                            className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium cursor-pointer transition ${
+                              lift.rm_test
+                                ? 'bg-amber-100 text-amber-900 border border-amber-400 hover:bg-amber-200'
+                                : 'bg-blue-100 text-blue-900 border border-blue-300 hover:bg-blue-200'
+                            }`}
+                            title={lift.rm_test ? 'RM Test - Click to edit' : 'Click to edit lift'}
                           >
-                            <GripVertical size={14} className='text-blue-600' />
+                            <GripVertical size={14} className={lift.rm_test ? 'text-amber-600' : 'text-blue-600'} />
                             <span>{formatLift(lift)}</span>
                             <button
                               type='button'
@@ -379,7 +386,11 @@ function WODSectionComponent({
                                 e.stopPropagation();
                                 onRemoveLift(section.id, idx);
                               }}
-                              className='text-blue-600 hover:text-blue-800 hover:bg-blue-200 rounded-full p-0.5'
+                              className={`rounded-full p-0.5 ${
+                                lift.rm_test
+                                  ? 'text-amber-600 hover:text-amber-800 hover:bg-amber-200'
+                                  : 'text-blue-600 hover:text-blue-800 hover:bg-blue-200'
+                              }`}
                               title='Remove lift'
                             >
                               <X size={14} />

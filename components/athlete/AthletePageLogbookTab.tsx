@@ -159,12 +159,18 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
           const liftIdx = parseInt(itemIdentifier.replace('lift-', ''));
           const lift = section.lifts?.[liftIdx];
           if (lift && result.weight_result) {
-            const repScheme = lift.rep_type === 'constant'
-              ? `${lift.sets || 1}x${lift.reps || 1}`
-              : lift.variable_sets?.map(s => s.reps).join('-') || '1';
-            const reps = parseInt(result.reps_result || '0') || 0;
-
-            await saveLiftRecord(lift.name, result.weight_result, reps, workoutDate, repScheme);
+            if (lift.rm_test) {
+              // RM Test: save WITHOUT repScheme → triggers rep_max_type path
+              const reps = parseInt(lift.rm_test.replace('RM', ''));
+              await saveLiftRecord(lift.name, result.weight_result, reps, workoutDate);
+            } else {
+              // Regular lift: save WITH repScheme as before
+              const repScheme = lift.rep_type === 'constant'
+                ? `${lift.sets || 1}x${lift.reps || 1}`
+                : lift.variable_sets?.map(s => s.reps).join('-') || '1';
+              const reps = parseInt(result.reps_result || '0') || 0;
+              await saveLiftRecord(lift.name, result.weight_result, reps, workoutDate, repScheme);
+            }
             savedCount++;
           }
         } else if (itemIdentifier.startsWith('benchmark-')) {
@@ -378,7 +384,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                           <span className='text-sm font-medium text-[#208479] uppercase'>
                             {section.type}
                           </span>
-                          {(section.duration && Number(section.duration) > 0) && (
+                          {Number(section.duration) > 0 && (
                             <span className='text-sm text-gray-500'>{section.duration} min</span>
                           )}
 

@@ -26,6 +26,9 @@ export interface ConfiguredLift {
   // Variable reps: Per-set configuration with individual reps and percentages
   variable_sets?: VariableSet[];
 
+  // RM Test: When set, logbook saves as rep_max_type instead of rep_scheme
+  rm_test?: '1RM' | '3RM' | '5RM' | '10RM';
+
   scaling_option?: string;
   visibility: 'everyone' | 'coaches' | 'programmers';
   coach_notes?: string;

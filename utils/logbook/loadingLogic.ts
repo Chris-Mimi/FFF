@@ -151,7 +151,7 @@ export async function loadLiftResultsToSection(
   try {
     const { data, error } = await supabase
       .from('lift_records')
-      .select('lift_name, rep_scheme, reps, weight_kg')
+      .select('lift_name, rep_scheme, rep_max_type, reps, weight_kg')
       .eq('user_id', userId)
       .eq('lift_date', workoutDate);
 
@@ -170,13 +170,22 @@ export async function loadLiftResultsToSection(
         const sections = getPublishedSections(wod);
         sections.forEach(section => {
           section.lifts?.forEach((lift, idx) => {
-            const repScheme = lift.rep_type === 'constant'
-              ? `${lift.sets || 1}x${lift.reps || 1}`
-              : lift.variable_sets?.map(s => s.reps).join('-') || '1';
+            let matchingResult;
 
-            const matchingResult = data.find(r =>
-              r.lift_name === lift.name && r.rep_scheme === repScheme
-            );
+            if (lift.rm_test) {
+              // RM test: match by rep_max_type
+              matchingResult = data.find(r =>
+                r.lift_name === lift.name && r.rep_max_type === lift.rm_test
+              );
+            } else {
+              // Regular lift: match by rep_scheme
+              const repScheme = lift.rep_type === 'constant'
+                ? `${lift.sets || 1}x${lift.reps || 1}`
+                : lift.variable_sets?.map(s => s.reps).join('-') || '1';
+              matchingResult = data.find(r =>
+                r.lift_name === lift.name && r.rep_scheme === repScheme
+              );
+            }
 
             const key = `${wod.id}:::${section.id}:::lift-${idx}`;
 

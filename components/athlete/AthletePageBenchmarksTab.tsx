@@ -416,14 +416,14 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
     });
 
   return (
-    <div className='space-y-6 bg-gray-500 p-6 rounded-lg'>
-      <div className='bg-white rounded-xl shadow-lg p-8'>
-        <h2 className='text-3xl font-extrabold text-gray-800 mb-4'>Benchmark Workouts</h2>
-        <p className='text-gray-700 mb-8 leading-relaxed'>
+    <div className='space-y-4 sm:space-y-6 bg-gray-500 p-3 sm:p-6 rounded-lg'>
+      <div className='bg-white rounded-xl shadow-lg p-4 sm:p-8'>
+        <h2 className='text-2xl sm:text-3xl font-extrabold text-gray-800 mb-2 sm:mb-4'>Benchmark Workouts</h2>
+        <p className='text-sm sm:text-base text-gray-700 mb-4 sm:mb-8 leading-relaxed'>
           Track your performance on classic CrossFit benchmark workouts.
         </p>
 
-        <div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3'>
+        <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3'>
           {sortedBenchmarks.map(benchmark => {
             const bestTimes = getBestTimes(benchmark.name);
             const bestResult = bestTimes.rx || bestTimes.scaled;
@@ -431,10 +431,10 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
               <div
                 key={benchmark.name}
                 onClick={() => setSelectedBenchmark(benchmark.name)}
-                className='group border border-teal-300 rounded-lg p-3 bg-teal-200/50 hover:border-teal-400 hover:bg-teal-300/70 cursor-pointer transition'
+                className='group border border-teal-300 rounded-lg p-2 sm:p-3 bg-teal-200/50 hover:border-teal-400 hover:bg-teal-300/70 cursor-pointer transition min-h-[60px]'
               >
 <div className='flex items-start justify-between mb-1'>
-  <h3 className='text-base font-bold text-gray-900'>{benchmark.name}</h3>
+  <h3 className='text-sm sm:text-base font-bold text-gray-900'>{benchmark.name}</h3>
 <span className='text-xs text-gray-900'>
   {benchmark.type}
 </span>
@@ -459,17 +459,17 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
       </div>
 
       {/* Recent Benchmark Workouts Section */}
-      <div className='bg-white rounded-xl shadow p-6'>
+      <div className='bg-white rounded-xl shadow p-3 sm:p-6'>
         <button
           onClick={() => setExpandedSections(prev => ({ ...prev, recent: !prev.recent }))}
-          className='flex items-center gap-2 text-2xl font-bold text-gray-900 mb-4 hover:text-[#208479] transition'
+          className='flex items-center gap-2 text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4 hover:text-[#208479] transition'
         >
-          {expandedSections.recent ? <ChevronDown size={24} /> : <ChevronRight size={24} />}
+          {expandedSections.recent ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
           Recent Benchmark Workouts
         </button>
 
         {expandedSections.recent && (
-          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
+          <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4'>
             {recentBenchmarks.length > 0 ? (
               recentBenchmarks.map(result => (
                 <div key={result.id} className='group flex flex-col p-3 bg-gradient-to-r from-teal-100 to-teal-200 border border-teal-300 rounded-lg'>
@@ -523,29 +523,29 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
       </div>
 
       {/* Progress Charts Section */}
-      <div className='bg-white rounded-xl shadow p-6'>
+      <div className='bg-white rounded-xl shadow p-3 sm:p-6'>
         <button
           onClick={() => setExpandedSections(prev => ({ ...prev, charts: !prev.charts }))}
-          className='flex items-center gap-2 text-2xl font-bold text-gray-900 mb-4 hover:text-[#208479] transition'
+          className='flex items-center gap-2 text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4 hover:text-[#208479] transition'
         >
-          {expandedSections.charts ? <ChevronDown size={24} /> : <ChevronRight size={24} />}
+          {expandedSections.charts ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
           Progress Charts
         </button>
 
         {expandedSections.charts && (
           <div>
-            <p className='text-gray-600 mb-6'>Visualize your improvements over time.</p>
-            <div className='grid grid-cols-1 gap-6'>
+            <p className='text-sm sm:text-base text-gray-600 mb-4 sm:mb-6'>Visualize your improvements over time.</p>
+            <div className='grid grid-cols-1 gap-4 sm:gap-6'>
               {benchmarks.map(benchmark => {
                 const chartData = getBenchmarkChartData(benchmark.name);
                 if (chartData.length < 2) return null; // Only show charts with 2+ data points
                 return (
-                  <div key={benchmark.name} className='border border-teal-300 rounded-lg p-4 bg-gradient-to-br from-teal-200 to-teal-300'>
-                    <h4 className='font-bold text-gray-900 mb-3'>{benchmark.name}</h4>
-                    <ResponsiveContainer width='100%' height={200}>
-                      <LineChart data={chartData}>
+                  <div key={benchmark.name} className='border border-teal-300 rounded-lg p-2 sm:p-4 bg-gradient-to-br from-teal-200 to-teal-300'>
+                    <h4 className='font-bold text-gray-900 mb-2 sm:mb-3 text-sm sm:text-base'>{benchmark.name}</h4>
+                    <ResponsiveContainer width='100%' height={200} className='[&_svg]:outline-none'>
+                      <LineChart data={chartData} margin={{ left: 0, right: 5, top: 5, bottom: 5 }}>
                         <CartesianGrid strokeDasharray='3 3' stroke='white' />
-                        <XAxis dataKey='date' tick={{ fontSize: 12 }} />
+                        <XAxis dataKey='date' tick={{ fontSize: 10 }} />
                         <YAxis hide />
                         <Tooltip
                           content={({ active, payload }) => {
@@ -597,9 +597,9 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
           setNewDate(new Date().toISOString().split('T')[0]);
           setNewScaling('Rx');
         }}>
-          <div className='bg-gray-700 rounded-lg shadow-xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto' onClick={(e) => e.stopPropagation()}>
-            <div className='flex items-center justify-between mb-4'>
-              <h3 className='text-xl font-semibold text-gray-50'>
+          <div className='bg-gray-700 rounded-lg shadow-xl p-4 sm:p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto' onClick={(e) => e.stopPropagation()}>
+            <div className='flex items-center justify-between mb-3 sm:mb-4'>
+              <h3 className='text-lg sm:text-xl font-semibold text-gray-50'>
                 {editingBenchmarkId ? 'Edit' : 'Log'} {selectedBenchmark}
               </h3>
               <div className='flex gap-2'>
@@ -676,7 +676,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                 />
               </div>
 
-              <div className='flex gap-3 pt-4'>
+              <div className='flex gap-3 pt-3 sm:pt-4'>
                 <button
                   onClick={() => {
                     setSelectedBenchmark(null);
@@ -686,14 +686,14 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                     setNewScaling('Rx');
                     setEditingBenchmarkId(null);
                   }}
-                  className='flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg transition'
+                  className='flex-1 px-4 py-2 min-h-[44px] bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg transition'
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSaveBenchmark}
                   disabled={!newTime}
-                  className='flex-1 px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white font-medium rounded-lg transition disabled:bg-gray-500 disabled:cursor-not-allowed'
+                  className='flex-1 px-4 py-2 min-h-[44px] bg-[#208479] hover:bg-[#1a6b62] text-white font-medium rounded-lg transition disabled:bg-gray-500 disabled:cursor-not-allowed'
                 >
                   {editingBenchmarkId ? 'Update' : 'Save'}
                 </button>
@@ -757,27 +757,28 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
           </div>
 
           {chartBenchmark && (
-            <div className='mt-4'>
-              <h4 className='text-lg font-semibold text-gray-100 mb-4'>
+            <div className='mt-3 sm:mt-4'>
+              <h4 className='text-base sm:text-lg font-semibold text-gray-100 mb-3 sm:mb-4'>
                 {chartBenchmark} Progress
               </h4>
-              <ResponsiveContainer width='100%' height={300}>
-                  <LineChart data={getBenchmarkChartData(chartBenchmark)}>
+              <ResponsiveContainer width='100%' height={250} className='[&_svg]:outline-none'>
+                  <LineChart data={getBenchmarkChartData(chartBenchmark)} margin={{ left: -10, right: 5, top: 5, bottom: 5 }}>
                   <CartesianGrid strokeDasharray='3 3' />
-                  <XAxis dataKey='date' tick={{ fill: '#f3f4f6' }} />
-                  <YAxis tick={{ fill: '#f3f4f6' }} />
+                  <XAxis dataKey='date' tick={{ fill: '#f3f4f6', fontSize: 10 }} />
+                  <YAxis tick={{ fill: '#f3f4f6', fontSize: 10 }} width={35} />
                   <Tooltip
+                    allowEscapeViewBox={{ x: false, y: true }}
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
                         return (
-                          <div className='bg-gray-800 p-3 border border-gray-600 rounded shadow-lg'>
-                            <p className='text-sm text-gray-100 font-semibold'>
+                          <div className='bg-gray-800 p-2 sm:p-3 border border-gray-600 rounded shadow-lg max-w-[200px]'>
+                            <p className='text-xs sm:text-sm text-gray-100 font-semibold'>
                               {payload[0].payload.date}
                             </p>
-                            <p className='text-sm text-[#83e1b2ff] font-semibold'>
+                            <p className='text-xs sm:text-sm text-[#83e1b2ff] font-semibold'>
                               Result: {payload[0].payload.result_valueDisplay}
                             </p>
-                            <p className='text-sm text-gray-100'>
+                            <p className='text-xs sm:text-sm text-gray-100'>
                               Scaling: {payload[0].payload.scaling_level}
                             </p>
                           </div>
