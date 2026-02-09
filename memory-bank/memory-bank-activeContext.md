@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.80
-**Updated:** 2026-02-09 (Session 100 - RM Test Feature, Mobile Optimization, Recharts Fixes)
+**Version:** 10.90
+**Updated:** 2026-02-09 (Session 101 - Chart Polish, Meta Tags, Lift Modal UX)
 
 ---
 
@@ -77,13 +77,18 @@ Athlete Tables (linked to members.id)
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-09 Session 101 - Opus 4.6):**
+- **✅ OG/Meta Tags** — Added Open Graph, Twitter Card, themeColor to layout.tsx (audit #17 complete)
+- **✅ Lift Modal UX** — Modal stays open after save/update (closes only on "x")
+- **✅ Progress Chart Date Format** — Two-line dates (month/day + year below) across all 6 charts
+- **✅ Chart XAxis Fix** — Added `interval={0}` + padding to prevent first/last date clipping
+- **✅ Tooltip Snap** — `isAnimationActive={false}` on all charts for instant tooltip movement
+- **✅ Active Dot Hover** — Added teal hover circle (`r: 6`) with white border on all charts
+- **✅ Cursor Line Polish** — Subtle hover lines: mini-charts `#aaa`, modal charts `#999`
+- See: `project-history/2026-02-09-session-101-chart-polish-meta-tags.md`
+
 **Completed (2026-02-09 Session 100 - Opus 4.6):**
-- **✅ RM Test Feature** — Coach can mark lifts as RM tests (1RM/3RM/5RM/10RM), auto-saves to `rep_max_type` for lift cards & Progress Charts
-- **✅ Recharts Version Sync** — Fixed tooltip/grid issues on Mimi's profile (`npm install` needed per OS profile)
-- **✅ SVG Focus Outline Fix** — Removed blue outline on chart click across all 3 athlete tabs
-- **✅ Progress Chart Cleanup** — Only shows `rep_max_type` records (not `rep_scheme`)
-- **✅ Duration "0" Fix** — Fixed React `{0 && ...}` falsy rendering in logbook sections
-- **✅ Mobile Optimization** — Lifts, Benchmarks, Forge Benchmarks tabs all optimized (responsive padding, grids, charts, modals, touch targets)
+- RM Test Feature, Recharts fixes, SVG focus outline, mobile optimization
 - See: `project-history/2026-02-09-session-100-rm-test-mobile-optimization.md`
 
 **Completed (2026-02-07 Session 99 - Opus 4.6):**
@@ -98,23 +103,17 @@ Athlete Tables (linked to members.id)
 - Pre-deployment audit fixes: #5-#14
 - See: `project-history/2026-02-07-session-97-pre-deployment-audit-fixes.md`
 
-**Completed (2026-02-06 Session 95 - Opus 4.6):**
-- Backup auto-discovery, Google Calendar workout types, class type color fix
-- See: `project-history/2026-02-06-session-95-backup-autodiscovery-calendar-types.md`
-
-**Older Sessions (57-94):**
+**Older Sessions (57-96):**
 See `project-history/` folder for detailed implementation history
 
 ---
 
 ## 🚨 Known Issues / Remaining Audit Items
 
-**Audit Items Remaining (LOW priority):**
-- **#16** No favicon — Needs gym logo asset
-- **#17** Missing OG/Meta tags
+**Pre-Deployment Audit — COMPLETE:**
+- ✅ All 17 items completed (Sessions 96-101)
 
 **Other Known Issues:**
-- **⚠️ Lifts Tab Edit/Save Failure** — Manual editing of lift records fails (Session 99 discovery, still needs investigation)
 - Athletes page: Previously logged benchmarks/lifts may not display for some athletes (pre-existing)
 
 **Migration Pending:**
@@ -161,18 +160,9 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 101 Priorities
-
-**URGENT:**
-- **Fix Lifts Tab Edit/Save** — Investigate why manual lift record editing fails (carried from Session 99)
-
-**Pre-Deployment Audit — Nearly Complete:**
-- ✅ #1-15 all completed (Sessions 96-98)
-- Remaining: #16 (favicon, needs asset), #17 (meta tags)
+### Session 102 Priorities
 
 **Pending Polish (LOW):**
-- #16 Favicon (needs gym logo asset)
-- #17 OG/Meta tags
 - Athletes page benchmarks/lifts display issue (investigate)
 - Analysis page scroll jump bug (DEFERRED)
 

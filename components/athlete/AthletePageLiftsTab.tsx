@@ -140,12 +140,11 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
       // Refresh the history
       await fetchLiftHistory();
 
-      // Clear form
+      // Clear form but keep modal open
       setNewWeight('');
       setNewRepMaxType('1RM');
       setNewNotes('');
       setNewDate(new Date().toISOString().split('T')[0]);
-      setSelectedLift(null);
       setEditingLiftId(null);
     } catch (error) {
       console.error('Error saving lift:', error);
@@ -488,11 +487,23 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                                   {chart.count && <span className='text-sm text-gray-600 ml-2'>({chart.count} sessions)</span>}
                                 </h4>
                                 <ResponsiveContainer width='100%' height={200} className='[&_svg]:outline-none'>
-                                  <LineChart data={chart.data} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                                  <LineChart data={chart.data} margin={{ top: 5, right: 10, left: -10, bottom: 15 }}>
                                     <CartesianGrid strokeDasharray='3 3' stroke='white' />
-                                    <XAxis dataKey='date' tick={{ fontSize: 10 }} />
+                                    <XAxis dataKey='date' tick={({ x, y, payload }: { x: number; y: number; payload: { value: string } }) => {
+                                      const parts = payload.value.replace(',', '').split(' ');
+                                      const line1 = `${parts[0]} ${parts[1]}`;
+                                      const line2 = parts[2];
+                                      return (
+                                        <g transform={`translate(${x},${y})`}>
+                                          <text x={0} y={0} dy={10} textAnchor='middle' fontSize={10}>{line1}</text>
+                                          <text x={0} y={0} dy={22} textAnchor='middle' fontSize={10} fill='#999'>{line2}</text>
+                                        </g>
+                                      );
+                                    }} padding={{ left: 20, right: 20 }} interval={0} />
                                     <YAxis width={35} tick={{ fontSize: 10 }} />
                                     <Tooltip
+                                      isAnimationActive={false}
+                                      cursor={{ stroke: '#aaa', strokeWidth: 1.5 }}
                                       content={({ active, payload }) => {
                                         if (active && payload && payload.length) {
                                           return (
@@ -518,6 +529,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                                       stroke='#208479'
                                       strokeWidth={2}
                                       dot={<CustomDot />}
+                                      activeDot={{ r: 6, strokeWidth: 2, stroke: '#fff' }}
                                     />
                                   </LineChart>
                                 </ResponsiveContainer>
@@ -719,13 +731,23 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
               <ResponsiveContainer width='100%' height={250} className='[&_svg]:outline-none'>
                 <LineChart
                   data={getLiftChartData(chartLift, chartRepMaxType)}
-                  margin={{ top: 5, right: 10, left: -10, bottom: 5 }}
+                  margin={{ top: 5, right: 10, left: -10, bottom: 15 }}
                 >
                   <CartesianGrid strokeDasharray='3 3' stroke='white' />
-                  <XAxis dataKey='date' tick={{ fill: '#f3f4f6', fontSize: 10 }} />
+                  <XAxis dataKey='date' tick={({ x, y, payload }: { x: number; y: number; payload: { value: string } }) => {
+                    const parts = payload.value.replace(',', '').split(' ');
+                    const line1 = `${parts[0]} ${parts[1]}`;
+                    const line2 = parts[2];
+                    return (
+                      <g transform={`translate(${x},${y})`}>
+                        <text x={0} y={0} dy={10} textAnchor='middle' fontSize={10} fill='#f3f4f6'>{line1}</text>
+                        <text x={0} y={0} dy={22} textAnchor='middle' fontSize={10} fill='#999'>{line2}</text>
+                      </g>
+                    );
+                  }} padding={{ left: 20, right: 20 }} interval={0} />
                   <YAxis width={35} tick={{ fill: '#f3f4f6', fontSize: 10 }} />
                   <Tooltip
-                    cursor={false}
+                    cursor={{ stroke: '#999', strokeWidth: 1.5 }}
                     isAnimationActive={false}
                     allowEscapeViewBox={{ x: false, y: true }}
                     content={({ active, payload }) => {
@@ -756,7 +778,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                     stroke='#208479'
                     strokeWidth={2}
                     dot={<CustomDot />}
-                    activeDot={{ r: 8, strokeWidth: 2, stroke: '#fff' }}
+                    activeDot={{ r: 6, strokeWidth: 2, stroke: '#fff' }}
                   />
                 </LineChart>
               </ResponsiveContainer>

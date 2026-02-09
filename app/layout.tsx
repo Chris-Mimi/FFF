@@ -21,6 +21,18 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "The Forge - Functional Fitness",
   description: "CrossFit gym management and athlete tracking",
+  themeColor: "#1a1a2e",
+  openGraph: {
+    title: "The Forge - Functional Fitness",
+    description: "CrossFit gym management and athlete tracking",
+    siteName: "The Forge",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "The Forge - Functional Fitness",
+    description: "CrossFit gym management and athlete tracking",
+  },
 };
 
 export default function RootLayout({

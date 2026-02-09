@@ -543,11 +543,23 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                   <div key={benchmark.name} className='border border-teal-300 rounded-lg p-2 sm:p-4 bg-gradient-to-br from-teal-200 to-teal-300'>
                     <h4 className='font-bold text-gray-900 mb-2 sm:mb-3 text-sm sm:text-base'>{benchmark.name}</h4>
                     <ResponsiveContainer width='100%' height={200} className='[&_svg]:outline-none'>
-                      <LineChart data={chartData} margin={{ left: 0, right: 5, top: 5, bottom: 5 }}>
+                      <LineChart data={chartData} margin={{ left: 0, right: 5, top: 5, bottom: 15 }}>
                         <CartesianGrid strokeDasharray='3 3' stroke='white' />
-                        <XAxis dataKey='date' tick={{ fontSize: 10 }} />
+                        <XAxis dataKey='date' tick={({ x, y, payload }: { x: number; y: number; payload: { value: string } }) => {
+                          const parts = payload.value.replace(',', '').split(' ');
+                          const line1 = `${parts[0]} ${parts[1]}`;
+                          const line2 = parts[2];
+                          return (
+                            <g transform={`translate(${x},${y})`}>
+                              <text x={0} y={0} dy={10} textAnchor='middle' fontSize={10}>{line1}</text>
+                              <text x={0} y={0} dy={22} textAnchor='middle' fontSize={10} fill='#999'>{line2}</text>
+                            </g>
+                          );
+                        }} padding={{ left: 20, right: 20 }} interval={0} />
                         <YAxis hide />
                         <Tooltip
+                          isAnimationActive={false}
+                          cursor={{ stroke: '#aaa', strokeWidth: 1.5 }}
                           content={({ active, payload }) => {
                             if (active && payload && payload.length) {
                               return (
@@ -576,6 +588,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                           stroke='#208479'
                           strokeWidth={2}
                           dot={<CustomDot />}
+                          activeDot={{ r: 6, strokeWidth: 2, stroke: '#fff' }}
                         />
                       </LineChart>
                     </ResponsiveContainer>
@@ -762,11 +775,23 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                 {chartBenchmark} Progress
               </h4>
               <ResponsiveContainer width='100%' height={250} className='[&_svg]:outline-none'>
-                  <LineChart data={getBenchmarkChartData(chartBenchmark)} margin={{ left: -10, right: 5, top: 5, bottom: 5 }}>
+                  <LineChart data={getBenchmarkChartData(chartBenchmark)} margin={{ left: -10, right: 5, top: 5, bottom: 15 }}>
                   <CartesianGrid strokeDasharray='3 3' />
-                  <XAxis dataKey='date' tick={{ fill: '#f3f4f6', fontSize: 10 }} />
+                  <XAxis dataKey='date' tick={({ x, y, payload }: { x: number; y: number; payload: { value: string } }) => {
+                    const parts = payload.value.replace(',', '').split(' ');
+                    const line1 = `${parts[0]} ${parts[1]}`;
+                    const line2 = parts[2];
+                    return (
+                      <g transform={`translate(${x},${y})`}>
+                        <text x={0} y={0} dy={10} textAnchor='middle' fontSize={10} fill='#f3f4f6'>{line1}</text>
+                        <text x={0} y={0} dy={22} textAnchor='middle' fontSize={10} fill='#999'>{line2}</text>
+                      </g>
+                    );
+                  }} padding={{ left: 20, right: 20 }} interval={0} />
                   <YAxis tick={{ fill: '#f3f4f6', fontSize: 10 }} width={35} />
                   <Tooltip
+                    isAnimationActive={false}
+                    cursor={{ stroke: '#999', strokeWidth: 1.5 }}
                     allowEscapeViewBox={{ x: false, y: true }}
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
@@ -794,6 +819,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                     stroke='#83e1b2ff'
                     strokeWidth={2}
                     dot={<CustomDot />}
+                    activeDot={{ r: 6, strokeWidth: 2, stroke: '#fff' }}
                   />
                 </LineChart>
               </ResponsiveContainer>
