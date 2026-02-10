@@ -213,8 +213,7 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
       }
     } catch (error) {
       console.error('Error saving profile:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      alert(`Failed to save profile: ${errorMessage}. Please check the console for details.`);
+      alert('Failed to save profile. Please try again.');
     }
   };
 

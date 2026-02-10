@@ -58,7 +58,7 @@ export function useMemberData() {
         .order('created_at', { ascending: false });
 
       if (membersError) {
-        console.error('❌ fetchMembers error:', membersError);
+        console.error('fetchMembers error:', membersError);
         throw membersError;
       }
 
@@ -88,7 +88,7 @@ export function useMemberData() {
 
       setMembers(membersWithAttendance);
     } catch (error) {
-      console.error('💥 fetchMembersWithAttendance failed:', error);
+      console.error('fetchMembersWithAttendance failed:', error);
       setLoading(false);
     } finally {
       setLoading(false);

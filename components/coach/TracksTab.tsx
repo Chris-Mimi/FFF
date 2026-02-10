@@ -87,7 +87,7 @@ export default function TracksTab({
       {/* Track Modal */}
       {showTrackModal && (
         <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'>
-          <div className='bg-white rounded-lg p-6 w-full max-w-md'>
+          <div className='bg-white text-gray-900 rounded-lg p-6 w-full max-w-md'>
             <h3 className='text-xl font-bold mb-4'>
               {editingTrack ? 'Edit Track' : 'Add New Track'}
             </h3>
@@ -102,7 +102,7 @@ export default function TracksTab({
                   name='name'
                   value={trackFormData.name}
                   onChange={onFormChange}
-                  className='w-full px-4 py-2 border border-gray-300 rounded-lg'
+                  className='w-full px-4 py-2 border border-gray-300 rounded-lg bg-white'
                   placeholder='e.g., Strength, Olympic Lifting'
                 />
               </div>
@@ -116,7 +116,7 @@ export default function TracksTab({
                   value={trackFormData.description}
                   onChange={onFormChange}
                   rows={3}
-                  className='w-full px-4 py-2 border border-gray-300 rounded-lg'
+                  className='w-full px-4 py-2 border border-gray-300 rounded-lg bg-white'
                   placeholder='Optional description...'
                 />
               </div>
@@ -130,7 +130,7 @@ export default function TracksTab({
                   name='color'
                   value={trackFormData.color}
                   onChange={onFormChange}
-                  className='w-full h-10 border border-gray-300 rounded-lg'
+                  className='w-full h-10 border border-gray-300 rounded-lg bg-white'
                 />
               </div>
             </div>

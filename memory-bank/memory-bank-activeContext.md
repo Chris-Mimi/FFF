@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.91
-**Updated:** 2026-02-10 (Session 102 - Exercise Edit from Library, Whiteboard Filename Fix)
+**Version:** 10.92
+**Updated:** 2026-02-10 (Session 103 - Pre-Deploy Code Review, Dark Mode Fix, Competitor Analysis)
 
 ---
 
@@ -77,9 +77,15 @@ Athlete Tables (linked to members.id)
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-10 Session 103 - Opus 4.6):**
+- **✅ Pre-Deploy Code Review** — 3-agent parallel review of Coach (~25K lines), Athlete (~7.7K lines), Booking (~3K lines). Deleted dead ExerciseLibraryPopup.tsx (309 lines). Fixed debug emoji logs, error detail exposure.
+- **✅ Dark Mode Fix** — Removed `prefers-color-scheme: dark` CSS override from globals.css (root cause of invisible text in modals on dark-mode Macs). Also added explicit `text-gray-900` to TracksTab and PublishModal containers.
+- **✅ Tracks Tab Bug Fix** — Added `bg-white` to input fields that appeared greyed out.
+- **✅ Competitor Analysis** — Researched WODIFY, SugarWOD, BTWB, PushPress, Zen Planner, Wodboard. Identified top 10 missing features ranked by value. Saved to `Chris Notes/session-103-code-review-findings.md`.
+- See: `project-history/2026-02-10-session-103-code-review-competitor-analysis.md`
+
 **Completed (2026-02-10 Session 102 - Opus 4.6):**
-- **✅ Edit Exercise from Library** — Added pencil icon to MovementLibraryPopup (Favorites, Recently Used, Category grid). Opens ExerciseFormModal (z-9999) on top of library (z-100). Save refreshes list, library stays open for immediate insert into workout.
-- **✅ Whiteboard Filename Fix** — Upload label now preserves year from filename (e.g., "2026 Week 6.5" instead of "Week 06.5"). Added original filename display under preview thumbnails. Note: iOS mobile always sends camera filenames (IMG_xxxx) — desktop naming works correctly.
+- Edit Exercise from Library, Whiteboard Filename Fix
 - See: `project-history/2026-02-10-session-102-exercise-edit-library-whiteboard-fix.md`
 
 **Completed (2026-02-09 Session 101 - Opus 4.6):**
@@ -94,19 +100,25 @@ Athlete Tables (linked to members.id)
 - Lift Records DB Fix (rep_type_xor), Recharts pinned to 3.3.0, UX polish
 - See: `project-history/2026-02-07-session-99-lift-records-recharts-fixes.md`
 
-**Completed (2026-02-07 Session 98 - Opus 4.6):**
-- Audit #13/#15: Large component refactoring (3 coach pages, 20 new files)
-- See: `project-history/2026-02-07-session-98-large-component-refactoring.md`
-
-**Older Sessions (57-97):**
+**Older Sessions (57-98):**
 See `project-history/` folder for detailed implementation history
 
 ---
 
-## 🚨 Known Issues / Remaining Audit Items
+## 🚨 Known Issues / Remaining Items
 
 **Pre-Deployment Audit — COMPLETE:**
 - ✅ All 17 items completed (Sessions 96-101)
+
+**Code Quality (from Session 103 review):**
+- 30 `@typescript-eslint/no-explicit-any` suppressions (pragmatic, post-deploy)
+- 5 large files >800 lines (MovementLibraryPopup 1341, SearchPanel 952, book/page 950, useWorkoutModal 896, ForgeBenchmarksTab 858) — refactor post-deploy
+- 15+ `alert()` calls should become toast notifications
+- ~50+ icon buttons missing aria-labels
+
+**Feature Gaps (from competitor analysis):**
+- See: `Chris Notes/session-103-code-review-findings.md` for full ranked list
+- Quick wins: workout intent/stimulus notes, athlete result notes, at-risk member alerts
 
 **Other Known Issues:**
 - Athletes page: Previously logged benchmarks/lifts may not display for some athletes (pre-existing)
@@ -155,7 +167,11 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 103 Priorities
+### Session 104 Priorities
+
+**Quick Wins (from review):**
+- Workout intent/stimulus notes per section (low effort, high value)
+- At-risk member alerts dashboard (already have booking data)
 
 **Pending Polish (LOW):**
 - Athletes page benchmarks/lifts display issue (investigate)
