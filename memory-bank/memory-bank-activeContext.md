@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.90
-**Updated:** 2026-02-09 (Session 101 - Chart Polish, Meta Tags, Lift Modal UX)
+**Version:** 10.91
+**Updated:** 2026-02-10 (Session 102 - Exercise Edit from Library, Whiteboard Filename Fix)
 
 ---
 
@@ -77,14 +77,13 @@ Athlete Tables (linked to members.id)
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-10 Session 102 - Opus 4.6):**
+- **✅ Edit Exercise from Library** — Added pencil icon to MovementLibraryPopup (Favorites, Recently Used, Category grid). Opens ExerciseFormModal (z-9999) on top of library (z-100). Save refreshes list, library stays open for immediate insert into workout.
+- **✅ Whiteboard Filename Fix** — Upload label now preserves year from filename (e.g., "2026 Week 6.5" instead of "Week 06.5"). Added original filename display under preview thumbnails. Note: iOS mobile always sends camera filenames (IMG_xxxx) — desktop naming works correctly.
+- See: `project-history/2026-02-10-session-102-exercise-edit-library-whiteboard-fix.md`
+
 **Completed (2026-02-09 Session 101 - Opus 4.6):**
-- **✅ OG/Meta Tags** — Added Open Graph, Twitter Card, themeColor to layout.tsx (audit #17 complete)
-- **✅ Lift Modal UX** — Modal stays open after save/update (closes only on "x")
-- **✅ Progress Chart Date Format** — Two-line dates (month/day + year below) across all 6 charts
-- **✅ Chart XAxis Fix** — Added `interval={0}` + padding to prevent first/last date clipping
-- **✅ Tooltip Snap** — `isAnimationActive={false}` on all charts for instant tooltip movement
-- **✅ Active Dot Hover** — Added teal hover circle (`r: 6`) with white border on all charts
-- **✅ Cursor Line Polish** — Subtle hover lines: mini-charts `#aaa`, modal charts `#999`
+- OG/Meta Tags, Lift Modal UX, Progress Chart polish (6 charts)
 - See: `project-history/2026-02-09-session-101-chart-polish-meta-tags.md`
 
 **Completed (2026-02-09 Session 100 - Opus 4.6):**
@@ -99,11 +98,7 @@ Athlete Tables (linked to members.id)
 - Audit #13/#15: Large component refactoring (3 coach pages, 20 new files)
 - See: `project-history/2026-02-07-session-98-large-component-refactoring.md`
 
-**Completed (2026-02-07 Session 97 - Opus 4.6):**
-- Pre-deployment audit fixes: #5-#14
-- See: `project-history/2026-02-07-session-97-pre-deployment-audit-fixes.md`
-
-**Older Sessions (57-96):**
+**Older Sessions (57-97):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -160,7 +155,7 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 102 Priorities
+### Session 103 Priorities
 
 **Pending Polish (LOW):**
 - Athletes page benchmarks/lifts display issue (investigate)

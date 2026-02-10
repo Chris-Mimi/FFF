@@ -103,7 +103,7 @@ export default function WhiteboardUploadPanel({
       const weekNum = match[2].padStart(2, '0');
       const partNum = match[3] || '';
       const week = `${year}-W${weekNum}`;
-      const label = partNum ? `Week ${weekNum}.${partNum}` : `Week ${weekNum}`;
+      const label = partNum ? `${year} Week ${match[2]}.${partNum}` : `${year} Week ${match[2]}`;
       return { week, label };
     }
     return null;
@@ -148,8 +148,9 @@ export default function WhiteboardUploadPanel({
             fileLabel = photoLabel.trim();
           }
         } else {
-          // No filename parse, no base label - default numbering
-          fileLabel = `Photo ${i + 1}`;
+          // Use original filename (without extension) as label, fall back to Photo N
+          const nameWithoutExt = file.name.replace(/\.[^/.]+$/, '').trim();
+          fileLabel = nameWithoutExt || `Photo ${i + 1}`;
         }
 
         // Get display order for this week (fetch once per week)
@@ -280,16 +281,18 @@ export default function WhiteboardUploadPanel({
           </button>
           <div className='grid grid-cols-3 gap-2'>
             {previewUrls.map((url, idx) => (
-              <Image
-                key={idx}
-                src={url}
-                alt={`Preview ${idx + 1}`}
-                width={0}
-                height={0}
-                sizes='33vw'
-                unoptimized
-                className='w-full h-20 object-cover rounded-lg'
-              />
+              <div key={idx} className='text-center'>
+                <Image
+                  src={url}
+                  alt={`Preview ${idx + 1}`}
+                  width={0}
+                  height={0}
+                  sizes='33vw'
+                  unoptimized
+                  className='w-full h-20 object-cover rounded-lg'
+                />
+                <p className='text-[9px] text-gray-500 mt-0.5 truncate'>{selectedFiles[idx]?.name}</p>
+              </div>
             ))}
           </div>
         </div>

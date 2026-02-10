@@ -4,7 +4,7 @@ import { useRecentExercises } from '@/lib/exercise-storage';
 import { supabase } from '@/lib/supabase';
 import type { BarbellLift, Benchmark, ForgeBenchmark } from '@/types/movements';
 import { useUserFavorites } from '@/utils/exercise-favorites';
-import { ChevronDown, ChevronRight, Library, Search, Star, X } from 'lucide-react';
+import { ChevronDown, ChevronRight, Edit2, Library, Search, Star, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import ExerciseVideoModal from './ExerciseVideoModal';
 import ExerciseFormModal from './ExerciseFormModal';
@@ -116,6 +116,7 @@ function MovementLibraryPopup({
   const [showCreateForgeModal, setShowCreateForgeModal] = useState(false);
   const [showCreateLiftModal, setShowCreateLiftModal] = useState(false);
   const [showCreateExerciseModal, setShowCreateExerciseModal] = useState(false);
+  const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
 
   // Form states for creating new items
   const [benchmarkForm, setBenchmarkForm] = useState({ name: '', type: 'For Time', description: '', has_scaling: true });
@@ -458,18 +459,27 @@ function MovementLibraryPopup({
     }
   };
 
-  const handleCreateExercise = async (exerciseData: Omit<Exercise, 'id'> & { id?: string }) => {
+  const handleSaveExercise = async (exerciseData: Omit<Exercise, 'id'> & { id?: string }) => {
     try {
-      const { error } = await supabase
-        .from('exercises')
-        .insert(exerciseData);
-
-      if (error) throw error;
+      if (exerciseData.id) {
+        const { id, ...updateData } = exerciseData;
+        const { error } = await supabase
+          .from('exercises')
+          .update({ ...updateData, updated_at: new Date().toISOString() })
+          .eq('id', id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('exercises')
+          .insert(exerciseData);
+        if (error) throw error;
+      }
 
       setShowCreateExerciseModal(false);
+      setEditingExercise(null);
       await fetchExercises();
     } catch (error: unknown) {
-      console.error('Error creating exercise:', error);
+      console.error('Error saving exercise:', error);
       alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
@@ -862,7 +872,7 @@ function MovementLibraryPopup({
                             <div key={exercise.id} className='relative group'>
                               <button
                                 onClick={() => handleSelectExercise(exercise.display_name || exercise.name, exercise)}
-                                className='w-full text-left px-0.5 py-0.5 hover:bg-[#208479] hover:text-white transition text-xs text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis pr-5'
+                                className='w-full text-left px-0.5 py-0.5 hover:bg-[#208479] hover:text-white transition text-xs text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis pr-10'
                                 title={exercise.description || undefined}
                               >
                                 {exercise.display_name || exercise.name}
@@ -877,6 +887,16 @@ function MovementLibraryPopup({
                                     📹
                                   </span>
                                 )}
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingExercise(exercise);
+                                }}
+                                className='absolute right-5 top-0.5 opacity-100 hover:scale-110 transition'
+                                title='Edit exercise'
+                              >
+                                <Edit2 size={10} className='text-blue-500' />
                               </button>
                               <button
                                 onClick={(e) => {
@@ -916,7 +936,7 @@ function MovementLibraryPopup({
                               <div key={exercise.id} className='relative group'>
                                 <button
                                   onClick={() => handleSelectExercise(exercise.display_name || exercise.name, fullExercise)}
-                                  className='w-full text-left px-0.5 py-0.5 hover:bg-[#208479] hover:text-white transition text-xs text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis pr-5'
+                                  className='w-full text-left px-0.5 py-0.5 hover:bg-[#208479] hover:text-white transition text-xs text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis pr-10'
                                   title={fullExercise?.description || undefined}
                                 >
                                   {exercise.display_name || exercise.name}
@@ -932,6 +952,18 @@ function MovementLibraryPopup({
                                     </span>
                                   )}
                                 </button>
+                                {fullExercise && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setEditingExercise(fullExercise);
+                                    }}
+                                    className='absolute right-5 top-0.5 opacity-0 group-hover:opacity-100 hover:scale-110 transition'
+                                    title='Edit exercise'
+                                  >
+                                    <Edit2 size={10} className='text-blue-500' />
+                                  </button>
+                                )}
                                 {fullExercise && (
                                   <button
                                     onClick={(e) => {
@@ -968,7 +1000,7 @@ function MovementLibraryPopup({
                             <div key={exercise.id} className='relative group'>
                               <button
                                 onClick={() => handleSelectExercise(exercise.display_name || exercise.name, exercise)}
-                                className='w-full text-left px-0.5 py-0.5 hover:bg-[#208479] hover:text-white transition text-xs text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis pr-5'
+                                className='w-full text-left px-0.5 py-0.5 hover:bg-[#208479] hover:text-white transition text-xs text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis pr-10'
                                 title={exercise.description || undefined}
                               >
                                 {exercise.display_name || exercise.name}
@@ -983,6 +1015,16 @@ function MovementLibraryPopup({
                                     📹
                                   </span>
                                 )}
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingExercise(exercise);
+                                }}
+                                className='absolute right-5 top-0.5 opacity-0 group-hover:opacity-100 hover:scale-110 transition'
+                                title='Edit exercise'
+                              >
+                                <Edit2 size={10} className='text-blue-500' />
                               </button>
                               <button
                                 onClick={(e) => {
@@ -1278,12 +1320,19 @@ function MovementLibraryPopup({
         </div>
       )}
 
-      {/* Create Exercise Modal */}
+      {/* Create/Edit Exercise Modal */}
       <ExerciseFormModal
-        isOpen={showCreateExerciseModal}
-        onClose={() => setShowCreateExerciseModal(false)}
-        onSave={handleCreateExercise}
-        editingExercise={null}
+        isOpen={showCreateExerciseModal || editingExercise !== null}
+        onClose={() => {
+          setShowCreateExerciseModal(false);
+          setEditingExercise(null);
+        }}
+        onSave={handleSaveExercise}
+        editingExercise={editingExercise ? {
+          ...editingExercise,
+          equipment: editingExercise.equipment ?? undefined,
+          body_parts: editingExercise.body_parts ?? undefined,
+        } : null}
       />
     </div>
   );
