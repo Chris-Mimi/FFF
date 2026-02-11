@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.93
-**Updated:** 2026-02-11 (Session 104 - Social Reactions, Community Feed, Leaderboard)
+**Version:** 10.94
+**Updated:** 2026-02-11 (Session 105 - Sonner Toast Notifications)
 
 ---
 
@@ -80,6 +80,11 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-11 Session 105 - Opus 4.6):**
+- **✅ Replace all alert() with sonner toast notifications** — Code Improvement #1 from Session 103 review. Used sonner library (lightweight, no provider needed). Replaced 15+ alert() calls across 39 code files with toast.success/error/warning by message type. 43 files changed total (39 code + package.json/lock + review checklist). Build clean, zero alert() remaining.
+- **Lesson learned:** Parallel agents consume context without triggering monitoring alerts — need to account for this in protocol.
+- See: `project-history/2026-02-11-session-105-sonner-toast-notifications.md`
+
 **Completed (2026-02-11 Session 104 - Opus 4.6):**
 - **✅ Social Reactions (Fist Bumps)** — New `reactions` table, API route (POST toggle + GET batch), FistBumpButton component, useReactions hook with optimistic updates. Reactions on all result types (WOD sections, benchmarks, lifts). Visible to all gym members.
 - **✅ Community Feed Tab** — New "Community" tab on athlete page (between Workouts and Logbook). Shows chronological feed of all gym members' recent results with fist bump buttons. Paginated by 7-day windows.
@@ -117,8 +122,9 @@ See `project-history/` folder for detailed implementation history
 **Code Quality (from Session 103 review):**
 - 30 `@typescript-eslint/no-explicit-any` suppressions (pragmatic, post-deploy)
 - 5 large files >800 lines (MovementLibraryPopup 1341, SearchPanel 952, book/page 950, useWorkoutModal 896, ForgeBenchmarksTab 858) — refactor post-deploy
-- 15+ `alert()` calls should become toast notifications
-- ~50+ icon buttons missing aria-labels
+- ✅ ~~15+ `alert()` calls should become toast notifications~~ — DONE (Session 105, sonner)
+- ~50+ icon buttons missing aria-labels (Code Improvement #2)
+- Escape key handlers for modals/popups (Code Improvement #3)
 
 **Feature Gaps (from competitor analysis — updated):**
 - ✅ #1 Social reactions (fist bumps) — DONE (Session 104)
@@ -174,12 +180,16 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 105 Priorities
+### Session 106 Priorities
 
-**Quick Wins (from review):**
-- Workout intent/stimulus notes per section (low effort, high value — competitor feature #4)
-- At-risk member alerts dashboard (already have booking data — competitor feature #5)
-- Auto percentage calculator from athlete's 1RM (competitor feature #7)
+**Code Improvements (from Session 103 review):**
+- #2 Add aria-labels to ~50+ icon buttons (accessibility)
+- #3 Add escape key handlers to modals/popups
+
+**Features (from competitor analysis):**
+- #4 Workout intent/stimulus notes per section (low effort, high value)
+- #5 At-risk member alerts dashboard (already have booking data)
+- #7 Auto percentage calculator from athlete's 1RM
 
 **Pending Polish (LOW):**
 - Athletes page benchmarks/lifts display issue (investigate)

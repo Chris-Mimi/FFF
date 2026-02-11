@@ -9,7 +9,7 @@
 
 ### High Impact
 
-- [ ] 1. **Replace `alert()` with toast notifications** — 15+ places use browser `alert()` for success/error. Blocks interaction, looks unprofessional.
+- [x] 1. **Replace `alert()` with toast notifications** — ✅ DONE (Session 105, sonner). 39 files updated, zero alert() remaining.
    - Files: booking page, schedule page, gallery, modals, tabs
 
 - [ ] 2. **Add `aria-labels` to icon-only buttons** — ~50+ icon buttons across the app have no screen reader labels.

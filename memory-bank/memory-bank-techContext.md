@@ -40,6 +40,7 @@ Timestamp: 2025-10-26
   "next": "15.x",
   "react": "18.x",
   "recharts": "latest",
+  "sonner": "latest",
   "stripe": "latest"
 }
 ```
@@ -49,6 +50,7 @@ Timestamp: 2025-10-26
 - **next:** React framework with SSR and API routes
 - **react:** UI library
 - **recharts:** Progress charts for athlete tracking
+- **sonner:** Toast notifications (replaced all alert() calls in Session 105)
 - **stripe:** Payment processing (upcoming booking system)
 
 ### Development Dependencies
