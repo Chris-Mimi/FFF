@@ -27,6 +27,17 @@ export interface RawSectionResult {
   task_completed?: boolean | null;
 }
 
+export interface RawLiftResult {
+  id: string;
+  user_id: string;
+  lift_name: string;
+  weight_kg: number;
+  reps: number;
+  rep_max_type?: string | null;
+  rep_scheme?: string | null;
+  lift_date?: string;
+}
+
 interface RawBenchmarkResult {
   id: string;
   user_id: string;
@@ -236,6 +247,40 @@ export function rankBenchmarkResults(
     weightResult: r.weight_result || undefined,
     scalingLevel: r.scaling_level || undefined,
     resultDate: r.result_date,
+  }));
+}
+
+/**
+ * Keep only the best (heaviest) lift per user.
+ */
+export function bestLiftPerUser(results: RawLiftResult[]): RawLiftResult[] {
+  const best = new Map<string, RawLiftResult>();
+  for (const r of results) {
+    const existing = best.get(r.user_id);
+    if (!existing || r.weight_kg > existing.weight_kg) {
+      best.set(r.user_id, r);
+    }
+  }
+  return [...best.values()];
+}
+
+/**
+ * Rank lift results by weight descending (heavier = better).
+ */
+export function rankLiftResults(
+  results: RawLiftResult[],
+  memberNames: Record<string, string>
+): LeaderboardEntry[] {
+  const valid = results.filter(r => r.weight_kg > 0);
+  const sorted = [...valid].sort((a, b) => b.weight_kg - a.weight_kg);
+
+  return sorted.map((r, i) => ({
+    id: r.id,
+    userId: r.user_id,
+    memberName: memberNames[r.user_id] || 'Unknown',
+    rank: i + 1,
+    weightResult: r.weight_kg,
+    resultDate: r.lift_date,
   }));
 }
 

@@ -9,11 +9,14 @@ import {
   detectScoringType,
   rankSectionResults,
   rankBenchmarkResults,
+  rankLiftResults,
   bestResultPerUser,
+  bestLiftPerUser,
   formatResult,
   formatBenchmarkResult,
   type LeaderboardEntry,
   type RawSectionResult,
+  type RawLiftResult,
 } from '@/utils/leaderboard-utils';
 
 interface ScoringFields {
@@ -32,6 +35,130 @@ interface WodSection {
   type: string;
   duration: number;
   scoring_fields?: ScoringFields;
+  lifts?: Array<{
+    name: string;
+    rm_test?: string;
+    rep_type?: 'constant' | 'variable';
+    sets?: number;
+    reps?: number;
+    variable_sets?: Array<{ set_number: number; reps: number }>;
+  }>;
+  benchmarks?: Array<{
+    id: string;
+    name: string;
+    type: string;
+  }>;
+  forge_benchmarks?: Array<{
+    id: string;
+    name: string;
+    type: string;
+  }>;
+}
+
+type LeaderboardItemType = 'lift' | 'benchmark' | 'forge_benchmark' | 'content';
+
+interface LeaderboardItem {
+  type: LeaderboardItemType;
+  label: string;
+  sectionIndex: number;
+  // Lift fields
+  liftName?: string;
+  rmTest?: string;
+  repScheme?: string;
+  // Benchmark fields
+  benchmarkName?: string;
+  benchmarkId?: string;
+  benchmarkType?: string;
+  // Content fields
+  scoringType?: string;
+  contentSectionId?: string;
+}
+
+function extractLeaderboardItems(wod: WodData): LeaderboardItem[] {
+  const items: LeaderboardItem[] = [];
+
+  wod.sections.forEach((section, sectionIndex) => {
+    // Lifts
+    if (section.lifts?.length) {
+      for (const lift of section.lifts) {
+        if (lift.rm_test) {
+          items.push({
+            type: 'lift',
+            label: `${lift.name} ${lift.rm_test}`,
+            sectionIndex,
+            liftName: lift.name,
+            rmTest: lift.rm_test,
+          });
+        } else {
+          const repScheme = lift.rep_type === 'constant'
+            ? `${lift.sets || 1}x${lift.reps || 1}`
+            : lift.variable_sets?.map(s => s.reps).join('-') || '1';
+          items.push({
+            type: 'lift',
+            label: `${lift.name} (${repScheme})`,
+            sectionIndex,
+            liftName: lift.name,
+            repScheme,
+          });
+        }
+      }
+    }
+
+    // Benchmarks
+    if (section.benchmarks?.length) {
+      for (const bm of section.benchmarks) {
+        items.push({
+          type: 'benchmark',
+          label: `${bm.name} (${bm.type})`,
+          sectionIndex,
+          benchmarkName: bm.name,
+          benchmarkId: bm.id,
+          benchmarkType: bm.type,
+        });
+      }
+    }
+
+    // Forge benchmarks
+    if (section.forge_benchmarks?.length) {
+      for (const fb of section.forge_benchmarks) {
+        items.push({
+          type: 'forge_benchmark',
+          label: `${fb.name} (${fb.type})`,
+          sectionIndex,
+          benchmarkName: fb.name,
+          benchmarkId: fb.id,
+          benchmarkType: fb.type,
+        });
+      }
+    }
+
+    // Content scoring
+    const sf = section.scoring_fields;
+    if (sf && Object.values(sf).some(Boolean)) {
+      const hasStructuredItems = (section.lifts?.length || 0) + (section.benchmarks?.length || 0) + (section.forge_benchmarks?.length || 0) > 0;
+      const scoringType = detectScoringType(sf);
+      const scoringLabel = scoringType === 'time' ? 'For Time'
+        : scoringType === 'rounds_reps' ? 'AMRAP'
+        : scoringType === 'reps' ? 'Max Reps'
+        : scoringType === 'weight' ? 'Max Load'
+        : scoringType === 'calories' ? 'Max Cals'
+        : scoringType === 'metres' ? 'Max Distance'
+        : scoringType === 'checkbox' ? 'Completion'
+        : 'Result';
+
+      items.push({
+        type: 'content',
+        label: hasStructuredItems
+          ? `${section.type} - ${scoringLabel}`
+          : `${section.type} - ${scoringLabel}${section.duration ? ` (${section.duration}m)` : ''}`,
+        sectionIndex,
+        scoringType,
+        contentSectionId: `${section.id}-content-0`,
+      });
+    }
+  });
+
+  return items;
 }
 
 interface WodData {
@@ -98,7 +225,8 @@ function WodLeaderboard({ userId }: { userId: string }) {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [wods, setWods] = useState<WodData[]>([]);
   const [selectedWodId, setSelectedWodId] = useState<string | null>(null);
-  const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
+  const [leaderboardItems, setLeaderboardItems] = useState<LeaderboardItem[]>([]);
+  const [selectedItemIdx, setSelectedItemIdx] = useState<number>(0);
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [scalingFilter, setScalingFilter] = useState<ScalingFilter>('all');
@@ -106,6 +234,7 @@ function WodLeaderboard({ userId }: { userId: string }) {
   const { fetchReactions, toggleReaction, getReaction } = useReactions();
 
   const dateStr = selectedDate.toISOString().split('T')[0];
+  const selectedItem = leaderboardItems[selectedItemIdx] || null;
 
   // Fetch published WODs for selected date
   const loadWods = useCallback(async () => {
@@ -120,26 +249,80 @@ function WodLeaderboard({ userId }: { userId: string }) {
 
     if (wodList.length > 0) {
       setSelectedWodId(wodList[0].id);
-      // Auto-select first scored section
-      const scored = wodList[0].sections.filter(s => s.scoring_fields && Object.values(s.scoring_fields).some(Boolean));
-      if (scored.length > 0) {
-        setSelectedSectionId(scored[0].id);
-      } else {
-        setSelectedSectionId(wodList[0].sections[0]?.id || null);
-      }
+      const items = extractLeaderboardItems(wodList[0]);
+      setLeaderboardItems(items);
+      setSelectedItemIdx(0);
     } else {
       setSelectedWodId(null);
-      setSelectedSectionId(null);
+      setLeaderboardItems([]);
+      setSelectedItemIdx(0);
       setEntries([]);
     }
   }, [dateStr]);
 
   useEffect(() => { loadWods(); }, [loadWods]);
 
-  // Fetch results when WOD/section/filter changes
-  // Groups same-named workouts within ±30 days for combined leaderboard
+  // Helper: fetch member names for a set of user IDs
+  const fetchMemberNames = async (userIds: string[]): Promise<Record<string, string>> => {
+    const memberNames: Record<string, string> = {};
+    if (userIds.length === 0) return memberNames;
+    const { data: members } = await supabase
+      .from('members')
+      .select('id, display_name, name')
+      .in('id', userIds);
+    if (members) {
+      for (const m of members) {
+        memberNames[m.id] = m.display_name || m.name || 'Unknown';
+      }
+    }
+    return memberNames;
+  };
+
+  // Helper: compute grouping info (±30 days for same workout_name)
+  const computeGrouping = useCallback(async (selectedWod: WodData) => {
+    if (!selectedWod.workout_name) {
+      setGroupInfo(null);
+      return { isGrouped: false, dates: [dateStr], wodIds: [selectedWod.id], groupedWods: null };
+    }
+
+    const anchor = new Date(selectedDate);
+    const startDate = new Date(anchor);
+    startDate.setDate(startDate.getDate() - 30);
+    const endDate = new Date(anchor);
+    endDate.setDate(endDate.getDate() + 30);
+
+    const { data: grouped } = await supabase
+      .from('wods')
+      .select('id, date, sections')
+      .eq('workout_name', selectedWod.workout_name)
+      .eq('is_published', true)
+      .gte('date', startDate.toISOString().split('T')[0])
+      .lte('date', endDate.toISOString().split('T')[0]);
+
+    if (grouped && grouped.length > 1) {
+      const dates = grouped.map(w => w.date as string).sort();
+      const firstDate = new Date(dates[0] + 'T00:00:00');
+      const lastDate = new Date(dates[dates.length - 1] + 'T00:00:00');
+      const dateRange = firstDate.getTime() === lastDate.getTime()
+        ? firstDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+        : `${firstDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} – ${lastDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`;
+
+      setGroupInfo({ count: grouped.length, dateRange });
+      return {
+        isGrouped: true,
+        dates: grouped.map(w => w.date as string),
+        wodIds: grouped.map(w => w.id),
+        groupedWods: grouped as Array<{ id: string; date: string; sections: WodSection[] }>,
+      };
+    }
+
+    setGroupInfo(null);
+    return { isGrouped: false, dates: [dateStr], wodIds: [selectedWod.id], groupedWods: null };
+  }, [selectedDate, dateStr]);
+
+  // Load results based on selected item type
   const loadResults = useCallback(async () => {
-    if (!selectedWodId || !selectedSectionId) {
+    if (!selectedWodId || !selectedItem) {
       setEntries([]);
       setGroupInfo(null);
       return;
@@ -148,124 +331,141 @@ function WodLeaderboard({ userId }: { userId: string }) {
     setLoading(true);
     try {
       const selectedWod = wods.find(w => w.id === selectedWodId);
+      if (!selectedWod) { setEntries([]); return; }
 
-      // Determine WOD IDs and section IDs to query
-      let wodIdsToQuery = [selectedWodId];
-      let sectionIdsToQuery = [selectedSectionId];
-      let isGrouped = false;
+      const { isGrouped, dates, wodIds, groupedWods } = await computeGrouping(selectedWod);
 
-      // If workout has a name, find all instances within ±30 days
-      if (selectedWod?.workout_name) {
-        const anchor = new Date(selectedDate);
-        const startDate = new Date(anchor);
-        startDate.setDate(startDate.getDate() - 30);
-        const endDate = new Date(anchor);
-        endDate.setDate(endDate.getDate() + 30);
+      // ── LIFT ──
+      if (selectedItem.type === 'lift') {
+        let query = supabase
+          .from('lift_records')
+          .select('id, user_id, lift_name, weight_kg, reps, rep_max_type, rep_scheme, lift_date')
+          .eq('lift_name', selectedItem.liftName!)
+          .in('lift_date', dates);
 
-        const { data: grouped } = await supabase
-          .from('wods')
-          .select('id, date, sections')
-          .eq('workout_name', selectedWod.workout_name)
-          .eq('is_published', true)
-          .gte('date', startDate.toISOString().split('T')[0])
-          .lte('date', endDate.toISOString().split('T')[0]);
-
-        if (grouped && grouped.length > 1) {
-          wodIdsToQuery = grouped.map(w => w.id);
-          isGrouped = true;
-
-          // Map section by position index in the primary WOD
-          const primaryIndex = selectedWod.sections.findIndex(s => s.id === selectedSectionId);
-          if (primaryIndex >= 0) {
-            sectionIdsToQuery = grouped.map(w => {
-              const sections = (w.sections || []) as WodSection[];
-              return sections[primaryIndex]?.id;
-            }).filter((id): id is string => !!id);
-          }
-
-          // Compute group info for display
-          const dates = grouped.map(w => w.date as string).sort();
-          const firstDate = new Date(dates[0] + 'T00:00:00');
-          const lastDate = new Date(dates[dates.length - 1] + 'T00:00:00');
-          const dateRange = firstDate.getTime() === lastDate.getTime()
-            ? firstDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
-            : `${firstDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} – ${lastDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`;
-
-          setGroupInfo({ count: grouped.length, dateRange });
-        } else {
-          setGroupInfo(null);
+        if (selectedItem.rmTest) {
+          query = query.eq('rep_max_type', selectedItem.rmTest);
+        } else if (selectedItem.repScheme) {
+          query = query.eq('rep_scheme', selectedItem.repScheme);
         }
-      } else {
-        setGroupInfo(null);
-      }
 
-      // Fetch results across all grouped WODs/sections
-      const { data: results } = await supabase
-        .from('wod_section_results')
-        .select('id, user_id, time_result, reps_result, weight_result, rounds_result, calories_result, metres_result, scaling_level, task_completed')
-        .in('wod_id', wodIdsToQuery)
-        .in('section_id', sectionIdsToQuery);
+        const { data: liftResults } = await query;
+        if (!liftResults || liftResults.length === 0) { setEntries([]); return; }
 
-      if (!results || results.length === 0) {
-        setEntries([]);
-        setLoading(false);
+        let filtered = liftResults as RawLiftResult[];
+        if (isGrouped) {
+          filtered = bestLiftPerUser(filtered);
+        }
+
+        const userIds = [...new Set(filtered.map(r => r.user_id))];
+        const memberNames = await fetchMemberNames(userIds);
+        const ranked = rankLiftResults(filtered, memberNames);
+        setEntries(ranked);
+
+        if (ranked.length > 0) {
+          fetchReactions(ranked.map(e => ({ targetType: 'lift_record' as const, targetId: e.id })));
+        }
         return;
       }
 
-      // Filter by scaling
-      let filtered = results as unknown as RawSectionResult[];
-      if (scalingFilter === 'rx') {
-        filtered = filtered.filter(r => r.scaling_level === 'Rx');
-      } else if (scalingFilter === 'scaled') {
-        filtered = filtered.filter(r => r.scaling_level && r.scaling_level !== 'Rx');
-      }
+      // ── BENCHMARK / FORGE BENCHMARK ──
+      if (selectedItem.type === 'benchmark' || selectedItem.type === 'forge_benchmark') {
+        const { data: bmResults } = await supabase
+          .from('benchmark_results')
+          .select('id, user_id, benchmark_name, time_result, reps_result, weight_result, scaling_level, result_date')
+          .eq('benchmark_name', selectedItem.benchmarkName!)
+          .in('result_date', dates);
 
-      // Get scoring type from section
-      const section = selectedWod?.sections.find(s => s.id === selectedSectionId);
-      const scoringType = detectScoringType(section?.scoring_fields);
+        if (!bmResults || bmResults.length === 0) { setEntries([]); return; }
 
-      // Best per user dedup when grouped across multiple days
-      if (isGrouped) {
-        filtered = bestResultPerUser(filtered, scoringType);
-      }
-
-      // Get member names
-      const userIds = [...new Set(filtered.map(r => r.user_id))];
-      const memberNames: Record<string, string> = {};
-      if (userIds.length > 0) {
-        const { data: members } = await supabase
-          .from('members')
-          .select('id, display_name, name')
-          .in('id', userIds);
-        if (members) {
-          for (const m of members) {
-            memberNames[m.id] = m.display_name || m.name || 'Unknown';
-          }
+        let filtered = bmResults;
+        if (scalingFilter === 'rx') {
+          filtered = filtered.filter(r => r.scaling_level === 'Rx');
+        } else if (scalingFilter === 'scaled') {
+          filtered = filtered.filter(r => r.scaling_level && r.scaling_level !== 'Rx');
         }
+
+        const userIds = [...new Set(filtered.map(r => r.user_id))];
+        const memberNames = await fetchMemberNames(userIds);
+        const ranked = rankBenchmarkResults(filtered, memberNames, selectedItem.benchmarkType || 'time');
+        setEntries(ranked);
+
+        if (ranked.length > 0) {
+          fetchReactions(ranked.map(e => ({ targetType: 'benchmark_result' as const, targetId: e.id })));
+        }
+        return;
       }
 
-      const ranked = rankSectionResults(filtered, memberNames, scoringType);
-      setEntries(ranked);
+      // ── CONTENT (wod_section_results) ──
+      if (selectedItem.type === 'content') {
+        // Build content section IDs across grouped WODs
+        let contentSectionIds = [selectedItem.contentSectionId!];
+        let contentWodIds = [selectedWodId];
 
-      // Fetch reactions
-      if (ranked.length > 0) {
-        fetchReactions(ranked.map(e => ({ targetType: 'wod_section_result', targetId: e.id })));
+        if (isGrouped && groupedWods) {
+          contentSectionIds = groupedWods.map(w => {
+            const sections = (w.sections || []) as WodSection[];
+            const targetSection = sections[selectedItem.sectionIndex];
+            return targetSection ? `${targetSection.id}-content-0` : null;
+          }).filter((id): id is string => !!id);
+          contentWodIds = wodIds;
+        }
+
+        const { data: results } = await supabase
+          .from('wod_section_results')
+          .select('id, user_id, time_result, reps_result, weight_result, rounds_result, calories_result, metres_result, scaling_level, task_completed')
+          .in('wod_id', contentWodIds)
+          .in('section_id', contentSectionIds);
+
+        if (!results || results.length === 0) { setEntries([]); return; }
+
+        let filtered = results as unknown as RawSectionResult[];
+        if (scalingFilter === 'rx') {
+          filtered = filtered.filter(r => r.scaling_level === 'Rx');
+        } else if (scalingFilter === 'scaled') {
+          filtered = filtered.filter(r => r.scaling_level && r.scaling_level !== 'Rx');
+        }
+
+        const scoringType = selectedItem.scoringType || 'time';
+        if (isGrouped) {
+          filtered = bestResultPerUser(filtered, scoringType);
+        }
+
+        const userIds = [...new Set(filtered.map(r => r.user_id))];
+        const memberNames = await fetchMemberNames(userIds);
+        const ranked = rankSectionResults(filtered, memberNames, scoringType);
+        setEntries(ranked);
+
+        if (ranked.length > 0) {
+          fetchReactions(ranked.map(e => ({ targetType: 'wod_section_result' as const, targetId: e.id })));
+        }
       }
     } catch (err) {
       console.error('Error loading leaderboard:', err);
     } finally {
       setLoading(false);
     }
-  }, [selectedWodId, selectedSectionId, scalingFilter, wods, selectedDate, fetchReactions]);
+  }, [selectedWodId, selectedItemIdx, scalingFilter, wods, computeGrouping, fetchReactions, selectedItem]);
 
   useEffect(() => { loadResults(); }, [loadResults]);
 
-  const selectedWod = wods.find(w => w.id === selectedWodId);
-  const scoredSections = selectedWod?.sections.filter(s =>
-    s.scoring_fields && Object.values(s.scoring_fields).some(Boolean)
-  ) || [];
-  const selectedSection = selectedWod?.sections.find(s => s.id === selectedSectionId);
-  const scoringType = detectScoringType(selectedSection?.scoring_fields);
+  // Determine active scoring type and reaction target for display
+  const activeScoringType = selectedItem?.type === 'lift'
+    ? 'weight'
+    : selectedItem?.type === 'benchmark' || selectedItem?.type === 'forge_benchmark'
+      ? (selectedItem.benchmarkType?.toLowerCase().includes('time') ? 'time'
+        : selectedItem.benchmarkType?.toLowerCase().includes('rep') ? 'reps'
+        : 'weight')
+      : selectedItem?.scoringType || 'time';
+
+  const reactionTargetType = selectedItem?.type === 'lift'
+    ? 'lift_record' as const
+    : (selectedItem?.type === 'benchmark' || selectedItem?.type === 'forge_benchmark')
+      ? 'benchmark_result' as const
+      : 'wod_section_result' as const;
+
+  const showScalingFilter = selectedItem?.type !== 'lift';
+  const isBenchmarkItem = selectedItem?.type === 'benchmark' || selectedItem?.type === 'forge_benchmark';
 
   const prevDay = () => {
     const d = new Date(selectedDate);
@@ -306,15 +506,18 @@ function WodLeaderboard({ userId }: { userId: string }) {
         </div>
       )}
 
-      {/* Workout selector (if multiple) */}
+      {/* Workout selector (if multiple WODs on same date) */}
       {wods.length > 1 && (
         <select
           value={selectedWodId || ''}
           onChange={e => {
             setSelectedWodId(e.target.value);
             const wod = wods.find(w => w.id === e.target.value);
-            const scored = wod?.sections.filter(s => s.scoring_fields && Object.values(s.scoring_fields).some(Boolean));
-            setSelectedSectionId(scored?.[0]?.id || wod?.sections[0]?.id || null);
+            if (wod) {
+              const items = extractLeaderboardItems(wod);
+              setLeaderboardItems(items);
+              setSelectedItemIdx(0);
+            }
           }}
           className='w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm text-gray-900'
         >
@@ -330,43 +533,49 @@ function WodLeaderboard({ userId }: { userId: string }) {
         <div className='bg-white rounded-lg shadow-sm p-8 text-center'>
           <p className='text-gray-500'>No published workouts on this date.</p>
         </div>
+      ) : leaderboardItems.length === 0 ? (
+        <div className='bg-white rounded-lg shadow-sm p-6 text-center'>
+          <p className='text-gray-500 text-sm'>No scoreable items in this workout.</p>
+        </div>
       ) : (
         <>
-          {/* Section tabs */}
-          {scoredSections.length > 1 && (
+          {/* Item picker pills */}
+          {leaderboardItems.length > 1 && (
             <div className='flex gap-2 flex-wrap'>
-              {scoredSections.map(s => (
+              {leaderboardItems.map((item, idx) => (
                 <button
-                  key={s.id}
-                  onClick={() => setSelectedSectionId(s.id)}
+                  key={`${item.type}-${idx}`}
+                  onClick={() => setSelectedItemIdx(idx)}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium transition ${
-                    selectedSectionId === s.id
+                    selectedItemIdx === idx
                       ? 'bg-[#208479] text-white'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
-                  {s.type}{s.duration ? ` (${s.duration}m)` : ''}
+                  {item.label}
                 </button>
               ))}
             </div>
           )}
 
-          {/* Scaling filter */}
-          <div className='flex gap-1'>
-            {(['all', 'rx', 'scaled'] as ScalingFilter[]).map(f => (
-              <button
-                key={f}
-                onClick={() => setScalingFilter(f)}
-                className={`px-3 py-1 rounded text-xs font-medium transition ${
-                  scalingFilter === f
-                    ? 'bg-gray-900 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                {f === 'all' ? 'All' : f === 'rx' ? 'Rx' : 'Scaled'}
-              </button>
-            ))}
-          </div>
+          {/* Scaling filter (hidden for lifts) */}
+          {showScalingFilter && (
+            <div className='flex gap-1'>
+              {(['all', 'rx', 'scaled'] as ScalingFilter[]).map(f => (
+                <button
+                  key={f}
+                  onClick={() => setScalingFilter(f)}
+                  className={`px-3 py-1 rounded text-xs font-medium transition ${
+                    scalingFilter === f
+                      ? 'bg-gray-900 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {f === 'all' ? 'All' : f === 'rx' ? 'Rx' : 'Scaled'}
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Results table */}
           {loading ? (
@@ -375,7 +584,7 @@ function WodLeaderboard({ userId }: { userId: string }) {
             </div>
           ) : entries.length === 0 ? (
             <div className='bg-white rounded-lg shadow-sm p-6 text-center'>
-              <p className='text-gray-500 text-sm'>No results logged for this section yet.</p>
+              <p className='text-gray-500 text-sm'>No results logged yet.</p>
             </div>
           ) : (
             <div className='bg-white rounded-lg shadow-sm overflow-hidden'>
@@ -385,7 +594,7 @@ function WodLeaderboard({ userId }: { userId: string }) {
                     <th className='px-3 py-2 text-left w-10'>#</th>
                     <th className='px-3 py-2 text-left'>Athlete</th>
                     <th className='px-3 py-2 text-right'>Result</th>
-                    <th className='px-3 py-2 text-center w-14'>Scale</th>
+                    {showScalingFilter && <th className='px-3 py-2 text-center w-14'>Scale</th>}
                     <th className='px-3 py-2 text-right w-16'></th>
                   </tr>
                 </thead>
@@ -410,21 +619,23 @@ function WodLeaderboard({ userId }: { userId: string }) {
                         </td>
                         <td className='px-3 py-2.5 text-right'>
                           <span className='text-sm font-medium text-gray-900'>
-                            {formatResult(entry, scoringType)}
+                            {isBenchmarkItem ? formatBenchmarkResult(entry) : formatResult(entry, activeScoringType)}
                           </span>
                         </td>
-                        <td className='px-3 py-2.5 text-center'>
-                          {entry.scalingLevel && (
-                            <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
-                              entry.scalingLevel === 'Rx' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
-                            }`}>
-                              {entry.scalingLevel}
-                            </span>
-                          )}
-                        </td>
+                        {showScalingFilter && (
+                          <td className='px-3 py-2.5 text-center'>
+                            {entry.scalingLevel && (
+                              <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
+                                entry.scalingLevel === 'Rx' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
+                              }`}>
+                                {entry.scalingLevel}
+                              </span>
+                            )}
+                          </td>
+                        )}
                         <td className='px-3 py-2.5 text-right'>
                           <FistBumpButton
-                            targetType='wod_section_result'
+                            targetType={reactionTargetType}
                             targetId={entry.id}
                             count={reaction.count}
                             userReacted={reaction.userReacted}

@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.95
-**Updated:** 2026-02-11 (Session 106 - Aria Labels Accessibility)
+**Version:** 10.97
+**Updated:** 2026-02-11 (Session 108 - Multi-Source WOD Leaderboard)
 
 ---
 
@@ -80,6 +80,14 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-11 Session 108 - Opus 4.6):**
+- **✅ Multi-Source WOD Leaderboard** — Root cause found: leaderboard only queried `wod_section_results`, but Strength sections save to `lift_records` and benchmarks save to `benchmark_results`. Also content section IDs stored as `${sectionId}-content-0` but queried with raw section ID.
+- Fix: Full `WodLeaderboard` refactor. `extractLeaderboardItems()` enumerates every scoreable item (lifts, benchmarks, forge benchmarks, content). Item picker pills replace section tabs. `loadResults` branches by type: lifts → `lift_records`, benchmarks → `benchmark_results`, content → `wod_section_results` (with fixed section_id format). Scaling filter hidden for lifts. FistBumpButton targetType dynamic per item type. ±30 day grouping works across all 3 data sources.
+- Added `RawLiftResult` interface, `bestLiftPerUser()`, `rankLiftResults()` to `utils/leaderboard-utils.ts`.
+- **⚠️ Not yet tested live** — Needs verification on a date with a Strength workout.
+- Files: `components/athlete/LeaderboardView.tsx` (+413/-156), `utils/leaderboard-utils.ts` (+45)
+- See: `project-history/2026-02-11-session-108-multi-source-leaderboard.md`
+
 **Completed (2026-02-11 Session 106 - Opus 4.6):**
 - **✅ Add aria-labels to all icon-only buttons** — Code Improvement #2 from Session 103 review. ~137 aria-labels added across 32 files. Every icon-only button now has a screen reader label. Build clean.
 - See: `project-history/2026-02-11-session-106-aria-labels.md`
@@ -100,15 +108,7 @@ Social Tables
 - Pre-Deploy Code Review, Dark Mode Fix, Competitor Analysis
 - See: `project-history/2026-02-10-session-103-code-review-competitor-analysis.md`
 
-**Completed (2026-02-10 Session 102 - Opus 4.6):**
-- Edit Exercise from Library, Whiteboard Filename Fix
-- See: `project-history/2026-02-10-session-102-exercise-edit-library-whiteboard-fix.md`
-
-**Completed (2026-02-09 Session 101 - Opus 4.6):**
-- OG/Meta Tags, Lift Modal UX, Progress Chart polish (6 charts)
-- See: `project-history/2026-02-09-session-101-chart-polish-meta-tags.md`
-
-**Older Sessions (57-100):**
+**Older Sessions (57-102):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -179,7 +179,10 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 107 Priorities
+### Session 109 Priorities
+
+**Carry-over from Session 108:**
+- **Test multi-source leaderboard live** — Navigate to a date with a Strength workout, verify lift pills appear and results load. Test benchmark items too.
 
 **Code Improvements (from Session 103 review):**
 - #3 Add escape key handlers to modals/popups
