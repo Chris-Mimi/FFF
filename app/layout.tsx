@@ -16,12 +16,12 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
+  themeColor: "#1a1a2e",
 };
 
 export const metadata: Metadata = {
   title: "The Forge - Functional Fitness",
   description: "CrossFit gym management and athlete tracking",
-  themeColor: "#1a1a2e",
   openGraph: {
     title: "The Forge - Functional Fitness",
     description: "CrossFit gym management and athlete tracking",
