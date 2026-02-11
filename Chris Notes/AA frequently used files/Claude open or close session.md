@@ -53,3 +53,10 @@ Manual backups going forward:
 Manual backups: Exclude node_modules, .next, .git folders
 Synology sync will remain stable with exclusions
 To restore backup: Copy files + run npm install
+
+"I’m finishing this session. Please update the ActiveContext.md to reflect the current state and generate a concise summary for my History file.
+Format requirements:
+Completed: Bullet points of features/fixes verified in this session.
+State Changes: Any new environment variables, DB schema changes, or breaking logic.
+Next Steps: The very next physical action for the next session (or my partner).
+Pruning: Identify any outdated 'In Progress' notes in ActiveContext that should be moved to History now."

@@ -2,32 +2,34 @@
 
 ## Order of Operations (CRITICAL)
 
-Follow this exact order to ensure backups are included in git commits:
+### 1. Pre-Check: Terminal Lock & Sync
+- [ ] **Check Terminal Locks:** Ensure no background processes (like `npm run dev`, `vite`, or `nodemon`) are actively locking the database or JSON files. Kill them if necessary to prevent corrupted backups.
 
-### 1. Update Memory Bank
-- Update `memory-bank/memory-bank-activeContext.md`
-  - Current focus/state
-  - Known issues
-  - Next immediate steps
-  - **⚠️ KEEP IT CONCISE:** Only last 5 sessions, remove older sessions (detailed history is in `project-history/`)
+### 2. Update Memory Bank
+- [ ] **Update `memory-bank/memory-bank-activeContext.md`**
+  - Current focus/state (Persona focus: Athlete vs. Coach?)
+  - Known issues/bugs discovered
+  - Next immediate steps for the next session
+ - **⚠️ KEEP IT CONCISE:** Only last 5 sessions, remove older sessions (detailed history is in `project-history/`)
   - **Don't bloat activeContext** - Full details belong in project history files
 
-### 2. Create Project History File
-- Create new file: `project-history/YYYY-MM-DD-session-XX-description.md`
-- Document what was accomplished this session
-- Include any important decisions or learnings
+### 3. Create Project History File
+- [ ] **Create new file:** `project-history/YYYY-MM-DD-session-XX-description.md`
+  - Document accomplishments, logic decisions, and major learnings.
 
-### 3. Run Database Backup ⚠️ BEFORE GIT
-```bash
-npm run backup
-```
+### 4. Run Database Backup ⚠️ BEFORE GIT
+- [ ] **Execute Backup:**
+  ```bash
+  npm run backup
+ 
+
 **Why before git?** Backup creates timestamped JSON files that should be version controlled alongside code changes.
 
-Backs up 22 tables (879+ records as of Session 68):
+**Auto-discovers and backs up ALL public tables** using `get_public_tables()` RPC function (Session 95). Current tables include:
 
-**Movement/Workout Definitions (10):**
-- exercises, exercise_categories, benchmark_workouts, forge_benchmarks, barbell_lifts
-- section_types, workout_types, tracks, naming_conventions, resources
+**Movement/Workout Definitions (11):**
+- exercises, exercise_categories, user_exercise_favorites, benchmark_workouts, forge_benchmarks
+- barbell_lifts, section_types, workout_types, workout_titles, tracks, naming_conventions, resources
 
 **Programmed Workouts (2):**
 - wods, weekly_sessions
@@ -38,16 +40,19 @@ Backs up 22 tables (879+ records as of Session 68):
 **Athlete Performance (4):**
 - workout_logs, benchmark_results, lift_records, wod_section_results
 
+**Social Features (1):**
+- reactions
+
 **Coach Tools (3):**
 - programming_notes, note_folders, whiteboard_photos
 
-### 4. Git Add
+### 5. Git Add
 ```bash
 git add .
 ```
 Stages all changes including backup files.
 
-### 5. Git Commit
+### 6. Git Commit
 ```bash
 git commit -m "descriptive message
 
@@ -56,7 +61,7 @@ git commit -m "descriptive message
 Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 ```
 
-### 6. Git Push
+### 7. Git Push
 ```bash
 git push
 ```
@@ -80,3 +85,5 @@ git push
 ❌ **Don't skip project history** - Future sessions need context
 ❌ **Don't use generic commit messages** - Be specific about what changed
 ❌ **Don't bloat activeContext.md** - Keep only last 5 sessions, move older sessions to "See project-history/" summary
+❌ **Don't ignore the "84% Bug"** – If the CLI feels slow or blocks, run /clear immediately after finishing these steps.
+
