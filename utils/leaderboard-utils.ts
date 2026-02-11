@@ -14,7 +14,7 @@ export interface LeaderboardEntry {
   resultDate?: string;
 }
 
-interface RawSectionResult {
+export interface RawSectionResult {
   id: string;
   user_id: string;
   time_result?: string | null;
@@ -116,6 +116,28 @@ function compareByScoringType(a: RawSectionResult, b: RawSectionResult, type: st
     default:
       return 0;
   }
+}
+
+/**
+ * Deduplicate section results: keep only the best result per user.
+ * Used when aggregating results from same-named workouts across multiple dates.
+ */
+export function bestResultPerUser(
+  results: RawSectionResult[],
+  scoringType: string
+): RawSectionResult[] {
+  const best = new Map<string, RawSectionResult>();
+  for (const r of results) {
+    const existing = best.get(r.user_id);
+    if (!existing) {
+      best.set(r.user_id, r);
+      continue;
+    }
+    if (compareByScoringType(r, existing, scoringType) < 0) {
+      best.set(r.user_id, r);
+    }
+  }
+  return [...best.values()];
 }
 
 /**

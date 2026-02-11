@@ -9,9 +9,11 @@ import {
   detectScoringType,
   rankSectionResults,
   rankBenchmarkResults,
+  bestResultPerUser,
   formatResult,
   formatBenchmarkResult,
   type LeaderboardEntry,
+  type RawSectionResult,
 } from '@/utils/leaderboard-utils';
 
 interface ScoringFields {
@@ -100,6 +102,7 @@ function WodLeaderboard({ userId }: { userId: string }) {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [scalingFilter, setScalingFilter] = useState<ScalingFilter>('all');
+  const [groupInfo, setGroupInfo] = useState<{ count: number; dateRange: string } | null>(null);
   const { fetchReactions, toggleReaction, getReaction } = useReactions();
 
   const dateStr = selectedDate.toISOString().split('T')[0];
@@ -134,19 +137,74 @@ function WodLeaderboard({ userId }: { userId: string }) {
   useEffect(() => { loadWods(); }, [loadWods]);
 
   // Fetch results when WOD/section/filter changes
+  // Groups same-named workouts within ±30 days for combined leaderboard
   const loadResults = useCallback(async () => {
     if (!selectedWodId || !selectedSectionId) {
       setEntries([]);
+      setGroupInfo(null);
       return;
     }
 
     setLoading(true);
     try {
+      const selectedWod = wods.find(w => w.id === selectedWodId);
+
+      // Determine WOD IDs and section IDs to query
+      let wodIdsToQuery = [selectedWodId];
+      let sectionIdsToQuery = [selectedSectionId];
+      let isGrouped = false;
+
+      // If workout has a name, find all instances within ±30 days
+      if (selectedWod?.workout_name) {
+        const anchor = new Date(selectedDate);
+        const startDate = new Date(anchor);
+        startDate.setDate(startDate.getDate() - 30);
+        const endDate = new Date(anchor);
+        endDate.setDate(endDate.getDate() + 30);
+
+        const { data: grouped } = await supabase
+          .from('wods')
+          .select('id, date, sections')
+          .eq('workout_name', selectedWod.workout_name)
+          .eq('is_published', true)
+          .gte('date', startDate.toISOString().split('T')[0])
+          .lte('date', endDate.toISOString().split('T')[0]);
+
+        if (grouped && grouped.length > 1) {
+          wodIdsToQuery = grouped.map(w => w.id);
+          isGrouped = true;
+
+          // Map section by position index in the primary WOD
+          const primaryIndex = selectedWod.sections.findIndex(s => s.id === selectedSectionId);
+          if (primaryIndex >= 0) {
+            sectionIdsToQuery = grouped.map(w => {
+              const sections = (w.sections || []) as WodSection[];
+              return sections[primaryIndex]?.id;
+            }).filter((id): id is string => !!id);
+          }
+
+          // Compute group info for display
+          const dates = grouped.map(w => w.date as string).sort();
+          const firstDate = new Date(dates[0] + 'T00:00:00');
+          const lastDate = new Date(dates[dates.length - 1] + 'T00:00:00');
+          const dateRange = firstDate.getTime() === lastDate.getTime()
+            ? firstDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+            : `${firstDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} – ${lastDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`;
+
+          setGroupInfo({ count: grouped.length, dateRange });
+        } else {
+          setGroupInfo(null);
+        }
+      } else {
+        setGroupInfo(null);
+      }
+
+      // Fetch results across all grouped WODs/sections
       const { data: results } = await supabase
         .from('wod_section_results')
         .select('id, user_id, time_result, reps_result, weight_result, rounds_result, calories_result, metres_result, scaling_level, task_completed')
-        .eq('wod_id', selectedWodId)
-        .eq('section_id', selectedSectionId);
+        .in('wod_id', wodIdsToQuery)
+        .in('section_id', sectionIdsToQuery);
 
       if (!results || results.length === 0) {
         setEntries([]);
@@ -155,11 +213,20 @@ function WodLeaderboard({ userId }: { userId: string }) {
       }
 
       // Filter by scaling
-      let filtered = results;
+      let filtered = results as unknown as RawSectionResult[];
       if (scalingFilter === 'rx') {
-        filtered = results.filter(r => r.scaling_level === 'Rx');
+        filtered = filtered.filter(r => r.scaling_level === 'Rx');
       } else if (scalingFilter === 'scaled') {
-        filtered = results.filter(r => r.scaling_level && r.scaling_level !== 'Rx');
+        filtered = filtered.filter(r => r.scaling_level && r.scaling_level !== 'Rx');
+      }
+
+      // Get scoring type from section
+      const section = selectedWod?.sections.find(s => s.id === selectedSectionId);
+      const scoringType = detectScoringType(section?.scoring_fields);
+
+      // Best per user dedup when grouped across multiple days
+      if (isGrouped) {
+        filtered = bestResultPerUser(filtered, scoringType);
       }
 
       // Get member names
@@ -177,11 +244,6 @@ function WodLeaderboard({ userId }: { userId: string }) {
         }
       }
 
-      // Get scoring type from section
-      const wod = wods.find(w => w.id === selectedWodId);
-      const section = wod?.sections.find(s => s.id === selectedSectionId);
-      const scoringType = detectScoringType(section?.scoring_fields);
-
       const ranked = rankSectionResults(filtered, memberNames, scoringType);
       setEntries(ranked);
 
@@ -194,7 +256,7 @@ function WodLeaderboard({ userId }: { userId: string }) {
     } finally {
       setLoading(false);
     }
-  }, [selectedWodId, selectedSectionId, scalingFilter, wods, fetchReactions]);
+  }, [selectedWodId, selectedSectionId, scalingFilter, wods, selectedDate, fetchReactions]);
 
   useEffect(() => { loadResults(); }, [loadResults]);
 
@@ -236,6 +298,13 @@ function WodLeaderboard({ userId }: { userId: string }) {
           <ChevronRight size={20} />
         </button>
       </div>
+
+      {/* Group indicator for same-named workouts */}
+      {groupInfo && (
+        <div className='text-xs text-center text-gray-500 bg-gray-50 rounded-lg py-1.5 -mt-1'>
+          Best result from {groupInfo.count} sessions ({groupInfo.dateRange})
+        </div>
+      )}
 
       {/* Workout selector (if multiple) */}
       {wods.length > 1 && (
