@@ -182,8 +182,76 @@ Proceed with [approach]?
 
 **MANDATE:** Keep sessions under 70% context usage.
 
-**Monitoring:**
-- **50%/60%/70%/80%:** Alert user and await instructions as to how to proceed
+**Why this matters:** Every user message re-reads the ENTIRE conversation history. Updating Memory Bank in a bloated session (70%+) is extremely expensive.
+
+### Context Monitoring & Actions
+
+**At 50% context:**
+- Alert: "⚠️ Context 50%: Session nearing hard stop"
+- Continue working, but plan to wrap up soon
+
+**At 60% context:**
+- Alert: "⚠️ Context 60%: Approaching critical limit"
+- Begin wrapping up current task
+- No new multi-step features
+
+**At 70% context - COST-OPTIMAL HANDOFF:**
+
+**STOP. Follow this exact order:**
+
+1. **Create Session Summary** (1-2 messages max):
+   ```markdown
+   ## Session Summary for Memory Bank
+   - Feature: [what was built]
+   - Files changed: [list with line counts]
+   - Key decisions: [brief notes on why/how]
+   - Known issues: [any bugs/warnings found]
+   - Next steps: [what's pending]
+   ```
+
+2. **User copies summary** (keep locally)
+
+3. **Commit code immediately:**
+   ```bash
+   git add . && git commit -m "feat(scope): brief description
+
+   Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>" && git push
+   ```
+
+4. **Tell user:** "Code committed. Start new session, paste summary, I'll update Memory Bank in fresh context."
+
+5. **STOP** - Do NOT update Memory Bank in bloated session
+
+**At 80% context:**
+- **CRITICAL LIMIT** - Should never reach if 70% protocol followed
+- If reached: Immediately execute steps 1-5 above
+- Do NOT continue with any new work
+
+### In Fresh New Session (User Provides Summary)
+
+6. User pastes summary from previous session
+7. **Update Memory Bank** using:
+   - User's summary (preserves full context)
+   - Git log: `git log -1 --stat`
+   - Git diff: `git show HEAD`
+8. **Create project history file**
+9. **Run backup:** `npm run backup`
+10. **Commit Memory Bank changes**
+
+### Cost Comparison
+
+**❌ Old way (expensive):**
+- Session at 70% context
+- Update Memory Bank (+3-5 messages, each re-reads 70%)
+- Create history (+2-3 messages, each re-reads 70%)
+- Commit (+1-2 messages, each re-reads 70%)
+- **Total: ~10 messages × 70% context = 7× session cost**
+
+**✅ New way (cost-optimal):**
+- Session at 70%: Create summary + commit code (2 messages)
+- New session at 0%: Memory Bank work (5-7 messages × 15% avg)
+- **Total: 2 × 70% + 7 × 15% = 2.45× session cost**
+- **Savings: ~65% reduction**
 
 ---
 

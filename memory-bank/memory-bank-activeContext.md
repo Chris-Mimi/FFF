@@ -13,7 +13,7 @@
 | **Database Safety** | Run `npm run backup` BEFORE any migration or risky change |
 | **Agent Use** | Use Agent for 3+ step tasks, multi-file changes, bug investigations |
 | **Efficiency** | Target: Keep sessions under 50% context usage |
-| **Context Monitoring** | 50%/60%/70%: Alert. 80%: STOP, finish current task, ask for Memory Bank update |
+| **Context Monitoring** | 50%/60%: Alert. 70%: STOP, create summary, commit code, tell user to start new session. 80%: Critical limit (Memory Bank updates in fresh session - see workflow-protocols.md) |
 
 ---
 

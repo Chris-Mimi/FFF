@@ -53,15 +53,13 @@ significant action.
   - Git operations (init, commit, branch).
 - **Project Setup (New Projects):** **MUST** initialize the `memory-bank/` first
   and use conventional Git (handle technical details yourself).
-- **Context Monitoring:** If context usage reaches **50%**, provide a brief,
-  non-disruptive, in-chat alert (e.g., "⚠️ Context 50% reached: Session nearing
-  hard stop."). If context usage reaches **60%**, provide a similar brief alert
-  (e.g., "⚠️ Context 60% reached: Approaching critical limit."). If context
-  usage reaches **70%**, provide a final brief alert (e.g., "⚠️ Context 70%
-  reached: Execute final task now."). If context usage reaches **80%**, STOP new
-  work, complete the current task, tell Chris (the user) to provide you with the
-  "update the Memory Bank" prompt, and suggest the user start a new session. DO
-  NOT update the Memory Bank without input from Chris.
+- **Context Monitoring:** Alert at **50%/60%/70%** usage. At **70%**: STOP new
+  work, create brief session summary (1-2 messages), commit code, tell Chris to
+  start new session. DO NOT update Memory Bank in bloated session (every message
+  re-reads entire context = expensive). Memory Bank updates happen in fresh
+  session using summary + git history. At **80%**: Critical limit, immediately
+  execute handoff. See `workflow-protocols.md` TOKEN EFFICIENCY section for
+  detailed cost-optimal handoff protocol.
 
 ### 3. Chat and Tool Protocol (MAX TOKEN EFFICIENCY)
 
