@@ -96,7 +96,7 @@ const KNOWN_TABLES = [
   'bookings', 'exercises', 'forge_benchmarks', 'lift_records', 'members',
   'movement_results', 'naming_conventions', 'note_folders', 'programming_notes',
   'resources', 'section_types', 'session_templates', 'subscriptions', 'tracks',
-  'user_exercise_favorites', 'weekly_sessions', 'whiteboard_photos',
+  'reactions', 'user_exercise_favorites', 'weekly_sessions', 'whiteboard_photos',
   'wod_section_results', 'wods', 'workout_logs', 'workout_titles', 'workout_types',
 ];
 

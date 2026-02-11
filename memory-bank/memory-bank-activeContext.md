@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.92
-**Updated:** 2026-02-10 (Session 103 - Pre-Deploy Code Review, Dark Mode Fix, Competitor Analysis)
+**Version:** 10.93
+**Updated:** 2026-02-11 (Session 104 - Social Reactions, Community Feed, Leaderboard)
 
 ---
 
@@ -63,6 +63,9 @@ Athlete Tables (linked to members.id)
 ├─ benchmark_results (id, user_id, benchmark_id, forge_benchmark_id [XOR], benchmark_name, benchmark_type, result_value, scaling_level, result_date)
 ├─ lift_records (id, user_id, lift_name, weight_kg, reps, rep_max_type ['1RM'|'3RM'|'5RM'|'10RM'], rep_scheme [workout patterns], calculated_1rm, notes, lift_date)
 ├─ wod_section_results (id, user_id, wod_id, section_id, workout_date, time_result, reps_result, weight_result, scaling_level, rounds_result, calories_result, metres_result, task_completed)
+
+Social Tables
+├─ reactions (id, user_id, target_type ['wod_section_result'|'benchmark_result'|'lift_record'], target_id, reaction_type ['fist_bump'], created_at [UNIQUE user_id + target_type + target_id])
 ```
 
 **Workout Naming System (Session 49/50/52):**
@@ -77,11 +80,16 @@ Athlete Tables (linked to members.id)
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-11 Session 104 - Opus 4.6):**
+- **✅ Social Reactions (Fist Bumps)** — New `reactions` table, API route (POST toggle + GET batch), FistBumpButton component, useReactions hook with optimistic updates. Reactions on all result types (WOD sections, benchmarks, lifts). Visible to all gym members.
+- **✅ Community Feed Tab** — New "Community" tab on athlete page (between Workouts and Logbook). Shows chronological feed of all gym members' recent results with fist bump buttons. Paginated by 7-day windows.
+- **✅ Leaderboard** — Feed/Leaderboard toggle on Community tab. Two sub-views: WOD Sections (date picker + section tabs + ranked table) and All-Time Benchmarks (standard + Forge). Scaling filter (All/Rx/Scaled), auto-ranking by scoring type, top-3 highlighting.
+- **✅ RLS Policy Updates** — Opened read access on `wod_section_results`, `benchmark_results`, `lift_records` for all authenticated users (community feed). Write policies unchanged.
+- **✅ WorkoutsTab Integration** — Fist bump buttons added to "Your Result" cards in Workouts tab.
+- See: `project-history/2026-02-11-session-104-social-reactions-leaderboard.md`
+
 **Completed (2026-02-10 Session 103 - Opus 4.6):**
-- **✅ Pre-Deploy Code Review** — 3-agent parallel review of Coach (~25K lines), Athlete (~7.7K lines), Booking (~3K lines). Deleted dead ExerciseLibraryPopup.tsx (309 lines). Fixed debug emoji logs, error detail exposure.
-- **✅ Dark Mode Fix** — Removed `prefers-color-scheme: dark` CSS override from globals.css (root cause of invisible text in modals on dark-mode Macs). Also added explicit `text-gray-900` to TracksTab and PublishModal containers.
-- **✅ Tracks Tab Bug Fix** — Added `bg-white` to input fields that appeared greyed out.
-- **✅ Competitor Analysis** — Researched WODIFY, SugarWOD, BTWB, PushPress, Zen Planner, Wodboard. Identified top 10 missing features ranked by value. Saved to `Chris Notes/session-103-code-review-findings.md`.
+- Pre-Deploy Code Review, Dark Mode Fix, Competitor Analysis
 - See: `project-history/2026-02-10-session-103-code-review-competitor-analysis.md`
 
 **Completed (2026-02-10 Session 102 - Opus 4.6):**
@@ -96,11 +104,7 @@ Athlete Tables (linked to members.id)
 - RM Test Feature, Recharts fixes, SVG focus outline, mobile optimization
 - See: `project-history/2026-02-09-session-100-rm-test-mobile-optimization.md`
 
-**Completed (2026-02-07 Session 99 - Opus 4.6):**
-- Lift Records DB Fix (rep_type_xor), Recharts pinned to 3.3.0, UX polish
-- See: `project-history/2026-02-07-session-99-lift-records-recharts-fixes.md`
-
-**Older Sessions (57-98):**
+**Older Sessions (57-99):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -116,16 +120,19 @@ See `project-history/` folder for detailed implementation history
 - 15+ `alert()` calls should become toast notifications
 - ~50+ icon buttons missing aria-labels
 
-**Feature Gaps (from competitor analysis):**
+**Feature Gaps (from competitor analysis — updated):**
+- ✅ #1 Social reactions (fist bumps) — DONE (Session 104)
+- ✅ #2 Per-workout leaderboard — DONE (Session 104)
+- Remaining: Push notifications, workout intent/stimulus notes, at-risk member alerts, workout timer, % calculator, badges/streaks
 - See: `Chris Notes/session-103-code-review-findings.md` for full ranked list
-- Quick wins: workout intent/stimulus notes, athlete result notes, at-risk member alerts
 
 **Other Known Issues:**
 - Athletes page: Previously logged benchmarks/lifts may not display for some athletes (pre-existing)
 
-**Migration Pending:**
-1. **`get_public_tables()` RPC function** - Required for backup auto-discovery
-   - **Apply via:** Supabase SQL Editor (see project-history/2026-02-06-session-95)
+**Migrations Pending (apply in Supabase SQL Editor):**
+1. **`20260211_create_reactions_table.sql`** — New reactions table for fist bumps
+2. **`20260211_add_community_read_policies.sql`** — Open read access on result tables for community feed
+3. **`get_public_tables()` RPC function** — Required for backup auto-discovery (see session 95)
 
 ---
 
@@ -167,11 +174,12 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 104 Priorities
+### Session 105 Priorities
 
 **Quick Wins (from review):**
-- Workout intent/stimulus notes per section (low effort, high value)
-- At-risk member alerts dashboard (already have booking data)
+- Workout intent/stimulus notes per section (low effort, high value — competitor feature #4)
+- At-risk member alerts dashboard (already have booking data — competitor feature #5)
+- Auto percentage calculator from athlete's 1RM (competitor feature #7)
 
 **Pending Polish (LOW):**
 - Athletes page benchmarks/lifts display issue (investigate)
