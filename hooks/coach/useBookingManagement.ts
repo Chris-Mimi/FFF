@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { calculateConfirmedCount, canAddToSession } from '@/lib/coach/bookingHelpers';
 import { Booking, Member } from './useSessionDetails';
@@ -36,7 +37,7 @@ export function useBookingManagement({
 
   const handleManualBooking = async () => {
     if (!selectedMemberId) {
-      alert('Please select a member');
+      toast.warning('Please select a member');
       return;
     }
 
@@ -90,10 +91,10 @@ export function useBookingManagement({
         bookingStatus === 'confirmed'
           ? `${selectedMember.name} booked successfully`
           : `${selectedMember.name} added to waitlist (session full)`;
-      alert(statusMessage);
+      toast.success(statusMessage);
     } catch (error) {
       console.error('Error booking member:', error);
-      alert('Failed to book member');
+      toast.error('Failed to book member');
     } finally {
       setAddingMember(false);
     }
@@ -120,7 +121,7 @@ export function useBookingManagement({
       onSessionUpdated();
     } catch (error) {
       console.error('Error marking no-show:', error);
-      alert('Failed to mark as no-show');
+      toast.error('Failed to mark as no-show');
     }
   };
 
@@ -141,7 +142,7 @@ export function useBookingManagement({
       onSessionUpdated();
     } catch (error) {
       console.error('Error undoing no-show:', error);
-      alert('Failed to undo no-show');
+      toast.error('Failed to undo no-show');
     }
   };
 
@@ -166,7 +167,7 @@ export function useBookingManagement({
       onSessionUpdated();
     } catch (error) {
       console.error('Error marking late cancellation:', error);
-      alert('Failed to mark as late cancellation');
+      toast.error('Failed to mark as late cancellation');
     }
   };
 
@@ -187,7 +188,7 @@ export function useBookingManagement({
       onSessionUpdated();
     } catch (error) {
       console.error('Error undoing late cancellation:', error);
-      alert('Failed to undo late cancellation');
+      toast.error('Failed to undo late cancellation');
     }
   };
 

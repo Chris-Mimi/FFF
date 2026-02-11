@@ -3,6 +3,7 @@
 
 // Icons now used in extracted components
 import { useEffect } from 'react';
+import { toast } from 'sonner';
 import { useLogbookData } from '@/hooks/athlete/useLogbookData';
 import { useWorkoutLogging } from '@/hooks/athlete/useWorkoutLogging';
 import { useAthleteLogbookState } from '@/hooks/athlete/useAthleteLogbookState';
@@ -126,7 +127,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
     // Find current workout to extract structured data
     const currentWorkout = workouts.find(w => formatLocalDate(new Date(w.date)) === workoutDate);
     if (!currentWorkout) {
-      alert('Workout not found');
+      toast.warning('Workout not found');
       return;
     }
 
@@ -135,7 +136,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
 
     // If no results AND no notes, show error
     if (resultsToSave.length === 0 && !hasNotes) {
-      alert('No results or notes to save');
+      toast.warning('No results or notes to save');
       return;
     }
 
@@ -241,7 +242,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
     }
 
     if (errorCount === 0) {
-      alert(`Successfully saved ${savedCount} results!`);
+      toast.success(`Successfully saved ${savedCount} results!`);
       // Reload data to reflect changes
       loadLiftRecords(workoutDate);
       loadSectionResultsWrapper(workoutDate);
@@ -249,7 +250,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
       loadLiftResultsToSectionWrapper(workoutDate);
     } else {
       console.error('Save errors:', errors);
-      alert(`Saved ${savedCount} of ${resultsToSave.length} results. ${errorCount} failed. Check console for details.`);
+      toast.error(`Saved ${savedCount} of ${resultsToSave.length} results. ${errorCount} failed. Check console for details.`);
     }
   };
 

@@ -4,6 +4,7 @@
 import { supabase } from '@/lib/supabase';
 import { ChevronDown, ChevronRight, Edit2, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import {
   CartesianGrid,
   Legend,
@@ -146,7 +147,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
       setEditingBenchmarkId(null);
     } catch (error) {
       console.error('Error saving benchmark:', error);
-      alert('Failed to save benchmark result. Please try again.');
+      toast.error('Failed to save benchmark result. Please try again.');
     }
   };
 
@@ -171,7 +172,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
       await fetchBenchmarkHistory();
     } catch (error) {
       console.error('Error deleting benchmark:', error);
-      alert('Failed to delete benchmark result. Please try again.');
+      toast.error('Failed to delete benchmark result. Please try again.');
     }
   };
 

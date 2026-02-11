@@ -14,6 +14,7 @@ import AthletePageCommunityTab from '@/components/athlete/AthletePageCommunityTa
 import UpgradePrompt from '@/components/athlete/UpgradePrompt';
 import { getCurrentUser, signOut } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 import {
   Award,
   BookOpen,
@@ -125,7 +126,7 @@ function AthletePageContent() {
       // If they're a member, check their status and athlete access
       if (member) {
         if (member.status !== 'active') {
-          alert('Your account is pending approval. Please wait for coach approval.');
+          toast.warning('Your account is pending approval. Please wait for coach approval.');
           router.push('/member/book');
           return;
         }

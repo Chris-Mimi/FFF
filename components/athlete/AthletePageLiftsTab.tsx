@@ -4,6 +4,7 @@
 import { supabase } from '@/lib/supabase';
 import { ChevronDown, ChevronRight, Edit2, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import {
   CartesianGrid,
   Legend,
@@ -148,7 +149,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
       setEditingLiftId(null);
     } catch (error) {
       console.error('Error saving lift:', error);
-      alert('Failed to save lift record. Please try again.');
+      toast.error('Failed to save lift record. Please try again.');
     }
   };
 
@@ -173,7 +174,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
       await fetchLiftHistory();
     } catch (error) {
       console.error('Error deleting lift:', error);
-      alert('Failed to delete lift record. Please try again.');
+      toast.error('Failed to delete lift record. Please try again.');
     }
   };
 

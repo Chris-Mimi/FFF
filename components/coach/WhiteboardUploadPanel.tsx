@@ -2,6 +2,7 @@
 
 import { authFetch } from '@/lib/auth-fetch';
 import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 import { Calendar, Upload, X, Info } from 'lucide-react';
 import Image from 'next/image';
 import { useState } from 'react';
@@ -64,13 +65,13 @@ export default function WhiteboardUploadPanel({
 
       // Validate file type
       if (!file.type.startsWith('image/')) {
-        alert(`${file.name}: Not an image file, skipping`);
+        toast.warning(`${file.name}: Not an image file, skipping`);
         continue;
       }
 
       // Validate file size (5MB limit)
       if (file.size > 5 * 1024 * 1024) {
-        alert(`${file.name}: File size must be less than 5MB, skipping`);
+        toast.warning(`${file.name}: File size must be less than 5MB, skipping`);
         continue;
       }
 
@@ -111,12 +112,12 @@ export default function WhiteboardUploadPanel({
 
   const handleUpload = async () => {
     if (selectedFiles.length === 0) {
-      alert('Please select at least one file');
+      toast.warning('Please select at least one file');
       return;
     }
 
     if (!userId) {
-      alert('User not authenticated. Please refresh the page.');
+      toast.error('User not authenticated. Please refresh the page.');
       return;
     }
 
@@ -207,10 +208,10 @@ export default function WhiteboardUploadPanel({
       // Success
       clearSelection();
       onPhotoUploaded();
-      alert(`${selectedFiles.length} photo${selectedFiles.length > 1 ? 's' : ''} uploaded successfully!`);
+      toast.success(`${selectedFiles.length} photo${selectedFiles.length > 1 ? 's' : ''} uploaded successfully!`);
     } catch (error) {
       console.error('Error uploading photo:', error);
-      alert(`Failed to upload photo: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(`Failed to upload photo: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setUploading(false);
       setUploadProgress(0);

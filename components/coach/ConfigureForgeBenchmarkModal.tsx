@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { GripVertical, ChevronDown } from 'lucide-react';
 import type { ForgeBenchmark, ConfiguredForgeBenchmark, WODSection } from '@/types/movements';
 
@@ -91,7 +92,7 @@ function ConfigureForgeBenchmarkModal({
 
   const handleAdd = () => {
     if (!selectedSectionId) {
-      alert('Please select a section');
+      toast.warning('Please select a section');
       return;
     }
 

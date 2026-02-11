@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 
 export interface Exercise {
@@ -72,7 +73,7 @@ export function useExercisesCrud() {
       console.error('Error saving exercise:', error);
       console.error('Error details:', JSON.stringify(error, null, 2));
       const errorMessage = error?.message || error?.error_description || error?.msg || 'Unknown error';
-      alert(`Error saving exercise: ${errorMessage}`);
+      toast.error(`Error saving exercise: ${errorMessage}`);
     }
   };
 
@@ -92,7 +93,7 @@ export function useExercisesCrud() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: unknown) {
       console.error('Error deleting exercise:', error);
-      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 

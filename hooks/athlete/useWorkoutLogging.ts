@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 
 interface WorkoutLogEntry {
@@ -70,10 +71,10 @@ export function useWorkoutLogging({
         if (error) throw error;
       }
 
-      alert('Workout log saved successfully!');
+      toast.success('Workout log saved successfully!');
     } catch (error) {
       console.error('Error saving workout log:', error);
-      alert('Failed to save workout log. Please try again.');
+      toast.error('Failed to save workout log. Please try again.');
     } finally {
       setIsSaving(false);
     }

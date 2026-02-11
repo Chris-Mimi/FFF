@@ -1,6 +1,7 @@
 'use client';
 
 import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 import { RefreshCw, X, CreditCard, Calendar, Package } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
@@ -145,7 +146,7 @@ export default function TenCardModal({
       onClose();
     } catch (error) {
       console.error('❌ Error updating payment info:', error);
-      alert('Failed to update payment information\n\nCheck console for details');
+      toast.error('Failed to update payment information. Check console for details.');
     } finally {
       setLoading(false);
     }

@@ -2,6 +2,7 @@
 
 import { X } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 
 // Predefined category order
@@ -450,7 +451,7 @@ export default function ExerciseFormModal({
     const finalSubcategory = form.subcategory === '__custom__' ? customSubcategory : form.subcategory;
 
     if (!form.name || !finalCategory) {
-      alert('Name and Category are required');
+      toast.warning('Name and Category are required');
       return;
     }
 

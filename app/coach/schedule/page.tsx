@@ -4,6 +4,7 @@ import { signOut } from '@/lib/auth';
 import { authFetch } from '@/lib/auth-fetch';
 import { supabase } from '@/lib/supabase';
 import { Calendar, Edit2, LogOut, Plus, Trash2, X } from 'lucide-react';
+import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -184,7 +185,7 @@ export default function CoachSchedulePage() {
       handleCloseModal();
     } catch (error) {
       console.error('Error saving template:', error);
-      alert('Failed to save template. Please try again.');
+      toast.error('Failed to save template. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -205,7 +206,7 @@ export default function CoachSchedulePage() {
       await fetchTemplates();
     } catch (error) {
       console.error('Error deleting template:', error);
-      alert('Failed to delete template. Please try again.');
+      toast.error('Failed to delete template. Please try again.');
     }
   };
 
@@ -227,7 +228,7 @@ export default function CoachSchedulePage() {
       });
     } catch (error) {
       console.error('Error toggling template:', error);
-      alert('Failed to update template. Please try again.');
+      toast.error('Failed to update template. Please try again.');
     }
   };
 
@@ -242,7 +243,7 @@ export default function CoachSchedulePage() {
 
   const handleGenerateWeek = async (startDate?: string) => {
     if (templates.filter(t => t.active).length === 0) {
-      alert('No active templates found. Please create and activate at least one template first.');
+      toast.warning('No active templates found. Please create and activate at least one template first.');
       return;
     }
 
@@ -265,7 +266,7 @@ export default function CoachSchedulePage() {
       setTimeout(() => setGenerationResult(null), 5000);
     } catch (error) {
       console.error('Error generating weekly sessions:', error);
-      alert(error instanceof Error ? error.message : 'Failed to generate sessions. Please try again.');
+      toast.error(error instanceof Error ? error.message : 'Failed to generate sessions. Please try again.');
     } finally {
       setGenerating(false);
     }
@@ -330,7 +331,7 @@ export default function CoachSchedulePage() {
 
   const handleSaveTitle = async () => {
     if (!titleFormData.name.trim()) {
-      alert('Please enter a workout title name.');
+      toast.warning('Please enter a workout title name.');
       return;
     }
 
@@ -367,9 +368,9 @@ export default function CoachSchedulePage() {
     } catch (error) {
       console.error('Error saving workout title:', error);
       if (error && typeof error === 'object' && 'code' in error && error.code === '23505') {
-        alert('A workout title with this name already exists.');
+        toast.error('A workout title with this name already exists.');
       } else {
-        alert('Failed to save workout title. Please try again.');
+        toast.error('Failed to save workout title. Please try again.');
       }
     } finally {
       setSavingTitle(false);
@@ -391,7 +392,7 @@ export default function CoachSchedulePage() {
       await fetchWorkoutTitles();
     } catch (error) {
       console.error('Error deleting workout title:', error);
-      alert('Failed to delete workout title. Please try again.');
+      toast.error('Failed to delete workout title. Please try again.');
     }
   };
 
@@ -413,7 +414,7 @@ export default function CoachSchedulePage() {
       });
     } catch (error) {
       console.error('Error toggling workout title:', error);
-      alert('Failed to update workout title. Please try again.');
+      toast.error('Failed to update workout title. Please try again.');
     }
   };
 

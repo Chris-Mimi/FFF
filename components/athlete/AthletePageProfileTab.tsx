@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { Edit2, User } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 interface AthletePageProfileTabProps {
   userName: string;
@@ -112,13 +113,13 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
+      toast.warning('Please select an image file');
       return;
     }
 
     // Validate file size (5MB limit)
     if (file.size > 5 * 1024 * 1024) {
-      alert('File size must be less than 5MB');
+      toast.warning('File size must be less than 5MB');
       return;
     }
 
@@ -145,7 +146,7 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
       setProfile({ ...profile, avatar_url: publicUrl });
     } catch (error) {
       console.error('Error uploading avatar:', error);
-      alert('Failed to upload image. Please try again.');
+      toast.error('Failed to upload image. Please try again.');
     } finally {
       setUploading(false);
     }
@@ -158,7 +159,7 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
       error: sessionError,
     } = await supabase.auth.getSession();
     if (!session) {
-      alert('No active session found. Please logout and login again.');
+      toast.warning('No active session found. Please logout and login again.');
       return;
     }
 
@@ -205,15 +206,15 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
           .select();
 
         if (error) throw error;
-        alert('Profile updated successfully!');
+        toast.success('Profile updated successfully!');
       } else {
         // No existing profile - this is a family member without auth account
         // Just update members table (already done above)
-        alert('Profile updated successfully!');
+        toast.success('Profile updated successfully!');
       }
     } catch (error) {
       console.error('Error saving profile:', error);
-      alert('Failed to save profile. Please try again.');
+      toast.error('Failed to save profile. Please try again.');
     }
   };
 

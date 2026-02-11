@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { Bold, Italic, List, ListOrdered, Plus, Save, Trash2, Type, Underline as UnderlineIcon, Eye, Edit2, Folder, FolderPlus, ChevronDown, ChevronRight, MoreVertical, Search, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
@@ -139,7 +140,7 @@ export default function ProgrammingNotesTab() {
       setIsEditing(true);
     } catch (error) {
       console.error('Error creating note:', error);
-      alert(`Error creating note: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
+      toast.error(`Error creating note: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
     } finally {
       setSaving(false);
     }
@@ -167,7 +168,7 @@ export default function ProgrammingNotesTab() {
       setSelectedNote(updatedNote);
     } catch (error) {
       console.error('Error saving note:', error);
-      alert(`Error saving note: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(`Error saving note: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setSaving(false);
     }
@@ -193,7 +194,7 @@ export default function ProgrammingNotesTab() {
       }
     } catch (error) {
       console.error('Error deleting note:', error);
-      alert(`Error deleting note: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(`Error deleting note: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -232,7 +233,7 @@ export default function ProgrammingNotesTab() {
       setFolderName('');
     } catch (error) {
       console.error('Error creating folder:', error);
-      alert(`Error creating folder: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(`Error creating folder: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -250,7 +251,7 @@ export default function ProgrammingNotesTab() {
       setFolders(folders.map(f => f.id === folderId ? { ...f, name: newName } : f));
     } catch (error) {
       console.error('Error renaming folder:', error);
-      alert(`Error renaming folder: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(`Error renaming folder: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -270,7 +271,7 @@ export default function ProgrammingNotesTab() {
       fetchNotes(); // Refresh notes to show updated folder_id (set to null)
     } catch (error) {
       console.error('Error deleting folder:', error);
-      alert(`Error deleting folder: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(`Error deleting folder: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -289,7 +290,7 @@ export default function ProgrammingNotesTab() {
       }
     } catch (error) {
       console.error('Error moving note:', error);
-      alert(`Error moving note: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(`Error moving note: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 

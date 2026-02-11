@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import {
   validateCapacity,
@@ -45,7 +46,7 @@ export function useSessionEditing({
     const validation = validateCapacity(newCapacity, confirmedCount);
 
     if (!validation.valid) {
-      alert(validation.message);
+      toast.warning(validation.message);
       return;
     }
 
@@ -68,16 +69,16 @@ export function useSessionEditing({
       setEditingCapacity(false);
       await onRefresh();
       onSessionUpdated();
-      alert('Capacity updated successfully');
+      toast.success('Capacity updated successfully');
     } catch (error) {
       console.error('Error updating capacity:', error);
-      alert('Failed to update capacity');
+      toast.error('Failed to update capacity');
     }
   };
 
   const handleUpdateTime = async () => {
     if (!newTime) {
-      alert('Please enter a valid time');
+      toast.warning('Please enter a valid time');
       return;
     }
 
@@ -114,7 +115,7 @@ export function useSessionEditing({
       onSessionUpdated();
     } catch (error) {
       console.error('Error updating time:', error);
-      alert('Failed to update time');
+      toast.error('Failed to update time');
     }
   };
 
@@ -142,11 +143,11 @@ export function useSessionEditing({
         .eq('session_id', sessionId)
         .in('status', ['confirmed', 'waitlist']);
 
-      alert('Session cancelled successfully. Please notify affected members.');
+      toast.success('Session cancelled successfully. Please notify affected members.');
       onSessionUpdated();
     } catch (error) {
       console.error('Error cancelling session:', error);
-      alert('Failed to cancel session');
+      toast.error('Failed to cancel session');
     }
   };
 

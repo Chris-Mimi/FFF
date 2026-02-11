@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 
 export interface NamingConvention {
@@ -140,7 +141,7 @@ export function useReferencesCrud() {
       setReferenceForm({ abbr: '', full: '', notes: '', name: '', description: '', url: '', category: '' });
     } catch (error) {
       console.error('Error saving reference:', error);
-      alert('Error saving reference. Please try again.');
+      toast.error('Error saving reference. Please try again.');
     }
   };
 
@@ -173,7 +174,7 @@ export function useReferencesCrud() {
       await fetchReferences();
     } catch (error) {
       console.error('Error deleting reference:', error);
-      alert('Error deleting reference. Please try again.');
+      toast.error('Error deleting reference. Please try again.');
     }
   };
 

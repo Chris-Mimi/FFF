@@ -1,6 +1,7 @@
 'use client';
 
 import { Dispatch, SetStateAction } from 'react';
+import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { getPublishedSections, type WOD } from '@/utils/logbook-utils';
 
@@ -59,7 +60,7 @@ export function useLiftManagement(
 
       if (checkError) {
         console.error('Error checking existing lift record:', checkError);
-        alert(`Failed to check lift record: ${checkError.message || JSON.stringify(checkError)}`);
+        toast.error(`Failed to check lift record: ${checkError.message || JSON.stringify(checkError)}`);
         return;
       }
 
@@ -78,7 +79,7 @@ export function useLiftManagement(
 
         if (error) {
           console.error('Error updating lift record:', error);
-          alert(`Failed to update lift record: ${error.message || JSON.stringify(error)}`);
+          toast.error(`Failed to update lift record: ${error.message || JSON.stringify(error)}`);
           return;
         }
       } else {
@@ -98,13 +99,13 @@ export function useLiftManagement(
 
         if (error) {
           console.error('Error inserting lift record:', error);
-          alert(`Failed to insert lift record: ${error.message || JSON.stringify(error)}`);
+          toast.error(`Failed to insert lift record: ${error.message || JSON.stringify(error)}`);
           return;
         }
       }
     } catch (error) {
       console.error('Error saving lift record (catch):', error);
-      alert(`Failed to save lift record: ${error instanceof Error ? error.message : String(error)}`);
+      toast.error(`Failed to save lift record: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
@@ -113,7 +114,7 @@ export function useLiftManagement(
     const recordsToSave = Object.entries(liftRecords).filter(([_, record]) => record.weight_kg && parseFloat(record.weight_kg) > 0);
 
     if (recordsToSave.length === 0) {
-      alert('No lift weights entered to save');
+      toast.warning('No lift weights entered to save');
       return;
     }
 
@@ -127,11 +128,11 @@ export function useLiftManagement(
     }
 
     if (errorCount === 0) {
-      alert('Lift records saved successfully!');
+      toast.success('Lift records saved successfully!');
       // Reload the lift records to show updated values
       await loadLiftRecords(dateStr);
     } else {
-      alert(`Saved ${recordsToSave.length - errorCount} of ${recordsToSave.length} lift records. ${errorCount} failed.`);
+      toast.warning(`Saved ${recordsToSave.length - errorCount} of ${recordsToSave.length} lift records. ${errorCount} failed.`);
     }
   };
 

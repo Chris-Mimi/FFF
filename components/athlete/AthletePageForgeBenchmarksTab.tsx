@@ -4,6 +4,7 @@
 import { supabase } from '@/lib/supabase';
 import { ChevronDown, ChevronRight, Edit2, Target, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import {
   CartesianGrid,
   Legend,
@@ -105,7 +106,7 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
 
   const handleSaveBenchmark = async () => {
     if (!selectedBenchmark || !newTime) {
-      alert('Please enter a result/time value');
+      toast.warning('Please enter a result/time value');
       return;
     }
 
@@ -168,7 +169,7 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
 
       }
 
-      alert(`Successfully ${editingBenchmarkId ? 'updated' : 'saved'} benchmark result!`);
+      toast.success(`Successfully ${editingBenchmarkId ? 'updated' : 'saved'} benchmark result!`);
 
       // Refresh the history
       await fetchBenchmarkHistory();
@@ -182,7 +183,7 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
       setEditingBenchmarkId(null);
     } catch (error: unknown) {
       console.error('Error saving benchmark:', error);
-      alert(`Failed to save benchmark result: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(`Failed to save benchmark result: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -207,7 +208,7 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
       await fetchBenchmarkHistory();
     } catch (error) {
       console.error('Error deleting benchmark:', error);
-      alert('Failed to delete benchmark result. Please try again.');
+      toast.error('Failed to delete benchmark result. Please try again.');
     }
   };
 

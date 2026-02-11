@@ -2,6 +2,7 @@
 
 import { WODFormData } from '@/components/coach/WorkoutModal';
 import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 import { useEffect, useState } from 'react';
 
 interface UseNotesPanelProps {
@@ -82,7 +83,7 @@ export const useNotesPanel = ({ fetchWODs, fetchTracksAndCounts }: UseNotesPanel
       closeNotesPanel();
     } catch (error) {
       console.error('Error saving notes:', error);
-      alert('Error saving notes. Please try again.');
+      toast.error('Error saving notes. Please try again.');
     }
   };
 

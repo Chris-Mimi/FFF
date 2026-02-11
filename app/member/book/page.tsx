@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 import { Calendar, Users, Clock, LogOut, ChevronLeft, ChevronRight, X, Check, Edit2, Trash2, User } from 'lucide-react';
 import { signOut } from '@/lib/auth';
 import Image from 'next/image';
@@ -82,13 +83,13 @@ export default function MemberBookingPage() {
       .single();
 
     if (!member) {
-      alert('You must be a registered member to book sessions.');
+      toast.warning('You must be a registered member to book sessions.');
       router.push('/');
       return;
     }
 
     if (member.status !== 'active') {
-      alert('Your account is pending approval. Please wait for coach approval.');
+      toast.warning('Your account is pending approval. Please wait for coach approval.');
       router.push('/');
       return;
     }
@@ -260,12 +261,12 @@ export default function MemberBookingPage() {
 
   const handleAddFamilyMember = async () => {
     if (!user || !familyFormData.display_name.trim()) {
-      alert('Please enter a name');
+      toast.warning('Please enter a name');
       return;
     }
 
     if (!familyFormData.date_of_birth) {
-      alert('Please enter a date of birth');
+      toast.warning('Please enter a date of birth');
       return;
     }
 
@@ -293,7 +294,7 @@ export default function MemberBookingPage() {
       });
     } catch (error) {
       console.error('Error adding family member:', error);
-      alert('Failed to add family member. Please try again.');
+      toast.error('Failed to add family member. Please try again.');
     } finally {
       setProcessing(null);
     }
@@ -301,7 +302,7 @@ export default function MemberBookingPage() {
 
   const handleEditFamilyMember = async () => {
     if (!editingMember || !familyFormData.display_name.trim()) {
-      alert('Please enter a name');
+      toast.warning('Please enter a name');
       return;
     }
 
@@ -328,7 +329,7 @@ export default function MemberBookingPage() {
       });
     } catch (error) {
       console.error('Error updating family member:', error);
-      alert('Failed to update family member. Please try again.');
+      toast.error('Failed to update family member. Please try again.');
     } finally {
       setProcessing(null);
     }
@@ -352,7 +353,7 @@ export default function MemberBookingPage() {
       await fetchFamilyMembers(user!.id);
     } catch (error) {
       console.error('Error deleting family member:', error);
-      alert('Failed to delete family member. Please try again.');
+      toast.error('Failed to delete family member. Please try again.');
     } finally {
       setProcessing(null);
     }
@@ -408,7 +409,7 @@ export default function MemberBookingPage() {
       if (!response.ok) {
         // User-facing errors (402 = Payment Required) - show message without console error
         if (response.status === 402) {
-          alert(data.error || 'Payment required');
+          toast.error(data.error || 'Payment required');
           return;
         }
         throw new Error(data.error || 'Failed to book session');
@@ -416,13 +417,13 @@ export default function MemberBookingPage() {
 
       // Show success message with any warnings
       if (data.message) {
-        alert(data.message);
+        toast.success(data.message);
       }
 
       await fetchSessions();
     } catch (error) {
       console.error('Error booking session:', error);
-      alert(error instanceof Error ? error.message : 'Failed to book session. Please try again.');
+      toast.error(error instanceof Error ? error.message : 'Failed to book session. Please try again.');
     } finally {
       setProcessing(null);
     }
@@ -460,13 +461,13 @@ export default function MemberBookingPage() {
 
       // Show cancellation message with refund status
       if (data.message) {
-        alert(data.message);
+        toast.info(data.message);
       }
 
       await fetchSessions();
     } catch (error) {
       console.error('Error canceling booking:', error);
-      alert(error instanceof Error ? error.message : 'Failed to cancel booking. Please try again.');
+      toast.error(error instanceof Error ? error.message : 'Failed to cancel booking. Please try again.');
     } finally {
       setProcessing(null);
     }

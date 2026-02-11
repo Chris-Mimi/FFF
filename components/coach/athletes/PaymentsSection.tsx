@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 
 interface MemberData {
   id: string;
@@ -120,11 +121,11 @@ export default function PaymentsSection({ memberId }: { memberId?: string }) {
         .eq('id', actualMemberId);
 
       if (error) throw error;
-      alert('10-card updated successfully!');
+      toast.success('10-card updated successfully!');
       fetchPaymentData();
     } catch (error) {
       console.error('Error updating 10-card:', error);
-      alert('Failed to update 10-card. Please try again.');
+      toast.error('Failed to update 10-card. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -144,11 +145,11 @@ export default function PaymentsSection({ memberId }: { memberId?: string }) {
         .eq('id', actualMemberId);
 
       if (error) throw error;
-      alert('10-card reset successfully!');
+      toast.success('10-card reset successfully!');
       fetchPaymentData();
     } catch (error) {
       console.error('Error resetting 10-card:', error);
-      alert('Failed to reset 10-card. Please try again.');
+      toast.error('Failed to reset 10-card. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -168,11 +169,11 @@ export default function PaymentsSection({ memberId }: { memberId?: string }) {
         .eq('id', subscriptionId);
 
       if (error) throw error;
-      alert('Subscription cancelled successfully!');
+      toast.success('Subscription cancelled successfully!');
       fetchPaymentData();
     } catch (error) {
       console.error('Error cancelling subscription:', error);
-      alert('Failed to cancel subscription. Please try again.');
+      toast.error('Failed to cancel subscription. Please try again.');
     } finally {
       setSaving(false);
     }

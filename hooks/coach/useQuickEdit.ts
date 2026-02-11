@@ -3,6 +3,7 @@
 import { WODFormData, WODSection } from '@/components/coach/WorkoutModal';
 import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
 import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 import { useState } from 'react';
 
 interface UseQuickEditProps {
@@ -98,7 +99,7 @@ export const useQuickEdit = ({ fetchWODs, fetchTracksAndCounts }: UseQuickEditPr
       setQuickEditWOD(null);
     } catch (error) {
       console.error('Error saving WOD:', error);
-      alert('Error saving WOD. Please try again.');
+      toast.error('Error saving WOD. Please try again.');
     }
   };
 

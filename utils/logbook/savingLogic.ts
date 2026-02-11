@@ -1,3 +1,4 @@
+import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 
 interface SectionResult {
@@ -81,7 +82,7 @@ export async function saveSectionResult(
     }
   } catch (error) {
     console.error('Error saving section result:', error);
-    alert(`Failed to save section result: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
+    toast.error(`Failed to save section result: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
     throw error;
   }
 }

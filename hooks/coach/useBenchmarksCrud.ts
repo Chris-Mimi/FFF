@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 
 export interface Benchmark {
@@ -94,7 +95,7 @@ export function useBenchmarksCrud() {
     } catch (error: unknown) {
       console.error('Error saving benchmark:', error);
       const message = error instanceof Error ? error.message : 'Unknown error';
-      alert(`Error saving benchmark: ${message}`);
+      toast.error(`Error saving benchmark: ${message}`);
     }
   };
 
@@ -113,7 +114,7 @@ export function useBenchmarksCrud() {
       fetchBenchmarks();
     } catch (error: unknown) {
       console.error('Error deleting benchmark:', error);
-      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 

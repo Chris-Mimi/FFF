@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { GripVertical, ChevronDown, X } from 'lucide-react';
 import type { BarbellLift, ConfiguredLift, VariableSet, WODSection } from '@/types/movements';
 
@@ -182,7 +183,7 @@ function ConfigureLiftModal({
 
   const handleAdd = () => {
     if (!selectedSectionId) {
-      alert('Please select a section');
+      toast.warning('Please select a section');
       return;
     }
 

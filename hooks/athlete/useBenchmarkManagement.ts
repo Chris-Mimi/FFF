@@ -2,6 +2,7 @@
 
 import { authFetch } from '@/lib/auth-fetch';
 import { Dispatch, SetStateAction } from 'react';
+import { toast } from 'sonner';
 
 interface BenchmarkResult {
   benchmark_name: string;
@@ -77,7 +78,7 @@ export function useBenchmarkManagement(
 
     } catch (error) {
       console.error('Error saving benchmark result:', error);
-      alert(`Failed to save benchmark result: ${error instanceof Error ? error.message : String(error)}`);
+      toast.error(`Failed to save benchmark result: ${error instanceof Error ? error.message : String(error)}`);
       throw error; // Re-throw so unified save can count it as error
     }
   };
@@ -89,7 +90,7 @@ export function useBenchmarkManagement(
     );
 
     if (resultsToSave.length === 0) {
-      alert('No benchmark results entered to save');
+      toast.warning('No benchmark results entered to save');
       return;
     }
 
@@ -116,11 +117,11 @@ export function useBenchmarkManagement(
     }
 
     if (errorCount === 0) {
-      alert('Benchmark results saved successfully!');
+      toast.success('Benchmark results saved successfully!');
       setBenchmarkResults({});
     } else {
       console.error('Errors during save:', errors);
-      alert(`Saved ${resultsToSave.length - errorCount} of ${resultsToSave.length} benchmark results. ${errorCount} failed. Check console for details.`);
+      toast.warning(`Saved ${resultsToSave.length - errorCount} of ${resultsToSave.length} benchmark results. ${errorCount} failed. Check console for details.`);
     }
   };
 

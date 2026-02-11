@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { DragEndEvent } from '@dnd-kit/core';
 import { Benchmark } from './useBenchmarksCrud';
@@ -88,7 +89,7 @@ export function useForgeBenchmarksCrud() {
     } catch (error: unknown) {
       console.error('Error saving forge benchmark:', error);
       const message = error instanceof Error ? error.message : 'Unknown error';
-      alert(`Error saving forge benchmark: ${message}`);
+      toast.error(`Error saving forge benchmark: ${message}`);
     }
   };
 
@@ -108,7 +109,7 @@ export function useForgeBenchmarksCrud() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: unknown) {
       console.error('Error deleting forge benchmark:', error);
-      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -157,7 +158,7 @@ export function useForgeBenchmarksCrud() {
           .eq('id', targetItem.id);
       } catch (error: unknown) {
         console.error('Error updating order:', error);
-        alert(`Error updating order: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        toast.error(`Error updating order: ${error instanceof Error ? error.message : 'Unknown error'}`);
         fetchForgeBenchmarks();
       }
     } else {
@@ -181,7 +182,7 @@ export function useForgeBenchmarksCrud() {
             .eq('id', draggedItem.id);
         } catch (error: unknown) {
           console.error('Error updating order:', error);
-          alert(`Error updating order: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          toast.error(`Error updating order: ${error instanceof Error ? error.message : 'Unknown error'}`);
           fetchForgeBenchmarks();
         }
       }
@@ -197,7 +198,7 @@ export function useForgeBenchmarksCrud() {
       const benchmarksToShift = forgeBenchmarks.filter(b => b.display_order > afterPosition);
 
       if (benchmarksToShift.length === 0) {
-        alert('No benchmarks to shift. The row below is already empty.');
+        toast.info('No benchmarks to shift. The row below is already empty.');
         return;
       }
 
@@ -220,7 +221,7 @@ export function useForgeBenchmarksCrud() {
       }
     } catch (error: unknown) {
       console.error('Error inserting row:', error);
-      alert(`Error inserting row: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(`Error inserting row: ${error instanceof Error ? error.message : 'Unknown error'}`);
       fetchForgeBenchmarks();
     }
   };

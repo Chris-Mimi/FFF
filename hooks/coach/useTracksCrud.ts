@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 
 export interface Track {
@@ -47,7 +48,7 @@ export function useTracksCrud() {
 
   const handleSaveTrack = async () => {
     if (!trackFormData.name.trim()) {
-      alert('Track name is required');
+      toast.warning('Track name is required');
       return;
     }
 
@@ -80,7 +81,7 @@ export function useTracksCrud() {
       fetchTracks();
     } catch (error) {
       console.error('Error saving track:', error);
-      alert('Failed to save track');
+      toast.error('Failed to save track');
     }
   };
 
@@ -97,7 +98,7 @@ export function useTracksCrud() {
       fetchTracks();
     } catch (error) {
       console.error('Error deleting track:', error);
-      alert('Failed to delete track');
+      toast.error('Failed to delete track');
     }
   };
 

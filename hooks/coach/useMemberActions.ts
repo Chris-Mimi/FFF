@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { authFetch } from '@/lib/auth-fetch';
 import { supabase } from '@/lib/supabase';
 import { MembershipType, ClassType, Member } from '@/types/member';
@@ -24,12 +25,12 @@ export function useMemberActions(
         throw new Error(data.error || 'Failed to approve member');
       }
 
-      alert(data.message || 'Member approved successfully');
+      toast.success(data.message || 'Member approved successfully');
       await refreshData();
       await refreshPendingCount();
     } catch (error) {
       console.error('Error approving member:', error);
-      alert(error instanceof Error ? error.message : 'Failed to approve member. Please try again.');
+      toast.error(error instanceof Error ? error.message : 'Failed to approve member. Please try again.');
     } finally {
       setProcessingMemberId(null);
     }
@@ -53,12 +54,12 @@ export function useMemberActions(
         throw new Error(data.error || 'Failed to block member');
       }
 
-      alert(data.message || 'Member blocked successfully');
+      toast.success(data.message || 'Member blocked successfully');
       await refreshData();
       await refreshPendingCount();
     } catch (error) {
       console.error('Error blocking member:', error);
-      alert(error instanceof Error ? error.message : 'Failed to block member. Please try again.');
+      toast.error(error instanceof Error ? error.message : 'Failed to block member. Please try again.');
     } finally {
       setProcessingMemberId(null);
     }
@@ -82,12 +83,12 @@ export function useMemberActions(
         throw new Error(data.error || 'Failed to unapprove member');
       }
 
-      alert(data.message || 'Member moved back to pending status');
+      toast.info(data.message || 'Member moved back to pending status');
       await refreshData();
       await refreshPendingCount();
     } catch (error) {
       console.error('Error unapproving member:', error);
-      alert(error instanceof Error ? error.message : 'Failed to unapprove member. Please try again.');
+      toast.error(error instanceof Error ? error.message : 'Failed to unapprove member. Please try again.');
     } finally {
       setProcessingMemberId(null);
     }
@@ -111,12 +112,12 @@ export function useMemberActions(
         throw new Error(data.error || 'Failed to unblock member');
       }
 
-      alert(data.message || 'Member unblocked and moved to pending status');
+      toast.success(data.message || 'Member unblocked and moved to pending status');
       await refreshData();
       await refreshPendingCount();
     } catch (error) {
       console.error('Error unblocking member:', error);
-      alert(error instanceof Error ? error.message : 'Failed to unblock member. Please try again.');
+      toast.error(error instanceof Error ? error.message : 'Failed to unblock member. Please try again.');
     } finally {
       setProcessingMemberId(null);
     }
@@ -140,11 +141,11 @@ export function useMemberActions(
         throw new Error(data.error || 'Failed to start trial');
       }
 
-      alert(data.message || `${days}-day trial started`);
+      toast.success(data.message || `${days}-day trial started`);
       await refreshData();
     } catch (error) {
       console.error('Error starting trial:', error);
-      alert(error instanceof Error ? error.message : 'Failed to start trial. Please try again.');
+      toast.error(error instanceof Error ? error.message : 'Failed to start trial. Please try again.');
     } finally {
       setProcessingMemberId(null);
     }
@@ -168,11 +169,11 @@ export function useMemberActions(
         throw new Error(data.error || 'Failed to extend trial');
       }
 
-      alert(data.message || `Trial extended by ${days} days`);
+      toast.success(data.message || `Trial extended by ${days} days`);
       await refreshData();
     } catch (error) {
       console.error('Error extending trial:', error);
-      alert(error instanceof Error ? error.message : 'Failed to extend trial. Please try again.');
+      toast.error(error instanceof Error ? error.message : 'Failed to extend trial. Please try again.');
     } finally {
       setProcessingMemberId(null);
     }
@@ -196,11 +197,11 @@ export function useMemberActions(
         throw new Error(data.error || 'Failed to activate subscription');
       }
 
-      alert(data.message || 'Subscription activated successfully');
+      toast.success(data.message || 'Subscription activated successfully');
       await refreshData();
     } catch (error) {
       console.error('Error activating subscription:', error);
-      alert(error instanceof Error ? error.message : 'Failed to activate subscription. Please try again.');
+      toast.error(error instanceof Error ? error.message : 'Failed to activate subscription. Please try again.');
     } finally {
       setProcessingMemberId(null);
     }
@@ -226,7 +227,7 @@ export function useMemberActions(
       );
     } catch (error) {
       console.error('Error updating membership types:', error);
-      alert('Failed to update membership type');
+      toast.error('Failed to update membership type');
     }
   };
 
@@ -250,7 +251,7 @@ export function useMemberActions(
       );
     } catch (error) {
       console.error('Error updating class types:', error);
-      alert('Failed to update class types');
+      toast.error('Failed to update class types');
     }
   };
 

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 
 const LIFTS = [
   'Back Squat',
@@ -42,7 +43,7 @@ export default function AddLiftModal({
 
   const handleSave = async () => {
     if (!athleteId || !liftName || !weight) {
-      alert('Please fill in lift name and weight');
+      toast.warning('Please fill in lift name and weight');
       return;
     }
 
@@ -63,11 +64,11 @@ export default function AddLiftModal({
       });
 
       if (error) throw error;
-      alert('Lift record added successfully!');
+      toast.success('Lift record added successfully!');
       onSave();
     } catch (error) {
       console.error('Error adding lift:', error);
-      alert('Failed to add lift record. Please try again.');
+      toast.error('Failed to add lift record. Please try again.');
     }
   };
 

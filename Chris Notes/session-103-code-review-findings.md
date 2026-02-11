@@ -9,32 +9,32 @@
 
 ### High Impact
 
-1. **Replace `alert()` with toast notifications** — 15+ places use browser `alert()` for success/error. Blocks interaction, looks unprofessional.
+- [ ] 1. **Replace `alert()` with toast notifications** — 15+ places use browser `alert()` for success/error. Blocks interaction, looks unprofessional.
    - Files: booking page, schedule page, gallery, modals, tabs
 
-2. **Add `aria-labels` to icon-only buttons** — ~50+ icon buttons across the app have no screen reader labels.
+- [ ] 2. **Add `aria-labels` to icon-only buttons** — ~50+ icon buttons across the app have no screen reader labels.
    - Only 1 aria-label found in entire codebase (ExerciseVideoModal)
 
-3. **Add Escape key handlers** to modals that are missing them — most modals can't be closed via keyboard.
+- [ ] 3. **Add Escape key handlers** to modals that are missing them — most modals can't be closed via keyboard.
    - Only ExerciseVideoModal and SearchPanel have Escape handlers
 
 ### Medium Impact
 
-4. **Form validation** — Many inputs lack `required`, `maxLength`, or inline error messages. No character limits, no numeric constraints.
+- [ ] 4. **Form validation** — Many inputs lack `required`, `maxLength`, or inline error messages. No character limits, no numeric constraints.
 
-5. **Debounce search inputs** — SearchPanel and MovementLibrary filter on every keystroke. Could cause lag on large datasets.
+- [ ] 5. **Debounce search inputs** — SearchPanel and MovementLibrary filter on every keystroke. Could cause lag on large datasets.
 
-6. **Missing empty states** — Favorites section, booking history, records tab show minimal UI when empty.
+- [ ] 6. **Missing empty states** — Favorites section, booking history, records tab show minimal UI when empty.
 
-7. **Touch targets** — Some mobile buttons under 44px (BookingListItem action buttons, SearchPanel mobile toggle).
+- [ ] 7. **Touch targets** — Some mobile buttons under 44px (BookingListItem action buttons, SearchPanel mobile toggle).
 
 ### Lower Impact
 
-8. **Replace browser `confirm()` with styled modal dialogs** — Most delete actions use browser confirm().
+- [ ] 8. **Replace browser `confirm()` with styled modal dialogs** — Most delete actions use browser confirm().
 
-9. **Focus traps in modals** — Can tab outside of modals currently.
+- [ ] 9. **Focus traps in modals** — Can tab outside of modals currently.
 
-10. **Color contrast audit** — Some potential WCAG AA issues with teal-on-white text.
+- [ ] 10. **Color contrast audit** — Some potential WCAG AA issues with teal-on-white text.
 
 ---
 
@@ -47,16 +47,18 @@ WODIFY, SugarWOD, Beyond the Whiteboard (BTWB), Zen Planner, PushPress, Wodboard
 
 | # | Feature | Effort | Impact |
 |---|---------|--------|--------|
-| 1 | **Social reactions on results** (fist bumps/likes + comments) | Medium | Very High |
-| 2 | **Per-workout leaderboard** | Medium | Very High |
-| 3 | **Push notifications** (WOD posted, PR, booking reminders) | High | Very High |
-| 4 | **Workout intent/stimulus notes + scaling options** | Low | High |
-| 5 | **At-risk member alerts** (no attendance for X days) | Low-Med | High |
-| 6 | **Built-in workout timer** (AMRAP/EMOM/For Time) | Medium | Medium |
-| 7 | **Auto percentage calculator** from athlete's 1RM | Low-Med | High |
-| 8 | **Achievement badges/streaks** | Medium | Medium |
-| 9 | **Athlete notes + result photos** on logged workouts | Low | Medium |
-| 10 | **Movement demo videos** linked in workouts | Low (code) | Medium |
+| | # | Feature | Effort | Impact |
+|---|---|---------|--------|--------|
+| ✅ | 1 | **Social reactions on results** (fist bumps/likes + comments) | Medium | Very High |
+| ✅ | 2 | **Per-workout leaderboard** | Medium | Very High |
+| ⬜ | 3 | **Push notifications** (WOD posted, PR, booking reminders) | High | Very High |
+| ⬜ | 4 | **Workout intent/stimulus notes + scaling options** | Low | High |
+| ⬜ | 5 | **At-risk member alerts** (no attendance for X days) | Low-Med | High |
+| ⬜ | 6 | **Built-in workout timer** (AMRAP/EMOM/For Time) | Medium | Medium |
+| ⬜ | 7 | **Auto percentage calculator** from athlete's 1RM | Low-Med | High |
+| ⬜ | 8 | **Achievement badges/streaks** | Medium | Medium |
+| ⬜ | 9 | **Athlete notes + result photos** on logged workouts | Low | Medium |
+| ⬜ | 10 | **Movement demo videos** linked in workouts | Low (code) | Medium |
 
 ### Quick Wins (Low effort, high value)
 - **#4 Workout intent/stimulus notes** — Add structured "Intent/Stimulus" field + scaling options per workout section

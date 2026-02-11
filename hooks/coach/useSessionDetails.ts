@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { filterAvailableMembers } from '@/lib/coach/bookingHelpers';
 import { padTime } from '@/lib/coach/modalStateHelpers';
@@ -117,7 +118,7 @@ export function useSessionDetails(
       setAvailableMembers(available);
     } catch (error) {
       console.error('Error fetching session details:', error);
-      alert('Failed to load session details');
+      toast.error('Failed to load session details');
     } finally {
       setLoading(false);
     }

@@ -2,6 +2,7 @@
 
 import { WODFormData } from '@/components/coach/WorkoutModal';
 import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 import { formatDate, calculateWorkoutWeek } from '@/utils/date-utils';
 
 interface UseWODOperationsProps {
@@ -211,7 +212,7 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
     } catch (error) {
       console.error('Error saving WOD:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      alert(`Error saving WOD: ${errorMessage}\n\nPlease check the console for details.`);
+      toast.error(`Error saving WOD: ${errorMessage}`);
     }
   };
 
@@ -232,7 +233,7 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
       await fetchTracksAndCounts();
     } catch (error) {
       console.error('Error deleting WOD:', error);
-      alert('Error deleting WOD. Please try again.');
+      toast.error('Error deleting WOD. Please try again.');
     }
   };
 
@@ -247,14 +248,14 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
       await fetchTracksAndCounts();
     } catch (error) {
       console.error('Error permanently deleting WOD:', error);
-      alert('Error permanently deleting WOD. Please try again.');
+      toast.error('Error permanently deleting WOD. Please try again.');
     }
   };
 
   // Legacy function that returns callback data for modal
   const handleDeleteWOD = async (dateKey: string, wodId: string) => {
     if (wodId.startsWith('session-')) {
-      alert('Cannot delete empty sessions. Click to add workout content instead.');
+      toast.warning('Cannot delete empty sessions. Click to add workout content instead.');
       return null;
     }
 
@@ -278,7 +279,7 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
       await fetchTracksAndCounts();
     } catch (error) {
       console.error('Error deleting session:', error);
-      alert('Error deleting session. Please try again.');
+      toast.error('Error deleting session. Please try again.');
     }
   };
 
@@ -379,7 +380,7 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
       await fetchTracksAndCounts();
     } catch (error) {
       console.error('Error copying WOD:', error);
-      alert('Error copying WOD. Please try again.');
+      toast.error('Error copying WOD. Please try again.');
     }
   };
 

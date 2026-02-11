@@ -2,6 +2,7 @@
 
 import { WhiteboardPhoto } from '@/app/coach/whiteboard/page';
 import { authFetch } from '@/lib/auth-fetch';
+import { toast } from 'sonner';
 import { ChevronLeft, ChevronRight, Edit2, Trash2, X } from 'lucide-react';
 import Image from 'next/image';
 import { useState } from 'react';
@@ -77,7 +78,7 @@ export default function WhiteboardGallery({
       onPhotoUpdated();
     } catch (error) {
       console.error('Error updating photo:', error);
-      alert('Failed to update photo. Please try again.');
+      toast.error('Failed to update photo. Please try again.');
     }
   };
 
@@ -96,7 +97,7 @@ export default function WhiteboardGallery({
       onPhotoDeleted();
     } catch (error) {
       console.error('Error deleting photo:', error);
-      alert('Failed to delete photo. Please try again.');
+      toast.error('Failed to delete photo. Please try again.');
     }
   };
 

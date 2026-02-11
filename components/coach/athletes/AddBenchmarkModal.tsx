@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 
 const BENCHMARKS = [
   'Fran',
@@ -36,7 +37,7 @@ export default function AddBenchmarkModal({
 
   const handleSave = async () => {
     if (!athleteId || !benchmarkName || !result) {
-      alert('Please fill in benchmark name and result');
+      toast.warning('Please fill in benchmark name and result');
       return;
     }
 
@@ -50,11 +51,11 @@ export default function AddBenchmarkModal({
       });
 
       if (error) throw error;
-      alert('Benchmark result added successfully!');
+      toast.success('Benchmark result added successfully!');
       onSave();
     } catch (error) {
       console.error('Error adding benchmark:', error);
-      alert('Failed to add benchmark result. Please try again.');
+      toast.error('Failed to add benchmark result. Please try again.');
     }
   };
 

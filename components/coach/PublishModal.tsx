@@ -2,6 +2,7 @@
 
 import { Send, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import { WODSection } from './WorkoutModal';
 import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark, VariableSet } from '@/types/movements';
 
@@ -97,7 +98,7 @@ export default function PublishModal({
 
   const handlePublish = async () => {
     if (selectedSectionIds.length === 0) {
-      alert('Please select at least one section to publish');
+      toast.warning('Please select at least one section to publish');
       return;
     }
 
@@ -111,7 +112,7 @@ export default function PublishModal({
       onClose();
     } catch (error) {
       console.error('Publish error:', error);
-      alert('Failed to publish workout. Please try again.');
+      toast.error('Failed to publish workout. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

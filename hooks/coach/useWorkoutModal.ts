@@ -2,6 +2,7 @@
 
 import { authFetch } from '@/lib/auth-fetch';
 import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 import { useEffect, useState, useRef } from 'react';
 import type { BarbellLift, Benchmark, ForgeBenchmark, ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
 import { useSectionManagement } from './useSectionManagement';
@@ -548,7 +549,7 @@ export function useWorkoutModal(
 
       if (error) {
         console.error('Error updating session time:', error);
-        alert('Failed to update time');
+        toast.error('Failed to update time');
         return;
       }
 
@@ -577,14 +578,14 @@ export function useWorkoutModal(
       }
     } catch (error) {
       console.error('Error updating session time:', error);
-      alert('Failed to update time');
+      toast.error('Failed to update time');
     }
   };
 
   const openLibrary = () => {
     // Only open library if there's at least one section
     if (formData.sections.length === 0) {
-      alert('Please add a section first');
+      toast.warning('Please add a section first');
       return;
     }
 
@@ -738,10 +739,10 @@ export function useWorkoutModal(
       if (onClose) {
         onClose(); // Close modal to refresh calendar
       }
-      alert('Workout published successfully!');
+      toast.success('Workout published successfully!');
     } catch (error) {
       console.error('Error publishing workout:', error);
-      alert('Failed to publish workout. Please try again.');
+      toast.error('Failed to publish workout. Please try again.');
       throw error;
     }
   };
@@ -766,10 +767,10 @@ export function useWorkoutModal(
       if (onClose) {
         onClose(); // Close modal to refresh calendar
       }
-      alert('Workout unpublished successfully!');
+      toast.success('Workout unpublished successfully!');
     } catch (error) {
       console.error('Error unpublishing workout:', error);
-      alert('Failed to unpublish workout. Please try again.');
+      toast.error('Failed to unpublish workout. Please try again.');
     }
   };
 

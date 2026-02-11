@@ -2,6 +2,7 @@
 
 import { useRecentExercises } from '@/lib/exercise-storage';
 import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 import type { BarbellLift, Benchmark, ForgeBenchmark } from '@/types/movements';
 import { useUserFavorites } from '@/utils/exercise-favorites';
 import { ChevronDown, ChevronRight, Edit2, Library, Search, Star, X } from 'lucide-react';
@@ -382,14 +383,14 @@ function MovementLibraryPopup({
       await fetchBenchmarks();
     } catch (error: unknown) {
       console.error('Error creating benchmark:', error);
-      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
   const handleCreateForgeBenchmark = async () => {
     // Validate required fields
     if (!forgeForm.name.trim()) {
-      alert('Please enter a name for the Forge Benchmark');
+      toast.warning('Please enter a name for the Forge Benchmark');
       return;
     }
 
@@ -419,14 +420,14 @@ function MovementLibraryPopup({
         throw error;
       }
 
-      alert('Forge Benchmark created successfully!');
+      toast.success('Forge Benchmark created successfully!');
 
       setShowCreateForgeModal(false);
       setForgeForm({ name: '', type: 'For Time', description: '', has_scaling: true });
       await fetchForgeBenchmarks();
     } catch (error: unknown) {
       console.error('Error creating forge benchmark:', error);
-      alert(`Error creating Forge Benchmark: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(`Error creating Forge Benchmark: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -455,7 +456,7 @@ function MovementLibraryPopup({
       await fetchLifts();
     } catch (error: unknown) {
       console.error('Error creating lift:', error);
-      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -480,7 +481,7 @@ function MovementLibraryPopup({
       await fetchExercises();
     } catch (error: unknown) {
       console.error('Error saving exercise:', error);
-      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 

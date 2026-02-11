@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { DragEndEvent } from '@dnd-kit/core';
 
@@ -81,7 +82,7 @@ export function useLiftsCrud() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: unknown) {
       console.error('Error saving lift:', error);
-      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -130,7 +131,7 @@ export function useLiftsCrud() {
           .eq('id', targetLift.id);
       } catch (error: unknown) {
         console.error('Error updating order:', error);
-        alert(`Error updating order: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        toast.error(`Error updating order: ${error instanceof Error ? error.message : 'Unknown error'}`);
         fetchLifts();
       }
     } else {
@@ -154,7 +155,7 @@ export function useLiftsCrud() {
             .eq('id', draggedLift.id);
         } catch (error: unknown) {
           console.error('Error updating order:', error);
-          alert(`Error updating order: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          toast.error(`Error updating order: ${error instanceof Error ? error.message : 'Unknown error'}`);
           fetchLifts();
         }
       }
@@ -177,7 +178,7 @@ export function useLiftsCrud() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: unknown) {
       console.error('Error deleting lift:', error);
-      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
