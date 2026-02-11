@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.94
-**Updated:** 2026-02-11 (Session 105 - Sonner Toast Notifications)
+**Version:** 10.95
+**Updated:** 2026-02-11 (Session 106 - Aria Labels Accessibility)
 
 ---
 
@@ -80,9 +80,12 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-11 Session 106 - Opus 4.6):**
+- **✅ Add aria-labels to all icon-only buttons** — Code Improvement #2 from Session 103 review. ~137 aria-labels added across 32 files. Every icon-only button now has a screen reader label. Build clean.
+- See: `project-history/2026-02-11-session-106-aria-labels.md`
+
 **Completed (2026-02-11 Session 105 - Opus 4.6):**
-- **✅ Replace all alert() with sonner toast notifications** — Code Improvement #1 from Session 103 review. Used sonner library (lightweight, no provider needed). Replaced 15+ alert() calls across 39 code files with toast.success/error/warning by message type. 43 files changed total (39 code + package.json/lock + review checklist). Build clean, zero alert() remaining.
-- **Lesson learned:** Parallel agents consume context without triggering monitoring alerts — need to account for this in protocol.
+- **✅ Replace all alert() with sonner toast notifications** — Code Improvement #1. sonner library, 39 code files, zero alert() remaining.
 - See: `project-history/2026-02-11-session-105-sonner-toast-notifications.md`
 
 **Completed (2026-02-11 Session 104 - Opus 4.6):**
@@ -105,11 +108,7 @@ Social Tables
 - OG/Meta Tags, Lift Modal UX, Progress Chart polish (6 charts)
 - See: `project-history/2026-02-09-session-101-chart-polish-meta-tags.md`
 
-**Completed (2026-02-09 Session 100 - Opus 4.6):**
-- RM Test Feature, Recharts fixes, SVG focus outline, mobile optimization
-- See: `project-history/2026-02-09-session-100-rm-test-mobile-optimization.md`
-
-**Older Sessions (57-99):**
+**Older Sessions (57-100):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -123,7 +122,7 @@ See `project-history/` folder for detailed implementation history
 - 30 `@typescript-eslint/no-explicit-any` suppressions (pragmatic, post-deploy)
 - 5 large files >800 lines (MovementLibraryPopup 1341, SearchPanel 952, book/page 950, useWorkoutModal 896, ForgeBenchmarksTab 858) — refactor post-deploy
 - ✅ ~~15+ `alert()` calls should become toast notifications~~ — DONE (Session 105, sonner)
-- ~50+ icon buttons missing aria-labels (Code Improvement #2)
+- ✅ ~~50+ icon buttons missing aria-labels~~ — DONE (Session 106, 137 labels added)
 - Escape key handlers for modals/popups (Code Improvement #3)
 
 **Feature Gaps (from competitor analysis — updated):**
@@ -180,10 +179,9 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 106 Priorities
+### Session 107 Priorities
 
 **Code Improvements (from Session 103 review):**
-- #2 Add aria-labels to ~50+ icon buttons (accessibility)
 - #3 Add escape key handlers to modals/popups
 
 **Features (from competitor analysis):**
