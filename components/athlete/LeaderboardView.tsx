@@ -132,12 +132,13 @@ function extractLeaderboardItems(wod: WodData): LeaderboardItem[] {
       }
     }
 
-    // Content scoring
+    // Content scoring (skip if section already has lifts/benchmarks)
     const sf = section.scoring_fields;
-    if (sf && Object.values(sf).some(Boolean)) {
+    if (sf && Object.values(sf).some(Boolean) && !section.lifts?.length && !section.benchmarks?.length && !section.forge_benchmarks?.length) {
       const hasStructuredItems = (section.lifts?.length || 0) + (section.benchmarks?.length || 0) + (section.forge_benchmarks?.length || 0) > 0;
       const scoringType = detectScoringType(sf);
       const scoringLabel = scoringType === 'time' ? 'For Time'
+        : scoringType === 'time_with_cap' ? 'For Time (Cap)'
         : scoringType === 'rounds_reps' ? 'AMRAP'
         : scoringType === 'reps' ? 'Max Reps'
         : scoringType === 'weight' ? 'Max Load'
@@ -244,7 +245,15 @@ function WodLeaderboard({ userId }: { userId: string }) {
       .eq('date', dateStr)
       .eq('is_published', true);
 
-    const wodList = (data || []) as WodData[];
+    // Deduplicate WODs with same session_type + workout_name (e.g., same workout at 17:15 and 18:30)
+    const allWods = (data || []) as WodData[];
+    const seen = new Set<string>();
+    const wodList = allWods.filter(w => {
+      const key = `${w.session_type || w.title}|${w.workout_name || ''}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
     setWods(wodList);
 
     if (wodList.length > 0) {

@@ -30,6 +30,9 @@ export async function saveSectionResult(
   }
 
   try {
+    // Refresh auth token before write to prevent stale JWT RLS failures
+    await supabase.auth.getUser();
+
     // First check if record exists
     const { data: existing } = await supabase
       .from('wod_section_results')
@@ -60,8 +63,8 @@ export async function saveSectionResult(
         .eq('id', existing.id);
 
       if (error) {
-        console.error('Error updating section result:', error);
-        throw error;
+        console.error('Error updating section result:', error.message, error.code, error.details, error.hint);
+        throw new Error(error.message || 'Update failed');
       }
     } else {
       // Insert new record
@@ -76,8 +79,8 @@ export async function saveSectionResult(
         });
 
       if (error) {
-        console.error('Error inserting section result:', error);
-        throw error;
+        console.error('Error inserting section result:', error.message, error.code, error.details, error.hint);
+        throw new Error(error.message || 'Insert failed');
       }
     }
   } catch (error) {

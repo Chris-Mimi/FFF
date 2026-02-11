@@ -65,6 +65,7 @@ interface ScoringFields {
  */
 export function detectScoringType(scoringFields?: ScoringFields): string {
   if (!scoringFields) return 'time';
+  if (scoringFields.time && scoringFields.rounds_reps) return 'time_with_cap';
   if (scoringFields.time) return 'time';
   if (scoringFields.rounds_reps) return 'rounds_reps';
   if (scoringFields.reps) return 'reps';
@@ -104,6 +105,18 @@ function compareByScoringType(a: RawSectionResult, b: RawSectionResult, type: st
       const aTime = parseTimeToSeconds(a.time_result);
       const bTime = parseTimeToSeconds(b.time_result);
       return aTime - bTime; // ascending (faster = better)
+    }
+    case 'time_with_cap': {
+      const aFinished = !!(a.time_result && a.time_result.trim() !== '');
+      const bFinished = !!(b.time_result && b.time_result.trim() !== '');
+      if (aFinished && bFinished) return parseTimeToSeconds(a.time_result) - parseTimeToSeconds(b.time_result);
+      if (aFinished && !bFinished) return -1; // finisher beats cap-hitter
+      if (!aFinished && bFinished) return 1;
+      // Both hit cap: compare rounds+reps descending
+      const aRounds = a.rounds_result || 0;
+      const bRounds = b.rounds_result || 0;
+      if (aRounds !== bRounds) return bRounds - aRounds;
+      return (b.reps_result || 0) - (a.reps_result || 0);
     }
     case 'rounds_reps': {
       const aRounds = a.rounds_result || 0;
@@ -163,6 +176,7 @@ export function rankSectionResults(
   const valid = results.filter(r => {
     switch (scoringType) {
       case 'time': return r.time_result && r.time_result.trim() !== '';
+      case 'time_with_cap': return (r.time_result && r.time_result.trim() !== '') || (r.rounds_result || 0) > 0 || (r.reps_result || 0) > 0;
       case 'rounds_reps': return (r.rounds_result || 0) > 0 || (r.reps_result || 0) > 0;
       case 'reps': return (r.reps_result || 0) > 0;
       case 'weight': return (r.weight_result || 0) > 0;
@@ -291,6 +305,11 @@ export function formatResult(entry: LeaderboardEntry, scoringType: string): stri
   switch (scoringType) {
     case 'time':
       return entry.timeResult || '-';
+    case 'time_with_cap':
+      if (entry.timeResult) return entry.timeResult;
+      if (entry.roundsResult && entry.repsResult) return `CAP +${entry.roundsResult}+${entry.repsResult}`;
+      if (entry.roundsResult) return `CAP +${entry.roundsResult} rounds`;
+      return `CAP +${entry.repsResult || 0} reps`;
     case 'rounds_reps':
       if (entry.roundsResult && entry.repsResult) return `${entry.roundsResult}+${entry.repsResult}`;
       if (entry.roundsResult) return `${entry.roundsResult} rounds`;
