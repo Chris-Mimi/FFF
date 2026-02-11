@@ -95,6 +95,7 @@ export default function ReferencesTab({
               <button
                 onClick={() => onAddReference('naming', 'equipment')}
                 className='p-1 text-gray-600 hover:bg-gray-200 rounded'
+                aria-label='Add equipment reference'
               >
                 <Plus size={16} />
               </button>
@@ -111,12 +112,14 @@ export default function ReferencesTab({
                       <button
                         onClick={() => onEditReference('naming', item, idx, 'equipment')}
                         className='p-1 text-blue-600 hover:bg-blue-50 rounded'
+                        aria-label='Edit equipment reference'
                       >
                         <Edit2 size={14} />
                       </button>
                       <button
                         onClick={() => onDeleteReference('naming', item)}
                         className='p-1 text-red-600 hover:bg-red-50 rounded'
+                        aria-label='Delete equipment reference'
                       >
                         <Trash2 size={14} />
                       </button>
@@ -140,6 +143,7 @@ export default function ReferencesTab({
               <button
                 onClick={() => onAddReference('naming', 'movementTypes')}
                 className='p-1 text-gray-600 hover:bg-gray-200 rounded'
+                aria-label='Add movement type reference'
               >
                 <Plus size={16} />
               </button>
@@ -155,12 +159,14 @@ export default function ReferencesTab({
                       <button
                         onClick={() => onEditReference('naming', item, idx, 'movementTypes')}
                         className='p-1 text-blue-600 hover:bg-blue-50 rounded'
+                        aria-label='Edit movement type reference'
                       >
                         <Edit2 size={14} />
                       </button>
                       <button
                         onClick={() => onDeleteReference('naming', item)}
                         className='p-1 text-red-600 hover:bg-red-50 rounded'
+                        aria-label='Delete movement type reference'
                       >
                         <Trash2 size={14} />
                       </button>
@@ -184,6 +190,7 @@ export default function ReferencesTab({
               <button
                 onClick={() => onAddReference('naming', 'anatomicalTerms')}
                 className='p-1 text-gray-600 hover:bg-gray-200 rounded'
+                aria-label='Add anatomical term reference'
               >
                 <Plus size={16} />
               </button>
@@ -199,12 +206,14 @@ export default function ReferencesTab({
                       <button
                         onClick={() => onEditReference('naming', item, idx, 'anatomicalTerms')}
                         className='p-1 text-blue-600 hover:bg-blue-50 rounded'
+                        aria-label='Edit anatomical term reference'
                       >
                         <Edit2 size={14} />
                       </button>
                       <button
                         onClick={() => onDeleteReference('naming', item)}
                         className='p-1 text-red-600 hover:bg-red-50 rounded'
+                        aria-label='Delete anatomical term reference'
                       >
                         <Trash2 size={14} />
                       </button>
@@ -228,6 +237,7 @@ export default function ReferencesTab({
               <button
                 onClick={() => onAddReference('naming', 'movementPatterns')}
                 className='p-1 text-gray-600 hover:bg-gray-200 rounded'
+                aria-label='Add movement pattern reference'
               >
                 <Plus size={16} />
               </button>
@@ -243,12 +253,14 @@ export default function ReferencesTab({
                       <button
                         onClick={() => onEditReference('naming', item, idx, 'movementPatterns')}
                         className='p-1 text-blue-600 hover:bg-blue-50 rounded'
+                        aria-label='Edit movement pattern reference'
                       >
                         <Edit2 size={14} />
                       </button>
                       <button
                         onClick={() => onDeleteReference('naming', item)}
                         className='p-1 text-red-600 hover:bg-red-50 rounded'
+                        aria-label='Delete movement pattern reference'
                       >
                         <Trash2 size={14} />
                       </button>
@@ -272,6 +284,7 @@ export default function ReferencesTab({
               <button
                 onClick={() => onAddReference('resource')}
                 className='p-1 text-gray-600 hover:bg-gray-200 rounded'
+                aria-label='Add resource'
               >
                 <Plus size={16} />
               </button>
@@ -301,12 +314,14 @@ export default function ReferencesTab({
                       <button
                         onClick={() => onEditReference('resource', resource, idx)}
                         className='p-1 text-blue-600 hover:bg-blue-50 rounded'
+                        aria-label='Edit resource'
                       >
                         <Edit2 size={14} />
                       </button>
                       <button
                         onClick={() => onDeleteReference('resource', resource)}
                         className='p-1 text-red-600 hover:bg-red-50 rounded'
+                        aria-label='Delete resource'
                       >
                         <Trash2 size={14} />
                       </button>
@@ -330,6 +345,7 @@ export default function ReferencesTab({
               <button
                 onClick={onCloseModal}
                 className='p-1 hover:bg-gray-100 rounded'
+                aria-label='Close'
               >
                 <X size={20} />
               </button>

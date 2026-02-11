@@ -511,6 +511,7 @@ export default function ProgrammingNotesTab() {
             onClick={() => setShowFolderModal(true)}
             className='p-1.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition'
             title='New Folder'
+            aria-label='New folder'
           >
             <FolderPlus size={16} />
           </button>
@@ -519,6 +520,7 @@ export default function ProgrammingNotesTab() {
             disabled={saving}
             className='p-1.5 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition disabled:opacity-50'
             title='New Note'
+            aria-label='New note'
           >
             <Plus size={16} />
           </button>
@@ -542,6 +544,7 @@ export default function ProgrammingNotesTab() {
               <button
                 onClick={() => setSearchQuery('')}
                 className='absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600'
+                aria-label='Clear search'
               >
                 <X size={14} />
               </button>
@@ -631,6 +634,7 @@ export default function ProgrammingNotesTab() {
                 onClick={() => setShowFolderModal(true)}
                 className='p-1.5 sm:p-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition'
                 title='New Folder'
+                aria-label='New folder'
               >
                 <FolderPlus size={16} className='sm:w-5 sm:h-5' />
               </button>
@@ -639,6 +643,7 @@ export default function ProgrammingNotesTab() {
                 disabled={saving}
                 className='p-1.5 sm:p-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition disabled:opacity-50'
                 title='New Note'
+                aria-label='New note'
               >
                 <Plus size={16} className='sm:w-5 sm:h-5' />
               </button>
@@ -659,6 +664,7 @@ export default function ProgrammingNotesTab() {
               <button
                 onClick={() => setSearchQuery('')}
                 className='absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600'
+                aria-label='Clear search'
               >
                 <X size={16} />
               </button>
@@ -709,6 +715,7 @@ export default function ProgrammingNotesTab() {
                     <button
                       onClick={() => setShowFolderMenu(showFolderMenu === folder.id ? null : folder.id)}
                       className='p-1 hover:bg-gray-200 rounded md:opacity-0 md:group-hover:opacity-100 transition'
+                      aria-label='Folder options'
                     >
                       <MoreVertical size={14} />
                     </button>
@@ -811,30 +818,30 @@ export default function ProgrammingNotesTab() {
                 <>
                   {/* Formatting Toolbar */}
                   <div className='flex flex-wrap gap-0.5 sm:gap-1 mb-2 sm:mb-3 p-1 sm:p-2 bg-gray-100 rounded-lg border border-gray-300 flex-shrink-0'>
-                    <button type='button' onClick={() => applyFormatting('bold')} className='p-1.5 sm:p-2 hover:bg-white rounded transition text-gray-700' title='Bold'>
+                    <button type='button' onClick={() => applyFormatting('bold')} className='p-1.5 sm:p-2 hover:bg-white rounded transition text-gray-700' title='Bold' aria-label='Bold'>
                       <Bold size={14} className='sm:w-4 sm:h-4' />
                     </button>
-                    <button type='button' onClick={() => applyFormatting('italic')} className='p-1.5 sm:p-2 hover:bg-white rounded transition text-gray-700' title='Italic'>
+                    <button type='button' onClick={() => applyFormatting('italic')} className='p-1.5 sm:p-2 hover:bg-white rounded transition text-gray-700' title='Italic' aria-label='Italic'>
                       <Italic size={14} className='sm:w-4 sm:h-4' />
                     </button>
-                    <button type='button' onClick={() => applyFormatting('underline')} className='p-1.5 sm:p-2 hover:bg-white rounded transition text-gray-700' title='Underline'>
+                    <button type='button' onClick={() => applyFormatting('underline')} className='p-1.5 sm:p-2 hover:bg-white rounded transition text-gray-700' title='Underline' aria-label='Underline'>
                       <UnderlineIcon size={14} className='sm:w-4 sm:h-4' />
                     </button>
                     <div className='w-px bg-gray-300 mx-0.5 sm:mx-1 hidden sm:block'></div>
-                    <button type='button' onClick={() => applyFormatting('h1')} className='p-1.5 sm:p-2 hover:bg-white rounded transition text-gray-700' title='Heading 1'>
+                    <button type='button' onClick={() => applyFormatting('h1')} className='p-1.5 sm:p-2 hover:bg-white rounded transition text-gray-700' title='Heading 1' aria-label='Heading 1'>
                       <Type size={14} className='sm:w-4 sm:h-4 font-bold' />
                     </button>
-                    <button type='button' onClick={() => applyFormatting('h2')} className='p-1.5 sm:p-2 hover:bg-white rounded transition text-gray-700' title='Heading 2'>
+                    <button type='button' onClick={() => applyFormatting('h2')} className='p-1.5 sm:p-2 hover:bg-white rounded transition text-gray-700' title='Heading 2' aria-label='Heading 2'>
                       <Type size={12} className='sm:w-3.5 sm:h-3.5' />
                     </button>
-                    <button type='button' onClick={() => applyFormatting('h3')} className='p-1.5 sm:p-2 hover:bg-white rounded transition text-gray-700' title='Heading 3'>
+                    <button type='button' onClick={() => applyFormatting('h3')} className='p-1.5 sm:p-2 hover:bg-white rounded transition text-gray-700' title='Heading 3' aria-label='Heading 3'>
                       <Type size={10} className='sm:w-3 sm:h-3' />
                     </button>
                     <div className='w-px bg-gray-300 mx-0.5 sm:mx-1 hidden sm:block'></div>
-                    <button type='button' onClick={() => applyFormatting('bullet')} className='p-1.5 sm:p-2 hover:bg-white rounded transition text-gray-700' title='Bullet List'>
+                    <button type='button' onClick={() => applyFormatting('bullet')} className='p-1.5 sm:p-2 hover:bg-white rounded transition text-gray-700' title='Bullet List' aria-label='Bullet list'>
                       <List size={14} className='sm:w-4 sm:h-4' />
                     </button>
-                    <button type='button' onClick={() => applyFormatting('numbered')} className='p-1.5 sm:p-2 hover:bg-white rounded transition text-gray-700' title='Numbered List'>
+                    <button type='button' onClick={() => applyFormatting('numbered')} className='p-1.5 sm:p-2 hover:bg-white rounded transition text-gray-700' title='Numbered List' aria-label='Numbered list'>
                       <ListOrdered size={14} className='sm:w-4 sm:h-4' />
                     </button>
                   </div>

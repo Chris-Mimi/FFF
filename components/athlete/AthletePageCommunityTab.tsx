@@ -375,6 +375,7 @@ export default function AthletePageCommunityTab({ userId }: AthletePageCommunity
           onClick={handleRefresh}
           className='p-2 hover:bg-gray-100 rounded-full transition text-gray-600'
           title='Refresh feed'
+          aria-label='Refresh'
         >
           <RefreshCw size={18} />
         </button>

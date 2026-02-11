@@ -136,7 +136,7 @@ export default function PublishModal({
               })}
             </p>
           </div>
-          <button onClick={onClose} className='hover:bg-[#1a6b62] p-2 rounded transition'>
+          <button onClick={onClose} className='hover:bg-[#1a6b62] p-2 rounded transition' aria-label='Close modal'>
             <X size={24} />
           </button>
         </div>

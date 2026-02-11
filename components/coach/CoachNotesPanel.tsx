@@ -237,6 +237,7 @@ export default function CoachNotesPanel({
               <button
                 onClick={onClose}
                 className='hover:bg-[#1a6b62] p-1 rounded transition'
+                aria-label='Close'
               >
                 <X size={22} />
               </button>
@@ -246,28 +247,28 @@ export default function CoachNotesPanel({
           <div className='flex-1 overflow-y-auto p-3 flex flex-col'>
             {isEditing && (
               <div className='flex gap-1 mb-2 p-2 bg-gray-100 rounded-lg border border-gray-300 flex-shrink-0 flex-wrap'>
-                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('bold'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Bold'>
+                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('bold'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Bold' aria-label='Bold'>
                   <Bold size={16} />
                 </button>
-                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('italic'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Italic'>
+                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('italic'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Italic' aria-label='Italic'>
                   <Italic size={16} />
                 </button>
-                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('underline'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Underline'>
+                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('underline'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Underline' aria-label='Underline'>
                   <UnderlineIcon size={16} />
                 </button>
-                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('bullet'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Bullet List'>
+                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('bullet'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Bullet List' aria-label='Bullet List'>
                   <List size={16} />
                 </button>
-                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('numbered'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Numbered List'>
+                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('numbered'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Numbered List' aria-label='Numbered List'>
                   <ListOrdered size={16} />
                 </button>
-                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('h1'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Heading 1'>
+                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('h1'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Heading 1' aria-label='Heading 1'>
                   <Heading1 size={16} />
                 </button>
-                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('h2'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Heading 2'>
+                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('h2'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Heading 2' aria-label='Heading 2'>
                   <Heading2 size={16} />
                 </button>
-                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('h3'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Heading 3'>
+                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('h3'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Heading 3' aria-label='Heading 3'>
                   <Heading3 size={16} />
                 </button>
               </div>
@@ -362,6 +363,7 @@ export default function CoachNotesPanel({
               <button
                 onClick={onClose}
                 className='hover:bg-[#1a6b62] p-1 rounded transition'
+                aria-label='Close'
               >
                 <X size={24} />
               </button>
@@ -372,30 +374,30 @@ export default function CoachNotesPanel({
           <div className='flex-1 overflow-y-auto p-4 flex flex-col'>
             {isEditing && (
               <div className='flex gap-1 mb-2 p-2 bg-gray-100 rounded-lg border border-gray-300 flex-shrink-0'>
-                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('bold'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Bold'>
+                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('bold'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Bold' aria-label='Bold'>
                   <Bold size={16} />
                 </button>
-                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('italic'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Italic'>
+                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('italic'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Italic' aria-label='Italic'>
                   <Italic size={16} />
                 </button>
-                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('underline'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Underline'>
+                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('underline'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Underline' aria-label='Underline'>
                   <UnderlineIcon size={16} />
                 </button>
                 <div className='w-px bg-gray-300 mx-1'></div>
-                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('bullet'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Bullet List'>
+                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('bullet'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Bullet List' aria-label='Bullet List'>
                   <List size={16} />
                 </button>
-                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('numbered'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Numbered List'>
+                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('numbered'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Numbered List' aria-label='Numbered List'>
                   <ListOrdered size={16} />
                 </button>
                 <div className='w-px bg-gray-300 mx-1'></div>
-                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('h1'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Heading 1'>
+                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('h1'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Heading 1' aria-label='Heading 1'>
                   <Heading1 size={16} />
                 </button>
-                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('h2'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Heading 2'>
+                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('h2'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Heading 2' aria-label='Heading 2'>
                   <Heading2 size={16} />
                 </button>
-                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('h3'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Heading 3'>
+                <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('h3'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Heading 3' aria-label='Heading 3'>
                   <Heading3 size={16} />
                 </button>
               </div>
@@ -474,6 +476,7 @@ export default function CoachNotesPanel({
           <button
             onClick={onClose}
             className='hover:bg-[#1a6b62] p-1 rounded transition'
+            aria-label='Close'
           >
             <X size={20} />
           </button>
@@ -482,30 +485,30 @@ export default function CoachNotesPanel({
       <div className='flex-1 overflow-y-auto p-4 flex flex-col'>
         {isEditing && (
           <div className='flex gap-1 mb-2 p-2 bg-gray-100 rounded-lg border border-gray-300 flex-shrink-0'>
-            <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('bold'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Bold'>
+            <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('bold'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Bold' aria-label='Bold'>
               <Bold size={16} />
             </button>
-            <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('italic'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Italic'>
+            <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('italic'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Italic' aria-label='Italic'>
               <Italic size={16} />
             </button>
-            <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('underline'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Underline'>
+            <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('underline'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Underline' aria-label='Underline'>
               <UnderlineIcon size={16} />
             </button>
             <div className='w-px bg-gray-300 mx-1'></div>
-            <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('bullet'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Bullet List'>
+            <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('bullet'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Bullet List' aria-label='Bullet List'>
               <List size={16} />
             </button>
-            <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('numbered'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Numbered List'>
+            <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('numbered'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Numbered List' aria-label='Numbered List'>
               <ListOrdered size={16} />
             </button>
             <div className='w-px bg-gray-300 mx-1'></div>
-            <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('h1'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Heading 1'>
+            <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('h1'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Heading 1' aria-label='Heading 1'>
               <Heading1 size={16} />
             </button>
-            <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('h2'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Heading 2'>
+            <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('h2'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Heading 2' aria-label='Heading 2'>
               <Heading2 size={16} />
             </button>
-            <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('h3'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Heading 3'>
+            <button type='button' onMouseDown={(e) => { e.preventDefault(); applyFormatting('h3'); }} className='p-2 hover:bg-white rounded transition text-gray-700' title='Heading 3' aria-label='Heading 3'>
               <Heading3 size={16} />
             </button>
           </div>

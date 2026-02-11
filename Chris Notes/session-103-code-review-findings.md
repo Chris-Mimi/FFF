@@ -12,8 +12,8 @@
 - [x] 1. **Replace `alert()` with toast notifications** — ✅ DONE (Session 105, sonner). 39 files updated, zero alert() remaining.
    - Files: booking page, schedule page, gallery, modals, tabs
 
-- [ ] 2. **Add `aria-labels` to icon-only buttons** — ~50+ icon buttons across the app have no screen reader labels.
-   - Only 1 aria-label found in entire codebase (ExerciseVideoModal)
+- [x] 2. **Add `aria-labels` to icon-only buttons** — ✅ DONE (Session 106). ~136 aria-labels added across 35 files.
+   - Previously only 1 aria-label in entire codebase (ExerciseVideoModal)
 
 - [ ] 3. **Add Escape key handlers** to modals that are missing them — most modals can't be closed via keyboard.
    - Only ExerciseVideoModal and SearchPanel have Escape handlers

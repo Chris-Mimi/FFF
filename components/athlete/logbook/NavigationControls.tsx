@@ -57,6 +57,7 @@ export default function NavigationControls({
         onClick={onPrevious}
         className='p-2 hover:bg-gray-100 rounded-full transition text-gray-900'
         title={getPreviousLabel()}
+        aria-label={getPreviousLabel()}
       >
         <ChevronLeft size={24} />
       </button>
@@ -77,6 +78,7 @@ export default function NavigationControls({
         onClick={onNext}
         className='p-2 hover:bg-gray-100 rounded-full transition text-gray-900'
         title={getNextLabel()}
+        aria-label={getNextLabel()}
       >
         <ChevronRight size={24} />
       </button>

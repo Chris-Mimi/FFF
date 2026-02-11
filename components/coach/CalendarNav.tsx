@@ -70,6 +70,7 @@ export const CalendarNav = ({
             onClick={onPreviousPeriod}
             className='p-2 md:px-4 md:py-2 bg-gray-200 hover:bg-gray-300 rounded-full md:rounded-lg text-gray-900 font-medium'
             title={viewMode === 'weekly' ? 'Previous Week' : 'Previous Month'}
+            aria-label={viewMode === 'weekly' ? 'Previous week' : 'Previous month'}
           >
             <ChevronLeft size={24} />
           </button>
@@ -89,6 +90,7 @@ export const CalendarNav = ({
                 month: 'long',
                 year: 'numeric',
               })}` : 'Add workout'}
+              aria-label='Add workout'
             >
               <Plus size={20} strokeWidth={2.5} className='text-white md:hidden' />
               <Plus size={24} strokeWidth={2.5} className='text-white hidden md:block' />
@@ -123,6 +125,7 @@ export const CalendarNav = ({
             onClick={onNextPeriod}
             className='p-2 md:px-4 md:py-2 bg-gray-200 hover:bg-gray-300 rounded-full md:rounded-lg text-gray-900 font-medium'
             title={viewMode === 'weekly' ? 'Next Week' : 'Next Month'}
+            aria-label={viewMode === 'weekly' ? 'Next week' : 'Next month'}
           >
             <ChevronRight size={24} />
           </button>

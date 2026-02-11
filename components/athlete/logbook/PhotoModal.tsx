@@ -42,6 +42,7 @@ export default function PhotoModal({
           <button
             onClick={(e) => { e.stopPropagation(); onPrevious(); }}
             className='absolute left-4 top-1/2 -translate-y-1/2 bg-white text-gray-700 p-3 rounded-full hover:bg-gray-100 z-10 shadow-lg'
+            aria-label='Previous photo'
           >
             <ChevronLeft size={28} />
           </button>
@@ -54,6 +55,7 @@ export default function PhotoModal({
           <button
             onClick={onClose}
             className='absolute -top-12 right-0 bg-white text-gray-700 p-2 rounded-full hover:bg-gray-100 z-10 shadow-lg'
+            aria-label='Close modal'
           >
             <X size={24} />
           </button>
@@ -81,6 +83,7 @@ export default function PhotoModal({
           <button
             onClick={(e) => { e.stopPropagation(); onNext(); }}
             className='absolute right-4 top-1/2 -translate-y-1/2 bg-white text-gray-700 p-3 rounded-full hover:bg-gray-100 z-10 shadow-lg'
+            aria-label='Next photo'
           >
             <ChevronRight size={28} />
           </button>

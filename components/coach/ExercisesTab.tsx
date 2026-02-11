@@ -263,6 +263,7 @@ export default function ExercisesTab({
               onClick={clearAllFilters}
               className='p-1.5 sm:p-2 bg-gray-200 hover:bg-gray-300 rounded transition flex items-center justify-center text-gray-700'
               title='Clear all filters'
+              aria-label='Clear all filters'
             >
               <X size={16} className='sm:w-[18px] sm:h-[18px]' />
             </button>
@@ -395,12 +396,14 @@ export default function ExercisesTab({
                       <button
                         onClick={() => onEdit(exercise)}
                         className='p-1 text-blue-600 hover:bg-blue-50 rounded transition'
+                        aria-label='Edit exercise'
                       >
                         <Edit2 size={16} />
                       </button>
                       <button
                         onClick={() => onDelete(exercise.id)}
                         className='p-1 text-red-600 hover:bg-red-50 rounded transition'
+                        aria-label='Delete exercise'
                       >
                         <Trash2 size={16} />
                       </button>

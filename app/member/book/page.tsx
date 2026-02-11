@@ -613,6 +613,7 @@ export default function MemberBookingPage() {
             onClick={handlePreviousWeek}
             className="p-2 bg-gray-800 hover:bg-gray-700 text-white rounded-full transition-colors duration-200"
             title="Previous Week"
+            aria-label="Previous week"
           >
             <ChevronLeft size={24} />
           </button>
@@ -628,6 +629,7 @@ export default function MemberBookingPage() {
             onClick={handleNextWeek}
             className="p-2 bg-gray-800 hover:bg-gray-700 text-white rounded-full transition-colors duration-200"
             title="Next Week"
+            aria-label="Next week"
           >
             <ChevronRight size={24} />
           </button>
@@ -669,6 +671,7 @@ export default function MemberBookingPage() {
                             onClick={() => openEditModal(member)}
                             className="p-0.5 text-gray-400 hover:text-white transition-colors"
                             title="Edit"
+                            aria-label="Edit"
                           >
                             <Edit2 size={12} />
                           </button>
@@ -677,6 +680,7 @@ export default function MemberBookingPage() {
                             disabled={processing === member.id}
                             className="p-0.5 text-gray-400 hover:text-red-400 disabled:text-gray-600 transition-colors"
                             title="Delete"
+                            aria-label="Delete"
                           >
                             {processing === member.id ? '...' : <Trash2 size={12} />}
                           </button>
@@ -862,6 +866,7 @@ export default function MemberBookingPage() {
                     setEditingMember(null);
                   }}
                   className="text-gray-400 hover:text-white"
+                  aria-label="Close"
                 >
                   <X size={24} />
                 </button>

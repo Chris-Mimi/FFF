@@ -105,6 +105,7 @@ export default function SessionTimeEditor({
             onClick={handleEditClick}
             className="p-1 hover:bg-[#1a6b62] rounded transition"
             title="Edit time"
+            aria-label="Edit time"
           >
             <Edit2 size={16} />
           </button>

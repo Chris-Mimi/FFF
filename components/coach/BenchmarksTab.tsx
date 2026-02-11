@@ -75,12 +75,14 @@ export default function BenchmarksTab({
                 <button
                   onClick={() => onEdit(benchmark)}
                   className='p-1 text-blue-600 hover:bg-blue-50 rounded transition'
+                  aria-label='Edit benchmark'
                 >
                   <Edit2 size={16} />
                 </button>
                 <button
                   onClick={() => onDelete(benchmark.id)}
                   className='p-1 text-red-600 hover:bg-red-50 rounded transition'
+                  aria-label='Delete benchmark'
                 >
                   <Trash2 size={16} />
                 </button>
@@ -112,6 +114,7 @@ export default function BenchmarksTab({
               <button
                 onClick={onCloseModal}
                 className='p-1 hover:bg-gray-100 rounded'
+                aria-label='Close'
               >
                 <X size={24} />
               </button>

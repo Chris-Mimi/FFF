@@ -335,6 +335,7 @@ function WODSectionComponent({
                 onClick={onToggleExpand}
                 className='text-gray-600 hover:text-gray-900 hover:bg-gray-200 p-1.5 rounded transition'
                 title={isExpanded ? 'Collapse' : 'Expand'}
+                aria-label={isExpanded ? 'Collapse section' : 'Expand section'}
               >
                 <ChevronDown
                   size={18}
@@ -346,6 +347,7 @@ function WODSectionComponent({
                 onClick={onDelete}
                 className='text-gray-400 hover:text-red-600 hover:bg-red-50 p-1.5 rounded transition'
                 title='Delete section'
+                aria-label='Delete section'
               >
                 <Trash2 size={16} />
               </button>
@@ -392,6 +394,7 @@ function WODSectionComponent({
                                   : 'text-blue-600 hover:text-blue-800 hover:bg-blue-200'
                               }`}
                               title='Remove lift'
+                              aria-label='Remove lift'
                             >
                               <X size={14} />
                             </button>
@@ -422,6 +425,7 @@ function WODSectionComponent({
                                 }}
                                 className='text-teal-600 hover:text-teal-800 hover:bg-teal-200 rounded-full p-0.5'
                                 title='Remove benchmark'
+                                aria-label='Remove benchmark'
                               >
                                 <X size={14} />
                               </button>
@@ -470,6 +474,7 @@ function WODSectionComponent({
                                 }}
                                 className='text-cyan-600 hover:text-cyan-800 hover:bg-cyan-200 rounded-full p-0.5'
                                 title='Remove forge benchmark'
+                                aria-label='Remove forge benchmark'
                               >
                                 <X size={14} />
                               </button>

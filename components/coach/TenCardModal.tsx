@@ -177,6 +177,7 @@ export default function TenCardModal({
           <button
             onClick={onClose}
             className="p-1 hover:bg-white/20 rounded transition"
+            aria-label="Close modal"
           >
             <X size={24} />
           </button>

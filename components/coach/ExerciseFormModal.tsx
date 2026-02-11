@@ -484,7 +484,7 @@ export default function ExerciseFormModal({
           <h3 className='text-xl font-bold text-gray-100'>
             {editingExercise ? 'Edit Exercise' : 'Add Exercise'}
           </h3>
-          <button onClick={onClose} className='p-1 hover:bg-gray-100 rounded'>
+          <button onClick={onClose} className='p-1 hover:bg-gray-100 rounded' aria-label='Close modal'>
             <X size={24} />
           </button>
         </div>

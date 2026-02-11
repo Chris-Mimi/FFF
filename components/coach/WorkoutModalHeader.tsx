@@ -116,10 +116,11 @@ export default function WorkoutModalHeader({
           }}
           className='hover:bg-[#1a6b62] p-1 rounded transition'
           title='Save'
+          aria-label='Save'
         >
           <Check size={22} />
         </button>
-        <button onClick={onClose} className='hover:bg-[#1a6b62] p-1 rounded transition' title='Close'>
+        <button onClick={onClose} className='hover:bg-[#1a6b62] p-1 rounded transition' title='Close' aria-label='Close'>
           <X size={22} />
         </button>
       </div>

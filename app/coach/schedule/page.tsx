@@ -540,6 +540,7 @@ export default function CoachSchedulePage() {
                                   : 'bg-gray-700 hover:bg-gray-600 justify-start'
                               }`}
                               title={template.active ? 'Deactivate' : 'Activate'}
+                              aria-label={template.active ? 'Deactivate' : 'Activate'}
                             >
                               <div className={`w-4 md:w-5 h-4 md:h-5 rounded-full transition-colors duration-200 ${
                                 template.active ? 'bg-teal-500' : 'bg-gray-400'
@@ -550,6 +551,7 @@ export default function CoachSchedulePage() {
                                 onClick={() => handleOpenModal(template)}
                                 className="p-1 md:p-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors duration-200"
                                 title="Edit"
+                                aria-label="Edit"
                               >
                                 <Edit2 size={14} className="md:w-4 md:h-4" />
                               </button>
@@ -557,6 +559,7 @@ export default function CoachSchedulePage() {
                                 onClick={() => handleDelete(template.id)}
                                 className="p-1 md:p-1.5 bg-red-600 hover:bg-red-700 text-white rounded transition-colors duration-200"
                                 title="Delete"
+                                aria-label="Delete"
                               >
                                 <Trash2 size={14} className="md:w-4 md:h-4" />
                               </button>
@@ -630,6 +633,7 @@ export default function CoachSchedulePage() {
                             : 'bg-gray-700 hover:bg-gray-600 justify-start'
                         }`}
                         title={title.active ? 'Deactivate' : 'Activate'}
+                        aria-label={title.active ? 'Deactivate' : 'Activate'}
                       >
                         <div className={`w-5 h-5 rounded-full transition-colors duration-200 ${
                           title.active ? 'bg-teal-500' : 'bg-gray-400'
@@ -640,6 +644,7 @@ export default function CoachSchedulePage() {
                           onClick={() => handleOpenTitleModal(title)}
                           className="p-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors duration-200"
                           title="Edit"
+                          aria-label="Edit"
                         >
                           <Edit2 size={16} />
                         </button>
@@ -647,6 +652,7 @@ export default function CoachSchedulePage() {
                           onClick={() => handleDeleteTitle(title.id)}
                           className="p-1.5 bg-red-600 hover:bg-red-700 text-white rounded transition-colors duration-200"
                           title="Delete"
+                          aria-label="Delete"
                         >
                           <Trash2 size={16} />
                         </button>
@@ -671,6 +677,7 @@ export default function CoachSchedulePage() {
               <button
                 onClick={handleCloseModal}
                 className="text-gray-400 hover:text-white transition-colors"
+                aria-label="Close"
               >
                 <X size={24} />
               </button>
@@ -786,6 +793,7 @@ export default function CoachSchedulePage() {
               <button
                 onClick={handleCloseTitleModal}
                 className="text-gray-400 hover:text-white transition-colors"
+                aria-label="Close"
               >
                 <X size={24} />
               </button>

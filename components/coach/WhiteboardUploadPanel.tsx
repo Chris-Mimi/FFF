@@ -277,6 +277,7 @@ export default function WhiteboardUploadPanel({
           <button
             onClick={clearSelection}
             className='absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 z-10'
+            aria-label='Clear selection'
           >
             <X size={14} />
           </button>

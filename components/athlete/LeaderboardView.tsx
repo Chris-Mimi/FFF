@@ -221,7 +221,7 @@ function WodLeaderboard({ userId }: { userId: string }) {
     <div className='space-y-3'>
       {/* Date navigation */}
       <div className='flex items-center justify-between bg-white rounded-lg shadow-sm p-3'>
-        <button onClick={prevDay} className='p-2 hover:bg-gray-100 rounded-full transition text-gray-900'>
+        <button onClick={prevDay} className='p-2 hover:bg-gray-100 rounded-full transition text-gray-900' aria-label='Previous day'>
           <ChevronLeft size={20} />
         </button>
         <div className='flex items-center gap-2'>
@@ -232,7 +232,7 @@ function WodLeaderboard({ userId }: { userId: string }) {
             Today
           </button>
         </div>
-        <button onClick={nextDay} className='p-2 hover:bg-gray-100 rounded-full transition text-gray-900'>
+        <button onClick={nextDay} className='p-2 hover:bg-gray-100 rounded-full transition text-gray-900' aria-label='Next day'>
           <ChevronRight size={20} />
         </button>
       </div>

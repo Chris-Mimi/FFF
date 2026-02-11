@@ -205,6 +205,7 @@ export default function SessionManagementModal({
             onClick={onClose}
             className='hover:bg-[#1a6b62] p-1 rounded transition'
             title='Close'
+            aria-label='Close'
           >
             <X size={20} />
           </button>

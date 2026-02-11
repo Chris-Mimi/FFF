@@ -64,6 +64,7 @@ export default function DateRangePicker({
         <button
           onClick={onClose}
           className='hover:bg-[#1a6b62] rounded p-1 transition'
+          aria-label='Close'
         >
           <X size={16} />
         </button>

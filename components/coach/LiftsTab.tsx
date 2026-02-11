@@ -95,6 +95,7 @@ function SortableLiftCard({
             onEdit(lift);
           }}
           className='p-0.5 sm:p-1 text-blue-600 hover:bg-blue-50 rounded transition'
+          aria-label='Edit lift'
         >
           <Edit2 size={12} className='sm:w-4 sm:h-4' />
         </button>
@@ -104,6 +105,7 @@ function SortableLiftCard({
             onDelete(lift.id);
           }}
           className='p-0.5 sm:p-1 text-red-600 hover:bg-red-50 rounded transition'
+          aria-label='Delete lift'
         >
           <Trash2 size={12} className='sm:w-4 sm:h-4' />
         </button>
@@ -268,6 +270,7 @@ export default function LiftsTab({
               <button
                 onClick={onCloseModal}
                 className='p-1 hover:bg-gray-100 rounded'
+                aria-label='Close'
               >
                 <X size={20} className='sm:w-6 sm:h-6' />
               </button>

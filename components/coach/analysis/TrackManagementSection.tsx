@@ -71,12 +71,14 @@ export default function TrackManagementSection({
                     <button
                       onClick={() => onEditTrack(track)}
                       className='text-[#208479] hover:text-orange-400 p-1'
+                      aria-label='Edit track'
                     >
                       <Edit2 size={14} />
                     </button>
                     <button
                       onClick={() => onDeleteTrack(track.id)}
                       className='text-gray-600 hover:text-red-500 p-1'
+                      aria-label='Delete track'
                     >
                       <Trash2 size={14} />
                     </button>

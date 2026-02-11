@@ -60,6 +60,7 @@ export default function ExerciseLibraryPanel({
             <button
               onClick={onClose}
               className='hover:bg-[#1a6b62] p-1 rounded transition'
+              aria-label='Close'
             >
               <X size={18} />
             </button>
@@ -152,6 +153,7 @@ export default function ExerciseLibraryPanel({
           <button
             onClick={onClose}
             className='hover:bg-[#1a6b62] p-1 rounded transition'
+            aria-label='Close'
           >
             <X size={20} />
           </button>

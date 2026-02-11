@@ -896,6 +896,7 @@ function MovementLibraryPopup({
                                 }}
                                 className='absolute right-5 top-0.5 opacity-100 hover:scale-110 transition'
                                 title='Edit exercise'
+                                aria-label='Edit exercise'
                               >
                                 <Edit2 size={10} className='text-blue-500' />
                               </button>
@@ -906,6 +907,7 @@ function MovementLibraryPopup({
                                 }}
                                 className='absolute right-0.5 top-0.5 opacity-100 hover:scale-110 transition'
                                 title='Remove from favorites'
+                                aria-label='Remove from favorites'
                               >
                                 <Star size={12} className='text-amber-500 fill-amber-500' />
                               </button>
@@ -973,6 +975,7 @@ function MovementLibraryPopup({
                                     }}
                                     className='absolute right-0.5 top-0.5 opacity-0 group-hover:opacity-100 hover:scale-110 transition'
                                     title={isFavorited(fullExercise.id) ? 'Remove from favorites' : 'Add to favorites'}
+                                    aria-label={isFavorited(fullExercise.id) ? 'Remove from favorites' : 'Add to favorites'}
                                   >
                                     <Star
                                       size={12}
@@ -1024,6 +1027,7 @@ function MovementLibraryPopup({
                                 }}
                                 className='absolute right-5 top-0.5 opacity-0 group-hover:opacity-100 hover:scale-110 transition'
                                 title='Edit exercise'
+                                aria-label='Edit exercise'
                               >
                                 <Edit2 size={10} className='text-blue-500' />
                               </button>
@@ -1034,6 +1038,7 @@ function MovementLibraryPopup({
                                 }}
                                 className='absolute right-0.5 top-0.5 opacity-0 group-hover:opacity-100 hover:scale-110 transition'
                                 title={isFavorited(exercise.id) ? 'Remove from favorites' : 'Add to favorites'}
+                                aria-label={isFavorited(exercise.id) ? 'Remove from favorites' : 'Add to favorites'}
                               >
                                 <Star
                                   size={12}
@@ -1147,7 +1152,7 @@ function MovementLibraryPopup({
           <div className='bg-white rounded-lg max-w-lg w-full p-6 shadow-2xl' onClick={(e) => e.stopPropagation()}>
             <div className='flex justify-between items-center mb-4'>
               <h3 className='text-xl font-bold text-gray-900'>Add Benchmark</h3>
-              <button onClick={() => setShowCreateBenchmarkModal(false)} className='p-1 hover:bg-gray-600 rounded'>
+              <button onClick={() => setShowCreateBenchmarkModal(false)} className='p-1 hover:bg-gray-600 rounded' aria-label='Close modal'>
                 <X size={24} className='text-white' />
               </button>
             </div>
@@ -1214,7 +1219,7 @@ function MovementLibraryPopup({
           <div className='bg-gray-500 rounded-lg max-w-lg w-full p-6 shadow-2xl' onClick={(e) => e.stopPropagation()}>
             <div className='flex justify-between items-center mb-4'>
               <h3 className='text-xl font-bold text-gray-100'>Add Forge Benchmark</h3>
-              <button onClick={() => setShowCreateForgeModal(false)} className='p-1 hover:bg-gray-600 rounded'>
+              <button onClick={() => setShowCreateForgeModal(false)} className='p-1 hover:bg-gray-600 rounded' aria-label='Close modal'>
                 <X size={24} className='text-white' />
               </button>
             </div>
@@ -1281,7 +1286,7 @@ function MovementLibraryPopup({
           <div className='bg-gray-500 rounded-lg max-w-lg w-full p-6 shadow-2xl' onClick={(e) => e.stopPropagation()}>
             <div className='flex justify-between items-center mb-4'>
               <h3 className='text-xl font-bold text-gray-100'>Add Barbell Lift</h3>
-              <button onClick={() => setShowCreateLiftModal(false)} className='p-1 hover:bg-gray-600 rounded'>
+              <button onClick={() => setShowCreateLiftModal(false)} className='p-1 hover:bg-gray-600 rounded' aria-label='Close modal'>
                 <X size={24} className='text-white' />
               </button>
             </div>
