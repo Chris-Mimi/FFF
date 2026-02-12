@@ -182,12 +182,14 @@ interface BenchmarkOption {
 
 interface LeaderboardViewProps {
   userId: string;
+  initialDate?: Date;
+  onDateChange?: (date: Date) => void;
 }
 
 type SubView = 'wod' | 'benchmarks';
 type ScalingFilter = 'all' | 'rx' | 'scaled';
 
-export default function LeaderboardView({ userId }: LeaderboardViewProps) {
+export default function LeaderboardView({ userId, initialDate, onDateChange }: LeaderboardViewProps) {
   const [subView, setSubView] = useState<SubView>('wod');
 
   return (
@@ -213,7 +215,7 @@ export default function LeaderboardView({ userId }: LeaderboardViewProps) {
       </div>
 
       {subView === 'wod' ? (
-        <WodLeaderboard userId={userId} />
+        <WodLeaderboard userId={userId} initialDate={initialDate} onDateChange={onDateChange} />
       ) : (
         <BenchmarkLeaderboard userId={userId} />
       )}
@@ -244,8 +246,33 @@ function getWeekDateStrings(monday: Date): { mondayStr: string; sundayStr: strin
   return { mondayStr: dates[0], sundayStr: dates[6], allDates: dates };
 }
 
-function WodLeaderboard({ userId }: { userId: string }) {
-  const [weekMonday, setWeekMonday] = useState(() => getMonday(new Date()));
+function formatWodSummary(sections: WodSection[]): string {
+  if (!sections || sections.length === 0) return '';
+  // Main WOD = section with content scoring (not lifts/benchmarks)
+  const metcon = sections.find(s =>
+    s.scoring_fields && Object.values(s.scoring_fields).some(Boolean) &&
+    !s.lifts?.length && !s.benchmarks?.length && !s.forge_benchmarks?.length
+  );
+  if (!metcon || !metcon.scoring_fields) return '';
+  // Derive modality from scoring fields (same logic as extractLeaderboardItems)
+  const st = detectScoringType(metcon.scoring_fields);
+  const label = st === 'time' ? 'For Time'
+    : st === 'max_time' ? 'Max Time'
+    : st === 'time_with_cap' ? 'For Time (Cap)'
+    : st === 'rounds_reps' ? 'AMRAP'
+    : st === 'reps' ? 'Max Reps'
+    : st === 'weight' ? 'Max Load'
+    : st === 'calories' ? 'Max Cals'
+    : st === 'metres' ? 'Max Distance'
+    : st === 'checkbox' ? 'Completion'
+    : '';
+  if (!label) return '';
+  const dur = metcon.duration || 0;
+  return dur ? ` | ${label} (${dur}')` : ` | ${label}`;
+}
+
+function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string; initialDate?: Date; onDateChange?: (date: Date) => void }) {
+  const [weekMonday, setWeekMonday] = useState(() => getMonday(initialDate || new Date()));
   const [wods, setWods] = useState<WodData[]>([]);
   const [selectedWodId, setSelectedWodId] = useState<string | null>(null);
   const [leaderboardItems, setLeaderboardItems] = useState<LeaderboardItem[]>([]);
@@ -257,6 +284,25 @@ function WodLeaderboard({ userId }: { userId: string }) {
   const [memberGenders, setMemberGenders] = useState<Record<string, string | null>>({});
   const [groupInfo, setGroupInfo] = useState<{ count: number; dateRange: string } | null>(null);
   const { fetchReactions, toggleReaction, getReaction } = useReactions();
+
+  // Sync from parent when initialDate changes (e.g., switching tabs)
+  // Compare timestamps to avoid infinite loops (Date objects are new references each render)
+  useEffect(() => {
+    if (initialDate) {
+      const newMonday = getMonday(initialDate);
+      if (newMonday.getTime() !== weekMonday.getTime()) {
+        setWeekMonday(newMonday);
+      }
+    }
+  }, [initialDate]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Notify parent when week changes
+  const weekMondayTime = weekMonday.getTime();
+  useEffect(() => {
+    if (onDateChange) {
+      onDateChange(weekMonday);
+    }
+  }, [weekMondayTime]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const { mondayStr, sundayStr, allDates } = useMemo(() => getWeekDateStrings(weekMonday), [weekMonday]);
   const selectedItem = leaderboardItems[selectedItemIdx] || null;
@@ -550,8 +596,8 @@ function WodLeaderboard({ userId }: { userId: string }) {
         </div>
       )}
 
-      {/* Workout selector */}
-      {wods.length > 1 && (
+      {/* Workout selector (dropdown if multiple, static label if single) */}
+      {wods.length > 1 ? (
         <select
           value={selectedWodId || ''}
           onChange={e => {
@@ -569,11 +615,15 @@ function WodLeaderboard({ userId }: { userId: string }) {
             const dayLabel = new Date(w.date + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short' });
             return (
               <option key={w.id} value={w.id}>
-                {dayLabel} – {w.session_type || w.title}{w.workout_name ? ` - ${w.workout_name}` : ''}
+                {dayLabel} – {w.session_type || w.title}{w.workout_name ? ` - ${w.workout_name}` : ''}{formatWodSummary(w.sections)}
               </option>
             );
           })}
         </select>
+      ) : wods.length === 1 && (
+        <div className='w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-900'>
+          {wods[0].session_type || wods[0].title}{wods[0].workout_name ? ` - ${wods[0].workout_name}` : ''}{formatWodSummary(wods[0].sections)}
+        </div>
       )}
 
       {wods.length === 0 ? (

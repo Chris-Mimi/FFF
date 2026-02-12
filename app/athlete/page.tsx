@@ -222,7 +222,7 @@ function AthletePageContent() {
           }}
         />;
       case 'community':
-        return <AthletePageCommunityTab userId={activeProfileId} />;
+        return <AthletePageCommunityTab userId={activeProfileId} initialDate={selectedDate} onDateChange={setSelectedDate} />;
       case 'logbook':
         return (
           <AthletePageLogbookTab

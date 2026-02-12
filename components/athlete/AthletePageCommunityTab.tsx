@@ -40,11 +40,13 @@ interface FeedItem {
 
 interface AthletePageCommunityTabProps {
   userId: string;
+  initialDate?: Date;
+  onDateChange?: (date: Date) => void;
 }
 
 const FEED_PAGE_SIZE = 20;
 
-export default function AthletePageCommunityTab({ userId }: AthletePageCommunityTabProps) {
+export default function AthletePageCommunityTab({ userId, initialDate, onDateChange }: AthletePageCommunityTabProps) {
   const [activeView, setActiveView] = useState<'feed' | 'leaderboard'>('feed');
   const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -359,7 +361,7 @@ export default function AthletePageCommunityTab({ userId }: AthletePageCommunity
       </div>
 
       {activeView === 'leaderboard' ? (
-        <LeaderboardView userId={userId} />
+        <LeaderboardView userId={userId} initialDate={initialDate} onDateChange={onDateChange} />
       ) : loading ? (
         <div className='flex justify-center py-12'>
           <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-[#208479]' />
