@@ -100,6 +100,8 @@ export function MovementResultInput({
             <input
               type='text'
               placeholder='mm:ss'
+              maxLength={8}
+              pattern='[0-9:]*'
               value={(value.time_result as string) || ''}
               onChange={(e) => updateField('time_result', e.target.value)}
               className={`w-20 px-2 py-1 text-xs border ${getBorderColor()} rounded focus:ring-2 focus:border-transparent text-gray-900`}
@@ -112,6 +114,8 @@ export function MovementResultInput({
               <input
                 type='number'
                 placeholder='rounds'
+                min='0'
+                max='999'
                 value={(value.rounds_result as string) || ''}
                 onChange={(e) => updateField('rounds_result', parseInt(e.target.value) || '')}
                 className={`w-20 px-2 py-1 text-xs border ${getBorderColor()} rounded focus:ring-2 focus:border-transparent text-gray-900`}
@@ -125,6 +129,8 @@ export function MovementResultInput({
             <input
               type='number'
               placeholder='reps'
+              min='0'
+              max='9999'
               value={(value.reps_result as string) || ''}
               onChange={(e) => updateField('reps_result', parseInt(e.target.value) || '')}
               className={`w-20 px-2 py-1 text-xs border ${getBorderColor()} rounded focus:ring-2 focus:border-transparent text-gray-900`}
@@ -136,6 +142,8 @@ export function MovementResultInput({
             <input
               type='number'
               step='0.5'
+              min='0'
+              max='999'
               placeholder='kg'
               value={(value.weight_result as string) || ''}
               onChange={(e) => updateField('weight_result', parseFloat(e.target.value) || '')}
@@ -148,6 +156,8 @@ export function MovementResultInput({
             <input
               type='number'
               step='0.1'
+              min='0'
+              max='99999'
               placeholder='meters'
               value={(value.distance_result as string) || ''}
               onChange={(e) => updateField('distance_result', parseFloat(e.target.value) || '')}
@@ -160,6 +170,8 @@ export function MovementResultInput({
             <input
               type='number'
               placeholder='seconds'
+              min='0'
+              max='9999'
               value={(value.duration_seconds as string) || ''}
               onChange={(e) => updateField('duration_seconds', parseInt(e.target.value) || '')}
               className={`w-20 px-2 py-1 text-xs border ${getBorderColor()} rounded focus:ring-2 focus:border-transparent text-gray-900`}

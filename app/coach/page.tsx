@@ -12,6 +12,7 @@ import QuickEditPanel from '@/components/coach/QuickEditPanel';
 import { getCurrentUser, signOut } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import {
   useCoachData,
   useWODOperations,
@@ -70,6 +71,9 @@ export default function CoachDashboard() {
     workoutDate: string | null;
   }>({ isOpen: false, sessionId: null, workoutDate: null });
 
+  // Debounce search to avoid filtering on every keystroke
+  const debouncedSearchQuery = useDebouncedValue(searchQuery);
+
   // Custom hooks
   const {
     wods,
@@ -86,7 +90,7 @@ export default function CoachDashboard() {
     fetchWODs,
     fetchTracksAndCounts,
   } = useCoachData({
-    searchQuery,
+    searchQuery: debouncedSearchQuery,
     selectedMovements,
     selectedWorkoutTypes,
     selectedTracks,

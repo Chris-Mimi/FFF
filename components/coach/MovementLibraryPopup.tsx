@@ -7,6 +7,7 @@ import type { BarbellLift, Benchmark, ForgeBenchmark } from '@/types/movements';
 import { useUserFavorites } from '@/utils/exercise-favorites';
 import { ChevronDown, ChevronRight, Edit2, Library, Search, Star, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import ExerciseVideoModal from './ExerciseVideoModal';
 import ExerciseFormModal from './ExerciseFormModal';
 import MultiSelectDropdown from './MultiSelectDropdown';
@@ -94,6 +95,7 @@ function MovementLibraryPopup({
   const onClose = parentOnClose;
   const [activeTab, setActiveTab] = useState<TabType>('exercises');
   const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearch = useDebouncedValue(searchTerm);
 
   // Data states
   const [exercises, setExercises] = useState<Exercise[]>([]);
@@ -541,7 +543,7 @@ function MovementLibraryPopup({
     }
 
     // Step 2: Apply search filter (word boundary matching - "rings" won't match "hamstrings")
-    const trimmedSearch = searchTerm.trim();
+    const trimmedSearch = debouncedSearch.trim();
     if (trimmedSearch) {
       filteredExercises = filteredExercises.filter(
         exercise =>
@@ -566,7 +568,7 @@ function MovementLibraryPopup({
     });
 
     return grouped;
-  }, [exercises, selectedEquipment, selectedBodyParts, searchTerm]);
+  }, [exercises, selectedEquipment, selectedBodyParts, debouncedSearch]);
 
   // Filter lifts by category
   const filteredLiftCategories = useMemo(() => {
@@ -578,7 +580,7 @@ function MovementLibraryPopup({
       grouped[lift.category].push(lift);
     });
 
-    const trimmedSearch = searchTerm.trim();
+    const trimmedSearch = debouncedSearch.trim();
     if (!trimmedSearch) return grouped;
 
     const filtered: Record<string, BarbellLift[]> = {};
@@ -591,25 +593,25 @@ function MovementLibraryPopup({
       }
     });
     return filtered;
-  }, [lifts, searchTerm]);
+  }, [lifts, debouncedSearch]);
 
   // Filter benchmarks
   const filteredBenchmarks = useMemo(() => {
-    const trimmedSearch = searchTerm.trim();
+    const trimmedSearch = debouncedSearch.trim();
     if (!trimmedSearch) return benchmarks;
     return benchmarks.filter(b =>
       matchesWordBoundary(b.name, trimmedSearch)
     );
-  }, [benchmarks, searchTerm]);
+  }, [benchmarks, debouncedSearch]);
 
   // Filter forge benchmarks
   const filteredForgeBenchmarks = useMemo(() => {
-    const trimmedSearch = searchTerm.trim();
+    const trimmedSearch = debouncedSearch.trim();
     if (!trimmedSearch) return forgeBenchmarks;
     return forgeBenchmarks.filter(f =>
       matchesWordBoundary(f.name, trimmedSearch)
     );
-  }, [forgeBenchmarks, searchTerm]);
+  }, [forgeBenchmarks, debouncedSearch]);
 
   // Calculate total items based on active tab
   const totalItems = useMemo(() => {

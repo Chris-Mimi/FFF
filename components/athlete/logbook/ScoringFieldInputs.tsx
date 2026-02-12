@@ -88,6 +88,8 @@ export default function ScoringFieldInputs({
         <input
           type='text'
           placeholder='mm:ss'
+          maxLength={8}
+          pattern='[0-9:]*'
           value={values.time_result || ''}
           onChange={(e) => onChange({ time_result: e.target.value })}
           className={`w-16 px-2 py-1 text-xs text-center border ${borderColor} rounded focus:ring-2 focus:ring-[#178da6] text-gray-900`}
@@ -101,6 +103,8 @@ export default function ScoringFieldInputs({
             <input
               type='number'
               placeholder='Rounds'
+              min='0'
+              max='999'
               value={values.rounds_result || ''}
               onChange={(e) => onChange({ rounds_result: e.target.value })}
               className={`w-14 px-2 py-1 text-xs text-center border ${borderColor} rounded focus:ring-2 focus:ring-[#178da6] text-gray-900`}
@@ -117,6 +121,8 @@ export default function ScoringFieldInputs({
           <input
             type='number'
             placeholder='Reps'
+            min='0'
+            max='9999'
             value={values.reps_result || ''}
             onChange={(e) => onChange({ reps_result: e.target.value })}
             className={`w-16 px-2 py-1 text-xs text-center border ${borderColor} rounded focus:ring-2 focus:ring-[#178da6] text-gray-900`}
@@ -131,6 +137,8 @@ export default function ScoringFieldInputs({
           <input
             type='number'
             step='0.5'
+            min='0'
+            max='999'
             placeholder='Load'
             value={values.weight_result || ''}
             onChange={(e) => onChange({ weight_result: e.target.value })}
@@ -146,6 +154,8 @@ export default function ScoringFieldInputs({
           <input
             type='number'
             placeholder='Cal'
+            min='0'
+            max='9999'
             value={values.calories_result || ''}
             onChange={(e) => onChange({ calories_result: e.target.value })}
             className={`w-16 px-2 py-1 text-xs text-center border ${borderColor} rounded focus:ring-2 focus:ring-[#178da6] text-gray-900`}
@@ -160,6 +170,8 @@ export default function ScoringFieldInputs({
           <input
             type='number'
             step='0.1'
+            min='0'
+            max='99999'
             placeholder='Distance'
             value={values.metres_result || ''}
             onChange={(e) => onChange({ metres_result: e.target.value })}

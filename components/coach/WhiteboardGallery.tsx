@@ -121,10 +121,10 @@ export default function WhiteboardGallery({
           <div key={photo.id} className='border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition'>
             {/* Photo - scrollable container */}
             <div
-              className='relative h-48 overflow-hidden cursor-pointer'
+              className='h-48 overflow-y-auto cursor-pointer'
               onClick={() => handleViewPhoto(photo)}
             >
-              <Image src={photo.photo_url} alt={photo.photo_label} fill sizes='(max-width: 768px) 100vw, 50vw' className='object-cover' />
+              <Image src={photo.photo_url} alt={photo.photo_label} width={0} height={0} sizes='100vw' className='w-full h-auto' />
             </div>
 
             {/* Details */}
