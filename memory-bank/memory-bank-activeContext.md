@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.97
-**Updated:** 2026-02-11 (Session 108 - Multi-Source WOD Leaderboard)
+**Version:** 10.98
+**Updated:** 2026-02-12 (Session 109 - Weekly Leaderboard, Gender Filter, Fixes)
 
 ---
 
@@ -54,7 +54,7 @@ Coach Tables
 ├─ note_folders (id, user_id, name, display_order, created_at, updated_at)
 
 Member Tables
-├─ members (id, email, name, status, membership_types[], account_type: primary|family_member, primary_member_id, display_name, date_of_birth, relationship, class_types[] [ekt|t|cfk|cft])
+├─ members (id, email, name, status, membership_types[], account_type: primary|family_member, primary_member_id, display_name, date_of_birth, relationship, class_types[] [ekt|t|cfk|cft], gender [M|F|null])
 ├─ bookings (id, session_id, member_id, status: confirmed|waitlist|cancelled|no_show|late_cancel)
 
 Athlete Tables (linked to members.id)
@@ -80,35 +80,30 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-12 Session 109 - Opus 4.6):**
+- **✅ Fix "Unknown" athlete names** — `members` RLS only allowed self-read. Created `get_member_names(UUID[])` RPC (SECURITY DEFINER, authenticated only). Updated LeaderboardView + CommunityTab.
+- **✅ Photo lightbox fix** — `fill` + container replaces broken `width={0} height={0}`
+- **✅ Weekly leaderboard navigation** — Converted from daily to weekly (Mon-Sun). Arrows ±1 week, "This Week" button, workout selector shows day prefix. Fixed infinite re-render (`allDates` needed `useMemo`).
+- **✅ Gender system** — `gender` column on `members` (M/F/null), M/F toggle on coach MemberCard, gender select on athlete profile, M/F filter on leaderboard with client-side re-ranking. RPC updated to return gender.
+- See: `project-history/2026-02-12-session-109-weekly-leaderboard-gender-filter.md`
+
 **Completed (2026-02-11 Session 108 - Opus 4.6):**
-- **✅ Multi-Source WOD Leaderboard** — Root cause found: leaderboard only queried `wod_section_results`, but Strength sections save to `lift_records` and benchmarks save to `benchmark_results`. Also content section IDs stored as `${sectionId}-content-0` but queried with raw section ID.
-- Fix: Full `WodLeaderboard` refactor. `extractLeaderboardItems()` enumerates every scoreable item (lifts, benchmarks, forge benchmarks, content). Item picker pills replace section tabs. `loadResults` branches by type: lifts → `lift_records`, benchmarks → `benchmark_results`, content → `wod_section_results` (with fixed section_id format). Scaling filter hidden for lifts. FistBumpButton targetType dynamic per item type. ±30 day grouping works across all 3 data sources.
-- Added `RawLiftResult` interface, `bestLiftPerUser()`, `rankLiftResults()` to `utils/leaderboard-utils.ts`.
-- **⚠️ Not yet tested live** — Needs verification on a date with a Strength workout.
-- Files: `components/athlete/LeaderboardView.tsx` (+413/-156), `utils/leaderboard-utils.ts` (+45)
+- **✅ Multi-Source WOD Leaderboard** — Leaderboard queries all 3 data sources (lift_records, benchmark_results, wod_section_results). Item picker pills, ±30 day grouping.
 - See: `project-history/2026-02-11-session-108-multi-source-leaderboard.md`
 
 **Completed (2026-02-11 Session 106 - Opus 4.6):**
-- **✅ Add aria-labels to all icon-only buttons** — Code Improvement #2 from Session 103 review. ~137 aria-labels added across 32 files. Every icon-only button now has a screen reader label. Build clean.
+- **✅ Add aria-labels to all icon-only buttons** — 137 labels across 32 files.
 - See: `project-history/2026-02-11-session-106-aria-labels.md`
 
 **Completed (2026-02-11 Session 105 - Opus 4.6):**
-- **✅ Replace all alert() with sonner toast notifications** — Code Improvement #1. sonner library, 39 code files, zero alert() remaining.
+- **✅ Replace all alert() with sonner toast notifications** — 39 files, zero alert() remaining.
 - See: `project-history/2026-02-11-session-105-sonner-toast-notifications.md`
 
 **Completed (2026-02-11 Session 104 - Opus 4.6):**
-- **✅ Social Reactions (Fist Bumps)** — New `reactions` table, API route (POST toggle + GET batch), FistBumpButton component, useReactions hook with optimistic updates. Reactions on all result types (WOD sections, benchmarks, lifts). Visible to all gym members.
-- **✅ Community Feed Tab** — New "Community" tab on athlete page (between Workouts and Logbook). Shows chronological feed of all gym members' recent results with fist bump buttons. Paginated by 7-day windows.
-- **✅ Leaderboard** — Feed/Leaderboard toggle on Community tab. Two sub-views: WOD Sections (date picker + section tabs + ranked table) and All-Time Benchmarks (standard + Forge). Scaling filter (All/Rx/Scaled), auto-ranking by scoring type, top-3 highlighting.
-- **✅ RLS Policy Updates** — Opened read access on `wod_section_results`, `benchmark_results`, `lift_records` for all authenticated users (community feed). Write policies unchanged.
-- **✅ WorkoutsTab Integration** — Fist bump buttons added to "Your Result" cards in Workouts tab.
+- **✅ Social Reactions, Community Feed, Leaderboard, RLS updates**
 - See: `project-history/2026-02-11-session-104-social-reactions-leaderboard.md`
 
-**Completed (2026-02-10 Session 103 - Opus 4.6):**
-- Pre-Deploy Code Review, Dark Mode Fix, Competitor Analysis
-- See: `project-history/2026-02-10-session-103-code-review-competitor-analysis.md`
-
-**Older Sessions (57-102):**
+**Older Sessions (57-103):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -138,6 +133,8 @@ See `project-history/` folder for detailed implementation history
 1. **`20260211_create_reactions_table.sql`** — New reactions table for fist bumps
 2. **`20260211_add_community_read_policies.sql`** — Open read access on result tables for community feed
 3. **`get_public_tables()` RPC function** — Required for backup auto-discovery (see session 95)
+4. **`database/20260212_add_get_member_names_rpc.sql`** — RPC for name lookups (bypasses members RLS)
+5. **`database/20260212_add_gender_to_members.sql`** — Gender column + updates RPC with gender return
 
 ---
 
@@ -179,10 +176,11 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 109 Priorities
+### Session 110 Priorities
 
-**Carry-over from Session 108:**
-- **Test multi-source leaderboard live** — Navigate to a date with a Strength workout, verify lift pills appear and results load. Test benchmark items too.
+**Testing:**
+- **Test multi-source leaderboard live** — Verify lift/benchmark/content items all load with weekly nav
+- **Test gender filter** — Set gender on a few members via coach admin, verify M/F filter works
 
 **Code Improvements (from Session 103 review):**
 - #3 Add escape key handlers to modals/popups
