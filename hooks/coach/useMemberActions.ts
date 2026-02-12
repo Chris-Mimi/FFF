@@ -255,6 +255,26 @@ export function useMemberActions(
     }
   };
 
+  const handleSetGender = async (memberId: string, gender: 'M' | 'F' | null) => {
+    try {
+      const { error } = await supabase
+        .from('members')
+        .update({ gender })
+        .eq('id', memberId);
+
+      if (error) throw error;
+
+      setMembers(prevMembers =>
+        prevMembers.map(m =>
+          m.id === memberId ? { ...m, gender } : m
+        )
+      );
+    } catch (error) {
+      console.error('Error updating gender:', error);
+      toast.error('Failed to update gender');
+    }
+  };
+
   return {
     processingMemberId,
     handleApprove,
@@ -266,5 +286,6 @@ export function useMemberActions(
     handleActivateSubscription,
     handleToggleMembershipType,
     handleToggleClassType,
+    handleSetGender,
   };
 }

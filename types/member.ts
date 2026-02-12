@@ -25,6 +25,7 @@ export interface Member {
   attendance_count?: number;
   date_of_birth: string | null;
   class_types: ClassType[];
+  gender: 'M' | 'F' | null;
 }
 
 export const MEMBERSHIP_TYPE_LABELS: Record<MembershipType, string> = {

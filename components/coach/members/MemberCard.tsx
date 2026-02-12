@@ -28,6 +28,7 @@ interface MemberCardProps {
   onActivateSubscription: (memberId: string) => void;
   onToggleMembershipType: (memberId: string, type: MembershipType, currentTypes: MembershipType[]) => void;
   onToggleClassType: (memberId: string, type: ClassType, currentClassTypes: ClassType[]) => void;
+  onSetGender: (memberId: string, gender: 'M' | 'F' | null) => void;
   onOpenTenCard: (member: Member) => void;
 }
 
@@ -44,6 +45,7 @@ export default function MemberCard({
   onActivateSubscription,
   onToggleMembershipType,
   onToggleClassType,
+  onSetGender,
   onOpenTenCard,
 }: MemberCardProps) {
   return (
@@ -149,6 +151,24 @@ export default function MemberCard({
                 </label>
               );
             })}
+          </div>
+
+          {/* Gender Toggle */}
+          <div className="flex gap-2 mt-2 items-center">
+            <span className="text-xs text-gray-400 font-medium">Gender:</span>
+            {(['M', 'F'] as const).map(g => (
+              <button
+                key={g}
+                onClick={() => onSetGender(member.id, member.gender === g ? null : g)}
+                className={`px-2 py-1 rounded text-xs font-medium cursor-pointer transition ${
+                  member.gender === g
+                    ? g === 'M' ? 'bg-blue-600 text-white' : 'bg-pink-600 text-white'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+              >
+                {g}
+              </button>
+            ))}
           </div>
 
           {/* Class Type Buttons (only for kids <16) */}

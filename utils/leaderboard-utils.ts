@@ -12,6 +12,7 @@ export interface LeaderboardEntry {
   scalingLevel?: string;
   taskCompleted?: boolean;
   resultDate?: string;
+  gender?: string | null;
 }
 
 export interface RawSectionResult {

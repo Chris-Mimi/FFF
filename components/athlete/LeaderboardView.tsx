@@ -1,7 +1,7 @@
 'use client';
 
 import { supabase } from '@/lib/supabase';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, Trophy } from 'lucide-react';
 import FistBumpButton from './FistBumpButton';
 import { useReactions } from '@/hooks/athlete/useReactions';
@@ -164,6 +164,7 @@ function extractLeaderboardItems(wod: WodData): LeaderboardItem[] {
 
 interface WodData {
   id: string;
+  date: string;
   title: string;
   workout_name?: string;
   session_type?: string;
@@ -222,8 +223,27 @@ export default function LeaderboardView({ userId }: LeaderboardViewProps) {
 // WOD Section Leaderboard
 // ─────────────────────────────────────────────
 
+function getMonday(date: Date): Date {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday
+  d.setDate(diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function getWeekDateStrings(monday: Date): { mondayStr: string; sundayStr: string; allDates: string[] } {
+  const dates: string[] = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    dates.push(d.toISOString().split('T')[0]);
+  }
+  return { mondayStr: dates[0], sundayStr: dates[6], allDates: dates };
+}
+
 function WodLeaderboard({ userId }: { userId: string }) {
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [weekMonday, setWeekMonday] = useState(() => getMonday(new Date()));
   const [wods, setWods] = useState<WodData[]>([]);
   const [selectedWodId, setSelectedWodId] = useState<string | null>(null);
   const [leaderboardItems, setLeaderboardItems] = useState<LeaderboardItem[]>([]);
@@ -231,19 +251,23 @@ function WodLeaderboard({ userId }: { userId: string }) {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [scalingFilter, setScalingFilter] = useState<ScalingFilter>('all');
+  const [genderFilter, setGenderFilter] = useState<'all' | 'M' | 'F'>('all');
+  const [memberGenders, setMemberGenders] = useState<Record<string, string | null>>({});
   const [groupInfo, setGroupInfo] = useState<{ count: number; dateRange: string } | null>(null);
   const { fetchReactions, toggleReaction, getReaction } = useReactions();
 
-  const dateStr = selectedDate.toISOString().split('T')[0];
+  const { mondayStr, sundayStr, allDates } = useMemo(() => getWeekDateStrings(weekMonday), [weekMonday]);
   const selectedItem = leaderboardItems[selectedItemIdx] || null;
 
-  // Fetch published WODs for selected date
+  // Fetch published WODs for the selected week (Mon-Sun)
   const loadWods = useCallback(async () => {
     const { data } = await supabase
       .from('wods')
-      .select('id, title, workout_name, session_type, sections')
-      .eq('date', dateStr)
-      .eq('is_published', true);
+      .select('id, date, title, workout_name, session_type, sections')
+      .gte('date', mondayStr)
+      .lte('date', sundayStr)
+      .eq('is_published', true)
+      .order('date', { ascending: true });
 
     // Deduplicate WODs with same session_type + workout_name (e.g., same workout at 17:15 and 18:30)
     const allWods = (data || []) as WodData[];
@@ -267,23 +291,24 @@ function WodLeaderboard({ userId }: { userId: string }) {
       setSelectedItemIdx(0);
       setEntries([]);
     }
-  }, [dateStr]);
+  }, [mondayStr, sundayStr]);
 
   useEffect(() => { loadWods(); }, [loadWods]);
 
-  // Helper: fetch member names for a set of user IDs
+  // Helper: fetch member names + genders for a set of user IDs (uses RPC to bypass members RLS)
   const fetchMemberNames = async (userIds: string[]): Promise<Record<string, string>> => {
     const memberNames: Record<string, string> = {};
+    const genders: Record<string, string | null> = {};
     if (userIds.length === 0) return memberNames;
     const { data: members } = await supabase
-      .from('members')
-      .select('id, display_name, name')
-      .in('id', userIds);
+      .rpc('get_member_names', { member_ids: userIds });
     if (members) {
-      for (const m of members) {
+      for (const m of members as { id: string; display_name: string | null; name: string | null; gender: string | null }[]) {
         memberNames[m.id] = m.display_name || m.name || 'Unknown';
+        genders[m.id] = m.gender;
       }
     }
+    setMemberGenders(prev => ({ ...prev, ...genders }));
     return memberNames;
   };
 
@@ -291,14 +316,14 @@ function WodLeaderboard({ userId }: { userId: string }) {
   const computeGrouping = useCallback(async (selectedWod: WodData) => {
     if (!selectedWod.workout_name) {
       setGroupInfo(null);
-      return { isGrouped: false, dates: [dateStr], wodIds: [selectedWod.id], groupedWods: null };
+      return { isGrouped: false, dates: allDates, wodIds: [selectedWod.id], groupedWods: null };
     }
 
-    const anchor = new Date(selectedDate);
+    const anchor = new Date(weekMonday);
     const startDate = new Date(anchor);
     startDate.setDate(startDate.getDate() - 30);
     const endDate = new Date(anchor);
-    endDate.setDate(endDate.getDate() + 30);
+    endDate.setDate(endDate.getDate() + 36); // +30 from Sunday
 
     const { data: grouped } = await supabase
       .from('wods')
@@ -326,8 +351,8 @@ function WodLeaderboard({ userId }: { userId: string }) {
     }
 
     setGroupInfo(null);
-    return { isGrouped: false, dates: [dateStr], wodIds: [selectedWod.id], groupedWods: null };
-  }, [selectedDate, dateStr]);
+    return { isGrouped: false, dates: allDates, wodIds: [selectedWod.id], groupedWods: null };
+  }, [weekMonday, allDates]);
 
   // Load results based on selected item type
   const loadResults = useCallback(async () => {
@@ -476,34 +501,42 @@ function WodLeaderboard({ userId }: { userId: string }) {
   const showScalingFilter = selectedItem?.type !== 'lift';
   const isBenchmarkItem = selectedItem?.type === 'benchmark' || selectedItem?.type === 'forge_benchmark';
 
-  const prevDay = () => {
-    const d = new Date(selectedDate);
-    d.setDate(d.getDate() - 1);
-    setSelectedDate(d);
+  const prevWeek = () => {
+    const d = new Date(weekMonday);
+    d.setDate(d.getDate() - 7);
+    setWeekMonday(d);
   };
-  const nextDay = () => {
-    const d = new Date(selectedDate);
-    d.setDate(d.getDate() + 1);
-    setSelectedDate(d);
+  const nextWeek = () => {
+    const d = new Date(weekMonday);
+    d.setDate(d.getDate() + 7);
+    setWeekMonday(d);
   };
-  const goToToday = () => setSelectedDate(new Date());
+  const goToThisWeek = () => setWeekMonday(getMonday(new Date()));
+
+  const formatWeekRange = () => {
+    const sunday = new Date(weekMonday);
+    sunday.setDate(weekMonday.getDate() + 6);
+    const monStr = weekMonday.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    const sunStr = sunday.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    return `${monStr} - ${sunStr}`;
+  };
 
   return (
     <div className='space-y-3'>
-      {/* Date navigation */}
+      {/* Week navigation */}
       <div className='flex items-center justify-between bg-white rounded-lg shadow-sm p-3'>
-        <button onClick={prevDay} className='p-2 hover:bg-gray-100 rounded-full transition text-gray-900' aria-label='Previous day'>
+        <button onClick={prevWeek} className='p-2 hover:bg-gray-100 rounded-full transition text-gray-900' aria-label='Previous week'>
           <ChevronLeft size={20} />
         </button>
         <div className='flex items-center gap-2'>
           <span className='text-sm font-semibold text-gray-900'>
-            {selectedDate.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+            {formatWeekRange()}
           </span>
-          <button onClick={goToToday} className='px-2 py-1 bg-[#208479] hover:bg-[#1a6b62] text-white text-xs rounded-lg font-medium transition'>
-            Today
+          <button onClick={goToThisWeek} className='px-2 py-1 bg-[#208479] hover:bg-[#1a6b62] text-white text-xs rounded-lg font-medium transition'>
+            This Week
           </button>
         </div>
-        <button onClick={nextDay} className='p-2 hover:bg-gray-100 rounded-full transition text-gray-900' aria-label='Next day'>
+        <button onClick={nextWeek} className='p-2 hover:bg-gray-100 rounded-full transition text-gray-900' aria-label='Next week'>
           <ChevronRight size={20} />
         </button>
       </div>
@@ -515,7 +548,7 @@ function WodLeaderboard({ userId }: { userId: string }) {
         </div>
       )}
 
-      {/* Workout selector (if multiple WODs on same date) */}
+      {/* Workout selector */}
       {wods.length > 1 && (
         <select
           value={selectedWodId || ''}
@@ -530,11 +563,14 @@ function WodLeaderboard({ userId }: { userId: string }) {
           }}
           className='w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm text-gray-900'
         >
-          {wods.map(w => (
-            <option key={w.id} value={w.id}>
-              {w.session_type || w.title}{w.workout_name ? ` - ${w.workout_name}` : ''}
-            </option>
-          ))}
+          {wods.map(w => {
+            const dayLabel = new Date(w.date + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short' });
+            return (
+              <option key={w.id} value={w.id}>
+                {dayLabel} – {w.session_type || w.title}{w.workout_name ? ` - ${w.workout_name}` : ''}
+              </option>
+            );
+          })}
         </select>
       )}
 
@@ -586,12 +622,37 @@ function WodLeaderboard({ userId }: { userId: string }) {
             </div>
           )}
 
+          {/* Gender filter */}
+          <div className='flex gap-1'>
+            {(['all', 'M', 'F'] as const).map(f => (
+              <button
+                key={f}
+                onClick={() => setGenderFilter(f)}
+                className={`px-3 py-1 rounded text-xs font-medium transition ${
+                  genderFilter === f
+                    ? f === 'M' ? 'bg-blue-600 text-white' : f === 'F' ? 'bg-pink-600 text-white' : 'bg-gray-900 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {f === 'all' ? 'All' : f}
+              </button>
+            ))}
+          </div>
+
           {/* Results table */}
-          {loading ? (
+          {(() => {
+            // Apply gender filter client-side with re-ranking
+            const displayEntries = genderFilter === 'all'
+              ? entries
+              : entries
+                  .filter(e => memberGenders[e.userId] === genderFilter)
+                  .map((e, i) => ({ ...e, rank: i + 1 }));
+
+            return loading ? (
             <div className='flex justify-center py-8'>
               <div className='animate-spin rounded-full h-6 w-6 border-b-2 border-[#208479]' />
             </div>
-          ) : entries.length === 0 ? (
+          ) : displayEntries.length === 0 ? (
             <div className='bg-white rounded-lg shadow-sm p-6 text-center'>
               <p className='text-gray-500 text-sm'>No results logged yet.</p>
             </div>
@@ -608,7 +669,7 @@ function WodLeaderboard({ userId }: { userId: string }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {entries.map(entry => {
+                  {displayEntries.map(entry => {
                     const isMe = entry.userId === userId;
                     const reaction = getReaction(entry.id);
                     return (
@@ -658,7 +719,8 @@ function WodLeaderboard({ userId }: { userId: string }) {
                 </tbody>
               </table>
             </div>
-          )}
+          );
+          })()}
         </>
       )}
     </div>
@@ -720,16 +782,14 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
         filtered = results.filter(r => r.scaling_level && r.scaling_level !== 'Rx');
       }
 
-      // Get member names
+      // Get member names (uses RPC to bypass members RLS)
       const userIds = [...new Set(filtered.map(r => r.user_id))];
       const memberNames: Record<string, string> = {};
       if (userIds.length > 0) {
         const { data: members } = await supabase
-          .from('members')
-          .select('id, display_name, name')
-          .in('id', userIds);
+          .rpc('get_member_names', { member_ids: userIds });
         if (members) {
-          for (const m of members) {
+          for (const m of members as { id: string; display_name: string | null; name: string | null }[]) {
             memberNames[m.id] = m.display_name || m.name || 'Unknown';
           }
         }

@@ -231,14 +231,15 @@ export default function AthletePagePhotosTab() {
               >
                 <X size={24} />
               </button>
-              <Image
-                src={selectedPhoto.photo_url}
-                alt={selectedPhoto.photo_label}
-                width={0}
-                height={0}
-                sizes='90vw'
-                className='max-w-[90vw] max-h-[85vh] object-contain rounded-lg w-auto h-auto'
-              />
+              <div className='relative w-[90vw] h-[85vh]'>
+                <Image
+                  src={selectedPhoto.photo_url}
+                  alt={selectedPhoto.photo_label}
+                  fill
+                  sizes='90vw'
+                  className='object-contain rounded-lg'
+                />
+              </div>
               <div className='mt-2 bg-black bg-opacity-70 text-white p-3 rounded-lg'>
                 <p className='font-medium'>{selectedPhoto.photo_label}</p>
                 {selectedPhoto.caption && <p className='text-sm mt-1'>{selectedPhoto.caption}</p>}

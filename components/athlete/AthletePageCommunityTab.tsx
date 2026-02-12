@@ -100,16 +100,14 @@ export default function AthletePageCommunityTab({ userId }: AthletePageCommunity
       (benchmarkResults.data || []).forEach(r => allUserIds.add(r.user_id));
       (liftResults.data || []).forEach(r => allUserIds.add(r.user_id));
 
-      // Fetch member names
+      // Fetch member names (uses RPC to bypass members RLS)
       const memberNames: Record<string, string> = {};
       if (allUserIds.size > 0) {
         const { data: members } = await supabase
-          .from('members')
-          .select('id, display_name, name')
-          .in('id', [...allUserIds]);
+          .rpc('get_member_names', { member_ids: [...allUserIds] });
 
         if (members) {
-          for (const m of members) {
+          for (const m of members as { id: string; display_name: string | null; name: string | null }[]) {
             memberNames[m.id] = m.display_name || m.name || 'Unknown';
           }
         }

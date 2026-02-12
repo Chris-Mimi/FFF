@@ -24,6 +24,7 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
     emergency_contact_phone: '',
     avatar_url: '',
   });
+  const [gender, setGender] = useState<'M' | 'F' | ''>('');
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -48,6 +49,14 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
       if (error) {
         throw error;
       }
+
+      // Fetch gender from members table
+      const { data: memberGender } = await supabase
+        .from('members')
+        .select('gender')
+        .eq('id', userId)
+        .single();
+      if (memberGender?.gender) setGender(memberGender.gender);
 
       if (data) {
         setProfile({
@@ -186,11 +195,14 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
         avatar_url: avatarUrl || null,
       };
 
-      // Always update members.name for consistency
-      if (profile.full_name) {
+      // Always update members table for consistency
+      const memberUpdate: Record<string, string | null> = {};
+      if (profile.full_name) memberUpdate.name = profile.full_name;
+      memberUpdate.gender = gender || null;
+      if (Object.keys(memberUpdate).length > 0) {
         await supabase
           .from('members')
-          .update({ name: profile.full_name })
+          .update(memberUpdate)
           .eq('id', userId);
       }
 
@@ -296,6 +308,19 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
               onChange={e => setProfile({ ...profile, date_of_birth: e.target.value })}
               className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
             />
+          </div>
+
+          <div>
+            <label className='block text-sm font-medium text-gray-700 mb-2'>Gender</label>
+            <select
+              value={gender}
+              onChange={e => setGender(e.target.value as 'M' | 'F' | '')}
+              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+            >
+              <option value=''>Not set</option>
+              <option value='M'>Male</option>
+              <option value='F'>Female</option>
+            </select>
           </div>
 
           <div>
