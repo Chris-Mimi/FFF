@@ -90,6 +90,15 @@ export default function PublishModal({
     }
   }, [selectedSectionIds, sections]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   const handleToggleSection = (sectionId: string) => {
     setSelectedSectionIds(prev =>
       prev.includes(sectionId) ? prev.filter(id => id !== sectionId) : [...prev, sectionId]
@@ -124,7 +133,7 @@ export default function PublishModal({
     <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4'>
       <div className='bg-white text-gray-900 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col'>
         {/* Header */}
-        <div className='bg-[#20766a] text-white p-4 flex justify-between items-center'>
+        <div className='bg-[#178da6] text-white p-4 flex justify-between items-center'>
           <div>
             <h2 className='text-xl font-bold'>Publish Workout</h2>
             <p className='text-sm text-gray-100'>
@@ -177,7 +186,7 @@ export default function PublishModal({
                       type='checkbox'
                       checked={selectedSectionIds.includes(section.id)}
                       onChange={() => handleToggleSection(section.id)}
-                      className='mt-1 h-4 w-4 text-[#20766a] focus:ring-[#20766a] rounded'
+                      className='mt-1 h-4 w-4 text-[#178da6] focus:ring-[#178da6] rounded'
                     />
                     <div className='flex-1'>
                       <div className='font-medium text-gray-900'>
@@ -255,7 +264,7 @@ export default function PublishModal({
 
                     return (
                       <div key={section.id} className='bg-white p-3 rounded border'>
-                        <div className='font-medium text-[#20766a] mb-2'>
+                        <div className='font-medium text-[#178da6] mb-2'>
                           {section.type} ({section.duration} min)
                         </div>
 
@@ -332,7 +341,7 @@ export default function PublishModal({
             <button
               onClick={handlePublish}
               disabled={isSubmitting || selectedSectionIds.length === 0}
-              className='px-4 py-2 bg-[#20766a] text-white rounded-lg hover:bg-[#14758c] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2'
+              className='px-4 py-2 bg-[#178da6] text-white rounded-lg hover:bg-[#14758c] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2'
             >
               <Send size={18} />
               {isSubmitting ? 'Publishing...' : currentPublishConfig ? 'Update' : 'Publish'}

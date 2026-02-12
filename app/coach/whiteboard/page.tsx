@@ -149,9 +149,9 @@ export default function WhiteboardPage() {
   }
 
   return (
-    <div className='min-h-screen bg-gray-50'>
+    <div className='h-screen flex flex-col bg-gray-50 overflow-hidden'>
       {/* Header */}
-      <header className='bg-[#178da6] text-white p-2 md:p-4 shadow-lg sticky top-0 z-50'>
+      <header className='bg-[#178da6] text-white p-2 md:p-4 shadow-lg shrink-0'>
         <div className='max-w-7xl mx-auto flex items-center justify-between gap-2 md:gap-4'>
           <div className='flex items-center gap-2 md:gap-4'>
             <button
@@ -167,8 +167,8 @@ export default function WhiteboardPage() {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className='max-w-7xl mx-auto p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4 md:space-y-6'>
+      {/* Fixed Controls */}
+      <div className='max-w-7xl mx-auto w-full px-3 sm:px-4 md:px-6 pt-3 sm:pt-4 md:pt-6 space-y-3 sm:space-y-4 md:space-y-6 shrink-0'>
         {/* Upload Panel */}
         <WhiteboardUploadPanel
           userId={userId!}
@@ -207,14 +207,18 @@ export default function WhiteboardPage() {
             </button>
           </div>
         </div>
+      </div>
 
-        {/* Gallery */}
-        <WhiteboardGallery
-          photos={photos}
-          selectedWeek={selectedWeek}
-          onPhotoDeleted={handlePhotoDeleted}
-          onPhotoUpdated={handlePhotoUpdated}
-        />
+      {/* Scrollable Gallery */}
+      <main className='flex-1 overflow-y-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6'>
+        <div className='max-w-7xl mx-auto'>
+          <WhiteboardGallery
+            photos={photos}
+            selectedWeek={selectedWeek}
+            onPhotoDeleted={handlePhotoDeleted}
+            onPhotoUpdated={handlePhotoUpdated}
+          />
+        </div>
       </main>
     </div>
   );

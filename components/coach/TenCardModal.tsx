@@ -86,6 +86,15 @@ export default function TenCardModal({
     }
   }, [member]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen || !member) return null;
 
   const recalculateSessionsUsed = async (purchaseDateStr: string) => {

@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 11.4
-**Updated:** 2026-02-12 (Session 115 - Ocean Teal Complete)
+**Version:** 11.5
+**Updated:** 2026-02-12 (Session 116 - Escape Keys + Whiteboard Scroll)
 
 ---
 
@@ -80,32 +80,29 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-12 Session 116 - Opus 4.6):**
+- **✅ Escape key handlers** — Added to 15 modals/panels (was 1/18, now 16/18). Skipped WorkoutModal + MovementLibraryPopup (parent panels with nested modals).
+- **✅ PublishModal Ocean Teal** — 4x `#20766a` → `#178da6`.
+- **✅ Whiteboard scroll layout** — Restructured page so gallery scrolls independently (header + upload + week nav stay fixed).
+- See: `project-history/2026-02-12-session-116-escape-keys-whiteboard-scroll.md`
+
 **Completed (2026-02-12 Session 115 - Opus 4.6):**
-- **✅ Ocean Teal color fix COMPLETE** — Root cause: Tailwind v4 requires `@theme` CSS overrides, not `tailwind.config.ts`. Added Ocean Teal palette (`--color-teal-50` through `--color-teal-950`) to `@theme inline` in `globals.css`. Removed no-op config override.
-- **✅ Published card colors fixed** — `card-utils.ts` had hardcoded old hex `#208479`/`#1a6b62`, changed to `bg-teal-600`/`border-teal-700` (resolves to Ocean Teal via `@theme`).
-- **✅ Booking chips updated** — Changed from `bg-green-600` to `bg-teal-500` on CalendarGrid.
-- **✅ Exercises tab recolored** — Changed from green to original Tailwind teal (`#14b8a6`/`#0d9488`/`#0f766e` hardcoded hex) to differentiate from blue Benchmarks tab. Ocean Teal `@theme` override doesn't affect these hardcoded values.
-- **✅ Track default color updated** — `useTracksCrud.ts` default `#208479` → `#178da6`.
+- **✅ Ocean Teal color system COMPLETE** — `@theme` CSS overrides in `globals.css`, published cards, booking chips, exercises tab original teal.
 - See: `project-history/2026-02-12-session-115-ocean-teal-complete.md`
 
 **Completed (2026-02-12 Session 114 - Opus 4.6):**
-- **✅ Placeholder WOD fix** — `generate-weekly` route no longer creates empty WOD records. Added `workout_type` column to `weekly_sessions`.
-- **✅ Unpublished drafts review** — Identified 11 drafts, user deleting via SQL Editor.
+- **✅ Placeholder WOD fix, unpublished drafts review**
 - See: `project-history/2026-02-12-session-114-placeholder-wod-fix-ocean-teal.md`
 
 **Completed (2026-02-12 Session 113 - Opus 4.6):**
-- **✅ Database cleanup** — Deleted 70 records. formatWodSummary section priority fix.
+- **✅ Database cleanup 70 records, formatWodSummary fix**
 - See: `project-history/2026-02-12-session-113-database-cleanup.md`
 
 **Completed (2026-02-12 Session 112 - Opus 4.6):**
-- **✅ Leaderboard WOD type label, timezone date fix, 5 orphan deletions, date sync**
+- **✅ Leaderboard WOD type label, timezone date fix, 5 orphan deletions**
 - See: `project-history/2026-02-12-session-112-leaderboard-label-timezone-orphans.md`
 
-**Completed (2026-02-12 Session 110 - Opus 4.6):**
-- **✅ Max Time scoring type, pastel gender buttons, lightbox fixes**
-- See: `project-history/2026-02-12-session-110-max-time-lightbox-fixes.md`
-
-**Older Sessions (57-109):**
+**Older Sessions (57-111):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -120,7 +117,7 @@ See `project-history/` folder for detailed implementation history
 - 5 large files >800 lines (MovementLibraryPopup 1341, SearchPanel 952, book/page 950, useWorkoutModal 896, ForgeBenchmarksTab 858) — refactor post-deploy
 - ✅ ~~15+ `alert()` calls should become toast notifications~~ — DONE (Session 105, sonner)
 - ✅ ~~50+ icon buttons missing aria-labels~~ — DONE (Session 106, 137 labels added)
-- Escape key handlers for modals/popups (Code Improvement #3)
+- ✅ ~~Escape key handlers for modals/popups~~ — DONE (Session 116, 15 modals added)
 
 **Feature Gaps (from competitor analysis — updated):**
 - ✅ #1 Social reactions (fist bumps) — DONE (Session 104)
@@ -174,16 +171,13 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 116 Priorities
+### Session 117 Priorities
 
 **Testing:**
-- **Test max_time scoring** — Create a workout with Max Time checkbox, verify athlete sees time input, leaderboard ranks longer = better
-- **Test multi-source leaderboard live** — Verify lift/benchmark/content items all load with weekly nav
-- **Test gender filter** — Set gender on a few members via coach admin, verify M/F filter works
-- **Test placeholder WOD fix** — Click "This Week"/"Next Week" on Schedule, verify no empty WOD records created, booking page shows correct workout_type
-
-**Code Improvements (from Session 103 review):**
-- #3 Add escape key handlers to modals/popups
+- **Test whiteboard scroll layout** — Verify gallery scrolls independently, header/upload/nav stay fixed
+- **Test escape keys** — Try Escape on various modals (PublishModal, DeleteWorkout, SessionManagement, etc.)
+- **Test max_time scoring** — Create workout with Max Time, verify athlete time input + leaderboard
+- **Test placeholder WOD fix** — Schedule "This Week"/"Next Week", verify no empty WODs
 
 **Features (from competitor analysis):**
 - #4 Workout intent/stimulus notes per section (low effort, high value)

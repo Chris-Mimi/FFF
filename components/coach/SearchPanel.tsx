@@ -6,7 +6,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import remarkBreaks from 'remark-breaks';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { formatLift, formatBenchmark, formatForgeBenchmark } from '@/utils/logbook/formatters';
 import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
 
@@ -160,6 +160,15 @@ export default function SearchPanel({
 
     return parts.length > 0 ? <>{parts}</> : null;
   };
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 

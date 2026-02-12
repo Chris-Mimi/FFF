@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { WODFormData } from './WorkoutModal';
 import { X } from 'lucide-react';
 
@@ -24,6 +25,15 @@ export default function QuickEditPanel({
   onSave,
   searchPanelOpen,
 }: QuickEditPanelProps) {
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen || !quickEditWOD) return null;
 
   return (

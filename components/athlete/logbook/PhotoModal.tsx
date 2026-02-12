@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import Image from 'next/image';
 
@@ -30,6 +31,14 @@ export default function PhotoModal({
 }: PhotoModalProps) {
   const currentIndex = photos.findIndex(p => p.id === photo.id);
   const showNavigation = photos.length > 1;
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   return (
     <div
