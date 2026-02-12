@@ -122,7 +122,7 @@ export default function LogbookSection({ athleteId }: { athleteId?: string }) {
                     {new Date(log.workout_date).toLocaleDateString()}
                   </p>
                 </div>
-                {log.result && <p className='font-semibold text-[#208479]'>{log.result}</p>}
+                {log.result && <p className='font-semibold text-[#178da6]'>{log.result}</p>}
               </div>
               {log.notes && <p className='text-sm text-gray-700 mt-2'>{log.notes}</p>}
             </div>

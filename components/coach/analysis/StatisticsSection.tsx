@@ -127,7 +127,7 @@ export default function StatisticsSection({
               }}
               className={`px-2 md:px-3 py-1 md:py-1.5 rounded-md font-semibold text-xs md:text-sm transition cursor-pointer ${
                 timeframePeriod <= 2
-                  ? 'bg-[#208479] text-white'
+                  ? 'bg-[#178da6] text-white'
                   : 'text-gray-700 hover:bg-gray-300'
               }`}
             >
@@ -149,7 +149,7 @@ export default function StatisticsSection({
                 }}
                 className={`px-2 md:px-3 py-1 md:py-1.5 rounded-md font-semibold text-xs md:text-sm transition whitespace-nowrap ${
                   timeframePeriod === period
-                    ? 'bg-[#208479] text-white'
+                    ? 'bg-[#178da6] text-white'
                     : 'text-gray-700 hover:bg-gray-300'
                 }`}
               >
@@ -193,7 +193,7 @@ export default function StatisticsSection({
           <div className='flex flex-col lg:flex-row gap-4 lg:gap-6 lg:items-start'>
             {/* Summary Cards */}
             <div className='grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4'>
-              <div className='bg-gradient-to-br from-[#208479] to-[#1a6b62] text-white rounded-lg p-2 md:p-4'>
+              <div className='bg-gradient-to-br from-[#178da6] to-[#14758c] text-white rounded-lg p-2 md:p-4'>
                 <div className='text-[10px] md:text-xs font-semibold opacity-90'>Total Workouts</div>
                 <div className='text-lg md:text-2xl font-bold'>{statistics.totalWorkouts}</div>
               </div>
@@ -226,7 +226,7 @@ export default function StatisticsSection({
                     key={idx}
                     className='bg-gray-50 rounded-lg p-1.5 md:p-2 text-center border border-gray-200'
                   >
-                    <div className='text-sm md:text-lg font-bold text-[#208479]'>{duration.count}</div>
+                    <div className='text-sm md:text-lg font-bold text-[#178da6]'>{duration.count}</div>
                     <div className='text-[8px] md:text-[10px] text-gray-700 font-medium leading-tight'>{duration.range}</div>
                   </div>
                 ))}
@@ -294,7 +294,7 @@ export default function StatisticsSection({
                   }}
                   className={`px-2 md:px-3 py-1 md:py-1.5 text-xs md:text-sm rounded-full font-medium transition ${
                     selectedMovementTypes.includes('exercise')
-                      ? 'bg-[#208479] text-white'
+                      ? 'bg-[#178da6] text-white'
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   }`}
                 >
@@ -320,7 +320,7 @@ export default function StatisticsSection({
                       }}
                       className={`px-2 md:px-3 py-1 md:py-1.5 text-[10px] md:text-sm rounded-full font-medium transition ${
                         selectedCategories.includes(category)
-                          ? 'bg-[#208479] text-white'
+                          ? 'bg-[#178da6] text-white'
                           : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                       }`}
                     >
@@ -354,7 +354,7 @@ export default function StatisticsSection({
             <div className='mb-3'>
               <button
                 onClick={onOpenLibrary}
-                className='w-full flex items-center justify-center gap-2 px-3 md:px-4 py-2 md:py-3 bg-[#208479] hover:bg-[#1a6b62] text-white rounded-lg font-medium transition text-sm md:text-base'
+                className='w-full flex items-center justify-center gap-2 px-3 md:px-4 py-2 md:py-3 bg-[#178da6] hover:bg-[#14758c] text-white rounded-lg font-medium transition text-sm md:text-base'
               >
                 <Library size={18} className='md:w-5 md:h-5' />
                 <span className='md:hidden'>Library</span>
@@ -372,7 +372,7 @@ export default function StatisticsSection({
                 autoComplete='off'
                 readOnly
                 onFocus={(e) => e.currentTarget.removeAttribute('readonly')}
-                className='w-full px-3 md:px-4 py-2 md:py-3 border border-gray-400 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-50 text-sm md:text-base'
+                className='w-full px-3 md:px-4 py-2 md:py-3 border border-gray-400 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-50 text-sm md:text-base'
               />
 
                 {/* Dropdown Results */}
@@ -422,7 +422,7 @@ export default function StatisticsSection({
                               </div>
                             )}
                           </div>
-                          <span className='text-[#208479] font-bold text-sm ml-2'>{exercise.count}x</span>
+                          <span className='text-[#178da6] font-bold text-sm ml-2'>{exercise.count}x</span>
                         </button>
                       );
                     })}
@@ -451,7 +451,7 @@ export default function StatisticsSection({
                     return (
                       <span
                         key={exerciseName}
-                        className='inline-flex items-center gap-1 px-3 py-2 bg-[#208479] text-white text-sm rounded-full'
+                        className='inline-flex items-center gap-1 px-3 py-2 bg-[#178da6] text-white text-sm rounded-full'
                       >
                         <span className='font-medium'>{exerciseData?.display_name || exerciseName}</span>
                         {exerciseData?.equipment && exerciseData.equipment.length > 0 && (
@@ -460,7 +460,7 @@ export default function StatisticsSection({
                         <span className='text-xs opacity-90'>({count}x)</span>
                         <button
                           onClick={() => onRemoveExercise(exerciseName)}
-                          className='hover:bg-[#1a6b62] rounded-full p-0.5 ml-1'
+                          className='hover:bg-[#14758c] rounded-full p-0.5 ml-1'
                         >
                           <X size={14} />
                         </button>
@@ -530,7 +530,7 @@ export default function StatisticsSection({
                     key={type.typeId}
                     className='bg-gray-50 rounded-lg p-2 md:p-4 text-center border border-gray-200'
                   >
-                    <div className='text-lg md:text-2xl font-bold text-[#208479]'>{type.count}</div>
+                    <div className='text-lg md:text-2xl font-bold text-[#178da6]'>{type.count}</div>
                     <div className='text-[10px] md:text-sm text-gray-700 font-medium mt-0.5 md:mt-1 truncate'>
                       {type.typeName}
                     </div>
@@ -582,7 +582,7 @@ export default function StatisticsSection({
                   return (
                     <span
                       key={idx}
-                      className='inline-flex items-center px-2 md:px-3 py-1 md:py-2 bg-gray-100 text-gray-900 border-2 border-[#208479] text-[10px] md:text-sm rounded-full font-medium'
+                      className='inline-flex items-center px-2 md:px-3 py-1 md:py-2 bg-gray-100 text-gray-900 border-2 border-[#178da6] text-[10px] md:text-sm rounded-full font-medium'
                     >
                       {exerciseData?.display_name || exercise.exercise} ({exercise.count}x)
                     </span>

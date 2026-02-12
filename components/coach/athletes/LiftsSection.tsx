@@ -56,7 +56,7 @@ export default function LiftsSection({ athleteId, onAddResult }: { athleteId?: s
         <h3 className='text-lg font-bold text-gray-900'>Lift Records</h3>
         <button
           onClick={onAddResult}
-          className='flex items-center gap-2 px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white font-medium rounded-lg transition'
+          className='flex items-center gap-2 px-4 py-2 bg-[#178da6] hover:bg-[#14758c] text-white font-medium rounded-lg transition'
         >
           <Plus size={18} />
           Add Record
@@ -79,7 +79,7 @@ export default function LiftsSection({ athleteId, onAddResult }: { athleteId?: s
                 </p>
               </div>
               <div className='text-right'>
-                <p className='font-semibold text-[#208479]'>
+                <p className='font-semibold text-[#178da6]'>
                   {result.weight_kg} kg ({result.rep_max_type || `${result.reps} reps`})
                 </p>
                 {result.reps > 1 && (

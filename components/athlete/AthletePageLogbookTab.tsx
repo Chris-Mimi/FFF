@@ -315,7 +315,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
               onClick={() => setViewMode(mode)}
               className={`px-4 py-2 rounded-md text-sm font-medium transition ${
                 viewMode === mode
-                  ? 'bg-[#208479] text-white'
+                  ? 'bg-[#178da6] text-white'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
@@ -352,7 +352,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                       {wod.tracks && (
                         <div
                           className='w-4 h-4 rounded-full'
-                          style={{ backgroundColor: wod.tracks.color || '#208479' }}
+                          style={{ backgroundColor: wod.tracks.color || '#178da6' }}
                         />
                       )}
                       <h3 className='text-lg font-semibold text-gray-900'>
@@ -372,7 +372,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                   {wod.booked ? (
                     // Future booked workout - show placeholder
                     <div className='text-center py-12'>
-                      <div className='text-2xl font-bold text-[#208479] mb-2'>Booked</div>
+                      <div className='text-2xl font-bold text-[#178da6] mb-2'>Booked</div>
                       <div className='text-sm text-gray-500'>Workout details available after class</div>
                     </div>
                   ) : (
@@ -382,7 +382,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                     {getPublishedSections(wod).map(section => (
                       <div key={section.id} className='bg-gray-50 rounded-lg p-3'>
                         <div className='flex items-center gap-3 flex-wrap mb-2'>
-                          <span className='text-sm font-medium text-[#208479] uppercase'>
+                          <span className='text-sm font-medium text-[#178da6] uppercase'>
                             {section.type}
                           </span>
                           {Number(section.duration) > 0 && (
@@ -656,14 +656,14 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                           }
                           placeholder='How did it feel? Any modifications?'
                           rows={4}
-                          className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 resize-none'
+                          className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 resize-none'
                         />
                       </div>
 
                       <div className='flex justify-end'>
                         <button
                           onClick={() => saveAllResults(formatLocalDate(selectedDate))}
-                          className='px-8 py-3 bg-[#208479] hover:bg-[#1a6b62] text-white font-semibold rounded-lg transition shadow-lg'
+                          className='px-8 py-3 bg-[#178da6] hover:bg-[#14758c] text-white font-semibold rounded-lg transition shadow-lg'
                         >
                           Save
                         </button>

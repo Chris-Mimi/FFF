@@ -68,7 +68,7 @@ export default function NavigationControls({
         </h3>
         <button
           onClick={onToday}
-          className='px-2 md:px-3 py-1 bg-[#208479] hover:bg-[#1a6b62] text-white text-xs md:text-sm rounded-lg font-medium transition'
+          className='px-2 md:px-3 py-1 bg-[#178da6] hover:bg-[#14758c] text-white text-xs md:text-sm rounded-lg font-medium transition'
         >
           Today
         </button>

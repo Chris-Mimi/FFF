@@ -222,7 +222,7 @@ export default function CoachNotesPanel({
         {/* Mobile: Full screen overlay */}
         <div className='lg:hidden fixed inset-0 z-[80] bg-white flex flex-col'>
           {/* Header */}
-          <div className='bg-[#208479] text-white p-3 flex justify-between items-center flex-shrink-0'>
+          <div className='bg-[#178da6] text-white p-3 flex justify-between items-center flex-shrink-0'>
             <h2 className='text-lg font-bold'>Coach Notes</h2>
             <div className='flex gap-2 items-center'>
               <button
@@ -230,13 +230,13 @@ export default function CoachNotesPanel({
                   e.stopPropagation();
                   toggleEditMode();
                 }}
-                className='px-2 py-1 bg-white text-[#208479] rounded text-sm font-medium hover:bg-gray-100 transition'
+                className='px-2 py-1 bg-white text-[#178da6] rounded text-sm font-medium hover:bg-gray-100 transition'
               >
                 {isEditing ? 'Preview' : 'Edit'}
               </button>
               <button
                 onClick={onClose}
-                className='hover:bg-[#1a6b62] p-1 rounded transition'
+                className='hover:bg-[#14758c] p-1 rounded transition'
                 aria-label='Close'
               >
                 <X size={22} />
@@ -279,7 +279,7 @@ export default function CoachNotesPanel({
                 value={notes}
                 onChange={(e) => onChange(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className='flex-1 w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#208479] resize-none text-gray-900'
+                className='flex-1 w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#178da6] resize-none text-gray-900'
                 placeholder='Add notes for this workout...'
               />
             ) : (
@@ -308,7 +308,7 @@ export default function CoachNotesPanel({
           }}
         >
           <div
-            className='bg-white rounded-lg shadow-2xl flex flex-col relative border-4 border-[#208479]'
+            className='bg-white rounded-lg shadow-2xl flex flex-col relative border-4 border-[#178da6]'
             style={{
               width: `${size?.width || 600}px`,
               height: `${size?.height || 400}px`,
@@ -320,33 +320,33 @@ export default function CoachNotesPanel({
             onMouseDown={(e) => onResizeStart?.(e, 'se')}
             title='Drag to resize'
           >
-            <div className='absolute bottom-0 right-0 w-0 h-0 border-l-[32px] border-l-transparent border-b-[32px] border-b-[#208479] hover:border-b-[#1a6b62] transition'></div>
+            <div className='absolute bottom-0 right-0 w-0 h-0 border-l-[32px] border-l-transparent border-b-[32px] border-b-[#178da6] hover:border-b-[#14758c] transition'></div>
           </div>
           <div
             className='absolute top-0 right-0 w-8 h-8 cursor-ne-resize z-50'
             onMouseDown={(e) => onResizeStart?.(e, 'ne')}
             title='Drag to resize'
           >
-            <div className='absolute top-0 right-0 w-0 h-0 border-l-[32px] border-l-transparent border-t-[32px] border-t-[#208479] hover:border-t-[#1a6b62] transition rounded-tr-lg'></div>
+            <div className='absolute top-0 right-0 w-0 h-0 border-l-[32px] border-l-transparent border-t-[32px] border-t-[#178da6] hover:border-t-[#14758c] transition rounded-tr-lg'></div>
           </div>
           <div
             className='absolute bottom-0 left-0 w-8 h-8 cursor-sw-resize z-50'
             onMouseDown={(e) => onResizeStart?.(e, 'sw')}
             title='Drag to resize'
           >
-            <div className='absolute bottom-0 left-0 w-0 h-0 border-r-[32px] border-r-transparent border-b-[32px] border-b-[#208479] hover:border-b-[#1a6b62] transition rounded-bl-lg'></div>
+            <div className='absolute bottom-0 left-0 w-0 h-0 border-r-[32px] border-r-transparent border-b-[32px] border-b-[#178da6] hover:border-b-[#14758c] transition rounded-bl-lg'></div>
           </div>
           <div
             className='absolute top-0 left-0 w-8 h-8 cursor-nw-resize z-50'
             onMouseDown={(e) => onResizeStart?.(e, 'nw')}
             title='Drag to resize'
           >
-            <div className='absolute top-0 left-0 w-0 h-0 border-r-[32px] border-r-transparent border-t-[32px] border-t-[#208479] hover:border-t-[#1a6b62] transition rounded-tl-lg'></div>
+            <div className='absolute top-0 left-0 w-0 h-0 border-r-[32px] border-r-transparent border-t-[32px] border-t-[#178da6] hover:border-t-[#14758c] transition rounded-tl-lg'></div>
           </div>
 
           {/* Header - Draggable */}
           <div
-            className='bg-[#208479] text-white p-4 rounded-t-lg flex justify-between items-center flex-shrink-0 cursor-move'
+            className='bg-[#178da6] text-white p-4 rounded-t-lg flex justify-between items-center flex-shrink-0 cursor-move'
             onMouseDown={onDragStart}
           >
             <h2 className='text-xl font-bold'>Coach Notes</h2>
@@ -356,13 +356,13 @@ export default function CoachNotesPanel({
                   e.stopPropagation();
                   toggleEditMode();
                 }}
-                className='px-3 py-1 bg-white text-[#208479] rounded text-sm font-medium hover:bg-gray-100 transition'
+                className='px-3 py-1 bg-white text-[#178da6] rounded text-sm font-medium hover:bg-gray-100 transition'
               >
                 {isEditing ? 'Preview' : 'Edit'}
               </button>
               <button
                 onClick={onClose}
-                className='hover:bg-[#1a6b62] p-1 rounded transition'
+                className='hover:bg-[#14758c] p-1 rounded transition'
                 aria-label='Close'
               >
                 <X size={24} />
@@ -410,7 +410,7 @@ export default function CoachNotesPanel({
                 onKeyDown={handleKeyDown}
                 autoFocus
                 placeholder='Add private notes about this workout...'
-                className='flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 placeholder-gray-400 resize-none text-sm'
+                className='flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 placeholder-gray-400 resize-none text-sm'
               />
             ) : (
               <div ref={previewRef} className='flex-1 px-3 py-2 border border-gray-300 rounded-lg text-gray-900 text-sm overflow-y-auto'>
@@ -463,19 +463,19 @@ export default function CoachNotesPanel({
 
   // Side panel (modal mode)
   return (
-    <div className='w-[400px] bg-gray-50 shadow-xl flex flex-col border-l-2 border-[#208479]'>
-      <div className='bg-[#208479] text-white p-4 flex justify-between items-center'>
+    <div className='w-[400px] bg-gray-50 shadow-xl flex flex-col border-l-2 border-[#178da6]'>
+      <div className='bg-[#178da6] text-white p-4 flex justify-between items-center'>
         <h3 className='text-lg font-bold'>Coach Notes</h3>
         <div className='flex gap-2 items-center'>
           <button
             onClick={toggleEditMode}
-            className='px-3 py-1 bg-white text-[#208479] rounded text-sm font-medium hover:bg-gray-100 transition'
+            className='px-3 py-1 bg-white text-[#178da6] rounded text-sm font-medium hover:bg-gray-100 transition'
           >
             {isEditing ? 'Preview' : 'Edit'}
           </button>
           <button
             onClick={onClose}
-            className='hover:bg-[#1a6b62] p-1 rounded transition'
+            className='hover:bg-[#14758c] p-1 rounded transition'
             aria-label='Close'
           >
             <X size={20} />
@@ -521,7 +521,7 @@ export default function CoachNotesPanel({
             onKeyDown={handleKeyDown}
             autoFocus
             placeholder='Add private notes about this workout...'
-            className='flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 placeholder-gray-400 resize-none text-sm'
+            className='flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 placeholder-gray-400 resize-none text-sm'
           />
         ) : (
           <div ref={previewRef} className='flex-1 px-3 py-2 border border-gray-300 rounded-lg text-gray-900 text-sm overflow-y-auto'>

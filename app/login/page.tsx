@@ -121,7 +121,7 @@ export default function LoginPage() {
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
-              className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+              className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
               placeholder='you@example.com'
               disabled={loading}
             />
@@ -137,7 +137,7 @@ export default function LoginPage() {
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
-              className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+              className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
               placeholder='Enter your password'
               disabled={loading}
             />
@@ -153,7 +153,7 @@ export default function LoginPage() {
           <button
             type='submit'
             disabled={loading}
-            className='w-full bg-[#208479] hover:bg-[#1a6b62] text-white font-semibold py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2'
+            className='w-full bg-[#178da6] hover:bg-[#14758c] text-white font-semibold py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2'
           >
             {loading ? (
               <>
@@ -169,7 +169,7 @@ export default function LoginPage() {
         <div className='mt-6 pt-6 border-t border-gray-200'>
           <Link
             href='/auth/register-member'
-            className='block w-full text-center bg-white border-2 border-[#208479] text-[#208479] hover:bg-[#208479] hover:text-white font-semibold py-3 rounded-lg transition'
+            className='block w-full text-center bg-white border-2 border-[#178da6] text-[#178da6] hover:bg-[#178da6] hover:text-white font-semibold py-3 rounded-lg transition'
           >
             <div className='text-sm'>New Member?</div>
             <div>Register for Class Booking</div>

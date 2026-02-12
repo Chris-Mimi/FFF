@@ -42,7 +42,7 @@ export default function TrackManagementSection({
         </button>
         <button
           onClick={onAddTrack}
-          className='px-3 py-1.5 bg-[#208479] hover:bg-[#1a6b62] text-white font-semibold rounded-lg flex items-center gap-2 transition text-sm'
+          className='px-3 py-1.5 bg-[#178da6] hover:bg-[#14758c] text-white font-semibold rounded-lg flex items-center gap-2 transition text-sm'
         >
           <Plus size={16} />
           Add Track
@@ -70,7 +70,7 @@ export default function TrackManagementSection({
                   <div className='flex gap-1'>
                     <button
                       onClick={() => onEditTrack(track)}
-                      className='text-[#208479] hover:text-orange-400 p-1'
+                      className='text-[#178da6] hover:text-orange-400 p-1'
                       aria-label='Edit track'
                     >
                       <Edit2 size={14} />

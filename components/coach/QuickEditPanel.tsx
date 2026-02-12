@@ -28,15 +28,15 @@ export default function QuickEditPanel({
 
   return (
     <div
-      className='fixed right-0 top-[72px] h-[calc(100vh-72px)] w-[400px] bg-white shadow-2xl z-50 flex flex-col border-l-2 border-[#208479] border-t border-gray-400 animate-slide-in-right'
+      className='fixed right-0 top-[72px] h-[calc(100vh-72px)] w-[400px] bg-white shadow-2xl z-50 flex flex-col border-l-2 border-[#178da6] border-t border-gray-400 animate-slide-in-right'
       style={{ right: searchPanelOpen ? '800px' : '0' }}
     >
       {/* Header */}
-      <div className='bg-[#208479] text-white p-4 flex justify-between items-center'>
+      <div className='bg-[#178da6] text-white p-4 flex justify-between items-center'>
         <h2 className='text-xl font-bold'>Quick Edit WOD</h2>
         <button
           onClick={onClose}
-          className='hover:bg-[#1a6b62] p-1 rounded transition'
+          className='hover:bg-[#14758c] p-1 rounded transition'
           aria-label='Close'
         >
           <X size={24} />
@@ -50,8 +50,8 @@ export default function QuickEditPanel({
         onDrop={onDrop}
       >
         {/* Drop Zone Indicator */}
-        <div className='border-2 border-dashed border-[#208479] rounded-lg p-4 text-center text-sm text-gray-600 bg-teal-50'>
-          <p className='font-semibold text-[#208479]'>Drop Zone</p>
+        <div className='border-2 border-dashed border-[#178da6] rounded-lg p-4 text-center text-sm text-gray-600 bg-teal-50'>
+          <p className='font-semibold text-[#178da6]'>Drop Zone</p>
           <p className='text-xs'>Drag entire WODs or individual sections here</p>
         </div>
 
@@ -63,7 +63,7 @@ export default function QuickEditPanel({
             value={quickEditWOD.title}
             onChange={e => onWODChange({ ...quickEditWOD, title: e.target.value })}
             placeholder='Enter workout title...'
-            className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 placeholder-gray-400'
+            className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 placeholder-gray-400'
           />
         </div>
 
@@ -92,7 +92,7 @@ export default function QuickEditPanel({
                   onWODChange({ ...quickEditWOD, sections: newSections });
                 }}
                 placeholder='Enter section content...'
-                className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 placeholder-gray-400 text-sm min-h-[100px] resize-y'
+                className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 placeholder-gray-400 text-sm min-h-[100px] resize-y'
               />
             </div>
           ))}
@@ -109,7 +109,7 @@ export default function QuickEditPanel({
         </button>
         <button
           onClick={onSave}
-          className='flex-1 px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white rounded-lg font-medium transition'
+          className='flex-1 px-4 py-2 bg-[#178da6] hover:bg-[#14758c] text-white rounded-lg font-medium transition'
         >
           Save WOD
         </button>

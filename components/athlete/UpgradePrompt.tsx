@@ -19,8 +19,8 @@ export default function UpgradePrompt({ onNavigateToPayment }: UpgradePromptProp
   return (
     <div className="flex flex-col items-center justify-center py-12 px-4">
       <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 text-center">
-        <div className="w-16 h-16 bg-[#208479]/10 rounded-full flex items-center justify-center mx-auto mb-6">
-          <CreditCard className="w-8 h-8 text-[#208479]" />
+        <div className="w-16 h-16 bg-[#178da6]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+          <CreditCard className="w-8 h-8 text-[#178da6]" />
         </div>
 
         <h2 className="text-2xl font-bold text-gray-900 mb-3">
@@ -35,7 +35,7 @@ export default function UpgradePrompt({ onNavigateToPayment }: UpgradePromptProp
           <ul className="space-y-3">
             {benefits.map((benefit, index) => (
               <li key={index} className="flex items-start gap-3">
-                <CheckCircle className="w-5 h-5 text-[#208479] flex-shrink-0 mt-0.5" />
+                <CheckCircle className="w-5 h-5 text-[#178da6] flex-shrink-0 mt-0.5" />
                 <span className="text-gray-700 text-sm">{benefit}</span>
               </li>
             ))}
@@ -44,7 +44,7 @@ export default function UpgradePrompt({ onNavigateToPayment }: UpgradePromptProp
 
         <button
           onClick={onNavigateToPayment}
-          className="w-full bg-[#208479] hover:bg-[#1a6b62] text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+          className="w-full bg-[#178da6] hover:bg-[#14758c] text-white font-semibold py-3 px-6 rounded-lg transition-colors"
         >
           View Subscription Options
         </button>

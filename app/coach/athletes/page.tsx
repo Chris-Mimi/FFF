@@ -124,7 +124,7 @@ export default function CoachAthletesPage() {
                       onClick={() => setSelectedAthlete(athlete)}
                       className={`w-full text-left p-2 md:p-4 rounded-lg border-2 transition ${
                         selectedAthlete?.id === athlete.id
-                          ? 'border-[#208479] bg-teal-50'
+                          ? 'border-[#178da6] bg-teal-50'
                           : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                       }`}
                     >
@@ -222,7 +222,7 @@ export default function CoachAthletesPage() {
                         onClick={() => setActiveSection('benchmarks')}
                         className={`flex items-center gap-1 md:gap-2 px-2.5 md:px-6 py-2.5 md:py-4 border-b-2 font-medium text-xs md:text-sm transition whitespace-nowrap ${
                           activeSection === 'benchmarks'
-                            ? 'border-[#208479] text-[#208479]'
+                            ? 'border-[#178da6] text-[#178da6]'
                             : 'border-transparent text-gray-500 hover:text-gray-700'
                         }`}
                       >
@@ -233,7 +233,7 @@ export default function CoachAthletesPage() {
                         onClick={() => setActiveSection('lifts')}
                         className={`flex items-center gap-1 md:gap-2 px-2.5 md:px-6 py-2.5 md:py-4 border-b-2 font-medium text-xs md:text-sm transition whitespace-nowrap ${
                           activeSection === 'lifts'
-                            ? 'border-[#208479] text-[#208479]'
+                            ? 'border-[#178da6] text-[#178da6]'
                             : 'border-transparent text-gray-500 hover:text-gray-700'
                         }`}
                       >
@@ -244,7 +244,7 @@ export default function CoachAthletesPage() {
                         onClick={() => setActiveSection('logbook')}
                         className={`flex items-center gap-1 md:gap-2 px-2.5 md:px-6 py-2.5 md:py-4 border-b-2 font-medium text-xs md:text-sm transition whitespace-nowrap ${
                           activeSection === 'logbook'
-                            ? 'border-[#208479] text-[#208479]'
+                            ? 'border-[#178da6] text-[#178da6]'
                             : 'border-transparent text-gray-500 hover:text-gray-700'
                         }`}
                       >
@@ -255,7 +255,7 @@ export default function CoachAthletesPage() {
                         onClick={() => setActiveSection('payments')}
                         className={`flex items-center gap-1 md:gap-2 px-2.5 md:px-6 py-2.5 md:py-4 border-b-2 font-medium text-xs md:text-sm transition whitespace-nowrap ${
                           activeSection === 'payments'
-                            ? 'border-[#208479] text-[#208479]'
+                            ? 'border-[#178da6] text-[#178da6]'
                             : 'border-transparent text-gray-500 hover:text-gray-700'
                         }`}
                       >

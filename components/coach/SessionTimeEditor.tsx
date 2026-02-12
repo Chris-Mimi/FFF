@@ -85,7 +85,7 @@ export default function SessionTimeEditor({
             <>
               <button
                 onClick={onSave}
-                className="px-3 py-1 bg-white text-[#208479] rounded hover:bg-gray-100 text-sm font-medium"
+                className="px-3 py-1 bg-white text-[#178da6] rounded hover:bg-gray-100 text-sm font-medium"
               >
                 Save
               </button>
@@ -103,7 +103,7 @@ export default function SessionTimeEditor({
           <span className="font-medium">{sessionTime?.substring(0, 5)}</span>
           <button
             onClick={handleEditClick}
-            className="p-1 hover:bg-[#1a6b62] rounded transition"
+            className="p-1 hover:bg-[#14758c] rounded transition"
             title="Edit time"
             aria-label="Edit time"
           >

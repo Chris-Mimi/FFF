@@ -39,7 +39,7 @@ export function MovementResultInput({
       case 'lift':
         return 'bg-blue-50 text-blue-900 border-blue-300 focus:ring-blue-500';
       case 'benchmark':
-        return 'bg-teal-50 text-teal-900 border-teal-300 focus:ring-[#208479]';
+        return 'bg-teal-50 text-teal-900 border-teal-300 focus:ring-[#178da6]';
       case 'forge_benchmark':
         return 'bg-cyan-50 text-cyan-900 border-cyan-300 focus:ring-cyan-500';
       case 'max_effort':

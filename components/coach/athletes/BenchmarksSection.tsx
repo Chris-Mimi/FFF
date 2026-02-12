@@ -60,7 +60,7 @@ export default function BenchmarksSection({
         <h3 className='text-lg font-bold text-gray-900'>Benchmark Results</h3>
         <button
           onClick={onAddResult}
-          className='flex items-center gap-2 px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white font-medium rounded-lg transition'
+          className='flex items-center gap-2 px-4 py-2 bg-[#178da6] hover:bg-[#14758c] text-white font-medium rounded-lg transition'
         >
           <Plus size={18} />
           Add Result
@@ -83,7 +83,7 @@ export default function BenchmarksSection({
                 </p>
               </div>
               <div className='text-right'>
-                <p className='font-semibold text-[#208479]'>{result.result_value}</p>
+                <p className='font-semibold text-[#178da6]'>{result.result_value}</p>
                 {result.notes && <p className='text-sm text-gray-600'>{result.notes}</p>}
               </div>
             </div>

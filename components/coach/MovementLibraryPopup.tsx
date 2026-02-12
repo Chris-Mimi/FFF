@@ -684,7 +684,7 @@ function MovementLibraryPopup({
       }}
     >
       <div
-        className={`bg-white shadow-2xl flex flex-col relative ${isMobile ? 'h-full' : 'rounded-lg border-4 border-[#208479]'}`}
+        className={`bg-white shadow-2xl flex flex-col relative ${isMobile ? 'h-full' : 'rounded-lg border-4 border-[#178da6]'}`}
         style={isMobile ? {} : {
           width: `${librarySize.width}px`,
           height: `${librarySize.height}px`,
@@ -697,13 +697,13 @@ function MovementLibraryPopup({
             onMouseDown={handleResizeStart}
             title='Drag to resize'
           >
-            <div className='absolute bottom-0 right-0 w-0 h-0 border-l-[24px] border-l-transparent border-b-[24px] border-b-[#208479] hover:border-b-[#1a6b62] transition'></div>
+            <div className='absolute bottom-0 right-0 w-0 h-0 border-l-[24px] border-l-transparent border-b-[24px] border-b-[#178da6] hover:border-b-[#14758c] transition'></div>
           </div>
         )}
 
         {/* Header - Draggable on desktop only */}
         <div
-          className={`bg-[#208479] text-white p-3 lg:p-4 flex justify-between items-center flex-shrink-0 ${isMobile ? '' : 'rounded-t-lg cursor-move'}`}
+          className={`bg-[#178da6] text-white p-3 lg:p-4 flex justify-between items-center flex-shrink-0 ${isMobile ? '' : 'rounded-t-lg cursor-move'}`}
           onMouseDown={isMobile ? undefined : handleLibraryDragStart}
         >
           <h3 className='font-bold flex items-center gap-2'>
@@ -712,7 +712,7 @@ function MovementLibraryPopup({
           </h3>
           <button
             onClick={onClose}
-            className='px-4 py-2 bg-[#1a6b62] hover:bg-[#145a52] text-white rounded-lg font-semibold transition flex items-center gap-2'
+            className='px-4 py-2 bg-[#14758c] hover:bg-[#145a52] text-white rounded-lg font-semibold transition flex items-center gap-2'
           >
             Done
             <X size={18} />
@@ -725,7 +725,7 @@ function MovementLibraryPopup({
             onClick={() => setActiveTab('exercises')}
             className={`flex-1 px-4 py-3 font-semibold transition ${
               activeTab === 'exercises'
-                ? 'bg-white text-[#208479] border-b-2 border-[#208479]'
+                ? 'bg-white text-[#178da6] border-b-2 border-[#178da6]'
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
             }`}
           >
@@ -735,7 +735,7 @@ function MovementLibraryPopup({
             onClick={() => setActiveTab('lifts')}
             className={`flex-1 px-4 py-3 font-semibold transition ${
               activeTab === 'lifts'
-                ? 'bg-white text-[#208479] border-b-2 border-[#208479]'
+                ? 'bg-white text-[#178da6] border-b-2 border-[#178da6]'
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
             }`}
           >
@@ -745,7 +745,7 @@ function MovementLibraryPopup({
             onClick={() => setActiveTab('benchmarks')}
             className={`flex-1 px-4 py-3 font-semibold transition ${
               activeTab === 'benchmarks'
-                ? 'bg-white text-[#208479] border-b-2 border-[#208479]'
+                ? 'bg-white text-[#178da6] border-b-2 border-[#178da6]'
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
             }`}
           >
@@ -755,7 +755,7 @@ function MovementLibraryPopup({
             onClick={() => setActiveTab('forge')}
             className={`flex-1 px-4 py-3 font-semibold transition ${
               activeTab === 'forge'
-                ? 'bg-white text-[#208479] border-b-2 border-[#208479]'
+                ? 'bg-white text-[#178da6] border-b-2 border-[#178da6]'
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
             }`}
           >
@@ -779,7 +779,7 @@ function MovementLibraryPopup({
               autoComplete='off'
               readOnly
               onFocus={e => e.currentTarget.removeAttribute('readonly')}
-              className='w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 placeholder-gray-400'
+              className='w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 placeholder-gray-400'
             />
           </div>
           <div className='flex items-center justify-between mt-2'>
@@ -789,7 +789,7 @@ function MovementLibraryPopup({
             {activeTab === 'benchmarks' && (
               <button
                 onClick={() => setShowCreateBenchmarkModal(true)}
-                className='text-xs text-[#208479] hover:text-[#1a6b62] font-semibold flex items-center gap-1 transition'
+                className='text-xs text-[#178da6] hover:text-[#14758c] font-semibold flex items-center gap-1 transition'
               >
                 <span>+ Create New</span>
               </button>
@@ -797,7 +797,7 @@ function MovementLibraryPopup({
             {activeTab === 'forge' && (
               <button
                 onClick={() => setShowCreateForgeModal(true)}
-                className='text-xs text-[#208479] hover:text-[#1a6b62] font-semibold flex items-center gap-1 transition'
+                className='text-xs text-[#178da6] hover:text-[#14758c] font-semibold flex items-center gap-1 transition'
               >
                 <span>+ Create New</span>
               </button>
@@ -805,7 +805,7 @@ function MovementLibraryPopup({
             {activeTab === 'lifts' && (
               <button
                 onClick={() => setShowCreateLiftModal(true)}
-                className='text-xs text-[#208479] hover:text-[#1a6b62] font-semibold flex items-center gap-1 transition'
+                className='text-xs text-[#178da6] hover:text-[#14758c] font-semibold flex items-center gap-1 transition'
               >
                 <span>+ Create New</span>
               </button>
@@ -813,7 +813,7 @@ function MovementLibraryPopup({
             {activeTab === 'exercises' && (
               <button
                 onClick={() => setShowCreateExerciseModal(true)}
-                className='text-xs text-[#208479] hover:text-[#1a6b62] font-semibold flex items-center gap-1 transition'
+                className='text-xs text-[#178da6] hover:text-[#14758c] font-semibold flex items-center gap-1 transition'
               >
                 <span>+ Create New</span>
               </button>
@@ -873,7 +873,7 @@ function MovementLibraryPopup({
                             <div key={exercise.id} className='relative group'>
                               <button
                                 onClick={() => handleSelectExercise(exercise.display_name || exercise.name, exercise)}
-                                className='w-full text-left px-0.5 py-0.5 hover:bg-[#208479] hover:text-white transition text-xs text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis pr-10'
+                                className='w-full text-left px-0.5 py-0.5 hover:bg-[#178da6] hover:text-white transition text-xs text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis pr-10'
                                 title={exercise.description || undefined}
                               >
                                 {exercise.display_name || exercise.name}
@@ -939,7 +939,7 @@ function MovementLibraryPopup({
                               <div key={exercise.id} className='relative group'>
                                 <button
                                   onClick={() => handleSelectExercise(exercise.display_name || exercise.name, fullExercise)}
-                                  className='w-full text-left px-0.5 py-0.5 hover:bg-[#208479] hover:text-white transition text-xs text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis pr-10'
+                                  className='w-full text-left px-0.5 py-0.5 hover:bg-[#178da6] hover:text-white transition text-xs text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis pr-10'
                                   title={fullExercise?.description || undefined}
                                 >
                                   {exercise.display_name || exercise.name}
@@ -996,7 +996,7 @@ function MovementLibraryPopup({
                   <div className='space-y-4'>
                     {sortCategories(filteredExerciseCategories, EXERCISE_CATEGORY_ORDER).map(([category, categoryExercises]) => (
                       <div key={category}>
-                        <div className='bg-[#208479] text-white px-3 py-2 rounded-t-lg mb-2'>
+                        <div className='bg-[#178da6] text-white px-3 py-2 rounded-t-lg mb-2'>
                           <h4 className='text-sm font-bold uppercase tracking-wide'>{category}</h4>
                         </div>
                         <div className='grid gap-0 mb-2' style={{ gridTemplateColumns: getGridColumns() }}>
@@ -1004,7 +1004,7 @@ function MovementLibraryPopup({
                             <div key={exercise.id} className='relative group'>
                               <button
                                 onClick={() => handleSelectExercise(exercise.display_name || exercise.name, exercise)}
-                                className='w-full text-left px-0.5 py-0.5 hover:bg-[#208479] hover:text-white transition text-xs text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis pr-10'
+                                className='w-full text-left px-0.5 py-0.5 hover:bg-[#178da6] hover:text-white transition text-xs text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis pr-10'
                                 title={exercise.description || undefined}
                               >
                                 {exercise.display_name || exercise.name}
@@ -1065,7 +1065,7 @@ function MovementLibraryPopup({
                   <div className='space-y-4'>
                     {sortCategories(filteredLiftCategories, LIFT_CATEGORY_ORDER).map(([category, categoryLifts]) => (
                       <div key={category}>
-                        <div className='bg-[#208479] text-white px-3 py-2 rounded-t-lg mb-2'>
+                        <div className='bg-[#178da6] text-white px-3 py-2 rounded-t-lg mb-2'>
                           <h4 className='text-sm font-bold uppercase tracking-wide'>{category}</h4>
                         </div>
                         <div className='grid gap-0 mb-2' style={{ gridTemplateColumns: getGridColumns() }}>
@@ -1073,7 +1073,7 @@ function MovementLibraryPopup({
                             <button
                               key={lift.id}
                               onClick={() => handleSelectLift(lift)}
-                              className='text-left px-0.5 py-0.5 hover:bg-[#208479] hover:text-white transition text-xs text-gray-900 flex items-center justify-between whitespace-nowrap overflow-hidden'
+                              className='text-left px-0.5 py-0.5 hover:bg-[#178da6] hover:text-white transition text-xs text-gray-900 flex items-center justify-between whitespace-nowrap overflow-hidden'
                             >
                               <span className='overflow-hidden text-ellipsis'>{lift.name}</span>
                               <span className='text-gray-400 hover:text-white ml-1'>→</span>
@@ -1098,7 +1098,7 @@ function MovementLibraryPopup({
                       <button
                         key={benchmark.id}
                         onClick={() => handleSelectBenchmark(benchmark)}
-                        className='text-left px-0.5 py-0.5 hover:bg-[#208479] hover:text-white transition text-xs text-gray-900 flex items-center justify-between whitespace-nowrap overflow-hidden'
+                        className='text-left px-0.5 py-0.5 hover:bg-[#178da6] hover:text-white transition text-xs text-gray-900 flex items-center justify-between whitespace-nowrap overflow-hidden'
                       >
                         <span className='overflow-hidden text-ellipsis'>{benchmark.name}</span>
                         <span className='text-gray-400 hover:text-white ml-1'>→</span>
@@ -1120,7 +1120,7 @@ function MovementLibraryPopup({
                       <button
                         key={forge.id}
                         onClick={() => handleSelectForgeBenchmark(forge)}
-                        className='text-left px-0.5 py-0.5 hover:bg-[#208479] hover:text-white transition text-xs text-gray-900 flex items-center justify-between whitespace-nowrap overflow-hidden'
+                        className='text-left px-0.5 py-0.5 hover:bg-[#178da6] hover:text-white transition text-xs text-gray-900 flex items-center justify-between whitespace-nowrap overflow-hidden'
                       >
                         <span className='overflow-hidden text-ellipsis'>{forge.name}</span>
                         <span className='text-gray-400 hover:text-white ml-1'>→</span>

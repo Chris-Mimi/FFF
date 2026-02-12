@@ -255,7 +255,7 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
             </div>
             <label
               htmlFor='avatar-upload'
-              className='absolute bottom-0 right-0 w-8 h-8 bg-[#208479] hover:bg-[#1a6b62] rounded-full flex items-center justify-center cursor-pointer transition shadow-lg'
+              className='absolute bottom-0 right-0 w-8 h-8 bg-[#178da6] hover:bg-[#14758c] rounded-full flex items-center justify-center cursor-pointer transition shadow-lg'
               title='Upload profile picture'
             >
               <Edit2 size={16} className='text-white' />
@@ -272,7 +272,7 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
           <div>
             <h3 className='text-xl font-semibold text-gray-900'>{profile.full_name || userName}</h3>
             <p className='text-gray-600'>Athlete</p>
-            {uploading && <p className='text-sm text-[#208479] mt-1'>Uploading...</p>}
+            {uploading && <p className='text-sm text-[#178da6] mt-1'>Uploading...</p>}
           </div>
         </div>
 
@@ -285,7 +285,7 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
               value={profile.full_name}
               onChange={e => setProfile({ ...profile, full_name: e.target.value })}
               placeholder='John Doe'
-              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
             />
           </div>
 
@@ -296,7 +296,7 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
               value={profile.email}
               onChange={e => setProfile({ ...profile, email: e.target.value })}
               placeholder='john@example.com'
-              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
             />
           </div>
 
@@ -306,7 +306,7 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
               type='date'
               value={profile.date_of_birth}
               onChange={e => setProfile({ ...profile, date_of_birth: e.target.value })}
-              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
             />
           </div>
 
@@ -315,7 +315,7 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
             <select
               value={gender}
               onChange={e => setGender(e.target.value as 'M' | 'F' | '')}
-              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
             >
               <option value=''>Not set</option>
               <option value='M'>Male</option>
@@ -330,7 +330,7 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
               value={profile.phone_number}
               onChange={e => setProfile({ ...profile, phone_number: e.target.value })}
               placeholder='+49 123 456789'
-              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
             />
           </div>
 
@@ -341,7 +341,7 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
               value={profile.height_cm}
               onChange={e => setProfile({ ...profile, height_cm: e.target.value })}
               placeholder='175'
-              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
             />
           </div>
 
@@ -353,7 +353,7 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
               value={profile.weight_kg}
               onChange={e => setProfile({ ...profile, weight_kg: e.target.value })}
               placeholder='70.5'
-              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
             />
           </div>
 
@@ -364,7 +364,7 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
               value={profile.emergency_contact_name}
               onChange={e => setProfile({ ...profile, emergency_contact_name: e.target.value })}
               placeholder='Jane Doe'
-              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
             />
           </div>
 
@@ -375,7 +375,7 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
               value={profile.emergency_contact_phone}
               onChange={e => setProfile({ ...profile, emergency_contact_phone: e.target.value })}
               placeholder='+49 123 456789'
-              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
             />
           </div>
         </div>
@@ -384,7 +384,7 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
         <div className='flex justify-end'>
           <button
             onClick={handleSaveProfile}
-            className='px-6 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white font-medium rounded-lg transition'
+            className='px-6 py-2 bg-[#178da6] hover:bg-[#14758c] text-white font-medium rounded-lg transition'
           >
             Save Changes
           </button>

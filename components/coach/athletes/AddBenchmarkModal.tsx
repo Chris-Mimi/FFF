@@ -72,7 +72,7 @@ export default function AddBenchmarkModal({
             <select
               value={benchmarkName}
               onChange={e => setBenchmarkName(e.target.value)}
-              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
             >
               <option value=''>Select benchmark...</option>
               {BENCHMARKS.map(name => (
@@ -89,7 +89,7 @@ export default function AddBenchmarkModal({
               type='date'
               value={date}
               onChange={e => setDate(e.target.value)}
-              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
             />
           </div>
 
@@ -100,7 +100,7 @@ export default function AddBenchmarkModal({
               value={result}
               onChange={e => setResult(e.target.value)}
               placeholder='e.g., 5:42, 15 rounds'
-              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
             />
           </div>
 
@@ -111,7 +111,7 @@ export default function AddBenchmarkModal({
               onChange={e => setNotes(e.target.value)}
               placeholder='Any additional notes...'
               rows={3}
-              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 resize-none'
+              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 resize-none'
             />
           </div>
 
@@ -124,7 +124,7 @@ export default function AddBenchmarkModal({
             </button>
             <button
               onClick={handleSave}
-              className='flex-1 px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white font-medium rounded-lg transition'
+              className='flex-1 px-4 py-2 bg-[#178da6] hover:bg-[#14758c] text-white font-medium rounded-lg transition'
             >
               Save
             </button>

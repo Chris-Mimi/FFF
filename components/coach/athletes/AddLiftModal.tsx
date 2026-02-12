@@ -83,7 +83,7 @@ export default function AddLiftModal({
             <select
               value={liftName}
               onChange={e => setLiftName(e.target.value)}
-              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
             >
               <option value=''>Select lift...</option>
               {LIFTS.map(name => (
@@ -100,7 +100,7 @@ export default function AddLiftModal({
               type='date'
               value={date}
               onChange={e => setDate(e.target.value)}
-              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
             />
           </div>
 
@@ -112,7 +112,7 @@ export default function AddLiftModal({
                 value={weight}
                 onChange={e => setWeight(e.target.value)}
                 placeholder='100'
-                className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
               />
             </div>
             <div>
@@ -120,7 +120,7 @@ export default function AddLiftModal({
               <select
                 value={repMaxType}
                 onChange={e => setRepMaxType(e.target.value as '1RM' | '3RM' | '5RM' | '10RM')}
-                className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
               >
                 <option value='1RM'>1RM</option>
                 <option value='3RM'>3RM</option>
@@ -133,7 +133,7 @@ export default function AddLiftModal({
           {weight && repMaxType !== '1RM' && (
             <div className='bg-gray-50 p-3 rounded-lg'>
               <p className='text-sm text-gray-600'>Estimated 1RM:</p>
-              <p className='text-lg font-semibold text-[#208479]'>
+              <p className='text-lg font-semibold text-[#178da6]'>
                 {calculate1RM(parseFloat(weight), parseInt(repMaxType.replace('RM', '')))} kg
               </p>
             </div>
@@ -146,7 +146,7 @@ export default function AddLiftModal({
               onChange={e => setNotes(e.target.value)}
               placeholder='Any additional notes...'
               rows={3}
-              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 resize-none'
+              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 resize-none'
             />
           </div>
 
@@ -159,7 +159,7 @@ export default function AddLiftModal({
             </button>
             <button
               onClick={handleSave}
-              className='flex-1 px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white font-medium rounded-lg transition'
+              className='flex-1 px-4 py-2 bg-[#178da6] hover:bg-[#14758c] text-white font-medium rounded-lg transition'
             >
               Save
             </button>

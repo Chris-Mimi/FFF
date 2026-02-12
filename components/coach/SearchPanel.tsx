@@ -116,7 +116,7 @@ export default function SearchPanel({
       section.lifts.forEach((lift: ConfiguredLift, idx: number) => {
         const formatted = formatLift(lift);
         parts.push(
-          <div key={`lift-${idx}`} className='font-medium text-[#208479]'>
+          <div key={`lift-${idx}`} className='font-medium text-[#178da6]'>
             • {formatted}
           </div>
         );
@@ -128,7 +128,7 @@ export default function SearchPanel({
       section.benchmarks.forEach((benchmark: ConfiguredBenchmark, idx: number) => {
         const { name, description } = formatBenchmark(benchmark);
         parts.push(
-          <div key={`benchmark-${idx}`} className='font-medium text-[#208479]'>
+          <div key={`benchmark-${idx}`} className='font-medium text-[#178da6]'>
             • {name}
             {description && <span className='font-normal text-gray-700'> - {description}</span>}
           </div>
@@ -141,7 +141,7 @@ export default function SearchPanel({
       section.forge_benchmarks.forEach((forge: ConfiguredForgeBenchmark, idx: number) => {
         const { name, description } = formatForgeBenchmark(forge);
         parts.push(
-          <div key={`forge-${idx}`} className='font-medium text-[#208479]'>
+          <div key={`forge-${idx}`} className='font-medium text-[#178da6]'>
             • {name}
             {description && <span className='font-normal text-gray-700'> - {description}</span>}
           </div>
@@ -164,14 +164,14 @@ export default function SearchPanel({
   if (!isOpen) return null;
 
   return (
-    <div className='fixed right-0 top-0 lg:top-[72px] h-screen lg:h-[calc(100vh-72px)] w-full lg:w-[800px] bg-white shadow-2xl z-50 flex flex-col border-l-2 border-[#208479] border-t border-gray-400 animate-slide-in-right'>
+    <div className='fixed right-0 top-0 lg:top-[72px] h-screen lg:h-[calc(100vh-72px)] w-full lg:w-[800px] bg-white shadow-2xl z-50 flex flex-col border-l-2 border-[#178da6] border-t border-gray-400 animate-slide-in-right'>
       {/* Header */}
-      <div className='bg-[#208479] text-white p-3 lg:p-4 flex justify-between items-center'>
+      <div className='bg-[#178da6] text-white p-3 lg:p-4 flex justify-between items-center'>
         <div className='flex items-center gap-2'>
           {/* Mobile Filter Toggle */}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className='lg:hidden hover:bg-[#1a6b62] p-1 rounded transition'
+            className='lg:hidden hover:bg-[#14758c] p-1 rounded transition'
             title='Toggle Filters'
           >
             <Menu size={20} />
@@ -191,7 +191,7 @@ export default function SearchPanel({
             setSidebarOpen(false);
             // Note: movements map should be reset in parent component
           }}
-          className='hover:bg-[#1a6b62] p-1 rounded transition'
+          className='hover:bg-[#14758c] p-1 rounded transition'
         >
           <X size={24} />
         </button>
@@ -204,11 +204,11 @@ export default function SearchPanel({
           sidebarOpen ? 'absolute inset-0 z-10' : 'hidden'
         } lg:relative lg:block w-full lg:w-[200px] border-r overflow-y-auto bg-gray-50`}>
           {/* Mobile Header */}
-          <div className='lg:hidden flex justify-between items-center p-3 border-b bg-[#208479] text-white sticky top-0 z-10'>
+          <div className='lg:hidden flex justify-between items-center p-3 border-b bg-[#178da6] text-white sticky top-0 z-10'>
             <h3 className='font-semibold'>Filters</h3>
             <button
               onClick={() => setSidebarOpen(false)}
-              className='hover:bg-[#1a6b62] p-1 rounded transition'
+              className='hover:bg-[#14758c] p-1 rounded transition'
             >
               <X size={20} />
             </button>
@@ -234,7 +234,7 @@ export default function SearchPanel({
                     }}
                     className={`w-full text-left px-2 py-1 rounded text-xs flex justify-between items-center transition ${
                       selectedMovements.includes(movement)
-                        ? 'bg-[#208479] text-white'
+                        ? 'bg-[#178da6] text-white'
                         : 'hover:bg-gray-200 text-gray-900'
                     }`}
                   >
@@ -272,7 +272,7 @@ export default function SearchPanel({
                     }}
                     className={`w-full text-left px-2 py-1 rounded text-xs flex justify-between items-center transition ${
                       selectedWorkoutTypes.includes(type.id)
-                        ? 'bg-[#208479] text-white'
+                        ? 'bg-[#178da6] text-white'
                         : 'hover:bg-gray-200 text-gray-900'
                     }`}
                   >
@@ -309,7 +309,7 @@ export default function SearchPanel({
                   }}
                   className={`w-full text-left px-2 py-1 rounded text-xs flex justify-between items-center transition ${
                     selectedTracks.includes(track.id)
-                      ? 'bg-[#208479] text-white'
+                      ? 'bg-[#178da6] text-white'
                       : 'hover:bg-gray-200 text-gray-900'
                   }`}
                 >
@@ -345,7 +345,7 @@ export default function SearchPanel({
                   }}
                   className={`w-full text-left px-2 py-1 rounded text-xs flex justify-between items-center transition ${
                     selectedSessionTypes.includes(sessionType)
-                      ? 'bg-[#208479] text-white'
+                      ? 'bg-[#178da6] text-white'
                       : 'hover:bg-gray-200 text-gray-900'
                   }`}
                 >
@@ -378,7 +378,7 @@ export default function SearchPanel({
                 autoComplete='off'
                 readOnly
                 onFocus={e => e.currentTarget.removeAttribute('readonly')}
-                className='w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-1.5 sm:py-2 text-sm border border-gray-300 rounded-lg bg-white text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[#208479] focus:border-transparent'
+                className='w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-1.5 sm:py-2 text-sm border border-gray-300 rounded-lg bg-white text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[#178da6] focus:border-transparent'
               />
             </div>
 
@@ -392,7 +392,7 @@ export default function SearchPanel({
                   }}
                   className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium transition ${
                     includedSectionTypes.length === 0
-                      ? 'bg-[#208479] text-white'
+                      ? 'bg-[#178da6] text-white'
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   }`}
                 >
@@ -408,7 +408,7 @@ export default function SearchPanel({
                   }}
                   className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium transition ${
                     includedSectionTypes.includes('Notes')
-                      ? 'bg-[#208479] text-white'
+                      ? 'bg-[#178da6] text-white'
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   }`}
                 >
@@ -435,7 +435,7 @@ export default function SearchPanel({
                           }}
                           className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium transition ${
                             includedSectionTypes.includes(sectionType.name)
-                              ? 'bg-[#208479] text-white'
+                              ? 'bg-[#178da6] text-white'
                               : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                           }`}
                         >
@@ -473,9 +473,9 @@ export default function SearchPanel({
                             }}
                             className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium transition ${
                               allWodSelected
-                                ? 'bg-[#208479] text-white'
+                                ? 'bg-[#178da6] text-white'
                                 : someWodSelected
-                                ? 'bg-[#208479] bg-opacity-50 text-white'
+                                ? 'bg-[#178da6] bg-opacity-50 text-white'
                                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                             }`}
                           >
@@ -497,7 +497,7 @@ export default function SearchPanel({
                           }}
                           className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium transition ${
                             includedSectionTypes.includes(sectionType.name)
-                              ? 'bg-[#208479] text-white'
+                              ? 'bg-[#178da6] text-white'
                               : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                           }`}
                         >
@@ -518,11 +518,11 @@ export default function SearchPanel({
               selectedSessionTypes.length > 0) && (
               <div className='flex flex-wrap gap-1 sm:gap-2 mt-2 sm:mt-3'>
                 {searchQuery && (
-                  <span className='inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-[#208479] text-white text-[10px] sm:text-xs rounded-full'>
+                  <span className='inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-[#178da6] text-white text-[10px] sm:text-xs rounded-full'>
                     Search: &quot;{searchQuery}&quot;
                     <button
                       onClick={() => onSearchQueryChange('')}
-                      className='hover:bg-[#1a6b62] rounded-full p-0.5'
+                      className='hover:bg-[#14758c] rounded-full p-0.5'
                     >
                       <X size={10} className='sm:hidden' />
                       <X size={12} className='hidden sm:block' />
@@ -532,7 +532,7 @@ export default function SearchPanel({
                 {selectedMovements.map(movement => (
                   <span
                     key={movement}
-                    className='inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-[#208479] text-white text-[10px] sm:text-xs rounded-full'
+                    className='inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-[#178da6] text-white text-[10px] sm:text-xs rounded-full'
                   >
                     {movement}
                     <button
@@ -541,7 +541,7 @@ export default function SearchPanel({
                           selectedMovements.filter(m => m !== movement)
                         )
                       }
-                      className='hover:bg-[#1a6b62] rounded-full p-0.5'
+                      className='hover:bg-[#14758c] rounded-full p-0.5'
                     >
                       <X size={10} className='sm:hidden' />
                       <X size={12} className='hidden sm:block' />
@@ -553,7 +553,7 @@ export default function SearchPanel({
                   return type ? (
                     <span
                       key={typeId}
-                      className='inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-[#208479] text-white text-[10px] sm:text-xs rounded-full'
+                      className='inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-[#178da6] text-white text-[10px] sm:text-xs rounded-full'
                     >
                       {type.name}
                       <button
@@ -562,7 +562,7 @@ export default function SearchPanel({
                             selectedWorkoutTypes.filter(t => t !== typeId)
                           )
                         }
-                        className='hover:bg-[#1a6b62] rounded-full p-0.5'
+                        className='hover:bg-[#14758c] rounded-full p-0.5'
                       >
                         <X size={10} className='sm:hidden' />
                         <X size={12} className='hidden sm:block' />
@@ -575,7 +575,7 @@ export default function SearchPanel({
                   return track ? (
                     <span
                       key={trackId}
-                      className='inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-[#208479] text-white text-[10px] sm:text-xs rounded-full'
+                      className='inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-[#178da6] text-white text-[10px] sm:text-xs rounded-full'
                     >
                       {track.name}
                       <button
@@ -584,7 +584,7 @@ export default function SearchPanel({
                             selectedTracks.filter(t => t !== trackId)
                           )
                         }
-                        className='hover:bg-[#1a6b62] rounded-full p-0.5'
+                        className='hover:bg-[#14758c] rounded-full p-0.5'
                       >
                         <X size={10} className='sm:hidden' />
                         <X size={12} className='hidden sm:block' />
@@ -595,7 +595,7 @@ export default function SearchPanel({
                 {selectedSessionTypes.map(sessionType => (
                   <span
                     key={sessionType}
-                    className='inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-[#208479] text-white text-[10px] sm:text-xs rounded-full'
+                    className='inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-[#178da6] text-white text-[10px] sm:text-xs rounded-full'
                   >
                     {sessionType}
                     <button
@@ -604,7 +604,7 @@ export default function SearchPanel({
                           selectedSessionTypes.filter(t => t !== sessionType)
                         )
                       }
-                      className='hover:bg-[#1a6b62] rounded-full p-0.5'
+                      className='hover:bg-[#14758c] rounded-full p-0.5'
                     >
                       <X size={10} className='sm:hidden' />
                       <X size={12} className='hidden sm:block' />
@@ -694,7 +694,7 @@ export default function SearchPanel({
                         className={`p-2 sm:p-3 bg-white rounded-lg cursor-pointer transition relative min-h-[60px] sm:min-h-[80px] w-full lg:w-3/4 ${
                           hoveredWOD?.id === wod.id
                             ? 'border-0'
-                            : 'border border-gray-200 hover:border-[#208479] hover:bg-gray-50'
+                            : 'border border-gray-200 hover:border-[#178da6] hover:bg-gray-50'
                         }`}
                       >
                         <div className='text-[10px] sm:text-xs text-gray-500 mb-1'>
@@ -715,7 +715,7 @@ export default function SearchPanel({
                         />
                         {previewSection && previewText && (
                           <>
-                            <div className='text-[10px] sm:text-xs font-medium text-[#208479] mb-0.5'>
+                            <div className='text-[10px] sm:text-xs font-medium text-[#178da6] mb-0.5'>
                               {previewSection.type}
                             </div>
                             <div
@@ -729,7 +729,7 @@ export default function SearchPanel({
 
                         {/* Hover Popover - Full WOD Preview (Desktop Only) */}
                         {hoveredWOD?.id === wod.id && (
-                          <div className='hidden lg:block absolute inset-0 bg-white border-2 border-[#208479] rounded-lg shadow-2xl p-4 z-[200] overflow-y-auto'>
+                          <div className='hidden lg:block absolute inset-0 bg-white border-2 border-[#178da6] rounded-lg shadow-2xl p-4 z-[200] overflow-y-auto'>
                             {(wod.workout_name || trackName) && (
                               <div className='text-xs font-medium text-gray-700 mb-1'>
                                 {wod.workout_name && <span>{wod.workout_name}</span>}
@@ -741,7 +741,7 @@ export default function SearchPanel({
                             <div className='space-y-3'>
                               {wod.sections.map((section, idx) => (
                                 <div key={idx} className='border-b border-gray-200 pb-2 last:border-b-0'>
-                                  <div className='text-xs font-semibold text-[#208479] mb-1'>
+                                  <div className='text-xs font-semibold text-[#178da6] mb-1'>
                                     {section.type}
                                     {section.duration > 0 && ` (${section.duration} min)`}
                                   </div>
@@ -768,7 +768,7 @@ export default function SearchPanel({
             <div className='flex-1 overflow-y-auto p-2 sm:p-3 lg:p-4'>
               <button
                 onClick={() => onSelectedSearchWODChange(null)}
-                className='text-xs sm:text-sm text-[#208479] hover:text-[#1a6b62] mb-2 sm:mb-4 flex items-center gap-1'
+                className='text-xs sm:text-sm text-[#178da6] hover:text-[#14758c] mb-2 sm:mb-4 flex items-center gap-1'
               >
                 ← Back to results
               </button>
@@ -828,7 +828,7 @@ export default function SearchPanel({
                       <div
                         key={idx}
                         id={`section-${selectedSearchWOD.id}-${idx}`}
-                        className='bg-white rounded-lg border border-gray-200 p-2 sm:p-3 hover:border-[#208479] transition flex gap-1 sm:gap-2'
+                        className='bg-white rounded-lg border border-gray-200 p-2 sm:p-3 hover:border-[#178da6] transition flex gap-1 sm:gap-2'
                       >
                         <div
                           draggable
@@ -925,7 +925,7 @@ export default function SearchPanel({
                     onClose();
                     onSelectedSearchWODChange(null);
                   }}
-                  className='flex-1 px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base bg-[#208479] hover:bg-[#1a6b62] text-white rounded-lg font-medium transition'
+                  className='flex-1 px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base bg-[#178da6] hover:bg-[#14758c] text-white rounded-lg font-medium transition'
                 >
                   Edit WOD
                 </button>
@@ -942,7 +942,7 @@ export default function SearchPanel({
             onCreateWorkout(new Date(), true);
             onSelectedSearchWODChange(null);
           }}
-          className='w-full px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base bg-[#208479] hover:bg-[#1a6b62] text-white rounded-lg font-medium transition'
+          className='w-full px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base bg-[#178da6] hover:bg-[#14758c] text-white rounded-lg font-medium transition'
         >
           + Create New Workout
         </button>

@@ -379,7 +379,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
 
       return (
         <g>
-          <circle cx={cx} cy={cy} r={6} fill='#208479' stroke='#fff' strokeWidth={2} />
+          <circle cx={cx} cy={cy} r={6} fill='#178da6' stroke='#fff' strokeWidth={2} />
           <circle cx={cx} cy={cy} r={10} fill={badgeColor} opacity={0.8} />
           <text x={cx} y={cy + 4} textAnchor='middle' fill='white' fontSize={10} fontWeight='bold'>
             PR
@@ -387,7 +387,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
         </g>
       );
     }
-    return <circle cx={cx} cy={cy} r={4} fill='#208479' stroke='#fff' strokeWidth={2} />;
+    return <circle cx={cx} cy={cy} r={4} fill='#178da6' stroke='#fff' strokeWidth={2} />;
   };
 
   const sortedBenchmarks = benchmarks
@@ -444,7 +444,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                   <div className='flex items-end justify-between'>
                     <div>
                       <p className='text-xs text-gray-600'>PR:</p>
-                      <p className='text-sm font-bold text-[#208479]'>
+                      <p className='text-sm font-bold text-[#178da6]'>
                         {bestResult.result_value || bestResult.time_result || bestResult.reps_result || bestResult.weight_result}
                       </p>
                     </div>
@@ -463,7 +463,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
       <div className='bg-white rounded-xl shadow p-3 sm:p-6'>
         <button
           onClick={() => setExpandedSections(prev => ({ ...prev, recent: !prev.recent }))}
-          className='flex items-center gap-2 text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4 hover:text-[#208479] transition'
+          className='flex items-center gap-2 text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4 hover:text-[#178da6] transition'
         >
           {expandedSections.recent ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
           Recent Benchmark Workouts
@@ -503,7 +503,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
   </div>
 </div>
                   <div className='flex items-center justify-between'>
-                    <p className='text-lg font-bold text-[#208479]'>
+                    <p className='text-lg font-bold text-[#178da6]'>
                       {result.result_value || result.time_result || result.reps_result || result.weight_result}
                     </p>
                     <p className='text-sm text-gray-600'>
@@ -527,7 +527,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
       <div className='bg-white rounded-xl shadow p-3 sm:p-6'>
         <button
           onClick={() => setExpandedSections(prev => ({ ...prev, charts: !prev.charts }))}
-          className='flex items-center gap-2 text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4 hover:text-[#208479] transition'
+          className='flex items-center gap-2 text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4 hover:text-[#178da6] transition'
         >
           {expandedSections.charts ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
           Progress Charts
@@ -568,7 +568,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                                   <p className='text-xs text-gray-900 font-semibold'>
                                     {payload[0].payload.date}
                                   </p>
-                                  <p className='text-xs text-[#208479] font-semibold'>
+                                  <p className='text-xs text-[#178da6] font-semibold'>
                                     {payload[0].payload.result_valueDisplay}
                                   </p>
                                   <p className='text-xs text-gray-600'>
@@ -586,7 +586,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                         <Line
                           type='monotone'
                           dataKey='value'
-                          stroke='#208479'
+                          stroke='#178da6'
                           strokeWidth={2}
                           dot={<CustomDot />}
                           activeDot={{ r: 6, strokeWidth: 2, stroke: '#fff' }}
@@ -647,7 +647,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                   type='date'
                   value={newDate}
                   onChange={e => setNewDate(e.target.value)}
-                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-100 date-input-calendar'
+                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-100 date-input-calendar'
                   style={{
                     colorScheme: 'dark'
                   }}
@@ -661,7 +661,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                   value={newTime}
                   onChange={e => setNewTime(e.target.value)}
                   placeholder='e.g., 12:45, 150 reps, 225 lbs'
-                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-100'
+                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-100'
                 />
               </div>
 
@@ -670,7 +670,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                 <select
                   value={newScaling}
                   onChange={e => setNewScaling(e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3')}
-                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-100'
+                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-100'
                 >
                   <option value='Rx'>Rx (As Prescribed)</option>
                   <option value='Sc1'>Scaled 1</option>
@@ -686,7 +686,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                   onChange={e => setNewNotes(e.target.value)}
                   placeholder='How did it feel? Any modifications?'
                   rows={4}
-                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-100 resize-none'
+                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-100 resize-none'
                 />
               </div>
 
@@ -707,7 +707,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                 <button
                   onClick={handleSaveBenchmark}
                   disabled={!newTime}
-                  className='flex-1 px-4 py-2 min-h-[44px] bg-[#208479] hover:bg-[#1a6b62] text-white font-medium rounded-lg transition disabled:bg-gray-500 disabled:cursor-not-allowed'
+                  className='flex-1 px-4 py-2 min-h-[44px] bg-[#178da6] hover:bg-[#14758c] text-white font-medium rounded-lg transition disabled:bg-gray-500 disabled:cursor-not-allowed'
                 >
                   {editingBenchmarkId ? 'Update' : 'Save'}
                 </button>
@@ -753,7 +753,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                       <div className='flex gap-2'>
                         <button
                           onClick={() => handleEditBenchmark(entry)}
-                          className='p-2 text-gray-600 hover:text-[#208479] hover:bg-white rounded transition'
+                          className='p-2 text-gray-600 hover:text-[#178da6] hover:bg-white rounded transition'
                         >
                           <Edit2 size={16} />
                         </button>

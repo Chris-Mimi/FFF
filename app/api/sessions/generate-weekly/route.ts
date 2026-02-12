@@ -71,7 +71,6 @@ export async function POST(request: NextRequest) {
       time: string;
       workout_type: string;
       session_id: string;
-      workout_id: string;
     }> = [];
 
     // Generate sessions for each template
@@ -100,30 +99,14 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-      // Create placeholder workout
-      const { data: workout, error: workoutError } = await supabaseAdmin
-        .from('wods')
-        .insert({
-          date: formattedDate,
-          title: template.workout_type,
-          sections: [], // Empty placeholder
-          class_times: [] // Empty placeholder for class times
-        })
-        .select()
-        .single();
-
-      if (workoutError) {
-        console.error('Error creating workout:', workoutError);
-        continue;
-      }
-
-      // Create weekly session linked to the workout
+      // Create weekly session without a placeholder WOD
+      // The WOD record will be created when the coach actually adds workout content
       const { data: session, error: sessionError } = await supabaseAdmin
         .from('weekly_sessions')
         .insert({
           date: formattedDate,
           time: template.time,
-          workout_id: workout.id,
+          workout_type: template.workout_type,
           capacity: template.default_capacity,
           status: 'published' // Immediately bookable by members
         })
@@ -132,8 +115,6 @@ export async function POST(request: NextRequest) {
 
       if (sessionError) {
         console.error('Error creating session:', sessionError);
-        // Rollback: Delete the workout if session creation fails
-        await supabaseAdmin.from('wods').delete().eq('id', workout.id);
         continue;
       }
 
@@ -142,7 +123,6 @@ export async function POST(request: NextRequest) {
         time: template.time,
         workout_type: template.workout_type,
         session_id: session.id,
-        workout_id: workout.id
       });
     }
 

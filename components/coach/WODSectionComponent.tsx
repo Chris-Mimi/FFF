@@ -144,7 +144,7 @@ function WODSectionComponent({
             <select
               value={section.type}
               onChange={e => onUpdate({ type: e.target.value })}
-              className='px-3 py-1 border border-gray-300 rounded text-sm font-semibold focus:ring-2 focus:ring-[#208479] focus:border-transparent bg-white text-gray-900'
+              className='px-3 py-1 border border-gray-300 rounded text-sm font-semibold focus:ring-2 focus:ring-[#178da6] focus:border-transparent bg-white text-gray-900'
               disabled={loadingTracks}
             >
               {sectionTypes.map(type => (
@@ -160,7 +160,7 @@ function WODSectionComponent({
                 value={section.duration}
                 onChange={e => onUpdate({ duration: parseInt(e.target.value) || 0 })}
                 min='0'
-                className='w-16 px-2 py-1 border border-gray-300 rounded text-center focus:ring-2 focus:ring-[#208479] focus:border-transparent bg-white text-gray-900'
+                className='w-16 px-2 py-1 border border-gray-300 rounded text-center focus:ring-2 focus:ring-[#178da6] focus:border-transparent bg-white text-gray-900'
               />
               <span className='text-gray-700'>mins</span>
             </div>
@@ -176,7 +176,7 @@ function WODSectionComponent({
                 <select
                   value={section.workout_type_id || ''}
                   onChange={e => onUpdate({ workout_type_id: e.target.value })}
-                  className='px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 bg-white text-xs'
+                  className='px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 bg-white text-xs'
                   disabled={loadingTracks}
                 >
                   <option value=''>Select Type...</option>
@@ -532,7 +532,7 @@ function WODSectionComponent({
                 placeholder='Add exercises (one per line):&#10;* Burpees&#10;* Elephant Walk&#10;* ATY Raises'
                 rows={3}
                 data-section-id={section.id}
-                className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent font-mono text-sm bg-white resize-none overflow-hidden min-h-[80px] text-gray-900 placeholder-gray-400'
+                className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent font-mono text-sm bg-white resize-none overflow-hidden min-h-[80px] text-gray-900 placeholder-gray-400'
               />
               <p className='text-xs text-gray-600'>
                 Tip: Use * for bullet points, add reps/sets, cut/paste, reorder freely

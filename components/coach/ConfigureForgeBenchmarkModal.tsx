@@ -127,7 +127,7 @@ function ConfigureForgeBenchmarkModal({
       >
         {/* Header - Draggable */}
         <div
-          className='bg-[#208479] text-white p-4 flex justify-between items-center sticky top-0 z-10 cursor-move'
+          className='bg-[#178da6] text-white p-4 flex justify-between items-center sticky top-0 z-10 cursor-move'
           onMouseDown={handleDragStart}
         >
           <div className='flex items-center gap-2'>
@@ -135,7 +135,7 @@ function ConfigureForgeBenchmarkModal({
           </div>
           <button
             onClick={onClose}
-            className='bg-white text-[#208479] hover:bg-gray-100 px-4 py-2 rounded-lg font-semibold transition'
+            className='bg-white text-[#178da6] hover:bg-gray-100 px-4 py-2 rounded-lg font-semibold transition'
           >
             Done
           </button>
@@ -153,7 +153,7 @@ function ConfigureForgeBenchmarkModal({
                 <select
                   value={selectedSectionId}
                   onChange={e => setSelectedSectionId(e.target.value)}
-                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent appearance-none pr-10'
+                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent appearance-none pr-10'
                 >
                   {availableSections.map(section => (
                     <option key={section.id} value={section.id}>
@@ -166,7 +166,7 @@ function ConfigureForgeBenchmarkModal({
             </div>
             <button
               onClick={handleAdd}
-              className='mt-7 px-6 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white rounded-lg font-semibold transition'
+              className='mt-7 px-6 py-2 bg-[#178da6] hover:bg-[#14758c] text-white rounded-lg font-semibold transition'
             >
               Add
             </button>
@@ -201,7 +201,7 @@ function ConfigureForgeBenchmarkModal({
                 value={athleteNotes}
                 onChange={e => setAthleteNotes(e.target.value)}
                 placeholder='Notes visible to athletes'
-                className='mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                className='mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
                 rows={3}
               />
             )}

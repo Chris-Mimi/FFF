@@ -53,7 +53,7 @@ export default function TracksTab({
             <div
               key={track.id}
               className='bg-white rounded-lg p-4 border-2 hover:shadow-md transition'
-              style={{ borderColor: track.color || '#208479' }}
+              style={{ borderColor: track.color || '#178da6' }}
             >
               <div className='flex justify-between items-start mb-2'>
                 <h3 className='font-semibold text-gray-900'>{track.name}</h3>
@@ -77,7 +77,7 @@ export default function TracksTab({
               )}
               <div
                 className='mt-2 h-2 rounded'
-                style={{ backgroundColor: track.color || '#208479' }}
+                style={{ backgroundColor: track.color || '#178da6' }}
               />
             </div>
           ))}

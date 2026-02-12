@@ -68,8 +68,8 @@ export default function ComponentName({ prop1, prop2, onAction }: ComponentNameP
 
 1. **Styling:**
    - Use Tailwind CSS classes
-   - Primary color: `#208479` (teal) - use `bg-[#208479]`, `text-[#208479]`
-   - Hover color: `#1a6b62` - use `hover:bg-[#1a6b62]`
+   - Primary color: `#178da6` (teal) - use `bg-[#178da6]`, `text-[#178da6]`
+   - Hover color: `#14758c` - use `hover:bg-[#14758c]`
    - Text colors: `text-gray-900` for primary, `text-gray-600` for secondary
    - Rounded corners: `rounded-lg` for cards, `rounded` for buttons
    - Shadows: `shadow` for cards, `shadow-xl` for modals
@@ -80,15 +80,15 @@ export default function ComponentName({ prop1, prop2, onAction }: ComponentNameP
    - Empty states:
      `<div className="text-center text-gray-500">No data available</div>`
    - Buttons:
-     `className="px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white font-medium rounded-lg transition"`
+     `className="px-4 py-2 bg-[#178da6] hover:bg-[#14758c] text-white font-medium rounded-lg transition"`
    - Cards: `className="bg-white rounded-lg shadow p-6"`
    - Inputs:
-     `className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900"`
+     `className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900"`
 
 3. **Icons:**
    - Import from `lucide-react`
    - Example: `import { User, Trophy, Dumbbell } from 'lucide-react'`
-   - Usage: `<User size={20} className="text-[#208479]" />`
+   - Usage: `<User size={20} className="text-[#178da6]" />`
 
 4. **Supabase Integration:**
 

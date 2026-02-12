@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 11.2
-**Updated:** 2026-02-12 (Session 113 - Database Cleanup, formatWodSummary Fix)
+**Version:** 11.3
+**Updated:** 2026-02-12 (Session 114 - Placeholder WOD Fix, Ocean Teal Colors)
 
 ---
 
@@ -46,7 +46,7 @@ Coach Tables
 ├─ naming_conventions (id, category [equipment|movementTypes|anatomicalTerms|movementPatterns], abbr, full_name, notes)
 ├─ resources (id, name, description, url, category)
 ├─ tracks (id, name, description, color)
-├─ weekly_sessions (id, date, time, workout_id, capacity, status)
+├─ weekly_sessions (id, date, time, workout_id, workout_type: TEXT, capacity, status)
 ├─ benchmark_workouts (id, name, type, description, display_order, has_scaling)
 ├─ forge_benchmarks (id, name, type, description, display_order, has_scaling)
 ├─ barbell_lifts (id, name, category, display_order)
@@ -80,10 +80,14 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-12 Session 114 - Opus 4.6):**
+- **✅ Placeholder WOD fix** — `generate-weekly` route no longer creates empty WOD records. Added `workout_type` column to `weekly_sessions`, backfilled from WODs + templates. Booking page + coach calendar read from `weekly_sessions.workout_type`.
+- **✅ Unpublished drafts review** — Identified 11 drafts (4 empty shells, 5 attendee-only, 1 partial, 1 real content "Gymnastic Ring Drills"). User deleting via SQL Editor.
+- **⚠️ Ocean Teal color change (INCOMPLETE)** — Overrode Tailwind `teal` palette in config + replaced `#208479`→`#178da6` and `#1a6b62`→`#14758c` across source. Some colors not changing at runtime — needs investigation next session.
+- See: `project-history/2026-02-12-session-114-placeholder-wod-fix-ocean-teal.md`
+
 **Completed (2026-02-12 Session 113 - Opus 4.6):**
-- **✅ Database cleanup** — Deleted 70 records: 68 empty unpublished shells + 2 published orphans ("Strict Movements" Dec 1, "Weekend WOD" Jan 12). Table: 196 → 126 records.
-- **✅ Session type fix** — Changed "Session" → "WOD" for Endurance #26.21 (Sat Jan 24).
-- **✅ formatWodSummary fix** — Prefers "WOD" sections over "Final prep/Info" when both have workout_type_id. Fixes wrong duration display (10' → 45').
+- **✅ Database cleanup** — Deleted 70 records. formatWodSummary section priority fix.
 - See: `project-history/2026-02-12-session-113-database-cleanup.md`
 
 **Completed (2026-02-12 Session 112 - Opus 4.6):**
@@ -98,11 +102,7 @@ Social Tables
 - **✅ Fix "Unknown" names, photo lightbox, weekly leaderboard, gender system**
 - See: `project-history/2026-02-12-session-109-weekly-leaderboard-gender-filter.md`
 
-**Completed (2026-02-11 Session 108 - Opus 4.6):**
-- **✅ Multi-Source WOD Leaderboard** — All 3 data sources, item picker pills, ±30 day grouping.
-- See: `project-history/2026-02-11-session-108-multi-source-leaderboard.md`
-
-**Older Sessions (57-106):**
+**Older Sessions (57-108):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -171,16 +171,19 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 114 Priorities
+### Session 115 Priorities
 
-**Investigate:**
-- **Empty WOD shell creation** — Schedule page creates empty WOD records when time slots are viewed. 68 accumulated in ~1 month. Consider not creating WOD records until coach starts editing, or auto-cleanup.
-- **11 unpublished drafts with content** — Review if these should be deleted or kept (some may be work in progress)
+**URGENT — Fix Ocean Teal colors:**
+- Some teal colors not applying at runtime despite config override + hex replacement
+- Debug: check if Tailwind v4 CSS `@theme` overrides needed instead of/in addition to `tailwind.config.ts`
+- Verify `teal-50` (used in `bg-teal-50`) — may need CSS-level override for Tailwind v4
+- Check if any colors are defined in `globals.css` or CSS custom properties
 
 **Testing:**
 - **Test max_time scoring** — Create a workout with Max Time checkbox, verify athlete sees time input, leaderboard ranks longer = better
 - **Test multi-source leaderboard live** — Verify lift/benchmark/content items all load with weekly nav
 - **Test gender filter** — Set gender on a few members via coach admin, verify M/F filter works
+- **Test placeholder WOD fix** — Click "This Week"/"Next Week" on Schedule, verify no empty WOD records created, booking page shows correct workout_type
 
 **Code Improvements (from Session 103 review):**
 - #3 Add escape key handlers to modals/popups

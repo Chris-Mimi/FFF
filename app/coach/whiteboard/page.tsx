@@ -151,7 +151,7 @@ export default function WhiteboardPage() {
   return (
     <div className='min-h-screen bg-gray-50'>
       {/* Header */}
-      <header className='bg-[#208479] text-white p-2 md:p-4 shadow-lg sticky top-0 z-50'>
+      <header className='bg-[#178da6] text-white p-2 md:p-4 shadow-lg sticky top-0 z-50'>
         <div className='max-w-7xl mx-auto flex items-center justify-between gap-2 md:gap-4'>
           <div className='flex items-center gap-2 md:gap-4'>
             <button

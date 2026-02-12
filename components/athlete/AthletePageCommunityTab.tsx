@@ -364,7 +364,7 @@ export default function AthletePageCommunityTab({ userId, initialDate, onDateCha
         <LeaderboardView userId={userId} initialDate={initialDate} onDateChange={onDateChange} />
       ) : loading ? (
         <div className='flex justify-center py-12'>
-          <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-[#208479]' />
+          <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-[#178da6]' />
         </div>
       ) : (
       <>
@@ -397,13 +397,13 @@ export default function AthletePageCommunityTab({ userId, initialDate, onDateCha
               <div
                 key={`${item.targetType}-${item.id}`}
                 className={`bg-white rounded-lg shadow-sm p-4 border ${
-                  isOwnResult ? 'border-[#208479]/30' : 'border-gray-100'
+                  isOwnResult ? 'border-[#178da6]/30' : 'border-gray-100'
                 }`}
               >
                 {/* Header: name + date + badge */}
                 <div className='flex items-center justify-between mb-2'>
                   <div className='flex items-center gap-2'>
-                    <div className='w-8 h-8 rounded-full bg-[#208479] text-white flex items-center justify-center text-sm font-bold flex-shrink-0'>
+                    <div className='w-8 h-8 rounded-full bg-[#178da6] text-white flex items-center justify-center text-sm font-bold flex-shrink-0'>
                       {item.memberName.charAt(0).toUpperCase()}
                     </div>
                     <div>
@@ -446,7 +446,7 @@ export default function AthletePageCommunityTab({ userId, initialDate, onDateCha
           <button
             onClick={handleLoadMore}
             disabled={loadingMore}
-            className='px-6 py-2 bg-[#208479] text-white rounded-lg hover:bg-[#1a6b62] transition disabled:opacity-50 text-sm font-medium'
+            className='px-6 py-2 bg-[#178da6] text-white rounded-lg hover:bg-[#14758c] transition disabled:opacity-50 text-sm font-medium'
           >
             {loadingMore ? 'Loading...' : 'Load Earlier Results'}
           </button>

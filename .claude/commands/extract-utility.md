@@ -254,7 +254,7 @@ const workouts = await handleSupabaseQuery(
 
 ```typescript
 // Duplicated button styling
-<button className="px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white font-medium rounded-lg transition">
+<button className="px-4 py-2 bg-[#178da6] hover:bg-[#14758c] text-white font-medium rounded-lg transition">
 ```
 
 **After (component or utility):**
@@ -273,7 +273,7 @@ export const Button = ({ children, onClick, variant = 'primary', size = 'md' }: 
   const baseClasses = 'font-medium rounded-lg transition';
 
   const variantClasses = {
-    primary: 'bg-[#208479] hover:bg-[#1a6b62] text-white',
+    primary: 'bg-[#178da6] hover:bg-[#14758c] text-white',
     secondary: 'bg-gray-200 hover:bg-gray-300 text-gray-900',
     danger: 'bg-red-600 hover:bg-red-700 text-white',
   };

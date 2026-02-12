@@ -235,7 +235,7 @@ function ConfigureLiftModal({
       >
         {/* Header - Draggable */}
         <div
-          className='bg-[#208479] text-white p-4 flex justify-between items-center sticky top-0 z-10 cursor-move'
+          className='bg-[#178da6] text-white p-4 flex justify-between items-center sticky top-0 z-10 cursor-move'
           onMouseDown={handleDragStart}
         >
           <div className='flex items-center gap-2'>
@@ -243,7 +243,7 @@ function ConfigureLiftModal({
           </div>
           <button
             onClick={onClose}
-            className='bg-white text-[#208479] hover:bg-gray-100 px-4 py-2 rounded-lg font-semibold transition'
+            className='bg-white text-[#178da6] hover:bg-gray-100 px-4 py-2 rounded-lg font-semibold transition'
           >
             Done
           </button>
@@ -261,7 +261,7 @@ function ConfigureLiftModal({
                 <select
                   value={selectedSectionId}
                   onChange={e => setSelectedSectionId(e.target.value)}
-                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent appearance-none pr-10 text-gray-900'
+                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent appearance-none pr-10 text-gray-900'
                 >
                   {availableSections.map(section => (
                     <option key={section.id} value={section.id}>
@@ -274,7 +274,7 @@ function ConfigureLiftModal({
             </div>
             <button
               onClick={handleAdd}
-              className='mt-7 px-6 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white rounded-lg font-semibold transition'
+              className='mt-7 px-6 py-2 bg-[#178da6] hover:bg-[#14758c] text-white rounded-lg font-semibold transition'
             >
               {editingLift ? 'Update' : 'Add'}
             </button>
@@ -348,7 +348,7 @@ function ConfigureLiftModal({
                     onClick={() => setRepType('constant')}
                     className={`flex-1 px-4 py-3 font-semibold transition ${
                       repType === 'constant'
-                        ? 'bg-white text-[#208479] border-b-2 border-[#208479]'
+                        ? 'bg-white text-[#178da6] border-b-2 border-[#178da6]'
                         : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                     }`}
                   >
@@ -358,7 +358,7 @@ function ConfigureLiftModal({
                     onClick={() => setRepType('variable')}
                     className={`flex-1 px-4 py-3 font-semibold transition ${
                       repType === 'variable'
-                        ? 'bg-white text-[#208479] border-b-2 border-[#208479]'
+                        ? 'bg-white text-[#178da6] border-b-2 border-[#178da6]'
                         : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                     }`}
                   >
@@ -391,7 +391,7 @@ function ConfigureLiftModal({
                       type='number'
                       value={sets}
                       onChange={e => setSets(Math.max(1, parseInt(e.target.value) || 1))}
-                      className='w-32 px-4 py-3 text-3xl text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                      className='w-32 px-4 py-3 text-3xl text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
                     />
                     <div className='flex gap-2'>
                       <button
@@ -421,7 +421,7 @@ function ConfigureLiftModal({
                       type='number'
                       value={reps}
                       onChange={e => setReps(Math.max(1, parseInt(e.target.value) || 1))}
-                      className='w-32 px-4 py-3 text-3xl text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                      className='w-32 px-4 py-3 text-3xl text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
                     />
                     <div className='flex gap-2'>
                       <button
@@ -454,7 +454,7 @@ function ConfigureLiftModal({
                     placeholder='e.g., 75'
                     min='0'
                     max='100'
-                    className='flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                    className='flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
                   />
                   <span className='text-gray-600 font-semibold'>%</span>
                 </div>
@@ -484,7 +484,7 @@ function ConfigureLiftModal({
                             type='number'
                             value={set.reps}
                             onChange={e => handleUpdateVariableSet(idx, 'reps', parseInt(e.target.value) || 1)}
-                            className='w-full px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                            className='w-full px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
                             min='1'
                           />
                         </td>
@@ -494,7 +494,7 @@ function ConfigureLiftModal({
                             value={set.percentage_1rm || ''}
                             onChange={e => handleUpdateVariableSet(idx, 'percentage_1rm', e.target.value ? parseInt(e.target.value) : undefined)}
                             placeholder='%'
-                            className='w-full px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                            className='w-full px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
                             min='0'
                             max='100'
                           />
@@ -540,7 +540,7 @@ function ConfigureLiftModal({
                 value={athleteNotes}
                 onChange={e => setAthleteNotes(e.target.value)}
                 placeholder='Notes visible to athletes'
-                className='mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                className='mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
                 rows={3}
               />
             )}

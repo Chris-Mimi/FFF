@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Teal Color Options - More Blue</title>
+<style>
+  body { background: #1a1a2e; color: #e0e0e0; font-family: system-ui, sans-serif; padding: 40px; }
+  h1 { color: #fff; margin-bottom: 8px; }
+  h2 { color: #ccc; margin-top: 40px; margin-bottom: 16px; border-bottom: 1px solid #333; padding-bottom: 8px; }
+  h3 { color: #aaa; margin: 24px 0 12px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+  .subtitle { color: #888; margin-bottom: 32px; }
+  .palette { display: flex; gap: 4px; margin-bottom: 8px; }
+  .swatch { width: 80px; height: 60px; border-radius: 8px; display: flex; align-items: end; justify-content: center; padding-bottom: 4px; font-size: 10px; font-weight: 600; }
+  .swatch.tall { height: 80px; }
+  .label { font-size: 12px; color: #888; margin-bottom: 4px; }
+  .demo-row { display: flex; gap: 24px; margin: 20px 0; flex-wrap: wrap; }
+  .demo-card { background: #111827; border-radius: 12px; overflow: hidden; width: 300px; }
+  .demo-header { padding: 16px 20px; color: white; font-weight: 700; font-size: 16px; }
+  .demo-body { padding: 16px 20px; }
+  .demo-body p { font-size: 13px; color: #9ca3af; margin: 0 0 12px; }
+  .demo-btn { padding: 8px 20px; border: none; border-radius: 8px; color: white; font-weight: 600; font-size: 13px; cursor: pointer; }
+  .demo-gradient { padding: 40px; border-radius: 12px; color: white; text-align: center; width: 300px; }
+  .demo-gradient h3 { color: white; margin: 0 0 4px; text-transform: none; letter-spacing: 0; font-size: 20px; }
+  .demo-gradient p { opacity: 0.8; margin: 0; font-size: 14px; }
+  .demo-tab-row { display: flex; gap: 2px; margin-top: 12px; }
+  .demo-tab { padding: 6px 14px; border-radius: 6px 6px 0 0; font-size: 12px; font-weight: 600; }
+  .demo-tab.active { color: white; }
+  .demo-tab.inactive { background: transparent; color: #6b7280; border: 1px solid #374151; border-bottom: none; }
+  .winner { border: 2px solid #fbbf24; position: relative; }
+  .winner::after { content: "RECOMMENDED"; position: absolute; top: -10px; right: 12px; background: #fbbf24; color: #000; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; }
+  .compare-section { display: flex; gap: 32px; flex-wrap: wrap; margin: 24px 0; }
+  .note { background: #1e293b; padding: 12px 16px; border-radius: 8px; font-size: 13px; color: #94a3b8; margin: 12px 0; max-width: 700px; }
+</style>
+</head>
+<body>
+
+<h1>Teal Color Options</h1>
+<p class="subtitle">Current vs blue-shifted alternatives for Forge Functional Fitness</p>
+
+<!-- ===== CURRENT ===== -->
+<h2>CURRENT: Tailwind Teal (green-heavy)</h2>
+<p class="label">tailwind teal-400 through teal-900 + custom #1a6b62, #208479</p>
+<div class="palette">
+  <div class="swatch" style="background:#2dd4bf;color:#000">400</div>
+  <div class="swatch" style="background:#14b8a6;color:#000">500</div>
+  <div class="swatch" style="background:#0d9488;color:#fff">600</div>
+  <div class="swatch" style="background:#0f766e;color:#fff">700</div>
+  <div class="swatch" style="background:#115e59;color:#fff">800</div>
+  <div class="swatch" style="background:#134e4a;color:#fff">900</div>
+  <div class="swatch" style="background:#208479;color:#fff">#208479</div>
+  <div class="swatch" style="background:#1a6b62;color:#fff">#1a6b62</div>
+</div>
+
+<!-- ===== OPTION A ===== -->
+<h2>OPTION A: Blue Teal (subtle shift)</h2>
+<p class="label">Teal shifted ~15 degrees toward blue. Still recognizably teal, but cooler.</p>
+<div class="palette">
+  <div class="swatch" style="background:#2dd4d4;color:#000">400</div>
+  <div class="swatch" style="background:#14b0b8;color:#000">500</div>
+  <div class="swatch" style="background:#0d8894;color:#fff">600</div>
+  <div class="swatch" style="background:#0f6e76;color:#fff">700</div>
+  <div class="swatch" style="background:#115962;color:#fff">800</div>
+  <div class="swatch" style="background:#134a50;color:#fff">900</div>
+</div>
+
+<!-- ===== OPTION B ===== -->
+<h2>OPTION B: Ocean Teal (moderate shift)</h2>
+<p class="label">Noticeably more blue, like deep ocean water. Good balance of teal identity + blue coolness.</p>
+<div class="palette">
+  <div class="swatch" style="background:#38bfd8;color:#000">400</div>
+  <div class="swatch" style="background:#20a5bf;color:#000">500</div>
+  <div class="swatch" style="background:#178da6;color:#fff">600</div>
+  <div class="swatch" style="background:#14758c;color:#fff">700</div>
+  <div class="swatch" style="background:#105e73;color:#fff">800</div>
+  <div class="swatch" style="background:#0d4d5f;color:#fff">900</div>
+</div>
+
+<!-- ===== OPTION C ===== -->
+<h2>OPTION C: Tailwind Cyan (strong blue shift)</h2>
+<p class="label">Tailwind's built-in cyan palette. Very blue, minimal green.</p>
+<div class="palette">
+  <div class="swatch" style="background:#22d3ee;color:#000">400</div>
+  <div class="swatch" style="background:#06b6d4;color:#000">500</div>
+  <div class="swatch" style="background:#0891b2;color:#fff">600</div>
+  <div class="swatch" style="background:#0e7490;color:#fff">700</div>
+  <div class="swatch" style="background:#155e75;color:#fff">800</div>
+  <div class="swatch" style="background:#164e63;color:#fff">900</div>
+</div>
+
+<!-- ===== OPTION D ===== -->
+<h2>OPTION D: Steel Teal (muted, sophisticated)</h2>
+<p class="label">Desaturated blue-teal. Professional, less vibrant. Good for dark UI.</p>
+<div class="palette">
+  <div class="swatch" style="background:#5bb8c9;color:#000">400</div>
+  <div class="swatch" style="background:#3d9db0;color:#fff">500</div>
+  <div class="swatch" style="background:#2d8496;color:#fff">600</div>
+  <div class="swatch" style="background:#236d7d;color:#fff">700</div>
+  <div class="swatch" style="background:#1b5866;color:#fff">800</div>
+  <div class="swatch" style="background:#154752;color:#fff">900</div>
+</div>
+
+<!-- ===== SIDE BY SIDE DEMOS ===== -->
+<h2>Side-by-Side: Header + Button + Login Demo</h2>
+
+<h3>Headers</h3>
+<div class="demo-row">
+  <div class="demo-card">
+    <div class="demo-header" style="background:linear-gradient(135deg,#0f766e,#115e59)">Current Teal</div>
+    <div class="demo-body"><p>Standard Tailwind teal-700/800</p></div>
+  </div>
+  <div class="demo-card">
+    <div class="demo-header" style="background:linear-gradient(135deg,#0f6e76,#115962)">A: Blue Teal</div>
+    <div class="demo-body"><p>Subtle blue shift</p></div>
+  </div>
+  <div class="demo-card">
+    <div class="demo-header" style="background:linear-gradient(135deg,#14758c,#105e73)">B: Ocean Teal</div>
+    <div class="demo-body"><p>Moderate blue shift</p></div>
+  </div>
+  <div class="demo-card">
+    <div class="demo-header" style="background:linear-gradient(135deg,#0e7490,#155e75)">C: Cyan</div>
+    <div class="demo-body"><p>Tailwind cyan-700/800</p></div>
+  </div>
+  <div class="demo-card">
+    <div class="demo-header" style="background:linear-gradient(135deg,#236d7d,#1b5866)">D: Steel Teal</div>
+    <div class="demo-body"><p>Muted, professional</p></div>
+  </div>
+</div>
+
+<h3>Buttons (500 shade)</h3>
+<div class="demo-row" style="align-items:center; gap:16px;">
+  <button class="demo-btn" style="background:#14b8a6">Current</button>
+  <button class="demo-btn" style="background:#14b0b8">A: Blue Teal</button>
+  <button class="demo-btn" style="background:#20a5bf">B: Ocean</button>
+  <button class="demo-btn" style="background:#06b6d4">C: Cyan</button>
+  <button class="demo-btn" style="background:#3d9db0">D: Steel</button>
+</div>
+
+<h3>Login Page Gradient (700 to 900)</h3>
+<div class="demo-row">
+  <div class="demo-gradient" style="background:linear-gradient(135deg,#0f766e,#134e4a)">
+    <h3>Current</h3><p>teal-700 to teal-900</p>
+  </div>
+  <div class="demo-gradient" style="background:linear-gradient(135deg,#0f6e76,#134a50)">
+    <h3>A: Blue Teal</h3><p>Subtle shift</p>
+  </div>
+  <div class="demo-gradient" style="background:linear-gradient(135deg,#14758c,#0d4d5f)">
+    <h3>B: Ocean</h3><p>More blue depth</p>
+  </div>
+  <div class="demo-gradient" style="background:linear-gradient(135deg,#0e7490,#164e63)">
+    <h3>C: Cyan</h3><p>Strong blue</p>
+  </div>
+  <div class="demo-gradient" style="background:linear-gradient(135deg,#236d7d,#154752)">
+    <h3>D: Steel</h3><p>Muted sophistication</p>
+  </div>
+</div>
+
+<h3>Active Tab Indicator</h3>
+<div class="demo-row">
+  <div style="background:#111827;padding:16px;border-radius:12px;">
+    <div style="font-size:12px;color:#666;margin-bottom:8px;">Current</div>
+    <div class="demo-tab-row">
+      <div class="demo-tab active" style="background:#14b8a6">Workouts</div>
+      <div class="demo-tab inactive">Lifts</div>
+      <div class="demo-tab inactive">Benchmarks</div>
+    </div>
+  </div>
+  <div style="background:#111827;padding:16px;border-radius:12px;">
+    <div style="font-size:12px;color:#666;margin-bottom:8px;">B: Ocean Teal</div>
+    <div class="demo-tab-row">
+      <div class="demo-tab active" style="background:#20a5bf">Workouts</div>
+      <div class="demo-tab inactive">Lifts</div>
+      <div class="demo-tab inactive">Benchmarks</div>
+    </div>
+  </div>
+  <div style="background:#111827;padding:16px;border-radius:12px;">
+    <div style="font-size:12px;color:#666;margin-bottom:8px;">C: Cyan</div>
+    <div class="demo-tab-row">
+      <div class="demo-tab active" style="background:#06b6d4">Workouts</div>
+      <div class="demo-tab inactive">Lifts</div>
+      <div class="demo-tab inactive">Benchmarks</div>
+    </div>
+  </div>
+</div>
+
+<div class="note">
+  <strong>Implementation note:</strong> The cleanest approach is to define a custom color in <code>tailwind.config.ts</code> (e.g., <code>brand: { 400: '...', 500: '...', ... }</code>), then find-and-replace <code>teal-</code> with <code>brand-</code> across the codebase (~557 occurrences in 78 files). This way future color tweaks only need one config change.
+</div>
+
+</body>
+</html>

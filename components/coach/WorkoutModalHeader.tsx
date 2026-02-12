@@ -43,7 +43,7 @@ export default function WorkoutModalHeader({
   onClose,
 }: WorkoutModalHeaderProps) {
   return (
-    <div className='bg-[#208479] text-white p-2 md:p-4 flex justify-between items-center gap-2'>
+    <div className='bg-[#178da6] text-white p-2 md:p-4 flex justify-between items-center gap-2'>
       <h2 className='text-sm md:text-xl font-bold whitespace-nowrap'>{editingWOD ? 'Edit' : 'New'}<span className='hidden md:inline'> Workout</span></h2>
       <div className='flex items-center gap-1 md:gap-2 flex-wrap justify-end'>
         <button
@@ -51,7 +51,7 @@ export default function WorkoutModalHeader({
             e.preventDefault();
             onNotesToggle(!notesPanelOpen);
           }}
-          className={`hover:bg-[#1a6b62] p-1.5 md:p-2 rounded transition flex items-center gap-1 md:gap-2 ${notesPanelOpen ? 'bg-[#1a6b62]' : ''} ${hasNotes && !notesPanelOpen ? 'bg-teal-500 hover:bg-teal-800' : ''}`}
+          className={`hover:bg-[#14758c] p-1.5 md:p-2 rounded transition flex items-center gap-1 md:gap-2 ${notesPanelOpen ? 'bg-[#14758c]' : ''} ${hasNotes && !notesPanelOpen ? 'bg-teal-500 hover:bg-teal-800' : ''}`}
           title={hasNotes ? 'Coach Notes (Has content)' : 'Coach Notes (Empty)'}
         >
           <FileText size={18} className={hasNotes && !notesPanelOpen ? 'text-white' : ''} />
@@ -77,7 +77,7 @@ export default function WorkoutModalHeader({
                   e.preventDefault();
                   onPublishClick();
                 }}
-                className='hover:bg-[#1a6b62] p-1.5 md:p-2 rounded transition flex items-center gap-1 md:gap-2'
+                className='hover:bg-[#14758c] p-1.5 md:p-2 rounded transition flex items-center gap-1 md:gap-2'
                 title='Re-publish to Google Calendar'
               >
                 <RefreshCw size={18} />
@@ -88,7 +88,7 @@ export default function WorkoutModalHeader({
                   e.preventDefault();
                   onUnpublish();
                 }}
-                className='hover:bg-[#1a6b62] p-1.5 md:p-2 rounded transition flex items-center gap-1 md:gap-2'
+                className='hover:bg-[#14758c] p-1.5 md:p-2 rounded transition flex items-center gap-1 md:gap-2'
                 title='Unpublish Workout'
               >
                 <X size={18} />
@@ -101,7 +101,7 @@ export default function WorkoutModalHeader({
                 e.preventDefault();
                 onPublishClick();
               }}
-              className='hover:bg-[#1a6b62] p-1.5 md:p-2 rounded transition flex items-center gap-1 md:gap-2'
+              className='hover:bg-[#14758c] p-1.5 md:p-2 rounded transition flex items-center gap-1 md:gap-2'
               title='Publish Workout'
             >
               <Send size={18} />
@@ -114,13 +114,13 @@ export default function WorkoutModalHeader({
             e.preventDefault();
             await onSave();
           }}
-          className='hover:bg-[#1a6b62] p-1 rounded transition'
+          className='hover:bg-[#14758c] p-1 rounded transition'
           title='Save'
           aria-label='Save'
         >
           <Check size={22} />
         </button>
-        <button onClick={onClose} className='hover:bg-[#1a6b62] p-1 rounded transition' title='Close' aria-label='Close'>
+        <button onClick={onClose} className='hover:bg-[#14758c] p-1 rounded transition' title='Close' aria-label='Close'>
           <X size={22} />
         </button>
       </div>

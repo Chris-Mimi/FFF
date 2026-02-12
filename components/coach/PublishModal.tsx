@@ -136,7 +136,7 @@ export default function PublishModal({
               })}
             </p>
           </div>
-          <button onClick={onClose} className='hover:bg-[#1a6b62] p-2 rounded transition' aria-label='Close modal'>
+          <button onClick={onClose} className='hover:bg-[#14758c] p-2 rounded transition' aria-label='Close modal'>
             <X size={24} />
           </button>
         </div>
@@ -332,7 +332,7 @@ export default function PublishModal({
             <button
               onClick={handlePublish}
               disabled={isSubmitting || selectedSectionIds.length === 0}
-              className='px-4 py-2 bg-[#20766a] text-white rounded-lg hover:bg-[#1a6b62] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2'
+              className='px-4 py-2 bg-[#20766a] text-white rounded-lg hover:bg-[#14758c] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2'
             >
               <Send size={18} />
               {isSubmitting ? 'Publishing...' : currentPublishConfig ? 'Update' : 'Publish'}

@@ -67,7 +67,7 @@ export default function MonthView({
                           className={`text-xs rounded px-1 py-0.5 mb-1 truncate ${
                             wod.booked
                               ? 'bg-[#7dd3c0] text-gray-900 font-bold'
-                              : 'bg-[#208479] text-white'
+                              : 'bg-[#178da6] text-white'
                           }`}
                         >
                           {wod.booked ? 'Booked' : `${wod.session_type || wod.title}${(wod.workout_name || wod.tracks?.name) ? ` - ${wod.workout_name || wod.tracks?.name}` : ''}`}

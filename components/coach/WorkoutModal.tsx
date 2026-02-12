@@ -81,7 +81,7 @@ export default function WorkoutModal({
         />
 
         {/* WOD Panel - full width on mobile, 800px on desktop */}
-        <div className='fixed left-0 top-[72px] h-[calc(100vh-72px)] w-full lg:w-[800px] bg-white shadow-2xl z-50 flex flex-col border-r-2 border-[#208479] border-t border-gray-400 animate-slide-in-left'>
+        <div className='fixed left-0 top-[72px] h-[calc(100vh-72px)] w-full lg:w-[800px] bg-white shadow-2xl z-50 flex flex-col border-r-2 border-[#178da6] border-t border-gray-400 animate-slide-in-left'>
           {/* Header */}
           <WorkoutModalHeader
             editingWOD={editingWOD}
@@ -133,8 +133,8 @@ export default function WorkoutModal({
           >
             {/* Drop Zone Indicator */}
             {hook.isDragOver && (
-              <div className='sticky top-0 z-10 mb-4 border-2 border-dashed border-[#208479] rounded-lg p-4 text-center text-sm bg-teal-50 animate-pulse'>
-                <p className='font-semibold text-[#208479]'>Drop Here</p>
+              <div className='sticky top-0 z-10 mb-4 border-2 border-dashed border-[#178da6] rounded-lg p-4 text-center text-sm bg-teal-50 animate-pulse'>
+                <p className='font-semibold text-[#178da6]'>Drop Here</p>
                 <p className='text-xs text-gray-600'>Drop WOD or section to add to this workout</p>
               </div>
             )}
@@ -163,14 +163,14 @@ export default function WorkoutModal({
                   </label>
                   <p className='text-xs text-gray-600 mt-1'>
                     Total Duration:{' '}
-                    <span className='font-semibold text-[#208479]'>{totalDuration} mins</span>
+                    <span className='font-semibold text-[#178da6]'>{totalDuration} mins</span>
                   </p>
                 </div>
                 <div className='flex items-center gap-2'>
                   <button
                     type='button'
                     onClick={hook.openLibrary}
-                    className='px-4 py-2 bg-white hover:bg-gray-50 border-2 border-[#208479] text-[#208479] text-sm font-medium rounded-lg flex items-center gap-2 transition'
+                    className='px-4 py-2 bg-white hover:bg-gray-50 border-2 border-[#178da6] text-[#178da6] text-sm font-medium rounded-lg flex items-center gap-2 transition'
                     title='Open Exercise Library'
                   >
                     <Library size={16} />
@@ -179,7 +179,7 @@ export default function WorkoutModal({
                   <button
                     type='button'
                     onClick={hook.addSection}
-                    className='px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white text-sm font-medium rounded-lg flex items-center gap-2 transition'
+                    className='px-4 py-2 bg-[#178da6] hover:bg-[#14758c] text-white text-sm font-medium rounded-lg flex items-center gap-2 transition'
                   >
                     <Plus size={16} />
                     Section
@@ -374,7 +374,7 @@ export default function WorkoutModal({
                     value={hook.formData.title}
                     onChange={e => hook.handleChange('title', e.target.value)}
                     placeholder='Select or type custom title...'
-                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 placeholder-gray-400 ${
+                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 placeholder-gray-400 ${
                       hook.errors.title ? 'border-red-500' : 'border-gray-300'
                     }`}
                   />
@@ -393,7 +393,7 @@ export default function WorkoutModal({
                 <select
                   value={hook.formData.track_id || ''}
                   onChange={e => hook.handleChange('track_id', e.target.value)}
-                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 bg-white'
+                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 bg-white'
                   disabled={hook.loadingTracks}
                 >
                   <option value=''>Select Track...</option>
@@ -418,7 +418,7 @@ export default function WorkoutModal({
                       onChange={e => hook.handleChange('maxCapacity', parseInt(e.target.value) || 0)}
                       min='1'
                       max='30'
-                      className={`w-32 px-3 py-1.5 text-sm border rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 ${
+                      className={`w-32 px-3 py-1.5 text-sm border rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 ${
                         hook.errors.maxCapacity ? 'border-red-500' : 'border-gray-300'
                       }`}
                     />
@@ -434,12 +434,12 @@ export default function WorkoutModal({
                       <button
                         type='button'
                         onClick={() => hook.setApplySessionsOpen(!hook.applySessionsOpen)}
-                        className='mt-6 px-3 py-1.5 text-sm bg-white border-2 border-[#208479] text-[#208479] hover:bg-gray-50 rounded-lg flex items-center gap-2 transition'
+                        className='mt-6 px-3 py-1.5 text-sm bg-white border-2 border-[#178da6] text-[#178da6] hover:bg-gray-50 rounded-lg flex items-center gap-2 transition'
                         title='Apply this workout to other sessions'
                       >
                         <span>Apply to Sessions</span>
                         {hook.selectedSessionIds.size > 0 && (
-                          <span className='bg-[#208479] text-white text-xs px-1.5 py-0.5 rounded-full'>
+                          <span className='bg-[#178da6] text-white text-xs px-1.5 py-0.5 rounded-full'>
                             {hook.selectedSessionIds.size}
                           </span>
                         )}
@@ -467,7 +467,7 @@ export default function WorkoutModal({
                                       }
                                       hook.selectedSessionIds = newSelected;
                                     }}
-                                    className='w-4 h-4 text-[#208479] focus:ring-[#208479] rounded'
+                                    className='w-4 h-4 text-[#178da6] focus:ring-[#178da6] rounded'
                                   />
                                   <span className='text-sm text-gray-700'>
                                     {session.time}
@@ -493,14 +493,14 @@ export default function WorkoutModal({
                     </label>
                     <p className='text-xs text-gray-600 mt-1'>
                       Total Duration:{' '}
-                      <span className='font-semibold text-[#208479]'>{totalDuration} mins</span>
+                      <span className='font-semibold text-[#178da6]'>{totalDuration} mins</span>
                     </p>
                   </div>
                   <div className='flex items-center gap-2'>
                     <button
                       type='button'
                       onClick={hook.openLibrary}
-                      className='px-4 py-2 bg-white hover:bg-gray-50 border-2 border-[#208479] text-[#208479] text-sm font-medium rounded-lg flex items-center gap-2 transition'
+                      className='px-4 py-2 bg-white hover:bg-gray-50 border-2 border-[#178da6] text-[#178da6] text-sm font-medium rounded-lg flex items-center gap-2 transition'
                       title='Open Exercise Library'
                     >
                       <Library size={16} />
@@ -509,7 +509,7 @@ export default function WorkoutModal({
                     <button
                       type='button'
                       onClick={hook.addSection}
-                      className='px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white text-sm font-medium rounded-lg flex items-center gap-2 transition'
+                      className='px-4 py-2 bg-[#178da6] hover:bg-[#14758c] text-white text-sm font-medium rounded-lg flex items-center gap-2 transition'
                     >
                       <Plus size={16} />
                       Section

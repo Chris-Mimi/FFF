@@ -90,7 +90,7 @@ export default function ScoringFieldInputs({
           placeholder='mm:ss'
           value={values.time_result || ''}
           onChange={(e) => onChange({ time_result: e.target.value })}
-          className={`w-16 px-2 py-1 text-xs text-center border ${borderColor} rounded focus:ring-2 focus:ring-[#208479] text-gray-900`}
+          className={`w-16 px-2 py-1 text-xs text-center border ${borderColor} rounded focus:ring-2 focus:ring-[#178da6] text-gray-900`}
         />
       )}
 
@@ -103,7 +103,7 @@ export default function ScoringFieldInputs({
               placeholder='Rounds'
               value={values.rounds_result || ''}
               onChange={(e) => onChange({ rounds_result: e.target.value })}
-              className={`w-14 px-2 py-1 text-xs text-center border ${borderColor} rounded focus:ring-2 focus:ring-[#208479] text-gray-900`}
+              className={`w-14 px-2 py-1 text-xs text-center border ${borderColor} rounded focus:ring-2 focus:ring-[#178da6] text-gray-900`}
             />
             <span className={`text-xs ${textColor}`}>rds</span>
           </div>
@@ -119,7 +119,7 @@ export default function ScoringFieldInputs({
             placeholder='Reps'
             value={values.reps_result || ''}
             onChange={(e) => onChange({ reps_result: e.target.value })}
-            className={`w-16 px-2 py-1 text-xs text-center border ${borderColor} rounded focus:ring-2 focus:ring-[#208479] text-gray-900`}
+            className={`w-16 px-2 py-1 text-xs text-center border ${borderColor} rounded focus:ring-2 focus:ring-[#178da6] text-gray-900`}
           />
           <span className={`text-xs ${textColor}`}>reps</span>
         </div>
@@ -134,7 +134,7 @@ export default function ScoringFieldInputs({
             placeholder='Load'
             value={values.weight_result || ''}
             onChange={(e) => onChange({ weight_result: e.target.value })}
-            className={`w-16 px-2 py-1 text-xs text-center border ${borderColor} rounded focus:ring-2 focus:ring-[#208479] text-gray-900`}
+            className={`w-16 px-2 py-1 text-xs text-center border ${borderColor} rounded focus:ring-2 focus:ring-[#178da6] text-gray-900`}
           />
           <span className={`text-xs ${textColor}`}>kg</span>
         </div>
@@ -148,7 +148,7 @@ export default function ScoringFieldInputs({
             placeholder='Cal'
             value={values.calories_result || ''}
             onChange={(e) => onChange({ calories_result: e.target.value })}
-            className={`w-16 px-2 py-1 text-xs text-center border ${borderColor} rounded focus:ring-2 focus:ring-[#208479] text-gray-900`}
+            className={`w-16 px-2 py-1 text-xs text-center border ${borderColor} rounded focus:ring-2 focus:ring-[#178da6] text-gray-900`}
           />
           <span className={`text-xs ${textColor}`}>cal</span>
         </div>
@@ -163,7 +163,7 @@ export default function ScoringFieldInputs({
             placeholder='Distance'
             value={values.metres_result || ''}
             onChange={(e) => onChange({ metres_result: e.target.value })}
-            className={`w-20 px-2 py-1 text-xs text-center border ${borderColor} rounded focus:ring-2 focus:ring-[#208479] text-gray-900`}
+            className={`w-20 px-2 py-1 text-xs text-center border ${borderColor} rounded focus:ring-2 focus:ring-[#178da6] text-gray-900`}
           />
           <span className={`text-xs ${textColor}`}>m</span>
         </div>
@@ -187,7 +187,7 @@ export default function ScoringFieldInputs({
         <select
           value={values.scaling_level || ''}
           onChange={(e) => onChange({ scaling_level: e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '' })}
-          className={`w-14 px-1 py-0.5 text-xs border ${borderColor} rounded focus:ring-2 focus:ring-[#208479] text-gray-900 bg-white`}
+          className={`w-14 px-1 py-0.5 text-xs border ${borderColor} rounded focus:ring-2 focus:ring-[#178da6] text-gray-900 bg-white`}
         >
           <option value=''>-</option>
           <option value='Rx'>Rx</option>

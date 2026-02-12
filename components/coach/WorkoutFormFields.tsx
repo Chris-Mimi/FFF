@@ -59,7 +59,7 @@ export default function WorkoutFormFields({
             value={formData.title}
             onChange={e => onFieldChange('title', e.target.value)}
             placeholder='Select or type (e.g., WOD, Foundations, Kids & Teens)...'
-            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 placeholder-gray-400 ${
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 placeholder-gray-400 ${
               errors.title ? 'border-red-500' : 'border-gray-300'
             }`}
           />
@@ -78,7 +78,7 @@ export default function WorkoutFormFields({
         <select
           value={formData.track_id || ''}
           onChange={e => onFieldChange('track_id', e.target.value)}
-          className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 bg-white'
+          className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 bg-white'
           disabled={loadingTracks}
         >
           <option value=''>Select Track...</option>
@@ -103,7 +103,7 @@ export default function WorkoutFormFields({
               onChange={e => onFieldChange('maxCapacity', parseInt(e.target.value) || 0)}
               min='0'
               max='30'
-              className={`w-32 px-3 py-1.5 text-sm border rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 ${
+              className={`w-32 px-3 py-1.5 text-sm border rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 ${
                 errors.maxCapacity ? 'border-red-500' : 'border-gray-300'
               }`}
             />
@@ -119,12 +119,12 @@ export default function WorkoutFormFields({
               <button
                 type='button'
                 onClick={onApplySessionsToggle}
-                className='mt-6 px-3 py-1.5 text-sm bg-white border-2 border-[#208479] text-[#208479] hover:bg-gray-50 rounded-lg flex items-center gap-2 transition'
+                className='mt-6 px-3 py-1.5 text-sm bg-white border-2 border-[#178da6] text-[#178da6] hover:bg-gray-50 rounded-lg flex items-center gap-2 transition'
                 title='Apply this workout to other sessions'
               >
                 <span>Apply to Sessions</span>
                 {selectedSessionIds.size > 0 && (
-                  <span className='bg-[#208479] text-white text-xs px-1.5 py-0.5 rounded-full'>
+                  <span className='bg-[#178da6] text-white text-xs px-1.5 py-0.5 rounded-full'>
                     {selectedSessionIds.size}
                   </span>
                 )}
@@ -145,7 +145,7 @@ export default function WorkoutFormFields({
                             type='checkbox'
                             checked={selectedSessionIds.has(session.id)}
                             onChange={(e) => onSessionSelectionToggle(session.id, e.target.checked)}
-                            className='w-4 h-4 text-[#208479] focus:ring-[#208479] rounded'
+                            className='w-4 h-4 text-[#178da6] focus:ring-[#178da6] rounded'
                           />
                           <span className='text-sm text-gray-700'>
                             {session.time}
@@ -172,7 +172,7 @@ export default function WorkoutFormFields({
           value={formData.workout_name || ''}
           onChange={e => onFieldChange('workout_name', e.target.value)}
           placeholder='e.g., "Overhead Fest", "Fran"'
-          className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 placeholder-gray-400'
+          className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 placeholder-gray-400'
         />
         <p className='text-xs text-gray-500 mt-1'>
           Use for repeated workouts to track frequency accurately

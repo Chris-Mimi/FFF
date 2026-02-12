@@ -54,7 +54,7 @@ export default function DateRangePicker({
   const pickerContent = (
     <>
       <div
-        className='bg-[#208479] text-white px-4 py-2 rounded-t-lg flex justify-between items-center cursor-grab active:cursor-grabbing'
+        className='bg-[#178da6] text-white px-4 py-2 rounded-t-lg flex justify-between items-center cursor-grab active:cursor-grabbing'
         onMouseDown={(e) => {
           const rect = e.currentTarget.parentElement!.getBoundingClientRect();
           onDragStart(e, rect);
@@ -63,7 +63,7 @@ export default function DateRangePicker({
         <h3 className='text-sm font-bold'>Select Date Range</h3>
         <button
           onClick={onClose}
-          className='hover:bg-[#1a6b62] rounded p-1 transition'
+          className='hover:bg-[#14758c] rounded p-1 transition'
           aria-label='Close'
         >
           <X size={16} />
@@ -83,7 +83,7 @@ export default function DateRangePicker({
                   onStartMonthChange(newStartMonth);
                 }
               }}
-              className='flex-1 px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-sm text-gray-900 bg-white'
+              className='flex-1 px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-sm text-gray-900 bg-white'
             >
               {months.map((month, idx) => (
                 <option key={idx} value={idx}>{month}</option>
@@ -104,7 +104,7 @@ export default function DateRangePicker({
                 }
               }}
               onBlur={onStartYearBlur}
-              className='w-24 px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-sm text-gray-900 bg-white'
+              className='w-24 px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-sm text-gray-900 bg-white'
               placeholder='YYYY'
               min='2000'
               max='2099'
@@ -124,7 +124,7 @@ export default function DateRangePicker({
                   onEndMonthChange(newEndMonth);
                 }
               }}
-              className='flex-1 px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-sm text-gray-900 bg-white'
+              className='flex-1 px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-sm text-gray-900 bg-white'
             >
               {months.map((month, idx) => (
                 <option key={idx} value={idx}>{month}</option>
@@ -145,7 +145,7 @@ export default function DateRangePicker({
                 }
               }}
               onBlur={onEndYearBlur}
-              className='w-24 px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent text-sm text-gray-900 bg-white'
+              className='w-24 px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-sm text-gray-900 bg-white'
               placeholder='YYYY'
               min='2000'
               max='2099'
@@ -176,7 +176,7 @@ export default function DateRangePicker({
                                 (tempEndMonth.getMonth() - tempStartMonth.getMonth()) + 1;
               onApply(monthsDiff, daysDiff);
             }}
-            className='flex-1 px-3 py-1.5 bg-[#208479] hover:bg-[#1a6b62] text-white text-sm font-semibold rounded transition'
+            className='flex-1 px-3 py-1.5 bg-[#178da6] hover:bg-[#14758c] text-white text-sm font-semibold rounded transition'
           >
             Apply
           </button>
@@ -194,14 +194,14 @@ export default function DateRangePicker({
           if (e.target === e.currentTarget) onClose();
         }}
       >
-        <div className='bg-white rounded-lg shadow-2xl w-[calc(100%-2rem)] max-w-80 border-2 border-[#208479]'>
+        <div className='bg-white rounded-lg shadow-2xl w-[calc(100%-2rem)] max-w-80 border-2 border-[#178da6]'>
           {pickerContent}
         </div>
       </div>
 
       {/* Desktop: positioned popup */}
       <div
-        className='hidden md:block fixed bg-white rounded-lg shadow-2xl w-80 border-2 border-[#208479] z-50'
+        className='hidden md:block fixed bg-white rounded-lg shadow-2xl w-80 border-2 border-[#178da6] z-50'
         style={{
           top: `${position.y}px`,
           left: `${position.x}px`,

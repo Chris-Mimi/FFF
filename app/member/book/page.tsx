@@ -153,9 +153,7 @@ export default function MemberBookingPage() {
           time,
           capacity,
           status,
-          wods (
-            title
-          ),
+          workout_type,
           bookings (
             id,
             member_id,
@@ -212,9 +210,7 @@ export default function MemberBookingPage() {
             };
           });
 
-        // Extract workout type from title (format: "WOD - Auto-generated")
-        const workoutTitle = session.wods?.title || '';
-        const workoutType = workoutTitle.split(' - ')[0] || 'Class';
+        const workoutType = session.workout_type || 'Class';
 
         return {
           id: session.id,

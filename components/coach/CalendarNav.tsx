@@ -43,7 +43,7 @@ export const CalendarNav = ({
               onClick={() => onViewModeChange('weekly')}
               className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium transition ${
                 viewMode === 'weekly'
-                  ? 'bg-[#208479] text-white'
+                  ? 'bg-[#178da6] text-white'
                   : 'text-gray-700 hover:text-gray-900'
               }`}
             >
@@ -54,7 +54,7 @@ export const CalendarNav = ({
               onClick={() => onViewModeChange('monthly')}
               className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium transition ${
                 viewMode === 'monthly'
-                  ? 'bg-[#208479] text-white'
+                  ? 'bg-[#178da6] text-white'
                   : 'text-gray-700 hover:text-gray-900'
               }`}
             >
@@ -77,7 +77,7 @@ export const CalendarNav = ({
           <div className='flex items-center gap-2 md:gap-4 flex-1 justify-center'>
             <button
               onClick={onTodayClick}
-              className='px-2 py-1 md:px-3 md:py-1 bg-[#208479] hover:bg-[#1a6b62] rounded text-white text-xs md:text-sm font-medium transition'
+              className='px-2 py-1 md:px-3 md:py-1 bg-[#178da6] hover:bg-[#14758c] rounded text-white text-xs md:text-sm font-medium transition'
             >
               Today
             </button>

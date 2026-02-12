@@ -311,7 +311,7 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
                       </span>
                     </div>
                     <div className='flex items-center justify-between'>
-                      <p className='text-lg font-bold text-[#208479]'>{pr.result_value}</p>
+                      <p className='text-lg font-bold text-[#178da6]'>{pr.result_value}</p>
                       <span className='text-sm text-gray-600'>
                         {new Date(pr.result_date).toLocaleDateString('en-US', {
                           month: 'short',
@@ -361,7 +361,7 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
                       </span>
                     </div>
                     <div className='flex items-center justify-between'>
-                      <p className='text-lg font-bold text-[#208479]'>{pr.result_value}</p>
+                      <p className='text-lg font-bold text-[#178da6]'>{pr.result_value}</p>
                       <span className='text-sm text-gray-600'>
                         {new Date(pr.result_date).toLocaleDateString('en-US', {
                           month: 'short',
@@ -401,7 +401,7 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
                       </span>
                     </div>
                     <div className='flex items-center justify-between'>
-                      <p className='text-lg font-bold text-[#208479]'>
+                      <p className='text-lg font-bold text-[#178da6]'>
                         {pr.weight_kg}kg
                         {pr.calculated_1rm && pr.rep_max_type !== '1RM' && (
                           <span className='text-sm text-gray-500 font-normal ml-2'>(Est. 1RM: {pr.calculated_1rm}kg)</span>

@@ -33,7 +33,7 @@ export default function TrackModal({
   return (
     <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4'>
       <div className='bg-white rounded-lg shadow-2xl w-full max-w-md'>
-        <div className='bg-[#208479] text-white p-4 rounded-t-lg'>
+        <div className='bg-[#178da6] text-white p-4 rounded-t-lg'>
           <h3 className='text-xl font-bold'>{editingTrack ? 'Edit Track' : 'Add New Track'}</h3>
         </div>
 
@@ -47,7 +47,7 @@ export default function TrackModal({
               value={formData.name}
               onChange={e => onFormChange('name', e.target.value)}
               placeholder='e.g., Strength Focus'
-              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
             />
           </div>
 
@@ -60,7 +60,7 @@ export default function TrackModal({
               onChange={e => onFormChange('description', e.target.value)}
               placeholder='Brief description of this track...'
               rows={3}
-              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
             />
           </div>
 
@@ -85,7 +85,7 @@ export default function TrackModal({
           <button
             onClick={onSave}
             disabled={!formData.name.trim()}
-            className='flex-1 px-6 py-3 bg-[#208479] hover:bg-[#1a6b62] text-white font-semibold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed'
+            className='flex-1 px-6 py-3 bg-[#178da6] hover:bg-[#14758c] text-white font-semibold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed'
           >
             {editingTrack ? 'Save Changes' : 'Add Track'}
           </button>

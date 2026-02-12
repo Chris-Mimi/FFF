@@ -48,18 +48,18 @@ export default function ExerciseLibraryPanel({
       {/* Mobile: Full-screen modal */}
       <div className='md:hidden fixed inset-0 bg-black bg-opacity-50 z-50' onClick={onClose}>
         <div
-          className='fixed inset-4 bg-white rounded-lg shadow-2xl border-2 border-[#208479] flex flex-col'
+          className='fixed inset-4 bg-white rounded-lg shadow-2xl border-2 border-[#178da6] flex flex-col'
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className='bg-[#208479] text-white p-2 rounded-t-lg flex justify-between items-center'>
+          <div className='bg-[#178da6] text-white p-2 rounded-t-lg flex justify-between items-center'>
             <h3 className='font-bold flex items-center gap-2 text-sm'>
               <Library size={18} />
               Exercise Library
             </h3>
             <button
               onClick={onClose}
-              className='hover:bg-[#1a6b62] p-1 rounded transition'
+              className='hover:bg-[#14758c] p-1 rounded transition'
               aria-label='Close'
             >
               <X size={18} />
@@ -83,7 +83,7 @@ export default function ExerciseLibraryPanel({
                       onExerciseSelect(exercise.exercise);
                       onClose();
                     }}
-                    className='text-left px-2 py-1.5 border border-gray-300 rounded-lg hover:bg-[#208479] hover:text-white transition group'
+                    className='text-left px-2 py-1.5 border border-gray-300 rounded-lg hover:bg-[#178da6] hover:text-white transition group'
                   >
                     <div className='font-medium text-gray-900 group-hover:text-white text-xs leading-tight'>
                       {exerciseData?.display_name || exercise.exercise}
@@ -115,7 +115,7 @@ export default function ExerciseLibraryPanel({
 
       {/* Desktop: Draggable/resizable panel */}
       <div
-        className='hidden md:flex fixed bg-white rounded-lg shadow-2xl border-2 border-[#208479] flex-col z-50'
+        className='hidden md:flex fixed bg-white rounded-lg shadow-2xl border-2 border-[#178da6] flex-col z-50'
         style={{
           top: `${position.top}px`,
           left: `${position.left}px`,
@@ -125,7 +125,7 @@ export default function ExerciseLibraryPanel({
       >
         {/* Header - Draggable */}
         <div
-          className='bg-[#208479] text-white p-3 rounded-t-lg cursor-move flex justify-between items-center'
+          className='bg-[#178da6] text-white p-3 rounded-t-lg cursor-move flex justify-between items-center'
           onMouseDown={(e) => {
             const startX = e.clientX - position.left;
             const startY = e.clientY - position.top;
@@ -152,7 +152,7 @@ export default function ExerciseLibraryPanel({
           </h3>
           <button
             onClick={onClose}
-            className='hover:bg-[#1a6b62] p-1 rounded transition'
+            className='hover:bg-[#14758c] p-1 rounded transition'
             aria-label='Close'
           >
             <X size={20} />
@@ -178,7 +178,7 @@ export default function ExerciseLibraryPanel({
                 <button
                   key={idx}
                   onClick={() => onExerciseSelect(exercise.exercise)}
-                  className='text-left px-3 py-2 border border-gray-300 rounded-lg hover:bg-[#208479] hover:text-white transition group'
+                  className='text-left px-3 py-2 border border-gray-300 rounded-lg hover:bg-[#178da6] hover:text-white transition group'
                 >
                   <div className='font-medium text-gray-900 group-hover:text-white'>
                     {exerciseData?.display_name || exercise.exercise}

@@ -586,7 +586,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
           <span className='text-sm font-semibold text-gray-900'>
             {formatWeekRange()}
           </span>
-          <button onClick={goToThisWeek} className='px-2 py-1 bg-[#208479] hover:bg-[#1a6b62] text-white text-xs rounded-lg font-medium transition'>
+          <button onClick={goToThisWeek} className='px-2 py-1 bg-[#178da6] hover:bg-[#14758c] text-white text-xs rounded-lg font-medium transition'>
             This Week
           </button>
         </div>
@@ -651,7 +651,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
                   onClick={() => setSelectedItemIdx(idx)}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium transition ${
                     selectedItemIdx === idx
-                      ? 'bg-[#208479] text-white'
+                      ? 'bg-[#178da6] text-white'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
@@ -708,7 +708,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
 
             return loading ? (
             <div className='flex justify-center py-8'>
-              <div className='animate-spin rounded-full h-6 w-6 border-b-2 border-[#208479]' />
+              <div className='animate-spin rounded-full h-6 w-6 border-b-2 border-[#178da6]' />
             </div>
           ) : displayEntries.length === 0 ? (
             <div className='bg-white rounded-lg shadow-sm p-6 text-center'>
@@ -915,7 +915,7 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
       {/* Results table */}
       {loading ? (
         <div className='flex justify-center py-8'>
-          <div className='animate-spin rounded-full h-6 w-6 border-b-2 border-[#208479]' />
+          <div className='animate-spin rounded-full h-6 w-6 border-b-2 border-[#178da6]' />
         </div>
       ) : entries.length === 0 ? (
         <div className='bg-white rounded-lg shadow-sm p-6 text-center'>

@@ -225,7 +225,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
     if (payload.isPR) {
       return (
         <g>
-          <circle cx={cx} cy={cy} r={6} fill='#208479' stroke='#fff' strokeWidth={2} />
+          <circle cx={cx} cy={cy} r={6} fill='#178da6' stroke='#fff' strokeWidth={2} />
           <circle cx={cx} cy={cy} r={10} fill='#ef4444' opacity={0.8} />
           <text x={cx} y={cy + 4} textAnchor='middle' fill='white' fontSize={10} fontWeight='bold'>
             PR
@@ -233,7 +233,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
         </g>
       );
     }
-    return <circle cx={cx} cy={cy} r={4} fill='#208479' stroke='#fff' strokeWidth={2} />;
+    return <circle cx={cx} cy={cy} r={4} fill='#178da6' stroke='#fff' strokeWidth={2} />;
   };
 
   // Get chart variations for a lift (only RM tests: 1RM, 3RM, 5RM, 10RM)
@@ -326,7 +326,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                 return (
                   <div key={category}>
                     {/* Category Header */}
-                    <div className='bg-[#208479] text-white px-4 py-2 rounded-t-lg mb-2'>
+                    <div className='bg-[#178da6] text-white px-4 py-2 rounded-t-lg mb-2'>
                       <h4 className='text-sm font-bold uppercase tracking-wide'>
                         {category} <span className='opacity-75'>({categoryLifts.length})</span>
                       </h4>
@@ -364,7 +364,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
 </div>
                       {bestRepMax ? (
 <div>
-  <p className='text-base sm:text-lg font-bold text-[#208479]'>{bestWeight}kg</p>
+  <p className='text-base sm:text-lg font-bold text-[#178da6]'>{bestWeight}kg</p>
 </div>
                       ) : (
                         <p className='text-xs text-gray-500 mt-1'>No records</p>
@@ -385,7 +385,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
       <div className='bg-white rounded-xl shadow p-4 sm:p-6'>
         <button
           onClick={() => setExpandedSections(prev => ({ ...prev, recent: !prev.recent }))}
-          className='flex items-center gap-2 text-xl sm:text-2xl font-bold text-gray-700 mb-3 sm:mb-4 hover:text-[#208479] transition'
+          className='flex items-center gap-2 text-xl sm:text-2xl font-bold text-gray-700 mb-3 sm:mb-4 hover:text-[#178da6] transition'
         >
           {expandedSections.recent ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
           Recent Lifts
@@ -422,7 +422,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                   </div>
 
                   <div className='flex items-center justify-between'>
-                    <p className='text-lg font-bold text-[#208479] flex-1'>
+                    <p className='text-lg font-bold text-[#178da6] flex-1'>
                       {lift.weight_kg}kg
                     </p>
                     <p className='text-sm text-gray-700 flex-1 text-right'>
@@ -446,7 +446,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
       <div className='bg-white rounded-lg shadow p-4 sm:p-6'>
         <button
           onClick={() => setExpandedSections(prev => ({ ...prev, workoutProgress: !prev.workoutProgress }))}
-          className='flex items-center gap-2 text-xl sm:text-2xl font-bold text-gray-700 mb-3 sm:mb-4 hover:text-[#208479] transition'
+          className='flex items-center gap-2 text-xl sm:text-2xl font-bold text-gray-700 mb-3 sm:mb-4 hover:text-[#178da6] transition'
         >
           {expandedSections.workoutProgress ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
           Lift Progress
@@ -469,7 +469,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                 <div key={category} className='mb-4'>
                   <button
                     onClick={() => setExpandedCategories(prev => ({ ...prev, [category]: !prev[category] }))}
-                    className='flex items-center gap-2 text-lg font-bold text-gray-700 mb-3 hover:text-[#208479] transition w-full'
+                    className='flex items-center gap-2 text-lg font-bold text-gray-700 mb-3 hover:text-[#178da6] transition w-full'
                   >
                     {expandedCategories[category] ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
                     {category} Lifts ({categoryLifts.length})
@@ -512,7 +512,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                                               <p className='text-xs text-gray-900 font-semibold'>
                                                 {payload[0].payload.date}
                                               </p>
-                                              <p className='text-xs text-[#208479] font-semibold'>
+                                              <p className='text-xs text-[#178da6] font-semibold'>
                                                 {payload[0].payload.weight}kg
                                               </p>
                                               {payload[0].payload.isPR && (
@@ -527,7 +527,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                                     <Line
                                       type='monotone'
                                       dataKey='weight'
-                                      stroke='#208479'
+                                      stroke='#178da6'
                                       strokeWidth={2}
                                       dot={<CustomDot />}
                                       activeDot={{ r: 6, strokeWidth: 2, stroke: '#fff' }}
@@ -592,7 +592,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                   type='date'
                   value={newDate}
                   onChange={e => setNewDate(e.target.value)}
-                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-100 date-input-calendar'
+                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-100 date-input-calendar'
                   style={{
                     colorScheme: 'dark'
                   }}
@@ -604,7 +604,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                 <select
                   value={newRepMaxType}
                   onChange={e => setNewRepMaxType(e.target.value as '1RM' | '3RM' | '5RM' | '10RM')}
-                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-100'
+                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-100'
                 >
                   <option value='1RM'>1 Rep Max</option>
                   <option value='3RM'>3 Rep Max</option>
@@ -621,7 +621,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                   value={newWeight}
                   onChange={e => setNewWeight(e.target.value)}
                   placeholder='e.g., 100'
-                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-100'
+                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-100'
                 />
                 {newWeight && (
                   <p className='text-sm text-gray-600 mt-1'>
@@ -637,7 +637,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                   onChange={e => setNewNotes(e.target.value)}
                   placeholder='How did it feel? Any form notes?'
                   rows={4}
-                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-100 resize-none'
+                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-100 resize-none'
                 />
               </div>
 
@@ -658,7 +658,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                 <button
                   onClick={handleSaveLift}
                   disabled={!newWeight}
-                  className='flex-1 px-4 py-2 min-h-[44px] bg-[#208479] hover:bg-[#1a6b62] text-white font-medium rounded-lg transition disabled:bg-gray-500 disabled:cursor-not-allowed'
+                  className='flex-1 px-4 py-2 min-h-[44px] bg-[#178da6] hover:bg-[#14758c] text-white font-medium rounded-lg transition disabled:bg-gray-500 disabled:cursor-not-allowed'
                 >
                   {editingLiftId ? 'Update' : 'Save'}
                 </button>
@@ -695,7 +695,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                       <div className='flex gap-2'>
                         <button
                           onClick={() => handleEditLift(entry)}
-                          className='p-2 text-gray-600 hover:text-[#208479] hover:bg-white rounded transition'
+                          className='p-2 text-gray-600 hover:text-[#178da6] hover:bg-white rounded transition'
                         >
                           <Edit2 size={16} />
                         </button>
@@ -721,7 +721,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                 <select
                   value={chartRepMaxType}
                   onChange={e => setChartRepMaxType(e.target.value as '1RM' | '3RM' | '5RM' | '10RM')}
-                  className='px-3 py-1 text-sm text-gray-100 border border-gray-300 rounded focus:ring-2 focus:ring-[#208479] focus:border-transparent'
+                  className='px-3 py-1 text-sm text-gray-100 border border-gray-300 rounded focus:ring-2 focus:ring-[#178da6] focus:border-transparent'
                 >
                   <option value='1RM'>1RM</option>
                   <option value='3RM'>3RM</option>
@@ -776,7 +776,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                   <Line
                     type='monotone'
                     dataKey='weight'
-                    stroke='#208479'
+                    stroke='#178da6'
                     strokeWidth={2}
                     dot={<CustomDot />}
                     activeDot={{ r: 6, strokeWidth: 2, stroke: '#fff' }}

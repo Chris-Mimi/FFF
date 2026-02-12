@@ -90,7 +90,7 @@ export default function SignupPage() {
                 value={fullName}
                 onChange={e => setFullName(e.target.value)}
                 required
-                className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
                 placeholder='John Doe'
                 disabled={loading}
               />
@@ -106,7 +106,7 @@ export default function SignupPage() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
-                className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
                 placeholder='you@example.com'
                 disabled={loading}
               />
@@ -123,7 +123,7 @@ export default function SignupPage() {
                 onChange={e => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
                 placeholder='At least 6 characters'
                 disabled={loading}
               />
@@ -142,7 +142,7 @@ export default function SignupPage() {
                 value={confirmPassword}
                 onChange={e => setConfirmPassword(e.target.value)}
                 required
-                className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900'
+                className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
                 placeholder='Re-enter your password'
                 disabled={loading}
               />
@@ -158,7 +158,7 @@ export default function SignupPage() {
             <button
               type='submit'
               disabled={loading}
-              className='w-full bg-[#208479] hover:bg-[#1a6b62] text-white font-semibold py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2'
+              className='w-full bg-[#178da6] hover:bg-[#14758c] text-white font-semibold py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2'
             >
               {loading ? (
                 <>
@@ -176,7 +176,7 @@ export default function SignupPage() {
           <div className='mt-6 text-center'>
             <p className='text-gray-600'>
               Already have an account?{' '}
-              <Link href='/login' className='text-[#208479] hover:text-[#1a6b62] font-medium'>
+              <Link href='/login' className='text-[#178da6] hover:text-[#14758c] font-medium'>
                 Sign in
               </Link>
             </p>

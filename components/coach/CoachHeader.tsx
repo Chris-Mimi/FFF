@@ -19,11 +19,11 @@ export const CoachHeader = ({
   const router = useRouter();
 
   // Button styling - smaller on mobile
-  const buttonClass = 'flex items-center justify-center gap-1 bg-[#1a6b62] hover:bg-teal-800 px-2 py-1.5 md:px-4 md:py-2 rounded-lg transition text-xs md:text-sm';
+  const buttonClass = 'flex items-center justify-center gap-1 bg-[#14758c] hover:bg-teal-800 px-2 py-1.5 md:px-4 md:py-2 rounded-lg transition text-xs md:text-sm';
   const iconSize = 16;
 
   return (
-    <header className='bg-[#208479] text-white p-2 md:p-4 shadow-lg sticky top-0 z-50'>
+    <header className='bg-[#178da6] text-white p-2 md:p-4 shadow-lg sticky top-0 z-50'>
       <div className='max-w-7xl mx-auto'>
         {/* Desktop: horizontal layout */}
         <div className='hidden lg:flex justify-between items-center'>
@@ -34,40 +34,40 @@ export const CoachHeader = ({
           <div className='flex items-center gap-3'>
             <button
               onClick={onSearchPanelToggle}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${searchPanelOpen ? 'bg-teal-800' : 'bg-[#1a6b62] hover:bg-teal-800'}`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${searchPanelOpen ? 'bg-teal-800' : 'bg-[#14758c] hover:bg-teal-800'}`}
             >
               <Plus size={18} />
               Workout Library
             </button>
-            <button onClick={() => router.push('/coach/schedule')} className='flex items-center gap-2 bg-[#1a6b62] hover:bg-teal-800 px-4 py-2 rounded-lg transition'>
+            <button onClick={() => router.push('/coach/schedule')} className='flex items-center gap-2 bg-[#14758c] hover:bg-teal-800 px-4 py-2 rounded-lg transition'>
               <Calendar size={18} />
               Schedule
             </button>
-            <button onClick={() => router.push('/coach/members')} className='flex items-center gap-2 bg-[#1a6b62] hover:bg-teal-800 px-4 py-2 rounded-lg transition'>
+            <button onClick={() => router.push('/coach/members')} className='flex items-center gap-2 bg-[#14758c] hover:bg-teal-800 px-4 py-2 rounded-lg transition'>
               <UserCheck size={18} />
               Members
             </button>
-            <button onClick={() => router.push('/coach/athletes')} className='flex items-center gap-2 bg-[#1a6b62] hover:bg-teal-800 px-4 py-2 rounded-lg transition'>
+            <button onClick={() => router.push('/coach/athletes')} className='flex items-center gap-2 bg-[#14758c] hover:bg-teal-800 px-4 py-2 rounded-lg transition'>
               <Users size={18} />
               Athletes
             </button>
-            <button onClick={() => router.push('/coach/analysis')} className='flex items-center gap-2 bg-[#1a6b62] hover:bg-teal-800 px-4 py-2 rounded-lg transition'>
+            <button onClick={() => router.push('/coach/analysis')} className='flex items-center gap-2 bg-[#14758c] hover:bg-teal-800 px-4 py-2 rounded-lg transition'>
               <BarChart3 size={18} />
               Analysis
             </button>
-            <button onClick={() => router.push('/coach/benchmarks-lifts')} className='flex items-center gap-2 bg-[#1a6b62] hover:bg-teal-800 px-4 py-2 rounded-lg transition'>
+            <button onClick={() => router.push('/coach/benchmarks-lifts')} className='flex items-center gap-2 bg-[#14758c] hover:bg-teal-800 px-4 py-2 rounded-lg transition'>
               <Dumbbell size={18} />
               Coach Library
             </button>
-            <button onClick={() => router.push('/coach/whiteboard')} className='flex items-center gap-2 bg-[#1a6b62] hover:bg-teal-800 px-4 py-2 rounded-lg transition'>
+            <button onClick={() => router.push('/coach/whiteboard')} className='flex items-center gap-2 bg-[#14758c] hover:bg-teal-800 px-4 py-2 rounded-lg transition'>
               <Image size={18} />
               Whiteboard
             </button>
-            <button onClick={() => router.push('/coach/admin')} className='flex items-center gap-2 bg-[#1a6b62] hover:bg-teal-800 px-4 py-2 rounded-lg transition'>
+            <button onClick={() => router.push('/coach/admin')} className='flex items-center gap-2 bg-[#14758c] hover:bg-teal-800 px-4 py-2 rounded-lg transition'>
               <Settings size={18} />
               Admin
             </button>
-            <button onClick={onLogout} className='flex items-center gap-2 bg-[#1a6b62] hover:bg-teal-800 px-4 py-2 rounded-lg transition'>
+            <button onClick={onLogout} className='flex items-center gap-2 bg-[#14758c] hover:bg-teal-800 px-4 py-2 rounded-lg transition'>
               <LogOut size={18} />
               Logout
             </button>

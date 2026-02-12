@@ -46,7 +46,7 @@ export default function AdminToolsPage() {
         <div className='mb-6'>
           <Link
             href='/coach'
-            className='inline-flex items-center gap-2 text-[#208479] hover:text-[#1a6b62] mb-4'
+            className='inline-flex items-center gap-2 text-[#178da6] hover:text-[#14758c] mb-4'
           >
             <ArrowLeft size={20} />
             Back to Dashboard
@@ -60,10 +60,10 @@ export default function AdminToolsPage() {
           {/* Create Coach Account */}
           <Link
             href='/signup'
-            className='bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition border-2 border-transparent hover:border-[#208479]'
+            className='bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition border-2 border-transparent hover:border-[#178da6]'
           >
             <div className='flex items-start gap-4'>
-              <div className='bg-[#208479] text-white p-3 rounded-lg'>
+              <div className='bg-[#178da6] text-white p-3 rounded-lg'>
                 <UserPlus size={24} />
               </div>
               <div>

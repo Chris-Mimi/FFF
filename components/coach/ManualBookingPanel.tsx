@@ -33,7 +33,7 @@ export default function ManualBookingPanel({
           value={selectedMemberId}
           onChange={e => onMemberSelect(e.target.value)}
           disabled={isLoading || availableMembers.length === 0}
-          className='flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 disabled:bg-gray-100'
+          className='flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 disabled:bg-gray-100'
         >
           <option value=''>
             {availableMembers.length === 0 ? 'No available members' : 'Select a member...'}
@@ -47,7 +47,7 @@ export default function ManualBookingPanel({
         <button
           onClick={onAddMember}
           disabled={!selectedMemberId || isLoading}
-          className='px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg transition whitespace-nowrap'
+          className='px-4 py-2 bg-[#178da6] hover:bg-[#14758c] disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg transition whitespace-nowrap'
         >
           {isLoading ? 'Adding...' : 'Add Member'}
         </button>

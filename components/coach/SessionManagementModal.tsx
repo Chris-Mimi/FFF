@@ -197,13 +197,13 @@ export default function SessionManagementModal({
 
         {/* Header */}
         <div
-          className='bg-[#208479] text-white p-3 rounded-t-lg flex justify-between items-center cursor-move'
+          className='bg-[#178da6] text-white p-3 rounded-t-lg flex justify-between items-center cursor-move'
           onMouseDown={handleDragStart}
         >
           <h2 className='text-lg font-bold'>Session Management</h2>
           <button
             onClick={onClose}
-            className='hover:bg-[#1a6b62] p-1 rounded transition'
+            className='hover:bg-[#14758c] p-1 rounded transition'
             title='Close'
             aria-label='Close'
           >

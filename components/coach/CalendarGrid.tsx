@@ -263,7 +263,7 @@ export default function CalendarGrid({
                 e.stopPropagation();
                 onCopyWOD(wod);
               }}
-              className={`hover:text-[#1a6b62] transition text-[#208479] bg-white rounded shadow-sm ${
+              className={`hover:text-[#14758c] transition text-[#178da6] bg-white rounded shadow-sm ${
                 isMonthlyView ? 'p-0.5' : 'p-1'
               }`}
               title='Copy WOD'
@@ -309,7 +309,7 @@ export default function CalendarGrid({
 
         {/* Hover Popover - Only for workouts with content, hidden on mobile (tap goes to modal instead) */}
         {!isEmptySession && hoveredWOD === cardId && dragHandleHovered !== cardId && (
-          <div className='hidden md:block absolute left-0 top-full w-80 bg-white border-2 border-[#208479] rounded-lg shadow-2xl p-4 z-[200] max-h-96 overflow-y-auto'>
+          <div className='hidden md:block absolute left-0 top-full w-80 bg-white border-2 border-[#178da6] rounded-lg shadow-2xl p-4 z-[200] max-h-96 overflow-y-auto'>
             <div className='text-sm font-bold text-gray-900 mb-3'>{wod.workout_name || getTrackName(wod.track_id) || wod.title}</div>
             <div className='space-y-3'>
               {wod.sections && wod.sections.length > 0 ? (
@@ -317,7 +317,7 @@ export default function CalendarGrid({
                   .filter((section) => section.content?.trim() || section.lifts?.length || section.benchmarks?.length || section.forge_benchmarks?.length)
                   .map((section, idx) => (
                     <div key={idx} className='border-b border-gray-200 pb-2 last:border-b-0'>
-                      <div className='text-xs font-semibold text-[#208479] mb-1'>
+                      <div className='text-xs font-semibold text-[#178da6] mb-1'>
                         {section.type}
                         {section.duration > 0 && ` (${section.duration} min)`}
                       </div>
@@ -407,14 +407,14 @@ export default function CalendarGrid({
     // Responsive min-height: smaller on mobile
     const minHeight = isMonthlyView ? 'min-h-[120px]' : 'min-h-[150px] md:min-h-[300px]';
     const padding = isMonthlyView ? 'p-2' : 'p-2 md:p-4';
-    const dayNumberClass = isCurrentMonth ? 'text-[#208479]' : 'text-gray-400';
+    const dayNumberClass = isCurrentMonth ? 'text-[#178da6]' : 'text-gray-400';
 
     if (isMonthlyView) {
       return (
         <div
           key={dateKey}
           className={`bg-white rounded-lg shadow ${padding} ${minHeight} relative cursor-pointer ${
-            isToday ? 'ring-2 ring-[#208479]' : ''
+            isToday ? 'ring-2 ring-[#178da6]' : ''
           } ${isSelected ? 'ring-4 ring-blue-400' : ''} ${!isCurrentMonth ? 'opacity-40' : ''}`}
           onDragOver={onDragOver}
           onDrop={(e) => onDrop(e, date)}
@@ -444,7 +444,7 @@ export default function CalendarGrid({
             {copiedWOD && (
               <button
                 onClick={() => onPasteFromClipboard(date)}
-                className='text-[10px] px-1 py-0.5 bg-[#208479] text-white rounded hover:bg-[#1a6b62] transition'
+                className='text-[10px] px-1 py-0.5 bg-[#178da6] text-white rounded hover:bg-[#14758c] transition'
                 title='Paste WOD'
               >
                 Paste
@@ -462,7 +462,7 @@ export default function CalendarGrid({
         <div
           key={dateKey}
           className={`bg-white rounded-lg shadow ${padding} ${minHeight} cursor-pointer flex flex-col ${
-            isToday ? 'ring-2 ring-[#208479]' : ''
+            isToday ? 'ring-2 ring-[#178da6]' : ''
           } ${isSelected ? 'ring-4 ring-blue-400' : ''}`}
           onDragOver={onDragOver}
           onDrop={(e) => onDrop(e, date)}
@@ -492,7 +492,7 @@ export default function CalendarGrid({
             {copiedWOD && (
               <button
                 onClick={() => onPasteFromClipboard(date)}
-                className='text-xs px-2 py-1 bg-[#208479] text-white rounded hover:bg-[#1a6b62] transition whitespace-nowrap'
+                className='text-xs px-2 py-1 bg-[#178da6] text-white rounded hover:bg-[#14758c] transition whitespace-nowrap'
                 title='Paste WOD'
               >
                 Paste
@@ -526,8 +526,8 @@ export default function CalendarGrid({
               <div
                 key={day}
                 onClick={() => day === 'Thu' && setThursdayCollapsed(!thursdayCollapsed)}
-                className={`text-center text-xs font-semibold text-white bg-[#208479] py-2 rounded ${
-                  day === 'Thu' ? 'cursor-pointer hover:bg-[#1a6b62] flex items-center justify-center gap-1' : ''
+                className={`text-center text-xs font-semibold text-white bg-[#178da6] py-2 rounded ${
+                  day === 'Thu' ? 'cursor-pointer hover:bg-[#14758c] flex items-center justify-center gap-1' : ''
                 }`}
               >
                 {day}
@@ -536,7 +536,7 @@ export default function CalendarGrid({
             {thursdayCollapsed && (
               <div
                 onClick={() => setThursdayCollapsed(false)}
-                className='text-center text-xs font-semibold text-white bg-[#208479] py-2 rounded cursor-pointer hover:bg-[#1a6b62] flex items-center justify-center gap-1'
+                className='text-center text-xs font-semibold text-white bg-[#178da6] py-2 rounded cursor-pointer hover:bg-[#14758c] flex items-center justify-center gap-1'
                 title='Show Thursday'
               >
                 <ChevronRight size={14} />
@@ -558,7 +558,7 @@ export default function CalendarGrid({
           return (
             <div key={weekIdx} className='flex gap-2 mb-2'>
               {/* Week Number - Teal Box, hidden on mobile */}
-              <div className='hidden lg:flex w-8 items-center justify-center text-xs font-semibold text-white bg-[#208479] rounded'>
+              <div className='hidden lg:flex w-8 items-center justify-center text-xs font-semibold text-white bg-[#178da6] rounded'>
                 {weekNumber}
               </div>
 
@@ -587,7 +587,7 @@ export default function CalendarGrid({
         {/* First Week */}
         <div className='mb-6'>
           {/* Week Number Banner */}
-          <div className='bg-[#208479] text-white px-4 py-2 rounded-t-lg mb-4 flex items-center justify-between'>
+          <div className='bg-[#178da6] text-white px-4 py-2 rounded-t-lg mb-4 flex items-center justify-between'>
             <div className='text-sm font-semibold'>Week {getWeekNumber(displayDates[0])}</div>
             <button
               onClick={() => setThursdayCollapsed(!thursdayCollapsed)}
@@ -605,7 +605,7 @@ export default function CalendarGrid({
         {/* Second Week */}
         <div>
           {/* Week Number Banner */}
-          <div className='bg-[#208479] text-white px-4 py-2 rounded-t-lg mb-4'>
+          <div className='bg-[#178da6] text-white px-4 py-2 rounded-t-lg mb-4'>
             <div className='text-sm font-semibold'>
               Week{' '}
               {getWeekNumber(

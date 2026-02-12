@@ -53,6 +53,7 @@ export const useCoachData = ({
           capacity,
           status,
           workout_id,
+          workout_type,
           wods (
             id,
             title,
@@ -130,7 +131,7 @@ export const useCoachData = ({
         } else {
           grouped[dateKey].push({
             id: `session-${session.id}`,
-            title: 'Session',
+            title: session.workout_type || 'Session',
             date: session.date,
             sections: [],
             classTimes: [],

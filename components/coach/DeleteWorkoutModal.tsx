@@ -26,11 +26,11 @@ export default function DeleteWorkoutModal({
       <div className='fixed inset-0 z-50 flex items-center justify-center p-4'>
         <div className='bg-white rounded-lg shadow-2xl max-w-md w-full'>
           {/* Header */}
-          <div className='bg-[#208479] text-white p-4 rounded-t-lg flex justify-between items-center'>
+          <div className='bg-[#178da6] text-white p-4 rounded-t-lg flex justify-between items-center'>
             <h2 className='text-xl font-bold'>Delete Workout</h2>
             <button
               onClick={onClose}
-              className='hover:bg-[#1a6b62] p-1 rounded transition'
+              className='hover:bg-[#14758c] p-1 rounded transition'
               aria-label='Close modal'
             >
               <X size={24} />
@@ -47,7 +47,7 @@ export default function DeleteWorkoutModal({
               {/* Return to Empty State */}
               <button
                 onClick={onReturnToEmpty}
-                className='w-full px-4 py-3 bg-[#208479] hover:bg-[#1a6b62] text-white rounded-lg font-medium transition flex items-center justify-center gap-2'
+                className='w-full px-4 py-3 bg-[#178da6] hover:bg-[#14758c] text-white rounded-lg font-medium transition flex items-center justify-center gap-2'
               >
                 <span>Return Session to Empty State</span>
               </button>

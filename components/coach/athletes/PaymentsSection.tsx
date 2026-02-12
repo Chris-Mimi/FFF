@@ -279,7 +279,7 @@ export default function PaymentsSection({ memberId }: { memberId?: string }) {
                   type='number'
                   value={tenCardTotal}
                   onChange={e => setTenCardTotal(e.target.value)}
-                  className='w-full px-2 md:px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 text-sm md:text-base'
+                  className='w-full px-2 md:px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 text-sm md:text-base'
                 />
               </div>
               <div>
@@ -288,7 +288,7 @@ export default function PaymentsSection({ memberId }: { memberId?: string }) {
                   type='number'
                   value={tenCardUsed}
                   onChange={e => setTenCardUsed(e.target.value)}
-                  className='w-full px-2 md:px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 text-sm md:text-base'
+                  className='w-full px-2 md:px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 text-sm md:text-base'
                 />
               </div>
             </div>
@@ -299,7 +299,7 @@ export default function PaymentsSection({ memberId }: { memberId?: string }) {
                 type='date'
                 value={tenCardExpiry}
                 onChange={e => setTenCardExpiry(e.target.value)}
-                className='w-full px-2 md:px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900 text-sm md:text-base'
+                className='w-full px-2 md:px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 text-sm md:text-base'
               />
             </div>
 
@@ -307,7 +307,7 @@ export default function PaymentsSection({ memberId }: { memberId?: string }) {
               <button
                 onClick={handleSave10Card}
                 disabled={saving}
-                className='flex-1 px-3 md:px-4 py-2.5 md:py-2 bg-[#208479] hover:bg-[#1a6b62] text-white font-medium rounded-lg transition disabled:opacity-50 text-sm md:text-base'
+                className='flex-1 px-3 md:px-4 py-2.5 md:py-2 bg-[#178da6] hover:bg-[#14758c] text-white font-medium rounded-lg transition disabled:opacity-50 text-sm md:text-base'
               >
                 Save
               </button>

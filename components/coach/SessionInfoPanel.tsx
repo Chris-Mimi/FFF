@@ -76,7 +76,7 @@ export default function SessionInfoPanel({
               </select>
               <button
                 onClick={onUpdateTime}
-                className='px-3 py-1 bg-[#208479] text-white rounded hover:bg-[#1a6b62] text-sm'
+                className='px-3 py-1 bg-[#178da6] text-white rounded hover:bg-[#14758c] text-sm'
               >
                 Save
               </button>
@@ -98,7 +98,7 @@ export default function SessionInfoPanel({
                   onTimeChange(padTime(session.time));
                   onTimeEdit(true);
                 }}
-                className='p-1 text-gray-500 hover:text-[#208479]'
+                className='p-1 text-gray-500 hover:text-[#178da6]'
                 title='Change time'
               >
                 <Edit2 size={16} />
@@ -123,7 +123,7 @@ export default function SessionInfoPanel({
                 />
                 <button
                   onClick={onUpdateCapacity}
-                  className='px-3 py-1 bg-[#208479] text-white rounded hover:bg-[#1a6b62] text-sm'
+                  className='px-3 py-1 bg-[#178da6] text-white rounded hover:bg-[#14758c] text-sm'
                 >
                   Save
                 </button>
@@ -144,7 +144,7 @@ export default function SessionInfoPanel({
               <span>{session.capacity === 0 ? 'Unlimited' : `${session.capacity} spots`}</span>
               <button
                 onClick={() => onCapacityEdit(true)}
-                className='p-1 text-gray-500 hover:text-[#208479]'
+                className='p-1 text-gray-500 hover:text-[#178da6]'
                 title='Change capacity'
               >
                 <Edit2 size={16} />

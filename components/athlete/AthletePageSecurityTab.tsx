@@ -46,7 +46,7 @@ export default function AthletePageSecurityTab() {
         <div>
           <h3 className='text-lg font-semibold text-gray-900 mb-4'>Change Password</h3>
           <p className='text-gray-600 mb-4'>Update your password to keep your account secure.</p>
-          <button className='px-6 py-2 bg-[#208479] hover:bg-[#1a6b62] text-white font-medium rounded-lg transition'>
+          <button className='px-6 py-2 bg-[#178da6] hover:bg-[#14758c] text-white font-medium rounded-lg transition'>
             Change Password
           </button>
         </div>

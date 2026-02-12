@@ -334,7 +334,7 @@ export default function AnalysisPage() {
           trackId,
           trackName: track?.name || 'Unknown',
           count,
-          color: track?.color || '#208479',
+          color: track?.color || '#178da6',
         };
       })
       .sort((a, b) => b.count - a.count);
@@ -789,7 +789,7 @@ export default function AnalysisPage() {
   return (
     <div className='min-h-screen bg-gray-400'>
       {/* Header */}
-      <header className='bg-[#208479] text-white p-2 md:p-4 shadow-md sticky top-0 z-40'>
+      <header className='bg-[#178da6] text-white p-2 md:p-4 shadow-md sticky top-0 z-40'>
         <div className='max-w-7xl mx-auto'>
           {/* Mobile layout */}
           <div className='md:hidden'>
@@ -802,14 +802,14 @@ export default function AnalysisPage() {
             <div className='grid grid-cols-2 gap-2'>
               <button
                 onClick={() => router.push('/coach')}
-                className='flex items-center justify-center gap-1 bg-[#1a6b62] hover:bg-teal-800 px-2 py-1.5 rounded-lg transition text-sm'
+                className='flex items-center justify-center gap-1 bg-[#14758c] hover:bg-teal-800 px-2 py-1.5 rounded-lg transition text-sm'
               >
                 <ArrowLeft size={16} />
                 Back
               </button>
               <button
                 onClick={handleLogout}
-                className='flex items-center justify-center gap-1 bg-white text-[#208479] font-semibold px-2 py-1.5 rounded-lg hover:bg-gray-300 transition text-sm'
+                className='flex items-center justify-center gap-1 bg-white text-[#178da6] font-semibold px-2 py-1.5 rounded-lg hover:bg-gray-300 transition text-sm'
               >
                 <LogOut size={16} />
                 Logout
@@ -821,7 +821,7 @@ export default function AnalysisPage() {
             <div className='flex items-center gap-4'>
               <button
                 onClick={() => router.push('/coach')}
-                className='hover:bg-[#1a6b62] p-2 rounded transition flex items-center gap-2'
+                className='hover:bg-[#14758c] p-2 rounded transition flex items-center gap-2'
               >
                 <ArrowLeft size={20} />
                 Back to Dashboard
@@ -833,7 +833,7 @@ export default function AnalysisPage() {
             </div>
             <button
               onClick={handleLogout}
-              className='px-4 py-2 bg-white text-[#208479] font-semibold rounded hover:bg-gray-300 transition'
+              className='px-4 py-2 bg-white text-[#178da6] font-semibold rounded hover:bg-gray-300 transition'
             >
               Logout
             </button>

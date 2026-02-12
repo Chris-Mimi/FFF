@@ -435,7 +435,7 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
           </span>
           <button
             onClick={goToToday}
-            className='px-2 md:px-3 py-1 bg-[#208479] hover:bg-[#1a6b62] text-white text-xs md:text-sm rounded-lg font-medium transition'
+            className='px-2 md:px-3 py-1 bg-[#178da6] hover:bg-[#14758c] text-white text-xs md:text-sm rounded-lg font-medium transition'
           >
             Today
           </button>
@@ -474,7 +474,7 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
                 isToday
                   ? 'bg-cyan-100 text-gray-900'
                   : workout?.attended
-                  ? 'bg-[#208479] text-white'
+                  ? 'bg-[#178da6] text-white'
                   : workout?.booked
                   ? 'bg-[#7dd3c0] text-gray-900'
                   : 'bg-cyan-100 text-gray-900'
@@ -507,7 +507,7 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
                     // Future booked session - show "Booked" placeholder
                     <div className='flex flex-col items-center justify-center h-full py-8'>
                       <div className='text-center'>
-                        <div className='text-lg font-bold text-[#208479] mb-2'>Booked</div>
+                        <div className='text-lg font-bold text-[#178da6] mb-2'>Booked</div>
                         <div className='text-xs text-gray-600'>{workout.publish_time.slice(0, 5)}</div>
                         <div className='text-xs text-gray-500 mt-1'>Workout details available closer to date</div>
                       </div>
@@ -520,7 +520,7 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
                         {workout.track && (
                           <div
                             className='w-3 h-3 rounded-full flex-shrink-0'
-                            style={{ backgroundColor: workout.track.color || '#208479' }}
+                            style={{ backgroundColor: workout.track.color || '#178da6' }}
                           />
                         )}
                         <h3 className='font-bold text-gray-900 text-sm'>{workout.title}</h3>
@@ -549,8 +549,8 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
                         );
 
                         return (
-                        <div key={section.id} className='border-l-2 border-[#208479] pl-2'>
-                          <div className='text-xs font-semibold text-[#208479] mb-1'>
+                        <div key={section.id} className='border-l-2 border-[#178da6] pl-2'>
+                          <div className='text-xs font-semibold text-[#178da6] mb-1'>
                             {section.type}
                             {(section.duration > 0) && ` (${section.duration} min)`}
                           </div>

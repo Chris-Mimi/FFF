@@ -59,7 +59,7 @@ export default function WeekView({
                             {wod.tracks && (
                               <div
                                 className='w-2 h-2 rounded-full flex-shrink-0'
-                                style={{ backgroundColor: wod.tracks.color || '#208479' }}
+                                style={{ backgroundColor: wod.tracks.color || '#178da6' }}
                               />
                             )}
                             <span className='text-xs font-medium text-gray-900 truncate'>

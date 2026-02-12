@@ -169,7 +169,7 @@ export default function TenCardModal({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="bg-[#208479] text-white p-4 flex items-center justify-between">
+        <div className="bg-[#178da6] text-white p-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <CreditCard size={24} />
             <h2 className="text-xl font-bold">Payment Management</h2>
@@ -256,7 +256,7 @@ export default function TenCardModal({
                     type="date"
                     value={purchaseDate}
                     onChange={(e) => setPurchaseDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900"
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Sessions used counter starts from this date.
@@ -271,7 +271,7 @@ export default function TenCardModal({
                   <select
                     value={tenCardTotal}
                     onChange={(e) => setTenCardTotal(Number(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900"
                   >
                     <option value={5}>5 sessions</option>
                     <option value={10}>10 sessions (standard)</option>
@@ -288,7 +288,7 @@ export default function TenCardModal({
                     type="date"
                     value={tenCardExpiry}
                     onChange={(e) => setTenCardExpiry(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#208479] focus:border-transparent text-gray-900"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900"
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Leave empty for no expiry. Sessions cannot be used after this date.
@@ -424,7 +424,7 @@ export default function TenCardModal({
           <button
             onClick={handleSave}
             disabled={loading}
-            className="px-4 py-2 bg-[#208479] hover:bg-[#1a6b62] disabled:bg-[#208479]/50 text-white rounded-lg transition flex items-center gap-2"
+            className="px-4 py-2 bg-[#178da6] hover:bg-[#14758c] disabled:bg-[#178da6]/50 text-white rounded-lg transition flex items-center gap-2"
           >
             {loading && <div className="animate-spin rounded-full h-4 w-4 border-b border-white"></div>}
             Save Changes
