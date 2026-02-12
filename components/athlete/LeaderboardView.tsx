@@ -21,6 +21,7 @@ import {
 
 interface ScoringFields {
   time?: boolean;
+  max_time?: boolean;
   reps?: boolean;
   load?: boolean;
   rounds_reps?: boolean;
@@ -138,6 +139,7 @@ function extractLeaderboardItems(wod: WodData): LeaderboardItem[] {
       const hasStructuredItems = (section.lifts?.length || 0) + (section.benchmarks?.length || 0) + (section.forge_benchmarks?.length || 0) > 0;
       const scoringType = detectScoringType(sf);
       const scoringLabel = scoringType === 'time' ? 'For Time'
+        : scoringType === 'max_time' ? 'Max Time'
         : scoringType === 'time_with_cap' ? 'For Time (Cap)'
         : scoringType === 'rounds_reps' ? 'AMRAP'
         : scoringType === 'reps' ? 'Max Reps'
@@ -630,7 +632,7 @@ function WodLeaderboard({ userId }: { userId: string }) {
                 onClick={() => setGenderFilter(f)}
                 className={`px-3 py-1 rounded text-xs font-medium transition ${
                   genderFilter === f
-                    ? f === 'M' ? 'bg-blue-600 text-white' : f === 'F' ? 'bg-pink-600 text-white' : 'bg-gray-900 text-white'
+                    ? f === 'M' ? 'bg-blue-200 text-blue-800' : f === 'F' ? 'bg-pink-200 text-pink-800' : 'bg-gray-900 text-white'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >

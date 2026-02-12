@@ -162,7 +162,7 @@ export default function MemberCard({
                 onClick={() => onSetGender(member.id, member.gender === g ? null : g)}
                 className={`px-2 py-1 rounded text-xs font-medium cursor-pointer transition ${
                   member.gender === g
-                    ? g === 'M' ? 'bg-blue-600 text-white' : 'bg-pink-600 text-white'
+                    ? g === 'M' ? 'bg-blue-200 text-blue-800' : 'bg-pink-200 text-pink-800'
                     : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                 }`}
               >

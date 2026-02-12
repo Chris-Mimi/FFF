@@ -121,10 +121,10 @@ export default function WhiteboardGallery({
           <div key={photo.id} className='border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition'>
             {/* Photo - scrollable container */}
             <div
-              className='relative h-48 overflow-y-auto cursor-pointer'
+              className='relative h-48 overflow-hidden cursor-pointer'
               onClick={() => handleViewPhoto(photo)}
             >
-              <Image src={photo.photo_url} alt={photo.photo_label} width={0} height={0} sizes='100vw' className='w-full h-auto' />
+              <Image src={photo.photo_url} alt={photo.photo_label} fill sizes='(max-width: 768px) 100vw, 50vw' className='object-cover' />
             </div>
 
             {/* Details */}
@@ -207,7 +207,7 @@ export default function WhiteboardGallery({
           )}
 
           <div
-            className='relative max-w-4xl max-h-[90vh] cursor-default'
+            className='relative max-w-4xl w-full max-h-[90vh] cursor-default'
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -217,14 +217,15 @@ export default function WhiteboardGallery({
             >
               <X size={24} />
             </button>
-            <Image
-              src={selectedPhoto.photo_url}
-              alt={selectedPhoto.photo_label}
-              width={0}
-              height={0}
-              sizes='90vw'
-              className='max-w-full max-h-[80vh] object-contain rounded-lg w-auto h-auto'
-            />
+            <div className='relative w-full' style={{ height: '80vh' }}>
+              <Image
+                src={selectedPhoto.photo_url}
+                alt={selectedPhoto.photo_label}
+                fill
+                sizes='90vw'
+                className='object-contain rounded-lg'
+              />
+            </div>
             <div className='mt-2 bg-black bg-opacity-70 text-white p-3 rounded-lg'>
               <p className='font-medium'>{selectedPhoto.photo_label}</p>
               {selectedPhoto.caption && <p className='text-sm mt-1'>{selectedPhoto.caption}</p>}

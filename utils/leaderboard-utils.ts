@@ -51,6 +51,7 @@ interface RawBenchmarkResult {
 
 interface ScoringFields {
   time?: boolean;
+  max_time?: boolean;
   reps?: boolean;
   load?: boolean;
   rounds_reps?: boolean;
@@ -62,10 +63,11 @@ interface ScoringFields {
 
 /**
  * Detect the primary scoring type from a section's scoring_fields.
- * Priority: time > rounds_reps > reps > load/weight > calories > metres > checkbox
+ * Priority: time/max_time > rounds_reps > reps > load/weight > calories > metres > checkbox
  */
 export function detectScoringType(scoringFields?: ScoringFields): string {
   if (!scoringFields) return 'time';
+  if (scoringFields.max_time) return 'max_time';
   if (scoringFields.time && scoringFields.rounds_reps) return 'time_with_cap';
   if (scoringFields.time) return 'time';
   if (scoringFields.rounds_reps) return 'rounds_reps';
@@ -106,6 +108,15 @@ function compareByScoringType(a: RawSectionResult, b: RawSectionResult, type: st
       const aTime = parseTimeToSeconds(a.time_result);
       const bTime = parseTimeToSeconds(b.time_result);
       return aTime - bTime; // ascending (faster = better)
+    }
+    case 'max_time': {
+      const aTime = parseTimeToSeconds(a.time_result);
+      const bTime = parseTimeToSeconds(b.time_result);
+      // Infinity means no result — sort last
+      if (aTime === Infinity && bTime === Infinity) return 0;
+      if (aTime === Infinity) return 1;
+      if (bTime === Infinity) return -1;
+      return bTime - aTime; // descending (longer = better)
     }
     case 'time_with_cap': {
       const aFinished = !!(a.time_result && a.time_result.trim() !== '');
@@ -305,6 +316,7 @@ export function rankLiftResults(
 export function formatResult(entry: LeaderboardEntry, scoringType: string): string {
   switch (scoringType) {
     case 'time':
+    case 'max_time':
       return entry.timeResult || '-';
     case 'time_with_cap':
       if (entry.timeResult) return entry.timeResult;

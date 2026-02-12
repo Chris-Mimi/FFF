@@ -12,6 +12,7 @@
 interface ScoringFieldInputsProps {
   scoringFields: {
     time?: boolean;
+    max_time?: boolean;
     rounds_reps?: boolean;
     reps?: boolean;
     load?: boolean;
@@ -82,8 +83,8 @@ export default function ScoringFieldInputs({
         <span className='text-xs font-medium text-gray-600'>Result:</span>
       )}
 
-      {/* Time Input */}
-      {scoringFields.time && (
+      {/* Time Input (For Time or Max Time) */}
+      {(scoringFields.time || scoringFields.max_time) && (
         <input
           type='text'
           placeholder='mm:ss'

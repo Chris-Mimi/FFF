@@ -50,7 +50,8 @@ export interface WODSection {
 
   // Configurable scoring fields (determines which inputs athletes see)
   scoring_fields?: {
-    time?: boolean;           // Show time input (mm:ss)
+    time?: boolean;           // Show time input (mm:ss) — lower is better
+    max_time?: boolean;       // Show time input (mm:ss) — higher is better (e.g. max hold)
     reps?: boolean;           // Show reps input (total)
     rounds_reps?: boolean;    // Show rounds + reps inputs (AMRAP)
     load?: boolean;           // Show weight/load input (kg)

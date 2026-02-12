@@ -130,11 +130,7 @@ See `project-history/` folder for detailed implementation history
 - Athletes page: Previously logged benchmarks/lifts may not display for some athletes (pre-existing)
 
 **Migrations Pending (apply in Supabase SQL Editor):**
-1. **`20260211_create_reactions_table.sql`** — New reactions table for fist bumps
-2. **`20260211_add_community_read_policies.sql`** — Open read access on result tables for community feed
-3. **`get_public_tables()` RPC function** — Required for backup auto-discovery (see session 95)
-4. **`database/20260212_add_get_member_names_rpc.sql`** — RPC for name lookups (bypasses members RLS)
-5. **`database/20260212_add_gender_to_members.sql`** — Gender column + updates RPC with gender return
+1. **`get_public_tables()` RPC function** — Required for backup auto-discovery (see session 95)
 
 ---
 

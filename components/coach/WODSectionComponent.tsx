@@ -198,7 +198,7 @@ function WODSectionComponent({
                 📊 Scoring:
               </label>
               <div className='flex flex-wrap gap-x-3 gap-y-1'>
-                  {/* Time */}
+                  {/* Time (lower is better) */}
                   <label className='flex items-center gap-1 text-xs cursor-pointer text-gray-900 whitespace-nowrap'>
                     <input
                       type='checkbox'
@@ -206,12 +206,30 @@ function WODSectionComponent({
                       onChange={e => onUpdate({
                         scoring_fields: {
                           ...section.scoring_fields,
-                          time: e.target.checked
+                          time: e.target.checked,
+                          ...(e.target.checked ? { max_time: false } : {})
                         }
                       })}
                       className='rounded border-gray-300'
                     />
                     <span>Time</span>
+                  </label>
+
+                  {/* Max Time (higher is better, e.g. max hold) */}
+                  <label className='flex items-center gap-1 text-xs cursor-pointer text-gray-900 whitespace-nowrap'>
+                    <input
+                      type='checkbox'
+                      checked={section.scoring_fields?.max_time ?? false}
+                      onChange={e => onUpdate({
+                        scoring_fields: {
+                          ...section.scoring_fields,
+                          max_time: e.target.checked,
+                          ...(e.target.checked ? { time: false } : {})
+                        }
+                      })}
+                      className='rounded border-gray-300'
+                    />
+                    <span>Max Time</span>
                   </label>
 
                   {/* Reps */}
