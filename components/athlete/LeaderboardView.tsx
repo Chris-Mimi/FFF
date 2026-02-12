@@ -253,8 +253,10 @@ function getWeekDateStrings(monday: Date): { mondayStr: string; sundayStr: strin
 
 function formatWodSummary(sections: WodSection[], workoutTypesMap: Map<string, string>): string {
   if (!sections || sections.length === 0) return '';
-  // Find the section that has a workout_type_id set (the actual scored WOD section)
-  const wodSection = sections.find(s => s.workout_type_id);
+  // Prefer sections with type starting with "WOD" that have workout_type_id set
+  // (avoids picking "Final prep/Info" which may also have workout_type_id but wrong duration)
+  const wodSection = sections.find(s => s.workout_type_id && s.type?.startsWith('WOD'))
+    || sections.find(s => s.workout_type_id);
   if (!wodSection || !wodSection.workout_type_id) return '';
   const typeName = workoutTypesMap.get(wodSection.workout_type_id);
   if (!typeName) return '';

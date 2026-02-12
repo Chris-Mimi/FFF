@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 11.1
-**Updated:** 2026-02-12 (Session 112 - Leaderboard WOD Type Label, Timezone Fix, Orphan Cleanup)
+**Version:** 11.2
+**Updated:** 2026-02-12 (Session 113 - Database Cleanup, formatWodSummary Fix)
 
 ---
 
@@ -80,11 +80,14 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-12 Session 113 - Opus 4.6):**
+- **✅ Database cleanup** — Deleted 70 records: 68 empty unpublished shells + 2 published orphans ("Strict Movements" Dec 1, "Weekend WOD" Jan 12). Table: 196 → 126 records.
+- **✅ Session type fix** — Changed "Session" → "WOD" for Endurance #26.21 (Sat Jan 24).
+- **✅ formatWodSummary fix** — Prefers "WOD" sections over "Final prep/Info" when both have workout_type_id. Fixes wrong duration display (10' → 45').
+- See: `project-history/2026-02-12-session-113-database-cleanup.md`
+
 **Completed (2026-02-12 Session 112 - Opus 4.6):**
-- **✅ Leaderboard WOD type label** — Dropdown/static label now shows correct WOD type (AMRAP, For Time, EMOM, etc.) by looking up `workout_type_id` from the `workout_types` table, instead of deriving from `detectScoringType` which showed wrong labels like "Completion" and "Max Load".
-- **✅ Timezone date fix** — Replaced `toISOString().split('T')[0]` with local date formatting in `getWeekDateStrings`. UTC conversion was shifting dates back 1 day in CET timezone, causing dropdown items to start on Sunday.
-- **✅ Orphaned WOD cleanup** — Deleted 5 stale published WOD records that were leftover from rename/republish operations (no linked results, not visible on coach page).
-- **✅ Date sync across athlete tabs** (Session 111) — Threaded `selectedDate` from parent through Community tab → LeaderboardView → WodLeaderboard.
+- **✅ Leaderboard WOD type label, timezone date fix, 5 orphan deletions, date sync**
 - See: `project-history/2026-02-12-session-112-leaderboard-label-timezone-orphans.md`
 
 **Completed (2026-02-12 Session 110 - Opus 4.6):**
@@ -99,11 +102,7 @@ Social Tables
 - **✅ Multi-Source WOD Leaderboard** — All 3 data sources, item picker pills, ±30 day grouping.
 - See: `project-history/2026-02-11-session-108-multi-source-leaderboard.md`
 
-**Completed (2026-02-11 Session 106 - Opus 4.6):**
-- **✅ Aria-labels** — 137 labels across 32 files.
-- See: `project-history/2026-02-11-session-106-aria-labels.md`
-
-**Older Sessions (57-105):**
+**Older Sessions (57-106):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -172,7 +171,11 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 113 Priorities
+### Session 114 Priorities
+
+**Investigate:**
+- **Empty WOD shell creation** — Schedule page creates empty WOD records when time slots are viewed. 68 accumulated in ~1 month. Consider not creating WOD records until coach starts editing, or auto-cleanup.
+- **11 unpublished drafts with content** — Review if these should be deleted or kept (some may be work in progress)
 
 **Testing:**
 - **Test max_time scoring** — Create a workout with Max Time checkbox, verify athlete sees time input, leaderboard ranks longer = better
