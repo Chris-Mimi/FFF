@@ -400,6 +400,8 @@ function ConfigureLiftModal({
                       type='number'
                       value={sets}
                       onChange={e => setSets(Math.max(1, parseInt(e.target.value) || 1))}
+                      min='1'
+                      max='99'
                       className='w-32 px-4 py-3 text-3xl text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
                     />
                     <div className='flex gap-2'>
@@ -430,6 +432,8 @@ function ConfigureLiftModal({
                       type='number'
                       value={reps}
                       onChange={e => setReps(Math.max(1, parseInt(e.target.value) || 1))}
+                      min='1'
+                      max='999'
                       className='w-32 px-4 py-3 text-3xl text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
                     />
                     <div className='flex gap-2'>
@@ -549,6 +553,7 @@ function ConfigureLiftModal({
                 value={athleteNotes}
                 onChange={e => setAthleteNotes(e.target.value)}
                 placeholder='Notes visible to athletes'
+                maxLength={500}
                 className='mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
                 rows={3}
               />

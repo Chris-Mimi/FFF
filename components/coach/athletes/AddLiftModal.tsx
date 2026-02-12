@@ -120,6 +120,10 @@ export default function AddLiftModal({
                 value={weight}
                 onChange={e => setWeight(e.target.value)}
                 placeholder='100'
+                min='0'
+                max='999'
+                step='0.5'
+                required
                 className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
               />
             </div>
@@ -154,6 +158,7 @@ export default function AddLiftModal({
               onChange={e => setNotes(e.target.value)}
               placeholder='Any additional notes...'
               rows={3}
+              maxLength={500}
               className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 resize-none'
             />
           </div>

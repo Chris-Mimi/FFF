@@ -15,14 +15,14 @@
 - [x] 2. **Add `aria-labels` to icon-only buttons** — ✅ DONE (Session 106). ~136 aria-labels added across 35 files.
    - Previously only 1 aria-label in entire codebase (ExerciseVideoModal)
 
-- [ ] 3. **Add Escape key handlers** to modals that are missing them — most modals can't be closed via keyboard.
+- [x] 3. **Add Escape key handlers** to modals that are missing them — most modals can't be closed via keyboard.
    - Only ExerciseVideoModal and SearchPanel have Escape handlers
 
 ### Medium Impact
 
-- [ ] 4. **Form validation** — Many inputs lack `required`, `maxLength`, or inline error messages. No character limits, no numeric constraints.
+- [x] 4. **Form validation** — ✅ HIGH priority DONE (Sessions 117-118). 7 files: ScoringFieldInputs, MovementResultInput, AddLiftModal, ExerciseFormModal, ConfigureLiftModal, WorkoutFormFields, ConfigureBenchmarkModal. MEDIUM priority (registration, signup, profile) remaining.
 
-- [ ] 5. **Debounce search inputs** — SearchPanel and MovementLibrary filter on every keystroke. Could cause lag on large datasets.
+- [x] 5. **Debounce search inputs** — ✅ DONE (Session 117, useDebouncedValue hook). SearchPanel + MovementLibraryPopup (4 filter useMemos).
 
 - [ ] 6. **Missing empty states** — Favorites section, booking history, records tab show minimal UI when empty.
 

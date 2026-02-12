@@ -210,6 +210,7 @@ function ConfigureBenchmarkModal({
                 value={athleteNotes}
                 onChange={e => setAthleteNotes(e.target.value)}
                 placeholder='Notes visible to athletes'
+                maxLength={500}
                 className='mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
                 rows={3}
               />

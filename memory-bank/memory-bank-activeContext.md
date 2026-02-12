@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 11.5
-**Updated:** 2026-02-12 (Session 116 - Escape Keys + Whiteboard Scroll)
+**Version:** 11.7
+**Updated:** 2026-02-12 (Session 117 - Debounce + Form Validation)
 
 ---
 
@@ -80,6 +80,12 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-12 Session 117 - Opus 4.6):**
+- **✅ Debounced search inputs** — Created `hooks/useDebouncedValue.ts` (200ms). Applied to SearchPanel (coach/page.tsx) and MovementLibraryPopup (all 4 filter useMemos).
+- **✅ Whiteboard scrollable cards** — Matched athlete pattern: `overflow-hidden` + `object-cover` → `overflow-y-auto` + `w-full h-auto` in WhiteboardGallery.tsx.
+- **✅ Form validation (4/7 HIGH done)** — ScoringFieldInputs.tsx and MovementResultInput.tsx: time maxLength+pattern, rounds/reps/weight/calories/distance min+max.
+- See: `project-history/2026-02-12-session-117-debounce-form-validation.md`
+
 **Completed (2026-02-12 Session 116 - Opus 4.6):**
 - **✅ Escape key handlers** — Added to 15 modals/panels (was 1/18, now 16/18). Skipped WorkoutModal + MovementLibraryPopup (parent panels with nested modals).
 - **✅ PublishModal Ocean Teal** — 4x `#20766a` → `#178da6`.
@@ -98,11 +104,7 @@ Social Tables
 - **✅ Database cleanup 70 records, formatWodSummary fix**
 - See: `project-history/2026-02-12-session-113-database-cleanup.md`
 
-**Completed (2026-02-12 Session 112 - Opus 4.6):**
-- **✅ Leaderboard WOD type label, timezone date fix, 5 orphan deletions**
-- See: `project-history/2026-02-12-session-112-leaderboard-label-timezone-orphans.md`
-
-**Older Sessions (57-111):**
+**Older Sessions (57-112):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -118,6 +120,8 @@ See `project-history/` folder for detailed implementation history
 - ✅ ~~15+ `alert()` calls should become toast notifications~~ — DONE (Session 105, sonner)
 - ✅ ~~50+ icon buttons missing aria-labels~~ — DONE (Session 106, 137 labels added)
 - ✅ ~~Escape key handlers for modals/popups~~ — DONE (Session 116, 15 modals added)
+- ✅ ~~Debounce search inputs~~ — DONE (Session 117, useDebouncedValue hook)
+- ✅ ~~Form validation (HIGH priority)~~ — DONE (Sessions 117-118, 7/7 files). MEDIUM priority remaining.
 
 **Feature Gaps (from competitor analysis — updated):**
 - ✅ #1 Social reactions (fist bumps) — DONE (Session 104)
@@ -171,13 +175,17 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 117 Priorities
+### Session 119 Priorities
 
-**Testing:**
-- **Test whiteboard scroll layout** — Verify gallery scrolls independently, header/upload/nav stay fixed
-- **Test escape keys** — Try Escape on various modals (PublishModal, DeleteWorkout, SessionManagement, etc.)
-- **Test max_time scoring** — Create workout with Max Time, verify athlete time input + leaderboard
-- **Test placeholder WOD fix** — Schedule "This Week"/"Next Week", verify no empty WODs
+**Form Validation (MEDIUM priority — remaining):**
+- Registration, signup, profile, coach notes, payments forms
+
+**Code Quality (remaining items from Session 103 review):**
+- #6 Missing empty states (Favorites, booking history, records tab)
+- #7 Touch targets (<44px on mobile)
+- #8 Replace browser `confirm()` with styled modal dialogs
+- #9 Focus traps in modals
+- #10 Color contrast audit
 
 **Features (from competitor analysis):**
 - #4 Workout intent/stimulus notes per section (low effort, high value)

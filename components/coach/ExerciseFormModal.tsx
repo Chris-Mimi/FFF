@@ -571,6 +571,8 @@ export default function ExerciseFormModal({
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500'
               placeholder='e.g., Barbell Clean'
+              required
+              maxLength={100}
             />
           </div>
 
@@ -585,6 +587,7 @@ export default function ExerciseFormModal({
               onChange={(e) => setForm({ ...form, display_name: e.target.value })}
               className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500'
               placeholder='e.g., Clean'
+              maxLength={100}
             />
           </div>
 
@@ -683,6 +686,7 @@ export default function ExerciseFormModal({
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               rows={3}
+              maxLength={1000}
               className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500'
               placeholder='Exercise description or cues'
             />
@@ -694,11 +698,12 @@ export default function ExerciseFormModal({
               Video/Photo URL <span className='text-gray-400 text-xs'>(YouTube, image link, etc.)</span>
             </label>
             <input
-              type='text'
+              type='url'
               value={form.video_url}
               onChange={(e) => setForm({ ...form, video_url: e.target.value })}
               className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500'
               placeholder='https://youtube.com/...'
+              maxLength={500}
             />
           </div>
 
@@ -779,6 +784,7 @@ export default function ExerciseFormModal({
               onChange={(e) => setForm({ ...form, search_terms: e.target.value })}
               className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500'
               placeholder='Additional searchable terms'
+              maxLength={500}
             />
           </div>
 

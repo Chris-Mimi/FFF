@@ -59,6 +59,8 @@ export default function WorkoutFormFields({
             value={formData.title}
             onChange={e => onFieldChange('title', e.target.value)}
             placeholder='Select or type (e.g., WOD, Foundations, Kids & Teens)...'
+            required
+            maxLength={100}
             className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 placeholder-gray-400 ${
               errors.title ? 'border-red-500' : 'border-gray-300'
             }`}
@@ -172,6 +174,7 @@ export default function WorkoutFormFields({
           value={formData.workout_name || ''}
           onChange={e => onFieldChange('workout_name', e.target.value)}
           placeholder='e.g., "Overhead Fest", "Fran"'
+          maxLength={100}
           className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 placeholder-gray-400'
         />
         <p className='text-xs text-gray-500 mt-1'>
