@@ -213,10 +213,11 @@ export default function AthletePagePhotosTab() {
             {photos.length > 1 && (
               <button
                 onClick={(e) => { e.stopPropagation(); handlePreviousPhoto(); }}
-                className='absolute left-4 top-1/2 -translate-y-1/2 bg-white text-gray-700 p-3 rounded-full hover:bg-gray-100 z-10 shadow-lg'
+                className='absolute left-1 md:left-4 top-1/2 -translate-y-1/2 bg-white/70 md:bg-white text-gray-700 p-1.5 md:p-3 rounded-full hover:bg-gray-100 z-10 shadow-lg'
                 aria-label='Previous photo'
               >
-                <ChevronLeft size={28} />
+                <ChevronLeft size={20} className='md:hidden' />
+                <ChevronLeft size={28} className='hidden md:block' />
               </button>
             )}
 
@@ -255,10 +256,11 @@ export default function AthletePagePhotosTab() {
             {photos.length > 1 && (
               <button
                 onClick={(e) => { e.stopPropagation(); handleNextPhoto(); }}
-                className='absolute right-4 top-1/2 -translate-y-1/2 bg-white text-gray-700 p-3 rounded-full hover:bg-gray-100 z-10 shadow-lg'
+                className='absolute right-1 md:right-4 top-1/2 -translate-y-1/2 bg-white/70 md:bg-white text-gray-700 p-1.5 md:p-3 rounded-full hover:bg-gray-100 z-10 shadow-lg'
                 aria-label='Next photo'
               >
-                <ChevronRight size={28} />
+                <ChevronRight size={20} className='md:hidden' />
+                <ChevronRight size={28} className='hidden md:block' />
               </button>
             )}
           </div>

@@ -41,10 +41,11 @@ export default function PhotoModal({
         {showNavigation && (
           <button
             onClick={(e) => { e.stopPropagation(); onPrevious(); }}
-            className='absolute left-4 top-1/2 -translate-y-1/2 bg-white text-gray-700 p-3 rounded-full hover:bg-gray-100 z-10 shadow-lg'
+            className='absolute left-1 md:left-4 top-1/2 -translate-y-1/2 bg-white/70 md:bg-white text-gray-700 p-1.5 md:p-3 rounded-full hover:bg-gray-100 z-10 shadow-lg'
             aria-label='Previous photo'
           >
-            <ChevronLeft size={28} />
+            <ChevronLeft size={20} className='md:hidden' />
+            <ChevronLeft size={28} className='hidden md:block' />
           </button>
         )}
 
@@ -59,14 +60,15 @@ export default function PhotoModal({
           >
             <X size={24} />
           </button>
-          <Image
-            src={photo.photo_url}
-            alt={photo.photo_label}
-            width={0}
-            height={0}
-            sizes='90vw'
-            className='max-w-[90vw] max-h-[85vh] object-contain rounded-lg w-auto h-auto'
-          />
+          <div className='relative w-[90vw] h-[85vh]'>
+            <Image
+              src={photo.photo_url}
+              alt={photo.photo_label}
+              fill
+              sizes='90vw'
+              className='object-contain rounded-lg'
+            />
+          </div>
           <div className='mt-2 bg-black bg-opacity-70 text-white p-3 rounded-lg'>
             <p className='font-medium'>{photo.photo_label}</p>
             {photo.caption && <p className='text-sm mt-1'>{photo.caption}</p>}
@@ -82,10 +84,11 @@ export default function PhotoModal({
         {showNavigation && (
           <button
             onClick={(e) => { e.stopPropagation(); onNext(); }}
-            className='absolute right-4 top-1/2 -translate-y-1/2 bg-white text-gray-700 p-3 rounded-full hover:bg-gray-100 z-10 shadow-lg'
+            className='absolute right-1 md:right-4 top-1/2 -translate-y-1/2 bg-white/70 md:bg-white text-gray-700 p-1.5 md:p-3 rounded-full hover:bg-gray-100 z-10 shadow-lg'
             aria-label='Next photo'
           >
-            <ChevronRight size={28} />
+            <ChevronRight size={20} className='md:hidden' />
+            <ChevronRight size={28} className='hidden md:block' />
           </button>
         )}
       </div>

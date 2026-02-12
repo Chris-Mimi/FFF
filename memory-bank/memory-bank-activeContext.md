@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.98
-**Updated:** 2026-02-12 (Session 109 - Weekly Leaderboard, Gender Filter, Fixes)
+**Version:** 10.99
+**Updated:** 2026-02-12 (Session 110 - Max Time Scoring, Photo Lightbox Fixes)
 
 ---
 
@@ -80,30 +80,30 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-12 Session 110 - Opus 4.6):**
+- **✅ Max Time scoring type** — New `max_time` scoring field (higher time = better) for challenges like max holds. Mutually exclusive with `time` checkbox. Leaderboard sorts descending, pill label shows "Max Time". No migration needed (JSONB).
+- **✅ Pastel gender buttons** — M/F filter buttons changed from solid `blue-600`/`pink-600` to pastel `blue-200`/`pink-200` on leaderboard + coach MemberCard.
+- **✅ Whiteboard lightbox fix** — Coach WhiteboardGallery: `fill` + container replaces broken `width={0} height={0}` (same fix as athlete photos in Session 109). Also fixed logbook PhotoModal.
+- **✅ Mobile lightbox arrows** — Shrunk nav arrows on mobile (`p-1.5`, `size=20`, `left-1`/`right-1`, semi-transparent) across all 3 lightbox components (WhiteboardGallery, AthletePagePhotosTab, PhotoModal).
+- See: `project-history/2026-02-12-session-110-max-time-lightbox-fixes.md`
+
 **Completed (2026-02-12 Session 109 - Opus 4.6):**
-- **✅ Fix "Unknown" athlete names** — `members` RLS only allowed self-read. Created `get_member_names(UUID[])` RPC (SECURITY DEFINER, authenticated only). Updated LeaderboardView + CommunityTab.
-- **✅ Photo lightbox fix** — `fill` + container replaces broken `width={0} height={0}`
-- **✅ Weekly leaderboard navigation** — Converted from daily to weekly (Mon-Sun). Arrows ±1 week, "This Week" button, workout selector shows day prefix. Fixed infinite re-render (`allDates` needed `useMemo`).
-- **✅ Gender system** — `gender` column on `members` (M/F/null), M/F toggle on coach MemberCard, gender select on athlete profile, M/F filter on leaderboard with client-side re-ranking. RPC updated to return gender.
+- **✅ Fix "Unknown" names, photo lightbox, weekly leaderboard, gender system**
 - See: `project-history/2026-02-12-session-109-weekly-leaderboard-gender-filter.md`
 
 **Completed (2026-02-11 Session 108 - Opus 4.6):**
-- **✅ Multi-Source WOD Leaderboard** — Leaderboard queries all 3 data sources (lift_records, benchmark_results, wod_section_results). Item picker pills, ±30 day grouping.
+- **✅ Multi-Source WOD Leaderboard** — All 3 data sources, item picker pills, ±30 day grouping.
 - See: `project-history/2026-02-11-session-108-multi-source-leaderboard.md`
 
 **Completed (2026-02-11 Session 106 - Opus 4.6):**
-- **✅ Add aria-labels to all icon-only buttons** — 137 labels across 32 files.
+- **✅ Aria-labels** — 137 labels across 32 files.
 - See: `project-history/2026-02-11-session-106-aria-labels.md`
 
 **Completed (2026-02-11 Session 105 - Opus 4.6):**
-- **✅ Replace all alert() with sonner toast notifications** — 39 files, zero alert() remaining.
+- **✅ Sonner toast notifications** — Replaced all alert() calls.
 - See: `project-history/2026-02-11-session-105-sonner-toast-notifications.md`
 
-**Completed (2026-02-11 Session 104 - Opus 4.6):**
-- **✅ Social Reactions, Community Feed, Leaderboard, RLS updates**
-- See: `project-history/2026-02-11-session-104-social-reactions-leaderboard.md`
-
-**Older Sessions (57-103):**
+**Older Sessions (57-104):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -172,9 +172,10 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 110 Priorities
+### Session 111 Priorities
 
 **Testing:**
+- **Test max_time scoring** — Create a workout with Max Time checkbox, verify athlete sees time input, leaderboard ranks longer = better
 - **Test multi-source leaderboard live** — Verify lift/benchmark/content items all load with weekly nav
 - **Test gender filter** — Set gender on a few members via coach admin, verify M/F filter works
 
