@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 10.99
-**Updated:** 2026-02-12 (Session 110 - Max Time Scoring, Photo Lightbox Fixes)
+**Version:** 11.1
+**Updated:** 2026-02-12 (Session 112 - Leaderboard WOD Type Label, Timezone Fix, Orphan Cleanup)
 
 ---
 
@@ -80,11 +80,15 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-12 Session 112 - Opus 4.6):**
+- **✅ Leaderboard WOD type label** — Dropdown/static label now shows correct WOD type (AMRAP, For Time, EMOM, etc.) by looking up `workout_type_id` from the `workout_types` table, instead of deriving from `detectScoringType` which showed wrong labels like "Completion" and "Max Load".
+- **✅ Timezone date fix** — Replaced `toISOString().split('T')[0]` with local date formatting in `getWeekDateStrings`. UTC conversion was shifting dates back 1 day in CET timezone, causing dropdown items to start on Sunday.
+- **✅ Orphaned WOD cleanup** — Deleted 5 stale published WOD records that were leftover from rename/republish operations (no linked results, not visible on coach page).
+- **✅ Date sync across athlete tabs** (Session 111) — Threaded `selectedDate` from parent through Community tab → LeaderboardView → WodLeaderboard.
+- See: `project-history/2026-02-12-session-112-leaderboard-label-timezone-orphans.md`
+
 **Completed (2026-02-12 Session 110 - Opus 4.6):**
-- **✅ Max Time scoring type** — New `max_time` scoring field (higher time = better) for challenges like max holds. Mutually exclusive with `time` checkbox. Leaderboard sorts descending, pill label shows "Max Time". No migration needed (JSONB).
-- **✅ Pastel gender buttons** — M/F filter buttons changed from solid `blue-600`/`pink-600` to pastel `blue-200`/`pink-200` on leaderboard + coach MemberCard.
-- **✅ Whiteboard lightbox fix** — Coach WhiteboardGallery: `fill` + container replaces broken `width={0} height={0}` (same fix as athlete photos in Session 109). Also fixed logbook PhotoModal.
-- **✅ Mobile lightbox arrows** — Shrunk nav arrows on mobile (`p-1.5`, `size=20`, `left-1`/`right-1`, semi-transparent) across all 3 lightbox components (WhiteboardGallery, AthletePagePhotosTab, PhotoModal).
+- **✅ Max Time scoring type, pastel gender buttons, lightbox fixes**
 - See: `project-history/2026-02-12-session-110-max-time-lightbox-fixes.md`
 
 **Completed (2026-02-12 Session 109 - Opus 4.6):**
@@ -99,11 +103,7 @@ Social Tables
 - **✅ Aria-labels** — 137 labels across 32 files.
 - See: `project-history/2026-02-11-session-106-aria-labels.md`
 
-**Completed (2026-02-11 Session 105 - Opus 4.6):**
-- **✅ Sonner toast notifications** — Replaced all alert() calls.
-- See: `project-history/2026-02-11-session-105-sonner-toast-notifications.md`
-
-**Older Sessions (57-104):**
+**Older Sessions (57-105):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -172,7 +172,7 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 111 Priorities
+### Session 113 Priorities
 
 **Testing:**
 - **Test max_time scoring** — Create a workout with Max Time checkbox, verify athlete sees time input, leaderboard ranks longer = better

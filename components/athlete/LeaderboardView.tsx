@@ -35,6 +35,7 @@ interface WodSection {
   id: string;
   type: string;
   duration: number;
+  workout_type_id?: string;
   scoring_fields?: ScoringFields;
   lifts?: Array<{
     name: string;
@@ -136,7 +137,6 @@ function extractLeaderboardItems(wod: WodData): LeaderboardItem[] {
     // Content scoring (skip if section already has lifts/benchmarks)
     const sf = section.scoring_fields;
     if (sf && Object.values(sf).some(Boolean) && !section.lifts?.length && !section.benchmarks?.length && !section.forge_benchmarks?.length) {
-      const hasStructuredItems = (section.lifts?.length || 0) + (section.benchmarks?.length || 0) + (section.forge_benchmarks?.length || 0) > 0;
       const scoringType = detectScoringType(sf);
       const scoringLabel = scoringType === 'time' ? 'For Time'
         : scoringType === 'max_time' ? 'Max Time'
@@ -151,9 +151,7 @@ function extractLeaderboardItems(wod: WodData): LeaderboardItem[] {
 
       items.push({
         type: 'content',
-        label: hasStructuredItems
-          ? `${section.type} - ${scoringLabel}`
-          : `${section.type} - ${scoringLabel}${section.duration ? ` (${section.duration}m)` : ''}`,
+        label: `${section.type} - ${scoringLabel}${section.duration ? ` (${section.duration}m)` : ''}`,
         sectionIndex,
         scoringType,
         contentSectionId: `${section.id}-content-0`,
@@ -236,39 +234,32 @@ function getMonday(date: Date): Date {
   return d;
 }
 
+function toLocalDateStr(d: Date): string {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 function getWeekDateStrings(monday: Date): { mondayStr: string; sundayStr: string; allDates: string[] } {
   const dates: string[] = [];
   for (let i = 0; i < 7; i++) {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
-    dates.push(d.toISOString().split('T')[0]);
+    dates.push(toLocalDateStr(d));
   }
   return { mondayStr: dates[0], sundayStr: dates[6], allDates: dates };
 }
 
-function formatWodSummary(sections: WodSection[]): string {
+function formatWodSummary(sections: WodSection[], workoutTypesMap: Map<string, string>): string {
   if (!sections || sections.length === 0) return '';
-  // Main WOD = section with content scoring (not lifts/benchmarks)
-  const metcon = sections.find(s =>
-    s.scoring_fields && Object.values(s.scoring_fields).some(Boolean) &&
-    !s.lifts?.length && !s.benchmarks?.length && !s.forge_benchmarks?.length
-  );
-  if (!metcon || !metcon.scoring_fields) return '';
-  // Derive modality from scoring fields (same logic as extractLeaderboardItems)
-  const st = detectScoringType(metcon.scoring_fields);
-  const label = st === 'time' ? 'For Time'
-    : st === 'max_time' ? 'Max Time'
-    : st === 'time_with_cap' ? 'For Time (Cap)'
-    : st === 'rounds_reps' ? 'AMRAP'
-    : st === 'reps' ? 'Max Reps'
-    : st === 'weight' ? 'Max Load'
-    : st === 'calories' ? 'Max Cals'
-    : st === 'metres' ? 'Max Distance'
-    : st === 'checkbox' ? 'Completion'
-    : '';
-  if (!label) return '';
-  const dur = metcon.duration || 0;
-  return dur ? ` | ${label} (${dur}')` : ` | ${label}`;
+  // Find the section that has a workout_type_id set (the actual scored WOD section)
+  const wodSection = sections.find(s => s.workout_type_id);
+  if (!wodSection || !wodSection.workout_type_id) return '';
+  const typeName = workoutTypesMap.get(wodSection.workout_type_id);
+  if (!typeName) return '';
+  const dur = wodSection.duration || 0;
+  return dur ? ` | ${typeName} (${dur}')` : ` | ${typeName}`;
 }
 
 function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string; initialDate?: Date; onDateChange?: (date: Date) => void }) {
@@ -283,7 +274,19 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
   const [genderFilter, setGenderFilter] = useState<'all' | 'M' | 'F'>('all');
   const [memberGenders, setMemberGenders] = useState<Record<string, string | null>>({});
   const [groupInfo, setGroupInfo] = useState<{ count: number; dateRange: string } | null>(null);
+  const [workoutTypesMap, setWorkoutTypesMap] = useState<Map<string, string>>(new Map());
   const { fetchReactions, toggleReaction, getReaction } = useReactions();
+
+  // Fetch workout_types lookup (ID → name: AMRAP, EMOM, For Time, etc.)
+  useEffect(() => {
+    const load = async () => {
+      const { data } = await supabase.from('workout_types').select('id, name').order('name');
+      if (data) {
+        setWorkoutTypesMap(new Map(data.map(t => [t.id, t.name])));
+      }
+    };
+    load();
+  }, []);
 
   // Sync from parent when initialDate changes (e.g., switching tabs)
   // Compare timestamps to avoid infinite loops (Date objects are new references each render)
@@ -318,6 +321,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
       .order('date', { ascending: true });
 
     // Deduplicate WODs with same session_type + workout_name (e.g., same workout at 17:15 and 18:30)
+    // Then filter out stale WODs that have no scoreable items (orphaned after rename/republish)
     const allWods = (data || []) as WodData[];
     const seen = new Set<string>();
     const wodList = allWods.filter(w => {
@@ -325,7 +329,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
-    });
+    }).filter(w => extractLeaderboardItems(w).length > 0);
     setWods(wodList);
 
     if (wodList.length > 0) {
@@ -615,14 +619,14 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
             const dayLabel = new Date(w.date + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short' });
             return (
               <option key={w.id} value={w.id}>
-                {dayLabel} – {w.session_type || w.title}{w.workout_name ? ` - ${w.workout_name}` : ''}{formatWodSummary(w.sections)}
+                {dayLabel} – {w.session_type || w.title}{w.workout_name ? ` - ${w.workout_name}` : ''}{formatWodSummary(w.sections, workoutTypesMap)}
               </option>
             );
           })}
         </select>
       ) : wods.length === 1 && (
         <div className='w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-900'>
-          {wods[0].session_type || wods[0].title}{wods[0].workout_name ? ` - ${wods[0].workout_name}` : ''}{formatWodSummary(wods[0].sections)}
+          {wods[0].session_type || wods[0].title}{wods[0].workout_name ? ` - ${wods[0].workout_name}` : ''}{formatWodSummary(wods[0].sections, workoutTypesMap)}
         </div>
       )}
 
