@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 11.3
-**Updated:** 2026-02-12 (Session 114 - Placeholder WOD Fix, Ocean Teal Colors)
+**Version:** 11.4
+**Updated:** 2026-02-12 (Session 115 - Ocean Teal Complete)
 
 ---
 
@@ -80,10 +80,17 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-12 Session 115 - Opus 4.6):**
+- **✅ Ocean Teal color fix COMPLETE** — Root cause: Tailwind v4 requires `@theme` CSS overrides, not `tailwind.config.ts`. Added Ocean Teal palette (`--color-teal-50` through `--color-teal-950`) to `@theme inline` in `globals.css`. Removed no-op config override.
+- **✅ Published card colors fixed** — `card-utils.ts` had hardcoded old hex `#208479`/`#1a6b62`, changed to `bg-teal-600`/`border-teal-700` (resolves to Ocean Teal via `@theme`).
+- **✅ Booking chips updated** — Changed from `bg-green-600` to `bg-teal-500` on CalendarGrid.
+- **✅ Exercises tab recolored** — Changed from green to original Tailwind teal (`#14b8a6`/`#0d9488`/`#0f766e` hardcoded hex) to differentiate from blue Benchmarks tab. Ocean Teal `@theme` override doesn't affect these hardcoded values.
+- **✅ Track default color updated** — `useTracksCrud.ts` default `#208479` → `#178da6`.
+- See: `project-history/2026-02-12-session-115-ocean-teal-complete.md`
+
 **Completed (2026-02-12 Session 114 - Opus 4.6):**
-- **✅ Placeholder WOD fix** — `generate-weekly` route no longer creates empty WOD records. Added `workout_type` column to `weekly_sessions`, backfilled from WODs + templates. Booking page + coach calendar read from `weekly_sessions.workout_type`.
-- **✅ Unpublished drafts review** — Identified 11 drafts (4 empty shells, 5 attendee-only, 1 partial, 1 real content "Gymnastic Ring Drills"). User deleting via SQL Editor.
-- **⚠️ Ocean Teal color change (INCOMPLETE)** — Overrode Tailwind `teal` palette in config + replaced `#208479`→`#178da6` and `#1a6b62`→`#14758c` across source. Some colors not changing at runtime — needs investigation next session.
+- **✅ Placeholder WOD fix** — `generate-weekly` route no longer creates empty WOD records. Added `workout_type` column to `weekly_sessions`.
+- **✅ Unpublished drafts review** — Identified 11 drafts, user deleting via SQL Editor.
 - See: `project-history/2026-02-12-session-114-placeholder-wod-fix-ocean-teal.md`
 
 **Completed (2026-02-12 Session 113 - Opus 4.6):**
@@ -98,11 +105,7 @@ Social Tables
 - **✅ Max Time scoring type, pastel gender buttons, lightbox fixes**
 - See: `project-history/2026-02-12-session-110-max-time-lightbox-fixes.md`
 
-**Completed (2026-02-12 Session 109 - Opus 4.6):**
-- **✅ Fix "Unknown" names, photo lightbox, weekly leaderboard, gender system**
-- See: `project-history/2026-02-12-session-109-weekly-leaderboard-gender-filter.md`
-
-**Older Sessions (57-108):**
+**Older Sessions (57-109):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -171,13 +174,7 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 115 Priorities
-
-**URGENT — Fix Ocean Teal colors:**
-- Some teal colors not applying at runtime despite config override + hex replacement
-- Debug: check if Tailwind v4 CSS `@theme` overrides needed instead of/in addition to `tailwind.config.ts`
-- Verify `teal-50` (used in `bg-teal-50`) — may need CSS-level override for Tailwind v4
-- Check if any colors are defined in `globals.css` or CSS custom properties
+### Session 116 Priorities
 
 **Testing:**
 - **Test max_time scoring** — Create a workout with Max Time checkbox, verify athlete sees time input, leaderboard ranks longer = better

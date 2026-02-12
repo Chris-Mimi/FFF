@@ -158,7 +158,7 @@ export default function BenchmarksLiftsManagementPage() {
             onClick={() => setActiveTab('exercises')}
             className={`px-1.5 sm:px-2 md:px-4 py-1 sm:py-1.5 md:py-2 rounded-lg font-medium transition text-[10px] sm:text-xs md:text-base whitespace-nowrap ${
               activeTab === 'exercises'
-                ? 'bg-green-500 text-white'
+                ? 'bg-[#14b8a6] text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-50'
             }`}
           >

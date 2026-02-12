@@ -21,5 +21,5 @@ export const getCardState = (wod: WODFormData): CardState => {
 export const getCardClasses = (state: CardState): string => {
   if (state === 'empty') return 'bg-gray-200 border-2 border-dashed border-gray-400';
   if (state === 'draft') return 'bg-gray-400 border-2 border-gray-500';
-  return 'bg-[#208479] border-2 border-[#1a6b62]'; // published - teal
+  return 'bg-teal-600 border-2 border-teal-700'; // published - Ocean Teal
 };

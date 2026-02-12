@@ -195,13 +195,13 @@ export default function ExercisesTab({
         <div className='flex justify-between items-center mb-4'>
           <div className='flex items-center gap-1 sm:gap-2 md:gap-3'>
             <h2 className='text-sm sm:text-base md:text-xl font-bold text-gray-900'>Exercise Library</h2>
-            <span className='px-1.5 sm:px-2 md:px-3 py-0.5 sm:py-1 bg-green-100 text-green-700 rounded-full text-[10px] sm:text-xs md:text-sm font-semibold'>
+            <span className='px-1.5 sm:px-2 md:px-3 py-0.5 sm:py-1 bg-[#ccfbf1] text-[#0f766e] rounded-full text-[10px] sm:text-xs md:text-sm font-semibold'>
               {exercises.length}
             </span>
           </div>
           <button
             onClick={onAdd}
-            className='px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition flex items-center gap-1 sm:gap-2 text-[10px] sm:text-xs md:text-base'
+            className='px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 bg-[#14b8a6] text-white rounded-lg hover:bg-[#0d9488] transition flex items-center gap-1 sm:gap-2 text-[10px] sm:text-xs md:text-base'
           >
             <Plus size={16} className='sm:w-5 sm:h-5' />
             <span className='hidden sm:inline'>Add Exercise</span>
@@ -218,7 +218,7 @@ export default function ExercisesTab({
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
               placeholder='Search exercises by name, category, or tags...'
-              className='w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900'
+              className='w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#14b8a6] focus:border-transparent text-gray-900'
             />
           </div>
         </div>
@@ -231,7 +231,7 @@ export default function ExercisesTab({
               onClick={() => setSelectedCategory(selectedCategory === category ? null : category)}
               className={`px-3 py-1.5 text-xs font-semibold rounded transition ${
                 selectedCategory === category
-                  ? 'bg-green-600 text-white'
+                  ? 'bg-[#0d9488] text-white'
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}
             >
@@ -378,7 +378,7 @@ export default function ExercisesTab({
           <div key={category} className='mb-6 border rounded-lg'>
             <button
               onClick={() => onToggleCategory(category)}
-              className='w-full flex items-center gap-2 p-3 hover:bg-green-100 rounded-t-lg text-gray-800'
+              className='w-full flex items-center gap-2 p-3 hover:bg-[#ccfbf1] rounded-t-lg text-gray-800'
             >
               {collapsedCategories[category] ? <ChevronRight size={20} /> : <ChevronDown size={20} />}
               <h3 className='text-lg font-semibold text-gray-800'>
@@ -390,7 +390,7 @@ export default function ExercisesTab({
                 {categoryExercises.sort((a, b) => (a.display_name || a.name).localeCompare(b.display_name || b.name)).map((exercise) => (
                   <div
                     key={exercise.id}
-                    className='border border-gray-300 rounded-lg p-3 bg-green-50 hover:bg-green-100 hover:shadow-lg hover:z-10 transition-all group relative'
+                    className='border border-gray-300 rounded-lg p-3 bg-[#f0fdfa] hover:bg-[#ccfbf1] hover:shadow-lg hover:z-10 transition-all group relative'
                   >
                     <div className='absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition'>
                       <button
@@ -453,7 +453,7 @@ export default function ExercisesTab({
                       return uniqueTags.length > 0 ? (
                         <div className='flex flex-wrap gap-1 mt-2'>
                           {uniqueTags.slice(0, 3).map((tag, idx) => (
-                            <span key={idx} className='text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded'>
+                            <span key={idx} className='text-xs bg-[#99f6e4] text-[#115e59] px-2 py-0.5 rounded'>
                               {tag}
                             </span>
                           ))}

@@ -13,6 +13,19 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Ocean Teal — blue-shifted teal palette */
+  --color-teal-50: #edfcfd;
+  --color-teal-100: #d2f6fa;
+  --color-teal-200: #a9ecf4;
+  --color-teal-300: #6fdceb;
+  --color-teal-400: #38bfd8;
+  --color-teal-500: #20a5bf;
+  --color-teal-600: #178da6;
+  --color-teal-700: #14758c;
+  --color-teal-800: #105e73;
+  --color-teal-900: #0d4d5f;
+  --color-teal-950: #083340;
 }
 
 

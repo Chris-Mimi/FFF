@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Teal Palette Comparison</title>
+<style>
+  body { font-family: system-ui; background: #f5f5f5; padding: 40px; }
+  h1 { text-align: center; margin-bottom: 40px; }
+  .palettes { display: flex; gap: 40px; justify-content: center; flex-wrap: wrap; }
+  .palette { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+  .palette h2 { margin: 0 0 16px 0; font-size: 18px; }
+  .swatch { display: flex; align-items: center; padding: 12px 16px; font-size: 14px; font-family: monospace; min-width: 260px; }
+  .swatch span { margin-left: auto; }
+
+  .demos { margin-top: 60px; }
+  .demo-row { display: flex; gap: 40px; justify-content: center; margin-bottom: 40px; flex-wrap: wrap; }
+  .demo-card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); width: 320px; }
+  .demo-card h3 { margin: 0 0 16px 0; }
+  .mock-card { padding: 16px; border-radius: 8px; color: white; margin-bottom: 12px; }
+  .mock-card .title { font-weight: bold; font-size: 14px; }
+  .mock-card .time { font-size: 12px; opacity: 0.9; }
+  .mock-btn { padding: 8px 16px; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; margin-right: 8px; }
+  .mock-tab { display: inline-block; padding: 8px 16px; border-radius: 8px; font-weight: 500; margin-right: 4px; }
+  .mock-tab.active { color: white; }
+  .mock-tab.inactive { background: #e5e7eb; color: #374151; }
+  .mock-chip { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; color: white; }
+  .mock-header { padding: 12px 16px; border-radius: 8px 8px 0 0; color: white; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<h1>Teal Palette Comparison</h1>
+
+<div class="palettes">
+  <!-- Original Tailwind -->
+  <div class="palette">
+    <h2>A: Original Tailwind Teal</h2>
+    <div class="swatch" style="background:#f0fdfa;color:#000">50 <span>#f0fdfa</span></div>
+    <div class="swatch" style="background:#ccfbf1;color:#000">100 <span>#ccfbf1</span></div>
+    <div class="swatch" style="background:#99f6e4;color:#000">200 <span>#99f6e4</span></div>
+    <div class="swatch" style="background:#5eead4;color:#000">300 <span>#5eead4</span></div>
+    <div class="swatch" style="background:#2dd4bf;color:#000">400 <span>#2dd4bf</span></div>
+    <div class="swatch" style="background:#14b8a6;color:#000">500 <span>#14b8a6</span></div>
+    <div class="swatch" style="background:#0d9488;color:#fff">600 <span>#0d9488</span></div>
+    <div class="swatch" style="background:#0f766e;color:#fff">700 <span>#0f766e</span></div>
+    <div class="swatch" style="background:#115e59;color:#fff">800 <span>#115e59</span></div>
+    <div class="swatch" style="background:#134e4a;color:#fff">900 <span>#134e4a</span></div>
+    <div class="swatch" style="background:#042f2e;color:#fff">950 <span>#042f2e</span></div>
+  </div>
+
+  <!-- Balanced (Option B) -->
+  <div class="palette">
+    <h2>B: Balanced (slight blue shift)</h2>
+    <div class="swatch" style="background:#edfcfb;color:#000">50 <span>#edfcfb</span></div>
+    <div class="swatch" style="background:#d0f7f4;color:#000">100 <span>#d0f7f4</span></div>
+    <div class="swatch" style="background:#a3efe8;color:#000">200 <span>#a3efe8</span></div>
+    <div class="swatch" style="background:#6ce0d6;color:#000">300 <span>#6ce0d6</span></div>
+    <div class="swatch" style="background:#36c8bc;color:#000">400 <span>#36c8bc</span></div>
+    <div class="swatch" style="background:#1dae9f;color:#000">500 <span>#1dae9f</span></div>
+    <div class="swatch" style="background:#159088;color:#fff">600 <span>#159088</span></div>
+    <div class="swatch" style="background:#13766f;color:#fff">700 <span>#13766f</span></div>
+    <div class="swatch" style="background:#105e5a;color:#fff">800 <span>#105e5a</span></div>
+    <div class="swatch" style="background:#0e4e49;color:#fff">900 <span>#0e4e49</span></div>
+    <div class="swatch" style="background:#073432;color:#fff">950 <span>#073432</span></div>
+  </div>
+
+  <!-- Current Ocean Teal -->
+  <div class="palette">
+    <h2>C: Current Ocean Teal (too blue)</h2>
+    <div class="swatch" style="background:#edfcfd;color:#000">50 <span>#edfcfd</span></div>
+    <div class="swatch" style="background:#d2f6fa;color:#000">100 <span>#d2f6fa</span></div>
+    <div class="swatch" style="background:#a9ecf4;color:#000">200 <span>#a9ecf4</span></div>
+    <div class="swatch" style="background:#6fdceb;color:#000">300 <span>#6fdceb</span></div>
+    <div class="swatch" style="background:#38bfd8;color:#000">400 <span>#38bfd8</span></div>
+    <div class="swatch" style="background:#20a5bf;color:#000">500 <span>#20a5bf</span></div>
+    <div class="swatch" style="background:#178da6;color:#fff">600 <span>#178da6</span></div>
+    <div class="swatch" style="background:#14758c;color:#fff">700 <span>#14758c</span></div>
+    <div class="swatch" style="background:#105e73;color:#fff">800 <span>#105e73</span></div>
+    <div class="swatch" style="background:#0d4d5f;color:#fff">900 <span>#0d4d5f</span></div>
+    <div class="swatch" style="background:#083340;color:#fff">950 <span>#083340</span></div>
+  </div>
+</div>
+
+<div class="demos">
+  <h1>UI Mockups</h1>
+  <div class="demo-row">
+    <!-- Option A -->
+    <div class="demo-card">
+      <h3>A: Original Tailwind</h3>
+      <div class="mock-header" style="background:#0d9488">Coach Dashboard</div>
+      <div style="height:8px"></div>
+      <div class="mock-card" style="background:#0d9488;border:2px solid #0f766e">
+        <div class="title">WOD - CrossFit <span class="mock-chip" style="background:#14b8a6">1/12</span></div>
+        <div class="time">06:00</div>
+      </div>
+      <div style="margin:12px 0">
+        <span class="mock-tab active" style="background:#0d9488">Workouts</span>
+        <span class="mock-tab inactive">Members</span>
+      </div>
+      <div><span class="mock-btn" style="background:#14b8a6">Add Exercise</span></div>
+    </div>
+
+    <!-- Option B -->
+    <div class="demo-card">
+      <h3>B: Balanced</h3>
+      <div class="mock-header" style="background:#159088">Coach Dashboard</div>
+      <div style="height:8px"></div>
+      <div class="mock-card" style="background:#159088;border:2px solid #13766f">
+        <div class="title">WOD - CrossFit <span class="mock-chip" style="background:#1dae9f">1/12</span></div>
+        <div class="time">06:00</div>
+      </div>
+      <div style="margin:12px 0">
+        <span class="mock-tab active" style="background:#159088">Workouts</span>
+        <span class="mock-tab inactive">Members</span>
+      </div>
+      <div><span class="mock-btn" style="background:#1dae9f">Add Exercise</span></div>
+    </div>
+
+    <!-- Option C -->
+    <div class="demo-card">
+      <h3>C: Current Ocean Teal</h3>
+      <div class="mock-header" style="background:#178da6">Coach Dashboard</div>
+      <div style="height:8px"></div>
+      <div class="mock-card" style="background:#178da6;border:2px solid #14758c">
+        <div class="title">WOD - CrossFit <span class="mock-chip" style="background:#20a5bf">1/12</span></div>
+        <div class="time">06:00</div>
+      </div>
+      <div style="margin:12px 0">
+        <span class="mock-tab active" style="background:#178da6">Workouts</span>
+        <span class="mock-tab inactive">Members</span>
+      </div>
+      <div><span class="mock-btn" style="background:#20a5bf">Add Exercise</span></div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

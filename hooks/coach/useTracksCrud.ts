@@ -13,7 +13,7 @@ export function useTracksCrud() {
   const [tracks, setTracks] = useState<Track[]>([]);
   const [showTrackModal, setShowTrackModal] = useState(false);
   const [editingTrack, setEditingTrack] = useState<Track | null>(null);
-  const [trackFormData, setTrackFormData] = useState({ name: '', description: '', color: '#208479' });
+  const [trackFormData, setTrackFormData] = useState({ name: '', description: '', color: '#178da6' });
   const [loadingTracks, setLoadingTracks] = useState(true);
 
   const fetchTracks = async () => {
@@ -37,11 +37,11 @@ export function useTracksCrud() {
       setTrackFormData({
         name: track.name,
         description: track.description || '',
-        color: track.color || '#208479',
+        color: track.color || '#178da6',
       });
     } else {
       setEditingTrack(null);
-      setTrackFormData({ name: '', description: '', color: '#208479' });
+      setTrackFormData({ name: '', description: '', color: '#178da6' });
     }
     setShowTrackModal(true);
   };
