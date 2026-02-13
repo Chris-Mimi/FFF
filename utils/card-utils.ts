@@ -13,13 +13,34 @@ export const getCardState = (wod: WODFormData): CardState => {
   return 'published'; // Published workout
 };
 
+type SessionTier = 'standard' | 'foundations' | 'kids';
+
+const FOUNDATIONS_KEYWORDS = ['foundations', 'diapers & dumbbells', 'diapers and dumbbells'];
+const KIDS_KEYWORDS = ['kids', 'kids & teens', 'kids and teens', 'fitkids turnen', 'elternkind turnen'];
+
 /**
- * Get Tailwind CSS classes for card styling based on state
+ * Determine color tier based on session type title
+ */
+const getSessionTier = (title?: string): SessionTier => {
+  if (!title) return 'standard';
+  const lower = title.toLowerCase();
+  if (KIDS_KEYWORDS.some((k) => lower === k)) return 'kids';
+  if (FOUNDATIONS_KEYWORDS.some((k) => lower === k || lower.startsWith(k))) return 'foundations';
+  return 'standard';
+};
+
+/**
+ * Get Tailwind CSS classes for card styling based on state and session type
  * @param state - Card state (empty, draft, or published)
+ * @param title - Session type title (e.g. "WOD", "Foundations", "Kids & Teens")
  * @returns Tailwind CSS class string
  */
-export const getCardClasses = (state: CardState): string => {
+export const getCardClasses = (state: CardState, title?: string): string => {
   if (state === 'empty') return 'bg-gray-200 border-2 border-dashed border-gray-400';
   if (state === 'draft') return 'bg-gray-400 border-2 border-gray-500';
-  return 'bg-teal-600 border-2 border-teal-700'; // published - Ocean Teal
+
+  const tier = getSessionTier(title);
+  if (tier === 'kids') return 'bg-teal-400 border-2 border-teal-500 text-white';
+  if (tier === 'foundations') return 'bg-teal-500 border-2 border-teal-600 text-white';
+  return 'bg-teal-600 border-2 border-teal-700'; // standard (WOD, Endurance, etc.)
 };

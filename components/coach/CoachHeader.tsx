@@ -23,7 +23,7 @@ export const CoachHeader = ({
   const iconSize = 16;
 
   return (
-    <header className='bg-[#178da6] text-white p-2 md:p-4 shadow-lg sticky top-0 z-50'>
+    <header className='bg-teal-800 text-white p-2 md:p-4 shadow-lg sticky top-0 z-50'>
       <div className='max-w-7xl mx-auto'>
         {/* Desktop: horizontal layout */}
         <div className='hidden lg:flex justify-between items-center'>

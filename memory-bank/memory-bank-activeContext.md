@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 11.9
-**Updated:** 2026-02-13 (Session 118 - MEDIUM Form Validation)
+**Version:** 12.0
+**Updated:** 2026-02-13 (Session 119 - Color Hierarchy Refinement)
 
 ---
 
@@ -80,19 +80,22 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-13 Session 119 - Opus 4.6):**
+- **✅ 3-tier teal color hierarchy** — Header (teal-800), week banners (teal-700), session cards (teal-600). Eliminates "wall of teal" visual issue.
+- **✅ Session-type card color tiers** — WOD/Endurance (teal-600), Foundations/Diapers & Dumbbells (teal-500), Kids/FitKids (teal-400). Card colors in `utils/card-utils.ts`.
+- **✅ Darker page background** — Coach page bg-gray-200 → bg-gray-300 for better contrast with white day columns.
+- See: `project-history/2026-02-13-session-119-color-hierarchy.md`
+
 **Completed (2026-02-13 Session 118 - Opus 4.6):**
-- **✅ HIGH priority form validation COMPLETE (7/7)** — AddLiftModal, ExerciseFormModal, ConfigureLiftModal completed (commit `1a6d5e9`).
-- **✅ MEDIUM form validation COMPLETE (16/16)** — All remaining files: maxLength, min/max, required constraints added across 15 files (TenCardModal #6 skipped — already constrained).
+- **✅ HIGH priority form validation COMPLETE (7/7)** + **MEDIUM (16/16)**
 - See: `project-history/2026-02-13-session-118-medium-form-validation.md`
 
 **Completed (2026-02-12 Session 117 - Opus 4.6):**
-- **✅ Debounced search inputs** — Created `hooks/useDebouncedValue.ts` (200ms). Applied to SearchPanel and MovementLibraryPopup.
-- **✅ Form validation (4/7 HIGH done)** — ScoringFieldInputs.tsx and MovementResultInput.tsx.
+- **✅ Debounced search inputs** + **Form validation (4/7 HIGH done)**
 - See: `project-history/2026-02-12-session-117-debounce-form-validation.md`
 
 **Completed (2026-02-12 Session 116 - Opus 4.6):**
-- **✅ Escape key handlers** — 15 modals/panels added.
-- **✅ Whiteboard scroll layout** — Gallery scrolls independently.
+- **✅ Escape key handlers** (15 modals) + **Whiteboard scroll layout**
 - See: `project-history/2026-02-12-session-116-escape-keys-whiteboard-scroll.md`
 
 **Completed (2026-02-12 Session 115 - Opus 4.6):**

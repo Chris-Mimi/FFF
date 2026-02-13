@@ -265,7 +265,7 @@ export default function CoachDashboard() {
   const weekDates = getWeekDates(selectedDate);
 
   return (
-    <div className='min-h-screen bg-gray-200 relative'>
+    <div className='min-h-screen bg-gray-300 relative'>
       {/* Header */}
       <CoachHeader
         userName={user.name}
