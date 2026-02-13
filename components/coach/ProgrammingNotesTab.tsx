@@ -777,6 +777,7 @@ export default function ProgrammingNotesTab() {
                   onChange={(e) => setTitle(e.target.value)}
                   className='flex-1 text-base sm:text-xl md:text-2xl font-bold border-b-2 border-gray-200 focus:border-teal-500 outline-none px-1 sm:px-2 py-1 text-gray-900'
                   placeholder='Note Title'
+                  maxLength={200}
                 />
                 <div className='flex gap-1 sm:gap-2 justify-end'>
                   <button
@@ -853,6 +854,7 @@ export default function ProgrammingNotesTab() {
                     onChange={(e) => setContent(e.target.value)}
                     className='flex-1 min-h-[150px] md:min-h-0 border border-gray-300 rounded-lg p-2 sm:p-3 md:p-4 font-mono text-xs sm:text-sm resize-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900'
                     placeholder='Start typing your notes here... (supports Markdown)'
+                    maxLength={50000}
                   />
                 </>
               )}
@@ -908,6 +910,8 @@ export default function ProgrammingNotesTab() {
               }}
               className='w-full px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-900'
               placeholder='Folder name...'
+              required
+              maxLength={50}
               autoFocus
             />
             <div className='flex gap-2 sm:gap-3 mt-4 sm:mt-6'>

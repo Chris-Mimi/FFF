@@ -279,6 +279,8 @@ export default function PaymentsSection({ memberId }: { memberId?: string }) {
                   type='number'
                   value={tenCardTotal}
                   onChange={e => setTenCardTotal(e.target.value)}
+                  min={1}
+                  max={99}
                   className='w-full px-2 md:px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 text-sm md:text-base'
                 />
               </div>
@@ -288,6 +290,8 @@ export default function PaymentsSection({ memberId }: { memberId?: string }) {
                   type='number'
                   value={tenCardUsed}
                   onChange={e => setTenCardUsed(e.target.value)}
+                  min={0}
+                  max={99}
                   className='w-full px-2 md:px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 text-sm md:text-base'
                 />
               </div>

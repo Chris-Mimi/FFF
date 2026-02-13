@@ -108,6 +108,8 @@ export default function AddBenchmarkModal({
               value={result}
               onChange={e => setResult(e.target.value)}
               placeholder='e.g., 5:42, 15 rounds'
+              required
+              maxLength={50}
               className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
             />
           </div>
@@ -119,6 +121,7 @@ export default function AddBenchmarkModal({
               onChange={e => setNotes(e.target.value)}
               placeholder='Any additional notes...'
               rows={3}
+              maxLength={500}
               className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 resize-none'
             />
           </div>

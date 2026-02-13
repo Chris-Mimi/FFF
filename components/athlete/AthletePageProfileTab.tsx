@@ -285,6 +285,7 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
               value={profile.full_name}
               onChange={e => setProfile({ ...profile, full_name: e.target.value })}
               placeholder='John Doe'
+              maxLength={100}
               className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
             />
           </div>
@@ -296,6 +297,7 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
               value={profile.email}
               onChange={e => setProfile({ ...profile, email: e.target.value })}
               placeholder='john@example.com'
+              maxLength={255}
               className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
             />
           </div>
@@ -330,6 +332,7 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
               value={profile.phone_number}
               onChange={e => setProfile({ ...profile, phone_number: e.target.value })}
               placeholder='+49 123 456789'
+              maxLength={30}
               className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
             />
           </div>
@@ -341,6 +344,8 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
               value={profile.height_cm}
               onChange={e => setProfile({ ...profile, height_cm: e.target.value })}
               placeholder='175'
+              min={50}
+              max={250}
               className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
             />
           </div>
@@ -353,6 +358,8 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
               value={profile.weight_kg}
               onChange={e => setProfile({ ...profile, weight_kg: e.target.value })}
               placeholder='70.5'
+              min={20}
+              max={300}
               className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
             />
           </div>
@@ -364,6 +371,7 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
               value={profile.emergency_contact_name}
               onChange={e => setProfile({ ...profile, emergency_contact_name: e.target.value })}
               placeholder='Jane Doe'
+              maxLength={100}
               className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
             />
           </div>
@@ -375,6 +383,7 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
               value={profile.emergency_contact_phone}
               onChange={e => setProfile({ ...profile, emergency_contact_phone: e.target.value })}
               placeholder='+49 123 456789'
+              maxLength={30}
               className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
             />
           </div>

@@ -160,6 +160,8 @@ export default function RegisterMemberPage() {
                 errors.email ? 'border-red-500' : 'border-gray-600'
               } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500`}
               placeholder="you@example.com"
+              required
+              maxLength={255}
               disabled={loading}
             />
             {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
@@ -180,6 +182,9 @@ export default function RegisterMemberPage() {
                 errors.name ? 'border-red-500' : 'border-gray-600'
               } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500`}
               placeholder="John Doe"
+              required
+              minLength={2}
+              maxLength={100}
               disabled={loading}
             />
             {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
@@ -200,6 +205,7 @@ export default function RegisterMemberPage() {
                 errors.phone ? 'border-red-500' : 'border-gray-600'
               } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500`}
               placeholder="+49 123 456 7890 (optional)"
+              maxLength={30}
               disabled={loading}
             />
             {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
@@ -220,6 +226,9 @@ export default function RegisterMemberPage() {
                 errors.password ? 'border-red-500' : 'border-gray-600'
               } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500`}
               placeholder="Minimum 8 characters"
+              required
+              minLength={8}
+              maxLength={128}
               disabled={loading}
             />
             {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
@@ -240,6 +249,8 @@ export default function RegisterMemberPage() {
                 errors.confirmPassword ? 'border-red-500' : 'border-gray-600'
               } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500`}
               placeholder="Re-enter password"
+              required
+              maxLength={128}
               disabled={loading}
             />
             {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>}
