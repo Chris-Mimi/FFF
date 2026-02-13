@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 11.7
-**Updated:** 2026-02-12 (Session 117 - Debounce + Form Validation)
+**Version:** 11.9
+**Updated:** 2026-02-13 (Session 119 - MEDIUM Form Validation)
 
 ---
 
@@ -80,31 +80,30 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-13 Session 119 - Opus 4.6):**
+- **✅ MEDIUM form validation (5/16)** — register-member, AthletePageProfileTab, ProgrammingNotesTab, AddBenchmarkModal, PaymentsSection: maxLength, min/max constraints added.
+- Skipped TenCardModal (#6) — already constrained.
+- See: `project-history/2026-02-13-session-119-medium-form-validation.md`
+
+**Completed (2026-02-13 Session 118 - Opus 4.6):**
+- **✅ HIGH priority form validation COMPLETE (7/7)** — AddLiftModal, ExerciseFormModal, ConfigureLiftModal completed.
+- See commit: `1a6d5e9`
+
 **Completed (2026-02-12 Session 117 - Opus 4.6):**
-- **✅ Debounced search inputs** — Created `hooks/useDebouncedValue.ts` (200ms). Applied to SearchPanel (coach/page.tsx) and MovementLibraryPopup (all 4 filter useMemos).
-- **✅ Whiteboard scrollable cards** — Matched athlete pattern: `overflow-hidden` + `object-cover` → `overflow-y-auto` + `w-full h-auto` in WhiteboardGallery.tsx.
-- **✅ Form validation (4/7 HIGH done)** — ScoringFieldInputs.tsx and MovementResultInput.tsx: time maxLength+pattern, rounds/reps/weight/calories/distance min+max.
+- **✅ Debounced search inputs** — Created `hooks/useDebouncedValue.ts` (200ms). Applied to SearchPanel and MovementLibraryPopup.
+- **✅ Form validation (4/7 HIGH done)** — ScoringFieldInputs.tsx and MovementResultInput.tsx.
 - See: `project-history/2026-02-12-session-117-debounce-form-validation.md`
 
 **Completed (2026-02-12 Session 116 - Opus 4.6):**
-- **✅ Escape key handlers** — Added to 15 modals/panels (was 1/18, now 16/18). Skipped WorkoutModal + MovementLibraryPopup (parent panels with nested modals).
-- **✅ PublishModal Ocean Teal** — 4x `#20766a` → `#178da6`.
-- **✅ Whiteboard scroll layout** — Restructured page so gallery scrolls independently (header + upload + week nav stay fixed).
+- **✅ Escape key handlers** — 15 modals/panels added.
+- **✅ Whiteboard scroll layout** — Gallery scrolls independently.
 - See: `project-history/2026-02-12-session-116-escape-keys-whiteboard-scroll.md`
 
 **Completed (2026-02-12 Session 115 - Opus 4.6):**
-- **✅ Ocean Teal color system COMPLETE** — `@theme` CSS overrides in `globals.css`, published cards, booking chips, exercises tab original teal.
+- **✅ Ocean Teal color system COMPLETE**
 - See: `project-history/2026-02-12-session-115-ocean-teal-complete.md`
 
-**Completed (2026-02-12 Session 114 - Opus 4.6):**
-- **✅ Placeholder WOD fix, unpublished drafts review**
-- See: `project-history/2026-02-12-session-114-placeholder-wod-fix-ocean-teal.md`
-
-**Completed (2026-02-12 Session 113 - Opus 4.6):**
-- **✅ Database cleanup 70 records, formatWodSummary fix**
-- See: `project-history/2026-02-12-session-113-database-cleanup.md`
-
-**Older Sessions (57-112):**
+**Older Sessions (57-114):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -121,7 +120,8 @@ See `project-history/` folder for detailed implementation history
 - ✅ ~~50+ icon buttons missing aria-labels~~ — DONE (Session 106, 137 labels added)
 - ✅ ~~Escape key handlers for modals/popups~~ — DONE (Session 116, 15 modals added)
 - ✅ ~~Debounce search inputs~~ — DONE (Session 117, useDebouncedValue hook)
-- ✅ ~~Form validation (HIGH priority)~~ — DONE (Sessions 117-118, 7/7 files). MEDIUM priority remaining.
+- ✅ ~~Form validation (HIGH priority)~~ — DONE (Sessions 117-118, 7/7 files).
+- 🔄 Form validation (MEDIUM priority) — IN PROGRESS (5/16 done, Session 119). 11 files remaining.
 
 **Feature Gaps (from competitor analysis — updated):**
 - ✅ #1 Social reactions (fist bumps) — DONE (Session 104)
@@ -175,10 +175,12 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 119 Priorities
+### Session 120 Priorities
 
-**Form Validation (MEDIUM priority — remaining):**
-- Registration, signup, profile, coach notes, payments forms
+**Form Validation (MEDIUM priority — 11 remaining):**
+- #7 ConfigureForgeBenchmarkModal, #8 TrackModal, #9 WhiteboardUploadPanel
+- #10 SessionInfoPanel, #11 SearchPanel, #12 QuickEditPanel
+- #13 book/page.tsx, #14 login/page.tsx, #15 signup/page.tsx, #16 CoachNotesPanel
 
 **Code Quality (remaining items from Session 103 review):**
 - #6 Missing empty states (Favorites, booking history, records tab)
