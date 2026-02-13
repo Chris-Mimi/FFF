@@ -254,6 +254,7 @@ export default function WhiteboardUploadPanel({
             value={photoLabel}
             onChange={(e) => setPhotoLabel(e.target.value)}
             placeholder='e.g., Week 5.'
+            maxLength={100}
             className='w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500'
           />
         </div>
@@ -266,6 +267,7 @@ export default function WhiteboardUploadPanel({
             onChange={(e) => setCaption(e.target.value)}
             placeholder='Add a description...'
             rows={2}
+            maxLength={500}
             className='w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500'
           />
         </div>

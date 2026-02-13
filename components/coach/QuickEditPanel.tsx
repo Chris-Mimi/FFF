@@ -73,6 +73,7 @@ export default function QuickEditPanel({
             value={quickEditWOD.title}
             onChange={e => onWODChange({ ...quickEditWOD, title: e.target.value })}
             placeholder='Enter workout title...'
+            maxLength={200}
             className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 placeholder-gray-400'
           />
         </div>
@@ -102,6 +103,7 @@ export default function QuickEditPanel({
                   onWODChange({ ...quickEditWOD, sections: newSections });
                 }}
                 placeholder='Enter section content...'
+                maxLength={10000}
                 className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 placeholder-gray-400 text-sm min-h-[100px] resize-y'
               />
             </div>

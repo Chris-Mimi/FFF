@@ -90,6 +90,7 @@ export default function SignupPage() {
                 value={fullName}
                 onChange={e => setFullName(e.target.value)}
                 required
+                maxLength={100}
                 className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
                 placeholder='John Doe'
                 disabled={loading}
@@ -106,6 +107,7 @@ export default function SignupPage() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
+                maxLength={255}
                 className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
                 placeholder='you@example.com'
                 disabled={loading}
@@ -123,6 +125,7 @@ export default function SignupPage() {
                 onChange={e => setPassword(e.target.value)}
                 required
                 minLength={6}
+                maxLength={128}
                 className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
                 placeholder='At least 6 characters'
                 disabled={loading}
@@ -142,6 +145,7 @@ export default function SignupPage() {
                 value={confirmPassword}
                 onChange={e => setConfirmPassword(e.target.value)}
                 required
+                maxLength={128}
                 className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
                 placeholder='Re-enter your password'
                 disabled={loading}

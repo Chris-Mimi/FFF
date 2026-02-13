@@ -1,8 +1,8 @@
-# Session 118 — MEDIUM Priority Form Validation (Partial)
+# Session 118 — MEDIUM Priority Form Validation (COMPLETE)
 
 **Date:** 2026-02-13
 **AI:** Claude Opus 4.6
-**Focus:** MEDIUM priority form validation (5/16 files completed)
+**Focus:** MEDIUM priority form validation (16/16 files completed)
 
 ---
 
@@ -38,25 +38,39 @@
 ### Skipped
 - #6 TenCardModal — all inputs already constrained (date pickers + select)
 
----
+### 7. components/coach/ConfigureForgeBenchmarkModal.tsx
+- athleteNotes textarea: maxLength=1000
 
-## Remaining MEDIUM Priority (11 files)
+### 8. components/coach/analysis/TrackModal.tsx
+- name: required + maxLength=100
+- description: maxLength=500
 
-| # | File | Fields |
-|---|------|--------|
-| 7 | ConfigureForgeBenchmarkModal | 1 textarea |
-| 8 | TrackModal | 2 fields |
-| 9 | WhiteboardUploadPanel | 2 text fields |
-| 10 | SessionInfoPanel | 1 needs max |
-| 11 | SearchPanel | 1 needs maxLength |
-| 12 | QuickEditPanel | 2 fields |
-| 13 | book/page.tsx | family member 2 fields |
-| 14 | login/page.tsx | 2 need maxLength |
-| 15 | signup/page.tsx | 4 need maxLength |
-| 16 | CoachNotesPanel | 3 textareas |
+### 9. components/coach/WhiteboardUploadPanel.tsx
+- photoLabel: maxLength=100
+- caption: maxLength=500
 
----
+### 10. components/coach/SessionInfoPanel.tsx
+- capacity: max=100
 
-## Next Steps
-- Continue MEDIUM form validation from #7
-- Then commit all remaining together
+### 11. components/coach/SearchPanel.tsx
+- searchQuery: maxLength=200
+
+### 12. components/coach/QuickEditPanel.tsx
+- title: maxLength=200
+- section.content: maxLength=10000
+
+### 13. app/member/book/page.tsx
+- display_name (family member): required + maxLength=100
+
+### 14. app/login/page.tsx
+- email: maxLength=255
+- password: maxLength=128
+
+### 15. app/signup/page.tsx
+- fullName: maxLength=100
+- email: maxLength=255
+- password: maxLength=128
+- confirmPassword: maxLength=128
+
+### 16. components/coach/CoachNotesPanel.tsx
+- All 3 textareas: maxLength=10000

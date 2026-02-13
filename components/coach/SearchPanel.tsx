@@ -384,6 +384,7 @@ export default function SearchPanel({
                 value={searchQuery}
                 onChange={e => onSearchQueryChange(e.target.value)}
                 placeholder='Search workout history...'
+                maxLength={200}
                 autoComplete='off'
                 readOnly
                 onFocus={e => e.currentTarget.removeAttribute('readonly')}

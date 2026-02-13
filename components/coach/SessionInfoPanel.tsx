@@ -117,6 +117,7 @@ export default function SessionInfoPanel({
                 <input
                   type='number'
                   min='0'
+                  max='100'
                   value={newCapacity}
                   onChange={e => onCapacityChange(parseInt(e.target.value))}
                   className='w-20 px-2 py-1 border rounded text-sm'

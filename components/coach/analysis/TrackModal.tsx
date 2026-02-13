@@ -58,6 +58,8 @@ export default function TrackModal({
               value={formData.name}
               onChange={e => onFormChange('name', e.target.value)}
               placeholder='e.g., Strength Focus'
+              required
+              maxLength={100}
               className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
             />
           </div>
@@ -71,6 +73,7 @@ export default function TrackModal({
               onChange={e => onFormChange('description', e.target.value)}
               placeholder='Brief description of this track...'
               rows={3}
+              maxLength={500}
               className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
             />
           </div>

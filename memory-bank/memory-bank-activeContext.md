@@ -82,7 +82,7 @@ Social Tables
 
 **Completed (2026-02-13 Session 118 - Opus 4.6):**
 - **✅ HIGH priority form validation COMPLETE (7/7)** — AddLiftModal, ExerciseFormModal, ConfigureLiftModal completed (commit `1a6d5e9`).
-- **✅ MEDIUM form validation (5/16)** — register-member, AthletePageProfileTab, ProgrammingNotesTab, AddBenchmarkModal, PaymentsSection: maxLength, min/max constraints added. Skipped TenCardModal (#6) — already constrained.
+- **✅ MEDIUM form validation COMPLETE (16/16)** — All remaining files: maxLength, min/max, required constraints added across 15 files (TenCardModal #6 skipped — already constrained).
 - See: `project-history/2026-02-13-session-118-medium-form-validation.md`
 
 **Completed (2026-02-12 Session 117 - Opus 4.6):**
@@ -117,7 +117,7 @@ See `project-history/` folder for detailed implementation history
 - ✅ ~~Escape key handlers for modals/popups~~ — DONE (Session 116, 15 modals added)
 - ✅ ~~Debounce search inputs~~ — DONE (Session 117, useDebouncedValue hook)
 - ✅ ~~Form validation (HIGH priority)~~ — DONE (Sessions 117-118, 7/7 files).
-- 🔄 Form validation (MEDIUM priority) — IN PROGRESS (5/16 done, Session 118). 11 files remaining.
+- ✅ ~~Form validation (MEDIUM priority)~~ — DONE (Session 118, 16/16 files).
 
 **Feature Gaps (from competitor analysis — updated):**
 - ✅ #1 Social reactions (fist bumps) — DONE (Session 104)
@@ -171,12 +171,7 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 119 Priorities
-
-**Form Validation (MEDIUM priority — 11 remaining):**
-- #7 ConfigureForgeBenchmarkModal, #8 TrackModal, #9 WhiteboardUploadPanel
-- #10 SessionInfoPanel, #11 SearchPanel, #12 QuickEditPanel
-- #13 book/page.tsx, #14 login/page.tsx, #15 signup/page.tsx, #16 CoachNotesPanel
+### Next Priorities
 
 **Code Quality (remaining items from Session 103 review):**
 - #6 Missing empty states (Favorites, booking history, records tab)

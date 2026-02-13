@@ -288,6 +288,7 @@ export default function CoachNotesPanel({
                 value={notes}
                 onChange={(e) => onChange(e.target.value)}
                 onKeyDown={handleKeyDown}
+                maxLength={10000}
                 className='flex-1 w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#178da6] resize-none text-gray-900'
                 placeholder='Add notes for this workout...'
               />
@@ -418,6 +419,7 @@ export default function CoachNotesPanel({
                 onChange={e => onChange(e.target.value)}
                 onKeyDown={handleKeyDown}
                 autoFocus
+                maxLength={10000}
                 placeholder='Add private notes about this workout...'
                 className='flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 placeholder-gray-400 resize-none text-sm'
               />
@@ -529,6 +531,7 @@ export default function CoachNotesPanel({
             onChange={e => onChange(e.target.value)}
             onKeyDown={handleKeyDown}
             autoFocus
+            maxLength={10000}
             placeholder='Add private notes about this workout...'
             className='flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 placeholder-gray-400 resize-none text-sm'
           />

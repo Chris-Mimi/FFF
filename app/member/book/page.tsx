@@ -878,6 +878,8 @@ export default function MemberBookingPage() {
                     value={familyFormData.display_name}
                     onChange={(e) => setFamilyFormData({ ...familyFormData, display_name: e.target.value })}
                     placeholder="e.g., Emma, Liam"
+                    required
+                    maxLength={100}
                     className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-teal-500"
                   />
                 </div>

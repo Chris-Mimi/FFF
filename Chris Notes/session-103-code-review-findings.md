@@ -20,7 +20,7 @@
 
 ### Medium Impact
 
-- [x] 4. **Form validation** — ✅ HIGH priority DONE (Sessions 117-118). 7 files: ScoringFieldInputs, MovementResultInput, AddLiftModal, ExerciseFormModal, ConfigureLiftModal, WorkoutFormFields, ConfigureBenchmarkModal. MEDIUM priority (registration, signup, profile) remaining.
+- [x] 4. **Form validation** — ✅ ALL DONE (Sessions 117-118). HIGH (7 files) + MEDIUM (16 files) complete. maxLength, min/max, required constraints on all text inputs/textareas.
 
 - [x] 5. **Debounce search inputs** — ✅ DONE (Session 117, useDebouncedValue hook). SearchPanel + MovementLibraryPopup (4 filter useMemos).
 
