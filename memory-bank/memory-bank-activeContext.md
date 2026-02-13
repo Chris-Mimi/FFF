@@ -1,7 +1,7 @@
 # Active Context
 
 **Version:** 11.9
-**Updated:** 2026-02-13 (Session 119 - MEDIUM Form Validation)
+**Updated:** 2026-02-13 (Session 118 - MEDIUM Form Validation)
 
 ---
 
@@ -80,14 +80,10 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
-**Completed (2026-02-13 Session 119 - Opus 4.6):**
-- **✅ MEDIUM form validation (5/16)** — register-member, AthletePageProfileTab, ProgrammingNotesTab, AddBenchmarkModal, PaymentsSection: maxLength, min/max constraints added.
-- Skipped TenCardModal (#6) — already constrained.
-- See: `project-history/2026-02-13-session-119-medium-form-validation.md`
-
 **Completed (2026-02-13 Session 118 - Opus 4.6):**
-- **✅ HIGH priority form validation COMPLETE (7/7)** — AddLiftModal, ExerciseFormModal, ConfigureLiftModal completed.
-- See commit: `1a6d5e9`
+- **✅ HIGH priority form validation COMPLETE (7/7)** — AddLiftModal, ExerciseFormModal, ConfigureLiftModal completed (commit `1a6d5e9`).
+- **✅ MEDIUM form validation (5/16)** — register-member, AthletePageProfileTab, ProgrammingNotesTab, AddBenchmarkModal, PaymentsSection: maxLength, min/max constraints added. Skipped TenCardModal (#6) — already constrained.
+- See: `project-history/2026-02-13-session-118-medium-form-validation.md`
 
 **Completed (2026-02-12 Session 117 - Opus 4.6):**
 - **✅ Debounced search inputs** — Created `hooks/useDebouncedValue.ts` (200ms). Applied to SearchPanel and MovementLibraryPopup.
@@ -121,7 +117,7 @@ See `project-history/` folder for detailed implementation history
 - ✅ ~~Escape key handlers for modals/popups~~ — DONE (Session 116, 15 modals added)
 - ✅ ~~Debounce search inputs~~ — DONE (Session 117, useDebouncedValue hook)
 - ✅ ~~Form validation (HIGH priority)~~ — DONE (Sessions 117-118, 7/7 files).
-- 🔄 Form validation (MEDIUM priority) — IN PROGRESS (5/16 done, Session 119). 11 files remaining.
+- 🔄 Form validation (MEDIUM priority) — IN PROGRESS (5/16 done, Session 118). 11 files remaining.
 
 **Feature Gaps (from competitor analysis — updated):**
 - ✅ #1 Social reactions (fist bumps) — DONE (Session 104)
@@ -175,7 +171,7 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Session 120 Priorities
+### Session 119 Priorities
 
 **Form Validation (MEDIUM priority — 11 remaining):**
 - #7 ConfigureForgeBenchmarkModal, #8 TrackModal, #9 WhiteboardUploadPanel
