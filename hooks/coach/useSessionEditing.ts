@@ -1,3 +1,4 @@
+import { confirm } from '@/lib/confirm';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
@@ -121,9 +122,12 @@ export function useSessionEditing({
 
   const handleCancelSession = async () => {
     if (
-      !confirm(
-        'Cancel this session? All bookings will be cancelled and members should be notified.'
-      )
+      !await confirm({
+        title: 'Cancel Session',
+        message: 'Cancel this session? All bookings will be cancelled and members should be notified.',
+        confirmText: 'Cancel Session',
+        variant: 'danger',
+      })
     ) {
       return;
     }

@@ -1,9 +1,11 @@
 'use client';
 
+import { confirm } from '@/lib/confirm';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { RefreshCw, X, CreditCard, Calendar, Package } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { FocusTrap } from '@/components/ui/FocusTrap';
 
 interface TenCardModalProps {
   isOpen: boolean;
@@ -161,8 +163,8 @@ export default function TenCardModal({
     }
   };
 
-  const handleResetCard = () => {
-    if (!confirm('Reset this 10-card? Sessions used will be set to 0 and purchase date will be set to today.')) {
+  const handleResetCard = async () => {
+    if (!await confirm({ title: 'Reset 10-Card', message: 'Reset this 10-card? Sessions used will be set to 0 and purchase date will be set to today.', confirmText: 'Reset', variant: 'default' })) {
       return;
     }
 
@@ -175,6 +177,7 @@ export default function TenCardModal({
   const isNearExpiry = sessionsUsed >= tenCardTotal - 1;
 
   return (
+    <FocusTrap>
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
@@ -441,5 +444,6 @@ export default function TenCardModal({
         </div>
       </div>
     </div>
+    </FocusTrap>
   );
 }

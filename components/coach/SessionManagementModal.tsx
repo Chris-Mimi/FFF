@@ -8,6 +8,7 @@ import { useBookingManagement } from '@/hooks/coach/useBookingManagement';
 import SessionInfoPanel from './SessionInfoPanel';
 import ManualBookingPanel from './ManualBookingPanel';
 import BookingListItem from './BookingListItem';
+import { FocusTrap } from '@/components/ui/FocusTrap';
 
 interface SessionManagementModalProps {
   isOpen: boolean;
@@ -172,6 +173,7 @@ export default function SessionManagementModal({
   if (!isOpen) return null;
 
   return (
+    <FocusTrap>
     <>
       {/* Overlay */}
       <div className='fixed inset-0 bg-black/30 z-40' />
@@ -363,5 +365,6 @@ export default function SessionManagementModal({
         )}
       </div>
     </>
+    </FocusTrap>
   );
 }

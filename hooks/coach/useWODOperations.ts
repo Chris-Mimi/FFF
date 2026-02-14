@@ -1,5 +1,6 @@
 'use client';
 
+import { confirm } from '@/lib/confirm';
 import { WODFormData } from '@/components/coach/WorkoutModal';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -264,7 +265,7 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
   };
 
   const handleDeleteSession = async (sessionId: string) => {
-    if (!confirm('Delete this session entirely? This will cancel all member bookings for this time slot.')) return;
+    if (!await confirm({ title: 'Delete Session', message: 'Delete this session entirely? This will cancel all member bookings for this time slot.', confirmText: 'Delete', variant: 'danger' })) return;
 
     try {
       // Delete the session (bookings will cascade delete if FK is set up that way)

@@ -1,5 +1,6 @@
 'use client';
 
+import { confirm } from '@/lib/confirm';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
@@ -8,6 +9,7 @@ import { Calendar, Users, Clock, LogOut, ChevronLeft, ChevronRight, X, Check, Ed
 import { signOut } from '@/lib/auth';
 import Image from 'next/image';
 import Link from 'next/link';
+import { FocusTrap } from '@/components/ui/FocusTrap';
 
 interface WeeklySession {
   id: string;
@@ -332,7 +334,7 @@ export default function MemberBookingPage() {
   };
 
   const handleDeleteFamilyMember = async (memberId: string, memberName: string) => {
-    if (!confirm(`Are you sure you want to remove ${memberName} from your family members?`)) {
+    if (!await confirm({ title: 'Remove Family Member', message: `Are you sure you want to remove ${memberName} from your family members?`, confirmText: 'Remove', variant: 'danger' })) {
       return;
     }
 
@@ -426,7 +428,7 @@ export default function MemberBookingPage() {
   };
 
   const handleCancel = async (sessionId: string, bookingId: string) => {
-    if (!confirm('Are you sure you want to cancel this booking?')) {
+    if (!await confirm({ title: 'Cancel Booking', message: 'Are you sure you want to cancel this booking?', confirmText: 'Cancel Booking', variant: 'danger' })) {
       return;
     }
 
@@ -849,6 +851,7 @@ export default function MemberBookingPage() {
 
       {/* Family Member Modal */}
       {showFamilyModal && (
+        <FocusTrap>
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-gray-800 rounded-lg border border-gray-700 w-full max-w-md">
             <div className="p-6">
@@ -938,6 +941,7 @@ export default function MemberBookingPage() {
             </div>
           </div>
         </div>
+        </FocusTrap>
       )}
     </div>
   );

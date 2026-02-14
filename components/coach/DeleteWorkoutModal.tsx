@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { Trash2, X } from 'lucide-react';
+import { FocusTrap } from '@/components/ui/FocusTrap';
 
 interface DeleteWorkoutModalProps {
   isOpen: boolean;
@@ -28,6 +29,7 @@ export default function DeleteWorkoutModal({
   if (!isOpen) return null;
 
   return (
+    <FocusTrap>
     <>
       {/* Backdrop */}
       <div className='fixed inset-0 bg-black/50 z-50' onClick={onClose} />
@@ -99,5 +101,6 @@ export default function DeleteWorkoutModal({
         </div>
       </div>
     </>
+    </FocusTrap>
   );
 }

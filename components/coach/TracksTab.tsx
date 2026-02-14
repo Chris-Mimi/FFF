@@ -1,6 +1,7 @@
 'use client';
 
 import { Track } from '@/hooks/coach/useTracksCrud';
+import { FocusTrap } from '@/components/ui/FocusTrap';
 
 interface TracksTabProps {
   tracks: Track[];
@@ -86,6 +87,7 @@ export default function TracksTab({
 
       {/* Track Modal */}
       {showTrackModal && (
+        <FocusTrap>
         <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'>
           <div className='bg-white text-gray-900 rounded-lg p-6 w-full max-w-md'>
             <h3 className='text-xl font-bold mb-4'>
@@ -151,6 +153,7 @@ export default function TracksTab({
             </div>
           </div>
         </div>
+        </FocusTrap>
       )}
     </div>
   );

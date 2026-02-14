@@ -10,6 +10,7 @@ import WorkoutFormFields from '@/components/coach/WorkoutFormFields';
 import WorkoutModalHeader from '@/components/coach/WorkoutModalHeader';
 import CoachNotesPanel from '@/components/coach/CoachNotesPanel';
 import { useWorkoutModal, WODFormData } from '@/hooks/coach/useWorkoutModal';
+import { FocusTrap } from '@/components/ui/FocusTrap';
 
 // Re-export types for backwards compatibility
 export type { WODFormData, WODSection } from '@/hooks/coach/useWorkoutModal';
@@ -297,6 +298,7 @@ export default function WorkoutModal({
 
   // Modal mode
   return (
+    <FocusTrap>
     <>
       <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4'>
         <div
@@ -635,5 +637,6 @@ export default function WorkoutModal({
         }
       />
     </>
+    </FocusTrap>
   );
 }

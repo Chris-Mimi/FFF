@@ -1,3 +1,4 @@
+import { confirm } from '@/lib/confirm';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
@@ -94,7 +95,7 @@ export function useForgeBenchmarksCrud() {
   };
 
   const deleteForge = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this Forge benchmark? All athlete results will remain but will show as "Unknown Benchmark".')) {
+    if (!await confirm({ title: 'Delete Benchmark', message: 'Are you sure you want to delete this Forge benchmark? All athlete results will remain but will show as "Unknown Benchmark".', confirmText: 'Delete', variant: 'danger' })) {
       return;
     }
 
@@ -190,7 +191,7 @@ export function useForgeBenchmarksCrud() {
   };
 
   const handleInsertForgeRow = async (afterPosition: number) => {
-    if (!confirm(`Insert an empty row below position ${afterPosition}? This will shift all benchmarks below down by 5 positions.`)) {
+    if (!await confirm({ title: 'Insert Row', message: `Insert an empty row below position ${afterPosition}? This will shift all benchmarks below down by 5 positions.`, confirmText: 'Insert', variant: 'default' })) {
       return;
     }
 

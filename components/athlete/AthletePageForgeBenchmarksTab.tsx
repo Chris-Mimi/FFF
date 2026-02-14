@@ -1,10 +1,12 @@
 // AthletePageForgeBenchmarksTab component
 'use client';
 
+import { confirm } from '@/lib/confirm';
 import { supabase } from '@/lib/supabase';
 import { ChevronDown, ChevronRight, Edit2, Target, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { FocusTrap } from '@/components/ui/FocusTrap';
 import {
   CartesianGrid,
   Legend,
@@ -197,7 +199,7 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
   };
 
   const handleDeleteBenchmark = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this benchmark result?')) return;
+    if (!(await confirm({ title: 'Delete Result', message: 'Are you sure you want to delete this benchmark result?', confirmText: 'Delete', variant: 'danger' }))) return;
 
     try {
       const { error } = await supabase.from('benchmark_results').delete().eq('id', id);
@@ -630,6 +632,7 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
 
       {/* Add/Edit Benchmark Modal */}
       {selectedBenchmark && (
+        <FocusTrap>
         <div className='fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50' onClick={() => {
           setSelectedBenchmark(null);
           setEditingBenchmarkId(null);
@@ -853,6 +856,7 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
           )}
           </div>
         </div>
+        </FocusTrap>
       )}
     </div>
   );

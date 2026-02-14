@@ -1,8 +1,10 @@
 'use client';
 
+import { confirm } from '@/lib/confirm';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
+import { FocusTrap } from '@/components/ui/FocusTrap';
 import { Bold, Italic, List, ListOrdered, Plus, Save, Trash2, Type, Underline as UnderlineIcon, Eye, Edit2, Folder, FolderPlus, ChevronDown, ChevronRight, MoreVertical, Search, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -176,7 +178,7 @@ export default function ProgrammingNotesTab() {
 
   // Delete note
   const deleteNote = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this note?')) return;
+    if (!await confirm({ title: 'Delete Note', message: 'Are you sure you want to delete this note?', confirmText: 'Delete', variant: 'danger' })) return;
 
     try {
       const { error } = await supabase
@@ -256,7 +258,7 @@ export default function ProgrammingNotesTab() {
   };
 
   const deleteFolder = async (folderId: string) => {
-    if (!confirm('Delete this folder? Notes in it will be moved to "Unfiled".')) return;
+    if (!await confirm({ title: 'Delete Folder', message: 'Delete this folder? Notes in it will be moved to "Unfiled".', confirmText: 'Delete', variant: 'danger' })) return;
 
     try {
       const { error } = await supabase
@@ -894,6 +896,7 @@ export default function ProgrammingNotesTab() {
 
       {/* Folder Modal */}
       {showFolderModal && (
+        <FocusTrap>
         <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4'>
           <div className='bg-white rounded-lg p-4 sm:p-6 w-full max-w-md'>
             <h3 className='text-lg sm:text-xl font-bold mb-3 sm:mb-4'>Create Folder</h3>
@@ -934,6 +937,7 @@ export default function ProgrammingNotesTab() {
             </div>
           </div>
         </div>
+        </FocusTrap>
       )}
     </div>
 

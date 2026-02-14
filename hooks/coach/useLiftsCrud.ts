@@ -1,3 +1,4 @@
+import { confirm } from '@/lib/confirm';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
@@ -163,7 +164,7 @@ export function useLiftsCrud() {
   };
 
   const deleteLift = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this lift? All athlete PRs will remain but will show as "Unknown Lift".')) {
+    if (!await confirm({ title: 'Delete Lift', message: 'Are you sure you want to delete this lift? All athlete PRs will remain but will show as "Unknown Lift".', confirmText: 'Delete', variant: 'danger' })) {
       return;
     }
 

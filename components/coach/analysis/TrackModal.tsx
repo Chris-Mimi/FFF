@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { FocusTrap } from '@/components/ui/FocusTrap';
 
 interface Track {
   id: string;
@@ -42,6 +43,7 @@ export default function TrackModal({
   if (!isOpen) return null;
 
   return (
+    <FocusTrap>
     <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4'>
       <div className='bg-white rounded-lg shadow-2xl w-full max-w-md'>
         <div className='bg-[#178da6] text-white p-4 rounded-t-lg'>
@@ -106,5 +108,6 @@ export default function TrackModal({
         </div>
       </div>
     </div>
+    </FocusTrap>
   );
 }

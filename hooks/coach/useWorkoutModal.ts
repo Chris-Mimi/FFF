@@ -1,5 +1,6 @@
 'use client';
 
+import { confirm } from '@/lib/confirm';
 import { authFetch } from '@/lib/auth-fetch';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -749,7 +750,7 @@ export function useWorkoutModal(
   };
 
   const handleUnpublish = async () => {
-    if (!confirm('Unpublish this workout? It will be removed from athletes\' calendars.')) {
+    if (!await confirm({ title: 'Unpublish Workout', message: 'Unpublish this workout? It will be removed from athletes\' calendars.', confirmText: 'Unpublish', variant: 'danger' })) {
       return;
     }
 

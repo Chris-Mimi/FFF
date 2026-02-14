@@ -1,3 +1,4 @@
+import { confirm } from '@/lib/confirm';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
@@ -102,9 +103,12 @@ export function useBookingManagement({
 
   const handleMarkNoShow = async (bookingId: string, memberName: string) => {
     if (
-      !confirm(
-        `Mark ${memberName} as no-show?\n\nIf they have a 10-card, this will still count toward their usage. They won't count toward attendance statistics.`
-      )
+      !await confirm({
+        title: 'Mark No-Show',
+        message: `Mark ${memberName} as no-show?\n\nIf they have a 10-card, this will still count toward their usage. They won't count toward attendance statistics.`,
+        confirmText: 'Mark No-Show',
+        variant: 'danger',
+      })
     ) {
       return;
     }
@@ -126,7 +130,7 @@ export function useBookingManagement({
   };
 
   const handleUndoNoShow = async (bookingId: string, memberName: string) => {
-    if (!confirm(`Mark ${memberName} as attended (undo no-show)?`)) {
+    if (!await confirm({ title: 'Undo No-Show', message: `Mark ${memberName} as attended (undo no-show)?`, confirmText: 'Undo', variant: 'default' })) {
       return;
     }
 
@@ -148,9 +152,12 @@ export function useBookingManagement({
 
   const handleLateCancel = async (bookingId: string, memberName: string) => {
     if (
-      !confirm(
-        `Mark ${memberName} as late cancellation?\n\nThis will count toward their 10-card usage but NOT toward attendance statistics.`
-      )
+      !await confirm({
+        title: 'Late Cancellation',
+        message: `Mark ${memberName} as late cancellation?\n\nThis will count toward their 10-card usage but NOT toward attendance statistics.`,
+        confirmText: 'Mark Late Cancel',
+        variant: 'danger',
+      })
     ) {
       return;
     }
@@ -172,7 +179,7 @@ export function useBookingManagement({
   };
 
   const handleUndoLateCancel = async (bookingId: string, memberName: string) => {
-    if (!confirm(`Mark ${memberName} as attended (undo late cancellation)?`)) {
+    if (!await confirm({ title: 'Undo Late Cancel', message: `Mark ${memberName} as attended (undo late cancellation)?`, confirmText: 'Undo', variant: 'default' })) {
       return;
     }
 

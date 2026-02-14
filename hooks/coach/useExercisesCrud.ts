@@ -1,3 +1,4 @@
+import { confirm } from '@/lib/confirm';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
@@ -78,7 +79,7 @@ export function useExercisesCrud() {
   };
 
   const handleDeleteExercise = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this exercise?')) {
+    if (!await confirm({ title: 'Delete Exercise', message: 'Are you sure you want to delete this exercise?', confirmText: 'Delete', variant: 'danger' })) {
       return;
     }
 

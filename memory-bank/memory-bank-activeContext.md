@@ -80,10 +80,19 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-14 Session 121 - Opus 4.6):**
+- **✅ Styled confirm dialogs (#8)** — Replaced all 33 browser `confirm()` calls with styled `ConfirmDialog` modal (danger/default variants, teal/red buttons, warning icon). Sonner-style module pattern (`lib/confirm.ts`). 20 files modified.
+- **✅ Focus traps (#9)** — Created `FocusTrap` wrapper component, applied to 33 modal instances across 28 files + ConfirmDialog. Tab/Shift+Tab cycles within modals.
+- See: `project-history/2026-02-14-session-121-confirm-dialogs-focus-traps.md`
+
+**Completed (2026-02-14 Session 120 - Opus 4.6):**
+- **✅ Empty states (#6)** — Favorites/Recently Used hints in MovementLibraryPopup
+- **✅ Touch targets (#7)** — 9 undersized buttons fixed across 6 files (44px min)
+- **✅ Nav label rename** — "Library" → "Workouts" (search panel) / "Toolkit" (benchmarks)
+- See: `project-history/2026-02-14-session-120-empty-states-touch-targets.md`
+
 **Completed (2026-02-13 Session 119 - Opus 4.6):**
-- **✅ 3-tier teal color hierarchy** — Header (teal-800), week banners (teal-700), session cards (teal-600). Eliminates "wall of teal" visual issue.
-- **✅ Session-type card color tiers** — WOD/Endurance (teal-600), Foundations/Diapers & Dumbbells (teal-500), Kids/FitKids (teal-400). Card colors in `utils/card-utils.ts`.
-- **✅ Darker page background** — Coach page bg-gray-200 → bg-gray-300 for better contrast with white day columns.
+- **✅ 3-tier teal color hierarchy** + session-type card color tiers + darker page background
 - See: `project-history/2026-02-13-session-119-color-hierarchy.md`
 
 **Completed (2026-02-13 Session 118 - Opus 4.6):**
@@ -94,15 +103,7 @@ Social Tables
 - **✅ Debounced search inputs** + **Form validation (4/7 HIGH done)**
 - See: `project-history/2026-02-12-session-117-debounce-form-validation.md`
 
-**Completed (2026-02-12 Session 116 - Opus 4.6):**
-- **✅ Escape key handlers** (15 modals) + **Whiteboard scroll layout**
-- See: `project-history/2026-02-12-session-116-escape-keys-whiteboard-scroll.md`
-
-**Completed (2026-02-12 Session 115 - Opus 4.6):**
-- **✅ Ocean Teal color system COMPLETE**
-- See: `project-history/2026-02-12-session-115-ocean-teal-complete.md`
-
-**Older Sessions (57-114):**
+**Older Sessions (57-116):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -121,6 +122,10 @@ See `project-history/` folder for detailed implementation history
 - ✅ ~~Debounce search inputs~~ — DONE (Session 117, useDebouncedValue hook)
 - ✅ ~~Form validation (HIGH priority)~~ — DONE (Sessions 117-118, 7/7 files).
 - ✅ ~~Form validation (MEDIUM priority)~~ — DONE (Session 118, 16/16 files).
+- ✅ ~~Empty states~~ — DONE (Session 120)
+- ✅ ~~Touch targets (<44px)~~ — DONE (Session 120)
+- ✅ ~~Replace browser confirm() with styled modals~~ — DONE (Session 121, 33 calls)
+- ✅ ~~Focus traps in modals~~ — DONE (Session 121, 33 modals)
 
 **Feature Gaps (from competitor analysis — updated):**
 - ✅ #1 Social reactions (fist bumps) — DONE (Session 104)
@@ -177,10 +182,6 @@ npm run restore 2025-12-06  # Restore specific date
 ### Next Priorities
 
 **Code Quality (remaining items from Session 103 review):**
-- #6 Missing empty states (Favorites, booking history, records tab)
-- #7 Touch targets (<44px on mobile)
-- #8 Replace browser `confirm()` with styled modal dialogs
-- #9 Focus traps in modals
 - #10 Color contrast audit
 
 **Features (from competitor analysis):**

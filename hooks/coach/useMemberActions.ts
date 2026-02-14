@@ -1,3 +1,4 @@
+import { confirm } from '@/lib/confirm';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { authFetch } from '@/lib/auth-fetch';
@@ -37,7 +38,7 @@ export function useMemberActions(
   };
 
   const handleBlock = async (memberId: string) => {
-    if (!confirm('Are you sure you want to block this member? They will lose access to their account.')) {
+    if (!await confirm({ title: 'Block Member', message: 'Are you sure you want to block this member? They will lose access to their account.', confirmText: 'Block', variant: 'danger' })) {
       return;
     }
 
@@ -66,7 +67,7 @@ export function useMemberActions(
   };
 
   const handleUnapprove = async (memberId: string) => {
-    if (!confirm('Move this member back to pending status? This will clear their trial period.')) {
+    if (!await confirm({ title: 'Unapprove Member', message: 'Move this member back to pending status? This will clear their trial period.', confirmText: 'Unapprove', variant: 'danger' })) {
       return;
     }
 
@@ -95,7 +96,7 @@ export function useMemberActions(
   };
 
   const handleUnblock = async (memberId: string) => {
-    if (!confirm('Unblock this member? They will be moved to pending status and need re-approval.')) {
+    if (!await confirm({ title: 'Unblock Member', message: 'Unblock this member? They will be moved to pending status and need re-approval.', confirmText: 'Unblock', variant: 'default' })) {
       return;
     }
 
@@ -124,7 +125,7 @@ export function useMemberActions(
   };
 
   const handleStartTrial = async (memberId: string, days: number = 30) => {
-    if (!confirm(`Start ${days}-day athlete trial for this member?`)) {
+    if (!await confirm({ title: 'Start Trial', message: `Start ${days}-day athlete trial for this member?`, confirmText: 'Start Trial', variant: 'default' })) {
       return;
     }
 
@@ -152,7 +153,7 @@ export function useMemberActions(
   };
 
   const handleExtendTrial = async (memberId: string, days: number = 30) => {
-    if (!confirm(`Extend trial by ${days} days?`)) {
+    if (!await confirm({ title: 'Extend Trial', message: `Extend trial by ${days} days?`, confirmText: 'Extend', variant: 'default' })) {
       return;
     }
 
@@ -180,7 +181,7 @@ export function useMemberActions(
   };
 
   const handleActivateSubscription = async (memberId: string) => {
-    if (!confirm('Activate full subscription? This will remove the trial end date.')) {
+    if (!await confirm({ title: 'Activate Subscription', message: 'Activate full subscription? This will remove the trial end date.', confirmText: 'Activate', variant: 'default' })) {
       return;
     }
 

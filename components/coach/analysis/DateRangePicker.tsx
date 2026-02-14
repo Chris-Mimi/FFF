@@ -1,6 +1,7 @@
 'use client';
 
 import { X } from 'lucide-react';
+import { FocusTrap } from '@/components/ui/FocusTrap';
 
 interface DateRangePickerProps {
   isOpen: boolean;
@@ -186,6 +187,7 @@ export default function DateRangePicker({
   );
 
   return (
+    <FocusTrap>
     <>
       {/* Mobile: centered modal with backdrop */}
       <div
@@ -214,5 +216,6 @@ export default function DateRangePicker({
         {pickerContent}
       </div>
     </>
+    </FocusTrap>
   );
 }

@@ -1,3 +1,4 @@
+import { confirm } from '@/lib/confirm';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
@@ -146,7 +147,7 @@ export function useReferencesCrud() {
   };
 
   const handleDeleteReference = async (type: 'naming' | 'resource', item: NamingConvention | Resource) => {
-    if (!confirm('Delete this reference?')) return;
+    if (!await confirm({ title: 'Delete Reference', message: 'Delete this reference?', confirmText: 'Delete', variant: 'danger' })) return;
 
     try {
       if (type === 'naming') {

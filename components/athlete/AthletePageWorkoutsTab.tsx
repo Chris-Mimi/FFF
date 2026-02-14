@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
 import FistBumpButton from './FistBumpButton';
 import { useReactions } from '@/hooks/athlete/useReactions';
+import { FocusTrap } from '@/components/ui/FocusTrap';
 
 interface WorkoutSection {
   id: string;
@@ -724,6 +725,7 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
 
       {/* Photo Modal */}
       {showPhotoModal && selectedPhoto && (
+        <FocusTrap>
         <div
           className='fixed inset-0 bg-black bg-opacity-90 z-50 overflow-y-auto cursor-pointer'
           onClick={handleClosePhotoModal}
@@ -779,6 +781,7 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
             )}
           </div>
         </div>
+        </FocusTrap>
       )}
     </div>
   );

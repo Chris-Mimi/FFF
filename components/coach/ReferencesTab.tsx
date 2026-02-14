@@ -1,6 +1,7 @@
 'use client';
 
 import { ChevronDown, ChevronRight, Edit2, Plus, Save, Trash2, X } from 'lucide-react';
+import { FocusTrap } from '@/components/ui/FocusTrap';
 
 interface NamingConvention {
   id?: string;
@@ -336,6 +337,7 @@ export default function ReferencesTab({
 
       {/* Reference Modal */}
       {showModal && (
+        <FocusTrap>
         <div className='fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center p-2 sm:p-4'>
           <div className='bg-white rounded-lg w-full h-full sm:h-auto sm:max-w-md p-4 sm:p-6 shadow-2xl overflow-y-auto' onClick={(e) => e.stopPropagation()}>
             <div className='flex justify-between items-center mb-4'>
@@ -448,6 +450,7 @@ export default function ReferencesTab({
             </div>
           </div>
         </div>
+        </FocusTrap>
       )}
     </>
   );

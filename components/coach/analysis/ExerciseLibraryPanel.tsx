@@ -1,6 +1,7 @@
 'use client';
 
 import { Library, X } from 'lucide-react';
+import { FocusTrap } from '@/components/ui/FocusTrap';
 
 interface Exercise {
   id: string;
@@ -44,6 +45,7 @@ export default function ExerciseLibraryPanel({
   if (!isOpen) return null;
 
   return (
+    <FocusTrap>
     <>
       {/* Mobile: Full-screen modal */}
       <div className='md:hidden fixed inset-0 bg-black bg-opacity-50 z-50' onClick={onClose}>
@@ -231,5 +233,6 @@ export default function ExerciseLibraryPanel({
         </div>
       </div>
     </>
+    </FocusTrap>
   );
 }

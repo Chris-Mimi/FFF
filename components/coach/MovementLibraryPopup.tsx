@@ -3,6 +3,7 @@
 import { useRecentExercises } from '@/lib/exercise-storage';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { FocusTrap } from '@/components/ui/FocusTrap';
 import type { BarbellLift, Benchmark, ForgeBenchmark } from '@/types/movements';
 import { useUserFavorites } from '@/utils/exercise-favorites';
 import { ChevronDown, ChevronRight, Edit2, Library, Search, Star, X } from 'lucide-react';
@@ -1160,6 +1161,7 @@ function MovementLibraryPopup({
 
       {/* Create Benchmark Modal */}
       {showCreateBenchmarkModal && (
+        <FocusTrap>
         <div className='fixed inset-0 z-[200] bg-black/50 flex items-center justify-center p-4'>
           <div className='bg-white rounded-lg max-w-lg w-full p-6 shadow-2xl' onClick={(e) => e.stopPropagation()}>
             <div className='flex justify-between items-center mb-4'>
@@ -1223,10 +1225,12 @@ function MovementLibraryPopup({
             </div>
           </div>
         </div>
+        </FocusTrap>
       )}
 
       {/* Create Forge Benchmark Modal */}
       {showCreateForgeModal && (
+        <FocusTrap>
         <div className='fixed inset-0 z-[200] bg-black/50 flex items-center justify-center p-4' onClick={(e) => e.stopPropagation()}>
           <div className='bg-gray-500 rounded-lg max-w-lg w-full p-6 shadow-2xl' onClick={(e) => e.stopPropagation()}>
             <div className='flex justify-between items-center mb-4'>
@@ -1290,10 +1294,12 @@ function MovementLibraryPopup({
             </div>
           </div>
         </div>
+        </FocusTrap>
       )}
 
       {/* Create Lift Modal */}
       {showCreateLiftModal && (
+        <FocusTrap>
         <div className='fixed inset-0 z-[200] bg-black/50 flex items-center justify-center p-4' onClick={(e) => e.stopPropagation()}>
           <div className='bg-gray-500 rounded-lg max-w-lg w-full p-6 shadow-2xl' onClick={(e) => e.stopPropagation()}>
             <div className='flex justify-between items-center mb-4'>
@@ -1336,6 +1342,7 @@ function MovementLibraryPopup({
             </div>
           </div>
         </div>
+        </FocusTrap>
       )}
 
       {/* Create/Edit Exercise Modal */}

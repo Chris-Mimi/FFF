@@ -19,6 +19,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Edit2, GripVertical, Plus, Save, Trash2, X } from 'lucide-react';
+import { FocusTrap } from '@/components/ui/FocusTrap';
 
 interface Lift {
   id: string;
@@ -261,6 +262,7 @@ export default function LiftsTab({
 
       {/* Lift Modal */}
       {showModal && (
+        <FocusTrap>
         <div className='fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center p-2 sm:p-4'>
           <div className='bg-gray-500 rounded-lg max-w-lg w-full p-3 sm:p-4 md:p-6 shadow-2xl' onClick={(e) => e.stopPropagation()}>
             <div className='flex justify-between items-center mb-2 sm:mb-3 md:mb-4'>
@@ -324,6 +326,7 @@ export default function LiftsTab({
             </div>
           </div>
         </div>
+        </FocusTrap>
       )}
     </>
   );

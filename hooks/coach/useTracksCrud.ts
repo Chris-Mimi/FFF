@@ -1,3 +1,4 @@
+import { confirm } from '@/lib/confirm';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
@@ -86,7 +87,7 @@ export function useTracksCrud() {
   };
 
   const handleDeleteTrack = async (trackId: string) => {
-    if (!confirm('Are you sure you want to delete this track?')) return;
+    if (!await confirm({ title: 'Delete Track', message: 'Are you sure you want to delete this track?', confirmText: 'Delete', variant: 'danger' })) return;
 
     try {
       const { error } = await supabase

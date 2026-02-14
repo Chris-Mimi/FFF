@@ -1,10 +1,12 @@
 // AthletePageLiftsTab component
 'use client';
 
+import { confirm } from '@/lib/confirm';
 import { supabase } from '@/lib/supabase';
 import { ChevronDown, ChevronRight, Edit2, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { FocusTrap } from '@/components/ui/FocusTrap';
 import {
   CartesianGrid,
   Legend,
@@ -163,7 +165,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
   };
 
   const handleDeleteLift = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this lift record?')) return;
+    if (!await confirm({ title: 'Delete Record', message: 'Are you sure you want to delete this lift record?', confirmText: 'Delete', variant: 'danger' })) return;
 
     try {
       const { error } = await supabase.from('lift_records').delete().eq('id', id);
@@ -550,6 +552,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
 
       {/* Add/Edit Lift Modal */}
       {selectedLift && (
+        <FocusTrap>
         <div className='fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50' onClick={() => {
           setSelectedLift(null);
           setEditingLiftId(null);
@@ -787,6 +790,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
           )}
           </div>
         </div>
+        </FocusTrap>
       )}
     </div>
   );

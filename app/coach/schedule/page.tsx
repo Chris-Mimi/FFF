@@ -1,5 +1,6 @@
 'use client';
 
+import { confirm } from '@/lib/confirm';
 import { signOut } from '@/lib/auth';
 import { authFetch } from '@/lib/auth-fetch';
 import { supabase } from '@/lib/supabase';
@@ -7,6 +8,7 @@ import { Calendar, Edit2, LogOut, Plus, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { FocusTrap } from '@/components/ui/FocusTrap';
 
 interface SessionTemplate {
   id: string;
@@ -192,7 +194,7 @@ export default function CoachSchedulePage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this template?')) {
+    if (!await confirm({ title: 'Delete Template', message: 'Are you sure you want to delete this template?', confirmText: 'Delete', variant: 'danger' })) {
       return;
     }
 
@@ -378,7 +380,7 @@ export default function CoachSchedulePage() {
   };
 
   const handleDeleteTitle = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this workout title? This may affect existing session templates.')) {
+    if (!await confirm({ title: 'Delete Workout Title', message: 'Are you sure you want to delete this workout title? This may affect existing session templates.', confirmText: 'Delete', variant: 'danger' })) {
       return;
     }
 
@@ -668,6 +670,7 @@ export default function CoachSchedulePage() {
 
       {/* Session Template Modal */}
       {showModal && (
+        <FocusTrap>
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-gray-800 rounded-lg shadow-xl max-w-md w-full border border-gray-700">
             <div className="flex items-center justify-between p-6 border-b border-gray-700">
@@ -780,10 +783,12 @@ export default function CoachSchedulePage() {
             </div>
           </div>
         </div>
+        </FocusTrap>
       )}
 
       {/* Workout Title Modal */}
       {showTitleModal && (
+        <FocusTrap>
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-gray-800 rounded-lg shadow-xl max-w-md w-full border border-gray-700">
             <div className="flex items-center justify-between p-6 border-b border-gray-700">
@@ -860,6 +865,7 @@ export default function CoachSchedulePage() {
             </div>
           </div>
         </div>
+        </FocusTrap>
       )}
     </div>
   );

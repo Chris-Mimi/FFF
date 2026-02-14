@@ -1,11 +1,13 @@
 'use client';
 
+import { confirm } from '@/lib/confirm';
 import { WhiteboardPhoto } from '@/app/coach/whiteboard/page';
 import { authFetch } from '@/lib/auth-fetch';
 import { toast } from 'sonner';
 import { ChevronLeft, ChevronRight, Edit2, Trash2, X } from 'lucide-react';
 import Image from 'next/image';
 import { useState } from 'react';
+import { FocusTrap } from '@/components/ui/FocusTrap';
 
 interface WhiteboardGalleryProps {
   photos: WhiteboardPhoto[];
@@ -83,7 +85,7 @@ export default function WhiteboardGallery({
   };
 
   const handleDelete = async (photoId: string, photoLabel: string) => {
-    if (!confirm(`Delete photo "${photoLabel}"? This cannot be undone.`)) {
+    if (!await confirm({ title: 'Delete Photo', message: `Delete photo "${photoLabel}"? This cannot be undone.`, confirmText: 'Delete', variant: 'danger' })) {
       return;
     }
 
@@ -191,6 +193,7 @@ export default function WhiteboardGallery({
 
       {/* Full-Screen Modal */}
       {showModal && selectedPhoto && (
+        <FocusTrap>
         <div
           className='fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4 cursor-pointer'
           onClick={handleCloseModal}
@@ -250,6 +253,7 @@ export default function WhiteboardGallery({
             </button>
           )}
         </div>
+        </FocusTrap>
       )}
     </div>
   );

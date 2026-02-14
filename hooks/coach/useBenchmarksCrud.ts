@@ -1,3 +1,4 @@
+import { confirm } from '@/lib/confirm';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
@@ -100,7 +101,7 @@ export function useBenchmarksCrud() {
   };
 
   const deleteBenchmark = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this benchmark? All athlete results will remain but will show as "Unknown Benchmark".')) {
+    if (!await confirm({ title: 'Delete Benchmark', message: 'Are you sure you want to delete this benchmark? All athlete results will remain but will show as "Unknown Benchmark".', confirmText: 'Delete', variant: 'danger' })) {
       return;
     }
 

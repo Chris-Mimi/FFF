@@ -3,6 +3,7 @@
 import { X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { getEmbedUrl } from '@/utils/video-helpers';
+import { FocusTrap } from '@/components/ui/FocusTrap';
 
 interface ExerciseVideoModalProps {
   isOpen: boolean;
@@ -156,6 +157,7 @@ export default function ExerciseVideoModal({
   if (!isOpen) return null;
 
   return (
+    <FocusTrap>
     <>
       {/* Overlay */}
       <div
@@ -250,5 +252,6 @@ export default function ExerciseVideoModal({
         )}
       </div>
     </>
+    </FocusTrap>
   );
 }

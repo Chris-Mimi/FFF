@@ -30,9 +30,9 @@
 
 ### Lower Impact
 
-- [ ] 8. **Replace browser `confirm()` with styled modal dialogs** — Most delete actions use browser confirm().
+- [x] 8. **Replace browser `confirm()` with styled modal dialogs** — Most delete actions use browser confirm().
 
-- [ ] 9. **Focus traps in modals** — Can tab outside of modals currently.
+- [x] 9. **Focus traps in modals** — Can tab outside of modals currently.
 
 - [ ] 10. **Color contrast audit** — Some potential WCAG AA issues with teal-on-white text.
 

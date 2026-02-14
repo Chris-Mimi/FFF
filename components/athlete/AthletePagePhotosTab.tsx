@@ -3,6 +3,7 @@
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
+import { FocusTrap } from '@/components/ui/FocusTrap';
 
 interface WhiteboardPhoto {
   id: string;
@@ -204,6 +205,7 @@ export default function AthletePagePhotosTab() {
 
       {/* Full-Screen Modal */}
       {showModal && selectedPhoto && (
+        <FocusTrap>
         <div
           className='fixed inset-0 bg-black bg-opacity-90 z-50 overflow-y-auto cursor-pointer'
           onClick={handleCloseModal}
@@ -265,6 +267,7 @@ export default function AthletePagePhotosTab() {
             )}
           </div>
         </div>
+        </FocusTrap>
       )}
     </div>
   );

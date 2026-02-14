@@ -1,5 +1,6 @@
 'use client';
 
+import { confirm } from '@/lib/confirm';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -133,7 +134,7 @@ export default function PaymentsSection({ memberId }: { memberId?: string }) {
 
   const handleReset10Card = async () => {
     if (!actualMemberId) return;
-    if (!confirm('Reset 10-card to 0 sessions used?')) return;
+    if (!await confirm({ title: 'Reset 10-Card', message: 'Reset 10-card to 0 sessions used?', confirmText: 'Reset', variant: 'default' })) return;
 
     setSaving(true);
     try {
@@ -156,7 +157,7 @@ export default function PaymentsSection({ memberId }: { memberId?: string }) {
   };
 
   const handleCancelSubscription = async (subscriptionId: string) => {
-    if (!confirm('Cancel this subscription? It will remain active until the end of the current period.')) return;
+    if (!await confirm({ title: 'Cancel Subscription', message: 'Cancel this subscription? It will remain active until the end of the current period.', confirmText: 'Cancel', variant: 'danger' })) return;
 
     setSaving(true);
     try {

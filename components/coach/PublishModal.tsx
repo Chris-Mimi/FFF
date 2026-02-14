@@ -4,6 +4,7 @@ import { Send, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { WODSection } from './WorkoutModal';
+import { FocusTrap } from '@/components/ui/FocusTrap';
 import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark, VariableSet } from '@/types/movements';
 
 interface PublishModalProps {
@@ -130,6 +131,7 @@ export default function PublishModal({
   if (!isOpen) return null;
 
   return (
+    <FocusTrap>
     <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4'>
       <div className='bg-white text-gray-900 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col'>
         {/* Header */}
@@ -350,5 +352,6 @@ export default function PublishModal({
         </div>
       </div>
     </div>
+    </FocusTrap>
   );
 }

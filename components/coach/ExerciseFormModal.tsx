@@ -4,6 +4,7 @@ import { X } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
+import { FocusTrap } from '@/components/ui/FocusTrap';
 
 // Predefined category order
 const EXERCISE_CATEGORY_ORDER = [
@@ -487,6 +488,7 @@ export default function ExerciseFormModal({
   if (!isOpen) return null;
 
   return (
+    <FocusTrap>
     <div className='fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center p-4'>
       <div className='bg-gray-500 rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl'>
         <div className='flex justify-between items-center mb-4'>
@@ -806,5 +808,6 @@ export default function ExerciseFormModal({
         </div>
       </div>
     </div>
+    </FocusTrap>
   );
 }
