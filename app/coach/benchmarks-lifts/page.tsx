@@ -113,7 +113,7 @@ export default function BenchmarksLiftsManagementPage() {
               <span className='md:hidden'>Back</span>
             </button>
             <div>
-              <h1 className='text-base sm:text-xl md:text-3xl font-bold text-gray-900'>Coach Library</h1>
+              <h1 className='text-base sm:text-xl md:text-3xl font-bold text-gray-900'>Toolkit</h1>
               <p className='text-[10px] sm:text-xs md:text-sm text-gray-600 hidden md:block'>Manage benchmarks, lifts, exercises, programming references, and notes</p>
             </div>
           </div>

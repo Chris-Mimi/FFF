@@ -37,7 +37,7 @@ export const CoachHeader = ({
               className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${searchPanelOpen ? 'bg-teal-800' : 'bg-[#14758c] hover:bg-teal-800'}`}
             >
               <Plus size={18} />
-              Workout Library
+              Workouts
             </button>
             <button onClick={() => router.push('/coach/schedule')} className='flex items-center gap-2 bg-[#14758c] hover:bg-teal-800 px-4 py-2 rounded-lg transition'>
               <Calendar size={18} />
@@ -57,7 +57,7 @@ export const CoachHeader = ({
             </button>
             <button onClick={() => router.push('/coach/benchmarks-lifts')} className='flex items-center gap-2 bg-[#14758c] hover:bg-teal-800 px-4 py-2 rounded-lg transition'>
               <Dumbbell size={18} />
-              Coach Library
+              Toolkit
             </button>
             <button onClick={() => router.push('/coach/whiteboard')} className='flex items-center gap-2 bg-[#14758c] hover:bg-teal-800 px-4 py-2 rounded-lg transition'>
               <Image size={18} />
@@ -85,7 +85,7 @@ export const CoachHeader = ({
               className={`${buttonClass} ${searchPanelOpen ? 'bg-teal-800' : ''}`}
             >
               <Plus size={iconSize} />
-              <span>Library</span>
+              <span>Workouts</span>
             </button>
             <button onClick={() => router.push('/coach/schedule')} className={buttonClass}>
               <Calendar size={iconSize} />
@@ -105,7 +105,7 @@ export const CoachHeader = ({
             </button>
             <button onClick={() => router.push('/coach/benchmarks-lifts')} className={buttonClass}>
               <Dumbbell size={iconSize} />
-              <span>Library</span>
+              <span>Toolkit</span>
             </button>
             <button onClick={() => router.push('/coach/whiteboard')} className={buttonClass}>
               <Image size={iconSize} />

@@ -857,7 +857,7 @@ function MovementLibraryPopup({
               {activeTab === 'exercises' && (
                 <>
                   {/* Favorites Section */}
-                  {favorites.length > 0 && (
+                  {favorites.length > 0 ? (
                     <div className='mb-4'>
                       <button
                         onClick={() => setFavoritesCollapsed(!favoritesCollapsed)}
@@ -918,10 +918,15 @@ function MovementLibraryPopup({
                         </div>
                       )}
                     </div>
+                  ) : (
+                    <div className='mb-4 flex items-center gap-2 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg text-xs text-amber-700'>
+                      <Star size={14} className='text-amber-400 shrink-0' />
+                      <span>Click the <Star size={10} className='inline text-gray-400' /> icon on any exercise to add it to your favorites for quick access.</span>
+                    </div>
                   )}
 
                   {/* Recently Used Section */}
-                  {recentExercises.length > 0 && (
+                  {recentExercises.length > 0 ? (
                     <div className='mb-4'>
                       <button
                         onClick={() => setRecentCollapsed(!recentCollapsed)}
@@ -990,6 +995,11 @@ function MovementLibraryPopup({
                           })}
                         </div>
                       )}
+                    </div>
+                  ) : (
+                    <div className='mb-4 flex items-center gap-2 bg-blue-50 border border-blue-200 px-3 py-2 rounded-lg text-xs text-blue-700'>
+                      <Library size={14} className='text-blue-400 shrink-0' />
+                      <span>Exercises you select will appear here for quick re-use.</span>
                     </div>
                   )}
 

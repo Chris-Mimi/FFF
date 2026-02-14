@@ -579,7 +579,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
     <div className='space-y-3'>
       {/* Week navigation */}
       <div className='flex items-center justify-between bg-white rounded-lg shadow-sm p-3'>
-        <button onClick={prevWeek} className='p-2 hover:bg-gray-100 rounded-full transition text-gray-900' aria-label='Previous week'>
+        <button onClick={prevWeek} className='p-3 hover:bg-gray-100 rounded-full transition text-gray-900' aria-label='Previous week'>
           <ChevronLeft size={20} />
         </button>
         <div className='flex items-center gap-2'>
@@ -590,7 +590,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
             This Week
           </button>
         </div>
-        <button onClick={nextWeek} className='p-2 hover:bg-gray-100 rounded-full transition text-gray-900' aria-label='Next week'>
+        <button onClick={nextWeek} className='p-3 hover:bg-gray-100 rounded-full transition text-gray-900' aria-label='Next week'>
           <ChevronRight size={20} />
         </button>
       </div>

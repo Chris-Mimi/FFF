@@ -180,12 +180,12 @@ export default function SearchPanel({
           {/* Mobile Filter Toggle */}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className='lg:hidden hover:bg-[#14758c] p-1 rounded transition'
+            className='lg:hidden hover:bg-[#14758c] p-3 rounded transition'
             title='Toggle Filters'
           >
             <Menu size={20} />
           </button>
-          <h2 className='text-base sm:text-lg lg:text-xl font-bold'>Workout Library</h2>
+          <h2 className='text-base sm:text-lg lg:text-xl font-bold'>Workouts</h2>
         </div>
         <button
           onClick={() => {
@@ -200,7 +200,7 @@ export default function SearchPanel({
             setSidebarOpen(false);
             // Note: movements map should be reset in parent component
           }}
-          className='hover:bg-[#14758c] p-1 rounded transition'
+          className='hover:bg-[#14758c] p-2.5 rounded transition'
         >
           <X size={24} />
         </button>
@@ -217,7 +217,7 @@ export default function SearchPanel({
             <h3 className='font-semibold'>Filters</h3>
             <button
               onClick={() => setSidebarOpen(false)}
-              className='hover:bg-[#14758c] p-1 rounded transition'
+              className='hover:bg-[#14758c] p-3 rounded transition'
             >
               <X size={20} />
             </button>
@@ -532,10 +532,10 @@ export default function SearchPanel({
                     Search: &quot;{searchQuery}&quot;
                     <button
                       onClick={() => onSearchQueryChange('')}
-                      className='hover:bg-[#14758c] rounded-full p-0.5'
+                      className='hover:bg-[#14758c] rounded-full p-1.5'
                     >
-                      <X size={10} className='sm:hidden' />
-                      <X size={12} className='hidden sm:block' />
+                      <X size={12} className='sm:hidden' />
+                      <X size={14} className='hidden sm:block' />
                     </button>
                   </span>
                 )}
@@ -551,10 +551,10 @@ export default function SearchPanel({
                           selectedMovements.filter(m => m !== movement)
                         )
                       }
-                      className='hover:bg-[#14758c] rounded-full p-0.5'
+                      className='hover:bg-[#14758c] rounded-full p-1.5'
                     >
-                      <X size={10} className='sm:hidden' />
-                      <X size={12} className='hidden sm:block' />
+                      <X size={12} className='sm:hidden' />
+                      <X size={14} className='hidden sm:block' />
                     </button>
                   </span>
                 ))}
@@ -614,10 +614,10 @@ export default function SearchPanel({
                           selectedSessionTypes.filter(t => t !== sessionType)
                         )
                       }
-                      className='hover:bg-[#14758c] rounded-full p-0.5'
+                      className='hover:bg-[#14758c] rounded-full p-1.5'
                     >
-                      <X size={10} className='sm:hidden' />
-                      <X size={12} className='hidden sm:block' />
+                      <X size={12} className='sm:hidden' />
+                      <X size={14} className='hidden sm:block' />
                     </button>
                   </span>
                 ))}

@@ -495,10 +495,10 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
         e.stopPropagation();
         handleDeleteBenchmark(result.id);
       }}
-      className='p-1 text-gray-600 hover:text-red-600 hover:bg-white/50 rounded transition opacity-0 group-hover:opacity-100'
+      className='min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-600 hover:text-red-600 hover:bg-white/50 rounded transition md:opacity-0 md:group-hover:opacity-100'
       title='Delete benchmark record'
     >
-      <Trash2 size={14} />
+      <Trash2 size={16} />
     </button>
   </div>
 </div>

@@ -662,23 +662,23 @@ export default function MemberBookingPage() {
                       </span>
 
                       {member.account_type === 'family_member' && (
-                        <div className="flex gap-1 ml-1" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex ml-1" onClick={(e) => e.stopPropagation()}>
                           <button
                             onClick={() => openEditModal(member)}
-                            className="p-0.5 text-gray-400 hover:text-white transition-colors"
+                            className="min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-400 hover:text-white transition-colors"
                             title="Edit"
                             aria-label="Edit"
                           >
-                            <Edit2 size={12} />
+                            <Edit2 size={14} />
                           </button>
                           <button
                             onClick={() => handleDeleteFamilyMember(member.id, member.display_name || 'Family Member')}
                             disabled={processing === member.id}
-                            className="p-0.5 text-gray-400 hover:text-red-400 disabled:text-gray-600 transition-colors"
+                            className="min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-400 hover:text-red-400 disabled:text-gray-600 transition-colors"
                             title="Delete"
                             aria-label="Delete"
                           >
-                            {processing === member.id ? '...' : <Trash2 size={12} />}
+                            {processing === member.id ? '...' : <Trash2 size={14} />}
                           </button>
                         </div>
                       )}

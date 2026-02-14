@@ -24,9 +24,9 @@
 
 - [x] 5. **Debounce search inputs** — ✅ DONE (Session 117, useDebouncedValue hook). SearchPanel + MovementLibraryPopup (4 filter useMemos).
 
-- [ ] 6. **Missing empty states** — Favorites section, booking history, records tab show minimal UI when empty.
+- [x] 6. **Missing empty states** — Favorites section, booking history, records tab show minimal UI when empty.
 
-- [ ] 7. **Touch targets** — Some mobile buttons under 44px (BookingListItem action buttons, SearchPanel mobile toggle).
+- [x] 7. **Touch targets** — Some mobile buttons under 44px (BookingListItem action buttons, SearchPanel mobile toggle).
 
 ### Lower Impact
 

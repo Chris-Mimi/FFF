@@ -50,7 +50,7 @@ export default function PhotoModal({
         {showNavigation && (
           <button
             onClick={(e) => { e.stopPropagation(); onPrevious(); }}
-            className='absolute left-1 md:left-4 top-1/2 -translate-y-1/2 bg-white/70 md:bg-white text-gray-700 p-1.5 md:p-3 rounded-full hover:bg-gray-100 z-10 shadow-lg'
+            className='absolute left-1 md:left-4 top-1/2 -translate-y-1/2 bg-white/70 md:bg-white text-gray-700 p-3 rounded-full hover:bg-gray-100 z-10 shadow-lg'
             aria-label='Previous photo'
           >
             <ChevronLeft size={20} className='md:hidden' />
@@ -64,7 +64,7 @@ export default function PhotoModal({
         >
           <button
             onClick={onClose}
-            className='absolute -top-12 right-0 bg-white text-gray-700 p-2 rounded-full hover:bg-gray-100 z-10 shadow-lg'
+            className='absolute top-2 right-2 bg-white text-gray-700 p-2.5 rounded-full hover:bg-gray-100 z-10 shadow-lg'
             aria-label='Close modal'
           >
             <X size={24} />
@@ -93,7 +93,7 @@ export default function PhotoModal({
         {showNavigation && (
           <button
             onClick={(e) => { e.stopPropagation(); onNext(); }}
-            className='absolute right-1 md:right-4 top-1/2 -translate-y-1/2 bg-white/70 md:bg-white text-gray-700 p-1.5 md:p-3 rounded-full hover:bg-gray-100 z-10 shadow-lg'
+            className='absolute right-1 md:right-4 top-1/2 -translate-y-1/2 bg-white/70 md:bg-white text-gray-700 p-3 rounded-full hover:bg-gray-100 z-10 shadow-lg'
             aria-label='Next photo'
           >
             <ChevronRight size={20} className='md:hidden' />
