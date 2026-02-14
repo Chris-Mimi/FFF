@@ -80,15 +80,16 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**In Progress (2026-02-15 Session 122 - Opus 4.6):**
+- **🔧 Movements filter bug fix (INCOMPLETE)** — Rewrote `utils/movement-extraction.ts` + fixed filter in `hooks/coach/useCoachData.ts:288-295`. Structured data extraction (lifts/benchmarks/forge_benchmarks) works. Content text parsing still has issues: "warm-up 8-12", "Lock Shoulder Routine" (missing digit "3"), other oddities. **Needs further iteration next session.**
+- See: `project-history/2026-02-15-session-122-movements-filter-fix.md`
+
 **Completed (2026-02-14 Session 121 - Opus 4.6):**
-- **✅ Styled confirm dialogs (#8)** — Replaced all 33 browser `confirm()` calls with styled `ConfirmDialog` modal (danger/default variants, teal/red buttons, warning icon). Sonner-style module pattern (`lib/confirm.ts`). 20 files modified.
-- **✅ Focus traps (#9)** — Created `FocusTrap` wrapper component, applied to 33 modal instances across 28 files + ConfirmDialog. Tab/Shift+Tab cycles within modals.
+- **✅ Styled confirm dialogs (#8)** + **Focus traps (#9)**
 - See: `project-history/2026-02-14-session-121-confirm-dialogs-focus-traps.md`
 
 **Completed (2026-02-14 Session 120 - Opus 4.6):**
-- **✅ Empty states (#6)** — Favorites/Recently Used hints in MovementLibraryPopup
-- **✅ Touch targets (#7)** — 9 undersized buttons fixed across 6 files (44px min)
-- **✅ Nav label rename** — "Library" → "Workouts" (search panel) / "Toolkit" (benchmarks)
+- **✅ Empty states (#6)** + **Touch targets (#7)** + **Nav label rename**
 - See: `project-history/2026-02-14-session-120-empty-states-touch-targets.md`
 
 **Completed (2026-02-13 Session 119 - Opus 4.6):**
@@ -99,11 +100,7 @@ Social Tables
 - **✅ HIGH priority form validation COMPLETE (7/7)** + **MEDIUM (16/16)**
 - See: `project-history/2026-02-13-session-118-medium-form-validation.md`
 
-**Completed (2026-02-12 Session 117 - Opus 4.6):**
-- **✅ Debounced search inputs** + **Form validation (4/7 HIGH done)**
-- See: `project-history/2026-02-12-session-117-debounce-form-validation.md`
-
-**Older Sessions (57-116):**
+**Older Sessions (57-117):**
 See `project-history/` folder for detailed implementation history
 
 ---

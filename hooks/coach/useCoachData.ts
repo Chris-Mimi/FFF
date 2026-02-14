@@ -2,7 +2,7 @@
 
 import { WODFormData } from '@/components/coach/WorkoutModal';
 import { supabase } from '@/lib/supabase';
-import { extractMovements } from '@/utils/movement-extraction';
+import { extractMovements, extractMovementsFromWod } from '@/utils/movement-extraction';
 import { useEffect, useState } from 'react';
 
 interface UseCoachDataProps {
@@ -287,9 +287,9 @@ export const useCoachData = ({
 
         if (selectedMovements.length > 0) {
           filteredResults = filteredResults.filter(wod => {
-            const combinedContent = wod.sections.map(s => s.content.toLowerCase()).join(' ');
+            const wodMovements = extractMovementsFromWod(wod);
             return selectedMovements.every(movement =>
-              new RegExp(`\\b${movement.toLowerCase()}\\b`, 'i').test(combinedContent)
+              wodMovements.has(movement)
             );
           });
         }
