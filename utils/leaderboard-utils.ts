@@ -26,6 +26,7 @@ export interface RawSectionResult {
   metres_result?: number | null;
   scaling_level?: string | null;
   task_completed?: boolean | null;
+  workout_date?: string | null;
 }
 
 export interface RawLiftResult {
@@ -169,7 +170,12 @@ export function bestResultPerUser(
       best.set(r.user_id, r);
       continue;
     }
-    if (compareByScoringType(r, existing, scoringType) < 0) {
+    const cmp = compareByScoringType(r, existing, scoringType);
+    if (cmp < 0) {
+      // Better score — replace
+      best.set(r.user_id, r);
+    } else if (cmp === 0 && r.workout_date && existing.workout_date && r.workout_date > existing.workout_date) {
+      // Equal score — prefer most recent result so edits are reflected
       best.set(r.user_id, r);
     }
   }

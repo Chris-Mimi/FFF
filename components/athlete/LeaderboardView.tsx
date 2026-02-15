@@ -529,7 +529,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
 
         const { data: results } = await supabase
           .from('wod_section_results')
-          .select('id, user_id, time_result, reps_result, weight_result, rounds_result, calories_result, metres_result, scaling_level, task_completed')
+          .select('id, user_id, time_result, reps_result, weight_result, rounds_result, calories_result, metres_result, scaling_level, task_completed, workout_date')
           .in('wod_id', contentWodIds)
           .in('section_id', contentSectionIds);
 

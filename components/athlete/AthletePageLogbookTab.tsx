@@ -107,8 +107,17 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
   // Wrapper functions that use utilities and update state
   const loadSectionResultsWrapper = async (workoutDate: string) => {
     const newResults = await loadSectionResults(userId, workoutDate);
+    // Only keep results for WODs the user is actually booked into (prevents stray records from polluting state)
+    const bookedWodIds = new Set(workouts.map(w => w.id));
+    const filteredResults: Record<string, SectionResult> = {};
+    for (const [key, value] of Object.entries(newResults)) {
+      const wodId = key.split(':::')[0];
+      if (bookedWodIds.has(wodId)) {
+        filteredResults[key] = value;
+      }
+    }
     setSectionResults(prev => {
-      const updated = { ...prev, ...newResults };
+      const updated = { ...prev, ...filteredResults };
       return updated;
     });
   };
