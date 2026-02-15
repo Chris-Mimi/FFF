@@ -89,6 +89,7 @@ export default function CoachDashboard() {
     loading,
     fetchWODs,
     fetchTracksAndCounts,
+    fetchExerciseNames,
   } = useCoachData({
     searchQuery: debouncedSearchQuery,
     selectedMovements,
@@ -174,6 +175,7 @@ export default function CoachDashboard() {
 
       fetchWODs();
       fetchTracksAndCounts();
+      fetchExerciseNames();
     };
 
     checkAuth();

@@ -39,6 +39,44 @@ const normalizeMovement = (movement: string): string => {
     .trim();
 };
 
+/**
+ * Check if a content-parsed candidate matches a known exercise name.
+ * Returns the best-matching exercise name (normalized), or null if no match.
+ */
+const findMatchingExercise = (
+  candidate: string,
+  knownExercisesLower: Set<string>,
+  knownExercisesList: string[]
+): string | null => {
+  const lower = candidate.toLowerCase().trim();
+  if (!lower || lower.length < 3) return null;
+
+  // 1. Direct match
+  if (knownExercisesLower.has(lower)) return normalizeMovement(lower);
+
+  // 2. Plural tolerance (remove trailing 's')
+  const depluralized = lower.replace(/s$/, '');
+  if (depluralized !== lower && knownExercisesLower.has(depluralized)) {
+    return normalizeMovement(depluralized);
+  }
+
+  // 3. Substring matching — known exercise found within candidate or vice versa
+  for (const exercise of knownExercisesList) {
+    if (exercise.length < 4) continue;
+
+    // Known exercise contained in candidate (e.g., "back squat" in "heavy back squats")
+    if (lower.includes(exercise) || lower.includes(exercise + 's')) {
+      return normalizeMovement(exercise);
+    }
+    // Candidate contained in known exercise (e.g., "arch stretch" in "partner arch stretch")
+    if (lower.length >= 4 && (exercise.includes(lower) || exercise.includes(depluralized))) {
+      return normalizeMovement(exercise);
+    }
+  }
+
+  return null;
+};
+
 // Helper function to check if a word is likely part of a movement name
 const isValidMovementWord = (word: string): boolean => {
   const cleaned = word.toLowerCase().replace(/[()]/g, '');
@@ -68,98 +106,94 @@ const stripInstructionParens = (text: string): string => {
 };
 
 /**
- * Extract movement names from a single WOD's sections
- * Sources: structured data (lifts, benchmarks, forge_benchmarks) + content text parsing
- * @returns Set of normalized movement names
+ * Parse free-form text content and extract exercise names.
+ * Used for both section content and benchmark/forge_benchmark descriptions.
  */
-export const extractMovementsFromWod = (wod: WODFormData): Set<string> => {
-  const movements = new Set<string>();
+const extractMovementsFromText = (
+  text: string,
+  movements: Set<string>,
+  knownLower?: Set<string>,
+  knownList?: string[]
+): void => {
+  const lines = text.split('\n');
 
-  wod.sections.forEach(section => {
-    // Source 1: Structured lift names
-    section.lifts?.forEach((lift: any) => {
-      if (lift.name) movements.add(normalizeMovement(lift.name));
-    });
+  lines.forEach(line => {
+    const trimmedLine = line.trim();
+    if (!trimmedLine) return;
 
-    // Source 2: Structured benchmark names and exercises
-    section.benchmarks?.forEach((benchmark: any) => {
-      if (benchmark.name) movements.add(normalizeMovement(benchmark.name));
-      benchmark.exercises?.forEach((ex: string) => {
-        if (ex) movements.add(normalizeMovement(ex));
-      });
-    });
+    // Skip coaching instruction lines
+    if (isInstructionLine(trimmedLine)) return;
 
-    // Source 3: Structured forge benchmark names and exercises
-    section.forge_benchmarks?.forEach((forge: any) => {
-      if (forge.name) movements.add(normalizeMovement(forge.name));
-      forge.exercises?.forEach((ex: string) => {
-        if (ex) movements.add(normalizeMovement(ex));
-      });
-    });
+    // Strip instruction parentheticals BEFORE splitting on commas
+    const lineWithoutInstructionParens = stripInstructionParens(trimmedLine);
 
-    // Source 4: Parse exercise names from content text
-    const lines = section.content.split('\n');
+    // Split by '+' and ',' for multiple exercises on same line
+    const parts = lineWithoutInstructionParens.split(/[+,]/).map(p => p.trim());
 
-    lines.forEach(line => {
-      const trimmedLine = line.trim();
-      if (!trimmedLine) return;
+    parts.forEach(part => {
+      if (!part) return;
 
-      // Skip coaching instruction lines
-      if (isInstructionLine(trimmedLine)) return;
+      // Skip instruction fragments
+      if (isInstructionLine(part)) return;
 
-      // Strip instruction parentheticals BEFORE splitting on commas
-      // This prevents "(3 positions, 15 reps each)" from being split into fragments
-      const lineWithoutInstructionParens = stripInstructionParens(trimmedLine);
+      // Remove any stray unmatched closing parens
+      const cleanedPart = part.replace(/\)$/, '').trim();
+      if (!cleanedPart) return;
 
-      // Split by '+' and ',' for multiple exercises on same line
-      const parts = lineWithoutInstructionParens.split(/[+,]/).map(p => p.trim());
+      let movementText = '';
 
-      parts.forEach(part => {
-        if (!part) return;
+      // Pattern 1: Bullet/asterisk + Movement
+      const bulletMatch = cleanedPart.match(/^[*•]\s+(.+)$/);
+      if (bulletMatch) {
+        movementText = bulletMatch[1];
+      }
 
-        // Skip instruction fragments
-        if (isInstructionLine(part)) return;
+      // Pattern 2: Number + x + Movement (e.g., "10x Air Squats")
+      if (!movementText) {
+        const nxMatch = cleanedPart.match(/^\d+[\s-]*x[\s-]*(.+)$/i);
+        if (nxMatch) movementText = nxMatch[1];
+      }
 
-        // Remove any stray unmatched closing parens
-        const cleanedPart = part.replace(/\)$/, '').trim();
-        if (!cleanedPart) return;
+      // Pattern 3: Number/rep-scheme + Movement (e.g., "10 Air Squats", "21-15-9 Thrusters")
+      if (!movementText) {
+        const numMatch = cleanedPart.match(/^\d+(?:-\d+)*\s+(.+)$/);
+        if (numMatch) movementText = numMatch[1];
+      }
 
-        let movementText = '';
+      // Pattern 4: Number+unit + Movement (e.g., "500m C2 Rower", "2000m Row", "30cal Assault Bike")
+      if (!movementText) {
+        const unitMatch = cleanedPart.match(/^\d+\s*(?:m|km|mi|cal|kcal|ft|metres?|meters?)\s+(.+)$/i);
+        if (unitMatch) movementText = unitMatch[1];
+      }
 
-        // Pattern 1: Bullet/asterisk + Movement — greedy capture (full exercise name after bullet)
-        const bulletMatch = cleanedPart.match(/^[*•]\s+(.+)$/);
-        if (bulletMatch) {
-          movementText = bulletMatch[1];
+      // Pattern 5: No number prefix — try full line against DB (only with cross-reference)
+      if (!movementText && knownLower && knownList) {
+        movementText = cleanedPart;
+      }
+
+      if (!movementText) return;
+
+      // Clean trailing noise
+      movementText = movementText.replace(/\s*@.*$/, '');
+      movementText = movementText.replace(/\s+\d+\s*(?:kg|lbs?|m|ft|cal|kcal|reps?)?\s*$/i, '');
+      movementText = movementText.replace(/[,;.!?:]+$/, '');
+      movementText = movementText.trim();
+
+      if (!movementText) return;
+
+      // Skip coaching instructions
+      if (isInstructionLine(movementText)) return;
+
+      // If text contains equipment parenthetical, truncate after it
+      const parenMatch = movementText.match(/^(.*?\([^)]+\))/);
+      const candidateText = parenMatch ? parenMatch[1] : movementText;
+
+      if (knownLower && knownList) {
+        const match = findMatchingExercise(candidateText, knownLower, knownList);
+        if (match) {
+          movements.add(match);
         }
-
-        // Pattern 2: Number + x + Movement (e.g., "10x Air Squats")
-        if (!movementText) {
-          const nxMatch = cleanedPart.match(/^\d+[\s-]*x[\s-]*(.+)$/i);
-          if (nxMatch) movementText = nxMatch[1];
-        }
-
-        // Pattern 3: Number/rep-scheme + Movement (e.g., "10 Air Squats", "21-15-9 Thrusters")
-        if (!movementText) {
-          const numMatch = cleanedPart.match(/^\d+(?:-\d+)*\s+(.+)$/);
-          if (numMatch) movementText = numMatch[1];
-        }
-
-        if (!movementText) return;
-
-        // Clean trailing noise: @ weights, standalone trailing numbers/units
-        movementText = movementText.replace(/\s*@.*$/, ''); // "@ 50kg" and after
-        movementText = movementText.replace(/\s+\d+\s*(?:kg|lbs?|m|ft|cal|kcal|reps?)?\s*$/i, ''); // trailing "50kg", "15m"
-        movementText = movementText.replace(/[,;.!?:]+$/, ''); // trailing punctuation
-        movementText = movementText.trim();
-
-        if (!movementText) return;
-
-        // Skip if the extracted text is a coaching instruction
-        if (isInstructionLine(movementText)) return;
-
-        // If text contains equipment parenthetical, truncate after it
-        const parenMatch = movementText.match(/^(.*?\([^)]+\))/);
-
+      } else {
         if (parenMatch) {
           const movement = normalizeMovement(parenMatch[1]);
           if (movement.length >= 3) {
@@ -167,19 +201,62 @@ export const extractMovementsFromWod = (wod: WODFormData): Set<string> => {
           }
         } else {
           const words = movementText.split(/\s+/).filter(isValidMovementWord);
-
-          // Require at least 2 words for content-extracted movements
-          // (single words from free text are too noisy — structured data handles single-word names)
           if (words.length >= 2 && words.length <= 6) {
             const movement = normalizeMovement(words.join(' '));
-
             if (movement.length >= 3) {
               movements.add(movement);
             }
           }
         }
-      });
+      }
     });
+  });
+};
+
+/**
+ * Extract movement names from a single WOD's sections
+ * Sources: structured data (lifts, benchmarks, forge_benchmarks) + content text parsing
+ * @returns Set of normalized movement names
+ */
+export const extractMovementsFromWod = (wod: WODFormData, knownExerciseNames?: Set<string>): Set<string> => {
+  const movements = new Set<string>();
+
+  // Pre-compute lowercase exercise names for matching
+  const knownLower = knownExerciseNames && knownExerciseNames.size > 0
+    ? new Set(Array.from(knownExerciseNames).map(n => n.toLowerCase()))
+    : undefined;
+  const knownList = knownLower ? Array.from(knownLower) : undefined;
+
+  wod.sections.forEach(section => {
+    // Source 1: Structured lift names
+    section.lifts?.forEach((lift: any) => {
+      if (lift.name) movements.add(normalizeMovement(lift.name));
+    });
+
+    // Source 2: Structured benchmark names + parse descriptions for exercises
+    section.benchmarks?.forEach((benchmark: any) => {
+      if (benchmark.name) movements.add(normalizeMovement(benchmark.name));
+      benchmark.exercises?.forEach((ex: string) => {
+        if (ex) movements.add(normalizeMovement(ex));
+      });
+      if (benchmark.description) {
+        extractMovementsFromText(benchmark.description, movements, knownLower, knownList);
+      }
+    });
+
+    // Source 3: Structured forge benchmark names + parse descriptions for exercises
+    section.forge_benchmarks?.forEach((forge: any) => {
+      if (forge.name) movements.add(normalizeMovement(forge.name));
+      forge.exercises?.forEach((ex: string) => {
+        if (ex) movements.add(normalizeMovement(ex));
+      });
+      if (forge.description) {
+        extractMovementsFromText(forge.description, movements, knownLower, knownList);
+      }
+    });
+
+    // Source 4: Parse exercise names from section content text
+    extractMovementsFromText(section.content, movements, knownLower, knownList);
   });
 
   return movements;
@@ -190,11 +267,11 @@ export const extractMovementsFromWod = (wod: WODFormData): Set<string> => {
  * @param wods - Array of WOD data to extract movements from
  * @returns Map of movement names to occurrence counts
  */
-export const extractMovements = (wods: WODFormData[]): Map<string, number> => {
+export const extractMovements = (wods: WODFormData[], knownExerciseNames?: Set<string>): Map<string, number> => {
   const movementCounts = new Map<string, number>();
 
   wods.forEach(wod => {
-    const movementsInThisWod = extractMovementsFromWod(wod);
+    const movementsInThisWod = extractMovementsFromWod(wod, knownExerciseNames);
 
     // Increment count once per workout
     movementsInThisWod.forEach(movement => {

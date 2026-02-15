@@ -32,6 +32,7 @@ export const useCoachData = ({
   const [sectionTypes, setSectionTypes] = useState<Array<{ id: string; name: string; display_order: number }>>([]);
   const [searchResults, setSearchResults] = useState<WODFormData[]>([]);
   const [movements, setMovements] = useState<Map<string, number>>(new Map());
+  const [exerciseNames, setExerciseNames] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
 
   const fetchWODs = async () => {
@@ -286,8 +287,9 @@ export const useCoachData = ({
         }
 
         if (selectedMovements.length > 0) {
+          const knownNames = exerciseNames.size > 0 ? exerciseNames : undefined;
           filteredResults = filteredResults.filter(wod => {
-            const wodMovements = extractMovementsFromWod(wod);
+            const wodMovements = extractMovementsFromWod(wod, knownNames);
             return selectedMovements.every(movement =>
               wodMovements.has(movement)
             );
@@ -310,7 +312,7 @@ export const useCoachData = ({
 
         setSearchResults(filteredResults);
 
-        const allMovements = extractMovements(filteredResults);
+        const allMovements = extractMovements(filteredResults, exerciseNames.size > 0 ? exerciseNames : undefined);
         setMovements(allMovements);
       } catch (error) {
         console.error('Error searching WODs:', error);
@@ -319,7 +321,26 @@ export const useCoachData = ({
 
     const timeoutId = setTimeout(searchWODs, 300);
     return () => clearTimeout(timeoutId);
-  }, [searchQuery, selectedMovements, selectedWorkoutTypes, selectedTracks, selectedSessionTypes, includedSectionTypes]);
+  }, [searchQuery, selectedMovements, selectedWorkoutTypes, selectedTracks, selectedSessionTypes, includedSectionTypes, exerciseNames]);
+
+  const fetchExerciseNames = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('exercises')
+        .select('name, display_name');
+
+      if (error) throw error;
+
+      const names = new Set<string>();
+      data?.forEach(ex => {
+        if (ex.name) names.add(ex.name);
+        if (ex.display_name) names.add(ex.display_name);
+      });
+      setExerciseNames(names);
+    } catch (error) {
+      console.error('Error fetching exercise names:', error);
+    }
+  };
 
   const fetchTracksAndCounts = async () => {
     try {
@@ -417,5 +438,6 @@ export const useCoachData = ({
     setLoading,
     fetchWODs,
     fetchTracksAndCounts,
+    fetchExerciseNames,
   };
 };
