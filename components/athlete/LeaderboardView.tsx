@@ -80,6 +80,9 @@ function extractLeaderboardItems(wod: WodData): LeaderboardItem[] {
   const items: LeaderboardItem[] = [];
 
   wod.sections.forEach((section, sectionIndex) => {
+    // Skip sections with Task checkbox — these are for personal tracking, not leaderboard
+    if (section.scoring_fields?.checkbox) return;
+
     // Lifts
     if (section.lifts?.length) {
       for (const lift of section.lifts) {

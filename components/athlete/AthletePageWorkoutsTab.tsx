@@ -4,8 +4,6 @@ import { supabase } from '@/lib/supabase';
 import { ChevronLeft, ChevronRight, Image as ImageIcon, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
-import FistBumpButton from './FistBumpButton';
-import { useReactions } from '@/hooks/athlete/useReactions';
 import { FocusTrap } from '@/components/ui/FocusTrap';
 
 interface WorkoutSection {
@@ -153,7 +151,6 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
   const [weekPhotos, setWeekPhotos] = useState<WhiteboardPhoto[]>([]);
   const [selectedPhoto, setSelectedPhoto] = useState<WhiteboardPhoto | null>(null);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
-  const { fetchReactions, toggleReaction, getReaction } = useReactions();
 
   useEffect(() => {
     if (initialDate) {
@@ -352,15 +349,6 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
 
       setWorkouts(workoutsFromBookings);
 
-      // Fetch reactions for all section results
-      const reactionTargets = workoutsFromBookings
-        .flatMap(w => (w.results || []).filter(r => r.id).map(r => ({
-          targetType: 'wod_section_result' as const,
-          targetId: r.id,
-        })));
-      if (reactionTargets.length > 0) {
-        fetchReactions(reactionTargets);
-      }
     } catch (error) {
       console.error('Error fetching workouts:', error);
     } finally {
@@ -669,18 +657,6 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
                                 {sectionResult.scaling_level && <div>Scaling: {sectionResult.scaling_level}</div>}
                                 {sectionResult.task_completed !== null && <div>{sectionResult.task_completed ? '✓ Completed' : '○ Not Completed'}</div>}
                               </div>
-                              {sectionResult.id && (
-                                <div className='mt-1.5'>
-                                  <FistBumpButton
-                                    targetType='wod_section_result'
-                                    targetId={sectionResult.id}
-                                    count={getReaction(sectionResult.id).count}
-                                    userReacted={getReaction(sectionResult.id).userReacted}
-                                    reactors={getReaction(sectionResult.id).reactors}
-                                    onToggle={toggleReaction}
-                                  />
-                                </div>
-                              )}
                             </div>
                           )}
                         </div>
