@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 12.0
-**Updated:** 2026-02-13 (Session 119 - Color Hierarchy Refinement)
+**Version:** 13.0
+**Updated:** 2026-02-15 (Session 124 - Athlete UX fixes + DB exercise prep)
 
 ---
 
@@ -80,8 +80,19 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
-**In Progress (2026-02-15 Session 122 - Opus 4.6):**
-- **🔧 Movements filter bug fix (INCOMPLETE)** — Rewrote `utils/movement-extraction.ts` + fixed filter in `hooks/coach/useCoachData.ts:288-295`. Structured data extraction (lifts/benchmarks/forge_benchmarks) works. Content text parsing still has issues: "warm-up 8-12", "Lock Shoulder Routine" (missing digit "3"), other oddities. **Needs further iteration next session.**
+**Completed (2026-02-15 Session 124 - Sonnet 4.5):**
+- **✅ Removed FistBumpButton from athlete Workouts tab** (athletes don't fist bump themselves)
+- **✅ Leaderboard: exclude Task-checkbox sections** (personal tracking, not competitive)
+- **✅ DB exercise additions** (user manually): KB Swing Russian/American, Ring Dip, Barbell Snatch, Sumo Deadlift High Pull, Barbell Bench Press, renamed Airsquat → Air Squat
+- **🔧 Google Calendar EMOM bug identified** — stale `workout_type_id` in JSONB (not fixed)
+- See: `project-history/2026-02-15-session-124-athlete-ux-fixes.md`
+
+**Completed (2026-02-15 Session 123 - Sonnet 4.5):**
+- **✅ Movements filter rewrite** — DB cross-reference approach, benchmark description parsing
+- See: `project-history/2026-02-15-session-123-movements-filter-db-crossref.md`
+
+**Completed (2026-02-15 Session 122 - Opus 4.6):**
+- **✅ Movements filter bug fix** — Structured data extraction + partial content parsing fix
 - See: `project-history/2026-02-15-session-122-movements-filter-fix.md`
 
 **Completed (2026-02-14 Session 121 - Opus 4.6):**
@@ -92,15 +103,7 @@ Social Tables
 - **✅ Empty states (#6)** + **Touch targets (#7)** + **Nav label rename**
 - See: `project-history/2026-02-14-session-120-empty-states-touch-targets.md`
 
-**Completed (2026-02-13 Session 119 - Opus 4.6):**
-- **✅ 3-tier teal color hierarchy** + session-type card color tiers + darker page background
-- See: `project-history/2026-02-13-session-119-color-hierarchy.md`
-
-**Completed (2026-02-13 Session 118 - Opus 4.6):**
-- **✅ HIGH priority form validation COMPLETE (7/7)** + **MEDIUM (16/16)**
-- See: `project-history/2026-02-13-session-118-medium-form-validation.md`
-
-**Older Sessions (57-117):**
+**Older Sessions (57-119):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -132,6 +135,7 @@ See `project-history/` folder for detailed implementation history
 
 **Other Known Issues:**
 - Athletes page: Previously logged benchmarks/lifts may not display for some athletes (pre-existing)
+- Google Calendar EMOM bug: "The Ghost" (2025-12-01) has stale `workout_type_id` in JSONB on "WOD movements" and "Skill" sections → shows "- EMOM" suffix. Needs DB JSONB cleanup or code fix. May affect other workouts too.
 
 **Migrations Pending (apply in Supabase SQL Editor):**
 1. **`get_public_tables()` RPC function** — Required for backup auto-discovery (see session 95)
@@ -177,6 +181,13 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### Next Priorities
+
+**Movements filter (remaining from Sessions 122-124):**
+- Update benchmark/forge_benchmark descriptions to use exact DB exercise names (113 audit mismatches — mostly ambiguous plurals needing decisions)
+- Run: `npx tsx scripts/audit-benchmark-exercises.ts`
+
+**Google Calendar fix:**
+- Fix stale `workout_type_id` in JSONB sections (Ghost workouts + scan for others)
 
 **Code Quality (remaining items from Session 103 review):**
 - #10 Color contrast audit
