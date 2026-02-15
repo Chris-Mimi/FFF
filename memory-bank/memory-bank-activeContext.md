@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 13.0
-**Updated:** 2026-02-15 (Session 124 - Athlete UX fixes + DB exercise prep)
+**Version:** 14.0
+**Updated:** 2026-02-15 (Session 127 - Stray records cleanup + Memory Bank update)
 
 ---
 
@@ -80,12 +80,20 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
-**In Progress (2026-02-15 Session 125 - Opus 4.6):**
-- **✅ Leaderboard chip labels** — show exercise name from section content instead of section type (e.g., "Jump Rope Double-Under (DU) - Max Reps" not "WOD Pt.3 - Max Reps")
-- **✅ Save bug fix** — `saveAllResults` was saving ALL accumulated `sectionResults` from every visited date, not just current date. Fixed: filter by current date's WOD IDs. Prevented phantom records.
-- **✅ DB cleanup** — deleted 10 phantom `wod_section_results` records (The Ghost, wrong workout_date)
-- **🔴 UNRESOLVED: Scaling not updating in leaderboard** — User changes scaling (Rx→Sc3) in Logbook, saves successfully, but leaderboard still shows old value. Root cause NOT yet found. Save logic looks correct, DB write looks correct. Needs deeper investigation in next session — possibly leaderboard query caching, `bestResultPerUser` picking wrong record, or save not actually writing scaling_level to DB.
-- **Files changed:** `components/athlete/LeaderboardView.tsx` (chip labels + parser), `components/athlete/AthletePageLogbookTab.tsx` (save filter fix)
+**Completed (2026-02-15 Session 127 - Opus 4.6):**
+- **✅ DB cleanup executed** — deleted 33 stray `wod_section_results` records (50% of table was garbage from pre-Session-125 save bug). Table: 65→32 records.
+- **✅ Memory Bank updated** with Session 126+127 results
+- See: `project-history/2026-02-15-session-126-leaderboard-scaling-investigation.md`
+
+**Completed (2026-02-15 Session 126 - Opus 4.6):**
+- **✅ Leaderboard scaling bug — root cause found + code fix** — Stray `wod_section_results` under unbooked WODs caused `bestResultPerUser` to pick wrong record
+- **✅ `loadSectionResultsWrapper`** now filters by booked `wod_ids`
+- **✅ `bestResultPerUser`** breaks ties by most recent `workout_date`
+- **Files changed:** `AthletePageLogbookTab.tsx`, `LeaderboardView.tsx`, `leaderboard-utils.ts`
+- See: `project-history/2026-02-15-session-126-leaderboard-scaling-investigation.md`
+
+**Completed (2026-02-15 Session 125 - Opus 4.6):**
+- **✅ Leaderboard chip labels** + **Save bug fix** + **10 phantom records deleted**
 - See: `project-history/2026-02-15-session-125-leaderboard-chips-save-fix.md`
 
 **Completed (2026-02-15 Session 124 - Sonnet 4.5):**
@@ -96,15 +104,7 @@ Social Tables
 - **✅ Movements filter rewrite** — DB cross-reference approach, benchmark description parsing
 - See: `project-history/2026-02-15-session-123-movements-filter-db-crossref.md`
 
-**Completed (2026-02-15 Session 122 - Opus 4.6):**
-- **✅ Movements filter bug fix** — Structured data extraction + partial content parsing fix
-- See: `project-history/2026-02-15-session-122-movements-filter-fix.md`
-
-**Completed (2026-02-14 Session 121 - Opus 4.6):**
-- **✅ Styled confirm dialogs (#8)** + **Focus traps (#9)**
-- See: `project-history/2026-02-14-session-121-confirm-dialogs-focus-traps.md`
-
-**Older Sessions (57-120):**
+**Older Sessions (57-122):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -135,7 +135,7 @@ See `project-history/` folder for detailed implementation history
 - See: `Chris Notes/session-103-code-review-findings.md` for full ranked list
 
 **Other Known Issues:**
-- **🔴 Leaderboard scaling bug** — Scaling level changes in Logbook don't reflect on Leaderboard. Needs investigation: trace full save→DB→leaderboard-query→render path. Add console.logs to verify DB writes.
+- **✅ ~~Leaderboard scaling bug~~ — FIXED (Sessions 125-127). Root cause: stray records from save bug. Fix: booking filter + tie-breaking + 33 stray records deleted.**
 - Athletes page: Previously logged benchmarks/lifts may not display for some athletes (pre-existing)
 - Google Calendar EMOM bug: "The Ghost" (2025-12-01) has stale `workout_type_id` in JSONB on "WOD movements" and "Skill" sections → shows "- EMOM" suffix. Needs DB JSONB cleanup or code fix. May affect other workouts too.
 
@@ -184,10 +184,9 @@ npm run restore 2025-12-06  # Restore specific date
 
 ### Next Priorities
 
-**🔴 Leaderboard scaling bug (HIGH — from Session 125):**
-- Scaling changes in Logbook don't appear on Leaderboard even after save + refresh
-- Investigation path: Add console.log in `saveSectionResult` to verify scaling_level is written to DB. Then add console.log in leaderboard `loadResults` to verify scaling_level is read back. Check if `bestResultPerUser` drops scaling.
-- Key files: `utils/logbook/savingLogic.ts`, `components/athlete/LeaderboardView.tsx` (lines 520-562), `utils/leaderboard-utils.ts`
+**Leaderboard scaling bug — VERIFIED FIXED:**
+- Code fix + DB cleanup + user testing confirmed (Sessions 125-127). Scaling changes now appear correctly on Leaderboard.
+- Consider post-deploy: unique section IDs per WOD instance (currently shared across same-date WODs)
 
 **Movements filter (remaining from Sessions 122-124):**
 - Update benchmark/forge_benchmark descriptions to use exact DB exercise names (113 audit mismatches — mostly ambiguous plurals needing decisions)
