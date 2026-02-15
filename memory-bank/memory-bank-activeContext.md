@@ -80,11 +80,16 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**In Progress (2026-02-15 Session 125 - Opus 4.6):**
+- **✅ Leaderboard chip labels** — show exercise name from section content instead of section type (e.g., "Jump Rope Double-Under (DU) - Max Reps" not "WOD Pt.3 - Max Reps")
+- **✅ Save bug fix** — `saveAllResults` was saving ALL accumulated `sectionResults` from every visited date, not just current date. Fixed: filter by current date's WOD IDs. Prevented phantom records.
+- **✅ DB cleanup** — deleted 10 phantom `wod_section_results` records (The Ghost, wrong workout_date)
+- **🔴 UNRESOLVED: Scaling not updating in leaderboard** — User changes scaling (Rx→Sc3) in Logbook, saves successfully, but leaderboard still shows old value. Root cause NOT yet found. Save logic looks correct, DB write looks correct. Needs deeper investigation in next session — possibly leaderboard query caching, `bestResultPerUser` picking wrong record, or save not actually writing scaling_level to DB.
+- **Files changed:** `components/athlete/LeaderboardView.tsx` (chip labels + parser), `components/athlete/AthletePageLogbookTab.tsx` (save filter fix)
+- See: `project-history/2026-02-15-session-125-leaderboard-chips-save-fix.md`
+
 **Completed (2026-02-15 Session 124 - Sonnet 4.5):**
-- **✅ Removed FistBumpButton from athlete Workouts tab** (athletes don't fist bump themselves)
-- **✅ Leaderboard: exclude Task-checkbox sections** (personal tracking, not competitive)
-- **✅ DB exercise additions** (user manually): KB Swing Russian/American, Ring Dip, Barbell Snatch, Sumo Deadlift High Pull, Barbell Bench Press, renamed Airsquat → Air Squat
-- **🔧 Google Calendar EMOM bug identified** — stale `workout_type_id` in JSONB (not fixed)
+- **✅ Removed FistBumpButton from athlete Workouts tab** + **Leaderboard: exclude Task sections**
 - See: `project-history/2026-02-15-session-124-athlete-ux-fixes.md`
 
 **Completed (2026-02-15 Session 123 - Sonnet 4.5):**
@@ -99,11 +104,7 @@ Social Tables
 - **✅ Styled confirm dialogs (#8)** + **Focus traps (#9)**
 - See: `project-history/2026-02-14-session-121-confirm-dialogs-focus-traps.md`
 
-**Completed (2026-02-14 Session 120 - Opus 4.6):**
-- **✅ Empty states (#6)** + **Touch targets (#7)** + **Nav label rename**
-- See: `project-history/2026-02-14-session-120-empty-states-touch-targets.md`
-
-**Older Sessions (57-119):**
+**Older Sessions (57-120):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -134,6 +135,7 @@ See `project-history/` folder for detailed implementation history
 - See: `Chris Notes/session-103-code-review-findings.md` for full ranked list
 
 **Other Known Issues:**
+- **🔴 Leaderboard scaling bug** — Scaling level changes in Logbook don't reflect on Leaderboard. Needs investigation: trace full save→DB→leaderboard-query→render path. Add console.logs to verify DB writes.
 - Athletes page: Previously logged benchmarks/lifts may not display for some athletes (pre-existing)
 - Google Calendar EMOM bug: "The Ghost" (2025-12-01) has stale `workout_type_id` in JSONB on "WOD movements" and "Skill" sections → shows "- EMOM" suffix. Needs DB JSONB cleanup or code fix. May affect other workouts too.
 
@@ -181,6 +183,11 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### Next Priorities
+
+**🔴 Leaderboard scaling bug (HIGH — from Session 125):**
+- Scaling changes in Logbook don't appear on Leaderboard even after save + refresh
+- Investigation path: Add console.log in `saveSectionResult` to verify scaling_level is written to DB. Then add console.log in leaderboard `loadResults` to verify scaling_level is read back. Check if `bestResultPerUser` drops scaling.
+- Key files: `utils/logbook/savingLogic.ts`, `components/athlete/LeaderboardView.tsx` (lines 520-562), `utils/leaderboard-utils.ts`
 
 **Movements filter (remaining from Sessions 122-124):**
 - Update benchmark/forge_benchmark descriptions to use exact DB exercise names (113 audit mismatches — mostly ambiguous plurals needing decisions)

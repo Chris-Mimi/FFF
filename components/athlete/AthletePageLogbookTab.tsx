@@ -119,17 +119,22 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
 
   // UNIFIED SAVE FUNCTION - Handles all scoring data (lifts, benchmarks, forge, content) and notes
   const saveAllResults = async (workoutDate: string) => {
-    const resultsToSave = Object.entries(sectionResults).filter(([_, result]) =>
-      result.time_result || result.reps_result || result.weight_result || result.scaling_level ||
-      result.rounds_result || result.calories_result || result.metres_result || result.task_completed
-    );
-
-    // Find current workout to extract structured data
-    const currentWorkout = workouts.find(w => formatLocalDate(new Date(w.date)) === workoutDate);
-    if (!currentWorkout) {
+    // Find ALL workouts for this date to build valid WOD ID set
+    const dateWorkouts = workouts.filter(w => formatLocalDate(new Date(w.date)) === workoutDate);
+    if (dateWorkouts.length === 0) {
       toast.warning('Workout not found');
       return;
     }
+    const currentWorkout = dateWorkouts[0];
+    const validWodIds = new Set(dateWorkouts.map(w => w.id));
+
+    // Only save entries belonging to workouts on this date (not accumulated from other dates)
+    const resultsToSave = Object.entries(sectionResults).filter(([key, result]) => {
+      const wodId = key.split(':::')[0];
+      if (!validWodIds.has(wodId)) return false;
+      return result.time_result || result.reps_result || result.weight_result || result.scaling_level ||
+        result.rounds_result || result.calories_result || result.metres_result || result.task_completed;
+    });
 
     // Check if there are notes to save
     const hasNotes = workoutLogs[currentWorkout.id]?.notes?.trim();
@@ -151,7 +156,9 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
         if (parts.length < 3) continue;
 
         const [wodId, sectionId, itemIdentifier] = parts;
-        const section = getPublishedSections(currentWorkout).find(s => s.id === sectionId);
+        // Find the specific workout this entry belongs to
+        const entryWorkout = dateWorkouts.find(w => w.id === wodId);
+        const section = entryWorkout ? getPublishedSections(entryWorkout).find(s => s.id === sectionId) : null;
         if (!section) continue;
 
         // Determine item type

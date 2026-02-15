@@ -35,6 +35,7 @@ interface WodSection {
   id: string;
   type: string;
   duration: number;
+  content?: string;
   workout_type_id?: string;
   scoring_fields?: ScoringFields;
   lifts?: Array<{
@@ -74,6 +75,27 @@ interface LeaderboardItem {
   // Content fields
   scoringType?: string;
   contentSectionId?: string;
+}
+
+/** Extract the first exercise name from free-form section content for chip labels. */
+function extractExerciseSummary(content?: string): string | null {
+  if (!content?.trim()) return null;
+
+  const skipPattern = /^(\d+\s+rounds?|amrap|emom|for time|e\d+m|every\s+\d+|\(?sc\d+\s*:|rx\s*:)/i;
+  const bulletPrefix = /^[*\-•]\s+/;
+  const repPrefix = /^\d+[\s/x×-]+/;
+  const weightSuffix = /\s*\([\d/]+\s*kg\)|\s*\([\d/]+\s*lbs?\)/gi;
+
+  for (const raw of content.split('\n')) {
+    const line = raw.trim();
+    if (!line || skipPattern.test(line)) continue;
+    const cleaned = line.replace(bulletPrefix, '').replace(repPrefix, '').replace(weightSuffix, '').trim();
+    if (cleaned.length >= 3 && !/^\d+$/.test(cleaned)) {
+      return cleaned.length > 50 ? cleaned.slice(0, 47) + '...' : cleaned;
+    }
+  }
+
+  return null;
 }
 
 function extractLeaderboardItems(wod: WodData): LeaderboardItem[] {
@@ -152,9 +174,12 @@ function extractLeaderboardItems(wod: WodData): LeaderboardItem[] {
         : scoringType === 'checkbox' ? 'Completion'
         : 'Result';
 
+      const exerciseSummary = extractExerciseSummary(section.content);
+      const labelPrefix = exerciseSummary || section.type;
+
       items.push({
         type: 'content',
-        label: `${section.type} - ${scoringLabel}${section.duration ? ` (${section.duration}m)` : ''}`,
+        label: `${labelPrefix} - ${scoringLabel}${section.duration ? ` (${section.duration}m)` : ''}`,
         sectionIndex,
         scoringType,
         contentSectionId: `${section.id}-content-0`,
