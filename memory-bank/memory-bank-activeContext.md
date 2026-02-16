@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 15.0
-**Updated:** 2026-02-16 (Session 129 - Mobile optimization + Color contrast audit)
+**Version:** 16.0
+**Updated:** 2026-02-16 (Session 130 - Push Notifications Infrastructure)
 
 ---
 
@@ -80,21 +80,24 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**In Progress (2026-02-16 Session 130 - Opus 4.6):**
+- **🔧 Push Notifications Phase 1a (Infrastructure) — CODE COMPLETE, NOT TESTED**
+- Web Push API with VAPID keys, 10 new files, 2 modified files
+- 3 DB tables created (push_subscriptions, notification_preferences, notification_log)
+- Service worker, client hook, 3 API routes, NotificationPrompt UI component
+- Full plan for Phases 1b-1d saved at `.claude/plans/sunny-inventing-widget.md`
+- See: `project-history/2026-02-16-session-130-push-notifications-infra.md`
+
 **Completed (2026-02-16 Session 129 - Opus 4.6):**
-- **✅ Session Management Modal mobile optimization** — Full-screen on mobile, disabled drag/resize, single-column info panel, stacked controls, 44px touch targets (4 files)
-- **✅ Color contrast audit (#10 COMPLETE)** — Fixed 8 `text-gray-300` and 13 `text-gray-400` instances on light backgrounds → `text-gray-500` across 15 files. All Session 103 code quality items now DONE.
+- **✅ Session Management Modal mobile optimization + Color contrast audit (#10 COMPLETE)**
 - See: `project-history/2026-02-16-session-129-mobile-contrast.md`
 
 **Completed (2026-02-16 Session 128 - Opus 4.6):**
-- **✅ Stray record cleanup** — Deleted 33 stray `wod_section_results`, orphan check SQL reference created
+- **✅ Stray record cleanup** — Deleted 33 stray `wod_section_results`
 - See: `project-history/2026-02-16-session-128-stray-cleanup-orphan-queries.md`
 
-**Completed (2026-02-15 Session 127 - Opus 4.6):**
-- **✅ DB cleanup executed** — deleted 33 stray `wod_section_results` records. Table: 65→32 records.
-- See: `project-history/2026-02-15-session-126-leaderboard-scaling-investigation.md`
-
-**Completed (2026-02-15 Sessions 125-126 - Opus 4.6):**
-- **✅ Leaderboard scaling bug — root cause + fix + cleanup** — Booking filter, tie-breaking, 10 phantom records deleted
+**Completed (2026-02-15 Sessions 125-127 - Opus 4.6):**
+- **✅ Leaderboard scaling bug — root cause + fix + cleanup + DB cleanup**
 - See: `project-history/2026-02-15-session-125-leaderboard-chips-save-fix.md`
 
 **Completed (2026-02-15 Session 124 - Sonnet 4.5):**
@@ -129,7 +132,8 @@ See `project-history/` folder for detailed implementation history
 **Feature Gaps (from competitor analysis — updated):**
 - ✅ #1 Social reactions (fist bumps) — DONE (Session 104)
 - ✅ #2 Per-workout leaderboard — DONE (Session 104)
-- Remaining: Push notifications, workout intent/stimulus notes, at-risk member alerts, workout timer, % calculator, badges/streaks
+- 🔧 #3 Push notifications — Phase 1a DONE (Session 130), Phases 1b-1d pending
+- Remaining: workout intent/stimulus notes, at-risk member alerts, workout timer, % calculator, badges/streaks
 - See: `Chris Notes/session-103-code-review-findings.md` for full ranked list
 
 **Other Known Issues:**
@@ -182,19 +186,19 @@ npm run restore 2025-12-06  # Restore specific date
 
 ### Next Priorities
 
-**Leaderboard scaling bug — VERIFIED FIXED:**
-- Code fix + DB cleanup + user testing confirmed (Sessions 125-127). Scaling changes now appear correctly on Leaderboard.
-- Consider post-deploy: unique section IDs per WOD instance (currently shared across same-date WODs)
+**Push Notifications — Continue Phases 1b-1d:**
+- **Phase 1b:** WOD Published notifications (1 new file + 1 modified, ~30 min)
+- **Phase 1c:** Booking notifications (3 modified files, ~30 min)
+- **Phase 1d:** PR notifications (1 new API route + 3 modified, ~1 hour)
+- Full plan: `.claude/plans/sunny-inventing-widget.md`
+- **TEST Phase 1a first** — SW registration, subscription, preferences
 
 **Movements filter (remaining from Sessions 122-124):**
-- Update benchmark/forge_benchmark descriptions to use exact DB exercise names (113 audit mismatches — mostly ambiguous plurals needing decisions)
+- Update benchmark/forge_benchmark descriptions to use exact DB exercise names (113 audit mismatches)
 - Run: `npx tsx scripts/audit-benchmark-exercises.ts`
 
 **Google Calendar fix:**
 - Fix stale `workout_type_id` in JSONB sections (Ghost workouts + scan for others)
-
-**Code Quality (from Session 103 review):**
-- ✅ All 10 items COMPLETE (Sessions 105-129)
 
 **Features (from competitor analysis):**
 - #4 Workout intent/stimulus notes per section (low effort, high value)

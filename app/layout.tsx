@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "sonner";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { ServiceWorkerRegistrar } from "@/components/ServiceWorkerRegistrar";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -24,6 +25,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "The Forge - Functional Fitness",
   description: "CrossFit gym management and athlete tracking",
+  manifest: "/manifest.webmanifest",
   openGraph: {
     title: "The Forge - Functional Fitness",
     description: "CrossFit gym management and athlete tracking",
@@ -49,6 +51,7 @@ export default function RootLayout({
       >
         <Toaster position="top-center" richColors closeButton />
         <ConfirmDialog />
+        <ServiceWorkerRegistrar />
         {children}
       </body>
     </html>
