@@ -74,7 +74,7 @@ export default function WeekView({
                     ))}
                   </div>
                 ) : (
-                  <div className='text-xs text-gray-400 text-center mt-8'>No workouts</div>
+                  <div className='text-xs text-gray-500 text-center mt-8'>No workouts</div>
                 )}
               </div>
             );

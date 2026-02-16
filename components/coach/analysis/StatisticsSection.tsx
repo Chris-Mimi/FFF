@@ -480,7 +480,7 @@ export default function StatisticsSection({
             )}
 
             {!exerciseSearch && selectedExercises.length === 0 && (
-              <p className='text-sm text-gray-300 mt-3'>
+              <p className='text-sm text-gray-500 mt-3'>
                 Start typing to search through all exercises in the selected timeframe
               </p>
             )}
@@ -594,7 +594,7 @@ export default function StatisticsSection({
 
           {statistics.totalWorkouts === 0 && (
             <div className='text-center py-8 md:py-12 text-gray-500'>
-              <BarChart3 size={36} className='md:w-12 md:h-12 mx-auto mb-3 md:mb-4 text-gray-300' />
+              <BarChart3 size={36} className='md:w-12 md:h-12 mx-auto mb-3 md:mb-4 text-gray-400' />
               <p className='text-base md:text-lg'>No workouts found for this month</p>
               <p className='text-xs md:text-sm mt-2'>
                 Create some workouts on the dashboard to see statistics here.
@@ -604,7 +604,7 @@ export default function StatisticsSection({
         </div>
       ) : (
         <div className='text-center py-8 md:py-12 text-gray-500'>
-          <BarChart3 size={36} className='md:w-12 md:h-12 mx-auto mb-3 md:mb-4 text-gray-300' />
+          <BarChart3 size={36} className='md:w-12 md:h-12 mx-auto mb-3 md:mb-4 text-gray-400' />
           <p className='text-base md:text-lg'>No data available</p>
         </div>
       )}

@@ -154,7 +154,7 @@ export default function CoachAthletesPage() {
           <div className='md:col-span-8'>
             {!selectedAthlete ? (
               <div className='hidden md:block bg-white rounded-lg shadow p-12 text-center text-gray-500'>
-                <User size={48} className='mx-auto mb-4 text-gray-300' />
+                <User size={48} className='mx-auto mb-4 text-gray-400' />
                 <p className='text-lg'>Select an athlete to view their data</p>
               </div>
             ) : (

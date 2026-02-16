@@ -35,9 +35,9 @@ export default function SessionInfoPanel({
 }: SessionInfoPanelProps) {
   return (
     <div className='bg-gray-50 rounded-lg p-4'>
-      <div className='grid grid-cols-2 gap-4'>
+      <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
         {/* Row 1: Date and Time */}
-        <div className='flex items-center gap-2 text-gray-700'>
+        <div className='flex items-center gap-2 text-gray-700 flex-wrap'>
           <Calendar size={18} />
           <span className='font-medium'>Date:</span>
           <span className='text-sm'>
@@ -54,7 +54,7 @@ export default function SessionInfoPanel({
           <Clock size={18} />
           <span className='font-medium'>Time:</span>
           {editingTime ? (
-            <div className='flex items-center gap-2'>
+            <div className='flex items-center gap-2 flex-wrap'>
               <select
                 value={newTime}
                 onChange={e => onTimeChange(e.target.value)}
@@ -76,7 +76,7 @@ export default function SessionInfoPanel({
               </select>
               <button
                 onClick={onUpdateTime}
-                className='px-3 py-1 bg-[#178da6] text-white rounded hover:bg-[#14758c] text-sm'
+                className='px-3 py-2 bg-[#178da6] text-white rounded hover:bg-[#14758c] text-sm'
               >
                 Save
               </button>
@@ -85,7 +85,7 @@ export default function SessionInfoPanel({
                   onTimeEdit(false);
                   onTimeChange(padTime(session.time));
                 }}
-                className='px-3 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 text-sm'
+                className='px-3 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 text-sm'
               >
                 Cancel
               </button>
@@ -98,7 +98,7 @@ export default function SessionInfoPanel({
                   onTimeChange(padTime(session.time));
                   onTimeEdit(true);
                 }}
-                className='p-1 text-gray-500 hover:text-[#178da6]'
+                className='p-2 text-gray-500 hover:text-[#178da6] min-w-[44px] min-h-[44px] flex items-center justify-center'
                 title='Change time'
               >
                 <Edit2 size={16} />
@@ -113,7 +113,7 @@ export default function SessionInfoPanel({
           <span className='font-medium'>Capacity:</span>
           {editingCapacity ? (
             <div className='flex flex-col gap-1'>
-              <div className='flex items-center gap-2'>
+              <div className='flex items-center gap-2 flex-wrap'>
                 <input
                   type='number'
                   min='0'
@@ -124,7 +124,7 @@ export default function SessionInfoPanel({
                 />
                 <button
                   onClick={onUpdateCapacity}
-                  className='px-3 py-1 bg-[#178da6] text-white rounded hover:bg-[#14758c] text-sm'
+                  className='px-3 py-2 bg-[#178da6] text-white rounded hover:bg-[#14758c] text-sm'
                 >
                   Save
                 </button>
@@ -133,7 +133,7 @@ export default function SessionInfoPanel({
                     onCapacityEdit(false);
                     onCapacityChange(session.capacity);
                   }}
-                  className='px-3 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 text-sm'
+                  className='px-3 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 text-sm'
                 >
                   Cancel
                 </button>
@@ -145,7 +145,7 @@ export default function SessionInfoPanel({
               <span>{session.capacity === 0 ? 'Unlimited' : `${session.capacity} spots`}</span>
               <button
                 onClick={() => onCapacityEdit(true)}
-                className='p-1 text-gray-500 hover:text-[#178da6]'
+                className='p-2 text-gray-500 hover:text-[#178da6] min-w-[44px] min-h-[44px] flex items-center justify-center'
                 title='Change capacity'
               >
                 <Edit2 size={16} />

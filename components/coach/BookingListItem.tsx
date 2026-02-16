@@ -39,19 +39,19 @@ export default function BookingListItem({
           : 'bg-gray-50 border';
 
   return (
-    <div className={`flex items-center justify-between ${bgClass} rounded px-2 py-1.5 text-sm`}>
-      <div className='flex items-center gap-2'>
+    <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0 ${bgClass} rounded px-3 py-2 text-sm`}>
+      <div className='flex items-center gap-2 flex-wrap'>
         {status === 'no_show' && <UserX size={14} className='text-orange-600' />}
         <span className='font-medium text-gray-800'>{memberName}</span>
-        <span className='text-xs text-gray-400'>
+        <span className='text-xs text-gray-500'>
           Booked: {new Date(booking.booked_at).toLocaleDateString('en-GB')}
         </span>
       </div>
-      <div className='flex items-center gap-1'>
+      <div className='flex items-center gap-1.5'>
         {showLateCancelBtn && onLateCancel && (
           <button
             onClick={() => onLateCancel(booking.id, memberName)}
-            className='flex items-center gap-1 px-2 py-1 text-xs bg-purple-50 hover:bg-purple-100 text-purple-800 rounded transition'
+            className='flex items-center gap-1 px-3 py-1.5 text-xs bg-purple-50 hover:bg-purple-100 text-purple-800 rounded transition'
             title='Mark as late cancellation'
           >
             Late Cancel
@@ -60,7 +60,7 @@ export default function BookingListItem({
         {showNoShowBtn && onMarkNoShow && (
           <button
             onClick={() => onMarkNoShow(booking.id, memberName)}
-            className='flex items-center gap-1 px-2 py-1 text-xs bg-orange-100 hover:bg-orange-200 text-orange-700 rounded transition'
+            className='flex items-center gap-1 px-3 py-1.5 text-xs bg-orange-100 hover:bg-orange-200 text-orange-700 rounded transition'
             title='Mark as no-show'
           >
             <UserX size={14} />
@@ -70,7 +70,7 @@ export default function BookingListItem({
         {showUndoBtn && status === 'no_show' && onUndoNoShow && (
           <button
             onClick={() => onUndoNoShow(booking.id, memberName)}
-            className='flex items-center gap-1 px-2 py-1 text-xs bg-green-100 hover:bg-green-200 text-green-700 rounded transition'
+            className='flex items-center gap-1 px-3 py-1.5 text-xs bg-green-100 hover:bg-green-200 text-green-700 rounded transition'
             title='Mark as attended (undo no-show)'
           >
             <Undo2 size={14} />
@@ -80,7 +80,7 @@ export default function BookingListItem({
         {showUndoBtn && status === 'late_cancel' && onUndoLateCancel && (
           <button
             onClick={() => onUndoLateCancel(booking.id, memberName)}
-            className='flex items-center gap-1 px-2 py-1 text-xs bg-green-100 hover:bg-green-200 text-green-700 rounded transition'
+            className='flex items-center gap-1 px-3 py-1.5 text-xs bg-green-100 hover:bg-green-200 text-green-700 rounded transition'
             title='Mark as attended (undo late cancel)'
           >
             <Undo2 size={14} />

@@ -355,7 +355,7 @@ export default function ForgeBenchmarksTab({
                     ))}
                   </select>
                   {selectedTemplate && (
-                    <p className='text-[10px] sm:text-xs text-gray-300 mt-1 sm:mt-2'>
+                    <p className='text-[10px] sm:text-xs text-gray-500 mt-1 sm:mt-2'>
                       ✓ Template loaded. Enter a new name to create your Forge.
                     </p>
                   )}

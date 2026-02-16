@@ -385,7 +385,7 @@ export default function AthletePageCommunityTab({ userId, initialDate, onDateCha
       {feedItems.length === 0 ? (
         <div className='bg-white rounded-lg shadow-sm p-8 text-center'>
           <p className='text-gray-500'>No results logged recently.</p>
-          <p className='text-gray-400 text-sm mt-1'>Results from all gym members will appear here.</p>
+          <p className='text-gray-500 text-sm mt-1'>Results from all gym members will appear here.</p>
         </div>
       ) : (
         <div className='space-y-3'>
@@ -414,7 +414,7 @@ export default function AthletePageCommunityTab({ userId, initialDate, onDateCha
                   </div>
                   <div className='flex items-center gap-2'>
                     {renderResultBadge(item)}
-                    <span className='text-xs text-gray-400'>{formatDate(item.resultDate)}</span>
+                    <span className='text-xs text-gray-500'>{formatDate(item.resultDate)}</span>
                   </div>
                 </div>
 

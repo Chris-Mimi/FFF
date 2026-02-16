@@ -490,7 +490,7 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
               {/* Workout Content - HIDDEN on mobile, VISIBLE on desktop */}
               <div className='hidden md:block p-3 min-h-[200px]'>
                 {loading ? (
-                  <div className='text-center text-gray-400 text-sm py-4'>Loading...</div>
+                  <div className='text-center text-gray-500 text-sm py-4'>Loading...</div>
                 ) : (
                   workout.booked ? (
                     // Future booked session - show "Booked" placeholder
@@ -738,7 +738,7 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
                 <p className='font-medium'>{selectedPhoto.photo_label}</p>
                 {selectedPhoto.caption && <p className='text-sm mt-1'>{selectedPhoto.caption}</p>}
                 {weekPhotos.length > 1 && (
-                  <p className='text-xs text-gray-400 mt-1'>
+                  <p className='text-xs text-gray-500 mt-1'>
                     {weekPhotos.findIndex(p => p.id === selectedPhoto.id) + 1} / {weekPhotos.length}
                   </p>
                 )}

@@ -947,7 +947,7 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
         </div>
       ) : entries.length === 0 ? (
         <div className='bg-white rounded-lg shadow-sm p-6 text-center'>
-          <Trophy size={32} className='mx-auto text-gray-300 mb-2' />
+          <Trophy size={32} className='mx-auto text-gray-400 mb-2' />
           <p className='text-gray-500 text-sm'>No results logged for this benchmark yet.</p>
         </div>
       ) : (
@@ -998,7 +998,7 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
                     </td>
                     <td className='px-3 py-2.5 text-right'>
                       {entry.resultDate && (
-                        <span className='text-[10px] text-gray-400'>
+                        <span className='text-[10px] text-gray-500'>
                           {new Date(entry.resultDate + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
                         </span>
                       )}

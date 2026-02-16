@@ -234,7 +234,7 @@ export default function WhiteboardGallery({
               <p className='font-medium'>{selectedPhoto.photo_label}</p>
               {selectedPhoto.caption && <p className='text-sm mt-1'>{selectedPhoto.caption}</p>}
               {photos.length > 1 && (
-                <p className='text-xs text-gray-400 mt-1'>
+                <p className='text-xs text-gray-500 mt-1'>
                   {photos.findIndex(p => p.id === selectedPhoto.id) + 1} / {photos.length}
                 </p>
               )}

@@ -116,7 +116,7 @@ export default function LogbookSection({ athleteId }: { athleteId?: string }) {
               <div className='flex items-start justify-between mb-2'>
                 <div>
                   <p className='font-semibold text-gray-900'>
-                    {log.workout?.title || <span className='text-gray-400 italic'>Deleted Workout</span>}
+                    {log.workout?.title || <span className='text-gray-500 italic'>Deleted Workout</span>}
                   </p>
                   <p className='text-sm text-gray-600'>
                     {new Date(log.workout_date).toLocaleDateString()}

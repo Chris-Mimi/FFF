@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 14.0
-**Updated:** 2026-02-15 (Session 127 - Stray records cleanup + Memory Bank update)
+**Version:** 15.0
+**Updated:** 2026-02-16 (Session 129 - Mobile optimization + Color contrast audit)
 
 ---
 
@@ -80,31 +80,28 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-16 Session 129 - Opus 4.6):**
+- **✅ Session Management Modal mobile optimization** — Full-screen on mobile, disabled drag/resize, single-column info panel, stacked controls, 44px touch targets (4 files)
+- **✅ Color contrast audit (#10 COMPLETE)** — Fixed 8 `text-gray-300` and 13 `text-gray-400` instances on light backgrounds → `text-gray-500` across 15 files. All Session 103 code quality items now DONE.
+- See: `project-history/2026-02-16-session-129-mobile-contrast.md`
+
+**Completed (2026-02-16 Session 128 - Opus 4.6):**
+- **✅ Stray record cleanup** — Deleted 33 stray `wod_section_results`, orphan check SQL reference created
+- See: `project-history/2026-02-16-session-128-stray-cleanup-orphan-queries.md`
+
 **Completed (2026-02-15 Session 127 - Opus 4.6):**
-- **✅ DB cleanup executed** — deleted 33 stray `wod_section_results` records (50% of table was garbage from pre-Session-125 save bug). Table: 65→32 records.
-- **✅ Memory Bank updated** with Session 126+127 results
+- **✅ DB cleanup executed** — deleted 33 stray `wod_section_results` records. Table: 65→32 records.
 - See: `project-history/2026-02-15-session-126-leaderboard-scaling-investigation.md`
 
-**Completed (2026-02-15 Session 126 - Opus 4.6):**
-- **✅ Leaderboard scaling bug — root cause found + code fix** — Stray `wod_section_results` under unbooked WODs caused `bestResultPerUser` to pick wrong record
-- **✅ `loadSectionResultsWrapper`** now filters by booked `wod_ids`
-- **✅ `bestResultPerUser`** breaks ties by most recent `workout_date`
-- **Files changed:** `AthletePageLogbookTab.tsx`, `LeaderboardView.tsx`, `leaderboard-utils.ts`
-- See: `project-history/2026-02-15-session-126-leaderboard-scaling-investigation.md`
-
-**Completed (2026-02-15 Session 125 - Opus 4.6):**
-- **✅ Leaderboard chip labels** + **Save bug fix** + **10 phantom records deleted**
+**Completed (2026-02-15 Sessions 125-126 - Opus 4.6):**
+- **✅ Leaderboard scaling bug — root cause + fix + cleanup** — Booking filter, tie-breaking, 10 phantom records deleted
 - See: `project-history/2026-02-15-session-125-leaderboard-chips-save-fix.md`
 
 **Completed (2026-02-15 Session 124 - Sonnet 4.5):**
-- **✅ Removed FistBumpButton from athlete Workouts tab** + **Leaderboard: exclude Task sections**
+- **✅ Athlete UX fixes** — Removed FistBumpButton from Workouts tab, exclude Task sections from Leaderboard
 - See: `project-history/2026-02-15-session-124-athlete-ux-fixes.md`
 
-**Completed (2026-02-15 Session 123 - Sonnet 4.5):**
-- **✅ Movements filter rewrite** — DB cross-reference approach, benchmark description parsing
-- See: `project-history/2026-02-15-session-123-movements-filter-db-crossref.md`
-
-**Older Sessions (57-122):**
+**Older Sessions (57-123):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -127,6 +124,7 @@ See `project-history/` folder for detailed implementation history
 - ✅ ~~Touch targets (<44px)~~ — DONE (Session 120)
 - ✅ ~~Replace browser confirm() with styled modals~~ — DONE (Session 121, 33 calls)
 - ✅ ~~Focus traps in modals~~ — DONE (Session 121, 33 modals)
+- ✅ ~~Color contrast audit~~ — DONE (Session 129, 15 files fixed)
 
 **Feature Gaps (from competitor analysis — updated):**
 - ✅ #1 Social reactions (fist bumps) — DONE (Session 104)
@@ -195,8 +193,8 @@ npm run restore 2025-12-06  # Restore specific date
 **Google Calendar fix:**
 - Fix stale `workout_type_id` in JSONB sections (Ghost workouts + scan for others)
 
-**Code Quality (remaining items from Session 103 review):**
-- #10 Color contrast audit
+**Code Quality (from Session 103 review):**
+- ✅ All 10 items COMPLETE (Sessions 105-129)
 
 **Features (from competitor analysis):**
 - #4 Workout intent/stimulus notes per section (low effort, high value)

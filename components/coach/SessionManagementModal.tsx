@@ -34,6 +34,16 @@ export default function SessionManagementModal({
   const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const [resizeCorner, setResizeCorner] = useState<'nw' | 'ne' | 'sw' | 'se' | null>(null);
 
+  // Mobile detection
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
   // Use extracted hooks
   const sessionDetails = useSessionDetails(sessionId, isOpen);
 
@@ -180,41 +190,49 @@ export default function SessionManagementModal({
 
       {/* Floating Modal */}
       <div
-        className='fixed bg-white rounded-lg shadow-2xl flex flex-col z-50'
-        style={{
+        className={`fixed bg-white shadow-2xl flex flex-col z-50 ${
+          isMobile ? 'inset-0' : 'rounded-lg'
+        }`}
+        style={isMobile ? undefined : {
           left: `${modalPos.left}px`,
           top: `${modalPos.top}px`,
           width: `${modalSize.width}px`,
           height: `${modalSize.height}px`,
         }}
       >
-        {/* Resize Handles */}
-        <div
-          className='resize-handle absolute top-0 left-0 w-4 h-4 cursor-nw-resize'
-          onMouseDown={e => handleResizeStart(e, 'nw')}
-        />
-        <div
-          className='resize-handle absolute top-0 right-0 w-4 h-4 cursor-ne-resize'
-          onMouseDown={e => handleResizeStart(e, 'ne')}
-        />
-        <div
-          className='resize-handle absolute bottom-0 left-0 w-4 h-4 cursor-sw-resize'
-          onMouseDown={e => handleResizeStart(e, 'sw')}
-        />
-        <div
-          className='resize-handle absolute bottom-0 right-0 w-4 h-4 cursor-se-resize'
-          onMouseDown={e => handleResizeStart(e, 'se')}
-        />
+        {/* Resize Handles (desktop only) */}
+        {!isMobile && (
+          <>
+            <div
+              className='resize-handle absolute top-0 left-0 w-4 h-4 cursor-nw-resize'
+              onMouseDown={e => handleResizeStart(e, 'nw')}
+            />
+            <div
+              className='resize-handle absolute top-0 right-0 w-4 h-4 cursor-ne-resize'
+              onMouseDown={e => handleResizeStart(e, 'ne')}
+            />
+            <div
+              className='resize-handle absolute bottom-0 left-0 w-4 h-4 cursor-sw-resize'
+              onMouseDown={e => handleResizeStart(e, 'sw')}
+            />
+            <div
+              className='resize-handle absolute bottom-0 right-0 w-4 h-4 cursor-se-resize'
+              onMouseDown={e => handleResizeStart(e, 'se')}
+            />
+          </>
+        )}
 
         {/* Header */}
         <div
-          className='bg-[#178da6] text-white p-3 rounded-t-lg flex justify-between items-center cursor-move'
-          onMouseDown={handleDragStart}
+          className={`bg-[#178da6] text-white p-3 flex justify-between items-center ${
+            isMobile ? '' : 'rounded-t-lg cursor-move'
+          }`}
+          onMouseDown={isMobile ? undefined : handleDragStart}
         >
           <h2 className='text-lg font-bold'>Session Management</h2>
           <button
             onClick={onClose}
-            className='hover:bg-[#14758c] p-1 rounded transition'
+            className='hover:bg-[#14758c] p-2 rounded transition min-w-[44px] min-h-[44px] flex items-center justify-center'
             title='Close'
             aria-label='Close'
           >
@@ -345,11 +363,13 @@ export default function SessionManagementModal({
 
         {/* Footer */}
         {sessionDetails.session && (
-          <div className='border-t p-3 bg-gray-50 flex justify-between items-center rounded-b-lg'>
+          <div className={`border-t p-3 bg-gray-50 flex justify-between items-center ${
+            isMobile ? '' : 'rounded-b-lg'
+          }`}>
             {sessionDetails.session.status !== 'cancelled' && (
               <button
                 onClick={sessionEditing.handleCancelSession}
-                className='flex items-center gap-2 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg transition text-sm'
+                className='flex items-center gap-2 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-lg transition text-sm'
               >
                 <Trash2 size={16} />
                 Cancel Session
@@ -357,7 +377,7 @@ export default function SessionManagementModal({
             )}
             <button
               onClick={onClose}
-              className='px-4 py-1.5 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg transition text-sm ml-auto'
+              className='px-5 py-2.5 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg transition text-sm ml-auto'
             >
               Close
             </button>

@@ -302,7 +302,7 @@ export default function CoachNotesPanel({
                     a: ({...props}) => <a {...props} className='text-blue-500 font-normal hover:font-bold' target='_blank' rel='noopener noreferrer' />,
                   }}>{notes}</ReactMarkdown>
                 ) : (
-                  <p className='text-gray-400 italic'>No notes yet. Click Edit to add notes.</p>
+                  <p className='text-gray-500 italic'>No notes yet. Click Edit to add notes.</p>
                 )}
               </div>
             )}
@@ -454,7 +454,7 @@ export default function CoachNotesPanel({
                     </ReactMarkdown>
                   </div>
                 ) : (
-                  <p className='text-gray-400 italic'>No notes yet. Click Edit to add notes.</p>
+                  <p className='text-gray-500 italic'>No notes yet. Click Edit to add notes.</p>
                 )}
               </div>
             )}
@@ -566,7 +566,7 @@ export default function CoachNotesPanel({
                 </ReactMarkdown>
               </div>
             ) : (
-              <p className='text-gray-400 italic'>No notes yet. Click Edit to add notes.</p>
+              <p className='text-gray-500 italic'>No notes yet. Click Edit to add notes.</p>
             )}
           </div>
         )}

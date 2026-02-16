@@ -555,7 +555,7 @@ export default function ExerciseFormModal({
                 )}
               </div>
               {selectedTemplate && (
-                <p className='text-xs text-gray-300 mt-2'>
+                <p className='text-xs text-gray-500 mt-2'>
                   ✓ Template loaded. All fields copied except name. Enter a new name to create your exercise.
                 </p>
               )}
