@@ -21,12 +21,13 @@ Add a built-in workout timer to the athlete page with AMRAP, EMOM, Tabata, and F
 | **AMRAP** | Countdown from X minutes | Duration (minutes) |
 | **EMOM** | Beep every 60s for X rounds | Rounds, interval (default 60s) |
 | **Tabata** | Work/rest intervals | Work time (20s), rest time (10s), rounds (8) |
+| **Hold** | Count-up to target with pause/resume | Target time (seconds), beep interval (e.g. every 10s) |
 
 ## Hook: `useWorkoutTimer.ts`
 
 ```typescript
 interface TimerState {
-  mode: 'forTime' | 'amrap' | 'emom' | 'tabata';
+  mode: 'forTime' | 'amrap' | 'emom' | 'tabata' | 'hold';
   status: 'idle' | 'running' | 'paused' | 'finished';
   elapsed: number;        // seconds elapsed
   remaining: number;      // seconds remaining (countdown modes)
@@ -46,7 +47,7 @@ interface TimerState {
 ## Audio
 
 - Web Audio API (`AudioContext`) for beeps — no external audio files needed
-- Beep triggers: EMOM minute change, Tabata work/rest transition, countdown 3-2-1, timer end
+- Beep triggers: EMOM minute change, Tabata work/rest transition, Hold interval beeps, countdown 3-2-1, timer end
 - **iOS Safari fix:** Create `AudioContext` on first user tap (start button), not on mount
 - Short beep = phase change, long beep = timer complete
 
@@ -54,7 +55,7 @@ interface TimerState {
 
 ```
 ┌─────────────────────────────┐
-│  [For Time] [AMRAP] [EMOM] [Tabata]  ← mode selector chips
+│  [For Time] [AMRAP] [EMOM] [Tabata] [Hold]  ← mode selector chips
 ├─────────────────────────────┤
 │                             │
 │         12:34               │  ← large mono display
@@ -79,6 +80,16 @@ interface TimerState {
 - Add Timer icon (lucide `Timer` icon)
 - Position after "Community" tab (fun/utility section)
 - No auth required beyond being logged in (already on athlete page)
+
+## Hold Mode (Handstand Holds, etc.)
+
+Use case: Athletes doing timed holds (handstands, hangs, planks) who can't see a wall timer.
+- **Count-up** toward a target time (e.g. 30s)
+- **Pause/resume** — athlete falls out, pauses, gets back up, resumes. Accumulated time is preserved.
+- **Interval beeps** — configurable beep every N seconds (e.g. every 10s during a 30s hold) so athlete knows progress without looking
+- **Completion beep** — distinct longer beep when target reached
+- Config: target time (seconds), beep interval (seconds)
+- Display: elapsed / target (e.g. "20 / 30") with progress bar or ring
 
 ## Edge Cases
 - Browser tab backgrounded: `setInterval` throttled. Use `Date.now()` delta on resume for accuracy
