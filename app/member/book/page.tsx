@@ -10,6 +10,7 @@ import { signOut } from '@/lib/auth';
 import Image from 'next/image';
 import Link from 'next/link';
 import { FocusTrap } from '@/components/ui/FocusTrap';
+import { NotificationPrompt } from '@/components/ui/NotificationPrompt';
 
 interface WeeklySession {
   id: string;
@@ -544,6 +545,7 @@ export default function MemberBookingPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <NotificationPrompt />
               <Link href="/athlete">
                 <button className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg transition-colors duration-200 min-h-[44px] text-xs sm:text-sm bg-teal-500 hover:bg-teal-600 text-white">
                   <ChevronLeft size={16} />

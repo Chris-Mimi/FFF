@@ -112,20 +112,27 @@ export async function sendToAllMembers(
     .from('push_subscriptions')
     .select('id, endpoint, p256dh, auth, user_id');
 
+  console.log('[PUSH DEBUG] Subscriptions found:', subs?.length || 0);
   if (!subs || subs.length === 0) return;
 
   // Get unique user IDs
   const userIds = [...new Set(subs.map((s) => s.user_id))];
+  console.log('[PUSH DEBUG] Unique user IDs:', userIds);
 
   // Get active member IDs
   const { data: activeMembers } = await supabaseAdmin
     .from('members')
-    .select('id')
-    .in('id', userIds)
-    .eq('status', 'active');
+    .select('id, status')
+    .in('id', userIds);
 
-  if (!activeMembers || activeMembers.length === 0) return;
-  const activeMemberIds = new Set(activeMembers.map((m) => m.id));
+  console.log('[PUSH DEBUG] Members found:', activeMembers?.map(m => ({ id: m.id, status: m.status })));
+
+  const activeMemberIds = new Set((activeMembers || []).filter(m => m.status === 'active').map((m) => m.id));
+
+  if (activeMemberIds.size === 0) {
+    console.log('[PUSH DEBUG] No active members — skipping notification');
+    return;
+  }
 
   // Get preferences for users who have opted out
   const { data: optedOut } = await supabaseAdmin
@@ -141,6 +148,7 @@ export async function sendToAllMembers(
     (sub) => activeMemberIds.has(sub.user_id) && !optedOutIds.has(sub.user_id)
   );
 
+  console.log('[PUSH DEBUG] Eligible subs:', eligibleSubs.length, '| Opted out:', optedOutIds.size);
   if (eligibleSubs.length === 0) return;
 
   // Log notification for each eligible user (deduplicated)
@@ -154,5 +162,6 @@ export async function sendToAllMembers(
   }));
   await supabaseAdmin.from('notification_log').insert(logEntries);
 
-  await Promise.allSettled(eligibleSubs.map((sub) => sendToSubscription(sub, payload)));
+  const results = await Promise.allSettled(eligibleSubs.map((sub) => sendToSubscription(sub, payload)));
+  console.log('[PUSH DEBUG] Send results:', results.map(r => r.status));
 }

@@ -12,6 +12,7 @@ import AthletePageRecordsTab from '@/components/athlete/AthletePageRecordsTab';
 import AthletePageSecurityTab from '@/components/athlete/AthletePageSecurityTab';
 import AthletePageCommunityTab from '@/components/athlete/AthletePageCommunityTab';
 import UpgradePrompt from '@/components/athlete/UpgradePrompt';
+import { NotificationPrompt } from '@/components/ui/NotificationPrompt';
 import { getCurrentUser, signOut } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -294,6 +295,7 @@ function AthletePageContent() {
               )}
             </div>
             <div className='flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3'>
+              <NotificationPrompt />
               <button
                 onClick={() => router.push('/member/book')}
                 className='flex items-center justify-center gap-2 bg-[#178da6] hover:bg-[#14758c] text-white px-6 py-3 rounded-lg font-medium transition min-h-[44px]'

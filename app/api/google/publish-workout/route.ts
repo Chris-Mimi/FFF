@@ -2,6 +2,7 @@ import { google } from 'googleapis';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { requireCoach, isAuthError } from '@/lib/auth-api';
+import { notifyWodPublished } from '@/lib/notifications';
 
 // Service role client for bypassing RLS
 const supabaseAdmin = createClient(
@@ -393,6 +394,12 @@ export async function POST(request: NextRequest) {
         })
         .eq('id', existingSession.id);
     }
+
+    // Fire-and-forget push notification to subscribed members
+    notifyWodPublished(
+      workout.workout_name || workout.session_type || '',
+      workout.date
+    );
 
     return NextResponse.json({
       success: true,
