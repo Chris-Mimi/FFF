@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
+import { notifyBookingConfirmed, notifyBookingWaitlisted } from '@/lib/notifications';
 
 export async function POST(request: NextRequest) {
   try {
@@ -205,8 +206,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // TODO: Create notification for coach if waitlist
-    // TODO: Send confirmation email (Phase 3)
+    // Fire-and-forget push notification
+    if (bookingStatus === 'confirmed') {
+      notifyBookingConfirmed(bookingMemberId, session.date, session.time);
+    } else {
+      notifyBookingWaitlisted(bookingMemberId, session.date, session.time);
+    }
 
     // Build response with payment info for UI warnings
     const response: {

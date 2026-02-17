@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
+import { notifyWaitlistPromoted } from '@/lib/notifications';
 
 export async function POST(request: NextRequest) {
   try {
@@ -105,16 +106,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Fetch session details (needed for refund timing + waitlist promotion notification)
+    const { data: session } = await supabase
+      .from('weekly_sessions')
+      .select('date, time')
+      .eq('id', booking.session_id)
+      .single();
+
     // Refund 10-card session with grace period
     let refundMessage = '';
     if (booking.status === 'confirmed') {
-      // Fetch session to check timing
-      const { data: session } = await supabase
-        .from('weekly_sessions')
-        .select('date, time')
-        .eq('id', booking.session_id)
-        .single();
-
       const { data: member } = await supabase
         .from('members')
         .select('ten_card_sessions_used, membership_types')
@@ -198,11 +199,12 @@ export async function POST(request: NextRequest) {
             .eq('id', firstWaitlist.member_id);
         }
 
-        // TODO: Send notification to promoted member (Phase 3)
+        // Notify promoted member
+        if (session) {
+          notifyWaitlistPromoted(firstWaitlist.member_id, session.date, session.time);
+        }
       }
     }
-
-    // TODO: Notify coach of cancellation
 
     return NextResponse.json(
       {
