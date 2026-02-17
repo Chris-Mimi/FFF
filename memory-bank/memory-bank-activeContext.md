@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 18.0
-**Updated:** 2026-02-17 (Session 132 - Push Notifications FCM Bug Fix)
+**Version:** 19.0
+**Updated:** 2026-02-17 (Session 133 - Push Notifications Phase 1c + 1d partial)
 
 ---
 
@@ -80,29 +80,38 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-17 Session 134 - Opus 4.6):**
+- **✅ Push Notifications Phase 1d — PR Notifications COMPLETE**
+  - Root cause: BenchmarksTab + ForgeBenchmarksTab saved directly via Supabase, bypassing API route
+  - Fix: Migrated both tabs to `authFetch('/api/benchmark-results')` with type-based field mapping
+  - API: Added optional `id` for update-by-ID, removed composite key upsert (was overwriting entries), removed debug logs
+  - All 3 save paths (Benchmarks tab, Forge tab, Logbook tab) now go through API with PR detection + toast
+
+**Completed (2026-02-17 Session 133 - Opus 4.6):**
+- **✅ Push Notifications Phase 1c — Booking Notifications COMPLETE**
+  - `app/api/bookings/create/route.ts` — added `notifyBookingConfirmed` / `notifyBookingWaitlisted`
+  - `app/api/bookings/cancel/route.ts` — added `notifyWaitlistPromoted` in waitlist promotion block
+  - `middleware.ts` — added `sw.js` to matcher exclusion (fixed SW redirect bug)
+  - Commit: `b2ce056` on main
+- **✅ Push Notifications Phase 1d — Lift PR detection** (partial, benchmark bug carried to Session 134)
+  - NEW: `app/api/lift-records/route.ts` — POST handler with PR detection. TESTED + WORKING
+  - `components/athlete/AthletePageLiftsTab.tsx` — insert path migrated to `authFetch('/api/lift-records')`
+
 **Completed (2026-02-17 Sessions 131-132 - Opus 4.6):**
 - **✅ Push Notifications Phase 1b — COMPLETE + FCM BUG FIXED**
 - Phase 1b: WOD publish notifications, bell icon on athlete + book pages, all 5 notification functions in `lib/notifications.ts`
 - FCM bug: Chrome's stale FCM connection caused 201-accepted-but-never-delivered. Chrome update/restart fixed it.
 - SW improved: handles null `event.data` gracefully (was silently dropping). Debug code cleaned up.
-- See: `project-history/2026-02-16-session-130-push-notifications-infra.md`
 
 **Completed (2026-02-16 Session 130 - Opus 4.6):**
 - **✅ Push Notifications Phase 1a (Infrastructure)**
 - Web Push API with VAPID keys, 10 new files, 3 DB tables
-- See: `project-history/2026-02-16-session-130-push-notifications-infra.md`
 
 **Completed (2026-02-16 Session 129 - Opus 4.6):**
 - **✅ Session Management Modal mobile optimization + Color contrast audit (#10 COMPLETE)**
-- See: `project-history/2026-02-16-session-129-mobile-contrast.md`
 
 **Completed (2026-02-16 Session 128 - Opus 4.6):**
 - **✅ Stray record cleanup** — Deleted 33 stray `wod_section_results`
-- See: `project-history/2026-02-16-session-128-stray-cleanup-orphan-queries.md`
-
-**Completed (2026-02-15 Sessions 125-127 - Opus 4.6):**
-- **✅ Leaderboard scaling bug — root cause + fix + cleanup + DB cleanup**
-- See: `project-history/2026-02-15-session-125-leaderboard-chips-save-fix.md`
 
 **Older Sessions (57-123):**
 See `project-history/` folder for detailed implementation history
@@ -132,7 +141,7 @@ See `project-history/` folder for detailed implementation history
 **Feature Gaps (from competitor analysis — updated):**
 - ✅ #1 Social reactions (fist bumps) — DONE (Session 104)
 - ✅ #2 Per-workout leaderboard — DONE (Session 104)
-- 🔧 #3 Push notifications — Phase 1a DONE (Session 130), Phase 1b DONE but FCM delivery bug (Session 131), Phases 1c-1d pending
+- ✅ #3 Push notifications — All phases DONE (Sessions 130-134). Booking, WOD publish, PR notifications all working.
 - Remaining: workout intent/stimulus notes, at-risk member alerts, workout timer, % calculator, badges/streaks
 - See: `Chris Notes/session-103-code-review-findings.md` for full ranked list
 
@@ -186,10 +195,8 @@ npm run restore 2025-12-06  # Restore specific date
 
 ### Next Priorities
 
-**Push Notifications — Continue Phases 1c-1d:**
-- **Phase 1c:** Booking notifications — hook into booking create/cancel routes (3 modified files)
-- **Phase 1d:** PR notifications — new lift-records API route + 3 modified files
-- Full plan: `.claude/plans/sunny-inventing-widget.md`
+**Push Notifications — COMPLETE (all phases):**
+- Clean up test data from `benchmark_results` table (if any stale entries remain)
 
 **Movements filter (remaining from Sessions 122-124):**
 - Update benchmark/forge_benchmark descriptions to use exact DB exercise names (113 audit mismatches)

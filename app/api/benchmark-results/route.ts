@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { requireAuth, isAuthError } from '@/lib/auth-api';
+import { notifyPrAchieved } from '@/lib/notifications';
 
 // Use service role for admin operations
 const supabaseAdmin = createClient(
@@ -14,6 +15,14 @@ const supabaseAdmin = createClient(
   }
 );
 
+function parseTimeToSeconds(time: string): number {
+  const parts = time.split(':');
+  if (parts.length === 2) {
+    return parseInt(parts[0]) * 60 + parseFloat(parts[1]);
+  }
+  return parseFloat(time);
+}
+
 export async function POST(request: NextRequest) {
   try {
     const user = await requireAuth(request);
@@ -21,6 +30,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const {
+      id,
       userId,
       benchmarkId,
       forgeBenchmarkId,
@@ -62,21 +72,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if a result already exists for this user + benchmark + date
-    const { data: existingResult, error: checkError } = await supabaseAdmin
-      .from('benchmark_results')
-      .select('id')
-      .eq('user_id', userId)
-      .eq('benchmark_name', benchmarkName)
-      .eq('result_date', resultDate || new Date().toISOString().split('T')[0])
-      .maybeSingle();
-
-    if (checkError) {
-      console.error('Error checking existing result:', checkError);
-      return NextResponse.json(
-        { error: 'Failed to check existing result' },
-        { status: 500 }
-      );
+    // Check if updating an existing record (only when explicit ID provided)
+    let existingResult: { id: string } | null = null;
+    if (id) {
+      const { data, error: checkError } = await supabaseAdmin
+        .from('benchmark_results')
+        .select('id')
+        .eq('id', id)
+        .maybeSingle();
+      if (checkError) {
+        console.error('Error checking existing result:', checkError);
+        return NextResponse.json({ error: 'Failed to check existing result' }, { status: 500 });
+      }
+      existingResult = data;
     }
 
     // Parse numeric fields safely
@@ -120,10 +128,41 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // PR detection on update too (user may be logging today's result)
+      let isPR = false;
+      const { data: previousResults } = await supabaseAdmin
+        .from('benchmark_results')
+        .select('time_result, reps_result, weight_result')
+        .eq('user_id', userId)
+        .eq('benchmark_name', benchmarkName)
+        .neq('id', existingResult.id)
+        .order('result_date', { ascending: false });
+
+      if (previousResults && previousResults.length > 0) {
+        if (hasTimeResult) {
+          const newSeconds = parseTimeToSeconds(timeResult.trim());
+          const prevTimes = previousResults.filter(r => r.time_result).map(r => parseTimeToSeconds(r.time_result));
+          if (prevTimes.length > 0 && newSeconds < Math.min(...prevTimes)) isPR = true;
+        } else if (hasRepsResult) {
+          const prevReps = previousResults.filter(r => r.reps_result != null).map(r => r.reps_result);
+          if (prevReps.length > 0 && parsedReps! > Math.max(...prevReps)) isPR = true;
+        } else if (hasWeightResult) {
+          const prevWeights = previousResults.filter(r => r.weight_result != null).map(r => r.weight_result);
+          if (prevWeights.length > 0 && parsedWeight! > Math.max(...prevWeights)) isPR = true;
+        }
+      } else {
+        isPR = true;
+      }
+
+      if (isPR) {
+        notifyPrAchieved(userId, benchmarkName, resultValue);
+      }
+
       return NextResponse.json(
         {
           success: true,
-          message: 'Result updated successfully'
+          isPR,
+          message: isPR ? 'New PR!' : 'Result updated successfully'
         },
         { status: 200 }
       );
@@ -154,10 +193,53 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // PR detection — compare against previous best for same benchmark
+      let isPR = false;
+      const { data: previousResults } = await supabaseAdmin
+        .from('benchmark_results')
+        .select('time_result, reps_result, weight_result')
+        .eq('user_id', userId)
+        .eq('benchmark_name', benchmarkName)
+        .neq('result_date', resultDate || new Date().toISOString().split('T')[0])
+        .order('result_date', { ascending: false });
+
+      if (previousResults && previousResults.length > 0) {
+        if (hasTimeResult) {
+          // Time-based: lower is better
+          const newSeconds = parseTimeToSeconds(timeResult.trim());
+          const bestPrevSeconds = Math.min(
+            ...previousResults
+              .filter(r => r.time_result)
+              .map(r => parseTimeToSeconds(r.time_result))
+          );
+          if (newSeconds < bestPrevSeconds) isPR = true;
+        } else if (hasRepsResult) {
+          // Reps-based: higher is better
+          const bestPrevReps = Math.max(
+            ...previousResults.filter(r => r.reps_result != null).map(r => r.reps_result)
+          );
+          if (parsedReps! > bestPrevReps) isPR = true;
+        } else if (hasWeightResult) {
+          // Weight-based: higher is better
+          const bestPrevWeight = Math.max(
+            ...previousResults.filter(r => r.weight_result != null).map(r => r.weight_result)
+          );
+          if (parsedWeight! > bestPrevWeight) isPR = true;
+        }
+      } else {
+        // First ever result for this benchmark = PR
+        isPR = true;
+      }
+
+      if (isPR) {
+        notifyPrAchieved(userId, benchmarkName, resultValue);
+      }
+
       return NextResponse.json(
         {
           success: true,
-          message: 'Result saved successfully'
+          isPR,
+          message: isPR ? 'New PR!' : 'Result saved successfully'
         },
         { status: 200 }
       );

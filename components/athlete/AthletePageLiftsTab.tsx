@@ -3,6 +3,7 @@
 
 import { confirm } from '@/lib/confirm';
 import { supabase } from '@/lib/supabase';
+import { authFetch } from '@/lib/auth-fetch';
 import { ChevronDown, ChevronRight, Edit2, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -125,19 +126,26 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
 
         if (error) throw error;
       } else {
-        // Insert new lift
-        const { error } = await supabase.from('lift_records').insert({
-          user_id: userId,
-          lift_name: selectedLift,
-          weight_kg: weight,
-          reps: reps,
-          calculated_1rm: calculated1rm,
-          rep_max_type: newRepMaxType,
-          notes: newNotes || null,
-          lift_date: newDate,
+        // Insert new lift via API (triggers PR detection)
+        const response = await authFetch('/api/lift-records', {
+          method: 'POST',
+          body: JSON.stringify({
+            userId,
+            liftName: selectedLift,
+            weightKg: weight,
+            reps,
+            repMaxType: newRepMaxType,
+            calculated1rm: calculated1rm,
+            notes: newNotes || null,
+            liftDate: newDate,
+          }),
         });
 
-        if (error) throw error;
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error);
+        if (result.isPR) {
+          toast.success(`New PR! ${selectedLift}: ${weight}kg (${newRepMaxType})`);
+        }
       }
 
       // Refresh the history

@@ -1,6 +1,7 @@
 // AthletePageForgeBenchmarksTab component
 'use client';
 
+import { authFetch } from '@/lib/auth-fetch';
 import { confirm } from '@/lib/confirm';
 import { supabase } from '@/lib/supabase';
 import { ChevronDown, ChevronRight, Edit2, Target, Trash2 } from 'lucide-react';
@@ -113,65 +114,50 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
     }
 
     try {
-      if (editingBenchmarkId) {
-        // Update existing entry
-        const { error } = await supabase
-          .from('benchmark_results')
-          .update({
-            benchmark_name: selectedBenchmark,
-            result_value: newTime,
-            notes: newNotes || null,
-            result_date: newDate,
-            scaling_level: newScaling,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', editingBenchmarkId);
+      // Fetch forge benchmark details to get ID and type
+      const { data: forgeBenchmark, error: fetchError } = await supabase
+        .from('forge_benchmarks')
+        .select('id, type')
+        .eq('name', selectedBenchmark)
+        .single();
 
-        if (error) {
-          console.error('Update error:', error);
-          throw error;
-        }
-
-      } else {
-        // Fetch forge benchmark details to get ID and type
-        const { data: forgeBenchmark, error: fetchError } = await supabase
-          .from('forge_benchmarks')
-          .select('id, type')
-          .eq('name', selectedBenchmark)
-          .single();
-
-        if (fetchError) {
-          console.error('Error fetching forge benchmark:', fetchError);
-          throw fetchError;
-        }
-
-        if (!forgeBenchmark) {
-          throw new Error('Forge benchmark not found');
-        }
-
-        // Insert new entry
-        const { data: insertedData, error: insertError } = await supabase
-          .from('benchmark_results')
-          .insert({
-            user_id: userId,
-            forge_benchmark_id: forgeBenchmark.id,
-            benchmark_name: selectedBenchmark,
-            benchmark_type: forgeBenchmark.type,
-            result_value: newTime,
-            notes: newNotes || null,
-            result_date: newDate,
-            scaling_level: newScaling,
-          })
-          .select();
-
-        if (insertError) {
-          console.error('Insert error:', insertError);
-          throw insertError;
-        }
-
+      if (fetchError || !forgeBenchmark) {
+        throw new Error('Forge benchmark not found');
       }
 
-      toast.success(`Successfully ${editingBenchmarkId ? 'updated' : 'saved'} benchmark result!`);
+      const benchmarkType = forgeBenchmark.type;
+      const typeLower = benchmarkType.toLowerCase();
+
+      // Map single value to typed fields based on benchmark type
+      const timeResult = typeLower.includes('time') ? newTime : '';
+      const repsResult = (typeLower.includes('rep') || typeLower.includes('amrap')) ? newTime : '';
+      const weightResult = (typeLower.includes('load') || typeLower.includes('weight')) ? newTime : '';
+
+      const response = await authFetch('/api/benchmark-results', {
+        method: 'POST',
+        body: JSON.stringify({
+          id: editingBenchmarkId || undefined,
+          userId,
+          forgeBenchmarkId: forgeBenchmark.id,
+          benchmarkName: selectedBenchmark,
+          benchmarkType,
+          timeResult,
+          repsResult,
+          weightResult,
+          scalingLevel: newScaling,
+          notes: newNotes || null,
+          resultDate: newDate,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to save benchmark result');
+
+      if (data.isPR) {
+        toast.success(`New PR for ${selectedBenchmark}!`);
+      } else {
+        toast.success(`Successfully ${editingBenchmarkId ? 'updated' : 'saved'} benchmark result!`);
+      }
 
       // Refresh the history
       await fetchBenchmarkHistory();

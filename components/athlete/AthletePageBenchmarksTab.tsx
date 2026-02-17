@@ -1,6 +1,7 @@
 // AthletePageBenchmarksTab component
 'use client';
 
+import { authFetch } from '@/lib/auth-fetch';
 import { confirm } from '@/lib/confirm';
 import { supabase } from '@/lib/supabase';
 import { ChevronDown, ChevronRight, Edit2, Trash2 } from 'lucide-react';
@@ -107,34 +108,36 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
         .eq('name', selectedBenchmark)
         .single();
 
-      if (editingBenchmarkId) {
-        // Update existing benchmark
-        const { error } = await supabase
-          .from('benchmark_results')
-          .update({
-            result_value: newTime,
-            notes: newNotes || null,
-            result_date: newDate,
-            scaling_level: newScaling,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', editingBenchmarkId);
+      const benchmarkType = benchmarkData?.type || 'For Time';
+      const typeLower = benchmarkType.toLowerCase();
 
-        if (error) throw error;
-      } else {
-        // Insert new benchmark
-        const { error } = await supabase.from('benchmark_results').insert({
-          user_id: userId,
-          benchmark_id: benchmarkData?.id || null,
-          benchmark_name: selectedBenchmark,
-          benchmark_type: benchmarkData?.type || 'For Time',
-          result_value: newTime,
+      // Map single value to typed fields based on benchmark type
+      const timeResult = typeLower.includes('time') ? newTime : '';
+      const repsResult = (typeLower.includes('rep') || typeLower.includes('amrap')) ? newTime : '';
+      const weightResult = (typeLower.includes('load') || typeLower.includes('weight')) ? newTime : '';
+
+      const response = await authFetch('/api/benchmark-results', {
+        method: 'POST',
+        body: JSON.stringify({
+          id: editingBenchmarkId || undefined,
+          userId,
+          benchmarkId: benchmarkData?.id || null,
+          benchmarkName: selectedBenchmark,
+          benchmarkType,
+          timeResult,
+          repsResult,
+          weightResult,
+          scalingLevel: newScaling,
           notes: newNotes || null,
-          result_date: newDate,
-          scaling_level: newScaling,
-        });
+          resultDate: newDate,
+        }),
+      });
 
-        if (error) throw error;
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to save benchmark result');
+
+      if (data.isPR) {
+        toast.success(`New PR for ${selectedBenchmark}!`);
       }
 
       // Refresh the history
