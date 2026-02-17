@@ -51,7 +51,7 @@ WODIFY, SugarWOD, Beyond the Whiteboard (BTWB), Zen Planner, PushPress, Wodboard
 |---|---|---------|--------|--------|
 | ✅ | 1 | **Social reactions on results** (fist bumps/likes + comments) | Medium | Very High |
 | ✅ | 2 | **Per-workout leaderboard** | Medium | Very High |
-| ⬜ | 3 | **Push notifications** (WOD posted, PR, booking reminders) | High | Very High |
+| ✅ | 3 | **Push notifications** (WOD posted, PR, booking reminders) | High | Very High |
 | ⬜ | 4 | **Workout intent/stimulus notes + scaling options** | Low | High |
 | ⬜ | 5 | **At-risk member alerts** (no attendance for X days) | Low-Med | High |
 | ⬜ | 6 | **Built-in workout timer** (AMRAP/EMOM/For Time) | Medium | Medium |
