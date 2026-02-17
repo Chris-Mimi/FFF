@@ -1,8 +1,8 @@
-# Session 130 — Push Notifications Infrastructure (Phase 1a)
+# Sessions 130-132 — Push Notifications (Phases 1a + 1b + Bug Fix)
 
-**Date:** 2026-02-16
+**Date:** 2026-02-16 to 2026-02-17
 **Model:** Opus 4.6
-**Status:** Code complete, NOT YET TESTED by user
+**Status:** Phase 1a + 1b COMPLETE and WORKING
 
 ---
 
@@ -80,20 +80,49 @@ Full plan saved at: `.claude/plans/sunny-inventing-widget.md`
 
 ---
 
-## Testing Needed (Phase 1a)
+## Session 131 — Phase 1b Implementation
 
-- [ ] DevTools → Application → Service Workers: verify SW registers
-- [ ] DevTools → Application → Manifest: verify manifest loads
-- [ ] Subscribe on Chrome desktop → verify row in push_subscriptions table
-- [ ] Unsubscribe → verify row deleted
-- [ ] Preferences API → verify GET/PUT work
-- [ ] NotificationPrompt component renders on member/athlete pages
+- Fixed middleware — added `.webmanifest` to excluded extensions so manifest loads correctly
+- Added NotificationPrompt (bell icon) to athlete page and member/book page headers
+- Created `lib/notifications.ts` — all 5 notification functions (wod_published, booking_confirmed, booking_waitlisted, waitlist_promoted, pr_achieved)
+- Hooked `notifyWodPublished()` into `app/api/google/publish-workout/route.ts` (fire-and-forget)
+- Created temporary test route for debugging
+
+### Files Changed (Session 131)
+| File | Change |
+|------|--------|
+| `middleware.ts` | Added webmanifest to matcher exclusion |
+| `app/member/book/page.tsx` | Added NotificationPrompt component |
+| `app/athlete/page.tsx` | Added NotificationPrompt component |
+| `lib/notifications.ts` | NEW — all 5 notification functions |
+| `lib/web-push.ts` | Debug logging added (later removed) |
+| `app/api/google/publish-workout/route.ts` | Added notifyWodPublished call |
+
+---
+
+## Session 132 — FCM Delivery Bug Fix
+
+### Bug: FCM returns 201 but notification never displays
+- **Symptom:** web-push library sends to FCM → 201 accepted, but browser SW never receives push event
+- **DevTools Push button worked** (sends directly to SW, bypasses FCM)
+- **Root cause:** Chrome's persistent connection to FCM push servers was stale/broken
+- **Fix:** Chrome update/restart reset the FCM connection — all queued notifications delivered immediately
+
+### Debugging approach that worked:
+1. Added fallback handling in SW for null `event.data` (prevents silent drops)
+2. Built diagnostic endpoint comparing browser subscription keys vs DB keys
+3. Discovered browser subscription was `null` while DB had stale entry
+4. Clean-slate reset: unsubscribe browser + delete DB + fresh subscribe
+5. Still didn't work → Chrome update/restart fixed FCM connection
+
+### Cleanup (Session 132):
+- Removed all `[PUSH DEBUG]` console.logs from `lib/web-push.ts`
+- Removed debug logs from `public/sw.js` (kept null-data fallback — production improvement)
+- Deleted temporary test route `app/api/notifications/test/`
 
 ---
 
 ## Next Session
 
-1. **Test Phase 1a** — verify SW, subscription, preferences all work in browser
-2. **Phase 1b** — WOD Published notifications (2 files, ~30 min)
-3. **Phase 1c** — Booking notifications (3 files, ~30 min)
-4. **Phase 1d** — PR notifications (4 files, ~1 hour)
+1. **Phase 1c** — Booking notifications (hook into booking create/cancel routes, 3 files)
+2. **Phase 1d** — PR notifications (new lift-records API route + 3 modified files)

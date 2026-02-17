@@ -10,13 +10,16 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('push', (event) => {
-  if (!event.data) return;
-
   let data;
-  try {
-    data = event.data.json();
-  } catch {
-    data = { title: 'The Forge', body: event.data.text() };
+  if (!event.data) {
+    // Payload decryption failed (likely key mismatch) — show fallback
+    data = { title: 'The Forge', body: 'New update available', data: { type: 'fallback' } };
+  } else {
+    try {
+      data = event.data.json();
+    } catch {
+      data = { title: 'The Forge', body: event.data.text() };
+    }
   }
 
   const options = {
@@ -52,4 +55,8 @@ self.addEventListener('notificationclick', (event) => {
         return self.clients.openWindow(url);
       })
   );
+});
+
+self.addEventListener('pushsubscriptionchange', () => {
+  // Browser rotated push credentials — user needs to re-subscribe
 });

@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 16.0
-**Updated:** 2026-02-16 (Session 130 - Push Notifications Infrastructure)
+**Version:** 18.0
+**Updated:** 2026-02-17 (Session 132 - Push Notifications FCM Bug Fix)
 
 ---
 
@@ -80,12 +80,16 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
-**In Progress (2026-02-16 Session 130 - Opus 4.6):**
-- **🔧 Push Notifications Phase 1a (Infrastructure) — CODE COMPLETE, NOT TESTED**
-- Web Push API with VAPID keys, 10 new files, 2 modified files
-- 3 DB tables created (push_subscriptions, notification_preferences, notification_log)
-- Service worker, client hook, 3 API routes, NotificationPrompt UI component
-- Full plan for Phases 1b-1d saved at `.claude/plans/sunny-inventing-widget.md`
+**Completed (2026-02-17 Sessions 131-132 - Opus 4.6):**
+- **✅ Push Notifications Phase 1b — COMPLETE + FCM BUG FIXED**
+- Phase 1b: WOD publish notifications, bell icon on athlete + book pages, all 5 notification functions in `lib/notifications.ts`
+- FCM bug: Chrome's stale FCM connection caused 201-accepted-but-never-delivered. Chrome update/restart fixed it.
+- SW improved: handles null `event.data` gracefully (was silently dropping). Debug code cleaned up.
+- See: `project-history/2026-02-16-session-130-push-notifications-infra.md`
+
+**Completed (2026-02-16 Session 130 - Opus 4.6):**
+- **✅ Push Notifications Phase 1a (Infrastructure)**
+- Web Push API with VAPID keys, 10 new files, 3 DB tables
 - See: `project-history/2026-02-16-session-130-push-notifications-infra.md`
 
 **Completed (2026-02-16 Session 129 - Opus 4.6):**
@@ -99,10 +103,6 @@ Social Tables
 **Completed (2026-02-15 Sessions 125-127 - Opus 4.6):**
 - **✅ Leaderboard scaling bug — root cause + fix + cleanup + DB cleanup**
 - See: `project-history/2026-02-15-session-125-leaderboard-chips-save-fix.md`
-
-**Completed (2026-02-15 Session 124 - Sonnet 4.5):**
-- **✅ Athlete UX fixes** — Removed FistBumpButton from Workouts tab, exclude Task sections from Leaderboard
-- See: `project-history/2026-02-15-session-124-athlete-ux-fixes.md`
 
 **Older Sessions (57-123):**
 See `project-history/` folder for detailed implementation history
@@ -132,7 +132,7 @@ See `project-history/` folder for detailed implementation history
 **Feature Gaps (from competitor analysis — updated):**
 - ✅ #1 Social reactions (fist bumps) — DONE (Session 104)
 - ✅ #2 Per-workout leaderboard — DONE (Session 104)
-- 🔧 #3 Push notifications — Phase 1a DONE (Session 130), Phases 1b-1d pending
+- 🔧 #3 Push notifications — Phase 1a DONE (Session 130), Phase 1b DONE but FCM delivery bug (Session 131), Phases 1c-1d pending
 - Remaining: workout intent/stimulus notes, at-risk member alerts, workout timer, % calculator, badges/streaks
 - See: `Chris Notes/session-103-code-review-findings.md` for full ranked list
 
@@ -186,12 +186,10 @@ npm run restore 2025-12-06  # Restore specific date
 
 ### Next Priorities
 
-**Push Notifications — Continue Phases 1b-1d:**
-- **Phase 1b:** WOD Published notifications (1 new file + 1 modified, ~30 min)
-- **Phase 1c:** Booking notifications (3 modified files, ~30 min)
-- **Phase 1d:** PR notifications (1 new API route + 3 modified, ~1 hour)
+**Push Notifications — Continue Phases 1c-1d:**
+- **Phase 1c:** Booking notifications — hook into booking create/cancel routes (3 modified files)
+- **Phase 1d:** PR notifications — new lift-records API route + 3 modified files
 - Full plan: `.claude/plans/sunny-inventing-widget.md`
-- **TEST Phase 1a first** — SW registration, subscription, preferences
 
 **Movements filter (remaining from Sessions 122-124):**
 - Update benchmark/forge_benchmark descriptions to use exact DB exercise names (113 audit mismatches)
