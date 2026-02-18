@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 20.0
-**Updated:** 2026-02-18 (Session 135 - Workout Timer)
+**Version:** 21.0
+**Updated:** 2026-02-18 (Session 136 - Timer Audio Cleanup)
 
 ---
 
@@ -80,16 +80,14 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-18 Session 136 - Opus 4.6):**
+- **✅ Timer Audio Refactor** — Replaced per-beep oscillator creation with single persistent oscillator + gain gate
+  - Tried: gain reduction, DynamicsCompressorNode, pre-generated AudioBuffers, silent keep-alive loop, persistent oscillator
+  - Final architecture: single OscillatorNode created on first user tap, gain modulated to play/mute
+  - **Known issue:** Intermittent mobile-only distortion persists — deferred to post-deploy (monitor user reports)
+
 **Completed (2026-02-18 Session 135 - Opus 4.6):**
-- **✅ Workout Timer — Feature #7 IMPLEMENTED**
-  - 5 modes: For Time (count-up), AMRAP (countdown), EMOM (round intervals), Tabata (work/rest), Hold (count-up + progress bar)
-  - 3 new files: `hooks/useWorkoutTimer.ts`, `components/athlete/WorkoutTimer.tsx`, `components/athlete/AthletePageTimerTab.tsx`
-  - Modified: `app/athlete/page.tsx` (added Timer tab after Community)
-  - Mobile: auto-fullscreen, hides chrome when running for max display
-  - Desktop: expand button, large timer digits (text-9xl+)
-  - Audio: Web Audio API with sustained tones (Go/interval/complete) + staccato countdown beeps
-  - 5-second countdown on all modes with beeps on 3-2-1
-  - **Known issue:** Audio distortion at full gain — investigate in next session (try gain 0.7, or add compressor node)
+- **✅ Workout Timer — Feature #7 IMPLEMENTED** — 5 modes, fullscreen mobile, audio beeps, 5s countdown
 
 **Completed (2026-02-17 Sessions 133-134 - Opus 4.6):**
 - **✅ Push Notifications Phases 1c + 1d COMPLETE** — Booking + PR notifications all working
@@ -97,11 +95,8 @@ Social Tables
 **Completed (2026-02-17 Sessions 131-132 - Opus 4.6):**
 - **✅ Push Notifications Phase 1b — COMPLETE + FCM BUG FIXED**
 
-**Completed (2026-02-16 Session 130 - Opus 4.6):**
-- **✅ Push Notifications Phase 1a (Infrastructure)**
-
-**Completed (2026-02-16 Sessions 128-129 - Opus 4.6):**
-- **✅ Stray record cleanup + Session Management Mobile + Color contrast audit**
+**Completed (2026-02-16 Sessions 128-130 - Opus 4.6):**
+- **✅ Push Notifications Phase 1a + Stray record cleanup + Session Management Mobile + Color contrast audit**
 
 **Older Sessions (57-127):**
 See `project-history/` folder for detailed implementation history
@@ -132,7 +127,7 @@ See `project-history/` folder for detailed implementation history
 - ✅ #1 Social reactions (fist bumps) — DONE (Session 104)
 - ✅ #2 Per-workout leaderboard — DONE (Session 104)
 - ✅ #3 Push notifications — All phases DONE (Sessions 130-134). Booking, WOD publish, PR notifications all working.
-- ✅ #7 Workout timer — DONE (Session 135). 5 modes, audio beeps, fullscreen mobile.
+- ✅ #7 Workout timer — DONE (Sessions 135-136). 5 modes, persistent oscillator audio, fullscreen mobile. Mobile distortion deferred.
 - Remaining: workout intent/stimulus notes, at-risk member alerts, % calculator, badges/streaks
 - See: `Chris Notes/session-103-code-review-findings.md` for full ranked list
 

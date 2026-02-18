@@ -35,12 +35,22 @@ const DEFAULT_CONFIG: TimerConfig = {
   holdBeepInterval: 10, // beep every 10s
 };
 
-// Audio beep via Web Audio API
+// Audio via Web Audio API — single persistent oscillator + gain gate
 let audioCtx: AudioContext | null = null;
+let oscillator: OscillatorNode | null = null;
+let gainNode: GainNode | null = null;
 
 function ensureAudioContext() {
   if (!audioCtx) {
     audioCtx = new AudioContext();
+    // Single persistent oscillator — never destroyed, just muted/unmuted
+    oscillator = audioCtx.createOscillator();
+    gainNode = audioCtx.createGain();
+    oscillator.type = 'sine';
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    gainNode.gain.value = 0; // Start silent
+    oscillator.start();
   }
   if (audioCtx.state === 'suspended') {
     audioCtx.resume();
@@ -48,66 +58,53 @@ function ensureAudioContext() {
   return audioCtx;
 }
 
-// Short staccato beep (fades immediately) — for countdown ticks
-function playBeep(frequency: number, durationMs: number) {
+// Play a tone by unmuting the persistent oscillator briefly
+function playSound(frequency: number, durationMs: number, sustained: boolean) {
   try {
     const ctx = ensureAudioContext();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.frequency.value = frequency;
-    osc.type = 'sine';
-    gain.gain.value = 1.0;
-    gain.gain.setValueAtTime(1.0, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + durationMs / 1000);
-    osc.start();
-    osc.stop(ctx.currentTime + durationMs / 1000);
-  } catch {
-    // Audio not available — silent fail
-  }
-}
-
-// Sustained tone — holds full volume, quick fade only at the very end to avoid click
-function playTone(frequency: number, durationMs: number) {
-  try {
-    const ctx = ensureAudioContext();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.frequency.value = frequency;
-    osc.type = 'sine';
+    if (!oscillator || !gainNode) return;
+    const now = ctx.currentTime;
     const durSec = durationMs / 1000;
-    const fadeTime = 0.05; // 50ms fade at end to avoid click
-    gain.gain.setValueAtTime(1.0, ctx.currentTime);
-    gain.gain.setValueAtTime(1.0, ctx.currentTime + durSec - fadeTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + durSec);
-    osc.start();
-    osc.stop(ctx.currentTime + durSec);
+    // Cancel any scheduled changes from a previous sound
+    gainNode.gain.cancelScheduledValues(now);
+    // Set frequency
+    oscillator.frequency.setValueAtTime(frequency, now);
+    if (sustained) {
+      // Ramp up, hold, ramp down
+      gainNode.gain.setValueAtTime(0, now);
+      gainNode.gain.linearRampToValueAtTime(0.5, now + 0.005);
+      gainNode.gain.setValueAtTime(0.5, now + durSec - 0.05);
+      gainNode.gain.linearRampToValueAtTime(0, now + durSec);
+    } else {
+      // Staccato: ramp up, exponential decay
+      gainNode.gain.setValueAtTime(0, now);
+      gainNode.gain.linearRampToValueAtTime(0.5, now + 0.005);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, now + durSec);
+      gainNode.gain.setValueAtTime(0, now + durSec);
+    }
   } catch {
-    // Audio not available — silent fail
+    // Audio not available
   }
 }
 
-// Interval / phase change — sustained 1s tone
+// Interval / phase change — sustained 1s tone at 880Hz
 export function playShortBeep() {
-  playTone(880, 1000);
+  playSound(880, 1000, true);
 }
 
-// Timer complete — sustained 1s tone
+// Timer complete — sustained 1s tone at 660Hz
 export function playLongBeep() {
-  playTone(660, 1000);
+  playSound(660, 1000, true);
 }
 
-// Countdown 3-2-1 tick — short staccato
+// Countdown 3-2-1 tick — short staccato at 1100Hz
 function playCountdownBeep() {
-  playBeep(1100, 500);
+  playSound(1100, 500, false);
 }
 
-// GO tone — sustained 1s
+// GO tone — sustained 1s at 880Hz
 function playGoBeep() {
-  playTone(880, 1000);
+  playSound(880, 1000, true);
 }
 
 export function useWorkoutTimer() {
@@ -238,7 +235,7 @@ export function useWorkoutTimer() {
   }, [tick, clearTimer]);
 
   const start = useCallback(() => {
-    // Initialize AudioContext on user gesture (iOS Safari requirement)
+    // Initialize AudioContext + persistent oscillator on user gesture (iOS Safari requirement)
     ensureAudioContext();
 
     // All modes get a 5s countdown (beep on last 3)
