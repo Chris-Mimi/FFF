@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 23.0
-**Updated:** 2026-02-18 (Session 138 - Push Notification Fix + TV Display Planning)
+**Version:** 24.0
+**Updated:** 2026-02-19 (Session 139 - TV Display Feature)
 
 ---
 
@@ -80,36 +80,27 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-19 Session 139 - Opus 4.6):**
+- **✅ TV Display Feature IMPLEMENTED** — Dedicated TV-optimized workout display page
+  - New route `app/tv/[id]/page.tsx` — dark background, extra-large typography for gym TV
+  - All sections rendered: lifts (blue), benchmarks (teal), forge benchmarks (cyan), intent notes (amber)
+  - "Coach Only" badge on unpublished sections
+  - Per-section zoom toggle (click header to enlarge further: ⊕/⊖)
+  - Monitor icon chip added to workout cards in CalendarGrid.tsx → opens new tab
+
 **Completed (2026-02-18 Session 138 - Opus 4.6):**
 - **✅ Push Notification Stale FCM Fix** — Diagnosed FCM 201-but-no-delivery bug on Mimi profile
-  - sw.js: `pushsubscriptionchange` auto-re-subscribes (was no-op)
-  - usePushNotifications: auto-refresh subscription on every page load
-  - New `/api/notifications/test` endpoint with full diagnostics (VAPID config, sub count, FCM response)
-  - NotificationPrompt: "Send test" button with console diagnostics
-  - Root cause: stale Chrome FCM connection (same as Session 132). Fixed via SW unregister + Chrome restart.
 
 **Completed (2026-02-18 Session 137 - Opus 4.6):**
-- **✅ Intent/Stimulus Notes (Feature #4) IMPLEMENTED** — Coach can add per-section intent notes + toggle visibility to athletes
-  - `intent_notes` + `show_intent_to_athletes` fields added to WODSection interface (JSONB, zero migration)
-  - Coach editor: amber textarea + toggle per section in WODSectionComponent.tsx
-  - Athlete view: amber callout in AthletePageWorkoutsTab.tsx (only when toggled on)
-  - Publish modal: intent preview with "(visible to athletes)" indicator
-- **Web-push bug fixes:** installed missing `web-push` package, guarded VAPID init, unblock instructions for denied permissions
-- **Known issue:** Push notifications not delivering on Mimi profile (works on Chris) — likely stale subscription
+- **✅ Intent/Stimulus Notes (Feature #4) IMPLEMENTED** — Per-section notes with athlete visibility toggle
 
-**Completed (2026-02-18 Session 136 - Opus 4.6):**
-- **✅ Timer Audio Refactor** — Persistent oscillator + gain gate architecture
-
-**Completed (2026-02-18 Session 135 - Opus 4.6):**
-- **✅ Workout Timer — Feature #7 IMPLEMENTED** — 5 modes, fullscreen mobile, audio beeps, 5s countdown
+**Completed (2026-02-18 Sessions 135-136 - Opus 4.6):**
+- **✅ Workout Timer — Feature #7 IMPLEMENTED** — 5 modes, persistent oscillator audio, fullscreen mobile
 
 **Completed (2026-02-17 Sessions 131-134 - Opus 4.6):**
 - **✅ Push Notifications Phases 1a-1d COMPLETE** — All notification types working
 
-**Completed (2026-02-16 Sessions 128-130 - Opus 4.6):**
-- **✅ Push Notifications Phase 1a + Stray record cleanup + Session Management Mobile + Color contrast audit**
-
-**Older Sessions (57-127):**
+**Older Sessions (57-130):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -140,6 +131,7 @@ See `project-history/` folder for detailed implementation history
 - ✅ #3 Push notifications — All phases DONE (Sessions 130-134). Booking, WOD publish, PR notifications all working.
 - ✅ #4 Workout intent/stimulus notes — DONE (Session 137). Per-section notes with athlete visibility toggle.
 - ✅ #7 Workout timer — DONE (Sessions 135-136). 5 modes, persistent oscillator audio, fullscreen mobile. Mobile distortion deferred.
+- ✅ #8 TV Display — DONE (Session 139). Dark theme, large fonts, per-section zoom, Monitor chip on cards.
 - Remaining: at-risk member alerts, % calculator, badges/streaks
 - See: `Chris Notes/session-103-code-review-findings.md` for full ranked list
 

@@ -9,6 +9,7 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
+  Monitor,
 } from 'lucide-react';
 import { getCardState, getCardClasses } from '@/utils/card-utils';
 import { formatDate, getWeekNumber } from '@/utils/date-utils';
@@ -214,6 +215,21 @@ export default function CalendarGrid({
                 title='Click to view coach notes'
               >
                 N
+              </button>
+            )}
+
+            {/* TV Display */}
+            {!isEmptySession && wod.id && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.open(`/tv/${wod.id}`, '_blank');
+                }}
+                className='flex-shrink-0 text-gray-400 hover:text-[#178da6] transition cursor-pointer'
+                title='TV Display'
+                aria-label='Open TV display'
+              >
+                <Monitor size={12} />
               </button>
             )}
 
