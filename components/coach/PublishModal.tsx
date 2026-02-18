@@ -194,6 +194,12 @@ export default function PublishModal({
                       <div className='font-medium text-gray-900'>
                         {section.type} ({section.duration} min)
                       </div>
+                      {section.intent_notes && (
+                        <div className='text-xs text-amber-700 mt-1'>
+                          Intent: {section.intent_notes.length > 80 ? section.intent_notes.slice(0, 80) + '…' : section.intent_notes}
+                          {section.show_intent_to_athletes && <span className='ml-1 text-amber-500'>(visible to athletes)</span>}
+                        </div>
+                      )}
                       {preview && (
                         <div className='text-sm text-gray-600 mt-1 line-clamp-2'>
                           {preview}

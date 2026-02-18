@@ -15,6 +15,8 @@ interface WorkoutSection {
   lifts?: ConfiguredLift[];
   benchmarks?: ConfiguredBenchmark[];
   forge_benchmarks?: ConfiguredForgeBenchmark[];
+  intent_notes?: string;
+  show_intent_to_athletes?: boolean;
 }
 
 interface SectionResult {
@@ -543,6 +545,13 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
                             {section.type}
                             {(section.duration > 0) && ` (${section.duration} min)`}
                           </div>
+
+                          {/* Intent / Stimulus (if coach enabled for athletes) */}
+                          {section.intent_notes && section.show_intent_to_athletes && (
+                            <div className='text-xs bg-amber-50 border-l-2 border-amber-400 px-2 py-1.5 mb-2 text-amber-900'>
+                              <span className='font-semibold'>Intent:</span> {section.intent_notes}
+                            </div>
+                          )}
 
                           {/* Structured Movements */}
                           <div className='space-y-2 mb-2'>

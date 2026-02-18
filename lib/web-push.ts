@@ -1,12 +1,19 @@
 import webpush from 'web-push';
 import { createClient } from '@supabase/supabase-js';
 
-// Initialize VAPID credentials
-webpush.setVapidDetails(
-  process.env.VAPID_SUBJECT!,
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!
-);
+// Initialize VAPID credentials (only if env vars are set)
+const vapidConfigured =
+  process.env.VAPID_SUBJECT &&
+  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY &&
+  process.env.VAPID_PRIVATE_KEY;
+
+if (vapidConfigured) {
+  webpush.setVapidDetails(
+    process.env.VAPID_SUBJECT!,
+    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
+    process.env.VAPID_PRIVATE_KEY!
+  );
+}
 
 // Admin client for bypassing RLS (server-side only)
 const supabaseAdmin = createClient(

@@ -45,9 +45,11 @@ export function usePushNotifications() {
         'PushManager' in window &&
         'Notification' in window;
 
-      setIsSupported(supported);
+      // Also require VAPID public key to be configured
+      const configured = supported && !!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+      setIsSupported(configured);
 
-      if (!supported) {
+      if (!configured) {
         setLoading(false);
         return;
       }

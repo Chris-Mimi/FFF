@@ -31,8 +31,45 @@ export function NotificationPrompt() {
   const [dismissed, setDismissed] = useState(false);
   const [showPrefs, setShowPrefs] = useState(false);
 
-  // Don't render if not supported or permission permanently denied
-  if (!isSupported || permission === 'denied') return null;
+  // Don't render if not supported
+  if (!isSupported) return null;
+
+  // Permission blocked — show helper to unblock
+  if (permission === 'denied') {
+    return (
+      <div className="relative">
+        <button
+          onClick={() => setShowPrefs(!showPrefs)}
+          className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+          aria-label="Notifications blocked"
+        >
+          <BellOff className="h-5 w-5" />
+        </button>
+        {showPrefs && (
+          <div className="absolute right-0 top-full z-50 mt-2 w-72 rounded-xl border border-gray-200 bg-white p-4 shadow-lg">
+            <div className="mb-2 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-gray-900">Notifications Blocked</h3>
+              <button
+                onClick={() => setShowPrefs(false)}
+                className="rounded p-1 text-gray-500 hover:bg-gray-100"
+                aria-label="Close"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <p className="text-xs text-gray-600">
+              Notifications are blocked for this site. To re-enable:
+            </p>
+            <ol className="mt-2 list-decimal pl-4 text-xs text-gray-600 space-y-1">
+              <li>Click the lock/tune icon in your browser address bar</li>
+              <li>Find &quot;Notifications&quot; and change to &quot;Allow&quot;</li>
+              <li>Refresh the page</li>
+            </ol>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   // Already subscribed — show bell icon that opens preferences
   if (isSubscribed) {

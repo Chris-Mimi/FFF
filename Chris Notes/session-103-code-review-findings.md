@@ -15,8 +15,7 @@
 - [x] 2. **Add `aria-labels` to icon-only buttons** — ✅ DONE (Session 106). ~136 aria-labels added across 35 files.
    - Previously only 1 aria-label in entire codebase (ExerciseVideoModal)
 
-- [x] 3. **Add Escape key handlers** to modals that are missing them — most modals can't be closed via keyboard.
-   - Only ExerciseVideoModal and SearchPanel have Escape handlers
+- [x] 3. **Add Escape key handlers** — ✅ DONE (Session 116). 15 modals updated with Escape key support.
 
 ### Medium Impact
 
@@ -24,17 +23,17 @@
 
 - [x] 5. **Debounce search inputs** — ✅ DONE (Session 117, useDebouncedValue hook). SearchPanel + MovementLibraryPopup (4 filter useMemos).
 
-- [x] 6. **Missing empty states** — Favorites section, booking history, records tab show minimal UI when empty.
+- [x] 6. **Missing empty states** — ✅ DONE (Session 120). All empty states added.
 
-- [x] 7. **Touch targets** — Some mobile buttons under 44px (BookingListItem action buttons, SearchPanel mobile toggle).
+- [x] 7. **Touch targets** — ✅ DONE (Session 120). All mobile buttons meet 44px minimum.
 
 ### Lower Impact
 
-- [x] 8. **Replace browser `confirm()` with styled modal dialogs** — Most delete actions use browser confirm().
+- [x] 8. **Replace browser `confirm()` with styled modal dialogs** — ✅ DONE (Session 121). 33 confirm() calls replaced.
 
-- [x] 9. **Focus traps in modals** — Can tab outside of modals currently.
+- [x] 9. **Focus traps in modals** — ✅ DONE (Session 121). 33 modals updated with focus traps.
 
-- [x] 10. **Color contrast audit** — Some potential WCAG AA issues with teal-on-white text.
+- [x] 10. **Color contrast audit** — ✅ DONE (Session 129). 15 files fixed for WCAG AA compliance.
 
 ---
 
@@ -45,8 +44,6 @@ WODIFY, SugarWOD, Beyond the Whiteboard (BTWB), Zen Planner, PushPress, Wodboard
 
 ### Top 10 Missing Features (Ranked by Value)
 
-| # | Feature | Effort | Impact |
-|---|---------|--------|--------|
 | | # | Feature | Effort | Impact |
 |---|---|---------|--------|--------|
 | ✅ | 1 | **Social reactions on results** (fist bumps/likes + comments) | Medium | Very High |
@@ -54,7 +51,7 @@ WODIFY, SugarWOD, Beyond the Whiteboard (BTWB), Zen Planner, PushPress, Wodboard
 | ✅ | 3 | **Push notifications** (WOD posted, PR, booking reminders) | High | Very High |
 | ⬜ | 4 | **Workout intent/stimulus notes + scaling options** | Low | High |
 | ⬜ | 5 | **At-risk member alerts** (no attendance for X days) | Low-Med | High |
-| ⬜ | 6 | **Built-in workout timer** (AMRAP/EMOM/For Time) | Medium | Medium |
+| ✅ | 6 | **Built-in workout timer** (AMRAP/EMOM/For Time) | Medium | Medium |
 | ⬜ | 7 | **Auto percentage calculator** from athlete's 1RM | Low-Med | High |
 | ⬜ | 8 | **Achievement badges/streaks** | Medium | Medium |
 | ⬜ | 9 | **Athlete notes + result photos** on logged workouts | Low | Medium |
@@ -66,14 +63,14 @@ WODIFY, SugarWOD, Beyond the Whiteboard (BTWB), Zen Planner, PushPress, Wodboard
 - **#10 Movement demo videos** — Add video_url to exercises table (already exists!), display on athlete workout view
 
 ### Medium Effort, Very High Impact
-- **#1 Social reactions** — reactions table + comments table + UI on result cards. Drives community engagement.
-- **#2 Leaderboard** — Already track workout results. Add ranked view per workout, filter Rx/Scaled.
+- ✅ **#1 Social reactions** — DONE (Session 104). Fist bumps on results + leaderboard entries.
+- ✅ **#2 Leaderboard** — DONE (Session 104). Per-workout ranked view with Rx/Scaled filtering.
 - **#5 At-risk alerts** — Already have booking data. Dashboard showing members by days-since-last-visit.
 - **#7 Percentage calculator** — Already have lift records. Calculate 75% of 1RM when workout references percentages.
 
 ### Larger Projects
-- **#3 Push notifications** — Service worker, notification preferences table, server-side triggers
-- **#6 Workout timer** — Client-side component with AMRAP/EMOM/Tabata presets
+- ✅ **#3 Push notifications** — DONE (Sessions 130-134). Service worker, FCM, booking/WOD/PR notifications.
+- ✅ **#6 Workout timer** — DONE (Sessions 135-136). 5 modes (AMRAP/EMOM/For Time/Tabata/Custom), fullscreen mobile, audio beeps.
 - **#8 Badges/streaks** — Badge criteria, user_badges table, trigger logic
 
 ---

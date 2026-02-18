@@ -49,6 +49,10 @@ export interface WODSection {
   benchmarks?: ConfiguredBenchmark[];
   forge_benchmarks?: ConfiguredForgeBenchmark[];
 
+  // Intent / stimulus notes (coach → optional athlete visibility)
+  intent_notes?: string;
+  show_intent_to_athletes?: boolean;
+
   // Configurable scoring fields (determines which inputs athletes see)
   scoring_fields?: {
     time?: boolean;           // Show time input (mm:ss) — lower is better
