@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 22.0
-**Updated:** 2026-02-18 (Session 137 - Intent/Stimulus Notes + Web-Push Fixes)
+**Version:** 23.0
+**Updated:** 2026-02-18 (Session 138 - Push Notification Fix + TV Display Planning)
 
 ---
 
@@ -80,6 +80,14 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-18 Session 138 - Opus 4.6):**
+- **✅ Push Notification Stale FCM Fix** — Diagnosed FCM 201-but-no-delivery bug on Mimi profile
+  - sw.js: `pushsubscriptionchange` auto-re-subscribes (was no-op)
+  - usePushNotifications: auto-refresh subscription on every page load
+  - New `/api/notifications/test` endpoint with full diagnostics (VAPID config, sub count, FCM response)
+  - NotificationPrompt: "Send test" button with console diagnostics
+  - Root cause: stale Chrome FCM connection (same as Session 132). Fixed via SW unregister + Chrome restart.
+
 **Completed (2026-02-18 Session 137 - Opus 4.6):**
 - **✅ Intent/Stimulus Notes (Feature #4) IMPLEMENTED** — Coach can add per-section intent notes + toggle visibility to athletes
   - `intent_notes` + `show_intent_to_athletes` fields added to WODSection interface (JSONB, zero migration)
@@ -136,7 +144,7 @@ See `project-history/` folder for detailed implementation history
 - See: `Chris Notes/session-103-code-review-findings.md` for full ranked list
 
 **Push Notification Issues:**
-- Mimi profile: notifications not delivering (works on Chris profile) — likely stale browser subscription or Chrome FCM connection issue (same as Session 132)
+- ✅ ~~Mimi profile not delivering~~ — FIXED (Session 138). Root cause: stale Chrome FCM connection. Fix: SW unregister + Chrome restart. Added auto-refresh + test endpoint to prevent recurrence.
 
 **Other Known Issues:**
 - **✅ ~~Leaderboard scaling bug~~ — FIXED (Sessions 125-127). Root cause: stray records from save bug. Fix: booking filter + tie-breaking + 33 stray records deleted.**
