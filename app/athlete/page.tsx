@@ -11,6 +11,7 @@ import AthletePageProfileTab from '@/components/athlete/AthletePageProfileTab';
 import AthletePageRecordsTab from '@/components/athlete/AthletePageRecordsTab';
 import AthletePageSecurityTab from '@/components/athlete/AthletePageSecurityTab';
 import AthletePageCommunityTab from '@/components/athlete/AthletePageCommunityTab';
+import AthletePageTimerTab from '@/components/athlete/AthletePageTimerTab';
 import UpgradePrompt from '@/components/athlete/UpgradePrompt';
 import { NotificationPrompt } from '@/components/ui/NotificationPrompt';
 import { getCurrentUser, signOut } from '@/lib/auth';
@@ -28,6 +29,7 @@ import {
   LogOut,
   Shield,
   Target,
+  Timer,
   Trophy,
   User,
   Users,
@@ -36,7 +38,7 @@ import NextImage from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState, Suspense } from 'react';
 
-type TabName = 'profile' | 'workouts' | 'community' | 'logbook' | 'benchmarks' | 'forge-benchmarks' | 'lifts' | 'records' | 'photos' | 'payment' | 'security';
+type TabName = 'profile' | 'workouts' | 'community' | 'timer' | 'logbook' | 'benchmarks' | 'forge-benchmarks' | 'lifts' | 'records' | 'photos' | 'payment' | 'security';
 
 function AthletePageContent() {
   const router = useRouter();
@@ -46,7 +48,7 @@ function AthletePageContent() {
   // Handle URL tab parameter (e.g., /athlete?tab=payment)
   useEffect(() => {
     const tabParam = searchParams.get('tab');
-    if (tabParam && ['profile', 'workouts', 'community', 'logbook', 'benchmarks', 'forge-benchmarks', 'lifts', 'records', 'photos', 'payment', 'security'].includes(tabParam)) {
+    if (tabParam && ['profile', 'workouts', 'community', 'timer', 'logbook', 'benchmarks', 'forge-benchmarks', 'lifts', 'records', 'photos', 'payment', 'security'].includes(tabParam)) {
       setActiveTab(tabParam as TabName);
     }
   }, [searchParams]);
@@ -190,6 +192,7 @@ function AthletePageContent() {
     { id: 'profile' as TabName, label: 'Profile', icon: User, requiresFullAccess: false },
     { id: 'workouts' as TabName, label: 'Workouts', icon: Calendar, requiresFullAccess: true },
     { id: 'community' as TabName, label: 'Community', icon: Users, requiresFullAccess: true },
+    { id: 'timer' as TabName, label: 'Timer', icon: Timer, requiresFullAccess: true },
     { id: 'logbook' as TabName, label: 'Logbook', icon: BookOpen, requiresFullAccess: true },
     { id: 'benchmarks' as TabName, label: 'Benchmarks', icon: Trophy, requiresFullAccess: true },
     { id: 'forge-benchmarks' as TabName, label: 'Forge', icon: Target, requiresFullAccess: true },
@@ -224,6 +227,8 @@ function AthletePageContent() {
         />;
       case 'community':
         return <AthletePageCommunityTab userId={activeProfileId} initialDate={selectedDate} onDateChange={setSelectedDate} />;
+      case 'timer':
+        return <AthletePageTimerTab />;
       case 'logbook':
         return (
           <AthletePageLogbookTab

@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 19.0
-**Updated:** 2026-02-17 (Session 133 - Push Notifications Phase 1c + 1d partial)
+**Version:** 20.0
+**Updated:** 2026-02-18 (Session 135 - Workout Timer)
 
 ---
 
@@ -80,40 +80,30 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
-**Completed (2026-02-17 Session 134 - Opus 4.6):**
-- **✅ Push Notifications Phase 1d — PR Notifications COMPLETE**
-  - Root cause: BenchmarksTab + ForgeBenchmarksTab saved directly via Supabase, bypassing API route
-  - Fix: Migrated both tabs to `authFetch('/api/benchmark-results')` with type-based field mapping
-  - API: Added optional `id` for update-by-ID, removed composite key upsert (was overwriting entries), removed debug logs
-  - All 3 save paths (Benchmarks tab, Forge tab, Logbook tab) now go through API with PR detection + toast
+**Completed (2026-02-18 Session 135 - Opus 4.6):**
+- **✅ Workout Timer — Feature #7 IMPLEMENTED**
+  - 5 modes: For Time (count-up), AMRAP (countdown), EMOM (round intervals), Tabata (work/rest), Hold (count-up + progress bar)
+  - 3 new files: `hooks/useWorkoutTimer.ts`, `components/athlete/WorkoutTimer.tsx`, `components/athlete/AthletePageTimerTab.tsx`
+  - Modified: `app/athlete/page.tsx` (added Timer tab after Community)
+  - Mobile: auto-fullscreen, hides chrome when running for max display
+  - Desktop: expand button, large timer digits (text-9xl+)
+  - Audio: Web Audio API with sustained tones (Go/interval/complete) + staccato countdown beeps
+  - 5-second countdown on all modes with beeps on 3-2-1
+  - **Known issue:** Audio distortion at full gain — investigate in next session (try gain 0.7, or add compressor node)
 
-**Completed (2026-02-17 Session 133 - Opus 4.6):**
-- **✅ Push Notifications Phase 1c — Booking Notifications COMPLETE**
-  - `app/api/bookings/create/route.ts` — added `notifyBookingConfirmed` / `notifyBookingWaitlisted`
-  - `app/api/bookings/cancel/route.ts` — added `notifyWaitlistPromoted` in waitlist promotion block
-  - `middleware.ts` — added `sw.js` to matcher exclusion (fixed SW redirect bug)
-  - Commit: `b2ce056` on main
-- **✅ Push Notifications Phase 1d — Lift PR detection** (partial, benchmark bug carried to Session 134)
-  - NEW: `app/api/lift-records/route.ts` — POST handler with PR detection. TESTED + WORKING
-  - `components/athlete/AthletePageLiftsTab.tsx` — insert path migrated to `authFetch('/api/lift-records')`
+**Completed (2026-02-17 Sessions 133-134 - Opus 4.6):**
+- **✅ Push Notifications Phases 1c + 1d COMPLETE** — Booking + PR notifications all working
 
 **Completed (2026-02-17 Sessions 131-132 - Opus 4.6):**
 - **✅ Push Notifications Phase 1b — COMPLETE + FCM BUG FIXED**
-- Phase 1b: WOD publish notifications, bell icon on athlete + book pages, all 5 notification functions in `lib/notifications.ts`
-- FCM bug: Chrome's stale FCM connection caused 201-accepted-but-never-delivered. Chrome update/restart fixed it.
-- SW improved: handles null `event.data` gracefully (was silently dropping). Debug code cleaned up.
 
 **Completed (2026-02-16 Session 130 - Opus 4.6):**
 - **✅ Push Notifications Phase 1a (Infrastructure)**
-- Web Push API with VAPID keys, 10 new files, 3 DB tables
 
-**Completed (2026-02-16 Session 129 - Opus 4.6):**
-- **✅ Session Management Modal mobile optimization + Color contrast audit (#10 COMPLETE)**
+**Completed (2026-02-16 Sessions 128-129 - Opus 4.6):**
+- **✅ Stray record cleanup + Session Management Mobile + Color contrast audit**
 
-**Completed (2026-02-16 Session 128 - Opus 4.6):**
-- **✅ Stray record cleanup** — Deleted 33 stray `wod_section_results`
-
-**Older Sessions (57-123):**
+**Older Sessions (57-127):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -142,7 +132,8 @@ See `project-history/` folder for detailed implementation history
 - ✅ #1 Social reactions (fist bumps) — DONE (Session 104)
 - ✅ #2 Per-workout leaderboard — DONE (Session 104)
 - ✅ #3 Push notifications — All phases DONE (Sessions 130-134). Booking, WOD publish, PR notifications all working.
-- Remaining: workout intent/stimulus notes, at-risk member alerts, workout timer, % calculator, badges/streaks
+- ✅ #7 Workout timer — DONE (Session 135). 5 modes, audio beeps, fullscreen mobile.
+- Remaining: workout intent/stimulus notes, at-risk member alerts, % calculator, badges/streaks
 - See: `Chris Notes/session-103-code-review-findings.md` for full ranked list
 
 **Other Known Issues:**
