@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 21.0
-**Updated:** 2026-02-18 (Session 136 - Timer Audio Cleanup)
+**Version:** 22.0
+**Updated:** 2026-02-18 (Session 137 - Intent/Stimulus Notes + Web-Push Fixes)
 
 ---
 
@@ -80,20 +80,23 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-18 Session 137 - Opus 4.6):**
+- **✅ Intent/Stimulus Notes (Feature #4) IMPLEMENTED** — Coach can add per-section intent notes + toggle visibility to athletes
+  - `intent_notes` + `show_intent_to_athletes` fields added to WODSection interface (JSONB, zero migration)
+  - Coach editor: amber textarea + toggle per section in WODSectionComponent.tsx
+  - Athlete view: amber callout in AthletePageWorkoutsTab.tsx (only when toggled on)
+  - Publish modal: intent preview with "(visible to athletes)" indicator
+- **Web-push bug fixes:** installed missing `web-push` package, guarded VAPID init, unblock instructions for denied permissions
+- **Known issue:** Push notifications not delivering on Mimi profile (works on Chris) — likely stale subscription
+
 **Completed (2026-02-18 Session 136 - Opus 4.6):**
-- **✅ Timer Audio Refactor** — Replaced per-beep oscillator creation with single persistent oscillator + gain gate
-  - Tried: gain reduction, DynamicsCompressorNode, pre-generated AudioBuffers, silent keep-alive loop, persistent oscillator
-  - Final architecture: single OscillatorNode created on first user tap, gain modulated to play/mute
-  - **Known issue:** Intermittent mobile-only distortion persists — deferred to post-deploy (monitor user reports)
+- **✅ Timer Audio Refactor** — Persistent oscillator + gain gate architecture
 
 **Completed (2026-02-18 Session 135 - Opus 4.6):**
 - **✅ Workout Timer — Feature #7 IMPLEMENTED** — 5 modes, fullscreen mobile, audio beeps, 5s countdown
 
-**Completed (2026-02-17 Sessions 133-134 - Opus 4.6):**
-- **✅ Push Notifications Phases 1c + 1d COMPLETE** — Booking + PR notifications all working
-
-**Completed (2026-02-17 Sessions 131-132 - Opus 4.6):**
-- **✅ Push Notifications Phase 1b — COMPLETE + FCM BUG FIXED**
+**Completed (2026-02-17 Sessions 131-134 - Opus 4.6):**
+- **✅ Push Notifications Phases 1a-1d COMPLETE** — All notification types working
 
 **Completed (2026-02-16 Sessions 128-130 - Opus 4.6):**
 - **✅ Push Notifications Phase 1a + Stray record cleanup + Session Management Mobile + Color contrast audit**
@@ -127,9 +130,13 @@ See `project-history/` folder for detailed implementation history
 - ✅ #1 Social reactions (fist bumps) — DONE (Session 104)
 - ✅ #2 Per-workout leaderboard — DONE (Session 104)
 - ✅ #3 Push notifications — All phases DONE (Sessions 130-134). Booking, WOD publish, PR notifications all working.
+- ✅ #4 Workout intent/stimulus notes — DONE (Session 137). Per-section notes with athlete visibility toggle.
 - ✅ #7 Workout timer — DONE (Sessions 135-136). 5 modes, persistent oscillator audio, fullscreen mobile. Mobile distortion deferred.
-- Remaining: workout intent/stimulus notes, at-risk member alerts, % calculator, badges/streaks
+- Remaining: at-risk member alerts, % calculator, badges/streaks
 - See: `Chris Notes/session-103-code-review-findings.md` for full ranked list
+
+**Push Notification Issues:**
+- Mimi profile: notifications not delivering (works on Chris profile) — likely stale browser subscription or Chrome FCM connection issue (same as Session 132)
 
 **Other Known Issues:**
 - **✅ ~~Leaderboard scaling bug~~ — FIXED (Sessions 125-127). Root cause: stray records from save bug. Fix: booking filter + tie-breaking + 33 stray records deleted.**
@@ -191,8 +198,11 @@ npm run restore 2025-12-06  # Restore specific date
 **Google Calendar fix:**
 - Fix stale `workout_type_id` in JSONB sections (Ghost workouts + scan for others)
 
+**Session 137 Follow-up:**
+- Test intent/stimulus notes end-to-end (save, reload, publish, athlete view)
+- Debug push notification delivery on Mimi profile (stale subscription suspected)
+
 **Features (from competitor analysis):**
-- #4 Workout intent/stimulus notes per section (low effort, high value)
 - #5 At-risk member alerts dashboard (already have booking data)
 - #7 Auto percentage calculator from athlete's 1RM
 

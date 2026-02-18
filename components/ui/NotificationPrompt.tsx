@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Bell, BellOff, X } from 'lucide-react';
+import { Bell, BellOff, X, Send } from 'lucide-react';
 import { toast } from 'sonner';
+import { authFetch } from '@/lib/auth-fetch';
 import {
   usePushNotifications,
   type NotificationPreferences,
@@ -117,7 +118,30 @@ export function NotificationPrompt() {
               )}
             </div>
 
-            <div className="mt-3 border-t border-gray-100 pt-3">
+            <div className="mt-3 flex gap-2 border-t border-gray-100 pt-3">
+              <button
+                onClick={async () => {
+                  try {
+                    const res = await authFetch('/api/notifications/test', { method: 'POST' });
+                    const data = await res.json();
+                    console.log('Push test diagnostics:', data);
+                    const sendResults = data.sendResults || [];
+                    const ok = sendResults.some((r: { status: string }) => r.status === 'OK');
+                    if (ok) {
+                      toast.success('Push sent (check console for details)');
+                    } else {
+                      toast.error(`Push failed: ${data.result || sendResults[0]?.message || 'unknown'}`);
+                    }
+                  } catch {
+                    toast.error('Failed to send test');
+                  }
+                }}
+                className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50"
+                aria-label="Send test notification"
+              >
+                <Send className="h-4 w-4" />
+                Send test
+              </button>
               <button
                 onClick={async () => {
                   const ok = await unsubscribe();
@@ -127,10 +151,10 @@ export function NotificationPrompt() {
                   }
                 }}
                 disabled={loading}
-                className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+                className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50"
               >
                 <BellOff className="h-4 w-4" />
-                Disable all notifications
+                Disable
               </button>
             </div>
           </div>

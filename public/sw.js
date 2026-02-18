@@ -57,6 +57,21 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-self.addEventListener('pushsubscriptionchange', () => {
-  // Browser rotated push credentials — user needs to re-subscribe
+self.addEventListener('pushsubscriptionchange', (event) => {
+  // Browser rotated push credentials — auto-re-subscribe
+  event.waitUntil(
+    self.registration.pushManager
+      .subscribe(event.oldSubscription?.options || { userVisibleOnly: true })
+      .then((newSub) =>
+        fetch('/api/notifications/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            subscription: newSub.toJSON(),
+            userAgent: 'sw-auto-resubscribe',
+          }),
+        })
+      )
+      .catch((err) => console.error('pushsubscriptionchange re-subscribe failed:', err))
+  );
 });

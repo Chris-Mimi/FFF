@@ -60,6 +60,17 @@ export function usePushNotifications() {
         const registration = await navigator.serviceWorker.ready;
         const subscription = await registration.pushManager.getSubscription();
         setIsSubscribed(!!subscription);
+
+        // Auto-refresh: re-POST current subscription to keep DB keys fresh
+        if (subscription) {
+          authFetch('/api/notifications/subscribe', {
+            method: 'POST',
+            body: JSON.stringify({
+              subscription: subscription.toJSON(),
+              userAgent: navigator.userAgent,
+            }),
+          }).catch(() => {/* silent refresh */});
+        }
       } catch {
         // Service worker not ready yet
       }
