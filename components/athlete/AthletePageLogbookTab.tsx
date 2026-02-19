@@ -11,6 +11,7 @@ import { useAthleteNavigation } from '@/hooks/athlete/useAthleteNavigation';
 import { usePhotoHandling } from '@/hooks/athlete/usePhotoHandling';
 import { useLiftManagement } from '@/hooks/athlete/useLiftManagement';
 import { useBenchmarkManagement } from '@/hooks/athlete/useBenchmarkManagement';
+import { useAthleteLiftPRs, roundToPlate } from '@/hooks/athlete/useAthleteLiftPRs';
 import { formatLocalDate, getPublishedSections } from '@/utils/logbook-utils';
 import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
 import { supabase } from '@/lib/supabase';
@@ -65,6 +66,9 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
     showPhotoModal,
     setShowPhotoModal,
   } = state;
+
+  // Best 1RM per lift for auto percentage calculator
+  const best1RMMap = useAthleteLiftPRs(userId);
 
   // Use extracted data hooks
   const { workouts, workoutLogs, loading, setWorkoutLogs } = useLogbookData({
@@ -456,13 +460,29 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                                           {(() => {
                                             const percentages = lift.variable_sets.map(s => s.percentage_1rm);
                                             const allHavePercentages = percentages.every(p => p !== undefined && p !== null);
-                                            return allHavePercentages ? (
-                                              <div>@ {percentages.join('-')}%</div>
-                                            ) : null;
+                                            if (!allHavePercentages) return null;
+                                            const athlete1RM = best1RMMap[lift.name];
+                                            return (
+                                              <div>
+                                                @ {percentages.join('-')}%
+                                                {athlete1RM ? (
+                                                  <span className='text-blue-600 ml-1'>
+                                                    ({percentages.map(p => roundToPlate((p as number) / 100 * athlete1RM)).join('-')} kg)
+                                                  </span>
+                                                ) : null}
+                                              </div>
+                                            );
                                           })()}
                                         </>
                                       ) : (
-                                        <>≡ {formatLift(lift)}</>
+                                        <>
+                                          ≡ {formatLift(lift)}
+                                          {lift.percentage_1rm && best1RMMap[lift.name] ? (
+                                            <span className='text-blue-600 ml-1 font-normal'>
+                                              ({roundToPlate(lift.percentage_1rm / 100 * best1RMMap[lift.name])} kg)
+                                            </span>
+                                          ) : null}
+                                        </>
                                       )}
                                     </div>
 

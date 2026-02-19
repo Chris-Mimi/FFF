@@ -84,8 +84,9 @@ export function useShare() {
       const blob = await res.blob();
       const file = new File([blob], 'forge-result.png', { type: 'image/png' });
 
-      // Share or download
-      if (navigator.canShare?.({ files: [file] })) {
+      // Share or download — only use Web Share API on mobile (desktop share sheet lacks "save file")
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (isMobile && navigator.canShare?.({ files: [file] })) {
         await navigator.share({ files: [file] });
         toast.success('Shared!');
       } else {

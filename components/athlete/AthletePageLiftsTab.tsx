@@ -511,7 +511,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                                         </g>
                                       );
                                     }} padding={{ left: 20, right: 20 }} interval={0} />
-                                    <YAxis width={35} tick={{ fontSize: 10 }} />
+                                    <YAxis width={35} tick={{ fontSize: 10 }} domain={[(min: number) => Math.floor(min * 0.9), (max: number) => Math.ceil(max * 1.05)]} />
                                     <Tooltip
                                       isAnimationActive={false}
                                       cursor={{ stroke: '#aaa', strokeWidth: 1.5 }}
@@ -757,7 +757,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                       </g>
                     );
                   }} padding={{ left: 20, right: 20 }} interval={0} />
-                  <YAxis width={35} tick={{ fill: '#f3f4f6', fontSize: 10 }} />
+                  <YAxis width={35} tick={{ fill: '#f3f4f6', fontSize: 10 }} domain={[(min: number) => Math.floor(min * 0.9), (max: number) => Math.ceil(max * 1.05)]} />
                   <Tooltip
                     cursor={{ stroke: '#999', strokeWidth: 1.5 }}
                     isAnimationActive={false}

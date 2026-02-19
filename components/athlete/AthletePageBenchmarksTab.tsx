@@ -562,7 +562,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                             </g>
                           );
                         }} padding={{ left: 20, right: 20 }} interval={0} />
-                        <YAxis hide />
+                        <YAxis hide domain={[(min: number) => Math.floor(min * 0.9), (max: number) => Math.ceil(max * 1.05)]} />
                         <Tooltip
                           isAnimationActive={false}
                           cursor={{ stroke: '#aaa', strokeWidth: 1.5 }}
@@ -795,7 +795,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                       </g>
                     );
                   }} padding={{ left: 20, right: 20 }} interval={0} />
-                  <YAxis tick={{ fill: '#f3f4f6', fontSize: 10 }} width={35} />
+                  <YAxis tick={{ fill: '#f3f4f6', fontSize: 10 }} width={35} domain={[(min: number) => Math.floor(min * 0.9), (max: number) => Math.ceil(max * 1.05)]} />
                   <Tooltip
                     isAnimationActive={false}
                     cursor={{ stroke: '#999', strokeWidth: 1.5 }}

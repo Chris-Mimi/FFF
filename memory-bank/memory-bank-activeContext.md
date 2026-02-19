@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 26.0
-**Updated:** 2026-02-19 (Session 142 - Share Card & Login Polish)
+**Version:** 27.0
+**Updated:** 2026-02-19 (Session 143 - % Calculator & Chart Scaling)
 
 ---
 
@@ -80,14 +80,14 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-19 Session 143 - Opus 4.6):**
+- **✅ Auto % Calculator (Feature #7) IMPLEMENTED** — Shows computed kg next to lift percentages in athlete logbook
+- **✅ Progress Chart Scaling Fix** — Y-axis now zooms into data range (was starting at 0, flattening progress)
+- **✅ Desktop Share Fix** — Skip Web Share API on desktop Mac (no save option), use File System Access API instead
+- **✅ Installed missing `html-to-image` dependency** (added in Session 141, not installed on this profile)
+
 **Completed (2026-02-19 Session 142 - Opus 4.6):**
-- **✅ Share Card & Login Page Polish** — Logo/branding improvements
-  - ShareCard: Removed redundant "THE FORGE" / "FUNCTIONAL FITNESS" text, replaced with enlarged centred logo (320px)
-  - ShareCard: Benchmark names in curly quotes, larger badge/sub-label/date text
-  - Login page: Replaced text with centred transparent logo image (220px)
-  - useShare.ts: Now loads full branding logo (`logo-dark.png`), File System Access API for desktop save-to-file
-  - New public assets: `logo.png` (transparent), `logo-dark.png` (transparent, for dark backgrounds)
-  - Next session: Add custom background image to share card
+- **✅ Share Card & Login Page Polish** — Logo/branding, desktop save-to-file
 
 **Completed (2026-02-19 Session 141 - Opus 4.6):**
 - **✅ Share to Social Media (Feature #9) IMPLEMENTED** — Branded image card sharing
@@ -96,12 +96,9 @@ Social Tables
 - **✅ At-Risk Member Alerts (Feature #5) IMPLEMENTED** — New tab on Members page
 
 **Completed (2026-02-19 Session 139 - Opus 4.6):**
-- **✅ TV Display Feature IMPLEMENTED** — Dark-themed `/tv/[id]` page, large fonts, per-section zoom, Monitor chip on cards
+- **✅ TV Display Feature IMPLEMENTED** — Dark-themed `/tv/[id]` page, large fonts, per-section zoom
 
-**Completed (2026-02-18 Session 138 - Opus 4.6):**
-- **✅ Push Notification Stale FCM Fix** — Diagnosed FCM 201-but-no-delivery bug on Mimi profile
-
-**Older Sessions (57-137):**
+**Older Sessions (57-138):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -135,7 +132,8 @@ See `project-history/` folder for detailed implementation history
 - ✅ #5 At-risk member alerts — DONE (Session 140). At-Risk tab on Members page with last attended date.
 - ✅ #8 TV Display — DONE (Session 139). Dark theme, large fonts, per-section zoom, Monitor chip on cards.
 - ✅ #9 Share to social media — DONE (Session 141). Branded image cards from Records + Leaderboard.
-- Remaining: % calculator, badges/streaks
+- ✅ #7 Auto % calculator from 1RM — DONE (Session 143). Computed kg in logbook lift badges.
+- Remaining: badges/streaks
 - See: `Chris Notes/session-103-code-review-findings.md` for full ranked list
 
 **Push Notification Issues:**
