@@ -50,16 +50,16 @@ WODIFY, SugarWOD, Beyond the Whiteboard (BTWB), Zen Planner, PushPress, Wodboard
 | ✅ | 2 | **Per-workout leaderboard** | Medium | Very High |
 | ✅ | 3 | **Push notifications** (WOD posted, PR, booking reminders) | High | Very High |
 | ✅ | 4 | **Workout intent/stimulus notes + scaling options** | Low | High |
-| ⬜ | 5 | **At-risk member alerts** (no attendance for X days) | Low-Med | High |
+| ✅ | 5 | **At-risk member alerts** (no attendance for X days) | Low-Med | High |
 | ✅ | 6 | **Built-in workout timer** (AMRAP/EMOM/For Time) | Medium | Medium |
 | ⬜ | 7 | **Auto percentage calculator** from athlete's 1RM | Low-Med | High |
 | ⬜ | 8 | **Achievement badges/streaks** | Medium | Medium |
-| ⬜ | 9 | **Athlete notes + result photos** on logged workouts | Low | Medium |
+| ✅ | 9 | **Share to social media** (branded image card from results) | Low | Medium |
 | ⬜ | 10 | **Movement demo videos** linked in workouts | Low (code) | Medium |
 
 ### Quick Wins (Low effort, high value)
 - **#4 Workout intent/stimulus notes** — Add structured "Intent/Stimulus" field + scaling options per workout section
-- **#9 Athlete notes + result photos** — Add optional notes/photo fields to workout result entries (already have upload infra)
+- **#9 Share to social media** — ✅ DONE (Session 141). Branded share cards from PR records + leaderboard via html-to-image + Web Share API
 - **#10 Movement demo videos** — Add video_url to exercises table (already exists!), display on athlete workout view
 
 ### Medium Effort, Very High Impact

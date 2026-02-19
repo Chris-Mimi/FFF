@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, Trophy } from 'lucide-react';
 import FistBumpButton from './FistBumpButton';
+import ShareButton from './ShareButton';
 import { useReactions } from '@/hooks/athlete/useReactions';
 import {
   detectScoringType,
@@ -790,14 +791,36 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
                           </td>
                         )}
                         <td className='px-3 py-2.5 text-right'>
-                          <FistBumpButton
-                            targetType={reactionTargetType}
-                            targetId={entry.id}
-                            count={reaction.count}
-                            userReacted={reaction.userReacted}
-                            reactors={reaction.reactors}
-                            onToggle={toggleReaction}
-                          />
+                          <div className='flex items-center justify-end gap-1'>
+                            {isMe && (
+                              <ShareButton
+                                data={{
+                                  type: selectedItem?.type === 'lift' ? 'lift'
+                                    : (selectedItem?.type === 'benchmark' || selectedItem?.type === 'forge_benchmark') ? 'benchmark'
+                                    : 'wod_section',
+                                  athleteName: entry.memberName,
+                                  date: entry.resultDate || mondayStr,
+                                  resultLabel: selectedItem?.label || '',
+                                  resultValue: isBenchmarkItem ? formatBenchmarkResult(entry) : formatResult(entry, activeScoringType),
+                                  resultSubLabel: activeScoringType === 'time' ? 'For Time'
+                                    : activeScoringType === 'max_time' ? 'Max Time'
+                                    : activeScoringType === 'rounds_reps' ? 'AMRAP'
+                                    : activeScoringType === 'weight' ? 'Max Load'
+                                    : undefined,
+                                  isPR: entry.rank === 1,
+                                  scalingLevel: entry.scalingLevel,
+                                }}
+                              />
+                            )}
+                            <FistBumpButton
+                              targetType={reactionTargetType}
+                              targetId={entry.id}
+                              count={reaction.count}
+                              userReacted={reaction.userReacted}
+                              reactors={reaction.reactors}
+                              onToggle={toggleReaction}
+                            />
+                          </div>
                         </td>
                       </tr>
                     );
@@ -1004,14 +1027,30 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
                       )}
                     </td>
                     <td className='px-3 py-2.5 text-right'>
-                      <FistBumpButton
-                        targetType='benchmark_result'
-                        targetId={entry.id}
-                        count={reaction.count}
-                        userReacted={reaction.userReacted}
-                        reactors={reaction.reactors}
-                        onToggle={toggleReaction}
-                      />
+                      <div className='flex items-center justify-end gap-1'>
+                        {isMe && selectedBenchmark && (
+                          <ShareButton
+                            data={{
+                              type: 'benchmark',
+                              athleteName: entry.memberName,
+                              date: entry.resultDate || '',
+                              resultLabel: selectedBenchmark.name,
+                              resultValue: formatBenchmarkResult(entry),
+                              resultSubLabel: selectedBenchmark.type,
+                              isPR: entry.rank === 1,
+                              scalingLevel: entry.scalingLevel,
+                            }}
+                          />
+                        )}
+                        <FistBumpButton
+                          targetType='benchmark_result'
+                          targetId={entry.id}
+                          count={reaction.count}
+                          userReacted={reaction.userReacted}
+                          reactors={reaction.reactors}
+                          onToggle={toggleReaction}
+                        />
+                      </div>
                     </td>
                   </tr>
                 );

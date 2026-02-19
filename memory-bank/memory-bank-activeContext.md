@@ -80,13 +80,15 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-19 Session 141 - Opus 4.6):**
+- **✅ Share to Social Media (Feature #9) IMPLEMENTED** — Branded image card sharing
+  - `html-to-image` generates 1080x1350 dark-themed PNG with gym branding
+  - Web Share API on mobile (native share sheet), download fallback on desktop
+  - Share buttons on Records tab (all 3 PR types) + Leaderboard (own row only)
+  - New files: `ShareCard.tsx`, `ShareButton.tsx`, `useShare.ts`
+
 **Completed (2026-02-19 Session 140 - Opus 4.6):**
 - **✅ At-Risk Member Alerts (Feature #5) IMPLEMENTED** — New tab on Members page
-  - Orange "At-Risk" tab with count badge on Members page
-  - Filters active members with 0 attendance + regular membership types (member/ten_card/wellpass/hansefit)
-  - "Last attended: X days ago" display via new `get_members_last_attendance` RPC
-  - Timeframe-aware (7/30/365/all days)
-  - New DB function: `database/add-last-attendance-function.sql`
 
 **Completed (2026-02-19 Session 139 - Opus 4.6):**
 - **✅ TV Display Feature IMPLEMENTED** — Dark-themed `/tv/[id]` page, large fonts, per-section zoom, Monitor chip on cards
@@ -96,9 +98,6 @@ Social Tables
 
 **Completed (2026-02-18 Session 137 - Opus 4.6):**
 - **✅ Intent/Stimulus Notes (Feature #4) IMPLEMENTED** — Per-section notes with athlete visibility toggle
-
-**Completed (2026-02-18 Sessions 135-136 - Opus 4.6):**
-- **✅ Workout Timer — Feature #7 IMPLEMENTED** — 5 modes, persistent oscillator audio, fullscreen mobile
 
 **Older Sessions (57-130):**
 See `project-history/` folder for detailed implementation history
@@ -133,6 +132,7 @@ See `project-history/` folder for detailed implementation history
 - ✅ #7 Workout timer — DONE (Sessions 135-136). 5 modes, persistent oscillator audio, fullscreen mobile. Mobile distortion deferred.
 - ✅ #5 At-risk member alerts — DONE (Session 140). At-Risk tab on Members page with last attended date.
 - ✅ #8 TV Display — DONE (Session 139). Dark theme, large fonts, per-section zoom, Monitor chip on cards.
+- ✅ #9 Share to social media — DONE (Session 141). Branded image cards from Records + Leaderboard.
 - Remaining: % calculator, badges/streaks
 - See: `Chris Notes/session-103-code-review-findings.md` for full ranked list
 

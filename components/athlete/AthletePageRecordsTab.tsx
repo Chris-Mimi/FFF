@@ -4,6 +4,7 @@
 import { supabase } from '@/lib/supabase';
 import { ChevronDown, ChevronRight, Dumbbell, Flame, Target, Trophy } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import ShareButton from './ShareButton';
 
 interface BenchmarkResult {
   id: string;
@@ -296,19 +297,31 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
                   <div key={pr.id} className='border border-teal-300 rounded-lg p-4 bg-gradient-to-br from-teal-100 to-teal-200'>
                     <div className='flex items-start justify-between mb-2'>
                       <h4 className='font-bold text-gray-900'>{pr.benchmark_name}</h4>
-                      <span
-                        className={`text-xs px-2 py-1 rounded ${
-                          pr.scaling_level === 'Rx'
-                            ? 'bg-red-600 text-white'
-                            : pr.scaling_level === 'Sc1'
-                            ? 'bg-blue-800 text-white'
-                            : pr.scaling_level === 'Sc2'
-                            ? 'bg-blue-500 text-white'
-                            : 'bg-blue-400 text-white'
-                        }`}
-                      >
-                        {pr.scaling_level}
-                      </span>
+                      <div className='flex items-center gap-1'>
+                        <ShareButton
+                          data={{
+                            type: 'benchmark',
+                            date: pr.result_date,
+                            resultLabel: pr.benchmark_name,
+                            resultValue: pr.result_value,
+                            isPR: true,
+                            scalingLevel: pr.scaling_level,
+                          }}
+                        />
+                        <span
+                          className={`text-xs px-2 py-1 rounded ${
+                            pr.scaling_level === 'Rx'
+                              ? 'bg-red-600 text-white'
+                              : pr.scaling_level === 'Sc1'
+                              ? 'bg-blue-800 text-white'
+                              : pr.scaling_level === 'Sc2'
+                              ? 'bg-blue-500 text-white'
+                              : 'bg-blue-400 text-white'
+                          }`}
+                        >
+                          {pr.scaling_level}
+                        </span>
+                      </div>
                     </div>
                     <div className='flex items-center justify-between'>
                       <p className='text-lg font-bold text-[#178da6]'>{pr.result_value}</p>
@@ -346,19 +359,31 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
                   <div key={pr.id} className='border border-cyan-300 rounded-lg p-4 bg-gradient-to-br from-cyan-100 to-cyan-200'>
                     <div className='flex items-start justify-between mb-2'>
                       <h4 className='font-bold text-gray-900'>{pr.benchmark_name}</h4>
-                      <span
-                        className={`text-xs px-2 py-1 rounded ${
-                          pr.scaling_level === 'Rx'
-                            ? 'bg-red-600 text-white'
-                            : pr.scaling_level === 'Sc1'
-                            ? 'bg-blue-800 text-white'
-                            : pr.scaling_level === 'Sc2'
-                            ? 'bg-blue-500 text-white'
-                            : 'bg-blue-400 text-white'
-                        }`}
-                      >
-                        {pr.scaling_level}
-                      </span>
+                      <div className='flex items-center gap-1'>
+                        <ShareButton
+                          data={{
+                            type: 'benchmark',
+                            date: pr.result_date,
+                            resultLabel: pr.benchmark_name,
+                            resultValue: pr.result_value,
+                            isPR: true,
+                            scalingLevel: pr.scaling_level,
+                          }}
+                        />
+                        <span
+                          className={`text-xs px-2 py-1 rounded ${
+                            pr.scaling_level === 'Rx'
+                              ? 'bg-red-600 text-white'
+                              : pr.scaling_level === 'Sc1'
+                              ? 'bg-blue-800 text-white'
+                              : pr.scaling_level === 'Sc2'
+                              ? 'bg-blue-500 text-white'
+                              : 'bg-blue-400 text-white'
+                          }`}
+                        >
+                          {pr.scaling_level}
+                        </span>
+                      </div>
                     </div>
                     <div className='flex items-center justify-between'>
                       <p className='text-lg font-bold text-[#178da6]'>{pr.result_value}</p>
@@ -396,9 +421,21 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
                   <div key={pr.id} className='border border-sky-300 rounded-lg p-4 bg-gradient-to-br from-[#1fe2dcff] to-[#81edeaff]'>
                     <div className='flex items-start justify-between mb-2'>
                       <h4 className='font-bold text-gray-900'>{pr.lift_name}</h4>
-                      <span className='text-xs px-2 py-1 rounded bg-[#a1f0e8ff] text-gray-700'>
-                        {pr.rep_max_type || pr.rep_scheme || '—'}
-                      </span>
+                      <div className='flex items-center gap-1'>
+                        <ShareButton
+                          data={{
+                            type: 'lift',
+                            date: pr.lift_date,
+                            resultLabel: pr.lift_name,
+                            resultValue: `${pr.weight_kg}kg`,
+                            resultSubLabel: pr.rep_max_type || pr.rep_scheme || undefined,
+                            isPR: true,
+                          }}
+                        />
+                        <span className='text-xs px-2 py-1 rounded bg-[#a1f0e8ff] text-gray-700'>
+                          {pr.rep_max_type || pr.rep_scheme || '—'}
+                        </span>
+                      </div>
                     </div>
                     <div className='flex items-center justify-between'>
                       <p className='text-lg font-bold text-[#178da6]'>
