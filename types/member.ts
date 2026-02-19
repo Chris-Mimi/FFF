@@ -1,4 +1,4 @@
-export type MemberStatus = 'pending' | 'active' | 'blocked' | 'subscriptions';
+export type MemberStatus = 'pending' | 'active' | 'blocked' | 'subscriptions' | 'at-risk';
 
 export type MembershipType = 'member' | 'drop_in' | 'ten_card' | 'wellpass' | 'hansefit' | 'trial';
 
@@ -23,6 +23,7 @@ export interface Member {
   ten_card_total?: number;
   ten_card_expiry_date?: string | null;
   attendance_count?: number;
+  last_attendance_date?: string | null;
   date_of_birth: string | null;
   class_types: ClassType[];
   gender: 'M' | 'F' | null;

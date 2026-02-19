@@ -13,6 +13,7 @@ export function useMemberData() {
   const [ageFilter, setAgeFilter] = useState<'all' | 'adults' | 'kids' | '<7' | '7-11' | '12-16' | '7-16'>('all');
   const [attendanceTimeframe, setAttendanceTimeframe] = useState<7 | 30 | 365 | 'all'>('all');
   const [pendingCount, setPendingCount] = useState(0);
+  const [atRiskCount, setAtRiskCount] = useState(0);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -24,6 +25,7 @@ export function useMemberData() {
     checkAuth();
     fetchMembersWithAttendance(activeTab, attendanceTimeframe);
     fetchPendingCount();
+    fetchAtRiskCount(attendanceTimeframe);
   }, [activeTab, attendanceTimeframe, router]);
 
   const fetchPendingCount = async () => {
@@ -40,6 +42,49 @@ export function useMemberData() {
     }
   };
 
+  const fetchAtRiskCount = async (timeframe: 7 | 30 | 365 | 'all') => {
+    try {
+      const daysParam = timeframe === 'all' ? null : timeframe;
+      const regularTypes = ['member', 'ten_card', 'wellpass', 'hansefit'];
+
+      const { data: activeMembers } = await supabase
+        .from('members')
+        .select('id, membership_types')
+        .eq('status', 'active');
+
+      if (!activeMembers || activeMembers.length === 0) {
+        setAtRiskCount(0);
+        return;
+      }
+
+      // Filter to regular membership types
+      const regularMembers = activeMembers.filter(m =>
+        m.membership_types?.some((type: string) => regularTypes.includes(type))
+      );
+
+      if (regularMembers.length === 0) {
+        setAtRiskCount(0);
+        return;
+      }
+
+      const memberIds = regularMembers.map(m => m.id);
+
+      const { data: attendanceData } = await supabase.rpc(
+        'get_all_members_attendance',
+        { p_member_ids: memberIds, p_days_back: daysParam }
+      );
+
+      const attendedIds = new Set(
+        (attendanceData || []).map((row: { member_id: string }) => row.member_id)
+      );
+
+      const count = regularMembers.filter(m => !attendedIds.has(m.id)).length;
+      setAtRiskCount(count);
+    } catch (error) {
+      console.error('Error fetching at-risk count:', error);
+    }
+  };
+
   const fetchMembersWithAttendance = async (status: MemberStatus, timeframe: 7 | 30 | 365 | 'all') => {
     const daysParam = timeframe === 'all' ? null : timeframe;
     setLoading(true);
@@ -50,6 +95,8 @@ export function useMemberData() {
         query = query
           .eq('status', 'active')
           .in('athlete_subscription_status', ['trial', 'active']);
+      } else if (status === 'at-risk') {
+        query = query.eq('status', 'active');
       } else {
         query = query.eq('status', status);
       }
@@ -81,10 +128,41 @@ export function useMemberData() {
         }
       }
 
-      const membersWithAttendance = (membersData || []).map(member => ({
+      // Fetch last attendance dates for at-risk tab
+      let lastAttendanceMap: Record<string, string> = {};
+      if (status === 'at-risk' && memberIds.length > 0) {
+        const { data: lastAttendanceData, error: lastAttendanceError } = await supabase.rpc(
+          'get_members_last_attendance',
+          { p_member_ids: memberIds }
+        );
+
+        if (!lastAttendanceError && lastAttendanceData) {
+          lastAttendanceMap = Object.fromEntries(
+            lastAttendanceData.map((row: { member_id: string; last_attendance_date: string }) => [
+              row.member_id,
+              row.last_attendance_date,
+            ])
+          );
+        }
+      }
+
+      let membersWithAttendance = (membersData || []).map(member => ({
         ...member,
         attendance_count: attendanceMap[member.id] || 0,
+        last_attendance_date: lastAttendanceMap[member.id] || null,
       }));
+
+      // Filter at-risk: 0 attendance + regular membership types only
+      if (status === 'at-risk') {
+        const regularTypes = ['member', 'ten_card', 'wellpass', 'hansefit'];
+        membersWithAttendance = membersWithAttendance.filter(member => {
+          const hasZeroAttendance = member.attendance_count === 0;
+          const isRegularMember = member.membership_types?.some(
+            (type: string) => regularTypes.includes(type)
+          );
+          return hasZeroAttendance && isRegularMember;
+        });
+      }
 
       setMembers(membersWithAttendance);
     } catch (error) {
@@ -193,6 +271,7 @@ export function useMemberData() {
     attendanceTimeframe,
     setAttendanceTimeframe,
     pendingCount,
+    atRiskCount,
     membershipCounts,
     refreshData,
     refreshPendingCount,

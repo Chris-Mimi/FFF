@@ -7,7 +7,7 @@ import { useMemberData } from '@/hooks/coach/useMemberData';
 import { useMemberActions } from '@/hooks/coach/useMemberActions';
 import { signOut } from '@/lib/auth';
 import { Member } from '@/types/member';
-import { Check, Clock, LogOut, UserCheck, UserX } from 'lucide-react';
+import { AlertTriangle, Check, Clock, LogOut, UserCheck, UserX } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -33,6 +33,7 @@ export default function CoachMembersPage() {
     attendanceTimeframe,
     setAttendanceTimeframe,
     pendingCount,
+    atRiskCount,
     membershipCounts,
     refreshData,
     refreshPendingCount,
@@ -155,6 +156,24 @@ export default function CoachMembersPage() {
               Subscriptions
             </div>
           </button>
+          <button
+            onClick={() => setActiveTab('at-risk')}
+            className={`px-3 md:px-6 py-2 md:py-3 font-medium transition-colors duration-200 border-b-2 text-sm md:text-base ${
+              activeTab === 'at-risk'
+                ? 'border-orange-500 text-orange-500'
+                : 'border-transparent text-gray-400 hover:text-gray-300'
+            }`}
+          >
+            <div className="flex items-center gap-1 md:gap-2">
+              <AlertTriangle size={16} className="md:w-[18px] md:h-[18px]" />
+              At-Risk
+              {atRiskCount > 0 && activeTab !== 'at-risk' && (
+                <span className="inline-flex items-center justify-center w-4 h-4 md:w-5 md:h-5 text-[10px] md:text-xs font-bold text-white bg-orange-500 rounded-full">
+                  {atRiskCount}
+                </span>
+              )}
+            </div>
+          </button>
         </div>
       </div>
 
@@ -188,6 +207,8 @@ export default function CoachMembersPage() {
               {activeTab === 'pending' && 'No pending member requests'}
               {activeTab === 'active' && 'No active members'}
               {activeTab === 'blocked' && 'No blocked members'}
+              {activeTab === 'subscriptions' && 'No members with subscriptions'}
+              {activeTab === 'at-risk' && 'No at-risk members — everyone is attending!'}
             </p>
           </div>
         ) : filteredMembers.length === 0 ? (

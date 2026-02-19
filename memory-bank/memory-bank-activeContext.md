@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 24.0
-**Updated:** 2026-02-19 (Session 139 - TV Display Feature)
+**Version:** 25.0
+**Updated:** 2026-02-19 (Session 140 - At-Risk Member Alerts)
 
 ---
 
@@ -80,13 +80,16 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-19 Session 140 - Opus 4.6):**
+- **✅ At-Risk Member Alerts (Feature #5) IMPLEMENTED** — New tab on Members page
+  - Orange "At-Risk" tab with count badge on Members page
+  - Filters active members with 0 attendance + regular membership types (member/ten_card/wellpass/hansefit)
+  - "Last attended: X days ago" display via new `get_members_last_attendance` RPC
+  - Timeframe-aware (7/30/365/all days)
+  - New DB function: `database/add-last-attendance-function.sql`
+
 **Completed (2026-02-19 Session 139 - Opus 4.6):**
-- **✅ TV Display Feature IMPLEMENTED** — Dedicated TV-optimized workout display page
-  - New route `app/tv/[id]/page.tsx` — dark background, extra-large typography for gym TV
-  - All sections rendered: lifts (blue), benchmarks (teal), forge benchmarks (cyan), intent notes (amber)
-  - "Coach Only" badge on unpublished sections
-  - Per-section zoom toggle (click header to enlarge further: ⊕/⊖)
-  - Monitor icon chip added to workout cards in CalendarGrid.tsx → opens new tab
+- **✅ TV Display Feature IMPLEMENTED** — Dark-themed `/tv/[id]` page, large fonts, per-section zoom, Monitor chip on cards
 
 **Completed (2026-02-18 Session 138 - Opus 4.6):**
 - **✅ Push Notification Stale FCM Fix** — Diagnosed FCM 201-but-no-delivery bug on Mimi profile
@@ -96,9 +99,6 @@ Social Tables
 
 **Completed (2026-02-18 Sessions 135-136 - Opus 4.6):**
 - **✅ Workout Timer — Feature #7 IMPLEMENTED** — 5 modes, persistent oscillator audio, fullscreen mobile
-
-**Completed (2026-02-17 Sessions 131-134 - Opus 4.6):**
-- **✅ Push Notifications Phases 1a-1d COMPLETE** — All notification types working
 
 **Older Sessions (57-130):**
 See `project-history/` folder for detailed implementation history
@@ -131,8 +131,9 @@ See `project-history/` folder for detailed implementation history
 - ✅ #3 Push notifications — All phases DONE (Sessions 130-134). Booking, WOD publish, PR notifications all working.
 - ✅ #4 Workout intent/stimulus notes — DONE (Session 137). Per-section notes with athlete visibility toggle.
 - ✅ #7 Workout timer — DONE (Sessions 135-136). 5 modes, persistent oscillator audio, fullscreen mobile. Mobile distortion deferred.
+- ✅ #5 At-risk member alerts — DONE (Session 140). At-Risk tab on Members page with last attended date.
 - ✅ #8 TV Display — DONE (Session 139). Dark theme, large fonts, per-section zoom, Monitor chip on cards.
-- Remaining: at-risk member alerts, % calculator, badges/streaks
+- Remaining: % calculator, badges/streaks
 - See: `Chris Notes/session-103-code-review-findings.md` for full ranked list
 
 **Push Notification Issues:**

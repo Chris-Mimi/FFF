@@ -1,6 +1,6 @@
 'use client';
 
-import { Check, Clock, X } from 'lucide-react';
+import { AlertTriangle, Check, Clock, X } from 'lucide-react';
 import {
   MemberStatus,
   MembershipType,
@@ -32,6 +32,23 @@ interface MemberCardProps {
   onOpenTenCard: (member: Member) => void;
 }
 
+function formatLastAttended(dateStr: string): string {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const last = new Date(dateStr);
+  last.setHours(0, 0, 0, 0);
+  const diffMs = today.getTime() - last.getTime();
+  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) return 'Today';
+  if (diffDays === 1) return '1 day ago';
+  if (diffDays < 7) return `${diffDays} days ago`;
+  const weeks = Math.floor(diffDays / 7);
+  if (diffDays < 30) return weeks === 1 ? '1 week ago' : `${weeks} weeks ago`;
+  const months = Math.floor(diffDays / 30);
+  return months === 1 ? '1 month ago' : `${months} months ago`;
+}
+
 export default function MemberCard({
   member,
   activeTab,
@@ -54,6 +71,12 @@ export default function MemberCard({
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
             <h3 className="text-base font-semibold text-white">{member.display_name || member.name}</h3>
+            {activeTab === 'at-risk' && (
+              <span className="px-1.5 py-0.5 bg-orange-500/20 text-orange-300 text-xs rounded-full flex items-center gap-1">
+                <AlertTriangle size={10} />
+                At-Risk
+              </span>
+            )}
             {member.account_type === 'family_member' && (
               <span className="px-1.5 py-0.5 bg-purple-500/20 text-purple-300 text-xs rounded-full">
                 Family
@@ -125,6 +148,16 @@ export default function MemberCard({
                   </span>
                 </div>
               </>
+            )}
+            {activeTab === 'at-risk' && (
+              <div className="md:col-span-2">
+                <span className="text-gray-400">Last attended:</span>{' '}
+                <span className="font-medium text-orange-400">
+                  {member.last_attendance_date
+                    ? formatLastAttended(member.last_attendance_date)
+                    : 'Never attended'}
+                </span>
+              </div>
             )}
           </div>
 

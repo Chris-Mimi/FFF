@@ -22,6 +22,20 @@ Push notifications not delivering on Mimi profile (FCM returns 201 but Chrome ne
 - `app/api/notifications/test/route.ts` — NEW diagnostic endpoint
 - `components/ui/NotificationPrompt.tsx` — "Send test" button + "Disable" button side by side, console diagnostics
 
+### How to Fix (Step-by-Step)
+
+**When push notifications stop delivering (FCM 201 but no Chrome notification):**
+
+1. Open Chrome DevTools on the app (F12)
+2. Go to **Application** tab → **Service Workers** in left sidebar
+3. Click **Unregister** on the existing service worker
+4. **Quit Chrome completely** (Cmd+Q on Mac, not just close the tab)
+5. Reopen Chrome and navigate back to the app
+6. The app will auto-register a fresh SW and create a new FCM subscription
+7. Test: publish a workout or use the "Send test" button in the notification prompt
+
+**Why this happens:** Chrome's persistent FCM connection goes stale. The server sends successfully (201) but Chrome's push channel is dead. This is a **localhost/dev environment issue** — after deployment on a real HTTPS domain, Chrome maintains FCM connections much more reliably.
+
 ### Resolution
 User unregistered SW at `chrome://serviceworker-internals/`, restarted Chrome, re-subscribed. Notifications now working.
 
