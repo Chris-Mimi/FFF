@@ -8,6 +8,7 @@ import LiftsTab from '@/components/coach/LiftsTab';
 import ReferencesTab from '@/components/coach/ReferencesTab';
 import ProgrammingNotesTab from '@/components/coach/ProgrammingNotesTab';
 import TracksTab from '@/components/coach/TracksTab';
+import AchievementsTab from '@/components/coach/AchievementsTab';
 import { getCurrentUser } from '@/lib/auth';
 import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -22,7 +23,7 @@ import { useWorkoutTypesCrud } from '@/hooks/coach/useWorkoutTypesCrud';
 
 export default function BenchmarksLiftsManagementPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'benchmarks' | 'forge' | 'lifts' | 'exercises' | 'references' | 'tracks' | 'notes'>('benchmarks');
+  const [activeTab, setActiveTab] = useState<'benchmarks' | 'forge' | 'lifts' | 'exercises' | 'references' | 'tracks' | 'notes' | 'achievements'>('benchmarks');
   const [loading, setLoading] = useState(true);
 
   // Domain hooks
@@ -194,6 +195,16 @@ export default function BenchmarksLiftsManagementPage() {
           >
             Aids
           </button>
+          <button
+            onClick={() => setActiveTab('achievements')}
+            className={`px-1.5 sm:px-2 md:px-4 py-1 sm:py-1.5 md:py-2 rounded-lg font-medium transition text-[10px] sm:text-xs md:text-base whitespace-nowrap ${
+              activeTab === 'achievements'
+                ? 'bg-amber-500 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            Achievements
+          </button>
         </div>
 
         {/* Tab Content */}
@@ -314,6 +325,8 @@ export default function BenchmarksLiftsManagementPage() {
         )}
 
         {activeTab === 'notes' && <ProgrammingNotesTab />}
+
+        {activeTab === 'achievements' && <AchievementsTab />}
       </div>
 
       {/* Video Modal */}
