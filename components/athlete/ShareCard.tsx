@@ -68,37 +68,15 @@ export default function ShareCard({ data, logoBase64 }: ShareCardProps) {
         boxSizing: 'border-box',
       }}
     >
-      {/* Header: Logo + Gym Name */}
+      {/* Header: Logo (contains gym name) */}
       <div style={{ textAlign: 'center' }}>
         {logoBase64 && (
           <img
             src={logoBase64}
             alt=""
-            style={{ width: 120, height: 120, borderRadius: 24, marginBottom: 24 }}
+            style={{ width: 320, height: 320, objectFit: 'contain' }}
           />
         )}
-        <div
-          style={{
-            fontSize: 48,
-            fontWeight: 800,
-            color: '#ffffff',
-            letterSpacing: 6,
-            lineHeight: 1.2,
-          }}
-        >
-          THE FORGE
-        </div>
-        <div
-          style={{
-            fontSize: 22,
-            fontWeight: 600,
-            color: '#20a5bf',
-            letterSpacing: 8,
-            marginTop: 8,
-          }}
-        >
-          FUNCTIONAL FITNESS
-        </div>
       </div>
 
       {/* Center: Badge + Result */}
@@ -111,10 +89,10 @@ export default function ShareCard({ data, logoBase64 }: ShareCardProps) {
               ? 'linear-gradient(135deg, #f59e0b, #d97706)'
               : 'linear-gradient(135deg, #178da6, #14758c)',
             color: '#ffffff',
-            fontSize: 24,
+            fontSize: 32,
             fontWeight: 700,
-            letterSpacing: 4,
-            padding: '14px 40px',
+            letterSpacing: 5,
+            padding: '18px 52px',
             borderRadius: 50,
             marginBottom: 48,
           }}
@@ -133,7 +111,7 @@ export default function ShareCard({ data, logoBase64 }: ShareCardProps) {
             marginBottom: 20,
           }}
         >
-          {data.resultLabel}
+          {data.type === 'benchmark' ? `\u201C${data.resultLabel}\u201D` : data.resultLabel}
         </div>
 
         {/* Main Result Value */}
@@ -153,10 +131,10 @@ export default function ShareCard({ data, logoBase64 }: ShareCardProps) {
         {data.resultSubLabel && (
           <div
             style={{
-              fontSize: 28,
+              fontSize: 40,
               fontWeight: 600,
               color: '#20a5bf',
-              letterSpacing: 3,
+              letterSpacing: 4,
               textTransform: 'uppercase',
             }}
           >
@@ -203,7 +181,7 @@ export default function ShareCard({ data, logoBase64 }: ShareCardProps) {
         {/* Date */}
         <div
           style={{
-            fontSize: 22,
+            fontSize: 30,
             color: '#64748b',
             fontWeight: 500,
           }}

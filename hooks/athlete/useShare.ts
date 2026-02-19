@@ -16,7 +16,7 @@ let cachedAthleteName: string | null = null;
 
 async function getLogoBase64(): Promise<string> {
   if (cachedLogoBase64) return cachedLogoBase64;
-  const response = await fetch('/icon-192.png');
+  const response = await fetch('/logo-dark.png');
   const blob = await response.blob();
   return new Promise((resolve) => {
     const reader = new FileReader();
@@ -89,12 +89,30 @@ export function useShare() {
         await navigator.share({ files: [file] });
         toast.success('Shared!');
       } else {
-        // Desktop fallback: download
-        const a = document.createElement('a');
-        a.href = dataUrl;
-        a.download = 'forge-result.png';
-        a.click();
-        toast.success('Image downloaded!');
+        // Desktop: try File System Access API (lets user pick save location)
+        if ('showSaveFilePicker' in window) {
+          try {
+            const handle = await (window as unknown as { showSaveFilePicker: (opts: { suggestedName: string; types: { description: string; accept: Record<string, string[]> }[] }) => Promise<FileSystemFileHandle> }).showSaveFilePicker({
+              suggestedName: 'forge-result.png',
+              types: [{ description: 'PNG Image', accept: { 'image/png': ['.png'] } }],
+            });
+            const writable = await handle.createWritable();
+            await writable.write(blob);
+            await writable.close();
+            toast.success('Image saved!');
+          } catch (saveErr: unknown) {
+            // User cancelled save dialog
+            if (saveErr instanceof Error && saveErr.name === 'AbortError') return;
+            throw saveErr;
+          }
+        } else {
+          // Fallback: auto-download
+          const a = document.createElement('a');
+          a.href = dataUrl;
+          a.download = 'forge-result.png';
+          a.click();
+          toast.success('Image downloaded!');
+        }
       }
     } catch (err: unknown) {
       // User cancelling share sheet throws AbortError — not a real error

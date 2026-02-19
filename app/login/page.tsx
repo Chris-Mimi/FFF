@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { signInWithEmail, getUserRole, signOut } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
+import Image from 'next/image';
 import { AlertCircle, Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
@@ -105,9 +106,8 @@ export default function LoginPage() {
   return (
     <div className='min-h-screen bg-gradient-to-br from-teal-700 to-teal-900 flex items-center justify-center p-4'>
       <div className='bg-white rounded-lg shadow-2xl p-8 max-w-md w-full'>
-        <div className='text-center mb-8'>
-          <h1 className='text-4xl font-bold text-gray-800 mb-2'>The Forge</h1>
-          <p className='text-gray-600'>Functional Fitness</p>
+        <div className='flex justify-center mb-8'>
+          <Image src='/logo.png' alt='The Forge Functional Fitness' width={220} height={220} priority />
         </div>
 
         <form onSubmit={handleLogin} className='space-y-6'>

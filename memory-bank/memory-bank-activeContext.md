@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 25.0
-**Updated:** 2026-02-19 (Session 140 - At-Risk Member Alerts)
+**Version:** 26.0
+**Updated:** 2026-02-19 (Session 142 - Share Card & Login Polish)
 
 ---
 
@@ -80,12 +80,17 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-19 Session 142 - Opus 4.6):**
+- **✅ Share Card & Login Page Polish** — Logo/branding improvements
+  - ShareCard: Removed redundant "THE FORGE" / "FUNCTIONAL FITNESS" text, replaced with enlarged centred logo (320px)
+  - ShareCard: Benchmark names in curly quotes, larger badge/sub-label/date text
+  - Login page: Replaced text with centred transparent logo image (220px)
+  - useShare.ts: Now loads full branding logo (`logo-dark.png`), File System Access API for desktop save-to-file
+  - New public assets: `logo.png` (transparent), `logo-dark.png` (transparent, for dark backgrounds)
+  - Next session: Add custom background image to share card
+
 **Completed (2026-02-19 Session 141 - Opus 4.6):**
 - **✅ Share to Social Media (Feature #9) IMPLEMENTED** — Branded image card sharing
-  - `html-to-image` generates 1080x1350 dark-themed PNG with gym branding
-  - Web Share API on mobile (native share sheet), download fallback on desktop
-  - Share buttons on Records tab (all 3 PR types) + Leaderboard (own row only)
-  - New files: `ShareCard.tsx`, `ShareButton.tsx`, `useShare.ts`
 
 **Completed (2026-02-19 Session 140 - Opus 4.6):**
 - **✅ At-Risk Member Alerts (Feature #5) IMPLEMENTED** — New tab on Members page
@@ -96,10 +101,7 @@ Social Tables
 **Completed (2026-02-18 Session 138 - Opus 4.6):**
 - **✅ Push Notification Stale FCM Fix** — Diagnosed FCM 201-but-no-delivery bug on Mimi profile
 
-**Completed (2026-02-18 Session 137 - Opus 4.6):**
-- **✅ Intent/Stimulus Notes (Feature #4) IMPLEMENTED** — Per-section notes with athlete visibility toggle
-
-**Older Sessions (57-130):**
+**Older Sessions (57-137):**
 See `project-history/` folder for detailed implementation history
 
 ---
