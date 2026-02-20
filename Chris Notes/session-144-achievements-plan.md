@@ -117,22 +117,24 @@ export interface AthleteAchievement {
 - Provide a sensible default set of ~20-30 achievements across categories
 - Coach can add/edit/delete freely
 
-### Phase 2: Athlete Achievement Tab (Session 145)
+### Phase 2: Athlete Achievement View + Self-Log (Session 145) — DONE
 
-**Step 5: Athlete "Achievements" tab**
-- File: `app/athlete/page.tsx` — add 'achievements' to TabName + tabs array
-- File: `components/athlete/AthletePageAchievementsTab.tsx` (NEW)
-  - Visual grid grouped by category
-  - Each branch shows tiers: unlocked (highlighted + date) vs locked (greyed out)
-  - Next unlockable tier highlighted differently (available to claim)
-  - Tap unlocked achievement → shows date, who awarded, notes
+**Step 5: Athlete achievements section** — DONE
+- ~~File: `app/athlete/page.tsx` — add 'achievements' to TabName + tabs array~~
+- **Design change:** Embedded as collapsible section in Records tab instead of separate top-level tab (avoids nav crowding)
+- File: `components/athlete/AthletePageAchievementsTab.tsx` (NEW) — self-contained component
+- File: `components/athlete/AthletePageRecordsTab.tsx` (MODIFIED) — imports + renders achievements section
+- Visual grid grouped by category → branch → tiers with progress bar
+- Three states: unlocked (amber + checkmark), next claimable (dashed border), locked (grey + lock)
+- Tap unlocked → detail modal (date, notes, awarded by) with Remove option
+- Dark Ocean Teal background theme matching Records page
 
-**Step 6: Athlete self-log flow**
-- Athlete taps a locked (but next-in-sequence) tier → confirm modal → logs achievement
-- Can only unlock tier N+1 if tier N is already unlocked (sequential progression)
+**Step 6: Athlete self-log flow** — DONE
+- Athlete taps next-in-sequence tier → claim modal with date picker + optional notes
+- Sequential progression enforced (tier N+1 only after tier N unlocked)
 - Date defaults to today, can edit
 
-### Phase 3: Coach Award Flow (Session 145 or 146)
+### Phase 3: Coach Award Flow (Session 146)
 
 **Step 7: Coach awards achievement to athlete**
 - From coach's Members page or a dedicated view
@@ -154,8 +156,8 @@ export interface AthleteAchievement {
 | `app/coach/benchmarks-lifts/page.tsx` | MODIFY (add tab) | 1 |
 | `components/coach/AchievementsTab.tsx` | CREATE | 1 |
 | `components/coach/AchievementDefinitionModal.tsx` | CREATE | 1 |
-| `app/athlete/page.tsx` | MODIFY (add tab) | 2 |
 | `components/athlete/AthletePageAchievementsTab.tsx` | CREATE | 2 |
+| `components/athlete/AthletePageRecordsTab.tsx` | MODIFY (embed achievements) | 2 |
 
 ## Patterns to Reuse
 - **Toolkit tab system:** `app/coach/benchmarks-lifts/page.tsx` — existing tab pattern

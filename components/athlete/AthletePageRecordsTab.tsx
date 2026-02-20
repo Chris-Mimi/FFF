@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { ChevronDown, ChevronRight, Dumbbell, Flame, Target, Trophy } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import ShareButton from './ShareButton';
+import AthletePageAchievementsTab from './AthletePageAchievementsTab';
 
 interface BenchmarkResult {
   id: string;
@@ -37,6 +38,7 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
     benchmarks: true,
     forgeBenchmarks: true,
     lifts: true,
+    achievements: true,
   });
 
   useEffect(() => {
@@ -458,6 +460,21 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
                 <p className='text-gray-500 col-span-full text-center py-8'>No lift records yet</p>
               )}
             </div>
+          )}
+        </div>
+
+        {/* Achievements Section */}
+        <div className='mt-8'>
+          <button
+            onClick={() => setExpandedSections(prev => ({ ...prev, achievements: !prev.achievements }))}
+            className='flex items-center gap-2 text-xl font-semibold text-gray-100 mb-4 hover:text-[#85d6cd] transition'
+          >
+            {expandedSections.achievements ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
+            Achievements
+          </button>
+
+          {expandedSections.achievements && (
+            <AthletePageAchievementsTab userId={userId} />
           )}
         </div>
       </div>
