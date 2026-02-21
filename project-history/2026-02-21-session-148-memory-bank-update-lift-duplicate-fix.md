@@ -1,4 +1,4 @@
-# Session 151 — Memory Bank Update + Lift Duplicate Fix
+# Session 148 — Memory Bank Update + Lift Duplicate Fix
 
 **Date:** 2026-02-21
 **Model:** Opus 4.6
@@ -7,9 +7,9 @@
 
 ## Accomplishments
 
-1. **Memory Bank updated** with Session 150 summary (benchmark exercise name audit)
-   - activeContext.md v30.0 — added Session 150 entry, marked movements filter COMPLETE, added exercise naming conventions
-   - MEMORY.md — updated ongoing work to Session 150 status
+1. **Memory Bank updated** with Session 149 summary (benchmark exercise name audit)
+   - activeContext.md v30.0 — added Session 149 entry, marked movements filter COMPLETE, added exercise naming conventions
+   - MEMORY.md — updated ongoing work to Session 149 status
    - Deleted temp scripts: `check-benchmark-descriptions.ts`, `check-exercise-names.ts`
    - Committed as `cc91f4f`
 
@@ -28,7 +28,7 @@
 - `hooks/athlete/useLiftManagement.ts` — `.limit(1).maybeSingle()` fix
 - `components/athlete/AthletePageLogbookTab.tsx` — `savingRef` double-save guard
 - `Chris Notes/supabase-orphan-check-queries.md` — duplicate detection queries
-- `memory-bank/memory-bank-activeContext.md` — Session 150 update
+- `memory-bank/memory-bank-activeContext.md` — Session 149 update
 - `scripts/check-benchmark-descriptions.ts` — deleted
 - `scripts/check-exercise-names.ts` — deleted
 

@@ -1,4 +1,4 @@
-# Sessions 144–148: Achievement System (Full Feature)
+# Sessions 144–147: Achievement System (Full Feature)
 
 **Date:** 2026-02-19 to 2026-02-21
 **Model:** Opus 4.6
@@ -47,7 +47,7 @@
 
 ---
 
-## Phase 3 (Session 147) — Coach Award Flow + Mobile Polish
+## Phase 3 (Session 146) — Coach Award Flow + Mobile Polish
 
 ### Coach Award Flow
 - **Award Achievement modal** — coach selects athlete → sees their achievement progress → awards specific tier
@@ -66,7 +66,7 @@
 
 ---
 
-## Phase 4 (Session 148) — Theme Polish (Charcoal + Emerald/Gold)
+## Phase 4 (Session 147) — Theme Polish (Charcoal + Emerald/Gold)
 
 ### Theme Iteration
 - Built A/B/C theme switcher to compare options with user
