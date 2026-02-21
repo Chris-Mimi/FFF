@@ -3,7 +3,7 @@
 
 import { supabase } from '@/lib/supabase';
 import { ChevronDown, ChevronRight, Dumbbell, Flame, Target, Trophy } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import ShareButton from './ShareButton';
 import AthletePageAchievementsTab from './AthletePageAchievementsTab';
 
@@ -34,6 +34,7 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
   const [forgeBenchmarkPRs, setForgeBenchmarkPRs] = useState<BenchmarkResult[]>([]);
   const [liftPRs, setLiftPRs] = useState<LiftRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const achievementsRef = useRef<HTMLDivElement>(null);
   const [expandedSections, setExpandedSections] = useState({
     benchmarks: true,
     forgeBenchmarks: true,
@@ -239,7 +240,20 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
     <div className='space-y-6'>
       <div className='bg-gray-500 rounded-xl shadow-lg px-3 py-4 sm:p-8'>
         <h2 className='text-2xl sm:text-3xl font-extrabold text-gray-50 mb-2 sm:mb-4'>Personal Records</h2>
-        <p className='text-gray-50 mb-4 sm:mb-8 leading-relaxed text-sm sm:text-base'>All your personal bests in one place.</p>
+        <div className='flex items-center justify-between mb-4 sm:mb-8'>
+          <p className='text-gray-50 leading-relaxed text-sm sm:text-base'>All your personal bests in one place.</p>
+          <button
+            onClick={() => {
+              achievementsRef.current?.scrollIntoView({ behavior: 'smooth' });
+              setExpandedSections(prev => ({ ...prev, achievements: true }));
+            }}
+            className='flex items-center gap-1 text-amber-400 hover:text-amber-300 transition'
+            aria-label='Jump to achievements'
+          >
+            <Trophy size={18} />
+            <ChevronDown size={14} />
+          </button>
+        </div>
 
         {/* Info Summary Boxes */}
         <div className='grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-6 sm:mb-8'>
@@ -464,7 +478,7 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
         </div>
 
         {/* Achievements Section */}
-        <div className='mt-4 sm:mt-8'>
+        <div ref={achievementsRef} className='mt-4 sm:mt-8'>
           <button
             onClick={() => setExpandedSections(prev => ({ ...prev, achievements: !prev.achievements }))}
             className='flex items-center gap-2 text-lg sm:text-xl font-semibold text-gray-100 mb-3 sm:mb-4 hover:text-[#85d6cd] transition'

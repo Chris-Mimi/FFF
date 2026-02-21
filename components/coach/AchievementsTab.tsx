@@ -236,11 +236,11 @@ export default function AchievementsTab() {
 
       {/* Category groups */}
       {grouped.map(({ category, branches }) => (
-        <div key={category} className="bg-teal-800/60 rounded-lg overflow-hidden border border-teal-700/40">
+        <div key={category} className="bg-gray-800/70 border-gray-600/40 rounded-lg overflow-hidden border">
           {/* Category header */}
           <button
             onClick={() => toggleCategory(category)}
-            className="w-full flex items-center gap-2 px-4 py-3 bg-teal-800/80 hover:bg-teal-700/60 transition text-left"
+            className="w-full flex items-center gap-2 px-4 py-3 bg-gray-700/80 hover:bg-gray-600/60 transition text-left"
           >
             {collapsedCategories.has(category) ? (
               <ChevronRight size={18} className="text-gray-400" />
@@ -255,7 +255,7 @@ export default function AchievementsTab() {
 
           {/* Branch rows */}
           {!collapsedCategories.has(category) && (
-            <div className="divide-y divide-teal-700/30">
+            <div className="divide-y divide-gray-600/30">
               {branches.map(({ branch, tiers }) => (
                 <div key={branch} className="px-4 py-3">
                   {/* Branch name */}
@@ -268,7 +268,7 @@ export default function AchievementsTab() {
                         setEditing(null);
                         setShowModal(true);
                       }}
-                      className="p-0.5 text-gray-500 hover:text-amber-400 transition"
+                      className="p-0.5 text-gray-500 hover:text-emerald-400 transition"
                       aria-label={`Add tier to ${branch}`}
                       title="Add tier"
                     >
@@ -281,12 +281,12 @@ export default function AchievementsTab() {
                     {tiers.map((def) => (
                       <div
                         key={def.id}
-                        className="group relative flex items-center gap-1.5 px-3 py-1.5 bg-amber-900/40 border border-amber-500/50 rounded-full text-sm"
+                        className="group relative flex items-center gap-1.5 px-3 py-1.5 bg-teal-900/60 border-2 border-yellow-400 rounded-full text-sm"
                       >
-                        <span className="text-amber-400 text-xs">
+                        <span className="text-yellow-400 text-xs">
                           {'★'.repeat(def.tier)}
                         </span>
-                        <span className="text-gray-200">{def.name}</span>
+                        <span className="text-yellow-200">{def.name}</span>
                         {def.description && (
                           <span className="text-gray-400 text-xs hidden sm:inline">
                             — {def.description}

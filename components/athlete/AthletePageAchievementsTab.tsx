@@ -210,19 +210,19 @@ export default function AthletePageAchievementsTab({ userId }: AthletePageAchiev
       {/* Header + Progress */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Trophy className="text-amber-400" size={24} />
+          <Trophy className="text-emerald-400" size={24} />
           <h2 className="text-lg sm:text-xl font-bold text-gray-100">Achievements</h2>
         </div>
         <div className="text-sm">
-          <span className="font-semibold text-amber-400">{totalUnlocked}</span>
+          <span className="font-semibold text-emerald-400">{totalUnlocked}</span>
           <span className="text-gray-400"> / {totalDefined}</span>
         </div>
       </div>
 
       {/* Progress bar */}
-      <div className="bg-teal-800/60 rounded-full h-2.5 overflow-hidden">
+      <div className="bg-gray-700/60 rounded-full h-2.5 overflow-hidden">
         <div
-          className="bg-amber-500 h-full rounded-full transition-all duration-500"
+          className="bg-emerald-500 h-full rounded-full transition-all duration-500"
           style={{ width: `${totalDefined > 0 ? (totalUnlocked / totalDefined) * 100 : 0}%` }}
         />
       </div>
@@ -230,17 +230,17 @@ export default function AthletePageAchievementsTab({ userId }: AthletePageAchiev
       {/* Category groups */}
       {grouped.map(({ category, branches }) => {
         const categoryUnlocked = branches.reduce(
-          (sum, b) => sum + b.tiers.filter((t) => t.unlocked).length,
+          (sum, b) => sum + b.tiers.filter((ti) => ti.unlocked).length,
           0
         );
         const categoryTotal = branches.reduce((sum, b) => sum + b.tiers.length, 0);
 
         return (
-          <div key={category} className="bg-teal-800/60 rounded-lg overflow-hidden border border-teal-700/40">
+          <div key={category} className="bg-gray-800/70 border-gray-600/40 rounded-lg overflow-hidden border">
             {/* Category header */}
             <button
               onClick={() => toggleCategory(category)}
-              className="w-full flex items-center gap-2 px-3 py-2.5 sm:px-4 sm:py-3 bg-teal-800/80 hover:bg-teal-700/60 transition text-left"
+              className="w-full flex items-center gap-2 px-3 py-2.5 sm:px-4 sm:py-3 bg-gray-700/80 hover:bg-gray-600/60 transition text-left"
             >
               {collapsedCategories.has(category) ? (
                 <ChevronRight size={18} className="text-gray-400" />
@@ -255,7 +255,7 @@ export default function AthletePageAchievementsTab({ userId }: AthletePageAchiev
 
             {/* Branch rows */}
             {!collapsedCategories.has(category) && (
-              <div className="divide-y divide-teal-700/30">
+              <div className="divide-y divide-gray-600/30">
                 {branches.map(({ branch, tiers }) => (
                   <div key={branch} className="px-3 py-2 sm:px-4 sm:py-3">
                     {/* Branch name */}
@@ -286,10 +286,10 @@ export default function AthletePageAchievementsTab({ userId }: AthletePageAchiev
                             className={`
                               flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition
                               ${isUnlocked
-                                ? 'bg-amber-900/40 border border-amber-500/50 text-amber-200 hover:bg-amber-900/60 cursor-pointer'
+                                ? 'bg-teal-900/60 border-2 border-yellow-400 text-yellow-200 hover:bg-teal-800/60 cursor-pointer'
                                 : canClaim
-                                  ? 'bg-teal-900/40 border-2 border-dashed border-amber-400 text-amber-300 hover:bg-teal-800/60 cursor-pointer animate-pulse-subtle'
-                                  : 'bg-teal-900/30 border border-teal-700/30 text-gray-500 cursor-not-allowed opacity-60'
+                                  ? 'bg-gray-700/40 border-2 border-dashed border-emerald-400 text-emerald-300 hover:bg-gray-600/50 cursor-pointer animate-pulse-subtle'
+                                  : 'bg-gray-800/40 border border-gray-600/30 text-gray-500 cursor-not-allowed opacity-60'
                               }
                             `}
                             title={
@@ -301,14 +301,19 @@ export default function AthletePageAchievementsTab({ userId }: AthletePageAchiev
                             }
                           >
                             {isUnlocked ? (
-                              <Check size={14} className="text-amber-400" />
+                              <Check size={14} className="text-yellow-400" />
                             ) : isLocked ? (
                               <Lock size={12} className="text-gray-500" />
                             ) : null}
-                            <span className="text-xs text-amber-400">
+                            <span className={`text-xs ${isUnlocked ? 'text-yellow-400' : 'text-emerald-400'}`}>
                               {'★'.repeat(def.tier)}
                             </span>
                             <span>{def.name}</span>
+                            {def.description && (
+                              <span className="hidden sm:inline text-xs text-gray-400">
+                                — {def.description}
+                              </span>
+                            )}
                           </button>
                         );
                       })}
