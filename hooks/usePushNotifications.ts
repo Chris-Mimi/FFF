@@ -20,6 +20,7 @@ export interface NotificationPreferences {
   booking_waitlisted: boolean;
   booking_promoted: boolean;
   pr_achieved: boolean;
+  achievement_awarded: boolean;
 }
 
 const DEFAULT_PREFERENCES: NotificationPreferences = {
@@ -28,6 +29,7 @@ const DEFAULT_PREFERENCES: NotificationPreferences = {
   booking_waitlisted: true,
   booking_promoted: true,
   pr_achieved: true,
+  achievement_awarded: true,
 };
 
 export function usePushNotifications() {

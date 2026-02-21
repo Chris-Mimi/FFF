@@ -237,66 +237,66 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
 
   return (
     <div className='space-y-6'>
-      <div className='bg-gray-500 rounded-xl shadow-lg p-8'>
-        <h2 className='text-3xl font-extrabold text-gray-50 mb-4'>Personal Records</h2>
-        <p className='text-gray-50 mb-8 leading-relaxed'>All your personal bests in one place.</p>
+      <div className='bg-gray-500 rounded-xl shadow-lg px-3 py-4 sm:p-8'>
+        <h2 className='text-2xl sm:text-3xl font-extrabold text-gray-50 mb-2 sm:mb-4'>Personal Records</h2>
+        <p className='text-gray-50 mb-4 sm:mb-8 leading-relaxed text-sm sm:text-base'>All your personal bests in one place.</p>
 
         {/* Info Summary Boxes */}
-        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8'>
+        <div className='grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-6 sm:mb-8'>
           {/* Total PRs */}
-          <div className='bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-lg p-4'>
-            <div className='flex items-center justify-between mb-2'>
-              <h3 className='text-sm font-semibold text-gray-900'>Total PRs</h3>
-              <Trophy size={24} className='text-purple-600' />
+          <div className='bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-lg p-2.5 sm:p-4'>
+            <div className='flex items-center justify-between mb-1 sm:mb-2'>
+              <h3 className='text-xs sm:text-sm font-semibold text-gray-900'>Total PRs</h3>
+              <Trophy size={20} className='text-purple-600 sm:w-6 sm:h-6' />
             </div>
-            <p className='text-3xl font-bold text-gray-900'>
+            <p className='text-2xl sm:text-3xl font-bold text-gray-900'>
               {benchmarkPRs.length + forgeBenchmarkPRs.length + liftPRs.length}
             </p>
           </div>
 
           {/* Benchmark WODs */}
-          <div className='bg-gradient-to-br from-teal-50 to-teal-100 border border-teal-300 rounded-lg p-4'>
-            <div className='flex items-center justify-between mb-2'>
-              <h3 className='text-sm font-semibold text-gray-900'>Benchmark WODs</h3>
-              <Target size={24} className='text-teal-600' />
+          <div className='bg-gradient-to-br from-teal-50 to-teal-100 border border-teal-300 rounded-lg p-2.5 sm:p-4'>
+            <div className='flex items-center justify-between mb-1 sm:mb-2'>
+              <h3 className='text-xs sm:text-sm font-semibold text-gray-900'>Benchmarks</h3>
+              <Target size={20} className='text-teal-600 sm:w-6 sm:h-6' />
             </div>
-            <p className='text-3xl font-bold text-gray-900'>{benchmarkPRs.length}</p>
+            <p className='text-2xl sm:text-3xl font-bold text-gray-900'>{benchmarkPRs.length}</p>
           </div>
 
           {/* Forge Benchmarks */}
-          <div className='bg-gradient-to-br from-cyan-50 to-cyan-100 border border-cyan-300 rounded-lg p-4'>
-            <div className='flex items-center justify-between mb-2'>
-              <h3 className='text-sm font-semibold text-gray-900'>Forge Benchmarks</h3>
-              <Flame size={24} className='text-cyan-900' />
+          <div className='bg-gradient-to-br from-cyan-50 to-cyan-100 border border-cyan-300 rounded-lg p-2.5 sm:p-4'>
+            <div className='flex items-center justify-between mb-1 sm:mb-2'>
+              <h3 className='text-xs sm:text-sm font-semibold text-gray-900'>Forge</h3>
+              <Flame size={20} className='text-cyan-900 sm:w-6 sm:h-6' />
             </div>
-            <p className='text-3xl font-bold text-gray-900'>{forgeBenchmarkPRs.length}</p>
+            <p className='text-2xl sm:text-3xl font-bold text-gray-900'>{forgeBenchmarkPRs.length}</p>
           </div>
 
           {/* Barbell Lifts */}
-          <div className='bg-gradient-to-br from-sky-50 to-blue-100 border border-sky-300 rounded-lg p-4'>
-            <div className='flex items-center justify-between mb-2'>
-              <h3 className='text-sm font-semibold text-gray-700'>Barbell Lifts</h3>
-              <Dumbbell size={24} className='text-sky-600' />
+          <div className='bg-gradient-to-br from-sky-50 to-blue-100 border border-sky-300 rounded-lg p-2.5 sm:p-4'>
+            <div className='flex items-center justify-between mb-1 sm:mb-2'>
+              <h3 className='text-xs sm:text-sm font-semibold text-gray-700'>Lifts</h3>
+              <Dumbbell size={20} className='text-sky-600 sm:w-6 sm:h-6' />
             </div>
-            <p className='text-3xl font-bold text-gray-900'>{liftPRs.length}</p>
+            <p className='text-2xl sm:text-3xl font-bold text-gray-900'>{liftPRs.length}</p>
           </div>
         </div>
 
         {/* Benchmark Workouts Section */}
-        <div className='mb-8'>
+        <div className='mb-4 sm:mb-8'>
           <button
             onClick={() => setExpandedSections(prev => ({ ...prev, benchmarks: !prev.benchmarks }))}
-            className='flex items-center gap-2 text-xl font-semibold text-gray-100 mb-4 hover:text-[#85d6cd] transition'
+            className='flex items-center gap-2 text-lg sm:text-xl font-semibold text-gray-100 mb-3 sm:mb-4 hover:text-[#85d6cd] transition'
           >
             {expandedSections.benchmarks ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
             Benchmark Workouts ({benchmarkPRs.length})
           </button>
 
           {expandedSections.benchmarks && (
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6'>
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6'>
               {benchmarkPRs.length > 0 ? (
                 benchmarkPRs.map(pr => (
-                  <div key={pr.id} className='border border-teal-300 rounded-lg p-4 bg-gradient-to-br from-teal-100 to-teal-200'>
+                  <div key={pr.id} className='border border-teal-300 rounded-lg p-2.5 sm:p-4 bg-gradient-to-br from-teal-100 to-teal-200'>
                     <div className='flex items-start justify-between mb-2'>
                       <h4 className='font-bold text-gray-900'>{pr.benchmark_name}</h4>
                       <div className='flex items-center gap-1'>
@@ -345,20 +345,20 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
         </div>
 
         {/* Forge Benchmarks Section */}
-        <div className='mb-8'>
+        <div className='mb-4 sm:mb-8'>
           <button
             onClick={() => setExpandedSections(prev => ({ ...prev, forgeBenchmarks: !prev.forgeBenchmarks }))}
-            className='flex items-center gap-2 text-xl font-semibold text-gray-100 mb-4 hover:text-[#85d6cd] transition'
+            className='flex items-center gap-2 text-lg sm:text-xl font-semibold text-gray-100 mb-3 sm:mb-4 hover:text-[#85d6cd] transition'
           >
             {expandedSections.forgeBenchmarks ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
             Forge Benchmarks ({forgeBenchmarkPRs.length})
           </button>
 
           {expandedSections.forgeBenchmarks && (
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6'>
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6'>
               {forgeBenchmarkPRs.length > 0 ? (
                 forgeBenchmarkPRs.map(pr => (
-                  <div key={pr.id} className='border border-cyan-300 rounded-lg p-4 bg-gradient-to-br from-cyan-100 to-cyan-200'>
+                  <div key={pr.id} className='border border-cyan-300 rounded-lg p-2.5 sm:p-4 bg-gradient-to-br from-cyan-100 to-cyan-200'>
                     <div className='flex items-start justify-between mb-2'>
                       <h4 className='font-bold text-gray-900'>{pr.benchmark_name}</h4>
                       <div className='flex items-center gap-1'>
@@ -410,17 +410,17 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
         <div>
           <button
             onClick={() => setExpandedSections(prev => ({ ...prev, lifts: !prev.lifts }))}
-            className='flex items-center gap-2 text-xl font-semibold text-gray-100 mb-4 hover:text-[#85d6cd] transition'
+            className='flex items-center gap-2 text-lg sm:text-xl font-semibold text-gray-100 mb-3 sm:mb-4 hover:text-[#85d6cd] transition'
           >
             {expandedSections.lifts ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
             Barbell Lifts ({liftPRs.length})
           </button>
 
           {expandedSections.lifts && (
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4'>
               {liftPRs.length > 0 ? (
                 liftPRs.map(pr => (
-                  <div key={pr.id} className='border border-sky-300 rounded-lg p-4 bg-gradient-to-br from-[#1fe2dcff] to-[#81edeaff]'>
+                  <div key={pr.id} className='border border-sky-300 rounded-lg p-2.5 sm:p-4 bg-gradient-to-br from-[#1fe2dcff] to-[#81edeaff]'>
                     <div className='flex items-start justify-between mb-2'>
                       <h4 className='font-bold text-gray-900'>{pr.lift_name}</h4>
                       <div className='flex items-center gap-1'>
@@ -464,10 +464,10 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
         </div>
 
         {/* Achievements Section */}
-        <div className='mt-8'>
+        <div className='mt-4 sm:mt-8'>
           <button
             onClick={() => setExpandedSections(prev => ({ ...prev, achievements: !prev.achievements }))}
-            className='flex items-center gap-2 text-xl font-semibold text-gray-100 mb-4 hover:text-[#85d6cd] transition'
+            className='flex items-center gap-2 text-lg sm:text-xl font-semibold text-gray-100 mb-3 sm:mb-4 hover:text-[#85d6cd] transition'
           >
             {expandedSections.achievements ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
             Achievements

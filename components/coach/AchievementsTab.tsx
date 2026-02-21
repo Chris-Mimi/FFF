@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, Edit2, Trash2, ChevronDown, ChevronRight, Trophy } from 'lucide-react';
+import { Plus, Edit2, Trash2, ChevronDown, ChevronRight, Trophy, Award } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { confirm } from '@/lib/confirm';
 import AchievementDefinitionModal from './AchievementDefinitionModal';
+import AwardAchievementModal from './AwardAchievementModal';
 import type { AchievementDefinition } from '@/types/achievements';
 
 interface BranchGroup {
@@ -24,6 +25,7 @@ export default function AchievementsTab() {
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<AchievementDefinition | null>(null);
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
+  const [showAwardModal, setShowAwardModal] = useState(false);
 
   const fetchDefinitions = useCallback(async () => {
     const { data, error } = await supabase
@@ -194,16 +196,25 @@ export default function AchievementsTab() {
             ({definitions.length} total)
           </span>
         </div>
-        <button
-          onClick={() => {
-            setEditing(null);
-            setShowModal(true);
-          }}
-          className="flex items-center gap-1.5 px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition text-sm"
-        >
-          <Plus size={16} />
-          Add
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowAwardModal(true)}
+            className="flex items-center gap-1.5 px-3 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium transition text-sm"
+          >
+            <Award size={16} />
+            Award
+          </button>
+          <button
+            onClick={() => {
+              setEditing(null);
+              setShowModal(true);
+            }}
+            className="flex items-center gap-1.5 px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition text-sm"
+          >
+            <Plus size={16} />
+            Add
+          </button>
+        </div>
       </div>
 
       {/* Empty state */}
@@ -225,40 +236,39 @@ export default function AchievementsTab() {
 
       {/* Category groups */}
       {grouped.map(({ category, branches }) => (
-        <div key={category} className="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div key={category} className="bg-teal-800/60 rounded-lg overflow-hidden border border-teal-700/40">
           {/* Category header */}
           <button
             onClick={() => toggleCategory(category)}
-            className="w-full flex items-center gap-2 px-4 py-3 bg-gray-50 hover:bg-gray-100 transition text-left"
+            className="w-full flex items-center gap-2 px-4 py-3 bg-teal-800/80 hover:bg-teal-700/60 transition text-left"
           >
             {collapsedCategories.has(category) ? (
               <ChevronRight size={18} className="text-gray-400" />
             ) : (
               <ChevronDown size={18} className="text-gray-400" />
             )}
-            <h3 className="font-bold text-gray-800">{category}</h3>
-            <span className="text-xs text-gray-500">
+            <h3 className="font-bold text-gray-100">{category}</h3>
+            <span className="text-xs text-gray-400">
               ({branches.reduce((sum, b) => sum + b.tiers.length, 0)} achievements)
             </span>
           </button>
 
           {/* Branch rows */}
           {!collapsedCategories.has(category) && (
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-teal-700/30">
               {branches.map(({ branch, tiers }) => (
                 <div key={branch} className="px-4 py-3">
                   {/* Branch name */}
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="font-semibold text-gray-700 text-sm">
+                    <span className="font-semibold text-gray-300 text-sm">
                       {branch}
                     </span>
                     <button
                       onClick={() => {
                         setEditing(null);
                         setShowModal(true);
-                        // Pre-fill branch will be handled by the modal
                       }}
-                      className="p-0.5 text-gray-400 hover:text-amber-500 transition"
+                      className="p-0.5 text-gray-500 hover:text-amber-400 transition"
                       aria-label={`Add tier to ${branch}`}
                       title="Add tier"
                     >
@@ -271,12 +281,12 @@ export default function AchievementsTab() {
                     {tiers.map((def) => (
                       <div
                         key={def.id}
-                        className="group relative flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-full text-sm"
+                        className="group relative flex items-center gap-1.5 px-3 py-1.5 bg-amber-900/40 border border-amber-500/50 rounded-full text-sm"
                       >
-                        <span className="text-amber-500 text-xs">
+                        <span className="text-amber-400 text-xs">
                           {'★'.repeat(def.tier)}
                         </span>
-                        <span className="text-gray-700">{def.name}</span>
+                        <span className="text-gray-200">{def.name}</span>
                         {def.description && (
                           <span className="text-gray-400 text-xs hidden sm:inline">
                             — {def.description}
@@ -290,14 +300,14 @@ export default function AchievementsTab() {
                               setEditing(def);
                               setShowModal(true);
                             }}
-                            className="p-0.5 text-gray-400 hover:text-blue-500 transition"
+                            className="p-0.5 text-gray-400 hover:text-blue-400 transition"
                             aria-label={`Edit ${def.name}`}
                           >
                             <Edit2 size={12} />
                           </button>
                           <button
                             onClick={() => handleDelete(def)}
-                            className="p-0.5 text-gray-400 hover:text-red-500 transition"
+                            className="p-0.5 text-gray-400 hover:text-red-400 transition"
                             aria-label={`Delete ${def.name}`}
                           >
                             <Trash2 size={12} />
@@ -313,7 +323,7 @@ export default function AchievementsTab() {
         </div>
       ))}
 
-      {/* Modal */}
+      {/* Definition Modal */}
       <AchievementDefinitionModal
         isOpen={showModal}
         onClose={() => {
@@ -324,6 +334,12 @@ export default function AchievementsTab() {
         editing={editing}
         existingBranches={existingBranches}
         nextTierForBranch={nextTierForBranch}
+      />
+
+      {/* Award Modal */}
+      <AwardAchievementModal
+        isOpen={showAwardModal}
+        onClose={() => setShowAwardModal(false)}
       />
 
     </div>

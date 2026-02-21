@@ -240,7 +240,7 @@ export default function AthletePageAchievementsTab({ userId }: AthletePageAchiev
             {/* Category header */}
             <button
               onClick={() => toggleCategory(category)}
-              className="w-full flex items-center gap-2 px-4 py-3 bg-teal-800/80 hover:bg-teal-700/60 transition text-left"
+              className="w-full flex items-center gap-2 px-3 py-2.5 sm:px-4 sm:py-3 bg-teal-800/80 hover:bg-teal-700/60 transition text-left"
             >
               {collapsedCategories.has(category) ? (
                 <ChevronRight size={18} className="text-gray-400" />
@@ -257,7 +257,7 @@ export default function AthletePageAchievementsTab({ userId }: AthletePageAchiev
             {!collapsedCategories.has(category) && (
               <div className="divide-y divide-teal-700/30">
                 {branches.map(({ branch, tiers }) => (
-                  <div key={branch} className="px-4 py-3">
+                  <div key={branch} className="px-3 py-2 sm:px-4 sm:py-3">
                     {/* Branch name */}
                     <div className="font-semibold text-gray-300 text-sm mb-2">
                       {branch}

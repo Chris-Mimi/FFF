@@ -100,3 +100,18 @@ export function notifyPrAchieved(userId: string, liftOrBenchmark: string, value:
     console.error('notifyPrAchieved failed:', err)
   );
 }
+
+/**
+ * Notify a user that a coach awarded them an achievement.
+ */
+export function notifyAchievementAwarded(userId: string, achievementName: string): void {
+  const payload: PushPayload = {
+    title: 'Achievement Unlocked!',
+    body: `Your coach awarded you: ${achievementName}`,
+    data: { url: '/athlete?tab=records', type: 'achievement_awarded' },
+  };
+
+  sendToUser(userId, payload, 'achievement_awarded').catch((err) =>
+    console.error('notifyAchievementAwarded failed:', err)
+  );
+}

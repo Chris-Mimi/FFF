@@ -15,6 +15,7 @@ const PREF_LABELS: Record<keyof NotificationPreferences, string> = {
   booking_waitlisted: 'Waitlist Updates',
   booking_promoted: 'Spot Opened',
   pr_achieved: 'New PR',
+  achievement_awarded: 'Achievement Awarded',
 };
 
 export function NotificationPrompt() {
