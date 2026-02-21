@@ -2,7 +2,7 @@
 'use client';
 
 // Icons now used in extracted components
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { useLogbookData } from '@/hooks/athlete/useLogbookData';
 import { useWorkoutLogging } from '@/hooks/athlete/useWorkoutLogging';
@@ -44,6 +44,7 @@ interface AthletePageLogbookTabProps {
 }
 
 export default function AthletePageLogbookTab({ userId, initialDate, initialViewMode, onDateChange }: AthletePageLogbookTabProps) {
+  const savingRef = useRef(false);
   // State management via custom hook
   const state = useAthleteLogbookState(initialDate, initialViewMode);
   const {
@@ -132,6 +133,9 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
 
   // UNIFIED SAVE FUNCTION - Handles all scoring data (lifts, benchmarks, forge, content) and notes
   const saveAllResults = async (workoutDate: string) => {
+    if (savingRef.current) return;
+    savingRef.current = true;
+    try {
     // Find ALL workouts for this date to build valid WOD ID set
     const dateWorkouts = workouts.filter(w => formatLocalDate(new Date(w.date)) === workoutDate);
     if (dateWorkouts.length === 0) {
@@ -271,6 +275,9 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
     } else {
       console.error('Save errors:', errors);
       toast.error(`Saved ${savedCount} of ${resultsToSave.length} results. ${errorCount} failed. Check console for details.`);
+    }
+    } finally {
+      savingRef.current = false;
     }
   };
 

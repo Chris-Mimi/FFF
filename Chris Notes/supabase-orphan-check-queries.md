@@ -253,6 +253,68 @@ WHERE pn.folder_id IS NOT NULL AND nf.id IS NULL;
 
 ---
 
+## 11. Duplicate Records
+
+### 11a. Duplicate lift records (same user, lift, date, scheme)
+
+```sql
+SELECT user_id, lift_name, lift_date, rep_max_type, rep_scheme, COUNT(*) AS dupes
+FROM lift_records
+GROUP BY user_id, lift_name, lift_date, rep_max_type, rep_scheme
+HAVING COUNT(*) > 1;
+```
+
+### 11b. Duplicate lift records — full detail (to pick which to delete)
+
+```sql
+SELECT lr.*
+FROM lift_records lr
+JOIN (
+  SELECT user_id, lift_name, lift_date, rep_max_type, rep_scheme
+  FROM lift_records
+  GROUP BY user_id, lift_name, lift_date, rep_max_type, rep_scheme
+  HAVING COUNT(*) > 1
+) dupes ON lr.user_id = dupes.user_id
+  AND lr.lift_name = dupes.lift_name
+  AND lr.lift_date = dupes.lift_date
+  AND lr.rep_max_type IS NOT DISTINCT FROM dupes.rep_max_type
+  AND lr.rep_scheme IS NOT DISTINCT FROM dupes.rep_scheme
+ORDER BY lr.lift_name, lr.lift_date, lr.created_at;
+```
+
+### 11c. Duplicate benchmark results (same user, benchmark, date)
+
+```sql
+SELECT user_id, benchmark_name, result_date, COUNT(*) AS dupes
+FROM benchmark_results
+GROUP BY user_id, benchmark_name, result_date
+HAVING COUNT(*) > 1;
+```
+
+### 11d. Auto-delete duplicate lifts (keeps newest, deletes older)
+
+```sql
+-- PREVIEW first (shows what would be deleted):
+SELECT id, user_id, lift_name, lift_date, rep_max_type, rep_scheme, weight_kg, created_at
+FROM lift_records
+WHERE id NOT IN (
+  SELECT DISTINCT ON (user_id, lift_name, lift_date, COALESCE(rep_max_type, ''), COALESCE(rep_scheme, '')) id
+  FROM lift_records
+  ORDER BY user_id, lift_name, lift_date, COALESCE(rep_max_type, ''), COALESCE(rep_scheme, ''), created_at DESC
+)
+AND (user_id, lift_name, lift_date, COALESCE(rep_max_type, ''), COALESCE(rep_scheme, '')) IN (
+  SELECT user_id, lift_name, lift_date, COALESCE(rep_max_type, ''), COALESCE(rep_scheme, '')
+  FROM lift_records
+  GROUP BY user_id, lift_name, lift_date, COALESCE(rep_max_type, ''), COALESCE(rep_scheme, '')
+  HAVING COUNT(*) > 1
+);
+
+-- DELETE (run after verifying preview):
+-- DELETE FROM lift_records WHERE id IN (SELECT id FROM above query);
+```
+
+---
+
 ## How to Delete Orphans
 
 **Always backup first:** Run `npm run backup` from terminal before deleting anything.

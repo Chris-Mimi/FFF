@@ -56,7 +56,7 @@ export function useLiftManagement(
         query = query.is('rep_scheme', null).is('rep_max_type', null);
       }
 
-      const { data: existingRecord, error: checkError } = await query.maybeSingle();
+      const { data: existingRecord, error: checkError } = await query.limit(1).maybeSingle();
 
       if (checkError) {
         console.error('Error checking existing lift record:', checkError);
