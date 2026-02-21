@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 28.0
-**Updated:** 2026-02-19 (Session 144 - Achievement System Phase 1)
+**Version:** 29.0
+**Updated:** 2026-02-21 (Session 149 - Housekeeping)
 
 ---
 
@@ -64,6 +64,10 @@ Athlete Tables (linked to members.id)
 ├─ lift_records (id, user_id, lift_name, weight_kg, reps, rep_max_type ['1RM'|'3RM'|'5RM'|'10RM'], rep_scheme [workout patterns], calculated_1rm, notes, lift_date)
 ├─ wod_section_results (id, user_id, wod_id, section_id, workout_date, time_result, reps_result, weight_result, scaling_level, rounds_result, calories_result, metres_result, task_completed)
 
+Achievement Tables
+├─ achievement_definitions (id, name, description, category, branch, tier, created_at)
+├─ athlete_achievements (id, user_id, achievement_id, achieved_date, notes, awarded_by, created_at [UNIQUE user_id + achievement_id])
+
 Social Tables
 ├─ reactions (id, user_id, target_type ['wod_section_result'|'benchmark_result'|'lift_record'], target_id, reaction_type ['fist_bump'], created_at [UNIQUE user_id + target_type + target_id])
 ```
@@ -80,30 +84,31 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-21 Session 149 - Opus 4.6):**
+- **✅ Housekeeping** — Consolidated achievement history files (sessions 144-148 into one file)
+
+**Completed (2026-02-21 Session 148 - Opus 4.6):**
+- **✅ Achievement Theme Polish** — Charcoal + emerald/gold locked in (Theme C)
+  - A/B/C theme switcher built for comparison, Theme C selected
+  - Applied to both athlete and coach AchievementsTab
+
+**Completed (2026-02-21 Session 147 - Opus 4.6):**
+- **✅ Achievement Award Flow + Mobile Polish**
+  - Coach award modal: select athlete → view progress → award tier
+  - 4 new API routes for award flow
+  - Push notification on coach award + `achievement_awarded` notification pref
+  - Trophy scroll-to-achievements shortcut on Records page
+
 **Completed (2026-02-20 Session 145 - Opus 4.6):**
 - **✅ Achievement System Phase 2 — Athlete View + Self-Log**
-  - Achievements embedded as collapsible section in Records tab (not separate top-level tab)
-  - Visual grid: unlocked (amber checkmark), next claimable (dashed border), locked (grey lock)
-  - Sequential progression enforced — can only claim tier N+1 after tier N
-  - Claim modal with date picker + optional notes; detail modal with Remove option
-  - Dark Ocean Teal background theme matching Records page
+  - Achievements embedded as collapsible section in Records tab
+  - Sequential progression enforced, claim modal, detail modal
 
 **Completed (2026-02-19 Session 144 - Opus 4.6):**
 - **✅ Achievement System Phase 1 — DB + Coach Management**
-  - 2 new tables: `achievement_definitions`, `athlete_achievements` (with RLS + indexes)
-  - Coach "Achievements" tab in Toolkit (amber) — grouped by category/branch/tier
-  - 39 starter achievements seeded across 4 categories
+  - 2 new tables, coach UI, 39 starter achievements seeded
 
-**Completed (2026-02-19 Session 143 - Opus 4.6):**
-- **✅ Auto % Calculator + Progress Chart Fix + Desktop Share Fix**
-
-**Completed (2026-02-19 Session 142 - Opus 4.6):**
-- **✅ Share Card & Login Page Polish** — Logo/branding, desktop save-to-file
-
-**Completed (2026-02-19 Session 141 - Opus 4.6):**
-- **✅ Share to Social Media (Feature #9) IMPLEMENTED** — Branded image card sharing
-
-**Older Sessions (57-139):**
+**Older Sessions (57-143):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -138,7 +143,7 @@ See `project-history/` folder for detailed implementation history
 - ✅ #8 TV Display — DONE (Session 139). Dark theme, large fonts, per-section zoom, Monitor chip on cards.
 - ✅ #9 Share to social media — DONE (Session 141). Branded image cards from Records + Leaderboard.
 - ✅ #7 Auto % calculator from 1RM — DONE (Session 143). Computed kg in logbook lift badges.
-- ✅ #6 Badges/achievements — Phase 1+2 DONE (Sessions 144-145). Coach management + DB + athlete view + self-log. Phase 3 (coach award flow) next.
+- ✅ #6 Badges/achievements — ALL PHASES DONE (Sessions 144-148). DB + coach management + athlete view + self-log + coach award flow + theme polish.
 - See: `Chris Notes/session-103-code-review-findings.md` for full ranked list
 
 **Push Notification Issues:**
@@ -209,8 +214,7 @@ npm run restore 2025-12-06  # Restore specific date
 - Debug push notification delivery on Mimi profile (stale subscription suspected)
 
 **Features (from competitor analysis):**
-- #5 At-risk member alerts dashboard (already have booking data)
-- #7 Auto percentage calculator from athlete's 1RM
+- All 9 competitor features COMPLETE ✅
 
 **Pending Polish (LOW):**
 - Athletes page benchmarks/lifts display issue (investigate)

@@ -1,8 +1,8 @@
-# Sessions 144–145: Achievement System Phases 1 & 2
+# Sessions 144–148: Achievement System (Full Feature)
 
-**Date:** 2026-02-19 / 2026-02-20
+**Date:** 2026-02-19 to 2026-02-21
 **Model:** Opus 4.6
-**Focus:** Progressive achievement/skill tree system for athletes
+**Focus:** Progressive achievement/skill tree system — DB, coach management, athlete view, coach award flow, theme polish
 
 ---
 
@@ -47,6 +47,36 @@
 
 ---
 
+## Phase 3 (Session 147) — Coach Award Flow + Mobile Polish
+
+### Coach Award Flow
+- **Award Achievement modal** — coach selects athlete → sees their achievement progress → awards specific tier
+- 4 new API routes:
+  - `api/achievements/athletes` — list athletes for selection
+  - `api/achievements/athlete-records` — get athlete's achievement progress
+  - `api/achievements/definitions` — get all definitions
+  - `api/achievements/award` — award achievement + optional push notification
+- Push notification support: sends notification to athlete when coach awards achievement
+- Added `achievement_awarded` preference to notification system
+
+### UI Updates
+- Ocean Teal theme applied to athlete Records page achievements section
+- Trophy scroll-to-achievements shortcut on Records page
+- Mobile polish on achievement cards
+
+---
+
+## Phase 4 (Session 148) — Theme Polish (Charcoal + Emerald/Gold)
+
+### Theme Iteration
+- Built A/B/C theme switcher to compare options with user
+- **Locked in Theme C:** charcoal background + emerald/gold accents
+  - Unlocked achievements: teal background, gold border-2, gold stars/checkmark
+  - Locked achievements: charcoal/grey
+- Applied final theme to both athlete `AthletePageAchievementsTab` and coach `AchievementsTab`
+
+---
+
 ## Files Changed
 
 | File | Action | Phase |
@@ -54,15 +84,25 @@
 | `database/20260219_achievements.sql` | NEW — Schema migration | 1 |
 | `database/20260219_achievements_seed.sql` | NEW — Starter data | 1 |
 | `types/achievements.ts` | NEW — Types + category constants | 1 |
-| `components/coach/AchievementsTab.tsx` | NEW — Coach management view | 1 |
+| `components/coach/AchievementsTab.tsx` | NEW — Coach management view | 1, 3, 4 |
 | `components/coach/AchievementDefinitionModal.tsx` | NEW — Create/edit modal | 1 |
 | `app/coach/benchmarks-lifts/page.tsx` | MODIFIED — Added achievements tab | 1 |
-| `components/athlete/AthletePageAchievementsTab.tsx` | NEW — Athlete achievements view + self-log | 2 |
-| `components/athlete/AthletePageRecordsTab.tsx` | MODIFIED — Embedded achievements section | 2 |
+| `components/athlete/AthletePageAchievementsTab.tsx` | NEW — Athlete achievements view + self-log | 2, 3, 4 |
+| `components/athlete/AthletePageRecordsTab.tsx` | MODIFIED — Embedded achievements section + trophy shortcut | 2, 3, 4 |
+| `components/coach/AwardAchievementModal.tsx` | NEW — Coach award flow modal | 3 |
+| `app/api/achievements/athletes/route.ts` | NEW — List athletes endpoint | 3 |
+| `app/api/achievements/athlete-records/route.ts` | NEW — Athlete progress endpoint | 3 |
+| `app/api/achievements/definitions/route.ts` | NEW — Definitions endpoint | 3 |
+| `app/api/achievements/award/route.ts` | NEW — Award + notify endpoint | 3 |
+| `app/api/notifications/preferences/route.ts` | MODIFIED — Added achievement_awarded pref | 3 |
+| `lib/notifications.ts` | MODIFIED — Achievement notification type | 3 |
+| `hooks/usePushNotifications.ts` | MODIFIED — Achievement pref support | 3 |
+| `components/ui/NotificationPrompt.tsx` | MODIFIED — Achievement pref toggle | 3 |
+| `app/athlete/page.tsx` | MODIFIED — Minor update | 3 |
 
 ---
 
-## Next Steps (Phase 3)
-- Coach award flow: select athlete → select achievement → award with optional note
-- Optional push notification when coach awards achievement
-- Color tweaking on athlete achievement cards (currently functional, polish later)
+## Migrations Applied
+- `database/20260219_achievements.sql` — Achievement tables + RLS + indexes
+- `database/20260219_achievements_seed.sql` — 39 starter achievements
+- `database/20260221_achievement_notification_pref.sql` — Added `achievement_awarded` column to `notification_preferences`
