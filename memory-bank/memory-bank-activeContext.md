@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 29.0
-**Updated:** 2026-02-21 (Session 149 - Housekeeping)
+**Version:** 30.0
+**Updated:** 2026-02-21 (Session 150 - Benchmark Exercise Name Audit)
 
 ---
 
@@ -84,29 +84,30 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-21 Session 150 - Opus 4.6):**
+- **✅ Benchmark Exercise Name Audit** — DB description cleanup + code failsafe mapping
+  - Ran audit: found 122 exercise name mismatches → reduced to 0
+  - User manually updated ~20 benchmark descriptions to use exact DB exercise names
+  - KB Swing renamed: "KB Swing (American - AKBS)" → "KB Swing American (AKBS)" (same Russian)
+  - Added `genericToCanonical` failsafe map (~45 entries) in movement-extraction.ts
+  - Added step 3.5 (strip parentheticals), Pattern 5 ("Movement x Number"), raw text matching
+  - Added instruction phrase filtering ("for time", "as fast as possible", etc.)
+  - Rewrote audit script with improved noise filter + generic→canonical awareness
+
 **Completed (2026-02-21 Session 149 - Opus 4.6):**
 - **✅ Housekeeping** — Consolidated achievement history files (sessions 144-148 into one file)
 
 **Completed (2026-02-21 Session 148 - Opus 4.6):**
 - **✅ Achievement Theme Polish** — Charcoal + emerald/gold locked in (Theme C)
-  - A/B/C theme switcher built for comparison, Theme C selected
-  - Applied to both athlete and coach AchievementsTab
 
 **Completed (2026-02-21 Session 147 - Opus 4.6):**
 - **✅ Achievement Award Flow + Mobile Polish**
-  - Coach award modal: select athlete → view progress → award tier
-  - 4 new API routes for award flow
-  - Push notification on coach award + `achievement_awarded` notification pref
-  - Trophy scroll-to-achievements shortcut on Records page
 
 **Completed (2026-02-20 Session 145 - Opus 4.6):**
 - **✅ Achievement System Phase 2 — Athlete View + Self-Log**
-  - Achievements embedded as collapsible section in Records tab
-  - Sequential progression enforced, claim modal, detail modal
 
 **Completed (2026-02-19 Session 144 - Opus 4.6):**
 - **✅ Achievement System Phase 1 — DB + Coach Management**
-  - 2 new tables, coach UI, 39 starter achievements seeded
 
 **Older Sessions (57-143):**
 See `project-history/` folder for detailed implementation history
@@ -153,6 +154,12 @@ See `project-history/` folder for detailed implementation history
 - **✅ ~~Leaderboard scaling bug~~ — FIXED (Sessions 125-127). Root cause: stray records from save bug. Fix: booking filter + tie-breaking + 33 stray records deleted.**
 - Athletes page: Previously logged benchmarks/lifts may not display for some athletes (pre-existing)
 - Google Calendar EMOM bug: "The Ghost" (2025-12-01) has stale `workout_type_id` in JSONB on "WOD movements" and "Skill" sections → shows "- EMOM" suffix. Needs DB JSONB cleanup or code fix. May affect other workouts too.
+
+**Exercise Naming Conventions (Session 150):**
+- "Lunge Walking" (not "Walking Lunge") — groups lunge variants together
+- "Jump Rope Double-Unders (DUs)" — groups jump rope exercises together
+- KB Swing default = American (AKBS) for CF benchmarks
+- Generic "Row" in benchmarks = C2 Rower
 
 **Migrations Pending (apply in Supabase SQL Editor):**
 1. **`get_public_tables()` RPC function** — Required for backup auto-discovery (see session 95)
@@ -202,9 +209,10 @@ npm run restore 2025-12-06  # Restore specific date
 **Push Notifications — COMPLETE (all phases):**
 - Clean up test data from `benchmark_results` table (if any stale entries remain)
 
-**Movements filter (remaining from Sessions 122-124):**
-- Update benchmark/forge_benchmark descriptions to use exact DB exercise names (113 audit mismatches)
-- Run: `npx tsx scripts/audit-benchmark-exercises.ts`
+**Movements filter — COMPLETE (Session 150):**
+- ✅ Benchmark/forge_benchmark descriptions updated to use exact DB exercise names
+- ✅ genericToCanonical failsafe mapping handles old WOD JSONB snapshots
+- Audit script: `npx tsx scripts/audit-benchmark-exercises.ts` (0 mismatches)
 
 **Google Calendar fix:**
 - Fix stale `workout_type_id` in JSONB sections (Ghost workouts + scan for others)

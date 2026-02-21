@@ -53,7 +53,7 @@ WODIFY, SugarWOD, Beyond the Whiteboard (BTWB), Zen Planner, PushPress, Wodboard
 | ✅ | 5 | **At-risk member alerts** (no attendance for X days) | Low-Med | High |
 | ✅ | 6 | **Built-in workout timer** (AMRAP/EMOM/For Time) | Medium | Medium |
 | ✅ | 7 | **Auto percentage calculator** from athlete's 1RM | Low-Med | High |
-| ⬜ | 8 | **Achievement badges/streaks** | Medium | Medium |
+| ✅ | 8 | **Achievement badges/streaks** | Medium | Medium |
 | ✅ | 9 | **Share to social media** (branded image card from results) | Low | Medium |
 | ⬜ | 10 | **Movement demo videos** linked in workouts | Low (code) | Medium |
 

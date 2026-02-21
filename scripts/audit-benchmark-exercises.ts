@@ -1,6 +1,12 @@
 /**
  * Audit benchmark & forge benchmark descriptions against exercises table.
  * Reports exercise names that don't match known exercises.
+ *
+ * Mirrors the matching logic in utils/movement-extraction.ts:
+ * 1. Direct match (case-insensitive)
+ * 2. Deplural (strip trailing 's')
+ * 3. Generic→canonical failsafe mapping
+ * 4. Substring matching
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -12,6 +18,112 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
+
+// Same failsafe mapping as movement-extraction.ts
+const genericToCanonical: Record<string, string> = {
+  'pull-up': 'pull-up kipping',
+  'pull-ups': 'pull-up kipping',
+  'push-up': 'push-up strict',
+  'push-ups': 'push-up strict',
+  'handstand push-up': 'handstand push-up kipping',
+  'handstand push-ups': 'handstand push-up kipping',
+  'deadlift': 'barbell deadlift',
+  'deadlifts': 'barbell deadlift',
+  'thruster': 'barbell thruster',
+  'thrusters': 'barbell thruster',
+  'clean': 'barbell clean',
+  'cleans': 'barbell clean',
+  'snatch': 'barbell snatch',
+  'snatches': 'barbell snatch',
+  'push press': 'barbell push press (pp)',
+  'push jerk': 'barbell push jerk (pj)',
+  'push jerks': 'barbell push jerk (pj)',
+  'hang power clean': 'barbell hang power clean (hpc)',
+  'hang power cleans': 'barbell hang power clean (hpc)',
+  'clean & jerk': 'barbell clean & jerk (c&j)',
+  'clean & jerks': 'barbell clean & jerk (c&j)',
+  'clean and jerk': 'barbell clean & jerk (c&j)',
+  'clean and jerks': 'barbell clean & jerk (c&j)',
+  'bench press': 'barbell bench press',
+  'overhead squat': 'overhead squat (ohs)',
+  'overhead squats': 'overhead squat (ohs)',
+  'ring muscle-up': 'ring muscle-up (kipping)',
+  'ring muscle-ups': 'ring muscle-up (kipping)',
+  'muscle-up': 'ring muscle-up (kipping)',
+  'muscle-ups': 'ring muscle-up (kipping)',
+  'knees to elbows': 'bar hanging knees to elbows',
+  'knee to elbow': 'bar hanging knees to elbows',
+  'kb swing': 'kb swing american (akbs)',
+  'kb swings': 'kb swing american (akbs)',
+  'kettlebell swing': 'kb swing american (akbs)',
+  'kettlebell swings': 'kb swing american (akbs)',
+  'sit-up': 'abmat sit-up',
+  'sit-ups': 'abmat sit-up',
+  'back extension': 'ghd back extension',
+  'back extensions': 'ghd back extension',
+  'double-under': 'jump rope double-unders (dus)',
+  'double-unders': 'jump rope double-unders (dus)',
+  'double under': 'jump rope double-unders (dus)',
+  'double unders': 'jump rope double-unders (dus)',
+  'walking lunge': 'lunge walking',
+  'walking lunges': 'lunge walking',
+  'row': 'c2 rower',
+  'rowing': 'c2 rower',
+};
+
+// Noise phrases — instruction text, not exercises
+const noisePatterns = [
+  /^reps?\s+of/i,
+  /^rounds?\s+for/i,
+  /^for\s+time/i,
+  /^min\s+/i,
+  /^\d+\s*min/i,
+  /^emom/i,
+  /^amrap/i,
+  /^rest\b/i,
+  /^then\b/i,
+  /^each\b/i,
+  /^rounds?\s+of/i,
+  /^tabata\b/i,
+  /^perform\b/i,
+  /^on\s+a\s+\d/i,
+  /^the\s+tabata/i,
+  /^score\b/i,
+  /^unit\b/i,
+  /^scaled/i,
+  /^sc\d:/i,
+  /^rx:/i,
+  /^secs?\s+work/i,
+  /^minute\s+/i,
+  /^reps?\s+per/i,
+  /^bodyweight\b/i,
+  /\bfor\s+time$/i,
+  /\bfor\s+max\s+reps$/i,
+  /\bmoving\s+on\b/i,
+  /\bfollowed\s+by\b/i,
+  /\bagainst\s+the\s+wall/i,
+  /\bshoulder/i,
+  /\bstraight\s+legs/i,
+  /\bbent\s+knees/i,
+  /\btuck\s+hold/i,
+  /\bbanded\s+with/i,
+  /\bwrists\b/i,
+  /\blegs\s+clearly/i,
+  /\binstead$/i,
+  /^rounds?\b$/i,
+  /^\(.+\)$/,                   // standalone parenthetical like "(Hero Workout)"
+  /^ascending\b/i,
+  /\bas\s+fast\s+as/i,
+  /\bas\s+many\b/i,
+  /\bmetres?\b.*\bpossible/i,   // "1000 metres as fast as possible"
+  /\bfor\s+time\b/i,
+  /\bsecs?\s+rest\b/i,
+  /\bif\s+you\b/i,
+  /\bheels?\s+higher/i,
+  /\bcalories\b/i,              // "(calories)" description text
+  /\blevel\s+with/i,
+  /\bmanage\s+at\s+least/i,
+];
 
 // Extract exercise-like text from a benchmark description
 function extractCandidates(description: string): string[] {
@@ -52,23 +164,36 @@ function extractCandidates(description: string): string[] {
         if (unitMatch) text = unitMatch[1];
       }
 
+      // Movement + x + Number (e.g., "Burpee x 10")
+      if (!text) {
+        const mxnMatch = part.match(/^(.+?)\s+x\s+\d+/i);
+        if (mxnMatch) text = mxnMatch[1];
+      }
+
       // No number prefix — try as-is
       if (!text) text = part;
 
-      // Clean trailing noise
+      // Clean @ mentions, trailing punctuation, and trailing weight/distance
       text = text.replace(/\s*@.*$/, '');
-      text = text.replace(/\s+\d+\s*(?:kg|lbs?|m|ft|cal|kcal|reps?)?\s*$/i, '');
-      text = text.replace(/\s*\([^)]*\)\s*$/, ''); // strip trailing parenthetical
       text = text.replace(/[,;.!?:]+$/, '');
+      text = text.replace(/\s+\d+\s*(?:kg|lbs?)?\s*$/i, ''); // strip trailing weight
       text = text.trim();
 
       if (text && text.length >= 3) {
+        // Try with full text first (preserves parentheticals + distances)
         candidates.push(text);
       }
     }
   }
 
   return candidates;
+}
+
+function isNoise(text: string): boolean {
+  if (/^\d+$/.test(text)) return true;
+  if (/^\d+\s*(?:min|sec|m|km|cal|kg|lb)s?$/i.test(text)) return true;
+  if (text.split(/\s+/).length > 8) return true;
+  return noisePatterns.some(p => p.test(text));
 }
 
 async function audit() {
@@ -110,48 +235,54 @@ async function audit() {
 
   if (fErr) { console.error('Error fetching forge benchmarks:', fErr); return; }
 
-  // 4. Audit each benchmark
-  const issues: { type: string; benchmarkName: string; candidate: string; suggestion: string }[] = [];
-
+  // 4. Match function — mirrors movement-extraction.ts logic
   const findMatch = (candidate: string): string | null => {
-    const lower = candidate.toLowerCase();
-    // Direct
+    const lower = candidate.toLowerCase().trim();
+    if (!lower || lower.length < 3) return null;
+
+    // 1. Direct match
     if (exerciseNamesLower.has(lower)) return null; // exact match, no issue
-    // Depluralized
+
+    // 2. Deplural
     const deplural = lower.replace(/s$/, '');
-    if (deplural !== lower && exerciseNamesLower.has(deplural)) {
-      const original = Array.from(exerciseNames).find(n => n.toLowerCase() === deplural);
-      return original || null;
+    if (deplural !== lower && exerciseNamesLower.has(deplural)) return null; // deplural match, OK
+
+    // 3. Try with variant parenthetical included (e.g., "Ring Muscle-Up (kipping)")
+    const parenMatch = candidate.match(/^(.*?\([^)]+\))/);
+    if (parenMatch) {
+      const withParen = parenMatch[1].toLowerCase();
+      if (exerciseNamesLower.has(withParen)) return null;
+      const withParenDeplural = withParen.replace(/s\)$/, ')');
+      if (withParenDeplural !== withParen && exerciseNamesLower.has(withParenDeplural)) return null;
     }
-    // Substring: find exercises containing this candidate or vice versa
-    const matches: string[] = [];
-    for (const name of exerciseNames) {
-      const nameLower = name.toLowerCase();
-      if (nameLower.includes(lower) || nameLower.includes(deplural) || lower.includes(nameLower)) {
-        matches.push(name);
+
+    // 4. Strip weight parenthetical only (keep variant labels)
+    const withoutWeight = candidate.replace(/\s*\(\d+[^)]*\)\s*$/, '').trim().toLowerCase();
+    if (withoutWeight !== lower && exerciseNamesLower.has(withoutWeight)) return null;
+
+    // 5. Generic→canonical failsafe
+    const canonical = genericToCanonical[lower] || genericToCanonical[deplural];
+    if (canonical && exerciseNamesLower.has(canonical)) return null; // failsafe handles it
+
+    // 6. Substring matching (flag these — they work but are imprecise)
+    const lowerList = Array.from(exerciseNamesLower);
+    for (const exercise of lowerList) {
+      if (exercise.length < 4) continue;
+      if (lower.includes(exercise) || lower.includes(exercise + 's')) {
+        const display = Array.from(exerciseNames).find(n => n.toLowerCase() === exercise);
+        return `[substring] ${display || exercise}`;
+      }
+      if (lower.length >= 4 && (exercise.includes(lower) || exercise.includes(deplural))) {
+        const display = Array.from(exerciseNames).find(n => n.toLowerCase() === exercise);
+        return `[substring] ${display || exercise}`;
       }
     }
-    if (matches.length > 0) {
-      return matches.join(' | ');
-    }
+
     return '(no match found)';
   };
 
-  // Skip noise words
-  const noiseWords = new Set([
-    'for time', 'amrap', 'emom', 'rounds', 'reps', 'rest', 'then',
-    'each', 'side', 'round', 'minute', 'minutes', 'seconds', 'sec',
-    'rx', 'scaled', 'cap', 'time cap',
-  ]);
-
-  const isNoise = (text: string): boolean => {
-    const lower = text.toLowerCase();
-    if (noiseWords.has(lower)) return true;
-    if (/^\d+$/.test(text)) return true; // pure numbers
-    if (/^\d+\s*(?:min|sec|m|km|cal|kg|lb)s?$/i.test(text)) return true; // "5 min", "500m"
-    if (text.split(/\s+/).length > 6) return true; // too long, probably instruction
-    return false;
-  };
+  // 5. Audit
+  const issues: { type: string; benchmarkName: string; candidate: string; suggestion: string }[] = [];
 
   const auditBenchmarks = (items: any[], type: string) => {
     for (const item of items) {
@@ -177,11 +308,11 @@ async function audit() {
   auditBenchmarks(benchmarks || [], 'Benchmark');
   auditBenchmarks(forgeBenchmarks || [], 'Forge Benchmark');
 
-  // 5. Output report
+  // 6. Output report
   if (issues.length === 0) {
     console.log('✅ All benchmark descriptions use exact exercise names!');
   } else {
-    console.log(`Found ${issues.length} exercise name mismatches:\n`);
+    console.log(`Found ${issues.length} remaining mismatches:\n`);
     console.log('='.repeat(80));
 
     // Group by benchmark

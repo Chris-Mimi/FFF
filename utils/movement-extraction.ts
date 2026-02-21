@@ -21,6 +21,68 @@ const excludeWords = new Set([
   'kcal', 'kg', 'lbs', 'lb', 'ft', 'km', 'mi', 'hr', 'hrs',
 ]);
 
+// Failsafe mapping: common generic CrossFit terms → canonical DB exercise names.
+// Catches old WOD JSONB snapshots that used generic terminology before descriptions
+// were updated to use exact DB names. All keys and values are lowercase.
+const genericToCanonical: Record<string, string> = {
+  // Generic pull/push variants → default CF variant
+  'pull-up': 'pull-up kipping',
+  'pull-ups': 'pull-up kipping',
+  'push-up': 'push-up strict',
+  'push-ups': 'push-up strict',
+  'handstand push-up': 'handstand push-up kipping',
+  'handstand push-ups': 'handstand push-up kipping',
+  // Generic barbell movements → explicit barbell prefix
+  'deadlift': 'barbell deadlift',
+  'deadlifts': 'barbell deadlift',
+  'thruster': 'barbell thruster',
+  'thrusters': 'barbell thruster',
+  'clean': 'barbell clean',
+  'cleans': 'barbell clean',
+  'snatch': 'barbell snatch',
+  'snatches': 'barbell snatch',
+  'push press': 'barbell push press (pp)',
+  'push jerk': 'barbell push jerk (pj)',
+  'push jerks': 'barbell push jerk (pj)',
+  'hang power clean': 'barbell hang power clean (hpc)',
+  'hang power cleans': 'barbell hang power clean (hpc)',
+  'clean & jerk': 'barbell clean & jerk (c&j)',
+  'clean & jerks': 'barbell clean & jerk (c&j)',
+  'clean and jerk': 'barbell clean & jerk (c&j)',
+  'clean and jerks': 'barbell clean & jerk (c&j)',
+  'bench press': 'barbell bench press',
+  'overhead squat': 'overhead squat (ohs)',
+  'overhead squats': 'overhead squat (ohs)',
+  // Gymnastics
+  'ring muscle-up': 'ring muscle-up (kipping)',
+  'ring muscle-ups': 'ring muscle-up (kipping)',
+  'muscle-up': 'ring muscle-up (kipping)',
+  'muscle-ups': 'ring muscle-up (kipping)',
+  'knees to elbows': 'bar hanging knees to elbows',
+  'knee to elbow': 'bar hanging knees to elbows',
+  // KB
+  'kb swing': 'kb swing american (akbs)',
+  'kb swings': 'kb swing american (akbs)',
+  'kettlebell swing': 'kb swing american (akbs)',
+  'kettlebell swings': 'kb swing american (akbs)',
+  // Bodyweight — need prefix
+  'sit-up': 'abmat sit-up',
+  'sit-ups': 'abmat sit-up',
+  'back extension': 'ghd back extension',
+  'back extensions': 'ghd back extension',
+  // Jump rope — naming convention uses "Jump Rope" prefix
+  'double-under': 'jump rope double-unders (dus)',
+  'double-unders': 'jump rope double-unders (dus)',
+  'double under': 'jump rope double-unders (dus)',
+  'double unders': 'jump rope double-unders (dus)',
+  // Lunges — old convention "Walking Lunge" → new "Lunge Walking"
+  'walking lunge': 'lunge walking',
+  'walking lunges': 'lunge walking',
+  // Cardio — generic "Row" in benchmarks = C2 Rower
+  'row': 'c2 rower',
+  'rowing': 'c2 rower',
+};
+
 // Phrases that indicate coaching instructions, not exercises
 const instructionPhrases = [
   'try to', 'add weight', 'each round', 'rest between', 'rest after',
@@ -28,6 +90,7 @@ const instructionPhrases = [
   'as heavy as', 'as fast as', 'go heavy', 'go light', 'stay consistent',
   'scale to', 'modify to', 'option to', 'aim for', 'target',
   'same weight', 'increase weight', 'decrease weight',
+  'for time', 'as fast as possible', 'as many', 'reps of',
 ];
 
 // Helper function to normalize movement name
@@ -60,7 +123,23 @@ const findMatchingExercise = (
     return normalizeMovement(depluralized);
   }
 
-  // 3. Substring matching — known exercise found within candidate or vice versa
+  // 3. Generic term failsafe — maps common shorthand to canonical DB names
+  const canonical = genericToCanonical[lower] || genericToCanonical[depluralized];
+  if (canonical && knownExercisesLower.has(canonical)) {
+    return normalizeMovement(canonical);
+  }
+
+  // 3.5. Strip parenthetical and retry steps 1-3 (handles "Barbell Bench Press (Bodyweight)")
+  const withoutParen = lower.replace(/\s*\([^)]*\)\s*$/, '').trim();
+  if (withoutParen !== lower && withoutParen.length >= 3) {
+    if (knownExercisesLower.has(withoutParen)) return normalizeMovement(withoutParen);
+    const wpDeplural = withoutParen.replace(/s$/, '');
+    if (wpDeplural !== withoutParen && knownExercisesLower.has(wpDeplural)) return normalizeMovement(wpDeplural);
+    const wpCanonical = genericToCanonical[withoutParen] || genericToCanonical[wpDeplural];
+    if (wpCanonical && knownExercisesLower.has(wpCanonical)) return normalizeMovement(wpCanonical);
+  }
+
+  // 4. Substring matching — known exercise found within candidate or vice versa
   for (const exercise of knownExercisesList) {
     if (exercise.length < 4) continue;
 
@@ -166,14 +245,35 @@ const extractMovementsFromText = (
         if (unitMatch) movementText = unitMatch[1];
       }
 
-      // Pattern 5: No number prefix — try full line against DB (only with cross-reference)
+      // Pattern 5: Movement + x + Number (e.g., "Burpee x 10", "Air Squat x 150")
+      if (!movementText) {
+        const mxnMatch = cleanedPart.match(/^(.+?)\s+x\s+\d+/i);
+        if (mxnMatch) movementText = mxnMatch[1];
+      }
+
+      // Pattern 6: No number prefix — try full line against DB (only with cross-reference)
       if (!movementText && knownLower && knownList) {
         movementText = cleanedPart;
       }
 
       if (!movementText) return;
 
-      // Clean trailing noise
+      // Try matching the full text first (preserves distances like "Run 400m")
+      if (knownLower && knownList) {
+        const rawCandidate = movementText.replace(/\s*@.*$/, '').replace(/[,;.!?:]+$/, '').trim();
+        if (rawCandidate) {
+          // Try with parenthetical first (e.g., "Overhead Squat (OHS)")
+          const rawParenMatch = rawCandidate.match(/^(.*?\([^)]+\))/);
+          const rawCandidateText = rawParenMatch ? rawParenMatch[1] : rawCandidate;
+          const rawMatch = findMatchingExercise(rawCandidateText, knownLower, knownList);
+          if (rawMatch) {
+            movements.add(rawMatch);
+            return;
+          }
+        }
+      }
+
+      // Clean trailing noise (strips distances/weights — fallback if full text didn't match)
       movementText = movementText.replace(/\s*@.*$/, '');
       movementText = movementText.replace(/\s+\d+\s*(?:kg|lbs?|m|ft|cal|kcal|reps?)?\s*$/i, '');
       movementText = movementText.replace(/[,;.!?:]+$/, '');
