@@ -169,25 +169,23 @@ function WODSectionComponent({
               {elapsedMinutes + 1}-{endTime} min
             </div>
 
-            {/* Workout Type Dropdown - Only for WOD sections */}
-            {(section.type === 'WOD' || section.type === 'WOD Pt.1' || section.type === 'WOD Pt.2' || section.type === 'WOD Pt.3' || section.type === 'WOD Pt.4' || section.type === 'WOD Pt.5' || section.type === 'WOD Pt.6') && (
-              <div className='flex items-center gap-2'>
-                <label className='text-xs font-semibold text-gray-700'>Type:</label>
-                <select
-                  value={section.workout_type_id || ''}
-                  onChange={e => onUpdate({ workout_type_id: e.target.value })}
-                  className='px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 bg-white text-xs'
-                  disabled={loadingTracks}
-                >
-                  <option value=''>Select Type...</option>
-                  {workoutTypes.map(type => (
-                    <option key={type.id} value={type.id}>
-                      {type.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
+            {/* Workout Type Dropdown - Available for all section types */}
+            <div className='flex items-center gap-2'>
+              <label className='text-xs font-semibold text-gray-700'>Type:</label>
+              <select
+                value={section.workout_type_id || ''}
+                onChange={e => onUpdate({ workout_type_id: e.target.value })}
+                className='px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 bg-white text-xs'
+                disabled={loadingTracks}
+              >
+                <option value=''>Select Type...</option>
+                {workoutTypes.map(type => (
+                  <option key={type.id} value={type.id}>
+                    {type.name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
             {/* Scoring Configuration - For WOD and other workout sections */}
             {(section.type === 'WOD' || section.type === 'WOD Pt.1' || section.type === 'WOD Pt.2' || section.type === 'WOD Pt.3' || section.type === 'WOD Pt.4' || section.type === 'WOD Pt.5' || section.type === 'WOD Pt.6' ||

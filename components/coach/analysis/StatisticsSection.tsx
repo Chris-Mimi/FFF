@@ -111,7 +111,7 @@ export default function StatisticsSection({
   filteredTopExercises,
 }: StatisticsSectionProps) {
   return (
-    <div className='bg-gray-600 rounded-xl shadow-xl p-4 md:p-8' style={{ overflowAnchor: 'none' }}>
+    <div className='bg-gray-600 rounded-xl shadow-xl p-4 md:p-8' style={{ overflowAnchor: 'none', minHeight: '150vh' }}>
       <div className='flex flex-col md:flex-row md:justify-between md:items-center gap-3 md:gap-6 mb-4 md:mb-6'>
         <h2 className='text-lg md:text-xl font-bold text-gray-100'>Statistics</h2>
         <div className='flex flex-col md:flex-row md:items-center gap-3 md:gap-6'>

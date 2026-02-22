@@ -84,9 +84,14 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-22 Session 151 - Sonnet 4.6):**
+- **✅ Google Calendar EMOM bug fix** — Workout Type dropdown was WOD-only; now shown on all section types so stale `workout_type_id` can be cleared from any section
+- **✅ Analysis page scroll jump fix** — `min-height: 150vh` on Statistics panel prevents content shrinking below scroll offset
+- **✅ Housekeeping** — Confirmed `get_public_tables()` RPC working; removed resolved items from known issues
+
 **Completed (2026-02-21 Session 150 - Opus 4.6):**
 - **✅ Session history renumbering** — Fixed gap (144→151 became 144→150 sequential)
-- **✅ Drag-and-drop fix** — Coach calendar drag handle broken by browser update. Added stopPropagation on drag handle onClick/onMouseDown, cursor-grab/grabbing, larger hit target (p-1.5)
+- **✅ Drag-and-drop fix** — Coach calendar drag handle broken by browser update
 
 **Completed (2026-02-21 Session 149 - Opus 4.6):**
 - **✅ Benchmark Exercise Name Audit** — DB description cleanup + code failsafe mapping
@@ -98,10 +103,7 @@ Social Tables
 **Completed (2026-02-21 Session 147 - Opus 4.6):**
 - **✅ Achievement Theme Polish** — Charcoal + emerald/gold locked in (Theme C)
 
-**Completed (2026-02-21 Session 146 - Opus 4.6):**
-- **✅ Achievement Award Flow + Mobile Polish**
-
-**Older Sessions (57-143):**
+**Older Sessions (57-146):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -144,8 +146,7 @@ See `project-history/` folder for detailed implementation history
 
 **Other Known Issues:**
 - **✅ ~~Leaderboard scaling bug~~ — FIXED (Sessions 125-127). Root cause: stray records from save bug. Fix: booking filter + tie-breaking + 33 stray records deleted.**
-- Athletes page: Previously logged benchmarks/lifts may not display for some athletes (pre-existing)
-- Google Calendar EMOM bug: "The Ghost" (2025-12-01) has stale `workout_type_id` in JSONB on "WOD movements" and "Skill" sections → shows "- EMOM" suffix. Needs DB JSONB cleanup or code fix. May affect other workouts too.
+- **✅ ~~Google Calendar EMOM bug~~** — FIXED (Session 151). Root cause: Workout Type dropdown was WOD-only; stale `workout_type_id` couldn't be cleared on other section types. Fix: dropdown now shown on all sections. Open "The Ghost" and clear the Type on Skill/WOD Movements sections, then re-publish.
 
 **Exercise Naming Conventions (Session 149):**
 - "Lunge Walking" (not "Walking Lunge") — groups lunge variants together
@@ -154,7 +155,7 @@ See `project-history/` folder for detailed implementation history
 - Generic "Row" in benchmarks = C2 Rower
 
 **Migrations Pending (apply in Supabase SQL Editor):**
-1. **`get_public_tables()` RPC function** — Required for backup auto-discovery (see session 95)
+- ✅ `get_public_tables()` RPC — confirmed working (new tables auto-discovered in backups)
 
 ---
 
@@ -217,8 +218,7 @@ npm run restore 2025-12-06  # Restore specific date
 - All 9 competitor features COMPLETE ✅
 
 **Pending Polish (LOW):**
-- Athletes page benchmarks/lifts display issue (investigate)
-- Analysis page scroll jump bug (DEFERRED)
+- **✅ ~~Analysis page scroll jump~~** — FIXED (Session 151). `min-height: 150vh` on Statistics panel.
 
 ---
 
