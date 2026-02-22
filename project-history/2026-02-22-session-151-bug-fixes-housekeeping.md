@@ -18,7 +18,12 @@
    - Fix: `min-height: 150vh` on Statistics panel (`StatisticsSection.tsx`) prevents panel ever being shorter than 1.5x viewport
    - Multiple approaches attempted: `useLayoutEffect` scroll restore (no effect), `100vh` (too short), `200vh` (too much), `150vh` (correct)
 
-3. **Housekeeping**
+3. **Intent/Stimulus collapse**
+   - Intent/Stimulus section now collapsed by default with ChevronDown expand/collapse arrow
+   - Matches the same pattern as section-level collapse
+   - Note: deliberately shown on ALL section types (not restricted) to avoid orphaned JSONB data if section type is changed after notes are entered
+
+4. **Housekeeping**
    - Confirmed `get_public_tables()` RPC working — removed from pending migrations
    - Confirmed Athletes page benchmarks/lifts issue resolved — removed from known issues
    - Cleaned up activeContext known issues
@@ -27,6 +32,6 @@
 
 ## Files Changed
 
-- `components/coach/WODSectionComponent.tsx` — Workout Type dropdown shown on all section types
+- `components/coach/WODSectionComponent.tsx` — Workout Type dropdown on all section types; Intent/Stimulus collapsed by default
 - `components/coach/analysis/StatisticsSection.tsx` — `min-height: 150vh` on panel
 - `memory-bank/memory-bank-activeContext.md` — Session 151 entry, issues resolved
