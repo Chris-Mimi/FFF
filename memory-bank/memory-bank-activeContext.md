@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 34.0
-**Updated:** 2026-02-23 (Session 152 - Coach Remove Booking + Attendance Behaviour Report)
+**Version:** 35.0
+**Updated:** 2026-02-23 (Session 153 - Attendance Reports panel)
 
 ---
 
@@ -84,8 +84,10 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-23 Session 153 - Sonnet 4.6):**
+- **✅ Attendance Reports panel** — Admin page refactored from single table to two-tab panel. "Attended" tab: member ranking by sessions attended, time filter pills (30d/90d/6m/12m/All-time). "Incidents" tab: same filter pills + all 5 columns sortable (Member, Removed by Coach, Late Cancel, No-Show, Total). Both tabs use client-side filtering on cached raw data (no extra DB calls per filter change).
+
 **Completed (2026-02-23 Session 152 - Sonnet 4.6):**
-- **✅ Memory bank housekeeping** — Removed resolved issues (Google Cal EMOM, analysis scroll jump)
 - **✅ Coach "Remove" booking button** — New `coach_cancelled` status in Session Management modal. Always refunds 10-card. Member can be re-booked after removal. Requires DB migration (see Migrations Pending).
 - **✅ Attendance Behaviour report** — Admin page table: Coach Removed | Late Cancel | No-Show per member, sorted by total incidents
 
@@ -100,11 +102,7 @@ Social Tables
 **Completed (2026-02-21 Session 149 - Opus 4.6):**
 - **✅ Benchmark Exercise Name Audit** — DB description cleanup + code failsafe mapping
 
-**Completed (2026-02-21 Session 148 - Opus 4.6):**
-- **✅ Housekeeping** — Consolidated achievement history files (sessions 144-147 into one file)
-- **✅ Memory Bank Update + Lift Duplicate Fix** — double-save guard + `.limit(1).maybeSingle()`
-
-**Older Sessions (57-147):**
+**Older Sessions (57-148):**
 See `project-history/` folder for detailed implementation history
 
 ---
