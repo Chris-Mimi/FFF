@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 35.0
-**Updated:** 2026-02-23 (Session 153 - Attendance Reports panel)
+**Version:** 36.0
+**Updated:** 2026-02-23 (Session 154 - Pre-Deployment Security Audit)
 
 ---
 
@@ -84,23 +84,20 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-23 Session 154 - Opus 4.6):**
+- **✅ Pre-Deployment Security Audit** — 5 parallel audit agents (URLs/env, console.logs, code quality, security, build config). Fixed all CRITICAL+HIGH security issues: IDOR fixes in benchmark-results/lift-records/stripe routes, auth hardening (requireAuth/requireCoach added to 4 endpoints), deleted 5 scripts with hardcoded service role keys, stripped raw error.message from API responses.
+
 **Completed (2026-02-23 Session 153 - Sonnet 4.6):**
-- **✅ Attendance Reports panel** — Admin page refactored from single table to two-tab panel. "Attended" tab: member ranking by sessions attended, time filter pills (30d/90d/6m/12m/All-time). "Incidents" tab: same filter pills + all 5 columns sortable (Member, Removed by Coach, Late Cancel, No-Show, Total). Both tabs use client-side filtering on cached raw data (no extra DB calls per filter change).
+- **✅ Attendance Reports panel** — Admin page refactored from single table to two-tab panel with time filters + sortable columns.
 
 **Completed (2026-02-23 Session 152 - Sonnet 4.6):**
-- **✅ Coach "Remove" booking button** — New `coach_cancelled` status in Session Management modal. Always refunds 10-card. Member can be re-booked after removal. Requires DB migration (see Migrations Pending).
-- **✅ Attendance Behaviour report** — Admin page table: Coach Removed | Late Cancel | No-Show per member, sorted by total incidents
+- **✅ Coach "Remove" booking button** + **Attendance Behaviour report**
 
 **Completed (2026-02-22 Session 151 - Sonnet 4.6):**
-- **✅ Google Calendar EMOM bug fix** — Workout Type dropdown now shown on all section types
-- **✅ Analysis page scroll jump fix** — `min-height: 150vh` on Statistics panel
+- **✅ Google Calendar EMOM bug fix** + **Analysis page scroll jump fix**
 
 **Completed (2026-02-21 Session 150 - Opus 4.6):**
-- **✅ Session history renumbering** — Fixed gap (144→151 became 144→150 sequential)
-- **✅ Drag-and-drop fix** — Coach calendar drag handle broken by browser update
-
-**Completed (2026-02-21 Session 149 - Opus 4.6):**
-- **✅ Benchmark Exercise Name Audit** — DB description cleanup + code failsafe mapping
+- **✅ Session history renumbering** + **Drag-and-drop fix**
 
 **Older Sessions (57-148):**
 See `project-history/` folder for detailed implementation history
@@ -109,23 +106,15 @@ See `project-history/` folder for detailed implementation history
 
 ## 🚨 Known Issues / Remaining Items
 
-**Pre-Deployment Audit — COMPLETE:**
-- ✅ All 17 items completed (Sessions 96-101)
+**Pre-Deployment Audit — Sessions 96-101 + 154:**
+- ✅ All original 17 items completed (Sessions 96-101)
+- ✅ Session 154 security audit: All CRITICAL + HIGH items fixed
+- **MEDIUM remaining (Session 154):** console.log in NotificationPrompt.tsx:128, "Check console" toasts in TenCardModal.tsx:160 + AthletePageLogbookTab.tsx:277, `window as any` drag-and-drop in 3 hooks, missing SSR guard in modalStateHelpers.ts, no loading.tsx/not-found.tsx pages
+- **LOW remaining:** 8 files >500 lines, 22 `@typescript-eslint/no-explicit-any`, no rate limiting on registration, duplicated Supabase mapping in movement-analytics.ts
 
 **Code Quality (from Session 103 review):**
-- 30 `@typescript-eslint/no-explicit-any` suppressions (pragmatic, post-deploy)
-- 5 large files >800 lines (MovementLibraryPopup 1341, SearchPanel 952, book/page 950, useWorkoutModal 896, ForgeBenchmarksTab 858) — refactor post-deploy
-- ✅ ~~15+ `alert()` calls should become toast notifications~~ — DONE (Session 105, sonner)
-- ✅ ~~50+ icon buttons missing aria-labels~~ — DONE (Session 106, 137 labels added)
-- ✅ ~~Escape key handlers for modals/popups~~ — DONE (Session 116, 15 modals added)
-- ✅ ~~Debounce search inputs~~ — DONE (Session 117, useDebouncedValue hook)
-- ✅ ~~Form validation (HIGH priority)~~ — DONE (Sessions 117-118, 7/7 files).
-- ✅ ~~Form validation (MEDIUM priority)~~ — DONE (Session 118, 16/16 files).
-- ✅ ~~Empty states~~ — DONE (Session 120)
-- ✅ ~~Touch targets (<44px)~~ — DONE (Session 120)
-- ✅ ~~Replace browser confirm() with styled modals~~ — DONE (Session 121, 33 calls)
-- ✅ ~~Focus traps in modals~~ — DONE (Session 121, 33 modals)
-- ✅ ~~Color contrast audit~~ — DONE (Session 129, 15 files fixed)
+- 22 `@typescript-eslint/no-explicit-any` suppressions (pragmatic, post-deploy)
+- 8 large files >500 lines — refactor post-deploy
 
 **Feature Gaps (from competitor analysis — updated):**
 - ✅ #1 Social reactions (fist bumps) — DONE (Session 104)
