@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
       if (error) {
         console.error('Error updating result:', error);
         return NextResponse.json(
-          { error: `Failed to update result: ${error.message}` },
+          { error: 'Failed to update result' },
           { status: 500 }
         );
       }
@@ -172,7 +172,7 @@ export async function POST(request: NextRequest) {
       if (error) {
         console.error('Error inserting result:', error);
         return NextResponse.json(
-          { error: `Failed to insert result: ${error.message}` },
+          { error: 'Failed to save result' },
           { status: 500 }
         );
       }

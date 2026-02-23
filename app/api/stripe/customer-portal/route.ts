@@ -20,22 +20,11 @@ export async function POST(request: NextRequest) {
     const user = await requireAuth(request);
     if (isAuthError(user)) return user;
 
-    const body = await request.json();
-    const { memberId } = body;
-
-    // Validate required fields
-    if (!memberId) {
-      return NextResponse.json(
-        { error: 'Member ID is required' },
-        { status: 400 }
-      );
-    }
-
-    // Fetch member to get Stripe customer ID
+    // Use authenticated user's email to look up their member record — prevents IDOR
     const { data: member, error: fetchError } = await supabaseAdmin
       .from('members')
       .select('id, stripe_customer_id')
-      .eq('id', memberId)
+      .eq('email', user.email)
       .single();
 
     if (fetchError || !member) {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { requireAuth, isAuthError } from '@/lib/auth-api';
+import { requireCoach, isAuthError } from '@/lib/auth-api';
 import { notifyAchievementAwarded } from '@/lib/notifications';
 
 const supabaseAdmin = createClient(
@@ -16,7 +16,7 @@ const supabaseAdmin = createClient(
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await requireAuth(request);
+    const user = await requireCoach(request);
     if (isAuthError(user)) return user;
 
     const body = await request.json();

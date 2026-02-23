@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
-import { requireCoach, isAuthError } from '@/lib/auth-api';
+import { requireAuth, requireCoach, isAuthError } from '@/lib/auth-api';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -11,6 +11,9 @@ const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 // GET /api/whiteboard-photos?week=2026-W03
 export async function GET(request: NextRequest) {
   try {
+    const user = await requireAuth(request);
+    if (isAuthError(user)) return user;
+
     const { searchParams } = new URL(request.url);
     const week = searchParams.get('week');
 

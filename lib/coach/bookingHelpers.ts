@@ -1,6 +1,6 @@
 interface Booking {
   id: string;
-  status: 'confirmed' | 'waitlist' | 'cancelled' | 'no_show' | 'late_cancel';
+  status: 'confirmed' | 'waitlist' | 'cancelled' | 'no_show' | 'late_cancel' | 'coach_cancelled';
   member: {
     id: string;
     name: string;

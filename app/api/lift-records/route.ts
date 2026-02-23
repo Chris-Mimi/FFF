@@ -20,8 +20,9 @@ export async function POST(request: NextRequest) {
     if (isAuthError(user)) return user;
 
     const body = await request.json();
+    // Use authenticated user's ID — ignore userId from body to prevent IDOR
+    const userId = user.id;
     const {
-      userId,
       liftName,
       weightKg,
       reps,
@@ -32,9 +33,9 @@ export async function POST(request: NextRequest) {
       liftDate
     } = body;
 
-    if (!userId || !liftName || !weightKg || !reps || !liftDate) {
+    if (!liftName || !weightKg || !reps || !liftDate) {
       return NextResponse.json(
-        { error: 'userId, liftName, weightKg, reps, and liftDate are required' },
+        { error: 'liftName, weightKg, reps, and liftDate are required' },
         { status: 400 }
       );
     }
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error('Error inserting lift record:', error);
       return NextResponse.json(
-        { error: `Failed to save lift record: ${error.message}` },
+        { error: 'Failed to save lift record' },
         { status: 500 }
       );
     }

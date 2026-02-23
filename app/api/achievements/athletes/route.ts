@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { requireAuth, isAuthError } from '@/lib/auth-api';
+import { requireCoach, isAuthError } from '@/lib/auth-api';
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -10,12 +10,12 @@ const supabaseAdmin = createClient(
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await requireAuth(request);
+    const user = await requireCoach(request);
     if (isAuthError(user)) return user;
 
     const { data, error } = await supabaseAdmin
       .from('members')
-      .select('id, name, display_name, email')
+      .select('id, name, display_name')
       .eq('status', 'active')
       .in('athlete_subscription_status', ['trial', 'active'])
       .order('name');

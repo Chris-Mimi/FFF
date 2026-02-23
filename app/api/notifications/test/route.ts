@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth, isAuthError } from '@/lib/auth-api';
+import { requireCoach, isAuthError } from '@/lib/auth-api';
 import webpush from 'web-push';
 import { createClient } from '@supabase/supabase-js';
 
@@ -10,7 +10,7 @@ const supabaseAdmin = createClient(
 );
 
 export async function POST(request: NextRequest) {
-  const result = await requireAuth(request);
+  const result = await requireCoach(request);
   if (isAuthError(result)) return result;
   const user = result;
 

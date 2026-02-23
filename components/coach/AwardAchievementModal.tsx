@@ -11,11 +11,10 @@ interface Member {
   id: string;
   name: string;
   display_name: string | null;
-  email: string;
 }
 
 function memberDisplayName(m: Member): string {
-  return m.display_name || m.name || m.email || 'Unknown';
+  return m.display_name || m.name || 'Unknown';
 }
 
 interface AthleteAchievementRecord {

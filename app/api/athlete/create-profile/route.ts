@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { requireAuth, isAuthError } from '@/lib/auth-api';
 
 // Use service role to bypass RLS (needed during signup before email confirmation)
 const supabaseAdmin = createClient(
@@ -15,13 +16,19 @@ const supabaseAdmin = createClient(
 
 export async function POST(request: NextRequest) {
   try {
+    const user = await requireAuth(request);
+    if (isAuthError(user)) return user;
+
     const body = await request.json();
-    const { userId, fullName, email } = body;
+    // Use authenticated user's ID and email — ignore body values to prevent abuse
+    const userId = user.id;
+    const email = user.email!;
+    const { fullName } = body;
 
     // Validate required fields
-    if (!userId || !fullName || !email) {
+    if (!fullName) {
       return NextResponse.json(
-        { error: 'userId, fullName, and email are required' },
+        { error: 'fullName is required' },
         { status: 400 }
       );
     }
@@ -54,7 +61,7 @@ export async function POST(request: NextRequest) {
     if (insertError) {
       console.error('Athlete profile creation error:', insertError);
       return NextResponse.json(
-        { error: 'Failed to create athlete profile', details: insertError.message },
+        { error: 'Failed to create athlete profile' },
         { status: 500 }
       );
     }

@@ -29,9 +29,10 @@ export async function POST(request: NextRequest) {
     if (isAuthError(user)) return user;
 
     const body = await request.json();
+    // Use authenticated user's ID — ignore userId from body to prevent IDOR
+    const userId = user.id;
     const {
       id,
-      userId,
       benchmarkId,
       forgeBenchmarkId,
       benchmarkName,
@@ -45,9 +46,9 @@ export async function POST(request: NextRequest) {
     } = body;
 
     // Validate required fields
-    if (!userId || !benchmarkName || !benchmarkType) {
+    if (!benchmarkName || !benchmarkType) {
       return NextResponse.json(
-        { error: 'userId, benchmarkName, and benchmarkType are required' },
+        { error: 'benchmarkName and benchmarkType are required' },
         { status: 400 }
       );
     }
@@ -123,7 +124,7 @@ export async function POST(request: NextRequest) {
       if (error) {
         console.error('Error updating result:', error);
         return NextResponse.json(
-          { error: `Failed to update result: ${error.message}` },
+          { error: 'Failed to update result' },
           { status: 500 }
         );
       }
@@ -188,7 +189,7 @@ export async function POST(request: NextRequest) {
       if (error) {
         console.error('Error inserting result:', error);
         return NextResponse.json(
-          { error: `Failed to insert result: ${error.message}` },
+          { error: 'Failed to save result' },
           { status: 500 }
         );
       }
