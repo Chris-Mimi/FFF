@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 32.0
-**Updated:** 2026-02-21 (Session 150 - Session Renumbering + Drag Fix)
+**Version:** 33.0
+**Updated:** 2026-02-23 (Session 152 - Housekeeping)
 
 ---
 
@@ -207,9 +207,6 @@ npm run restore 2025-12-06  # Restore specific date
 - ✅ genericToCanonical failsafe mapping handles old WOD JSONB snapshots
 - Audit script: `npx tsx scripts/audit-benchmark-exercises.ts` (0 mismatches)
 
-**Google Calendar fix:**
-- Fix stale `workout_type_id` in JSONB sections (Ghost workouts + scan for others)
-
 **Session 137 Follow-up:**
 - Test intent/stimulus notes end-to-end (save, reload, publish, athlete view)
 - Debug push notification delivery on Mimi profile (stale subscription suspected)
@@ -218,7 +215,7 @@ npm run restore 2025-12-06  # Restore specific date
 - All 9 competitor features COMPLETE ✅
 
 **Pending Polish (LOW):**
-- **✅ ~~Analysis page scroll jump~~** — FIXED (Session 151). `min-height: 150vh` on Statistics panel.
+- Athletes page benchmarks/lifts display issue (investigate)
 
 ---
 
