@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 33.0
-**Updated:** 2026-02-23 (Session 152 - Housekeeping)
+**Version:** 34.0
+**Updated:** 2026-02-23 (Session 152 - Coach Remove Booking + Attendance Behaviour Report)
 
 ---
 
@@ -84,10 +84,14 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-23 Session 152 - Sonnet 4.6):**
+- **✅ Memory bank housekeeping** — Removed resolved issues (Google Cal EMOM, analysis scroll jump)
+- **✅ Coach "Remove" booking button** — New `coach_cancelled` status in Session Management modal. Always refunds 10-card. Member can be re-booked after removal. Requires DB migration (see Migrations Pending).
+- **✅ Attendance Behaviour report** — Admin page table: Coach Removed | Late Cancel | No-Show per member, sorted by total incidents
+
 **Completed (2026-02-22 Session 151 - Sonnet 4.6):**
-- **✅ Google Calendar EMOM bug fix** — Workout Type dropdown was WOD-only; now shown on all section types so stale `workout_type_id` can be cleared from any section
-- **✅ Analysis page scroll jump fix** — `min-height: 150vh` on Statistics panel prevents content shrinking below scroll offset
-- **✅ Housekeeping** — Confirmed `get_public_tables()` RPC working; removed resolved items from known issues
+- **✅ Google Calendar EMOM bug fix** — Workout Type dropdown now shown on all section types
+- **✅ Analysis page scroll jump fix** — `min-height: 150vh` on Statistics panel
 
 **Completed (2026-02-21 Session 150 - Opus 4.6):**
 - **✅ Session history renumbering** — Fixed gap (144→151 became 144→150 sequential)
@@ -100,10 +104,7 @@ Social Tables
 - **✅ Housekeeping** — Consolidated achievement history files (sessions 144-147 into one file)
 - **✅ Memory Bank Update + Lift Duplicate Fix** — double-save guard + `.limit(1).maybeSingle()`
 
-**Completed (2026-02-21 Session 147 - Opus 4.6):**
-- **✅ Achievement Theme Polish** — Charcoal + emerald/gold locked in (Theme C)
-
-**Older Sessions (57-146):**
+**Older Sessions (57-147):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -156,6 +157,7 @@ See `project-history/` folder for detailed implementation history
 
 **Migrations Pending (apply in Supabase SQL Editor):**
 - ✅ `get_public_tables()` RPC — confirmed working (new tables auto-discovered in backups)
+- **`supabase/migrations/20260223_add_coach_cancelled_status.sql`** — Adds `coach_cancelled` to bookings CHECK constraint + updates unique index. Required for "Remove" button in Session Management.
 
 ---
 
