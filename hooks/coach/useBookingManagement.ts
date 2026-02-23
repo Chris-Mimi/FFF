@@ -23,6 +23,7 @@ interface UseBookingManagementResult {
   handleUndoNoShow: (bookingId: string, memberName: string) => Promise<void>;
   handleLateCancel: (bookingId: string, memberName: string) => Promise<void>;
   handleUndoLateCancel: (bookingId: string, memberName: string) => Promise<void>;
+  handleCancelBooking: (bookingId: string, memberName: string, memberId: string) => Promise<void>;
 }
 
 export function useBookingManagement({
@@ -199,6 +200,49 @@ export function useBookingManagement({
     }
   };
 
+  const handleCancelBooking = async (bookingId: string, memberName: string, memberId: string) => {
+    if (
+      !await confirm({
+        title: 'Remove Booking',
+        message: `Remove ${memberName}'s booking?\n\nThis is for bookings made in error. The 10-card session will be refunded if applicable.`,
+        confirmText: 'Remove Booking',
+        variant: 'danger',
+      })
+    ) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .update({ status: 'coach_cancelled' })
+        .eq('id', bookingId);
+
+      if (error) throw error;
+
+      // Always refund 10-card if applicable
+      const { data: member } = await supabase
+        .from('members')
+        .select('membership_types, ten_card_sessions_used')
+        .eq('id', memberId)
+        .single();
+
+      if (member?.membership_types?.includes('ten_card') && member.ten_card_sessions_used > 0) {
+        await supabase
+          .from('members')
+          .update({ ten_card_sessions_used: member.ten_card_sessions_used - 1 })
+          .eq('id', memberId);
+      }
+
+      await onRefresh();
+      onSessionUpdated();
+      toast.success(`${memberName}'s booking removed`);
+    } catch (error) {
+      console.error('Error removing booking:', error);
+      toast.error('Failed to remove booking');
+    }
+  };
+
   return {
     selectedMemberId,
     addingMember,
@@ -208,5 +252,6 @@ export function useBookingManagement({
     handleUndoNoShow,
     handleLateCancel,
     handleUndoLateCancel,
+    handleCancelBooking,
   };
 }

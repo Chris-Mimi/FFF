@@ -1,6 +1,6 @@
 'use client';
 
-import { Undo2, UserX } from 'lucide-react';
+import { Undo2, UserX, X } from 'lucide-react';
 import { Booking } from '@/hooks/coach/useSessionDetails';
 
 interface BookingListItemProps {
@@ -10,9 +10,11 @@ interface BookingListItemProps {
   onUndoNoShow?: (bookingId: string, name: string) => void;
   onLateCancel?: (bookingId: string, name: string) => void;
   onUndoLateCancel?: (bookingId: string, name: string) => void;
+  onCancelBooking?: (bookingId: string, name: string, memberId: string) => void;
   showNoShowBtn?: boolean;
   showLateCancelBtn?: boolean;
   showUndoBtn?: boolean;
+  showCancelBtn?: boolean;
 }
 
 export default function BookingListItem({
@@ -22,9 +24,11 @@ export default function BookingListItem({
   onUndoNoShow,
   onLateCancel,
   onUndoLateCancel,
+  onCancelBooking,
   showNoShowBtn = false,
   showLateCancelBtn = false,
   showUndoBtn = false,
+  showCancelBtn = false,
 }: BookingListItemProps) {
   const memberName = booking.member?.name || 'Unknown Member';
 
@@ -48,6 +52,16 @@ export default function BookingListItem({
         </span>
       </div>
       <div className='flex items-center gap-1.5'>
+        {showCancelBtn && onCancelBooking && (
+          <button
+            onClick={() => onCancelBooking(booking.id, memberName, booking.member.id)}
+            className='flex items-center gap-1 px-2 py-1.5 text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 rounded transition'
+            title='Remove booking made in error (refunds 10-card)'
+          >
+            <X size={13} />
+            Remove
+          </button>
+        )}
         {showLateCancelBtn && onLateCancel && (
           <button
             onClick={() => onLateCancel(booking.id, memberName)}

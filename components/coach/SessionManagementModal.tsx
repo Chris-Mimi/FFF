@@ -292,8 +292,10 @@ export default function SessionManagementModal({
                         status='confirmed'
                         onMarkNoShow={bookingManagement.handleMarkNoShow}
                         onLateCancel={bookingManagement.handleLateCancel}
+                        onCancelBooking={bookingManagement.handleCancelBooking}
                         showNoShowBtn={true}
                         showLateCancelBtn={true}
+                        showCancelBtn={true}
                       />
                     ))}
                   </div>

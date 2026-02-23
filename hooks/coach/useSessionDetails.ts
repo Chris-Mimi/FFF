@@ -15,7 +15,7 @@ export interface SessionDetails {
 
 export interface Booking {
   id: string;
-  status: 'confirmed' | 'waitlist' | 'cancelled' | 'no_show' | 'late_cancel';
+  status: 'confirmed' | 'waitlist' | 'cancelled' | 'no_show' | 'late_cancel' | 'coach_cancelled';
   booked_at: string;
   member: {
     id: string;

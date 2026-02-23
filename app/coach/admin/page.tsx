@@ -3,12 +3,24 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth';
-import { UserPlus, ArrowLeft } from 'lucide-react';
+import { UserPlus, ArrowLeft, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
+import { supabase } from '@/lib/supabase';
+
+interface AttendanceStat {
+  memberId: string;
+  name: string;
+  coachCancelled: number;
+  lateCancel: number;
+  noShow: number;
+  total: number;
+}
 
 export default function AdminToolsPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [attendanceStats, setAttendanceStats] = useState<AttendanceStat[]>([]);
+  const [statsLoading, setStatsLoading] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -18,7 +30,6 @@ export default function AdminToolsPage() {
         return;
       }
 
-      // Check role from user_metadata
       const role = user.user_metadata?.role;
       if (role !== 'coach') {
         router.push('/login');
@@ -26,10 +37,55 @@ export default function AdminToolsPage() {
       }
 
       setLoading(false);
+      fetchAttendanceStats();
     };
 
     checkAuth();
   }, [router]);
+
+  const fetchAttendanceStats = async () => {
+    setStatsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('bookings')
+        .select('member_id, status, members(name)')
+        .in('status', ['coach_cancelled', 'late_cancel', 'no_show']);
+
+      if (error) throw error;
+
+      // Aggregate by member
+      const statsMap = new Map<string, AttendanceStat>();
+
+      for (const booking of data || []) {
+        const memberId = booking.member_id;
+        const memberName = (booking.members as { name: string } | null)?.name || 'Unknown';
+
+        if (!statsMap.has(memberId)) {
+          statsMap.set(memberId, {
+            memberId,
+            name: memberName,
+            coachCancelled: 0,
+            lateCancel: 0,
+            noShow: 0,
+            total: 0,
+          });
+        }
+
+        const stat = statsMap.get(memberId)!;
+        if (booking.status === 'coach_cancelled') stat.coachCancelled++;
+        if (booking.status === 'late_cancel') stat.lateCancel++;
+        if (booking.status === 'no_show') stat.noShow++;
+        stat.total = stat.coachCancelled + stat.lateCancel + stat.noShow;
+      }
+
+      const sorted = Array.from(statsMap.values()).sort((a, b) => b.total - a.total);
+      setAttendanceStats(sorted);
+    } catch (err) {
+      console.error('Error fetching attendance stats:', err);
+    } finally {
+      setStatsLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -56,7 +112,7 @@ export default function AdminToolsPage() {
         </div>
 
         {/* Admin Actions */}
-        <div className='grid gap-4'>
+        <div className='grid gap-4 mb-8'>
           {/* Create Coach Account */}
           <Link
             href='/signup'
@@ -77,13 +133,64 @@ export default function AdminToolsPage() {
               </div>
             </div>
           </Link>
+        </div>
 
-          {/* Placeholder for future admin tools */}
-          <div className='bg-gray-100 rounded-lg p-6 border-2 border-dashed border-gray-300'>
-            <p className='text-gray-500 text-center'>
-              Additional admin tools will be added here as needed
-            </p>
+        {/* Attendance Behaviour Report */}
+        <div className='bg-white rounded-lg shadow-md p-6'>
+          <div className='flex items-center gap-3 mb-4'>
+            <div className='bg-orange-100 text-orange-600 p-2 rounded-lg'>
+              <AlertTriangle size={20} />
+            </div>
+            <div>
+              <h2 className='text-xl font-semibold text-gray-900'>Attendance Behaviour</h2>
+              <p className='text-sm text-gray-500'>All-time — members with at least one incident</p>
+            </div>
           </div>
+
+          {statsLoading ? (
+            <p className='text-gray-500 text-sm'>Loading...</p>
+          ) : attendanceStats.length === 0 ? (
+            <p className='text-gray-500 text-sm'>No incidents recorded yet.</p>
+          ) : (
+            <div className='overflow-x-auto'>
+              <table className='w-full text-sm'>
+                <thead>
+                  <tr className='border-b border-gray-200'>
+                    <th className='text-left py-2 pr-4 font-semibold text-gray-700'>Member</th>
+                    <th className='text-center py-2 px-3 font-semibold text-gray-500'>Removed by Coach</th>
+                    <th className='text-center py-2 px-3 font-semibold text-purple-700'>Late Cancel</th>
+                    <th className='text-center py-2 px-3 font-semibold text-orange-700'>No-Show</th>
+                    <th className='text-center py-2 pl-3 font-semibold text-gray-900'>Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {attendanceStats.map((stat) => (
+                    <tr key={stat.memberId} className='border-b border-gray-100 last:border-0'>
+                      <td className='py-2 pr-4 font-medium text-gray-800'>{stat.name}</td>
+                      <td className='text-center py-2 px-3 text-gray-500'>
+                        {stat.coachCancelled > 0 ? stat.coachCancelled : '—'}
+                      </td>
+                      <td className='text-center py-2 px-3'>
+                        {stat.lateCancel > 0 ? (
+                          <span className='inline-block bg-purple-100 text-purple-800 font-medium px-2 py-0.5 rounded text-xs'>
+                            {stat.lateCancel}
+                          </span>
+                        ) : '—'}
+                      </td>
+                      <td className='text-center py-2 px-3'>
+                        {stat.noShow > 0 ? (
+                          <span className='inline-block bg-orange-100 text-orange-800 font-medium px-2 py-0.5 rounded text-xs'>
+                            {stat.noShow}
+                          </span>
+                        ) : '—'}
+                      </td>
+                      <td className='text-center py-2 pl-3 font-bold text-gray-900'>{stat.total}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </div>
