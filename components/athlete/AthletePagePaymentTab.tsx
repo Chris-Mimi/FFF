@@ -2,7 +2,7 @@
 
 import { authFetch } from '@/lib/auth-fetch';
 import { supabase } from '@/lib/supabase';
-import { CreditCard, Calendar, Package, ExternalLink, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { CreditCard, Calendar, Package, ExternalLink, Loader2, CheckCircle, AlertCircle, Dumbbell, Trophy, BarChart3, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface PaymentStatus {
@@ -178,21 +178,21 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
               } size={24} />
             </div>
             <div>
-              <h3 className="font-medium text-gray-900">Subscription</h3>
+              <h3 className="font-medium text-gray-900">Athlete App</h3>
               {hasActiveSubscription ? (
                 <p className={`flex items-center gap-1 ${
                   paymentStatus?.subscriptionPlanType === 'monthly' ? 'text-blue-600' :
                   paymentStatus?.subscriptionPlanType === 'yearly' ? 'text-teal-600' :
                   'text-green-600'
                 }`}>
-                  <CheckCircle size={16} /> Active
+                  <CheckCircle size={16} /> Active ({paymentStatus?.subscriptionPlanType})
                 </p>
               ) : hasTrial ? (
                 <p className="text-blue-600">
-                  Trial (ends {new Date(paymentStatus!.subscriptionEnd!).toLocaleDateString()})
+                  Free trial (ends {new Date(paymentStatus!.subscriptionEnd!).toLocaleDateString()})
                 </p>
               ) : (
-                <p className="text-gray-500">No active subscription</p>
+                <p className="text-gray-500">Not subscribed</p>
               )}
             </div>
           </div>
@@ -213,7 +213,7 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
                   <span className="font-semibold">{tenCardRemaining}</span> sessions remaining
                 </p>
               ) : (
-                <p className="text-gray-500">No sessions available</p>
+                <p className="text-gray-500">No sessions remaining</p>
               )}
               {has10Card && !tenCardExpired && (
                 <p className="text-xs text-gray-400 mt-1">
@@ -243,42 +243,52 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
         )}
       </div>
 
-      {/* Purchase Options */}
+      {/* ─── SECTION 1: Athlete App Subscription ─── */}
       <div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Purchase Options</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">Athlete App Subscription</h2>
+          <p className="text-sm text-gray-500 mt-1">Track your progress with logbook, records, leaderboards & more</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Monthly Subscription */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
             <div className="p-6 flex flex-col flex-grow">
               <div className="flex items-center gap-3 mb-4">
                 <CreditCard className="text-blue-500" size={24} />
                 <h3 className="font-semibold text-gray-900">Monthly</h3>
+                <span className="ml-auto text-xs font-medium bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">1 month free trial</span>
               </div>
               <p className="text-3xl font-bold text-gray-900 mb-1">
-                Contact
-                <span className="text-sm font-normal text-gray-500 ml-2">for pricing</span>
+                &euro;7.50
+                <span className="text-sm font-normal text-gray-500 ml-1">/month</span>
               </p>
-              <p className="text-gray-500 text-sm mb-6">Billed monthly. Cancel anytime.</p>
+              <p className="text-gray-500 text-sm mb-6">Cancel anytime. First month free.</p>
               <ul className="space-y-2 text-sm text-gray-600 mb-6 flex-grow">
                 <li className="flex items-center gap-2">
-                  <CheckCircle size={16} className="text-green-500" /> Unlimited class bookings
+                  <Dumbbell size={16} className="text-blue-500" /> Workout logbook
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle size={16} className="text-green-500" /> Full athlete page access
+                  <Trophy size={16} className="text-blue-500" /> Personal records & lifts
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle size={16} className="text-green-500" /> Progress tracking
+                  <BarChart3 size={16} className="text-blue-500" /> Benchmarks & progress tracking
+                </li>
+                <li className="flex items-center gap-2">
+                  <Users size={16} className="text-blue-500" /> Leaderboards & achievements
                 </li>
               </ul>
               <button
                 onClick={() => handlePurchase('monthly')}
-                disabled={!!purchasing}
+                disabled={!!purchasing || hasActiveSubscription}
                 className="w-full py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
               >
                 {purchasing === 'monthly' ? (
                   <Loader2 className="animate-spin" size={20} />
+                ) : hasActiveSubscription ? (
+                  'Already Subscribed'
                 ) : (
-                  'Subscribe Monthly'
+                  'Start Free Trial'
                 )}
               </button>
             </div>
@@ -287,46 +297,61 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
           {/* Yearly Subscription */}
           <div className="bg-white rounded-xl shadow-sm border-2 border-teal-500 overflow-hidden relative flex flex-col">
             <div className="absolute top-0 right-0 bg-teal-500 text-white text-xs font-semibold px-3 py-1 rounded-bl-lg">
-              BEST VALUE
+              SAVE &euro;15
             </div>
             <div className="p-6 flex flex-col flex-grow">
               <div className="flex items-center gap-3 mb-4">
                 <CreditCard className="text-teal-500" size={24} />
                 <h3 className="font-semibold text-gray-900">Yearly</h3>
+                <span className="ml-auto text-xs font-medium bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full">1 month free trial</span>
               </div>
               <p className="text-3xl font-bold text-gray-900 mb-1">
-                Contact
-                <span className="text-sm font-normal text-gray-500 ml-2">for pricing</span>
+                &euro;75
+                <span className="text-sm font-normal text-gray-500 ml-1">/year</span>
               </p>
-              <p className="text-gray-500 text-sm mb-6">Save with annual billing.</p>
+              <p className="text-gray-500 text-sm mb-6">
+                &euro;6.25/month equivalent. First month free.
+              </p>
               <ul className="space-y-2 text-sm text-gray-600 mb-6 flex-grow">
                 <li className="flex items-center gap-2">
-                  <CheckCircle size={16} className="text-green-500" /> Unlimited class bookings
+                  <Dumbbell size={16} className="text-teal-500" /> Workout logbook
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle size={16} className="text-green-500" /> Full athlete page access
+                  <Trophy size={16} className="text-teal-500" /> Personal records & lifts
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle size={16} className="text-green-500" /> Progress tracking
+                  <BarChart3 size={16} className="text-teal-500" /> Benchmarks & progress tracking
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle size={16} className="text-teal-500" /> Best value option
+                  <Users size={16} className="text-teal-500" /> Leaderboards & achievements
                 </li>
               </ul>
               <button
                 onClick={() => handlePurchase('yearly')}
-                disabled={!!purchasing}
+                disabled={!!purchasing || hasActiveSubscription}
                 className="w-full py-3 bg-teal-500 hover:bg-teal-600 disabled:bg-gray-300 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
               >
                 {purchasing === 'yearly' ? (
                   <Loader2 className="animate-spin" size={20} />
+                ) : hasActiveSubscription ? (
+                  'Already Subscribed'
                 ) : (
-                  'Subscribe Yearly'
+                  'Start Free Trial'
                 )}
               </button>
             </div>
           </div>
+        </div>
+      </div>
 
+      {/* ─── SECTION 2: Gym Session Passes ─── */}
+      <div>
+        <div className="mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">Gym Session Passes</h2>
+          <p className="text-sm text-gray-500 mt-1">For non-members who attend regularly without a gym membership</p>
+        </div>
+
+        <div className="max-w-md">
           {/* 10-Card */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
             <div className="p-6 flex flex-col flex-grow">
@@ -335,22 +360,19 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
                 <h3 className="font-semibold text-gray-900">10-Card</h3>
               </div>
               <p className="text-3xl font-bold text-gray-900 mb-1">
-                Contact
-                <span className="text-sm font-normal text-gray-500 ml-2">for pricing</span>
+                &euro;150
+                <span className="text-sm font-normal text-gray-500 ml-1">one-time</span>
               </p>
-              <p className="text-gray-500 text-sm mb-6">One-time purchase. Use at your pace.</p>
+              <p className="text-gray-500 text-sm mb-6">&euro;15 per session. Valid for 12 months.</p>
               <ul className="space-y-2 text-sm text-gray-600 mb-6 flex-grow">
                 <li className="flex items-center gap-2">
-                  <CheckCircle size={16} className="text-green-500" /> 10 class sessions
+                  <CheckCircle size={16} className="text-purple-500" /> 10 gym sessions
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle size={16} className="text-green-500" /> Full athlete page access
+                  <CheckCircle size={16} className="text-purple-500" /> Use at your own pace
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle size={16} className="text-green-500" /> 12-month validity
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle size={16} className="text-green-500" /> Perfect for drop-ins
+                  <CheckCircle size={16} className="text-purple-500" /> 12-month validity
                 </li>
               </ul>
               <button
@@ -372,7 +394,8 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
       {/* Info Note */}
       <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-600">
         <p>
-          <strong>Note:</strong> Prices are configured by the gym. Contact us for current pricing information.
+          <strong>Note:</strong> Class booking is free for all members. The Athlete App subscription
+          adds workout tracking, personal records, leaderboards, and achievements.
           Payments are securely processed through Stripe. Subscriptions can be cancelled at any time.
         </p>
       </div>

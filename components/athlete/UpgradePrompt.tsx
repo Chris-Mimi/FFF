@@ -11,7 +11,7 @@ export default function UpgradePrompt({ onNavigateToPayment }: UpgradePromptProp
     'Track your daily workout results',
     'Log and monitor your lift PRs',
     'Record benchmark times and progress',
-    'View your training history',
+    'Leaderboards & achievements',
     'Access whiteboard photos',
     'See your personal records over time',
   ];
@@ -50,7 +50,7 @@ export default function UpgradePrompt({ onNavigateToPayment }: UpgradePromptProp
         </button>
 
         <p className="text-xs text-gray-500 mt-4">
-          Monthly and yearly plans available. Cancel anytime.
+          From &euro;7.50/month with 1 month free trial. Cancel anytime.
         </p>
       </div>
     </div>

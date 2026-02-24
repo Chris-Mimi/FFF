@@ -19,7 +19,6 @@ All equipment & Body Parts lists need optimising
 *
 *
 # Workout Library tab (coach) #
-Lifts:Configure sets modal: I hsould be able to drag and drop the rows or insert/delete a row which I choose
 Sometimes, after closing an edited Workout by using the tick, when I return to it, it is missing the last edit. If I close and return, the movements are there again!
 
 Athlete login: percentage calculator
@@ -37,9 +36,6 @@ Athlete login: percentage calculator
 
 # Analysis page
 * If I am not at the top of the page, the page jumps when clicking a category filter button.
-* Make the week button a drop down from which I can select 1-8 weeks.
-* fix the timescale selector so it doesn't jump left and right on clicking different timescales. It does this as the timescale indicator on the right shrinks and expands.
-* Is it possible Make the week button a drop down from which I can select 1-8 weeks.
 * 
 
 

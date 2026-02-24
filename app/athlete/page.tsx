@@ -122,7 +122,7 @@ function AthletePageContent() {
       // First check if user is an active member with athlete access
       const { data: member } = await supabase
         .from('members')
-        .select('id, name, status, display_name')
+        .select('id, name, status, display_name, is_beta_tester')
         .eq('id', user.id)
         .single();
 
@@ -138,8 +138,8 @@ function AthletePageContent() {
         const { data: subscriptionData, error: rpcError } = await supabase
           .rpc('get_primary_subscription_status', { member_uuid: user.id });
 
-        let fullAccess = false;
-        if (!rpcError && subscriptionData && subscriptionData.length > 0) {
+        let fullAccess = !!member.is_beta_tester;
+        if (!fullAccess && !rpcError && subscriptionData && subscriptionData.length > 0) {
           const { subscription_status, subscription_end } = subscriptionData[0];
           const now = new Date();
           const trialEnd = subscription_end ? new Date(subscription_end) : null;

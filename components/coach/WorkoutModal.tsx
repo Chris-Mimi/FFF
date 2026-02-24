@@ -117,7 +117,7 @@ export default function WorkoutModal({
                     ? [hook.newSessionTime]
                     : hook.formData.classTimes,
                 };
-                onSave(dataToSave);
+                await onSave(dataToSave);
                 onClose();
               }
             }}
@@ -338,7 +338,7 @@ export default function WorkoutModal({
                     ? [hook.newSessionTime]
                     : hook.formData.classTimes,
                 };
-                onSave(dataToSave);
+                await onSave(dataToSave);
                 onClose();
               }
             }}

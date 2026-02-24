@@ -81,7 +81,7 @@ export default function MemberBookingPage() {
     // Check if user is a member and get athlete access info (including 10-card)
     const { data: member } = await supabase
       .from('members')
-      .select('id, email, status, athlete_subscription_status, athlete_subscription_end, ten_card_sessions_used, ten_card_total, ten_card_expiry_date')
+      .select('id, email, status, athlete_subscription_status, athlete_subscription_end, membership_types, ten_card_sessions_used, ten_card_total, ten_card_expiry_date')
       .eq('id', authUser.id)
       .single();
 
@@ -97,15 +97,9 @@ export default function MemberBookingPage() {
       return;
     }
 
-    // Check athlete access (subscription or 10-card)
+    // Calculate 10-card status (for 10-card members only)
     const now = new Date();
-    const trialEnd = member.athlete_subscription_end ? new Date(member.athlete_subscription_end) : null;
-    const hasSubscription = !!(
-      member.athlete_subscription_status === 'active' ||
-      (member.athlete_subscription_status === 'trial' && trialEnd && trialEnd > now)
-    );
-
-    // Calculate 10-card status
+    const hasTenCardMembership = member.membership_types?.includes('ten_card') || false;
     const tenCardTotal = member.ten_card_total || 10;
     const tenCardUsed = member.ten_card_sessions_used || 0;
     const tenCardRemaining = tenCardTotal - tenCardUsed;
@@ -113,8 +107,8 @@ export default function MemberBookingPage() {
     const tenCardExpired = !!(tenCardExpiryDate && tenCardExpiryDate < now);
     const hasTenCardSessions = tenCardRemaining > 0 && !tenCardExpired;
 
-    // User has access if they have subscription OR 10-card sessions
-    const hasAccess = hasSubscription || hasTenCardSessions;
+    // All active members can book freely. 10-card members need sessions remaining.
+    const hasAccess = !hasTenCardMembership || hasTenCardSessions;
 
     setAthleteStatus({
       hasAccess,
@@ -122,7 +116,7 @@ export default function MemberBookingPage() {
       trialEnd: member.athlete_subscription_end,
       tenCardRemaining,
       tenCardExpired,
-      using10Card: !hasSubscription && hasTenCardSessions
+      using10Card: hasTenCardMembership && hasTenCardSessions
     });
 
     setUser({ id: authUser.id, email: authUser.email || '' });
@@ -587,17 +581,17 @@ export default function MemberBookingPage() {
         </div>
       )}
 
-      {/* No Sessions Warning Banner */}
+      {/* 10-Card Expired/Empty Warning Banner */}
       {athleteStatus && !athleteStatus.hasAccess && (
         <div className="bg-red-900/50 border-b border-red-700">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <p className="text-red-200 text-sm">
-                <span className="font-semibold">No active subscription or sessions.</span> Purchase a subscription or 10-card to book classes.
+                <span className="font-semibold">{athleteStatus.tenCardExpired ? 'Your 10-card has expired.' : 'No sessions remaining on your 10-card.'}</span> Purchase a new 10-card to book classes.
               </p>
               <Link href="/athlete?tab=payment" className="self-end sm:self-auto">
                 <button className="bg-red-500 hover:bg-red-400 text-white font-semibold px-4 py-2 rounded-lg text-sm transition-colors min-h-[44px]">
-                  Payment Options
+                  Purchase 10-Card
                 </button>
               </Link>
             </div>
