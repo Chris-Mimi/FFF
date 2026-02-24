@@ -22,6 +22,8 @@ All equipment & Body Parts lists need optimising
 Lifts:Configure sets modal: I hsould be able to drag and drop the rows or insert/delete a row which I choose
 Sometimes, after closing an edited Workout by using the tick, when I return to it, it is missing the last edit. If I close and return, the movements are there again!
 
+Athlete login: percentage calculator
+
  # Edit Workout Modal (coach) #
  IMPROVEMENTS/Bug Fixes:
 

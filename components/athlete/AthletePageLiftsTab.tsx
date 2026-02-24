@@ -4,7 +4,8 @@
 import { confirm } from '@/lib/confirm';
 import { supabase } from '@/lib/supabase';
 import { authFetch } from '@/lib/auth-fetch';
-import { ChevronDown, ChevronRight, Edit2, Trash2 } from 'lucide-react';
+import { Calculator, ChevronDown, ChevronRight, Edit2, Trash2 } from 'lucide-react';
+import RepMaxCalculatorModal from './RepMaxCalculatorModal';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { FocusTrap } from '@/components/ui/FocusTrap';
@@ -51,6 +52,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
     recent: true,
     workoutProgress: true,
   });
+  const [showRepMaxCalc, setShowRepMaxCalc] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState({
     Olympic: false,
     Press: false,
@@ -304,7 +306,17 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
   return (
     <div className='space-y-4 sm:space-y-6 bg-gray-500 p-3 sm:p-6 rounded-lg'>
       <div className='bg-white rounded-xl shadow-lg p-4 sm:p-8'>
-        <h2 className='text-2xl sm:text-3xl font-extrabold text-gray-900 mb-2 sm:mb-4'>Barbell Lifts</h2>
+        <div className='flex items-center justify-between mb-2 sm:mb-4'>
+          <h2 className='text-2xl sm:text-3xl font-extrabold text-gray-900'>Barbell Lifts</h2>
+          <button
+            onClick={() => setShowRepMaxCalc(true)}
+            className='p-2 text-gray-600 hover:text-[#178da6] hover:bg-gray-100 rounded-lg transition'
+            title='Rep Max Calculator'
+            aria-label='Open rep max calculator'
+          >
+            <Calculator size={22} />
+          </button>
+        </div>
         <p className='text-sm sm:text-base text-gray-700 mb-4 sm:mb-8 leading-relaxed'>
           Track your strength progress with barbell movements.
         </p>
@@ -799,6 +811,13 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
           </div>
         </div>
         </FocusTrap>
+      )}
+      {showRepMaxCalc && (
+        <RepMaxCalculatorModal
+          lifts={lifts}
+          liftHistory={liftHistory}
+          onClose={() => setShowRepMaxCalc(false)}
+        />
       )}
     </div>
   );

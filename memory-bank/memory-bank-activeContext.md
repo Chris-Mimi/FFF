@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 37.0
-**Updated:** 2026-02-24 (Session 155 - Audit MEDIUM/LOW cleanup)
+**Version:** 38.0
+**Updated:** 2026-02-24 (Session 156 - Rep Max Calculator + Configure Lift reorder)
 
 ---
 
@@ -84,8 +84,13 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-24 Session 156 - Opus 4.6):**
+- **✅ Rep Max Calculator modal** — Athlete Lifts page. Lift-specific formulas (Lander/Epley), RM estimates grid, percentage table, pre-fill from records.
+- **✅ Configure Lift modal row reorder** — Up/down arrow buttons on variable sets table.
+- **✅ Chris Notes cleanup** — Deleted 3 obsolete files, created `remaining-low-items.md`.
+
 **Completed (2026-02-24 Session 155 - Opus 4.6):**
-- **✅ Audit MEDIUM/LOW cleanup** — All MEDIUM items fixed: removed console.log, replaced "Check console" toasts, typed drag-drop globals (removed `window as any` + 5 eslint-disable), SSR guard on modalStateHelpers, created loading.tsx + not-found.tsx. Fixed whiteboard photos regression (authFetch). Deduplicated movement-analytics.ts (818→747 lines).
+- **✅ Audit MEDIUM/LOW cleanup** — All MEDIUM items fixed.
 
 **Completed (2026-02-23 Session 154 - Opus 4.6):**
 - **✅ Pre-Deployment Security Audit** — All CRITICAL+HIGH security issues fixed.
@@ -96,10 +101,7 @@ Social Tables
 **Completed (2026-02-23 Session 152 - Sonnet 4.6):**
 - **✅ Coach "Remove" booking button** + **Attendance Behaviour report**
 
-**Completed (2026-02-22 Session 151 - Sonnet 4.6):**
-- **✅ Google Calendar EMOM bug fix** + **Analysis page scroll jump fix**
-
-**Older Sessions (57-148):**
+**Older Sessions (57-151):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -121,7 +123,7 @@ See `project-history/` folder for detailed implementation history
 - ✅ #9 Share to social media — DONE (Session 141). Branded image cards from Records + Leaderboard.
 - ✅ #7 Auto % calculator from 1RM — DONE (Session 143). Computed kg in logbook lift badges.
 - ✅ #6 Badges/achievements — ALL PHASES DONE (Sessions 144-147). DB + coach management + athlete view + self-log + coach award flow + theme polish.
-- See: `Chris Notes/session-103-code-review-findings.md` for full ranked list
+- See: `Chris Notes/remaining-low-items.md` for outstanding LOW items
 
 **Push Notification Issues:**
 - ✅ ~~Mimi profile not delivering~~ — FIXED (Session 138). Root cause: stale Chrome FCM connection. Fix: SW unregister + Chrome restart. Added auto-refresh + test endpoint to prevent recurrence.
