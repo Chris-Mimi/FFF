@@ -37,8 +37,7 @@ export const useQuickEdit = ({ fetchWODs, fetchTracksAndCounts }: UseQuickEditPr
     setDraggedSection(section);
     e.dataTransfer.effectAllowed = 'copy';
     e.dataTransfer.setData('text/plain', 'section');
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window as any).__draggedSection = section;
+    window.__draggedSection = section;
   };
 
   const handleQuickEditDrop = (draggedWOD: { wod: WODFormData; sourceDate: string } | null, e: React.DragEvent) => {

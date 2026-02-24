@@ -273,8 +273,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
       loadBenchmarkResultsToSectionWrapper(workoutDate);
       loadLiftResultsToSectionWrapper(workoutDate);
     } else {
-      console.error('Save errors:', errors);
-      toast.error(`Saved ${savedCount} of ${resultsToSave.length} results. ${errorCount} failed. Check console for details.`);
+      toast.error(`Saved ${savedCount} of ${resultsToSave.length} results. ${errorCount} failed. Please try again.`);
     }
     } finally {
       savingRef.current = false;

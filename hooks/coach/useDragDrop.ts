@@ -11,8 +11,7 @@ export const useDragDrop = () => {
     setDraggedWOD({ wod, sourceDate });
     e.dataTransfer.effectAllowed = 'copy';
     e.dataTransfer.setData('text/plain', 'wod');
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window as any).__draggedWOD = wod;
+    window.__draggedWOD = wod;
   };
 
   const handleDragOver = (e: React.DragEvent) => {

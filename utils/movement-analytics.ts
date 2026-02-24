@@ -47,16 +47,23 @@ export interface DateRangeFilter {
 }
 
 // ============================================
-// Lift Frequency Analysis
+// Shared Helpers
 // ============================================
 
+interface PublishedWorkout {
+  id: string;
+  date: string;
+  workout_name: string | null;
+  workout_week: string | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  sections: any[];
+}
+
 /**
- * Get frequency of all lifts programmed within date range
- * @param filter Optional date range filter
- * @returns Array of lift frequencies sorted by count (descending)
+ * Fetch published workouts via weekly_sessions (deduplicates by session).
+ * Shared by all frequency analysis functions.
  */
-export async function getLiftFrequency(filter?: DateRangeFilter): Promise<LiftAnalysis[]> {
-  // Query from weekly_sessions to avoid duplicate wod records
+async function fetchPublishedWorkouts(filter?: DateRangeFilter, label = 'workouts'): Promise<PublishedWorkout[]> {
   let query = supabase
     .from('weekly_sessions')
     .select('date, wods(id, date, workout_name, workout_week, sections, workout_publish_status)');
@@ -71,20 +78,39 @@ export async function getLiftFrequency(filter?: DateRangeFilter): Promise<LiftAn
   const { data: sessions, error } = await query;
 
   if (error) {
-    console.error('Error fetching workouts for lift frequency:', error);
+    console.error(`Error fetching ${label}:`, error);
     return [];
   }
 
-  // Filter to only published workouts and extract wod data
-  const workouts = sessions
+  return sessions
     ?.filter((s: any) => s.wods !== null && s.wods.workout_publish_status === 'published')
     .map((s: any) => ({
       id: s.wods.id,
       date: s.date,
       workout_name: s.wods.workout_name,
       workout_week: s.wods.workout_week,
-      sections: s.wods.sections
+      sections: s.wods.sections,
     })) || [];
+}
+
+/** Create unique workout identifier: workout_name+workout_week if available, else date */
+function getWorkoutKey(workout: PublishedWorkout): string {
+  return workout.workout_name && workout.workout_week
+    ? `${workout.workout_name}_${workout.workout_week}`
+    : workout.date;
+}
+
+// ============================================
+// Lift Frequency Analysis
+// ============================================
+
+/**
+ * Get frequency of all lifts programmed within date range
+ * @param filter Optional date range filter
+ * @returns Array of lift frequencies sorted by count (descending)
+ */
+export async function getLiftFrequency(filter?: DateRangeFilter): Promise<LiftAnalysis[]> {
+  const workouts = await fetchPublishedWorkouts(filter, 'workouts for lift frequency');
 
   // Aggregate lift data (count unique workouts by name+week or date)
   const liftMap = new Map<string, {
@@ -98,10 +124,7 @@ export async function getLiftFrequency(filter?: DateRangeFilter): Promise<LiftAn
   }>();
 
   workouts?.forEach(workout => {
-    // Create unique workout identifier: workout_name+workout_week if available, else date
-    const workoutKey = workout.workout_name && workout.workout_week
-      ? `${workout.workout_name}_${workout.workout_week}`
-      : workout.date;
+    const workoutKey = getWorkoutKey(workout);
 
     const sections = workout.sections as Array<{
       lifts?: ConfiguredLift[];
@@ -182,35 +205,7 @@ export async function getLiftFrequencyById(liftId: string, filter?: DateRangeFil
  * Get frequency of all benchmarks programmed within date range
  */
 export async function getBenchmarkFrequency(filter?: DateRangeFilter): Promise<BenchmarkAnalysis[]> {
-  // Query from weekly_sessions to avoid duplicate wod records
-  let query = supabase
-    .from('weekly_sessions')
-    .select('date, wods(id, date, workout_name, workout_week, sections, workout_publish_status)');
-
-  if (filter?.startDate) {
-    query = query.gte('date', filter.startDate);
-  }
-  if (filter?.endDate) {
-    query = query.lte('date', filter.endDate);
-  }
-
-  const { data: sessions, error } = await query;
-
-  if (error) {
-    console.error('Error fetching workouts for benchmark frequency:', error);
-    return [];
-  }
-
-  // Filter to only published workouts and extract wod data
-  const workouts = sessions
-    ?.filter((s: any) => s.wods !== null && s.wods.workout_publish_status === 'published')
-    .map((s: any) => ({
-      id: s.wods.id,
-      date: s.date,
-      workout_name: s.wods.workout_name,
-      workout_week: s.wods.workout_week,
-      sections: s.wods.sections
-    })) || [];
+  const workouts = await fetchPublishedWorkouts(filter, 'workouts for benchmark frequency');
 
   // Aggregate benchmark data (count unique workouts by name+week or date)
   const benchmarkMap = new Map<string, {
@@ -223,10 +218,7 @@ export async function getBenchmarkFrequency(filter?: DateRangeFilter): Promise<B
   }>();
 
   workouts?.forEach(workout => {
-    // Create unique workout identifier
-    const workoutKey = workout.workout_name && workout.workout_week
-      ? `${workout.workout_name}_${workout.workout_week}`
-      : workout.date;
+    const workoutKey = getWorkoutKey(workout);
 
     const sections = workout.sections as Array<{
       benchmarks?: ConfiguredBenchmark[];
@@ -299,35 +291,7 @@ export async function getBenchmarkFrequencyById(benchmarkId: string, filter?: Da
  * Get frequency of all Forge benchmarks programmed within date range
  */
 export async function getForgeBenchmarkFrequency(filter?: DateRangeFilter): Promise<ForgeBenchmarkAnalysis[]> {
-  // Query from weekly_sessions to avoid duplicate wod records
-  let query = supabase
-    .from('weekly_sessions')
-    .select('date, wods(id, date, workout_name, workout_week, sections, workout_publish_status)');
-
-  if (filter?.startDate) {
-    query = query.gte('date', filter.startDate);
-  }
-  if (filter?.endDate) {
-    query = query.lte('date', filter.endDate);
-  }
-
-  const { data: sessions, error } = await query;
-
-  if (error) {
-    console.error('Error fetching workouts for forge benchmark frequency:', error);
-    return [];
-  }
-
-  // Filter to only published workouts and extract wod data
-  const workouts = sessions
-    ?.filter((s: any) => s.wods !== null && s.wods.workout_publish_status === 'published')
-    .map((s: any) => ({
-      id: s.wods.id,
-      date: s.date,
-      workout_name: s.wods.workout_name,
-      workout_week: s.wods.workout_week,
-      sections: s.wods.sections
-    })) || [];
+  const workouts = await fetchPublishedWorkouts(filter, 'workouts for forge benchmark frequency');
 
   // Aggregate forge benchmark data (count unique workouts by name+week or date)
   const forgeMap = new Map<string, {
@@ -340,10 +304,7 @@ export async function getForgeBenchmarkFrequency(filter?: DateRangeFilter): Prom
   }>();
 
   workouts?.forEach(workout => {
-    // Create unique workout identifier
-    const workoutKey = workout.workout_name && workout.workout_week
-      ? `${workout.workout_name}_${workout.workout_week}`
-      : workout.date;
+    const workoutKey = getWorkoutKey(workout);
 
     const sections = workout.sections as Array<{
       forge_benchmarks?: ConfiguredForgeBenchmark[];
@@ -440,35 +401,7 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
     }
   });
 
-  // Fetch WODs from weekly_sessions to avoid duplicates
-  let query = supabase
-    .from('weekly_sessions')
-    .select('date, wods(id, date, workout_name, workout_week, sections, workout_publish_status)');
-
-  if (filter?.startDate) {
-    query = query.gte('date', filter.startDate);
-  }
-  if (filter?.endDate) {
-    query = query.lte('date', filter.endDate);
-  }
-
-  const { data: sessions, error } = await query;
-
-  if (error) {
-    console.error('Error fetching workouts for exercise frequency:', error);
-    return [];
-  }
-
-  // Filter to only published workouts and extract wod data
-  const workouts = sessions
-    ?.filter((s: any) => s.wods !== null && s.wods.workout_publish_status === 'published')
-    .map((s: any) => ({
-      id: s.wods.id,
-      date: s.date,
-      workout_name: s.wods.workout_name,
-      workout_week: s.wods.workout_week,
-      sections: s.wods.sections
-    })) || [];
+  const workouts = await fetchPublishedWorkouts(filter, 'workouts for exercise frequency');
 
   // Aggregate exercise data from WOD content (count unique workouts by name+week or date)
   const exerciseMap = new Map<string, {
@@ -495,10 +428,7 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
   ];
 
   workouts?.forEach(workout => {
-    // Create unique workout identifier
-    const workoutKey = workout.workout_name && workout.workout_week
-      ? `${workout.workout_name}_${workout.workout_week}`
-      : workout.date;
+    const workoutKey = getWorkoutKey(workout);
 
     const sections = workout.sections as Array<{
       content?: string;

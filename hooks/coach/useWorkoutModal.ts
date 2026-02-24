@@ -346,13 +346,11 @@ export function useWorkoutModal(
 
       if (editingWOD) {
         // Check for pending section drop from calendar card BEFORE setting formData
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const pendingSection = (window as any).__draggedSection;
+        const pendingSection = window.__draggedSection;
 
         if (pendingSection) {
           // Clear immediately to prevent double-processing in React StrictMode
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (window as any).__draggedSection = null;
+          window.__draggedSection = undefined;
 
           // Add pending section to editingWOD before setting formData
           const newSection: WODSection = {
@@ -472,8 +470,7 @@ export function useWorkoutModal(
 
     if (dataType === 'wod') {
       // Handle entire WOD drop - get data from window object (set by drag handler in coach page)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const draggedWODData = (window as any).__draggedWOD;
+      const draggedWODData = window.__draggedWOD;
       if (draggedWODData) {
         setFormData({
           ...formData,
@@ -485,8 +482,7 @@ export function useWorkoutModal(
       }
     } else if (dataType === 'section') {
       // Handle section drop - get data from window object
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const draggedSectionData = (window as any).__draggedSection;
+      const draggedSectionData = window.__draggedSection;
       if (draggedSectionData) {
         const newSection: WODSection = {
           id: `section-${Date.now()}`,

@@ -125,11 +125,10 @@ export function NotificationPrompt() {
                   try {
                     const res = await authFetch('/api/notifications/test', { method: 'POST' });
                     const data = await res.json();
-                    console.log('Push test diagnostics:', data);
                     const sendResults = data.sendResults || [];
                     const ok = sendResults.some((r: { status: string }) => r.status === 'OK');
                     if (ok) {
-                      toast.success('Push sent (check console for details)');
+                      toast.success('Test push notification sent!');
                     } else {
                       toast.error(`Push failed: ${data.result || sendResults[0]?.message || 'unknown'}`);
                     }

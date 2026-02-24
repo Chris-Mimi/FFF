@@ -3,6 +3,7 @@
 import WhiteboardUploadPanel from '@/components/coach/WhiteboardUploadPanel';
 import WhiteboardGallery from '@/components/coach/WhiteboardGallery';
 import { getCurrentUser } from '@/lib/auth';
+import { authFetch } from '@/lib/auth-fetch';
 import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -119,7 +120,7 @@ export default function WhiteboardPage() {
 
   const fetchPhotos = async () => {
     try {
-      const response = await fetch(`/api/whiteboard-photos?week=${selectedWeek}`);
+      const response = await authFetch(`/api/whiteboard-photos?week=${selectedWeek}`);
       if (!response.ok) throw new Error('Failed to fetch photos');
       const data = await response.json();
       setPhotos(data);

@@ -14,10 +14,12 @@ export function padTime(time: string): string {
  * @returns Object with min/max width and height
  */
 export function calculateModalBounds() {
+  const w = typeof window !== 'undefined' ? window.innerWidth : 1200;
+  const h = typeof window !== 'undefined' ? window.innerHeight : 800;
   return {
     minWidth: 400,
     minHeight: 500,
-    maxWidth: window.innerWidth - 100,
-    maxHeight: window.innerHeight - 100,
+    maxWidth: w - 100,
+    maxHeight: h - 100,
   };
 }

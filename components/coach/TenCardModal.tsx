@@ -156,8 +156,7 @@ export default function TenCardModal({
       onUpdate();
       onClose();
     } catch (error) {
-      console.error('❌ Error updating payment info:', error);
-      toast.error('Failed to update payment information. Check console for details.');
+      toast.error('Failed to update payment information. Please try again.');
     } finally {
       setLoading(false);
     }

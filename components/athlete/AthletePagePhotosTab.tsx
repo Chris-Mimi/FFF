@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { FocusTrap } from '@/components/ui/FocusTrap';
+import { authFetch } from '@/lib/auth-fetch';
 
 interface WhiteboardPhoto {
   id: string;
@@ -67,7 +68,7 @@ export default function AthletePagePhotosTab() {
   const fetchPhotos = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/whiteboard-photos?week=${selectedWeek}`);
+      const response = await authFetch(`/api/whiteboard-photos?week=${selectedWeek}`);
       if (!response.ok) throw new Error('Failed to fetch photos');
       const data = await response.json();
       setPhotos(data);

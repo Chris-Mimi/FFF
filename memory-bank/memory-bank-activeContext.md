@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 36.0
-**Updated:** 2026-02-23 (Session 154 - Pre-Deployment Security Audit)
+**Version:** 37.0
+**Updated:** 2026-02-24 (Session 155 - Audit MEDIUM/LOW cleanup)
 
 ---
 
@@ -84,20 +84,20 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-24 Session 155 - Opus 4.6):**
+- **✅ Audit MEDIUM/LOW cleanup** — All MEDIUM items fixed: removed console.log, replaced "Check console" toasts, typed drag-drop globals (removed `window as any` + 5 eslint-disable), SSR guard on modalStateHelpers, created loading.tsx + not-found.tsx. Fixed whiteboard photos regression (authFetch). Deduplicated movement-analytics.ts (818→747 lines).
+
 **Completed (2026-02-23 Session 154 - Opus 4.6):**
-- **✅ Pre-Deployment Security Audit** — 5 parallel audit agents (URLs/env, console.logs, code quality, security, build config). Fixed all CRITICAL+HIGH security issues: IDOR fixes in benchmark-results/lift-records/stripe routes, auth hardening (requireAuth/requireCoach added to 4 endpoints), deleted 5 scripts with hardcoded service role keys, stripped raw error.message from API responses.
+- **✅ Pre-Deployment Security Audit** — All CRITICAL+HIGH security issues fixed.
 
 **Completed (2026-02-23 Session 153 - Sonnet 4.6):**
-- **✅ Attendance Reports panel** — Admin page refactored from single table to two-tab panel with time filters + sortable columns.
+- **✅ Attendance Reports panel** — Two-tab panel with time filters + sortable columns.
 
 **Completed (2026-02-23 Session 152 - Sonnet 4.6):**
 - **✅ Coach "Remove" booking button** + **Attendance Behaviour report**
 
 **Completed (2026-02-22 Session 151 - Sonnet 4.6):**
 - **✅ Google Calendar EMOM bug fix** + **Analysis page scroll jump fix**
-
-**Completed (2026-02-21 Session 150 - Opus 4.6):**
-- **✅ Session history renumbering** + **Drag-and-drop fix**
 
 **Older Sessions (57-148):**
 See `project-history/` folder for detailed implementation history
@@ -106,15 +106,9 @@ See `project-history/` folder for detailed implementation history
 
 ## 🚨 Known Issues / Remaining Items
 
-**Pre-Deployment Audit — Sessions 96-101 + 154:**
-- ✅ All original 17 items completed (Sessions 96-101)
-- ✅ Session 154 security audit: All CRITICAL + HIGH items fixed
-- **MEDIUM remaining (Session 154):** console.log in NotificationPrompt.tsx:128, "Check console" toasts in TenCardModal.tsx:160 + AthletePageLogbookTab.tsx:277, `window as any` drag-and-drop in 3 hooks, missing SSR guard in modalStateHelpers.ts, no loading.tsx/not-found.tsx pages
-- **LOW remaining:** 8 files >500 lines, 22 `@typescript-eslint/no-explicit-any`, no rate limiting on registration, duplicated Supabase mapping in movement-analytics.ts
-
-**Code Quality (from Session 103 review):**
-- 22 `@typescript-eslint/no-explicit-any` suppressions (pragmatic, post-deploy)
-- 8 large files >500 lines — refactor post-deploy
+**Pre-Deployment Audit — Sessions 96-101 + 154-155:**
+- ✅ All CRITICAL, HIGH, and MEDIUM items completed
+- **LOW remaining:** 8 files >500 lines, 22 `@typescript-eslint/no-explicit-any`, no rate limiting on registration
 
 **Feature Gaps (from competitor analysis — updated):**
 - ✅ #1 Social reactions (fist bumps) — DONE (Session 104)
