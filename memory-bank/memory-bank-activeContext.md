@@ -84,10 +84,17 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-24 Session 157 - Opus 4.6) — DEPLOYMENT PREP:**
+- **✅ Free booking model** — Removed subscription gate from booking. All active members book freely. 10-card members still get sessions deducted.
+- **✅ Payment UI restructured** — Split into "Athlete App Subscription" (€7.50/mo, €75/yr) + "Gym Session Passes" (10-card €150). Clear separation.
+- **✅ Beta tester flag** — `is_beta_tester` column on members table. Bypasses subscription check for full Athlete access. **Chris question: "Can't I just activate them on the member page?" — Revisit in next session. May not need separate beta flag if coach can manually set subscription status.**
+- **✅ WorkoutModal race condition fixed** — `await onSave()` before `onClose()`. Fixes intermittent "edit lost on reopen" bug.
+- **✅ UpgradePrompt updated** — Launch pricing, locked tab previews already working.
+- **✅ .env.example updated** — Production domain + VAPID keys added.
+- **✅ Build passes, committed, pushed.**
+
 **Completed (2026-02-24 Session 156 - Opus 4.6):**
-- **✅ Rep Max Calculator modal** — Athlete Lifts page. Lift-specific formulas (Lander/Epley), RM estimates grid, percentage table, pre-fill from records.
-- **✅ Configure Lift modal row reorder** — Up/down arrow buttons on variable sets table.
-- **✅ Chris Notes cleanup** — Deleted 3 obsolete files, created `remaining-low-items.md`.
+- **✅ Rep Max Calculator modal** + **Configure Lift row reorder** + Chris Notes cleanup.
 
 **Completed (2026-02-24 Session 155 - Opus 4.6):**
 - **✅ Audit MEDIUM/LOW cleanup** — All MEDIUM items fixed.
@@ -98,10 +105,7 @@ Social Tables
 **Completed (2026-02-23 Session 153 - Sonnet 4.6):**
 - **✅ Attendance Reports panel** — Two-tab panel with time filters + sortable columns.
 
-**Completed (2026-02-23 Session 152 - Sonnet 4.6):**
-- **✅ Coach "Remove" booking button** + **Attendance Behaviour report**
-
-**Older Sessions (57-151):**
+**Older Sessions (57-152):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -141,6 +145,7 @@ See `project-history/` folder for detailed implementation history
 **Migrations Pending (apply in Supabase SQL Editor):**
 - ✅ `get_public_tables()` RPC — confirmed working (new tables auto-discovered in backups)
 - **`supabase/migrations/20260223_add_coach_cancelled_status.sql`** — Adds `coach_cancelled` to bookings CHECK constraint + updates unique index. Required for "Remove" button in Session Management.
+- **Beta tester column:** `ALTER TABLE members ADD COLUMN IF NOT EXISTS is_beta_tester BOOLEAN DEFAULT false;`
 
 ---
 
@@ -182,25 +187,40 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### Next Priorities
+### DEPLOYMENT (Session 158+)
 
-**Push Notifications — COMPLETE (all phases):**
-- Clean up test data from `benchmark_results` table (if any stale entries remain)
+**Phase 1 DONE (code changes).** Remaining phases are configuration/setup:
 
-**Movements filter — COMPLETE (Session 149):**
-- ✅ Benchmark/forge_benchmark descriptions updated to use exact DB exercise names
-- ✅ genericToCanonical failsafe mapping handles old WOD JSONB snapshots
-- Audit script: `npx tsx scripts/audit-benchmark-exercises.ts` (0 mismatches)
+**Open question from Chris:** "Why do we need a beta_tester flag? Can't I just activate them on the member page?" — Revisit. Options: (a) keep beta flag, (b) coach manually sets `athlete_subscription_status = 'active'`, (c) add UI toggle on Members page. Simplest may be (b).
 
-**Session 137 Follow-up:**
-- Test intent/stimulus notes end-to-end (save, reload, publish, athlete view)
-- Debug push notification delivery on Mimi profile (stale subscription suspected)
+**Phase 2: Vercel Setup**
+- Create Vercel account (sign up with GitHub)
+- Import `forge-functional-fitness` repo
+- Add env vars from `.env.local` + set `NEXT_PUBLIC_APP_URL=https://app.the-forge-functional-fitness.de`
 
-**Features (from competitor analysis):**
-- All 9 competitor features COMPLETE ✅
+**Phase 3: Domain Setup**
+- In Vercel: Add domain `app.the-forge-functional-fitness.de`
+- In Squarespace: Add CNAME record `app` → `cname.vercel-dns.com`
 
-**Pending Polish (LOW):**
-- Athletes page benchmarks/lifts display issue (investigate)
+**Phase 4: Supabase Config**
+- Auth → URL Configuration: Site URL + redirect URLs to production domain
+- Run pending migrations (coach_cancelled + beta_tester)
+
+**Phase 5: Stripe Live Mode**
+- Complete Stripe onboarding, toggle to live
+- Create products: Athlete Monthly €7.50 + Yearly €75 (both with 1-month free trial) + 10-Card €150
+- Set up webhook: `https://app.the-forge-functional-fitness.de/api/stripe/webhook`
+- Update Vercel env vars with live keys
+
+**Phase 6: Beta Testing** (4-5 testers)
+**Phase 7: Full Launch** (after 1 month, update Stripe prices to €10/€100)
+
+**Full deployment plan:** `.claude/plans/fluttering-kindling-pond.md`
+
+### Business Model (decided Session 157)
+- **Free:** All active members can book classes (no payment required)
+- **10-Card:** €150 for 10 gym sessions (drop-in alternative, separate from app)
+- **Athlete App:** €7.50/mo or €75/yr (logbook, records, leaderboards, achievements). Launch pricing rises to €10/€100 after 1 month.
 
 ---
 
