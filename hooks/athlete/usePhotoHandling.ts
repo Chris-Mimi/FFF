@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, Dispatch, SetStateAction } from 'react';
+import { authFetch } from '@/lib/auth-fetch';
 import { getWeekNumber as getWeekNumberUtil, formatISOWeek } from '@/utils/logbook/photoHandlers';
 
 interface WhiteboardPhoto {
@@ -40,7 +41,7 @@ export function usePhotoHandling(
 
     setPhotosLoading(true);
     try {
-      const response = await fetch(`/api/whiteboard-photos?week=${isoWeek}`);
+      const response = await authFetch(`/api/whiteboard-photos?week=${isoWeek}`);
       if (!response.ok) throw new Error('Failed to fetch photos');
       const data = await response.json();
       setWhiteboardPhotos(data);

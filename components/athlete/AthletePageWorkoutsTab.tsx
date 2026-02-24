@@ -1,6 +1,7 @@
 'use client';
 
 import { supabase } from '@/lib/supabase';
+import { authFetch } from '@/lib/auth-fetch';
 import { ChevronLeft, ChevronRight, Image as ImageIcon, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
@@ -185,7 +186,7 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
       const weekNumber = getWeekNumber(selectedDate);
       const isoWeek = `${selectedDate.getFullYear()}-W${weekNumber.toString().padStart(2, '0')}`;
 
-      const response = await fetch(`/api/whiteboard-photos?week=${isoWeek}`);
+      const response = await authFetch(`/api/whiteboard-photos?week=${isoWeek}`);
       if (!response.ok) throw new Error('Failed to fetch photos');
       const data = await response.json();
       setWeekPhotos(data);
