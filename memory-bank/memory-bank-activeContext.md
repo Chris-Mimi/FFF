@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 38.0
-**Updated:** 2026-02-24 (Session 156 - Rep Max Calculator + Configure Lift reorder)
+**Version:** 39.0
+**Updated:** 2026-02-24 (Session 158 - Migration verification + athlete testing)
 
 ---
 
@@ -84,26 +84,22 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-24 Session 158 - Opus 4.6) — MIGRATION VERIFICATION:**
+- **✅ Applied pending migrations** — `is_beta_tester` column + `coach_cancelled` booking status confirmed applied.
+- **✅ Mimi athlete testing** — Registered new athlete account (separate email from coach), activated 30-day trial via coach Members page. Tabs now accessible.
+- **⚠️ Lesson learned:** Missing `is_beta_tester` column caused silent query failure in athlete page — `members` SELECT failed, `member` was null, access check broke. Always apply migrations before testing features that depend on them.
+
 **Completed (2026-02-24 Session 157 - Opus 4.6) — DEPLOYMENT PREP:**
-- **✅ Free booking model** — Removed subscription gate from booking. All active members book freely. 10-card members still get sessions deducted.
-- **✅ Payment UI restructured** — Split into "Athlete App Subscription" (€7.50/mo, €75/yr) + "Gym Session Passes" (10-card €150). Clear separation.
-- **✅ Beta tester flag** — `is_beta_tester` column on members table. Bypasses subscription check for full Athlete access. **Chris question: "Can't I just activate them on the member page?" — Revisit in next session. May not need separate beta flag if coach can manually set subscription status.**
-- **✅ WorkoutModal race condition fixed** — `await onSave()` before `onClose()`. Fixes intermittent "edit lost on reopen" bug.
-- **✅ UpgradePrompt updated** — Launch pricing, locked tab previews already working.
-- **✅ .env.example updated** — Production domain + VAPID keys added.
-- **✅ Build passes, committed, pushed.**
+- **✅ Free booking model, Payment UI, Beta tester flag, WorkoutModal fix, UpgradePrompt, .env.example**
 
 **Completed (2026-02-24 Session 156 - Opus 4.6):**
-- **✅ Rep Max Calculator modal** + **Configure Lift row reorder** + Chris Notes cleanup.
+- **✅ Rep Max Calculator modal** + **Configure Lift row reorder**
 
 **Completed (2026-02-24 Session 155 - Opus 4.6):**
 - **✅ Audit MEDIUM/LOW cleanup** — All MEDIUM items fixed.
 
 **Completed (2026-02-23 Session 154 - Opus 4.6):**
 - **✅ Pre-Deployment Security Audit** — All CRITICAL+HIGH security issues fixed.
-
-**Completed (2026-02-23 Session 153 - Sonnet 4.6):**
-- **✅ Attendance Reports panel** — Two-tab panel with time filters + sortable columns.
 
 **Older Sessions (57-152):**
 See `project-history/` folder for detailed implementation history
@@ -143,9 +139,9 @@ See `project-history/` folder for detailed implementation history
 - Generic "Row" in benchmarks = C2 Rower
 
 **Migrations Pending (apply in Supabase SQL Editor):**
-- ✅ `get_public_tables()` RPC — confirmed working (new tables auto-discovered in backups)
-- **`supabase/migrations/20260223_add_coach_cancelled_status.sql`** — Adds `coach_cancelled` to bookings CHECK constraint + updates unique index. Required for "Remove" button in Session Management.
-- **Beta tester column:** `ALTER TABLE members ADD COLUMN IF NOT EXISTS is_beta_tester BOOLEAN DEFAULT false;`
+- ✅ `get_public_tables()` RPC — confirmed working
+- ✅ `coach_cancelled` booking status — confirmed applied (Session 158)
+- ✅ `is_beta_tester` column — applied (Session 158)
 
 ---
 
@@ -204,7 +200,7 @@ npm run restore 2025-12-06  # Restore specific date
 
 **Phase 4: Supabase Config**
 - Auth → URL Configuration: Site URL + redirect URLs to production domain
-- Run pending migrations (coach_cancelled + beta_tester)
+- ✅ All pending migrations applied
 
 **Phase 5: Stripe Live Mode**
 - Complete Stripe onboarding, toggle to live
@@ -215,7 +211,7 @@ npm run restore 2025-12-06  # Restore specific date
 **Phase 6: Beta Testing** (4-5 testers)
 **Phase 7: Full Launch** (after 1 month, update Stripe prices to €10/€100)
 
-**Full deployment plan:** `.claude/plans/fluttering-kindling-pond.md`
+**Full deployment plan:** `Chris Notes/deployment-plan.md`
 
 ### Business Model (decided Session 157)
 - **Free:** All active members can book classes (no payment required)
