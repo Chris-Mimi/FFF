@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 41.0
-**Updated:** 2026-02-25 (Session 159 - Color tweaks + Stripe payment testing)
+**Version:** 42.0
+**Updated:** 2026-02-25 (Session 159b - Google Calendar duplicate fix)
 
 ---
 
@@ -84,12 +84,12 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-25 Session 159b - Opus 4.6) — GOOGLE CALENDAR DUPLICATE FIX:**
+- **✅ Google Calendar duplicate events fix** — Copy-workout flow now deletes old Calendar event before overwriting session slot. Root cause: old wod's `google_event_id` was orphaned, Calendar event never cleaned up.
+- **✅ Copy resets publish status** — Copied workouts now start as draft (previously carried `is_published: true` without `google_event_id`).
+
 **Completed (2026-02-25 Session 159 - Opus 4.6) — COLOR TWEAKS + STRIPE TESTING:**
-- **✅ Card color customization** — Chris manually adjusted coach card colors in `card-utils.ts`. Booking page Foundations colors synced to `#3092a6`.
-- **✅ ConfigureLiftModal default notes cleared** — Removed hardcoded "Record your heaviest set" default from athlete notes (2 locations).
-- **✅ Stripe billing address** — Added `billing_address_collection: 'required'` to checkout. Mimi can see addresses in Stripe Dashboard.
-- **✅ Stripe automatic payment methods** — Replaced hardcoded `['card']` with no restriction, letting Stripe Dashboard control available methods (SEPA, Apple Pay, etc.).
-- **✅ Stripe webhook testing** — Stripe CLI installed, webhook forwarding tested. 10-card + monthly subscription purchases both verified working.
+- **✅ Card colors, ConfigureLiftModal notes cleared, Stripe billing address + auto payment methods, webhook testing**
 
 **Completed (2026-02-25 Session 158b - Opus 4.6) — BOOKING FILTERS + BUG FIXES:**
 - **✅ Booking page filters** — Added WOD/Foundations/Kids filter buttons with color-coded cards
@@ -101,10 +101,7 @@ Social Tables
 **Completed (2026-02-24 Session 156 - Opus 4.6):**
 - **✅ Rep Max Calculator modal** + **Configure Lift row reorder**
 
-**Completed (2026-02-24 Session 155 - Opus 4.6):**
-- **✅ Audit MEDIUM/LOW cleanup** — All MEDIUM items fixed.
-
-**Older Sessions (57-152):**
+**Older Sessions (57-155):**
 See `project-history/` folder for detailed implementation history
 
 ---

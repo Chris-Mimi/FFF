@@ -3,6 +3,7 @@
 import { confirm } from '@/lib/confirm';
 import { WODFormData } from '@/components/coach/WorkoutModal';
 import { supabase } from '@/lib/supabase';
+import { authFetch } from '@/lib/auth-fetch';
 import { toast } from 'sonner';
 import { formatDate, calculateWorkoutWeek } from '@/utils/date-utils';
 
@@ -312,6 +313,62 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
       // Calculate workout_week for target date
       const targetWorkoutWeek = calculateWorkoutWeek(targetDate);
 
+      // Clean up old Google Calendar events before overwriting
+      if (targetSessionId) {
+        // Find the old workout linked to this session
+        const { data: oldSession } = await supabase
+          .from('weekly_sessions')
+          .select('workout_id')
+          .eq('id', targetSessionId)
+          .single();
+
+        if (oldSession?.workout_id) {
+          const { data: oldWod } = await supabase
+            .from('wods')
+            .select('google_event_id')
+            .eq('id', oldSession.workout_id)
+            .single();
+
+          if (oldWod?.google_event_id) {
+            try {
+              await authFetch(`/api/google/publish-workout?workoutId=${oldSession.workout_id}`, {
+                method: 'DELETE',
+              });
+            } catch {
+              // Continue even if calendar cleanup fails
+            }
+          }
+        }
+      } else if (timesToCreate.length > 0) {
+        // Find old workouts at matching date/time slots
+        for (const time of timesToCreate) {
+          const { data: oldSession } = await supabase
+            .from('weekly_sessions')
+            .select('workout_id')
+            .eq('date', dateKey)
+            .eq('time', time)
+            .maybeSingle();
+
+          if (oldSession?.workout_id) {
+            const { data: oldWod } = await supabase
+              .from('wods')
+              .select('google_event_id')
+              .eq('id', oldSession.workout_id)
+              .single();
+
+            if (oldWod?.google_event_id) {
+              try {
+                await authFetch(`/api/google/publish-workout?workoutId=${oldSession.workout_id}`, {
+                  method: 'DELETE',
+                });
+              } catch {
+                // Continue even if calendar cleanup fails
+              }
+            }
+          }
+        }
+      }
+
       const { data: newWorkout, error: workoutError } = await supabase
         .from('wods')
         .insert([
@@ -326,8 +383,8 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
             max_capacity: wod.maxCapacity,
             date: dateKey,
             sections: wod.sections,
-            workout_publish_status: wod.workout_publish_status || 'draft',
-            is_published: wod.is_published || false,
+            workout_publish_status: 'draft',
+            is_published: false,
           },
         ])
         .select()
