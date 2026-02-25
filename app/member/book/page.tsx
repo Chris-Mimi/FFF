@@ -59,7 +59,7 @@ export default function MemberBookingPage() {
     relationship: 'child' as 'spouse' | 'child' | 'other'
   });
   const [bookingForMemberId, setBookingForMemberId] = useState<string | null>(null);
-  const [filter, setFilter] = useState<'all' | 'booked'>('all');
+  const [filter, setFilter] = useState<'all' | 'booked' | 'wod' | 'foundations' | 'kids'>('all');
 
   useEffect(() => {
     checkAuth();
@@ -496,19 +496,19 @@ export default function MemberBookingPage() {
     return time.slice(0, 5); // HH:MM
   };
 
-  const getCapacityColor = (confirmed: number, capacity: number) => {
+  const getCapacityColor = (confirmed: number, capacity: number, accentColor: string) => {
     const percentage = (confirmed / capacity) * 100;
     if (percentage >= 100) return 'text-red-400';
     if (percentage >= 80) return 'text-yellow-400';
-    return 'text-teal-400';
+    return accentColor;
   };
 
-  const getCapacityBadge = (session: WeeklySession) => {
+  const getCapacityBadge = (session: WeeklySession, accentColor: string) => {
     const spotsLeft = session.capacity - session.confirmed_count;
 
     if (spotsLeft > 0) {
       return (
-        <span className="text-teal-400 text-sm">
+        <span className={`${accentColor} text-sm`}>
           {spotsLeft} spot{spotsLeft !== 1 ? 's' : ''} left
         </span>
       );
@@ -689,27 +689,29 @@ export default function MemberBookingPage() {
         )}
 
         {/* Filter Buttons */}
-        <div className="flex gap-2 mb-6">
-          <button
-            onClick={() => setFilter('all')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              filter === 'all'
-                ? 'bg-teal-500 text-white'
-                : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-            }`}
-          >
-            All
-          </button>
-          <button
-            onClick={() => setFilter('booked')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              filter === 'booked'
-                ? 'bg-teal-500 text-white'
-                : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-            }`}
-          >
-            Booked
-          </button>
+        <div className="flex flex-wrap gap-2 mb-6">
+          {(['all', 'booked', 'wod', 'foundations', 'kids'] as const).map((f) => {
+            const activeBg = f === 'kids'
+              ? 'bg-teal-400'
+              : f === 'foundations'
+              ? 'bg-teal-500'
+              : f === 'wod'
+              ? 'bg-teal-700'
+              : 'bg-teal-800';
+            return (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  filter === f
+                    ? `${activeBg} text-white`
+                    : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                }`}
+              >
+                {f === 'all' ? 'All' : f === 'booked' ? 'Booked' : f === 'wod' ? 'WOD' : f === 'foundations' ? 'Foundations' : 'Kids'}
+              </button>
+            );
+          })}
         </div>
 
         {/* Sessions List */}
@@ -729,8 +731,16 @@ export default function MemberBookingPage() {
             {/* Group sessions by day */}
             {(() => {
               // Filter sessions based on filter state
+              const KIDS_TYPES = ['Kids', 'Kids & Teens', 'ElternKind Turnen', 'FitKids Turnen'];
+              const FOUNDATIONS_TYPES = ['Foundations', 'Foundations/WOD'];
               const filteredSessions = filter === 'booked'
                 ? sessions.filter(s => s.user_booking_status === 'confirmed' || s.user_booking_status === 'waitlist')
+                : filter === 'kids'
+                ? sessions.filter(s => KIDS_TYPES.includes(s.workout_type))
+                : filter === 'foundations'
+                ? sessions.filter(s => FOUNDATIONS_TYPES.includes(s.workout_type))
+                : filter === 'wod'
+                ? sessions.filter(s => !KIDS_TYPES.includes(s.workout_type) && !FOUNDATIONS_TYPES.includes(s.workout_type))
                 : sessions;
 
               if (filteredSessions.length === 0) {
@@ -753,14 +763,28 @@ export default function MemberBookingPage() {
 
                   {/* Sessions Grid - 3 columns */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {daySessions.map((session) => (
+                    {daySessions.map((session) => {
+                      const isKids = KIDS_TYPES.includes(session.workout_type);
+                      const isFoundations = FOUNDATIONS_TYPES.includes(session.workout_type);
+                      const borderAccent = isKids
+                        ? 'border-l-teal-400'
+                        : isFoundations
+                        ? 'border-l-teal-500'
+                        : 'border-l-teal-700';
+                      const textAccent = isKids ? 'text-teal-400' : isFoundations ? 'text-teal-500' : 'text-teal-700';
+                      const btnBg = isKids
+                        ? 'bg-teal-400 hover:bg-teal-500'
+                        : isFoundations
+                        ? 'bg-teal-500 hover:bg-teal-600'
+                        : 'bg-teal-700 hover:bg-teal-800';
+                      return (
                       <div
                         key={session.id}
-                        className={`bg-gray-800 rounded-lg p-4 border ${
+                        className={`bg-gray-800 rounded-lg p-4 border border-l-4 ${borderAccent} ${
                           session.user_booking_status !== 'none'
-                            ? 'border-teal-500'
-                            : 'border-gray-700'
-                        } hover:border-gray-600 transition-colors duration-200`}
+                            ? 'border-t-teal-500 border-r-teal-500 border-b-teal-500'
+                            : 'border-t-gray-700 border-r-gray-700 border-b-gray-700'
+                        } hover:border-t-gray-600 hover:border-r-gray-600 hover:border-b-gray-600 transition-colors duration-200`}
                       >
                         <div className="flex gap-3">
                           {/* Left side - Info */}
@@ -803,11 +827,11 @@ export default function MemberBookingPage() {
                                 <span className="text-white font-medium">{session.workout_type}</span>
                               </div>
                               <div className="flex items-center gap-1.5">
-                                <Users size={14} className={getCapacityColor(session.confirmed_count, session.capacity)} />
+                                <Users size={14} className={getCapacityColor(session.confirmed_count, session.capacity, textAccent)} />
                                 <span className="text-gray-400 text-xs">
                                   {session.confirmed_count}/{session.capacity}
                                 </span>
-                                {getCapacityBadge(session)}
+                                {getCapacityBadge(session, textAccent)}
                               </div>
                             </div>
                           </div>
@@ -818,7 +842,7 @@ export default function MemberBookingPage() {
                               <button
                                 onClick={() => handleBook(session.id)}
                                 disabled={processing === session.id}
-                                className="px-4 py-2.5 sm:px-3 sm:py-1.5 bg-teal-500 hover:bg-teal-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm rounded-lg sm:rounded transition-colors duration-200 whitespace-nowrap min-h-[44px] sm:min-h-0"
+                                className={`px-4 py-2.5 sm:px-3 sm:py-1.5 ${btnBg} disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm rounded-lg sm:rounded transition-colors duration-200 whitespace-nowrap min-h-[44px] sm:min-h-0`}
                               >
                                 {processing === session.id ? 'Booking...' : 'Book'}
                               </button>
@@ -835,7 +859,8 @@ export default function MemberBookingPage() {
                           </div>
                         </div>
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               );

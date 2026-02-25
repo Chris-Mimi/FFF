@@ -19,7 +19,7 @@ All equipment & Body Parts lists need optimising
 *
 *
 # Workout Library tab (coach) #
-Sometimes, after closing an edited Workout by using the tick, when I return to it, it is missing the last edit. If I close and return, the movements are there again!
+Sometimes, after closing an edited Workout by using the tick, when I return to it, it is missing the last edit. If I close and return, the movements are there again! - corrected this 23.02
 
 Athlete login: percentage calculator
 
@@ -49,7 +49,7 @@ SHould only show the days on which athlete has attended a workout. For example, 
 
 # Athlete Logbook Page #
 
-* Book a class tab: Filter buttoons for Kids, Foundations, WOD etc
+* Book a class tab: Filter buttons for Kids, Foundations, WOD etc
 
 # Member Management Page #
 *

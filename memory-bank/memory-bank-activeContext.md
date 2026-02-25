@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 39.0
-**Updated:** 2026-02-24 (Session 158 - Migration verification + athlete testing)
+**Version:** 40.0
+**Updated:** 2026-02-25 (Session 158b - Booking filters + authFetch fix)
 
 ---
 
@@ -84,10 +84,10 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
-**Completed (2026-02-24 Session 158 - Opus 4.6) — MIGRATION VERIFICATION:**
-- **✅ Applied pending migrations** — `is_beta_tester` column + `coach_cancelled` booking status confirmed applied.
-- **✅ Mimi athlete testing** — Registered new athlete account (separate email from coach), activated 30-day trial via coach Members page. Tabs now accessible.
-- **⚠️ Lesson learned:** Missing `is_beta_tester` column caused silent query failure in athlete page — `members` SELECT failed, `member` was null, access check broke. Always apply migrations before testing features that depend on them.
+**Completed (2026-02-25 Session 158b - Opus 4.6) — BOOKING FILTERS + BUG FIXES:**
+- **✅ Booking page filters** — Added WOD/Foundations/Kids filter buttons with color-coded cards (teal-400/500/700 scale matching coach calendar)
+- **✅ authFetch bug fix** — Whiteboard photos fetch in athlete pages used plain `fetch()` instead of `authFetch`, causing 401 errors. Broken since session 154 security audit.
+- **✅ Migrations verified** — `is_beta_tester` + `coach_cancelled` confirmed applied. Mimi athlete account working.
 
 **Completed (2026-02-24 Session 157 - Opus 4.6) — DEPLOYMENT PREP:**
 - **✅ Free booking model, Payment UI, Beta tester flag, WorkoutModal fix, UpgradePrompt, .env.example**
