@@ -694,7 +694,7 @@ export default function MemberBookingPage() {
             const activeBg = f === 'kids'
               ? 'bg-teal-400'
               : f === 'foundations'
-              ? 'bg-teal-500'
+              ? 'bg-[#3092a6]'
               : f === 'wod'
               ? 'bg-teal-700'
               : 'bg-teal-800';
@@ -769,13 +769,13 @@ export default function MemberBookingPage() {
                       const borderAccent = isKids
                         ? 'border-l-teal-400'
                         : isFoundations
-                        ? 'border-l-teal-500'
+                        ? 'border-l-[#3092a6]'
                         : 'border-l-teal-700';
-                      const textAccent = isKids ? 'text-teal-400' : isFoundations ? 'text-teal-500' : 'text-teal-700';
+                      const textAccent = isKids ? 'text-teal-400' : isFoundations ? 'text-[#3092a6]' : 'text-teal-700';
                       const btnBg = isKids
                         ? 'bg-teal-400 hover:bg-teal-500'
                         : isFoundations
-                        ? 'bg-teal-500 hover:bg-teal-600'
+                        ? 'bg-[#3092a6] hover:bg-[#287f90]'
                         : 'bg-teal-700 hover:bg-teal-800';
                       return (
                       <div

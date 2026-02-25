@@ -49,7 +49,7 @@ SHould only show the days on which athlete has attended a workout. For example, 
 
 # Athlete Logbook Page #
 
-* Book a class tab: Filter buttons for Kids, Foundations, WOD etc
+* 
 
 # Member Management Page #
 *

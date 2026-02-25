@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 40.0
-**Updated:** 2026-02-25 (Session 158b - Booking filters + authFetch fix)
+**Version:** 41.0
+**Updated:** 2026-02-25 (Session 159 - Color tweaks + Stripe payment testing)
 
 ---
 
@@ -84,10 +84,16 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-25 Session 159 - Opus 4.6) — COLOR TWEAKS + STRIPE TESTING:**
+- **✅ Card color customization** — Chris manually adjusted coach card colors in `card-utils.ts`. Booking page Foundations colors synced to `#3092a6`.
+- **✅ ConfigureLiftModal default notes cleared** — Removed hardcoded "Record your heaviest set" default from athlete notes (2 locations).
+- **✅ Stripe billing address** — Added `billing_address_collection: 'required'` to checkout. Mimi can see addresses in Stripe Dashboard.
+- **✅ Stripe automatic payment methods** — Replaced hardcoded `['card']` with no restriction, letting Stripe Dashboard control available methods (SEPA, Apple Pay, etc.).
+- **✅ Stripe webhook testing** — Stripe CLI installed, webhook forwarding tested. 10-card + monthly subscription purchases both verified working.
+
 **Completed (2026-02-25 Session 158b - Opus 4.6) — BOOKING FILTERS + BUG FIXES:**
-- **✅ Booking page filters** — Added WOD/Foundations/Kids filter buttons with color-coded cards (teal-400/500/700 scale matching coach calendar)
-- **✅ authFetch bug fix** — Whiteboard photos fetch in athlete pages used plain `fetch()` instead of `authFetch`, causing 401 errors. Broken since session 154 security audit.
-- **✅ Migrations verified** — `is_beta_tester` + `coach_cancelled` confirmed applied. Mimi athlete account working.
+- **✅ Booking page filters** — Added WOD/Foundations/Kids filter buttons with color-coded cards
+- **✅ authFetch bug fix** — Whiteboard photos 401 fix
 
 **Completed (2026-02-24 Session 157 - Opus 4.6) — DEPLOYMENT PREP:**
 - **✅ Free booking model, Payment UI, Beta tester flag, WorkoutModal fix, UpgradePrompt, .env.example**
@@ -97,9 +103,6 @@ Social Tables
 
 **Completed (2026-02-24 Session 155 - Opus 4.6):**
 - **✅ Audit MEDIUM/LOW cleanup** — All MEDIUM items fixed.
-
-**Completed (2026-02-23 Session 154 - Opus 4.6):**
-- **✅ Pre-Deployment Security Audit** — All CRITICAL+HIGH security issues fixed.
 
 **Older Sessions (57-152):**
 See `project-history/` folder for detailed implementation history

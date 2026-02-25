@@ -544,8 +544,8 @@ export default function CalendarGrid({
               <div
                 key={day}
                 onClick={() => day === 'Thu' && setThursdayCollapsed(!thursdayCollapsed)}
-                className={`text-center text-xs font-semibold text-white bg-teal-700 py-2 rounded ${
-                  day === 'Thu' ? 'cursor-pointer hover:bg-teal-800 flex items-center justify-center gap-1' : ''
+                className={`text-center text-xs font-semibold text-white bg-teal-800 py-2 rounded ${
+                  day === 'Thu' ? 'cursor-pointer hover:bg-teal-600 flex items-center justify-center gap-1' : ''
                 }`}
               >
                 {day}
@@ -554,7 +554,7 @@ export default function CalendarGrid({
             {thursdayCollapsed && (
               <div
                 onClick={() => setThursdayCollapsed(false)}
-                className='text-center text-xs font-semibold text-white bg-teal-700 py-2 rounded cursor-pointer hover:bg-teal-800 flex items-center justify-center gap-1'
+                className='text-center text-xs font-semibold text-white bg-teal-800 py-2 rounded cursor-pointer hover:bg-teal-800 flex items-center justify-center gap-1'
                 title='Show Thursday'
               >
                 <ChevronRight size={14} />
@@ -576,7 +576,7 @@ export default function CalendarGrid({
           return (
             <div key={weekIdx} className='flex gap-2 mb-2'>
               {/* Week Number - Teal Box, hidden on mobile */}
-              <div className='hidden lg:flex w-8 items-center justify-center text-xs font-semibold text-white bg-teal-700 rounded'>
+              <div className='hidden lg:flex w-8 items-center justify-center text-xs font-semibold text-white bg-teal-800 rounded'>
                 {weekNumber}
               </div>
 
@@ -605,7 +605,7 @@ export default function CalendarGrid({
         {/* First Week */}
         <div className='mb-6'>
           {/* Week Number Banner */}
-          <div className='bg-teal-700 text-white px-4 py-2 rounded-t-lg mb-4 flex items-center justify-between'>
+          <div className='bg-teal-600 text-white px-4 py-2 rounded-t-lg mb-4 flex items-center justify-between'>
             <div className='text-sm font-semibold'>Week {getWeekNumber(displayDates[0])}</div>
             <button
               onClick={() => setThursdayCollapsed(!thursdayCollapsed)}
@@ -623,7 +623,7 @@ export default function CalendarGrid({
         {/* Second Week */}
         <div>
           {/* Week Number Banner */}
-          <div className='bg-teal-700 text-white px-4 py-2 rounded-t-lg mb-4'>
+          <div className='bg-teal-600 text-white px-4 py-2 rounded-t-lg mb-4'>
             <div className='text-sm font-semibold'>
               Week{' '}
               {getWeekNumber(

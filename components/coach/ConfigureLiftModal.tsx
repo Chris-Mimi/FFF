@@ -48,8 +48,8 @@ function ConfigureLiftModal({
   // RM Test state
   const [rmTest, setRmTest] = useState<'1RM' | '3RM' | '5RM' | '10RM' | null>(null);
 
-  const [athleteNotes, setAthleteNotes] = useState('Record your heaviest set');
-  const [athleteNotesExpanded, setAthleteNotesExpanded] = useState(true);
+  const [athleteNotes, setAthleteNotes] = useState('');
+  const [athleteNotesExpanded, setAthleteNotesExpanded] = useState(false);
 
   // Draggable state
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -76,8 +76,8 @@ function ConfigureLiftModal({
         setAthleteNotes(savedNotes);
         setAthleteNotesExpanded(true);
       } else {
-        setAthleteNotes('Record your heaviest set');
-        setAthleteNotesExpanded(true);
+        setAthleteNotes('');
+        setAthleteNotesExpanded(false);
       }
     }
   }, [lift, editingLift]);
