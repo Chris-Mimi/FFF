@@ -42,5 +42,5 @@ export const getCardClasses = (state: CardState, title?: string): string => {
   const tier = getSessionTier(title);
   if (tier === 'kids') return 'bg-teal-400 border-2 border-teal-500 text-white';
   if (tier === 'foundations') return 'bg-teal-500 border-2 border-teal-600 text-white';
-  return 'bg-teal-600 border-2 border-teal-700'; // standard (WOD, Endurance, etc.)
+  return 'bg-teal-700 border-2 border-teal-800'; // standard (WOD, Endurance, etc.)
 };
