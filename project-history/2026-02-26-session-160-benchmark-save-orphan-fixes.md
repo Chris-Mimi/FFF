@@ -27,6 +27,11 @@
    - **Fix:** After session update, old WODs are set to `is_published: false, workout_publish_status: 'draft', google_event_id: null`.
    - **Files:** `hooks/coach/useWODOperations.ts` (added `oldWodIds` collection + unpublish after copy)
 
+5. **Copy-workout cleans up orphaned athlete results (service role):**
+   - **Root cause:** Client-side `supabase.delete()` on `wod_section_results` silently failed due to RLS — coach can't delete athlete data.
+   - **Fix:** Created `DELETE /api/sessions/cleanup-results` endpoint using `requireCoach` + service role. Copy-workout calls it via `authFetch`.
+   - **Files:** `app/api/sessions/cleanup-results/route.ts` (new), `hooks/coach/useWODOperations.ts`
+
 ---
 
 ## Files Changed
@@ -34,22 +39,25 @@
 - `components/athlete/AthletePageLogbookTab.tsx` — Fixed reps format for both benchmark and forge benchmark saves
 - `app/api/benchmark-results/route.ts` — Added upsert by user+benchmark+date, duplicate cleanup
 - `components/athlete/LeaderboardView.tsx` — Inner join to weekly_sessions filters orphaned WODs
-- `hooks/coach/useWODOperations.ts` — Collect old WOD IDs during copy, unpublish after session update
+- `hooks/coach/useWODOperations.ts` — Collect old WOD IDs during copy, unpublish + cleanup via API
+- `app/api/sessions/cleanup-results/route.ts` — NEW: coach-only endpoint to delete orphaned athlete results using service role
 
 ---
 
 ## Key Decisions
 
-- **Unpublish vs delete orphaned WODs:** Chose unpublish to preserve any athlete results still linked to the old WOD. Deleting would orphan those results.
+- **Unpublish vs delete orphaned WODs:** Unpublish the WOD record (preserve for reference), but DELETE the athlete results (they're meaningless after workout replacement).
+- **Service role for cleanup:** RLS correctly prevents coaches from deleting athlete data client-side. Server-side API with `requireCoach` guard provides the elevated access needed.
 - **Duplicate cleanup in API:** Auto-deletes older duplicates on save rather than requiring manual SQL cleanup. Keeps newest record.
 
 ---
 
-## Testing Needed
+## Lessons Learned
 
-Break-test scenarios provided to Chris for next session:
-1. Copy over published workout — leaderboard should only show new one
-2. Copy over workout with athlete scores — old scores kept, leaderboard clean
-3. Save benchmark reps multiple times — no duplicates, correct value persists
-4. Save without changes — no duplicate rows created
-5. Copy then publish — single leaderboard entry, single Calendar event
+- **RLS blocks silent failures:** Supabase client-side deletes return no error when RLS blocks the operation — the delete just affects 0 rows. Always use service role API endpoints when coaches need to modify athlete data.
+
+---
+
+## Testing Done
+
+- Copy over published workout with athlete scores → leaderboard shows only new workout, orphan check returns 0.

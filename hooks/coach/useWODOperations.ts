@@ -438,12 +438,22 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
         }
       }
 
-      // Unpublish old WODs so they don't appear as orphans on leaderboard
+      // Clean up old WODs: unpublish and remove orphaned athlete data
       if (oldWodIds.length > 0) {
         await supabase
           .from('wods')
           .update({ is_published: false, workout_publish_status: 'draft', google_event_id: null })
           .in('id', oldWodIds);
+
+        // Delete athlete results via service role API (RLS blocks coach from deleting athlete data)
+        try {
+          await authFetch('/api/sessions/cleanup-results', {
+            method: 'DELETE',
+            body: JSON.stringify({ wodIds: oldWodIds }),
+          });
+        } catch {
+          // Continue even if cleanup fails — orphans are harmless
+        }
       }
 
       await fetchWODs();

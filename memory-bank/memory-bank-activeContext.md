@@ -89,7 +89,8 @@ Social Tables
 - **✅ Benchmark results upsert** — API now upserts by user+benchmark+date instead of always inserting. Auto-cleans duplicates.
 - **✅ Leaderboard orphan filter** — Added `weekly_sessions!inner` join to exclude orphaned WODs.
 - **✅ Copy-workout unpublishes old WOD** — Replaced WODs now set to `is_published: false` to prevent orphan accumulation.
-- **⏳ Testing needed** — Chris has break-test scenarios to verify all 4 fixes.
+- **✅ Copy-workout cleans up athlete results** — Service role API (`/api/sessions/cleanup-results`) deletes orphaned `wod_section_results` and `workout_logs` (RLS blocks coach client-side deletes).
+- **✅ Tested and verified** — Copy-over-published-workout produces 0 orphans.
 
 **Completed (2026-02-25 Session 159b - Opus 4.6) — GOOGLE CALENDAR DUPLICATE FIX:**
 - **✅ Google Calendar duplicate events fix + copy resets publish status**
