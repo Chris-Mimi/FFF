@@ -345,7 +345,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
   const loadWods = useCallback(async () => {
     const { data } = await supabase
       .from('wods')
-      .select('id, date, title, workout_name, session_type, sections')
+      .select('id, date, title, workout_name, session_type, sections, weekly_sessions!inner(id)')
       .gte('date', mondayStr)
       .lte('date', sundayStr)
       .eq('is_published', true)

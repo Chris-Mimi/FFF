@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 42.0
-**Updated:** 2026-02-25 (Session 159b - Google Calendar duplicate fix)
+**Version:** 43.0
+**Updated:** 2026-02-26 (Session 160 - Benchmark save + orphan WOD fixes)
 
 ---
 
@@ -84,22 +84,24 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-26 Session 160 - Opus 4.6) — BENCHMARK SAVE + ORPHAN WOD FIXES:**
+- **✅ Forge Benchmark reps save bug** — `parseInt("0+50")` returned 0. Fix: only use rounds+reps format when rounds present.
+- **✅ Benchmark results upsert** — API now upserts by user+benchmark+date instead of always inserting. Auto-cleans duplicates.
+- **✅ Leaderboard orphan filter** — Added `weekly_sessions!inner` join to exclude orphaned WODs.
+- **✅ Copy-workout unpublishes old WOD** — Replaced WODs now set to `is_published: false` to prevent orphan accumulation.
+- **⏳ Testing needed** — Chris has break-test scenarios to verify all 4 fixes.
+
 **Completed (2026-02-25 Session 159b - Opus 4.6) — GOOGLE CALENDAR DUPLICATE FIX:**
-- **✅ Google Calendar duplicate events fix** — Copy-workout flow now deletes old Calendar event before overwriting session slot. Root cause: old wod's `google_event_id` was orphaned, Calendar event never cleaned up.
-- **✅ Copy resets publish status** — Copied workouts now start as draft (previously carried `is_published: true` without `google_event_id`).
+- **✅ Google Calendar duplicate events fix + copy resets publish status**
 
 **Completed (2026-02-25 Session 159 - Opus 4.6) — COLOR TWEAKS + STRIPE TESTING:**
 - **✅ Card colors, ConfigureLiftModal notes cleared, Stripe billing address + auto payment methods, webhook testing**
 
 **Completed (2026-02-25 Session 158b - Opus 4.6) — BOOKING FILTERS + BUG FIXES:**
-- **✅ Booking page filters** — Added WOD/Foundations/Kids filter buttons with color-coded cards
-- **✅ authFetch bug fix** — Whiteboard photos 401 fix
+- **✅ Booking page filters + authFetch bug fix**
 
 **Completed (2026-02-24 Session 157 - Opus 4.6) — DEPLOYMENT PREP:**
 - **✅ Free booking model, Payment UI, Beta tester flag, WorkoutModal fix, UpgradePrompt, .env.example**
-
-**Completed (2026-02-24 Session 156 - Opus 4.6):**
-- **✅ Rep Max Calculator modal** + **Configure Lift row reorder**
 
 **Older Sessions (57-155):**
 See `project-history/` folder for detailed implementation history

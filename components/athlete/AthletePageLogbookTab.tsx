@@ -203,11 +203,11 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
           const bmIdx = parseInt(itemIdentifier.replace('benchmark-', ''));
           const benchmark = section.benchmarks?.[bmIdx];
           if (benchmark) {
-            // Only combine rounds + reps if they have values (for when didn't finish in time cap)
-            const hasRoundsOrReps = result.rounds_result || result.reps_result;
-            const repsValue = hasRoundsOrReps
-              ? `${result.rounds_result || '0'}+${result.reps_result || '0'}`
-              : '';
+            // Only use rounds+reps format when rounds are present (AMRAP)
+            // Otherwise send raw reps value (parseInt stops at '+' and loses the reps)
+            const repsValue = result.rounds_result
+              ? `${result.rounds_result}+${result.reps_result || '0'}`
+              : result.reps_result || '';
 
             await saveBenchmarkResult(
               benchmark.name,
@@ -226,11 +226,11 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
           const forgeIdx = parseInt(itemIdentifier.replace('forge-', ''));
           const forge = section.forge_benchmarks?.[forgeIdx];
           if (forge) {
-            // Only combine rounds + reps if they have values (for when didn't finish in time cap)
-            const hasRoundsOrReps = result.rounds_result || result.reps_result;
-            const repsValue = hasRoundsOrReps
-              ? `${result.rounds_result || '0'}+${result.reps_result || '0'}`
-              : '';
+            // Only use rounds+reps format when rounds are present (AMRAP)
+            // Otherwise send raw reps value (parseInt stops at '+' and loses the reps)
+            const repsValue = result.rounds_result
+              ? `${result.rounds_result}+${result.reps_result || '0'}`
+              : result.reps_result || '';
 
             await saveBenchmarkResult(
               forge.name,

@@ -313,7 +313,9 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
       // Calculate workout_week for target date
       const targetWorkoutWeek = calculateWorkoutWeek(targetDate);
 
-      // Clean up old Google Calendar events before overwriting
+      // Collect old WOD IDs and clean up Calendar events before overwriting
+      const oldWodIds: string[] = [];
+
       if (targetSessionId) {
         // Find the old workout linked to this session
         const { data: oldSession } = await supabase
@@ -323,6 +325,7 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
           .single();
 
         if (oldSession?.workout_id) {
+          oldWodIds.push(oldSession.workout_id);
           const { data: oldWod } = await supabase
             .from('wods')
             .select('google_event_id')
@@ -350,6 +353,7 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
             .maybeSingle();
 
           if (oldSession?.workout_id) {
+            oldWodIds.push(oldSession.workout_id);
             const { data: oldWod } = await supabase
               .from('wods')
               .select('google_event_id')
@@ -432,6 +436,14 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
             });
           }
         }
+      }
+
+      // Unpublish old WODs so they don't appear as orphans on leaderboard
+      if (oldWodIds.length > 0) {
+        await supabase
+          .from('wods')
+          .update({ is_published: false, workout_publish_status: 'draft', google_event_id: null })
+          .in('id', oldWodIds);
       }
 
       await fetchWODs();

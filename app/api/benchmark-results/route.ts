@@ -73,9 +73,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if updating an existing record (only when explicit ID provided)
+    // Check if updating an existing record
     let existingResult: { id: string } | null = null;
     if (id) {
+      // Explicit ID provided — look up by ID
       const { data, error: checkError } = await supabaseAdmin
         .from('benchmark_results')
         .select('id')
@@ -86,6 +87,36 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Failed to check existing result' }, { status: 500 });
       }
       existingResult = data;
+    } else {
+      // No explicit ID — upsert by user + benchmark + date
+      const query = supabaseAdmin
+        .from('benchmark_results')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('result_date', resultDate || new Date().toISOString().split('T')[0]);
+
+      if (forgeBenchmarkId) {
+        query.eq('forge_benchmark_id', forgeBenchmarkId);
+      } else {
+        query.eq('benchmark_id', benchmarkId);
+      }
+
+      const { data, error: checkError } = await query.order('created_at', { ascending: false });
+      if (checkError) {
+        console.error('Error checking existing result:', checkError);
+        return NextResponse.json({ error: 'Failed to check existing result' }, { status: 500 });
+      }
+      if (data && data.length > 0) {
+        existingResult = data[0];
+        // Clean up duplicates if any exist
+        if (data.length > 1) {
+          const duplicateIds = data.slice(1).map(r => r.id);
+          await supabaseAdmin
+            .from('benchmark_results')
+            .delete()
+            .in('id', duplicateIds);
+        }
+      }
     }
 
     // Parse numeric fields safely
