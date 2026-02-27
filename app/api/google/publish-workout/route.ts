@@ -285,6 +285,81 @@ export async function POST(request: NextRequest) {
 
         const calendar = google.calendar({ version: 'v3', auth });
 
+        // Clean up any existing Google Calendar events at the same date+time.
+        // This catches ghost events (where the DB reference was lost but the
+        // calendar event still exists) and DB-tracked orphans alike.
+        // Only runs when publishing a WOD that doesn't already own an event.
+        if (!workout.google_event_id) {
+          // Collect known event IDs for WODs linked to active sessions on
+          // this date (these are legitimate and must NOT be deleted).
+          const { data: activeSameDateWods } = await supabaseAdmin
+            .from('wods')
+            .select('google_event_id, weekly_sessions(id)')
+            .eq('date', workout.date)
+            .neq('id', workoutId)
+            .not('google_event_id', 'is', null);
+
+          const keepEventIds = new Set(
+            (activeSameDateWods || [])
+              .filter(w => Array.isArray(w.weekly_sessions) && w.weekly_sessions.length > 0)
+              .map(w => w.google_event_id)
+          );
+
+          // Clean up DB-tracked orphans (WODs with event ID but no session)
+          const dbOrphans = (activeSameDateWods || []).filter(
+            w => !w.weekly_sessions || (Array.isArray(w.weekly_sessions) && w.weekly_sessions.length === 0)
+          );
+          if (dbOrphans.length > 0) {
+            for (const orphan of dbOrphans) {
+              try {
+                await calendar.events.delete({
+                  calendarId: process.env.GOOGLE_CALENDAR_ID,
+                  eventId: orphan.google_event_id,
+                });
+              } catch {
+                // Already gone — continue
+              }
+            }
+            const orphanWodIds = (activeSameDateWods || [])
+              .filter(w => !w.weekly_sessions || (Array.isArray(w.weekly_sessions) && w.weekly_sessions.length === 0))
+              .map(w => w.google_event_id);
+            if (orphanWodIds.length > 0) {
+              await supabaseAdmin
+                .from('wods')
+                .update({ google_event_id: null })
+                .eq('date', workout.date)
+                .neq('id', workoutId)
+                .in('google_event_id', orphanWodIds);
+            }
+          }
+
+          // Query Google Calendar directly for events at this exact time slot.
+          // This catches ghost events where the DB lost the reference.
+          try {
+            const existingEvents = await calendar.events.list({
+              calendarId: process.env.GOOGLE_CALENDAR_ID,
+              timeMin: startDateTime.toISOString(),
+              timeMax: new Date(startDateTime.getTime() + 60000).toISOString(),
+              singleEvents: true,
+            });
+
+            for (const existing of existingEvents.data.items || []) {
+              if (existing.id && !keepEventIds.has(existing.id)) {
+                try {
+                  await calendar.events.delete({
+                    calendarId: process.env.GOOGLE_CALENDAR_ID,
+                    eventId: existing.id,
+                  });
+                } catch {
+                  // Already gone — continue
+                }
+              }
+            }
+          } catch {
+            // Calendar list query failed — continue with publish
+          }
+        }
+
         // Create or update calendar event
         // Title priority: workout_name > track name > session_type (deprecated title field)
         let trackName: string | undefined;

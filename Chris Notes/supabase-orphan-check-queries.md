@@ -17,7 +17,13 @@ SELECT
   (SELECT COUNT(*) FROM bookings b LEFT JOIN weekly_sessions ws ON ws.id = b.session_id WHERE ws.id IS NULL) AS orphan_bookings,
   (SELECT COUNT(*) FROM reactions r LEFT JOIN wod_section_results wsr ON wsr.id = r.target_id WHERE r.target_type = 'wod_section_result' AND wsr.id IS NULL) AS orphan_reactions_section,
   (SELECT COUNT(*) FROM reactions r LEFT JOIN benchmark_results br ON br.id = r.target_id WHERE r.target_type = 'benchmark_result' AND br.id IS NULL) AS orphan_reactions_benchmark,
-  (SELECT COUNT(*) FROM reactions r LEFT JOIN lift_records lr ON lr.id = r.target_id WHERE r.target_type = 'lift_record' AND lr.id IS NULL) AS orphan_reactions_lift;
+  (SELECT COUNT(*) FROM reactions r LEFT JOIN lift_records lr ON lr.id = r.target_id WHERE r.target_type = 'lift_record' AND lr.id IS NULL) AS orphan_reactions_lift,
+  (SELECT COUNT(*) FROM wods w LEFT JOIN weekly_sessions ws ON ws.workout_id = w.id WHERE ws.id IS NULL AND w.google_event_id IS NOT NULL) AS gcal_orphan_wods,
+  (SELECT COUNT(*) FROM wod_section_results r LEFT JOIN wods w ON w.id = r.wod_id WHERE w.id IS NULL) AS results_deleted_wods,
+  (SELECT COUNT(*) FROM bookings b LEFT JOIN members m ON m.id = b.member_id WHERE m.id IS NULL) AS orphan_bookings_no_member,
+  (SELECT COUNT(*) FROM (SELECT user_id, wod_id, section_id FROM wod_section_results GROUP BY user_id, wod_id, section_id HAVING COUNT(*) > 1) d) AS duplicate_section_results,
+  (SELECT COUNT(*) FROM (SELECT user_id, benchmark_name, result_date FROM benchmark_results GROUP BY user_id, benchmark_name, result_date HAVING COUNT(*) > 1) d) AS duplicate_benchmarks,
+  (SELECT COUNT(*) FROM (SELECT user_id, lift_name, lift_date, rep_max_type, rep_scheme FROM lift_records GROUP BY user_id, lift_name, lift_date, rep_max_type, rep_scheme HAVING COUNT(*) > 1) d) AS duplicate_lifts;
 ```
 
 **Expected result:** All zeros = healthy database.
