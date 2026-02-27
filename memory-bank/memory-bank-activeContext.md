@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 45.0
-**Updated:** 2026-02-27 (Session 162 - Athlete tab reorder + timer relocation)
+**Version:** 46.0
+**Updated:** 2026-02-27 (Session 162 - Tab reorder + timer relocation + audio fix)
 
 ---
 
@@ -84,13 +84,12 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
-**Completed (2026-02-27 Session 162 - Opus 4.6) — ATHLETE TAB REORDER + TIMER RELOCATION:**
+**Completed (2026-02-27 Session 162 - Opus 4.6) — TAB REORDER + TIMER RELOCATION + AUDIO FIX:**
 - **✅ Reordered athlete tabs** — Logbook now directly after Workouts (was separated by Community + Timer)
 - **✅ Removed Timer tab** — no longer a standalone tab
-- **✅ Timer moved to Forge Benchmarks** — icon button in top-right header (same pattern as Calculator on Lifts page)
-- **✅ Timer opens fullscreen** when launched from embedded context, X closes completely
-- **✅ Desktop timer sizes increased** — `lg:` breakpoint up to 16rem digits, 18rem countdown
-- **✅ WorkoutTimer accepts `onClose` prop** — parent controls visibility, fullscreen X triggers close
+- **✅ Timer moved to Forge Benchmarks** — icon button in top-right header (same pattern as Calculator on Lifts)
+- **✅ Timer opens fullscreen** when embedded, X closes completely, desktop sizes increased
+- **✅ FIXED timer audio distortion** — Replaced Web Audio API oscillator with pre-recorded WAV files + HTMLAudioElement playback. 6 oscillator fixes failed in Session 136; WAV files bypass the entire Web Audio pipeline.
 
 **Completed (2026-02-27 Session 161 - Opus 4.6) — GOOGLE CALENDAR DUPLICATE FIX:**
 - **✅ Dual-layer orphan cleanup on publish** — DB orphan check + Google Calendar API direct query at same time slot

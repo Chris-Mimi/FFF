@@ -35,76 +35,73 @@ const DEFAULT_CONFIG: TimerConfig = {
   holdBeepInterval: 10, // beep every 10s
 };
 
-// Audio via Web Audio API — single persistent oscillator + gain gate
-let audioCtx: AudioContext | null = null;
-let oscillator: OscillatorNode | null = null;
-let gainNode: GainNode | null = null;
+// Audio via pre-recorded WAV files — bypasses Web Audio API entirely
+let audioUnlocked = false;
+const audioElements: Record<string, HTMLAudioElement> = {};
 
-function ensureAudioContext() {
-  if (!audioCtx) {
-    audioCtx = new AudioContext();
-    // Single persistent oscillator — never destroyed, just muted/unmuted
-    oscillator = audioCtx.createOscillator();
-    gainNode = audioCtx.createGain();
-    oscillator.type = 'sine';
-    oscillator.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
-    gainNode.gain.value = 0; // Start silent
-    oscillator.start();
+function preloadAudio() {
+  if (typeof window === 'undefined') return;
+  const sounds: Record<string, string> = {
+    countdown: '/sounds/countdown-beep.wav',
+    go: '/sounds/go-beep.wav',
+    complete: '/sounds/complete-beep.wav',
+  };
+  for (const [key, src] of Object.entries(sounds)) {
+    if (!audioElements[key]) {
+      const audio = new Audio(src);
+      audio.preload = 'auto';
+      audioElements[key] = audio;
+    }
   }
-  if (audioCtx.state === 'suspended') {
-    audioCtx.resume();
-  }
-  return audioCtx;
 }
 
-// Play a tone by unmuting the persistent oscillator briefly
-function playSound(frequency: number, durationMs: number, sustained: boolean) {
+// Must be called on first user gesture (iOS Safari requirement)
+function unlockAudio() {
+  if (audioUnlocked) return;
+  preloadAudio();
+  for (const audio of Object.values(audioElements)) {
+    audio.volume = 0;
+    audio.play().then(() => {
+      audio.pause();
+      audio.currentTime = 0;
+      audio.volume = 1;
+    }).catch(() => {
+      // Will work on next gesture
+    });
+  }
+  audioUnlocked = true;
+}
+
+function playAudio(key: string) {
   try {
-    const ctx = ensureAudioContext();
-    if (!oscillator || !gainNode) return;
-    const now = ctx.currentTime;
-    const durSec = durationMs / 1000;
-    // Cancel any scheduled changes from a previous sound
-    gainNode.gain.cancelScheduledValues(now);
-    // Set frequency
-    oscillator.frequency.setValueAtTime(frequency, now);
-    if (sustained) {
-      // Ramp up, hold, ramp down
-      gainNode.gain.setValueAtTime(0, now);
-      gainNode.gain.linearRampToValueAtTime(0.5, now + 0.005);
-      gainNode.gain.setValueAtTime(0.5, now + durSec - 0.05);
-      gainNode.gain.linearRampToValueAtTime(0, now + durSec);
-    } else {
-      // Staccato: ramp up, exponential decay
-      gainNode.gain.setValueAtTime(0, now);
-      gainNode.gain.linearRampToValueAtTime(0.5, now + 0.005);
-      gainNode.gain.exponentialRampToValueAtTime(0.001, now + durSec);
-      gainNode.gain.setValueAtTime(0, now + durSec);
-    }
+    const audio = audioElements[key];
+    if (!audio) return;
+    audio.currentTime = 0;
+    audio.volume = 1;
+    audio.play().catch(() => {});
   } catch {
     // Audio not available
   }
 }
 
-// Interval / phase change — sustained 1s tone at 880Hz
+// Interval / phase change — 880Hz sustained tone
 export function playShortBeep() {
-  playSound(880, 1000, true);
+  playAudio('go');
 }
 
-// Timer complete — sustained 1s tone at 660Hz
+// Timer complete — 660Hz sustained tone
 export function playLongBeep() {
-  playSound(660, 1000, true);
+  playAudio('complete');
 }
 
-// Countdown 3-2-1 tick — short staccato at 1100Hz
+// Countdown 3-2-1 tick — 1100Hz staccato
 function playCountdownBeep() {
-  playSound(1100, 500, false);
+  playAudio('countdown');
 }
 
-// GO tone — sustained 1s at 880Hz
+// GO tone — 880Hz sustained
 function playGoBeep() {
-  playSound(880, 1000, true);
+  playAudio('go');
 }
 
 export function useWorkoutTimer() {
@@ -235,8 +232,8 @@ export function useWorkoutTimer() {
   }, [tick, clearTimer]);
 
   const start = useCallback(() => {
-    // Initialize AudioContext + persistent oscillator on user gesture (iOS Safari requirement)
-    ensureAudioContext();
+    // Unlock audio on user gesture (iOS Safari requirement)
+    unlockAudio();
 
     // All modes get a 5s countdown (beep on last 3)
     const countdownTotal = 5;
