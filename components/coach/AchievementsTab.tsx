@@ -334,6 +334,7 @@ export default function AchievementsTab() {
         editing={editing}
         existingBranches={existingBranches}
         nextTierForBranch={nextTierForBranch}
+        allDefinitions={definitions}
       />
 
       {/* Award Modal */}

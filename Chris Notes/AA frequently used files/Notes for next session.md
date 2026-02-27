@@ -21,7 +21,21 @@ All equipment & Body Parts lists need optimising
 # Workout Library tab (coach) #
 Sometimes, after closing an edited Workout by using the tick, when I return to it, it is missing the last edit. If I close and return, the movements are there again! - corrected this 23.02
 
-Athlete login: percentage calculator
+Athlete login:
+
+ # Achievements tab #
+ If I want to add/change a category: edit this file:
+ /Users/mimihiles/SynologyDrive/CrossFit Hammerschmiede (CFH)/AI Development/forge-functional-fitness/types/achievements.ts
+ In this section:
+ export const ACHIEVEMENT_CATEGORIES = [
+  'Bodyweight',
+  'Gymnastics',
+  'Olympic Lifting',
+  'Strength',
+  'Skills',
+  'Endurance',
+] as const;
+
 
  # Edit Workout Modal (coach) #
  IMPROVEMENTS/Bug Fixes:

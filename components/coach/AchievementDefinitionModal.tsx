@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { FocusTrap } from '@/components/ui/FocusTrap';
 import type { AchievementDefinition } from '@/types/achievements';
@@ -20,6 +20,7 @@ interface AchievementDefinitionModalProps {
   editing: AchievementDefinition | null;
   existingBranches: string[];
   nextTierForBranch: (branch: string) => number;
+  allDefinitions: AchievementDefinition[];
 }
 
 export default function AchievementDefinitionModal({
@@ -29,6 +30,7 @@ export default function AchievementDefinitionModal({
   editing,
   existingBranches,
   nextTierForBranch,
+  allDefinitions,
 }: AchievementDefinitionModalProps) {
   const [name, setName] = useState('');
   const [category, setCategory] = useState<string>(ACHIEVEMENT_CATEGORIES[0]);
@@ -37,6 +39,42 @@ export default function AchievementDefinitionModal({
   const [description, setDescription] = useState('');
   const [displayOrder, setDisplayOrder] = useState(0);
   const [showBranchSuggestions, setShowBranchSuggestions] = useState(false);
+
+  // Template selection
+  const [templateSearch, setTemplateSearch] = useState('');
+  const [showTemplateDropdown, setShowTemplateDropdown] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
+  const templateInputRef = useRef<HTMLInputElement>(null);
+
+  const filteredTemplates = templateSearch.trim()
+    ? allDefinitions.filter(d =>
+        d.name.toLowerCase().includes(templateSearch.toLowerCase()) ||
+        d.branch.toLowerCase().includes(templateSearch.toLowerCase())
+      )
+    : allDefinitions;
+
+  const handleTemplateSelect = (def: AchievementDefinition) => {
+    setSelectedTemplate(def.id);
+    setTemplateSearch(`${def.branch} — ${def.name}`);
+    setShowTemplateDropdown(false);
+    setCategory(def.category);
+    setBranch(def.branch);
+    setTier(nextTierForBranch(def.branch));
+    setDescription(def.description || '');
+    setDisplayOrder(def.display_order);
+    setName(''); // user must enter new name
+  };
+
+  const clearTemplate = () => {
+    setSelectedTemplate('');
+    setTemplateSearch('');
+    setName('');
+    setCategory(ACHIEVEMENT_CATEGORIES[0]);
+    setBranch('');
+    setTier(1);
+    setDescription('');
+    setDisplayOrder(0);
+  };
 
   useEffect(() => {
     if (editing) {
@@ -54,6 +92,10 @@ export default function AchievementDefinitionModal({
       setDescription('');
       setDisplayOrder(0);
     }
+    // Reset template on open/close
+    setSelectedTemplate('');
+    setTemplateSearch('');
+    setShowTemplateDropdown(false);
   }, [editing, isOpen]);
 
   useEffect(() => {
@@ -111,6 +153,64 @@ export default function AchievementDefinitionModal({
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
+
+            {/* Template selector (new achievements only) */}
+            {!editing && (
+              <div className="bg-amber-50 border-2 border-amber-400 rounded-lg p-4">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Copy from existing achievement <span className="text-gray-400 font-normal">(optional)</span>
+                </label>
+                <div className="relative">
+                  <input
+                    ref={templateInputRef}
+                    type="text"
+                    value={templateSearch}
+                    onChange={(e) => {
+                      setTemplateSearch(e.target.value);
+                      setShowTemplateDropdown(true);
+                      if (!e.target.value) setSelectedTemplate('');
+                    }}
+                    onFocus={() => setShowTemplateDropdown(true)}
+                    onBlur={() => setTimeout(() => setShowTemplateDropdown(false), 200)}
+                    placeholder="Search by name or branch…"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm"
+                  />
+                  {showTemplateDropdown && filteredTemplates.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                      {filteredTemplates.map((def) => (
+                        <button
+                          key={def.id}
+                          type="button"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            handleTemplateSelect(def);
+                          }}
+                          className="w-full text-left px-3 py-2 hover:bg-amber-50 text-sm text-gray-700 border-b border-gray-100 last:border-b-0"
+                        >
+                          <span className="font-medium">{def.name}</span>
+                          <span className="text-gray-400 ml-2">({def.branch} · {def.category} · Tier {def.tier})</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {selectedTemplate && (
+                  <div className="flex items-center justify-between mt-2">
+                    <p className="text-xs text-amber-700">
+                      ✓ Template loaded — category, branch & description copied. Enter a new name.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={clearTemplate}
+                      className="text-xs text-gray-400 hover:text-gray-600 underline ml-2"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Category */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">

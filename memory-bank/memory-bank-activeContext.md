@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 46.0
-**Updated:** 2026-02-27 (Session 162 - Tab reorder + timer relocation + audio fix)
+**Version:** 47.0
+**Updated:** 2026-02-27 (Session 163 - Timer speech + achievement template copy)
 
 ---
 
@@ -84,15 +84,19 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-27 Session 163 - Sonnet 4.6) — TIMER SPEECH + ACHIEVEMENT TEMPLATE:**
+- **✅ Timer speech synthesis** — Web Speech API added to `useWorkoutTimer.ts`. Speaks: "3", "2", "1", "Go!" on countdown; "Round X" / "Last round!" on EMOM/Tabata intervals; "One minute remaining" / "Thirty seconds" for timed modes; "Time!" on finish. iOS unlock handled.
+- **✅ Speech toggle button** — Volume2/VolumeX icon in timer top-right (teal = on, gray = off). Works in both fullscreen and normal modes.
+- **✅ "Strength" category added** — `types/achievements.ts` ACHIEVEMENT_CATEGORIES array (user added directly)
+- **✅ Achievement template copy** — "Copy from existing achievement" search box in Add Achievement modal. Copies category, branch, description, display_order. Auto-sets tier to next available. Name left blank.
+
 **Completed (2026-02-27 Session 162 - Opus 4.6) — TAB REORDER + TIMER RELOCATION + AUDIO FIX:**
-- **✅ Reordered athlete tabs** — Logbook now directly after Workouts (was separated by Community + Timer)
-- **✅ Removed Timer tab** — no longer a standalone tab
-- **✅ Timer moved to Forge Benchmarks** — icon button in top-right header (same pattern as Calculator on Lifts)
-- **✅ Timer opens fullscreen** when embedded, X closes completely, desktop sizes increased
-- **✅ FIXED timer audio distortion** — Replaced Web Audio API oscillator with pre-recorded WAV files + HTMLAudioElement playback. 6 oscillator fixes failed in Session 136; WAV files bypass the entire Web Audio pipeline.
+- **✅ Reordered athlete tabs** — Logbook now directly after Workouts
+- **✅ Removed Timer tab** — moved to Forge Benchmarks header icon
+- **✅ FIXED timer audio distortion** — WAV files replace Web Audio API oscillators
 
 **Completed (2026-02-27 Session 161 - Opus 4.6) — GOOGLE CALENDAR DUPLICATE FIX:**
-- **✅ Dual-layer orphan cleanup on publish** — DB orphan check + Google Calendar API direct query at same time slot
+- **✅ Dual-layer orphan cleanup on publish**
 
 **Completed (2026-02-26 Session 160 - Opus 4.6) — BENCHMARK SAVE + ORPHAN WOD FIXES:**
 - **✅ Forge Benchmark reps save bug, upsert, leaderboard orphan filter, copy-workout cleanup**
@@ -100,10 +104,7 @@ Social Tables
 **Completed (2026-02-25 Session 159b - Opus 4.6) — GOOGLE CALENDAR DUPLICATE FIX:**
 - **✅ Google Calendar duplicate events fix + copy resets publish status**
 
-**Completed (2026-02-25 Session 159 - Opus 4.6) — COLOR TWEAKS + STRIPE TESTING:**
-- **✅ Card colors, ConfigureLiftModal notes cleared, Stripe billing address + auto payment methods, webhook testing**
-
-**Older Sessions (57-157):**
+**Older Sessions (57-162):**
 See `project-history/` folder for detailed implementation history
 
 ---

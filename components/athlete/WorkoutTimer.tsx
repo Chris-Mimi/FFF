@@ -1,7 +1,7 @@
 'use client';
 
 import { useWorkoutTimer, TimerMode } from '@/hooks/useWorkoutTimer';
-import { Play, Pause, RotateCcw, Maximize2, X } from 'lucide-react';
+import { Play, Pause, RotateCcw, Maximize2, X, Volume2, VolumeX } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 function formatTime(seconds: number): string {
@@ -19,7 +19,7 @@ const MODE_LABELS: { id: TimerMode; label: string }[] = [
 ];
 
 export default function WorkoutTimer({ onClose }: { onClose?: () => void } = {}) {
-  const { state, config, start, pause, resume, reset, changeMode, updateConfig } = useWorkoutTimer();
+  const { state, config, start, pause, resume, reset, changeMode, updateConfig, speechEnabled, toggleSpeech } = useWorkoutTimer();
   const [fullscreen, setFullscreen] = useState(false);
   const isIdle = state.status === 'idle';
   const isCountdown = state.status === 'countdown';
@@ -81,18 +81,36 @@ export default function WorkoutTimer({ onClose }: { onClose?: () => void } = {})
     <div className={containerClass}>
       {/* Fullscreen close / expand button */}
       {fullscreen ? (
-        <button
-          onClick={() => {
-            setFullscreen(false);
-            if (onClose) onClose();
-          }}
-          className="absolute top-4 right-4 p-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition z-10"
-          aria-label="Close timer"
-        >
-          <X size={20} />
-        </button>
+        <div className="absolute top-4 right-4 flex items-center gap-1 z-10">
+          <button
+            onClick={toggleSpeech}
+            className={`p-2 rounded-lg transition ${speechEnabled ? 'bg-gray-800 hover:bg-gray-700 text-[#178da6]' : 'bg-gray-800 hover:bg-gray-700 text-gray-500'}`}
+            aria-label={speechEnabled ? 'Disable voice' : 'Enable voice'}
+            title={speechEnabled ? 'Voice on' : 'Voice off'}
+          >
+            {speechEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
+          </button>
+          <button
+            onClick={() => {
+              setFullscreen(false);
+              if (onClose) onClose();
+            }}
+            className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition"
+            aria-label="Close timer"
+          >
+            <X size={20} />
+          </button>
+        </div>
       ) : (
         <div className="absolute top-3 right-3 flex items-center gap-1">
+          <button
+            onClick={toggleSpeech}
+            className={`p-2 rounded-lg transition ${speechEnabled ? 'bg-gray-800 hover:bg-gray-700 text-[#178da6]' : 'bg-gray-800 hover:bg-gray-700 text-gray-500'}`}
+            aria-label={speechEnabled ? 'Disable voice' : 'Enable voice'}
+            title={speechEnabled ? 'Voice on' : 'Voice off'}
+          >
+            {speechEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
+          </button>
           <button
             onClick={() => setFullscreen(true)}
             className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition"

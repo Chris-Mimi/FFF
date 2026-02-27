@@ -3,6 +3,17 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 export type TimerMode = 'forTime' | 'amrap' | 'emom' | 'tabata' | 'hold';
 export type TimerStatus = 'idle' | 'countdown' | 'running' | 'paused' | 'finished';
 
+// Speech synthesis — unlock on first user gesture (iOS Safari)
+let speechUnlocked = false;
+
+function unlockSpeech() {
+  if (speechUnlocked || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+  const u = new SpeechSynthesisUtterance('');
+  u.volume = 0;
+  window.speechSynthesis.speak(u);
+  speechUnlocked = true;
+}
+
 export interface TimerConfig {
   duration: number;       // seconds (AMRAP)
   rounds: number;         // EMOM/Tabata
@@ -110,12 +121,34 @@ export function useWorkoutTimer() {
   const [config, setConfig] = useState<TimerConfig>(DEFAULT_CONFIG);
   const [elapsed, setElapsed] = useState(0);
   const [countdownRemaining, setCountdownRemaining] = useState(0);
+  const [speechEnabled, setSpeechEnabled] = useState(true);
+  const speechEnabledRef = useRef(true);
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startTimeRef = useRef<number>(0);
   const pausedElapsedRef = useRef<number>(0);
   const firedBeepsRef = useRef<Set<string>>(new Set());
+
+  const toggleSpeech = useCallback(() => {
+    setSpeechEnabled(prev => {
+      speechEnabledRef.current = !prev;
+      return !prev;
+    });
+  }, []);
+
+  const speakText = useCallback((text: string) => {
+    if (!speechEnabledRef.current) return;
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+    try {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.rate = 1.1;
+      window.speechSynthesis.speak(u);
+    } catch {
+      // TTS not available
+    }
+  }, []);
 
   const clearTimer = useCallback(() => {
     if (intervalRef.current) {
@@ -155,6 +188,7 @@ export function useWorkoutTimer() {
     setElapsed(newElapsed);
 
     const total = getTotalDuration();
+    let spokeThisTick = false;
 
     // Countdown 3-2-1 beeps (for timed modes ending)
     if (total > 0) {
@@ -168,7 +202,7 @@ export function useWorkoutTimer() {
       }
     }
 
-    // Mode-specific beeps
+    // Mode-specific beeps + round speech (higher priority than time announcements)
     if (mode === 'emom' && newElapsed > 0) {
       const roundNum = Math.floor(newElapsed / config.interval);
       if (newElapsed % config.interval === 0 && roundNum < config.rounds) {
@@ -176,6 +210,13 @@ export function useWorkoutTimer() {
         if (!firedBeepsRef.current.has(key)) {
           firedBeepsRef.current.add(key);
           playShortBeep();
+          const newRound = roundNum + 1;
+          if (newRound === config.rounds) {
+            speakText('Last round!');
+          } else {
+            speakText(`Round ${newRound}`);
+          }
+          spokeThisTick = true;
         }
       }
     }
@@ -196,6 +237,13 @@ export function useWorkoutTimer() {
         if (!firedBeepsRef.current.has(key)) {
           firedBeepsRef.current.add(key);
           playShortBeep();
+          const newRound = roundNum + 1;
+          if (newRound === config.rounds) {
+            speakText('Last round!');
+          } else {
+            speakText(`Round ${newRound}`);
+          }
+          spokeThisTick = true;
         }
       }
     }
@@ -210,14 +258,29 @@ export function useWorkoutTimer() {
       }
     }
 
+    // Time remaining announcements (lower priority — skip if we just spoke a round)
+    if (!spokeThisTick && total > 0 && newElapsed >= 3) {
+      const remaining = total - newElapsed;
+      if (remaining === 60 && !firedBeepsRef.current.has('speech-1min')) {
+        firedBeepsRef.current.add('speech-1min');
+        speakText('One minute remaining');
+        spokeThisTick = true;
+      }
+      if (!spokeThisTick && remaining === 30 && !firedBeepsRef.current.has('speech-30s')) {
+        firedBeepsRef.current.add('speech-30s');
+        speakText('Thirty seconds');
+      }
+    }
+
     // Timer finished
     if (total > 0 && newElapsed >= total) {
       setElapsed(total);
       setStatus('finished');
       clearTimer();
       playLongBeep();
+      speakText('Time!');
     }
-  }, [mode, config, getTotalDuration, clearTimer]);
+  }, [mode, config, getTotalDuration, clearTimer, speakText]);
 
   // Start the actual running timer (called directly or after countdown)
   const startRunning = useCallback(() => {
@@ -232,8 +295,9 @@ export function useWorkoutTimer() {
   }, [tick, clearTimer]);
 
   const start = useCallback(() => {
-    // Unlock audio on user gesture (iOS Safari requirement)
+    // Unlock audio + speech on user gesture (iOS Safari requirement)
     unlockAudio();
+    unlockSpeech();
 
     // All modes get a 5s countdown (beep on last 3)
     const countdownTotal = 5;
@@ -254,19 +318,21 @@ export function useWorkoutTimer() {
       if (newRemaining !== remaining && newRemaining >= 0) {
         remaining = newRemaining;
         setCountdownRemaining(remaining);
-        // Beep on 3, 2, 1
+        // Beep + speak on 3, 2, 1
         if (remaining > 0 && remaining <= 3) {
           playCountdownBeep();
+          speakText(String(remaining));
         }
       }
 
       if (newRemaining <= 0) {
         clearCountdown();
         playGoBeep();
+        speakText('Go!');
         startRunning();
       }
     }, 100);
-  }, [mode, startRunning, clearCountdown]);
+  }, [mode, startRunning, clearCountdown, speakText]);
 
   const pause = useCallback(() => {
     pausedElapsedRef.current = elapsed;
@@ -356,5 +422,7 @@ export function useWorkoutTimer() {
     reset,
     changeMode,
     updateConfig,
+    speechEnabled,
+    toggleSpeech,
   };
 }

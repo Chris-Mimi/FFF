@@ -25,6 +25,7 @@ export const ACHIEVEMENT_CATEGORIES = [
   'Bodyweight',
   'Gymnastics',
   'Olympic Lifting',
+  'Strength',
   'Skills',
   'Endurance',
 ] as const;
