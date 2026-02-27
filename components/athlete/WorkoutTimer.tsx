@@ -18,7 +18,7 @@ const MODE_LABELS: { id: TimerMode; label: string }[] = [
   { id: 'hold', label: 'Hold' },
 ];
 
-export default function WorkoutTimer() {
+export default function WorkoutTimer({ onClose }: { onClose?: () => void } = {}) {
   const { state, config, start, pause, resume, reset, changeMode, updateConfig } = useWorkoutTimer();
   const [fullscreen, setFullscreen] = useState(false);
   const isIdle = state.status === 'idle';
@@ -28,12 +28,12 @@ export default function WorkoutTimer() {
   const isFinished = state.status === 'finished';
   const isActive = isRunning || isPaused || isCountdown;
 
-  // Auto-fullscreen on mobile
+  // Auto-fullscreen on mobile, or always when embedded (onClose provided)
   useEffect(() => {
-    if (window.innerWidth < 768) {
+    if (onClose || window.innerWidth < 768) {
       setFullscreen(true);
     }
-  }, []);
+  }, [onClose]);
 
   // Main display time
   const displayTime = (() => {
@@ -82,23 +82,37 @@ export default function WorkoutTimer() {
       {/* Fullscreen close / expand button */}
       {fullscreen ? (
         <button
-          onClick={() => setFullscreen(false)}
+          onClick={() => {
+            setFullscreen(false);
+            if (onClose) onClose();
+          }}
           className="absolute top-4 right-4 p-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition z-10"
-          aria-label="Minimize timer"
+          aria-label="Close timer"
         >
           <X size={20} />
         </button>
       ) : (
-        <button
-          onClick={() => setFullscreen(true)}
-          className="absolute top-3 right-3 p-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition"
-          aria-label="Fullscreen timer"
-        >
-          <Maximize2 size={18} />
-        </button>
+        <div className="absolute top-3 right-3 flex items-center gap-1">
+          <button
+            onClick={() => setFullscreen(true)}
+            className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition"
+            aria-label="Fullscreen timer"
+          >
+            <Maximize2 size={18} />
+          </button>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition"
+              aria-label="Close timer"
+            >
+              <X size={18} />
+            </button>
+          )}
+        </div>
       )}
 
-      <div className={fullscreen ? 'w-full max-w-xl' : 'relative'}>
+      <div className={fullscreen ? 'w-full max-w-xl lg:max-w-5xl' : 'relative'}>
 
         {/* Count-in overlay */}
         {isCountdown && (
@@ -106,7 +120,7 @@ export default function WorkoutTimer() {
             <div className="text-gray-500 text-sm uppercase tracking-widest mb-4">
               {MODE_LABELS.find(m => m.id === state.mode)?.label}
             </div>
-            <div className={`text-[10rem] sm:text-[12rem] font-mono font-bold leading-none ${state.countdownRemaining <= 3 ? 'text-yellow-400' : 'text-white'}`}>
+            <div className={`text-[12rem] sm:text-[14rem] lg:text-[18rem] font-mono font-bold leading-none ${state.countdownRemaining <= 3 ? 'text-yellow-400' : 'text-white'}`}>
               {state.countdownRemaining}
             </div>
             <div className="text-gray-400 text-xl mt-4">Get ready...</div>
@@ -149,22 +163,22 @@ export default function WorkoutTimer() {
             <div className="text-center mb-6">
               <div className={`font-mono font-bold tracking-wider ${displayColor} ${
                 state.mode === 'hold'
-                  ? (hideChrome ? 'text-6xl sm:text-7xl md:text-8xl' : (fullscreen ? 'text-5xl sm:text-6xl md:text-7xl' : 'text-5xl md:text-7xl'))
-                  : (hideChrome ? 'text-8xl sm:text-9xl md:text-[10rem]' : (fullscreen ? 'text-7xl sm:text-8xl md:text-9xl' : 'text-7xl md:text-9xl'))
+                  ? (hideChrome ? 'text-6xl sm:text-7xl md:text-8xl lg:text-[11rem]' : (fullscreen ? 'text-6xl sm:text-7xl md:text-8xl lg:text-[10rem]' : 'text-5xl md:text-7xl'))
+                  : (hideChrome ? 'text-8xl sm:text-9xl md:text-[10rem] lg:text-[16rem]' : (fullscreen ? 'text-8xl sm:text-9xl md:text-[10rem] lg:text-[14rem]' : 'text-7xl md:text-9xl'))
               }`}>
                 {displayTime}
               </div>
 
               {/* Round indicator (EMOM/Tabata) */}
               {(state.mode === 'emom' || state.mode === 'tabata') && (
-                <div className={`text-gray-400 mt-3 ${hideChrome ? 'text-2xl md:text-3xl' : 'text-xl md:text-2xl'}`}>
+                <div className={`text-gray-400 mt-3 ${hideChrome ? 'text-2xl md:text-3xl lg:text-4xl' : 'text-xl md:text-2xl lg:text-3xl'}`}>
                   Round {state.currentRound} / {state.totalRounds}
                 </div>
               )}
 
               {/* Phase indicator (Tabata) */}
               {state.mode === 'tabata' && (isRunning || isPaused) && (
-                <div className={`font-bold mt-2 ${hideChrome ? 'text-3xl md:text-4xl' : 'text-2xl md:text-3xl'} ${state.isWorkPhase ? 'text-green-400' : 'text-red-400'}`}>
+                <div className={`font-bold mt-2 ${hideChrome ? 'text-3xl md:text-4xl lg:text-5xl' : 'text-2xl md:text-3xl lg:text-4xl'} ${state.isWorkPhase ? 'text-green-400' : 'text-red-400'}`}>
                   {state.isWorkPhase ? 'WORK' : 'REST'}
                 </div>
               )}

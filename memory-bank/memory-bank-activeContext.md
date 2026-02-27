@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 44.0
-**Updated:** 2026-02-27 (Session 161 - Google Calendar duplicate fix)
+**Version:** 45.0
+**Updated:** 2026-02-27 (Session 162 - Athlete tab reorder + timer relocation)
 
 ---
 
@@ -84,11 +84,16 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-27 Session 162 - Opus 4.6) — ATHLETE TAB REORDER + TIMER RELOCATION:**
+- **✅ Reordered athlete tabs** — Logbook now directly after Workouts (was separated by Community + Timer)
+- **✅ Removed Timer tab** — no longer a standalone tab
+- **✅ Timer moved to Forge Benchmarks** — icon button in top-right header (same pattern as Calculator on Lifts page)
+- **✅ Timer opens fullscreen** when launched from embedded context, X closes completely
+- **✅ Desktop timer sizes increased** — `lg:` breakpoint up to 16rem digits, 18rem countdown
+- **✅ WorkoutTimer accepts `onClose` prop** — parent controls visibility, fullscreen X triggers close
+
 **Completed (2026-02-27 Session 161 - Opus 4.6) — GOOGLE CALENDAR DUPLICATE FIX:**
-- **✅ Dual-layer orphan cleanup on publish** — DB orphan check + Google Calendar API direct query at same time slot. Catches both stale DB refs and ghost events.
-- **✅ Cleaned 34 DB orphans + 6 ghost calendar events** from stress testing
-- **✅ Expanded orphan health check SQL** — 6 new columns including `gcal_orphan_wods`, duplicates
-- **✅ Cleanup scripts** — `cleanup-gcal-orphans.ts` (DB+GCal), `find-ghost-gcal-events.ts` (GCal-only scan)
+- **✅ Dual-layer orphan cleanup on publish** — DB orphan check + Google Calendar API direct query at same time slot
 
 **Completed (2026-02-26 Session 160 - Opus 4.6) — BENCHMARK SAVE + ORPHAN WOD FIXES:**
 - **✅ Forge Benchmark reps save bug, upsert, leaderboard orphan filter, copy-workout cleanup**
@@ -98,9 +103,6 @@ Social Tables
 
 **Completed (2026-02-25 Session 159 - Opus 4.6) — COLOR TWEAKS + STRIPE TESTING:**
 - **✅ Card colors, ConfigureLiftModal notes cleared, Stripe billing address + auto payment methods, webhook testing**
-
-**Completed (2026-02-25 Session 158b - Opus 4.6) — BOOKING FILTERS + BUG FIXES:**
-- **✅ Booking page filters + authFetch bug fix**
 
 **Older Sessions (57-157):**
 See `project-history/` folder for detailed implementation history

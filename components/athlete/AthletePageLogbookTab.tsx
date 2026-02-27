@@ -1,7 +1,6 @@
 // AthletePageLogbookTab component
 'use client';
 
-// Icons now used in extracted components
 import { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { useLogbookData } from '@/hooks/athlete/useLogbookData';

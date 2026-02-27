@@ -4,7 +4,8 @@
 import { authFetch } from '@/lib/auth-fetch';
 import { confirm } from '@/lib/confirm';
 import { supabase } from '@/lib/supabase';
-import { ChevronDown, ChevronRight, Edit2, Target, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronRight, Edit2, Target, Timer, Trash2 } from 'lucide-react';
+import WorkoutTimer from './WorkoutTimer';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { FocusTrap } from '@/components/ui/FocusTrap';
@@ -60,6 +61,7 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
     recent: true,
     charts: true,
   });
+  const [showTimer, setShowTimer] = useState(false);
 
   useEffect(() => {
     fetchBenchmarks();
@@ -437,7 +439,26 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
   return (
     <div className='space-y-4 sm:space-y-6 bg-gray-500 p-3 sm:p-6 rounded-lg'>
       <div className='bg-white rounded-xl shadow-lg p-4 sm:p-8'>
-        <h2 className='text-2xl sm:text-3xl font-extrabold text-gray-800 mb-2 sm:mb-4'>Forge Benchmarks</h2>
+        <div className='flex items-center justify-between mb-2 sm:mb-4'>
+          <h2 className='text-2xl sm:text-3xl font-extrabold text-gray-800'>Forge Benchmarks</h2>
+          <button
+            onClick={() => setShowTimer(!showTimer)}
+            className={`p-2 rounded-lg transition ${
+              showTimer
+                ? 'text-white bg-[#178da6]'
+                : 'text-gray-600 hover:text-[#178da6] hover:bg-gray-100'
+            }`}
+            title='Workout Timer'
+            aria-label='Open workout timer'
+          >
+            <Timer size={22} />
+          </button>
+        </div>
+        {showTimer && (
+          <div className='mb-4 border border-gray-200 rounded-lg p-4'>
+            <WorkoutTimer onClose={() => setShowTimer(false)} />
+          </div>
+        )}
         <p className='text-sm sm:text-base text-gray-700 mb-4 sm:mb-8 leading-relaxed'>
           Track your performance on gym-specific benchmark workouts.
         </p>
