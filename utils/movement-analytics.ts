@@ -33,12 +33,19 @@ export interface ForgeBenchmarkAnalysis extends MovementFrequency {
   mostCommonScaling?: string;
 }
 
+export interface ExerciseFrequencyWorkout {
+  date: string;
+  session_type: string;
+  workout_name: string | null;
+}
+
 export interface ExerciseFrequency {
   id: string;
   name: string;
   category: string;
   count: number;
   lastProgrammed: string; // ISO date string
+  workouts: ExerciseFrequencyWorkout[];
 }
 
 export interface DateRangeFilter {
@@ -53,6 +60,7 @@ export interface DateRangeFilter {
 interface PublishedWorkout {
   id: string;
   date: string;
+  session_type: string;
   workout_name: string | null;
   workout_week: string | null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -66,7 +74,7 @@ interface PublishedWorkout {
 async function fetchPublishedWorkouts(filter?: DateRangeFilter, label = 'workouts'): Promise<PublishedWorkout[]> {
   let query = supabase
     .from('weekly_sessions')
-    .select('date, wods(id, date, workout_name, workout_week, sections, workout_publish_status)');
+    .select('date, wods(id, date, session_type, workout_name, workout_week, sections, workout_publish_status)');
 
   if (filter?.startDate) {
     query = query.gte('date', filter.startDate);
@@ -87,6 +95,7 @@ async function fetchPublishedWorkouts(filter?: DateRangeFilter, label = 'workout
     .map((s: any) => ({
       id: s.wods.id,
       date: s.date,
+      session_type: s.wods.session_type || '',
       workout_name: s.wods.workout_name,
       workout_week: s.wods.workout_week,
       sections: s.wods.sections,
@@ -408,7 +417,7 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
     id: string;
     name: string;
     category: string;
-    uniqueWorkouts: Set<string>;
+    uniqueWorkouts: Map<string, ExerciseFrequencyWorkout>;
     lastProgrammed: string;
   }>();
 
@@ -483,9 +492,10 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
 
             if (exercise) {
               const existing = exerciseMap.get(exercise.id);
+              const workoutEntry: ExerciseFrequencyWorkout = { date: workout.date, session_type: workout.session_type, workout_name: workout.workout_name };
 
               if (existing) {
-                existing.uniqueWorkouts.add(workoutKey);
+                existing.uniqueWorkouts.set(workoutKey, workoutEntry);
                 if (workout.date > existing.lastProgrammed) {
                   existing.lastProgrammed = workout.date;
                 }
@@ -494,7 +504,7 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
                   id: exercise.id,
                   name: exercise.name,
                   category: exercise.category,
-                  uniqueWorkouts: new Set([workoutKey]),
+                  uniqueWorkouts: new Map([[workoutKey, workoutEntry]]),
                   lastProgrammed: workout.date,
                 });
               }
@@ -514,8 +524,9 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
           const exercise = exercisesByName.get(exerciseName.toLowerCase());
           if (exercise) {
             const existing = exerciseMap.get(exercise.id);
+            const workoutEntry: ExerciseFrequencyWorkout = { date: workout.date, session_type: workout.session_type, workout_name: workout.workout_name };
             if (existing) {
-              existing.uniqueWorkouts.add(workoutKey);
+              existing.uniqueWorkouts.set(workoutKey, workoutEntry);
               if (workout.date > existing.lastProgrammed) {
                 existing.lastProgrammed = workout.date;
               }
@@ -524,7 +535,7 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
                 id: exercise.id,
                 name: exercise.name,
                 category: exercise.category,
-                uniqueWorkouts: new Set([workoutKey]),
+                uniqueWorkouts: new Map([[workoutKey, workoutEntry]]),
                 lastProgrammed: workout.date,
               });
             }
@@ -570,9 +581,10 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
 
                   if (exercise) {
                     const existing = exerciseMap.get(exercise.id);
+                    const workoutEntry: ExerciseFrequencyWorkout = { date: workout.date, session_type: workout.session_type, workout_name: workout.workout_name };
 
                     if (existing) {
-                      existing.uniqueWorkouts.add(workoutKey);
+                      existing.uniqueWorkouts.set(workoutKey, workoutEntry);
                       if (workout.date > existing.lastProgrammed) {
                         existing.lastProgrammed = workout.date;
                       }
@@ -581,7 +593,7 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
                         id: exercise.id,
                         name: exercise.name,
                         category: exercise.category,
-                        uniqueWorkouts: new Set([workoutKey]),
+                        uniqueWorkouts: new Map([[workoutKey, workoutEntry]]),
                         lastProgrammed: workout.date,
                       });
                     }
@@ -602,8 +614,9 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
           const exercise = exercisesByName.get(exerciseName.toLowerCase());
           if (exercise) {
             const existing = exerciseMap.get(exercise.id);
+            const workoutEntry: ExerciseFrequencyWorkout = { date: workout.date, session_type: workout.session_type, workout_name: workout.workout_name };
             if (existing) {
-              existing.uniqueWorkouts.add(workoutKey);
+              existing.uniqueWorkouts.set(workoutKey, workoutEntry);
               if (workout.date > existing.lastProgrammed) {
                 existing.lastProgrammed = workout.date;
               }
@@ -612,7 +625,7 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
                 id: exercise.id,
                 name: exercise.name,
                 category: exercise.category,
-                uniqueWorkouts: new Set([workoutKey]),
+                uniqueWorkouts: new Map([[workoutKey, workoutEntry]]),
                 lastProgrammed: workout.date,
               });
             }
@@ -658,9 +671,10 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
 
                   if (exercise) {
                     const existing = exerciseMap.get(exercise.id);
+                    const workoutEntry: ExerciseFrequencyWorkout = { date: workout.date, session_type: workout.session_type, workout_name: workout.workout_name };
 
                     if (existing) {
-                      existing.uniqueWorkouts.add(workoutKey);
+                      existing.uniqueWorkouts.set(workoutKey, workoutEntry);
                       if (workout.date > existing.lastProgrammed) {
                         existing.lastProgrammed = workout.date;
                       }
@@ -669,7 +683,7 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
                         id: exercise.id,
                         name: exercise.name,
                         category: exercise.category,
-                        uniqueWorkouts: new Set([workoutKey]),
+                        uniqueWorkouts: new Map([[workoutKey, workoutEntry]]),
                         lastProgrammed: workout.date,
                       });
                     }
@@ -692,6 +706,7 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
     category: ex.category,
     count: ex.uniqueWorkouts.size,
     lastProgrammed: ex.lastProgrammed,
+    workouts: Array.from(ex.uniqueWorkouts.values()).sort((a, b) => b.date.localeCompare(a.date)),
   }));
 
   return exerciseAnalysis.sort((a, b) => b.count - a.count);

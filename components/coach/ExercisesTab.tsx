@@ -3,9 +3,10 @@
 import ExerciseFormModal from '@/components/coach/ExerciseFormModal';
 import MultiSelectDropdown from '@/components/coach/MultiSelectDropdown';
 import { supabase } from '@/lib/supabase';
-import { ChevronDown, ChevronRight, Edit2, Plus, Search, Trash2, X } from 'lucide-react';
+import { ChevronDown, ChevronRight, Edit2, Plus, Search, Trash2, X, Calendar } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { getExerciseFrequency, type ExerciseFrequency } from '@/utils/movement-analytics';
+
 
 // Define category ordering (workout flow)
 const EXERCISE_CATEGORY_ORDER = [
@@ -105,6 +106,7 @@ export default function ExercisesTab({
   const [exerciseFrequencies, setExerciseFrequencies] = useState<Map<string, ExerciseFrequency>>(new Map());
   const [loadingFrequencies, setLoadingFrequencies] = useState(false);
   const [usageTimeRange, setUsageTimeRange] = useState<'all' | 1 | 3 | 6 | 12>('all');
+  const [detailExercise, setDetailExercise] = useState<ExerciseFrequency | null>(null);
 
   // Fetch distinct equipment and body_parts for filters
   useEffect(() => {
@@ -441,9 +443,12 @@ export default function ExercisesTab({
                     {/* Usage frequency badge */}
                     {!loadingFrequencies && exerciseFrequencies.has(exercise.id) && (
                       <div className='mb-1'>
-                        <span className='text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded font-medium'>
+                        <button
+                          onClick={e => { e.stopPropagation(); setDetailExercise(exerciseFrequencies.get(exercise.id)!); }}
+                          className='text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded font-medium hover:bg-purple-200 transition-colors cursor-pointer'
+                        >
                           Used {exerciseFrequencies.get(exercise.id)!.count}x
-                        </span>
+                        </button>
                       </div>
                     )}
                     {exercise.tags && exercise.tags.length > 0 && (() => {
@@ -481,6 +486,48 @@ export default function ExercisesTab({
         onSave={onSave}
         editingExercise={editingExercise}
       />
+
+      {/* Exercise Usage Detail Panel */}
+      {detailExercise && (
+        <div className='fixed inset-0 z-50 flex items-start justify-end' onClick={() => setDetailExercise(null)}>
+          <div
+            className='relative bg-white shadow-2xl h-full w-full max-w-sm flex flex-col'
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className='flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-purple-50'>
+              <div>
+                <h3 className='font-semibold text-gray-900'>{detailExercise.name}</h3>
+                <p className='text-xs text-purple-700 mt-0.5'>Used in {detailExercise.count} workout{detailExercise.count !== 1 ? 's' : ''}</p>
+              </div>
+              <button onClick={() => setDetailExercise(null)} className='p-1 text-gray-400 hover:text-gray-600 rounded'>
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Workout list */}
+            <div className='flex-1 overflow-y-auto divide-y divide-gray-100'>
+              {detailExercise.workouts.length === 0 ? (
+                <p className='text-sm text-gray-500 p-4'>No workout details available.</p>
+              ) : (
+                detailExercise.workouts.map((w, i) => (
+                  <div key={i} className='flex items-center gap-3 px-4 py-3 hover:bg-gray-50'>
+                    <Calendar size={14} className='text-purple-400 flex-shrink-0' />
+                    <div>
+                      <p className='text-sm font-medium text-gray-800'>
+                        {new Date(w.date + 'T00:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      </p>
+                      <p className='text-xs text-gray-500'>
+                        {w.session_type}{w.workout_name ? ` · ${w.workout_name}` : ''}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

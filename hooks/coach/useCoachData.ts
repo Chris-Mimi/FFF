@@ -266,23 +266,24 @@ export const useCoachData = ({
             } else {
               // Specific filters selected
               const includeNotes = includedSectionTypes.includes('Notes');
-              const sectionTypesToInclude = includedSectionTypes.filter(t => t !== 'Notes');
+              const includeWorkoutName = includedSectionTypes.includes('Workout Name');
+              const sectionTypesToInclude = includedSectionTypes.filter(t => t !== 'Notes' && t !== 'Workout Name');
 
               const sectionsToSearch = sectionTypesToInclude.length > 0
                 ? wod.sections.filter(s => sectionTypesToInclude.includes(s.type))
                 : [];
 
-              const titleText = wod.title;
-              const workoutNameText = wod.workout_name || '';
+              const workoutNameText = includeWorkoutName ? (wod.workout_name || '') : '';
               const notesText = includeNotes ? (wod.coach_notes || '') : '';
               const sectionsText = sectionsToSearch.map(s => s.content).join(' ');
               const structuredMovements = getStructuredMovements(sectionsToSearch);
 
-              combinedText = `${titleText} ${workoutNameText} ${notesText} ${sectionsText} ${structuredMovements}`;
+              combinedText = `${workoutNameText} ${notesText} ${sectionsText} ${structuredMovements}`;
             }
 
             const escapedPhrase = searchPhrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            return new RegExp(escapedPhrase, 'i').test(combinedText);
+            // \b word boundary so "Ring" doesn't match "hamstring" or "during"
+            return new RegExp(`\\b${escapedPhrase}`, 'i').test(combinedText);
           });
         }
 

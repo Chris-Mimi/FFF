@@ -424,8 +424,24 @@ export default function SearchPanel({
                 >
                   Notes
                 </button>
+                <button
+                  onClick={() => {
+                    onIncludedSectionTypesChange(
+                      includedSectionTypes.includes('Workout Name')
+                        ? includedSectionTypes.filter((t: string) => t !== 'Workout Name')
+                        : [...includedSectionTypes, 'Workout Name']
+                    );
+                  }}
+                  className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium transition ${
+                    includedSectionTypes.includes('Workout Name')
+                      ? 'bg-[#178da6] text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  Workout Name
+                </button>
                 {(() => {
-                  const nonWodSections = sectionTypes.filter(st => st.name !== 'WOD' && !st.name.startsWith('WOD Pt.'));
+                  const nonWodSections = sectionTypes.filter(st => st.name !== 'WOD' && !st.name.startsWith('WOD Pt.') && st.name !== 'WOD Movements');
                   const finalPrepIndex = nonWodSections.findIndex(st => st.name === 'Final prep/Info' || st.name === 'WOD Final Prep & Info');
                   const sectionsBeforeFinalPrep = finalPrepIndex >= 0 ? nonWodSections.slice(0, finalPrepIndex + 1) : nonWodSections;
                   const sectionsAfterFinalPrep = finalPrepIndex >= 0 ? nonWodSections.slice(finalPrepIndex + 1) : [];
@@ -456,7 +472,7 @@ export default function SearchPanel({
                       {/* WOD (All Parts) Button - immediately after Final prep/Info */}
                       {(() => {
                         const wodSections = sectionTypes.filter(st =>
-                          st.name === 'WOD' || st.name.startsWith('WOD Pt.')
+                          st.name === 'WOD' || st.name.startsWith('WOD Pt.') || st.name === 'WOD Movements'
                         );
                         const allWodSelected = wodSections.every(st => includedSectionTypes.includes(st.name));
                         const someWodSelected = wodSections.some(st => includedSectionTypes.includes(st.name));
@@ -707,6 +723,15 @@ export default function SearchPanel({
                             : 'border border-gray-200 hover:border-[#178da6] hover:bg-gray-50'
                         }`}
                       >
+                        {/* Coach Notes indicator */}
+                        {wod.coach_notes && wod.coach_notes.trim() && (
+                          <span
+                            className='absolute top-2 right-2 text-[10px] font-semibold bg-teal-50 text-teal-700 rounded px-1 py-0.5'
+                            title='Has coach notes'
+                          >
+                            N
+                          </span>
+                        )}
                         <div className='text-[10px] sm:text-xs text-gray-500 mb-1'>
                           {formattedDate}{formattedTime && ` at ${formattedTime}`}
                         </div>

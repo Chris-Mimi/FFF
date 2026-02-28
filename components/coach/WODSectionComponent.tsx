@@ -110,6 +110,7 @@ function WODSectionComponent({
 }) {
   const endTime = elapsedMinutes + section.duration;
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const intentTextareaRef = useRef<HTMLTextAreaElement>(null);
   const [intentExpanded, setIntentExpanded] = useState(false);
 
   // Auto-resize textarea as content changes
@@ -119,6 +120,14 @@ function WODSectionComponent({
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
   }, [section.content, isExpanded]);
+
+  // Auto-resize intent textarea
+  useEffect(() => {
+    if (intentTextareaRef.current && intentExpanded) {
+      intentTextareaRef.current.style.height = 'auto';
+      intentTextareaRef.current.style.height = `${intentTextareaRef.current.scrollHeight}px`;
+    }
+  }, [section.intent_notes, intentExpanded]);
 
   return (
     <div
@@ -522,43 +531,56 @@ function WODSectionComponent({
               )}
 
               {/* Intent / Stimulus Notes */}
-              <div className='border border-amber-200 rounded-lg bg-amber-50'>
-                <button
-                  type='button'
-                  onClick={() => setIntentExpanded(v => !v)}
-                  className='w-full flex items-center justify-between px-2 py-1.5 text-left'
-                  aria-label={intentExpanded ? 'Collapse intent/stimulus' : 'Expand intent/stimulus'}
-                >
-                  <span className='text-xs font-semibold text-amber-800'>Intent / Stimulus</span>
-                  <ChevronDown
-                    size={15}
-                    className={`text-amber-600 transition-transform ${intentExpanded ? 'rotate-180' : ''}`}
-                  />
-                </button>
-                {intentExpanded && (
-                  <div className='px-2 pb-2'>
-                    <div className='flex items-center justify-end mb-1'>
-                      <label className='flex items-center gap-1.5 text-xs text-amber-700 cursor-pointer'>
-                        <input
-                          type='checkbox'
-                          checked={section.show_intent_to_athletes ?? false}
-                          onChange={e => onUpdate({ show_intent_to_athletes: e.target.checked })}
-                          className='rounded border-amber-300 text-amber-600 focus:ring-amber-500'
+              {(() => {
+                const hasIntent = !!(section.intent_notes && section.intent_notes.trim());
+                return (
+                  <div className={`border rounded-lg ${hasIntent && !intentExpanded ? 'border-amber-500 bg-amber-200' : 'border-amber-200 bg-amber-50'}`}>
+                    <button
+                      type='button'
+                      onClick={() => setIntentExpanded(v => !v)}
+                      className='w-full flex items-center justify-between px-2 py-1.5 text-left'
+                      aria-label={intentExpanded ? 'Collapse intent/stimulus' : 'Expand intent/stimulus'}
+                    >
+                      <div className='flex items-center gap-1.5'>
+                        <span className='text-xs font-semibold text-amber-800'>Intent / Stimulus</span>
+                        {hasIntent && !intentExpanded && (
+                          <span className='text-xs text-amber-700 font-normal italic truncate max-w-[180px]'>
+                            — {section.intent_notes!.trim()}
+                          </span>
+                        )}
+                      </div>
+                      <ChevronDown
+                        size={15}
+                        className={`text-amber-600 transition-transform flex-shrink-0 ${intentExpanded ? 'rotate-180' : ''}`}
+                      />
+                    </button>
+                    {intentExpanded && (
+                      <div className='px-2 pb-2'>
+                        <div className='flex items-center justify-end mb-1'>
+                          <label className='flex items-center gap-1.5 text-xs text-amber-700 cursor-pointer'>
+                            <input
+                              type='checkbox'
+                              checked={section.show_intent_to_athletes ?? false}
+                              onChange={e => onUpdate({ show_intent_to_athletes: e.target.checked })}
+                              className='rounded border-amber-300 text-amber-600 focus:ring-amber-500'
+                            />
+                            Show to athletes
+                          </label>
+                        </div>
+                        <textarea
+                          ref={intentTextareaRef}
+                          value={section.intent_notes || ''}
+                          onChange={e => onUpdate({ intent_notes: e.target.value })}
+                          placeholder='e.g., Build to heavy single, Sprint pace sub-8min, Focus on form'
+                          rows={2}
+                          maxLength={500}
+                          className='w-full px-2 py-1.5 border border-amber-200 rounded text-sm bg-white resize-none overflow-hidden focus:ring-2 focus:ring-amber-400 focus:border-transparent text-gray-900 placeholder-gray-400'
                         />
-                        Show to athletes
-                      </label>
-                    </div>
-                    <textarea
-                      value={section.intent_notes || ''}
-                      onChange={e => onUpdate({ intent_notes: e.target.value })}
-                      placeholder='e.g., Build to heavy single, Sprint pace sub-8min, Focus on form'
-                      rows={2}
-                      maxLength={500}
-                      className='w-full px-2 py-1.5 border border-amber-200 rounded text-sm bg-white resize-none focus:ring-2 focus:ring-amber-400 focus:border-transparent text-gray-900 placeholder-gray-400'
-                    />
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
+                );
+              })()}
 
               <textarea
                 ref={textareaRef}
