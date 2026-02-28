@@ -88,11 +88,13 @@ Social Tables
 - **✅ Investigated "signal is aborted without reason" + page not loading** — Transient issue, resolved on its own. Root cause unknown (not .next cache, not Supabase pause). Diagnostic: check DevTools Network tab if recurs.
 - **✅ ExercisesTab.tsx useEffect cleanup** — Added `cancelled` flag, `clearTimeout`, and `AbortError` guard for React Strict Mode hygiene.
 
-**Completed (2026-02-27 Session 163 - Sonnet 4.6) — TIMER SPEECH + ACHIEVEMENT TEMPLATE:**
-- **✅ Timer speech synthesis** — Web Speech API added to `useWorkoutTimer.ts`. Speaks: "3", "2", "1", "Go!" on countdown; "Round X" / "Last round!" on EMOM/Tabata intervals; "One minute remaining" / "Thirty seconds" for timed modes; "Time!" on finish. iOS unlock handled.
-- **✅ Speech toggle button** — Volume2/VolumeX icon in timer top-right (teal = on, gray = off). Works in both fullscreen and normal modes.
-- **✅ "Strength" category added** — `types/achievements.ts` ACHIEVEMENT_CATEGORIES array (user added directly)
-- **✅ Achievement template copy** — "Copy from existing achievement" search box in Add Achievement modal. Copies category, branch, description, display_order. Auto-sets tier to next available. Name left blank.
+**Completed (2026-02-27 Session 163 - Sonnet 4.6) — TIMER SPEECH + ACHIEVEMENT TEMPLATE + SEARCH/EXERCISE UX:**
+- **✅ Timer speech synthesis** — Web Speech API with iOS unlock. Speech toggle button.
+- **✅ Achievement template copy** — Copy from existing in Add modal. "Strength" category added.
+- **✅ Exercise usage click-through** — "Used Nx" badge clickable → slide-in panel with workout list.
+- **✅ Movement analytics enhancement** — `ExerciseFrequency` now includes `workouts[]` array with date/session_type/workout_name. Internal `Set` → `Map`.
+- **✅ Intent/stimulus UX** — Amber bg + truncated preview when collapsed; auto-expanding textarea.
+- **✅ Search fixes** — "N" badge for coach notes, "Workout Name" filter, WOD Movements folded into WOD (All Parts), word-boundary regex fix.
 
 **Completed (2026-02-27 Session 162 - Opus 4.6) — TAB REORDER + TIMER RELOCATION + AUDIO FIX:**
 - **✅ Reordered athlete tabs** — Logbook now directly after Workouts

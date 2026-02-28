@@ -1,4 +1,4 @@
-# Session 163 — Timer Speech Synthesis + Achievement Template Copy
+# Session 163 — Timer Speech + Achievement Template + Search/Exercise UX
 
 **Date:** 2026-02-27
 **Model:** Sonnet 4.6
@@ -60,3 +60,35 @@ Added "Copy from existing achievement" section to the Add Achievement modal.
 - **Round announcements > time announcements**: If both would fire the same second (e.g., EMOM last round coincides with 1-minute remaining), round announcement wins via `spokeThisTick` flag.
 - **Template copies all fields except name**: Forces coach to consciously name the new achievement rather than accidentally duplicating an existing one.
 - **`allDefinitions` passed as prop**: Simpler than fetching in modal — parent already has the data in state.
+
+---
+
+## Additional Changes (commit 6dfeb369)
+
+### 4. Exercise Usage Click-Through (ExercisesTab)
+- "Used Nx" badge on exercise cards is now clickable
+- Opens a slide-in panel showing all workouts that used the exercise (date, session type, workout name)
+
+### 5. Movement Analytics Enhancement (movement-analytics.ts)
+- `ExerciseFrequency` interface now includes `workouts: ExerciseFrequencyWorkout[]` array
+- `ExerciseFrequencyWorkout` type: `{ date, session_type, workout_name }`
+- `session_type` added to DB fetch in `fetchPublishedWorkouts`
+- Internal `uniqueWorkouts` changed from `Set<string>` to `Map<string, ExerciseFrequencyWorkout>` to track workout metadata per entry
+
+### 6. Intent/Stimulus Section UX (WODSectionComponent)
+- Amber-200 background + truncated preview when section is collapsed and has notes
+- Auto-expanding textarea for intent notes
+
+### 7. Search Panel Improvements (SearchPanel + useCoachData)
+- "N" badge on search result cards when coach notes exist
+- "Workout Name" filter button added to section-type filters
+- "WOD Movements" folded into "WOD (All Parts)" toggle button
+- Word-boundary regex fix (`\b`) so "Ring" doesn't match "hamstring"/"during"
+- Section-type filter no longer includes title/workout_name in search text when specific sections are selected
+
+### Additional Files Changed
+- `components/coach/WODSectionComponent.tsx`
+- `components/coach/ExercisesTab.tsx`
+- `utils/movement-analytics.ts`
+- `components/coach/SearchPanel.tsx`
+- `hooks/coach/useCoachData.ts`
