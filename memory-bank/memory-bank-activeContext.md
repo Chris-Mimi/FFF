@@ -84,6 +84,10 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-02-28 Session 164 - Sonnet 4.6) — DEBUG SESSION (transient issue):**
+- **✅ Investigated "signal is aborted without reason" + page not loading** — Transient issue, resolved on its own. Root cause unknown (not .next cache, not Supabase pause). Diagnostic: check DevTools Network tab if recurs.
+- **✅ ExercisesTab.tsx useEffect cleanup** — Added `cancelled` flag, `clearTimeout`, and `AbortError` guard for React Strict Mode hygiene.
+
 **Completed (2026-02-27 Session 163 - Sonnet 4.6) — TIMER SPEECH + ACHIEVEMENT TEMPLATE:**
 - **✅ Timer speech synthesis** — Web Speech API added to `useWorkoutTimer.ts`. Speaks: "3", "2", "1", "Go!" on countdown; "Round X" / "Last round!" on EMOM/Tabata intervals; "One minute remaining" / "Thirty seconds" for timed modes; "Time!" on finish. iOS unlock handled.
 - **✅ Speech toggle button** — Volume2/VolumeX icon in timer top-right (teal = on, gray = off). Works in both fullscreen and normal modes.
@@ -101,10 +105,7 @@ Social Tables
 **Completed (2026-02-26 Session 160 - Opus 4.6) — BENCHMARK SAVE + ORPHAN WOD FIXES:**
 - **✅ Forge Benchmark reps save bug, upsert, leaderboard orphan filter, copy-workout cleanup**
 
-**Completed (2026-02-25 Session 159b - Opus 4.6) — GOOGLE CALENDAR DUPLICATE FIX:**
-- **✅ Google Calendar duplicate events fix + copy resets publish status**
-
-**Older Sessions (57-162):**
+**Older Sessions (57-163):**
 See `project-history/` folder for detailed implementation history
 
 ---

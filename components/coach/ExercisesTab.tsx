@@ -138,6 +138,9 @@ export default function ExercisesTab({
 
   // Fetch exercise frequencies
   useEffect(() => {
+    let cancelled = false;
+    let timeoutId: ReturnType<typeof setTimeout>;
+
     const fetchFrequencies = async () => {
       setLoadingFrequencies(true);
       try {
@@ -152,26 +155,38 @@ export default function ExercisesTab({
           };
         }
 
+        const timeoutPromise = new Promise<ExerciseFrequency[]>((resolve) => {
+          timeoutId = setTimeout(() => {
+            console.warn('Exercise frequency fetch timed out after 10 seconds');
+            resolve([]);
+          }, 10000);
+        });
+
         const frequencies = await Promise.race([
           getExerciseFrequency(dateFilter),
-          new Promise<ExerciseFrequency[]>((resolve) =>
-            setTimeout(() => {
-              console.warn('Exercise frequency fetch timed out after 10 seconds');
-              resolve([]);
-            }, 10000)
-          )
+          timeoutPromise,
         ]);
+
+        if (cancelled) return;
+        clearTimeout(timeoutId);
         // Convert to Map for O(1) lookups
         const frequencyMap = new Map(frequencies.map(f => [f.id, f]));
         setExerciseFrequencies(frequencyMap);
       } catch (error) {
+        if (cancelled) return;
+        // Ignore AbortErrors from component unmount (React Strict Mode)
+        if (error instanceof DOMException && error.name === 'AbortError') return;
         console.error('Error fetching exercise frequencies:', error);
       } finally {
-        setLoadingFrequencies(false);
+        if (!cancelled) setLoadingFrequencies(false);
       }
     };
 
     fetchFrequencies();
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
   }, [usageTimeRange]);
 
   // Check if any filters are active
