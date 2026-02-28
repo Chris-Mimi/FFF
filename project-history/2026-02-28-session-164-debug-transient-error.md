@@ -1,6 +1,6 @@
 # Session 164 — Debug: "signal is aborted without reason"
 **Date:** 2026-02-28
-**Model:** Sonnet 4.6
+**Model:** Opus 4.6
 
 ## Context
 Debugging session following Session 163's code changes (commit 6dfeb369). Page would not load after server restart. Error: "signal is aborted without reason".

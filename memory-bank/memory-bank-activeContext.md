@@ -84,7 +84,7 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
-**Completed (2026-02-28 Session 164 - Sonnet 4.6) — DEBUG SESSION (transient issue):**
+**Completed (2026-02-28 Session 164 - Opus 4.6) — DEBUG SESSION (transient issue):**
 - **✅ Investigated "signal is aborted without reason" + page not loading** — Transient issue, resolved on its own. Root cause unknown (not .next cache, not Supabase pause). Diagnostic: check DevTools Network tab if recurs.
 - **✅ ExercisesTab.tsx useEffect cleanup** — Added `cancelled` flag, `clearTimeout`, and `AbortError` guard for React Strict Mode hygiene.
 
