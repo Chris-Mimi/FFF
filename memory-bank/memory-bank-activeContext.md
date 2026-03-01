@@ -84,30 +84,27 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-01 Session 165 - Sonnet 4.6) — SEARCH MOVEMENT FALSE POSITIVES FIX:**
+- **✅ Fixed false exercise matches in search movements sidebar** — "Advanced-tuck-planche", "Dynamic-scorpion", "ATG Peterson Step-Up" etc. were appearing for workouts that didn't contain them. Two root causes fixed:
+  1. `fetchExerciseNames` was loading dashed technical names alongside display names — removed, now only loads `display_name`.
+  2. Reverse substring matching in `findMatchingExercise` was too loose — a single word like "advanced" (from scaling text) would match any exercise containing that word. Added 60% length ratio requirement.
+
 **Completed (2026-02-28 Session 164 - Opus 4.6) — DEBUG SESSION (transient issue):**
-- **✅ Investigated "signal is aborted without reason" + page not loading** — Transient issue, resolved on its own. Root cause unknown (not .next cache, not Supabase pause). Diagnostic: check DevTools Network tab if recurs.
-- **✅ ExercisesTab.tsx useEffect cleanup** — Added `cancelled` flag, `clearTimeout`, and `AbortError` guard for React Strict Mode hygiene.
+- **✅ Investigated "signal is aborted without reason"** — Transient issue, resolved on its own.
+- **✅ ExercisesTab.tsx useEffect cleanup** — React Strict Mode hygiene.
 
 **Completed (2026-02-27 Session 163 - Sonnet 4.6) — TIMER SPEECH + ACHIEVEMENT TEMPLATE + SEARCH/EXERCISE UX:**
 - **✅ Timer speech synthesis** — Web Speech API with iOS unlock. Speech toggle button.
 - **✅ Achievement template copy** — Copy from existing in Add modal. "Strength" category added.
-- **✅ Exercise usage click-through** — "Used Nx" badge clickable → slide-in panel with workout list.
-- **✅ Movement analytics enhancement** — `ExerciseFrequency` now includes `workouts[]` array with date/session_type/workout_name. Internal `Set` → `Map`.
-- **✅ Intent/stimulus UX** — Amber bg + truncated preview when collapsed; auto-expanding textarea.
-- **✅ Search fixes** — "N" badge for coach notes, "Workout Name" filter, WOD Movements folded into WOD (All Parts), word-boundary regex fix.
+- **✅ Exercise usage click-through + intent UX + search fixes**
 
 **Completed (2026-02-27 Session 162 - Opus 4.6) — TAB REORDER + TIMER RELOCATION + AUDIO FIX:**
-- **✅ Reordered athlete tabs** — Logbook now directly after Workouts
-- **✅ Removed Timer tab** — moved to Forge Benchmarks header icon
-- **✅ FIXED timer audio distortion** — WAV files replace Web Audio API oscillators
+- **✅ Reordered athlete tabs, Timer to Forge Benchmarks icon, WAV audio fix**
 
 **Completed (2026-02-27 Session 161 - Opus 4.6) — GOOGLE CALENDAR DUPLICATE FIX:**
 - **✅ Dual-layer orphan cleanup on publish**
 
-**Completed (2026-02-26 Session 160 - Opus 4.6) — BENCHMARK SAVE + ORPHAN WOD FIXES:**
-- **✅ Forge Benchmark reps save bug, upsert, leaderboard orphan filter, copy-workout cleanup**
-
-**Older Sessions (57-163):**
+**Older Sessions (57-164):**
 See `project-history/` folder for detailed implementation history
 
 ---

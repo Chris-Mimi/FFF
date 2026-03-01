@@ -334,7 +334,6 @@ export const useCoachData = ({
 
       const names = new Set<string>();
       data?.forEach(ex => {
-        if (ex.name) names.add(ex.name);
         if (ex.display_name) names.add(ex.display_name);
       });
       setExerciseNames(names);

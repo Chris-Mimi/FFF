@@ -148,7 +148,10 @@ const findMatchingExercise = (
       return normalizeMovement(exercise);
     }
     // Candidate contained in known exercise (e.g., "arch stretch" in "partner arch stretch")
-    if (lower.length >= 4 && (exercise.includes(lower) || exercise.includes(depluralized))) {
+    // Require candidate to be at least 60% of exercise name length to prevent
+    // single words like "advanced" matching "advanced tuck planche"
+    if (lower.length >= 4 && lower.length >= exercise.length * 0.6 &&
+        (exercise.includes(lower) || exercise.includes(depluralized))) {
       return normalizeMovement(exercise);
     }
   }
