@@ -109,7 +109,7 @@ export function useMovementTracking({
         return movs;
       };
 
-      // Step 4: Cross-reference per athlete
+      // Step 4: Cross-reference per athlete (case-insensitive)
       const trackedNames = trackedExercises.map(e => e.display_name || e.name);
       const result: TrackingData = {};
 
@@ -123,8 +123,9 @@ export function useMovementTracking({
             const wod = allWodsBySession[sessionId];
             if (!wod) return;
             const wodMovs = getWodMovements(wod.id!, wod);
+            const wodMovsLower = new Set(Array.from(wodMovs).map(m => m.toLowerCase()));
             trackedNames.forEach(name => {
-              if (wodMovs.has(name)) {
+              if (wodMovsLower.has(name.toLowerCase())) {
                 counts[name]++;
               }
             });

@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 50.0
-**Updated:** 2026-03-01 (Session 168 - Custom movement tracking panel)
+**Version:** 51.0
+**Updated:** 2026-03-01 (Session 169 - Movement tracking testing & polish)
 
 ---
 
@@ -84,29 +84,28 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
-**In Progress (2026-03-01 Session 168 - Opus 4.6) — CUSTOM MOVEMENT TRACKING PANEL:**
-- **✅ Built but NOT YET TESTED** — Custom Movements sidebar section + tracking panel + persistence + data hook
-- **Needs tweaking:** Layout ratios (currently 1/4 results, 3/4 tracking), exercise name matching accuracy, performance validation
-- **Files:** `exercise-storage.ts`, `SearchPanel.tsx`, `useMovementTracking.ts` (new), `MovementTrackingPanel.tsx` (new), `useCoachData.ts`, `page.tsx`
-- **Persistence:** localStorage key `coach_custom_tracked_movements`, no limit
-- **"Performed" = booking-based** — counts confirmed bookings where workout contained the exercise
+**In Progress (2026-03-01 Session 169 - Opus 4.6) — MOVEMENT TRACKING TESTING & POLISH:**
+- **✅ Tested & polished** — Fixed search limit (was capped at 20), 3-char column codes (BBP, BBS, BFS), layout split 1/3+2/3, panel only shows when maximized
+- **✅ Athlete persistence** — Selected athletes persist in localStorage (`coach_selected_athletes`). Fixed close button resetting selections.
+- **✅ Clear buttons** — Athletes & Custom Movements sections have "clear" links in headers
+- **✅ Lift name matching** — Added canonical mappings (Back Squat→Barbell Back Squat, Front Squat→Barbell Front Squat (FS), etc.) + case-insensitive comparison
+- **⚠️ Still investigating** — Front Squat showing 0 despite appearing in workout. Case-insensitive fix applied but not yet verified by user.
+- **UI tweaks:** Default maximized, workout name bold+larger, WOD type smaller, tighter card padding, scroll padding
+
+**Completed (2026-03-01 Session 168 - Opus 4.6) — CUSTOM MOVEMENT TRACKING PANEL:**
+- **✅ Built** — Custom Movements sidebar section + tracking panel + persistence + data hook
+- **Files:** `exercise-storage.ts`, `SearchPanel.tsx`, `useMovementTracking.ts`, `MovementTrackingPanel.tsx`, `useCoachData.ts`, `page.tsx`
 
 **Completed (2026-03-01 Session 167 - Opus 4.6) — WORKOUTS PANEL MAXIMIZE + EXERCISE LIBRARY GRID:**
-- **✅ Workouts search panel maximize/minimize** — Toggle button in header (desktop only). Maximized: panel fills full viewport width. Minimized: back to 800px sidebar.
-- **✅ Exercise library column-first grid** — Items now flow top-to-bottom then left-to-right (was left-to-right rows). Applied to all tabs: Exercises, Favorites, Recently Used, Lifts, Benchmarks, Forge Benchmarks.
+- **✅ Workouts search panel maximize/minimize** + **✅ Exercise library column-first grid**
 
 **Completed (2026-03-01 Session 166 - Opus 4.6) — SEARCH BY ATHLETE FILTER:**
-- **✅ Athletes filter in Workouts search panel** — New "Athletes" collapsible section in sidebar listing all active members with confirmed booking counts (published workouts only). Selecting athlete(s) filters results to workouts where they had confirmed bookings (OR logic for multi-select).
-- **✅ All sidebar filter sections collapsed by default** — Movements, Workout Types, Tracks, Session Types, Athletes all start closed.
+- **✅ Athletes filter in Workouts search panel** + **✅ All sidebar filter sections collapsed by default**
 
 **Completed (2026-03-01 Session 165 - Sonnet 4.6) — SEARCH MOVEMENT FALSE POSITIVES FIX:**
-- **✅ Fixed false exercise matches in search movements sidebar** — Two root causes: dashed technical names loaded alongside display names, and reverse substring matching too loose. Fixed with display_name-only loading + 60% length ratio.
+- **✅ Fixed false exercise matches** — display_name-only loading + 60% length ratio
 
-**Completed (2026-02-28 Session 164 - Opus 4.6) — DEBUG SESSION (transient issue):**
-- **✅ Investigated "signal is aborted without reason"** — Transient issue, resolved on its own.
-- **✅ ExercisesTab.tsx useEffect cleanup** — React Strict Mode hygiene.
-
-**Older Sessions (57-162):**
+**Older Sessions (57-164):**
 See `project-history/` folder for detailed implementation history
 
 ---

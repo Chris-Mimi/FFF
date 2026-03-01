@@ -51,8 +51,13 @@ const genericToCanonical: Record<string, string> = {
   'clean and jerk': 'barbell clean & jerk (c&j)',
   'clean and jerks': 'barbell clean & jerk (c&j)',
   'bench press': 'barbell bench press',
+  'back squat': 'barbell back squat',
+  'back squats': 'barbell back squat',
+  'front squat': 'barbell front squat (fs)',
+  'front squats': 'barbell front squat (fs)',
   'overhead squat': 'overhead squat (ohs)',
   'overhead squats': 'overhead squat (ohs)',
+  'strict overhead shoulder press': 'barbell strict overhead shoulder press (sp)',
   // Gymnastics
   'ring muscle-up': 'ring muscle-up (kipping)',
   'ring muscle-ups': 'ring muscle-up (kipping)',
@@ -331,9 +336,14 @@ export const extractMovementsFromWod = (wod: WODFormData, knownExerciseNames?: S
   const knownList = knownLower ? Array.from(knownLower) : undefined;
 
   wod.sections.forEach(section => {
-    // Source 1: Structured lift names
+    // Source 1: Structured lift names (cross-reference to exercise library)
     section.lifts?.forEach((lift: any) => {
-      if (lift.name) movements.add(normalizeMovement(lift.name));
+      if (!lift.name) return;
+      if (knownLower && knownList) {
+        const match = findMatchingExercise(lift.name, knownLower, knownList);
+        if (match) { movements.add(match); return; }
+      }
+      movements.add(normalizeMovement(lift.name));
     });
 
     // Source 2: Structured benchmark names + parse descriptions for exercises

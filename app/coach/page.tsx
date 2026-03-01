@@ -60,10 +60,20 @@ export default function CoachDashboard() {
   const [selectedTracks, setSelectedTracks] = useState<string[]>([]);
   const [selectedSessionTypes, setSelectedSessionTypes] = useState<string[]>([]);
   const [includedSectionTypes, setIncludedSectionTypes] = useState<string[]>([]);
-  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  const [selectedMembers, setSelectedMembers] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      const stored = localStorage.getItem('coach_selected_athletes');
+      return stored ? JSON.parse(stored) : [];
+    } catch { return []; }
+  });
   const [selectedSearchWOD, setSelectedSearchWOD] = useState<WODFormData | null>(null);
   const [hoveredSearchWOD, setHoveredSearchWOD] = useState<WODFormData | null>(null);
   const [notesPanelOpen, setNotesPanelOpen] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem('coach_selected_athletes', JSON.stringify(selectedMembers));
+  }, [selectedMembers]);
 
   // Session management
   const [sessionManagementModal, setSessionManagementModal] = useState<{
