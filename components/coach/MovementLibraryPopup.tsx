@@ -658,14 +658,26 @@ function MovementLibraryPopup({
     onSelectForgeBenchmark(forge);
   };
 
-  // Calculate grid columns (max 5 columns)
-  const getGridColumns = () => {
+  // Calculate grid columns (max 4 columns)
+  const getColCount = () => {
     const contentWidth = librarySize.width - 32; // Account for padding
     const minColWidth = 140;
     const maxCols = 4;
     const possibleCols = Math.floor(contentWidth / minColWidth);
-    const actualCols = Math.min(possibleCols, maxCols);
-    return `repeat(${actualCols}, 1fr)`;
+    return Math.min(possibleCols, maxCols);
+  };
+
+  const getGridColumns = () => `repeat(${getColCount()}, 1fr)`;
+
+  // Column-first grid: items flow top-to-bottom then left-to-right
+  const getColumnFirstStyle = (itemCount: number): React.CSSProperties => {
+    const cols = getColCount();
+    const rows = Math.ceil(itemCount / cols);
+    return {
+      gridTemplateRows: `repeat(${rows}, auto)`,
+      gridTemplateColumns: getGridColumns(),
+      gridAutoFlow: 'column',
+    };
   };
 
   // Get label for current tab
@@ -871,7 +883,7 @@ function MovementLibraryPopup({
                         </h4>
                       </button>
                       {!favoritesCollapsed && (
-                        <div className='grid gap-0 mb-2 bg-amber-50 p-2 rounded-b-lg' style={{ gridTemplateColumns: getGridColumns() }}>
+                        <div className='grid gap-0 mb-2 bg-amber-50 p-2 rounded-b-lg' style={getColumnFirstStyle(favorites.length)}>
                           {favorites.map(exercise => (
                             <div key={exercise.id} className='relative group'>
                               <button
@@ -939,7 +951,7 @@ function MovementLibraryPopup({
                         </h4>
                       </button>
                       {!recentCollapsed && (
-                        <div className='grid gap-0 mb-2 bg-blue-50 p-2 rounded-b-lg' style={{ gridTemplateColumns: getGridColumns() }}>
+                        <div className='grid gap-0 mb-2 bg-blue-50 p-2 rounded-b-lg' style={getColumnFirstStyle(recentExercises.length)}>
                           {recentExercises.map(exercise => {
                             // Find full exercise data from exercises array
                             const fullExercise = exercises.find(ex => ex.id === exercise.id);
@@ -1012,7 +1024,7 @@ function MovementLibraryPopup({
                         <div className='bg-[#178da6] text-white px-3 py-2 rounded-t-lg mb-2'>
                           <h4 className='text-sm font-bold uppercase tracking-wide'>{category}</h4>
                         </div>
-                        <div className='grid gap-0 mb-2' style={{ gridTemplateColumns: getGridColumns() }}>
+                        <div className='grid gap-0 mb-2' style={getColumnFirstStyle(categoryExercises.length)}>
                           {categoryExercises.map(exercise => (
                             <div key={exercise.id} className='relative group'>
                               <button
@@ -1081,7 +1093,7 @@ function MovementLibraryPopup({
                         <div className='bg-[#178da6] text-white px-3 py-2 rounded-t-lg mb-2'>
                           <h4 className='text-sm font-bold uppercase tracking-wide'>{category}</h4>
                         </div>
-                        <div className='grid gap-0 mb-2' style={{ gridTemplateColumns: getGridColumns() }}>
+                        <div className='grid gap-0 mb-2' style={getColumnFirstStyle(categoryLifts.length)}>
                           {categoryLifts.map(lift => (
                             <button
                               key={lift.id}
@@ -1106,7 +1118,7 @@ function MovementLibraryPopup({
               {/* Benchmarks Tab */}
               {activeTab === 'benchmarks' && (
                 filteredBenchmarks.length > 0 ? (
-                  <div className='grid gap-0' style={{ gridTemplateColumns: getGridColumns() }}>
+                  <div className='grid gap-0' style={getColumnFirstStyle(filteredBenchmarks.length)}>
                     {filteredBenchmarks.map(benchmark => (
                       <button
                         key={benchmark.id}
@@ -1128,7 +1140,7 @@ function MovementLibraryPopup({
               {/* Forge Benchmarks Tab */}
               {activeTab === 'forge' && (
                 filteredForgeBenchmarks.length > 0 ? (
-                  <div className='grid gap-0' style={{ gridTemplateColumns: getGridColumns() }}>
+                  <div className='grid gap-0' style={getColumnFirstStyle(filteredForgeBenchmarks.length)}>
                     {filteredForgeBenchmarks.map(forge => (
                       <button
                         key={forge.id}

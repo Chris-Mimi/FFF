@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 47.0
-**Updated:** 2026-02-27 (Session 163 - Timer speech + achievement template copy)
+**Version:** 49.0
+**Updated:** 2026-03-01 (Session 167 - Workouts maximize + exercise grid)
 
 ---
 
@@ -84,10 +84,16 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-01 Session 167 - Opus 4.6) — WORKOUTS PANEL MAXIMIZE + EXERCISE LIBRARY GRID:**
+- **✅ Workouts search panel maximize/minimize** — Toggle button in header (desktop only). Maximized: panel fills full viewport width. Minimized: back to 800px sidebar.
+- **✅ Exercise library column-first grid** — Items now flow top-to-bottom then left-to-right (was left-to-right rows). Applied to all tabs: Exercises, Favorites, Recently Used, Lifts, Benchmarks, Forge Benchmarks.
+
+**Completed (2026-03-01 Session 166 - Opus 4.6) — SEARCH BY ATHLETE FILTER:**
+- **✅ Athletes filter in Workouts search panel** — New "Athletes" collapsible section in sidebar listing all active members with confirmed booking counts (published workouts only). Selecting athlete(s) filters results to workouts where they had confirmed bookings (OR logic for multi-select).
+- **✅ All sidebar filter sections collapsed by default** — Movements, Workout Types, Tracks, Session Types, Athletes all start closed.
+
 **Completed (2026-03-01 Session 165 - Sonnet 4.6) — SEARCH MOVEMENT FALSE POSITIVES FIX:**
-- **✅ Fixed false exercise matches in search movements sidebar** — "Advanced-tuck-planche", "Dynamic-scorpion", "ATG Peterson Step-Up" etc. were appearing for workouts that didn't contain them. Two root causes fixed:
-  1. `fetchExerciseNames` was loading dashed technical names alongside display names — removed, now only loads `display_name`.
-  2. Reverse substring matching in `findMatchingExercise` was too loose — a single word like "advanced" (from scaling text) would match any exercise containing that word. Added 60% length ratio requirement.
+- **✅ Fixed false exercise matches in search movements sidebar** — Two root causes: dashed technical names loaded alongside display names, and reverse substring matching too loose. Fixed with display_name-only loading + 60% length ratio.
 
 **Completed (2026-02-28 Session 164 - Opus 4.6) — DEBUG SESSION (transient issue):**
 - **✅ Investigated "signal is aborted without reason"** — Transient issue, resolved on its own.
@@ -98,13 +104,7 @@ Social Tables
 - **✅ Achievement template copy** — Copy from existing in Add modal. "Strength" category added.
 - **✅ Exercise usage click-through + intent UX + search fixes**
 
-**Completed (2026-02-27 Session 162 - Opus 4.6) — TAB REORDER + TIMER RELOCATION + AUDIO FIX:**
-- **✅ Reordered athlete tabs, Timer to Forge Benchmarks icon, WAV audio fix**
-
-**Completed (2026-02-27 Session 161 - Opus 4.6) — GOOGLE CALENDAR DUPLICATE FIX:**
-- **✅ Dual-layer orphan cleanup on publish**
-
-**Older Sessions (57-164):**
+**Older Sessions (57-162):**
 See `project-history/` folder for detailed implementation history
 
 ---

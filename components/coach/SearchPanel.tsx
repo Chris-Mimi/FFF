@@ -1,7 +1,7 @@
 'use client';
 
 import { WODFormData, WODSection } from './WorkoutModal';
-import { GripVertical, Search, X, Menu } from 'lucide-react';
+import { GripVertical, Search, X, Menu, Maximize2, Minimize2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
@@ -112,6 +112,7 @@ export default function SearchPanel({
   highlightText,
 }: SearchPanelProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isMaximized, setIsMaximized] = useState(false);
 
   // Helper to render section content with structured data (lifts, benchmarks, forge benchmarks)
   const renderSectionContent = (section: WODSection) => {
@@ -179,7 +180,7 @@ export default function SearchPanel({
   if (!isOpen) return null;
 
   return (
-    <div className='fixed right-0 top-0 lg:top-[72px] h-screen lg:h-[calc(100vh-72px)] w-full lg:w-[800px] bg-white shadow-2xl z-50 flex flex-col border-l-2 border-[#178da6] border-t border-gray-400 animate-slide-in-right'>
+    <div className={`fixed right-0 top-0 lg:top-[72px] h-screen lg:h-[calc(100vh-72px)] w-full bg-white shadow-2xl z-50 flex flex-col border-t border-gray-400 transition-all duration-300 ${isMaximized ? 'lg:left-0' : 'lg:w-[800px] border-l-2 border-[#178da6]'}`}>
       {/* Header */}
       <div className='bg-[#178da6] text-white p-3 lg:p-4 flex justify-between items-center'>
         <div className='flex items-center gap-2'>
@@ -193,24 +194,34 @@ export default function SearchPanel({
           </button>
           <h2 className='text-base sm:text-lg lg:text-xl font-bold'>Workouts</h2>
         </div>
-        <button
-          onClick={() => {
-            onClose();
-            onSelectedSearchWODChange(null);
-            onSearchQueryChange('');
-            onSelectedMovementsChange([]);
-            onSelectedWorkoutTypesChange([]);
-            onSelectedTracksChange([]);
-            onSelectedSessionTypesChange([]);
-            onSelectedMembersChange([]);
-            onIncludedSectionTypesChange([]);
-            setSidebarOpen(false);
-            // Note: movements map should be reset in parent component
-          }}
-          className='hover:bg-[#14758c] p-2.5 rounded transition'
-        >
-          <X size={24} />
-        </button>
+        <div className='flex items-center gap-1'>
+          <button
+            onClick={() => setIsMaximized(prev => !prev)}
+            className='hidden lg:block hover:bg-[#14758c] p-2.5 rounded transition'
+            title={isMaximized ? 'Minimize' : 'Maximize'}
+          >
+            {isMaximized ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
+          </button>
+          <button
+            onClick={() => {
+              onClose();
+              onSelectedSearchWODChange(null);
+              onSearchQueryChange('');
+              onSelectedMovementsChange([]);
+              onSelectedWorkoutTypesChange([]);
+              onSelectedTracksChange([]);
+              onSelectedSessionTypesChange([]);
+              onSelectedMembersChange([]);
+              onIncludedSectionTypesChange([]);
+              setSidebarOpen(false);
+              setIsMaximized(false);
+              // Note: movements map should be reset in parent component
+            }}
+            className='hover:bg-[#14758c] p-2.5 rounded transition'
+          >
+            <X size={24} />
+          </button>
+        </div>
       </div>
 
       {/* Two-Column Layout */}
