@@ -12,6 +12,7 @@ interface UseCoachDataProps {
   selectedTracks: string[];
   selectedSessionTypes: string[];
   includedSectionTypes: string[];
+  selectedMembers: string[];
 }
 
 export const useCoachData = ({
@@ -21,6 +22,7 @@ export const useCoachData = ({
   selectedTracks,
   selectedSessionTypes,
   includedSectionTypes,
+  selectedMembers,
 }: UseCoachDataProps) => {
   const [wods, setWods] = useState<Record<string, WODFormData[]>>({});
   const [tracks, setTracks] = useState<Array<{ id: string; name: string }>>([]);
@@ -33,6 +35,7 @@ export const useCoachData = ({
   const [searchResults, setSearchResults] = useState<WODFormData[]>([]);
   const [movements, setMovements] = useState<Map<string, number>>(new Map());
   const [exerciseNames, setExerciseNames] = useState<Set<string>>(new Set());
+  const [members, setMembers] = useState<Array<{ id: string; name: string; booking_count: number }>>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchWODs = async () => {
@@ -159,7 +162,8 @@ export const useCoachData = ({
       !selectedMovements.length &&
       !selectedWorkoutTypes.length &&
       !selectedTracks.length &&
-      !selectedSessionTypes.length
+      !selectedSessionTypes.length &&
+      !selectedMembers.length
     ) {
       setSearchResults([]);
       setMovements(new Map());
@@ -195,6 +199,23 @@ export const useCoachData = ({
 
         if (selectedTracks.length > 0) {
           query = query.in('wods.track_id', selectedTracks);
+        }
+
+        // Filter by member bookings
+        if (selectedMembers.length > 0) {
+          const { data: memberBookings } = await supabase
+            .from('bookings')
+            .select('session_id')
+            .in('member_id', selectedMembers)
+            .eq('status', 'confirmed');
+
+          if (!memberBookings || memberBookings.length === 0) {
+            setSearchResults([]);
+            setMovements(new Map());
+            return;
+          }
+          const sessionIds = [...new Set(memberBookings.map(b => b.session_id))];
+          query = query.in('id', sessionIds);
         }
 
         const { data, error } = await query.order('date', { ascending: false }).limit(500);
@@ -322,7 +343,7 @@ export const useCoachData = ({
 
     const timeoutId = setTimeout(searchWODs, 300);
     return () => clearTimeout(timeoutId);
-  }, [searchQuery, selectedMovements, selectedWorkoutTypes, selectedTracks, selectedSessionTypes, includedSectionTypes, exerciseNames]);
+  }, [searchQuery, selectedMovements, selectedWorkoutTypes, selectedTracks, selectedSessionTypes, includedSectionTypes, selectedMembers, exerciseNames]);
 
   const fetchExerciseNames = async () => {
     try {
@@ -339,6 +360,52 @@ export const useCoachData = ({
       setExerciseNames(names);
     } catch (error) {
       console.error('Error fetching exercise names:', error);
+    }
+  };
+
+  const fetchMembers = async () => {
+    try {
+      const { data: membersData, error: membersError } = await supabase
+        .from('members')
+        .select('id, name')
+        .eq('status', 'active')
+        .order('name', { ascending: true });
+
+      if (membersError) throw membersError;
+
+      // Get session IDs with published wods
+      const { data: publishedSessions, error: psError } = await supabase
+        .from('weekly_sessions')
+        .select('id, wods!inner(workout_publish_status)')
+        .eq('wods.workout_publish_status', 'published');
+
+      if (psError) throw psError;
+      const publishedSessionIds = new Set(publishedSessions?.map(s => s.id) || []);
+
+      // Get confirmed bookings
+      const { data: bookingsData, error: bError } = await supabase
+        .from('bookings')
+        .select('member_id, session_id')
+        .eq('status', 'confirmed');
+
+      if (bError) throw bError;
+
+      const memberCounts: Record<string, number> = {};
+      bookingsData?.forEach(b => {
+        if (publishedSessionIds.has(b.session_id)) {
+          memberCounts[b.member_id] = (memberCounts[b.member_id] || 0) + 1;
+        }
+      });
+
+      setMembers(
+        (membersData || []).map(m => ({
+          id: m.id,
+          name: m.name,
+          booking_count: memberCounts[m.id] || 0,
+        }))
+      );
+    } catch (error) {
+      console.error('Error fetching members:', error);
     }
   };
 
@@ -436,8 +503,10 @@ export const useCoachData = ({
     setMovements,
     loading,
     setLoading,
+    members,
     fetchWODs,
     fetchTracksAndCounts,
     fetchExerciseNames,
+    fetchMembers,
   };
 };

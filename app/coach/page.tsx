@@ -60,6 +60,7 @@ export default function CoachDashboard() {
   const [selectedTracks, setSelectedTracks] = useState<string[]>([]);
   const [selectedSessionTypes, setSelectedSessionTypes] = useState<string[]>([]);
   const [includedSectionTypes, setIncludedSectionTypes] = useState<string[]>([]);
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [selectedSearchWOD, setSelectedSearchWOD] = useState<WODFormData | null>(null);
   const [hoveredSearchWOD, setHoveredSearchWOD] = useState<WODFormData | null>(null);
   const [notesPanelOpen, setNotesPanelOpen] = useState(false);
@@ -87,9 +88,11 @@ export default function CoachDashboard() {
     searchResults,
     movements,
     loading,
+    members,
     fetchWODs,
     fetchTracksAndCounts,
     fetchExerciseNames,
+    fetchMembers,
   } = useCoachData({
     searchQuery: debouncedSearchQuery,
     selectedMovements,
@@ -97,6 +100,7 @@ export default function CoachDashboard() {
     selectedTracks,
     selectedSessionTypes,
     includedSectionTypes,
+    selectedMembers,
   });
 
   const { handleSaveWOD, handleDeleteWOD, handleDeleteWODToEmpty, handleDeleteWODPermanently, handleDeleteSession, handleCopyWOD } = useWODOperations({
@@ -176,6 +180,7 @@ export default function CoachDashboard() {
       fetchWODs();
       fetchTracksAndCounts();
       fetchExerciseNames();
+      fetchMembers();
     };
 
     checkAuth();
@@ -412,6 +417,9 @@ export default function CoachDashboard() {
           trackCounts={trackCounts}
           workoutTypeCounts={workoutTypeCounts}
           sessionTypeCounts={sessionTypeCounts}
+          members={members}
+          selectedMembers={selectedMembers}
+          onSelectedMembersChange={setSelectedMembers}
           selectedSearchWOD={selectedSearchWOD}
           onSelectedSearchWODChange={setSelectedSearchWOD}
           hoveredWOD={hoveredSearchWOD}

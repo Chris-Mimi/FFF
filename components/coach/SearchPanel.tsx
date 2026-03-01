@@ -50,6 +50,9 @@ interface SearchPanelProps {
   trackCounts: Record<string, number>;
   workoutTypeCounts: Record<string, number>;
   sessionTypeCounts: Record<string, number>;
+  members: Array<{ id: string; name: string; booking_count: number }>;
+  selectedMembers: string[];
+  onSelectedMembersChange: (members: string[]) => void;
   selectedSearchWOD: WODFormData | null;
   onSelectedSearchWODChange: (wod: WODFormData | null) => void;
   hoveredWOD: WODFormData | null;
@@ -95,6 +98,9 @@ export default function SearchPanel({
   trackCounts,
   workoutTypeCounts,
   sessionTypeCounts,
+  members,
+  selectedMembers,
+  onSelectedMembersChange,
   selectedSearchWOD,
   onSelectedSearchWODChange,
   hoveredWOD,
@@ -196,6 +202,7 @@ export default function SearchPanel({
             onSelectedWorkoutTypesChange([]);
             onSelectedTracksChange([]);
             onSelectedSessionTypesChange([]);
+            onSelectedMembersChange([]);
             onIncludedSectionTypesChange([]);
             setSidebarOpen(false);
             // Note: movements map should be reset in parent component
@@ -224,7 +231,7 @@ export default function SearchPanel({
           </div>
 
           {/* Movements Section */}
-          <details className='border-b' open>
+          <details className='border-b'>
             <summary className='px-3 py-2 font-semibold text-sm text-gray-900 cursor-pointer hover:bg-gray-100'>
               Movements
             </summary>
@@ -262,7 +269,7 @@ export default function SearchPanel({
           </details>
 
           {/* Workout Types Section */}
-          <details className='border-b' open>
+          <details className='border-b'>
             <summary className='px-3 py-2 font-semibold text-sm text-gray-900 cursor-pointer hover:bg-gray-100'>
               Workout Types
             </summary>
@@ -301,7 +308,7 @@ export default function SearchPanel({
           </details>
 
           {/* Tracks Section */}
-          <details className='border-b' open>
+          <details className='border-b'>
             <summary className='px-3 py-2 font-semibold text-sm text-gray-900 cursor-pointer hover:bg-gray-100'>
               Tracks
             </summary>
@@ -337,7 +344,7 @@ export default function SearchPanel({
           </details>
 
           {/* Session Types Section */}
-          <details className='border-b' open>
+          <details className='border-b'>
             <summary className='px-3 py-2 font-semibold text-sm text-gray-900 cursor-pointer hover:bg-gray-100'>
               Session Types
             </summary>
@@ -368,6 +375,42 @@ export default function SearchPanel({
               ))}
               {sessionTypes.length === 0 && (
                 <p className='text-xs text-gray-500 px-2 py-1'>No session types found</p>
+              )}
+            </div>
+          </details>
+
+          {/* Athletes Section */}
+          <details className='border-b'>
+            <summary className='px-3 py-2 font-semibold text-sm text-gray-900 cursor-pointer hover:bg-gray-100'>
+              Athletes
+            </summary>
+            <div className='px-2 py-2 space-y-1'>
+              {members.map(member => (
+                <button
+                  key={member.id}
+                  onClick={() => {
+                    onSelectedMembersChange(
+                      selectedMembers.includes(member.id)
+                        ? selectedMembers.filter(m => m !== member.id)
+                        : [...selectedMembers, member.id]
+                    );
+                  }}
+                  className={`w-full text-left px-2 py-1 rounded text-xs flex justify-between items-center transition ${
+                    selectedMembers.includes(member.id)
+                      ? 'bg-[#178da6] text-white'
+                      : 'hover:bg-gray-200 text-gray-900'
+                  }`}
+                >
+                  <span className='truncate'>{member.name}</span>
+                  <span
+                    className={`text-xs ml-1 ${selectedMembers.includes(member.id) ? 'opacity-75' : 'text-gray-500'}`}
+                  >
+                    {member.booking_count}
+                  </span>
+                </button>
+              ))}
+              {members.length === 0 && (
+                <p className='text-xs text-gray-500 px-2 py-1'>No members found</p>
               )}
             </div>
           </details>
@@ -541,7 +584,8 @@ export default function SearchPanel({
               selectedMovements.length > 0 ||
               selectedWorkoutTypes.length > 0 ||
               selectedTracks.length > 0 ||
-              selectedSessionTypes.length > 0) && (
+              selectedSessionTypes.length > 0 ||
+              selectedMembers.length > 0) && (
               <div className='flex flex-wrap gap-1 sm:gap-2 mt-2 sm:mt-3'>
                 {searchQuery && (
                   <span className='inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-[#178da6] text-white text-[10px] sm:text-xs rounded-full'>
@@ -637,6 +681,28 @@ export default function SearchPanel({
                     </button>
                   </span>
                 ))}
+                {selectedMembers.map(memberId => {
+                  const member = members.find(m => m.id === memberId);
+                  return member ? (
+                    <span
+                      key={memberId}
+                      className='inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-[#178da6] text-white text-[10px] sm:text-xs rounded-full'
+                    >
+                      {member.name}
+                      <button
+                        onClick={() =>
+                          onSelectedMembersChange(
+                            selectedMembers.filter(m => m !== memberId)
+                          )
+                        }
+                        className='hover:bg-[#14758c] rounded-full p-1.5'
+                      >
+                        <X size={12} className='sm:hidden' />
+                        <X size={14} className='hidden sm:block' />
+                      </button>
+                    </span>
+                  ) : null;
+                })}
               </div>
             )}
           </div>
@@ -647,7 +713,8 @@ export default function SearchPanel({
               selectedMovements.length > 0 ||
               selectedWorkoutTypes.length > 0 ||
               selectedTracks.length > 0 ||
-              selectedSessionTypes.length > 0) && (
+              selectedSessionTypes.length > 0 ||
+              selectedMembers.length > 0) && (
               <div className='flex-1 overflow-y-auto p-2 sm:p-4'>
                 <h3 className='font-semibold text-sm sm:text-base text-gray-900 mb-2 sm:mb-3'>
                   Results ({searchResults.length})
