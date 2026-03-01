@@ -35,6 +35,7 @@ export const useCoachData = ({
   const [searchResults, setSearchResults] = useState<WODFormData[]>([]);
   const [movements, setMovements] = useState<Map<string, number>>(new Map());
   const [exerciseNames, setExerciseNames] = useState<Set<string>>(new Set());
+  const [exerciseList, setExerciseList] = useState<Array<{ id: string; name: string; display_name: string | null; category: string }>>([]);
   const [members, setMembers] = useState<Array<{ id: string; name: string; booking_count: number }>>([]);
   const [loading, setLoading] = useState(true);
 
@@ -349,7 +350,7 @@ export const useCoachData = ({
     try {
       const { data, error } = await supabase
         .from('exercises')
-        .select('name, display_name');
+        .select('id, name, display_name, category');
 
       if (error) throw error;
 
@@ -358,6 +359,7 @@ export const useCoachData = ({
         if (ex.display_name) names.add(ex.display_name);
       });
       setExerciseNames(names);
+      setExerciseList(data || []);
     } catch (error) {
       console.error('Error fetching exercise names:', error);
     }
@@ -504,6 +506,7 @@ export const useCoachData = ({
     loading,
     setLoading,
     members,
+    exerciseList,
     fetchWODs,
     fetchTracksAndCounts,
     fetchExerciseNames,

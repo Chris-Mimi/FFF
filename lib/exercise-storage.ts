@@ -1,10 +1,12 @@
 /**
- * localStorage utility for recently used exercises
- * Stores last 10 exercises used by coach for quick access
+ * localStorage utilities for coach exercise preferences
+ * - Recently used exercises (last 10)
+ * - Custom tracked movements (unlimited, persistent)
  */
 
 const STORAGE_KEY = 'coach_recent_exercises';
 const MAX_RECENT = 10;
+const TRACKED_STORAGE_KEY = 'coach_custom_tracked_movements';
 
 export interface RecentExercise {
   id: string;
@@ -101,10 +103,53 @@ export function removeRecentExercise(exerciseId: string): void {
   }
 }
 
+// --- Custom Tracked Movements (persistent, no limit) ---
+
+export interface TrackedExercise {
+  id: string;
+  name: string;
+  display_name?: string;
+  category: string;
+}
+
+export function getTrackedExercises(): TrackedExercise[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const stored = localStorage.getItem(TRACKED_STORAGE_KEY);
+    if (!stored) return [];
+    return JSON.parse(stored);
+  } catch (error) {
+    console.error('Error loading tracked exercises:', error);
+    return [];
+  }
+}
+
+export function addTrackedExercise(exercise: TrackedExercise): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const tracked = getTrackedExercises();
+    if (tracked.some((ex) => ex.id === exercise.id)) return;
+    tracked.push(exercise);
+    localStorage.setItem(TRACKED_STORAGE_KEY, JSON.stringify(tracked));
+  } catch (error) {
+    console.error('Error adding tracked exercise:', error);
+  }
+}
+
+export function removeTrackedExercise(exerciseId: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const tracked = getTrackedExercises().filter((ex) => ex.id !== exerciseId);
+    localStorage.setItem(TRACKED_STORAGE_KEY, JSON.stringify(tracked));
+  } catch (error) {
+    console.error('Error removing tracked exercise:', error);
+  }
+}
+
 /**
  * React hook for managing recent exercises
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 
 export function useRecentExercises() {
   const [recentExercises, setRecentExercises] = useState<RecentExercise[]>([]);
@@ -150,4 +195,33 @@ export function useRecentExercises() {
     removeRecent,
     clearRecent,
   };
+}
+
+export function useTrackedExercises() {
+  const [trackedExercises, setTrackedExercises] = useState<TrackedExercise[]>([]);
+
+  useEffect(() => {
+    setTrackedExercises(getTrackedExercises());
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === TRACKED_STORAGE_KEY) {
+        setTrackedExercises(getTrackedExercises());
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  const addTracked = useCallback((exercise: TrackedExercise) => {
+    addTrackedExercise(exercise);
+    setTrackedExercises(getTrackedExercises());
+  }, []);
+
+  const removeTracked = useCallback((exerciseId: string) => {
+    removeTrackedExercise(exerciseId);
+    setTrackedExercises(getTrackedExercises());
+  }, []);
+
+  return { trackedExercises, addTracked, removeTracked };
 }

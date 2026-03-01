@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 49.0
-**Updated:** 2026-03-01 (Session 167 - Workouts maximize + exercise grid)
+**Version:** 50.0
+**Updated:** 2026-03-01 (Session 168 - Custom movement tracking panel)
 
 ---
 
@@ -84,6 +84,13 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**In Progress (2026-03-01 Session 168 - Opus 4.6) — CUSTOM MOVEMENT TRACKING PANEL:**
+- **✅ Built but NOT YET TESTED** — Custom Movements sidebar section + tracking panel + persistence + data hook
+- **Needs tweaking:** Layout ratios (currently 1/4 results, 3/4 tracking), exercise name matching accuracy, performance validation
+- **Files:** `exercise-storage.ts`, `SearchPanel.tsx`, `useMovementTracking.ts` (new), `MovementTrackingPanel.tsx` (new), `useCoachData.ts`, `page.tsx`
+- **Persistence:** localStorage key `coach_custom_tracked_movements`, no limit
+- **"Performed" = booking-based** — counts confirmed bookings where workout contained the exercise
+
 **Completed (2026-03-01 Session 167 - Opus 4.6) — WORKOUTS PANEL MAXIMIZE + EXERCISE LIBRARY GRID:**
 - **✅ Workouts search panel maximize/minimize** — Toggle button in header (desktop only). Maximized: panel fills full viewport width. Minimized: back to 800px sidebar.
 - **✅ Exercise library column-first grid** — Items now flow top-to-bottom then left-to-right (was left-to-right rows). Applied to all tabs: Exercises, Favorites, Recently Used, Lifts, Benchmarks, Forge Benchmarks.
@@ -98,11 +105,6 @@ Social Tables
 **Completed (2026-02-28 Session 164 - Opus 4.6) — DEBUG SESSION (transient issue):**
 - **✅ Investigated "signal is aborted without reason"** — Transient issue, resolved on its own.
 - **✅ ExercisesTab.tsx useEffect cleanup** — React Strict Mode hygiene.
-
-**Completed (2026-02-27 Session 163 - Sonnet 4.6) — TIMER SPEECH + ACHIEVEMENT TEMPLATE + SEARCH/EXERCISE UX:**
-- **✅ Timer speech synthesis** — Web Speech API with iOS unlock. Speech toggle button.
-- **✅ Achievement template copy** — Copy from existing in Add modal. "Strength" category added.
-- **✅ Exercise usage click-through + intent UX + search fixes**
 
 **Older Sessions (57-162):**
 See `project-history/` folder for detailed implementation history

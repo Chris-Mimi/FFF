@@ -6,8 +6,11 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import remarkBreaks from 'remark-breaks';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { formatLift, formatBenchmark, formatForgeBenchmark } from '@/utils/logbook/formatters';
+import { useTrackedExercises, type TrackedExercise } from '@/lib/exercise-storage';
+import { useMovementTracking } from '@/hooks/coach/useMovementTracking';
+import MovementTrackingPanel from './MovementTrackingPanel';
 import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
 
 interface WorkoutType {
@@ -51,6 +54,7 @@ interface SearchPanelProps {
   workoutTypeCounts: Record<string, number>;
   sessionTypeCounts: Record<string, number>;
   members: Array<{ id: string; name: string; booking_count: number }>;
+  exerciseList: Array<{ id: string; name: string; display_name: string | null; category: string }>;
   selectedMembers: string[];
   onSelectedMembersChange: (members: string[]) => void;
   selectedSearchWOD: WODFormData | null;
@@ -99,6 +103,7 @@ export default function SearchPanel({
   workoutTypeCounts,
   sessionTypeCounts,
   members,
+  exerciseList,
   selectedMembers,
   onSelectedMembersChange,
   selectedSearchWOD,
@@ -113,6 +118,49 @@ export default function SearchPanel({
 }: SearchPanelProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
+  const [exerciseSearch, setExerciseSearch] = useState('');
+  const [exerciseDropdownOpen, setExerciseDropdownOpen] = useState(false);
+  const exerciseSearchRef = useRef<HTMLDivElement>(null);
+  const { trackedExercises, addTracked, removeTracked } = useTrackedExercises();
+
+  const filteredExercises = useMemo(() => {
+    if (!exerciseSearch.trim()) return [];
+    const query = exerciseSearch.toLowerCase();
+    const trackedIds = new Set(trackedExercises.map(e => e.id));
+    return exerciseList
+      .filter(ex => {
+        if (trackedIds.has(ex.id)) return false;
+        const name = (ex.display_name || ex.name).toLowerCase();
+        return name.includes(query);
+      })
+      .slice(0, 20);
+  }, [exerciseSearch, exerciseList, trackedExercises]);
+
+  // Derive exerciseNames Set for movement tracking
+  const exerciseNamesSet = useMemo(() => {
+    const names = new Set<string>();
+    exerciseList.forEach(ex => {
+      if (ex.display_name) names.add(ex.display_name);
+    });
+    return names;
+  }, [exerciseList]);
+
+  const { trackingData, loading: trackingLoading } = useMovementTracking({
+    selectedMembers,
+    trackedExercises,
+    exerciseNames: exerciseNamesSet,
+  });
+
+  // Close exercise dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (exerciseSearchRef.current && !exerciseSearchRef.current.contains(e.target as Node)) {
+        setExerciseDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Helper to render section content with structured data (lifts, benchmarks, forge benchmarks)
   const renderSectionContent = (section: WODSection) => {
@@ -425,6 +473,76 @@ export default function SearchPanel({
               )}
             </div>
           </details>
+
+          {/* Custom Movements Section */}
+          <details className='border-b'>
+            <summary className='px-3 py-2 font-semibold text-sm text-gray-900 cursor-pointer hover:bg-gray-100'>
+              Custom Movements
+              {trackedExercises.length > 0 && (
+                <span className='ml-1 text-xs text-gray-500'>({trackedExercises.length})</span>
+              )}
+            </summary>
+            <div className='px-2 py-2 space-y-1'>
+              {/* Search input */}
+              <div ref={exerciseSearchRef} className='relative'>
+                <input
+                  type='text'
+                  value={exerciseSearch}
+                  onChange={e => {
+                    setExerciseSearch(e.target.value);
+                    setExerciseDropdownOpen(e.target.value.trim().length > 0);
+                  }}
+                  onFocus={() => {
+                    if (exerciseSearch.trim()) setExerciseDropdownOpen(true);
+                  }}
+                  placeholder='Add exercise...'
+                  className='w-full px-2 py-1 text-xs border border-gray-300 rounded bg-white text-gray-900 placeholder:text-gray-400 focus:ring-1 focus:ring-[#178da6] focus:border-transparent'
+                />
+                {exerciseDropdownOpen && filteredExercises.length > 0 && (
+                  <div className='absolute top-full left-0 right-0 mt-0.5 bg-white border border-gray-200 rounded shadow-lg max-h-40 overflow-y-auto z-20'>
+                    {filteredExercises.map(ex => (
+                      <button
+                        key={ex.id}
+                        onClick={() => {
+                          addTracked({
+                            id: ex.id,
+                            name: ex.name,
+                            display_name: ex.display_name || undefined,
+                            category: ex.category,
+                          });
+                          setExerciseSearch('');
+                          setExerciseDropdownOpen(false);
+                        }}
+                        className='w-full text-left px-2 py-1 text-xs hover:bg-gray-100 text-gray-900 truncate'
+                      >
+                        {ex.display_name || ex.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Tracked exercises list */}
+              {trackedExercises.map(ex => (
+                <div
+                  key={ex.id}
+                  className='flex items-center justify-between px-2 py-1 rounded text-xs bg-amber-50 text-gray-900'
+                >
+                  <span className='truncate'>{ex.display_name || ex.name}</span>
+                  <button
+                    onClick={() => removeTracked(ex.id)}
+                    className='ml-1 text-gray-400 hover:text-red-500 p-0.5'
+                    title='Remove'
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              ))}
+              {trackedExercises.length === 0 && (
+                <p className='text-xs text-gray-500 px-2 py-1'>Search to add movements</p>
+              )}
+            </div>
+          </details>
         </div>
 
         {/* RIGHT SIDE - Search and Results */}
@@ -717,6 +835,11 @@ export default function SearchPanel({
               </div>
             )}
           </div>
+
+          {/* Content area: Results + optional Tracking Panel */}
+          <div className='flex-1 flex overflow-hidden'>
+          {/* Left column: Results / Detail */}
+          <div className={`flex flex-col overflow-hidden ${trackedExercises.length > 0 ? 'lg:w-1/4 w-full' : 'w-full'}`}>
 
           {/* Search Results */}
           {!selectedSearchWOD &&
@@ -1045,6 +1168,23 @@ export default function SearchPanel({
               </div>
             </div>
           )}
+          </div>{/* End left column */}
+
+          {/* Right column: Movement Tracking Panel (desktop only) */}
+          {trackedExercises.length > 0 && (
+            <div className='hidden lg:flex lg:w-3/4 border-l overflow-hidden'>
+              <div className='w-full'>
+                <MovementTrackingPanel
+                  trackedExercises={trackedExercises}
+                  trackingData={trackingData}
+                  loading={trackingLoading}
+                  selectedMembers={selectedMembers}
+                  members={members}
+                />
+              </div>
+            </div>
+          )}
+          </div>{/* End content area */}
         </div>
       </div>
 

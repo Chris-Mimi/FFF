@@ -89,6 +89,7 @@ export default function CoachDashboard() {
     movements,
     loading,
     members,
+    exerciseList,
     fetchWODs,
     fetchTracksAndCounts,
     fetchExerciseNames,
@@ -418,6 +419,7 @@ export default function CoachDashboard() {
           workoutTypeCounts={workoutTypeCounts}
           sessionTypeCounts={sessionTypeCounts}
           members={members}
+          exerciseList={exerciseList}
           selectedMembers={selectedMembers}
           onSelectedMembersChange={setSelectedMembers}
           selectedSearchWOD={selectedSearchWOD}

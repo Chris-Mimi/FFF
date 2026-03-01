@@ -12,3 +12,4 @@ export { useTracksCrud } from './useTracksCrud';
 export { useWorkoutTypesCrud } from './useWorkoutTypesCrud';
 export { useMemberData } from './useMemberData';
 export { useMemberActions } from './useMemberActions';
+export { useMovementTracking } from './useMovementTracking';
