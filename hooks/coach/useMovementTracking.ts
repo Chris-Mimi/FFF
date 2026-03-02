@@ -11,6 +11,11 @@ export interface TrackingData {
   [memberId: string]: Record<string, number>;
 }
 
+export interface LastPerformedData {
+  // member_id -> exercise_name -> date string (YYYY-MM-DD) or null
+  [memberId: string]: Record<string, string | null>;
+}
+
 interface UseMovementTrackingProps {
   selectedMembers: string[];
   trackedExercises: TrackedExercise[];
@@ -23,6 +28,7 @@ export function useMovementTracking({
   exerciseNames,
 }: UseMovementTrackingProps) {
   const [trackingData, setTrackingData] = useState<TrackingData>({});
+  const [lastPerformedData, setLastPerformedData] = useState<LastPerformedData>({});
   const [loading, setLoading] = useState(false);
   const wodMovementCache = useRef<Map<string, Set<string>>>(new Map());
   const debounceRef = useRef<NodeJS.Timeout>(undefined);
@@ -112,10 +118,12 @@ export function useMovementTracking({
       // Step 4: Cross-reference per athlete (case-insensitive)
       const trackedNames = trackedExercises.map(e => e.display_name || e.name);
       const result: TrackingData = {};
+      const lastDates: LastPerformedData = {};
 
       for (const memberId of selectedMembers) {
         const counts: Record<string, number> = {};
-        trackedNames.forEach(name => { counts[name] = 0; });
+        const dates: Record<string, string | null> = {};
+        trackedNames.forEach(name => { counts[name] = 0; dates[name] = null; });
 
         const sessions = memberSessions[memberId];
         if (sessions) {
@@ -127,14 +135,20 @@ export function useMovementTracking({
             trackedNames.forEach(name => {
               if (wodMovsLower.has(name.toLowerCase())) {
                 counts[name]++;
+                const wodDate = wod.date;
+                if (wodDate && (!dates[name] || wodDate > dates[name]!)) {
+                  dates[name] = wodDate;
+                }
               }
             });
           });
         }
         result[memberId] = counts;
+        lastDates[memberId] = dates;
       }
 
       setTrackingData(result);
+      setLastPerformedData(lastDates);
     } catch (error) {
       console.error('Error computing movement tracking:', error);
     } finally {
@@ -151,5 +165,5 @@ export function useMovementTracking({
     };
   }, [computeTracking]);
 
-  return { trackingData, loading };
+  return { trackingData, lastPerformedData, loading };
 }

@@ -1,11 +1,13 @@
 'use client';
 
+import { Fragment } from 'react';
 import type { TrackedExercise } from '@/lib/exercise-storage';
-import type { TrackingData } from '@/hooks/coach/useMovementTracking';
+import type { TrackingData, LastPerformedData } from '@/hooks/coach/useMovementTracking';
 
 interface MovementTrackingPanelProps {
   trackedExercises: TrackedExercise[];
   trackingData: TrackingData;
+  lastPerformedData: LastPerformedData;
   loading: boolean;
   selectedMembers: string[];
   members: Array<{ id: string; name: string; booking_count: number }>;
@@ -14,6 +16,7 @@ interface MovementTrackingPanelProps {
 export default function MovementTrackingPanel({
   trackedExercises,
   trackingData,
+  lastPerformedData,
   loading,
   selectedMembers,
   members,
@@ -71,28 +74,49 @@ export default function MovementTrackingPanel({
           <tbody>
             {selectedMembersList.map(member => {
               const memberData = trackingData[member.id] || {};
+              const memberDates = lastPerformedData[member.id] || {};
               return (
-                <tr key={member.id} className='border-b hover:bg-gray-50'>
-                  <td className='px-2 py-1.5 font-medium text-gray-900 truncate w-[120px]'>
-                    {member.name}
-                  </td>
-                  {exerciseNames.map(name => {
-                    const count = memberData[name] || 0;
-                    return (
-                      <td key={name} className='py-1 px-0.5 text-center'>
-                        <span
-                          className={`inline-block min-w-[20px] px-0.5 py-0.5 rounded text-xs font-medium ${
-                            count === 0
-                              ? 'text-gray-400 bg-gray-100'
-                              : 'text-white bg-[#178da6]'
-                          }`}
-                        >
-                          {count}
-                        </span>
-                      </td>
-                    );
-                  })}
-                </tr>
+                <Fragment key={member.id}>
+                  <tr className='border-b hover:bg-gray-50'>
+                    <td className='px-2 py-1.5 font-medium text-gray-900 truncate w-[120px]'>
+                      {member.name}
+                    </td>
+                    {exerciseNames.map(name => {
+                      const count = memberData[name] || 0;
+                      return (
+                        <td key={name} className='py-1 px-0.5 text-center'>
+                          <span
+                            className={`inline-block min-w-[20px] px-0.5 py-0.5 rounded text-xs font-medium ${
+                              count === 0
+                                ? 'text-gray-400 bg-gray-100'
+                                : 'text-white bg-[#178da6]'
+                            }`}
+                          >
+                            {count}
+                          </span>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                  <tr className='border-b bg-gray-50/50'>
+                    <td className='px-2 py-0.5 text-[9px] text-gray-400 italic truncate w-[120px]'>
+                      last
+                    </td>
+                    {exerciseNames.map(name => {
+                      const date = memberDates[name];
+                      const formatted = date
+                        ? new Date(date + 'T00:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })
+                        : '—';
+                      return (
+                        <td key={name} className='py-0.5 px-0.5 text-center'>
+                          <span className='text-[9px] text-gray-400'>
+                            {formatted}
+                          </span>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                </Fragment>
               );
             })}
           </tbody>

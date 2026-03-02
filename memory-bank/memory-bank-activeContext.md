@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 51.0
-**Updated:** 2026-03-01 (Session 169 - Movement tracking testing & polish)
+**Version:** 52.0
+**Updated:** 2026-03-02 (Session 170 - Search panel polish, workout validation, movement toggle)
 
 ---
 
@@ -84,17 +84,21 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
-**In Progress (2026-03-01 Session 169 - Opus 4.6) — MOVEMENT TRACKING TESTING & POLISH:**
-- **✅ Tested & polished** — Fixed search limit (was capped at 20), 3-char column codes (BBP, BBS, BFS), layout split 1/3+2/3, panel only shows when maximized
-- **✅ Athlete persistence** — Selected athletes persist in localStorage (`coach_selected_athletes`). Fixed close button resetting selections.
-- **✅ Clear buttons** — Athletes & Custom Movements sections have "clear" links in headers
-- **✅ Lift name matching** — Added canonical mappings (Back Squat→Barbell Back Squat, Front Squat→Barbell Front Squat (FS), etc.) + case-insensitive comparison
-- **⚠️ Still investigating** — Front Squat showing 0 despite appearing in workout. Case-insensitive fix applied but not yet verified by user.
-- **UI tweaks:** Default maximized, workout name bold+larger, WOD type smaller, tighter card padding, scroll padding
+**Completed (2026-03-02 Session 170 - Opus 4.6) — SEARCH PANEL POLISH, WORKOUT VALIDATION, MOVEMENT TOGGLE:**
+- **✅ Track name moved** — Track type now appended to Session Type line (with " — "), not workout name
+- **✅ Font hierarchy fixed** — Workout name always larger than session type + track across card, hover, detail views
+- **✅ Workout name required** — Validation added, "(Optional)" removed, red error styling on save
+- **✅ Orphan wod guard** — New wods that fail to link to a session are auto-deleted with error toast
+- **✅ Health check updated** — Added `published_wods_no_name` to monthly orphan query
+- **✅ 5 orphan wods deleted** — Published wods with null names and no session links
+- **✅ Movement active/inactive toggle** — Click to toggle, dimmed+strikethrough when inactive, X to remove permanently, "clear" deactivates all
+- **✅ Last performed date row** — Each athlete row followed by "last" row showing DD.MM date per movement
+
+**Completed (2026-03-01 Session 169 - Opus 4.6) — MOVEMENT TRACKING TESTING & POLISH:**
+- **✅ Tested & polished** — Fixed search limit, 3-char column codes, layout split, athlete persistence, lift name matching
 
 **Completed (2026-03-01 Session 168 - Opus 4.6) — CUSTOM MOVEMENT TRACKING PANEL:**
 - **✅ Built** — Custom Movements sidebar section + tracking panel + persistence + data hook
-- **Files:** `exercise-storage.ts`, `SearchPanel.tsx`, `useMovementTracking.ts`, `MovementTrackingPanel.tsx`, `useCoachData.ts`, `page.tsx`
 
 **Completed (2026-03-01 Session 167 - Opus 4.6) — WORKOUTS PANEL MAXIMIZE + EXERCISE LIBRARY GRID:**
 - **✅ Workouts search panel maximize/minimize** + **✅ Exercise library column-first grid**
@@ -102,10 +106,7 @@ Social Tables
 **Completed (2026-03-01 Session 166 - Opus 4.6) — SEARCH BY ATHLETE FILTER:**
 - **✅ Athletes filter in Workouts search panel** + **✅ All sidebar filter sections collapsed by default**
 
-**Completed (2026-03-01 Session 165 - Sonnet 4.6) — SEARCH MOVEMENT FALSE POSITIVES FIX:**
-- **✅ Fixed false exercise matches** — display_name-only loading + 60% length ratio
-
-**Older Sessions (57-164):**
+**Older Sessions (57-165):**
 See `project-history/` folder for detailed implementation history
 
 ---

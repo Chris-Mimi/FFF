@@ -8,7 +8,7 @@ import rehypeRaw from 'rehype-raw';
 import remarkBreaks from 'remark-breaks';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { formatLift, formatBenchmark, formatForgeBenchmark } from '@/utils/logbook/formatters';
-import { useTrackedExercises, type TrackedExercise } from '@/lib/exercise-storage';
+import { useTrackedExercises } from '@/lib/exercise-storage';
 import { useMovementTracking } from '@/hooks/coach/useMovementTracking';
 import MovementTrackingPanel from './MovementTrackingPanel';
 import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
@@ -121,7 +121,7 @@ export default function SearchPanel({
   const [exerciseSearch, setExerciseSearch] = useState('');
   const [exerciseDropdownOpen, setExerciseDropdownOpen] = useState(false);
   const exerciseSearchRef = useRef<HTMLDivElement>(null);
-  const { trackedExercises, addTracked, removeTracked } = useTrackedExercises();
+  const { trackedExercises, addTracked, removeTracked, toggleTracked, deactivateAll } = useTrackedExercises();
 
   const filteredExercises = useMemo(() => {
     if (!exerciseSearch.trim()) return [];
@@ -145,9 +145,11 @@ export default function SearchPanel({
     return names;
   }, [exerciseList]);
 
-  const { trackingData, loading: trackingLoading } = useMovementTracking({
+  const activeTrackedExercises = useMemo(() => trackedExercises.filter(ex => ex.active !== false), [trackedExercises]);
+
+  const { trackingData, lastPerformedData, loading: trackingLoading } = useMovementTracking({
     selectedMembers,
-    trackedExercises,
+    trackedExercises: activeTrackedExercises,
     exerciseNames: exerciseNamesSet,
   });
 
@@ -485,12 +487,12 @@ export default function SearchPanel({
           {/* Custom Movements Section */}
           <details className='border-b'>
             <summary className='px-3 py-2 font-semibold text-sm text-gray-900 cursor-pointer hover:bg-gray-100 flex items-center justify-between'>
-              <span>Custom Movements{trackedExercises.length > 0 && <span className='ml-1 text-xs text-gray-500'>({trackedExercises.length})</span>}</span>
-              {trackedExercises.length > 0 && (
+              <span>Custom Movements{trackedExercises.length > 0 && <span className='ml-1 text-xs text-gray-500'>({activeTrackedExercises.length}/{trackedExercises.length})</span>}</span>
+              {activeTrackedExercises.length > 0 && (
                 <button
-                  onClick={e => { e.preventDefault(); trackedExercises.forEach(ex => removeTracked(ex.id)); }}
+                  onClick={e => { e.preventDefault(); deactivateAll(); }}
                   className='text-[10px] text-gray-400 hover:text-red-500 px-1'
-                  title='Clear movements'
+                  title='Deactivate all'
                 >
                   clear
                 </button>
@@ -540,13 +542,19 @@ export default function SearchPanel({
               {trackedExercises.map(ex => (
                 <div
                   key={ex.id}
-                  className='flex items-center justify-between px-2 py-1 rounded text-xs bg-amber-50 text-gray-900'
+                  className={`flex items-center justify-between px-2 py-1 rounded text-xs cursor-pointer ${
+                    ex.active !== false
+                      ? 'bg-amber-50 text-gray-900'
+                      : 'bg-gray-100 text-gray-400 line-through'
+                  }`}
+                  onClick={() => toggleTracked(ex.id)}
+                  title={ex.active !== false ? 'Click to deactivate' : 'Click to activate'}
                 >
                   <span className='truncate'>{ex.display_name || ex.name}</span>
                   <button
-                    onClick={() => removeTracked(ex.id)}
-                    className='ml-1 text-gray-400 hover:text-red-500 p-0.5'
-                    title='Remove'
+                    onClick={e => { e.stopPropagation(); removeTracked(ex.id); }}
+                    className='ml-1 text-gray-400 hover:text-red-500 p-0.5 flex-shrink-0'
+                    title='Remove permanently'
                   >
                     <X size={12} />
                   </button>
@@ -853,7 +861,7 @@ export default function SearchPanel({
           {/* Content area: Results + optional Tracking Panel */}
           <div className='flex-1 flex overflow-hidden'>
           {/* Left column: Results / Detail */}
-          <div className={`flex flex-col overflow-y-auto overscroll-contain ${trackedExercises.length > 0 && isMaximized ? 'lg:w-1/3 w-full' : 'w-full'}`}>
+          <div className={`flex flex-col overflow-y-auto overscroll-contain ${activeTrackedExercises.length > 0 && isMaximized ? 'lg:w-1/3 w-full' : 'w-full'}`}>
 
           {/* Search Results */}
           {!selectedSearchWOD &&
@@ -950,17 +958,15 @@ export default function SearchPanel({
                         <div className='text-[10px] sm:text-xs text-gray-500 mb-1'>
                           {formattedDate}{formattedTime && ` at ${formattedTime}`}
                         </div>
-                        {(wod.workout_name || trackName) && (
+                        {wod.workout_name && (
                           <div className='text-xs sm:text-sm font-bold text-gray-700 mb-1'>
-                            {wod.workout_name && <span>{wod.workout_name}</span>}
-                            {wod.workout_name && trackName && <span className='text-gray-400'> • </span>}
-                            {trackName && <span>{trackName}</span>}
+                            {wod.workout_name}
                           </div>
                         )}
                         <div
                           className='font-semibold text-[10px] sm:text-xs text-gray-900 mb-1 sm:mb-2'
                           dangerouslySetInnerHTML={{
-                            __html: highlightText(wod.title, searchTerms),
+                            __html: highlightText(wod.title + (trackName ? ` — ${trackName}` : ''), searchTerms),
                           }}
                         />
                         {previewSection && previewText && (
@@ -980,14 +986,12 @@ export default function SearchPanel({
                         {/* Hover Popover - Full WOD Preview (Desktop Only) */}
                         {hoveredWOD?.id === wod.id && (
                           <div className='hidden lg:block absolute inset-0 bg-white border-2 border-[#178da6] rounded-lg shadow-2xl p-4 z-[200] overflow-y-auto'>
-                            {(wod.workout_name || trackName) && (
-                              <div className='text-xs font-medium text-gray-700 mb-1'>
-                                {wod.workout_name && <span>{wod.workout_name}</span>}
-                                {wod.workout_name && trackName && <span className='text-gray-400'> • </span>}
-                                {trackName && <span>{trackName}</span>}
+                            {wod.workout_name && (
+                              <div className='text-sm font-bold text-gray-700 mb-1'>
+                                {wod.workout_name}
                               </div>
                             )}
-                            <div className='text-sm font-bold text-gray-900 mb-3'>{wod.title}</div>
+                            <div className='text-xs font-medium text-gray-900 mb-3'>{wod.title}{trackName && ` — ${trackName}`}</div>
                             <div className='space-y-3'>
                               {wod.sections.map((section, idx) => (
                                 <div key={idx} className='border-b border-gray-200 pb-2 last:border-b-0'>
@@ -1056,15 +1060,13 @@ export default function SearchPanel({
                       <GripVertical size={20} className='text-gray-400 mt-1 flex-shrink-0' />
                     </div>
                     <div className='flex-1'>
-                      {(selectedSearchWOD.workout_name || (selectedSearchWOD.track_id && tracks.find(t => t.id === selectedSearchWOD.track_id)?.name)) && (
-                        <div className='text-xs sm:text-sm font-medium text-gray-700 mb-1'>
-                          {selectedSearchWOD.workout_name && <span>{selectedSearchWOD.workout_name}</span>}
-                          {selectedSearchWOD.workout_name && selectedSearchWOD.track_id && tracks.find(t => t.id === selectedSearchWOD.track_id)?.name && <span className='text-gray-400'> • </span>}
-                          {selectedSearchWOD.track_id && <span>{tracks.find(t => t.id === selectedSearchWOD.track_id)?.name}</span>}
+                      {selectedSearchWOD.workout_name && (
+                        <div className='font-bold text-base sm:text-lg text-gray-700 mb-1'>
+                          {selectedSearchWOD.workout_name}
                         </div>
                       )}
-                      <h3 className='font-bold text-base sm:text-lg text-gray-900 mb-1'>
-                        {selectedSearchWOD.title}
+                      <h3 className='font-medium text-xs sm:text-sm text-gray-900 mb-1'>
+                        {selectedSearchWOD.title}{selectedSearchWOD.track_id && tracks.find(t => t.id === selectedSearchWOD.track_id)?.name && ` — ${tracks.find(t => t.id === selectedSearchWOD.track_id)?.name}`}
                       </h3>
                       <p className='text-[10px] sm:text-xs text-gray-600'>
                         {new Date(selectedSearchWOD.date).toLocaleDateString()}
@@ -1185,12 +1187,13 @@ export default function SearchPanel({
           </div>{/* End left column */}
 
           {/* Right column: Movement Tracking Panel (maximized + desktop only) */}
-          {trackedExercises.length > 0 && isMaximized && (
+          {activeTrackedExercises.length > 0 && isMaximized && (
             <div className='hidden lg:flex lg:w-2/3 border-l overflow-hidden'>
               <div className='w-full'>
                 <MovementTrackingPanel
-                  trackedExercises={trackedExercises}
+                  trackedExercises={activeTrackedExercises}
                   trackingData={trackingData}
+                  lastPerformedData={lastPerformedData}
                   loading={trackingLoading}
                   selectedMembers={selectedMembers}
                   members={members}

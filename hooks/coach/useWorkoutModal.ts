@@ -673,6 +673,10 @@ export function useWorkoutModal(
       newErrors.title = 'Title is required';
     }
 
+    if (!formData.workout_name?.trim()) {
+      newErrors.workout_name = 'Workout name is required';
+    }
+
     // Class times are now managed via schedule sessions, not required here
     // if (formData.classTimes.length === 0) {
     //   newErrors.classTimes = 'Select at least one class time';

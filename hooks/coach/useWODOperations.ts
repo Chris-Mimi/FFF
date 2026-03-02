@@ -207,6 +207,22 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
             })
             .eq('id', editingWOD.booking_info.session_id);
         }
+
+        // Guard: verify the new wod is linked to at least one session
+        if (newWOD) {
+          const { data: linkedSessions } = await supabase
+            .from('weekly_sessions')
+            .select('id')
+            .eq('workout_id', newWOD.id)
+            .limit(1);
+
+          if (!linkedSessions || linkedSessions.length === 0) {
+            // Delete the orphaned wod
+            await supabase.from('wods').delete().eq('id', newWOD.id);
+            toast.error('Could not save: no session time slot linked. Please select a time.');
+            return;
+          }
+        }
       }
 
       await fetchWODs();

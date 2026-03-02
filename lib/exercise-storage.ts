@@ -110,6 +110,7 @@ export interface TrackedExercise {
   name: string;
   display_name?: string;
   category: string;
+  active?: boolean;
 }
 
 export function getTrackedExercises(): TrackedExercise[] {
@@ -117,7 +118,9 @@ export function getTrackedExercises(): TrackedExercise[] {
   try {
     const stored = localStorage.getItem(TRACKED_STORAGE_KEY);
     if (!stored) return [];
-    return JSON.parse(stored);
+    const parsed: TrackedExercise[] = JSON.parse(stored);
+    // Backward compat: treat missing active field as true
+    return parsed.map(ex => ({ ...ex, active: ex.active !== false }));
   } catch (error) {
     console.error('Error loading tracked exercises:', error);
     return [];
@@ -129,7 +132,7 @@ export function addTrackedExercise(exercise: TrackedExercise): void {
   try {
     const tracked = getTrackedExercises();
     if (tracked.some((ex) => ex.id === exercise.id)) return;
-    tracked.push(exercise);
+    tracked.push({ ...exercise, active: true });
     localStorage.setItem(TRACKED_STORAGE_KEY, JSON.stringify(tracked));
   } catch (error) {
     console.error('Error adding tracked exercise:', error);
@@ -143,6 +146,28 @@ export function removeTrackedExercise(exerciseId: string): void {
     localStorage.setItem(TRACKED_STORAGE_KEY, JSON.stringify(tracked));
   } catch (error) {
     console.error('Error removing tracked exercise:', error);
+  }
+}
+
+export function toggleTrackedExercise(exerciseId: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const tracked = getTrackedExercises().map(ex =>
+      ex.id === exerciseId ? { ...ex, active: !ex.active } : ex
+    );
+    localStorage.setItem(TRACKED_STORAGE_KEY, JSON.stringify(tracked));
+  } catch (error) {
+    console.error('Error toggling tracked exercise:', error);
+  }
+}
+
+export function deactivateAllTrackedExercises(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const tracked = getTrackedExercises().map(ex => ({ ...ex, active: false }));
+    localStorage.setItem(TRACKED_STORAGE_KEY, JSON.stringify(tracked));
+  } catch (error) {
+    console.error('Error deactivating tracked exercises:', error);
   }
 }
 
@@ -223,5 +248,15 @@ export function useTrackedExercises() {
     setTrackedExercises(getTrackedExercises());
   }, []);
 
-  return { trackedExercises, addTracked, removeTracked };
+  const toggleTracked = useCallback((exerciseId: string) => {
+    toggleTrackedExercise(exerciseId);
+    setTrackedExercises(getTrackedExercises());
+  }, []);
+
+  const deactivateAll = useCallback(() => {
+    deactivateAllTrackedExercises();
+    setTrackedExercises(getTrackedExercises());
+  }, []);
+
+  return { trackedExercises, addTracked, removeTracked, toggleTracked, deactivateAll };
 }

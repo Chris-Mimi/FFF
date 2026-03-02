@@ -167,7 +167,7 @@ export default function WorkoutFormFields({
       {/* Workout Name Input */}
       <div>
         <label className='block text-sm font-semibold mb-2 text-gray-900'>
-          Workout Name <span className='text-gray-500 text-xs font-normal'>(Optional)</span>
+          Workout Name
         </label>
         <input
           type='text'
@@ -175,11 +175,11 @@ export default function WorkoutFormFields({
           onChange={e => onFieldChange('workout_name', e.target.value)}
           placeholder='e.g., "Overhead Fest", "Fran"'
           maxLength={100}
-          className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 placeholder-gray-400'
+          className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 placeholder-gray-400 ${
+            errors.workout_name ? 'border-red-500' : 'border-gray-300'
+          }`}
         />
-        <p className='text-xs text-gray-500 mt-1'>
-          Use for repeated workouts to track frequency accurately
-        </p>
+        {errors.workout_name && <p className='text-red-500 text-sm mt-1'>{errors.workout_name}</p>}
       </div>
     </>
   );
