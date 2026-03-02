@@ -635,7 +635,7 @@ export default function SearchPanel({
                   Workout Name
                 </button>
                 {(() => {
-                  const nonWodSections = sectionTypes.filter(st => st.name !== 'WOD' && !st.name.startsWith('WOD Pt.') && st.name !== 'WOD Movements');
+                  const nonWodSections = sectionTypes.filter(st => st.name !== 'WOD' && !st.name.startsWith('WOD Pt.') && st.name.toLowerCase() !== 'wod movements');
                   const finalPrepIndex = nonWodSections.findIndex(st => st.name === 'Final prep/Info' || st.name === 'WOD Final Prep & Info');
                   const sectionsBeforeFinalPrep = finalPrepIndex >= 0 ? nonWodSections.slice(0, finalPrepIndex + 1) : nonWodSections;
                   const sectionsAfterFinalPrep = finalPrepIndex >= 0 ? nonWodSections.slice(finalPrepIndex + 1) : [];
@@ -666,7 +666,7 @@ export default function SearchPanel({
                       {/* WOD (All Parts) Button - immediately after Final prep/Info */}
                       {(() => {
                         const wodSections = sectionTypes.filter(st =>
-                          st.name === 'WOD' || st.name.startsWith('WOD Pt.') || st.name === 'WOD Movements'
+                          st.name === 'WOD' || st.name.startsWith('WOD Pt.') || st.name.toLowerCase() === 'wod movements'
                         );
                         const allWodSelected = wodSections.every(st => includedSectionTypes.includes(st.name));
                         const someWodSelected = wodSections.some(st => includedSectionTypes.includes(st.name));
