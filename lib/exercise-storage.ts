@@ -6,7 +6,6 @@
 
 const STORAGE_KEY = 'coach_recent_exercises';
 const MAX_RECENT = 10;
-const TRACKED_STORAGE_KEY = 'coach_custom_tracked_movements';
 
 export interface RecentExercise {
   id: string;
@@ -103,7 +102,10 @@ export function removeRecentExercise(exerciseId: string): void {
   }
 }
 
-// --- Custom Tracked Movements (persistent, no limit) ---
+// --- Custom Tracked Movements (Supabase-backed, syncs across profiles/devices) ---
+
+import { supabase } from '@/lib/supabase';
+import { useEffect, useState, useCallback } from 'react';
 
 export interface TrackedExercise {
   id: string;
@@ -113,68 +115,9 @@ export interface TrackedExercise {
   active?: boolean;
 }
 
-export function getTrackedExercises(): TrackedExercise[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    const stored = localStorage.getItem(TRACKED_STORAGE_KEY);
-    if (!stored) return [];
-    const parsed: TrackedExercise[] = JSON.parse(stored);
-    // Backward compat: treat missing active field as true
-    return parsed.map(ex => ({ ...ex, active: ex.active !== false }));
-  } catch (error) {
-    console.error('Error loading tracked exercises:', error);
-    return [];
-  }
-}
-
-export function addTrackedExercise(exercise: TrackedExercise): void {
-  if (typeof window === 'undefined') return;
-  try {
-    const tracked = getTrackedExercises();
-    if (tracked.some((ex) => ex.id === exercise.id)) return;
-    tracked.push({ ...exercise, active: true });
-    localStorage.setItem(TRACKED_STORAGE_KEY, JSON.stringify(tracked));
-  } catch (error) {
-    console.error('Error adding tracked exercise:', error);
-  }
-}
-
-export function removeTrackedExercise(exerciseId: string): void {
-  if (typeof window === 'undefined') return;
-  try {
-    const tracked = getTrackedExercises().filter((ex) => ex.id !== exerciseId);
-    localStorage.setItem(TRACKED_STORAGE_KEY, JSON.stringify(tracked));
-  } catch (error) {
-    console.error('Error removing tracked exercise:', error);
-  }
-}
-
-export function toggleTrackedExercise(exerciseId: string): void {
-  if (typeof window === 'undefined') return;
-  try {
-    const tracked = getTrackedExercises().map(ex =>
-      ex.id === exerciseId ? { ...ex, active: !ex.active } : ex
-    );
-    localStorage.setItem(TRACKED_STORAGE_KEY, JSON.stringify(tracked));
-  } catch (error) {
-    console.error('Error toggling tracked exercise:', error);
-  }
-}
-
-export function deactivateAllTrackedExercises(): void {
-  if (typeof window === 'undefined') return;
-  try {
-    const tracked = getTrackedExercises().map(ex => ({ ...ex, active: false }));
-    localStorage.setItem(TRACKED_STORAGE_KEY, JSON.stringify(tracked));
-  } catch (error) {
-    console.error('Error deactivating tracked exercises:', error);
-  }
-}
-
 /**
  * React hook for managing recent exercises
  */
-import { useEffect, useState, useCallback } from 'react';
 
 export function useRecentExercises() {
   const [recentExercises, setRecentExercises] = useState<RecentExercise[]>([]);
@@ -225,38 +168,110 @@ export function useRecentExercises() {
 export function useTrackedExercises() {
   const [trackedExercises, setTrackedExercises] = useState<TrackedExercise[]>([]);
 
+  const loadTracked = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('coach_tracked_exercises')
+      .select(`
+        exercise_id,
+        active,
+        exercises (id, name, display_name, category)
+      `)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Error loading tracked exercises:', error);
+      return;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const exercises: TrackedExercise[] = (data || []).map((row: any) => ({
+      id: row.exercises.id,
+      name: row.exercises.name,
+      display_name: row.exercises.display_name,
+      category: row.exercises.category,
+      active: row.active,
+    }));
+    setTrackedExercises(exercises);
+  }, []);
+
   useEffect(() => {
-    setTrackedExercises(getTrackedExercises());
+    loadTracked();
+  }, [loadTracked]);
 
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === TRACKED_STORAGE_KEY) {
-        setTrackedExercises(getTrackedExercises());
+  const addTracked = useCallback(async (exercise: TrackedExercise) => {
+    // Optimistic update
+    setTrackedExercises(prev => {
+      if (prev.some(ex => ex.id === exercise.id)) return prev;
+      return [...prev, { ...exercise, active: true }];
+    });
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { error } = await supabase
+      .from('coach_tracked_exercises')
+      .upsert({ user_id: user.id, exercise_id: exercise.id, active: true }, { onConflict: 'user_id,exercise_id' });
+
+    if (error) {
+      console.error('Error adding tracked exercise:', error);
+      loadTracked(); // Revert on error
+    }
+  }, [loadTracked]);
+
+  const removeTracked = useCallback(async (exerciseId: string) => {
+    // Optimistic update
+    setTrackedExercises(prev => prev.filter(ex => ex.id !== exerciseId));
+
+    const { error } = await supabase
+      .from('coach_tracked_exercises')
+      .delete()
+      .eq('exercise_id', exerciseId);
+
+    if (error) {
+      console.error('Error removing tracked exercise:', error);
+      loadTracked();
+    }
+  }, [loadTracked]);
+
+  const toggleTracked = useCallback(async (exerciseId: string) => {
+    // Optimistic update
+    let newActive = true;
+    setTrackedExercises(prev => prev.map(ex => {
+      if (ex.id === exerciseId) {
+        newActive = !ex.active;
+        return { ...ex, active: newActive };
       }
-    };
+      return ex;
+    }));
 
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
+    const { error } = await supabase
+      .from('coach_tracked_exercises')
+      .update({ active: newActive })
+      .eq('exercise_id', exerciseId);
 
-  const addTracked = useCallback((exercise: TrackedExercise) => {
-    addTrackedExercise(exercise);
-    setTrackedExercises(getTrackedExercises());
-  }, []);
+    if (error) {
+      console.error('Error toggling tracked exercise:', error);
+      loadTracked();
+    }
+  }, [loadTracked]);
 
-  const removeTracked = useCallback((exerciseId: string) => {
-    removeTrackedExercise(exerciseId);
-    setTrackedExercises(getTrackedExercises());
-  }, []);
+  const deactivateAll = useCallback(async () => {
+    // Optimistic update
+    setTrackedExercises(prev => prev.map(ex => ({ ...ex, active: false })));
 
-  const toggleTracked = useCallback((exerciseId: string) => {
-    toggleTrackedExercise(exerciseId);
-    setTrackedExercises(getTrackedExercises());
-  }, []);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
 
-  const deactivateAll = useCallback(() => {
-    deactivateAllTrackedExercises();
-    setTrackedExercises(getTrackedExercises());
-  }, []);
+    const { error } = await supabase
+      .from('coach_tracked_exercises')
+      .update({ active: false })
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error('Error deactivating tracked exercises:', error);
+      loadTracked();
+    }
+  }, [loadTracked]);
 
   return { trackedExercises, addTracked, removeTracked, toggleTracked, deactivateAll };
 }

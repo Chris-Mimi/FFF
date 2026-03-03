@@ -16,6 +16,9 @@ export interface LastPerformedData {
   [memberId: string]: Record<string, string | null>;
 }
 
+// exercise_name -> most recent date (YYYY-MM-DD) across ALL published wods
+export type GlobalLastProgrammedData = Record<string, string | null>;
+
 interface UseMovementTrackingProps {
   selectedMembers: string[];
   trackedExercises: TrackedExercise[];
@@ -29,6 +32,7 @@ export function useMovementTracking({
 }: UseMovementTrackingProps) {
   const [trackingData, setTrackingData] = useState<TrackingData>({});
   const [lastPerformedData, setLastPerformedData] = useState<LastPerformedData>({});
+  const [globalLastProgrammed, setGlobalLastProgrammed] = useState<GlobalLastProgrammedData>({});
   const [loading, setLoading] = useState(false);
   const wodMovementCache = useRef<Map<string, Set<string>>>(new Map());
   const debounceRef = useRef<NodeJS.Timeout>(undefined);
@@ -147,8 +151,27 @@ export function useMovementTracking({
         lastDates[memberId] = dates;
       }
 
+      // Step 5: Compute global last-programmed date per movement (across ALL published wods)
+      const globalDates: GlobalLastProgrammedData = {};
+      trackedNames.forEach(name => { globalDates[name] = null; });
+
+      // Use all wods we already fetched (covers all selected athletes' sessions)
+      Object.values(allWodsBySession).forEach(wod => {
+        const wodMovs = getWodMovements(wod.id!, wod);
+        const wodMovsLower = new Set(Array.from(wodMovs).map(m => m.toLowerCase()));
+        trackedNames.forEach(name => {
+          if (wodMovsLower.has(name.toLowerCase())) {
+            const wodDate = wod.date;
+            if (wodDate && (!globalDates[name] || wodDate > globalDates[name]!)) {
+              globalDates[name] = wodDate;
+            }
+          }
+        });
+      });
+
       setTrackingData(result);
       setLastPerformedData(lastDates);
+      setGlobalLastProgrammed(globalDates);
     } catch (error) {
       console.error('Error computing movement tracking:', error);
     } finally {
@@ -165,5 +188,5 @@ export function useMovementTracking({
     };
   }, [computeTracking]);
 
-  return { trackingData, lastPerformedData, loading };
+  return { trackingData, lastPerformedData, globalLastProgrammed, loading };
 }

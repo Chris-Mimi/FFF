@@ -2,12 +2,13 @@
 
 import { Fragment } from 'react';
 import type { TrackedExercise } from '@/lib/exercise-storage';
-import type { TrackingData, LastPerformedData } from '@/hooks/coach/useMovementTracking';
+import type { TrackingData, LastPerformedData, GlobalLastProgrammedData } from '@/hooks/coach/useMovementTracking';
 
 interface MovementTrackingPanelProps {
   trackedExercises: TrackedExercise[];
   trackingData: TrackingData;
   lastPerformedData: LastPerformedData;
+  globalLastProgrammed: GlobalLastProgrammedData;
   loading: boolean;
   selectedMembers: string[];
   members: Array<{ id: string; name: string; booking_count: number }>;
@@ -17,6 +18,7 @@ export default function MovementTrackingPanel({
   trackedExercises,
   trackingData,
   lastPerformedData,
+  globalLastProgrammed,
   loading,
   selectedMembers,
   members,
@@ -69,6 +71,24 @@ export default function MovementTrackingPanel({
                   <span className='block truncate text-[10px]'>{getCode(name)}</span>
                 </th>
               ))}
+            </tr>
+            <tr className='border-b bg-amber-50/60'>
+              <td className='px-2 py-0.5 text-[9px] text-amber-700 italic truncate w-[120px]'>
+                last programmed
+              </td>
+              {exerciseNames.map(name => {
+                const date = globalLastProgrammed[name];
+                const formatted = date
+                  ? new Date(date + 'T00:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })
+                  : '—';
+                return (
+                  <td key={name} className='py-0.5 px-0.5 text-center'>
+                    <span className='text-[9px] text-amber-700'>
+                      {formatted}
+                    </span>
+                  </td>
+                );
+              })}
             </tr>
           </thead>
           <tbody>

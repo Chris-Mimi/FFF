@@ -147,7 +147,7 @@ export default function SearchPanel({
 
   const activeTrackedExercises = useMemo(() => trackedExercises.filter(ex => ex.active !== false), [trackedExercises]);
 
-  const { trackingData, lastPerformedData, loading: trackingLoading } = useMovementTracking({
+  const { trackingData, lastPerformedData, globalLastProgrammed, loading: trackingLoading } = useMovementTracking({
     selectedMembers,
     trackedExercises: activeTrackedExercises,
     exerciseNames: exerciseNamesSet,
@@ -278,7 +278,7 @@ export default function SearchPanel({
         {/* LEFT SIDEBAR - Filters */}
         <div className={`${
           sidebarOpen ? 'absolute inset-0 z-10' : 'hidden'
-        } lg:relative lg:block w-full lg:w-[200px] border-r overflow-y-auto bg-gray-50`}>
+        } lg:relative lg:block w-full lg:w-[240px] border-r overflow-y-auto bg-gray-50`}>
           {/* Mobile Header */}
           <div className='lg:hidden flex justify-between items-center p-3 border-b bg-[#178da6] text-white sticky top-0 z-10'>
             <h3 className='font-semibold'>Filters</h3>
@@ -1194,6 +1194,7 @@ export default function SearchPanel({
                   trackedExercises={activeTrackedExercises}
                   trackingData={trackingData}
                   lastPerformedData={lastPerformedData}
+                  globalLastProgrammed={globalLastProgrammed}
                   loading={trackingLoading}
                   selectedMembers={selectedMembers}
                   members={members}
