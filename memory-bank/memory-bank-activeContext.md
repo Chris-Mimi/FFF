@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 52.0
-**Updated:** 2026-03-02 (Session 170 - Search panel polish, workout validation, movement toggle)
+**Version:** 53.0
+**Updated:** 2026-03-03 (Session 172 - Supabase tracked exercises, global last-programmed, debug)
 
 ---
 
@@ -52,6 +52,7 @@ Coach Tables
 ├─ barbell_lifts (id, name, category, display_order)
 ├─ programming_notes (id, user_id, title, content [markdown], folder_id, created_at, updated_at)
 ├─ note_folders (id, user_id, name, display_order, created_at, updated_at)
+├─ coach_tracked_exercises (id, user_id, exercise_id, display_name, active, created_at)
 
 Member Tables
 ├─ members (id, email, name, status, membership_types[], account_type: primary|family_member, primary_member_id, display_name, date_of_birth, relationship, class_types[] [ekt|t|cfk|cft], gender [M|F|null])
@@ -84,6 +85,15 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-03 Session 172 - Opus 4.6) — SUPABASE TRACKED EXERCISES, GLOBAL LAST-PROGRAMMED, DEBUG:**
+- **✅ Tracked exercises → Supabase** — Migrated from localStorage to `coach_tracked_exercises` table (CRUD with optimistic updates)
+- **✅ Global "last programmed" row** — Amber row in Movement Tracking Panel showing DD.MM date each movement last appeared
+- **✅ Sidebar width** — SearchPanel left sidebar widened 200px → 240px
+- **✅ Debug: exercise search** — Investigated exercise not appearing in Workouts search; root cause was active member filter narrowing results (user error, not code bug)
+
+**Completed (2026-03-03 Session 171 - Opus 4.6) — MEMORY BANK UPDATE (from Session 170 handoff):**
+- Committed session 170 changes (4 files, 154 insertions)
+
 **Completed (2026-03-02 Session 170 - Opus 4.6) — SEARCH PANEL POLISH, WORKOUT VALIDATION, MOVEMENT TOGGLE:**
 - **✅ Track name moved** — Track type now appended to Session Type line (with " — "), not workout name
 - **✅ Font hierarchy fixed** — Workout name always larger than session type + track across card, hover, detail views
@@ -100,13 +110,7 @@ Social Tables
 **Completed (2026-03-01 Session 168 - Opus 4.6) — CUSTOM MOVEMENT TRACKING PANEL:**
 - **✅ Built** — Custom Movements sidebar section + tracking panel + persistence + data hook
 
-**Completed (2026-03-01 Session 167 - Opus 4.6) — WORKOUTS PANEL MAXIMIZE + EXERCISE LIBRARY GRID:**
-- **✅ Workouts search panel maximize/minimize** + **✅ Exercise library column-first grid**
-
-**Completed (2026-03-01 Session 166 - Opus 4.6) — SEARCH BY ATHLETE FILTER:**
-- **✅ Athletes filter in Workouts search panel** + **✅ All sidebar filter sections collapsed by default**
-
-**Older Sessions (57-165):**
+**Older Sessions (57-167):**
 See `project-history/` folder for detailed implementation history
 
 ---
