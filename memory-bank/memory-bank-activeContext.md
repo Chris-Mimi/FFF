@@ -85,28 +85,23 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-04 Session 174 - Opus 4.6) — FEATURE DOCUMENTATION:**
+- **✅ Comprehensive feature overview** — `Chris Notes/Forge-Feature-Overview.md` — full platform overview for prospective users/coaches
+- **✅ Athlete guide (EN)** — `Chris Notes/Forge-Athlete-Guide.md` — subscriber-focused feature guide
+- **✅ Athlete guide (DE)** — `Chris Notes/Forge-Athlete-Guide-DE.md` + `.html` — German translation with styled HTML version for athlete presentation
+- **✅ Coach origin story** — Expanded "Built by a coach" messaging across all docs, added exercise video links feature
+
 **Completed (2026-03-04 Session 173 - Opus 4.6) — SEARCH PANEL UX, WORKOUT DEDUP, SCALABILITY:**
-- **✅ Athletes selected-to-top** — Selected athletes sort to top of filter list for easy deselection
-- **✅ Kids filter section** — Members under 16 (by date_of_birth) split into separate "Kids" section, removed from main Athletes list
-- **✅ Custom Movements alphabetical** — Tracked exercises auto-sort alphabetically on add and on load
-- **✅ Workout deduplication** — Same workout_name within 2-week window counts as 1 unique result (fixes 19→7 for repeated workouts). Applied across search results, movement counts, and Analysis page.
-- **✅ Unique/All toggle** — Button next to Results count to switch between unique workouts and all sessions
-- **✅ Movement Tracking without athletes** — Panel now shows global last-programmed dates even with no athletes selected. `computeGlobal()` separated from per-athlete tracking.
-- **✅ Performance indexes migration** — Created `20260304000000_add_performance_indexes.sql` with 7 indexes on bookings, wods, weekly_sessions tables
+- **✅ Athletes selected-to-top, Kids filter, alphabetical movements, workout dedup, unique/all toggle, global movement tracking, performance indexes**
 
 **Completed (2026-03-03 Session 172 - Opus 4.6) — SUPABASE TRACKED EXERCISES, GLOBAL LAST-PROGRAMMED, DEBUG:**
-- **✅ Tracked exercises → Supabase** — Migrated from localStorage to `coach_tracked_exercises` table (CRUD with optimistic updates)
-- **✅ Global "last programmed" row** — Amber row in Movement Tracking Panel showing DD.MM date each movement last appeared
-- **✅ Debug: exercise search** — Root cause was active member filter narrowing results (user error, not code bug)
+- **✅ Tracked exercises → Supabase, global "last programmed" row, exercise search debug**
 
 **Completed (2026-03-02 Session 170 - Opus 4.6) — SEARCH PANEL POLISH, WORKOUT VALIDATION, MOVEMENT TOGGLE:**
 - **✅ Track name, font hierarchy, workout name required, orphan guard, movement toggle, last performed dates**
 
 **Completed (2026-03-01 Session 169 - Opus 4.6) — MOVEMENT TRACKING TESTING & POLISH:**
 - **✅ Tested & polished** — Fixed search limit, 3-char column codes, layout split, athlete persistence, lift name matching
-
-**Completed (2026-03-01 Session 168 - Opus 4.6) — CUSTOM MOVEMENT TRACKING PANEL:**
-- **✅ Built** — Custom Movements sidebar section + tracking panel + persistence + data hook
 
 **Older Sessions (57-171):**
 See `project-history/` folder for detailed implementation history

@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FORGE — Dein Training. Dein Fortschritt. Deine Rekorde.</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+    :root {
+      --forge-dark: #0f172a;
+      --forge-teal: #14b8a6;
+      --forge-teal-light: #2dd4bf;
+      --forge-teal-bg: rgba(20, 184, 166, 0.08);
+      --forge-slate: #334155;
+      --forge-slate-light: #64748b;
+      --forge-border: #e2e8f0;
+      --forge-bg: #ffffff;
+      --forge-surface: #f8fafc;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--forge-dark);
+      background: var(--forge-bg);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, var(--forge-dark) 0%, #1e293b 100%);
+      color: white;
+      padding: 80px 40px 60px;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-size: 2.8rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+
+    .hero h1 span {
+      color: var(--forge-teal-light);
+    }
+
+    .hero .subtitle {
+      font-size: 1.3rem;
+      font-weight: 500;
+      color: var(--forge-teal-light);
+      margin-bottom: 24px;
+    }
+
+    .hero .tagline {
+      font-size: 1.05rem;
+      color: #94a3b8;
+      max-width: 640px;
+      margin: 0 auto;
+      line-height: 1.8;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 32px;
+    }
+
+    .intro {
+      padding: 48px 0;
+      border-bottom: 1px solid var(--forge-border);
+    }
+
+    .intro h2 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: var(--forge-dark);
+    }
+
+    .intro p {
+      font-size: 1.05rem;
+      color: var(--forge-slate);
+      line-height: 1.8;
+    }
+
+    .intro .highlight {
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: var(--forge-teal);
+      margin-top: 16px;
+    }
+
+    section.features {
+      padding: 48px 0 16px;
+    }
+
+    section.features h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--forge-dark);
+      margin-bottom: 32px;
+      padding-bottom: 12px;
+      border-bottom: 3px solid var(--forge-teal);
+      display: inline-block;
+    }
+
+    .feature-group {
+      margin-bottom: 40px;
+    }
+
+    .feature-group h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--forge-dark);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .feature-group h3 .icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      background: var(--forge-teal-bg);
+      color: var(--forge-teal);
+      border-radius: 8px;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+    .feature-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .feature-list li {
+      padding: 10px 0 10px 20px;
+      position: relative;
+      color: var(--forge-slate);
+      font-size: 0.98rem;
+    }
+
+    .feature-list li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 18px;
+      width: 8px;
+      height: 8px;
+      background: var(--forge-teal);
+      border-radius: 50%;
+    }
+
+    .feature-list li strong {
+      color: var(--forge-dark);
+      font-weight: 600;
+    }
+
+    .notification-list {
+      list-style: none;
+      padding: 0 0 0 24px;
+      margin-top: 4px;
+    }
+
+    .notification-list li {
+      padding: 3px 0;
+      color: var(--forge-slate);
+      font-size: 0.95rem;
+    }
+
+    .notification-list li::before {
+      content: '›';
+      position: absolute;
+      left: 24px;
+      color: var(--forge-teal);
+      font-weight: 700;
+    }
+
+    .notification-list li {
+      padding-left: 20px;
+      position: relative;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--forge-border);
+      margin: 16px 0;
+    }
+
+    .booking-section {
+      background: var(--forge-surface);
+      border-radius: 12px;
+      padding: 32px;
+      margin: 32px 0;
+      border: 1px solid var(--forge-border);
+    }
+
+    .booking-section h2 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .booking-section .note {
+      font-size: 0.95rem;
+      color: var(--forge-slate-light);
+      margin-bottom: 16px;
+      font-style: italic;
+    }
+
+    .pricing-section {
+      padding: 48px 0;
+    }
+
+    .pricing-section h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .pricing-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 24px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--forge-border);
+    }
+
+    .pricing-table thead {
+      background: var(--forge-dark);
+      color: white;
+    }
+
+    .pricing-table th {
+      padding: 14px 20px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .pricing-table td {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--forge-border);
+      font-size: 0.95rem;
+      color: var(--forge-slate);
+    }
+
+    .pricing-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .pricing-table tr:nth-child(even) {
+      background: var(--forge-surface);
+    }
+
+    .pricing-table .price {
+      font-weight: 700;
+      color: var(--forge-teal);
+    }
+
+    .pricing-table .plan-name {
+      font-weight: 600;
+      color: var(--forge-dark);
+    }
+
+    .pricing-extras {
+      list-style: none;
+      padding: 0;
+    }
+
+    .pricing-extras li {
+      padding: 8px 0 8px 20px;
+      position: relative;
+      color: var(--forge-slate);
+      font-size: 0.95rem;
+    }
+
+    .pricing-extras li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: var(--forge-teal);
+      font-weight: 700;
+    }
+
+    .device-section {
+      background: var(--forge-surface);
+      border-radius: 12px;
+      padding: 32px;
+      margin: 32px 0;
+      border: 1px solid var(--forge-border);
+      text-align: center;
+    }
+
+    .device-section h2 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .device-section p {
+      color: var(--forge-slate);
+      font-size: 1rem;
+      max-width: 560px;
+      margin: 0 auto;
+    }
+
+    .coach-section {
+      padding: 48px 0;
+      border-top: 1px solid var(--forge-border);
+    }
+
+    .coach-section h2 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .coach-section p {
+      color: var(--forge-slate);
+      font-size: 1.02rem;
+      line-height: 1.8;
+      margin-bottom: 12px;
+    }
+
+    .cta {
+      background: linear-gradient(135deg, var(--forge-dark) 0%, #1e293b 100%);
+      color: white;
+      text-align: center;
+      padding: 48px 40px;
+    }
+
+    .cta p {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--forge-teal-light);
+      font-style: italic;
+    }
+
+    @media (max-width: 640px) {
+      .hero { padding: 48px 24px 40px; }
+      .hero h1 { font-size: 2rem; }
+      .hero .subtitle { font-size: 1.1rem; }
+      .container { padding: 0 20px; }
+      .pricing-table th, .pricing-table td { padding: 10px 12px; font-size: 0.85rem; }
+    }
+
+    @media print {
+      .hero { padding: 40px 20px 30px; }
+      .hero h1 { font-size: 2rem; }
+      body { font-size: 11pt; }
+      .feature-list li { padding: 6px 0 6px 18px; }
+      section.features { padding: 24px 0 8px; }
+      .feature-group { margin-bottom: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="hero">
+    <h1><span>FORGE</span></h1>
+    <div class="subtitle">Dein Training. Dein Fortschritt. Deine Rekorde.</div>
+    <p class="tagline">Die Forge Athlete App gibt dir alles, was du brauchst, um deine Workouts zu tracken, deinen Fortschritt zu messen und zu sehen, wie weit du gekommen bist — alles direkt auf deinem Handy.</p>
+  </header>
+
+  <div class="container">
+
+    <div class="intro">
+      <h2>Was ist die Forge Athlete App?</h2>
+      <p>Die Forge Athlete App ist der Trainingsbegleiter für Mitglieder von The Forge Functional Fitness. Sie ist direkt mit der Programmierung deines Coaches verbunden — du weißt immer, was dich erwartet, und hast alle Werkzeuge, um deine Ergebnisse zu loggen, deine persönlichen Rekorde zu verfolgen und deine Erfolge zu teilen.</p>
+      <p class="highlight">Keine vergessenen Scores mehr. Kein "Was hatte ich letztes Mal nochmal?" Einfach die App öffnen — deine gesamte Trainingshistorie ist da.</p>
+    </div>
+
+    <section class="features">
+      <h2>Was du bekommst</h2>
+
+      <div class="feature-group">
+        <h3><span class="icon">📋</span> Deine Workouts auf einen Blick</h3>
+        <ul class="feature-list">
+          <li><strong>Das heutige Workout, sofort verfügbar</strong> — sobald dein Coach das WOD veröffentlicht, erscheint es in deiner App, genau so formatiert wie auf dem Whiteboard</li>
+          <li><strong>Nach Kurstyp filtern</strong> — sieh nur die Workouts, die für dich relevant sind (WOD, Foundations, Kids & Teens)</li>
+          <li><strong>Coach Notes</strong> — lies den geplanten Stimulus und die Scaling-Empfehlungen, bevor du überhaupt in der Box bist</li>
+        </ul>
+      </div>
+
+      <div class="feature-group">
+        <h3><span class="icon">📝</span> Alles loggen</h3>
+        <ul class="feature-list">
+          <li><strong>Dein persönliches Logbook</strong> — nach jeder Session loggst du deine Ergebnisse: Zeit, Reps, Gewicht, Runden, Kalorien, Meter und Scaling-Level</li>
+          <li><strong>Abschnitt für Abschnitt</strong> — logge jeden Teil des Workouts separat (Kraft-Ergebnis, WOD-Ergebnis, Skills-Notizen), damit nichts verloren geht</li>
+          <li><strong>Coach-definierte Wertung</strong> — wenn dein Coach spezielle Metriken für ein Workout festlegt, erscheinen sie automatisch in deinem Log</li>
+          <li><strong>Whiteboard-Fotos</strong> — mach schnell ein Foto vom Whiteboard und häng es an den Tageseintrag an</li>
+          <li><strong>Trainingshistorie durchstöbern</strong> — sieh dein Logbook nach Tag, Woche oder Monat. Scrolle durch Wochen und Monate zurück, um deine Konstanz zu sehen</li>
+        </ul>
+      </div>
+
+      <div class="feature-group">
+        <h3><span class="icon">🏅</span> Benchmarks tracken</h3>
+        <ul class="feature-list">
+          <li><strong>16 Standard-CrossFit-Benchmarks</strong> — Fran, Grace, Murph, Filthy Fifty und mehr. Logge dein Ergebnis bei jedem Test und beobachte deinen Fortschritt im Diagramm über die Zeit</li>
+          <li><strong>Forge Benchmarks</strong> — die eigenen Signature-Workouts deiner Box, genauso getrackt wie die Klassiker. Das sind die Workouts, die eure Community ausmachen</li>
+          <li><strong>Scaling-Levels</strong> — logge, ob du RX oder Scaled gegangen bist, damit dein Fortschrittsdiagramm die ganze Geschichte erzählt</li>
+        </ul>
+      </div>
+
+      <div class="feature-group">
+        <h3><span class="icon">🏋️</span> Lifts tracken</h3>
+        <ul class="feature-list">
+          <li><strong>Alle wichtigen Langhantel-Übungen</strong> — Back Squat, Front Squat, Deadlift, Bench Press, Overhead Press, Snatch, Clean & Jerk und mehr</li>
+          <li><strong>Verschiedene Rep-Schemes</strong> — tracke dein 1RM, 3RM, 5RM und 10RM separat für jeden Lift</li>
+          <li><strong>Automatischer 1RM-Rechner</strong> — gib ein beliebiges Gewicht und eine Wiederholungszahl ein, und die App schätzt dein One-Rep-Max. Praktisch, wenn du einen schweren Dreier geschafft hast und wissen willst, wo dein 1RM liegt</li>
+          <li><strong>PR-Erkennung</strong> — die App erkennt automatisch, wenn du einen neuen persönlichen Rekord aufgestellt hast, und hebt ihn hervor</li>
+        </ul>
+      </div>
+
+      <div class="feature-group">
+        <h3><span class="icon">🏆</span> Deine persönlichen Rekorde</h3>
+        <ul class="feature-list">
+          <li><strong>Rekorde-Galerie</strong> — alle deine PRs aus Benchmarks und Lifts, übersichtlich an einem Ort</li>
+          <li><strong>Teilbare Karten</strong> — erstelle ein gebrandetes Bild deines PRs mit deinem Foto, den Workout-Details und dem Gym-Logo. Perfekt zum Posten auf Instagram, WhatsApp oder in den Gruppenchat der Box</li>
+          <li><strong>Deinen Weg verfolgen</strong> — sieh auf einen Blick, wie viel du dich seit dem Start verbessert hast</li>
+        </ul>
+      </div>
+
+      <div class="feature-group">
+        <h3><span class="icon">👊</span> Community & Wettbewerb</h3>
+        <ul class="feature-list">
+          <li><strong>Workout-Leaderboards</strong> — nach jedem WOD siehst du, wie dein Ergebnis im Vergleich zu den anderen Athleten der Box abschneidet. Sortiert nach Zeit, Reps oder Gewicht, je nach Workout</li>
+          <li><strong>Fist Bumps</strong> — tippe, um jedem Athleten Anerkennung für sein geloggtes Ergebnis zu geben. Eine einfache Art, Einsatz zu würdigen, PRs zu feiern und die Community zu stärken</li>
+          <li><strong>Faires Ranking</strong> — Scaling-Levels werden getrennt, Gleichstände korrekt aufgelöst, und das Leaderboard spiegelt echte Leistung wider</li>
+        </ul>
+      </div>
+
+      <div class="feature-group">
+        <h3><span class="icon">⭐</span> Achievements</h3>
+        <ul class="feature-list">
+          <li><strong>Badges verdienen</strong> — dein Coach definiert Achievements in Kategorien wie Kraft, Gymnastics, Ausdauer und Konstanz, mit Stufen von Bronze bis Gold</li>
+          <li><strong>Selbst einfordern</strong> — einen Meilenstein erreicht? Fordere das Achievement selbst an, und dein Coach bestätigt es</li>
+          <li><strong>Sammlung aufbauen</strong> — deine verdienten Badges erscheinen auf deinem Profil für alle sichtbar</li>
+        </ul>
+      </div>
+
+      <div class="feature-group">
+        <h3><span class="icon">⏱️</span> Workout-Timer</h3>
+        <ul class="feature-list">
+          <li><strong>5 integrierte Timer-Modi</strong> — AMRAP, EMOM, Tabata, For Time und Intervall</li>
+          <li><strong>Vollbildmodus</strong> — stell dein Handy hin und nutze es als persönlichen Timer während des Workouts</li>
+          <li><strong>Keine extra App nötig</strong> — der Timer ist direkt eingebaut und sofort einsatzbereit</li>
+        </ul>
+      </div>
+
+      <div class="feature-group">
+        <h3><span class="icon">🎬</span> Übungs-Videothek</h3>
+        <ul class="feature-list">
+          <li><strong>Technik-Referenz immer griffbereit</strong> — Übungen in der Bibliothek enthalten Videolinks, damit du vor oder während der Session die korrekte Ausführung überprüfen kannst</li>
+        </ul>
+      </div>
+
+      <div class="feature-group">
+        <h3><span class="icon">🔔</span> Benachrichtigungen</h3>
+        <ul class="feature-list">
+          <li><strong>Immer auf dem Laufenden</strong> — erhalte Push-Benachrichtigungen, wenn:</li>
+        </ul>
+        <ul class="notification-list">
+          <li>Ein neues Workout veröffentlicht wird</li>
+          <li>Du einen neuen persönlichen Rekord aufstellst</li>
+          <li>Jemand dir einen Fist Bump gibt</li>
+          <li>Du ein Achievement erhältst</li>
+        </ul>
+        <ul class="feature-list">
+          <li><strong>Du bestimmst</strong> — wähle genau, welche Benachrichtigungen du möchtest. Schalte ab, was du nicht brauchst</li>
+        </ul>
+      </div>
+
+      <div class="feature-group">
+        <h3><span class="icon">👨‍👩‍👧‍👦</span> Familien-Accounts</h3>
+        <ul class="feature-list">
+          <li><strong>Ein Login für die ganze Familie</strong> — wenn dein Partner oder deine Kinder auch in The Forge trainieren, sind sie unter deinem Account verknüpft</li>
+          <li><strong>Eigene Profile</strong> — jedes Familienmitglied hat sein eigenes Logbook, eigene Benchmarks, Lifts und Rekorde</li>
+          <li><strong>Einfach wechseln</strong> — mit einem Tipp oben im Bildschirm zwischen Profilen umschalten</li>
+          <li><strong>Für die Kids buchen</strong> — Eltern können Kursbuchungen für die ganze Familie verwalten</li>
+        </ul>
+      </div>
+    </section>
+
+    <div class="booking-section">
+      <h2>Kursbuchung</h2>
+      <p class="note">Auch ohne kostenpflichtiges Abo können alle Mitglieder:</p>
+      <ul class="feature-list">
+        <li><strong>Den Wochenplan einsehen</strong> — jede Klasse mit Uhrzeit, Typ und verfügbaren Plätzen</li>
+        <li><strong>Deinen Platz buchen</strong> — reserviere deinen Platz in einer Klasse oder tritt der Warteliste bei, wenn sie voll ist</li>
+        <li><strong>Einfach stornieren</strong> — Pläne ändern sich. Storniere deine Buchung mit einem Tipp</li>
+        <li><strong>Für die Familie buchen</strong> — reserviere gleichzeitig Plätze für deinen Partner oder deine Kinder</li>
+      </ul>
+    </div>
+
+    <section class="pricing-section">
+      <h2>Preise</h2>
+      <table class="pricing-table">
+        <thead>
+          <tr>
+            <th>Abo</th>
+            <th>Preis</th>
+            <th>Was enthalten ist</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="plan-name">Kostenlos</td>
+            <td class="price">€0</td>
+            <td>Kursbuchung für alle aktiven Mitglieder</td>
+          </tr>
+          <tr>
+            <td class="plan-name">Monatlich</td>
+            <td class="price">€7,50/Monat</td>
+            <td>Volle Athlete App: Logbook, Benchmarks, Lifts, Rekorde, Leaderboards, Achievements, Timer, Benachrichtigungen</td>
+          </tr>
+          <tr>
+            <td class="plan-name">Jährlich</td>
+            <td class="price">€75/Jahr</td>
+            <td>Alles aus dem Monatsabo — spare €15 im Jahr</td>
+          </tr>
+        </tbody>
+      </table>
+      <ul class="pricing-extras">
+        <li><strong>1 Monat kostenlos testen</strong> — probiere die volle Athlete App 30 Tage gratis, ohne Verpflichtung</li>
+        <li><strong>Sichere Zahlungen</strong> — verwaltet über Stripe. Karte aktualisieren, Rechnungen einsehen oder jederzeit aus der App heraus kündigen</li>
+        <li><strong>10er-Karte</strong> — €150 für 10 Drop-in-Sessions (separat erhältlich für unregelmäßige Besucher)</li>
+      </ul>
+    </section>
+
+    <div class="device-section">
+      <h2>Funktioniert auf jedem Gerät</h2>
+      <p>Forge ist eine Web-App — sie funktioniert im Browser deines Handys, auf dem Tablet oder am Laptop. Es muss nichts aus dem App Store oder Google Play heruntergeladen werden. Einfach den Link öffnen, einloggen, fertig.</p>
+    </div>
+
+    <section class="coach-section">
+      <h2>Von deinem Coach entwickelt</h2>
+      <p>Forge wurde nicht von einem Tech-Unternehmen gebaut. Es wurde von einem erfahrenen CrossFit-Coach entworfen, der es satt hatte, mit Tabellen, Whiteboards und zusammenhanglosen Apps zu jonglieren. Jede Funktion existiert, weil sie ein echtes Problem löst — vom Tracking, wann du zuletzt einen Benchmark getestet hast, bis hin zur Sicherheit, dass dein PR nicht in einem Notizbuch verloren geht, das du zu Hause vergessen hast.</p>
+      <p>Deine Trainingsdaten verdienen etwas Besseres als einen verwischten Whiteboard-Score. Forge bewahrt alles auf — organisiert, durchsuchbar und immer bei dir.</p>
+    </section>
+
+  </div>
+
+  <footer class="cta">
+    <p>Starte heute deine kostenlose Testphase und sieh, was du verpasst hast.</p>
+  </footer>
+
+</body>
+</html>
