@@ -11,7 +11,7 @@ interface MovementTrackingPanelProps {
   globalLastProgrammed: GlobalLastProgrammedData;
   loading: boolean;
   selectedMembers: string[];
-  members: Array<{ id: string; name: string; booking_count: number }>;
+  members: Array<{ id: string; name: string; booking_count: number; date_of_birth: string | null }>;
 }
 
 export default function MovementTrackingPanel({
@@ -24,14 +24,6 @@ export default function MovementTrackingPanel({
   members,
 }: MovementTrackingPanelProps) {
   const selectedMembersList = members.filter(m => selectedMembers.includes(m.id));
-
-  if (selectedMembers.length === 0) {
-    return (
-      <div className='flex items-center justify-center h-full text-gray-400 text-sm p-4 text-center'>
-        Select athletes from the sidebar to see movement tracking
-      </div>
-    );
-  }
 
   if (loading) {
     return (

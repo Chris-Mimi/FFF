@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 53.0
-**Updated:** 2026-03-03 (Session 172 - Supabase tracked exercises, global last-programmed, debug)
+**Version:** 54.0
+**Updated:** 2026-03-04 (Session 173 - Search panel UX, workout dedup, scalability indexes)
 
 ---
 
@@ -85,24 +85,22 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-04 Session 173 - Opus 4.6) — SEARCH PANEL UX, WORKOUT DEDUP, SCALABILITY:**
+- **✅ Athletes selected-to-top** — Selected athletes sort to top of filter list for easy deselection
+- **✅ Kids filter section** — Members under 16 (by date_of_birth) split into separate "Kids" section, removed from main Athletes list
+- **✅ Custom Movements alphabetical** — Tracked exercises auto-sort alphabetically on add and on load
+- **✅ Workout deduplication** — Same workout_name within 2-week window counts as 1 unique result (fixes 19→7 for repeated workouts). Applied across search results, movement counts, and Analysis page.
+- **✅ Unique/All toggle** — Button next to Results count to switch between unique workouts and all sessions
+- **✅ Movement Tracking without athletes** — Panel now shows global last-programmed dates even with no athletes selected. `computeGlobal()` separated from per-athlete tracking.
+- **✅ Performance indexes migration** — Created `20260304000000_add_performance_indexes.sql` with 7 indexes on bookings, wods, weekly_sessions tables
+
 **Completed (2026-03-03 Session 172 - Opus 4.6) — SUPABASE TRACKED EXERCISES, GLOBAL LAST-PROGRAMMED, DEBUG:**
 - **✅ Tracked exercises → Supabase** — Migrated from localStorage to `coach_tracked_exercises` table (CRUD with optimistic updates)
 - **✅ Global "last programmed" row** — Amber row in Movement Tracking Panel showing DD.MM date each movement last appeared
-- **✅ Sidebar width** — SearchPanel left sidebar widened 200px → 240px
-- **✅ Debug: exercise search** — Investigated exercise not appearing in Workouts search; root cause was active member filter narrowing results (user error, not code bug)
-
-**Completed (2026-03-03 Session 171 - Opus 4.6) — MEMORY BANK UPDATE (from Session 170 handoff):**
-- Committed session 170 changes (4 files, 154 insertions)
+- **✅ Debug: exercise search** — Root cause was active member filter narrowing results (user error, not code bug)
 
 **Completed (2026-03-02 Session 170 - Opus 4.6) — SEARCH PANEL POLISH, WORKOUT VALIDATION, MOVEMENT TOGGLE:**
-- **✅ Track name moved** — Track type now appended to Session Type line (with " — "), not workout name
-- **✅ Font hierarchy fixed** — Workout name always larger than session type + track across card, hover, detail views
-- **✅ Workout name required** — Validation added, "(Optional)" removed, red error styling on save
-- **✅ Orphan wod guard** — New wods that fail to link to a session are auto-deleted with error toast
-- **✅ Health check updated** — Added `published_wods_no_name` to monthly orphan query
-- **✅ 5 orphan wods deleted** — Published wods with null names and no session links
-- **✅ Movement active/inactive toggle** — Click to toggle, dimmed+strikethrough when inactive, X to remove permanently, "clear" deactivates all
-- **✅ Last performed date row** — Each athlete row followed by "last" row showing DD.MM date per movement
+- **✅ Track name, font hierarchy, workout name required, orphan guard, movement toggle, last performed dates**
 
 **Completed (2026-03-01 Session 169 - Opus 4.6) — MOVEMENT TRACKING TESTING & POLISH:**
 - **✅ Tested & polished** — Fixed search limit, 3-char column codes, layout split, athlete persistence, lift name matching
@@ -110,7 +108,7 @@ Social Tables
 **Completed (2026-03-01 Session 168 - Opus 4.6) — CUSTOM MOVEMENT TRACKING PANEL:**
 - **✅ Built** — Custom Movements sidebar section + tracking panel + persistence + data hook
 
-**Older Sessions (57-167):**
+**Older Sessions (57-171):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -151,6 +149,7 @@ See `project-history/` folder for detailed implementation history
 - ✅ `get_public_tables()` RPC — confirmed working
 - ✅ `coach_cancelled` booking status — confirmed applied (Session 158)
 - ✅ `is_beta_tester` column — applied (Session 158)
+- ⏳ `20260304000000_add_performance_indexes.sql` — 7 indexes on bookings/wods/weekly_sessions (Session 173, apply when Supabase is accessible)
 
 ---
 

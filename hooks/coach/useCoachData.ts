@@ -36,7 +36,7 @@ export const useCoachData = ({
   const [movements, setMovements] = useState<Map<string, number>>(new Map());
   const [exerciseNames, setExerciseNames] = useState<Set<string>>(new Set());
   const [exerciseList, setExerciseList] = useState<Array<{ id: string; name: string; display_name: string | null; category: string }>>([]);
-  const [members, setMembers] = useState<Array<{ id: string; name: string; booking_count: number }>>([]);
+  const [members, setMembers] = useState<Array<{ id: string; name: string; booking_count: number; date_of_birth: string | null }>>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchWODs = async () => {
@@ -369,7 +369,7 @@ export const useCoachData = ({
     try {
       const { data: membersData, error: membersError } = await supabase
         .from('members')
-        .select('id, name')
+        .select('id, name, date_of_birth')
         .eq('status', 'active')
         .order('name', { ascending: true });
 
@@ -404,6 +404,7 @@ export const useCoachData = ({
           id: m.id,
           name: m.name,
           booking_count: memberCounts[m.id] || 0,
+          date_of_birth: m.date_of_birth,
         }))
       );
     } catch (error) {

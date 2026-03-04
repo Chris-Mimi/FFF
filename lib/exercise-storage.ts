@@ -191,6 +191,7 @@ export function useTrackedExercises() {
       category: row.exercises.category,
       active: row.active,
     }));
+    exercises.sort((a, b) => (a.display_name || a.name).localeCompare(b.display_name || b.name));
     setTrackedExercises(exercises);
   }, []);
 
@@ -202,7 +203,9 @@ export function useTrackedExercises() {
     // Optimistic update
     setTrackedExercises(prev => {
       if (prev.some(ex => ex.id === exercise.id)) return prev;
-      return [...prev, { ...exercise, active: true }];
+      const next = [...prev, { ...exercise, active: true }];
+      next.sort((a, b) => (a.display_name || a.name).localeCompare(b.display_name || b.name));
+      return next;
     });
 
     const { data: { user } } = await supabase.auth.getUser();

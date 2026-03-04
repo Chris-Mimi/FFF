@@ -53,7 +53,7 @@ interface SearchPanelProps {
   trackCounts: Record<string, number>;
   workoutTypeCounts: Record<string, number>;
   sessionTypeCounts: Record<string, number>;
-  members: Array<{ id: string; name: string; booking_count: number }>;
+  members: Array<{ id: string; name: string; booking_count: number; date_of_birth: string | null }>;
   exerciseList: Array<{ id: string; name: string; display_name: string | null; category: string }>;
   selectedMembers: string[];
   onSelectedMembersChange: (members: string[]) => void;
@@ -118,6 +118,7 @@ export default function SearchPanel({
 }: SearchPanelProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMaximized, setIsMaximized] = useState(true);
+  const [showUnique, setShowUnique] = useState(true);
   const [exerciseSearch, setExerciseSearch] = useState('');
   const [exerciseDropdownOpen, setExerciseDropdownOpen] = useState(false);
   const exerciseSearchRef = useRef<HTMLDivElement>(null);
@@ -152,6 +153,51 @@ export default function SearchPanel({
     trackedExercises: activeTrackedExercises,
     exerciseNames: exerciseNamesSet,
   });
+
+  // Split members into kids (<16) and adults, with selected members sorted to top
+  const { adultMembers, kidMembers } = useMemo(() => {
+    const now = new Date();
+    const kids: typeof members = [];
+    const adults: typeof members = [];
+    for (const m of members) {
+      if (m.date_of_birth) {
+        const dob = new Date(m.date_of_birth);
+        const age = now.getFullYear() - dob.getFullYear() - (now < new Date(now.getFullYear(), dob.getMonth(), dob.getDate()) ? 1 : 0);
+        if (age < 16) { kids.push(m); continue; }
+      }
+      adults.push(m);
+    }
+    const sortSelected = (list: typeof members) => {
+      const sel = list.filter(m => selectedMembers.includes(m.id));
+      const unsel = list.filter(m => !selectedMembers.includes(m.id));
+      return [...sel, ...unsel];
+    };
+    return { adultMembers: sortSelected(adults), kidMembers: sortSelected(kids) };
+  }, [members, selectedMembers]);
+
+  // Deduplicate search results by workout_name + bi-weekly window
+  const uniqueSearchResults = useMemo(() => {
+    const seen = new Map<string, WODFormData>();
+    searchResults.forEach(wod => {
+      let key: string;
+      if (wod.workout_name && wod.workout_week) {
+        const match = wod.workout_week.match(/^(\d{4})-W(\d{2})$/);
+        if (match) {
+          const week = parseInt(match[2], 10);
+          const biWeek = week % 2 === 0 ? week : week - 1;
+          key = `${wod.workout_name}_${match[1]}-W${String(biWeek).padStart(2, '0')}`;
+        } else {
+          key = `${wod.workout_name}_${wod.workout_week}`;
+        }
+      } else {
+        key = `${wod.id || wod.date}_${wod.time || ''}`;
+      }
+      if (!seen.has(key)) seen.set(key, wod);
+    });
+    return Array.from(seen.values());
+  }, [searchResults]);
+
+  const displayedResults = showUnique ? uniqueSearchResults : searchResults;
 
   // Close exercise dropdown on outside click
   useEffect(() => {
@@ -454,7 +500,7 @@ export default function SearchPanel({
               )}
             </summary>
             <div className='px-2 py-2 space-y-1'>
-              {members.map(member => (
+              {adultMembers.map(member => (
                 <button
                   key={member.id}
                   onClick={() => {
@@ -478,11 +524,59 @@ export default function SearchPanel({
                   </span>
                 </button>
               ))}
-              {members.length === 0 && (
+              {adultMembers.length === 0 && (
                 <p className='text-xs text-gray-500 px-2 py-1'>No members found</p>
               )}
             </div>
           </details>
+
+          {/* Kids Section (<16) */}
+          {kidMembers.length > 0 && (
+            <details className='border-b'>
+              <summary className='px-3 py-2 font-semibold text-sm text-gray-900 cursor-pointer hover:bg-gray-100 flex items-center justify-between'>
+                <span>Kids{kidMembers.some(m => selectedMembers.includes(m.id)) && <span className='ml-1 text-xs text-gray-500'>({kidMembers.filter(m => selectedMembers.includes(m.id)).length})</span>}</span>
+                {kidMembers.some(m => selectedMembers.includes(m.id)) && (
+                  <button
+                    onClick={e => {
+                      e.preventDefault();
+                      const kidIds = new Set(kidMembers.map(m => m.id));
+                      onSelectedMembersChange(selectedMembers.filter(id => !kidIds.has(id)));
+                    }}
+                    className='text-[10px] text-gray-400 hover:text-red-500 px-1'
+                    title='Clear kids'
+                  >
+                    clear
+                  </button>
+                )}
+              </summary>
+              <div className='px-2 py-2 space-y-1'>
+                {kidMembers.map(member => (
+                  <button
+                    key={member.id}
+                    onClick={() => {
+                      onSelectedMembersChange(
+                        selectedMembers.includes(member.id)
+                          ? selectedMembers.filter(m => m !== member.id)
+                          : [...selectedMembers, member.id]
+                      );
+                    }}
+                    className={`w-full text-left px-2 py-1 rounded text-xs flex justify-between items-center transition ${
+                      selectedMembers.includes(member.id)
+                        ? 'bg-[#178da6] text-white'
+                        : 'hover:bg-gray-200 text-gray-900'
+                    }`}
+                  >
+                    <span className='truncate'>{member.name}</span>
+                    <span
+                      className={`text-xs ml-1 ${selectedMembers.includes(member.id) ? 'opacity-75' : 'text-gray-500'}`}
+                    >
+                      {member.booking_count}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </details>
+          )}
 
           {/* Custom Movements Section */}
           <details className='border-b'>
@@ -872,11 +966,24 @@ export default function SearchPanel({
               selectedSessionTypes.length > 0 ||
               selectedMembers.length > 0) && (
               <div className='flex-1 overflow-y-auto overscroll-contain p-2 sm:p-3 pr-5 sm:pr-8'>
-                <h3 className='font-semibold text-sm sm:text-base text-gray-900 mb-2 sm:mb-3'>
-                  Results ({searchResults.length})
-                </h3>
+                <div className='flex items-center gap-2 mb-2 sm:mb-3'>
+                  <h3 className='font-semibold text-sm sm:text-base text-gray-900'>
+                    Results ({displayedResults.length})
+                  </h3>
+                  <button
+                    onClick={() => setShowUnique(prev => !prev)}
+                    className={`text-[10px] px-1.5 py-0.5 rounded border transition ${
+                      showUnique
+                        ? 'bg-[#178da6] text-white border-[#178da6]'
+                        : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400'
+                    }`}
+                    title={showUnique ? 'Showing unique workouts (by name). Click for all sessions.' : 'Showing all sessions. Click for unique workouts.'}
+                  >
+                    {showUnique ? 'Unique' : 'All'}
+                  </button>
+                </div>
                 <div className='space-y-2 sm:space-y-3 relative'>
-                  {searchResults.map(wod => {
+                  {displayedResults.map(wod => {
                     // Helper to generate preview text from structured data
                     const getPreviewText = (section: WODSection): string => {
                       const parts: string[] = [];
@@ -1010,7 +1117,7 @@ export default function SearchPanel({
                       </div>
                     );
                   })}
-                  {searchResults.length === 0 && (
+                  {displayedResults.length === 0 && (
                     <p className='text-xs sm:text-sm text-gray-500'>No results found</p>
                   )}
                 </div>

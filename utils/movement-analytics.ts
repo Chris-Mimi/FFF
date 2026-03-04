@@ -102,11 +102,22 @@ async function fetchPublishedWorkouts(filter?: DateRangeFilter, label = 'workout
     })) || [];
 }
 
-/** Create unique workout identifier: workout_name+workout_week if available, else date */
+/** Create unique workout identifier: workout_name + bi-weekly period if available, else date.
+ *  Same workout_name within a 2-week window counts as one occurrence. */
 function getWorkoutKey(workout: PublishedWorkout): string {
-  return workout.workout_name && workout.workout_week
-    ? `${workout.workout_name}_${workout.workout_week}`
-    : workout.date;
+  if (workout.workout_name && workout.workout_week) {
+    // workout_week is ISO format "YYYY-Www" e.g. "2026-W10"
+    const match = workout.workout_week.match(/^(\d{4})-W(\d{2})$/);
+    if (match) {
+      const year = match[1];
+      const week = parseInt(match[2], 10);
+      // Round down to nearest even week to create 2-week windows: W10+W11→W10, W12+W13→W12
+      const biWeek = week % 2 === 0 ? week : week - 1;
+      return `${workout.workout_name}_${year}-W${String(biWeek).padStart(2, '0')}`;
+    }
+    return `${workout.workout_name}_${workout.workout_week}`;
+  }
+  return workout.date;
 }
 
 // ============================================

@@ -37,9 +37,85 @@ export function useMovementTracking({
   const wodMovementCache = useRef<Map<string, Set<string>>>(new Map());
   const debounceRef = useRef<NodeJS.Timeout>(undefined);
 
+  // Helper: extract movements per wod (memoized)
+  const getWodMovements = useCallback((wodId: string, wod: WODFormData): Set<string> => {
+    if (wodMovementCache.current.has(wodId)) {
+      return wodMovementCache.current.get(wodId)!;
+    }
+    const knownNames = exerciseNames.size > 0 ? exerciseNames : undefined;
+    const movs = extractMovementsFromWod(wod, knownNames);
+    wodMovementCache.current.set(wodId, movs);
+    return movs;
+  }, [exerciseNames]);
+
+  // Compute global last-programmed dates (independent of athlete selection)
+  const computeGlobal = useCallback(async () => {
+    if (trackedExercises.length === 0) {
+      setGlobalLastProgrammed({});
+      return;
+    }
+
+    const trackedNames = trackedExercises.map(e => e.display_name || e.name);
+
+    // Fetch ALL published wods
+    const { data: sessions, error } = await supabase
+      .from('weekly_sessions')
+      .select(`
+        id,
+        date,
+        wods!inner (
+          id,
+          title,
+          sections,
+          workout_publish_status
+        )
+      `)
+      .eq('wods.workout_publish_status', 'published');
+
+    if (error) {
+      console.error('Error fetching global wods:', error);
+      return;
+    }
+
+    const globalDates: GlobalLastProgrammedData = {};
+    trackedNames.forEach(name => { globalDates[name] = null; });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    sessions?.forEach((s: any) => {
+      const wod = s.wods;
+      if (!wod) return;
+      const wodData: WODFormData = {
+        id: wod.id,
+        title: wod.title,
+        date: s.date,
+        sections: wod.sections || [],
+        classTimes: [],
+        maxCapacity: 0,
+      };
+      const wodMovs = getWodMovements(wod.id, wodData);
+      const wodMovsLower = new Set(Array.from(wodMovs).map(m => m.toLowerCase()));
+      trackedNames.forEach(name => {
+        if (wodMovsLower.has(name.toLowerCase())) {
+          if (!globalDates[name] || s.date > globalDates[name]!) {
+            globalDates[name] = s.date;
+          }
+        }
+      });
+    });
+
+    setGlobalLastProgrammed(globalDates);
+  }, [trackedExercises, getWodMovements]);
+
   const computeTracking = useCallback(async () => {
-    if (selectedMembers.length === 0 || trackedExercises.length === 0) {
+    if (trackedExercises.length === 0) {
       setTrackingData({});
+      setLastPerformedData({});
+      return;
+    }
+
+    if (selectedMembers.length === 0) {
+      setTrackingData({});
+      setLastPerformedData({});
       return;
     }
 
@@ -55,6 +131,7 @@ export function useMovementTracking({
       if (bErr) throw bErr;
       if (!bookings || bookings.length === 0) {
         setTrackingData({});
+        setLastPerformedData({});
         setLoading(false);
         return;
       }
@@ -70,7 +147,6 @@ export function useMovementTracking({
 
       // Step 2: Fetch wods for those sessions (only published)
       const sessionIdArr = [...allSessionIds];
-      // Supabase IN has a limit, batch if needed
       const batchSize = 200;
       const allWodsBySession: Record<string, WODFormData> = {};
 
@@ -93,6 +169,7 @@ export function useMovementTracking({
 
         if (sErr) throw sErr;
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         sessions?.forEach((s: any) => {
           const wod = s.wods;
           if (wod) {
@@ -108,18 +185,7 @@ export function useMovementTracking({
         });
       }
 
-      // Step 3: Extract movements per wod (memoized)
-      const getWodMovements = (wodId: string, wod: WODFormData): Set<string> => {
-        if (wodMovementCache.current.has(wodId)) {
-          return wodMovementCache.current.get(wodId)!;
-        }
-        const knownNames = exerciseNames.size > 0 ? exerciseNames : undefined;
-        const movs = extractMovementsFromWod(wod, knownNames);
-        wodMovementCache.current.set(wodId, movs);
-        return movs;
-      };
-
-      // Step 4: Cross-reference per athlete (case-insensitive)
+      // Step 3: Cross-reference per athlete (case-insensitive)
       const trackedNames = trackedExercises.map(e => e.display_name || e.name);
       const result: TrackingData = {};
       const lastDates: LastPerformedData = {};
@@ -151,35 +217,21 @@ export function useMovementTracking({
         lastDates[memberId] = dates;
       }
 
-      // Step 5: Compute global last-programmed date per movement (across ALL published wods)
-      const globalDates: GlobalLastProgrammedData = {};
-      trackedNames.forEach(name => { globalDates[name] = null; });
-
-      // Use all wods we already fetched (covers all selected athletes' sessions)
-      Object.values(allWodsBySession).forEach(wod => {
-        const wodMovs = getWodMovements(wod.id!, wod);
-        const wodMovsLower = new Set(Array.from(wodMovs).map(m => m.toLowerCase()));
-        trackedNames.forEach(name => {
-          if (wodMovsLower.has(name.toLowerCase())) {
-            const wodDate = wod.date;
-            if (wodDate && (!globalDates[name] || wodDate > globalDates[name]!)) {
-              globalDates[name] = wodDate;
-            }
-          }
-        });
-      });
-
       setTrackingData(result);
       setLastPerformedData(lastDates);
-      setGlobalLastProgrammed(globalDates);
     } catch (error) {
       console.error('Error computing movement tracking:', error);
     } finally {
       setLoading(false);
     }
-  }, [selectedMembers, trackedExercises, exerciseNames]);
+  }, [selectedMembers, trackedExercises, getWodMovements]);
 
-  // Debounced trigger
+  // Compute global last-programmed (runs whenever tracked exercises change, independent of athletes)
+  useEffect(() => {
+    computeGlobal();
+  }, [computeGlobal]);
+
+  // Debounced trigger for per-athlete tracking
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(computeTracking, 500);

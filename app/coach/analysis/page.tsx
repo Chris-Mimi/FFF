@@ -304,12 +304,22 @@ export default function AnalysisPage() {
     // Count total workout sessions (all published workouts)
     const totalWorkouts = wods.length;
 
-    // Deduplicate workouts by workout_name + workout_week (same logic as movement analytics)
+    // Deduplicate workouts by workout_name + bi-weekly window (same logic as movement analytics)
     const uniqueWorkouts = new Map<string, WOD>();
     wods.forEach(wod => {
-      const workoutKey = wod.workout_name && wod.workout_week
-        ? `${wod.workout_name}_${wod.workout_week}`
-        : wod.date;
+      let workoutKey: string;
+      if (wod.workout_name && wod.workout_week) {
+        const match = wod.workout_week.match(/^(\d{4})-W(\d{2})$/);
+        if (match) {
+          const week = parseInt(match[2], 10);
+          const biWeek = week % 2 === 0 ? week : week - 1;
+          workoutKey = `${wod.workout_name}_${match[1]}-W${String(biWeek).padStart(2, '0')}`;
+        } else {
+          workoutKey = `${wod.workout_name}_${wod.workout_week}`;
+        }
+      } else {
+        workoutKey = wod.date;
+      }
 
       // Only keep the first occurrence of each unique workout
       if (!uniqueWorkouts.has(workoutKey)) {

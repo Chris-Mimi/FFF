@@ -382,13 +382,38 @@ export const extractMovementsFromWod = (wod: WODFormData, knownExerciseNames?: S
  */
 export const extractMovements = (wods: WODFormData[], knownExerciseNames?: Set<string>): Map<string, number> => {
   const movementCounts = new Map<string, number>();
+  // Track which movements have been counted for each unique workout (dedup by name + 2-week window)
+  const countedMovements = new Map<string, Set<string>>();
 
   wods.forEach(wod => {
+    // Build dedup key: workout_name + bi-weekly period, or fallback to date
+    let workoutKey: string;
+    if (wod.workout_name && wod.workout_week) {
+      const match = wod.workout_week.match(/^(\d{4})-W(\d{2})$/);
+      if (match) {
+        const week = parseInt(match[2], 10);
+        const biWeek = week % 2 === 0 ? week : week - 1;
+        workoutKey = `${wod.workout_name}_${match[1]}-W${String(biWeek).padStart(2, '0')}`;
+      } else {
+        workoutKey = `${wod.workout_name}_${wod.workout_week}`;
+      }
+    } else {
+      workoutKey = wod.date;
+    }
+
     const movementsInThisWod = extractMovementsFromWod(wod, knownExerciseNames);
 
-    // Increment count once per workout
+    // Only count each movement once per unique workout
     movementsInThisWod.forEach(movement => {
+      const alreadyCounted = countedMovements.get(workoutKey);
+      if (alreadyCounted?.has(movement)) return;
+
       movementCounts.set(movement, (movementCounts.get(movement) || 0) + 1);
+      if (!alreadyCounted) {
+        countedMovements.set(workoutKey, new Set([movement]));
+      } else {
+        alreadyCounted.add(movement);
+      }
     });
   });
 
