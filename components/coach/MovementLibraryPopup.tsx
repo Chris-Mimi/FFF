@@ -926,11 +926,11 @@ function MovementLibraryPopup({
                                   e.stopPropagation();
                                   toggleFavorite(exercise.id);
                                 }}
-                                className='absolute right-0.5 top-0.5 opacity-100 hover:scale-110 transition'
+                                className='absolute right-0.5 top-0 px-0.5 py-0.5 opacity-0 group-hover:opacity-100 hover:bg-red-100 rounded transition'
                                 title='Remove from favorites'
                                 aria-label='Remove from favorites'
                               >
-                                <Star size={12} className='text-amber-500 fill-amber-500' />
+                                <X size={12} className='text-red-400 hover:text-red-600' />
                               </button>
                             </div>
                           ))}

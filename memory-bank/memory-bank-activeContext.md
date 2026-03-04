@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 55.0
-**Updated:** 2026-03-04 (Session 175 - Publish time fix, z-order panels)
+**Version:** 56.0
+**Updated:** 2026-03-04 (Session 176 - Favorites remove button UX)
 
 ---
 
@@ -85,6 +85,9 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-04 Session 176 - Opus 4.6) — FAVORITES REMOVE BUTTON UX:**
+- **✅ Favorites remove button** — Replaced tiny amber star with red X button (hover-to-reveal) for clear "remove from favorites" affordance
+
 **Completed (2026-03-04 Session 175 - Opus 4.6) — PUBLISH TIME FIX, Z-ORDER PANELS:**
 - **✅ Publish time bug fix** — Changing time inline then publishing now reflects updated time (was using stale prop instead of hook state)
 - **✅ Z-order bring-to-front** — Exercise Library and Coach Notes panels support click-to-bring-to-front (z-index toggle)
@@ -96,13 +99,7 @@ Social Tables
 **Completed (2026-03-04 Session 173 - Opus 4.6) — SEARCH PANEL UX, WORKOUT DEDUP, SCALABILITY:**
 - **✅ Athletes selected-to-top, Kids filter, alphabetical movements, workout dedup, unique/all toggle, global movement tracking, performance indexes**
 
-**Completed (2026-03-03 Session 172 - Opus 4.6) — SUPABASE TRACKED EXERCISES, GLOBAL LAST-PROGRAMMED, DEBUG:**
-- **✅ Tracked exercises → Supabase, global "last programmed" row, exercise search debug**
-
-**Completed (2026-03-02 Session 170 - Opus 4.6) — SEARCH PANEL POLISH, WORKOUT VALIDATION, MOVEMENT TOGGLE:**
-- **✅ Track name, font hierarchy, workout name required, orphan guard, movement toggle, last performed dates**
-
-**Older Sessions (57-169):**
+**Older Sessions (57-172):**
 See `project-history/` folder for detailed implementation history
 
 ---
