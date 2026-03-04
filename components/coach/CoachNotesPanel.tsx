@@ -14,8 +14,10 @@ interface CoachNotesPanelProps {
   // Floating mode props
   position?: { bottom: number; left: number };
   size?: { width: number; height: number };
+  zIndex?: number;
   onDragStart?: (e: React.MouseEvent) => void;
   onResizeStart?: (e: React.MouseEvent, corner: 'nw' | 'ne' | 'sw' | 'se') => void;
+  onBringToFront?: () => void;
   // Common props
   onClose: () => void;
   onChange: (notes: string) => void;
@@ -27,8 +29,10 @@ export default function CoachNotesPanel({
   mode,
   position,
   size,
+  zIndex,
   onDragStart,
   onResizeStart,
+  onBringToFront,
   onClose,
   onChange,
 }: CoachNotesPanelProps) {
@@ -311,11 +315,13 @@ export default function CoachNotesPanel({
 
         {/* Desktop: Floating panel */}
         <div
-          className='hidden lg:block fixed z-[70]'
+          className='hidden lg:block fixed'
           style={{
             bottom: `${position?.bottom || 20}px`,
             left: `${position?.left || 820}px`,
+            zIndex: zIndex || 70,
           }}
+          onMouseDown={onBringToFront}
         >
           <div
             className='bg-white rounded-lg shadow-2xl flex flex-col relative border-4 border-[#178da6]'

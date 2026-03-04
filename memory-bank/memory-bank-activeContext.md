@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 54.0
-**Updated:** 2026-03-04 (Session 173 - Search panel UX, workout dedup, scalability indexes)
+**Version:** 55.0
+**Updated:** 2026-03-04 (Session 175 - Publish time fix, z-order panels)
 
 ---
 
@@ -85,11 +85,13 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-04 Session 175 - Opus 4.6) — PUBLISH TIME FIX, Z-ORDER PANELS:**
+- **✅ Publish time bug fix** — Changing time inline then publishing now reflects updated time (was using stale prop instead of hook state)
+- **✅ Z-order bring-to-front** — Exercise Library and Coach Notes panels support click-to-bring-to-front (z-index toggle)
+- **✅ Notes modal position** — Initial position raised (bottom: 300) for better visibility
+
 **Completed (2026-03-04 Session 174 - Opus 4.6) — FEATURE DOCUMENTATION:**
-- **✅ Comprehensive feature overview** — `Chris Notes/Forge-Feature-Overview.md` — full platform overview for prospective users/coaches
-- **✅ Athlete guide (EN)** — `Chris Notes/Forge-Athlete-Guide.md` — subscriber-focused feature guide
-- **✅ Athlete guide (DE)** — `Chris Notes/Forge-Athlete-Guide-DE.md` + `.html` — German translation with styled HTML version for athlete presentation
-- **✅ Coach origin story** — Expanded "Built by a coach" messaging across all docs, added exercise video links feature
+- **✅ Comprehensive feature overview, athlete guides (EN+DE), coach origin story**
 
 **Completed (2026-03-04 Session 173 - Opus 4.6) — SEARCH PANEL UX, WORKOUT DEDUP, SCALABILITY:**
 - **✅ Athletes selected-to-top, Kids filter, alphabetical movements, workout dedup, unique/all toggle, global movement tracking, performance indexes**
@@ -100,10 +102,7 @@ Social Tables
 **Completed (2026-03-02 Session 170 - Opus 4.6) — SEARCH PANEL POLISH, WORKOUT VALIDATION, MOVEMENT TOGGLE:**
 - **✅ Track name, font hierarchy, workout name required, orphan guard, movement toggle, last performed dates**
 
-**Completed (2026-03-01 Session 169 - Opus 4.6) — MOVEMENT TRACKING TESTING & POLISH:**
-- **✅ Tested & polished** — Fixed search limit, 3-char column codes, layout split, athlete persistence, lift name matching
-
-**Older Sessions (57-171):**
+**Older Sessions (57-169):**
 See `project-history/` folder for detailed implementation history
 
 ---

@@ -45,9 +45,6 @@ export default function WorkoutModal({
   onNotesToggle,
   onTimeUpdated,
 }: WorkoutModalProps) {
-  // Calculate session time for publish modal
-  const publishSessionTime = editingWOD?.publish_time || editingWOD?.booking_info?.time;
-
   const hook = useWorkoutModal(
     isOpen,
     date,
@@ -57,6 +54,9 @@ export default function WorkoutModal({
     onTimeUpdated,
     initialNotesOpen
   );
+
+  // Use hook's live sessionTime (updated after inline time edit), falling back to editingWOD prop
+  const publishSessionTime = hook.sessionTime || editingWOD?.publish_time || editingWOD?.booking_info?.time;
 
   if (!isOpen) return null;
 
@@ -72,8 +72,10 @@ export default function WorkoutModal({
           mode='floating'
           position={hook.notesModalPos}
           size={hook.notesModalSize}
+          zIndex={hook.notesZIndex}
           onDragStart={hook.handleNotesDragStart}
           onResizeStart={hook.handleNotesResizeStart}
+          onBringToFront={hook.bringNotesToFront}
           onClose={() => {
             hook.setNotesPanelOpen(false);
             onNotesToggle?.(false);
@@ -236,6 +238,8 @@ export default function WorkoutModal({
           onSelectLift={hook.handleSelectLift}
           onSelectBenchmark={hook.handleSelectBenchmark}
           onSelectForgeBenchmark={hook.handleSelectForgeBenchmark}
+          zIndex={hook.libraryZIndex}
+          onBringToFront={hook.bringLibraryToFront}
         />
 
         {/* Configure Modals */}
@@ -580,6 +584,8 @@ export default function WorkoutModal({
         onSelectLift={hook.handleSelectLift}
         onSelectBenchmark={hook.handleSelectBenchmark}
         onSelectForgeBenchmark={hook.handleSelectForgeBenchmark}
+        zIndex={hook.libraryZIndex}
+        onBringToFront={hook.bringLibraryToFront}
       />
 
       {/* Configure Modals */}

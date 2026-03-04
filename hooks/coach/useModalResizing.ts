@@ -10,15 +10,26 @@ export interface UseModalResizingResult {
   isDraggingNotes: boolean;
   resizeStartNotes: { x: number; y: number; width: number; height: number; bottom: number; left: number };
   dragStartNotes: { x: number; y: number; bottom: number; left: number };
+  notesZIndex: number;
+  libraryZIndex: number;
 
   // Functions
   handleNotesDragStart: (e: React.MouseEvent) => void;
   handleNotesResizeStart: (e: React.MouseEvent, corner: string) => void;
+  bringNotesToFront: () => void;
+  bringLibraryToFront: () => void;
 }
 
 export function useModalResizing(): UseModalResizingResult {
   const [notesModalSize, setNotesModalSize] = useState({ width: 600, height: 700 });
-  const [notesModalPos, setNotesModalPos] = useState({ bottom: 190, left: 800 });
+  const [notesModalPos, setNotesModalPos] = useState({ bottom: 300, left: 800 });
+  // Z-order: higher number = in front. Toggle between two values on click.
+  const [topPanel, setTopPanel] = useState<'notes' | 'library'>('library');
+  const notesZIndex = topPanel === 'notes' ? 100 : 70;
+  const libraryZIndex = topPanel === 'library' ? 100 : 70;
+
+  const bringNotesToFront = () => setTopPanel('notes');
+  const bringLibraryToFront = () => setTopPanel('library');
   const [isResizingNotes, setIsResizingNotes] = useState(false);
   const [isDraggingNotes, setIsDraggingNotes] = useState(false);
   const [resizeStartNotes, setResizeStartNotes] = useState({ x: 0, y: 0, width: 0, height: 0, bottom: 0, left: 0 });
@@ -160,7 +171,11 @@ export function useModalResizing(): UseModalResizingResult {
     isDraggingNotes,
     resizeStartNotes,
     dragStartNotes,
+    notesZIndex,
+    libraryZIndex,
     handleNotesDragStart,
     handleNotesResizeStart,
+    bringNotesToFront,
+    bringLibraryToFront,
   };
 }

@@ -143,6 +143,8 @@ export interface UseWorkoutModalResult {
   isDragOver: boolean;
   notesModalSize: { width: number; height: number };
   notesModalPos: { bottom: number; left: number };
+  notesZIndex: number;
+  libraryZIndex: number;
   isResizingNotes: boolean;
   isDraggingNotes: boolean;
   resizeStartNotes: { x: number; y: number; width: number; height: number };
@@ -211,6 +213,8 @@ export interface UseWorkoutModalResult {
   setNotesPanelOpen: (open: boolean) => void;
   handleNotesDragStart: (e: React.MouseEvent) => void;
   handleNotesResizeStart: (e: React.MouseEvent, corner: string) => void;
+  bringNotesToFront: () => void;
+  bringLibraryToFront: () => void;
   setPublishModalOpen: (open: boolean) => void;
   setApplySessionsOpen: (open: boolean) => void;
   handleSessionSelectionToggle: (sessionId: string, checked: boolean) => void;
@@ -828,6 +832,8 @@ export function useWorkoutModal(
     isDragOver,
     notesModalSize: modalResizing.notesModalSize,
     notesModalPos: modalResizing.notesModalPos,
+    notesZIndex: modalResizing.notesZIndex,
+    libraryZIndex: modalResizing.libraryZIndex,
     isResizingNotes: modalResizing.isResizingNotes,
     isDraggingNotes: modalResizing.isDraggingNotes,
     resizeStartNotes: modalResizing.resizeStartNotes,
@@ -896,6 +902,8 @@ export function useWorkoutModal(
     setNotesPanelOpen,
     handleNotesDragStart: modalResizing.handleNotesDragStart,
     handleNotesResizeStart: modalResizing.handleNotesResizeStart,
+    bringNotesToFront: modalResizing.bringNotesToFront,
+    bringLibraryToFront: modalResizing.bringLibraryToFront,
     setPublishModalOpen,
     setApplySessionsOpen,
     handleSessionSelectionToggle,

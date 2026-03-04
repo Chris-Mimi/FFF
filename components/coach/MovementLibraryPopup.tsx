@@ -82,6 +82,8 @@ interface MovementLibraryPopupProps {
   onSelectLift: (lift: BarbellLift) => void;
   onSelectBenchmark: (benchmark: Benchmark) => void;
   onSelectForgeBenchmark: (forge: ForgeBenchmark) => void;
+  zIndex?: number;
+  onBringToFront?: () => void;
 }
 
 // Movement Library Popup Component
@@ -92,6 +94,8 @@ function MovementLibraryPopup({
   onSelectLift,
   onSelectBenchmark,
   onSelectForgeBenchmark,
+  zIndex,
+  onBringToFront,
 }: MovementLibraryPopupProps) {
   const onClose = parentOnClose;
   const [activeTab, setActiveTab] = useState<TabType>('exercises');
@@ -692,11 +696,13 @@ function MovementLibraryPopup({
 
   return (
     <div
-      className={`fixed z-[100] ${isMobile ? 'inset-0' : ''}`}
+      className={`fixed ${isMobile ? 'inset-0 z-[100]' : ''}`}
       style={isMobile ? {} : {
         top: `${libraryPos.top}px`,
         left: `${libraryPos.left}px`,
+        zIndex: zIndex || 100,
       }}
+      onMouseDown={onBringToFront}
     >
       <div
         className={`bg-white shadow-2xl flex flex-col relative ${isMobile ? 'h-full' : 'rounded-lg border-4 border-[#178da6]'}`}
