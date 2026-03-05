@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 57.0
-**Updated:** 2026-03-05 (Session 177 - Color-coded dates, mobile tracking WIP)
+**Version:** 58.0
+**Updated:** 2026-03-05 (Session 179 - Movement Demos bar in workout editor)
 
 ---
 
@@ -85,10 +85,14 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-05 Session 179 - Opus 4.6) — MOVEMENT DEMOS BAR:**
+- **✅ Movement Demos bar** — Collapsible workout-level bar above sections. Auto-detects exercises with video URLs from all sections (deduplicated). Manual clip attachment with label + URL.
+- **✅ Exercise name matching utility** — Scans section content, strips bullet markers/rep info, matches against exercise DB names.
+- **✅ Video playback** — Reuses ExerciseVideoModal (draggable/resizable player) for both auto-detected and manual clips.
+
 **Completed (2026-03-05 Session 178 - Opus 4.6) — MOBILE MOVEMENT TRACKING FIX:**
 - **✅ Mobile tracking toggle** — Footer "Tracking" button toggles tracking panel in place of search results on mobile. Desktop unaffected.
 - **✅ h-dvh fix** — Changed `h-screen` to `h-dvh` on SearchPanel container to account for mobile browser chrome (address bar/toolbar)
-- **✅ Footer cleanup** — Two centered buttons: "Tracking" toggle (lg:hidden) + "+ Create Workout" side by side
 
 **Completed (2026-03-05 Session 177 - Opus 4.6) — COLOR-CODED DATES:**
 - **✅ Color-coded dates** — Movement Tracking "last programmed" and athlete "last" rows: green ≤14d, yellow 15–28d, orange 29–60d, red 60+d, gray no date. CSS tooltip on hover.

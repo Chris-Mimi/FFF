@@ -23,13 +23,14 @@ There's no app-switching, no spreadsheets, no whiteboards that get erased. Just 
 - **Drag-and-drop** — copy workouts between dates, reorder sections, and build training weeks effortlessly
 - **Publish control** — choose exactly which sections athletes can see (keep surprise WODs hidden until class time)
 - **Coach notes** — attach workout intent and stimulus notes so athletes understand the "why" behind the programming
+- **Movement demos** — video clips are automatically detected from exercises in your workout sections and displayed in a collapsible bar. Coaches can also manually attach any YouTube or direct video link. One-click playback in a draggable, resizable player
 - **Google Calendar sync** — optionally publish workouts to a public Google Calendar for members who prefer that view
 
 ### Smart Search & Movement Intelligence
 
 - **Full-text search** across all workouts — find every time you've programmed a specific movement, workout name, or note
 - **Movement frequency tracking** — see how often you've programmed each exercise, with date-range filtering. Never accidentally neglect a movement pattern again
-- **Custom movement tracking panel** — pin the exercises you want to monitor and see at a glance when each was last programmed
+- **Custom movement tracking panel** — pin the exercises you want to monitor and see at a glance when each was last programmed. Color-coded date aging (green/yellow/orange/red) highlights neglected movements instantly. Fully responsive on mobile with a dedicated toggle
 - **Workout deduplication** — search results intelligently group repeated workouts so you see unique programming, not duplicates
 - **Filter by track, type, section, or athlete** — slice your programming data any way you need
 
@@ -66,7 +67,7 @@ There's no app-switching, no spreadsheets, no whiteboards that get erased. Just 
 ### Admin Tools
 
 - **Exercise library management** — add, edit, and organise exercises across 8 categories with equipment, body parts, and difficulty tagging
-- **Exercise video links** — attach demonstration and form videos directly to exercises in the library, so coaches and athletes always have a visual reference at hand
+- **Exercise video links** — attach demonstration and form videos (YouTube or direct) to exercises in the library. Linked videos are automatically surfaced in the workout builder's Movement Demos bar whenever those exercises appear in a workout
 - **Programming notes** — markdown-based coaching journal with folder organisation
 - **Resource library** — store links to form videos, articles, and equipment guides for quick reference
 - **Naming conventions** — define your gym's terminology and abbreviations

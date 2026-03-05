@@ -9,6 +9,7 @@ import WODSectionComponent from '@/components/coach/WODSectionComponent';
 import WorkoutFormFields from '@/components/coach/WorkoutFormFields';
 import WorkoutModalHeader from '@/components/coach/WorkoutModalHeader';
 import CoachNotesPanel from '@/components/coach/CoachNotesPanel';
+import MovementDemosBar from '@/components/coach/MovementDemosBar';
 import { useWorkoutModal, WODFormData } from '@/hooks/coach/useWorkoutModal';
 import { FocusTrap } from '@/components/ui/FocusTrap';
 
@@ -191,6 +192,13 @@ export default function WorkoutModal({
               </div>
 
               {hook.errors.sections && <p className='text-red-500 text-sm mb-2'>{hook.errors.sections}</p>}
+
+              <MovementDemosBar
+                sections={hook.formData.sections}
+                exercises={hook.exercisesForVideo}
+                videoClips={hook.formData.video_clips || []}
+                onVideoClipsChange={(clips) => hook.handleChange('video_clips', clips)}
+              />
 
               <div className='space-y-4'>
                 {hook.formData.sections.map((section, index) => (

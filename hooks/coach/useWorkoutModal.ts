@@ -95,6 +95,7 @@ export interface WODFormData {
     time?: string;
   };
   selectedSessionIds?: string[]; // For applying workout to multiple sessions
+  video_clips?: { label: string; url: string }[]; // Manually attached movement demo clips
 }
 
 interface Track {
@@ -140,6 +141,7 @@ export interface UseWorkoutModalResult {
   workoutTitles: WorkoutTitle[];
   loadingTracks: boolean;
   notesPanelOpen: boolean;
+  exercisesForVideo: { name: string; display_name?: string; video_url: string | null }[];
   isDragOver: boolean;
   notesModalSize: { width: number; height: number };
   notesModalPos: { bottom: number; left: number };
@@ -251,6 +253,7 @@ export function useWorkoutModal(
   const [sectionTypes, setSectionTypes] = useState<SectionType[]>([]);
   const [workoutTitles, setWorkoutTitles] = useState<WorkoutTitle[]>([]);
   const [loadingTracks, setLoadingTracks] = useState(false);
+  const [exercisesForVideo, setExercisesForVideo] = useState<{ name: string; display_name?: string; video_url: string | null }[]>([]);
   const [notesPanelOpen, setNotesPanelOpen] = useState(initialNotesOpen);
   const [isDragOver, setIsDragOver] = useState(false);
   const [publishModalOpen, setPublishModalOpen] = useState(false);
@@ -304,11 +307,12 @@ export function useWorkoutModal(
   const fetchTracksAndTypes = async () => {
     setLoadingTracks(true);
     try {
-      const [tracksResult, typesResult, sectionTypesResult, workoutTitlesResult] = await Promise.all([
+      const [tracksResult, typesResult, sectionTypesResult, workoutTitlesResult, exercisesResult] = await Promise.all([
         supabase.from('tracks').select('*').order('name'),
         supabase.from('workout_types').select('*').order('name'),
         supabase.from('section_types').select('*').order('display_order'),
         supabase.from('workout_titles').select('*').eq('active', true).order('display_order'),
+        supabase.from('exercises').select('name, display_name, video_url').order('name'),
       ]);
 
       if (tracksResult.error) throw tracksResult.error;
@@ -320,6 +324,7 @@ export function useWorkoutModal(
       setWorkoutTypes(typesResult.data || []);
       setSectionTypes(sectionTypesResult.data || []);
       setWorkoutTitles(workoutTitlesResult.data || []);
+      if (!exercisesResult.error) setExercisesForVideo(exercisesResult.data || []);
     } catch (error) {
       console.error('Error fetching tracks, workout types, section types, and workout titles:', error);
     } finally {
@@ -828,6 +833,7 @@ export function useWorkoutModal(
     sectionTypes,
     workoutTitles,
     loadingTracks,
+    exercisesForVideo,
     notesPanelOpen,
     isDragOver,
     notesModalSize: modalResizing.notesModalSize,
