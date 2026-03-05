@@ -43,14 +43,14 @@ export default function MovementTrackingPanel({
   };
 
   return (
-    <div className='h-full flex flex-col overflow-hidden'>
-      <div className='px-3 py-2 border-b bg-gray-50'>
+    <div className='h-full flex flex-col lg:overflow-hidden'>
+      <div className='px-3 py-2 border-b bg-gray-50 hidden lg:block'>
         <h3 className='font-semibold text-sm text-gray-900'>Movement Tracking</h3>
       </div>
-      <div className='flex-1 overflow-auto'>
-        <table className='text-xs table-fixed'>
+      <div className='flex-1 lg:overflow-auto'>
+        <table className='text-xs table-fixed min-w-max'>
           <thead className='sticky top-0 bg-white z-10'>
-            <tr className='border-b'>
+            <tr className='border-b-2 border-gray-500'>
               <th className='text-left px-2 py-1.5 font-semibold text-gray-700 w-[120px]'>
                 Athlete
               </th>
@@ -64,18 +64,35 @@ export default function MovementTrackingPanel({
                 </th>
               ))}
             </tr>
-            <tr className='border-b bg-amber-50/60'>
-              <td className='px-2 py-0.5 text-[9px] text-amber-700 italic truncate w-[120px]'>
-                last programmed
+            <tr className='border-b-2 border-gray-500 bg-gray-100'>
+              <td className='px-2 py-0.5 text-[9px] text-gray-600 italic w-[120px] relative group cursor-help'>
+                <span className='truncate block'>last programmed</span>
+                <div className='absolute left-0 top-full mt-1 hidden group-hover:block bg-gray-800 text-white text-[10px] rounded px-2 py-1.5 whitespace-nowrap z-50 shadow-lg'>
+                  <span className='text-green-400'>Green: ≤14 days</span>
+                  <span className='mx-1'>|</span>
+                  <span className='text-yellow-400'>Yellow: 15–28 days</span>
+                  <span className='mx-1'>|</span>
+                  <span className='text-orange-400'>Orange: 29–60 days</span>
+                  <span className='mx-1'>|</span>
+                  <span className='text-red-400'>Red: 60+ days</span>
+                </div>
               </td>
               {exerciseNames.map(name => {
                 const date = globalLastProgrammed[name];
                 const formatted = date
                   ? new Date(date + 'T00:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })
                   : '—';
+                let colorClass = 'text-gray-400';
+                if (date) {
+                  const days = Math.floor((Date.now() - new Date(date + 'T00:00:00').getTime()) / 86400000);
+                  if (days <= 14) colorClass = 'text-green-700 font-semibold';
+                  else if (days <= 28) colorClass = 'text-yellow-500 font-semibold';
+                  else if (days <= 60) colorClass = 'text-orange-600 font-semibold';
+                  else colorClass = 'text-red-700 font-semibold';
+                }
                 return (
                   <td key={name} className='py-0.5 px-0.5 text-center'>
-                    <span className='text-[9px] text-amber-700'>
+                    <span className={`text-[9px] ${colorClass}`}>
                       {formatted}
                     </span>
                   </td>
@@ -89,7 +106,7 @@ export default function MovementTrackingPanel({
               const memberDates = lastPerformedData[member.id] || {};
               return (
                 <Fragment key={member.id}>
-                  <tr className='border-b hover:bg-gray-50'>
+                  <tr className='border-b border-gray-400 hover:bg-gray-300'>
                     <td className='px-2 py-1.5 font-medium text-gray-900 truncate w-[120px]'>
                       {member.name}
                     </td>
@@ -110,8 +127,8 @@ export default function MovementTrackingPanel({
                       );
                     })}
                   </tr>
-                  <tr className='border-b bg-gray-50/50'>
-                    <td className='px-2 py-0.5 text-[9px] text-gray-400 italic truncate w-[120px]'>
+                  <tr className='border-b border-gray-400 bg-gray-100'>
+                    <td className='px-2 py-0.5 text-[9px] text-gray-600 italic truncate w-[120px]'>
                       last
                     </td>
                     {exerciseNames.map(name => {
@@ -119,9 +136,17 @@ export default function MovementTrackingPanel({
                       const formatted = date
                         ? new Date(date + 'T00:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })
                         : '—';
+                      let colorClass = 'text-gray-400';
+                      if (date) {
+                        const days = Math.floor((Date.now() - new Date(date + 'T00:00:00').getTime()) / 86400000);
+                        if (days <= 14) colorClass = 'text-green-700 font-semibold';
+                        else if (days <= 28) colorClass = 'text-yellow-500 font-semibold';
+                        else if (days <= 60) colorClass = 'text-orange-600 font-semibold';
+                        else colorClass = 'text-red-700 font-semibold';
+                      }
                       return (
                         <td key={name} className='py-0.5 px-0.5 text-center'>
-                          <span className='text-[9px] text-gray-400'>
+                          <span className={`text-[9px] ${colorClass}`}>
                             {formatted}
                           </span>
                         </td>
