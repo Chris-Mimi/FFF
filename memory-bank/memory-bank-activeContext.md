@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 56.0
-**Updated:** 2026-03-04 (Session 176 - Favorites remove button UX)
+**Version:** 57.0
+**Updated:** 2026-03-05 (Session 177 - Color-coded dates, mobile tracking WIP)
 
 ---
 
@@ -85,21 +85,22 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-05 Session 178 - Opus 4.6) — MOBILE MOVEMENT TRACKING FIX:**
+- **✅ Mobile tracking toggle** — Footer "Tracking" button toggles tracking panel in place of search results on mobile. Desktop unaffected.
+- **✅ h-dvh fix** — Changed `h-screen` to `h-dvh` on SearchPanel container to account for mobile browser chrome (address bar/toolbar)
+- **✅ Footer cleanup** — Two centered buttons: "Tracking" toggle (lg:hidden) + "+ Create Workout" side by side
+
+**Completed (2026-03-05 Session 177 - Opus 4.6) — COLOR-CODED DATES:**
+- **✅ Color-coded dates** — Movement Tracking "last programmed" and athlete "last" rows: green ≤14d, yellow 15–28d, orange 29–60d, red 60+d, gray no date. CSS tooltip on hover.
+
 **Completed (2026-03-04 Session 176 - Opus 4.6) — FAVORITES REMOVE BUTTON UX:**
 - **✅ Favorites remove button** — Replaced tiny amber star with red X button (hover-to-reveal) for clear "remove from favorites" affordance
 
 **Completed (2026-03-04 Session 175 - Opus 4.6) — PUBLISH TIME FIX, Z-ORDER PANELS:**
 - **✅ Publish time bug fix** — Changing time inline then publishing now reflects updated time (was using stale prop instead of hook state)
 - **✅ Z-order bring-to-front** — Exercise Library and Coach Notes panels support click-to-bring-to-front (z-index toggle)
-- **✅ Notes modal position** — Initial position raised (bottom: 300) for better visibility
 
-**Completed (2026-03-04 Session 174 - Opus 4.6) — FEATURE DOCUMENTATION:**
-- **✅ Comprehensive feature overview, athlete guides (EN+DE), coach origin story**
-
-**Completed (2026-03-04 Session 173 - Opus 4.6) — SEARCH PANEL UX, WORKOUT DEDUP, SCALABILITY:**
-- **✅ Athletes selected-to-top, Kids filter, alphabetical movements, workout dedup, unique/all toggle, global movement tracking, performance indexes**
-
-**Older Sessions (57-172):**
+**Older Sessions (57-174):**
 See `project-history/` folder for detailed implementation history
 
 ---

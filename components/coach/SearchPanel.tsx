@@ -123,8 +123,6 @@ export default function SearchPanel({
   const [exerciseSearch, setExerciseSearch] = useState('');
   const [exerciseDropdownOpen, setExerciseDropdownOpen] = useState(false);
   const exerciseSearchRef = useRef<HTMLDivElement>(null);
-  const mobileTrackingRef = useRef<HTMLDivElement>(null);
-  const mobileTopRef = useRef<HTMLDivElement>(null);
   const { trackedExercises, addTracked, removeTracked, toggleTracked, deactivateAll } = useTrackedExercises();
 
   const filteredExercises = useMemo(() => {
@@ -279,8 +277,7 @@ export default function SearchPanel({
   if (!isOpen) return null;
 
   return (
-    <div className={`fixed right-0 top-0 lg:top-[72px] h-screen lg:h-[calc(100vh-72px)] w-full bg-white shadow-2xl z-50 flex flex-col border-t border-gray-400 transition-all duration-300 ${isMaximized ? 'lg:left-0' : 'lg:w-[800px] border-l-2 border-[#178da6]'}`}>
-      <div ref={mobileTopRef} />
+    <div className={`fixed right-0 top-0 lg:top-[72px] h-dvh lg:h-[calc(100vh-72px)] w-full bg-white shadow-2xl z-50 flex flex-col border-t border-gray-400 transition-all duration-300 ${isMaximized ? 'lg:left-0' : 'lg:w-[800px] border-l-2 border-[#178da6]'}`}>
       {/* Header */}
       <div className='bg-[#178da6] text-white p-3 lg:p-4 flex justify-between items-center'>
         <div className='flex items-center gap-2'>
@@ -958,8 +955,24 @@ export default function SearchPanel({
 
           {/* Content area: Results + optional Tracking Panel */}
           <div className='flex-1 flex overflow-hidden'>
+
+          {/* Mobile: Movement Tracking Panel (replaces results when open) */}
+          {mobileTrackingOpen && activeTrackedExercises.length > 0 && (
+            <div className='lg:hidden flex-1 overflow-auto'>
+              <MovementTrackingPanel
+                trackedExercises={activeTrackedExercises}
+                trackingData={trackingData}
+                lastPerformedData={lastPerformedData}
+                globalLastProgrammed={globalLastProgrammed}
+                loading={trackingLoading}
+                selectedMembers={selectedMembers}
+                members={members}
+              />
+            </div>
+          )}
+
           {/* Left column: Results / Detail */}
-          <div className={`flex flex-col overflow-y-auto overscroll-contain ${activeTrackedExercises.length > 0 && isMaximized ? 'lg:w-1/3 w-full' : 'w-full'}`}>
+          <div className={`flex flex-col overflow-y-auto overscroll-contain ${mobileTrackingOpen ? 'hidden lg:flex' : ''} ${activeTrackedExercises.length > 0 && isMaximized ? 'lg:w-1/3 w-full' : 'w-full'}`}>
 
           {/* Search Results */}
           {!selectedSearchWOD &&
@@ -1315,69 +1328,35 @@ export default function SearchPanel({
           )}
           </div>{/* End content area */}
 
-          {/* Mobile: Movement Tracking Panel */}
-          {activeTrackedExercises.length > 0 && mobileTrackingOpen && (
-            <div ref={mobileTrackingRef} className='lg:hidden border-t flex-shrink-0 overflow-x-auto overflow-y-auto'>
-              <div className='flex items-center justify-between px-3 py-2 bg-gray-100 sticky top-0 z-10'>
-                <span className='text-sm font-medium text-gray-700'>Movement Tracking</span>
-                <button
-                  onClick={() => {
-                    setMobileTrackingOpen(false);
-                    mobileTopRef.current?.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                  className='flex items-center gap-1 text-sm text-[#178da6] hover:text-[#14758c] font-medium'
-                >
-                  <ChevronUp size={16} />
-                  <span>Back to top</span>
-                </button>
-              </div>
-              <MovementTrackingPanel
-                trackedExercises={activeTrackedExercises}
-                trackingData={trackingData}
-                lastPerformedData={lastPerformedData}
-                globalLastProgrammed={globalLastProgrammed}
-                loading={trackingLoading}
-                selectedMembers={selectedMembers}
-                members={members}
-              />
-            </div>
-          )}
         </div>
       </div>
 
       {/* Footer */}
       <div className='border-t p-2 sm:p-3 lg:p-4 flex-shrink-0'>
-        {/* Mobile: Movement Tracking toggle */}
-        {activeTrackedExercises.length > 0 && (
+        <div className='flex gap-2 justify-center'>
+          {activeTrackedExercises.length > 0 && (
+            <button
+              onClick={() => setMobileTrackingOpen(prev => !prev)}
+              className={`lg:hidden flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg transition ${
+                mobileTrackingOpen
+                  ? 'bg-[#178da6] text-white hover:bg-[#14758c]'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              <span>Tracking</span>
+              {mobileTrackingOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+          )}
           <button
             onClick={() => {
-              const next = !mobileTrackingOpen;
-              setMobileTrackingOpen(next);
-              if (next) {
-                setTimeout(() => mobileTrackingRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
-              }
+              onCreateWorkout(new Date(), true);
+              onSelectedSearchWODChange(null);
             }}
-            className={`lg:hidden w-full flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-medium rounded-lg transition ${
-              mobileTrackingOpen
-                ? 'bg-[#178da6] text-white hover:bg-[#14758c]'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
+            className='px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base bg-[#178da6] hover:bg-[#14758c] text-white rounded-lg font-medium transition'
           >
-            <span>Movement Tracking</span>
-            {mobileTrackingOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            + Create Workout
           </button>
-        )}
-        <button
-          onClick={() => {
-            onCreateWorkout(new Date(), true);
-            onSelectedSearchWODChange(null);
-          }}
-          className={`w-full px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base bg-[#178da6] hover:bg-[#14758c] text-white rounded-lg font-medium transition ${
-            activeTrackedExercises.length > 0 ? 'hidden lg:block' : ''
-          }`}
-        >
-          + Create New Workout
-        </button>
+        </div>
       </div>
     </div>
   );
