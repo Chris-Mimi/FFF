@@ -21,7 +21,7 @@ import { useEffect, useRef, useState } from 'react';
 
 // Exercise category ordering (workout flow)
 const CATEGORY_ORDER = [
-  'Warm-up & Mobility',
+  'Pre-Workout',
   'Olympic Lifting & Barbell Movements',
   'Compound Exercises',
   'Gymnastics & Bodyweight',
@@ -105,7 +105,7 @@ export default function AnalysisPage() {
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState(new Date());
-  const [timeframePeriod, setTimeframePeriod] = useState<TimeframePeriod>(1);
+  const [timeframePeriod, setTimeframePeriod] = useState<TimeframePeriod>(12);
   const [statistics, setStatistics] = useState<Statistics | null>(null);
   const [loadingStats, setLoadingStats] = useState(false);
 

@@ -10,7 +10,7 @@ import { getExerciseFrequency, type ExerciseFrequency } from '@/utils/movement-a
 
 // Define category ordering (workout flow)
 const EXERCISE_CATEGORY_ORDER = [
-  'Warm-up & Mobility',
+  'Pre-Workout',
   'Olympic Lifting & Barbell Movements',
   'Compound Exercises',
   'Gymnastics & Bodyweight',

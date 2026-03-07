@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 60.0
-**Updated:** 2026-03-07 (Session 182 - Analysis library categories, exercise extraction fix)
+**Version:** 61.0
+**Updated:** 2026-03-07 (Session 183 - Analysis default 12m, rename Warm-up category to Pre-Workout)
 
 ---
 
@@ -85,12 +85,16 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-07 Session 183 - Opus 4.6) — ANALYSIS DEFAULT 12M + CATEGORY RENAME:**
+- **✅ Analysis page default 12m** — Changed `timeframePeriod` initial state from 1 to 12 months.
+- **✅ Renamed "Warm-up & Mobility" → "Pre-Workout"** — Updated 6 app code files. DB update needed: `UPDATE exercises SET category = 'Pre-Workout' WHERE category = 'Warm-up & Mobility';`
+
 **Completed (2026-03-07 Session 182 - Opus 4.6) — ANALYSIS LIBRARY CATEGORIES + EXTRACTION FIX:**
-- **✅ Browse Library collapsible categories** — Exercises grouped by category (Warm-up, Olympic Lifting, etc.) with expand/collapse, alphabetically sorted within each group
-- **✅ Mid-name parenthetical extraction fix** — `extractMovementsFromText` now tries full text before paren-truncated fallback. Fixes "Slamball (WB) Wall Throw" and similar exercises with parentheticals mid-name showing 0 count.
+- **✅ Browse Library collapsible categories** — Exercises grouped by category with expand/collapse, alphabetically sorted within each group
+- **✅ Mid-name parenthetical extraction fix** — `extractMovementsFromText` now tries full text before paren-truncated fallback.
 
 **Completed (2026-03-07 Session 181 - Opus 4.6) — ANALYSIS PAGE EXERCISE COUNT FIX:**
-- **✅ Fixed exercise frequency counts** — Refactored `getExerciseFrequency` in `movement-analytics.ts` to use shared `extractMovementsFromWod` instead of duplicate regex logic.
+- **✅ Fixed exercise frequency counts** — Refactored `getExerciseFrequency` to use shared `extractMovementsFromWod`.
 
 **Completed (2026-03-07 Session 180 - Opus 4.6) — EXERCISE LIBRARY CLEANUP + ANALYSIS TAB:**
 - **✅ Consolidated tags + search_terms** — Merged into single `tags` field, dropped search_terms from all code.
@@ -98,10 +102,7 @@ Social Tables
 **Completed (2026-03-05 Session 179 - Opus 4.6) — MOVEMENT DEMOS BAR:**
 - **✅ Movement Demos bar** — Collapsible workout-level bar above sections with auto-detected exercise videos.
 
-**Completed (2026-03-05 Session 178 - Opus 4.6) — MOBILE MOVEMENT TRACKING FIX:**
-- **✅ Mobile tracking toggle** — Footer "Tracking" button toggles tracking panel on mobile.
-
-**Older Sessions (57-177):**
+**Older Sessions (57-178):**
 See `project-history/` folder for detailed implementation history
 
 ---

@@ -8,7 +8,7 @@ import { FocusTrap } from '@/components/ui/FocusTrap';
 
 // Predefined category order
 const EXERCISE_CATEGORY_ORDER = [
-  'Warm-up & Mobility',
+  'Pre-Workout',
   'Olympic Lifting & Barbell Movements',
   'Compound Exercises',
   'Gymnastics & Bodyweight',

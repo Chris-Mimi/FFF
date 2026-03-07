@@ -5,7 +5,7 @@ import { RefObject } from 'react';
 
 // Mobile-friendly category name mapping
 const MOBILE_CATEGORY_NAMES: Record<string, string> = {
-  'Warm-up & Mobility': 'Warm-up',
+  'Pre-Workout': 'Pre-WO',
   'Olympic Lifting & Barbell Movements': 'Oly Lift',
   'Compound Exercises': 'Compound',
   'Gymnastics & Bodyweight': 'Gymnastics',
