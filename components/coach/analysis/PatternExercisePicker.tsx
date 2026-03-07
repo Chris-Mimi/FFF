@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Search, X, Check } from 'lucide-react';
+import { Search, X, Check, ChevronDown, ChevronRight } from 'lucide-react';
 import { FocusTrap } from '@/components/ui/FocusTrap';
 
 interface Exercise {
@@ -40,6 +40,7 @@ export default function PatternExercisePicker({
   onToggleExercise,
 }: PatternExercisePickerProps) {
   const [search, setSearch] = useState('');
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
   const filtered = useMemo(() => {
     if (!search.trim()) return exercises;
@@ -62,20 +63,25 @@ export default function PatternExercisePicker({
     const sorted = new Map<string, Exercise[]>();
     CATEGORY_ORDER.forEach(cat => {
       if (groups.has(cat)) {
-        sorted.set(cat, groups.get(cat)!.sort((a, b) =>
-          (a.display_name || a.name).localeCompare(b.display_name || b.name)
-        ));
+        sorted.set(cat, groups.get(cat)!);
         groups.delete(cat);
       }
     });
     // Remaining categories
     groups.forEach((exs, cat) => {
-      sorted.set(cat, exs.sort((a, b) =>
-        (a.display_name || a.name).localeCompare(b.display_name || b.name)
-      ));
+      sorted.set(cat, exs);
+    });
+    // Sort each category: selected first, then alphabetical within each group
+    sorted.forEach((exs, cat) => {
+      sorted.set(cat, exs.sort((a, b) => {
+        const aSelected = selectedExerciseIds.has(a.id) ? 0 : 1;
+        const bSelected = selectedExerciseIds.has(b.id) ? 0 : 1;
+        if (aSelected !== bSelected) return aSelected - bSelected;
+        return (a.display_name || a.name).localeCompare(b.display_name || b.name);
+      }));
     });
     return sorted;
-  }, [filtered]);
+  }, [filtered, selectedExerciseIds]);
 
   if (!isOpen) return null;
 
@@ -118,40 +124,56 @@ export default function PatternExercisePicker({
 
           {/* Exercise list */}
           <div className='flex-1 overflow-y-auto p-3 space-y-3'>
-            {Array.from(grouped.entries()).map(([category, exs]) => (
-              <div key={category}>
-                <h4 className='text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1'>
-                  {category}
-                </h4>
-                <div className='space-y-0.5'>
-                  {exs.map(ex => {
-                    const isSelected = selectedExerciseIds.has(ex.id);
-                    return (
-                      <button
-                        key={ex.id}
-                        onClick={() => onToggleExercise(ex.id)}
-                        className={`w-full text-left flex items-center gap-2 px-2 py-1.5 rounded text-sm transition ${
-                          isSelected
-                            ? 'bg-[#178da6]/10 text-[#178da6] font-medium'
-                            : 'hover:bg-gray-50 text-gray-700'
-                        }`}
-                      >
-                        <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${
-                          isSelected
-                            ? 'bg-[#178da6] border-[#178da6]'
-                            : 'border-gray-300'
-                        }`}>
-                          {isSelected && <Check size={12} className='text-white' />}
-                        </div>
-                        <span className='truncate'>
-                          {ex.display_name || ex.name}
-                        </span>
-                      </button>
-                    );
-                  })}
+            {Array.from(grouped.entries()).map(([category, exs]) => {
+              const selectedInCategory = exs.filter(ex => selectedExerciseIds.has(ex.id)).length;
+              return (
+                <div key={category}>
+                  <button
+                    onClick={() => setCollapsed(prev => ({ ...prev, [category]: !prev[category] }))}
+                    className='w-full flex items-center gap-1.5 py-1.5 hover:bg-gray-50 rounded transition'
+                  >
+                    {collapsed[category] ? <ChevronRight size={14} className='text-gray-500 shrink-0' /> : <ChevronDown size={14} className='text-gray-500 shrink-0' />}
+                    <span className='text-xs font-semibold text-gray-500 uppercase tracking-wider'>
+                      {category}
+                    </span>
+                    <span className='text-xs text-gray-400'>({exs.length})</span>
+                    {selectedInCategory > 0 && (
+                      <span className='text-xs text-[#178da6] font-medium ml-auto mr-1'>
+                        {selectedInCategory} selected
+                      </span>
+                    )}
+                  </button>
+                  <div className='space-y-0.5 ml-1'>
+                    {exs.map(ex => {
+                      const isSelected = selectedExerciseIds.has(ex.id);
+                      if (collapsed[category] && !isSelected) return null;
+                      return (
+                        <button
+                          key={ex.id}
+                          onClick={() => onToggleExercise(ex.id)}
+                          className={`w-full text-left flex items-center gap-2 px-2 py-1.5 rounded text-sm transition ${
+                            isSelected
+                              ? 'bg-[#178da6]/10 text-[#178da6] font-medium'
+                              : 'hover:bg-gray-50 text-gray-700'
+                          }`}
+                        >
+                          <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${
+                            isSelected
+                              ? 'bg-[#178da6] border-[#178da6]'
+                              : 'border-gray-300'
+                          }`}>
+                            {isSelected && <Check size={12} className='text-white' />}
+                          </div>
+                          <span className='truncate'>
+                            {ex.display_name || ex.name}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Footer */}

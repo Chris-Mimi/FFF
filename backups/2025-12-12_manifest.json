@@ -1,0 +1,16 @@
+{
+  "timestamp": "2025-12-12T13:55:05.496Z",
+  "date": "2025-12-12",
+  "tables": {
+    "barbell_lifts": true,
+    "benchmark_workouts": true,
+    "forge_benchmarks": true,
+    "lift_records": true,
+    "benchmark_results": true,
+    "wod_section_results": true,
+    "wods": true,
+    "exercises": true
+  },
+  "success": true,
+  "location": "/Users/mimihiles/SynologyDrive/CrossFit Hammerschmiede (CFH)/AI Development/forge-functional-fitness/backups"
+}

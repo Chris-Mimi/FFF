@@ -1,0 +1,416 @@
+[
+  {
+    "id": "45512998-a1c2-4456-beca-c91b86e24609",
+    "category": "equipment",
+    "abbr": "BB",
+    "full_name": "Barbell",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "4b86d656-9ac3-425e-9eca-0aa8dd3f9c15",
+    "category": "equipment",
+    "abbr": "BR",
+    "full_name": "Ball Roll",
+    "notes": "Normally BS for Ball Smash, but we use BS for Back Squat",
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "26c4b131-0057-48df-a711-72f6545d73cd",
+    "category": "equipment",
+    "abbr": "C2",
+    "full_name": "Concept2",
+    "notes": "Rower/Skierg",
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "d8b9f9aa-ca98-4888-ac5d-75a1faafc3f1",
+    "category": "equipment",
+    "abbr": "DB",
+    "full_name": "Dumbbell",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "4aebf706-f194-4f41-911d-9a09961c7a43",
+    "category": "equipment",
+    "abbr": "FR",
+    "full_name": "Foam Roller",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "b5ea629d-797b-4495-ab03-440646a18899",
+    "category": "equipment",
+    "abbr": "GHD",
+    "full_name": "Glute-Ham Developer",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "3fb4ec73-014b-4144-95e5-b0a5d51841df",
+    "category": "equipment",
+    "abbr": "KB",
+    "full_name": "Kettlebell",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "871b9620-193d-4363-bb8b-b3f62151d766",
+    "category": "equipment",
+    "abbr": "MB",
+    "full_name": "Medicine Ball",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "a973f4fc-c78c-4628-8f43-88cdcaefddc9",
+    "category": "equipment",
+    "abbr": "PVC",
+    "full_name": "PVC Pipe",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "081b482f-a1bc-4137-b40c-7cdd6f353891",
+    "category": "equipment",
+    "abbr": "RB",
+    "full_name": "Resistance Band",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "95f7ec79-8b02-4e6e-8c6b-f8a3adbef065",
+    "category": "equipment",
+    "abbr": "TRX",
+    "full_name": "TRX Suspension Trainer",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "a630e855-8f09-4d1c-b10d-58440a3fa8cb",
+    "category": "equipment",
+    "abbr": "WB",
+    "full_name": "Wallball",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "cd6ee3a2-7238-4c41-8914-b2ab74a55e13",
+    "category": "movementTypes",
+    "abbr": "AKBS",
+    "full_name": "American Kettlebell Swing",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "f29532b1-7e21-451c-8ab4-15250433b10d",
+    "category": "movementTypes",
+    "abbr": "Alt.",
+    "full_name": "Alternating",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "bfcf473c-38f9-4d47-8896-500875c7af11",
+    "category": "movementTypes",
+    "abbr": "ATG",
+    "full_name": "Ass-to-Grass",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "3ec99f63-08ec-49af-9ce5-75aa5ac6195a",
+    "category": "movementTypes",
+    "abbr": "BSS",
+    "full_name": "Bulgarian Split Squat",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "2aa2c4e0-3ebc-4fad-9d94-5caccc2f48d7",
+    "category": "movementTypes",
+    "abbr": "C&P",
+    "full_name": "Clean & Press",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "d3d47227-430a-4ccf-904f-2f1a00b7ffff",
+    "category": "movementTypes",
+    "abbr": "C2B",
+    "full_name": "Chest to Bar",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "d6b7bc15-6ad2-4b1f-b940-b79b1cbb1dc6",
+    "category": "movementTypes",
+    "abbr": "DL",
+    "full_name": "Deadlift",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "9d2a6e37-3a50-4137-8add-13ba69a40c22",
+    "category": "movementTypes",
+    "abbr": "DUs",
+    "full_name": "Double-Unders",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "bfb6a59d-ef3f-4e6a-b776-3d47e38ebc48",
+    "category": "movementTypes",
+    "abbr": "SU",
+    "full_name": "Single Unders",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "0533217b-cee9-4c7b-9fe5-87f8d864e60c",
+    "category": "movementTypes",
+    "abbr": "FS",
+    "full_name": "Front Squat",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "afe89a0b-e3e8-4bb6-91c9-47799baae4fc",
+    "category": "movementTypes",
+    "abbr": "HPC",
+    "full_name": "Hang Power Clean",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "da058785-79cb-477d-8a41-6ed44f885587",
+    "category": "movementTypes",
+    "abbr": "HPS",
+    "full_name": "Hang Power Snatch",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "2cfd6cb2-287d-44cb-a2bb-80dd5bfc7836",
+    "category": "movementTypes",
+    "abbr": "HSPU",
+    "full_name": "Handstand Push-Up",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "ea3c5261-780c-4e46-8100-400d5e7cc634",
+    "category": "movementTypes",
+    "abbr": "HSW",
+    "full_name": "Handstand Walk",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "55ccdc55-6558-4d6b-8381-1472da5d0421",
+    "category": "movementTypes",
+    "abbr": "OH",
+    "full_name": "Overhead",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "50184679-9bb0-4f79-8581-23712b0e991e",
+    "category": "movementTypes",
+    "abbr": "OHP",
+    "full_name": "Overhead Press",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "86b08702-126f-4c11-8e48-65c87dd28e3a",
+    "category": "movementTypes",
+    "abbr": "OHS",
+    "full_name": "Overhead Squat",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "8723f072-d379-4dba-90bb-78c1bff3ee62",
+    "category": "movementTypes",
+    "abbr": "OTB",
+    "full_name": "Over the Box",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "cb959e4e-e85a-4990-90cf-24316e87df82",
+    "category": "movementTypes",
+    "abbr": "PJ",
+    "full_name": "Push Jerk",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "b0b3cdf8-f048-456a-80f1-58c085ff1f11",
+    "category": "movementTypes",
+    "abbr": "PP",
+    "full_name": "Push Press",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "e862b4ff-bb74-4284-88f8-8665ce1578a2",
+    "category": "movementTypes",
+    "abbr": "PT",
+    "full_name": "Pass Through",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "bf020f1f-e4b0-4369-812f-a83417027691",
+    "category": "movementTypes",
+    "abbr": "RDL",
+    "full_name": "Romanian Deadlift",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "37308d8b-3076-449b-b0bf-cf39a738c60d",
+    "category": "movementTypes",
+    "abbr": "RKBS",
+    "full_name": "Russian Kettlebell Swing",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "a4cb6852-77c5-43c1-86e5-b0784b925d84",
+    "category": "movementTypes",
+    "abbr": "T2B",
+    "full_name": "Toes to Bar",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "fa6e7361-a69c-48f6-bfda-6114ae42de6a",
+    "category": "movementTypes",
+    "abbr": "TGU",
+    "full_name": "Turkish Get-Up",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "3effed76-e58a-48b2-a0ac-cdfd2873f390",
+    "category": "movementTypes",
+    "abbr": "WGS",
+    "full_name": "World's Greatest Stretch",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "8285078e-09dd-409e-abf7-0c2b402aa028",
+    "category": "anatomicalTerms",
+    "abbr": "Dbl",
+    "full_name": "Double",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "70ac7f77-0ad7-412f-bf2c-3c87b1deb945",
+    "category": "anatomicalTerms",
+    "abbr": "FHL",
+    "full_name": "Flexor Hallucis Longus",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "76303ae9-f4df-485b-9003-bcb3a73a77fc",
+    "category": "anatomicalTerms",
+    "abbr": "KoT",
+    "full_name": "Knee Over Toe",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "31afca1b-6759-47aa-b370-a5b14fc65514",
+    "category": "anatomicalTerms",
+    "abbr": "TFL",
+    "full_name": "Tensor Fascia Latae",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "9ec16505-bbad-4498-9435-cae9ee7cd1e5",
+    "category": "movementPatterns",
+    "abbr": "ATY",
+    "full_name": "(ITY) Shape of letters during movement",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "5f1e3a74-1827-4aa4-a5cb-54070340a462",
+    "category": "movementPatterns",
+    "abbr": "PNF",
+    "full_name": "Proprioceptive Neuromuscular Facilitation",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  },
+  {
+    "id": "dd813b73-6d2a-4363-95fd-356dab7c2366",
+    "category": "anatomicalTerms",
+    "abbr": "QL",
+    "full_name": "Quadratus Lumborum",
+    "notes": "a deep muscle in the lower back that connects the pelvis, lower ribs, and spine",
+    "created_at": "2025-11-27T11:34:24.404733+00:00",
+    "updated_at": "2025-11-27T11:34:24.404733+00:00"
+  },
+  {
+    "id": "3c018a3b-1136-468a-8454-2f885bf51283",
+    "category": "equipment",
+    "abbr": "SB",
+    "full_name": "Slamball",
+    "notes": null,
+    "created_at": "2025-11-27T11:06:20.490582+00:00",
+    "updated_at": "2025-11-27T11:06:20.490582+00:00"
+  }
+]

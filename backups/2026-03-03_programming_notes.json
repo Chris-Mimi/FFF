@@ -1,0 +1,74 @@
+[
+  {
+    "id": "3bb37fc5-4a88-418f-b26d-a2cbe62289ff",
+    "user_id": "fc32bb41-8821-4efd-af28-8d3e2f60578d",
+    "title": "MetCon conversions",
+    "content": "**Rogue Echo Bike (metres to miles):**\n1000 metres = 0.62 miles\n2000 metres = 1.24 miles\n4000 metres = 2.48 miles\n\n**Rogue Echo Bike (miles to metres):**\n1 mile = 1609 metres\n2 miles = 3218 metres\n3 miles = 4828 metres\n\n_All estimates are for average athletes_\n\n**Rower**\n10 calories Row = 7 calories on the Rogue Echo Bike.\n10 calories row takes an average athlete 36 seconds\n10 Rowing Calories is equivalent to 166 meters rowed.\n500 metres takes an average athlete 2 minutes\n100M row takes 24 seconds. (4 mins per 1000m)\nRowing 100M burns about 6 calories\n\n**Echo Bike**\n7 Calories on the Echo Bike is about 0.22 miles (354 metres)\n1600 metres/1 mile takes approx. 3 mins\nBiking 0.13 miles (200 metres) burns about 4.2 calories.\n\n**Row - Airbike Conversion**\n100 meters Row = 0.13 miles (200 metres) on the Rogue Echo Bike.\n10 Calories Rower = 7 Calories Echo Bike\n1000 Meters Row = 1.3 Miles (2092 metres) on Echo Bike\n\n**Approx run-row conversions:**\n1 mile run (1600 metres) = 2000 metres Row = 2.6 miles (4184 metres)\n1/2 mile run (800 metres = 1000 metres Row = 1.3 miles (2092 metres)\n1/4 mile run (400 metres = 500 metres Row = 0.64 miles (1046 metres)",
+    "created_at": "2026-01-14T08:50:26.175044+00:00",
+    "updated_at": "2026-01-14T09:44:00.221001+00:00",
+    "folder_id": "1beea83e-c667-4f92-b053-9e08a57201cc"
+  },
+  {
+    "id": "70a534c0-46b8-4932-a6e9-ad3c2f18ba41",
+    "user_id": "fc32bb41-8821-4efd-af28-8d3e2f60578d",
+    "title": "Gymnastics",
+    "content": "**Monroe Miller**\nHow to master Toes to Bar: https://www.youtube.com/watch?v=oGMAoLWDnLQ",
+    "created_at": "2026-01-14T10:30:33.097325+00:00",
+    "updated_at": "2026-01-14T10:48:29.108088+00:00",
+    "folder_id": "d011292a-346f-4f1a-bf8b-252d28bbefa3"
+  },
+  {
+    "id": "d7cf512d-01c5-454f-b40d-89a215854c86",
+    "user_id": "fc32bb41-8821-4efd-af28-8d3e2f60578d",
+    "title": "Endurance scores for reference",
+    "content": "**<u>These scores are taken from various Endurance workouts as a programming reference</u>**\n\n**30 x Up-Downs Split times** (times taken from 1st round & last round for reference):\nClaudia: 1:15, 1:55\nChris: 1:15, 1:56\nJürgenB: 1:31, 1:57\nTobiasG: 1:29,1:58\nThomasS: 1:29, 2:38\nAlexander: 1:49, 2:37\n\n**Accumulated L-Sit Hold** (times taken from 1st round & last round for reference):\nChris: Rx - 2:09 3:04\nClaudia: Sc - 2:50, 2:12\nThomasS: Sc - 2:17, 1:46\nJürgenB: Sc - 2:55, 2:26\nTobiasG: Sc - 2:41, 1:22\nAlexander: Sc - 1:40, 2:01\n\n**SkiErg 500m** (times taken from 1st round & last round for reference):\nChris: 2:10, 2:12\nAlexander: 2:02, 2:20\nClaudia: 2:06, 2:17\nThomasS: 2:06, 2:18\nTobiasG: 2:23, 3:13\nJürgenB: 2:27, ? (camera fault on last round)\n\n**1600 metres run** (taken from 2nd run from 18.03.23)\nLukas: 7:49\nKathrin: 7:54\nAndy: 8:20\nMichaelB: 9:05\nChris: 9:10\n\n**Burpee Broad Jumps 40 metres times** (25.03.23):\nAndy: 1:35 (all no reps)\nLukas: 1:50\nJürgenB: 2:00\nKathrin: 2:10\nThomasS: 2:18\nNicole: 2:26\nChris: 2:30\nAnni: 2:42\n\n**Walking Lunges 60 metres times** (25.03.23):\nAndy: 1:24\nKathrin: 1:27\nLukas: 1:36\nThomasS: 1:38\nJürgenB: 1:53\nAnni:1:56\nChris: 2:04\nNicole: 2:19\n",
+    "created_at": "2026-01-14T08:49:07.880586+00:00",
+    "updated_at": "2026-01-21T14:16:02.015068+00:00",
+    "folder_id": "1beea83e-c667-4f92-b053-9e08a57201cc"
+  },
+  {
+    "id": "1af29661-9617-428c-8308-f9d59fa26cba",
+    "user_id": "fc32bb41-8821-4efd-af28-8d3e2f60578d",
+    "title": "Strength building",
+    "content": "**Ryan Humiston**\n3 Barbell Squats you should be doing: https://www.youtube.com/watch?v=7dsH-__3mpI&t=67s",
+    "created_at": "2026-01-14T12:01:34.904576+00:00",
+    "updated_at": "2026-02-07T10:18:09.737902+00:00",
+    "folder_id": "44db892f-8b9b-4c88-9823-4de8b237aff7"
+  },
+  {
+    "id": "1276147d-97b1-40f4-8b43-26583f5c4609",
+    "user_id": "fc32bb41-8821-4efd-af28-8d3e2f60578d",
+    "title": "Common Types of CrossFit Workouts",
+    "content": "\n**AMRAP** (As Many Rounds/Reps As Possible): Perform a set circuit of exercises as many times as possible within a fixed time limit (e.g., 10 or 20 minutes).\n**EMOM** (Every Minute On the Minute): Perform a specific task (reps or exercises) at the start of every minute, resting for the remainder of that minute.\n**RFT (Rounds For Time)**: Complete a designated number of rounds of a circuit as fast as possible, focusing on efficiency and speed.\n**Chipper:** A long, high-volume workout consisting of a high number of reps for multiple exercises, typically completed \"for time\".\n**Tabata:** A high-intensity interval format consisting of 20 seconds of maximum effort followed by 10 seconds of rest, repeated for 8 cycles (4 minutes total).\n**Benchmark & Hero WODs:** Standardized, often named workouts (e.g., \"Fran,\" \"Murph\") used to measure progress over time or honor fallen first responders.\n**Ladder:** Workouts where the rep count increases or decreases with each round.\n\n**<u>NOTES:</u>**\nIn CrossFit, the difference between \"For Time\" and a \"Chipper\" is essentially that all Chippers are For Time, but not all For Time workouts are Chippers. \nFor Time is a broad scoring category where the goal is to complete a specific amount of work as fast as possible.\nChipper is a specific style of For Time workout characterized by a long list of different movements (usually 5–10) that you \"chip away\" at in order until finished. \n\n**<u>Key Differences</u>**\n**Chipper**\nAlmost always one single, long round.\nHigh variety; typically 5 to 10+ different movements.\nUsually high volume per movement (e.g., 50 reps of each).\nFocuses on breaking large sets into manageable chunks with short rests.\n\n**For Time**\nCan be 1 round, multiple rounds (RFT), or intervals.\t\nOften uses 2–3 movements (couplets/triplets).\t\nVariable; can be low-rep sprints or high-rep grinds.\t\nOften about maintaining a consistent pace across rounds.\t ",
+    "created_at": "2026-01-30T12:27:43.158449+00:00",
+    "updated_at": "2026-01-31T10:51:37.769794+00:00",
+    "folder_id": null
+  },
+  {
+    "id": "c8f6918b-944b-4696-bf3d-2466d38aeff1",
+    "user_id": "fc32bb41-8821-4efd-af28-8d3e2f60578d",
+    "title": "Reverse Plank scaling options",
+    "content": "https://www.youtube.com/watch?v=0VQdj9tvxlk&t=336s (Conor Harris)\n\n**Level 1**\nSit with your back to the wall, butt about 1 hand-length away.\nPlace hands flat on the ground level with the butt.\nFeet flat on the ground (tripod foot) knees at approx. 90°\nPush ground away without raising the hips\n\n**Level 2**\nPlace hands on Weight Plates or DBs, butt slightly further forwards, dig the heels into the ground and pull the feet backwards and down as you push the ground away \nMake sure to relax the neck muscles\n\n**Level 3**\nSame but with straight legs\n\n**Level 4**\nSame but with raised feet on WP or platform\nRaise slips slightly higher\n\n**Level 5**\nSame but hands and feet on the ground, raise hips higher without engaging the lower back\n\n**Level 6**\nSam but with straight legs and body\n\n",
+    "created_at": "2026-02-06T14:22:42.56972+00:00",
+    "updated_at": "2026-02-07T10:17:58.410036+00:00",
+    "folder_id": "028d8c91-df9e-4f7f-b5d2-76acd40388a7"
+  },
+  {
+    "id": "81312694-c47d-4853-9c6a-58bd08b29a35",
+    "user_id": "fc32bb41-8821-4efd-af28-8d3e2f60578d",
+    "title": "5-Minute Finishers",
+    "content": "https://www.instagram.com/reels/DMS4gNsgLJh/\nPartner Goblet Squat Challenge 5,4,3,2,1 remain in Deep Squat position until partner finishes then continue. When both partners have done 5, restart. Most rounds wins.\n\nBarbell Clean x 3\nBarbell PP/PJ x 3\nOTB Burpee x 3\n\nUnbroken KB Snatches\nhttps://www.youtube.com/shorts/8lAgsEFvkfc\nKB can NOT be put down for the whole of the 5 minutes\nChange hands whenever you like by performing a transition between Snatches\nYou can only rest with the KB OH\nPick a much lighter weight than you would normally take\n\n30 secs work, 30 secs rest Strict Pull-Ups AMRAP\n",
+    "created_at": "2026-02-07T10:14:30.325165+00:00",
+    "updated_at": "2026-02-11T14:06:39.515725+00:00",
+    "folder_id": "44db892f-8b9b-4c88-9823-4de8b237aff7"
+  },
+  {
+    "id": "b8cd367f-6b0b-4376-9d08-9c8c904457fc",
+    "user_id": "fc32bb41-8821-4efd-af28-8d3e2f60578d",
+    "title": "Seconds Interval Timer",
+    "content": "https://www.runloop.com/seconds-interval-timer",
+    "created_at": "2026-02-27T14:55:35.345229+00:00",
+    "updated_at": "2026-02-27T14:55:51.508143+00:00",
+    "folder_id": null
+  }
+]

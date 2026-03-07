@@ -1,0 +1,98 @@
+[
+  {
+    "id": "5ac71e01-5184-43e3-aed1-7eb2155df9b3",
+    "name": "Kids",
+    "display_order": 4,
+    "active": true,
+    "created_at": "2025-10-26T22:34:29.182129+00:00",
+    "updated_at": "2025-10-26T22:34:29.182129+00:00"
+  },
+  {
+    "id": "82e7543f-4325-4c73-ab1c-8dbc8c415608",
+    "name": "WOD",
+    "display_order": 1,
+    "active": true,
+    "created_at": "2025-10-26T22:34:29.182129+00:00",
+    "updated_at": "2025-11-16T13:49:09.53831+00:00"
+  },
+  {
+    "id": "a8d6b6c6-9fdc-4290-9da3-4b3f15a28d3a",
+    "name": "Foundations",
+    "display_order": 2,
+    "active": true,
+    "created_at": "2025-11-16T13:16:17.311415+00:00",
+    "updated_at": "2025-11-16T14:14:12.338883+00:00"
+  },
+  {
+    "id": "4e62aa6b-a6fc-4a4a-863b-a5554e94db3a",
+    "name": "Kinderbetreuung",
+    "display_order": 11,
+    "active": true,
+    "created_at": "2025-11-16T14:16:26.372478+00:00",
+    "updated_at": "2025-11-16T14:16:26.372478+00:00"
+  },
+  {
+    "id": "14ec7633-fafb-405a-9359-d2ecf7480571",
+    "name": "Foundations/WOD",
+    "display_order": 3,
+    "active": true,
+    "created_at": "2025-10-26T22:34:29.182129+00:00",
+    "updated_at": "2025-11-16T14:30:48.775347+00:00"
+  },
+  {
+    "id": "aebca4af-e9c3-4ca2-a3b2-0ebfece81e91",
+    "name": "ElternKind Turnen",
+    "display_order": 7,
+    "active": true,
+    "created_at": "2025-10-26T22:34:29.182129+00:00",
+    "updated_at": "2025-11-16T14:31:48.482042+00:00"
+  },
+  {
+    "id": "881ed2f0-5a6b-4b3b-be09-6b3b690aabdb",
+    "name": "FitKids Turnen",
+    "display_order": 6,
+    "active": true,
+    "created_at": "2025-10-26T22:34:29.182129+00:00",
+    "updated_at": "2025-11-16T14:31:52.326089+00:00"
+  },
+  {
+    "id": "2def157e-32f8-4a0f-b994-54ba282458e1",
+    "name": "Kids & Teens",
+    "display_order": 5,
+    "active": true,
+    "created_at": "2025-10-26T22:34:29.182129+00:00",
+    "updated_at": "2025-11-16T14:31:57.674766+00:00"
+  },
+  {
+    "id": "b0bbc6ef-5728-488e-a534-b771088dbd80",
+    "name": "Endurance",
+    "display_order": 8,
+    "active": true,
+    "created_at": "2025-10-26T22:34:29.182129+00:00",
+    "updated_at": "2025-11-16T14:33:42.859211+00:00"
+  },
+  {
+    "id": "de4b5174-d0fc-4164-a77c-18010307eae9",
+    "name": "Diapers & Dumbbells",
+    "display_order": 9,
+    "active": true,
+    "created_at": "2025-10-26T22:34:29.182129+00:00",
+    "updated_at": "2025-11-16T14:33:50.934089+00:00"
+  },
+  {
+    "id": "2e3410a6-3fa7-4fcb-ab8e-f036cd536284",
+    "name": "Open Gym",
+    "display_order": 10,
+    "active": true,
+    "created_at": "2025-10-26T22:37:03.492772+00:00",
+    "updated_at": "2025-11-16T14:34:10.960463+00:00"
+  },
+  {
+    "id": "bc6aa8e4-3b06-4a7f-9db5-957cdad8853f",
+    "name": "Specialty/Party/Other",
+    "display_order": 12,
+    "active": true,
+    "created_at": "2025-12-28T15:03:28.191912+00:00",
+    "updated_at": "2026-01-12T10:07:31.700707+00:00"
+  }
+]

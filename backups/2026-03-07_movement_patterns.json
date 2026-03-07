@@ -1,0 +1,38 @@
+[
+  {
+    "id": "66dc2494-c016-493c-9f0d-fa8ba2ccf83c",
+    "user_id": "fc32bb41-8821-4efd-af28-8d3e2f60578d",
+    "name": "Upper Body Pressing",
+    "color": "#3B82F6",
+    "staleness_yellow": 3,
+    "staleness_red": 6,
+    "sort_order": 0,
+    "created_at": "2026-03-07T21:00:13.53882+00:00",
+    "updated_at": "2026-03-07T21:01:51.689+00:00",
+    "track": "adults"
+  },
+  {
+    "id": "5c00e46a-c092-4d49-b77c-68ea0f319e21",
+    "user_id": "fc32bb41-8821-4efd-af28-8d3e2f60578d",
+    "name": "Iso Holds",
+    "color": "#3B82F6",
+    "staleness_yellow": 3,
+    "staleness_red": 6,
+    "sort_order": 1,
+    "created_at": "2026-03-07T21:10:42.286165+00:00",
+    "updated_at": "2026-03-07T21:10:47.859+00:00",
+    "track": "adults"
+  },
+  {
+    "id": "4af9e124-d366-404d-98f1-ff07fffa18d2",
+    "user_id": "fc32bb41-8821-4efd-af28-8d3e2f60578d",
+    "name": "Test",
+    "color": "#3B82F6",
+    "staleness_yellow": 3,
+    "staleness_red": 6,
+    "sort_order": 0,
+    "created_at": "2026-03-07T21:52:59.759345+00:00",
+    "updated_at": "2026-03-07T21:52:59.759345+00:00",
+    "track": "kids"
+  }
+]

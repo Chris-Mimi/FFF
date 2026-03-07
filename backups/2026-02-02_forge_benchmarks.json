@@ -1,0 +1,132 @@
+[
+  {
+    "id": "db4fcef9-fc55-4e06-a08f-b83b08064d13",
+    "name": "Concept 2 Rower: 2km",
+    "type": "For Time",
+    "description": "Row 2000 metres as fast as possible",
+    "display_order": 2,
+    "has_scaling": false,
+    "created_at": "2025-12-08T13:03:12.341392+00:00",
+    "updated_at": "2025-12-09T09:54:14.147+00:00"
+  },
+  {
+    "id": "cfc5c45d-353a-4e5f-950b-e2a60c13d16e",
+    "name": "SkiErg: 2km",
+    "type": "For Time",
+    "description": "SkiErg 2000 metres as fast as possible",
+    "display_order": 7,
+    "has_scaling": false,
+    "created_at": "2025-12-09T09:59:44.667557+00:00",
+    "updated_at": "2025-12-09T09:59:44.667557+00:00"
+  },
+  {
+    "id": "ebe5e874-274e-4c17-aeae-fb67d96a00d3",
+    "name": "SkiErg: 5km",
+    "type": "For Time",
+    "description": "SkiErg 5000 metres as fast as possible",
+    "display_order": 8,
+    "has_scaling": false,
+    "created_at": "2025-12-09T10:00:15.770714+00:00",
+    "updated_at": "2025-12-09T10:00:15.770714+00:00"
+  },
+  {
+    "id": "2309aea6-5ef4-4f5a-87bf-6c83a9fe2d10",
+    "name": "Airbike: 1km",
+    "type": "For Time",
+    "description": "Airbike 1000 metres as fast as possible",
+    "display_order": 11,
+    "has_scaling": false,
+    "created_at": "2025-12-09T10:00:38.200787+00:00",
+    "updated_at": "2025-12-09T10:00:38.200787+00:00"
+  },
+  {
+    "id": "2743df63-cd8d-4f92-90f5-36ff97fb14ad",
+    "name": "Airbike: 2km",
+    "type": "For Time",
+    "description": "Airbike 2000 metres as fast as possible",
+    "display_order": 12,
+    "has_scaling": false,
+    "created_at": "2025-12-09T10:00:50.531248+00:00",
+    "updated_at": "2025-12-09T10:01:21.075+00:00"
+  },
+  {
+    "id": "77095886-a0d2-445a-bf51-55521fab025c",
+    "name": "Max Freestanding Handstand Hold (6 mins)",
+    "type": "For Time",
+    "description": "Take as many attempts as needed to record a max freestanding HS Hold within the 6 minute window.\nSc1: heels against the wall\nSc2: toes against the wall (wall walk position)",
+    "display_order": 22,
+    "has_scaling": true,
+    "created_at": "2026-01-27T23:10:42.379974+00:00",
+    "updated_at": "2026-01-27T23:10:42.379974+00:00"
+  },
+  {
+    "id": "b2f98e1f-084c-45b8-863a-b988e04397c9",
+    "name": "Parallettes L-Sit Hold: 5 mins accumulated",
+    "type": "For Time",
+    "description": "On a 5 minute clock accrue as much accumulated (not unbroken) time as possible in the L-Sit Hold.\n\nRx: Straight legs, heels higher or level with the hips, shoulders behind the wrists\nSc1: Shoulders behind wrists, straight legs slightly lower than 90° (parallel to the ground) and/or slight bending of the knees\nSc2: Shoulders in front of wrists, legs clearly below 90°, clearly bent knees, or Tuck Hold\nIf you can't manage at least 5 seconds @ any of these levels, perform a Tuck Hold instead.",
+    "display_order": 21,
+    "has_scaling": true,
+    "created_at": "2026-01-27T23:05:47.874846+00:00",
+    "updated_at": "2026-01-27T23:13:18.64+00:00"
+  },
+  {
+    "id": "0eb863f1-f0f2-4bbb-9c55-b3bd98b9b698",
+    "name": "Forge Fight Gone Bad",
+    "type": "AMRAP",
+    "description": "3 Rounds For Total Reps in 17 minutes\n1 minute Wall Ball Shots (6/9kg)\n1 minute GHD Hip Extension DB Row (2 x 15/22.5kg)\n1 minute Box Jumps (51/61cm)\n1 minute Barbell Push Press (25/35kg)\n1 minute Airbike (calories)\n1 minute Rest",
+    "display_order": 16,
+    "has_scaling": true,
+    "created_at": "2025-12-10T12:36:12.149759+00:00",
+    "updated_at": "2025-12-10T12:46:53.612+00:00"
+  },
+  {
+    "id": "e4070917-1b9f-4fe9-9976-8e2ad5a3abec",
+    "name": "Concept 2 Rower: 1km",
+    "type": "For Time",
+    "description": "C2 Rower 1000 metres as fast as possible",
+    "display_order": 1,
+    "has_scaling": false,
+    "created_at": "2025-12-06T21:49:08.352593+00:00",
+    "updated_at": "2025-12-27T23:56:51.095+00:00"
+  },
+  {
+    "id": "d4c05dac-820d-45b0-8047-00b6abb753c9",
+    "name": "Concept 2 Rower: 10km",
+    "type": "For Time",
+    "description": "Row 10000 metres as fast as possible",
+    "display_order": 4,
+    "has_scaling": true,
+    "created_at": "2025-12-08T13:03:17.112962+00:00",
+    "updated_at": "2025-12-09T09:54:38.818+00:00"
+  },
+  {
+    "id": "3589465a-9679-4e0e-b203-754936eaabac",
+    "name": "Concept 2 Rower: 5km",
+    "type": "For Time",
+    "description": "Row 5000 metres as fast as possible",
+    "display_order": 3,
+    "has_scaling": false,
+    "created_at": "2025-12-08T13:03:06.434756+00:00",
+    "updated_at": "2025-12-09T09:54:09.768+00:00"
+  },
+  {
+    "id": "2c6b450d-d26f-4d94-896f-6c34685ed3e7",
+    "name": "Airbike: 5km",
+    "type": "For Time",
+    "description": "Airbike 5000 metres as fast as possible",
+    "display_order": 13,
+    "has_scaling": false,
+    "created_at": "2025-12-09T10:01:10.576573+00:00",
+    "updated_at": "2025-12-09T10:01:10.576573+00:00"
+  },
+  {
+    "id": "c3909181-1086-444b-b2b1-ad4653ac3f5f",
+    "name": "SkiErg: 1km",
+    "type": "For Time",
+    "description": "SkiErg 1000 metres as fast as possible",
+    "display_order": 6,
+    "has_scaling": false,
+    "created_at": "2025-12-09T09:59:07.138693+00:00",
+    "updated_at": "2025-12-09T09:59:07.138693+00:00"
+  }
+]

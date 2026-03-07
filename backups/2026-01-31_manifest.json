@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-01-31T19:24:34.948Z",
+  "date": "2026-01-31",
+  "tables": {
+    "barbell_lifts": true,
+    "benchmark_workouts": true,
+    "forge_benchmarks": true,
+    "exercises": true,
+    "tracks": true,
+    "section_types": true,
+    "workout_types": true,
+    "workout_titles": true,
+    "naming_conventions": true,
+    "resources": true,
+    "wods": true,
+    "weekly_sessions": true,
+    "members": true,
+    "bookings": true,
+    "athlete_profiles": true,
+    "lift_records": true,
+    "benchmark_results": true,
+    "wod_section_results": true,
+    "workout_logs": true,
+    "programming_notes": true,
+    "note_folders": true,
+    "user_exercise_favorites": true,
+    "whiteboard_photos": true,
+    "session_templates": true,
+    "movement_results": true
+  },
+  "success": true,
+  "location": "/Users/mimihiles/SynologyDrive/CrossFit Hammerschmiede (CFH)/AI Development/forge-functional-fitness/backups"
+}

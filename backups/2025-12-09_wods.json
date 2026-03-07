@@ -1,0 +1,1331 @@
+[
+  {
+    "id": "1ed4ac62-9a4b-464b-b58e-789d678630a7",
+    "title": "WOD",
+    "track_id": null,
+    "workout_type_id": null,
+    "class_times": [
+      "17:15:00"
+    ],
+    "max_capacity": 12,
+    "date": "2025-12-10",
+    "sections": [
+      {
+        "id": "section-1765285391573",
+        "type": "Whiteboard Intro",
+        "content": "",
+        "duration": 3
+      },
+      {
+        "id": "section-1765277025653",
+        "type": "Warm-up",
+        "content": "* Catalyst warm-up\n* Hip Openers\n* Arm Circles\n* Elbow circles\n* Over & Back\n* Arm Rotations\n* Triceps Stretch Sidebend\n* Torso Rotations\n* Hip Circles\n* Heel Toe + Lateral Drop Lunge\n* Bow & Bend\n* Iron Cross\n* Dynamic Scorpion\n* Walking Lunge & Twist\n* Spiderman Lunge\n* Walking RDL & Leg Swing\n* Cossack Squat\n* Deep Squat Knee Circles\n* Russian Baby Maker\n* Leg Swings",
+        "duration": 12
+      },
+      {
+        "id": "section-1765285362287",
+        "type": "Olympic Lifting",
+        "content": "* Snatch Drill: Hip Snatch\n* Snatch Drill: Dip Snatch\nStart with PVC Pipe x 6 of each, then empty barbell\nContinue with sets of 3 Dip Snatch adding weight every round",
+        "duration": 15,
+        "scoring_fields": {
+          "checkbox": true
+        }
+      },
+      {
+        "id": "section-1765285569197",
+        "type": "Olympic Lifting",
+        "content": "* Barbell Hang Power Snatch\n* Overhead Squat (OHS)\n\nPerform sets of 2 x HPS followed by 1 x OHS, add weight up to WOD weight",
+        "duration": 6,
+        "scoring_fields": {
+          "load": true,
+          "reps": true,
+          "checkbox": true,
+          "rounds_reps": true
+        }
+      },
+      {
+        "id": "section-1765285616131",
+        "type": "WOD Final Prep",
+        "content": "",
+        "duration": 5
+      },
+      {
+        "id": "section-1765285621407",
+        "type": "WOD",
+        "content": "12 min AMRAP of:\n* Chest to ground Bear Crawl over the barbell x 2\n* Barbell Hang Power Snatch x 4\n* Overhead Squat (OHS) x2\nChest touches the ground before the barbell, bear crawl over the bar, touch chest to ground, crawl backwards over the bar, touch chest to ground. This is 1 rep.\nBarbell Loads\nRx: 35/45 kg\nSc1: 30/35 kg\nSc2: 25/35 kg",
+        "duration": 12,
+        "scoring_fields": {
+          "load": true,
+          "scaling": true,
+          "rounds_reps": true
+        },
+        "workout_type_id": "82ad0e4d-375a-4f2e-9d61-4e3ac8e3334e"
+      },
+      {
+        "id": "section-1765286427610",
+        "type": "Cool Down",
+        "content": "* FR Upper back\n* BR QL Release\n* BR TFL\n* Frog Stretch with Reverse Hands",
+        "duration": 10
+      }
+    ],
+    "created_at": "2025-12-09T22:59:29.806+00:00",
+    "updated_at": "2025-12-09T22:59:29.806+00:00",
+    "coach_notes": null,
+    "published": false,
+    "published_at": null,
+    "calendar_event_id": null,
+    "event_time": "09:00:00",
+    "event_duration_minutes": 60,
+    "published_section_ids": null,
+    "is_published": true,
+    "publish_sections": null,
+    "google_event_id": null,
+    "publish_time": null,
+    "publish_duration": null,
+    "workout_publish_status": "published"
+  },
+  {
+    "id": "3a454d9c-9620-49ab-adcb-04d115653feb",
+    "title": "Foundations",
+    "track_id": "5c60d97f-a735-414a-ab50-3196cf9c6628",
+    "workout_type_id": null,
+    "class_times": [
+      "09:00"
+    ],
+    "max_capacity": 12,
+    "date": "2025-11-27",
+    "sections": [
+      {
+        "id": "section-1764243869638-1",
+        "type": "Warm-up",
+        "content": "",
+        "duration": 12
+      },
+      {
+        "id": "section-1764243869638-2",
+        "type": "WOD",
+        "content": "",
+        "duration": 15
+      },
+      {
+        "id": "section-1764243869638-3",
+        "type": "Cool Down",
+        "content": "",
+        "duration": 10
+      }
+    ],
+    "created_at": "2025-11-27T11:44:35.768438+00:00",
+    "updated_at": "2025-11-27T11:44:35.768438+00:00",
+    "coach_notes": null,
+    "published": false,
+    "published_at": null,
+    "calendar_event_id": null,
+    "event_time": "09:00:00",
+    "event_duration_minutes": 60,
+    "published_section_ids": null,
+    "is_published": false,
+    "publish_sections": null,
+    "google_event_id": null,
+    "publish_time": null,
+    "publish_duration": null,
+    "workout_publish_status": "draft"
+  },
+  {
+    "id": "533d4085-3ee3-41cc-b70c-8482f9dd12e0",
+    "title": "WOD",
+    "track_id": null,
+    "workout_type_id": null,
+    "class_times": [
+      "09:00"
+    ],
+    "max_capacity": 12,
+    "date": "2025-11-27",
+    "sections": [
+      {
+        "id": "section-1764243839343-1",
+        "type": "Warm-up",
+        "content": "",
+        "duration": 12
+      },
+      {
+        "id": "section-1764243839343-2",
+        "type": "WOD",
+        "content": "",
+        "duration": 15
+      },
+      {
+        "id": "section-1764243839343-3",
+        "type": "Cool Down",
+        "content": "",
+        "duration": 10
+      }
+    ],
+    "created_at": "2025-11-27T11:44:08.282073+00:00",
+    "updated_at": "2025-11-27T11:44:08.282073+00:00",
+    "coach_notes": null,
+    "published": false,
+    "published_at": null,
+    "calendar_event_id": null,
+    "event_time": "09:00:00",
+    "event_duration_minutes": 60,
+    "published_section_ids": null,
+    "is_published": false,
+    "publish_sections": null,
+    "google_event_id": null,
+    "publish_time": null,
+    "publish_duration": null,
+    "workout_publish_status": "draft"
+  },
+  {
+    "id": "73218d2d-ae85-4698-bafe-ff0f4d4b9db6",
+    "title": "WOD",
+    "track_id": "5c60d97f-a735-414a-ab50-3196cf9c6628",
+    "workout_type_id": null,
+    "class_times": [],
+    "max_capacity": 12,
+    "date": "2025-12-09",
+    "sections": [
+      {
+        "id": "section-1765317994800",
+        "type": "WOD Pt.1",
+        "content": "\n",
+        "duration": 5,
+        "scoring_fields": {
+          "load": false,
+          "reps": false,
+          "time": false,
+          "metres": false,
+          "scaling": false,
+          "calories": false,
+          "checkbox": true,
+          "rounds_reps": false
+        }
+      }
+    ],
+    "created_at": "2025-12-09T22:07:05.295837+00:00",
+    "updated_at": "2025-12-09T22:22:21.446+00:00",
+    "coach_notes": null,
+    "published": false,
+    "published_at": null,
+    "calendar_event_id": null,
+    "event_time": "09:00:00",
+    "event_duration_minutes": 60,
+    "published_section_ids": null,
+    "is_published": true,
+    "publish_sections": [
+      "section-1765317994800"
+    ],
+    "google_event_id": null,
+    "publish_time": "18:30",
+    "publish_duration": 60,
+    "workout_publish_status": "published"
+  },
+  {
+    "id": "c41681c9-7eb5-4340-9852-3dafa258eece",
+    "title": "WOD",
+    "track_id": null,
+    "workout_type_id": null,
+    "class_times": [],
+    "max_capacity": 12,
+    "date": "2025-12-08",
+    "sections": [
+      {
+        "id": "section-1765285391573",
+        "type": "Whiteboard Intro",
+        "content": "",
+        "duration": 3
+      },
+      {
+        "id": "section-1765277025653",
+        "type": "Warm-up",
+        "content": "* Catalyst warm-up\n* Hip Openers\n* Arm Circles\n* Elbow circles\n* Over & Back\n* Arm Rotations\n* Triceps Stretch Sidebend\n* Torso Rotations\n* Hip Circles\n* Heel Toe + Lateral Drop Lunge\n* Bow & Bend\n* Iron Cross\n* Dynamic Scorpion\n* Walking Lunge & Twist\n* Spiderman Lunge\n* Walking RDL & Leg Swing\n* Cossack Squat\n* Deep Squat Knee Circles\n* Russian Baby Maker\n* Leg Swings",
+        "duration": 12
+      },
+      {
+        "id": "section-1765285362287",
+        "type": "Olympic Lifting",
+        "content": "* Snatch Drill: Hip Snatch\n* Snatch Drill: Dip Snatch\nStart with PVC Pipe x 6 of each, then empty barbell\nContinue with sets of 3 Dip Snatch adding weight every round",
+        "duration": 15,
+        "scoring_fields": {
+          "checkbox": true
+        }
+      },
+      {
+        "id": "section-1765285569197",
+        "type": "Olympic Lifting",
+        "content": "* Barbell Hang Power Snatch\n* Overhead Squat (OHS)\n\nPerform sets of 2 x HPS followed by 1 x OHS, add weight up to WOD weight",
+        "duration": 6,
+        "scoring_fields": {
+          "load": true,
+          "reps": true,
+          "checkbox": true,
+          "rounds_reps": true
+        }
+      },
+      {
+        "id": "section-1765285616131",
+        "type": "WOD Final Prep",
+        "content": "",
+        "duration": 5
+      },
+      {
+        "id": "section-1765285621407",
+        "type": "WOD",
+        "content": "12 min AMRAP of:\n* Chest to ground Bear Crawl over the barbell x 2\n* Barbell Hang Power Snatch x 4\n* Overhead Squat (OHS) x2\nChest touches the ground before the barbell, bear crawl over the bar, touch chest to ground, crawl backwards over the bar, touch chest to ground. This is 1 rep.\nBarbell Loads\nRx: 35/45 kg\nSc1: 30/35 kg\nSc2: 25/35 kg",
+        "duration": 12,
+        "scoring_fields": {
+          "load": true,
+          "scaling": true,
+          "rounds_reps": true
+        },
+        "workout_type_id": "82ad0e4d-375a-4f2e-9d61-4e3ac8e3334e"
+      },
+      {
+        "id": "section-1765286427610",
+        "type": "Cool Down",
+        "content": "* FR Upper back\n* BR QL Release\n* BR TFL\n* Frog Stretch with Reverse Hands",
+        "duration": 10
+      }
+    ],
+    "created_at": "2025-12-01T14:35:56.209882+00:00",
+    "updated_at": "2025-12-09T22:54:02.1+00:00",
+    "coach_notes": ":\nSnatch workout - ZT - https://youtu.be/rV1OsGZS_R0?si=kmpNc-SUd4sBevGW\n\nCatalyst Exercise Library - https://www.catalystathletics.com/exercises/\n\nEarly Arm Bend in the Snatch & Clean - Catalyst\n\nWomens 75kg 2018 European Weightlifting Championship - Lydia Valentin\nMens 94kg 2018 European Weightlifting Championship\n\nCatalyst Warm-Up - https://youtu.be/XF5LLh7kmfk\nCatalyst Dynamic Warm-Up - https://youtu.be/XhHc7FbSUiY\n\nBarbell Snatch Technique Primers:\nDip Muscle Snatch - Catalyst - https://www.catalystathletics.com/exercise/464/Dip-Muscle-Snatch/\nMuscle Snatch from Power Position - Monroe Miller - https://www.facebook.com/reel/543227008885980\n\nMuscle Snatch from Power Position - https://www.catalystathletics.com/exercise/466/Muscle-Snatch-From-Power-Position/\n\nExecution:\nStart standing tall with the bar hanging at arms’ length in your snatch grip. \nEnsure even whole foot balance and brace your trunk. \nBend at the knees only with a vertical trunk just as you would for a jerk, actively pushing the bar against your hips, and stop.\nAfter a 1-2 second pause, drive up with the legs and complete a muscle snatch.\nFocus on keeping the bar as close as possible, finishing with strong vertical leg drive, and punching vertically into the overhead position at the end of the turnover.\nIt can be helpful to think of the movement as a snatch high-pull with an added turnover of the bar afterward. This will reinforce the idea of driving vertically and lifting the elbows high and out before the turnover.\nThe only difference between a dip muscle snatch and a muscle snatch from power position is that there is a pause in the bottom of the dip in the muscle snatch from power position. \n\nPurpose\nThe muscle snatch is helpful to learn, reinforce and strengthen the proper upper body mechanics of the turnover (third pull) of the snatch. The power position variation helps focus on vertical leg drive and better bar-body interaction to improve bar proximity. The abbreviated motion can also be used to reduce the contribution of the legs and place more emphasis on upper body strength. From power position relative to dip will allow more focus on proper position, balance and leg drive.\n\nRep scheme:\n6 x Muscle Snatch from Power Position with PVC Pipe on coach's cue\n6 x Muscle Snatch from Power position with Empty Bar on coach's cue\n6 x Dip Muscle Snatch with Empty Bar on coach's cue\nAdd weight for sets of 3-4\n\nHang Power Snatch Practice (6 mins)\n1 minute Snatch Tutorial\nWork up to WOD weight for Hang Power Snatch\nsets of 2 x HPS + 1 OHS\nmins 41-44\n\nWOD 12 min AMRAP\n2 x Chest Touch Bear Crawl over the Bar (1 x fwds, 1 x bwds. Start in Bear Crawl position, touch chest to ground, BC over the bar, touch chest to ground, reverse BC over the bar, touch chest to ground)\n4 x Hang Power Snatch\n2 x Barbell Overhead Squats",
+    "published": false,
+    "published_at": null,
+    "calendar_event_id": null,
+    "event_time": "09:00:00",
+    "event_duration_minutes": 60,
+    "published_section_ids": null,
+    "is_published": true,
+    "publish_sections": [
+      "section-1765277025653",
+      "section-1765285362287",
+      "section-1765285569197",
+      "section-1765285621407",
+      "section-1765286427610"
+    ],
+    "google_event_id": null,
+    "publish_time": "17:15",
+    "publish_duration": 60,
+    "workout_publish_status": "published"
+  },
+  {
+    "id": "7bf1765d-179b-4ec2-9d37-13c90598d3f2",
+    "title": "WOD",
+    "track_id": "7e6de990-f014-4962-b62e-13544d2bd78d",
+    "workout_type_id": null,
+    "class_times": [
+      "17:15:00"
+    ],
+    "max_capacity": 12,
+    "date": "2025-12-03",
+    "sections": [
+      {
+        "id": "section-1764750292053-1",
+        "type": "Warm-up",
+        "lifts": [],
+        "content": "* C2 Rower\n* C2 Skierg\n* Airbike\n* Forward Lunge\n* Seated Leg Raise Pike\n* Glute Bridge Alt. Strt-leg Toe Tap\n* Push-up Reverse Hands\n* Pull-Up Bar Hang\n* Handstand Hold",
+        "duration": 12
+      },
+      {
+        "id": "section-1764750292053-2",
+        "type": "WOD Pt.1",
+        "content": "* Push-up Strict (5 secs down, 5 secs up x 6 reps: 60 seconds)\n* 1 min REST\n* Push-Up (weighted) (same format as above with plate on the back)\nWrite down scaling option and weight used if any",
+        "duration": 6,
+        "benchmarks": [],
+        "workout_type_id": "f84cbd9d-a12b-4990-94e1-ca54699c467e"
+      },
+      {
+        "id": "section-1764751975371",
+        "type": "WOD Pt.1",
+        "content": "* Pull-Up Strict (5 secs down, 5 secs up x 6 reps: 60 seconds)\n* 1 min REST\n* Pull-Up Weighted (6 strict reps with weight added)",
+        "duration": 6,
+        "workout_type_id": "f84cbd9d-a12b-4990-94e1-ca54699c467e",
+        "forge_benchmarks": []
+      },
+      {
+        "id": "section-1764750292053-3",
+        "type": "WOD Pt.1",
+        "content": "Unbroken 20 secs Hold within 60 seconds\n1 min REST\nUnbroken 20 secs Hold within 60 seconds",
+        "duration": 6,
+        "workout_type_id": "f84cbd9d-a12b-4990-94e1-ca54699c467e",
+        "forge_benchmarks": [
+          {
+            "id": "48f0c785-703d-4eb5-96f7-b131457faa9e",
+            "name": "Parallettes L-Sit Hold",
+            "type": "For Time",
+            "visibility": "everyone",
+            "description": "Static Hold as long as possible.\nMilestones:\n5 secs, 10 secs, 15 secs, 20 secs, 30 secs, 45 secs, 60 secs",
+            "has_scaling": true
+          }
+        ]
+      },
+      {
+        "id": "section-1764862844046",
+        "type": "WOD Pt.1",
+        "content": "* Dbl KB Overhead Carry (60 secs for metres, light weight)\n* 1 min REST\n* Dbl KB Overhead Carry (60 secs for metres, WOD weight)",
+        "duration": 6
+      },
+      {
+        "id": "section-1764874765735",
+        "type": "WOD Final Prep",
+        "content": "2 rounds of 6 movements:\n1 min per movement, 15 seconds change over\n2 mins REST between rounds",
+        "duration": 5,
+        "workout_type_id": "82ad0e4d-375a-4f2e-9d61-4e3ac8e3334e"
+      },
+      {
+        "id": "section-1764941708135",
+        "type": "WOD Pt.2",
+        "content": "",
+        "duration": 1,
+        "workout_type_id": "82ad0e4d-375a-4f2e-9d61-4e3ac8e3334e",
+        "forge_benchmarks": [
+          {
+            "id": "7f2bce76-9665-42a4-b408-b5ed0bcd67cf",
+            "name": "60 secs max reps: Strict Push-Up",
+            "type": "AMRAP",
+            "visibility": "everyone",
+            "description": "As many Strict Push-ups as possible in 1 minute",
+            "has_scaling": true
+          }
+        ]
+      },
+      {
+        "id": "section-1764941707879",
+        "type": "WOD Pt.2",
+        "content": "",
+        "duration": 1,
+        "workout_type_id": "82ad0e4d-375a-4f2e-9d61-4e3ac8e3334e",
+        "forge_benchmarks": [
+          {
+            "id": "e1abac97-5801-456a-8248-f9bfbd41bb6d",
+            "name": "60 secs max reps: Strict Pull-Up",
+            "type": "AMRAP",
+            "visibility": "everyone",
+            "description": "As many Strict Pull-Ups as possible in 1 minute",
+            "has_scaling": true
+          }
+        ]
+      },
+      {
+        "id": "section-1764941708360",
+        "type": "WOD Pt.2",
+        "content": "",
+        "duration": 1,
+        "workout_type_id": "82ad0e4d-375a-4f2e-9d61-4e3ac8e3334e",
+        "forge_benchmarks": [
+          {
+            "id": "20e6955e-0286-432d-b855-9fb060ee814c",
+            "name": "60 secs max reps: Parallettes L-Sit Hold",
+            "type": "AMRAP",
+            "visibility": "everyone",
+            "description": "Reps = Seconds\nAs much accumulated time as possible in L-Sit Hold",
+            "has_scaling": true
+          }
+        ]
+      },
+      {
+        "id": "section-1764929959155",
+        "type": "WOD Pt.2",
+        "content": "",
+        "duration": 1,
+        "workout_type_id": "82ad0e4d-375a-4f2e-9d61-4e3ac8e3334e",
+        "forge_benchmarks": [
+          {
+            "id": "2e591861-8710-4ca0-889a-1561b1693a22",
+            "name": "60 secs max reps: Dbl KB OH Carry",
+            "type": "AMRAP",
+            "visibility": "everyone",
+            "description": "As many metres (in multiples of 5) as possible of Dbl KB Overhead Carry",
+            "has_scaling": true
+          }
+        ]
+      },
+      {
+        "id": "section-1764941930051",
+        "type": "WOD Pt.2",
+        "content": "",
+        "duration": 1,
+        "workout_type_id": "82ad0e4d-375a-4f2e-9d61-4e3ac8e3334e",
+        "forge_benchmarks": [
+          {
+            "id": "cf09f59a-ccb7-438c-8a9f-e7cb82dfa5a3",
+            "name": "60 secs max reps: Concept 2 SkiErg",
+            "type": "AMRAP",
+            "visibility": "everyone",
+            "description": "1 minute Skierg As Many Metres As Possible",
+            "has_scaling": true
+          }
+        ]
+      },
+      {
+        "id": "section-1764941929523",
+        "type": "WOD Pt.2",
+        "content": "",
+        "duration": 1,
+        "workout_type_id": "82ad0e4d-375a-4f2e-9d61-4e3ac8e3334e",
+        "forge_benchmarks": [
+          {
+            "id": "d05a1b15-b929-4b7d-9075-d00eb37a3b48",
+            "name": "60 secs max reps: Concept 2 Rower",
+            "type": "AMRAP",
+            "visibility": "everyone",
+            "description": "1 minute Rower As Many Metres As Possible",
+            "has_scaling": true
+          }
+        ]
+      },
+      {
+        "id": "section-1764875123742",
+        "type": "Cool Down",
+        "content": "* Scorpion\n* Frog Stretch with Reverse Hands\n* Couch",
+        "duration": 10
+      }
+    ],
+    "created_at": "2025-12-05T14:33:24.691868+00:00",
+    "updated_at": "2025-12-05T22:47:05.143+00:00",
+    "coach_notes": null,
+    "published": false,
+    "published_at": null,
+    "calendar_event_id": null,
+    "event_time": "09:00:00",
+    "event_duration_minutes": 60,
+    "published_section_ids": null,
+    "is_published": true,
+    "publish_sections": null,
+    "google_event_id": null,
+    "publish_time": null,
+    "publish_duration": null,
+    "workout_publish_status": "published"
+  },
+  {
+    "id": "e4bfe6a7-cef5-46f2-949b-24d079e46c33",
+    "title": "WOD",
+    "track_id": null,
+    "workout_type_id": null,
+    "class_times": [
+      "17:15:00"
+    ],
+    "max_capacity": 12,
+    "date": "2025-12-08",
+    "sections": [
+      {
+        "id": "section-1765285391573",
+        "type": "Whiteboard Intro",
+        "content": "",
+        "duration": 3
+      },
+      {
+        "id": "section-1765277025653",
+        "type": "Warm-up",
+        "content": "* Catalyst warm-up\n* Hip Openers\n* Arm Circles\n* Elbow circles\n* Over & Back\n* Arm Rotations\n* Triceps Stretch Sidebend\n* Torso Rotations\n* Hip Circles\n* Heel Toe + Lateral Drop Lunge\n* Bow & Bend\n* Iron Cross\n* Dynamic Scorpion\n* Walking Lunge & Twist\n* Spiderman Lunge\n* Walking RDL & Leg Swing\n* Cossack Squat\n* Deep Squat Knee Circles\n* Russian Baby Maker\n* Leg Swings",
+        "duration": 12
+      },
+      {
+        "id": "section-1765285362287",
+        "type": "Olympic Lifting",
+        "content": "* Snatch Drill: Hip Snatch\n* Snatch Drill: Dip Snatch\nStart with PVC Pipe x 6 of each, then empty barbell\nContinue with sets of 3 Dip Snatch adding weight every round",
+        "duration": 15,
+        "scoring_fields": {
+          "checkbox": true
+        }
+      },
+      {
+        "id": "section-1765285569197",
+        "type": "Olympic Lifting",
+        "content": "* Barbell Hang Power Snatch\n* Overhead Squat (OHS)\n\nPerform sets of 2 x HPS followed by 1 x OHS, add weight up to WOD weight",
+        "duration": 6,
+        "scoring_fields": {
+          "load": true,
+          "reps": true,
+          "checkbox": true,
+          "rounds_reps": true
+        }
+      },
+      {
+        "id": "section-1765285616131",
+        "type": "WOD Final Prep",
+        "content": "",
+        "duration": 5
+      },
+      {
+        "id": "section-1765285621407",
+        "type": "WOD",
+        "content": "12 min AMRAP of:\n* Chest to ground Bear Crawl over the barbell x 2\n* Barbell Hang Power Snatch x 4\n* Overhead Squat (OHS) x2\nChest touches the ground before the barbell, bear crawl over the bar, touch chest to ground, crawl backwards over the bar, touch chest to ground. This is 1 rep.\nBarbell Loads\nRx: 35/45 kg\nSc1: 30/35 kg\nSc2: 25/35 kg",
+        "duration": 12,
+        "scoring_fields": {
+          "load": true,
+          "scaling": true,
+          "rounds_reps": true
+        },
+        "workout_type_id": "82ad0e4d-375a-4f2e-9d61-4e3ac8e3334e"
+      },
+      {
+        "id": "section-1765286427610",
+        "type": "Cool Down",
+        "content": "* FR Upper back\n* BR QL Release\n* BR TFL\n* Frog Stretch with Reverse Hands",
+        "duration": 10
+      }
+    ],
+    "created_at": "2025-12-09T22:57:08.896488+00:00",
+    "updated_at": "2025-12-09T22:57:08.896488+00:00",
+    "coach_notes": null,
+    "published": false,
+    "published_at": null,
+    "calendar_event_id": null,
+    "event_time": "09:00:00",
+    "event_duration_minutes": 60,
+    "published_section_ids": null,
+    "is_published": true,
+    "publish_sections": null,
+    "google_event_id": null,
+    "publish_time": null,
+    "publish_duration": null,
+    "workout_publish_status": "published"
+  },
+  {
+    "id": "eda26cca-dbea-48e0-8900-a0ad37271d96",
+    "title": "Foundations/WOD",
+    "track_id": null,
+    "workout_type_id": null,
+    "class_times": [
+      "17:15:00"
+    ],
+    "max_capacity": 12,
+    "date": "2025-12-09",
+    "sections": [
+      {
+        "id": "section-1765285391573",
+        "type": "Whiteboard Intro",
+        "content": "",
+        "duration": 3
+      },
+      {
+        "id": "section-1765277025653",
+        "type": "Warm-up",
+        "content": "* Catalyst warm-up\n* Hip Openers\n* Arm Circles\n* Elbow circles\n* Over & Back\n* Arm Rotations\n* Triceps Stretch Sidebend\n* Torso Rotations\n* Hip Circles\n* Heel Toe + Lateral Drop Lunge\n* Bow & Bend\n* Iron Cross\n* Dynamic Scorpion\n* Walking Lunge & Twist\n* Spiderman Lunge\n* Walking RDL & Leg Swing\n* Cossack Squat\n* Deep Squat Knee Circles\n* Russian Baby Maker\n* Leg Swings",
+        "duration": 12
+      },
+      {
+        "id": "section-1765285362287",
+        "type": "Olympic Lifting",
+        "content": "* Snatch Drill: Hip Snatch\n* Snatch Drill: Dip Snatch\nStart with PVC Pipe x 6 of each, then empty barbell\nContinue with sets of 3 Dip Snatch adding weight every round",
+        "duration": 15,
+        "scoring_fields": {
+          "checkbox": true
+        }
+      },
+      {
+        "id": "section-1765285569197",
+        "type": "Olympic Lifting",
+        "content": "* Barbell Hang Power Snatch\n* Overhead Squat (OHS)\n\nPerform sets of 2 x HPS followed by 1 x OHS, add weight up to WOD weight",
+        "duration": 6,
+        "scoring_fields": {
+          "load": true,
+          "reps": true,
+          "checkbox": true,
+          "rounds_reps": true
+        }
+      },
+      {
+        "id": "section-1765285616131",
+        "type": "WOD Final Prep",
+        "content": "",
+        "duration": 5
+      },
+      {
+        "id": "section-1765285621407",
+        "type": "WOD",
+        "content": "12 min AMRAP of:\n* Chest to ground Bear Crawl over the barbell x 2\n* Barbell Hang Power Snatch x 4\n* Overhead Squat (OHS) x2\nChest touches the ground before the barbell, bear crawl over the bar, touch chest to ground, crawl backwards over the bar, touch chest to ground. This is 1 rep.\nBarbell Loads\nRx: 35/45 kg\nSc1: 30/35 kg\nSc2: 25/35 kg",
+        "duration": 12,
+        "scoring_fields": {
+          "load": true,
+          "scaling": true,
+          "rounds_reps": true
+        },
+        "workout_type_id": "82ad0e4d-375a-4f2e-9d61-4e3ac8e3334e"
+      },
+      {
+        "id": "section-1765286427610",
+        "type": "Cool Down",
+        "content": "* FR Upper back\n* BR QL Release\n* BR TFL\n* Frog Stretch with Reverse Hands",
+        "duration": 10
+      }
+    ],
+    "created_at": "2025-12-09T22:57:20.541036+00:00",
+    "updated_at": "2025-12-09T22:57:48.042+00:00",
+    "coach_notes": null,
+    "published": false,
+    "published_at": null,
+    "calendar_event_id": null,
+    "event_time": "09:00:00",
+    "event_duration_minutes": 60,
+    "published_section_ids": null,
+    "is_published": true,
+    "publish_sections": null,
+    "google_event_id": null,
+    "publish_time": null,
+    "publish_duration": null,
+    "workout_publish_status": "published"
+  },
+  {
+    "id": "63c49bfe-99a9-49ca-8c7f-c6e5cdcdd7c8",
+    "title": "Foundations/WOD",
+    "track_id": null,
+    "workout_type_id": null,
+    "class_times": [
+      "17:15:00"
+    ],
+    "max_capacity": 12,
+    "date": "2025-12-09",
+    "sections": [
+      {
+        "id": "section-1765285391573",
+        "type": "Whiteboard Intro",
+        "content": "",
+        "duration": 3
+      },
+      {
+        "id": "section-1765277025653",
+        "type": "Warm-up",
+        "content": "* Catalyst warm-up\n* Hip Openers\n* Arm Circles\n* Elbow circles\n* Over & Back\n* Arm Rotations\n* Triceps Stretch Sidebend\n* Torso Rotations\n* Hip Circles\n* Heel Toe + Lateral Drop Lunge\n* Bow & Bend\n* Iron Cross\n* Dynamic Scorpion\n* Walking Lunge & Twist\n* Spiderman Lunge\n* Walking RDL & Leg Swing\n* Cossack Squat\n* Deep Squat Knee Circles\n* Russian Baby Maker\n* Leg Swings",
+        "duration": 12
+      },
+      {
+        "id": "section-1765285362287",
+        "type": "Olympic Lifting",
+        "content": "* Snatch Drill: Hip Snatch\n* Snatch Drill: Dip Snatch\nStart with PVC Pipe x 6 of each, then empty barbell\nContinue with sets of 3 Dip Snatch adding weight every round",
+        "duration": 15,
+        "scoring_fields": {
+          "checkbox": true
+        }
+      },
+      {
+        "id": "section-1765285569197",
+        "type": "Olympic Lifting",
+        "content": "* Barbell Hang Power Snatch\n* Overhead Squat (OHS)\n\nPerform sets of 2 x HPS followed by 1 x OHS, add weight up to WOD weight",
+        "duration": 6,
+        "scoring_fields": {
+          "load": true,
+          "reps": true,
+          "checkbox": true,
+          "rounds_reps": true
+        }
+      },
+      {
+        "id": "section-1765285616131",
+        "type": "WOD Final Prep",
+        "content": "",
+        "duration": 5
+      },
+      {
+        "id": "section-1765285621407",
+        "type": "WOD",
+        "content": "12 min AMRAP of:\n* Chest to ground Bear Crawl over the barbell x 2\n* Barbell Hang Power Snatch x 4\n* Overhead Squat (OHS) x2\nChest touches the ground before the barbell, bear crawl over the bar, touch chest to ground, crawl backwards over the bar, touch chest to ground. This is 1 rep.\nBarbell Loads\nRx: 35/45 kg\nSc1: 30/35 kg\nSc2: 25/35 kg",
+        "duration": 12,
+        "scoring_fields": {
+          "load": true,
+          "scaling": true,
+          "rounds_reps": true
+        },
+        "workout_type_id": "82ad0e4d-375a-4f2e-9d61-4e3ac8e3334e"
+      },
+      {
+        "id": "section-1765286427610",
+        "type": "Cool Down",
+        "content": "* FR Upper back\n* BR QL Release\n* BR TFL\n* Frog Stretch with Reverse Hands",
+        "duration": 10
+      }
+    ],
+    "created_at": "2025-12-09T22:58:22.285274+00:00",
+    "updated_at": "2025-12-09T22:58:22.285274+00:00",
+    "coach_notes": null,
+    "published": false,
+    "published_at": null,
+    "calendar_event_id": null,
+    "event_time": "09:00:00",
+    "event_duration_minutes": 60,
+    "published_section_ids": null,
+    "is_published": true,
+    "publish_sections": null,
+    "google_event_id": null,
+    "publish_time": null,
+    "publish_duration": null,
+    "workout_publish_status": "published"
+  },
+  {
+    "id": "22f41a72-ce20-4df5-b448-b252ad783dd9",
+    "title": "WOD",
+    "track_id": "5c60d97f-a735-414a-ab50-3196cf9c6628",
+    "workout_type_id": null,
+    "class_times": [
+      "10:00:00"
+    ],
+    "max_capacity": 12,
+    "date": "2025-11-28",
+    "sections": [
+      {
+        "id": "section-1764542582257-1",
+        "type": "Warm-up",
+        "content": "* 90° Ext. Rotation (SU)\n* Push-up Dive Bomber\n* Push-up Strict\n* Rings Skin The Cat",
+        "duration": 12
+      },
+      {
+        "id": "section-1764542603319",
+        "type": "Skill",
+        "content": "",
+        "duration": 5,
+        "benchmarks": [
+          {
+            "id": "df9272a5-c60d-4fcb-b9cd-bd75892202bc",
+            "name": "Amanda",
+            "type": "For Time",
+            "visibility": "everyone",
+            "description": "9-7-5 reps of:\nMuscle-ups\nSnatches (61/43 kg)"
+          }
+        ]
+      },
+      {
+        "id": "section-1764542616673",
+        "type": "Gymnastics",
+        "content": "",
+        "duration": 5,
+        "forge_benchmarks": [
+          {
+            "id": "bb04645b-bc09-4ff4-b5ac-10b63105714b",
+            "name": "Handstand Hold",
+            "type": "For Time",
+            "visibility": "everyone",
+            "description": "Wall-assisted. Static Hold as long as possible.\nMilestones:\n10 secs, 30 secs, 60 secs"
+          }
+        ]
+      },
+      {
+        "id": "section-1764542582257-2",
+        "type": "WOD",
+        "lifts": [
+          {
+            "id": "e9915149-1689-4b17-8e51-e247c0df9bec",
+            "name": "Clean",
+            "reps": 5,
+            "sets": 5,
+            "rep_type": "constant",
+            "visibility": "everyone"
+          }
+        ],
+        "content": "",
+        "duration": 15
+      },
+      {
+        "id": "section-1764542582257-3",
+        "type": "Cool Down",
+        "content": "",
+        "duration": 10
+      }
+    ],
+    "created_at": "2025-11-30T22:44:20.812556+00:00",
+    "updated_at": "2025-11-30T22:44:20.812556+00:00",
+    "coach_notes": null,
+    "published": false,
+    "published_at": null,
+    "calendar_event_id": null,
+    "event_time": "09:00:00",
+    "event_duration_minutes": 60,
+    "published_section_ids": null,
+    "is_published": false,
+    "publish_sections": null,
+    "google_event_id": null,
+    "publish_time": null,
+    "publish_duration": null,
+    "workout_publish_status": "draft"
+  },
+  {
+    "id": "a524f757-3765-4690-ae1f-1d7fcf4a966a",
+    "title": "Kids & Teens",
+    "track_id": null,
+    "workout_type_id": null,
+    "class_times": [],
+    "max_capacity": 12,
+    "date": "2025-12-08",
+    "sections": [],
+    "created_at": "2025-12-01T14:35:55.422633+00:00",
+    "updated_at": "2025-12-01T14:35:55.422633+00:00",
+    "coach_notes": "Auto-generated from template. Please add workout content.",
+    "published": false,
+    "published_at": null,
+    "calendar_event_id": null,
+    "event_time": "09:00:00",
+    "event_duration_minutes": 60,
+    "published_section_ids": null,
+    "is_published": false,
+    "publish_sections": null,
+    "google_event_id": null,
+    "publish_time": null,
+    "publish_duration": null,
+    "workout_publish_status": "draft"
+  },
+  {
+    "id": "e188c993-e473-4cb8-a187-6780f0f72b70",
+    "title": "Diapers & Dumbbells",
+    "track_id": null,
+    "workout_type_id": null,
+    "class_times": [],
+    "max_capacity": 12,
+    "date": "2025-12-08",
+    "sections": [],
+    "created_at": "2025-12-01T14:35:55.66039+00:00",
+    "updated_at": "2025-12-01T14:35:55.66039+00:00",
+    "coach_notes": "Auto-generated from template. Please add workout content.",
+    "published": false,
+    "published_at": null,
+    "calendar_event_id": null,
+    "event_time": "09:00:00",
+    "event_duration_minutes": 60,
+    "published_section_ids": null,
+    "is_published": false,
+    "publish_sections": null,
+    "google_event_id": null,
+    "publish_time": null,
+    "publish_duration": null,
+    "workout_publish_status": "draft"
+  },
+  {
+    "id": "67627307-9efa-447c-bb8b-fec8af630485",
+    "title": "WOD",
+    "track_id": null,
+    "workout_type_id": null,
+    "class_times": [],
+    "max_capacity": 12,
+    "date": "2025-12-08",
+    "sections": [],
+    "created_at": "2025-12-01T14:35:55.815491+00:00",
+    "updated_at": "2025-12-01T14:35:55.815491+00:00",
+    "coach_notes": "Auto-generated from template. Please add workout content.",
+    "published": false,
+    "published_at": null,
+    "calendar_event_id": null,
+    "event_time": "09:00:00",
+    "event_duration_minutes": 60,
+    "published_section_ids": null,
+    "is_published": false,
+    "publish_sections": null,
+    "google_event_id": null,
+    "publish_time": null,
+    "publish_duration": null,
+    "workout_publish_status": "draft"
+  },
+  {
+    "id": "9bcd577a-c012-462d-99aa-05a13797fdce",
+    "title": "Foundations/WOD",
+    "track_id": null,
+    "workout_type_id": null,
+    "class_times": [],
+    "max_capacity": 12,
+    "date": "2025-12-09",
+    "sections": [],
+    "created_at": "2025-12-01T14:35:56.37025+00:00",
+    "updated_at": "2025-12-01T14:35:56.37025+00:00",
+    "coach_notes": "Auto-generated from template. Please add workout content.",
+    "published": false,
+    "published_at": null,
+    "calendar_event_id": null,
+    "event_time": "09:00:00",
+    "event_duration_minutes": 60,
+    "published_section_ids": null,
+    "is_published": false,
+    "publish_sections": null,
+    "google_event_id": null,
+    "publish_time": null,
+    "publish_duration": null,
+    "workout_publish_status": "draft"
+  },
+  {
+    "id": "36298971-2c1c-43f4-8a4e-df337a16cd83",
+    "title": "Foundations",
+    "track_id": null,
+    "workout_type_id": null,
+    "class_times": [],
+    "max_capacity": 12,
+    "date": "2025-12-09",
+    "sections": [],
+    "created_at": "2025-12-01T14:35:56.539274+00:00",
+    "updated_at": "2025-12-01T14:35:56.539274+00:00",
+    "coach_notes": "Auto-generated from template. Please add workout content.",
+    "published": false,
+    "published_at": null,
+    "calendar_event_id": null,
+    "event_time": "09:00:00",
+    "event_duration_minutes": 60,
+    "published_section_ids": null,
+    "is_published": false,
+    "publish_sections": null,
+    "google_event_id": null,
+    "publish_time": null,
+    "publish_duration": null,
+    "workout_publish_status": "draft"
+  },
+  {
+    "id": "f74aa24a-aabd-4949-8add-a41cbe2bb8fd",
+    "title": "WOD",
+    "track_id": null,
+    "workout_type_id": null,
+    "class_times": [],
+    "max_capacity": 12,
+    "date": "2025-12-10",
+    "sections": [],
+    "created_at": "2025-12-01T14:35:56.724665+00:00",
+    "updated_at": "2025-12-01T14:35:56.724665+00:00",
+    "coach_notes": "Auto-generated from template. Please add workout content.",
+    "published": false,
+    "published_at": null,
+    "calendar_event_id": null,
+    "event_time": "09:00:00",
+    "event_duration_minutes": 60,
+    "published_section_ids": null,
+    "is_published": false,
+    "publish_sections": null,
+    "google_event_id": null,
+    "publish_time": null,
+    "publish_duration": null,
+    "workout_publish_status": "draft"
+  },
+  {
+    "id": "4febe70a-2c0f-4584-89cd-d3c9770abfcd",
+    "title": "Kids & Teens",
+    "track_id": null,
+    "workout_type_id": null,
+    "class_times": [],
+    "max_capacity": 12,
+    "date": "2025-12-10",
+    "sections": [],
+    "created_at": "2025-12-01T14:35:56.890571+00:00",
+    "updated_at": "2025-12-01T14:35:56.890571+00:00",
+    "coach_notes": "Auto-generated from template. Please add workout content.",
+    "published": false,
+    "published_at": null,
+    "calendar_event_id": null,
+    "event_time": "09:00:00",
+    "event_duration_minutes": 60,
+    "published_section_ids": null,
+    "is_published": false,
+    "publish_sections": null,
+    "google_event_id": null,
+    "publish_time": null,
+    "publish_duration": null,
+    "workout_publish_status": "draft"
+  },
+  {
+    "id": "29f63dcc-9ad9-4036-8f87-b5ece6430be5",
+    "title": "FitKids Turnen",
+    "track_id": null,
+    "workout_type_id": null,
+    "class_times": [],
+    "max_capacity": 12,
+    "date": "2025-12-10",
+    "sections": [],
+    "created_at": "2025-12-01T14:35:57.048639+00:00",
+    "updated_at": "2025-12-01T14:35:57.048639+00:00",
+    "coach_notes": "Auto-generated from template. Please add workout content.",
+    "published": false,
+    "published_at": null,
+    "calendar_event_id": null,
+    "event_time": "09:00:00",
+    "event_duration_minutes": 60,
+    "published_section_ids": null,
+    "is_published": false,
+    "publish_sections": null,
+    "google_event_id": null,
+    "publish_time": null,
+    "publish_duration": null,
+    "workout_publish_status": "draft"
+  },
+  {
+    "id": "7f3e7538-cc56-4b23-ad2f-3b8abddbe722",
+    "title": "WOD",
+    "track_id": null,
+    "workout_type_id": null,
+    "class_times": [],
+    "max_capacity": 12,
+    "date": "2025-12-10",
+    "sections": [],
+    "created_at": "2025-12-01T14:35:57.201588+00:00",
+    "updated_at": "2025-12-01T14:35:57.201588+00:00",
+    "coach_notes": "Auto-generated from template. Please add workout content.",
+    "published": false,
+    "published_at": null,
+    "calendar_event_id": null,
+    "event_time": "09:00:00",
+    "event_duration_minutes": 60,
+    "published_section_ids": null,
+    "is_published": false,
+    "publish_sections": null,
+    "google_event_id": null,
+    "publish_time": null,
+    "publish_duration": null,
+    "workout_publish_status": "draft"
+  },
+  {
+    "id": "cc5eaa88-14e8-45a6-b73b-d68a6984ee60",
+    "title": "WOD",
+    "track_id": null,
+    "workout_type_id": null,
+    "class_times": [],
+    "max_capacity": 12,
+    "date": "2025-12-10",
+    "sections": [],
+    "created_at": "2025-12-01T14:35:57.365727+00:00",
+    "updated_at": "2025-12-01T14:35:57.365727+00:00",
+    "coach_notes": "Auto-generated from template. Please add workout content.",
+    "published": false,
+    "published_at": null,
+    "calendar_event_id": null,
+    "event_time": "09:00:00",
+    "event_duration_minutes": 60,
+    "published_section_ids": null,
+    "is_published": false,
+    "publish_sections": null,
+    "google_event_id": null,
+    "publish_time": null,
+    "publish_duration": null,
+    "workout_publish_status": "draft"
+  },
+  {
+    "id": "5a567d1b-e5c6-45bb-9797-d0ac2a151b5b",
+    "title": "WOD",
+    "track_id": null,
+    "workout_type_id": null,
+    "class_times": [],
+    "max_capacity": 12,
+    "date": "2025-12-12",
+    "sections": [],
+    "created_at": "2025-12-01T14:35:57.525863+00:00",
+    "updated_at": "2025-12-01T14:35:57.525863+00:00",
+    "coach_notes": "Auto-generated from template. Please add workout content.",
+    "published": false,
+    "published_at": null,
+    "calendar_event_id": null,
+    "event_time": "09:00:00",
+    "event_duration_minutes": 60,
+    "published_section_ids": null,
+    "is_published": false,
+    "publish_sections": null,
+    "google_event_id": null,
+    "publish_time": null,
+    "publish_duration": null,
+    "workout_publish_status": "draft"
+  },
+  {
+    "id": "1c4eb9ba-fd15-44aa-99a7-c8f80c6fcab2",
+    "title": "ElternKind Turnen",
+    "track_id": null,
+    "workout_type_id": null,
+    "class_times": [],
+    "max_capacity": 12,
+    "date": "2025-12-12",
+    "sections": [],
+    "created_at": "2025-12-01T14:35:57.720642+00:00",
+    "updated_at": "2025-12-01T14:35:57.720642+00:00",
+    "coach_notes": "Auto-generated from template. Please add workout content.",
+    "published": false,
+    "published_at": null,
+    "calendar_event_id": null,
+    "event_time": "09:00:00",
+    "event_duration_minutes": 60,
+    "published_section_ids": null,
+    "is_published": false,
+    "publish_sections": null,
+    "google_event_id": null,
+    "publish_time": null,
+    "publish_duration": null,
+    "workout_publish_status": "draft"
+  },
+  {
+    "id": "c27009a0-d290-4080-b112-0a655285251c",
+    "title": "WOD",
+    "track_id": null,
+    "workout_type_id": null,
+    "class_times": [],
+    "max_capacity": 12,
+    "date": "2025-12-12",
+    "sections": [],
+    "created_at": "2025-12-01T14:35:57.896875+00:00",
+    "updated_at": "2025-12-01T14:35:57.896875+00:00",
+    "coach_notes": "Auto-generated from template. Please add workout content.",
+    "published": false,
+    "published_at": null,
+    "calendar_event_id": null,
+    "event_time": "09:00:00",
+    "event_duration_minutes": 60,
+    "published_section_ids": null,
+    "is_published": false,
+    "publish_sections": null,
+    "google_event_id": null,
+    "publish_time": null,
+    "publish_duration": null,
+    "workout_publish_status": "draft"
+  },
+  {
+    "id": "be4438be-9df6-4b35-8411-94aee8989e2a",
+    "title": "WOD",
+    "track_id": null,
+    "workout_type_id": null,
+    "class_times": [],
+    "max_capacity": 12,
+    "date": "2025-12-12",
+    "sections": [],
+    "created_at": "2025-12-01T14:35:58.046507+00:00",
+    "updated_at": "2025-12-01T14:35:58.046507+00:00",
+    "coach_notes": "Auto-generated from template. Please add workout content.",
+    "published": false,
+    "published_at": null,
+    "calendar_event_id": null,
+    "event_time": "09:00:00",
+    "event_duration_minutes": 60,
+    "published_section_ids": null,
+    "is_published": false,
+    "publish_sections": null,
+    "google_event_id": null,
+    "publish_time": null,
+    "publish_duration": null,
+    "workout_publish_status": "draft"
+  },
+  {
+    "id": "f60e0b7e-3686-4a1a-8225-87761a9eafe9",
+    "title": "Kids & Teens",
+    "track_id": null,
+    "workout_type_id": null,
+    "class_times": [],
+    "max_capacity": 12,
+    "date": "2025-12-12",
+    "sections": [],
+    "created_at": "2025-12-01T14:35:58.215157+00:00",
+    "updated_at": "2025-12-01T14:35:58.215157+00:00",
+    "coach_notes": "Auto-generated from template. Please add workout content.",
+    "published": false,
+    "published_at": null,
+    "calendar_event_id": null,
+    "event_time": "09:00:00",
+    "event_duration_minutes": 60,
+    "published_section_ids": null,
+    "is_published": false,
+    "publish_sections": null,
+    "google_event_id": null,
+    "publish_time": null,
+    "publish_duration": null,
+    "workout_publish_status": "draft"
+  },
+  {
+    "id": "0ccf802f-ef28-4b10-a85d-e668745cb4a6",
+    "title": "Endurance",
+    "track_id": null,
+    "workout_type_id": null,
+    "class_times": [],
+    "max_capacity": 12,
+    "date": "2025-12-13",
+    "sections": [],
+    "created_at": "2025-12-01T14:35:58.377056+00:00",
+    "updated_at": "2025-12-01T14:35:58.377056+00:00",
+    "coach_notes": "Auto-generated from template. Please add workout content.",
+    "published": false,
+    "published_at": null,
+    "calendar_event_id": null,
+    "event_time": "09:00:00",
+    "event_duration_minutes": 60,
+    "published_section_ids": null,
+    "is_published": false,
+    "publish_sections": null,
+    "google_event_id": null,
+    "publish_time": null,
+    "publish_duration": null,
+    "workout_publish_status": "draft"
+  },
+  {
+    "id": "b69e95f7-e84a-412d-9aa0-273619a5b621",
+    "title": "Foundations",
+    "track_id": null,
+    "workout_type_id": null,
+    "class_times": [],
+    "max_capacity": 12,
+    "date": "2025-12-14",
+    "sections": [],
+    "created_at": "2025-12-01T14:35:58.527449+00:00",
+    "updated_at": "2025-12-01T14:35:58.527449+00:00",
+    "coach_notes": "Auto-generated from template. Please add workout content.",
+    "published": false,
+    "published_at": null,
+    "calendar_event_id": null,
+    "event_time": "09:00:00",
+    "event_duration_minutes": 60,
+    "published_section_ids": null,
+    "is_published": false,
+    "publish_sections": null,
+    "google_event_id": null,
+    "publish_time": null,
+    "publish_duration": null,
+    "workout_publish_status": "draft"
+  },
+  {
+    "id": "b3ecbc2c-d920-4dbb-a030-ed81df04dde8",
+    "title": "Foundations/WOD",
+    "track_id": null,
+    "workout_type_id": null,
+    "class_times": [],
+    "max_capacity": 12,
+    "date": "2025-12-14",
+    "sections": [],
+    "created_at": "2025-12-01T14:35:58.699221+00:00",
+    "updated_at": "2025-12-01T14:35:58.699221+00:00",
+    "coach_notes": "Auto-generated from template. Please add workout content.",
+    "published": false,
+    "published_at": null,
+    "calendar_event_id": null,
+    "event_time": "09:00:00",
+    "event_duration_minutes": 60,
+    "published_section_ids": null,
+    "is_published": false,
+    "publish_sections": null,
+    "google_event_id": null,
+    "publish_time": null,
+    "publish_duration": null,
+    "workout_publish_status": "draft"
+  },
+  {
+    "id": "ba9414ec-55da-48d9-a938-726539b1dbee",
+    "title": "WOD",
+    "track_id": null,
+    "workout_type_id": null,
+    "class_times": [],
+    "max_capacity": 12,
+    "date": "2025-12-08",
+    "sections": [
+      {
+        "id": "section-1765317790387",
+        "type": "WOD Pt.1",
+        "content": "* Barbell Back Squat",
+        "duration": 5,
+        "scoring_fields": {
+          "load": true,
+          "rounds_reps": true
+        },
+        "workout_type_id": "82ad0e4d-375a-4f2e-9d61-4e3ac8e3334e"
+      }
+    ],
+    "created_at": "2025-12-01T14:35:56.028194+00:00",
+    "updated_at": "2025-12-09T22:03:38.416+00:00",
+    "coach_notes": "Auto-generated from template. Please add workout content.",
+    "published": false,
+    "published_at": null,
+    "calendar_event_id": null,
+    "event_time": "09:00:00",
+    "event_duration_minutes": 60,
+    "published_section_ids": null,
+    "is_published": true,
+    "publish_sections": [
+      "section-1765317790387"
+    ],
+    "google_event_id": null,
+    "publish_time": "18:30",
+    "publish_duration": 60,
+    "workout_publish_status": "published"
+  }
+]

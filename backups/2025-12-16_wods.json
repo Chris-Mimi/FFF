@@ -1,0 +1,196 @@
+[
+  {
+    "id": "7bf1765d-179b-4ec2-9d37-13c90598d3f2",
+    "title": "WOD",
+    "track_id": "7e6de990-f014-4962-b62e-13544d2bd78d",
+    "workout_type_id": null,
+    "class_times": [
+      "17:15:00"
+    ],
+    "max_capacity": 12,
+    "date": "2025-12-03",
+    "sections": [
+      {
+        "id": "section-1764750292053-1",
+        "type": "Warm-up",
+        "lifts": [],
+        "content": "* C2 Rower\n* C2 Skierg\n* Airbike\n* Forward Lunge\n* Seated Leg Raise Pike\n* Glute Bridge Alt. Strt-leg Toe Tap\n* Push-up Reverse Hands\n* Pull-Up Bar Hang\n* Handstand Hold",
+        "duration": 12
+      },
+      {
+        "id": "section-1764750292053-2",
+        "type": "WOD Pt.1",
+        "content": "* Push-up Strict\n* Minute 1: 5 secs down, 5 secs up x 6 reps: 60 seconds\n* Minute 2: REST\n* Minute 3: (weighted) (same format as above with plate on the back)\nWrite down scaling option and weight used if any.",
+        "duration": 6,
+        "benchmarks": [],
+        "scoring_fields": {
+          "load": true,
+          "scaling": true,
+          "checkbox": true
+        },
+        "workout_type_id": "f84cbd9d-a12b-4990-94e1-ca54699c467e"
+      },
+      {
+        "id": "section-1764751975371",
+        "type": "WOD Pt.1",
+        "content": "* Pull-Up Strict\n* Minute 1: 5 secs up, 5 secs down x 6 reps: 60 seconds\n* Minute 2: REST\n* Minute 3:(weighted) same format as above with plate hanging from belt",
+        "duration": 6,
+        "scoring_fields": {
+          "load": true,
+          "scaling": true,
+          "checkbox": true
+        },
+        "workout_type_id": "f84cbd9d-a12b-4990-94e1-ca54699c467e",
+        "forge_benchmarks": []
+      },
+      {
+        "id": "section-1765486851260",
+        "type": "WOD Pt.1",
+        "content": "* Parallettes L-Sit Hold\nMinute 1: 20 secs unbroken hold\nMinute 2: REST\nMinute 3: 20 secs unbroken hold",
+        "duration": 6,
+        "scoring_fields": {
+          "time": true,
+          "scaling": true,
+          "checkbox": true
+        }
+      },
+      {
+        "id": "section-1764862844046",
+        "type": "WOD Pt.1",
+        "content": "* KB OH Carry\nMinute 1: 60 secs for metres, light weight\nMinute 2: REST\nMinute 3: 60 secs for metres, heavy (WOD) weight\nNOTE: Record the 2nd set",
+        "duration": 6,
+        "scoring_fields": {
+          "load": true,
+          "reps": false,
+          "metres": true,
+          "checkbox": true
+        }
+      },
+      {
+        "id": "section-1764874765735",
+        "type": "WOD Final Prep",
+        "content": "WOD Explanation:\n2 rounds of 6 movements:\n1 min per movement, 15 seconds change over\n2 mins REST between rounds",
+        "duration": 5,
+        "workout_type_id": "82ad0e4d-375a-4f2e-9d61-4e3ac8e3334e"
+      },
+      {
+        "id": "section-1764941708135",
+        "type": "WOD Pt.2",
+        "content": "* Push-up Strict",
+        "duration": 1,
+        "scoring_fields": {
+          "reps": true,
+          "scaling": true
+        },
+        "workout_type_id": "82ad0e4d-375a-4f2e-9d61-4e3ac8e3334e",
+        "forge_benchmarks": []
+      },
+      {
+        "id": "section-1764941707879",
+        "type": "WOD Pt.2",
+        "content": "* Pull-Up Strict",
+        "duration": 1,
+        "scoring_fields": {
+          "reps": true,
+          "scaling": true
+        },
+        "workout_type_id": "82ad0e4d-375a-4f2e-9d61-4e3ac8e3334e",
+        "forge_benchmarks": []
+      },
+      {
+        "id": "section-1764941708360",
+        "type": "WOD Pt.2",
+        "content": "* Parallettes L-Sit Hold\n",
+        "duration": 1,
+        "scoring_fields": {
+          "time": true,
+          "scaling": true
+        },
+        "workout_type_id": "82ad0e4d-375a-4f2e-9d61-4e3ac8e3334e",
+        "forge_benchmarks": []
+      },
+      {
+        "id": "section-1764929959155",
+        "type": "WOD Pt.2",
+        "content": "* KB OH Carry\n2 x KB held overhead",
+        "duration": 1,
+        "scoring_fields": {
+          "load": true,
+          "reps": false,
+          "metres": true
+        },
+        "workout_type_id": "82ad0e4d-375a-4f2e-9d61-4e3ac8e3334e",
+        "forge_benchmarks": []
+      },
+      {
+        "id": "section-1764941930051",
+        "type": "WOD Pt.2",
+        "content": "* C2 Skierg",
+        "duration": 1,
+        "scoring_fields": {
+          "metres": true
+        },
+        "workout_type_id": "82ad0e4d-375a-4f2e-9d61-4e3ac8e3334e",
+        "forge_benchmarks": []
+      },
+      {
+        "id": "section-1764941929523",
+        "type": "WOD Pt.2",
+        "content": "* C2 Rower",
+        "duration": 1,
+        "scoring_fields": {
+          "metres": true
+        },
+        "workout_type_id": "82ad0e4d-375a-4f2e-9d61-4e3ac8e3334e",
+        "forge_benchmarks": []
+      },
+      {
+        "id": "section-1765536331392",
+        "type": "WOD Pt.3",
+        "content": "Put your total score here",
+        "duration": 1,
+        "scoring_fields": {
+          "reps": true
+        }
+      },
+      {
+        "id": "section-1764875123742",
+        "type": "Cool Down",
+        "content": "* Scorpion\n* Frog Stretch with Reverse Hands\n* Couch",
+        "duration": 10
+      }
+    ],
+    "created_at": "2025-12-15T12:14:31.125497+00:00",
+    "updated_at": "2025-12-15T12:14:31.125497+00:00",
+    "coach_notes": "Focus today is on strict precise movement, no kipping, jerking or swinging\nIf any exercise is too easy, we add weight, if too hard, we scale it to make it easier\nClass is planned for 1 hour plus stretching which athletes can do alone\n\n* Push-ups Strict (6 mins)\nPoP:\nStraight line from shoulders to heels, no raising or sagging in the hips\nHead/neck in neutral position, do not lower or raise the head\nFeet together, touching\nHands underneath and slightly outside the shoulders\nElbows go backwards diagonally, not out to the sides\nOn Timer & Coach's cue\nStrict Push-Ups\nEach rep should last 10 seconds, 5 seconds down, 5 seconds up\nMin 1: 6 x Push-Ups in 60 secs\nMin 2: REST\nMin 3: 6 x Weighted Push-Ups in 60 secs\nScale up or down as needed but try and work for the full 60 seconds\n\nPush-Ups scale up: add weight plate on upper back\nChoose weight to make it as difficult as possible but make sure you can complete the 6 reps within 60 secs\n\nPush-Ups Scale down:\nSc1: Strict negative, knees down, push-up, raise knees to start position\nSc2: Begin on knees and perform as above\nIf 6 reps cannot be completed with good form on Sc2, reduce the reps to 5 or 4 accordingly\n\n* Pull-Ups Strict chin over bar (6 mins)\nSame format as above where we add weight to make it more difficult or scale it to make it easier\nMin 1: 6 x Strict Pull-Ups in 60 seconds (IGYG with partner)\nMin 2: REST\nMin 3: 6 x Strict Weighted Pull-Ups in 60 seconds (IGYG with partner)\nPull-Ups scale up: add weight plate to weight belt, \nChoose weight to make it as difficult as possible but make sure you can complete the 6 reps within 60 secs\n\nPull-Ups Scale down:\nBanded Pull-Ups - every rep starts from a static position, no bouncing, swinging or kipping\n\n* Parallettes L-Sit Hold (6 mins)\n2 rounds of:\nMin 1: 10-20 secs unbroken Parallettes L-Sit Hold in 60 secs\nMin 2: REST\nMin 3: 10-20 secs unbroken Parallettes L-Sit Hold in 60 secs\nScale down as needed but aim for a shorter time (min 10 seconds) with a more difficult scale, rather than a longer time with an easier scale\n\nL-Sits Scale (as in homework):\nRx: Straight legs, feet and legs together, feet @ 90° to hips or higher, shoulders behind wrists\nSc1: Bent knees or straight legs @ < 90°\nSc2: Bent knees in tuck position, shoulders in front of wrists\n\n* KB OH Carry 2 x KB held overhead (6 mins)\n2 rounds of:\nMin 1: 60 secs unbroken KB OH Carry for metres & weight (light weight)\nMin 2: REST\nMin 3: 60 secs unbroken KB OH Carry for metres & weight (heavier weight to decide WOD weight)\nKB OH Carry\nRx: 2 x ♀ 16kg, ♂ 24kg\nSc1: 2 x ♀ 12kg, ♂ 20kg\nSc2: 2 x ♀ 8kg, ♂ 16kg\n\nWOD: 2 x EMOM 20 mins total (60 secs Work + 15 secs change over, add scores together for each movement for an overall total)\n2 rounds of:\nMin 1: Max Strict Push-Ups\nMin 2: Max Strict Pull-Ups\nMin 3: Max secs Parallettes L-Sit Hold\nMin 4: Max SkiErg Metres\nMin 5: Max metres KB OH Carry\nMin 6: Max Rower Metres\nMin 7 & 8: REST\nNOTES:\nThese reps/seconds/metres do NOT have to be unbroken\nKeep movements consistent with what we practiced during the class\nSplit large groups up.\nRx/advanced do as written, Scaled do Push-Ups, Pull-Ups, KBOHC, Rower, L-Sit, SkiErg.",
+    "published": false,
+    "published_at": null,
+    "calendar_event_id": null,
+    "event_time": "09:00:00",
+    "event_duration_minutes": 60,
+    "published_section_ids": null,
+    "is_published": true,
+    "publish_sections": [
+      "section-1764750292053-1",
+      "section-1764750292053-2",
+      "section-1764751975371",
+      "section-1765486851260",
+      "section-1764862844046",
+      "section-1764874765735",
+      "section-1764941708135",
+      "section-1764941707879",
+      "section-1764941708360",
+      "section-1764929959155",
+      "section-1764941930051",
+      "section-1764941929523",
+      "section-1764875123742"
+    ],
+    "google_event_id": "8sq7alq6ljeg1sc5462mkqag70",
+    "publish_time": "17:15",
+    "publish_duration": 57,
+    "workout_publish_status": "published",
+    "session_type": "WOD",
+    "workout_name": "Strict Movements",
+    "workout_week": "2025-W49"
+  }
+]

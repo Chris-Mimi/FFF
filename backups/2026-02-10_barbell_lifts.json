@@ -1,0 +1,146 @@
+[
+  {
+    "id": "01239a9e-1895-4afb-a24b-183032f0757d",
+    "name": "Power Snatch",
+    "category": "Olympic",
+    "display_order": 6,
+    "created_at": "2025-12-06T21:48:01.17507+00:00",
+    "updated_at": "2025-12-06T21:48:01.17507+00:00"
+  },
+  {
+    "id": "b6ece357-1fd8-40aa-b49a-3f8780d5dbd5",
+    "name": "Clean & Jerk",
+    "category": "Olympic",
+    "display_order": 3,
+    "created_at": "2025-12-06T21:48:01.17507+00:00",
+    "updated_at": "2025-12-06T21:48:01.17507+00:00"
+  },
+  {
+    "id": "69f92c04-e28e-4fcc-a474-98dc9365e59a",
+    "name": "Clean",
+    "category": "Olympic",
+    "display_order": 2,
+    "created_at": "2025-12-06T21:48:01.17507+00:00",
+    "updated_at": "2025-12-06T21:48:01.17507+00:00"
+  },
+  {
+    "id": "776b9010-b581-4c00-9e58-91d213c314f2",
+    "name": "Power Clean",
+    "category": "Olympic",
+    "display_order": 7,
+    "created_at": "2025-12-06T21:48:01.17507+00:00",
+    "updated_at": "2025-12-06T21:48:01.17507+00:00"
+  },
+  {
+    "id": "59c64138-f5fd-457e-b4fa-afd086cb67d9",
+    "name": "Hang Clean",
+    "category": "Olympic",
+    "display_order": 8,
+    "created_at": "2025-12-06T21:48:01.17507+00:00",
+    "updated_at": "2025-12-06T21:48:01.17507+00:00"
+  },
+  {
+    "id": "4924da1d-ba88-42bc-b2ba-9ce0be580a48",
+    "name": "Overhead Squat",
+    "category": "Squat",
+    "display_order": 18,
+    "created_at": "2025-12-06T21:48:01.17507+00:00",
+    "updated_at": "2025-12-06T21:48:01.17507+00:00"
+  },
+  {
+    "id": "d33398df-9f25-4c99-8fb8-817148499e91",
+    "name": "Bench Press",
+    "category": "Press",
+    "display_order": 11,
+    "created_at": "2025-12-06T21:48:01.17507+00:00",
+    "updated_at": "2025-12-06T21:48:01.17507+00:00"
+  },
+  {
+    "id": "28cfc63f-2a41-4923-a070-ff8639e5b0aa",
+    "name": "Push Press",
+    "category": "Press",
+    "display_order": 12,
+    "created_at": "2025-12-06T21:48:01.17507+00:00",
+    "updated_at": "2025-12-06T21:48:01.17507+00:00"
+  },
+  {
+    "id": "e9acf11b-527e-4f66-bcd7-31c55c071f89",
+    "name": "Push Jerk",
+    "category": "Press",
+    "display_order": 14,
+    "created_at": "2025-12-06T21:48:01.17507+00:00",
+    "updated_at": "2025-12-06T21:48:01.17507+00:00"
+  },
+  {
+    "id": "0271345e-a7c9-4a8e-aa8f-3c95344d9ed3",
+    "name": "Sumo Deadlift",
+    "category": "Pull",
+    "display_order": 22,
+    "created_at": "2025-12-06T21:48:01.17507+00:00",
+    "updated_at": "2025-12-09T10:26:22.484+00:00"
+  },
+  {
+    "id": "b713b51c-1942-4246-ad94-f6bef9f9eedf",
+    "name": "Deadlift",
+    "category": "Pull",
+    "display_order": 21,
+    "created_at": "2025-12-06T21:48:01.17507+00:00",
+    "updated_at": "2025-12-09T10:26:26.523+00:00"
+  },
+  {
+    "id": "7147e5be-3240-4b5d-9041-639c59f3e9d6",
+    "name": "Barbell Row",
+    "category": "Pull",
+    "display_order": 24,
+    "created_at": "2025-12-09T10:26:42.222023+00:00",
+    "updated_at": "2025-12-09T10:26:42.222023+00:00"
+  },
+  {
+    "id": "7ca1f295-23c8-46ed-a5ca-8a014294c7d8",
+    "name": "Romanian Deadlift",
+    "category": "Pull",
+    "display_order": 23,
+    "created_at": "2025-12-09T10:26:57.788635+00:00",
+    "updated_at": "2025-12-09T10:26:57.788635+00:00"
+  },
+  {
+    "id": "a17b8e9b-8cbe-4432-9aed-ecdfa2720f04",
+    "name": "Hang Snatch",
+    "category": "Olympic",
+    "display_order": 9,
+    "created_at": "2025-12-06T21:48:01.17507+00:00",
+    "updated_at": "2025-12-06T21:48:01.17507+00:00"
+  },
+  {
+    "id": "cf073fa3-32e1-48c7-9af9-0341f91a09df",
+    "name": "Back Squat",
+    "category": "Squat",
+    "display_order": 16,
+    "created_at": "2025-12-06T21:48:01.17507+00:00",
+    "updated_at": "2025-12-06T21:48:01.17507+00:00"
+  },
+  {
+    "id": "a4cdc09b-6882-4140-8943-693dd65506a2",
+    "name": "Front Squat",
+    "category": "Squat",
+    "display_order": 17,
+    "created_at": "2025-12-06T21:48:01.17507+00:00",
+    "updated_at": "2025-12-06T21:48:01.17507+00:00"
+  },
+  {
+    "id": "0531c090-d1c3-41e9-a6a3-60cf6b9b1283",
+    "name": "Strict Overhead Shoulder Press",
+    "category": "Press",
+    "display_order": 13,
+    "created_at": "2025-12-06T21:48:01.17507+00:00",
+    "updated_at": "2026-02-10T11:04:33.077+00:00"
+  },
+  {
+    "id": "b2f871ad-dab5-40e9-a520-8efde2c2f7d5",
+    "name": "Snatch",
+    "category": "Olympic",
+    "display_order": 1,
+    "created_at": "2025-12-06T21:48:01.17507+00:00",
+    "updated_at": "2025-12-06T21:48:01.17507+00:00"
+  }
+]

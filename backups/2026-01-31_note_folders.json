@@ -1,0 +1,18 @@
+[
+  {
+    "id": "1beea83e-c667-4f92-b053-9e08a57201cc",
+    "user_id": "fc32bb41-8821-4efd-af28-8d3e2f60578d",
+    "name": "Endurance workouts",
+    "display_order": 1,
+    "created_at": "2026-01-14T09:28:06.860905+00:00",
+    "updated_at": "2026-01-14T09:28:06.860905+00:00"
+  },
+  {
+    "id": "d011292a-346f-4f1a-bf8b-252d28bbefa3",
+    "user_id": "fc32bb41-8821-4efd-af28-8d3e2f60578d",
+    "name": "Technique Clips",
+    "display_order": 2,
+    "created_at": "2026-01-14T10:32:48.224978+00:00",
+    "updated_at": "2026-01-14T10:32:48.224978+00:00"
+  }
+]

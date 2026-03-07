@@ -53,6 +53,7 @@ export interface ExerciseFrequency {
 export interface DateRangeFilter {
   startDate?: string; // ISO date string (YYYY-MM-DD)
   endDate?: string;   // ISO date string (YYYY-MM-DD)
+  excludeSessionTypes?: string[]; // e.g. ['Kids & Teens'] to exclude from results
 }
 
 // ============================================
@@ -92,8 +93,11 @@ export async function fetchPublishedWorkouts(filter?: DateRangeFilter, label = '
     return [];
   }
 
+  const excludeTypes = filter?.excludeSessionTypes?.map(t => t.toLowerCase()) || [];
+
   return sessions
     ?.filter((s: any) => s.wods !== null && s.wods.workout_publish_status === 'published')
+    .filter((s: any) => excludeTypes.length === 0 || !excludeTypes.includes((s.wods.session_type || '').toLowerCase()))
     .map((s: any) => ({
       id: s.wods.id,
       date: s.date,

@@ -35,8 +35,11 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
   // Exercise picker state
   const [pickerPatternId, setPickerPatternId] = useState<string | null>(null);
 
-  // Fetch patterns with their exercises
-  const fetchPatterns = useCallback(async () => {
+  // Track filter: 'adults' excludes Kids & Teens, 'kids' shows only Kids & Teens
+  const [trackFilter, setTrackFilter] = useState<'adults' | 'kids'>('adults');
+
+  // Fetch patterns with their exercises (filtered by track)
+  const fetchPatterns = useCallback(async (track: 'adults' | 'kids' = 'adults') => {
     const { data: user } = await supabase.auth.getUser();
     if (!user.user) return;
 
@@ -44,6 +47,7 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
       .from('movement_patterns')
       .select('*')
       .eq('user_id', user.user.id)
+      .eq('track', track)
       .order('sort_order');
 
     if (patternError) {
@@ -99,7 +103,7 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
   }, []);
 
   // Compute gap analysis and coverage
-  const computeAnalysis = useCallback(async (pats: PatternWithExercises[]) => {
+  const computeAnalysis = useCallback(async (pats: PatternWithExercises[], filter: 'adults' | 'kids' = 'adults') => {
     if (pats.length === 0) {
       setGaps([]);
       setCoverage(new Map());
@@ -108,13 +112,18 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
 
     setGapLoading(true);
 
+    // Adults: exclude Kids & Teens. Kids: exclude everything except Kids & Teens.
+    const excludeSessionTypes = filter === 'adults'
+      ? ['Kids & Teens']
+      : ['WOD', 'Foundations', 'Foundations/WOD', 'Endurance', 'Session', 'Specialty/Party/Other'];
+
     const weeks = generateWeeks(PAST_WEEKS, FUTURE_WEEKS);
     const startDate = weeks[0];
     const endDate = weeks[weeks.length - 1];
 
     const [gapResults, coverageResults] = await Promise.all([
-      computePatternGaps(pats),
-      detectWeeklyCoverage(pats, startDate, endDate),
+      computePatternGaps(pats, 16, excludeSessionTypes),
+      detectWeeklyCoverage(pats, startDate, endDate, excludeSessionTypes),
     ]);
 
     setGaps(gapResults);
@@ -125,15 +134,28 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
   // Initial load
   useEffect(() => {
     const init = async () => {
-      const pats = await fetchPatterns();
+      const pats = await fetchPatterns(trackFilter);
       await fetchPlanItems();
       if (pats && pats.length > 0) {
-        await computeAnalysis(pats);
+        await computeAnalysis(pats, trackFilter);
       }
     };
     init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Re-fetch patterns and re-compute when track filter changes
+  useEffect(() => {
+    const refresh = async () => {
+      const pats = await fetchPatterns(trackFilter);
+      await fetchPlanItems();
+      if (pats && pats.length > 0) {
+        await computeAnalysis(pats, trackFilter);
+      }
+    };
+    refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trackFilter]);
 
   // Pattern CRUD
   const handleCreatePattern = async (name: string, color: string) => {
@@ -147,6 +169,7 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
         name,
         color,
         sort_order: patterns.length,
+        track: trackFilter,
       });
 
     if (error) {
@@ -158,8 +181,8 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
       return;
     }
 
-    const pats = await fetchPatterns();
-    if (pats) await computeAnalysis(pats);
+    const pats = await fetchPatterns(trackFilter);
+    if (pats) await computeAnalysis(pats, trackFilter);
     toast.success(`Created "${name}"`);
   };
 
@@ -177,8 +200,8 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
       return;
     }
 
-    const pats = await fetchPatterns();
-    if (pats) await computeAnalysis(pats);
+    const pats = await fetchPatterns(trackFilter);
+    if (pats) await computeAnalysis(pats, trackFilter);
   };
 
   const handleDeletePattern = async (id: string) => {
@@ -192,8 +215,8 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
       return;
     }
 
-    const pats = await fetchPatterns();
-    if (pats) await computeAnalysis(pats);
+    const pats = await fetchPatterns(trackFilter);
+    if (pats) await computeAnalysis(pats, trackFilter);
     toast.success('Pattern deleted');
   };
 
@@ -230,8 +253,8 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
       }
     }
 
-    const pats = await fetchPatterns();
-    if (pats) await computeAnalysis(pats);
+    const pats = await fetchPatterns(trackFilter);
+    if (pats) await computeAnalysis(pats, trackFilter);
   };
 
   const handleRemoveExercise = async (patternId: string, exerciseId: string) => {
@@ -246,8 +269,8 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
       return;
     }
 
-    const pats = await fetchPatterns();
-    if (pats) await computeAnalysis(pats);
+    const pats = await fetchPatterns(trackFilter);
+    if (pats) await computeAnalysis(pats, trackFilter);
   };
 
   // Plan item toggle
@@ -300,6 +323,33 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
 
   return (
     <div className='space-y-4'>
+      {/* Track filter toggle */}
+      <div className='flex items-center gap-2'>
+        <span className='text-xs font-medium text-gray-500'>Track:</span>
+        <div className='flex rounded-lg border border-gray-200 overflow-hidden'>
+          <button
+            onClick={() => setTrackFilter('adults')}
+            className={`px-3 py-1 text-xs font-medium transition ${
+              trackFilter === 'adults'
+                ? 'bg-[#178da6] text-white'
+                : 'bg-white text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            Adults
+          </button>
+          <button
+            onClick={() => setTrackFilter('kids')}
+            className={`px-3 py-1 text-xs font-medium transition border-l border-gray-200 ${
+              trackFilter === 'kids'
+                ? 'bg-[#178da6] text-white'
+                : 'bg-white text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            Kids & Teens
+          </button>
+        </div>
+      </div>
+
       <PatternManager
         patterns={patterns}
         onCreatePattern={handleCreatePattern}

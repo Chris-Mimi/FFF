@@ -1,0 +1,20 @@
+[
+  {
+    "id": "26d58000-db2a-4ea6-abeb-7cc9129bb631",
+    "user_id": "84280ec0-7cc6-40e2-818b-d8843c30ce29",
+    "achievement_id": "80e662ca-852e-4514-a059-3460f21169f1",
+    "achieved_date": "2026-02-21",
+    "awarded_by": null,
+    "notes": null,
+    "created_at": "2026-02-21T10:18:22.632805+00:00"
+  },
+  {
+    "id": "7fc07d10-fc22-4b20-94e3-6752131eac00",
+    "user_id": "84280ec0-7cc6-40e2-818b-d8843c30ce29",
+    "achievement_id": "8db2b0eb-64c7-4d2e-b174-fa25d8923442",
+    "achieved_date": "2026-02-21",
+    "awarded_by": null,
+    "notes": null,
+    "created_at": "2026-02-21T10:48:02.983937+00:00"
+  }
+]

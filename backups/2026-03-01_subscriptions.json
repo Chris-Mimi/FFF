@@ -1,0 +1,28 @@
+[
+  {
+    "id": "b416951f-a5b8-49be-aa68-4ef3321c2dd2",
+    "member_id": "353819fa-c0a0-4c31-8232-752481d71385",
+    "stripe_subscription_id": "sub_1SwhzoD9xNuuM31eymXuoJh5",
+    "stripe_customer_id": "cus_TuWb3OgiE3XgzG",
+    "plan_type": "monthly",
+    "status": "active",
+    "current_period_start": "2026-02-03T11:42:19.811+00:00",
+    "current_period_end": "2026-02-03T11:42:19.811+00:00",
+    "cancel_at_period_end": false,
+    "created_at": "2026-02-03T11:42:19.598385+00:00",
+    "updated_at": "2026-02-03T11:42:19.930096+00:00"
+  },
+  {
+    "id": "3dbb29e3-1d8e-47a9-9741-9a74c251c06c",
+    "member_id": "cfd59467-7135-45d2-bba0-a150fb904784",
+    "stripe_subscription_id": "sub_1T4hTuD9xNuuM31egaToodLT",
+    "stripe_customer_id": "cus_U2n3eSxFPRxEwJ",
+    "plan_type": "monthly",
+    "status": "active",
+    "current_period_start": "2026-02-25T12:46:24.419+00:00",
+    "current_period_end": "2026-03-27T12:46:24.419+00:00",
+    "cancel_at_period_end": false,
+    "created_at": "2026-02-25T12:46:24.371723+00:00",
+    "updated_at": "2026-02-25T12:46:24.718787+00:00"
+  }
+]

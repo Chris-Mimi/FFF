@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Edit2, Trash2, ChevronDown, ChevronRight, Settings } from 'lucide-react';
+import { Plus, Edit2, Trash2, ChevronDown, ChevronRight, Settings, X } from 'lucide-react';
 import type { PatternWithExercises } from '@/types/planner';
 
 interface PatternManagerProps {

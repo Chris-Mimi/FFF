@@ -14,7 +14,8 @@ import type { PatternWithExercises, PatternGapResult } from '@/types/planner';
  */
 export async function computePatternGaps(
   patterns: PatternWithExercises[],
-  lookbackWeeks: number = 16
+  lookbackWeeks: number = 16,
+  excludeSessionTypes?: string[]
 ): Promise<PatternGapResult[]> {
   if (patterns.length === 0) return [];
 
@@ -26,6 +27,7 @@ export async function computePatternGaps(
   const filter: DateRangeFilter = {
     startDate: startDate.toISOString().split('T')[0],
     endDate: now.toISOString().split('T')[0],
+    excludeSessionTypes,
   };
 
   // Fetch all published workouts in the lookback window
@@ -33,7 +35,10 @@ export async function computePatternGaps(
 
   // Build set of all known exercise names (for extraction matching)
   const allExerciseNames = new Set<string>();
-  patterns.forEach(p => p.exercises.forEach(e => allExerciseNames.add(e.name)));
+  patterns.forEach(p => p.exercises.forEach(e => {
+    allExerciseNames.add(e.name);
+    if (e.display_name) allExerciseNames.add(e.display_name);
+  }));
 
   // Extract movements from each workout
   const workoutMovements: { date: string; movements: Set<string> }[] = workouts.map(w => ({
@@ -122,15 +127,19 @@ export async function computePatternGaps(
 export async function detectWeeklyCoverage(
   patterns: PatternWithExercises[],
   startDate: string,
-  endDate: string
+  endDate: string,
+  excludeSessionTypes?: string[]
 ): Promise<Map<string, Set<string>>> {
   if (patterns.length === 0) return new Map();
 
-  const filter: DateRangeFilter = { startDate, endDate };
+  const filter: DateRangeFilter = { startDate, endDate, excludeSessionTypes };
   const workouts = await fetchPublishedWorkouts(filter, 'weekly coverage');
 
   const allExerciseNames = new Set<string>();
-  patterns.forEach(p => p.exercises.forEach(e => allExerciseNames.add(e.name)));
+  patterns.forEach(p => p.exercises.forEach(e => {
+    allExerciseNames.add(e.name);
+    if (e.display_name) allExerciseNames.add(e.display_name);
+  }));
 
   // Map: weekMonday → Set<patternId>
   const coverage = new Map<string, Set<string>>();

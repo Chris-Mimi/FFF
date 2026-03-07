@@ -1,0 +1,222 @@
+[
+  {
+    "id": "911e1057-c617-4cbc-be0d-d151f90f882d",
+    "name": "Grace",
+    "type": "For Time",
+    "description": "30 Clean & Jerks for time (61/43 kg)",
+    "display_order": 5,
+    "has_scaling": true,
+    "created_at": "2025-12-06T21:48:01.17507+00:00",
+    "updated_at": "2025-12-06T21:48:01.17507+00:00"
+  },
+  {
+    "id": "efa25bfa-d222-4eb8-b95a-3352f0ed3176",
+    "name": "Isabel",
+    "type": "For Time",
+    "description": "30 Snatches for time (61/43 kg)",
+    "display_order": 6,
+    "has_scaling": true,
+    "created_at": "2025-12-06T21:48:01.17507+00:00",
+    "updated_at": "2025-12-06T21:48:01.17507+00:00"
+  },
+  {
+    "id": "46a0960c-6972-44af-9ed1-ecf4bb261786",
+    "name": "Karen",
+    "type": "For Time",
+    "description": "150 Wall Balls for time (9/6 kg)",
+    "display_order": 7,
+    "has_scaling": true,
+    "created_at": "2025-12-06T21:48:01.17507+00:00",
+    "updated_at": "2025-12-06T21:48:01.17507+00:00"
+  },
+  {
+    "id": "68c36fd4-0218-47e5-936c-74971606fa86",
+    "name": "Fran",
+    "type": "For Time",
+    "description": "21-15-9 reps of:\nThrusters (43/29 kg)\nPull-ups",
+    "display_order": 1,
+    "has_scaling": true,
+    "created_at": "2025-12-06T21:48:01.17507+00:00",
+    "updated_at": "2025-12-06T21:48:01.17507+00:00"
+  },
+  {
+    "id": "352cdb7c-fd65-425e-9bf2-d184599a7ee5",
+    "name": "Helen",
+    "type": "For Time",
+    "description": "3 rounds for time:\n400m Run\n21 KB Swings (24/16 kg)\n12 Pull-ups",
+    "display_order": 2,
+    "has_scaling": true,
+    "created_at": "2025-12-06T21:48:01.17507+00:00",
+    "updated_at": "2025-12-06T21:48:01.17507+00:00"
+  },
+  {
+    "id": "bf9fa647-c7b4-40dd-b061-4c01480adfe2",
+    "name": "Cindy",
+    "type": "AMRAP",
+    "description": "20 min AMRAP:\n5 Pull-ups\n10 Push-ups\n15 Air Squats",
+    "display_order": 3,
+    "has_scaling": true,
+    "created_at": "2025-12-06T21:48:01.17507+00:00",
+    "updated_at": "2025-12-06T21:48:01.17507+00:00"
+  },
+  {
+    "id": "bffb6b1f-7a87-4253-a906-498fad927499",
+    "name": "Diane",
+    "type": "For Time",
+    "description": "21-15-9 reps of:\nDeadlifts (102/70 kg)\nHandstand Push-ups",
+    "display_order": 4,
+    "has_scaling": true,
+    "created_at": "2025-12-06T21:48:01.17507+00:00",
+    "updated_at": "2025-12-06T21:48:01.17507+00:00"
+  },
+  {
+    "id": "fa92e1d7-539e-41f5-a9f2-56236da064c4",
+    "name": "Annie",
+    "type": "For Time",
+    "description": "50-40-30-20-10 reps of:\nDouble-unders\nSit-ups",
+    "display_order": 8,
+    "has_scaling": true,
+    "created_at": "2025-12-06T21:48:01.17507+00:00",
+    "updated_at": "2025-12-06T21:48:01.17507+00:00"
+  },
+  {
+    "id": "49d5c64f-3b3e-4889-b847-236ea29a5185",
+    "name": "Jackie",
+    "type": "For Time",
+    "description": "For time:\n1000m Row\n50 Thrusters (20/15 kg)\n30 Pull-ups",
+    "display_order": 9,
+    "has_scaling": true,
+    "created_at": "2025-12-06T21:48:01.17507+00:00",
+    "updated_at": "2025-12-06T21:48:01.17507+00:00"
+  },
+  {
+    "id": "cfbfb7b2-a3ca-4858-b4fa-c56e1337f432",
+    "name": "Elizabeth",
+    "type": "For Time",
+    "description": "21-15-9 reps of:\nCleans (61/43 kg)\nRing Dips",
+    "display_order": 10,
+    "has_scaling": true,
+    "created_at": "2025-12-06T21:48:01.17507+00:00",
+    "updated_at": "2025-12-06T21:48:01.17507+00:00"
+  },
+  {
+    "id": "68398435-1017-4d22-9028-af74d4410477",
+    "name": "Eva",
+    "type": "For Time",
+    "description": "5 rounds for time:\n800m Run\n30 KB Swings (32/24 kg)\n30 Pull-ups",
+    "display_order": 11,
+    "has_scaling": true,
+    "created_at": "2025-12-06T21:48:01.17507+00:00",
+    "updated_at": "2025-12-06T21:48:01.17507+00:00"
+  },
+  {
+    "id": "79e2d4a8-11b5-4631-9967-c5168a619133",
+    "name": "Kelly",
+    "type": "For Time",
+    "description": "5 rounds for time:\n400m Run\n30 Box Jumps (60/50 cm)\n30 Wall Balls (9/6 kg)",
+    "display_order": 12,
+    "has_scaling": true,
+    "created_at": "2025-12-06T21:48:01.17507+00:00",
+    "updated_at": "2025-12-06T21:48:01.17507+00:00"
+  },
+  {
+    "id": "210a3ee6-a52e-4f5c-9ce1-cdb06ab37979",
+    "name": "Lynne",
+    "type": "Max Reps",
+    "description": "5 rounds for max reps:\nBodyweight Bench Press\nPull-ups",
+    "display_order": 13,
+    "has_scaling": true,
+    "created_at": "2025-12-06T21:48:01.17507+00:00",
+    "updated_at": "2025-12-06T21:48:01.17507+00:00"
+  },
+  {
+    "id": "7030141c-fb39-44ba-9e48-997a1298a618",
+    "name": "Nancy",
+    "type": "For Time",
+    "description": "5 rounds for time:\n400m Run\n15 Overhead Squats (43/29 kg)",
+    "display_order": 14,
+    "has_scaling": true,
+    "created_at": "2025-12-06T21:48:01.17507+00:00",
+    "updated_at": "2025-12-06T21:48:01.17507+00:00"
+  },
+  {
+    "id": "8b21f37a-a944-4fc1-85a3-4894282eae52",
+    "name": "Amanda",
+    "type": "For Time",
+    "description": "9-7-5 reps of:\nMuscle-ups\nSnatches (61/43 kg)",
+    "display_order": 15,
+    "has_scaling": true,
+    "created_at": "2025-12-06T21:48:01.17507+00:00",
+    "updated_at": "2025-12-06T21:48:01.17507+00:00"
+  },
+  {
+    "id": "ec52e306-1433-43cc-925e-467d362db37b",
+    "name": "Chelsea",
+    "type": "EMOM",
+    "description": "EMOM 30 min:\n5 Pull-ups\n10 Push-ups\n15 Air Squats",
+    "display_order": 16,
+    "has_scaling": true,
+    "created_at": "2025-12-06T21:48:01.17507+00:00",
+    "updated_at": "2025-12-06T21:48:01.17507+00:00"
+  },
+  {
+    "id": "187aa211-11b3-49a6-bd45-c38cb7c05621",
+    "name": "DT",
+    "type": "For Time",
+    "description": "5 rounds for time:\n12 Deadlifts (70/47 kg)\n9 Hang Power Cleans\n6 Push Jerks",
+    "display_order": 17,
+    "has_scaling": true,
+    "created_at": "2025-12-06T21:48:01.17507+00:00",
+    "updated_at": "2025-12-06T21:48:01.17507+00:00"
+  },
+  {
+    "id": "fcbd7494-b443-4619-89b0-df0f420c3398",
+    "name": "Fight Gone Bad",
+    "type": "Max Reps",
+    "description": "3 rounds, 1 min each:\nWall Balls\nSDHP (34/25 kg)\nBox Jumps\nPush Press (34/25 kg)\nRow (calories)",
+    "display_order": 18,
+    "has_scaling": true,
+    "created_at": "2025-12-06T21:48:01.17507+00:00",
+    "updated_at": "2025-12-06T21:48:01.17507+00:00"
+  },
+  {
+    "id": "7f82792a-1fdd-4da8-9c31-f7fc551bdfc5",
+    "name": "Filthy Fifty",
+    "type": "For Time",
+    "description": "For time:\n50 Box Jumps\n50 Jumping Pull-ups\n50 KB Swings\n50 Walking Lunges\n50 K2E\n50 Push Press\n50 Back Extensions\n50 Wall Balls\n50 Burpees\n50 Double-unders",
+    "display_order": 19,
+    "has_scaling": true,
+    "created_at": "2025-12-06T21:48:01.17507+00:00",
+    "updated_at": "2025-12-06T21:48:01.17507+00:00"
+  },
+  {
+    "id": "2dbcdaeb-5755-4c4c-8aef-e258f4ce2ecd",
+    "name": "The Seven",
+    "type": "For Time",
+    "description": "7 rounds for time:\n7 Handstand Push-ups\n7 Thrusters (61/43 kg)\n7 Knees to Elbows\n7 Deadlifts (111/75 kg)\n7 Burpees\n7 KB Swings (32/24 kg)\n7 Pull-ups",
+    "display_order": 20,
+    "has_scaling": true,
+    "created_at": "2025-12-06T21:48:01.17507+00:00",
+    "updated_at": "2025-12-06T21:48:01.17507+00:00"
+  },
+  {
+    "id": "11fd3140-753e-47ac-a1cc-1bbcb3ea0a8e",
+    "name": "Murph",
+    "type": "For Time",
+    "description": "For time:\n1 mile Run\n100 Pull-ups\n200 Push-ups\n300 Air Squats\n1 mile Run",
+    "display_order": 21,
+    "has_scaling": true,
+    "created_at": "2025-12-06T21:48:01.17507+00:00",
+    "updated_at": "2025-12-06T21:48:01.17507+00:00"
+  },
+  {
+    "id": "8b5d4e2b-9f6b-4bf2-87a0-575f4af8d89c",
+    "name": "Zachary Tellier",
+    "type": "For Time",
+    "description": "(Hero Workout)\nAscending Ladder (650 total reps!) for time of:\nBurpee x 10\nBurpee x 10, Push-Up Strict x 25\nBurpee x 10, Push-Up Strict x 25, Forward Lunge x 50\nBurpee x 10, Push-Up Strict x 25, Forward Lunge x 50, Abmat Sit-up x 100\nBurpee x 10, Push-Up Strict x 25, Forward Lunge x 50, Abmat Sit-up x 100, Airsquat x 150",
+    "display_order": 22,
+    "has_scaling": true,
+    "created_at": "2025-12-25T20:37:19.444618+00:00",
+    "updated_at": "2025-12-27T23:54:47.971+00:00"
+  }
+]
