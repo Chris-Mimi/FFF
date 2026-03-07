@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 58.0
-**Updated:** 2026-03-05 (Session 179 - Movement Demos bar in workout editor)
+**Version:** 59.0
+**Updated:** 2026-03-07 (Session 181 - Analysis page exercise count fix)
 
 ---
 
@@ -85,17 +85,19 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-07 Session 181 - Opus 4.6) — ANALYSIS PAGE EXERCISE COUNT FIX:**
+- **✅ Fixed exercise frequency counts** — Refactored `getExerciseFrequency` in `movement-analytics.ts` to use shared `extractMovementsFromWod` instead of duplicate regex logic. Fixes "World's Greatest Stretch + Samson" (was 0, should be 6), "Glute Bridge Reach Over" (was 3, should be 6), and likely many others.
+- **⚠️ NEEDS TESTING** — User ran out of time before verifying.
+
 **Completed (2026-03-07 Session 180 - Opus 4.6) — EXERCISE LIBRARY CLEANUP + ANALYSIS TAB:**
 - **✅ Consolidated tags + search_terms** — Merged into single `tags` field. Rescued 98 useful abbreviations from search_terms, removed 1,348 redundant tags from 572 exercises, dropped search_terms from all code (6 files).
-- **✅ Removed "Workouts by Track"** from Analysis tab (duplicated Workouts tab functionality). Cleaned up tracks fetch/state/interface.
-- **⏳ Migration pending:** `20260307000000_drop_search_terms.sql` — drops search_terms column + updates search_vector trigger.
+- **✅ Removed "Workouts by Track"** from Analysis tab. **✅ Migration applied.**
 
 **Completed (2026-03-05 Session 179 - Opus 4.6) — MOVEMENT DEMOS BAR:**
 - **✅ Movement Demos bar** — Collapsible workout-level bar above sections. Auto-detects exercises with video URLs from all sections (deduplicated). Manual clip attachment with label + URL.
 
 **Completed (2026-03-05 Session 178 - Opus 4.6) — MOBILE MOVEMENT TRACKING FIX:**
 - **✅ Mobile tracking toggle** — Footer "Tracking" button toggles tracking panel in place of search results on mobile. Desktop unaffected.
-- **✅ h-dvh fix** — Changed `h-screen` to `h-dvh` on SearchPanel container to account for mobile browser chrome (address bar/toolbar)
 
 **Completed (2026-03-05 Session 177 - Opus 4.6) — COLOR-CODED DATES:**
 - **✅ Color-coded dates** — Movement Tracking "last programmed" and athlete "last" rows: green ≤14d, yellow 15–28d, orange 29–60d, red 60+d, gray no date. CSS tooltip on hover.
@@ -145,7 +147,7 @@ See `project-history/` folder for detailed implementation history
 - ✅ `coach_cancelled` booking status — confirmed applied (Session 158)
 - ✅ `is_beta_tester` column — applied (Session 158)
 - ⏳ `20260304000000_add_performance_indexes.sql` — 7 indexes on bookings/wods/weekly_sessions (Session 173, apply when Supabase is accessible)
-- ⏳ `20260307000000_drop_search_terms.sql` — Drop search_terms column, update search_vector trigger (Session 180)
+- ✅ `20260307000000_drop_search_terms.sql` — Drop search_terms column, update search_vector trigger (Session 180, applied)
 
 ---
 

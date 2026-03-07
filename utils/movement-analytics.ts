@@ -5,6 +5,8 @@
 
 import { supabase } from '@/lib/supabase';
 import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
+import { extractMovementsFromWod } from '@/utils/movement-extraction';
+import type { WODFormData } from '@/components/coach/WorkoutModal';
 
 // ============================================
 // Types
@@ -410,20 +412,21 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
     return [];
   }
 
-  // Create lookup maps for fuzzy matching
+  // Build name→exercise lookup (case-insensitive, by name and display_name)
   const exercisesByName = new Map<string, { id: string; name: string; category: string }>();
+  const knownExerciseNames = new Set<string>();
   exercisesData?.forEach(ex => {
-    // Add by name (lowercase for case-insensitive matching)
     exercisesByName.set(ex.name.toLowerCase(), { id: ex.id, name: ex.name, category: ex.category });
-    // Also add by display_name if different
+    knownExerciseNames.add(ex.name);
     if (ex.display_name && ex.display_name.toLowerCase() !== ex.name.toLowerCase()) {
       exercisesByName.set(ex.display_name.toLowerCase(), { id: ex.id, name: ex.name, category: ex.category });
+      knownExerciseNames.add(ex.display_name);
     }
   });
 
   const workouts = await fetchPublishedWorkouts(filter, 'workouts for exercise frequency');
 
-  // Aggregate exercise data from WOD content (count unique workouts by name+week or date)
+  // Aggregate exercise data using shared extraction logic
   const exerciseMap = new Map<string, {
     id: string;
     name: string;
@@ -432,281 +435,46 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
     lastProgrammed: string;
   }>();
 
-  // Regex patterns for extracting exercises (from movement-extraction.ts)
-  // Updated to handle special characters like °, /, . in exercise names
-  const patterns = [
-    // Pattern 1: Number + x + Movement (e.g., "10x Air Squats")
-    /^(?:\d+[\s-]*x[\s-]*|[\d-]+[\s-]*x[\s-]*)([^\n@]+?)(?:\s+x\s+\d+|\s*@|$)/i,
-    // Pattern 2: Bullet/asterisk + Movement (e.g., "* Arm Circles", "* 90° Ext. Rotation (SU)")
-    /^[\s*•\-]+\s*([^\n@]+?)(?:\s+x\s+\d+|\s*@|$)/,
-    // Pattern 3: Number + Movement (e.g., "10 Air Squats")
-    /^(?:\d+[\s-]*)([^\n@]+?)(?:\s+x\s+\d+|\s*@|$)/,
-    // Pattern 4: Rep scheme + Movement (e.g., "21-15-9 Thrusters")
-    /^(?:\d+-\d+(?:-\d+)*[\s-]*)([^\n@]+?)(?:\s+x\s+\d+|\s*@|$)/,
-    // Pattern 5: Plain exercise name (e.g., "Air Squats", "Rope Climbs")
-    /^([^\n@\d*•\-][^\n@]+?)(?:\s+x\s+\d+|\s*@|$)/,
-  ];
-
   workouts?.forEach(workout => {
     const workoutKey = getWorkoutKey(workout);
 
-    const sections = workout.sections as Array<{
-      content?: string;
-      benchmarks?: Array<{ exercises?: string[]; description?: string }>;
-      forge_benchmarks?: Array<{ exercises?: string[]; description?: string }>;
-    }>;
+    // Convert to WODFormData for extractMovementsFromWod
+    const wodData: WODFormData = {
+      id: workout.id,
+      title: '',
+      date: workout.date,
+      sections: workout.sections || [],
+      classTimes: [],
+      maxCapacity: 0,
+    };
 
-    sections?.forEach(section => {
-      // Extract exercises from section content (if present)
-      if (section.content) {
-        const lines = section.content.split('\n');
+    const movements = extractMovementsFromWod(wodData, knownExerciseNames);
 
-      lines.forEach(line => {
-        // Split by both '+' and ',' to handle multiple exercises on same line
-        const parts = line.split(/[+,]/).map(p => p.trim());
+    movements.forEach(movementName => {
+      const exercise = exercisesByName.get(movementName.toLowerCase());
+      if (!exercise) return;
 
-        parts.forEach(part => {
-          const trimmedLine = part.trim();
-          if (!trimmedLine) return;
+      const existing = exerciseMap.get(exercise.id);
+      const workoutEntry: ExerciseFrequencyWorkout = {
+        date: workout.date,
+        session_type: workout.session_type,
+        workout_name: workout.workout_name,
+      };
 
-          // Try each pattern
-        for (const pattern of patterns) {
-          const match = trimmedLine.match(pattern);
-
-          if (match && match[1]) {
-            let movementText = match[1].trim();
-            // Remove trailing punctuation
-            movementText = movementText.replace(/[,;.!?]+$/, '');
-
-            // Normalize to title case
-            const normalized = movementText
-              .split(/\s+/)
-              .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-              .join(' ')
-              .trim();
-
-            // Try to match against exercises database
-            // First try exact match
-            let exercise = exercisesByName.get(normalized.toLowerCase());
-
-            // If no exact match, try to find exercise name as prefix
-            // This handles cases like "Push-Up Strict 5 seconds down, 5 seconds up"
-            if (!exercise) {
-              const normalizedLower = normalized.toLowerCase();
-              for (const [dbName, dbExercise] of exercisesByName.entries()) {
-                if (normalizedLower.startsWith(dbName)) {
-                  exercise = dbExercise;
-                  break;
-                }
-              }
-            }
-
-            if (exercise) {
-              const existing = exerciseMap.get(exercise.id);
-              const workoutEntry: ExerciseFrequencyWorkout = { date: workout.date, session_type: workout.session_type, workout_name: workout.workout_name };
-
-              if (existing) {
-                existing.uniqueWorkouts.set(workoutKey, workoutEntry);
-                if (workout.date > existing.lastProgrammed) {
-                  existing.lastProgrammed = workout.date;
-                }
-              } else {
-                exerciseMap.set(exercise.id, {
-                  id: exercise.id,
-                  name: exercise.name,
-                  category: exercise.category,
-                  uniqueWorkouts: new Map([[workoutKey, workoutEntry]]),
-                  lastProgrammed: workout.date,
-                });
-              }
-            }
-
-            break; // Match found, don't try other patterns
-          }
+      if (existing) {
+        existing.uniqueWorkouts.set(workoutKey, workoutEntry);
+        if (workout.date > existing.lastProgrammed) {
+          existing.lastProgrammed = workout.date;
         }
+      } else {
+        exerciseMap.set(exercise.id, {
+          id: exercise.id,
+          name: exercise.name,
+          category: exercise.category,
+          uniqueWorkouts: new Map([[workoutKey, workoutEntry]]),
+          lastProgrammed: workout.date,
         });
-      });
       }
-
-      // Extract exercises from benchmarks
-      section.benchmarks?.forEach(benchmark => {
-        benchmark.exercises?.forEach(exerciseName => {
-          // Find exercise in database by name
-          const exercise = exercisesByName.get(exerciseName.toLowerCase());
-          if (exercise) {
-            const existing = exerciseMap.get(exercise.id);
-            const workoutEntry: ExerciseFrequencyWorkout = { date: workout.date, session_type: workout.session_type, workout_name: workout.workout_name };
-            if (existing) {
-              existing.uniqueWorkouts.set(workoutKey, workoutEntry);
-              if (workout.date > existing.lastProgrammed) {
-                existing.lastProgrammed = workout.date;
-              }
-            } else {
-              exerciseMap.set(exercise.id, {
-                id: exercise.id,
-                name: exercise.name,
-                category: exercise.category,
-                uniqueWorkouts: new Map([[workoutKey, workoutEntry]]),
-                lastProgrammed: workout.date,
-              });
-            }
-          }
-        });
-
-        // Also parse benchmark description field using same patterns as section content
-        if (benchmark.description) {
-          const lines = benchmark.description.split('\n');
-
-          lines.forEach(line => {
-            // Split by both '+' and ',' to handle multiple formats
-            const parts = line.split(/[+,]/).map(p => p.trim());
-
-            parts.forEach(part => {
-              const trimmedLine = part.trim();
-              if (!trimmedLine) return;
-
-              for (const pattern of patterns) {
-                const match = trimmedLine.match(pattern);
-
-                if (match && match[1]) {
-                  let movementText = match[1].trim();
-                  movementText = movementText.replace(/[,;.!?]+$/, '');
-
-                  const normalized = movementText
-                    .split(/\s+/)
-                    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                    .join(' ')
-                    .trim();
-
-                  let exercise = exercisesByName.get(normalized.toLowerCase());
-
-                  if (!exercise) {
-                    const normalizedLower = normalized.toLowerCase();
-                    for (const [dbName, dbExercise] of exercisesByName.entries()) {
-                      if (normalizedLower.startsWith(dbName)) {
-                        exercise = dbExercise;
-                        break;
-                      }
-                    }
-                  }
-
-                  if (exercise) {
-                    const existing = exerciseMap.get(exercise.id);
-                    const workoutEntry: ExerciseFrequencyWorkout = { date: workout.date, session_type: workout.session_type, workout_name: workout.workout_name };
-
-                    if (existing) {
-                      existing.uniqueWorkouts.set(workoutKey, workoutEntry);
-                      if (workout.date > existing.lastProgrammed) {
-                        existing.lastProgrammed = workout.date;
-                      }
-                    } else {
-                      exerciseMap.set(exercise.id, {
-                        id: exercise.id,
-                        name: exercise.name,
-                        category: exercise.category,
-                        uniqueWorkouts: new Map([[workoutKey, workoutEntry]]),
-                        lastProgrammed: workout.date,
-                      });
-                    }
-                  }
-
-                  break;
-                }
-              }
-            });
-          });
-        }
-      });
-
-      // Extract exercises from forge benchmarks
-      section.forge_benchmarks?.forEach(forge => {
-        forge.exercises?.forEach(exerciseName => {
-          // Find exercise in database by name
-          const exercise = exercisesByName.get(exerciseName.toLowerCase());
-          if (exercise) {
-            const existing = exerciseMap.get(exercise.id);
-            const workoutEntry: ExerciseFrequencyWorkout = { date: workout.date, session_type: workout.session_type, workout_name: workout.workout_name };
-            if (existing) {
-              existing.uniqueWorkouts.set(workoutKey, workoutEntry);
-              if (workout.date > existing.lastProgrammed) {
-                existing.lastProgrammed = workout.date;
-              }
-            } else {
-              exerciseMap.set(exercise.id, {
-                id: exercise.id,
-                name: exercise.name,
-                category: exercise.category,
-                uniqueWorkouts: new Map([[workoutKey, workoutEntry]]),
-                lastProgrammed: workout.date,
-              });
-            }
-          }
-        });
-
-        // Also parse forge benchmark description field using same patterns as section content
-        if (forge.description) {
-          const lines = forge.description.split('\n');
-
-          lines.forEach(line => {
-            // Split by both '+' and ',' to handle multiple formats
-            const parts = line.split(/[+,]/).map(p => p.trim());
-
-            parts.forEach(part => {
-              const trimmedLine = part.trim();
-              if (!trimmedLine) return;
-
-              for (const pattern of patterns) {
-                const match = trimmedLine.match(pattern);
-
-                if (match && match[1]) {
-                  let movementText = match[1].trim();
-                  movementText = movementText.replace(/[,;.!?]+$/, '');
-
-                  const normalized = movementText
-                    .split(/\s+/)
-                    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                    .join(' ')
-                    .trim();
-
-                  let exercise = exercisesByName.get(normalized.toLowerCase());
-
-                  if (!exercise) {
-                    const normalizedLower = normalized.toLowerCase();
-                    for (const [dbName, dbExercise] of exercisesByName.entries()) {
-                      if (normalizedLower.startsWith(dbName)) {
-                        exercise = dbExercise;
-                        break;
-                      }
-                    }
-                  }
-
-                  if (exercise) {
-                    const existing = exerciseMap.get(exercise.id);
-                    const workoutEntry: ExerciseFrequencyWorkout = { date: workout.date, session_type: workout.session_type, workout_name: workout.workout_name };
-
-                    if (existing) {
-                      existing.uniqueWorkouts.set(workoutKey, workoutEntry);
-                      if (workout.date > existing.lastProgrammed) {
-                        existing.lastProgrammed = workout.date;
-                      }
-                    } else {
-                      exerciseMap.set(exercise.id, {
-                        id: exercise.id,
-                        name: exercise.name,
-                        category: exercise.category,
-                        uniqueWorkouts: new Map([[workoutKey, workoutEntry]]),
-                        lastProgrammed: workout.date,
-                      });
-                    }
-                  }
-
-                  break;
-                }
-              }
-            });
-          });
-        }
-      });
     });
   });
 
