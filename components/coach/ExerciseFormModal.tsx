@@ -32,7 +32,6 @@ interface Exercise {
   difficulty?: 'beginner' | 'intermediate' | 'advanced';
   is_warmup?: boolean;
   is_stretch?: boolean;
-  search_terms?: string;
 }
 
 interface ExerciseFormModalProps {
@@ -170,7 +169,6 @@ export default function ExerciseFormModal({
     difficulty: undefined as 'beginner' | 'intermediate' | 'advanced' | undefined,
     is_warmup: false,
     is_stretch: false,
-    search_terms: '',
   });
 
   // State for categories and subcategories mapping
@@ -294,7 +292,6 @@ export default function ExerciseFormModal({
         difficulty: undefined,
         is_warmup: false,
         is_stretch: false,
-        search_terms: '',
       });
       return;
     }
@@ -314,7 +311,6 @@ export default function ExerciseFormModal({
         difficulty: template.difficulty || undefined,
         is_warmup: template.is_warmup || false,
         is_stretch: template.is_stretch || false,
-        search_terms: '',
       });
     }
   };
@@ -400,7 +396,6 @@ export default function ExerciseFormModal({
         difficulty: editingExercise.difficulty || undefined,
         is_warmup: editingExercise.is_warmup || false,
         is_stretch: editingExercise.is_stretch || false,
-        search_terms: editingExercise.search_terms || '',
       });
       // Check if category/subcategory are custom (not in lists)
       if (editingExercise.category && !availableCategories.includes(editingExercise.category)) {
@@ -423,7 +418,6 @@ export default function ExerciseFormModal({
         difficulty: undefined,
         is_warmup: false,
         is_stretch: false,
-        search_terms: '',
       });
       setCustomCategory('');
       setCustomSubcategory('');
@@ -470,7 +464,6 @@ export default function ExerciseFormModal({
       difficulty: form.difficulty || undefined,
       is_warmup: form.is_warmup,
       is_stretch: form.is_stretch,
-      search_terms: form.search_terms || `${form.name} ${finalCategory} ${form.tags}`.toLowerCase(),
     };
 
     await onSave(exerciseData as Omit<Exercise, 'id'> & { id?: string });
@@ -773,21 +766,6 @@ export default function ExerciseFormModal({
               />
               <span className='text-sm text-gray-100'>Stretch/Mobility</span>
             </label>
-          </div>
-
-          {/* Search Terms */}
-          <div>
-            <label className='block text-sm font-medium text-gray-100 mb-1'>
-              Search Terms <span className='text-gray-400 text-xs'>(auto-generated if empty)</span>
-            </label>
-            <input
-              type='text'
-              value={form.search_terms}
-              onChange={(e) => setForm({ ...form, search_terms: e.target.value })}
-              className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500'
-              placeholder='Additional searchable terms'
-              maxLength={500}
-            />
           </div>
 
           {/* Action Buttons */}

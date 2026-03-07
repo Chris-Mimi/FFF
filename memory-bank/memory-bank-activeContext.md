@@ -85,10 +85,13 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-07 Session 180 - Opus 4.6) — EXERCISE LIBRARY CLEANUP + ANALYSIS TAB:**
+- **✅ Consolidated tags + search_terms** — Merged into single `tags` field. Rescued 98 useful abbreviations from search_terms, removed 1,348 redundant tags from 572 exercises, dropped search_terms from all code (6 files).
+- **✅ Removed "Workouts by Track"** from Analysis tab (duplicated Workouts tab functionality). Cleaned up tracks fetch/state/interface.
+- **⏳ Migration pending:** `20260307000000_drop_search_terms.sql` — drops search_terms column + updates search_vector trigger.
+
 **Completed (2026-03-05 Session 179 - Opus 4.6) — MOVEMENT DEMOS BAR:**
 - **✅ Movement Demos bar** — Collapsible workout-level bar above sections. Auto-detects exercises with video URLs from all sections (deduplicated). Manual clip attachment with label + URL.
-- **✅ Exercise name matching utility** — Scans section content, strips bullet markers/rep info, matches against exercise DB names.
-- **✅ Video playback** — Reuses ExerciseVideoModal (draggable/resizable player) for both auto-detected and manual clips.
 
 **Completed (2026-03-05 Session 178 - Opus 4.6) — MOBILE MOVEMENT TRACKING FIX:**
 - **✅ Mobile tracking toggle** — Footer "Tracking" button toggles tracking panel in place of search results on mobile. Desktop unaffected.
@@ -100,11 +103,7 @@ Social Tables
 **Completed (2026-03-04 Session 176 - Opus 4.6) — FAVORITES REMOVE BUTTON UX:**
 - **✅ Favorites remove button** — Replaced tiny amber star with red X button (hover-to-reveal) for clear "remove from favorites" affordance
 
-**Completed (2026-03-04 Session 175 - Opus 4.6) — PUBLISH TIME FIX, Z-ORDER PANELS:**
-- **✅ Publish time bug fix** — Changing time inline then publishing now reflects updated time (was using stale prop instead of hook state)
-- **✅ Z-order bring-to-front** — Exercise Library and Coach Notes panels support click-to-bring-to-front (z-index toggle)
-
-**Older Sessions (57-174):**
+**Older Sessions (57-175):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -146,6 +145,7 @@ See `project-history/` folder for detailed implementation history
 - ✅ `coach_cancelled` booking status — confirmed applied (Session 158)
 - ✅ `is_beta_tester` column — applied (Session 158)
 - ⏳ `20260304000000_add_performance_indexes.sql` — 7 indexes on bookings/wods/weekly_sessions (Session 173, apply when Supabase is accessible)
+- ⏳ `20260307000000_drop_search_terms.sql` — Drop search_terms column, update search_vector trigger (Session 180)
 
 ---
 

@@ -58,7 +58,6 @@ interface Exercise {
   difficulty?: 'beginner' | 'intermediate' | 'advanced';
   is_warmup?: boolean;
   is_stretch?: boolean;
-  search_terms?: string;
 }
 
 interface ExercisesTabProps {
@@ -361,8 +360,7 @@ export default function ExercisesTab({
                   (ex.subcategory && ex.subcategory.toLowerCase().includes(searchLower)) ||
                   (ex.tags && ex.tags.some(tag => tag.toLowerCase().includes(searchLower))) ||
                   (ex.equipment && ex.equipment.some(eq => eq.toLowerCase().includes(searchLower))) ||
-                  (ex.body_parts && ex.body_parts.some(bp => bp.toLowerCase().includes(searchLower))) ||
-                  (ex.search_terms && ex.search_terms.toLowerCase().includes(searchLower))
+                  (ex.body_parts && ex.body_parts.some(bp => bp.toLowerCase().includes(searchLower)))
                 );
                 if (!matchesSearch) return false;
               }

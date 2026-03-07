@@ -22,7 +22,6 @@ export interface ExerciseWithFavorite {
   difficulty?: 'beginner' | 'intermediate' | 'advanced';
   is_warmup?: boolean;
   is_stretch?: boolean;
-  search_terms?: string;
   is_favorited?: boolean;
   favorited_at?: string;
 }

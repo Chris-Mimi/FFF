@@ -53,13 +53,6 @@ interface Exercise {
   difficulty?: 'beginner' | 'intermediate' | 'advanced';
 }
 
-interface Track {
-  id: string;
-  name: string;
-  description: string | null;
-  color: string | null;
-}
-
 interface WorkoutType {
   id: string;
   name: string;
@@ -76,7 +69,6 @@ interface WODSection {
 interface WOD {
   id: string;
   title: string;
-  track_id: string | null;
   workout_type_id: string | null;
   date: string;
   sections: WODSection[];
@@ -94,7 +86,6 @@ interface MovementFrequencyItem {
 interface Statistics {
   totalWorkouts: number;
   totalUniqueWorkouts: number;
-  trackBreakdown: { trackId: string; trackName: string; count: number; color: string }[];
   typeBreakdown: { typeId: string; typeName: string; count: number }[];
   sectionTypeBreakdown: { sectionType: string; count: number; totalDuration: number }[];
   exerciseFrequency: { exercise: string; count: number }[]; // Legacy - keep for backwards compatibility
@@ -110,7 +101,6 @@ type TimeframePeriod = 0.25 | 0.5 | 0.75 | 1 | 1.25 | 1.5 | 1.75 | 2 | 3 | 6 | 1
 
 export default function AnalysisPage() {
   const router = useRouter();
-  const [tracks, setTracks] = useState<Track[]>([]);
   const [workoutTypes, setWorkoutTypes] = useState<WorkoutType[]>([]);
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(true);
@@ -169,7 +159,7 @@ export default function AnalysisPage() {
     let cancelled = false;
 
     const loadData = async () => {
-      if (tracks.length > 0 && workoutTypes.length > 0 && !cancelled) {
+      if (workoutTypes.length > 0 && !cancelled) {
         await fetchMonthlyWODs();
       }
     };
@@ -180,7 +170,7 @@ export default function AnalysisPage() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedMonth, timeframePeriod, tracks, workoutTypes]);
+  }, [selectedMonth, timeframePeriod, workoutTypes]);
 
   // Removed scroll position restoration - relying on CSS overflow-anchor instead
   // The manual restoration was fighting with browser behavior
@@ -188,17 +178,14 @@ export default function AnalysisPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [tracksResult, typesResult, exercisesResult] = await Promise.all([
-        supabase.from('tracks').select('*').order('name'),
+      const [typesResult, exercisesResult] = await Promise.all([
         supabase.from('workout_types').select('*').order('name'),
         supabase.from('exercises').select('id, name, display_name, category, subcategory, equipment, body_parts, difficulty').order('name'),
       ]);
 
-      if (tracksResult.error) throw tracksResult.error;
       if (typesResult.error) throw typesResult.error;
       if (exercisesResult.error) throw exercisesResult.error;
 
-      setTracks(tracksResult.data || []);
       setWorkoutTypes(typesResult.data || []);
 
       if (exercisesResult.data) {
@@ -248,7 +235,6 @@ export default function AnalysisPage() {
           wods (
             id,
             title,
-            track_id,
             workout_type_id,
             sections,
             workout_publish_status,
@@ -269,7 +255,6 @@ export default function AnalysisPage() {
         wods: {
           id: string;
           title: string;
-          track_id: string | null;
           workout_type_id: string | null;
           sections: WODSection[];
           workout_publish_status: string | null;
@@ -284,7 +269,6 @@ export default function AnalysisPage() {
         .map((session) => ({
           id: session.wods!.id,
           title: session.wods!.title,
-          track_id: session.wods!.track_id,
           workout_type_id: session.wods!.workout_type_id,
           date: session.date,
           sections: session.wods!.sections,
@@ -329,25 +313,6 @@ export default function AnalysisPage() {
 
     const deduplicatedWods = Array.from(uniqueWorkouts.values());
     const totalUniqueWorkouts = deduplicatedWods.length;
-
-    const trackCounts: Record<string, number> = {};
-    deduplicatedWods.forEach(wod => {
-      if (wod.track_id) {
-        trackCounts[wod.track_id] = (trackCounts[wod.track_id] || 0) + 1;
-      }
-    });
-
-    const trackBreakdown = Object.entries(trackCounts)
-      .map(([trackId, count]) => {
-        const track = tracks.find(t => t.id === trackId);
-        return {
-          trackId,
-          trackName: track?.name || 'Unknown',
-          count,
-          color: track?.color || '#178da6',
-        };
-      })
-      .sort((a, b) => b.count - a.count);
 
     const typeCounts: Record<string, number> = {};
     deduplicatedWods.forEach(wod => {
@@ -498,7 +463,6 @@ export default function AnalysisPage() {
     setStatistics({
       totalWorkouts,
       totalUniqueWorkouts,
-      trackBreakdown,
       typeBreakdown,
       sectionTypeBreakdown,
       exerciseFrequency,

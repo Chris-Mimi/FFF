@@ -39,7 +39,6 @@ interface MovementFrequencyItem {
 interface Statistics {
   totalWorkouts: number;
   totalUniqueWorkouts: number;
-  trackBreakdown: { trackId: string; trackName: string; count: number; color: string }[];
   typeBreakdown: { typeId: string; typeName: string; count: number }[];
   sectionTypeBreakdown: { sectionType: string; count: number; totalDuration: number }[];
   exerciseFrequency: { exercise: string; count: number }[];
@@ -485,40 +484,6 @@ export default function StatisticsSection({
               </p>
             )}
           </div>
-
-          {/* Track Breakdown */}
-          {statistics.trackBreakdown.length > 0 && (
-            <div>
-              <h3 className='text-base md:text-lg font-bold text-gray-100 mb-2 md:mb-3'>Workouts by Track</h3>
-              <div className='space-y-1.5 md:space-y-2'>
-                {statistics.trackBreakdown.map(track => (
-                  <div key={track.trackId} className='flex items-center gap-2 md:gap-3'>
-                    <div
-                      className='w-3 h-3 md:w-4 md:h-4 rounded-full flex-shrink-0'
-                      style={{ backgroundColor: track.color }}
-                    />
-                    <div className='flex-1 flex items-center gap-2 md:gap-3'>
-                      <span className='text-gray-100 font-medium text-xs md:text-base min-w-[80px] md:min-w-[150px] truncate'>
-                        {track.trackName}
-                      </span>
-                      <div className='flex-1 bg-gray-200 rounded-full h-5 md:h-6 relative'>
-                        <div
-                          className='h-5 md:h-6 rounded-full transition-all'
-                          style={{
-                            width: `${(track.count / statistics.totalWorkouts) * 100}%`,
-                            backgroundColor: track.color,
-                          }}
-                        />
-                        <span className='absolute inset-0 flex items-center justify-center text-xs md:text-sm font-semibold text-gray-700'>
-                          {track.count}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* Workout Type Breakdown */}
           {statistics.typeBreakdown.length > 0 && (

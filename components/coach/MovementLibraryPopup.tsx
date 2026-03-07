@@ -35,7 +35,6 @@ interface Exercise {
   difficulty?: 'beginner' | 'intermediate' | 'advanced';
   is_warmup?: boolean;
   is_stretch?: boolean;
-  search_terms?: string;
 }
 
 type TabType = 'exercises' | 'lifts' | 'benchmarks' | 'forge';
@@ -558,8 +557,7 @@ function MovementLibraryPopup({
           matchesWordBoundary(exercise.subcategory || '', trimmedSearch) ||
           exercise.tags?.some(tag => matchesWordBoundary(tag, trimmedSearch)) ||
           exercise.equipment?.some(eq => matchesWordBoundary(eq, trimmedSearch)) ||
-          exercise.body_parts?.some(bp => matchesWordBoundary(bp, trimmedSearch)) ||
-          matchesWordBoundary(exercise.search_terms || '', trimmedSearch)
+          exercise.body_parts?.some(bp => matchesWordBoundary(bp, trimmedSearch))
       );
     }
 

@@ -17,7 +17,6 @@ export interface Exercise {
   difficulty?: 'beginner' | 'intermediate' | 'advanced';
   is_warmup?: boolean;
   is_stretch?: boolean;
-  search_terms?: string;
 }
 
 export function useExercisesCrud() {
