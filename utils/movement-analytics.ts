@@ -59,7 +59,7 @@ export interface DateRangeFilter {
 // Shared Helpers
 // ============================================
 
-interface PublishedWorkout {
+export interface PublishedWorkout {
   id: string;
   date: string;
   session_type: string;
@@ -73,7 +73,7 @@ interface PublishedWorkout {
  * Fetch published workouts via weekly_sessions (deduplicates by session).
  * Shared by all frequency analysis functions.
  */
-async function fetchPublishedWorkouts(filter?: DateRangeFilter, label = 'workouts'): Promise<PublishedWorkout[]> {
+export async function fetchPublishedWorkouts(filter?: DateRangeFilter, label = 'workouts'): Promise<PublishedWorkout[]> {
   let query = supabase
     .from('weekly_sessions')
     .select('date, wods(id, date, session_type, workout_name, workout_week, sections, workout_publish_status)');

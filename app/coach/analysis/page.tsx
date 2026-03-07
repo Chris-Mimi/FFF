@@ -2,6 +2,7 @@
 
 import DateRangePicker from '@/components/coach/analysis/DateRangePicker';
 import ExerciseLibraryPanel from '@/components/coach/analysis/ExerciseLibraryPanel';
+import PlannerSection from '@/components/coach/analysis/PlannerSection';
 import StatisticsSection from '@/components/coach/analysis/StatisticsSection';
 import { getCurrentUser, signOut } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
@@ -15,7 +16,7 @@ import {
   type BenchmarkAnalysis,
   type ForgeBenchmarkAnalysis
 } from '@/utils/movement-analytics';
-import { ArrowLeft, BarChart3, LogOut } from 'lucide-react';
+import { ArrowLeft, BarChart3, Calendar, LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
@@ -104,6 +105,7 @@ export default function AnalysisPage() {
   const [workoutTypes, setWorkoutTypes] = useState<WorkoutType[]>([]);
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'statistics' | 'planner'>('statistics');
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [timeframePeriod, setTimeframePeriod] = useState<TimeframePeriod>(12);
   const [statistics, setStatistics] = useState<Statistics | null>(null);
@@ -816,6 +818,35 @@ export default function AnalysisPage() {
       </header>
 
       <div className='max-w-7xl mx-auto p-3 md:p-6 space-y-4 md:space-y-6' style={{ minHeight: 'calc(100vh - 200px)' }}>
+        {/* Tab bar */}
+        <div className='flex gap-1 bg-white rounded-lg shadow-sm border p-1'>
+          <button
+            onClick={() => setActiveTab('statistics')}
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition ${
+              activeTab === 'statistics'
+                ? 'bg-[#178da6] text-white'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <BarChart3 size={16} />
+            Statistics
+          </button>
+          <button
+            onClick={() => setActiveTab('planner')}
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition ${
+              activeTab === 'planner'
+                ? 'bg-[#178da6] text-white'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <Calendar size={16} />
+            Planner
+          </button>
+        </div>
+
+        {activeTab === 'planner' ? (
+          <PlannerSection exercises={exercises} />
+        ) : (
         <StatisticsSection
           loading={loading}
           statistics={statistics}
@@ -845,6 +876,7 @@ export default function AnalysisPage() {
           onClearAllExercises={clearAllExerciseSelections}
           filteredTopExercises={filteredTopExercises}
         />
+        )}
       </div>
 
       <DateRangePicker
