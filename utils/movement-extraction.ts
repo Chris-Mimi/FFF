@@ -270,10 +270,15 @@ const extractMovementsFromText = (
       if (knownLower && knownList) {
         const rawCandidate = movementText.replace(/\s*@.*$/, '').replace(/[,;.!?:]+$/, '').trim();
         if (rawCandidate) {
-          // Try with parenthetical first (e.g., "Overhead Squat (OHS)")
-          const rawParenMatch = rawCandidate.match(/^(.*?\([^)]+\))/);
-          const rawCandidateText = rawParenMatch ? rawParenMatch[1] : rawCandidate;
-          const rawMatch = findMatchingExercise(rawCandidateText, knownLower, knownList);
+          // Try full text first, then paren-truncated as fallback
+          // Handles mid-name parens like "Slamball (WB) Wall Throw"
+          let rawMatch = findMatchingExercise(rawCandidate, knownLower, knownList);
+          if (!rawMatch) {
+            const rawParenMatch = rawCandidate.match(/^(.*?\([^)]+\))/);
+            if (rawParenMatch) {
+              rawMatch = findMatchingExercise(rawParenMatch[1], knownLower, knownList);
+            }
+          }
           if (rawMatch) {
             movements.add(rawMatch);
             return;
@@ -292,12 +297,14 @@ const extractMovementsFromText = (
       // Skip coaching instructions
       if (isInstructionLine(movementText)) return;
 
-      // If text contains equipment parenthetical, truncate after it
+      // Try full text first, then paren-truncated as fallback
       const parenMatch = movementText.match(/^(.*?\([^)]+\))/);
-      const candidateText = parenMatch ? parenMatch[1] : movementText;
 
       if (knownLower && knownList) {
-        const match = findMatchingExercise(candidateText, knownLower, knownList);
+        let match = findMatchingExercise(movementText, knownLower, knownList);
+        if (!match && parenMatch) {
+          match = findMatchingExercise(parenMatch[1], knownLower, knownList);
+        }
         if (match) {
           movements.add(match);
         }

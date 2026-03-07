@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 59.0
-**Updated:** 2026-03-07 (Session 181 - Analysis page exercise count fix)
+**Version:** 60.0
+**Updated:** 2026-03-07 (Session 182 - Analysis library categories, exercise extraction fix)
 
 ---
 
@@ -85,27 +85,23 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-07 Session 182 - Opus 4.6) — ANALYSIS LIBRARY CATEGORIES + EXTRACTION FIX:**
+- **✅ Browse Library collapsible categories** — Exercises grouped by category (Warm-up, Olympic Lifting, etc.) with expand/collapse, alphabetically sorted within each group
+- **✅ Mid-name parenthetical extraction fix** — `extractMovementsFromText` now tries full text before paren-truncated fallback. Fixes "Slamball (WB) Wall Throw" and similar exercises with parentheticals mid-name showing 0 count.
+
 **Completed (2026-03-07 Session 181 - Opus 4.6) — ANALYSIS PAGE EXERCISE COUNT FIX:**
-- **✅ Fixed exercise frequency counts** — Refactored `getExerciseFrequency` in `movement-analytics.ts` to use shared `extractMovementsFromWod` instead of duplicate regex logic. Fixes "World's Greatest Stretch + Samson" (was 0, should be 6), "Glute Bridge Reach Over" (was 3, should be 6), and likely many others.
-- **⚠️ NEEDS TESTING** — User ran out of time before verifying.
+- **✅ Fixed exercise frequency counts** — Refactored `getExerciseFrequency` in `movement-analytics.ts` to use shared `extractMovementsFromWod` instead of duplicate regex logic.
 
 **Completed (2026-03-07 Session 180 - Opus 4.6) — EXERCISE LIBRARY CLEANUP + ANALYSIS TAB:**
-- **✅ Consolidated tags + search_terms** — Merged into single `tags` field. Rescued 98 useful abbreviations from search_terms, removed 1,348 redundant tags from 572 exercises, dropped search_terms from all code (6 files).
-- **✅ Removed "Workouts by Track"** from Analysis tab. **✅ Migration applied.**
+- **✅ Consolidated tags + search_terms** — Merged into single `tags` field, dropped search_terms from all code.
 
 **Completed (2026-03-05 Session 179 - Opus 4.6) — MOVEMENT DEMOS BAR:**
-- **✅ Movement Demos bar** — Collapsible workout-level bar above sections. Auto-detects exercises with video URLs from all sections (deduplicated). Manual clip attachment with label + URL.
+- **✅ Movement Demos bar** — Collapsible workout-level bar above sections with auto-detected exercise videos.
 
 **Completed (2026-03-05 Session 178 - Opus 4.6) — MOBILE MOVEMENT TRACKING FIX:**
-- **✅ Mobile tracking toggle** — Footer "Tracking" button toggles tracking panel in place of search results on mobile. Desktop unaffected.
+- **✅ Mobile tracking toggle** — Footer "Tracking" button toggles tracking panel on mobile.
 
-**Completed (2026-03-05 Session 177 - Opus 4.6) — COLOR-CODED DATES:**
-- **✅ Color-coded dates** — Movement Tracking "last programmed" and athlete "last" rows: green ≤14d, yellow 15–28d, orange 29–60d, red 60+d, gray no date. CSS tooltip on hover.
-
-**Completed (2026-03-04 Session 176 - Opus 4.6) — FAVORITES REMOVE BUTTON UX:**
-- **✅ Favorites remove button** — Replaced tiny amber star with red X button (hover-to-reveal) for clear "remove from favorites" affordance
-
-**Older Sessions (57-175):**
+**Older Sessions (57-177):**
 See `project-history/` folder for detailed implementation history
 
 ---
