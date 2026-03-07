@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 61.0
-**Updated:** 2026-03-07 (Session 183 - Analysis default 12m, rename Warm-up category to Pre-Workout)
+**Version:** 62.0
+**Updated:** 2026-03-07 (Session 183 - Analysis default 12m, category rename, Programming Planner scaffolding)
 
 ---
 
@@ -53,6 +53,9 @@ Coach Tables
 ├─ programming_notes (id, user_id, title, content [markdown], folder_id, created_at, updated_at)
 ├─ note_folders (id, user_id, name, display_order, created_at, updated_at)
 ├─ coach_tracked_exercises (id, user_id, exercise_id, display_name, active, created_at)
+├─ movement_patterns (id, user_id, name, description, created_at, updated_at)
+├─ movement_pattern_exercises (id, pattern_id, exercise_id)
+├─ programming_plan_items (id, user_id, pattern_id, planned_date, created_at)
 
 Member Tables
 ├─ members (id, email, name, status, membership_types[], account_type: primary|family_member, primary_member_id, display_name, date_of_birth, relationship, class_types[] [ekt|t|cfk|cft], gender [M|F|null])
@@ -85,9 +88,10 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
-**Completed (2026-03-07 Session 183 - Opus 4.6) — ANALYSIS DEFAULT 12M + CATEGORY RENAME:**
+**Completed (2026-03-07 Session 183 - Opus 4.6) — ANALYSIS DEFAULT 12M + CATEGORY RENAME + PLANNER SCAFFOLDING:**
 - **✅ Analysis page default 12m** — Changed `timeframePeriod` initial state from 1 to 12 months.
-- **✅ Renamed "Warm-up & Mobility" → "Pre-Workout"** — Updated 6 app code files. DB update needed: `UPDATE exercises SET category = 'Pre-Workout' WHERE category = 'Warm-up & Mobility';`
+- **✅ Renamed "Warm-up & Mobility" → "Pre-Workout"** — Updated 6 app code files + DB updated.
+- **✅ Programming Planner scaffolding (Phase 1-3)** — 3 new DB tables (movement_patterns, movement_pattern_exercises, programming_plan_items), TypeScript types, gap analysis utils, 5 new UI components (PatternManager, PatternExercisePicker, GapAnalysisPanel, PlanningGrid, PlannerSection), tab bar on Analysis page. **NOT YET TESTED** — may have TS errors. DB migration pending.
 
 **Completed (2026-03-07 Session 182 - Opus 4.6) — ANALYSIS LIBRARY CATEGORIES + EXTRACTION FIX:**
 - **✅ Browse Library collapsible categories** — Exercises grouped by category with expand/collapse, alphabetically sorted within each group
@@ -145,6 +149,7 @@ See `project-history/` folder for detailed implementation history
 - ✅ `is_beta_tester` column — applied (Session 158)
 - ⏳ `20260304000000_add_performance_indexes.sql` — 7 indexes on bookings/wods/weekly_sessions (Session 173, apply when Supabase is accessible)
 - ✅ `20260307000000_drop_search_terms.sql` — Drop search_terms column, update search_vector trigger (Session 180, applied)
+- ⏳ `20260307000001_add_programming_planner.sql` — 3 tables (movement_patterns, movement_pattern_exercises, programming_plan_items) + RLS (Session 183)
 
 ---
 
