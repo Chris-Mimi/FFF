@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 62.0
-**Updated:** 2026-03-07 (Session 183 - Analysis default 12m, category rename, Programming Planner scaffolding)
+**Version:** 63.0
+**Updated:** 2026-03-07 (Session 184 - Planner exercise picker UX, display_name fix, kids/adults track separation)
 
 ---
 
@@ -53,7 +53,7 @@ Coach Tables
 ├─ programming_notes (id, user_id, title, content [markdown], folder_id, created_at, updated_at)
 ├─ note_folders (id, user_id, name, display_order, created_at, updated_at)
 ├─ coach_tracked_exercises (id, user_id, exercise_id, display_name, active, created_at)
-├─ movement_patterns (id, user_id, name, description, created_at, updated_at)
+├─ movement_patterns (id, user_id, name, description, track [adults|kids], created_at, updated_at)
 ├─ movement_pattern_exercises (id, pattern_id, exercise_id)
 ├─ programming_plan_items (id, user_id, pattern_id, planned_date, created_at)
 
@@ -88,25 +88,26 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-07 Session 184 - Opus 4.6) — PLANNER EXERCISE PICKER UX + TRACK SEPARATION:**
+- **✅ Exercise picker UX** — Collapsible categories, selected-first sorting, partial collapse (selected stay visible when collapsed)
+- **✅ display_name fix** — Added display_name to known names mapping in pattern-analytics
+- **✅ Adults/Kids track separation** — Adults/Kids toggle on PlannerSection, track-scoped pattern fetching/creation, session type filtering (Adults excludes "Kids & Teens", Kids excludes all adult types)
+- **✅ Track field on movement_patterns** — Migration `20260307000002_add_pattern_track.sql` adds track column + updated unique constraint
+- **⚠️ Known issue:** Barbell Bench Press shows "Never Programmed" despite display_name fix. Root cause: lift name "Bench Press" → exercise "Barbell Bench Press" mapping via genericToCanonical failing somewhere in matching chain. **Next session:** Add console logging to `extractMovementsFromWod` lift extraction path.
+
 **Completed (2026-03-07 Session 183 - Opus 4.6) — ANALYSIS DEFAULT 12M + CATEGORY RENAME + PLANNER SCAFFOLDING:**
 - **✅ Analysis page default 12m** — Changed `timeframePeriod` initial state from 1 to 12 months.
 - **✅ Renamed "Warm-up & Mobility" → "Pre-Workout"** — Updated 6 app code files + DB updated.
-- **✅ Programming Planner scaffolding (Phase 1-3)** — 3 new DB tables (movement_patterns, movement_pattern_exercises, programming_plan_items), TypeScript types, gap analysis utils, 5 new UI components (PatternManager, PatternExercisePicker, GapAnalysisPanel, PlanningGrid, PlannerSection), tab bar on Analysis page. **NOT YET TESTED** — may have TS errors. DB migration pending.
+- **✅ Programming Planner scaffolding (Phase 1-3)** — 3 new DB tables, TypeScript types, gap analysis utils, 5 new UI components, tab bar on Analysis page.
 
 **Completed (2026-03-07 Session 182 - Opus 4.6) — ANALYSIS LIBRARY CATEGORIES + EXTRACTION FIX:**
-- **✅ Browse Library collapsible categories** — Exercises grouped by category with expand/collapse, alphabetically sorted within each group
-- **✅ Mid-name parenthetical extraction fix** — `extractMovementsFromText` now tries full text before paren-truncated fallback.
+- **✅ Browse Library collapsible categories** — Exercises grouped by category with expand/collapse
+- **✅ Mid-name parenthetical extraction fix** — `extractMovementsFromText` tries full text before paren-truncated fallback.
 
 **Completed (2026-03-07 Session 181 - Opus 4.6) — ANALYSIS PAGE EXERCISE COUNT FIX:**
 - **✅ Fixed exercise frequency counts** — Refactored `getExerciseFrequency` to use shared `extractMovementsFromWod`.
 
-**Completed (2026-03-07 Session 180 - Opus 4.6) — EXERCISE LIBRARY CLEANUP + ANALYSIS TAB:**
-- **✅ Consolidated tags + search_terms** — Merged into single `tags` field, dropped search_terms from all code.
-
-**Completed (2026-03-05 Session 179 - Opus 4.6) — MOVEMENT DEMOS BAR:**
-- **✅ Movement Demos bar** — Collapsible workout-level bar above sections with auto-detected exercise videos.
-
-**Older Sessions (57-178):**
+**Older Sessions (57-180):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -150,6 +151,7 @@ See `project-history/` folder for detailed implementation history
 - ⏳ `20260304000000_add_performance_indexes.sql` — 7 indexes on bookings/wods/weekly_sessions (Session 173, apply when Supabase is accessible)
 - ✅ `20260307000000_drop_search_terms.sql` — Drop search_terms column, update search_vector trigger (Session 180, applied)
 - ⏳ `20260307000001_add_programming_planner.sql` — 3 tables (movement_patterns, movement_pattern_exercises, programming_plan_items) + RLS (Session 183)
+- ✅ `20260307000002_add_pattern_track.sql` — Adds track column to movement_patterns + updated unique constraint (Session 184, applied)
 
 ---
 
