@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 65.0
-**Updated:** 2026-03-08 (Session 186 - planner UX polish, remove gap analysis panel)
+**Version:** 66.0
+**Updated:** 2026-03-08 (Session 187 - planner audit, statistics cleanup, section type fixes)
 
 ---
 
@@ -88,6 +88,16 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-08 Session 187 - Opus 4.6) — PLANNER AUDIT + STATISTICS CLEANUP:**
+- **✅ Planner architecture audit** — No critical issues. Performance fixes for long-term sustainability
+- **✅ Exercise frequency 12-month lookback** — `getExerciseFrequency()` now time-filtered (was unbounded)
+- **✅ DB indexes for programming_plan_items** — `user_id` + `pattern_id` indexes (migration applied)
+- **✅ Statistics tab cleanup** — Removed redundant Exercise Search, Browse Library, Movement Type filters
+- **✅ Top Exercises bug fix** — Was filtering from pre-sliced top 50, now filters from all then slices
+- **✅ Section Types fix** — Added `Finisher/Bonus!` (was missing `!`), added `Warm-up` and `Cool Down`
+- **✅ Section type cards redesign** — 4-column grid, dark slate info-card styling
+- **✅ Category chips light teal** — Differentiated from exercise chips in Top Exercises
+
 **Completed (2026-03-08 Session 186 - Opus 4.6) — PLANNER UX POLISH:**
 - **✅ Removed GapAnalysisPanel** — Redundant with per-exercise color-coded grid in PatternManager
 - **✅ Exercise picker default collapsed** — All categories start collapsed on open (selected exercises still visible)
@@ -106,10 +116,7 @@ Social Tables
 **Completed (2026-03-07 Session 183 - Opus 4.6) — PLANNER SCAFFOLDING:**
 - **✅ Programming Planner scaffolding (Phase 1-3)** — 3 new DB tables, types, gap analysis utils, 5 UI components
 
-**Completed (2026-03-07 Session 182 - Opus 4.6) — ANALYSIS LIBRARY CATEGORIES + EXTRACTION FIX:**
-- **✅ Browse Library collapsible categories** + mid-name parenthetical extraction fix
-
-**Older Sessions (57-181):**
+**Older Sessions (57-182):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -154,6 +161,7 @@ See `project-history/` folder for detailed implementation history
 - ✅ `20260307000000_drop_search_terms.sql` — Drop search_terms column, update search_vector trigger (Session 180, applied)
 - ✅ `20260307000001_add_programming_planner.sql` — 3 tables applied directly in SQL Editor (Session 183)
 - ✅ `20260307000002_add_pattern_track.sql` — Adds track column to movement_patterns + updated unique constraint (Session 184, applied)
+- ✅ `20260308000000_add_plan_items_indexes.sql` — Indexes on programming_plan_items(user_id, pattern_id) (Session 187, applied)
 
 ---
 

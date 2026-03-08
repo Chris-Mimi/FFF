@@ -135,7 +135,12 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
 
   // Fetch exercise last-programmed dates for picker staleness styling
   const fetchExerciseLastDates = useCallback(async () => {
-    const freqData = await getExerciseFrequency();
+    // Only look back 12 months for staleness — prevents unbounded growth
+    const twelveMonthsAgo = new Date();
+    twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
+    const freqData = await getExerciseFrequency({
+      startDate: twelveMonthsAgo.toISOString().split('T')[0],
+    });
     const dateMap = new Map<string, string>();
     freqData.forEach(ex => {
       dateMap.set(ex.id, ex.lastProgrammed);

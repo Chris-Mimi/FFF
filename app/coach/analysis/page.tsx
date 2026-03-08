@@ -334,8 +334,8 @@ export default function AnalysisPage() {
       })
       .sort((a, b) => b.count - a.count);
 
-    // Section Type Breakdown - count specific section types in unique workouts and track total duration
-    const targetSectionTypes = ['Skill', 'Gymnastics', 'Strength', 'Olympic Lifting', 'Finisher/Bonus', 'Accessory'];
+    // Section Type Breakdown - count tracked section types (excludes WOD, WOD movements, Whiteboard Intro, Final prep/info)
+    const targetSectionTypes = ['Warm-up', 'Skill', 'Gymnastics', 'Strength', 'Olympic Lifting', 'Finisher/Bonus!', 'Accessory', 'Cool Down'];
     const sectionTypeCounts: Record<string, number> = {};
     const sectionTypeDurations: Record<string, number> = {};
 
@@ -344,7 +344,6 @@ export default function AnalysisPage() {
         if (targetSectionTypes.includes(section.type)) {
           sectionTypeCounts[section.type] = (sectionTypeCounts[section.type] || 0) + 1;
 
-          // Add duration if present
           if (section.duration) {
             const duration = parseInt(section.duration);
             if (!isNaN(duration)) {
@@ -632,12 +631,7 @@ export default function AnalysisPage() {
     }).map(m => ({ exercise: m.name, count: m.count, type: m.type, category: m.category })) || [];
   })();
 
-  const filteredTopExercises = statistics?.movementFrequency.filter(movement => {
-    // Movement type filtering
-    if (selectedMovementTypes.length > 0 && !selectedMovementTypes.includes(movement.type)) {
-      return false;
-    }
-
+  const filteredTopExercises = statistics?.allMovementFrequency.filter(movement => {
     // Category filtering only applies to exercises
     if (selectedCategories.length === 0) {
       return true;
@@ -647,8 +641,9 @@ export default function AnalysisPage() {
       return selectedCategories.includes(movement.category);
     }
 
+    // Non-exercise types (lifts/benchmarks) excluded when category filter active
     return selectedCategories.length === 0;
-  }).map(m => ({ exercise: m.name, count: m.count })) || [];
+  }).slice(0, 50).map(m => ({ exercise: m.name, count: m.count })) || [];
 
   // Handler functions for components
   const handleTimeframePeriodChange = (period: TimeframePeriod) => {
@@ -861,19 +856,7 @@ export default function AnalysisPage() {
           categories={categories}
           selectedCategories={selectedCategories}
           onToggleCategory={toggleCategory}
-          selectedMovementTypes={selectedMovementTypes}
-          onToggleMovementType={toggleMovementType}
-          showUnusedOnly={showUnusedOnly}
-          onToggleUnusedOnly={() => setShowUnusedOnly(!showUnusedOnly)}
           onClearFilters={handleClearFilters}
-          exerciseSearch={exerciseSearch}
-          onExerciseSearchChange={setExerciseSearch}
-          filteredExercises={filteredExercises}
-          onExerciseSelect={handleExerciseSelect}
-          onOpenLibrary={() => setLibraryOpen(true)}
-          selectedExercises={selectedExercises}
-          onRemoveExercise={removeExerciseSelection}
-          onClearAllExercises={clearAllExerciseSelections}
           filteredTopExercises={filteredTopExercises}
         />
         )}

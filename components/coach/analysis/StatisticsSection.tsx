@@ -1,6 +1,6 @@
 'use client';
 
-import { BarChart3, ChevronLeft, ChevronRight, Library, X } from 'lucide-react';
+import { BarChart3, ChevronLeft, ChevronRight } from 'lucide-react';
 import { RefObject } from 'react';
 
 // Mobile-friendly category name mapping
@@ -29,22 +29,11 @@ interface Exercise {
   difficulty?: 'beginner' | 'intermediate' | 'advanced';
 }
 
-interface MovementFrequencyItem {
-  name: string;
-  count: number;
-  type: 'lift' | 'benchmark' | 'forge_benchmark' | 'exercise';
-  category?: string;
-}
-
 interface Statistics {
   totalWorkouts: number;
   totalUniqueWorkouts: number;
   typeBreakdown: { typeId: string; typeName: string; count: number }[];
   sectionTypeBreakdown: { sectionType: string; count: number; totalDuration: number }[];
-  exerciseFrequency: { exercise: string; count: number }[];
-  allExerciseFrequency: { exercise: string; count: number }[];
-  movementFrequency: MovementFrequencyItem[];
-  allMovementFrequency: MovementFrequencyItem[];
   totalWODDuration: number;
   averageWODDuration: number;
   durationBreakdown: { range: string; count: number }[];
@@ -64,19 +53,7 @@ interface StatisticsSectionProps {
   categories: string[];
   selectedCategories: string[];
   onToggleCategory: (category: string) => void;
-  selectedMovementTypes: Array<'lift' | 'benchmark' | 'forge_benchmark' | 'exercise'>;
-  onToggleMovementType: (type: 'lift' | 'benchmark' | 'forge_benchmark' | 'exercise') => void;
-  showUnusedOnly: boolean;
-  onToggleUnusedOnly: () => void;
   onClearFilters: () => void;
-  exerciseSearch: string;
-  onExerciseSearchChange: (value: string) => void;
-  filteredExercises: { exercise: string; count: number; type?: 'lift' | 'benchmark' | 'forge_benchmark' | 'exercise'; category?: string }[];
-  onExerciseSelect: (exercise: string) => void;
-  onOpenLibrary: () => void;
-  selectedExercises: string[];
-  onRemoveExercise: (exercise: string) => void;
-  onClearAllExercises: () => void;
   filteredTopExercises: { exercise: string; count: number }[];
 }
 
@@ -94,19 +71,7 @@ export default function StatisticsSection({
   categories,
   selectedCategories,
   onToggleCategory,
-  selectedMovementTypes,
-  onToggleMovementType,
-  showUnusedOnly,
-  onToggleUnusedOnly,
   onClearFilters,
-  exerciseSearch,
-  onExerciseSearchChange,
-  filteredExercises,
-  onExerciseSelect,
-  onOpenLibrary,
-  selectedExercises,
-  onRemoveExercise,
-  onClearAllExercises,
   filteredTopExercises,
 }: StatisticsSectionProps) {
   return (
@@ -233,258 +198,6 @@ export default function StatisticsSection({
             </div>
           </div>
 
-          {/* Exercise Search */}
-          <div className='bg-gray-700 border border-gray-500 rounded-lg p-3 md:p-6' style={{ overflowAnchor: 'none' }}>
-            <h3 className='text-base md:text-lg font-bold text-gray-100 mb-3 md:mb-4'>Exercise/Movement Search</h3>
-
-            {/* Movement Type Filter Badges */}
-            <div className='mb-3 md:mb-4'>
-              <div className='flex items-center gap-2 mb-2'>
-                <span className='text-xs md:text-sm font-medium text-gray-100'>Movement Type:</span>
-              </div>
-              <div className='flex flex-wrap gap-1.5 md:gap-2'>
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.currentTarget.blur();
-                    onToggleMovementType('lift');
-                  }}
-                  className={`px-2 md:px-3 py-1 md:py-1.5 text-xs md:text-sm rounded-full font-medium transition ${
-                    selectedMovementTypes.includes('lift')
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                  }`}
-                >
-                  Lifts
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.currentTarget.blur();
-                    onToggleMovementType('benchmark');
-                  }}
-                  className={`px-2 md:px-3 py-1 md:py-1.5 text-xs md:text-sm rounded-full font-medium transition ${
-                    selectedMovementTypes.includes('benchmark')
-                      ? 'bg-teal-500 text-white'
-                      : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
-                  }`}
-                >
-                  Bench
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.currentTarget.blur();
-                    onToggleMovementType('forge_benchmark');
-                  }}
-                  className={`px-2 md:px-3 py-1 md:py-1.5 text-xs md:text-sm rounded-full font-medium transition ${
-                    selectedMovementTypes.includes('forge_benchmark')
-                      ? 'bg-cyan-500 text-white'
-                      : 'bg-cyan-100 text-cyan-700 hover:bg-cyan-200'
-                  }`}
-                >
-                  Forge
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.currentTarget.blur();
-                    onToggleMovementType('exercise');
-                  }}
-                  className={`px-2 md:px-3 py-1 md:py-1.5 text-xs md:text-sm rounded-full font-medium transition ${
-                    selectedMovementTypes.includes('exercise')
-                      ? 'bg-[#178da6] text-white'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                  }`}
-                >
-                  Exercises
-                </button>
-              </div>
-            </div>
-
-            {/* Category Filter Chips */}
-            {categories.length > 0 && (
-              <div className='mb-3 md:mb-4'>
-                <div className='flex items-center gap-2 mb-2'>
-                  <span className='text-xs md:text-sm font-medium text-gray-100'>Category:</span>
-                </div>
-                <div className='flex flex-wrap gap-1.5 md:gap-2'>
-                  {categories.map(category => (
-                    <button
-                      key={category}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.currentTarget.blur();
-                        onToggleCategory(category);
-                      }}
-                      className={`px-2 md:px-3 py-1 md:py-1.5 text-[10px] md:text-sm rounded-full font-medium transition ${
-                        selectedCategories.includes(category)
-                          ? 'bg-[#178da6] text-white'
-                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                      }`}
-                    >
-                      <span className='md:hidden'>{MOBILE_CATEGORY_NAMES[category] || category}</span>
-                      <span className='hidden md:inline'>{category}</span>
-                    </button>
-                  ))}
-                  <button
-                    onClick={onToggleUnusedOnly}
-                    className={`px-2 md:px-3 py-1 md:py-1.5 text-[10px] md:text-sm rounded-full font-medium transition border-2 ${
-                      showUnusedOnly
-                        ? 'bg-orange-500 text-white border-orange-500'
-                        : 'bg-white text-orange-600 border-orange-500 hover:bg-orange-50'
-                    }`}
-                  >
-                    Unused
-                  </button>
-                  {(selectedCategories.length > 0 || selectedMovementTypes.length > 0 || showUnusedOnly) && (
-                    <button
-                      onClick={onClearFilters}
-                      className='px-2 md:px-3 py-1 md:py-1.5 text-[10px] md:text-sm rounded-full bg-red-100 text-red-700 hover:bg-red-200 font-medium transition'
-                    >
-                      Clear
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Browse Library Button */}
-            <div className='mb-3'>
-              <button
-                onClick={onOpenLibrary}
-                className='w-full flex items-center justify-center gap-2 px-3 md:px-4 py-2 md:py-3 bg-[#178da6] hover:bg-[#14758c] text-white rounded-lg font-medium transition text-sm md:text-base'
-              >
-                <Library size={18} className='md:w-5 md:h-5' />
-                <span className='md:hidden'>Library</span>
-                <span className='hidden md:inline'>Browse Library</span>
-              </button>
-            </div>
-
-            {/* Search Input */}
-            <div className='relative'>
-              <input
-                type='text'
-                value={exerciseSearch}
-                onChange={(e) => onExerciseSearchChange(e.target.value)}
-                placeholder='Search exercises...'
-                autoComplete='off'
-                readOnly
-                onFocus={(e) => e.currentTarget.removeAttribute('readonly')}
-                className='w-full px-3 md:px-4 py-2 md:py-3 border border-gray-400 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-50 text-sm md:text-base'
-              />
-
-                {/* Dropdown Results */}
-                {(exerciseSearch || showUnusedOnly) && filteredExercises.length > 0 && (
-                  <div className='absolute z-10 w-full mt-2 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto'>
-                    {filteredExercises.map((exercise, idx) => {
-                      const exerciseData = exercises.find(ex =>
-                        ex.name === exercise.exercise ||
-                        ex.display_name === exercise.exercise ||
-                        ex.name.toLowerCase() === exercise.exercise.toLowerCase() ||
-                        ex.display_name?.toLowerCase() === exercise.exercise.toLowerCase()
-                      );
-                      return (
-                        <button
-                          key={idx}
-                          onClick={() => onExerciseSelect(exercise.exercise)}
-                          className='w-full px-4 py-3 text-left hover:bg-gray-300 flex justify-between items-center border-b border-gray-100 last:border-b-0'
-                        >
-                          <div className='flex-1'>
-                            <div className='flex items-center gap-2'>
-                              <div className='text-gray-900 font-medium'>
-                                {exerciseData?.display_name || exercise.exercise}
-                              </div>
-                              {/* Movement type badge */}
-                              {exercise.type && (
-                                <span className={`px-2 py-0.5 text-xs rounded font-medium ${
-                                  exercise.type === 'lift' ? 'bg-purple-100 text-purple-700' :
-                                  exercise.type === 'benchmark' ? 'bg-teal-100 text-teal-700' :
-                                  exercise.type === 'forge_benchmark' ? 'bg-cyan-100 text-cyan-700' :
-                                  'bg-gray-100 text-gray-700'
-                                }`}>
-                                  {exercise.type === 'lift' ? 'Lift' :
-                                   exercise.type === 'benchmark' ? 'Benchmark' :
-                                   exercise.type === 'forge_benchmark' ? 'Forge' :
-                                   'Exercise'}
-                                </span>
-                              )}
-                            </div>
-                            {/* Equipment badges */}
-                            {exerciseData?.equipment && exerciseData.equipment.length > 0 && (
-                              <div className='flex gap-1 mt-1'>
-                                {exerciseData.equipment.map(eq => (
-                                  <span key={eq} className='px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded'>
-                                    {eq}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                          <span className='text-[#178da6] font-bold text-sm ml-2'>{exercise.count}x</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {exerciseSearch && filteredExercises.length === 0 && (
-                  <div className='absolute z-10 w-full mt-2 bg-white border border-gray-300 rounded-lg shadow-lg p-4 text-center text-gray-100'>
-                    No exercises found matching &quot;{exerciseSearch}&quot;
-                  </div>
-                )}
-            </div>
-
-            {/* Selected Exercises as Chips */}
-            {selectedExercises.length > 0 && (
-              <div className='mt-4'>
-                <div className='flex flex-wrap gap-2'>
-                  {selectedExercises.map(exerciseName => {
-                    const exerciseData = exercises.find(ex =>
-                      ex.name === exerciseName ||
-                      ex.display_name === exerciseName ||
-                      ex.name.toLowerCase() === exerciseName.toLowerCase() ||
-                      ex.display_name?.toLowerCase() === exerciseName.toLowerCase()
-                    );
-                    const count = statistics?.allMovementFrequency.find(m => m.name === exerciseName)?.count || 0;
-                    return (
-                      <span
-                        key={exerciseName}
-                        className='inline-flex items-center gap-1 px-3 py-2 bg-[#178da6] text-white text-sm rounded-full'
-                      >
-                        <span className='font-medium'>{exerciseData?.display_name || exerciseName}</span>
-                        {exerciseData?.equipment && exerciseData.equipment.length > 0 && (
-                          <span className='text-xs opacity-75'>({exerciseData.equipment.join(', ')})</span>
-                        )}
-                        <span className='text-xs opacity-90'>({count}x)</span>
-                        <button
-                          onClick={() => onRemoveExercise(exerciseName)}
-                          className='hover:bg-[#14758c] rounded-full p-0.5 ml-1'
-                        >
-                          <X size={14} />
-                        </button>
-                      </span>
-                    );
-                  })}
-                </div>
-                <div className='mt-3 flex gap-2'>
-                  <button
-                    onClick={onClearAllExercises}
-                    className='px-3 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg text-sm transition'
-                  >
-                    Clear All
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {!exerciseSearch && selectedExercises.length === 0 && (
-              <p className='text-sm text-gray-500 mt-3'>
-                Start typing to search through all exercises in the selected timeframe
-              </p>
-            )}
-          </div>
-
           {/* Workout Type Breakdown */}
           {statistics.typeBreakdown.length > 0 && (
             <div>
@@ -509,18 +222,18 @@ export default function StatisticsSection({
           {statistics.sectionTypeBreakdown.length > 0 && (
             <div>
               <h3 className='text-base md:text-lg font-bold text-gray-100 mb-2 md:mb-3'>Section Types Used</h3>
-              <div className='grid grid-cols-3 md:grid-cols-6 gap-2 md:gap-3'>
+              <div className='grid grid-cols-4 gap-1.5 md:gap-2'>
                 {statistics.sectionTypeBreakdown.map(section => (
                   <div
                     key={section.sectionType}
-                    className='bg-gray-50 rounded-lg p-2 md:p-4 text-center border border-gray-200'
+                    className='bg-slate-700 rounded-lg p-1.5 md:p-3 text-center border border-slate-600'
                   >
-                    <div className='text-lg md:text-2xl font-bold text-blue-600'>{section.count}x</div>
-                    <div className='text-[10px] md:text-sm text-gray-700 font-medium mt-0.5 md:mt-1 truncate'>
+                    <div className='text-sm md:text-xl font-bold text-slate-200'>{section.count}x</div>
+                    <div className='text-[9px] md:text-xs text-slate-400 font-medium mt-0.5 truncate'>
                       {section.sectionType}
                     </div>
                     {section.totalDuration > 0 && (
-                      <div className='text-xs md:text-sm text-gray-600 font-semibold mt-1'>
+                      <div className='text-[9px] md:text-xs text-slate-500 mt-0.5'>
                         {section.totalDuration}m
                       </div>
                     )}
@@ -530,12 +243,47 @@ export default function StatisticsSection({
             </div>
           )}
 
-          {/* Exercise Frequency */}
-          {filteredTopExercises.length > 0 && (
-            <div style={{ overflowAnchor: 'none' }}>
-              <h3 className='text-base md:text-lg font-bold text-gray-100 mb-2 md:mb-3'>
-                Top Exercises{selectedCategories.length > 0 && ` (${selectedCategories.join(', ')})`}
-              </h3>
+          {/* Top Exercises with Category Filters */}
+          <div style={{ overflowAnchor: 'none' }}>
+            <h3 className='text-base md:text-lg font-bold text-gray-100 mb-2 md:mb-3'>
+              Top Exercises{selectedCategories.length > 0 && ` (${selectedCategories.join(', ')})`}
+            </h3>
+
+            {/* Category Filter Chips */}
+            {categories.length > 0 && (
+              <div className='mb-3 md:mb-4'>
+                <div className='flex flex-wrap gap-1.5 md:gap-2'>
+                  {categories.map(category => (
+                    <button
+                      key={category}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.currentTarget.blur();
+                        onToggleCategory(category);
+                      }}
+                      className={`px-2 md:px-3 py-1 md:py-1.5 text-[10px] md:text-sm rounded-full font-medium transition ${
+                        selectedCategories.includes(category)
+                          ? 'bg-[#178da6] text-white'
+                          : 'bg-teal-100 text-teal-800 hover:bg-teal-200'
+                      }`}
+                    >
+                      <span className='md:hidden'>{MOBILE_CATEGORY_NAMES[category] || category}</span>
+                      <span className='hidden md:inline'>{category}</span>
+                    </button>
+                  ))}
+                  {selectedCategories.length > 0 && (
+                    <button
+                      onClick={onClearFilters}
+                      className='px-2 md:px-3 py-1 md:py-1.5 text-[10px] md:text-sm rounded-full bg-red-100 text-red-700 hover:bg-red-200 font-medium transition'
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {filteredTopExercises.length > 0 ? (
               <div className='flex flex-wrap gap-1.5 md:gap-2'>
                 {filteredTopExercises.map((exercise, idx) => {
                   const exerciseData = exercises.find(ex =>
@@ -554,8 +302,10 @@ export default function StatisticsSection({
                   );
                 })}
               </div>
-            </div>
-          )}
+            ) : (
+              <p className='text-sm text-gray-400'>No exercises found for this category/timeframe</p>
+            )}
+          </div>
 
           {statistics.totalWorkouts === 0 && (
             <div className='text-center py-8 md:py-12 text-gray-500'>
