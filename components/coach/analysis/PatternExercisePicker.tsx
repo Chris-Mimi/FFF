@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Search, X, Check, ChevronDown, ChevronRight } from 'lucide-react';
 import { FocusTrap } from '@/components/ui/FocusTrap';
 
@@ -18,6 +18,8 @@ interface PatternExercisePickerProps {
   exercises: Exercise[];
   selectedExerciseIds: Set<string>;
   onToggleExercise: (exerciseId: string) => void;
+  exerciseLastDates?: Map<string, string>;
+  allPatternExerciseIds?: Set<string>;
 }
 
 const CATEGORY_ORDER = [
@@ -38,9 +40,22 @@ export default function PatternExercisePicker({
   exercises,
   selectedExerciseIds,
   onToggleExercise,
+  exerciseLastDates,
+  allPatternExerciseIds,
 }: PatternExercisePickerProps) {
   const [search, setSearch] = useState('');
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+
+  // Reset to all-collapsed when picker opens
+  useEffect(() => {
+    if (isOpen) {
+      const allCollapsed: Record<string, boolean> = {};
+      const categories = new Set(exercises.map(e => e.category || 'Other'));
+      categories.forEach(cat => { allCollapsed[cat] = true; });
+      setCollapsed(allCollapsed);
+      setSearch('');
+    }
+  }, [isOpen, exercises]);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return exercises;
@@ -147,6 +162,23 @@ export default function PatternExercisePicker({
                     {exs.map(ex => {
                       const isSelected = selectedExerciseIds.has(ex.id);
                       if (collapsed[category] && !isSelected) return null;
+                      // Staleness styling for non-selected exercises
+                      let stalenessClass = 'hover:bg-gray-50 text-gray-700';
+                      if (!isSelected && exerciseLastDates) {
+                        const lastDate = exerciseLastDates.get(ex.id);
+                        if (!lastDate) {
+                          // Never programmed
+                          stalenessClass = 'hover:bg-gray-50 text-gray-300 italic';
+                        } else {
+                          const daysSince = Math.floor((Date.now() - new Date(lastDate + 'T00:00:00').getTime()) / 86400000);
+                          if (daysSince > 180) {
+                            stalenessClass = 'hover:bg-gray-50 text-gray-300 italic';
+                          } else if (daysSince > 90) {
+                            stalenessClass = 'hover:bg-gray-50 text-gray-400';
+                          }
+                        }
+                      }
+
                       return (
                         <button
                           key={ex.id}
@@ -154,8 +186,8 @@ export default function PatternExercisePicker({
                           className={`w-full text-left flex items-center gap-2 px-2 py-1.5 rounded text-sm transition ${
                             isSelected
                               ? 'bg-[#178da6]/10 text-[#178da6] font-medium'
-                              : 'hover:bg-gray-50 text-gray-700'
-                          }`}
+                              : stalenessClass
+                          }${!isSelected && allPatternExerciseIds && !allPatternExerciseIds.has(ex.id) ? ' border border-gray-200' : ''}`}
                         >
                           <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${
                             isSelected

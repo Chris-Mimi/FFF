@@ -31,7 +31,8 @@ interface PatternManagerProps {
 
 const PATTERN_COLORS = [
   '#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6',
-  '#EC4899', '#06B6D4', '#F97316', '#6366F1', '#14B8A6',
+  '#EC4899', '#06B6D4', '#F97316', '#84CC16', '#14B8A6',
+  '#FACC15', '#92400E',
 ];
 
 export default function PatternManager({
@@ -145,9 +146,15 @@ export default function PatternManager({
                     )}
                   </button>
 
-                  <div
-                    className='w-3 h-3 rounded-full shrink-0'
+                  <button
+                    className='w-3 h-3 rounded-full shrink-0 hover:ring-2 hover:ring-offset-1 hover:ring-gray-300 transition'
                     style={{ backgroundColor: pattern.color }}
+                    onClick={() => {
+                      const idx = PATTERN_COLORS.indexOf(pattern.color);
+                      const nextColor = PATTERN_COLORS[(idx + 1) % PATTERN_COLORS.length];
+                      onUpdatePattern(pattern.id, { color: nextColor });
+                    }}
+                    title='Click to change color'
                   />
 
                   {editingId === pattern.id ? (

@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 64.0
-**Updated:** 2026-03-08 (Session 185 - display_name matching fix, planner exercise grid with color coding)
+**Version:** 65.0
+**Updated:** 2026-03-08 (Session 186 - planner UX polish, remove gap analysis panel)
 
 ---
 
@@ -88,29 +88,28 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-08 Session 186 - Opus 4.6) — PLANNER UX POLISH:**
+- **✅ Removed GapAnalysisPanel** — Redundant with per-exercise color-coded grid in PatternManager
+- **✅ Exercise picker default collapsed** — All categories start collapsed on open (selected exercises still visible)
+- **✅ Clickable pattern color dot** — Click to cycle through 12 colors (added yellow + brown, replaced indigo)
+- **✅ Exercise staleness in picker** — Non-selected exercises: dark grey (3-6mo), light grey + italic (6mo+/never)
+- **✅ Unassigned exercise border** — Exercises not in any pattern show light grey border in picker
+
 **Completed (2026-03-08 Session 185 - Opus 4.6) — DISPLAY_NAME MATCHING FIX + PLANNER EXERCISE GRID:**
-- **✅ Fixed "Never Programmed" bug** — `pattern-analytics.ts` gap analysis and weekly coverage now match against both `name` and `display_name` (3 spots fixed). Root cause: extraction found "Barbell Bench Press" (display_name) but matching only checked "Bench Press" (name).
-- **✅ Per-exercise last-programmed dates** — `exerciseLastDates` field added to `PatternGapResult`, computed in `computePatternGaps`.
-- **✅ Multi-column exercise grid** — Expanded pattern exercises now display in 2/3/4-column responsive grid instead of vertical list.
-- **✅ Color-coded exercises** — Same day-based thresholds as Movement Tracking (green ≤14d, yellow 15-28d, orange 29-60d, red 60+d, gray never).
-- **✅ Exercise sort order** — Most recently programmed first, never programmed last, alphabetical within same age.
-- **✅ Color legend** — Inline legend showing color thresholds above exercise grid.
+- **✅ Fixed "Never Programmed" bug** — display_name matching in pattern-analytics (3 spots)
+- **✅ Per-exercise last-programmed dates** + multi-column color-coded exercise grid
 
 **Completed (2026-03-07 Session 184 - Opus 4.6) — PLANNER EXERCISE PICKER UX + TRACK SEPARATION:**
 - **✅ Exercise picker UX** — Collapsible categories, selected-first sorting, partial collapse
-- **✅ Adults/Kids track separation** — Adults/Kids toggle, track-scoped patterns, session type filtering
-- **✅ Track field on movement_patterns** — Migration `20260307000002_add_pattern_track.sql`
+- **✅ Adults/Kids track separation** — Toggle, track-scoped patterns, session type filtering
 
-**Completed (2026-03-07 Session 183 - Opus 4.6) — ANALYSIS DEFAULT 12M + CATEGORY RENAME + PLANNER SCAFFOLDING:**
-- **✅ Programming Planner scaffolding (Phase 1-3)** — 3 new DB tables, TypeScript types, gap analysis utils, 5 new UI components
+**Completed (2026-03-07 Session 183 - Opus 4.6) — PLANNER SCAFFOLDING:**
+- **✅ Programming Planner scaffolding (Phase 1-3)** — 3 new DB tables, types, gap analysis utils, 5 UI components
 
 **Completed (2026-03-07 Session 182 - Opus 4.6) — ANALYSIS LIBRARY CATEGORIES + EXTRACTION FIX:**
 - **✅ Browse Library collapsible categories** + mid-name parenthetical extraction fix
 
-**Completed (2026-03-07 Session 181 - Opus 4.6) — ANALYSIS PAGE EXERCISE COUNT FIX:**
-- **✅ Fixed exercise frequency counts** — Refactored to use shared `extractMovementsFromWod`
-
-**Older Sessions (57-180):**
+**Older Sessions (57-181):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -153,7 +152,7 @@ See `project-history/` folder for detailed implementation history
 - ✅ `is_beta_tester` column — applied (Session 158)
 - ⏳ `20260304000000_add_performance_indexes.sql` — 7 indexes on bookings/wods/weekly_sessions (Session 173, apply when Supabase is accessible)
 - ✅ `20260307000000_drop_search_terms.sql` — Drop search_terms column, update search_vector trigger (Session 180, applied)
-- ⏳ `20260307000001_add_programming_planner.sql` — 3 tables (movement_patterns, movement_pattern_exercises, programming_plan_items) + RLS (Session 183)
+- ✅ `20260307000001_add_programming_planner.sql` — 3 tables applied directly in SQL Editor (Session 183)
 - ✅ `20260307000002_add_pattern_track.sql` — Adds track column to movement_patterns + updated unique constraint (Session 184, applied)
 
 ---

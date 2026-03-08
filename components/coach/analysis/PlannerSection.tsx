@@ -1,13 +1,14 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import type { PatternWithExercises, ProgrammingPlanItem, PatternGapResult } from '@/types/planner';
 import { computePatternGaps, detectWeeklyCoverage, generateWeeks } from '@/utils/pattern-analytics';
+import { getExerciseFrequency } from '@/utils/movement-analytics';
 import PatternManager from './PatternManager';
 import PatternExercisePicker from './PatternExercisePicker';
-import GapAnalysisPanel from './GapAnalysisPanel';
+
 import PlanningGrid from './PlanningGrid';
 
 interface Exercise {
@@ -31,6 +32,7 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
   const [coverage, setCoverage] = useState<Map<string, Set<string>>>(new Map());
   const [loading, setLoading] = useState(true);
   const [gapLoading, setGapLoading] = useState(false);
+  const [exerciseLastDates, setExerciseLastDates] = useState<Map<string, string>>(new Map());
 
   // Exercise picker state
   const [pickerPatternId, setPickerPatternId] = useState<string | null>(null);
@@ -131,11 +133,21 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
     setGapLoading(false);
   }, []);
 
+  // Fetch exercise last-programmed dates for picker staleness styling
+  const fetchExerciseLastDates = useCallback(async () => {
+    const freqData = await getExerciseFrequency();
+    const dateMap = new Map<string, string>();
+    freqData.forEach(ex => {
+      dateMap.set(ex.id, ex.lastProgrammed);
+    });
+    setExerciseLastDates(dateMap);
+  }, []);
+
   // Initial load
   useEffect(() => {
     const init = async () => {
       const pats = await fetchPatterns(trackFilter);
-      await fetchPlanItems();
+      await Promise.all([fetchPlanItems(), fetchExerciseLastDates()]);
       if (pats && pats.length > 0) {
         await computeAnalysis(pats, trackFilter);
       }
@@ -321,6 +333,13 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
     ? new Set(pickerPattern.exercises.map(e => e.id))
     : new Set<string>();
 
+  // All exercise IDs assigned to any pattern (for unassigned styling)
+  const allPatternExerciseIds = useMemo(() => {
+    const ids = new Set<string>();
+    patterns.forEach(p => p.exercises.forEach(e => ids.add(e.id)));
+    return ids;
+  }, [patterns]);
+
   return (
     <div className='space-y-4'>
       {/* Track filter toggle */}
@@ -360,11 +379,6 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
         onRemoveExercise={handleRemoveExercise}
       />
 
-      <GapAnalysisPanel
-        gaps={gaps}
-        loading={loading || gapLoading}
-      />
-
       <PlanningGrid
         patterns={patterns}
         planItems={planItems}
@@ -381,6 +395,8 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
         exercises={exercises}
         selectedExerciseIds={pickerSelectedIds}
         onToggleExercise={handleToggleExercise}
+        exerciseLastDates={exerciseLastDates}
+        allPatternExerciseIds={allPatternExerciseIds}
       />
     </div>
   );
