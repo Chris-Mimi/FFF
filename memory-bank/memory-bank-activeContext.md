@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 63.0
-**Updated:** 2026-03-07 (Session 184 - Planner exercise picker UX, display_name fix, kids/adults track separation)
+**Version:** 64.0
+**Updated:** 2026-03-08 (Session 185 - display_name matching fix, planner exercise grid with color coding)
 
 ---
 
@@ -88,24 +88,27 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-08 Session 185 - Opus 4.6) — DISPLAY_NAME MATCHING FIX + PLANNER EXERCISE GRID:**
+- **✅ Fixed "Never Programmed" bug** — `pattern-analytics.ts` gap analysis and weekly coverage now match against both `name` and `display_name` (3 spots fixed). Root cause: extraction found "Barbell Bench Press" (display_name) but matching only checked "Bench Press" (name).
+- **✅ Per-exercise last-programmed dates** — `exerciseLastDates` field added to `PatternGapResult`, computed in `computePatternGaps`.
+- **✅ Multi-column exercise grid** — Expanded pattern exercises now display in 2/3/4-column responsive grid instead of vertical list.
+- **✅ Color-coded exercises** — Same day-based thresholds as Movement Tracking (green ≤14d, yellow 15-28d, orange 29-60d, red 60+d, gray never).
+- **✅ Exercise sort order** — Most recently programmed first, never programmed last, alphabetical within same age.
+- **✅ Color legend** — Inline legend showing color thresholds above exercise grid.
+
 **Completed (2026-03-07 Session 184 - Opus 4.6) — PLANNER EXERCISE PICKER UX + TRACK SEPARATION:**
-- **✅ Exercise picker UX** — Collapsible categories, selected-first sorting, partial collapse (selected stay visible when collapsed)
-- **✅ display_name fix** — Added display_name to known names mapping in pattern-analytics
-- **✅ Adults/Kids track separation** — Adults/Kids toggle on PlannerSection, track-scoped pattern fetching/creation, session type filtering (Adults excludes "Kids & Teens", Kids excludes all adult types)
-- **✅ Track field on movement_patterns** — Migration `20260307000002_add_pattern_track.sql` adds track column + updated unique constraint
-- **⚠️ Known issue:** Barbell Bench Press shows "Never Programmed" despite display_name fix. Root cause: lift name "Bench Press" → exercise "Barbell Bench Press" mapping via genericToCanonical failing somewhere in matching chain. **Next session:** Add console logging to `extractMovementsFromWod` lift extraction path.
+- **✅ Exercise picker UX** — Collapsible categories, selected-first sorting, partial collapse
+- **✅ Adults/Kids track separation** — Adults/Kids toggle, track-scoped patterns, session type filtering
+- **✅ Track field on movement_patterns** — Migration `20260307000002_add_pattern_track.sql`
 
 **Completed (2026-03-07 Session 183 - Opus 4.6) — ANALYSIS DEFAULT 12M + CATEGORY RENAME + PLANNER SCAFFOLDING:**
-- **✅ Analysis page default 12m** — Changed `timeframePeriod` initial state from 1 to 12 months.
-- **✅ Renamed "Warm-up & Mobility" → "Pre-Workout"** — Updated 6 app code files + DB updated.
-- **✅ Programming Planner scaffolding (Phase 1-3)** — 3 new DB tables, TypeScript types, gap analysis utils, 5 new UI components, tab bar on Analysis page.
+- **✅ Programming Planner scaffolding (Phase 1-3)** — 3 new DB tables, TypeScript types, gap analysis utils, 5 new UI components
 
 **Completed (2026-03-07 Session 182 - Opus 4.6) — ANALYSIS LIBRARY CATEGORIES + EXTRACTION FIX:**
-- **✅ Browse Library collapsible categories** — Exercises grouped by category with expand/collapse
-- **✅ Mid-name parenthetical extraction fix** — `extractMovementsFromText` tries full text before paren-truncated fallback.
+- **✅ Browse Library collapsible categories** + mid-name parenthetical extraction fix
 
 **Completed (2026-03-07 Session 181 - Opus 4.6) — ANALYSIS PAGE EXERCISE COUNT FIX:**
-- **✅ Fixed exercise frequency counts** — Refactored `getExerciseFrequency` to use shared `extractMovementsFromWod`.
+- **✅ Fixed exercise frequency counts** — Refactored to use shared `extractMovementsFromWod`
 
 **Older Sessions (57-180):**
 See `project-history/` folder for detailed implementation history

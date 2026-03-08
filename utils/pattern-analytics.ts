@@ -55,11 +55,16 @@ export async function computePatternGaps(
   // For each pattern, find the most recent workout that covers it
   return patterns.map(pattern => {
     const exerciseNamesLower = new Set(
-      pattern.exercises.map(e => e.name.toLowerCase())
+      pattern.exercises.flatMap(e => {
+        const names = [e.name.toLowerCase()];
+        if (e.display_name) names.push(e.display_name.toLowerCase());
+        return names;
+      })
     );
 
     let lastProgrammedDate: string | null = null;
     const coveredExercises: string[] = [];
+    const exerciseLastDates: Record<string, string> = {};
 
     for (const wm of workoutMovements) {
       const movementsLower = new Set(
@@ -70,17 +75,24 @@ export async function computePatternGaps(
         if (movementsLower.has(exName)) {
           if (!lastProgrammedDate) lastProgrammedDate = wm.date;
           const original = pattern.exercises.find(
-            e => e.name.toLowerCase() === exName
+            e => e.name.toLowerCase() === exName ||
+              (e.display_name && e.display_name.toLowerCase() === exName)
           );
-          if (original && !coveredExercises.includes(original.name)) {
-            coveredExercises.push(original.name);
+          if (original) {
+            if (!coveredExercises.includes(original.name)) {
+              coveredExercises.push(original.name);
+            }
+            // Track per-exercise last date (first match = most recent, since sorted desc)
+            const exKey = original.display_name || original.name;
+            if (!exerciseLastDates[exKey]) {
+              exerciseLastDates[exKey] = wm.date;
+            }
           }
         }
       }
 
-      // Once we have the most recent date, we can stop scanning for date
-      // but continue to find all covered exercises
-      if (lastProgrammedDate && coveredExercises.length === pattern.exercises.length) {
+      // Once all exercises have dates, we can stop
+      if (Object.keys(exerciseLastDates).length === pattern.exercises.length) {
         break;
       }
     }
@@ -116,6 +128,7 @@ export async function computePatternGaps(
       stalenessYellow: pattern.staleness_yellow,
       stalenessRed: pattern.staleness_red,
       coveredExercises,
+      exerciseLastDates,
     };
   });
 }
@@ -162,7 +175,8 @@ export async function detectWeeklyCoverage(
 
     for (const pattern of patterns) {
       const hasMatch = pattern.exercises.some(e =>
-        movementsLower.has(e.name.toLowerCase())
+        movementsLower.has(e.name.toLowerCase()) ||
+        (e.display_name && movementsLower.has(e.display_name.toLowerCase()))
       );
       if (hasMatch) {
         if (!coverage.has(mondayStr)) {

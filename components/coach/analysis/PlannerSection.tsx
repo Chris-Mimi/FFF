@@ -352,6 +352,7 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
 
       <PatternManager
         patterns={patterns}
+        gaps={gaps}
         onCreatePattern={handleCreatePattern}
         onUpdatePattern={handleUpdatePattern}
         onDeletePattern={handleDeletePattern}

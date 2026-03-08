@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-03-07T21:54:59.800Z",
+  "timestamp": "2026-03-07T22:07:13.610Z",
   "date": "2026-03-07",
   "tables": {
     "achievement_definitions": true,
@@ -40,5 +40,5 @@
     "workout_types": true
   },
   "success": true,
-  "location": "/Users/mimihiles/SynologyDrive/CrossFit Hammerschmiede (CFH)/AI Development/forge-functional-fitness/backups"
+  "location": "/Users/chrishiles/SynologyDrive/CrossFit Hammerschmiede (CFH)/AI Development/forge-functional-fitness/backups"
 }

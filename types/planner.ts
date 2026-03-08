@@ -40,6 +40,8 @@ export interface PatternGapResult {
   stalenessYellow: number;
   stalenessRed: number;
   coveredExercises: string[];
+  /** Per-exercise last-programmed dates: exercise name → date string (YYYY-MM-DD) */
+  exerciseLastDates: Record<string, string>;
 }
 
 export interface PlanningGridWeek {
