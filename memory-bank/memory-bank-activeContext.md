@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 66.0
-**Updated:** 2026-03-08 (Session 187 - planner audit, statistics cleanup, section type fixes)
+**Version:** 67.0
+**Updated:** 2026-03-09 (Session 188 - section type filter + arrow fix)
 
 ---
 
@@ -87,6 +87,10 @@ Social Tables
 ---
 
 ## 📍 Current Status (Last 5 Sessions)
+
+**Completed (2026-03-09 Session 188 - Opus 4.6) — SECTION TYPE FILTER + ARROW FIX:**
+- **✅ Section Type filter on Coach Search Panel** — Collapsible filter with counts (Set-based, once per workout), clear button, active chips
+- **✅ Arrow styling fix** — First 4 filter `<summary>` elements now use flex layout matching all 8 sections (consistent no-arrow styling)
 
 **Completed (2026-03-08 Session 187 - Opus 4.6) — PLANNER AUDIT + STATISTICS CLEANUP:**
 - **✅ Planner architecture audit** — No critical issues. Performance fixes for long-term sustainability
