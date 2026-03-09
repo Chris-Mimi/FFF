@@ -237,6 +237,29 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
     toast.success('Pattern deleted');
   };
 
+  // Reorder patterns
+  const handleReorderPatterns = async (reorderedIds: string[]) => {
+    // Optimistic update
+    const reordered = reorderedIds
+      .map(id => patterns.find(p => p.id === id))
+      .filter((p): p is PatternWithExercises => !!p);
+    setPatterns(reordered);
+
+    // Persist sort_order to DB
+    const updates = reorderedIds.map((id, idx) =>
+      supabase
+        .from('movement_patterns')
+        .update({ sort_order: idx, updated_at: new Date().toISOString() })
+        .eq('id', id)
+    );
+    const results = await Promise.all(updates);
+    const failed = results.some(r => r.error);
+    if (failed) {
+      toast.error('Failed to save order');
+      await fetchPatterns(trackFilter);
+    }
+  };
+
   // Exercise management for patterns
   const handleToggleExercise = async (exerciseId: string) => {
     if (!pickerPatternId) return;
@@ -382,6 +405,7 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
         onDeletePattern={handleDeletePattern}
         onOpenExercisePicker={setPickerPatternId}
         onRemoveExercise={handleRemoveExercise}
+        onReorderPatterns={handleReorderPatterns}
       />
 
       <PlanningGrid

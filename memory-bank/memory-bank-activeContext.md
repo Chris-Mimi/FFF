@@ -117,10 +117,7 @@ Social Tables
 - **✅ Exercise picker UX** — Collapsible categories, selected-first sorting, partial collapse
 - **✅ Adults/Kids track separation** — Toggle, track-scoped patterns, session type filtering
 
-**Completed (2026-03-07 Session 183 - Opus 4.6) — PLANNER SCAFFOLDING:**
-- **✅ Programming Planner scaffolding (Phase 1-3)** — 3 new DB tables, types, gap analysis utils, 5 UI components
-
-**Older Sessions (57-182):**
+**Older Sessions (57-183):**
 See `project-history/` folder for detailed implementation history
 
 ---

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Edit2, Trash2, ChevronDown, ChevronRight, Settings, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, ChevronDown, ChevronRight, Settings, X, GripVertical } from 'lucide-react';
 import type { PatternWithExercises, PatternGapResult } from '@/types/planner';
 
 /** Same color thresholds as Movement Tracking panel (day-based) */
@@ -27,6 +27,7 @@ interface PatternManagerProps {
   onDeletePattern: (id: string) => Promise<void>;
   onOpenExercisePicker: (patternId: string) => void;
   onRemoveExercise: (patternId: string, exerciseId: string) => Promise<void>;
+  onReorderPatterns: (reorderedIds: string[]) => Promise<void>;
 }
 
 const PATTERN_COLORS = [
@@ -43,6 +44,7 @@ export default function PatternManager({
   onDeletePattern,
   onOpenExercisePicker,
   onRemoveExercise,
+  onReorderPatterns,
 }: PatternManagerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [newName, setNewName] = useState('');
@@ -54,6 +56,41 @@ export default function PatternManager({
   const [settingsYellow, setSettingsYellow] = useState(3);
   const [settingsRed, setSettingsRed] = useState(6);
   const [creating, setCreating] = useState(false);
+  const [draggedId, setDraggedId] = useState<string | null>(null);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
+
+  const handleDragStart = (patternId: string) => {
+    setDraggedId(patternId);
+  };
+
+  const handleDragOver = (e: React.DragEvent, patternId: string) => {
+    e.preventDefault();
+    if (patternId !== draggedId) {
+      setDragOverId(patternId);
+    }
+  };
+
+  const handleDrop = async (targetId: string) => {
+    if (!draggedId || draggedId === targetId) {
+      setDraggedId(null);
+      setDragOverId(null);
+      return;
+    }
+    const ids = patterns.map(p => p.id);
+    const fromIdx = ids.indexOf(draggedId);
+    const toIdx = ids.indexOf(targetId);
+    if (fromIdx === -1 || toIdx === -1) return;
+    ids.splice(fromIdx, 1);
+    ids.splice(toIdx, 0, draggedId);
+    setDraggedId(null);
+    setDragOverId(null);
+    await onReorderPatterns(ids);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedId(null);
+    setDragOverId(null);
+  };
 
   const handleCreate = async () => {
     if (!newName.trim() || creating) return;
@@ -130,9 +167,25 @@ export default function PatternManager({
 
           <div className='space-y-1'>
             {patterns.map(pattern => (
-              <div key={pattern.id} className='border rounded-lg'>
+              <div
+                key={pattern.id}
+                className={`border rounded-lg transition ${
+                  draggedId === pattern.id ? 'opacity-40' : ''
+                } ${dragOverId === pattern.id ? 'border-[#178da6] border-2' : ''}`}
+                onDragOver={(e) => handleDragOver(e, pattern.id)}
+                onDrop={() => handleDrop(pattern.id)}
+              >
                 {/* Pattern header */}
                 <div className='flex items-center gap-2 p-2 hover:bg-gray-50'>
+                  <div
+                    draggable
+                    onDragStart={() => handleDragStart(pattern.id)}
+                    onDragEnd={handleDragEnd}
+                    className='cursor-grab active:cursor-grabbing shrink-0 text-gray-300 hover:text-gray-500 transition'
+                    title='Drag to reorder'
+                  >
+                    <GripVertical size={14} />
+                  </div>
                   <button
                     onClick={() => setExpandedPattern(
                       expandedPattern === pattern.id ? null : pattern.id
