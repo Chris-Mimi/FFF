@@ -60,6 +60,7 @@ export default function CoachDashboard() {
   const [selectedTracks, setSelectedTracks] = useState<string[]>([]);
   const [selectedSessionTypes, setSelectedSessionTypes] = useState<string[]>([]);
   const [includedSectionTypes, setIncludedSectionTypes] = useState<string[]>([]);
+  const [selectedSectionTypeFilter, setSelectedSectionTypeFilter] = useState<string[]>([]);
   const [selectedMembers, setSelectedMembers] = useState<string[]>(() => {
     if (typeof window === 'undefined') return [];
     try {
@@ -95,6 +96,7 @@ export default function CoachDashboard() {
     sessionTypes,
     sessionTypeCounts,
     sectionTypes,
+    sectionTypeCounts,
     searchResults,
     movements,
     loading,
@@ -111,6 +113,7 @@ export default function CoachDashboard() {
     selectedTracks,
     selectedSessionTypes,
     includedSectionTypes,
+    selectedSectionTypeFilter,
     selectedMembers,
   });
 
@@ -425,6 +428,9 @@ export default function CoachDashboard() {
           tracks={tracks}
           sessionTypes={sessionTypes}
           sectionTypes={sectionTypes}
+          sectionTypeCounts={sectionTypeCounts}
+          selectedSectionTypeFilter={selectedSectionTypeFilter}
+          onSelectedSectionTypeFilterChange={setSelectedSectionTypeFilter}
           trackCounts={trackCounts}
           workoutTypeCounts={workoutTypeCounts}
           sessionTypeCounts={sessionTypeCounts}

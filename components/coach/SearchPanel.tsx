@@ -50,6 +50,9 @@ interface SearchPanelProps {
   tracks: Track[];
   sessionTypes: string[];
   sectionTypes: SectionType[];
+  sectionTypeCounts: Record<string, number>;
+  selectedSectionTypeFilter: string[];
+  onSelectedSectionTypeFilterChange: (types: string[]) => void;
   trackCounts: Record<string, number>;
   workoutTypeCounts: Record<string, number>;
   sessionTypeCounts: Record<string, number>;
@@ -99,6 +102,9 @@ export default function SearchPanel({
   tracks,
   sessionTypes,
   sectionTypes,
+  sectionTypeCounts,
+  selectedSectionTypeFilter,
+  onSelectedSectionTypeFilterChange,
   trackCounts,
   workoutTypeCounts,
   sessionTypeCounts,
@@ -309,6 +315,7 @@ export default function SearchPanel({
               onSelectedTracksChange([]);
               onSelectedSessionTypesChange([]);
               onIncludedSectionTypesChange([]);
+              onSelectedSectionTypeFilterChange([]);
               setSidebarOpen(false);
               setIsMaximized(false);
               // Note: movements map should be reset in parent component
@@ -339,8 +346,8 @@ export default function SearchPanel({
 
           {/* Movements Section */}
           <details className='border-b'>
-            <summary className='px-3 py-2 font-semibold text-sm text-gray-900 cursor-pointer hover:bg-gray-100'>
-              Movements
+            <summary className='px-3 py-2 font-semibold text-sm text-gray-900 cursor-pointer hover:bg-gray-100 flex items-center justify-between'>
+              <span>Movements</span>
             </summary>
             <div className='px-2 py-2 space-y-1'>
               {Array.from(movements.entries())
@@ -377,8 +384,8 @@ export default function SearchPanel({
 
           {/* Workout Types Section */}
           <details className='border-b'>
-            <summary className='px-3 py-2 font-semibold text-sm text-gray-900 cursor-pointer hover:bg-gray-100'>
-              Workout Types
+            <summary className='px-3 py-2 font-semibold text-sm text-gray-900 cursor-pointer hover:bg-gray-100 flex items-center justify-between'>
+              <span>Workout Types</span>
             </summary>
             <div className='px-2 py-2 space-y-1'>
               {workoutTypes.map(type => {
@@ -416,8 +423,8 @@ export default function SearchPanel({
 
           {/* Tracks Section */}
           <details className='border-b'>
-            <summary className='px-3 py-2 font-semibold text-sm text-gray-900 cursor-pointer hover:bg-gray-100'>
-              Tracks
+            <summary className='px-3 py-2 font-semibold text-sm text-gray-900 cursor-pointer hover:bg-gray-100 flex items-center justify-between'>
+              <span>Tracks</span>
             </summary>
             <div className='px-2 py-2 space-y-1'>
               {tracks.map(track => (
@@ -452,8 +459,8 @@ export default function SearchPanel({
 
           {/* Session Types Section */}
           <details className='border-b'>
-            <summary className='px-3 py-2 font-semibold text-sm text-gray-900 cursor-pointer hover:bg-gray-100'>
-              Session Types
+            <summary className='px-3 py-2 font-semibold text-sm text-gray-900 cursor-pointer hover:bg-gray-100 flex items-center justify-between'>
+              <span>Session Types</span>
             </summary>
             <div className='px-2 py-2 space-y-1'>
               {sessionTypes.map(sessionType => (
@@ -482,6 +489,53 @@ export default function SearchPanel({
               ))}
               {sessionTypes.length === 0 && (
                 <p className='text-xs text-gray-500 px-2 py-1'>No session types found</p>
+              )}
+            </div>
+          </details>
+
+          {/* Section Types Filter */}
+          <details className='border-b'>
+            <summary className='px-3 py-2 font-semibold text-sm text-gray-900 cursor-pointer hover:bg-gray-100 flex items-center justify-between'>
+              <span>Section Types{selectedSectionTypeFilter.length > 0 && <span className='ml-1 text-xs text-gray-500'>({selectedSectionTypeFilter.length})</span>}</span>
+              {selectedSectionTypeFilter.length > 0 && (
+                <button
+                  onClick={e => { e.preventDefault(); onSelectedSectionTypeFilterChange([]); }}
+                  className='text-[10px] text-gray-400 hover:text-red-500 px-1'
+                  title='Clear section types'
+                >
+                  clear
+                </button>
+              )}
+            </summary>
+            <div className='px-2 py-2 space-y-1'>
+              {sectionTypes
+                .filter(st => (sectionTypeCounts[st.name] || 0) > 0)
+                .map(st => (
+                <button
+                  key={st.id}
+                  onClick={() => {
+                    onSelectedSectionTypeFilterChange(
+                      selectedSectionTypeFilter.includes(st.name)
+                        ? selectedSectionTypeFilter.filter(t => t !== st.name)
+                        : [...selectedSectionTypeFilter, st.name]
+                    );
+                  }}
+                  className={`w-full text-left px-2 py-1 rounded text-xs flex justify-between items-center transition ${
+                    selectedSectionTypeFilter.includes(st.name)
+                      ? 'bg-[#178da6] text-white'
+                      : 'hover:bg-gray-200 text-gray-900'
+                  }`}
+                >
+                  <span className='truncate'>{st.name}</span>
+                  <span
+                    className={`text-xs ml-1 ${selectedSectionTypeFilter.includes(st.name) ? 'opacity-75' : 'text-gray-500'}`}
+                  >
+                    {sectionTypeCounts[st.name] || 0}
+                  </span>
+                </button>
+              ))}
+              {sectionTypes.length === 0 && (
+                <p className='text-xs text-gray-500 px-2 py-1'>No section types found</p>
               )}
             </div>
           </details>
@@ -831,6 +885,7 @@ export default function SearchPanel({
               selectedWorkoutTypes.length > 0 ||
               selectedTracks.length > 0 ||
               selectedSessionTypes.length > 0 ||
+              selectedSectionTypeFilter.length > 0 ||
               selectedMembers.length > 0) && (
               <div className='flex flex-wrap gap-1 sm:gap-2 mt-2 sm:mt-3'>
                 {searchQuery && (
@@ -927,6 +982,25 @@ export default function SearchPanel({
                     </button>
                   </span>
                 ))}
+                {selectedSectionTypeFilter.map(sectionType => (
+                  <span
+                    key={sectionType}
+                    className='inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-[#178da6] text-white text-[10px] sm:text-xs rounded-full'
+                  >
+                    {sectionType}
+                    <button
+                      onClick={() =>
+                        onSelectedSectionTypeFilterChange(
+                          selectedSectionTypeFilter.filter(t => t !== sectionType)
+                        )
+                      }
+                      className='hover:bg-[#14758c] rounded-full p-1.5'
+                    >
+                      <X size={12} className='sm:hidden' />
+                      <X size={14} className='hidden sm:block' />
+                    </button>
+                  </span>
+                ))}
                 {selectedMembers.map(memberId => {
                   const member = members.find(m => m.id === memberId);
                   return member ? (
@@ -981,6 +1055,7 @@ export default function SearchPanel({
               selectedWorkoutTypes.length > 0 ||
               selectedTracks.length > 0 ||
               selectedSessionTypes.length > 0 ||
+              selectedSectionTypeFilter.length > 0 ||
               selectedMembers.length > 0) && (
               <div className='flex-1 overflow-y-auto overscroll-contain p-2 sm:p-3 pr-5 sm:pr-8'>
                 <div className='flex items-center gap-2 mb-2 sm:mb-3'>

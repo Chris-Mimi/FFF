@@ -12,6 +12,7 @@ interface UseCoachDataProps {
   selectedTracks: string[];
   selectedSessionTypes: string[];
   includedSectionTypes: string[];
+  selectedSectionTypeFilter: string[];
   selectedMembers: string[];
 }
 
@@ -22,6 +23,7 @@ export const useCoachData = ({
   selectedTracks,
   selectedSessionTypes,
   includedSectionTypes,
+  selectedSectionTypeFilter,
   selectedMembers,
 }: UseCoachDataProps) => {
   const [wods, setWods] = useState<Record<string, WODFormData[]>>({});
@@ -32,6 +34,7 @@ export const useCoachData = ({
   const [sessionTypes, setSessionTypes] = useState<string[]>([]);
   const [sessionTypeCounts, setSessionTypeCounts] = useState<Record<string, number>>({});
   const [sectionTypes, setSectionTypes] = useState<Array<{ id: string; name: string; display_order: number }>>([]);
+  const [sectionTypeCounts, setSectionTypeCounts] = useState<Record<string, number>>({});
   const [searchResults, setSearchResults] = useState<WODFormData[]>([]);
   const [movements, setMovements] = useState<Map<string, number>>(new Map());
   const [exerciseNames, setExerciseNames] = useState<Set<string>>(new Set());
@@ -164,6 +167,7 @@ export const useCoachData = ({
       !selectedWorkoutTypes.length &&
       !selectedTracks.length &&
       !selectedSessionTypes.length &&
+      !selectedSectionTypeFilter.length &&
       !selectedMembers.length
     ) {
       setSearchResults([]);
@@ -333,6 +337,14 @@ export const useCoachData = ({
           );
         }
 
+        if (selectedSectionTypeFilter.length > 0) {
+          filteredResults = filteredResults.filter(wod =>
+            wod.sections.some(section =>
+              selectedSectionTypeFilter.includes(section.type)
+            )
+          );
+        }
+
         setSearchResults(filteredResults);
 
         const allMovements = extractMovements(filteredResults, exerciseNames.size > 0 ? exerciseNames : undefined);
@@ -344,7 +356,7 @@ export const useCoachData = ({
 
     const timeoutId = setTimeout(searchWODs, 300);
     return () => clearTimeout(timeoutId);
-  }, [searchQuery, selectedMovements, selectedWorkoutTypes, selectedTracks, selectedSessionTypes, includedSectionTypes, selectedMembers, exerciseNames]);
+  }, [searchQuery, selectedMovements, selectedWorkoutTypes, selectedTracks, selectedSessionTypes, includedSectionTypes, selectedSectionTypeFilter, selectedMembers, exerciseNames]);
 
   const fetchExerciseNames = async () => {
     try {
@@ -456,6 +468,7 @@ export const useCoachData = ({
       const trackCountsMap: Record<string, number> = {};
       const workoutTypeCountsMap: Record<string, number> = {};
       const sessionTypeCountsMap: Record<string, number> = {};
+      const sectionTypeCountsMap: Record<string, number> = {};
       const uniqueSessionTypes = new Set<string>();
 
       sessionsData?.forEach((session: any) => {
@@ -473,16 +486,25 @@ export const useCoachData = ({
           sessionTypeCountsMap[wod.title] = (sessionTypeCountsMap[wod.title] || 0) + 1;
         }
 
-        // Count workout types from sections
+        // Count workout types and section types from sections
+        const wodSectionTypes = new Set<string>();
         wod.sections?.forEach((section: any) => {
           if (section.workout_type_id) {
             workoutTypeCountsMap[section.workout_type_id] = (workoutTypeCountsMap[section.workout_type_id] || 0) + 1;
           }
+          if (section.type) {
+            wodSectionTypes.add(section.type);
+          }
+        });
+        // Count each section type once per workout (not per section)
+        wodSectionTypes.forEach(st => {
+          sectionTypeCountsMap[st] = (sectionTypeCountsMap[st] || 0) + 1;
         });
       });
 
       setTrackCounts(trackCountsMap);
       setWorkoutTypeCounts(workoutTypeCountsMap);
+      setSectionTypeCounts(sectionTypeCountsMap);
       setSessionTypes(Array.from(uniqueSessionTypes).sort());
       setSessionTypeCounts(sessionTypeCountsMap);
     } catch (error) {
@@ -500,6 +522,7 @@ export const useCoachData = ({
     sessionTypes,
     sessionTypeCounts,
     sectionTypes,
+    sectionTypeCounts,
     searchResults,
     setSearchResults,
     movements,
