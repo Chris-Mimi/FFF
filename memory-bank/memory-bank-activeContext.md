@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 68.0
-**Updated:** 2026-03-10 (Session 189 - deployment + athlete audit)
+**Version:** 69.0
+**Updated:** 2026-03-10 (Session 191 - Stripe live + account fixes)
 
 ---
 
@@ -88,7 +88,13 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
-**Completed (2026-03-10 Session 189 - Opus 4.6) — PRODUCTION DEPLOYMENT + ATHLETE AUDIT:**
+**Completed (2026-03-10 Session 191 - Opus 4.6) — STRIPE LIVE + ACCOUNT FIXES:**
+- **✅ Mimi's accounts fully reset** — Deleted all DB records + auth entry, re-created coach account via Admin > Create New Coach Account, athlete registered fresh
+- **✅ Stripe Live Mode env vars redeployed** — Live keys were in Vercel but needed redeploy to take effect (`NEXT_PUBLIC_*` vars are baked into build)
+- **⏳ Stripe identity verification pending** — Payments/payouts paused until Stripe KYC completes (2-3 days from 2026-03-10)
+- **Note:** Coach role is stored in `auth.users.raw_user_meta_data.role = "coach"` — no separate coaches table
+
+**Completed (2026-03-10 Session 189/190 - Opus 4.6) — PRODUCTION DEPLOYMENT + ATHLETE AUDIT:**
 - **✅ Deployed to Vercel** — Live at `https://app.the-forge-functional-fitness.de`
 - **✅ Domain + SSL** — CNAME in Squarespace, auto-SSL from Vercel
 - **✅ Supabase auth config** — Production site URL + redirect URLs added
@@ -209,7 +215,8 @@ npm run restore 2025-12-06  # Restore specific date
 
 **Open question from Chris:** "Why do we need a beta_tester flag? Can't I just activate them on the member page?" — Revisit. Options: (a) keep beta flag, (b) coach manually sets `athlete_subscription_status = 'active'`, (c) add UI toggle on Members page. Simplest may be (b).
 
-- ✅ **Phase 5:** Stripe Live Mode DONE (Session 190) — 3 products created, webhook configured, Vercel env vars updated
+- ✅ **Phase 5:** Stripe Live Mode DONE (Session 190) — 3 products created, webhook configured, Vercel env vars updated, redeployed (Session 191)
+- ⏳ **Phase 5b:** Stripe identity verification pending (submitted 2026-03-10, expect 2-3 days)
 - ⏳ **Phase 6:** Beta Testing (4-5 testers) — Use coach manual override to grant access
 - **Phase 7:** Full Launch (after 1 month, update Stripe prices to €10/€100)
 
