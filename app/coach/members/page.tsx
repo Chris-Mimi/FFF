@@ -96,10 +96,10 @@ export default function CoachMembersPage() {
 
       {/* Tabs */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-3 md:mt-6">
-        <div className="flex gap-1 md:gap-2 border-b border-gray-700">
+        <div className="flex gap-1 md:gap-2 border-b border-gray-700 overflow-x-auto scrollbar-hide">
           <button
             onClick={() => setActiveTab('active')}
-            className={`px-3 md:px-6 py-2 md:py-3 font-medium transition-colors duration-200 border-b-2 text-sm md:text-base ${
+            className={`px-3 md:px-6 py-2 md:py-3 font-medium transition-colors duration-200 border-b-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
               activeTab === 'active'
                 ? 'border-teal-500 text-teal-500'
                 : 'border-transparent text-gray-400 hover:text-gray-300'
@@ -112,7 +112,7 @@ export default function CoachMembersPage() {
           </button>
           <button
             onClick={() => setActiveTab('pending')}
-            className={`px-3 md:px-6 py-2 md:py-3 font-medium transition-colors duration-200 border-b-2 text-sm md:text-base ${
+            className={`px-3 md:px-6 py-2 md:py-3 font-medium transition-colors duration-200 border-b-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
               activeTab === 'pending'
                 ? 'border-teal-500 text-teal-500'
                 : pendingCount > 0
@@ -132,7 +132,7 @@ export default function CoachMembersPage() {
           </button>
           <button
             onClick={() => setActiveTab('blocked')}
-            className={`px-3 md:px-6 py-2 md:py-3 font-medium transition-colors duration-200 border-b-2 text-sm md:text-base ${
+            className={`px-3 md:px-6 py-2 md:py-3 font-medium transition-colors duration-200 border-b-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
               activeTab === 'blocked'
                 ? 'border-teal-500 text-teal-500'
                 : 'border-transparent text-gray-400 hover:text-gray-300'
@@ -145,7 +145,7 @@ export default function CoachMembersPage() {
           </button>
           <button
             onClick={() => setActiveTab('subscriptions')}
-            className={`px-3 md:px-6 py-2 md:py-3 font-medium transition-colors duration-200 border-b-2 text-sm md:text-base ${
+            className={`px-3 md:px-6 py-2 md:py-3 font-medium transition-colors duration-200 border-b-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
               activeTab === 'subscriptions'
                 ? 'border-teal-500 text-teal-500'
                 : 'border-transparent text-gray-400 hover:text-gray-300'
@@ -158,7 +158,7 @@ export default function CoachMembersPage() {
           </button>
           <button
             onClick={() => setActiveTab('at-risk')}
-            className={`px-3 md:px-6 py-2 md:py-3 font-medium transition-colors duration-200 border-b-2 text-sm md:text-base ${
+            className={`px-3 md:px-6 py-2 md:py-3 font-medium transition-colors duration-200 border-b-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
               activeTab === 'at-risk'
                 ? 'border-orange-500 text-orange-500'
                 : 'border-transparent text-gray-400 hover:text-gray-300'

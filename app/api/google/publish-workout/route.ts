@@ -245,23 +245,20 @@ export async function POST(request: NextRequest) {
 
     const description = formattedSections.join('<br><br>');
 
-    // Parse event date and time
-    const [year, month, day] = workout.date.split('-');
+    // Build start/end as timezone-explicit strings (avoids UTC conversion issues on Vercel)
     const [hours, minutes] = publishConfig.eventTime.split(':');
-    const startDateTime = new Date(
-      parseInt(year),
-      parseInt(month) - 1,
-      parseInt(day),
-      parseInt(hours),
-      parseInt(minutes)
-    );
+    const startDateTimeStr = `${workout.date}T${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}:00`;
 
     // Round duration to nearest hour (e.g., 63 min → 60 min, 67 min → 60 min, 90 min → 120 min)
     const roundedDurationMinutes = Math.round(publishConfig.eventDurationMinutes / 60) * 60;
 
-    const endDateTime = new Date(
-      startDateTime.getTime() + roundedDurationMinutes * 60000
-    );
+    // Calculate end time by parsing components and adding duration
+    const startH = parseInt(hours);
+    const startM = parseInt(minutes);
+    const totalEndMinutes = startH * 60 + startM + roundedDurationMinutes;
+    const endH = Math.floor(totalEndMinutes / 60) % 24;
+    const endM = totalEndMinutes % 60;
+    const endDateTimeStr = `${workout.date}T${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}:00`;
 
     // Check if Google Calendar is configured
     const googleCalendarConfigured =
@@ -336,10 +333,11 @@ export async function POST(request: NextRequest) {
           // Query Google Calendar directly for events at this exact time slot.
           // This catches ghost events where the DB lost the reference.
           try {
+            // Query the full day for ghost events (filtered by keepEventIds below)
             const existingEvents = await calendar.events.list({
               calendarId: process.env.GOOGLE_CALENDAR_ID,
-              timeMin: startDateTime.toISOString(),
-              timeMax: new Date(startDateTime.getTime() + 60000).toISOString(),
+              timeMin: `${workout.date}T00:00:00Z`,
+              timeMax: `${workout.date}T23:59:59Z`,
               singleEvents: true,
             });
 
@@ -376,11 +374,11 @@ export async function POST(request: NextRequest) {
           description: description,
           location: 'The Forge Functional Fitness, Bergwerkstrasse 10, Pforzen, Bavaria',
           start: {
-            dateTime: startDateTime.toISOString(),
+            dateTime: startDateTimeStr,
             timeZone: 'Europe/Berlin',
           },
           end: {
-            dateTime: endDateTime.toISOString(),
+            dateTime: endDateTimeStr,
             timeZone: 'Europe/Berlin',
           },
         };

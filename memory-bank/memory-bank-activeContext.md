@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 69.0
-**Updated:** 2026-03-10 (Session 191 - Stripe live + account fixes)
+**Version:** 70.0
+**Updated:** 2026-03-10 (Session 192 - mobile fixes + Google Calendar timezone fix)
 
 ---
 
@@ -88,37 +88,26 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-10 Session 192 - Opus 4.6) — MOBILE FIXES + GOOGLE CALENDAR TIMEZONE:**
+- **✅ Leaderboard workout dropdown** — Replaced native `<select>` with custom dropdown (smaller options, text-xs)
+- **✅ Members page tabs mobile** — Added `overflow-x-auto` + `whitespace-nowrap` so Subscriptions/At-Risk tabs scroll into view
+- **✅ Google Calendar timezone fix** — Events were +1h off on Vercel (UTC server). Fixed by sending timezone-naive strings with `timeZone: 'Europe/Berlin'` instead of `.toISOString()` (which converted to UTC)
+
 **Completed (2026-03-10 Session 191 - Opus 4.6) — STRIPE LIVE + ACCOUNT FIXES:**
-- **✅ Mimi's accounts fully reset** — Deleted all DB records + auth entry, re-created coach account via Admin > Create New Coach Account, athlete registered fresh
-- **✅ Stripe Live Mode env vars redeployed** — Live keys were in Vercel but needed redeploy to take effect (`NEXT_PUBLIC_*` vars are baked into build)
-- **⏳ Stripe identity verification pending** — Payments/payouts paused until Stripe KYC completes (2-3 days from 2026-03-10)
-- **Note:** Coach role is stored in `auth.users.raw_user_meta_data.role = "coach"` — no separate coaches table
+- **✅ Mimi's accounts fully reset** + Stripe Live Mode env vars redeployed
+- **⏳ Stripe identity verification pending** (submitted 2026-03-10, expect 2-3 days)
 
 **Completed (2026-03-10 Session 189/190 - Opus 4.6) — PRODUCTION DEPLOYMENT + ATHLETE AUDIT:**
 - **✅ Deployed to Vercel** — Live at `https://app.the-forge-functional-fitness.de`
-- **✅ Domain + SSL** — CNAME in Squarespace, auto-SSL from Vercel
-- **✅ Supabase auth config** — Production site URL + redirect URLs added
-- **✅ Next.js 15.5.4 → 15.5.12** — Security vulnerability patched
-- **✅ npm audit** — All vulnerabilities patched (ajv, bn.js, minimatch, qs)
-- **✅ Athlete audit Phase 1** — Input validation, atomic upsert, save feedback
-- ✅ **All migrations applied** — duplicate prevention constraints + performance indexes (Session 190)
+- **✅ Athlete audit Phase 1** — Input validation, atomic upsert, save feedback, all migrations applied
 
 **Completed (2026-03-09 Session 188 - Opus 4.6) — SECTION TYPE FILTER + ARROW FIX:**
-- **✅ Section Type filter on Coach Search Panel** — Collapsible filter with counts, clear button, active chips
-- **✅ Arrow styling fix** — Consistent no-arrow styling across all 8 filter sections
+- **✅ Section Type filter on Coach Search Panel** + arrow styling fix
 
 **Completed (2026-03-08 Session 187 - Opus 4.6) — PLANNER AUDIT + STATISTICS CLEANUP:**
-- **✅ Planner architecture audit** — Performance fixes for long-term sustainability
-- **✅ Statistics tab cleanup** — Removed redundant filters, fixed Top Exercises bug
-- **✅ Section Types fix** — Added missing types, redesigned cards
+- **✅ Planner audit**, statistics cleanup, section types fix, card redesign
 
-**Completed (2026-03-08 Session 186 - Opus 4.6) — PLANNER UX POLISH:**
-- **✅ Removed GapAnalysisPanel**, exercise picker improvements, clickable color dots
-
-**Completed (2026-03-08 Session 185 - Opus 4.6) — DISPLAY_NAME MATCHING FIX + PLANNER EXERCISE GRID:**
-- **✅ Fixed "Never Programmed" bug** + per-exercise color-coded grid
-
-**Older Sessions (57-183):**
+**Older Sessions (57-186):**
 See `project-history/` folder for detailed implementation history
 
 ---

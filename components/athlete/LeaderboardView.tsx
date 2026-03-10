@@ -1,8 +1,8 @@
 'use client';
 
 import { supabase } from '@/lib/supabase';
-import { useEffect, useState, useCallback, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Trophy } from 'lucide-react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
+import { ChevronLeft, ChevronRight, Trophy, ChevronDown } from 'lucide-react';
 import FistBumpButton from './FistBumpButton';
 import ShareButton from './ShareButton';
 import { useReactions } from '@/hooks/athlete/useReactions';
@@ -291,6 +291,61 @@ function formatWodSummary(sections: WodSection[], workoutTypesMap: Map<string, s
   if (!typeName) return '';
   const dur = wodSection.duration || 0;
   return dur ? ` | ${typeName} (${dur}')` : ` | ${typeName}`;
+}
+
+function WodDropdown({ wods, selectedWodId, workoutTypesMap, onSelect }: {
+  wods: WodData[];
+  selectedWodId: string | null;
+  workoutTypesMap: Map<string, string>;
+  onSelect: (wodId: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [open]);
+
+  const selectedWod = wods.find(w => w.id === selectedWodId) || wods[0];
+  const selectedLabel = selectedWod
+    ? `${new Date(selectedWod.date + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short' })} – ${selectedWod.session_type || selectedWod.title}${selectedWod.workout_name ? ` - ${selectedWod.workout_name}` : ''}${formatWodSummary(selectedWod.sections, workoutTypesMap)}`
+    : '';
+
+  return (
+    <div ref={ref} className='relative'>
+      <button
+        onClick={() => setOpen(!open)}
+        className='w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 text-left flex items-center justify-between'
+      >
+        <span className='truncate'>{selectedLabel}</span>
+        <ChevronDown size={16} className={`ml-2 flex-shrink-0 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className='absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto'>
+          {wods.map(w => {
+            const dayLabel = new Date(w.date + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short' });
+            const isSelected = w.id === selectedWodId;
+            return (
+              <button
+                key={w.id}
+                onClick={() => { onSelect(w.id); setOpen(false); }}
+                className={`w-full px-3 py-2 text-left text-xs transition ${
+                  isSelected ? 'bg-[#178da6]/10 text-[#178da6] font-medium' : 'text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                {dayLabel} – {w.session_type || w.title}{w.workout_name ? ` - ${w.workout_name}` : ''}{formatWodSummary(w.sections, workoutTypesMap)}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
 }
 
 function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string; initialDate?: Date; onDateChange?: (date: Date) => void }) {
@@ -631,30 +686,22 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
         </div>
       )}
 
-      {/* Workout selector (dropdown if multiple, static label if single) */}
+      {/* Workout selector (custom dropdown if multiple, static label if single) */}
       {wods.length > 1 ? (
-        <select
-          value={selectedWodId || ''}
-          onChange={e => {
-            setSelectedWodId(e.target.value);
-            const wod = wods.find(w => w.id === e.target.value);
+        <WodDropdown
+          wods={wods}
+          selectedWodId={selectedWodId}
+          workoutTypesMap={workoutTypesMap}
+          onSelect={(wodId) => {
+            setSelectedWodId(wodId);
+            const wod = wods.find(w => w.id === wodId);
             if (wod) {
               const items = extractLeaderboardItems(wod);
               setLeaderboardItems(items);
               setSelectedItemIdx(0);
             }
           }}
-          className='w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm text-gray-900'
-        >
-          {wods.map(w => {
-            const dayLabel = new Date(w.date + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short' });
-            return (
-              <option key={w.id} value={w.id}>
-                {dayLabel} – {w.session_type || w.title}{w.workout_name ? ` - ${w.workout_name}` : ''}{formatWodSummary(w.sections, workoutTypesMap)}
-              </option>
-            );
-          })}
-        </select>
+        />
       ) : wods.length === 1 && (
         <div className='w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-900'>
           {wods[0].session_type || wods[0].title}{wods[0].workout_name ? ` - ${wods[0].workout_name}` : ''}{formatWodSummary(wods[0].sections, workoutTypesMap)}
