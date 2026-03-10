@@ -110,6 +110,16 @@ Feature-complete after 156 sessions. Deploying to Vercel at `app.the-forge-funct
 
 ---
 
+## Phase 8: Commercialization (When Ready to Sell)
+
+**Before selling/licensing the app to other coaches:**
+1. **Make repo private:** GitHub → Chris-Mimi/FFF → Settings → Visibility → Make private
+2. **Upgrade Vercel to Pro ($20/mo)** so auto-deploy continues working with a private repo
+3. Alternatively, skip Vercel Pro and use manual redeploy (free but requires a click after each push)
+4. The `LICENSE` file (All Rights Reserved) is already in place — protects against code copying
+
+---
+
 ## Migrations Pending (run in Supabase SQL Editor)
 
 ```sql
