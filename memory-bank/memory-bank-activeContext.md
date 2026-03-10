@@ -95,7 +95,7 @@ Social Tables
 - **✅ Next.js 15.5.4 → 15.5.12** — Security vulnerability patched
 - **✅ npm audit** — All vulnerabilities patched (ajv, bn.js, minimatch, qs)
 - **✅ Athlete audit Phase 1** — Input validation, atomic upsert, save feedback
-- **⏳ Migration pending** — `20260310000000_add_duplicate_prevention_constraints.sql` (unique indexes)
+- ✅ **All migrations applied** — duplicate prevention constraints + performance indexes (Session 190)
 
 **Completed (2026-03-09 Session 188 - Opus 4.6) — SECTION TYPE FILTER + ARROW FIX:**
 - **✅ Section Type filter on Coach Search Panel** — Collapsible filter with counts, clear button, active chips
@@ -153,12 +153,12 @@ See `project-history/` folder for detailed implementation history
 - ✅ `get_public_tables()` RPC — confirmed working
 - ✅ `coach_cancelled` booking status — confirmed applied (Session 158)
 - ✅ `is_beta_tester` column — applied (Session 158)
-- ⏳ `20260304000000_add_performance_indexes.sql` — 7 indexes on bookings/wods/weekly_sessions (Session 173, apply when Supabase is accessible)
+- ✅ `20260304000000_add_performance_indexes.sql` — 7 indexes on bookings/wods/weekly_sessions (Session 173, applied Session 190)
 - ✅ `20260307000000_drop_search_terms.sql` — Drop search_terms column, update search_vector trigger (Session 180, applied)
 - ✅ `20260307000001_add_programming_planner.sql` — 3 tables applied directly in SQL Editor (Session 183)
 - ✅ `20260307000002_add_pattern_track.sql` — Adds track column to movement_patterns + updated unique constraint (Session 184, applied)
 - ✅ `20260308000000_add_plan_items_indexes.sql` — Indexes on programming_plan_items(user_id, pattern_id) (Session 187, applied)
-- ⏳ `20260310000000_add_duplicate_prevention_constraints.sql` — Unique indexes on wod_section_results + benchmark_results to prevent duplicates (Session 189, **apply before athletes use app**)
+- ✅ `20260310000000_add_duplicate_prevention_constraints.sql` — Unique indexes on wod_section_results + benchmark_results (Session 189, applied Session 190)
 
 ---
 
@@ -209,14 +209,9 @@ npm run restore 2025-12-06  # Restore specific date
 
 **Open question from Chris:** "Why do we need a beta_tester flag? Can't I just activate them on the member page?" — Revisit. Options: (a) keep beta flag, (b) coach manually sets `athlete_subscription_status = 'active'`, (c) add UI toggle on Members page. Simplest may be (b).
 
-**Phase 5: Stripe Live Mode**
-- Complete Stripe onboarding, toggle to live
-- Create products: Athlete Monthly €7.50 + Yearly €75 (both with 1-month free trial) + 10-Card €150
-- Set up webhook: `https://app.the-forge-functional-fitness.de/api/stripe/webhook`
-- Update Vercel env vars with live keys
-
-**Phase 6: Beta Testing** (4-5 testers)
-**Phase 7: Full Launch** (after 1 month, update Stripe prices to €10/€100)
+- ✅ **Phase 5:** Stripe Live Mode DONE (Session 190) — 3 products created, webhook configured, Vercel env vars updated
+- ⏳ **Phase 6:** Beta Testing (4-5 testers) — Use coach manual override to grant access
+- **Phase 7:** Full Launch (after 1 month, update Stripe prices to €10/€100)
 
 **Full deployment plan:** `Chris Notes/deployment-plan.md`
 
