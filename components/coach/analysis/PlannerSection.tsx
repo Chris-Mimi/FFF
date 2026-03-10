@@ -30,8 +30,8 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
   const [planItems, setPlanItems] = useState<ProgrammingPlanItem[]>([]);
   const [gaps, setGaps] = useState<PatternGapResult[]>([]);
   const [coverage, setCoverage] = useState<Map<string, Set<string>>>(new Map());
-  const [loading, setLoading] = useState(true);
-  const [gapLoading, setGapLoading] = useState(false);
+  const [, setLoading] = useState(true);
+  const [, setGapLoading] = useState(false);
   const [exerciseLastDates, setExerciseLastDates] = useState<Map<string, string>>(new Map());
 
   // Exercise picker state
@@ -73,10 +73,11 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
       ...p,
       exercises: (peData || [])
         .filter(pe => pe.pattern_id === p.id)
-        .map(pe => ({
-          id: (pe.exercises as any)?.id || pe.exercise_id,
-          name: (pe.exercises as any)?.name || '',
-          display_name: (pe.exercises as any)?.display_name,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .map((pe: any) => ({
+          id: pe.exercises?.id || pe.exercise_id,
+          name: pe.exercises?.name || '',
+          display_name: pe.exercises?.display_name,
         })),
     }));
 
