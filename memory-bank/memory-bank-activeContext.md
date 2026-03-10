@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 67.0
-**Updated:** 2026-03-09 (Session 188 - section type filter + arrow fix)
+**Version:** 68.0
+**Updated:** 2026-03-10 (Session 189 - deployment + athlete audit)
 
 ---
 
@@ -88,34 +88,29 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-10 Session 189 - Opus 4.6) — PRODUCTION DEPLOYMENT + ATHLETE AUDIT:**
+- **✅ Deployed to Vercel** — Live at `https://app.the-forge-functional-fitness.de`
+- **✅ Domain + SSL** — CNAME in Squarespace, auto-SSL from Vercel
+- **✅ Supabase auth config** — Production site URL + redirect URLs added
+- **✅ Next.js 15.5.4 → 15.5.12** — Security vulnerability patched
+- **✅ npm audit** — All vulnerabilities patched (ajv, bn.js, minimatch, qs)
+- **✅ Athlete audit Phase 1** — Input validation, atomic upsert, save feedback
+- **⏳ Migration pending** — `20260310000000_add_duplicate_prevention_constraints.sql` (unique indexes)
+
 **Completed (2026-03-09 Session 188 - Opus 4.6) — SECTION TYPE FILTER + ARROW FIX:**
-- **✅ Section Type filter on Coach Search Panel** — Collapsible filter with counts (Set-based, once per workout), clear button, active chips
-- **✅ Arrow styling fix** — First 4 filter `<summary>` elements now use flex layout matching all 8 sections (consistent no-arrow styling)
+- **✅ Section Type filter on Coach Search Panel** — Collapsible filter with counts, clear button, active chips
+- **✅ Arrow styling fix** — Consistent no-arrow styling across all 8 filter sections
 
 **Completed (2026-03-08 Session 187 - Opus 4.6) — PLANNER AUDIT + STATISTICS CLEANUP:**
-- **✅ Planner architecture audit** — No critical issues. Performance fixes for long-term sustainability
-- **✅ Exercise frequency 12-month lookback** — `getExerciseFrequency()` now time-filtered (was unbounded)
-- **✅ DB indexes for programming_plan_items** — `user_id` + `pattern_id` indexes (migration applied)
-- **✅ Statistics tab cleanup** — Removed redundant Exercise Search, Browse Library, Movement Type filters
-- **✅ Top Exercises bug fix** — Was filtering from pre-sliced top 50, now filters from all then slices
-- **✅ Section Types fix** — Added `Finisher/Bonus!` (was missing `!`), added `Warm-up` and `Cool Down`
-- **✅ Section type cards redesign** — 4-column grid, dark slate info-card styling
-- **✅ Category chips light teal** — Differentiated from exercise chips in Top Exercises
+- **✅ Planner architecture audit** — Performance fixes for long-term sustainability
+- **✅ Statistics tab cleanup** — Removed redundant filters, fixed Top Exercises bug
+- **✅ Section Types fix** — Added missing types, redesigned cards
 
 **Completed (2026-03-08 Session 186 - Opus 4.6) — PLANNER UX POLISH:**
-- **✅ Removed GapAnalysisPanel** — Redundant with per-exercise color-coded grid in PatternManager
-- **✅ Exercise picker default collapsed** — All categories start collapsed on open (selected exercises still visible)
-- **✅ Clickable pattern color dot** — Click to cycle through 12 colors (added yellow + brown, replaced indigo)
-- **✅ Exercise staleness in picker** — Non-selected exercises: dark grey (3-6mo), light grey + italic (6mo+/never)
-- **✅ Unassigned exercise border** — Exercises not in any pattern show light grey border in picker
+- **✅ Removed GapAnalysisPanel**, exercise picker improvements, clickable color dots
 
 **Completed (2026-03-08 Session 185 - Opus 4.6) — DISPLAY_NAME MATCHING FIX + PLANNER EXERCISE GRID:**
-- **✅ Fixed "Never Programmed" bug** — display_name matching in pattern-analytics (3 spots)
-- **✅ Per-exercise last-programmed dates** + multi-column color-coded exercise grid
-
-**Completed (2026-03-07 Session 184 - Opus 4.6) — PLANNER EXERCISE PICKER UX + TRACK SEPARATION:**
-- **✅ Exercise picker UX** — Collapsible categories, selected-first sorting, partial collapse
-- **✅ Adults/Kids track separation** — Toggle, track-scoped patterns, session type filtering
+- **✅ Fixed "Never Programmed" bug** + per-exercise color-coded grid
 
 **Older Sessions (57-183):**
 See `project-history/` folder for detailed implementation history
@@ -163,6 +158,7 @@ See `project-history/` folder for detailed implementation history
 - ✅ `20260307000001_add_programming_planner.sql` — 3 tables applied directly in SQL Editor (Session 183)
 - ✅ `20260307000002_add_pattern_track.sql` — Adds track column to movement_patterns + updated unique constraint (Session 184, applied)
 - ✅ `20260308000000_add_plan_items_indexes.sql` — Indexes on programming_plan_items(user_id, pattern_id) (Session 187, applied)
+- ⏳ `20260310000000_add_duplicate_prevention_constraints.sql` — Unique indexes on wod_section_results + benchmark_results to prevent duplicates (Session 189, **apply before athletes use app**)
 
 ---
 
@@ -206,22 +202,12 @@ npm run restore 2025-12-06  # Restore specific date
 
 ### DEPLOYMENT (Session 158+)
 
-**Phase 1 DONE (code changes).** Remaining phases are configuration/setup:
+- ✅ **Phase 1:** Code changes DONE
+- ✅ **Phase 2:** Vercel Setup DONE — Hobby (free), percepto25 personal account, 15 env vars
+- ✅ **Phase 3:** Domain Setup DONE — `app.the-forge-functional-fitness.de`, CNAME in Squarespace
+- ✅ **Phase 4:** Supabase Config DONE — Production site URL + redirect URLs
 
 **Open question from Chris:** "Why do we need a beta_tester flag? Can't I just activate them on the member page?" — Revisit. Options: (a) keep beta flag, (b) coach manually sets `athlete_subscription_status = 'active'`, (c) add UI toggle on Members page. Simplest may be (b).
-
-**Phase 2: Vercel Setup**
-- Create Vercel account (sign up with GitHub)
-- Import `forge-functional-fitness` repo
-- Add env vars from `.env.local` + set `NEXT_PUBLIC_APP_URL=https://app.the-forge-functional-fitness.de`
-
-**Phase 3: Domain Setup**
-- In Vercel: Add domain `app.the-forge-functional-fitness.de`
-- In Squarespace: Add CNAME record `app` → `cname.vercel-dns.com`
-
-**Phase 4: Supabase Config**
-- Auth → URL Configuration: Site URL + redirect URLs to production domain
-- ✅ All pending migrations applied
 
 **Phase 5: Stripe Live Mode**
 - Complete Stripe onboarding, toggle to live
