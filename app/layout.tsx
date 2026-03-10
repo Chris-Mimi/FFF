@@ -1,3 +1,4 @@
+// Forge Functional Fitness - Main Layout
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "sonner";
