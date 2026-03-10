@@ -41,6 +41,15 @@ export async function POST(request: NextRequest) {
     }
 
     const weight = parseFloat(weightKg);
+    const parsedReps = parseInt(reps);
+
+    // Validate realistic ranges
+    if (isNaN(weight) || weight < 0 || weight > 500) {
+      return NextResponse.json({ error: 'Weight must be between 0 and 500 kg' }, { status: 400 });
+    }
+    if (isNaN(parsedReps) || parsedReps < 0 || parsedReps > 1000) {
+      return NextResponse.json({ error: 'Reps must be between 0 and 1,000' }, { status: 400 });
+    }
 
     // Insert new lift record
     const { data: newRecord, error } = await supabaseAdmin

@@ -127,6 +127,20 @@ export async function POST(request: NextRequest) {
       ? parseFloat(weightResult.toString())
       : null;
 
+    // Validate realistic ranges
+    if (parsedReps !== null && (parsedReps < 0 || parsedReps > 10000)) {
+      return NextResponse.json({ error: 'Reps must be between 0 and 10,000' }, { status: 400 });
+    }
+    if (parsedWeight !== null && (parsedWeight < 0 || parsedWeight > 500)) {
+      return NextResponse.json({ error: 'Weight must be between 0 and 500 kg' }, { status: 400 });
+    }
+    if (hasTimeResult) {
+      const timeParts = timeResult.trim().split(':');
+      if (timeParts.length > 2 || timeParts.some((p: string) => isNaN(Number(p)))) {
+        return NextResponse.json({ error: 'Invalid time format. Use MM:SS or seconds' }, { status: 400 });
+      }
+    }
+
     // Determine result_value for display (backwards compatibility)
     let resultValue = '';
     if (hasTimeResult) {

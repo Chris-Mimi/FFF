@@ -1,7 +1,7 @@
 // AthletePageLogbookTab component
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { useLogbookData } from '@/hooks/athlete/useLogbookData';
 import { useWorkoutLogging } from '@/hooks/athlete/useWorkoutLogging';
@@ -44,6 +44,7 @@ interface AthletePageLogbookTabProps {
 
 export default function AthletePageLogbookTab({ userId, initialDate, initialViewMode, onDateChange }: AthletePageLogbookTabProps) {
   const savingRef = useRef(false);
+  const [isSaving, setIsSaving] = useState(false);
   // State management via custom hook
   const state = useAthleteLogbookState(initialDate, initialViewMode);
   const {
@@ -134,6 +135,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
   const saveAllResults = async (workoutDate: string) => {
     if (savingRef.current) return;
     savingRef.current = true;
+    setIsSaving(true);
     try {
     // Find ALL workouts for this date to build valid WOD ID set
     const dateWorkouts = workouts.filter(w => formatLocalDate(new Date(w.date)) === workoutDate);
@@ -276,6 +278,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
     }
     } finally {
       savingRef.current = false;
+      setIsSaving(false);
     }
   };
 
@@ -704,9 +707,10 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                       <div className='flex justify-end'>
                         <button
                           onClick={() => saveAllResults(formatLocalDate(selectedDate))}
-                          className='px-8 py-3 bg-[#178da6] hover:bg-[#14758c] text-white font-semibold rounded-lg transition shadow-lg'
+                          disabled={isSaving}
+                          className={`px-8 py-3 text-white font-semibold rounded-lg transition shadow-lg ${isSaving ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#178da6] hover:bg-[#14758c]'}`}
                         >
-                          Save
+                          {isSaving ? 'Saving...' : 'Save'}
                         </button>
                       </div>
                     </div>
