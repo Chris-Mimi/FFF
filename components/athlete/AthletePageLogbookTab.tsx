@@ -642,7 +642,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
 
                   {/* Workout Notes Section */}
                   <div className='mt-6 pt-6 border-t border-gray-200'>
-                    <h4 className='font-semibold text-gray-900 mb-3'>My Notes/Scores</h4>
+                    <h4 className='font-semibold text-gray-900 mb-3'>My Notes</h4>
 
                     <div className='space-y-4'>
                       {/* Coach Instructions (Athlete Notes) */}
@@ -685,7 +685,6 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                       })()}
 
                       <div>
-                        <label className='block text-sm font-medium text-gray-700 mb-2'>Notes</label>
                         <textarea
                           value={workoutLogs[wod.id]?.notes || ''}
                           onChange={e =>
