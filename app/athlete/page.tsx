@@ -54,6 +54,8 @@ function AthletePageContent() {
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [showScrollHint, setShowScrollHint] = useState(false);
+  const [showLeftFade, setShowLeftFade] = useState(false);
+  const [showRightFade, setShowRightFade] = useState(false);
   const [selectedDate, setSelectedDate] = useState(() => {
     // Initialize from localStorage if available - shared between Logbook and Workouts tabs
     if (typeof window !== 'undefined') {
@@ -70,24 +72,32 @@ function AthletePageContent() {
   const [hasFullAccess, setHasFullAccess] = useState(false);
   const tabsNavRef = useRef<HTMLDivElement>(null);
 
-  // Check if tabs need scrolling
+  // Check if tabs need scrolling + track scroll position for fade indicators
   useEffect(() => {
-    if (loading) return; // Don't check until content is loaded
+    if (loading) return;
 
-    const checkScroll = () => {
-      if (tabsNavRef.current) {
-        const hasScroll = tabsNavRef.current.scrollWidth > tabsNavRef.current.clientWidth;
-        setShowScrollHint(hasScroll);
+    const nav = tabsNavRef.current;
+    if (!nav) return;
+
+    const updateScrollState = () => {
+      const hasScroll = nav.scrollWidth > nav.clientWidth;
+      setShowScrollHint(hasScroll);
+      if (hasScroll) {
+        setShowLeftFade(nav.scrollLeft > 4);
+        setShowRightFade(nav.scrollLeft + nav.clientWidth < nav.scrollWidth - 4);
+      } else {
+        setShowLeftFade(false);
+        setShowRightFade(false);
       }
     };
 
-    // Check after content renders
-    const timeoutId = setTimeout(checkScroll, 200);
-
-    window.addEventListener('resize', checkScroll);
+    const timeoutId = setTimeout(updateScrollState, 200);
+    nav.addEventListener('scroll', updateScrollState, { passive: true });
+    window.addEventListener('resize', updateScrollState);
     return () => {
       clearTimeout(timeoutId);
-      window.removeEventListener('resize', checkScroll);
+      nav.removeEventListener('scroll', updateScrollState);
+      window.removeEventListener('resize', updateScrollState);
     };
   }, [loading]);
 
@@ -345,6 +355,15 @@ function AthletePageContent() {
               );
             })}
           </nav>
+          {/* Mobile scroll fade indicators with animated arrow */}
+          {showLeftFade && (
+            <div className='md:hidden absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white via-white/70 to-transparent pointer-events-none z-10' />
+          )}
+          {showRightFade && (
+            <div className='md:hidden absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white via-white/80 to-transparent pointer-events-none z-10 flex items-center justify-end pr-1'>
+              <ChevronRight size={18} className='text-[#178da6] animate-bounce-x flex-shrink-0' />
+            </div>
+          )}
           {/* Scroll buttons - hidden on mobile, shown on desktop when overflow exists */}
           {showScrollHint && (
             <>

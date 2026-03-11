@@ -35,6 +35,15 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Horizontal bounce animation for scroll indicators */
+@keyframes bounce-x {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(4px); }
+}
+.animate-bounce-x {
+  animation: bounce-x 1.2s ease-in-out infinite;
+}
+
 /* Hide scrollbar for Chrome, Safari and Opera */
 .scrollbar-hide::-webkit-scrollbar {
   display: none;

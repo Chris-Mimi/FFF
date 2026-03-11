@@ -732,7 +732,7 @@ export default function MemberBookingPage() {
             {(() => {
               // Filter sessions based on filter state
               const KIDS_TYPES = ['Kids', 'Kids & Teens', 'ElternKind Turnen', 'FitKids Turnen'];
-              const FOUNDATIONS_TYPES = ['Foundations', 'Foundations/WOD'];
+              const FOUNDATIONS_TYPES = ['Foundations', 'Foundations/WOD', 'Diapers & Dumbbells'];
               const filteredSessions = filter === 'booked'
                 ? sessions.filter(s => s.user_booking_status === 'confirmed' || s.user_booking_status === 'waitlist')
                 : filter === 'kids'

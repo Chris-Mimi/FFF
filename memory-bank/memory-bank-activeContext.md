@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 72.0
-**Updated:** 2026-03-11 (Session 194 - MemberCard subscription display + consistency)
+**Version:** 73.0
+**Updated:** 2026-03-11 (Session 195 - Mobile scroll indicator + booking filter)
 
 ---
 
@@ -88,6 +88,10 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-11 Session 195 - Opus 4.6) — MOBILE UX + BOOKING FILTER:**
+- **✅ Athlete tab scroll indicator** — Added animated bouncing chevron arrow + gradient fade on right edge of mobile tab bar so users know they can scroll. Left fade appears when scrolled. `md:hidden` (mobile only).
+- **✅ Booking filter: Diapers & Dumbbells** — Added to `FOUNDATIONS_TYPES` array in Book a Class page so it appears under Foundations filter chip.
+
 **Completed (2026-03-11 Session 194 - Opus 4.6) — MEMBERCARD SUBSCRIPTION DISPLAY:**
 - **✅ Subscription plan differentiation** — MemberCard now shows "Trial (X days)", "Active (Monthly)", "Active (Yearly)", or "Active" (manual). Fetches `plan_type` from `subscriptions` table.
 - **✅ Consistent card layout** — Phone field always renders (shows "—" when empty) so all cards have same grid structure.
@@ -110,14 +114,7 @@ Social Tables
 **Completed (2026-03-10 Session 191 - Opus 4.6) — STRIPE LIVE + ACCOUNT FIXES:**
 - **✅ Mimi's accounts fully reset** + Stripe Live Mode env vars redeployed
 
-**Completed (2026-03-10 Session 189/190 - Opus 4.6) — PRODUCTION DEPLOYMENT + ATHLETE AUDIT:**
-- **✅ Deployed to Vercel** — Live at `https://app.the-forge-functional-fitness.de`
-- **✅ Athlete audit Phase 1** — Input validation, atomic upsert, save feedback, all migrations applied
-
-**Completed (2026-03-09 Session 188 - Opus 4.6) — SECTION TYPE FILTER + ARROW FIX:**
-- **✅ Section Type filter on Coach Search Panel** + arrow styling fix
-
-**Older Sessions (57-186):**
+**Older Sessions (57-190):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -204,6 +201,11 @@ npm run restore 2025-12-06  # Restore specific date
 ---
 
 ## 📋 Next Immediate Steps
+
+### NEXT SESSION — Discuss: Auto-populate new Sessions (Idea from Session 195)
+- **Whiteboard Intro section:** Every newly created Session (coach side) should auto-include a "Whiteboard Intro" section at the top set to 0 minutes, pre-populated with a list of currently booked athletes.
+- **Default session name:** Auto-generate from date + time (e.g., "2026-03-11 09:00") so each session has a unique name until coach renames it.
+- **⚠️ Discuss before implementing** — Need to evaluate complexity and whether this over-complicates things. Explore existing Session/WOD creation flow first.
 
 ### DEPLOYMENT (Session 158+)
 
