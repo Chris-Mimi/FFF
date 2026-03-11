@@ -53,3 +53,43 @@ If you just want to reset their subscription status without deleting the account
 4. Delete their row from `subscriptions` (if exists)
 
 They can then go through the Stripe checkout again without re-registering.
+
+---
+
+## Stripe: Refund Payment & Cancel Subscription
+
+Use this when an athlete was charged (e.g., test payment, accidental purchase) and you want to refund them and reset their subscription.
+
+### Step 1: Refund in Stripe Dashboard
+
+1. Go to [Stripe Dashboard](https://dashboard.stripe.com) > **Payments**
+2. Find the payment (search by email or amount)
+3. Click the payment to open details
+4. Click **Refund** > choose **Full refund** > confirm
+
+### Step 2: Cancel Subscription in Stripe Dashboard
+
+1. Go to **Subscriptions** (in Stripe sidebar)
+2. Find the subscription for that customer (search by email)
+3. Click the subscription > **Cancel subscription**
+4. Choose **Cancel immediately** (not "at end of period")
+5. Confirm cancellation
+
+### Step 3: Reset Supabase Data
+
+1. Go to Table Editor > `subscriptions`
+   - Find the row where `member_id` matches the athlete
+   - **Delete the row**
+2. Go to Table Editor > `members`
+   - Find the member by name or email
+   - Clear these fields (set to NULL):
+     - `athlete_subscription_status`
+     - `athlete_subscription_end`
+     - `stripe_customer_id`
+   - Leave `athlete_trial_start` as-is (preserves trial history)
+
+### Important Notes
+
+- **Always refund in Stripe BEFORE clearing Supabase** — Stripe needs the subscription/customer reference to process the refund
+- After completing all 3 steps, the athlete can go through Stripe checkout again as if new
+- The `stripe_customer_id` must be cleared because the old Stripe customer may have a failed/refunded payment attached — a fresh checkout creates a new Stripe customer

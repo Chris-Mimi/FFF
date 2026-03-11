@@ -110,6 +110,26 @@ export function useMemberData() {
       }
 
       const memberIds = (membersData || []).map(m => m.id);
+
+      // Fetch subscription plan types
+      let planTypeMap: Record<string, 'monthly' | 'yearly'> = {};
+      if (memberIds.length > 0) {
+        const { data: subsData } = await supabase
+          .from('subscriptions')
+          .select('member_id, plan_type')
+          .in('member_id', memberIds)
+          .eq('status', 'active');
+
+        if (subsData) {
+          planTypeMap = Object.fromEntries(
+            subsData.map((row: { member_id: string; plan_type: string }) => [
+              row.member_id,
+              row.plan_type as 'monthly' | 'yearly',
+            ])
+          );
+        }
+      }
+
       let attendanceMap: Record<string, number> = {};
 
       if (memberIds.length > 0) {
@@ -148,6 +168,7 @@ export function useMemberData() {
 
       let membersWithAttendance = (membersData || []).map(member => ({
         ...member,
+        subscription_plan_type: planTypeMap[member.id] || null,
         attendance_count: attendanceMap[member.id] || 0,
         last_attendance_date: lastAttendanceMap[member.id] || null,
       }));

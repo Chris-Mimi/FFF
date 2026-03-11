@@ -119,12 +119,10 @@ export default function MemberCard({
               <span className="text-gray-400">Email:</span>{' '}
               <span className="text-white">{member.email}</span>
             </div>
-            {member.phone && (
-              <div>
-                <span className="text-gray-400">Phone:</span>{' '}
-                <span className="text-white">{member.phone}</span>
-              </div>
-            )}
+            <div>
+              <span className="text-gray-400">Phone:</span>{' '}
+              <span className={member.phone ? 'text-white' : 'text-gray-600'}>{member.phone || '—'}</span>
+            </div>
             <div>
               <span className="text-gray-400">Registered:</span>{' '}
               <span className="text-white">{formatMemberDate(member.created_at)}</span>

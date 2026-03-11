@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 71.0
-**Updated:** 2026-03-11 (Session 193 - Stripe live mode key fix)
+**Version:** 72.0
+**Updated:** 2026-03-11 (Session 194 - MemberCard subscription display + consistency)
 
 ---
 
@@ -87,6 +87,11 @@ Social Tables
 ---
 
 ## 📍 Current Status (Last 5 Sessions)
+
+**Completed (2026-03-11 Session 194 - Opus 4.6) — MEMBERCARD SUBSCRIPTION DISPLAY:**
+- **✅ Subscription plan differentiation** — MemberCard now shows "Trial (X days)", "Active (Monthly)", "Active (Yearly)", or "Active" (manual). Fetches `plan_type` from `subscriptions` table.
+- **✅ Consistent card layout** — Phone field always renders (shows "—" when empty) so all cards have same grid structure.
+- **✅ Stripe refund docs** — Added "Stripe: Refund Payment & Cancel Subscription" section to Reset-Athlete-Account.md.
 
 **Completed (2026-03-11 Session 193 - Opus 4.6) — STRIPE LIVE MODE KEY FIX:**
 - **✅ Stripe secret key** — Vercel had test/sandbox `sk_test_` key instead of `sk_live_`. Created new live key, updated Vercel.
