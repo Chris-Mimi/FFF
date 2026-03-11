@@ -102,6 +102,12 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     return;
   }
 
+  // Only grant access if payment was actually collected
+  if (session.payment_status !== 'paid') {
+    console.error(`Checkout session ${session.id} for member ${memberId} has payment_status: ${session.payment_status} — skipping activation`);
+    return;
+  }
+
   const now = new Date();
 
   if (productType === '10card') {

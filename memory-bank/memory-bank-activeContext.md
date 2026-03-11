@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 70.0
-**Updated:** 2026-03-10 (Session 192 - mobile fixes + Google Calendar timezone fix)
+**Version:** 71.0
+**Updated:** 2026-03-11 (Session 193 - Stripe live mode key fix)
 
 ---
 
@@ -88,6 +88,15 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-11 Session 193 - Opus 4.6) — STRIPE LIVE MODE KEY FIX:**
+- **✅ Stripe secret key** — Vercel had test/sandbox `sk_test_` key instead of `sk_live_`. Created new live key, updated Vercel.
+- **✅ Stripe webhook secret** — Was from test mode. Updated with live mode signing secret.
+- **✅ Stripe price IDs** — Updated to live mode price IDs.
+- **✅ Stripe identity verification** — Confirmed complete and active.
+- **✅ First live payment processed** — Chris's athlete account, monthly subscription active.
+- **✅ Coach Members label fix** — "Athlete Trial:" → "Athlete App:" on MemberCard.
+- **⚠️ Mimi needs to re-subscribe** — Previous attempts were against sandbox. Clear her `stripe_customer_id` before she tries.
+
 **Completed (2026-03-10 Session 192 - Opus 4.6) — MOBILE FIXES + GOOGLE CALENDAR TIMEZONE:**
 - **✅ Leaderboard workout dropdown** — Replaced native `<select>` with custom dropdown (smaller options, text-xs)
 - **✅ Members page tabs mobile** — Added `overflow-x-auto` + `whitespace-nowrap` so Subscriptions/At-Risk tabs scroll into view
@@ -95,7 +104,6 @@ Social Tables
 
 **Completed (2026-03-10 Session 191 - Opus 4.6) — STRIPE LIVE + ACCOUNT FIXES:**
 - **✅ Mimi's accounts fully reset** + Stripe Live Mode env vars redeployed
-- **⏳ Stripe identity verification pending** (submitted 2026-03-10, expect 2-3 days)
 
 **Completed (2026-03-10 Session 189/190 - Opus 4.6) — PRODUCTION DEPLOYMENT + ATHLETE AUDIT:**
 - **✅ Deployed to Vercel** — Live at `https://app.the-forge-functional-fitness.de`
@@ -103,9 +111,6 @@ Social Tables
 
 **Completed (2026-03-09 Session 188 - Opus 4.6) — SECTION TYPE FILTER + ARROW FIX:**
 - **✅ Section Type filter on Coach Search Panel** + arrow styling fix
-
-**Completed (2026-03-08 Session 187 - Opus 4.6) — PLANNER AUDIT + STATISTICS CLEANUP:**
-- **✅ Planner audit**, statistics cleanup, section types fix, card redesign
 
 **Older Sessions (57-186):**
 See `project-history/` folder for detailed implementation history
@@ -205,7 +210,7 @@ npm run restore 2025-12-06  # Restore specific date
 **Open question from Chris:** "Why do we need a beta_tester flag? Can't I just activate them on the member page?" — Revisit. Options: (a) keep beta flag, (b) coach manually sets `athlete_subscription_status = 'active'`, (c) add UI toggle on Members page. Simplest may be (b).
 
 - ✅ **Phase 5:** Stripe Live Mode DONE (Session 190) — 3 products created, webhook configured, Vercel env vars updated, redeployed (Session 191)
-- ⏳ **Phase 5b:** Stripe identity verification pending (submitted 2026-03-10, expect 2-3 days)
+- ✅ **Phase 5b:** Stripe identity verification DONE + live keys fixed (Session 193)
 - ⏳ **Phase 6:** Beta Testing (4-5 testers) — Use coach manual override to grant access
 - **Phase 7:** Full Launch (after 1 month, update Stripe prices to €10/€100)
 

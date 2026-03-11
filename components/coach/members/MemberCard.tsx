@@ -138,7 +138,7 @@ export default function MemberCard({
                   </span>
                 </div>
                 <div>
-                  <span className="text-gray-400">Athlete Trial:</span>{' '}
+                  <span className="text-gray-400">Athlete App:</span>{' '}
                   <span className={`font-medium ${
                     member.athlete_subscription_status === 'trial' ? 'text-teal-400' :
                     member.athlete_subscription_status === 'active' ? 'text-green-400' :
