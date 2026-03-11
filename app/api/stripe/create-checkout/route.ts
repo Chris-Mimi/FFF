@@ -17,6 +17,11 @@ const supabaseAdmin = createClient(
 
 export async function POST(request: NextRequest) {
   try {
+    // TEMP DEBUG: Log key prefix to verify correct key is loaded
+    const keyPrefix = process.env.STRIPE_SECRET_KEY?.substring(0, 12) || 'NOT_SET';
+    const keySuffix = process.env.STRIPE_SECRET_KEY?.slice(-4) || 'N/A';
+    console.log(`[STRIPE DEBUG] Key: ${keyPrefix}...${keySuffix}`);
+
     const user = await requireAuth(request);
     if (isAuthError(user)) return user;
 
