@@ -191,9 +191,17 @@ export function rankSectionResults(
   scoringType: string
 ): LeaderboardEntry[] {
   // Filter out results with no meaningful data
+  // Check primary scoring field first, then fall back to any non-empty field
+  const hasAnyData = (r: RawSectionResult) =>
+    (r.time_result && r.time_result.trim() !== '') ||
+    (r.reps_result || 0) > 0 ||
+    (r.weight_result || 0) > 0 ||
+    (r.rounds_result || 0) > 0 ||
+    (r.calories_result || 0) > 0 ||
+    (r.metres_result || 0) > 0;
   const valid = results.filter(r => {
     switch (scoringType) {
-      case 'time': return r.time_result && r.time_result.trim() !== '';
+      case 'time': return (r.time_result && r.time_result.trim() !== '') || hasAnyData(r);
       case 'time_with_cap': return (r.time_result && r.time_result.trim() !== '') || (r.rounds_result || 0) > 0 || (r.reps_result || 0) > 0;
       case 'rounds_reps': return (r.rounds_result || 0) > 0 || (r.reps_result || 0) > 0;
       case 'reps': return (r.reps_result || 0) > 0;
@@ -323,7 +331,11 @@ export function formatResult(entry: LeaderboardEntry, scoringType: string): stri
   switch (scoringType) {
     case 'time':
     case 'max_time':
-      return entry.timeResult || '-';
+      if (entry.timeResult) return entry.timeResult;
+      // Fallback: show best available data when no time was entered
+      if (entry.repsResult) return `${entry.repsResult} reps`;
+      if (entry.weightResult) return `${entry.weightResult} kg`;
+      return '-';
     case 'time_with_cap':
       if (entry.timeResult) return entry.timeResult;
       if (entry.roundsResult && entry.repsResult) return `CAP +${entry.roundsResult}+${entry.repsResult}`;
