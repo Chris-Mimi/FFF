@@ -129,5 +129,6 @@ export interface WODSection {
     metres?: boolean;         // Show distance input (metres)
     checkbox?: boolean;       // Show task completion checkbox
     scaling?: boolean;        // Show scaling dropdown
+    time_amrap?: boolean;     // Time + AMRAP mode: show both time (optional) and reps/rounds simultaneously
   };
 }

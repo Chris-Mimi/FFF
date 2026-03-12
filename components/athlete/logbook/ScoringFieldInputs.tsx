@@ -22,6 +22,7 @@ interface ScoringFieldInputsProps {
     metres?: boolean;
     checkbox?: boolean;
     scaling?: boolean;
+    time_amrap?: boolean;
   };
   values: {
     time_result?: string;
@@ -45,8 +46,10 @@ export default function ScoringFieldInputs({
   variant = 'default',
   showLabel = true,
 }: ScoringFieldInputsProps) {
-  // Detect "For Time with cap" scenario: time + (reps or rounds_reps)
-  const isForTimeWithCap = !!scoringFields.time && (!!scoringFields.reps || !!scoringFields.rounds_reps);
+  // Detect "Time + AMRAP" scenario: both time and reps/rounds shown simultaneously
+  const isTimeAmrap = !!scoringFields.time_amrap && !!scoringFields.time && (!!scoringFields.reps || !!scoringFields.rounds_reps);
+  // Detect "For Time with cap" scenario: time + (reps or rounds_reps), mutually exclusive
+  const isForTimeWithCap = !isTimeAmrap && !!scoringFields.time && (!!scoringFields.reps || !!scoringFields.rounds_reps);
 
   // Derive initial mode from existing values
   const deriveMode = (): 'finished' | 'cap' | null => {
@@ -117,9 +120,9 @@ export default function ScoringFieldInputs({
   if (!hasAnyEnabledField) return null;
 
   // Should show time input?
-  const showTime = isForTimeWithCap ? forTimeMode === 'finished' : (scoringFields.time || scoringFields.max_time);
+  const showTime = isTimeAmrap ? true : isForTimeWithCap ? forTimeMode === 'finished' : (scoringFields.time || scoringFields.max_time);
   // Should show reps/rounds inputs?
-  const showCapFields = isForTimeWithCap ? forTimeMode === 'cap' : false;
+  const showCapFields = isTimeAmrap ? true : isForTimeWithCap ? forTimeMode === 'cap' : false;
 
   return (
     <div className='flex items-center gap-2 ml-auto flex-wrap'>

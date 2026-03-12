@@ -30,6 +30,7 @@ interface ScoringFields {
   metres?: boolean;
   checkbox?: boolean;
   scaling?: boolean;
+  time_amrap?: boolean;
 }
 
 interface WodSection {
@@ -167,6 +168,7 @@ function extractLeaderboardItems(wod: WodData): LeaderboardItem[] {
       const scoringLabel = scoringType === 'time' ? 'For Time'
         : scoringType === 'max_time' ? 'Max Time'
         : scoringType === 'time_with_cap' ? 'For Time (Cap)'
+        : scoringType === 'time_amrap' ? 'Time + AMRAP'
         : scoringType === 'rounds_reps' ? 'AMRAP'
         : scoringType === 'reps' ? 'Max Reps'
         : scoringType === 'weight' ? 'Max Load'

@@ -60,6 +60,7 @@ interface ScoringFields {
   metres?: boolean;
   checkbox?: boolean;
   scaling?: boolean;
+  time_amrap?: boolean;
 }
 
 /**
@@ -69,6 +70,7 @@ interface ScoringFields {
 export function detectScoringType(scoringFields?: ScoringFields): string {
   if (!scoringFields) return 'time';
   if (scoringFields.max_time) return 'max_time';
+  if (scoringFields.time_amrap && scoringFields.time && (scoringFields.rounds_reps || scoringFields.reps)) return 'time_amrap';
   if (scoringFields.time && (scoringFields.rounds_reps || scoringFields.reps)) return 'time_with_cap';
   if (scoringFields.time) return 'time';
   if (scoringFields.rounds_reps) return 'rounds_reps';
@@ -130,6 +132,19 @@ function compareByScoringType(a: RawSectionResult, b: RawSectionResult, type: st
       const bRounds = b.rounds_result || 0;
       if (aRounds !== bRounds) return bRounds - aRounds;
       return (b.reps_result || 0) - (a.reps_result || 0);
+    }
+    case 'time_amrap': {
+      // Primary: reps/rounds descending (more = better)
+      const aRnds = a.rounds_result || 0;
+      const bRnds = b.rounds_result || 0;
+      if (aRnds !== bRnds) return bRnds - aRnds;
+      const aReps = a.reps_result || 0;
+      const bReps = b.reps_result || 0;
+      if (aReps !== bReps) return bReps - aReps;
+      // Tiebreaker: time ascending (faster = better, optional)
+      const aT = parseTimeToSeconds(a.time_result);
+      const bT = parseTimeToSeconds(b.time_result);
+      return aT - bT;
     }
     case 'rounds_reps': {
       const aRounds = a.rounds_result || 0;
@@ -203,6 +218,7 @@ export function rankSectionResults(
     switch (scoringType) {
       case 'time': return (r.time_result && r.time_result.trim() !== '') || hasAnyData(r);
       case 'time_with_cap': return (r.time_result && r.time_result.trim() !== '') || (r.rounds_result || 0) > 0 || (r.reps_result || 0) > 0;
+      case 'time_amrap': return (r.rounds_result || 0) > 0 || (r.reps_result || 0) > 0;
       case 'rounds_reps': return (r.rounds_result || 0) > 0 || (r.reps_result || 0) > 0;
       case 'reps': return (r.reps_result || 0) > 0;
       case 'weight': return (r.weight_result || 0) > 0;
@@ -347,6 +363,14 @@ export function formatResult(entry: LeaderboardEntry, scoringType: string): stri
       if (entry.roundsResult && entry.repsResult) return `CAP +${entry.roundsResult}+${entry.repsResult}`;
       if (entry.roundsResult) return `CAP +${entry.roundsResult} rounds`;
       return `CAP +${entry.repsResult || 0} reps`;
+    case 'time_amrap': {
+      const repsStr = entry.roundsResult && entry.repsResult
+        ? `${entry.roundsResult}+${entry.repsResult}`
+        : entry.roundsResult
+        ? `${entry.roundsResult} rounds`
+        : `${entry.repsResult || 0} reps`;
+      return entry.timeResult ? `${repsStr} (${entry.timeResult})` : repsStr;
+    }
     case 'rounds_reps':
       if (entry.roundsResult && entry.repsResult) return `${entry.roundsResult}+${entry.repsResult}`;
       if (entry.roundsResult) return `${entry.roundsResult} rounds`;

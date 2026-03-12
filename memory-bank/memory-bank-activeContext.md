@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 75.0
-**Updated:** 2026-03-12 (Session 198 - Achievement chip hover fix + re-booking after coach_cancelled)
+**Version:** 76.0
+**Updated:** 2026-03-12 (Session 198 - Achievement chip fix + re-booking fix + Time+AMRAP scoring)
 
 ---
 
@@ -88,10 +88,11 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
-**Completed (2026-03-12 Session 198 - Opus 4.6) — ACHIEVEMENT CHIP FIX + RE-BOOKING FIX:**
+**Completed (2026-03-12 Session 198 - Opus 4.6) — ACHIEVEMENT FIX + RE-BOOKING + TIME+AMRAP:**
 - **✅ Achievement chip hover fix** — Edit/delete buttons now absolute-positioned overlay instead of inline, preventing flex-wrap reflow that made chips unjumpable.
 - **✅ Re-booking after coach_cancelled** — Booking creation API duplicate check now only blocks `confirmed`/`waitlist` (was excluding only `cancelled`, missing `coach_cancelled`/`no_show`/`late_cancel`).
-- **✅ Audit: score submission loophole** — Confirmed save path has no booking validation, but UI gate (logbook only shows booked workouts) prevents normal access. Only edge case: coach removes booking while athlete is mid-entry (race condition, not worth adding DB overhead).
+- **✅ Audit: score submission loophole** — Confirmed save path has no booking validation, but UI gate (logbook only shows booked workouts) prevents normal access. Race condition only, not worth DB overhead.
+- **✅ Time + AMRAP scoring mode** — New scoring mode for "For Time then AMRAP" workouts. Coach toggle: "For Time (Cap)" vs "Time + AMRAP" when Time + Reps/Rounds enabled. Athlete sees both time (optional) and reps/rounds inputs simultaneously. Leaderboard sorts: Scaling → Reps/Rounds (more=better) → Time tiebreaker (lower=better). Display: `3+12 (4:30)`. Stored as `time_amrap: true` in JSONB `scoring_fields`.
 
 **Completed (2026-03-12 Session 197 - Opus 4.6) — BOOKING FIX + COACH HOVER + SCORING:**
 - **✅ Book a Class: coach_cancelled fix** — Booking filter now uses explicit `confirmed`/`waitlist` match instead of excluding only `cancelled`. Fixes ghost "Cancel" button when coach removes athlete from session.

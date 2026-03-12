@@ -352,6 +352,40 @@ function WODSectionComponent({
                     <span>Task✓</span>
                   </label>
                 </div>
+
+              {/* Time mode toggle: shown when Time + (Reps or Rounds+Reps) are both enabled */}
+              {section.scoring_fields?.time && (section.scoring_fields?.reps || section.scoring_fields?.rounds_reps) && (
+                <div className='flex items-center gap-1 ml-2'>
+                  <div className='flex rounded overflow-hidden border border-gray-300 text-[10px] font-medium'>
+                    <button
+                      type='button'
+                      onClick={() => onUpdate({
+                        scoring_fields: { ...section.scoring_fields, time_amrap: false }
+                      })}
+                      className={`px-2 py-0.5 transition-colors ${
+                        !section.scoring_fields?.time_amrap
+                          ? 'bg-teal-600 text-white'
+                          : 'bg-white text-gray-500 hover:bg-gray-100'
+                      }`}
+                    >
+                      For Time (Cap)
+                    </button>
+                    <button
+                      type='button'
+                      onClick={() => onUpdate({
+                        scoring_fields: { ...section.scoring_fields, time_amrap: true }
+                      })}
+                      className={`px-2 py-0.5 transition-colors border-l border-gray-300 ${
+                        section.scoring_fields?.time_amrap
+                          ? 'bg-amber-500 text-white'
+                          : 'bg-white text-gray-500 hover:bg-gray-100'
+                      }`}
+                    >
+                      Time + AMRAP
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
             )}
 
