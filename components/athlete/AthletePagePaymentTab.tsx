@@ -81,9 +81,11 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
     setError(null);
 
     try {
+      // Include trial flag for subscription products when athlete has no active/trial subscription
+      const wantsTrial = (productType === 'monthly' || productType === 'yearly') && !hasActiveSubscription && !hasTrial;
       const response = await authFetch('/api/stripe/create-checkout', {
         method: 'POST',
-        body: JSON.stringify({ productType, memberId: userId }),
+        body: JSON.stringify({ productType, memberId: userId, ...(wantsTrial && { trial: true }) }),
       });
 
       const data = await response.json();

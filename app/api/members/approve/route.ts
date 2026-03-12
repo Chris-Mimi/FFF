@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { requireCoach, isAuthError } from '@/lib/auth-api';
+import { sendApprovalEmail } from '@/lib/email';
 
 // Use service role for admin operations
 const supabaseAdmin = createClient(
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest) {
     // Fetch member to verify they exist and are pending
     const { data: member, error: fetchError } = await supabaseAdmin
       .from('members')
-      .select('id, status')
+      .select('id, email, name, status')
       .eq('id', memberId)
       .single();
 
@@ -73,7 +74,17 @@ export async function POST(request: NextRequest) {
     }
 
     // TODO: Create in-app notification for member about approval
-    // TODO: Send email notification (Phase 3)
+
+    // Send approval email (non-blocking — don't fail the approval if email fails)
+    if (updatedMember.email) {
+      const emailResult = await sendApprovalEmail(
+        updatedMember.email,
+        updatedMember.name || 'Athlete'
+      );
+      if (!emailResult.success) {
+        console.error('Approval email failed:', emailResult.error);
+      }
+    }
 
     return NextResponse.json(
       {

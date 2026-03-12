@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     if (isAuthError(user)) return user;
 
     const body = await request.json();
-    const { productType, memberId } = body as { productType: ProductType; memberId: string };
+    const { productType, memberId, trial } = body as { productType: ProductType; memberId: string; trial?: boolean };
 
     // Validate required fields
     if (!productType || !memberId) {
@@ -87,8 +87,10 @@ export async function POST(request: NextRequest) {
     }
     const appUrl = process.env.NEXT_PUBLIC_APP_URL;
 
-    // Create checkout session
-    const session = await stripe.checkout.sessions.create({
+    // Build checkout session config
+    const isSubMode = isSubscription(productType);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const checkoutParams: any = {
       customer: customerId,
       billing_address_collection: 'required',
       line_items: [
@@ -97,14 +99,24 @@ export async function POST(request: NextRequest) {
           quantity: 1,
         },
       ],
-      mode: isSubscription(productType) ? 'subscription' : 'payment',
+      mode: isSubMode ? 'subscription' : 'payment',
       success_url: `${appUrl}/athlete?payment=success&type=${productType}`,
       cancel_url: `${appUrl}/athlete?payment=cancelled`,
       metadata: {
         member_id: memberId,
         product_type: productType,
       },
-    });
+    };
+
+    // Add 30-day free trial for subscription products
+    if (trial && isSubMode) {
+      checkoutParams.subscription_data = {
+        trial_period_days: 30,
+      };
+    }
+
+    // Create checkout session
+    const session = await stripe.checkout.sessions.create(checkoutParams);
 
     return NextResponse.json({
       sessionId: session.id,

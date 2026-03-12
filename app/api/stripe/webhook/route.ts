@@ -102,8 +102,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     return;
   }
 
-  // Only grant access if payment was actually collected
-  if (session.payment_status !== 'paid') {
+  // Grant access if payment was collected OR trial started (no_payment_required)
+  if (session.payment_status !== 'paid' && session.payment_status !== 'no_payment_required') {
     console.error(`Checkout session ${session.id} for member ${memberId} has payment_status: ${session.payment_status} — skipping activation`);
     return;
   }
