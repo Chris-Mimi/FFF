@@ -29,6 +29,11 @@ export async function GET(request: NextRequest) {
 
     await supabase.auth.exchangeCodeForSession(code);
 
+    // If next param specifies a page (e.g. password reset), go there directly
+    if (next && next !== '/') {
+      return NextResponse.redirect(new URL(next, requestUrl.origin));
+    }
+
     // Get user to determine redirect
     const {
       data: { user },

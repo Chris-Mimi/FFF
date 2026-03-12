@@ -105,14 +105,14 @@ export default function LoginPage() {
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-teal-700 to-teal-900 flex items-center justify-center p-4'>
-      <div className='bg-white rounded-lg shadow-2xl p-8 max-w-md w-full'>
-        <div className='flex justify-center mb-8'>
+      <div className='bg-white rounded-lg shadow-2xl p-6 sm:p-8 max-w-md w-full'>
+        <div className='flex justify-center mb-2'>
           <Image src='/logo.png' alt='The Forge Functional Fitness' width={220} height={220} priority />
         </div>
 
-        <form onSubmit={handleLogin} className='space-y-6'>
+        <form onSubmit={handleLogin} className='space-y-4'>
           <div>
-            <label htmlFor='email' className='block text-sm font-medium text-gray-700 mb-2'>
+            <label htmlFor='email' className='block text-sm font-medium text-gray-700 mb-1'>
               Email Address
             </label>
             <input
@@ -129,7 +129,7 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label htmlFor='password' className='block text-sm font-medium text-gray-700 mb-2'>
+            <label htmlFor='password' className='block text-sm font-medium text-gray-700 mb-1'>
               Password
             </label>
             <input
@@ -168,7 +168,7 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className='mt-6 pt-6 border-t border-gray-200'>
+        <div className='mt-4 pt-4 border-t border-gray-200'>
           <Link
             href='/auth/register-member'
             className='block w-full text-center bg-white border-2 border-[#178da6] text-[#178da6] hover:bg-[#178da6] hover:text-white font-semibold py-3 rounded-lg transition'
@@ -178,8 +178,8 @@ export default function LoginPage() {
           </Link>
         </div>
 
-        <div className='mt-4 text-center'>
-          <Link href='/forgot-password' className='text-sm text-gray-600 hover:text-gray-900'>
+        <div className='mt-3 text-center'>
+          <Link href='/forgot-password' className='text-sm text-[#178da6] hover:text-[#14758c] underline font-medium'>
             Forgot your password?
           </Link>
         </div>
