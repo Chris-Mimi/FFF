@@ -47,7 +47,7 @@ export const useCoachData = ({
       // Fetch all bookings
       const { data: allBookings, error: bookingsError } = await supabase
         .from('bookings')
-        .select('session_id, status');
+        .select('session_id, status, members(name, display_name)');
 
       if (bookingsError) throw bookingsError;
 
@@ -101,12 +101,22 @@ export const useCoachData = ({
         const confirmedCount = sessionBookings.filter(b => b.status === 'confirmed').length;
         const waitlistCount = sessionBookings.filter(b => b.status === 'waitlist').length;
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const bookedMembers = sessionBookings
+          .filter(b => b.status === 'confirmed' || b.status === 'waitlist')
+          .map((b: any) => {
+            const m = b.members;
+            return m?.display_name || m?.name || 'Unknown';
+          })
+          .sort((a: string, b: string) => a.localeCompare(b));
+
         const bookingInfo = {
           session_id: session.id,
           confirmed_count: confirmedCount,
           waitlist_count: waitlistCount,
           capacity: session.capacity,
-          time: session.time
+          time: session.time,
+          booked_members: bookedMembers as string[],
         };
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

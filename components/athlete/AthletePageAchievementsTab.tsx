@@ -32,6 +32,9 @@ export default function AthletePageAchievementsTab({ userId }: AthletePageAchiev
   const [claimNotes, setClaimNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [detailModal, setDetailModal] = useState<(AchievementDefinition & { unlocked?: AthleteAchievement }) | null>(null);
+  const [editingDate, setEditingDate] = useState(false);
+  const [editDate, setEditDate] = useState('');
+  const [savingDate, setSavingDate] = useState(false);
 
   const fetchData = useCallback(async () => {
     const [defsRes, achRes] = await Promise.all([
@@ -171,6 +174,29 @@ export default function AthletePageAchievementsTab({ userId }: AthletePageAchiev
     fetchData();
   };
 
+  const handleDateUpdate = async () => {
+    if (!detailModal?.unlocked || !editDate) return;
+    setSavingDate(true);
+
+    const { error } = await supabase
+      .from('athlete_achievements')
+      .update({ achieved_date: editDate })
+      .eq('id', detailModal.unlocked.id);
+
+    if (error) {
+      toast.error('Failed to update date');
+      console.error(error);
+      setSavingDate(false);
+      return;
+    }
+
+    toast.success('Date updated');
+    setEditingDate(false);
+    setSavingDate(false);
+    fetchData();
+    setDetailModal(null);
+  };
+
   const toggleCategory = (category: string) => {
     setCollapsedCategories((prev) => {
       const next = new Set(prev);
@@ -275,6 +301,7 @@ export default function AthletePageAchievementsTab({ userId }: AthletePageAchiev
                             key={def.id}
                             onClick={() => {
                               if (isUnlocked) {
+                                setEditingDate(false);
                                 setDetailModal(def);
                               } else if (canClaim) {
                                 setClaimDate(new Date().toISOString().split('T')[0]);
@@ -414,9 +441,42 @@ export default function AthletePageAchievementsTab({ userId }: AthletePageAchiev
               </div>
 
               <div className="space-y-2 mb-6 text-sm">
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <span className="text-gray-500">Date achieved</span>
-                  <span className="text-gray-900 font-medium">{detailModal.unlocked.achieved_date}</span>
+                  {editingDate ? (
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="date"
+                        value={editDate}
+                        onChange={(e) => setEditDate(e.target.value)}
+                        className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                      />
+                      <button
+                        onClick={handleDateUpdate}
+                        disabled={savingDate}
+                        className="px-2 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded text-xs font-medium transition disabled:opacity-50 min-h-[32px]"
+                      >
+                        {savingDate ? '...' : 'Save'}
+                      </button>
+                      <button
+                        onClick={() => setEditingDate(false)}
+                        className="px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded text-xs font-medium transition min-h-[32px]"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setEditDate(detailModal.unlocked!.achieved_date);
+                        setEditingDate(true);
+                      }}
+                      className="text-gray-900 font-medium hover:text-amber-600 transition"
+                      title="Click to edit date"
+                    >
+                      {detailModal.unlocked.achieved_date} ✎
+                    </button>
+                  )}
                 </div>
                 {detailModal.unlocked.awarded_by && (
                   <div className="flex justify-between">

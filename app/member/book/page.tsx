@@ -177,7 +177,7 @@ export default function MemberBookingPage() {
         // Find booking for CURRENTLY SELECTED member (for booking status/cancel button)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const selectedMemberBooking = bookings.find((b: any) =>
-          b.member_id === bookingForMemberId && b.status !== 'cancelled'
+          b.member_id === bookingForMemberId && (b.status === 'confirmed' || b.status === 'waitlist')
         );
 
         // Find bookings for ALL OTHER family members (for badge display)
@@ -187,7 +187,7 @@ export default function MemberBookingPage() {
           .filter((b: any) =>
             familyMemberIds.includes(b.member_id) &&
             b.member_id !== bookingForMemberId &&
-            b.status !== 'cancelled'
+            (b.status === 'confirmed' || b.status === 'waitlist')
           )
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           .map((b: any) => {

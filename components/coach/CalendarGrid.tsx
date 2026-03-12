@@ -237,29 +237,39 @@ export default function CalendarGrid({
 
             {/* Booking Info */}
             {wod.booking_info && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onSessionManagementClick(wod.booking_info!.session_id, wod.date);
-                }}
-                className={`flex-shrink-0 text-[10px] font-bold text-white rounded px-1 py-0.5 hover:opacity-80 transition cursor-pointer ${
-                  wod.booking_info.capacity === 0
-                    ? 'bg-teal-500'
-                    : wod.booking_info.waitlist_count > 0
-                      ? 'bg-purple-600'
-                      : wod.booking_info.confirmed_count >= wod.booking_info.capacity
-                        ? 'bg-red-600'
-                        : wod.booking_info.confirmed_count >= wod.booking_info.capacity * 0.8
-                          ? 'bg-yellow-600'
-                          : 'bg-teal-500'
-                }`}
-                title={`Click to manage session - ${wod.booking_info.confirmed_count} confirmed / ${wod.booking_info.capacity === 0 ? 'unlimited' : wod.booking_info.capacity} capacity${
-                  wod.booking_info.waitlist_count > 0 ? ` (+${wod.booking_info.waitlist_count} waitlist)` : ''
-                }`}
-              >
-                {wod.booking_info.confirmed_count}/{wod.booking_info.capacity === 0 ? '∞' : wod.booking_info.capacity}
-                {wod.booking_info.waitlist_count > 0 ? ` +${wod.booking_info.waitlist_count}` : ''}
-              </button>
+              <div className="relative group/booking flex-shrink-0">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSessionManagementClick(wod.booking_info!.session_id, wod.date);
+                  }}
+                  className={`text-[10px] font-bold text-white rounded px-1 py-0.5 hover:opacity-80 transition cursor-pointer ${
+                    wod.booking_info.capacity === 0
+                      ? 'bg-teal-500'
+                      : wod.booking_info.waitlist_count > 0
+                        ? 'bg-purple-600'
+                        : wod.booking_info.confirmed_count >= wod.booking_info.capacity
+                          ? 'bg-red-600'
+                          : wod.booking_info.confirmed_count >= wod.booking_info.capacity * 0.8
+                            ? 'bg-yellow-600'
+                            : 'bg-teal-500'
+                  }`}
+                >
+                  {wod.booking_info.confirmed_count}/{wod.booking_info.capacity === 0 ? '∞' : wod.booking_info.capacity}
+                  {wod.booking_info.waitlist_count > 0 ? ` +${wod.booking_info.waitlist_count}` : ''}
+                </button>
+                {/* Booked athletes popover */}
+                {wod.booking_info.booked_members && wod.booking_info.booked_members.length > 0 && (
+                  <div className="hidden group-hover/booking:block absolute left-0 top-full mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-xl p-2 z-[300] min-w-[140px] max-w-[200px]">
+                    <p className="text-[10px] font-semibold text-gray-400 mb-1 uppercase tracking-wider">Booked</p>
+                    <ul className="space-y-0.5">
+                      {wod.booking_info.booked_members.map((name, i) => (
+                        <li key={i} className="text-xs text-white truncate">{name}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
             )}
           </div>
 

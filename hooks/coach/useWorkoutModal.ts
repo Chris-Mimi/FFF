@@ -93,6 +93,7 @@ export interface WODFormData {
     waitlist_count: number;
     capacity: number;
     time?: string;
+    booked_members?: string[];
   };
   selectedSessionIds?: string[]; // For applying workout to multiple sessions
   video_clips?: { label: string; url: string }[]; // Manually attached movement demo clips

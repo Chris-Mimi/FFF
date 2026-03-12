@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 73.0
-**Updated:** 2026-03-11 (Session 195 - Mobile scroll indicator + booking filter)
+**Version:** 74.0
+**Updated:** 2026-03-12 (Session 197 - Booking fix + coach hover + achievement edit + For Time scoring)
 
 ---
 
@@ -88,10 +88,16 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-12 Session 197 - Opus 4.6) — BOOKING FIX + COACH HOVER + SCORING:**
+- **✅ Book a Class: coach_cancelled fix** — Booking filter now uses explicit `confirmed`/`waitlist` match instead of excluding only `cancelled`. Fixes ghost "Cancel" button when coach removes athlete from session.
+- **✅ Coach calendar: booked athletes hover** — Booking badge on calendar cards shows sorted list of booked athlete names on hover. Added `booked_members` to booking data (joined from members table).
+- **✅ Achievement date editing** — Athlete detail modal now has inline date edit (✎ icon → date picker → Save/Cancel).
+- **✅ For Time scoring: mutual exclusivity** — When coach enables Time + Reps/Rounds, athlete sees Time|Cap toggle. Selecting one clears the other. Leaderboard now sorts Rx before Scaled, then by metric.
+
 **Completed (2026-03-12 Session 196 - Opus 4.6) — FORGOT PASSWORD + MOBILE FIXES:**
-- **✅ Forgot/Reset password flow** — Created `/forgot-password` page (Supabase `resetPasswordForEmail`), `/reset-password` page (`updateUser`), updated auth callback to handle `next` param redirect, added both routes to middleware public paths.
-- **✅ Login page mobile spacing** — Tightened logo gap, form spacing, card padding, label gaps so "Forgot your password?" link is visible without scrolling on mobile. Styled link as teal underlined.
-- **✅ Book a Class header mobile** — Moved NotificationPrompt banner below header row (was inline with buttons, pushing them off-screen). Back/Logout show icon-only on mobile, text on sm+.
+- **✅ Forgot/Reset password flow** — Created `/forgot-password` page, `/reset-password` page, auth callback `next` param.
+- **✅ Login page mobile spacing** — Tightened spacing so "Forgot your password?" visible without scrolling.
+- **✅ Book a Class header mobile** — NotificationPrompt below header row, icon-only buttons on mobile.
 
 **Completed (2026-03-11 Session 195 - Opus 4.6) — MOBILE UX + BOOKING FILTER:**
 - **✅ Athlete tab scroll indicator** — Animated bouncing chevron + gradient fade on mobile tab bar.
@@ -106,10 +112,7 @@ Social Tables
 - **✅ First live payment processed** — Chris's athlete account active.
 - **⚠️ Mimi needs to re-subscribe** — Clear her `stripe_customer_id` first.
 
-**Completed (2026-03-10 Session 192 - Opus 4.6) — MOBILE FIXES + GOOGLE CALENDAR TIMEZONE:**
-- **✅ Leaderboard dropdown, Members tabs mobile, Google Calendar timezone fix.**
-
-**Older Sessions (57-191):**
+**Older Sessions (57-192):**
 See `project-history/` folder for detailed implementation history
 
 ---

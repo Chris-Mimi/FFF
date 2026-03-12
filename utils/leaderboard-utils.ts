@@ -69,7 +69,7 @@ interface ScoringFields {
 export function detectScoringType(scoringFields?: ScoringFields): string {
   if (!scoringFields) return 'time';
   if (scoringFields.max_time) return 'max_time';
-  if (scoringFields.time && scoringFields.rounds_reps) return 'time_with_cap';
+  if (scoringFields.time && (scoringFields.rounds_reps || scoringFields.reps)) return 'time_with_cap';
   if (scoringFields.time) return 'time';
   if (scoringFields.rounds_reps) return 'rounds_reps';
   if (scoringFields.reps) return 'reps';
@@ -213,8 +213,14 @@ export function rankSectionResults(
     }
   });
 
-  // Sort
-  const sorted = [...valid].sort((a, b) => compareByScoringType(a, b, scoringType));
+  // Sort: Rx first, then by scoring type within each scaling group
+  const scalingOrder: Record<string, number> = { 'Rx': 0, 'Sc1': 1, 'Sc2': 2, 'Sc3': 3 };
+  const sorted = [...valid].sort((a, b) => {
+    const aScale = scalingOrder[a.scaling_level || ''] ?? 4;
+    const bScale = scalingOrder[b.scaling_level || ''] ?? 4;
+    if (aScale !== bScale) return aScale - bScale;
+    return compareByScoringType(a, b, scoringType);
+  });
 
   // Assign ranks
   return sorted.map((r, i) => ({
