@@ -528,22 +528,19 @@ export default function MemberBookingPage() {
       {/* Header */}
       <header className="bg-gray-800 border-b border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <div className="flex items-center gap-3">
-                <Image src="/icon.png" alt="The Forge logo" width={48} height={48} className="w-14 h-14 sm:w-16 sm:h-16 object-contain" />
-                <div>
-                  <h1 className="text-xl sm:text-2xl font-bold text-white">Book a Class</h1>
-                  <p className="text-gray-400 text-xs sm:text-sm">Reserve your spot in upcoming sessions</p>
-                </div>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <Image src="/icon.png" alt="The Forge logo" width={48} height={48} className="w-10 h-10 sm:w-16 sm:h-16 object-contain flex-shrink-0" />
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-2xl font-bold text-white">Book a Class</h1>
+                <p className="text-gray-400 text-xs sm:text-sm truncate">Reserve your spot in upcoming sessions</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <NotificationPrompt />
+            <div className="flex items-center gap-2 flex-shrink-0">
               <Link href="/athlete">
                 <button className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg transition-colors duration-200 min-h-[44px] text-xs sm:text-sm bg-teal-500 hover:bg-teal-600 text-white">
                   <ChevronLeft size={16} />
-                  Back
+                  <span className="hidden sm:inline">Back</span>
                 </button>
               </Link>
               <button
@@ -551,9 +548,12 @@ export default function MemberBookingPage() {
                 className="flex items-center justify-center gap-1.5 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 min-h-[44px] text-xs sm:text-sm"
               >
                 <LogOut size={16} />
-                Logout
+                <span className="hidden sm:inline">Logout</span>
               </button>
             </div>
+          </div>
+          <div className="mt-3">
+            <NotificationPrompt />
           </div>
         </div>
       </header>

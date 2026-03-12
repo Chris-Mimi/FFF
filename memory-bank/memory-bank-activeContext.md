@@ -88,33 +88,28 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-12 Session 196 - Opus 4.6) — FORGOT PASSWORD + MOBILE FIXES:**
+- **✅ Forgot/Reset password flow** — Created `/forgot-password` page (Supabase `resetPasswordForEmail`), `/reset-password` page (`updateUser`), updated auth callback to handle `next` param redirect, added both routes to middleware public paths.
+- **✅ Login page mobile spacing** — Tightened logo gap, form spacing, card padding, label gaps so "Forgot your password?" link is visible without scrolling on mobile. Styled link as teal underlined.
+- **✅ Book a Class header mobile** — Moved NotificationPrompt banner below header row (was inline with buttons, pushing them off-screen). Back/Logout show icon-only on mobile, text on sm+.
+
 **Completed (2026-03-11 Session 195 - Opus 4.6) — MOBILE UX + BOOKING FILTER:**
-- **✅ Athlete tab scroll indicator** — Added animated bouncing chevron arrow + gradient fade on right edge of mobile tab bar so users know they can scroll. Left fade appears when scrolled. `md:hidden` (mobile only).
-- **✅ Booking filter: Diapers & Dumbbells** — Added to `FOUNDATIONS_TYPES` array in Book a Class page so it appears under Foundations filter chip.
+- **✅ Athlete tab scroll indicator** — Animated bouncing chevron + gradient fade on mobile tab bar.
+- **✅ Booking filter: Diapers & Dumbbells** — Added to `FOUNDATIONS_TYPES` array.
 
 **Completed (2026-03-11 Session 194 - Opus 4.6) — MEMBERCARD SUBSCRIPTION DISPLAY:**
-- **✅ Subscription plan differentiation** — MemberCard now shows "Trial (X days)", "Active (Monthly)", "Active (Yearly)", or "Active" (manual). Fetches `plan_type` from `subscriptions` table.
-- **✅ Consistent card layout** — Phone field always renders (shows "—" when empty) so all cards have same grid structure.
-- **✅ Stripe refund docs** — Added "Stripe: Refund Payment & Cancel Subscription" section to Reset-Athlete-Account.md.
+- **✅ Subscription plan differentiation** — MemberCard shows Trial/Monthly/Yearly/Active.
+- **✅ Consistent card layout** — Phone field always renders.
 
 **Completed (2026-03-11 Session 193 - Opus 4.6) — STRIPE LIVE MODE KEY FIX:**
-- **✅ Stripe secret key** — Vercel had test/sandbox `sk_test_` key instead of `sk_live_`. Created new live key, updated Vercel.
-- **✅ Stripe webhook secret** — Was from test mode. Updated with live mode signing secret.
-- **✅ Stripe price IDs** — Updated to live mode price IDs.
-- **✅ Stripe identity verification** — Confirmed complete and active.
-- **✅ First live payment processed** — Chris's athlete account, monthly subscription active.
-- **✅ Coach Members label fix** — "Athlete Trial:" → "Athlete App:" on MemberCard.
-- **⚠️ Mimi needs to re-subscribe** — Previous attempts were against sandbox. Clear her `stripe_customer_id` before she tries.
+- **✅ Stripe keys fixed** — Live secret key, webhook secret, price IDs updated on Vercel.
+- **✅ First live payment processed** — Chris's athlete account active.
+- **⚠️ Mimi needs to re-subscribe** — Clear her `stripe_customer_id` first.
 
 **Completed (2026-03-10 Session 192 - Opus 4.6) — MOBILE FIXES + GOOGLE CALENDAR TIMEZONE:**
-- **✅ Leaderboard workout dropdown** — Replaced native `<select>` with custom dropdown (smaller options, text-xs)
-- **✅ Members page tabs mobile** — Added `overflow-x-auto` + `whitespace-nowrap` so Subscriptions/At-Risk tabs scroll into view
-- **✅ Google Calendar timezone fix** — Events were +1h off on Vercel (UTC server). Fixed by sending timezone-naive strings with `timeZone: 'Europe/Berlin'` instead of `.toISOString()` (which converted to UTC)
+- **✅ Leaderboard dropdown, Members tabs mobile, Google Calendar timezone fix.**
 
-**Completed (2026-03-10 Session 191 - Opus 4.6) — STRIPE LIVE + ACCOUNT FIXES:**
-- **✅ Mimi's accounts fully reset** + Stripe Live Mode env vars redeployed
-
-**Older Sessions (57-190):**
+**Older Sessions (57-191):**
 See `project-history/` folder for detailed implementation history
 
 ---
