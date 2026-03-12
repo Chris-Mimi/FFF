@@ -144,7 +144,7 @@ export async function POST(request: NextRequest) {
 
     // Check if member already has a booking for this session
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const existingBooking = session.bookings?.find((b: any) => b.member_id === bookingMemberId && b.status !== 'cancelled');
+    const existingBooking = session.bookings?.find((b: any) => b.member_id === bookingMemberId && (b.status === 'confirmed' || b.status === 'waitlist'));
     if (existingBooking) {
       return NextResponse.json(
         { error: 'This member has already booked this session' },

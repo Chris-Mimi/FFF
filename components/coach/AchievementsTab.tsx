@@ -294,20 +294,20 @@ export default function AchievementsTab() {
                         )}
 
                         {/* Edit/Delete on hover */}
-                        <div className="hidden group-hover:flex items-center gap-0.5 ml-1">
+                        <div className="hidden group-hover:flex items-center gap-0.5 absolute -right-1 -top-1 bg-gray-700 rounded-full px-1 py-0.5 shadow-lg border border-gray-500">
                           <button
                             onClick={() => {
                               setEditing(def);
                               setShowModal(true);
                             }}
-                            className="p-0.5 text-gray-400 hover:text-blue-400 transition"
+                            className="p-0.5 text-gray-300 hover:text-blue-400 transition"
                             aria-label={`Edit ${def.name}`}
                           >
                             <Edit2 size={12} />
                           </button>
                           <button
                             onClick={() => handleDelete(def)}
-                            className="p-0.5 text-gray-400 hover:text-red-400 transition"
+                            className="p-0.5 text-gray-300 hover:text-red-400 transition"
                             aria-label={`Delete ${def.name}`}
                           >
                             <Trash2 size={12} />

@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 74.0
-**Updated:** 2026-03-12 (Session 197 - Booking fix + coach hover + achievement edit + For Time scoring)
+**Version:** 75.0
+**Updated:** 2026-03-12 (Session 198 - Achievement chip hover fix + re-booking after coach_cancelled)
 
 ---
 
@@ -88,6 +88,11 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-12 Session 198 - Opus 4.6) — ACHIEVEMENT CHIP FIX + RE-BOOKING FIX:**
+- **✅ Achievement chip hover fix** — Edit/delete buttons now absolute-positioned overlay instead of inline, preventing flex-wrap reflow that made chips unjumpable.
+- **✅ Re-booking after coach_cancelled** — Booking creation API duplicate check now only blocks `confirmed`/`waitlist` (was excluding only `cancelled`, missing `coach_cancelled`/`no_show`/`late_cancel`).
+- **✅ Audit: score submission loophole** — Confirmed save path has no booking validation, but UI gate (logbook only shows booked workouts) prevents normal access. Only edge case: coach removes booking while athlete is mid-entry (race condition, not worth adding DB overhead).
+
 **Completed (2026-03-12 Session 197 - Opus 4.6) — BOOKING FIX + COACH HOVER + SCORING:**
 - **✅ Book a Class: coach_cancelled fix** — Booking filter now uses explicit `confirmed`/`waitlist` match instead of excluding only `cancelled`. Fixes ghost "Cancel" button when coach removes athlete from session.
 - **✅ Coach calendar: booked athletes hover** — Booking badge on calendar cards shows sorted list of booked athlete names on hover. Added `booked_members` to booking data (joined from members table).
@@ -107,12 +112,7 @@ Social Tables
 - **✅ Subscription plan differentiation** — MemberCard shows Trial/Monthly/Yearly/Active.
 - **✅ Consistent card layout** — Phone field always renders.
 
-**Completed (2026-03-11 Session 193 - Opus 4.6) — STRIPE LIVE MODE KEY FIX:**
-- **✅ Stripe keys fixed** — Live secret key, webhook secret, price IDs updated on Vercel.
-- **✅ First live payment processed** — Chris's athlete account active.
-- **⚠️ Mimi needs to re-subscribe** — Clear her `stripe_customer_id` first.
-
-**Older Sessions (57-192):**
+**Older Sessions (57-193):**
 See `project-history/` folder for detailed implementation history
 
 ---
