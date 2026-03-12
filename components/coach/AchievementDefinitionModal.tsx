@@ -33,12 +33,13 @@ export default function AchievementDefinitionModal({
   allDefinitions,
 }: AchievementDefinitionModalProps) {
   const [name, setName] = useState('');
-  const [category, setCategory] = useState<string>(ACHIEVEMENT_CATEGORIES[0]);
+  const [category, setCategory] = useState('');
   const [branch, setBranch] = useState('');
   const [tier, setTier] = useState(1);
   const [description, setDescription] = useState('');
   const [displayOrder, setDisplayOrder] = useState(0);
   const [showBranchSuggestions, setShowBranchSuggestions] = useState(false);
+  const [showCategorySuggestions, setShowCategorySuggestions] = useState(false);
 
   // Template selection
   const [templateSearch, setTemplateSearch] = useState('');
@@ -69,7 +70,7 @@ export default function AchievementDefinitionModal({
     setSelectedTemplate('');
     setTemplateSearch('');
     setName('');
-    setCategory(ACHIEVEMENT_CATEGORIES[0]);
+    setCategory('');
     setBranch('');
     setTier(1);
     setDescription('');
@@ -86,7 +87,7 @@ export default function AchievementDefinitionModal({
       setDisplayOrder(editing.display_order);
     } else {
       setName('');
-      setCategory(ACHIEVEMENT_CATEGORIES[0]);
+      setCategory('');
       setBranch('');
       setTier(1);
       setDescription('');
@@ -120,9 +121,18 @@ export default function AchievementDefinitionModal({
     b.toLowerCase().includes(branch.toLowerCase())
   );
 
+  // Build unique existing categories from definitions + defaults
+  const existingCategories = [...new Set([
+    ...ACHIEVEMENT_CATEGORIES,
+    ...allDefinitions.map(d => d.category),
+  ])].sort();
+  const filteredCategories = existingCategories.filter((c) =>
+    c.toLowerCase().includes(category.toLowerCase())
+  );
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !branch.trim()) return;
+    if (!name.trim() || !category.trim() || !branch.trim()) return;
     onSave({
       name: name.trim(),
       category,
@@ -211,22 +221,41 @@ export default function AchievementDefinitionModal({
               </div>
             )}
 
-            {/* Category */}
-            <div>
+            {/* Category (with autocomplete) */}
+            <div className="relative">
               <label className="block text-sm font-semibold text-gray-700 mb-1">
                 Category
               </label>
-              <select
+              <input
+                type="text"
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
+                onChange={(e) => {
+                  setCategory(e.target.value);
+                  setShowCategorySuggestions(true);
+                }}
+                onFocus={() => setShowCategorySuggestions(true)}
+                onBlur={() => setTimeout(() => setShowCategorySuggestions(false), 200)}
+                placeholder="e.g. Bodyweight, Gymnastics, Strength"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-              >
-                {ACHIEVEMENT_CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
+                required
+              />
+              {showCategorySuggestions && filteredCategories.length > 0 && (
+                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                  {filteredCategories.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => {
+                        setCategory(c);
+                        setShowCategorySuggestions(false);
+                      }}
+                      className="w-full text-left px-3 py-2 hover:bg-amber-50 text-sm text-gray-700"
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Branch (with autocomplete) */}
