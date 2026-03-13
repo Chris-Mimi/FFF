@@ -87,6 +87,73 @@ export function notifyWaitlistPromoted(userId: string, sessionDate: string, sess
 }
 
 /**
+ * Notify a specific user that their session has been cancelled by the coach.
+ */
+export function notifySessionCancelled(userId: string, sessionDate: string, sessionTime: string): void {
+  const dateFormatted = new Date(sessionDate + 'T00:00:00').toLocaleDateString('de-DE', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  });
+
+  const payload: PushPayload = {
+    title: 'Session Cancelled',
+    body: `${dateFormatted} at ${sessionTime} has been cancelled by your coach`,
+    data: { url: '/member/book', type: 'session_cancelled' },
+  };
+
+  sendToUser(userId, payload, 'session_cancelled').catch((err) =>
+    console.error('notifySessionCancelled failed:', err)
+  );
+}
+
+/**
+ * Notify a user that the coach added them to a session.
+ */
+export function notifyCoachBooked(userId: string, sessionDate: string, sessionTime: string, status: 'confirmed' | 'waitlist'): void {
+  const dateFormatted = new Date(sessionDate + 'T00:00:00').toLocaleDateString('de-DE', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  });
+
+  const isConfirmed = status === 'confirmed';
+  const payload: PushPayload = {
+    title: isConfirmed ? 'Booked by Coach' : 'Waitlisted by Coach',
+    body: isConfirmed
+      ? `Your coach booked you in for ${dateFormatted} at ${sessionTime}`
+      : `Your coach added you to the waitlist for ${dateFormatted} at ${sessionTime}`,
+    data: { url: '/member/book', type: isConfirmed ? 'booking_confirmed' : 'booking_waitlisted' },
+  };
+
+  const notificationType = isConfirmed ? 'booking_confirmed' : 'booking_waitlisted';
+  sendToUser(userId, payload, notificationType).catch((err) =>
+    console.error('notifyCoachBooked failed:', err)
+  );
+}
+
+/**
+ * Notify a user that the coach removed them from a session.
+ */
+export function notifyCoachRemoved(userId: string, sessionDate: string, sessionTime: string): void {
+  const dateFormatted = new Date(sessionDate + 'T00:00:00').toLocaleDateString('de-DE', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  });
+
+  const payload: PushPayload = {
+    title: 'Booking Removed',
+    body: `Your coach removed your booking for ${dateFormatted} at ${sessionTime}`,
+    data: { url: '/member/book', type: 'session_cancelled' },
+  };
+
+  sendToUser(userId, payload, 'session_cancelled').catch((err) =>
+    console.error('notifyCoachRemoved failed:', err)
+  );
+}
+
+/**
  * Notify a user they achieved a new personal record.
  */
 export function notifyPrAchieved(userId: string, liftOrBenchmark: string, value: string): void {

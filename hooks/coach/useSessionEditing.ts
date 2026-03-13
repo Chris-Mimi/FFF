@@ -2,6 +2,7 @@ import { confirm } from '@/lib/confirm';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
+import { authFetch } from '@/lib/auth-fetch';
 import {
   validateCapacity,
   promoteWaitlistMembers,
@@ -65,7 +66,16 @@ export function useSessionEditing({
 
       // Auto-promote waitlist members if capacity increased
       const spotsOpened = newCapacity - confirmedCount;
-      await promoteWaitlistMembers(supabase, sessionId, spotsOpened);
+      const promotedMemberIds = await promoteWaitlistMembers(supabase, sessionId, spotsOpened);
+
+      // Notify promoted members (fire-and-forget)
+      if (promotedMemberIds.length > 0) {
+        authFetch('/api/notifications/coach-booking', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId, action: 'waitlist_promoted', promotedMemberIds }),
+        }).catch((err) => console.error('Waitlist promotion notification failed:', err));
+      }
 
       setEditingCapacity(false);
       await onRefresh();
@@ -147,7 +157,14 @@ export function useSessionEditing({
         .eq('session_id', sessionId)
         .in('status', ['confirmed', 'waitlist']);
 
-      toast.success('Session cancelled successfully. Please notify affected members.');
+      // Notify affected members (fire-and-forget)
+      authFetch('/api/notifications/session-cancelled', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId }),
+      }).catch((err) => console.error('Session cancel notification failed:', err));
+
+      toast.success('Session cancelled — members have been notified.');
       onSessionUpdated();
     } catch (error) {
       console.error('Error cancelling session:', error);

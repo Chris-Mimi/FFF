@@ -10,34 +10,12 @@ http://192.168.178.75:3000
 All equipment & Body Parts lists need optimising
 
 * Make a plan for how we export and then re-import the data from my Google Calendar workouts from the past 5 years.
-
-* - January 2025 launch timeline (5 weeks)
-  - Week 1 (Dec 2-8) has CRITICAL items:
-    a. RLS policies migration (SECURITY RISK - currently public access)
-    b. Build verification + code cleanup (42 ESLint warnings)
-    c. Analysis page scroll jump bug (deferred from Session 25)
-*
-*
+    
 # Workout Library tab (coach) #
 Integration with website
 Investigate the "Whiteboard Intro" sections appearing in earlier workouts
-Change Mimi's name in Supabase to "Coach Mimi"
 
 Athlete login:
-
- # Achievements tab #
- If I want to add/change a category: edit this file:
- /Users/mimihiles/SynologyDrive/CrossFit Hammerschmiede (CFH)/AI Development/forge-functional-fitness/types/achievements.ts
- In this section:
- export const ACHIEVEMENT_CATEGORIES = [
-  'Bodyweight',
-  'Gymnastics',
-  'Olympic Lifting',
-  'Strength',
-  'Skills',
-  'Endurance',
-] as const;
-
 
  # Edit Workout Modal (coach) #
  IMPROVEMENTS/Bug Fixes:
@@ -46,14 +24,10 @@ Athlete login:
   # Publish Workout Modal (coach) #
  IMPROVEMENTS/Bug Fixes:
 
-
  # Exercises tab (coach) #
  IMPROVEMENTS/Bug Fixes:
 
 # Analysis page
-* If I am not at the top of the page, the page jumps when clicking a category filter button.
-* 
-
 
 # Calendar View #
 *
@@ -61,11 +35,8 @@ Athlete login:
 # Athlete Published Workouts Page #
 SHould only show the days on which athlete has attended a workout. For example, if athletes have not attended a workout on a day, the day should not be displayed.
 * 
-*
 
 # Athlete Logbook Page #
-
-* 
 
 # Member Management Page #
 *

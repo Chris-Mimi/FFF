@@ -2,6 +2,7 @@ import { confirm } from '@/lib/confirm';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
+import { authFetch } from '@/lib/auth-fetch';
 import { calculateConfirmedCount, canAddToSession } from '@/lib/coach/bookingHelpers';
 import { Booking, Member } from './useSessionDetails';
 
@@ -85,6 +86,13 @@ export function useBookingManagement({
           // Don't fail the booking for this
         }
       }
+
+      // Notify member (fire-and-forget)
+      authFetch('/api/notifications/coach-booking', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, memberId: selectedMemberId, action: 'added', status: bookingStatus }),
+      }).catch((err) => console.error('Coach booking notification failed:', err));
 
       await onRefresh();
       onSessionUpdated();
@@ -233,6 +241,13 @@ export function useBookingManagement({
           .update({ ten_card_sessions_used: member.ten_card_sessions_used - 1 })
           .eq('id', memberId);
       }
+
+      // Notify member (fire-and-forget)
+      authFetch('/api/notifications/coach-booking', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, memberId, action: 'removed' }),
+      }).catch((err) => console.error('Coach removal notification failed:', err));
 
       await onRefresh();
       onSessionUpdated();

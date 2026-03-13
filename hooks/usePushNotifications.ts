@@ -19,6 +19,7 @@ export interface NotificationPreferences {
   booking_confirmed: boolean;
   booking_waitlisted: boolean;
   booking_promoted: boolean;
+  session_cancelled: boolean;
   pr_achieved: boolean;
   achievement_awarded: boolean;
 }
@@ -28,6 +29,7 @@ const DEFAULT_PREFERENCES: NotificationPreferences = {
   booking_confirmed: true,
   booking_waitlisted: true,
   booking_promoted: true,
+  session_cancelled: true,
   pr_achieved: true,
   achievement_awarded: true,
 };

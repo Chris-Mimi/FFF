@@ -46,8 +46,8 @@ export async function promoteWaitlistMembers(
   supabase: SupabaseClient,
   sessionId: string,
   spotsOpened: number
-): Promise<void> {
-  if (spotsOpened <= 0) return;
+): Promise<string[]> {
+  if (spotsOpened <= 0) return [];
 
   // Fetch waitlist bookings in order
   const { data: waitlistBookings } = await supabase
@@ -58,7 +58,9 @@ export async function promoteWaitlistMembers(
     .order('booked_at', { ascending: true })
     .limit(spotsOpened);
 
-  if (!waitlistBookings || waitlistBookings.length === 0) return;
+  if (!waitlistBookings || waitlistBookings.length === 0) return [];
+
+  const promotedMemberIds: string[] = [];
 
   // Promote each waitlist member
   for (const booking of waitlistBookings) {
@@ -83,7 +85,11 @@ export async function promoteWaitlistMembers(
         })
         .eq('id', booking.member_id);
     }
+
+    promotedMemberIds.push(booking.member_id);
   }
+
+  return promotedMemberIds;
 }
 
 /**

@@ -14,6 +14,7 @@ const PREF_LABELS: Record<keyof NotificationPreferences, string> = {
   booking_confirmed: 'Booking Confirmed',
   booking_waitlisted: 'Waitlist Updates',
   booking_promoted: 'Spot Opened',
+  session_cancelled: 'Session Cancelled',
   pr_achieved: 'New PR',
   achievement_awarded: 'Achievement Awarded',
 };

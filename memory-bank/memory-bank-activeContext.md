@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 79.0
-**Updated:** 2026-03-13 (Session 201 - Auto-populate sessions with default sections)
+**Version:** 80.0
+**Updated:** 2026-03-13 (Session 202 - Booking & session cancellation notifications)
 
 ---
 
@@ -88,6 +88,14 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-13 Session 202 - Opus 4.6) — BOOKING & SESSION CANCELLATION NOTIFICATIONS:**
+- **✅ Session cancellation notifications** — When coach cancels a session, all affected members receive push notification. New API route `/api/notifications/session-cancelled`.
+- **✅ Coach add/remove notifications** — Athletes notified when coach manually adds or removes them from a session. New API route `/api/notifications/coach-booking`.
+- **✅ Waitlist promotion notifications (capacity increase)** — When coach increases session capacity, promoted waitlist members now get notified. `promoteWaitlistMembers` returns promoted member IDs.
+- **✅ Notification preference toggle** — New `session_cancelled` column in `notification_preferences` table. Added to preferences API, type, and UI toggle.
+- **⏳ Migration pending** — `database/20260313_add_session_cancelled_preference.sql` (run in Supabase SQL Editor)
+- **Fix:** `npm install` was needed — `resend` package was in `package.json` but not installed in `node_modules`.
+
 **Completed (2026-03-13 Session 201 - Opus 4.6) — AUTO-POPULATE SESSIONS + COPY SAFETY:**
 - **✅ Default sections on session generation** — "This Week"/"Next Week" now creates a WOD record per session with 4 default sections: Whiteboard Intro (0 min), Warm-up (12 min), Skill (15 min), WOD (15 min). Default workout name = `YYYY-MM-DD HH:MM`. Fixed: `.single()` → `.maybeSingle()` for existence check, added missing `title` and `class_times` fields.
 - **✅ Updated manual new workout template** — useWorkoutModal now uses same 4 default sections (was Warm-up → WOD → Cool Down).
@@ -111,13 +119,7 @@ Social Tables
 - **✅ Audit: score submission loophole** — Confirmed save path has no booking validation, but UI gate (logbook only shows booked workouts) prevents normal access. Race condition only, not worth DB overhead.
 - **✅ Time + AMRAP scoring mode** — New scoring mode for "For Time then AMRAP" workouts. Coach toggle: "For Time (Cap)" vs "Time + AMRAP" when Time + Reps/Rounds enabled. Athlete sees both time (optional) and reps/rounds inputs simultaneously. Leaderboard sorts: Scaling → Reps/Rounds (more=better) → Time tiebreaker (lower=better). Display: `3+12 (4:30)`. Stored as `time_amrap: true` in JSONB `scoring_fields`.
 
-**Completed (2026-03-12 Session 197 - Opus 4.6) — BOOKING FIX + COACH HOVER + SCORING:**
-- **✅ Book a Class: coach_cancelled fix** — Booking filter now uses explicit `confirmed`/`waitlist` match instead of excluding only `cancelled`. Fixes ghost "Cancel" button when coach removes athlete from session.
-- **✅ Coach calendar: booked athletes hover** — Booking badge on calendar cards shows sorted list of booked athlete names on hover. Added `booked_members` to booking data (joined from members table).
-- **✅ Achievement date editing** — Athlete detail modal now has inline date edit (✎ icon → date picker → Save/Cancel).
-- **✅ For Time scoring: mutual exclusivity** — When coach enables Time + Reps/Rounds, athlete sees Time|Cap toggle. Selecting one clears the other. Leaderboard now sorts Rx before Scaled, then by metric.
-
-**Older Sessions (57-196):**
+**Older Sessions (57-197):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -164,6 +166,7 @@ See `project-history/` folder for detailed implementation history
 - ✅ `20260307000002_add_pattern_track.sql` — Adds track column to movement_patterns + updated unique constraint (Session 184, applied)
 - ✅ `20260308000000_add_plan_items_indexes.sql` — Indexes on programming_plan_items(user_id, pattern_id) (Session 187, applied)
 - ✅ `20260310000000_add_duplicate_prevention_constraints.sql` — Unique indexes on wod_section_results + benchmark_results (Session 189, applied Session 190)
+- ⏳ `20260313_add_session_cancelled_preference.sql` — Adds `session_cancelled` boolean column to notification_preferences (Session 202)
 
 ---
 
