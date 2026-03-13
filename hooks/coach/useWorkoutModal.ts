@@ -412,20 +412,26 @@ export function useWorkoutModal(
         const templateSections: WODSection[] = [
           {
             id: `section-${timestamp}-1`,
+            type: 'Whiteboard Intro',
+            duration: 0,
+            content: '',
+          },
+          {
+            id: `section-${timestamp}-2`,
             type: 'Warm-up',
             duration: 12,
             content: '',
           },
           {
-            id: `section-${timestamp}-2`,
-            type: 'WOD',
+            id: `section-${timestamp}-3`,
+            type: 'Skill',
             duration: 15,
             content: '',
           },
           {
-            id: `section-${timestamp}-3`,
-            type: 'Cool Down',
-            duration: 10,
+            id: `section-${timestamp}-4`,
+            type: 'WOD',
+            duration: 15,
             content: '',
           },
         ];

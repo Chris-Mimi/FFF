@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 78.0
-**Updated:** 2026-03-13 (Session 200 - Domain verification + booking bug fixes)
+**Version:** 79.0
+**Updated:** 2026-03-13 (Session 201 - Auto-populate sessions with default sections)
 
 ---
 
@@ -88,6 +88,11 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-13 Session 201 - Opus 4.6) — AUTO-POPULATE SESSIONS + COPY SAFETY:**
+- **✅ Default sections on session generation** — "This Week"/"Next Week" now creates a WOD record per session with 4 default sections: Whiteboard Intro (0 min), Warm-up (12 min), Skill (15 min), WOD (15 min). Default workout name = `YYYY-MM-DD HH:MM`. Fixed: `.single()` → `.maybeSingle()` for existence check, added missing `title` and `class_times` fields.
+- **✅ Updated manual new workout template** — useWorkoutModal now uses same 4 default sections (was Warm-up → WOD → Cool Down).
+- **✅ Copy workout safety** — When copying a workout, default date+time placeholder names are cleared to `null` to prevent accidental leaderboard grouping. Custom names preserved.
+
 **Completed (2026-03-13 Session 200 - Opus 4.6) — DOMAIN VERIFICATION + BOOKING FIXES:**
 - **✅ Resend domain verified** — Added SPF/DKIM/DMARC DNS records in Squarespace for `the-forge-functional-fitness.de`. Updated `EMAIL_FROM` to `noreply@the-forge-functional-fitness.de` in `.env.local` + Vercel.
 - **✅ Full flow tested** — Register → approve → email → login → Start Free Trial → Stripe checkout with 30-day trial. All working on live site. Stale test-mode `stripe_customer_id` cleared from test athlete.
@@ -112,19 +117,7 @@ Social Tables
 - **✅ Achievement date editing** — Athlete detail modal now has inline date edit (✎ icon → date picker → Save/Cancel).
 - **✅ For Time scoring: mutual exclusivity** — When coach enables Time + Reps/Rounds, athlete sees Time|Cap toggle. Selecting one clears the other. Leaderboard now sorts Rx before Scaled, then by metric.
 
-**Completed (2026-03-12 Session 196 - Opus 4.6) — FORGOT PASSWORD + MOBILE FIXES:**
-- **✅ Forgot/Reset password flow** — Created `/forgot-password` page, `/reset-password` page, auth callback `next` param.
-- **✅ Login page mobile spacing** — Tightened spacing so "Forgot your password?" visible without scrolling.
-- **✅ Book a Class header mobile** — NotificationPrompt below header row, icon-only buttons on mobile.
-
-**Older Sessions (57-195):**
-See `project-history/` folder for detailed implementation history
-
-**Completed (2026-03-11 Session 194 - Opus 4.6) — MEMBERCARD SUBSCRIPTION DISPLAY:**
-- **✅ Subscription plan differentiation** — MemberCard shows Trial/Monthly/Yearly/Active.
-- **✅ Consistent card layout** — Phone field always renders.
-
-**Older Sessions (57-193):**
+**Older Sessions (57-196):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -214,7 +207,9 @@ npm run restore 2025-12-06  # Restore specific date
 
 ### NEXT SESSION
 1. **April 13 reminder:** Verify Stripe trial payment processed for test athlete (Stripe Dashboard → Payments, Supabase → members status, Vercel webhook logs)
-2. **Discuss: Auto-populate new Sessions** (Idea from Session 195) — Whiteboard Intro section auto-included, default session name from date+time. ⚠️ Discuss before implementing.
+2. ✅ **Auto-populate new Sessions** — DONE (Session 201). Default sections: Whiteboard Intro → Warm-up → Skill → WOD.
+3. **Website integration** — Add "Member Login" link/button on Squarespace site pointing to `https://app.the-forge-functional-fitness.de`
+4. **Coach library** — Equipment & Body Parts lists need optimising (from Notes for next session)
 
 ### DEPLOYMENT (Session 158+)
 

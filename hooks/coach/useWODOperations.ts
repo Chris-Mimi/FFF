@@ -395,7 +395,7 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
           {
             title: wod.title,
             session_type: wod.session_type || wod.title,
-            workout_name: wod.workout_name || null,
+            workout_name: wod.workout_name?.match(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/) ? null : (wod.workout_name || null),
             workout_week: targetWorkoutWeek,
             track_id: wod.track_id || null,
             workout_type_id: wod.workout_type_id || null,

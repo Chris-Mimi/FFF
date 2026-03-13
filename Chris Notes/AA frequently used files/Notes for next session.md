@@ -19,7 +19,9 @@ All equipment & Body Parts lists need optimising
 *
 *
 # Workout Library tab (coach) #
-Sometimes, after closing an edited Workout by using the tick, when I return to it, it is missing the last edit. If I close and return, the movements are there again! - corrected this 23.02
+Integration with website
+Investigate the "Whiteboard Intro" sections appearing in earlier workouts
+Change Mimi's name in Supabase to "Coach Mimi"
 
 Athlete login:
 

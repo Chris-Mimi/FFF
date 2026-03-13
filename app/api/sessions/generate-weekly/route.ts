@@ -93,22 +93,70 @@ export async function POST(request: NextRequest) {
         .select('id')
         .eq('date', formattedDate)
         .eq('time', template.time)
-        .single();
+        .maybeSingle();
 
       if (existingSession) {
         continue;
       }
 
-      // Create weekly session without a placeholder WOD
-      // The WOD record will be created when the coach actually adds workout content
+      // Calculate ISO workout week
+      const wkDate = new Date(Date.UTC(sessionDate.getFullYear(), sessionDate.getMonth(), sessionDate.getDate()));
+      const dow = wkDate.getUTCDay() || 7;
+      wkDate.setUTCDate(wkDate.getUTCDate() + 4 - dow);
+      const isoYear = wkDate.getUTCFullYear();
+      const jan4 = new Date(Date.UTC(isoYear, 0, 4));
+      const jan4Dow = jan4.getUTCDay() || 7;
+      const firstThursday = new Date(Date.UTC(isoYear, 0, 4 + (4 - jan4Dow)));
+      const weekNo = Math.floor((wkDate.getTime() - firstThursday.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1;
+      const workoutWeek = `${isoYear}-W${String(weekNo).padStart(2, '0')}`;
+
+      // Format time for display (e.g. "17:00" → "17:00")
+      const displayTime = template.time.slice(0, 5);
+
+      // Default workout name: date + time (e.g. "2026-03-17 17:00")
+      const workoutName = `${formattedDate} ${displayTime}`;
+
+      // Default sections: Whiteboard Intro → Warm-up → Skill → WOD
+      const timestamp = Date.now();
+      const defaultSections = [
+        { id: `section-${timestamp}-1`, type: 'Whiteboard Intro', duration: 0, content: '' },
+        { id: `section-${timestamp}-2`, type: 'Warm-up', duration: 12, content: '' },
+        { id: `section-${timestamp}-3`, type: 'Skill', duration: 15, content: '' },
+        { id: `section-${timestamp}-4`, type: 'WOD', duration: 15, content: '' },
+      ];
+
+      // Create WOD record with default sections
+      const sessionType = template.workout_type || 'WOD';
+      const { data: newWOD, error: wodError } = await supabaseAdmin
+        .from('wods')
+        .insert({
+          title: sessionType,
+          date: formattedDate,
+          session_type: sessionType,
+          workout_name: workoutName,
+          workout_week: workoutWeek,
+          class_times: [template.time],
+          sections: defaultSections,
+          workout_publish_status: 'draft',
+        })
+        .select('id')
+        .single();
+
+      if (wodError) {
+        console.error('Error creating WOD:', wodError);
+        continue;
+      }
+
+      // Create weekly session linked to the WOD
       const { data: session, error: sessionError } = await supabaseAdmin
         .from('weekly_sessions')
         .insert({
           date: formattedDate,
           time: template.time,
+          workout_id: newWOD.id,
           workout_type: template.workout_type,
           capacity: template.default_capacity,
-          status: 'published' // Immediately bookable by members
+          status: 'published'
         })
         .select()
         .single();
