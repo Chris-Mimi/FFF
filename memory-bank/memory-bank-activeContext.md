@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 76.0
-**Updated:** 2026-03-12 (Session 198 - Achievement chip fix + re-booking fix + Time+AMRAP scoring)
+**Version:** 78.0
+**Updated:** 2026-03-13 (Session 200 - Domain verification + booking bug fixes)
 
 ---
 
@@ -88,6 +88,18 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-13 Session 200 - Opus 4.6) — DOMAIN VERIFICATION + BOOKING FIXES:**
+- **✅ Resend domain verified** — Added SPF/DKIM/DMARC DNS records in Squarespace for `the-forge-functional-fitness.de`. Updated `EMAIL_FROM` to `noreply@the-forge-functional-fitness.de` in `.env.local` + Vercel.
+- **✅ Full flow tested** — Register → approve → email → login → Start Free Trial → Stripe checkout with 30-day trial. All working on live site. Stale test-mode `stripe_customer_id` cleared from test athlete.
+- **✅ Booking hover popup z-index fix** — Changed popup from `top-full` to `bottom-full` so it appears above the chip instead of being hidden by the card below.
+- **✅ Coach re-add member after removal** — `filterAvailableMembers` now only excludes `confirmed`/`waitlist` (was `!== 'cancelled'`, missing `coach_cancelled`/`no_show`/`late_cancel`). Same fix pattern as Sessions 197/198.
+- **⏳ Stripe trial payment verification** — Test athlete on 30-day trial. Check April 13, 2026: Stripe payment, webhook processing, Supabase status update.
+
+**Completed (2026-03-12 Session 199 - Opus 4.6) — APPROVAL EMAIL + STRIPE TRIAL CHECKOUT:**
+- **✅ Resend email integration** — New `lib/email.ts` with Resend client + branded HTML email template.
+- **✅ Stripe trial checkout** — 30-day trial via `subscription_data.trial_period_days`. Webhook accepts `no_payment_required`.
+- **✅ AthletePagePaymentTab** — Passes `trial: true` for first-time subscribers.
+
 **Completed (2026-03-12 Session 198 - Opus 4.6) — ACHIEVEMENT FIX + RE-BOOKING + TIME+AMRAP:**
 - **✅ Achievement chip hover fix** — Edit/delete buttons now absolute-positioned overlay instead of inline, preventing flex-wrap reflow that made chips unjumpable.
 - **✅ Re-booking after coach_cancelled** — Booking creation API duplicate check now only blocks `confirmed`/`waitlist` (was excluding only `cancelled`, missing `coach_cancelled`/`no_show`/`late_cancel`).
@@ -105,9 +117,8 @@ Social Tables
 - **✅ Login page mobile spacing** — Tightened spacing so "Forgot your password?" visible without scrolling.
 - **✅ Book a Class header mobile** — NotificationPrompt below header row, icon-only buttons on mobile.
 
-**Completed (2026-03-11 Session 195 - Opus 4.6) — MOBILE UX + BOOKING FILTER:**
-- **✅ Athlete tab scroll indicator** — Animated bouncing chevron + gradient fade on mobile tab bar.
-- **✅ Booking filter: Diapers & Dumbbells** — Added to `FOUNDATIONS_TYPES` array.
+**Older Sessions (57-195):**
+See `project-history/` folder for detailed implementation history
 
 **Completed (2026-03-11 Session 194 - Opus 4.6) — MEMBERCARD SUBSCRIPTION DISPLAY:**
 - **✅ Subscription plan differentiation** — MemberCard shows Trial/Monthly/Yearly/Active.
@@ -201,10 +212,9 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### NEXT SESSION — Discuss: Auto-populate new Sessions (Idea from Session 195)
-- **Whiteboard Intro section:** Every newly created Session (coach side) should auto-include a "Whiteboard Intro" section at the top set to 0 minutes, pre-populated with a list of currently booked athletes.
-- **Default session name:** Auto-generate from date + time (e.g., "2026-03-11 09:00") so each session has a unique name until coach renames it.
-- **⚠️ Discuss before implementing** — Need to evaluate complexity and whether this over-complicates things. Explore existing Session/WOD creation flow first.
+### NEXT SESSION
+1. **April 13 reminder:** Verify Stripe trial payment processed for test athlete (Stripe Dashboard → Payments, Supabase → members status, Vercel webhook logs)
+2. **Discuss: Auto-populate new Sessions** (Idea from Session 195) — Whiteboard Intro section auto-included, default session name from date+time. ⚠️ Discuss before implementing.
 
 ### DEPLOYMENT (Session 158+)
 

@@ -260,7 +260,7 @@ export default function CalendarGrid({
                 </button>
                 {/* Booked athletes popover */}
                 {wod.booking_info.booked_members && wod.booking_info.booked_members.length > 0 && (
-                  <div className="hidden group-hover/booking:block absolute left-0 top-full mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-xl p-2 z-[300] min-w-[140px] max-w-[200px]">
+                  <div className="hidden group-hover/booking:block absolute left-0 bottom-full mb-1 bg-gray-800 border border-gray-600 rounded-lg shadow-xl p-2 z-[300] min-w-[140px] max-w-[200px]">
                     <p className="text-[10px] font-semibold text-gray-400 mb-1 uppercase tracking-wider">Booked</p>
                     <ul className="space-y-0.5">
                       {wod.booking_info.booked_members.map((name, i) => (

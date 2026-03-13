@@ -27,7 +27,7 @@ export function filterAvailableMembers(
   currentBookings: Booking[]
 ): Member[] {
   const bookedMemberIds = currentBookings
-    .filter(b => b.status !== 'cancelled')
+    .filter(b => b.status === 'confirmed' || b.status === 'waitlist')
     .map(b => b.member.id);
 
   return allMembers.filter(m => !bookedMemberIds.includes(m.id));
