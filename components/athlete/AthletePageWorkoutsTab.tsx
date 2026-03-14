@@ -173,15 +173,10 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
           message: scoreQueryMessage.trim(),
         }),
       });
-      const data = await res.json();
       if (!res.ok) throw new Error('Failed to send');
       setScoreQueryModal(null);
       setScoreQueryMessage('');
       const { toast } = await import('sonner');
-      // Temporary debug - remove after testing
-      if (data.debug) {
-        toast.info(data.debug.join(' | '), { duration: 10000 });
-      }
       toast.success('Score query sent to your coach');
     } catch {
       const { toast } = await import('sonner');
