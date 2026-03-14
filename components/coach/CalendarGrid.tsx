@@ -10,6 +10,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Monitor,
+  ClipboardList,
 } from 'lucide-react';
 import { getCardState, getCardClasses } from '@/utils/card-utils';
 import { formatDate, getWeekNumber } from '@/utils/date-utils';
@@ -232,6 +233,21 @@ export default function CalendarGrid({
                 aria-label='Open TV display'
               >
                 <Monitor size={12} />
+              </button>
+            )}
+
+            {/* Score Entry */}
+            {!isEmptySession && wod.booking_info?.session_id && wod.sections?.some(s => s.scoring_fields && Object.values(s.scoring_fields).some(v => v === true)) && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.open(`/coach/score-entry/${wod.booking_info!.session_id}`, '_blank');
+                }}
+                className='flex-shrink-0 text-gray-400 hover:text-[#178da6] transition cursor-pointer'
+                title='Enter Scores'
+                aria-label='Enter scores for this session'
+              >
+                <ClipboardList size={12} />
               </button>
             )}
 

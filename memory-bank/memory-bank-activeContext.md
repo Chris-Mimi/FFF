@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 80.0
-**Updated:** 2026-03-13 (Session 202 - Booking & session cancellation notifications)
+**Version:** 81.0
+**Updated:** 2026-03-14 (Session 203 - Coach Score Entry page)
 
 ---
 
@@ -88,6 +88,16 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-14 Session 203 - Opus 4.6) — COACH SCORE ENTRY PAGE (Phase 1):**
+- **✅ Coach Score Entry page** — New `/coach/score-entry/[sessionId]` page. Coach selects a session, picks a scorable section, enters scores for all booked athletes in a grid. Reuses existing `ScoringFieldInputs` component.
+- **✅ GET API** — `/api/score-entry/[sessionId]` fetches session + WOD + booked athletes (with user_id lookup via email) + existing results.
+- **✅ POST API** — `/api/score-entry/save` bulk upserts scores to `wod_section_results` with both `member_id` and `user_id` (when available).
+- **✅ member_id column** — Added to `wod_section_results` so scores can be saved for ALL members regardless of app account status. `user_id` now nullable.
+- **✅ Navigation** — ClipboardList icon on session cards in coach calendar (only shows when session has scorable sections).
+- **✅ Migration applied** — `20260314_add_member_id_to_section_results.sql`
+- **⏳ Untested** — Needs live testing with real session data. Score query + notifications planned for Session 204.
+- **Plan:** `.claude/plans/coach-score-entry.md` has full multi-session implementation plan.
+
 **Completed (2026-03-13 Session 202 - Opus 4.6) — BOOKING & SESSION CANCELLATION NOTIFICATIONS:**
 - **✅ Session cancellation notifications** — When coach cancels a session, all affected members receive push notification. New API route `/api/notifications/session-cancelled`.
 - **✅ Coach add/remove notifications** — Athletes notified when coach manually adds or removes them from a session. New API route `/api/notifications/coach-booking`.
@@ -113,13 +123,7 @@ Social Tables
 - **✅ Stripe trial checkout** — 30-day trial via `subscription_data.trial_period_days`. Webhook accepts `no_payment_required`.
 - **✅ AthletePagePaymentTab** — Passes `trial: true` for first-time subscribers.
 
-**Completed (2026-03-12 Session 198 - Opus 4.6) — ACHIEVEMENT FIX + RE-BOOKING + TIME+AMRAP:**
-- **✅ Achievement chip hover fix** — Edit/delete buttons now absolute-positioned overlay instead of inline, preventing flex-wrap reflow that made chips unjumpable.
-- **✅ Re-booking after coach_cancelled** — Booking creation API duplicate check now only blocks `confirmed`/`waitlist` (was excluding only `cancelled`, missing `coach_cancelled`/`no_show`/`late_cancel`).
-- **✅ Audit: score submission loophole** — Confirmed save path has no booking validation, but UI gate (logbook only shows booked workouts) prevents normal access. Race condition only, not worth DB overhead.
-- **✅ Time + AMRAP scoring mode** — New scoring mode for "For Time then AMRAP" workouts. Coach toggle: "For Time (Cap)" vs "Time + AMRAP" when Time + Reps/Rounds enabled. Athlete sees both time (optional) and reps/rounds inputs simultaneously. Leaderboard sorts: Scaling → Reps/Rounds (more=better) → Time tiebreaker (lower=better). Display: `3+12 (4:30)`. Stored as `time_amrap: true` in JSONB `scoring_fields`.
-
-**Older Sessions (57-197):**
+**Older Sessions (57-198):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -166,7 +170,8 @@ See `project-history/` folder for detailed implementation history
 - ✅ `20260307000002_add_pattern_track.sql` — Adds track column to movement_patterns + updated unique constraint (Session 184, applied)
 - ✅ `20260308000000_add_plan_items_indexes.sql` — Indexes on programming_plan_items(user_id, pattern_id) (Session 187, applied)
 - ✅ `20260310000000_add_duplicate_prevention_constraints.sql` — Unique indexes on wod_section_results + benchmark_results (Session 189, applied Session 190)
-- ⏳ `20260313_add_session_cancelled_preference.sql` — Adds `session_cancelled` boolean column to notification_preferences (Session 202)
+- ✅ `20260313_add_session_cancelled_preference.sql` — Adds `session_cancelled` boolean column to notification_preferences (Session 202, applied Session 203)
+- ✅ `20260314_add_member_id_to_section_results.sql` — Adds `member_id` column to wod_section_results, makes `user_id` nullable (Session 203, applied)
 
 ---
 
@@ -209,10 +214,11 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION
-1. **April 13 reminder:** Verify Stripe trial payment processed for test athlete (Stripe Dashboard → Payments, Supabase → members status, Vercel webhook logs)
-2. ✅ **Auto-populate new Sessions** — DONE (Session 201). Default sections: Whiteboard Intro → Warm-up → Skill → WOD.
-3. **Website integration** — Add "Member Login" link/button on Squarespace site pointing to `https://app.the-forge-functional-fitness.de`
-4. **Coach library** — Equipment & Body Parts lists need optimising (from Notes for next session)
+1. **Test Coach Score Entry** — Open a session with booked athletes + scorable sections, enter scores, verify they appear in athlete logbook/leaderboard.
+2. **Session 204** — Score query button (athlete disputes), score recorded notifications, polish/edge cases. See `.claude/plans/coach-score-entry.md`.
+3. **April 13 reminder:** Verify Stripe trial payment processed for test athlete (Stripe Dashboard → Payments, Supabase → members status, Vercel webhook logs)
+4. **Website integration** — Add "Member Login" link/button on Squarespace site pointing to `https://app.the-forge-functional-fitness.de`
+5. **Coach library** — Equipment & Body Parts lists need optimising (from Notes for next session)
 
 ### DEPLOYMENT (Session 158+)
 
