@@ -205,14 +205,12 @@ export function notifyScoreRecorded(userId: string, workoutName: string): void {
  * Notify all coaches that an athlete is querying their score.
  * Fire-and-forget — no preference check (coaches always receive these).
  */
-export function notifyScoreQuery(athleteName: string, workoutName: string, message: string): void {
+export async function notifyScoreQuery(athleteName: string, workoutName: string, message: string): Promise<void> {
   const payload: PushPayload = {
     title: 'Score Query',
     body: `${athleteName} is querying their score${workoutName ? ` for ${workoutName}` : ''}: "${message}"`,
     data: { url: '/coach', type: 'score_query' },
   };
 
-  sendToCoaches(payload, 'score_query').catch((err) =>
-    console.error('notifyScoreQuery failed:', err)
-  );
+  await sendToCoaches(payload, 'score_query');
 }

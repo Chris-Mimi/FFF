@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
 
     const athleteName = member?.name || user.email || 'An athlete';
 
-    notifyScoreQuery(athleteName, workoutName || '', message.trim());
+    await notifyScoreQuery(athleteName, workoutName || '', message.trim());
 
     return NextResponse.json({ success: true });
   } catch (error) {
