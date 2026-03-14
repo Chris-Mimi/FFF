@@ -198,10 +198,11 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION
-1. **Deploy + test score query** — Push to Vercel, test push notification delivery to coach device.
-2. **Coach library** — Equipment & Body Parts lists need optimising (from Notes for next session).
-3. **April 13 reminder:** Verify Stripe trial payment processed for test athlete (Stripe Dashboard → Payments, Supabase → members status, Vercel webhook logs)
-4. **Website integration** — Add "Member Login" link/button on Squarespace site pointing to `https://app.the-forge-functional-fitness.de`
+1. **Test score query push notification** — Coach notification prompt now added to CoachHeader. Steps: (a) Log in as coach on deployed app, enable notifications, (b) Log in as athlete, submit score query, (c) Verify coach receives push. Debug toast still active — remove after confirming.
+2. **Remove debug code** — Remove temporary debug output from `app/api/score-query/route.ts` and `AthletePageWorkoutsTab.tsx` (debug toast).
+3. **Coach library** — Equipment & Body Parts lists need optimising (from Notes for next session).
+4. **April 13 reminder:** Verify Stripe trial payment processed for test athlete (Stripe Dashboard → Payments, Supabase → members status, Vercel webhook logs)
+5. **Website integration** — Add "Member Login" link/button on Squarespace site pointing to `https://app.the-forge-functional-fitness.de`
 
 ### DEPLOYMENT (Session 158+)
 

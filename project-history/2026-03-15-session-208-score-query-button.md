@@ -37,3 +37,20 @@
 
 ## Files Created
 - `app/api/score-query/route.ts` — Score query API endpoint
+
+---
+
+## Debugging: Push Notification Not Delivering
+
+### Issue 1: Fire-and-forget on Vercel
+- `notifyScoreQuery` was fire-and-forget — Vercel kills the function after response is sent.
+- **Fix:** Made `notifyScoreQuery` async, awaited it in API route before returning response.
+
+### Issue 2: Coach push subscriptions = 0
+- Debug trace revealed: `listUsers: 16 users | coaches found: 2 | push_subscriptions for coaches: 0`
+- **Root cause:** `NotificationPrompt` component was only on athlete/member pages. Coaches never registered for push.
+- **Fix:** Added `NotificationPrompt` to `CoachHeader.tsx` (desktop + mobile).
+
+### Remaining (Next Session)
+- Verify push works after coach enables notifications on deployed app.
+- Remove debug code from `score-query/route.ts` and `AthletePageWorkoutsTab.tsx`.
