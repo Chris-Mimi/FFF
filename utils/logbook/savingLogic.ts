@@ -87,8 +87,11 @@ export async function saveSectionResult(
       throw new Error(error.message || 'Save failed');
     }
   } catch (error) {
-    console.error('Error saving section result:', error);
-    toast.error(`Failed to save section result: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
+    const msg = error instanceof Error ? error.message : JSON.stringify(error);
+    if (!msg.includes('coach has already recorded')) {
+      console.error('Error saving section result:', error);
+      toast.error(`Failed to save section result: ${msg}`);
+    }
     throw error;
   }
 }

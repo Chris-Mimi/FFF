@@ -163,3 +163,43 @@ export async function sendToAllMembers(
 
   await Promise.allSettled(eligibleSubs.map((sub) => sendToSubscription(sub, payload)));
 }
+
+/**
+ * Send notification to all coaches (users with role='coach' in auth metadata).
+ * No preference check — coaches always receive operational notifications.
+ */
+export async function sendToCoaches(
+  payload: PushPayload,
+  notificationType: string
+): Promise<void> {
+  // Get all users with coach role from auth metadata
+  const { data: { users }, error } = await supabaseAdmin.auth.admin.listUsers();
+  if (error || !users) return;
+
+  const coachIds = users
+    .filter((u) => u.user_metadata?.role === 'coach')
+    .map((u) => u.id);
+
+  if (coachIds.length === 0) return;
+
+  // Get push subscriptions for coaches
+  const { data: subs } = await supabaseAdmin
+    .from('push_subscriptions')
+    .select('id, endpoint, p256dh, auth, user_id')
+    .in('user_id', coachIds);
+
+  if (!subs || subs.length === 0) return;
+
+  // Log notification for each coach
+  const uniqueCoachIds = [...new Set(subs.map((s) => s.user_id))];
+  const logEntries = uniqueCoachIds.map((userId) => ({
+    user_id: userId,
+    notification_type: notificationType,
+    title: payload.title,
+    body: payload.body,
+    data: payload.data || null,
+  }));
+  await supabaseAdmin.from('notification_log').insert(logEntries);
+
+  await Promise.allSettled(subs.map((sub) => sendToSubscription(sub, payload)));
+}

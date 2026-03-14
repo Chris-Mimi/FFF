@@ -157,6 +157,35 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
   const [selectedPhoto, setSelectedPhoto] = useState<WhiteboardPhoto | null>(null);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [expandedWorkoutId, setExpandedWorkoutId] = useState<string | null>(null);
+  const [scoreQueryModal, setScoreQueryModal] = useState<{ workoutName: string } | null>(null);
+  const [scoreQueryMessage, setScoreQueryMessage] = useState('');
+  const [scoreQuerySending, setScoreQuerySending] = useState(false);
+
+  const handleScoreQuery = async () => {
+    if (!scoreQueryMessage.trim() || !scoreQueryModal) return;
+    setScoreQuerySending(true);
+    try {
+      const res = await authFetch('/api/score-query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          workoutName: scoreQueryModal.workoutName,
+          message: scoreQueryMessage.trim(),
+        }),
+      });
+      if (!res.ok) throw new Error('Failed to send');
+      setScoreQueryModal(null);
+      setScoreQueryMessage('');
+      // Show success via simple alert-style feedback
+      const { toast } = await import('sonner');
+      toast.success('Score query sent to your coach');
+    } catch {
+      const { toast } = await import('sonner');
+      toast.error('Failed to send score query. Please try again.');
+    } finally {
+      setScoreQuerySending(false);
+    }
+  };
 
   useEffect(() => {
     if (initialDate) {
@@ -565,6 +594,12 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
                       </div>
                     );
                   })}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setScoreQueryModal({ workoutName: workout.workout_name || workout.title }); }}
+                    className='mt-2 w-full text-xs text-[#178da6] font-medium py-1.5 border border-[#178da6] rounded hover:bg-[#178da6]/10 transition'
+                  >
+                    Query Score
+                  </button>
                 </div>
               )}
 
@@ -747,6 +782,14 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
                                 {sectionResult.scaling_level && <div>Scaling: {sectionResult.scaling_level}</div>}
                                 {sectionResult.task_completed !== null && <div>{sectionResult.task_completed ? '✓ Completed' : '○ Not Completed'}</div>}
                               </div>
+                              {sectionResult.is_coach_entered && (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); setScoreQueryModal({ workoutName: workout.workout_name || workout.title }); }}
+                                  className='mt-2 text-xs text-[#178da6] font-medium py-1 px-3 border border-[#178da6] rounded hover:bg-[#178da6]/10 transition'
+                                >
+                                  Query Score
+                                </button>
+                              )}
                             </div>
                           )}
                         </div>
@@ -847,6 +890,43 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
             )}
           </div>
         </div>
+        </FocusTrap>
+      )}
+
+      {/* Score Query Modal */}
+      {scoreQueryModal && (
+        <FocusTrap>
+          <div className='fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4' onClick={() => { setScoreQueryModal(null); setScoreQueryMessage(''); }}>
+            <div className='bg-white rounded-lg shadow-xl w-full max-w-sm p-4' onClick={(e) => e.stopPropagation()}>
+              <h3 className='font-bold text-gray-900 text-sm mb-1'>Query Score</h3>
+              <p className='text-xs text-gray-600 mb-3'>
+                Tell your coach why you think your score for <span className='font-semibold'>{scoreQueryModal.workoutName}</span> needs reviewing.
+              </p>
+              <textarea
+                value={scoreQueryMessage}
+                onChange={(e) => setScoreQueryMessage(e.target.value)}
+                placeholder='e.g. "I think my time was 8:30, not 9:30"'
+                className='w-full border border-gray-300 rounded p-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#178da6] focus:border-transparent'
+                rows={3}
+                autoFocus
+              />
+              <div className='flex gap-2 mt-3'>
+                <button
+                  onClick={() => { setScoreQueryModal(null); setScoreQueryMessage(''); }}
+                  className='flex-1 text-sm py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50 transition'
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleScoreQuery}
+                  disabled={!scoreQueryMessage.trim() || scoreQuerySending}
+                  className='flex-1 text-sm py-2 bg-[#178da6] text-white rounded hover:bg-[#136e82] transition disabled:opacity-50 disabled:cursor-not-allowed'
+                >
+                  {scoreQuerySending ? 'Sending...' : 'Send to Coach'}
+                </button>
+              </div>
+            </div>
+          </div>
         </FocusTrap>
       )}
     </div>

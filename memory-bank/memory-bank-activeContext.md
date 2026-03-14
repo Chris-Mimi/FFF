@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 83.0
-**Updated:** 2026-03-14 (Session 207 - Smart click + coach score authority)
+**Version:** 84.0
+**Updated:** 2026-03-15 (Session 208 - Score query button + duplicate guard UX fix)
 
 ---
 
@@ -88,12 +88,14 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-15 Session 208 - Opus 4.6) — SCORE QUERY BUTTON + DUPLICATE GUARD FIX:**
+- **✅ Score query button** — "Query Score" button on coach-entered results (mobile + desktop). Opens modal with text input, sends push notification to all coaches via `sendToCoaches()`.
+- **✅ Duplicate guard UX fix** — Coach-blocked saves now show blue info toast instead of red error. No more "Successfully saved 0 results" or "Failed to save" messages.
+- **✅ New API endpoint** — `POST /api/score-query` with auth, athlete name lookup, fire-and-forget notification.
+- **✅ New web-push function** — `sendToCoaches()` finds coach users via auth metadata role, sends push + logs.
+
 **Completed (2026-03-14 Session 207 - Opus 4.6) — SMART CLICK + COACH SCORE AUTHORITY:**
-- **✅ Smart workout click** — Coach scores exist → read-only expand (mobile) / inline (desktop). No coach scores → logbook.
-- **✅ Duplicate guard** — Self-entry blocked when coach score exists. User-friendly error message.
-- **✅ Bulk republish script** — `scripts/bulk-republish.ts` sets `publish_sections` on historical workouts. Applied: 6 workouts.
-- **✅ Score migration script** — `scripts/migrate-scores-to-coach.ts` sets `member_id` on existing scores. Applied: 54 scores (Chris 41, Mimi 1, Lukas 9, Neo 3).
-- **✅ Coach scores are authoritative** — Detection: `member_id` not null = coach-entered.
+- **✅ Smart workout click, duplicate guard, bulk republish, score migration (54 scores), coach score authority.**
 
 **Completed (2026-03-14 Session 206 - Opus 4.6) — SCORE ENTRY FIXES + LEADERBOARD ENHANCEMENTS:**
 - **✅ Duplicate input bug, section content preview, section ID mismatch, multi-field leaderboard ranking + display.**
@@ -104,10 +106,7 @@ Social Tables
 **Completed (2026-03-14 Session 204 - Opus 4.6) — PUBLISH MODAL REWORK + ATHLETE DISPLAY FIXES:**
 - **✅ Publish modal decoupled, athlete workout tab bug fix, unpublished workout filter.**
 
-**Completed (2026-03-14 Session 203 - Opus 4.6) — COACH SCORE ENTRY PAGE (Phase 1):**
-- **✅ Score entry page + GET/POST APIs + member_id migration.**
-
-**Older Sessions (57-202):**
+**Older Sessions (57-203):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -199,12 +198,10 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION
-1. **Test smart click behavior** — Verify on mobile + desktop: coach-entered workouts show read-only, others navigate to logbook.
-2. **Score query button** — Simple text popup → push notification to coach for athlete disputes.
-3. **Coach library** — Equipment & Body Parts lists need optimising (from Notes for next session).
-5. **April 13 reminder:** Verify Stripe trial payment processed for test athlete (Stripe Dashboard → Payments, Supabase → members status, Vercel webhook logs)
-6. **Website integration** — Add "Member Login" link/button on Squarespace site pointing to `https://app.the-forge-functional-fitness.de`
-7. **Coach library** — Equipment & Body Parts lists need optimising (from Notes for next session)
+1. **Deploy + test score query** — Push to Vercel, test push notification delivery to coach device.
+2. **Coach library** — Equipment & Body Parts lists need optimising (from Notes for next session).
+3. **April 13 reminder:** Verify Stripe trial payment processed for test athlete (Stripe Dashboard → Payments, Supabase → members status, Vercel webhook logs)
+4. **Website integration** — Add "Member Login" link/button on Squarespace site pointing to `https://app.the-forge-functional-fitness.de`
 
 ### DEPLOYMENT (Session 158+)
 

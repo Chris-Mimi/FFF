@@ -1,4 +1,4 @@
-import { sendToUser, sendToAllMembers, type PushPayload } from './web-push';
+import { sendToUser, sendToAllMembers, sendToCoaches, type PushPayload } from './web-push';
 
 /**
  * Notify all subscribed members that a new workout has been published.
@@ -198,5 +198,21 @@ export function notifyScoreRecorded(userId: string, workoutName: string): void {
 
   sendToUser(userId, payload, 'score_recorded').catch((err) =>
     console.error('notifyScoreRecorded failed:', err)
+  );
+}
+
+/**
+ * Notify all coaches that an athlete is querying their score.
+ * Fire-and-forget — no preference check (coaches always receive these).
+ */
+export function notifyScoreQuery(athleteName: string, workoutName: string, message: string): void {
+  const payload: PushPayload = {
+    title: 'Score Query',
+    body: `${athleteName} is querying their score${workoutName ? ` for ${workoutName}` : ''}: "${message}"`,
+    data: { url: '/coach', type: 'score_query' },
+  };
+
+  sendToCoaches(payload, 'score_query').catch((err) =>
+    console.error('notifyScoreQuery failed:', err)
   );
 }

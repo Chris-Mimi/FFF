@@ -165,6 +165,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
 
     let savedCount = 0;
     let errorCount = 0;
+    let coachBlockedCount = 0;
     const errors: string[] = [];
 
     for (const [key, result] of resultsToSave) {
@@ -252,8 +253,14 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
           savedCount++;
         }
       } catch (error) {
-        errorCount++;
-        errors.push(error instanceof Error ? error.message : 'Unknown error');
+        const msg = error instanceof Error ? error.message : 'Unknown error';
+        if (msg.includes('coach has already recorded')) {
+          coachBlockedCount++;
+          toast.info(msg);
+        } else {
+          errorCount++;
+          errors.push(msg);
+        }
       }
     }
 
@@ -266,15 +273,10 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
       }
     }
 
-    if (errorCount === 0) {
+    if (errorCount === 0 && savedCount > 0) {
       toast.success(`Successfully saved ${savedCount} results!`);
-      // Reload data to reflect changes
-      loadLiftRecords(workoutDate);
-      loadSectionResultsWrapper(workoutDate);
-      loadBenchmarkResultsToSectionWrapper(workoutDate);
-      loadLiftResultsToSectionWrapper(workoutDate);
-    } else {
-      toast.error(`Saved ${savedCount} of ${resultsToSave.length} results. ${errorCount} failed. Please try again.`);
+    } else if (errorCount > 0) {
+      toast.error(`Saved ${savedCount} of ${resultsToSave.length - coachBlockedCount} results. ${errorCount} failed. Please try again.`);
     }
     } finally {
       savingRef.current = false;
