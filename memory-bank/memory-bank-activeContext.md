@@ -88,11 +88,12 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-15 Session 209 - Opus 4.6) — DEBUG CLEANUP:**
+- **✅ Removed debug code** from `app/api/score-query/route.ts` (debug array, listUsers/push_subscriptions queries) and `components/athlete/AthletePageWorkoutsTab.tsx` (debug toast).
+- **🔴 Coach push notification broken** — Bell icon shows (browser subscription exists) but `push_subscriptions` table has 0 rows for coaches. "Send test" returns `NO_SUBSCRIPTIONS`. Root cause: `usePushNotifications.ts:72-78` auto-refresh POST silently fails. Decision pending: (A) remove NotificationPrompt from coach entirely, or (B) debug subscribe endpoint in Vercel logs.
+
 **Completed (2026-03-15 Session 208 - Opus 4.6) — SCORE QUERY BUTTON + DUPLICATE GUARD FIX:**
-- **✅ Score query button** — "Query Score" button on coach-entered results (mobile + desktop). Opens modal with text input, sends push notification to all coaches via `sendToCoaches()`.
-- **✅ Duplicate guard UX fix** — Coach-blocked saves now show blue info toast instead of red error. No more "Successfully saved 0 results" or "Failed to save" messages.
-- **✅ New API endpoint** — `POST /api/score-query` with auth, athlete name lookup, fire-and-forget notification.
-- **✅ New web-push function** — `sendToCoaches()` finds coach users via auth metadata role, sends push + logs.
+- **✅ Score query button, duplicate guard UX fix, new API endpoint, sendToCoaches() function.**
 
 **Completed (2026-03-14 Session 207 - Opus 4.6) — SMART CLICK + COACH SCORE AUTHORITY:**
 - **✅ Smart workout click, duplicate guard, bulk republish, score migration (54 scores), coach score authority.**
@@ -103,10 +104,7 @@ Social Tables
 **Completed (2026-03-14 Session 205 - Opus 4.6) — SCORE NOTIFICATION + SCORE ENTRY UX REWORK:**
 - **✅ Score recorded notification, chips UX, publish modal defaults, auto-add scored sections.**
 
-**Completed (2026-03-14 Session 204 - Opus 4.6) — PUBLISH MODAL REWORK + ATHLETE DISPLAY FIXES:**
-- **✅ Publish modal decoupled, athlete workout tab bug fix, unpublished workout filter.**
-
-**Older Sessions (57-203):**
+**Older Sessions (57-204):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -198,11 +196,10 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION
-1. **Test score query push notification** — Coach notification prompt now added to CoachHeader. Steps: (a) Log in as coach on deployed app, enable notifications, (b) Log in as athlete, submit score query, (c) Verify coach receives push. Debug toast still active — remove after confirming.
-2. **Remove debug code** — Remove temporary debug output from `app/api/score-query/route.ts` and `AthletePageWorkoutsTab.tsx` (debug toast).
-3. **Coach library** — Equipment & Body Parts lists need optimising (from Notes for next session).
-4. **April 13 reminder:** Verify Stripe trial payment processed for test athlete (Stripe Dashboard → Payments, Supabase → members status, Vercel webhook logs)
-5. **Website integration** — Add "Member Login" link/button on Squarespace site pointing to `https://app.the-forge-functional-fitness.de`
+1. **Coach push notification decision** — Choose: (A) Remove `NotificationPrompt` from `CoachHeader.tsx` entirely (score queries handled via app only), or (B) Check Vercel logs for subscribe endpoint errors and fix. The feature is low-value per Chris.
+2. **Coach library optimization** — Equipment & Body Parts lists need optimising.
+3. **April 13 reminder:** Verify Stripe trial payment processed for test athlete (Stripe Dashboard → Payments, Supabase → members status, Vercel webhook logs)
+4. **Website integration** — Add "Member Login" link/button on Squarespace site pointing to `https://app.the-forge-functional-fitness.de`
 
 ### DEPLOYMENT (Session 158+)
 
