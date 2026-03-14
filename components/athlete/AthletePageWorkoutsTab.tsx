@@ -31,6 +31,7 @@ interface SectionResult {
   metres_result?: number;
   scaling_level?: string;
   task_completed?: boolean;
+  is_coach_entered?: boolean;
 }
 
 interface LiftResult {
@@ -75,6 +76,7 @@ interface PublishedWorkout {
   results?: SectionResult[];
   liftResults?: LiftResult[];
   benchmarkResults?: BenchmarkResult[];
+  hasCoachScores?: boolean;
 }
 
 interface AthletePageWorkoutsTabProps {
@@ -154,6 +156,7 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
   const [weekPhotos, setWeekPhotos] = useState<WhiteboardPhoto[]>([]);
   const [selectedPhoto, setSelectedPhoto] = useState<WhiteboardPhoto | null>(null);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
+  const [expandedWorkoutId, setExpandedWorkoutId] = useState<string | null>(null);
 
   useEffect(() => {
     if (initialDate) {
@@ -313,16 +316,31 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
         .map(w => w.date);
 
       if (workoutIds.length > 0) {
-        // Fetch WOD section results
-        const { data: results, error: resultsError } = await supabase
-          .from('wod_section_results')
-          .select('id, section_id, time_result, reps_result, weight_result, rounds_result, calories_result, metres_result, scaling_level, task_completed, wod_id')
-          .in('wod_id', workoutIds)
-          .eq('user_id', userId);
+        // Fetch WOD section results — self-entered (by user_id) + coach-entered (by member_id)
+        const [selfQuery, coachQuery] = await Promise.all([
+          supabase
+            .from('wod_section_results')
+            .select('id, section_id, time_result, reps_result, weight_result, rounds_result, calories_result, metres_result, scaling_level, task_completed, wod_id, member_id')
+            .in('wod_id', workoutIds)
+            .eq('user_id', userId),
+          supabase
+            .from('wod_section_results')
+            .select('id, section_id, time_result, reps_result, weight_result, rounds_result, calories_result, metres_result, scaling_level, task_completed, wod_id, member_id')
+            .in('wod_id', workoutIds)
+            .eq('member_id', userId)
+            .not('member_id', 'is', null),
+        ]);
 
-        if (resultsError) {
-          console.error('Error fetching results:', resultsError);
-        }
+        if (selfQuery.error) console.error('Error fetching self results:', selfQuery.error);
+        if (coachQuery.error) console.error('Error fetching coach results:', coachQuery.error);
+
+        // Merge and deduplicate (coach scores take priority), mark source
+        const coachResults = (coachQuery.data || []).map(r => ({ ...r, is_coach_entered: true }));
+        const coachResultIds = new Set(coachResults.map(r => r.id));
+        const selfResults = (selfQuery.data || [])
+          .filter(r => !coachResultIds.has(r.id))
+          .map(r => ({ ...r, is_coach_entered: false }));
+        const results = [...coachResults, ...selfResults];
 
         // Fetch lift records
         const { data: liftRecords, error: liftError } = await supabase
@@ -346,9 +364,11 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
           console.error('Error fetching benchmark results:', benchmarkError);
         }
 
-        // Attach results to workouts
+        // Attach results to workouts and flag coach-entered scores
         workoutsFromBookings.forEach(workout => {
-          workout.results = results?.filter(r => r.wod_id === workout.id) || [];
+          const wodResults = results?.filter(r => r.wod_id === workout.id) || [];
+          workout.results = wodResults;
+          workout.hasCoachScores = wodResults.some(r => r.is_coach_entered);
           workout.liftResults = liftRecords?.filter(r => r.lift_date === workout.date) || [];
           workout.benchmarkResults = benchmarkResults?.filter(r => r.result_date === workout.date) || [];
         });
@@ -460,7 +480,13 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
           return (
             <div
               key={index}
-              onClick={() => onNavigateToLogbook?.(date)}
+              onClick={() => {
+                if (workout.hasCoachScores) {
+                  setExpandedWorkoutId(prev => prev === workout.id ? null : workout.id);
+                } else {
+                  onNavigateToLogbook?.(date);
+                }
+              }}
               className={`bg-white rounded-lg shadow-md overflow-hidden ${
                 isToday ? 'ring-4 ring-[#7dd3c0]' : 'border border-gray-400'
               } cursor-pointer hover:shadow-lg transition-shadow`}
@@ -490,9 +516,57 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
                     {workout.workout_name && (
                       <div className='text-xs mt-1 opacity-90'>{workout.workout_name}</div>
                     )}
+                    {workout.hasCoachScores && (
+                      <div className='inline-block mt-1 px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full font-medium'>
+                        Score Recorded
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
+
+              {/* Mobile Expanded View - Coach scores read-only */}
+              {workout.hasCoachScores && expandedWorkoutId === workout.id && (
+                <div className='md:hidden p-3 border-t border-gray-200 bg-gray-50'>
+                  {getPublishedSections(workout).map(section => {
+                    const sectionResult = workout.results?.find(r =>
+                      (r.section_id === section.id || r.section_id.startsWith(section.id + '-content')) && r.is_coach_entered
+                    );
+                    const hasResultData = sectionResult && (
+                      sectionResult.time_result || sectionResult.reps_result || sectionResult.rounds_result ||
+                      sectionResult.weight_result || sectionResult.calories_result || sectionResult.metres_result ||
+                      sectionResult.scaling_level || (sectionResult.task_completed !== undefined && sectionResult.task_completed !== null)
+                    );
+
+                    return (
+                      <div key={section.id} className='mb-3'>
+                        <div className='text-xs font-semibold text-[#178da6] mb-1'>
+                          {section.type}
+                          {(section.duration > 0) && ` (${section.duration} min)`}
+                        </div>
+                        {section.content && (
+                          <div className='text-xs text-gray-700 whitespace-pre-wrap mb-2'>{section.content}</div>
+                        )}
+                        {hasResultData && (
+                          <div className='bg-green-50 border border-green-200 rounded p-2'>
+                            <div className='text-xs font-bold text-green-900 mb-1'>Your Result (Coach Entered):</div>
+                            <div className='text-xs text-green-800 space-y-0.5'>
+                              {sectionResult.time_result && <div>Time: {sectionResult.time_result}</div>}
+                              {sectionResult.rounds_result && <div>Rounds: {sectionResult.rounds_result}</div>}
+                              {sectionResult.reps_result && <div>Reps: {sectionResult.reps_result}</div>}
+                              {sectionResult.weight_result && <div>Weight: {sectionResult.weight_result} kg</div>}
+                              {sectionResult.calories_result && <div>Calories: {sectionResult.calories_result}</div>}
+                              {sectionResult.metres_result && <div>Distance: {sectionResult.metres_result} m</div>}
+                              {sectionResult.scaling_level && <div>Scaling: {sectionResult.scaling_level}</div>}
+                              {sectionResult.task_completed !== null && <div>{sectionResult.task_completed ? '✓ Completed' : '○ Not Completed'}</div>}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
 
               {/* Workout Content - HIDDEN on mobile, VISIBLE on desktop */}
               <div className='hidden md:block p-3 min-h-[200px]'>
@@ -660,7 +734,9 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
                           {/* Section Result */}
                           {hasResultData && (
                             <div className='bg-green-50 border border-green-200 rounded p-2 mt-2'>
-                              <div className='text-xs font-bold text-green-900 mb-1'>Your Result:</div>
+                              <div className='text-xs font-bold text-green-900 mb-1'>
+                                Your Result{sectionResult.is_coach_entered ? ' (Coach Entered)' : ''}:
+                              </div>
                               <div className='text-xs text-green-800 space-y-0.5'>
                                 {sectionResult.time_result && <div>Time: {sectionResult.time_result}</div>}
                                 {sectionResult.rounds_result && <div>Rounds: {sectionResult.rounds_result}</div>}

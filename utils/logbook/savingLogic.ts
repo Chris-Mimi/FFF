@@ -46,6 +46,21 @@ export async function saveSectionResult(
     if (parsedCalories !== null && (parsedCalories < 0 || parsedCalories > 10000)) throw new Error('Calories must be between 0 and 10,000');
     if (parsedMetres !== null && (parsedMetres < 0 || parsedMetres > 100000)) throw new Error('Metres must be between 0 and 100,000');
 
+    // Block self-entry if coach has already recorded a score for this athlete
+    const { data: coachScore } = await supabase
+      .from('wod_section_results')
+      .select('id')
+      .eq('member_id', userId)
+      .eq('wod_id', wodId)
+      .eq('section_id', sectionId)
+      .eq('workout_date', workoutDate)
+      .not('member_id', 'is', null)
+      .maybeSingle();
+
+    if (coachScore) {
+      throw new Error('Your coach has already recorded your score for this section. Use "Query Score" if you believe it\'s incorrect.');
+    }
+
     // Atomic upsert — relies on unique index (user_id, wod_id, section_id, workout_date)
     const { error } = await supabase
       .from('wod_section_results')
