@@ -88,15 +88,19 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-14 Session 204 - Opus 4.6) — PUBLISH MODAL REWORK + ATHLETE DISPLAY FIXES:**
+- **✅ Publish modal decoupled** — Google Calendar always gets ALL sections. Checkboxes now control only which sections athletes see in the app. Added explanatory note in modal UI.
+- **✅ Duration auto-calc** — Now uses all sections (full workout duration), not just selected sections.
+- **✅ Athlete workout tab bug fix** — Fallback `session-*` IDs (from sessions with no linked WOD) were poisoning the UUID query for `wod_section_results`, causing ALL results to disappear for the entire week. Fix: filter out non-WOD IDs before querying.
+- **✅ Unpublished workout filter** — Athlete workout tab now filters out workouts where `is_published = false` (was showing unpublished workouts to athletes).
+- **✅ Coach score entry tested** — Scores entered via coach page appear correctly in athlete Workout tab with green "Your Result" box.
+- **Decision:** Score query button (athlete disputes) deprioritized. Logbook page left as-is for now — may be removed entirely once coach score entry flow proves out.
+- **Plan:** `.claude/plans/coach-score-entry.md` has full multi-session implementation plan.
+
 **Completed (2026-03-14 Session 203 - Opus 4.6) — COACH SCORE ENTRY PAGE (Phase 1):**
 - **✅ Coach Score Entry page** — New `/coach/score-entry/[sessionId]` page. Coach selects a session, picks a scorable section, enters scores for all booked athletes in a grid. Reuses existing `ScoringFieldInputs` component.
-- **✅ GET API** — `/api/score-entry/[sessionId]` fetches session + WOD + booked athletes (with user_id lookup via email) + existing results.
-- **✅ POST API** — `/api/score-entry/save` bulk upserts scores to `wod_section_results` with both `member_id` and `user_id` (when available).
-- **✅ member_id column** — Added to `wod_section_results` so scores can be saved for ALL members regardless of app account status. `user_id` now nullable.
-- **✅ Navigation** — ClipboardList icon on session cards in coach calendar (only shows when session has scorable sections).
-- **✅ Migration applied** — `20260314_add_member_id_to_section_results.sql`
-- **⏳ Untested** — Needs live testing with real session data. Score query + notifications planned for Session 204.
-- **Plan:** `.claude/plans/coach-score-entry.md` has full multi-session implementation plan.
+- **✅ GET/POST APIs** — Fetch session data + bulk upsert scores to `wod_section_results`.
+- **✅ member_id column + migration applied** — Scores saved for ALL members regardless of app account status.
 
 **Completed (2026-03-13 Session 202 - Opus 4.6) — BOOKING & SESSION CANCELLATION NOTIFICATIONS:**
 - **✅ Session cancellation notifications** — When coach cancels a session, all affected members receive push notification. New API route `/api/notifications/session-cancelled`.
@@ -118,12 +122,7 @@ Social Tables
 - **✅ Coach re-add member after removal** — `filterAvailableMembers` now only excludes `confirmed`/`waitlist` (was `!== 'cancelled'`, missing `coach_cancelled`/`no_show`/`late_cancel`). Same fix pattern as Sessions 197/198.
 - **⏳ Stripe trial payment verification** — Test athlete on 30-day trial. Check April 13, 2026: Stripe payment, webhook processing, Supabase status update.
 
-**Completed (2026-03-12 Session 199 - Opus 4.6) — APPROVAL EMAIL + STRIPE TRIAL CHECKOUT:**
-- **✅ Resend email integration** — New `lib/email.ts` with Resend client + branded HTML email template.
-- **✅ Stripe trial checkout** — 30-day trial via `subscription_data.trial_period_days`. Webhook accepts `no_payment_required`.
-- **✅ AthletePagePaymentTab** — Passes `trial: true` for first-time subscribers.
-
-**Older Sessions (57-198):**
+**Older Sessions (57-199):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -214,11 +213,12 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION
-1. **Test Coach Score Entry** — Open a session with booked athletes + scorable sections, enter scores, verify they appear in athlete logbook/leaderboard.
-2. **Session 204** — Score query button (athlete disputes), score recorded notifications, polish/edge cases. See `.claude/plans/coach-score-entry.md`.
-3. **April 13 reminder:** Verify Stripe trial payment processed for test athlete (Stripe Dashboard → Payments, Supabase → members status, Vercel webhook logs)
-4. **Website integration** — Add "Member Login" link/button on Squarespace site pointing to `https://app.the-forge-functional-fitness.de`
-5. **Coach library** — Equipment & Body Parts lists need optimising (from Notes for next session)
+1. **Republish historical workouts** — Go through ~4 months of workouts, republish with new checkbox system (select only relevant sections for athletes). Enter scores via coach score entry page.
+2. **"Score recorded" push notification** — After coach bulk save, notify each athlete: "Your coach recorded your score for [workout name]". New `score_recorded` preference.
+3. **Score query button** (deprioritized) — Simple text popup → push notification to coach for athlete disputes.
+4. **April 13 reminder:** Verify Stripe trial payment processed for test athlete (Stripe Dashboard → Payments, Supabase → members status, Vercel webhook logs)
+5. **Website integration** — Add "Member Login" link/button on Squarespace site pointing to `https://app.the-forge-functional-fitness.de`
+6. **Coach library** — Equipment & Body Parts lists need optimising (from Notes for next session)
 
 ### DEPLOYMENT (Session 158+)
 

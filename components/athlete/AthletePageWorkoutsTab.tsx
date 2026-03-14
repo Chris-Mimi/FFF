@@ -271,9 +271,12 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
         return;
       }
 
-      // Transform bookings into workout display format
+      // Transform bookings into workout display format (skip unpublished workouts)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const workoutsFromBookings = (bookings || []).map((booking: any) => {
+      const workoutsFromBookings = (bookings || []).filter((booking: any) => {
+        const workout = booking.weekly_sessions?.wods;
+        return workout && workout.is_published;
+      }).map((booking: any) => {
         const session = booking.weekly_sessions;
         const workout = session?.wods;
 
@@ -300,9 +303,9 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
         } as PublishedWorkout;
       });
 
-      // Fetch section results for these workouts
+      // Fetch section results for these workouts (exclude fallback session-* IDs)
       const workoutIds = workoutsFromBookings
-        .filter(w => w.attended)
+        .filter(w => w.attended && !w.id.startsWith('session-'))
         .map(w => w.id);
       const workoutDates = workoutsFromBookings
         .filter(w => w.attended)

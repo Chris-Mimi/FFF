@@ -104,13 +104,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Workout not found' }, { status: 404 });
     }
 
-    // Get selected sections
-    const selectedSections = (workout.sections as WorkoutSection[]).filter(section =>
-      publishConfig.selectedSectionIds.includes(section.id)
-    );
+    // All sections go to Google Calendar; selectedSectionIds controls athlete app visibility
+    const allSections = workout.sections as WorkoutSection[];
 
     // Look up workout type names for sections that have a workout_type_id
-    const workoutTypeIds = selectedSections
+    const workoutTypeIds = allSections
       .map(s => s.workout_type_id)
       .filter((id): id is string => !!id);
 
@@ -125,8 +123,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (selectedSections.length === 0) {
-      return NextResponse.json({ error: 'No sections selected' }, { status: 400 });
+    if (allSections.length === 0) {
+      return NextResponse.json({ error: 'No sections found' }, { status: 400 });
     }
 
     // Format helper functions
@@ -235,7 +233,7 @@ export async function POST(request: NextRequest) {
 
     // Calculate running time for each section
     let cumulativeTime = 0;
-    const formattedSections = selectedSections.map(section => {
+    const formattedSections = allSections.map(section => {
       const duration = section.duration || 0;
       const startMin = cumulativeTime + 1;
       const endMin = cumulativeTime + duration;

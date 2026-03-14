@@ -81,15 +81,14 @@ export default function PublishModal({
     }
   }, [isOpen, currentPublishConfig, sessionTime, sections]);
 
-  // Auto-calculate duration based on selected sections
+  // Auto-calculate duration from ALL sections (full workout goes to Google Calendar)
   useEffect(() => {
-    if (selectedSectionIds.length > 0) {
+    if (sections.length > 0) {
       const totalDuration = sections
-        .filter(s => selectedSectionIds.includes(s.id))
         .reduce((sum, section) => sum + (section.duration || 0), 0);
       setEventDurationMinutes(totalDuration);
     }
-  }, [selectedSectionIds, sections]);
+  }, [sections]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -156,9 +155,12 @@ export default function PublishModal({
         <div className='p-6 overflow-y-auto flex-1 space-y-6'>
           {/* Section Selection */}
           <div>
-            <h3 className='font-semibold text-gray-900 mb-3'>
+            <h3 className='font-semibold text-gray-900 mb-1'>
               Select Sections for Athletes <span className='text-red-500'>*</span>
             </h3>
+            <p className='text-xs text-gray-500 mb-3'>
+              All sections are always published to Google Calendar. Checked sections are shown in the athlete app.
+            </p>
             <div className='space-y-2'>
               {sections.map(section => {
                 // Build preview text showing what's in this section
