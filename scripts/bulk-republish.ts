@@ -67,11 +67,12 @@ async function main() {
   console.log(`  From: ${FROM_DATE}`);
   console.log(`${'═'.repeat(60)}\n`);
 
-  // Fetch all workouts from the given date
+  // Fetch already-published workouts from the given date (skip drafts/test workouts)
   const { data: wods, error } = await supabase
     .from('wods')
     .select('id, date, workout_name, session_type, is_published, publish_sections, sections')
     .gte('date', FROM_DATE)
+    .eq('is_published', true)
     .order('date', { ascending: true });
 
   if (error) {
@@ -103,9 +104,8 @@ async function main() {
     // Check if publish_sections already covers all scorable sections
     const existingPublished = new Set(wod.publish_sections || []);
     const missingIds = scorableIds.filter(id => !existingPublished.has(id));
-    const alreadyPublished = wod.is_published;
 
-    if (missingIds.length === 0 && alreadyPublished) {
+    if (missingIds.length === 0) {
       alreadyOk++;
       continue;
     }
@@ -117,7 +117,6 @@ async function main() {
 
     const label = wod.workout_name || wod.session_type || 'Unnamed';
     console.log(`${DRY_RUN ? '🔍' : '⚡'} ${wod.date} — ${label}`);
-    if (!alreadyPublished) console.log(`   Set is_published: false → true`);
     if (missingIds.length > 0) console.log(`   Add to publish_sections: ${missingIds.join(', ')}`);
     console.log(`   Final publish_sections: [${mergedSections.length} sections]`);
 

@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 82.0
-**Updated:** 2026-03-14 (Session 205 - Score notification + score entry UX)
+**Version:** 83.0
+**Updated:** 2026-03-14 (Session 207 - Smart click + coach score authority)
 
 ---
 
@@ -88,32 +88,26 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-14 Session 207 - Opus 4.6) — SMART CLICK + COACH SCORE AUTHORITY:**
+- **✅ Smart workout click** — Coach scores exist → read-only expand (mobile) / inline (desktop). No coach scores → logbook.
+- **✅ Duplicate guard** — Self-entry blocked when coach score exists. User-friendly error message.
+- **✅ Bulk republish script** — `scripts/bulk-republish.ts` sets `publish_sections` on historical workouts. Applied: 6 workouts.
+- **✅ Score migration script** — `scripts/migrate-scores-to-coach.ts` sets `member_id` on existing scores. Applied: 54 scores (Chris 41, Mimi 1, Lukas 9, Neo 3).
+- **✅ Coach scores are authoritative** — Detection: `member_id` not null = coach-entered.
+
 **Completed (2026-03-14 Session 206 - Opus 4.6) — SCORE ENTRY FIXES + LEADERBOARD ENHANCEMENTS:**
-- **✅ Build error fixed** — `AthletePageWorkoutsTab.tsx:279` `no-explicit-any` lint error resolved.
-- **✅ Duplicate input bug** — `ScoringFieldInputs` rendered two time inputs for `max_time` sections (both bound to `time_result`). Removed redundant standalone block.
-- **✅ Section content preview** — Score entry page now shows section content below chips when selected (scrollable, in sticky header).
-- **✅ Section ID mismatch fixed** — Coach score entry was saving raw section IDs; leaderboard expects `{id}-content-0` suffix. Fixed in save API + pre-fill hook. Coach scores now appear on leaderboard.
-- **✅ Multi-field leaderboard ranking** — Weight (load) is now a tiebreaker within same scaling level before primary metric. Matches CF convention: heavier load = better position.
-- **✅ Multi-field leaderboard display** — Shows all non-empty fields (e.g., "50 m · 24 kg") instead of just the primary metric.
+- **✅ Duplicate input bug, section content preview, section ID mismatch, multi-field leaderboard ranking + display.**
 
 **Completed (2026-03-14 Session 205 - Opus 4.6) — SCORE NOTIFICATION + SCORE ENTRY UX REWORK:**
-- **✅ "Score recorded" push notification** — New `notifyScoreRecorded()`. New `score_recorded` preference column + toggle.
-- **✅ Score entry UX rework** — Chips instead of dropdown. Save All Scores. Sections filtered by `publish_sections`.
-- **✅ Publish modal defaults** — First-time: all unchecked. Re-publish: preserved.
-- **✅ Auto-add scored sections to publish_sections.**
+- **✅ Score recorded notification, chips UX, publish modal defaults, auto-add scored sections.**
 
 **Completed (2026-03-14 Session 204 - Opus 4.6) — PUBLISH MODAL REWORK + ATHLETE DISPLAY FIXES:**
-- **✅ Publish modal decoupled** — Google Calendar gets all sections; checkboxes control athlete visibility only.
-- **✅ Athlete workout tab bug fix** — Non-WOD session IDs filtered before UUID query.
-- **✅ Unpublished workout filter.** Score query button deprioritized.
+- **✅ Publish modal decoupled, athlete workout tab bug fix, unpublished workout filter.**
 
 **Completed (2026-03-14 Session 203 - Opus 4.6) — COACH SCORE ENTRY PAGE (Phase 1):**
 - **✅ Score entry page + GET/POST APIs + member_id migration.**
 
-**Completed (2026-03-13 Session 202 - Opus 4.6) — BOOKING & SESSION CANCELLATION NOTIFICATIONS:**
-- **✅ Session cancellation, coach add/remove, waitlist promotion notifications.**
-
-**Older Sessions (57-201):**
+**Older Sessions (57-202):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -205,10 +199,9 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION
-1. **Smart workout click behavior** — When athlete clicks workout in Workouts tab: if coach-entered scores exist, show read-only; if not, navigate to logbook as before. (Plan item #2 from session 206)
-2. **Bulk republish script** — Script to find all historical workouts with scoring sections and set `publish_sections` + `is_published`. Then enter scores via coach score entry.
-3. **Republish historical workouts** — Manual: go through ~4 months of workouts, republish with new checkbox system, enter scores via coach score entry page.
-4. **Score query button** (deprioritized) — Simple text popup → push notification to coach for athlete disputes.
+1. **Test smart click behavior** — Verify on mobile + desktop: coach-entered workouts show read-only, others navigate to logbook.
+2. **Score query button** — Simple text popup → push notification to coach for athlete disputes.
+3. **Coach library** — Equipment & Body Parts lists need optimising (from Notes for next session).
 5. **April 13 reminder:** Verify Stripe trial payment processed for test athlete (Stripe Dashboard → Payments, Supabase → members status, Vercel webhook logs)
 6. **Website integration** — Add "Member Login" link/button on Squarespace site pointing to `https://app.the-forge-functional-fitness.de`
 7. **Coach library** — Equipment & Body Parts lists need optimising (from Notes for next session)
