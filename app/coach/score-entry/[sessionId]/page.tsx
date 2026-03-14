@@ -61,18 +61,6 @@ export default function ScoreEntryPage() {
   });
   const timeStr = session.time?.substring(0, 5) || '';
 
-  // Navigate between scorable sections
-  const currentIdx = scorableSections.findIndex((s) => s.id === selectedSectionId);
-  const hasNext = currentIdx < scorableSections.length - 1;
-  const hasPrev = currentIdx > 0;
-
-  const goNextSection = () => {
-    if (hasNext) setSelectedSectionId(scorableSections[currentIdx + 1].id);
-  };
-  const goPrevSection = () => {
-    if (hasPrev) setSelectedSectionId(scorableSections[currentIdx - 1].id);
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -95,24 +83,27 @@ export default function ScoreEntryPage() {
             </div>
           </div>
 
-          {/* Section selector */}
+          {/* Section chips */}
           {scorableSections.length > 0 && (
-            <div className="mt-3 flex items-center gap-2">
-              <label className="text-xs font-medium text-gray-500">Section:</label>
-              <select
-                value={selectedSectionId}
-                onChange={(e) => setSelectedSectionId(e.target.value)}
-                className="text-sm border border-gray-300 rounded px-2 py-1 bg-white text-gray-800 focus:ring-2 focus:ring-[#178da6]"
-              >
+            <div className="mt-3">
+              <div className="flex items-center gap-2 flex-wrap">
                 {scorableSections.map((s) => (
-                  <option key={s.id} value={s.id}>
+                  <button
+                    key={s.id}
+                    onClick={() => setSelectedSectionId(s.id)}
+                    className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                      selectedSectionId === s.id
+                        ? 'bg-[#178da6] text-white'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
                     {s.type} ({s.duration} min)
-                  </option>
+                  </button>
                 ))}
-              </select>
-              <span className="text-xs text-gray-400 ml-auto">
-                {athletes.length} athlete{athletes.length !== 1 ? 's' : ''}
-              </span>
+                <span className="text-xs text-gray-400 ml-auto">
+                  {athletes.length} athlete{athletes.length !== 1 ? 's' : ''}
+                </span>
+              </div>
             </div>
           )}
         </div>
@@ -133,37 +124,15 @@ export default function ScoreEntryPage() {
               onUpdateScore={updateScore}
             />
 
-            {/* Actions */}
-            <div className="mt-4 flex items-center justify-between">
-              <div className="flex gap-2">
-                {hasPrev && (
-                  <button
-                    onClick={goPrevSection}
-                    className="text-sm px-3 py-2 text-gray-600 border border-gray-300 rounded hover:bg-gray-50"
-                  >
-                    ← Previous
-                  </button>
-                )}
-              </div>
-
+            {/* Save button */}
+            <div className="mt-4 flex justify-center">
               <button
                 onClick={saveScores}
                 disabled={saving}
-                className="px-6 py-2 bg-[#178da6] text-white text-sm font-medium rounded hover:bg-[#147a91] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-8 py-2 bg-[#178da6] text-white text-sm font-medium rounded hover:bg-[#147a91] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {saving ? 'Saving...' : 'Save Scores'}
+                {saving ? 'Saving...' : 'Save All Scores'}
               </button>
-
-              <div className="flex gap-2">
-                {hasNext && (
-                  <button
-                    onClick={goNextSection}
-                    className="text-sm px-3 py-2 text-gray-600 border border-gray-300 rounded hover:bg-gray-50"
-                  >
-                    Next →
-                  </button>
-                )}
-              </div>
             </div>
           </>
         ) : null}

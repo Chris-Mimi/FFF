@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { requireCoach, isAuthError } from '@/lib/auth-api';
+import { notifyScoreRecorded } from '@/lib/notifications';
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -192,6 +193,37 @@ export async function POST(request: NextRequest) {
 
     if (errors.length > 0 && savedCount === 0) {
       return NextResponse.json({ error: 'Failed to save scores' }, { status: 500 });
+    }
+
+    // Fire-and-forget: notify athletes whose scores were saved
+    if (savedCount > 0) {
+      // Fetch workout name + current publish_sections
+      const { data: wod } = await supabaseAdmin
+        .from('wods')
+        .select('workout_name, session_type, publish_sections')
+        .eq('id', wodId)
+        .maybeSingle();
+      const workoutName = wod?.workout_name || wod?.session_type || '';
+
+      // Auto-add scored sections to publish_sections so athletes can see them
+      const scoredSectionIds = [...new Set(records.map(r => r.section_id))];
+      const currentPublished: string[] = wod?.publish_sections || [];
+      const newPublished = [...new Set([...currentPublished, ...scoredSectionIds])];
+      if (newPublished.length !== currentPublished.length) {
+        await supabaseAdmin
+          .from('wods')
+          .update({ publish_sections: newPublished })
+          .eq('id', wodId);
+      }
+
+      // Collect unique user_ids that had scores saved
+      const notifiedUserIds = new Set<string>();
+      for (const record of records) {
+        if (record.user_id && !notifiedUserIds.has(record.user_id)) {
+          notifiedUserIds.add(record.user_id);
+          notifyScoreRecorded(record.user_id, workoutName);
+        }
+      }
     }
 
     return NextResponse.json({ saved: savedCount, errors: errors.length > 0 ? errors : undefined });

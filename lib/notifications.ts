@@ -182,3 +182,21 @@ export function notifyAchievementAwarded(userId: string, achievementName: string
     console.error('notifyAchievementAwarded failed:', err)
   );
 }
+
+/**
+ * Notify athletes that the coach recorded their scores.
+ * Called after coach bulk save — one notification per athlete.
+ */
+export function notifyScoreRecorded(userId: string, workoutName: string): void {
+  const payload: PushPayload = {
+    title: 'Score Recorded',
+    body: workoutName
+      ? `Your coach recorded your score for ${workoutName}`
+      : 'Your coach recorded your score',
+    data: { url: '/athlete?tab=workouts', type: 'score_recorded' },
+  };
+
+  sendToUser(userId, payload, 'score_recorded').catch((err) =>
+    console.error('notifyScoreRecorded failed:', err)
+  );
+}

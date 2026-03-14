@@ -44,9 +44,7 @@ export default function PublishModal({
     ? formatTime(sessionTime)
     : (currentPublishConfig?.eventTime || '09:00');
 
-  const [selectedSectionIds, setSelectedSectionIds] = useState<string[]>(
-    sections.map(s => s.id)
-  );
+  const [selectedSectionIds, setSelectedSectionIds] = useState<string[]>([]);
   const [eventTime, setEventTime] = useState(initialTime);
   const [eventDurationMinutes, setEventDurationMinutes] = useState(
     currentPublishConfig?.eventDurationMinutes || 60
@@ -64,12 +62,10 @@ export default function PublishModal({
         const oldSelection = currentPublishConfig.selectedSectionIds;
         // Include all previously selected sections that still exist
         const validOldSelection = oldSelection.filter(id => allSectionIds.includes(id));
-        // Add any new sections that weren't in the old config
-        const newSections = allSectionIds.filter(id => !oldSelection.includes(id));
-        initialSelection = [...validOldSelection, ...newSections];
+        initialSelection = validOldSelection;
       } else {
-        // First time publishing - select all sections
-        initialSelection = sections.map(s => s.id);
+        // First time publishing - default unchecked (coach explicitly selects)
+        initialSelection = [];
       }
 
       setSelectedSectionIds(initialSelection);
@@ -106,11 +102,6 @@ export default function PublishModal({
   };
 
   const handlePublish = async () => {
-    if (selectedSectionIds.length === 0) {
-      toast.warning('Please select at least one section to publish');
-      return;
-    }
-
     setIsSubmitting(true);
     try {
       await onPublish({
@@ -350,7 +341,7 @@ export default function PublishModal({
             </button>
             <button
               onClick={handlePublish}
-              disabled={isSubmitting || selectedSectionIds.length === 0}
+              disabled={isSubmitting}
               className='px-4 py-2 bg-[#178da6] text-white rounded-lg hover:bg-[#14758c] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2'
             >
               <Send size={18} />

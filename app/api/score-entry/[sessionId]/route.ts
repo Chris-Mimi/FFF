@@ -36,7 +36,7 @@ export async function GET(
     // 2. Fetch WOD with sections
     const { data: wod, error: wodError } = await supabaseAdmin
       .from('wods')
-      .select('id, date, session_type, workout_name, sections')
+      .select('id, date, session_type, workout_name, sections, publish_sections')
       .eq('id', session.workout_id)
       .single();
 
@@ -137,6 +137,7 @@ export async function GET(
         session_type: wod.session_type,
         workout_name: wod.workout_name,
         sections: wod.sections,
+        publish_sections: wod.publish_sections,
       },
       athletes,
       existingResults,

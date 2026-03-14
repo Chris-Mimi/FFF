@@ -17,6 +17,7 @@ const PREF_LABELS: Record<keyof NotificationPreferences, string> = {
   session_cancelled: 'Session Cancelled',
   pr_achieved: 'New PR',
   achievement_awarded: 'Achievement Awarded',
+  score_recorded: 'Score Recorded',
 };
 
 export function NotificationPrompt() {

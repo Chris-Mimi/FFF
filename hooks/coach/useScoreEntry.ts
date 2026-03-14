@@ -67,6 +67,7 @@ interface WodData {
   session_type: string;
   workout_name: string;
   sections: WodSection[];
+  publish_sections: string[] | null;
 }
 
 export const emptyScoreValues: AthleteScoreValues = {
@@ -92,9 +93,18 @@ export function useScoreEntry(sessionId: string) {
   // Scores keyed by `${memberId}_${sectionId}`
   const [scores, setScores] = useState<Record<string, AthleteScoreValues>>({});
 
-  const scorableSections = (wod?.sections || []).filter(
-    (s) => s.scoring_fields && Object.values(s.scoring_fields).some((v) => v === true)
-  );
+  // Show sections that are scorable AND published to athletes
+  const publishedIds = wod?.publish_sections;
+  const scorableSections = (wod?.sections || []).filter((s) => {
+    const isScorable = s.scoring_fields && Object.values(s.scoring_fields).some((v) => v === true);
+    if (!isScorable) return false;
+    // If publish_sections exists and is non-empty, filter by it
+    if (publishedIds && publishedIds.length > 0) {
+      return publishedIds.includes(s.id);
+    }
+    // Backwards compat: if no publish_sections, show all scorable
+    return true;
+  });
 
   const selectedSection = scorableSections.find((s) => s.id === selectedSectionId) || null;
 
@@ -167,45 +177,48 @@ export function useScoreEntry(sessionId: string) {
   );
 
   const saveScores = useCallback(async () => {
-    if (!wod || !session || !selectedSectionId) return;
+    if (!wod || !session) return;
 
     setSaving(true);
     try {
-      // Build scores array for selected section
-      const scoreEntries = athletes
-        .map((athlete) => {
-          const key = getScoreKey(athlete.memberId, selectedSectionId);
-          const values = scores[key];
-          if (!values) return null;
+      // Build scores array for ALL scorable sections (not just the selected one)
+      const scoreEntries = scorableSections
+        .flatMap((section) =>
+          athletes
+            .map((athlete) => {
+              const key = getScoreKey(athlete.memberId, section.id);
+              const values = scores[key];
+              if (!values) return null;
 
-          // Skip if all fields empty
-          if (
-            !values.scaling_level &&
-            !values.time_result &&
-            !values.reps_result &&
-            !values.weight_result &&
-            !values.rounds_result &&
-            !values.calories_result &&
-            !values.metres_result &&
-            !values.task_completed
-          ) {
-            return null;
-          }
+              // Skip if all fields empty
+              if (
+                !values.scaling_level &&
+                !values.time_result &&
+                !values.reps_result &&
+                !values.weight_result &&
+                !values.rounds_result &&
+                !values.calories_result &&
+                !values.metres_result &&
+                !values.task_completed
+              ) {
+                return null;
+              }
 
-          return {
-            memberId: athlete.memberId,
-            sectionId: selectedSectionId,
-            scaling_level: values.scaling_level || undefined,
-            time_result: values.time_result || undefined,
-            reps_result: values.reps_result ? parseInt(values.reps_result) : null,
-            weight_result: values.weight_result ? parseFloat(values.weight_result) : null,
-            rounds_result: values.rounds_result ? parseInt(values.rounds_result) : null,
-            calories_result: values.calories_result ? parseInt(values.calories_result) : null,
-            metres_result: values.metres_result ? parseFloat(values.metres_result) : null,
-            task_completed: values.task_completed || null,
-          };
-        })
-        .filter(Boolean);
+              return {
+                memberId: athlete.memberId,
+                sectionId: section.id,
+                scaling_level: values.scaling_level || undefined,
+                time_result: values.time_result || undefined,
+                reps_result: values.reps_result ? parseInt(values.reps_result) : null,
+                weight_result: values.weight_result ? parseFloat(values.weight_result) : null,
+                rounds_result: values.rounds_result ? parseInt(values.rounds_result) : null,
+                calories_result: values.calories_result ? parseInt(values.calories_result) : null,
+                metres_result: values.metres_result ? parseFloat(values.metres_result) : null,
+                task_completed: values.task_completed || null,
+              };
+            })
+            .filter(Boolean)
+        );
 
       if (scoreEntries.length === 0) {
         toast.error('No scores to save');
@@ -234,7 +247,8 @@ export function useScoreEntry(sessionId: string) {
     } finally {
       setSaving(false);
     }
-  }, [wod, session, selectedSectionId, athletes, scores]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wod, session, athletes, scores]);
 
   return {
     session,

@@ -16,6 +16,7 @@ const VALID_PREF_KEYS = [
   'pr_achieved',
   'achievement_awarded',
   'session_cancelled',
+  'score_recorded',
 ] as const;
 
 export async function GET(request: NextRequest) {
@@ -26,7 +27,7 @@ export async function GET(request: NextRequest) {
   try {
     const { data: preferences } = await supabaseAdmin
       .from('notification_preferences')
-      .select('wod_published, booking_confirmed, booking_waitlisted, booking_promoted, pr_achieved, achievement_awarded, session_cancelled')
+      .select('wod_published, booking_confirmed, booking_waitlisted, booking_promoted, pr_achieved, achievement_awarded, session_cancelled, score_recorded')
       .eq('user_id', user.id)
       .maybeSingle();
 
@@ -39,6 +40,7 @@ export async function GET(request: NextRequest) {
         pr_achieved: true,
         achievement_awarded: true,
         session_cancelled: true,
+        score_recorded: true,
       },
     });
   } catch (error) {

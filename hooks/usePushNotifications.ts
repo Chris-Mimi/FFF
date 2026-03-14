@@ -22,6 +22,7 @@ export interface NotificationPreferences {
   session_cancelled: boolean;
   pr_achieved: boolean;
   achievement_awarded: boolean;
+  score_recorded: boolean;
 }
 
 const DEFAULT_PREFERENCES: NotificationPreferences = {
@@ -32,6 +33,7 @@ const DEFAULT_PREFERENCES: NotificationPreferences = {
   session_cancelled: true,
   pr_achieved: true,
   achievement_awarded: true,
+  score_recorded: true,
 };
 
 export function usePushNotifications() {

@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 81.0
-**Updated:** 2026-03-14 (Session 203 - Coach Score Entry page)
+**Version:** 82.0
+**Updated:** 2026-03-14 (Session 205 - Score notification + score entry UX)
 
 ---
 
@@ -88,6 +88,14 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-14 Session 205 - Opus 4.6) — SCORE NOTIFICATION + SCORE ENTRY UX REWORK:**
+- **✅ "Score recorded" push notification** — After coach bulk save, each athlete with an app account receives push notification: "Your coach recorded your score for [workout name]". New `notifyScoreRecorded()` in `lib/notifications.ts`. New `score_recorded` preference column + toggle in UI.
+- **✅ Score entry UX rework** — Replaced dropdown section selector with clickable chips. Save now saves ALL sections at once ("Save All Scores"). Sections filtered to only those checked in publish modal (`publish_sections`).
+- **✅ Publish modal defaults changed** — First-time publish now defaults all checkboxes to unchecked (coach explicitly selects which sections athletes see). Re-publish preserves previous selection.
+- **✅ Auto-add scored sections to publish_sections** — When coach saves scores for a section, it's automatically added to `publish_sections` so athletes can see it.
+- **⏳ Migration pending** — `database/20260314_add_score_recorded_preference.sql` (applied during session)
+- **⚠️ Pre-existing build failure** — `AthletePageWorkoutsTab.tsx:279` has `@typescript-eslint/no-explicit-any` error. Exists on clean HEAD. Investigate next session.
+
 **Completed (2026-03-14 Session 204 - Opus 4.6) — PUBLISH MODAL REWORK + ATHLETE DISPLAY FIXES:**
 - **✅ Publish modal decoupled** — Google Calendar always gets ALL sections. Checkboxes now control only which sections athletes see in the app. Added explanatory note in modal UI.
 - **✅ Duration auto-calc** — Now uses all sections (full workout duration), not just selected sections.
@@ -115,14 +123,7 @@ Social Tables
 - **✅ Updated manual new workout template** — useWorkoutModal now uses same 4 default sections (was Warm-up → WOD → Cool Down).
 - **✅ Copy workout safety** — When copying a workout, default date+time placeholder names are cleared to `null` to prevent accidental leaderboard grouping. Custom names preserved.
 
-**Completed (2026-03-13 Session 200 - Opus 4.6) — DOMAIN VERIFICATION + BOOKING FIXES:**
-- **✅ Resend domain verified** — Added SPF/DKIM/DMARC DNS records in Squarespace for `the-forge-functional-fitness.de`. Updated `EMAIL_FROM` to `noreply@the-forge-functional-fitness.de` in `.env.local` + Vercel.
-- **✅ Full flow tested** — Register → approve → email → login → Start Free Trial → Stripe checkout with 30-day trial. All working on live site. Stale test-mode `stripe_customer_id` cleared from test athlete.
-- **✅ Booking hover popup z-index fix** — Changed popup from `top-full` to `bottom-full` so it appears above the chip instead of being hidden by the card below.
-- **✅ Coach re-add member after removal** — `filterAvailableMembers` now only excludes `confirmed`/`waitlist` (was `!== 'cancelled'`, missing `coach_cancelled`/`no_show`/`late_cancel`). Same fix pattern as Sessions 197/198.
-- **⏳ Stripe trial payment verification** — Test athlete on 30-day trial. Check April 13, 2026: Stripe payment, webhook processing, Supabase status update.
-
-**Older Sessions (57-199):**
+**Older Sessions (57-200):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -171,6 +172,7 @@ See `project-history/` folder for detailed implementation history
 - ✅ `20260310000000_add_duplicate_prevention_constraints.sql` — Unique indexes on wod_section_results + benchmark_results (Session 189, applied Session 190)
 - ✅ `20260313_add_session_cancelled_preference.sql` — Adds `session_cancelled` boolean column to notification_preferences (Session 202, applied Session 203)
 - ✅ `20260314_add_member_id_to_section_results.sql` — Adds `member_id` column to wod_section_results, makes `user_id` nullable (Session 203, applied)
+- ✅ `20260314_add_score_recorded_preference.sql` — Adds `score_recorded` boolean column to notification_preferences (Session 205, applied)
 
 ---
 
@@ -213,12 +215,13 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION
-1. **Republish historical workouts** — Go through ~4 months of workouts, republish with new checkbox system (select only relevant sections for athletes). Enter scores via coach score entry page.
-2. **"Score recorded" push notification** — After coach bulk save, notify each athlete: "Your coach recorded your score for [workout name]". New `score_recorded` preference.
-3. **Score query button** (deprioritized) — Simple text popup → push notification to coach for athlete disputes.
-4. **April 13 reminder:** Verify Stripe trial payment processed for test athlete (Stripe Dashboard → Payments, Supabase → members status, Vercel webhook logs)
-5. **Website integration** — Add "Member Login" link/button on Squarespace site pointing to `https://app.the-forge-functional-fitness.de`
-6. **Coach library** — Equipment & Body Parts lists need optimising (from Notes for next session)
+1. **Fix pre-existing build failure** — `AthletePageWorkoutsTab.tsx:279` `@typescript-eslint/no-explicit-any`. Quick fix.
+2. **Test score entry UX** — Verify chips, save-all, publish_sections auto-add all work correctly on Friday 13.03 workout (Weekend WOD #26.8).
+3. **Republish historical workouts** — Go through ~4 months of workouts, republish with new checkbox system (select only relevant sections for athletes). Enter scores via coach score entry page.
+4. **Score query button** (deprioritized) — Simple text popup → push notification to coach for athlete disputes.
+5. **April 13 reminder:** Verify Stripe trial payment processed for test athlete (Stripe Dashboard → Payments, Supabase → members status, Vercel webhook logs)
+6. **Website integration** — Add "Member Login" link/button on Squarespace site pointing to `https://app.the-forge-functional-fitness.de`
+7. **Coach library** — Equipment & Body Parts lists need optimising (from Notes for next session)
 
 ### DEPLOYMENT (Session 158+)
 
