@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
         workout_date: workoutDate,
         member_id: score.memberId,
         user_id: userId,
-        section_id: score.sectionId,
+        section_id: `${score.sectionId}-content-0`,
         scaling_level: score.scaling_level || null,
         time_result: score.time_result || null,
         reps_result: score.reps_result ?? null,
@@ -206,7 +206,7 @@ export async function POST(request: NextRequest) {
       const workoutName = wod?.workout_name || wod?.session_type || '';
 
       // Auto-add scored sections to publish_sections so athletes can see them
-      const scoredSectionIds = [...new Set(records.map(r => r.section_id))];
+      const scoredSectionIds = [...new Set(records.map(r => r.section_id.replace(/-content-0$/, '')))];
       const currentPublished: string[] = wod?.publish_sections || [];
       const newPublished = [...new Set([...currentPublished, ...scoredSectionIds])];
       if (newPublished.length !== currentPublished.length) {

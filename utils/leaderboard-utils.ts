@@ -104,8 +104,19 @@ function parseTimeToSeconds(time?: string | null): number {
 /**
  * Compare two results by scoring type.
  * Returns negative if a should rank higher (better).
+ *
+ * Within the same scaling level, weight (load) is always used as the first
+ * tiebreaker before the primary metric (unless weight IS the primary metric).
+ * This matches CrossFit convention: heavier load at the same scaling = better.
  */
 function compareByScoringType(a: RawSectionResult, b: RawSectionResult, type: string): number {
+  // Weight tiebreaker: for non-weight primary types, higher load ranks first
+  if (type !== 'weight') {
+    const aW = a.weight_result || 0;
+    const bW = b.weight_result || 0;
+    if (aW !== bW && (aW > 0 || bW > 0)) return bW - aW;
+  }
+
   switch (type) {
     case 'time': {
       const aTime = parseTimeToSeconds(a.time_result);
@@ -348,46 +359,58 @@ export function rankLiftResults(
 
 /**
  * Format a leaderboard entry's result as a display string.
+ * Shows the primary result plus any additional non-empty fields as extras.
  */
 export function formatResult(entry: LeaderboardEntry, scoringType: string): string {
+  let primary: string;
+
   switch (scoringType) {
     case 'time':
     case 'max_time':
-      if (entry.timeResult) return entry.timeResult;
-      // Fallback: show best available data when no time was entered
-      if (entry.repsResult) return `${entry.repsResult} reps`;
-      if (entry.weightResult) return `${entry.weightResult} kg`;
-      return '-';
+      if (entry.timeResult) { primary = entry.timeResult; break; }
+      if (entry.repsResult) { primary = `${entry.repsResult} reps`; break; }
+      if (entry.weightResult) { primary = `${entry.weightResult} kg`; break; }
+      primary = '-'; break;
     case 'time_with_cap':
-      if (entry.timeResult) return entry.timeResult;
-      if (entry.roundsResult && entry.repsResult) return `CAP +${entry.roundsResult}+${entry.repsResult}`;
-      if (entry.roundsResult) return `CAP +${entry.roundsResult} rounds`;
-      return `CAP +${entry.repsResult || 0} reps`;
+      if (entry.timeResult) { primary = entry.timeResult; break; }
+      if (entry.roundsResult && entry.repsResult) { primary = `CAP +${entry.roundsResult}+${entry.repsResult}`; break; }
+      if (entry.roundsResult) { primary = `CAP +${entry.roundsResult} rounds`; break; }
+      primary = `CAP +${entry.repsResult || 0} reps`; break;
     case 'time_amrap': {
       const repsStr = entry.roundsResult && entry.repsResult
         ? `${entry.roundsResult}+${entry.repsResult}`
         : entry.roundsResult
         ? `${entry.roundsResult} rounds`
         : `${entry.repsResult || 0} reps`;
-      return entry.timeResult ? `${repsStr} (${entry.timeResult})` : repsStr;
+      primary = entry.timeResult ? `${repsStr} (${entry.timeResult})` : repsStr; break;
     }
     case 'rounds_reps':
-      if (entry.roundsResult && entry.repsResult) return `${entry.roundsResult}+${entry.repsResult}`;
-      if (entry.roundsResult) return `${entry.roundsResult} rounds`;
-      return `${entry.repsResult || 0} reps`;
+      if (entry.roundsResult && entry.repsResult) { primary = `${entry.roundsResult}+${entry.repsResult}`; break; }
+      if (entry.roundsResult) { primary = `${entry.roundsResult} rounds`; break; }
+      primary = `${entry.repsResult || 0} reps`; break;
     case 'reps':
-      return `${entry.repsResult || 0} reps`;
+      primary = `${entry.repsResult || 0} reps`; break;
     case 'weight':
-      return `${entry.weightResult || 0} kg`;
+      primary = `${entry.weightResult || 0} kg`; break;
     case 'calories':
-      return `${entry.caloriesResult || 0} cal`;
+      primary = `${entry.caloriesResult || 0} cal`; break;
     case 'metres':
-      return `${entry.metresResult || 0} m`;
+      primary = `${entry.metresResult || 0} m`; break;
     case 'checkbox':
-      return entry.taskCompleted ? 'Completed' : 'Not completed';
+      primary = entry.taskCompleted ? 'Completed' : 'Not completed'; break;
     default:
-      return '-';
+      primary = '-'; break;
   }
+
+  // Append extra fields not already shown in primary
+  const extras: string[] = [];
+  if (scoringType !== 'weight' && entry.weightResult) extras.push(`${entry.weightResult} kg`);
+  if (!['metres'].includes(scoringType) && entry.metresResult) extras.push(`${entry.metresResult} m`);
+  if (!['reps', 'rounds_reps', 'time_with_cap', 'time_amrap'].includes(scoringType) && entry.repsResult) extras.push(`${entry.repsResult} reps`);
+  if (!['calories'].includes(scoringType) && entry.caloriesResult) extras.push(`${entry.caloriesResult} cal`);
+
+  if (extras.length > 0) return `${primary} · ${extras.join(' · ')}`;
+  return primary;
 }
 
 /**

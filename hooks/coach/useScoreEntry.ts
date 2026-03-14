@@ -143,7 +143,9 @@ export function useScoreEntry(sessionId: string) {
         );
         if (!athlete) continue;
 
-        const key = getScoreKey(athlete.memberId, result.section_id);
+        // Strip -content-0 suffix to match WOD section IDs used as keys
+        const rawSectionId = result.section_id.replace(/-content-\d+$/, '');
+        const key = getScoreKey(athlete.memberId, rawSectionId);
         prefilled[key] = {
           scaling_level: result.scaling_level || '',
           time_result: result.time_result || '',

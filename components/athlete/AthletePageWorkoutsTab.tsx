@@ -272,11 +272,12 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
       }
 
       // Transform bookings into workout display format (skip unpublished workouts)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      /* eslint-disable @typescript-eslint/no-explicit-any */
       const workoutsFromBookings = (bookings || []).filter((booking: any) => {
         const workout = booking.weekly_sessions?.wods;
         return workout && workout.is_published;
       }).map((booking: any) => {
+      /* eslint-enable @typescript-eslint/no-explicit-any */
         const session = booking.weekly_sessions;
         const workout = session?.wods;
 

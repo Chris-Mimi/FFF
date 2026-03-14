@@ -186,19 +186,6 @@ export default function ScoringFieldInputs({
         />
       )}
 
-      {/* Max Time Input (standalone, not part of For Time toggle) */}
-      {!isForTimeWithCap && scoringFields.max_time && (
-        <input
-          type='text'
-          placeholder='mm:ss'
-          maxLength={8}
-          pattern='[0-9:]*'
-          value={values.time_result || ''}
-          onChange={(e) => onChange({ time_result: e.target.value })}
-          className={`w-16 px-2 py-1 text-xs text-center border ${borderColor} rounded focus:ring-2 focus:ring-[#178da6] text-gray-900`}
-        />
-      )}
-
       {/* Rounds + Reps Input — For Time cap mode OR standalone rounds_reps */}
       {(showCapFields || (!isForTimeWithCap && scoringFields.rounds_reps)) && scoringFields.rounds_reps && (
         <>

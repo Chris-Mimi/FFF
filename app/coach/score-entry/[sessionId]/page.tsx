@@ -104,6 +104,13 @@ export default function ScoreEntryPage() {
                   {athletes.length} athlete{athletes.length !== 1 ? 's' : ''}
                 </span>
               </div>
+
+              {/* Section content preview */}
+              {selectedSection?.content && (
+                <div className="mt-2 px-3 py-2 bg-gray-50 rounded border border-gray-200 text-xs text-gray-600 whitespace-pre-line max-h-32 overflow-y-auto">
+                  {selectedSection.content}
+                </div>
+              )}
             </div>
           )}
         </div>

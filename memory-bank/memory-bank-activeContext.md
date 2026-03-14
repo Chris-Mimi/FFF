@@ -88,42 +88,32 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-14 Session 206 - Opus 4.6) — SCORE ENTRY FIXES + LEADERBOARD ENHANCEMENTS:**
+- **✅ Build error fixed** — `AthletePageWorkoutsTab.tsx:279` `no-explicit-any` lint error resolved.
+- **✅ Duplicate input bug** — `ScoringFieldInputs` rendered two time inputs for `max_time` sections (both bound to `time_result`). Removed redundant standalone block.
+- **✅ Section content preview** — Score entry page now shows section content below chips when selected (scrollable, in sticky header).
+- **✅ Section ID mismatch fixed** — Coach score entry was saving raw section IDs; leaderboard expects `{id}-content-0` suffix. Fixed in save API + pre-fill hook. Coach scores now appear on leaderboard.
+- **✅ Multi-field leaderboard ranking** — Weight (load) is now a tiebreaker within same scaling level before primary metric. Matches CF convention: heavier load = better position.
+- **✅ Multi-field leaderboard display** — Shows all non-empty fields (e.g., "50 m · 24 kg") instead of just the primary metric.
+
 **Completed (2026-03-14 Session 205 - Opus 4.6) — SCORE NOTIFICATION + SCORE ENTRY UX REWORK:**
-- **✅ "Score recorded" push notification** — After coach bulk save, each athlete with an app account receives push notification: "Your coach recorded your score for [workout name]". New `notifyScoreRecorded()` in `lib/notifications.ts`. New `score_recorded` preference column + toggle in UI.
-- **✅ Score entry UX rework** — Replaced dropdown section selector with clickable chips. Save now saves ALL sections at once ("Save All Scores"). Sections filtered to only those checked in publish modal (`publish_sections`).
-- **✅ Publish modal defaults changed** — First-time publish now defaults all checkboxes to unchecked (coach explicitly selects which sections athletes see). Re-publish preserves previous selection.
-- **✅ Auto-add scored sections to publish_sections** — When coach saves scores for a section, it's automatically added to `publish_sections` so athletes can see it.
-- **⏳ Migration pending** — `database/20260314_add_score_recorded_preference.sql` (applied during session)
-- **⚠️ Pre-existing build failure** — `AthletePageWorkoutsTab.tsx:279` has `@typescript-eslint/no-explicit-any` error. Exists on clean HEAD. Investigate next session.
+- **✅ "Score recorded" push notification** — New `notifyScoreRecorded()`. New `score_recorded` preference column + toggle.
+- **✅ Score entry UX rework** — Chips instead of dropdown. Save All Scores. Sections filtered by `publish_sections`.
+- **✅ Publish modal defaults** — First-time: all unchecked. Re-publish: preserved.
+- **✅ Auto-add scored sections to publish_sections.**
 
 **Completed (2026-03-14 Session 204 - Opus 4.6) — PUBLISH MODAL REWORK + ATHLETE DISPLAY FIXES:**
-- **✅ Publish modal decoupled** — Google Calendar always gets ALL sections. Checkboxes now control only which sections athletes see in the app. Added explanatory note in modal UI.
-- **✅ Duration auto-calc** — Now uses all sections (full workout duration), not just selected sections.
-- **✅ Athlete workout tab bug fix** — Fallback `session-*` IDs (from sessions with no linked WOD) were poisoning the UUID query for `wod_section_results`, causing ALL results to disappear for the entire week. Fix: filter out non-WOD IDs before querying.
-- **✅ Unpublished workout filter** — Athlete workout tab now filters out workouts where `is_published = false` (was showing unpublished workouts to athletes).
-- **✅ Coach score entry tested** — Scores entered via coach page appear correctly in athlete Workout tab with green "Your Result" box.
-- **Decision:** Score query button (athlete disputes) deprioritized. Logbook page left as-is for now — may be removed entirely once coach score entry flow proves out.
-- **Plan:** `.claude/plans/coach-score-entry.md` has full multi-session implementation plan.
+- **✅ Publish modal decoupled** — Google Calendar gets all sections; checkboxes control athlete visibility only.
+- **✅ Athlete workout tab bug fix** — Non-WOD session IDs filtered before UUID query.
+- **✅ Unpublished workout filter.** Score query button deprioritized.
 
 **Completed (2026-03-14 Session 203 - Opus 4.6) — COACH SCORE ENTRY PAGE (Phase 1):**
-- **✅ Coach Score Entry page** — New `/coach/score-entry/[sessionId]` page. Coach selects a session, picks a scorable section, enters scores for all booked athletes in a grid. Reuses existing `ScoringFieldInputs` component.
-- **✅ GET/POST APIs** — Fetch session data + bulk upsert scores to `wod_section_results`.
-- **✅ member_id column + migration applied** — Scores saved for ALL members regardless of app account status.
+- **✅ Score entry page + GET/POST APIs + member_id migration.**
 
 **Completed (2026-03-13 Session 202 - Opus 4.6) — BOOKING & SESSION CANCELLATION NOTIFICATIONS:**
-- **✅ Session cancellation notifications** — When coach cancels a session, all affected members receive push notification. New API route `/api/notifications/session-cancelled`.
-- **✅ Coach add/remove notifications** — Athletes notified when coach manually adds or removes them from a session. New API route `/api/notifications/coach-booking`.
-- **✅ Waitlist promotion notifications (capacity increase)** — When coach increases session capacity, promoted waitlist members now get notified. `promoteWaitlistMembers` returns promoted member IDs.
-- **✅ Notification preference toggle** — New `session_cancelled` column in `notification_preferences` table. Added to preferences API, type, and UI toggle.
-- **⏳ Migration pending** — `database/20260313_add_session_cancelled_preference.sql` (run in Supabase SQL Editor)
-- **Fix:** `npm install` was needed — `resend` package was in `package.json` but not installed in `node_modules`.
+- **✅ Session cancellation, coach add/remove, waitlist promotion notifications.**
 
-**Completed (2026-03-13 Session 201 - Opus 4.6) — AUTO-POPULATE SESSIONS + COPY SAFETY:**
-- **✅ Default sections on session generation** — "This Week"/"Next Week" now creates a WOD record per session with 4 default sections: Whiteboard Intro (0 min), Warm-up (12 min), Skill (15 min), WOD (15 min). Default workout name = `YYYY-MM-DD HH:MM`. Fixed: `.single()` → `.maybeSingle()` for existence check, added missing `title` and `class_times` fields.
-- **✅ Updated manual new workout template** — useWorkoutModal now uses same 4 default sections (was Warm-up → WOD → Cool Down).
-- **✅ Copy workout safety** — When copying a workout, default date+time placeholder names are cleared to `null` to prevent accidental leaderboard grouping. Custom names preserved.
-
-**Older Sessions (57-200):**
+**Older Sessions (57-201):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -215,9 +205,9 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION
-1. **Fix pre-existing build failure** — `AthletePageWorkoutsTab.tsx:279` `@typescript-eslint/no-explicit-any`. Quick fix.
-2. **Test score entry UX** — Verify chips, save-all, publish_sections auto-add all work correctly on Friday 13.03 workout (Weekend WOD #26.8).
-3. **Republish historical workouts** — Go through ~4 months of workouts, republish with new checkbox system (select only relevant sections for athletes). Enter scores via coach score entry page.
+1. **Smart workout click behavior** — When athlete clicks workout in Workouts tab: if coach-entered scores exist, show read-only; if not, navigate to logbook as before. (Plan item #2 from session 206)
+2. **Bulk republish script** — Script to find all historical workouts with scoring sections and set `publish_sections` + `is_published`. Then enter scores via coach score entry.
+3. **Republish historical workouts** — Manual: go through ~4 months of workouts, republish with new checkbox system, enter scores via coach score entry page.
 4. **Score query button** (deprioritized) — Simple text popup → push notification to coach for athlete disputes.
 5. **April 13 reminder:** Verify Stripe trial payment processed for test athlete (Stripe Dashboard → Payments, Supabase → members status, Vercel webhook logs)
 6. **Website integration** — Add "Member Login" link/button on Squarespace site pointing to `https://app.the-forge-functional-fitness.de`
