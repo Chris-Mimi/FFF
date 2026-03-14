@@ -2,6 +2,7 @@
 
 import { BarChart3, Calendar, Dumbbell, Image, LogOut, Plus, Settings, UserCheck, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { NotificationPrompt } from '@/components/ui/NotificationPrompt';
 
 interface CoachHeaderProps {
   userName: string;
@@ -67,6 +68,7 @@ export const CoachHeader = ({
               <Settings size={18} />
               Admin
             </button>
+            <NotificationPrompt />
             <button onClick={onLogout} className='flex items-center gap-2 bg-[#14758c] hover:bg-teal-800 px-4 py-2 rounded-lg transition'>
               <LogOut size={18} />
               Logout
@@ -119,6 +121,9 @@ export const CoachHeader = ({
               <LogOut size={iconSize} />
               <span>Logout</span>
             </button>
+          </div>
+          <div className='mt-2'>
+            <NotificationPrompt />
           </div>
         </div>
       </div>
