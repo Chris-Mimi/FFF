@@ -449,6 +449,10 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
   };
 
   const getPublishedSections = (workout: PublishedWorkout): WorkoutSection[] => {
+    // Coach's athlete account sees all sections (for testing/review)
+    if (userId === '84280ec0-7cc6-40e2-818b-d8843c30ce29') {
+      return workout.sections;
+    }
     // Backwards compatibility: if publish_sections is null/empty, show all sections
     if (!workout.publish_sections || workout.publish_sections.length === 0) {
       return workout.sections;
