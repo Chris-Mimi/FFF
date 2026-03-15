@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 85.0
-**Updated:** 2026-03-15 (Session 211 - Session booking lock/unlock)
+**Version:** 86.0
+**Updated:** 2026-03-15 (Session 212 - Calendar card styling + attendee visibility)
 
 ---
 
@@ -88,6 +88,10 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-15 Session 212 - Opus 4.6) — CALENDAR CARD STYLING + ATTENDEE VISIBILITY:**
+- **✅ Draft card visual distinction** — Default/untouched drafts show light grey (`bg-gray-200`), edited drafts show darker grey (`bg-gray-400`). Coach can see at a glance which sessions still need programming.
+- **✅ Attendee list on booking page** — Athletes see "Also attending: Chris, Mimi" on sessions they're booked into. Names hidden for sessions they haven't joined (privacy). New API route `/api/bookings/attendees` uses service role to bypass members RLS.
+
 **Completed (2026-03-15 Session 211 - Opus 4.6) — SESSION BOOKING LOCK/UNLOCK:**
 - **✅ Session lock feature** — `is_locked` tri-state column (NULL=auto, true=locked, false=unlocked override). Auto-locks at session start time. Coach can manually lock/unlock via Session Management modal. Athletes see "Locked" instead of Book button.
 - **✅ Migration applied** — `20260315000000_add_session_lock.sql`
@@ -102,13 +106,7 @@ Social Tables
 **Completed (2026-03-14 Session 207 - Opus 4.6) — SMART CLICK + COACH SCORE AUTHORITY:**
 - **✅ Smart workout click, duplicate guard, bulk republish, score migration (54 scores), coach score authority.**
 
-**Completed (2026-03-14 Session 206 - Opus 4.6) — SCORE ENTRY FIXES + LEADERBOARD ENHANCEMENTS:**
-- **✅ Duplicate input bug, section content preview, section ID mismatch, multi-field leaderboard ranking + display.**
-
-**Completed (2026-03-14 Session 205 - Opus 4.6) — SCORE NOTIFICATION + SCORE ENTRY UX REWORK:**
-- **✅ Score recorded notification, chips UX, publish modal defaults, auto-add scored sections.**
-
-**Older Sessions (57-204):**
+**Older Sessions (57-206):**
 See `project-history/` folder for detailed implementation history
 
 ---

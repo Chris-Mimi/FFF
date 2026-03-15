@@ -134,6 +134,8 @@ export default function CalendarGrid({
     const cardState = getCardState(wod);
     const cardClasses = getCardClasses(cardState, wod.title);
     const isEmptySession = cardState === 'empty';
+    const isDefaultDraft = cardState === 'draft-default';
+    const isLightCard = isEmptySession || isDefaultDraft;
     const isPublished = cardState === 'published';
     const cardId = wod.booking_info?.session_id || wod.id || '';
     const iconSize = isMonthlyView ? 12 : 14;
@@ -200,7 +202,7 @@ export default function CalendarGrid({
             {/* Title */}
             <div
               className={`${titleSize} flex-1 min-w-0 truncate ${
-                isPublished ? 'text-white' : isEmptySession ? 'text-gray-600' : 'text-gray-900'
+                isPublished ? 'text-white' : isLightCard ? 'text-gray-600' : 'text-gray-900'
               }`}
               title={isEmptySession ? 'Click to add workout' : (wod.workout_name || getTrackName(wod.track_id) || undefined)}
             >
@@ -290,7 +292,7 @@ export default function CalendarGrid({
           </div>
 
           {/* Time Display */}
-          <div className={`${textSize} ${isEmptySession ? 'text-gray-600' : 'text-white'}`}>
+          <div className={`${textSize} ${isLightCard ? 'text-gray-600' : isPublished ? 'text-white' : 'text-gray-900'}`}>
             {wod.booking_info?.time?.substring(0, 5)}
           </div>
         </div>

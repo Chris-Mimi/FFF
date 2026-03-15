@@ -25,6 +25,7 @@ interface WeeklySession {
   user_booking_id: string | null;
   other_family_bookings: Array<{ name: string; id: string }>;
   is_locked: boolean;
+  attendees: string[];
 }
 
 interface FamilyMember {
@@ -230,10 +231,39 @@ export default function MemberBookingPage() {
           user_booking_id: selectedMemberBooking?.id || null,
           other_family_bookings: otherFamilyBookings,
           is_locked: effectivelyLocked,
+          attendees: [],
         };
       });
 
       setSessions(processedSessions);
+
+      // Fetch attendee names for sessions where user is booked
+      const bookedSessionIds = processedSessions
+        .filter(s => s.user_booking_status !== 'none')
+        .map(s => s.id);
+
+      if (bookedSessionIds.length > 0) {
+        try {
+          const { data: { session: authSession } } = await supabase.auth.getSession();
+          if (authSession) {
+            const res = await fetch(
+              `/api/bookings/attendees?sessionIds=${bookedSessionIds.join(',')}&memberId=${bookingForMemberId}`,
+              { headers: { Authorization: `Bearer ${authSession.access_token}` } }
+            );
+            if (res.ok) {
+              const { attendees } = await res.json();
+              if (attendees && Object.keys(attendees).length > 0) {
+                setSessions(prev => prev.map(s => ({
+                  ...s,
+                  attendees: attendees[s.id] || []
+                })));
+              }
+            }
+          }
+        } catch {
+          // Attendee names are non-critical — silently skip
+        }
+      }
     } catch (error) {
       console.error('Error fetching sessions:', error);
     } finally {
@@ -843,6 +873,16 @@ export default function MemberBookingPage() {
                                 {getCapacityBadge(session, textAccent)}
                               </div>
                             </div>
+
+                            {/* Attendee names - only visible when booked */}
+                            {session.attendees.length > 0 && (
+                              <div className="mt-2 pt-2 border-t border-gray-700">
+                                <p className="text-gray-400 text-xs">
+                                  <span className="font-medium text-gray-300">Also attending:</span>{' '}
+                                  {session.attendees.join(', ')}
+                                </p>
+                              </div>
+                            )}
                           </div>
 
                           {/* Right side - Action Button */}
