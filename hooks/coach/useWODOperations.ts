@@ -426,29 +426,39 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
       } else if (timesToCreate.length > 0) {
         // Find old workouts at matching date/time slots
         for (const time of timesToCreate) {
-          const { data: oldSession } = await supabase
+          const { data: oldSessions } = await supabase
             .from('weekly_sessions')
-            .select('workout_id')
+            .select('id, workout_id')
             .eq('date', dateKey)
-            .eq('time', time)
-            .maybeSingle();
+            .eq('time', time);
 
-          if (oldSession?.workout_id) {
-            oldWodIds.push(oldSession.workout_id);
-            const { data: oldWod } = await supabase
-              .from('wods')
-              .select('google_event_id')
-              .eq('id', oldSession.workout_id)
-              .single();
+          if (oldSessions && oldSessions.length > 0) {
+            // Collect unique workout IDs for cleanup
+            for (const s of oldSessions) {
+              if (s.workout_id && !oldWodIds.includes(s.workout_id)) {
+                oldWodIds.push(s.workout_id);
+                const { data: oldWod } = await supabase
+                  .from('wods')
+                  .select('google_event_id')
+                  .eq('id', s.workout_id)
+                  .single();
 
-            if (oldWod?.google_event_id) {
-              try {
-                await authFetch(`/api/google/publish-workout?workoutId=${oldSession.workout_id}`, {
-                  method: 'DELETE',
-                });
-              } catch {
-                // Continue even if calendar cleanup fails
+                if (oldWod?.google_event_id) {
+                  try {
+                    await authFetch(`/api/google/publish-workout?workoutId=${s.workout_id}`, {
+                      method: 'DELETE',
+                    });
+                  } catch {
+                    // Continue even if calendar cleanup fails
+                  }
+                }
               }
+            }
+
+            // Delete any duplicate sessions at this date/time (keep first, delete rest)
+            if (oldSessions.length > 1) {
+              const duplicateIds = oldSessions.slice(1).map(s => s.id);
+              await supabase.from('weekly_sessions').delete().in('id', duplicateIds);
             }
           }
         }
@@ -488,16 +498,15 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
       } else if (newWorkout && timesToCreate.length > 0) {
         // No target session - create or update sessions at the same times as source workout
         for (const time of timesToCreate) {
-          // Check if session exists at this date/time
-          const { data: existingSession } = await supabase
+          // Check if session(s) exist at this date/time
+          const { data: existingSessions } = await supabase
             .from('weekly_sessions')
             .select('id')
             .eq('date', dateKey)
-            .eq('time', time)
-            .maybeSingle();
+            .eq('time', time);
 
-          if (existingSession) {
-            // Update existing session
+          if (existingSessions && existingSessions.length > 0) {
+            // Update first session
             await supabase
               .from('weekly_sessions')
               .update({
@@ -505,7 +514,13 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
                 capacity: wod.maxCapacity,
                 status: 'published'
               })
-              .eq('id', existingSession.id);
+              .eq('id', existingSessions[0].id);
+
+            // Delete any duplicates
+            if (existingSessions.length > 1) {
+              const duplicateIds = existingSessions.slice(1).map(s => s.id);
+              await supabase.from('weekly_sessions').delete().in('id', duplicateIds);
+            }
           } else {
             // Create new session
             await supabase.from('weekly_sessions').insert({
@@ -519,23 +534,38 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
         }
       }
 
-      // Clean up old workouts: delete athlete results then delete the workout rows
+      // Clean up old workouts: only delete if no sessions still reference them
       if (oldWodIds.length > 0) {
-        // Delete athlete results via service role API (RLS blocks coach from deleting athlete data)
-        try {
-          await authFetch('/api/sessions/cleanup-results', {
-            method: 'DELETE',
-            body: JSON.stringify({ wodIds: oldWodIds }),
-          });
-        } catch {
-          // Continue even if cleanup fails
+        const orphanWodIds: string[] = [];
+        for (const wodId of oldWodIds) {
+          const { data: refs } = await supabase
+            .from('weekly_sessions')
+            .select('id')
+            .eq('workout_id', wodId)
+            .limit(1);
+
+          if (!refs || refs.length === 0) {
+            orphanWodIds.push(wodId);
+          }
         }
 
-        // Delete the old workout rows (no session references them anymore)
-        await supabase
-          .from('wods')
-          .delete()
-          .in('id', oldWodIds);
+        if (orphanWodIds.length > 0) {
+          // Delete athlete results via service role API (RLS blocks coach from deleting athlete data)
+          try {
+            await authFetch('/api/sessions/cleanup-results', {
+              method: 'DELETE',
+              body: JSON.stringify({ wodIds: orphanWodIds }),
+            });
+          } catch {
+            // Continue even if cleanup fails
+          }
+
+          // Delete the orphaned workout rows
+          await supabase
+            .from('wods')
+            .delete()
+            .in('id', orphanWodIds);
+        }
       }
 
       await fetchWODs();
