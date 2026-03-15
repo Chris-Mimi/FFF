@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 86.0
-**Updated:** 2026-03-15 (Session 212 - Calendar card styling + attendee visibility)
+**Version:** 87.0
+**Updated:** 2026-03-15 (Session 213 - Whiteboard name extraction + save duplicate fix)
 
 ---
 
@@ -88,13 +88,19 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-15 Session 213 - Opus 4.6) — WHITEBOARD NAME EXTRACTION + SAVE DUPLICATE FIX:**
+- **✅ Name extraction script** — `scripts/extract-whiteboard-names.ts` scans all wods, extracts names from Whiteboard Intro sections. Found ~193 unique names across 196 wods.
+- **✅ Save button double-click guard** — `isSaving` state in WorkoutModalHeader disables button + shows spinner during save.
+- **✅ Duplicate wod prevention** — `useWODOperations.ts` checks if session already has a workout before inserting; updates instead of creating duplicate.
+- **⚠️ 48 existing duplicate wod groups** — Need cleanup script in next session.
+- **📝 Athlete name mapping started** — `Chris Notes/Forge app documentation/Athletes booking list` — Chris adding full names for backfill.
+
 **Completed (2026-03-15 Session 212 - Opus 4.6) — CALENDAR CARD STYLING + ATTENDEE VISIBILITY:**
-- **✅ Draft card visual distinction** — Default/untouched drafts show light grey (`bg-gray-200`), edited drafts show darker grey (`bg-gray-400`). Coach can see at a glance which sessions still need programming.
-- **✅ Attendee list on booking page** — Athletes see "Also attending: Chris, Mimi" on sessions they're booked into. Names hidden for sessions they haven't joined (privacy). New API route `/api/bookings/attendees` uses service role to bypass members RLS.
+- **✅ Draft card visual distinction** — Default/untouched drafts show light grey (`bg-gray-200`), edited drafts show darker grey (`bg-gray-400`).
+- **✅ Attendee list on booking page** — Athletes see "Also attending: Chris, Mimi" on sessions they're booked into. New API route `/api/bookings/attendees`.
 
 **Completed (2026-03-15 Session 211 - Opus 4.6) — SESSION BOOKING LOCK/UNLOCK:**
-- **✅ Session lock feature** — `is_locked` tri-state column (NULL=auto, true=locked, false=unlocked override). Auto-locks at session start time. Coach can manually lock/unlock via Session Management modal. Athletes see "Locked" instead of Book button.
-- **✅ Migration applied** — `20260315000000_add_session_lock.sql`
+- **✅ Session lock feature** — `is_locked` tri-state column. Auto-locks at session start time. Coach can manually lock/unlock.
 - **📝 Future task planned** — Backfill historical bookings from Whiteboard Intro names (`Chris Notes/Planning/backfill-historical-bookings.md`)
 
 **Completed (2026-03-15 Session 209/210 - Opus 4.6) — DEBUG CLEANUP + COACH PUSH FIX:**
@@ -103,10 +109,7 @@ Social Tables
 **Completed (2026-03-15 Session 208 - Opus 4.6) — SCORE QUERY BUTTON + DUPLICATE GUARD FIX:**
 - **✅ Score query button, duplicate guard UX fix, new API endpoint, sendToCoaches() function.**
 
-**Completed (2026-03-14 Session 207 - Opus 4.6) — SMART CLICK + COACH SCORE AUTHORITY:**
-- **✅ Smart workout click, duplicate guard, bulk republish, score migration (54 scores), coach score authority.**
-
-**Older Sessions (57-206):**
+**Older Sessions (57-207):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -198,7 +201,8 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION
-1. **Coach library optimization** — Equipment & Body Parts lists need optimising.
+1. **Cleanup duplicate wods** — 48 duplicate groups found. Write cleanup script to remove orphaned/duplicate wod rows.
+2. **Coach library optimization** — Equipment & Body Parts lists need optimising.
 3. **April 13 reminder:** Verify Stripe trial payment processed for test athlete (Stripe Dashboard → Payments, Supabase → members status, Vercel webhook logs)
 4. **Website integration** — Add "Member Login" link/button on Squarespace site pointing to `https://app.the-forge-functional-fitness.de`
 

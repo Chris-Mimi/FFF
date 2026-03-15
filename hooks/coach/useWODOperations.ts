@@ -101,6 +101,49 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
       } else {
         const hasContent = wodData.sections && wodData.sections.length > 0;
 
+        // Duplicate guard: if saving to an existing session, check if it already has a workout
+        // (prevents duplicates from double-click or race conditions)
+        if (editingWOD?.booking_info?.session_id) {
+          const { data: currentSession } = await supabase
+            .from('weekly_sessions')
+            .select('workout_id')
+            .eq('id', editingWOD.booking_info.session_id)
+            .single();
+
+          if (currentSession?.workout_id) {
+            // Session already has a workout — update it instead of creating a duplicate
+            const { error: updateError } = await supabase
+              .from('wods')
+              .update({
+                title: wodData.title,
+                session_type: wodData.session_type || wodData.title,
+                workout_name: wodData.workout_name || null,
+                workout_week: workoutWeek,
+                track_id: wodData.track_id || null,
+                workout_type_id: wodData.workout_type_id || null,
+                class_times: wodData.classTimes,
+                max_capacity: wodData.maxCapacity,
+                date: dateKey,
+                sections: wodData.sections,
+                coach_notes: wodData.coach_notes || null,
+                workout_publish_status: hasContent ? 'draft' : null,
+                updated_at: new Date().toISOString(),
+              })
+              .eq('id', currentSession.workout_id);
+
+            if (updateError) throw updateError;
+
+            await supabase
+              .from('weekly_sessions')
+              .update({ capacity: wodData.maxCapacity })
+              .eq('workout_id', currentSession.workout_id);
+
+            await fetchWODs();
+            await fetchTracksAndCounts();
+            return;
+          }
+        }
+
         const { data: newWOD, error } = await supabase
           .from('wods')
           .insert([

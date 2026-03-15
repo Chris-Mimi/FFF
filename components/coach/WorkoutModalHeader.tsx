@@ -1,7 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import SessionTimeEditor from '@/components/coach/SessionTimeEditor';
-import { Check, FileText, RefreshCw, Send, X } from 'lucide-react';
+import { Check, FileText, Loader2, RefreshCw, Send, X } from 'lucide-react';
 import { WODFormData } from '@/hooks/coach/useWorkoutModal';
 
 interface WorkoutModalHeaderProps {
@@ -42,6 +43,8 @@ export default function WorkoutModalHeader({
   onSave,
   onClose,
 }: WorkoutModalHeaderProps) {
+  const [isSaving, setIsSaving] = useState(false);
+
   return (
     <div className='bg-[#178da6] text-white p-2 md:p-4 flex justify-between items-center gap-2'>
       <h2 className='text-sm md:text-xl font-bold whitespace-nowrap'>{editingWOD ? 'Edit' : 'New'}<span className='hidden md:inline'> Workout</span></h2>
@@ -112,13 +115,20 @@ export default function WorkoutModalHeader({
         <button
           onClick={async e => {
             e.preventDefault();
-            await onSave();
+            if (isSaving) return;
+            setIsSaving(true);
+            try {
+              await onSave();
+            } finally {
+              setIsSaving(false);
+            }
           }}
-          className='hover:bg-[#14758c] p-1 rounded transition'
+          disabled={isSaving}
+          className={`p-1 rounded transition ${isSaving ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#14758c]'}`}
           title='Save'
           aria-label='Save'
         >
-          <Check size={22} />
+          {isSaving ? <Loader2 size={22} className='animate-spin' /> : <Check size={22} />}
         </button>
         <button onClick={onClose} className='hover:bg-[#14758c] p-1 rounded transition' title='Close' aria-label='Close'>
           <X size={22} />
