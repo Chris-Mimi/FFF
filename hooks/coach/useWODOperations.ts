@@ -328,6 +328,15 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
     if (!await confirm({ title: 'Delete Session', message: 'Delete this session entirely? This will cancel all member bookings for this time slot.', confirmText: 'Delete', variant: 'danger' })) return;
 
     try {
+      // Get the workout_id before deleting the session
+      const { data: session } = await supabase
+        .from('weekly_sessions')
+        .select('workout_id')
+        .eq('id', sessionId)
+        .single();
+
+      const workoutId = session?.workout_id;
+
       // Delete the session (bookings will cascade delete if FK is set up that way)
       const { error } = await supabase
         .from('weekly_sessions')
@@ -335,6 +344,19 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
         .eq('id', sessionId);
 
       if (error) throw error;
+
+      // Clean up orphaned workout if no other session references it
+      if (workoutId) {
+        const { data: otherSessions } = await supabase
+          .from('weekly_sessions')
+          .select('id')
+          .eq('workout_id', workoutId)
+          .limit(1);
+
+        if (!otherSessions || otherSessions.length === 0) {
+          await supabase.from('wods').delete().eq('id', workoutId);
+        }
+      }
 
       await fetchWODs();
       await fetchTracksAndCounts();
@@ -497,13 +519,8 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
         }
       }
 
-      // Clean up old WODs: unpublish and remove orphaned athlete data
+      // Clean up old workouts: delete athlete results then delete the workout rows
       if (oldWodIds.length > 0) {
-        await supabase
-          .from('wods')
-          .update({ is_published: false, workout_publish_status: 'draft', google_event_id: null })
-          .in('id', oldWodIds);
-
         // Delete athlete results via service role API (RLS blocks coach from deleting athlete data)
         try {
           await authFetch('/api/sessions/cleanup-results', {
@@ -511,8 +528,14 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
             body: JSON.stringify({ wodIds: oldWodIds }),
           });
         } catch {
-          // Continue even if cleanup fails — orphans are harmless
+          // Continue even if cleanup fails
         }
+
+        // Delete the old workout rows (no session references them anymore)
+        await supabase
+          .from('wods')
+          .delete()
+          .in('id', oldWodIds);
       }
 
       await fetchWODs();
