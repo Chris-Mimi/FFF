@@ -20,7 +20,7 @@ const PREF_LABELS: Record<keyof NotificationPreferences, string> = {
   score_recorded: 'Score Recorded',
 };
 
-export function NotificationPrompt() {
+export function NotificationPrompt({ hidePreferences = false }: { hidePreferences?: boolean } = {}) {
   const {
     isSupported,
     permission,
@@ -100,28 +100,30 @@ export function NotificationPrompt() {
               </button>
             </div>
 
-            <div className="space-y-2">
-              {(Object.keys(PREF_LABELS) as (keyof NotificationPreferences)[]).map(
-                (key) => (
-                  <label
-                    key={key}
-                    className="flex cursor-pointer items-center justify-between rounded-lg px-2 py-1.5 hover:bg-gray-50"
-                  >
-                    <span className="text-sm text-gray-700">{PREF_LABELS[key]}</span>
-                    <input
-                      type="checkbox"
-                      checked={preferences[key]}
-                      onChange={(e) => {
-                        updatePreferences({ [key]: e.target.checked });
-                      }}
-                      className="h-4 w-4 rounded border-gray-300 text-blue-600 accent-blue-600"
-                    />
-                  </label>
-                )
-              )}
-            </div>
+            {!hidePreferences && (
+              <div className="space-y-2">
+                {(Object.keys(PREF_LABELS) as (keyof NotificationPreferences)[]).map(
+                  (key) => (
+                    <label
+                      key={key}
+                      className="flex cursor-pointer items-center justify-between rounded-lg px-2 py-1.5 hover:bg-gray-50"
+                    >
+                      <span className="text-sm text-gray-700">{PREF_LABELS[key]}</span>
+                      <input
+                        type="checkbox"
+                        checked={preferences[key]}
+                        onChange={(e) => {
+                          updatePreferences({ [key]: e.target.checked });
+                        }}
+                        className="h-4 w-4 rounded border-gray-300 text-blue-600 accent-blue-600"
+                      />
+                    </label>
+                  )
+                )}
+              </div>
+            )}
 
-            <div className="mt-3 flex gap-2 border-t border-gray-100 pt-3">
+            <div className={`flex gap-2 ${hidePreferences ? '' : 'mt-3 border-t border-gray-100 pt-3'}`}>
               <button
                 onClick={async () => {
                   try {

@@ -208,7 +208,7 @@ export default function AdminToolsPage() {
                 <p className='text-gray-600 mb-3'>
                   Enable push notifications on this device to receive score queries and other alerts.
                 </p>
-                <NotificationPrompt />
+                <NotificationPrompt hidePreferences />
               </div>
             </div>
           </div>
