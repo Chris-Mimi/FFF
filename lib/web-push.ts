@@ -171,16 +171,16 @@ export async function sendToAllMembers(
 export async function sendToCoaches(
   payload: PushPayload,
   notificationType: string
-): Promise<void> {
+): Promise<{ coachCount: number; subCount: number; results: { subId: string; ok: boolean }[] }> {
   // Get all users with coach role from auth metadata
   const { data: { users }, error } = await supabaseAdmin.auth.admin.listUsers();
-  if (error || !users) return;
+  if (error || !users) return { coachCount: 0, subCount: 0, results: [] };
 
   const coachIds = users
     .filter((u) => u.user_metadata?.role === 'coach')
     .map((u) => u.id);
 
-  if (coachIds.length === 0) return;
+  if (coachIds.length === 0) return { coachCount: 0, subCount: 0, results: [] };
 
   // Get push subscriptions for coaches
   const { data: subs } = await supabaseAdmin
@@ -188,7 +188,7 @@ export async function sendToCoaches(
     .select('id, endpoint, p256dh, auth, user_id')
     .in('user_id', coachIds);
 
-  if (!subs || subs.length === 0) return;
+  if (!subs || subs.length === 0) return { coachCount: coachIds.length, subCount: 0, results: [] };
 
   // Log notification for each coach
   const uniqueCoachIds = [...new Set(subs.map((s) => s.user_id))];
@@ -201,5 +201,11 @@ export async function sendToCoaches(
   }));
   await supabaseAdmin.from('notification_log').insert(logEntries);
 
-  await Promise.allSettled(subs.map((sub) => sendToSubscription(sub, payload)));
+  const settled = await Promise.allSettled(subs.map((sub) => sendToSubscription(sub, payload)));
+  const results = settled.map((r, i) => ({
+    subId: subs[i].id,
+    ok: r.status === 'fulfilled' && r.value === true,
+  }));
+
+  return { coachCount: coachIds.length, subCount: subs.length, results };
 }
