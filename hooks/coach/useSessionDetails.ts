@@ -11,6 +11,7 @@ export interface SessionDetails {
   capacity: number;
   status: string;
   workout_id: string;
+  is_locked: boolean | null;
 }
 
 export interface Booking {

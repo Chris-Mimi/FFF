@@ -142,6 +142,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if session is locked (manually or auto-locked by start time)
+    const sessionDateTime = new Date(`${session.date}T${session.time}`);
+    const isEffectivelyLocked =
+      session.is_locked === true ||
+      (session.is_locked === null && sessionDateTime < new Date());
+
+    if (isEffectivelyLocked) {
+      return NextResponse.json(
+        { error: 'This session is locked and no longer accepting bookings' },
+        { status: 403 }
+      );
+    }
+
     // Check if member already has a booking for this session
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const existingBooking = session.bookings?.find((b: any) => b.member_id === bookingMemberId && (b.status === 'confirmed' || b.status === 'waitlist'));

@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { Calendar, Users, Clock, LogOut, ChevronLeft, ChevronRight, X, Check, Edit2, Trash2, User } from 'lucide-react';
+import { Calendar, Users, Clock, LogOut, ChevronLeft, ChevronRight, X, Check, Edit2, Trash2, User, Lock } from 'lucide-react';
 import { signOut } from '@/lib/auth';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -24,6 +24,7 @@ interface WeeklySession {
   user_booking_status: 'none' | 'confirmed' | 'waitlist';
   user_booking_id: string | null;
   other_family_bookings: Array<{ name: string; id: string }>;
+  is_locked: boolean;
 }
 
 interface FamilyMember {
@@ -151,6 +152,7 @@ export default function MemberBookingPage() {
           capacity,
           status,
           workout_type,
+          is_locked,
           bookings (
             id,
             member_id,
@@ -209,6 +211,12 @@ export default function MemberBookingPage() {
 
         const workoutType = session.workout_type || 'Class';
 
+        // Compute effective lock: is_locked=true, or is_locked=null and session start time passed
+        const sessionDateTime = new Date(`${session.date}T${session.time}`);
+        const effectivelyLocked =
+          session.is_locked === true ||
+          (session.is_locked === null && sessionDateTime < new Date());
+
         return {
           id: session.id,
           date: session.date,
@@ -220,7 +228,8 @@ export default function MemberBookingPage() {
           waitlist_count: waitlistBookings.length,
           user_booking_status: selectedMemberBooking ? selectedMemberBooking.status : 'none',
           user_booking_id: selectedMemberBooking?.id || null,
-          other_family_bookings: otherFamilyBookings
+          other_family_bookings: otherFamilyBookings,
+          is_locked: effectivelyLocked,
         };
       });
 
@@ -838,7 +847,12 @@ export default function MemberBookingPage() {
 
                           {/* Right side - Action Button */}
                           <div className="flex flex-col justify-center">
-                            {session.user_booking_status === 'none' ? (
+                            {session.is_locked && session.user_booking_status === 'none' ? (
+                              <div className="flex items-center gap-1.5 px-3 py-2 text-gray-500 text-sm">
+                                <Lock size={16} />
+                                Locked
+                              </div>
+                            ) : session.user_booking_status === 'none' ? (
                               <button
                                 onClick={() => handleBook(session.id)}
                                 disabled={processing === session.id}

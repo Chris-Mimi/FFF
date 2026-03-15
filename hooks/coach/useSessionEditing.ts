@@ -29,6 +29,8 @@ interface UseSessionEditingResult {
   handleUpdateCapacity: () => Promise<void>;
   handleUpdateTime: () => Promise<void>;
   handleCancelSession: () => Promise<void>;
+  handleToggleLock: () => Promise<void>;
+  isEffectivelyLocked: boolean;
 }
 
 export function useSessionEditing({
@@ -130,6 +132,40 @@ export function useSessionEditing({
     }
   };
 
+  // Compute effective lock state: locked if is_locked=true, or is_locked=null and session start time has passed
+  const isEffectivelyLocked = (() => {
+    if (!session) return false;
+    if (session.is_locked === true) return true;
+    if (session.is_locked === false) return false;
+    // is_locked is null → auto mode: locked if session start time has passed
+    const sessionDateTime = new Date(`${session.date}T${session.time}`);
+    return sessionDateTime < new Date();
+  })();
+
+  const handleToggleLock = async () => {
+    if (!session) return;
+
+    // If currently effectively locked, unlock (set is_locked=false)
+    // If currently unlocked, lock (set is_locked=true)
+    const newLockState = isEffectivelyLocked ? false : true;
+
+    try {
+      const { error } = await supabase
+        .from('weekly_sessions')
+        .update({ is_locked: newLockState })
+        .eq('id', sessionId);
+
+      if (error) throw error;
+
+      await onRefresh();
+      onSessionUpdated();
+      toast.success(newLockState ? 'Session locked' : 'Session unlocked');
+    } catch (error) {
+      console.error('Error toggling session lock:', error);
+      toast.error('Failed to update session lock');
+    }
+  };
+
   const handleCancelSession = async () => {
     if (
       !await confirm({
@@ -180,5 +216,7 @@ export function useSessionEditing({
     handleUpdateCapacity,
     handleUpdateTime,
     handleCancelSession,
+    handleToggleLock,
+    isEffectivelyLocked,
   };
 }

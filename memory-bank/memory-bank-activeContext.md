@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 84.0
-**Updated:** 2026-03-15 (Session 208 - Score query button + duplicate guard UX fix)
+**Version:** 85.0
+**Updated:** 2026-03-15 (Session 211 - Session booking lock/unlock)
 
 ---
 
@@ -46,7 +46,7 @@ Coach Tables
 ├─ naming_conventions (id, category [equipment|movementTypes|anatomicalTerms|movementPatterns], abbr, full_name, notes)
 ├─ resources (id, name, description, url, category)
 ├─ tracks (id, name, description, color)
-├─ weekly_sessions (id, date, time, workout_id, workout_type: TEXT, capacity, status)
+├─ weekly_sessions (id, date, time, workout_id, workout_type: TEXT, capacity, status, is_locked: BOOLEAN [NULL=auto, true=locked, false=unlocked])
 ├─ benchmark_workouts (id, name, type, description, display_order, has_scaling)
 ├─ forge_benchmarks (id, name, type, description, display_order, has_scaling)
 ├─ barbell_lifts (id, name, category, display_order)
@@ -88,9 +88,13 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
-**Completed (2026-03-15 Session 209 - Opus 4.6) — DEBUG CLEANUP:**
-- **✅ Removed debug code** from `app/api/score-query/route.ts` (debug array, listUsers/push_subscriptions queries) and `components/athlete/AthletePageWorkoutsTab.tsx` (debug toast).
-- **🔴 Coach push notification broken** — Bell icon shows (browser subscription exists) but `push_subscriptions` table has 0 rows for coaches. "Send test" returns `NO_SUBSCRIPTIONS`. Root cause: `usePushNotifications.ts:72-78` auto-refresh POST silently fails. Decision pending: (A) remove NotificationPrompt from coach entirely, or (B) debug subscribe endpoint in Vercel logs.
+**Completed (2026-03-15 Session 211 - Opus 4.6) — SESSION BOOKING LOCK/UNLOCK:**
+- **✅ Session lock feature** — `is_locked` tri-state column (NULL=auto, true=locked, false=unlocked override). Auto-locks at session start time. Coach can manually lock/unlock via Session Management modal. Athletes see "Locked" instead of Book button.
+- **✅ Migration applied** — `20260315000000_add_session_lock.sql`
+- **📝 Future task planned** — Backfill historical bookings from Whiteboard Intro names (`Chris Notes/Planning/backfill-historical-bookings.md`)
+
+**Completed (2026-03-15 Session 209/210 - Opus 4.6) — DEBUG CLEANUP + COACH PUSH FIX:**
+- **✅ Removed debug code** + coach push notification fixed.
 
 **Completed (2026-03-15 Session 208 - Opus 4.6) — SCORE QUERY BUTTON + DUPLICATE GUARD FIX:**
 - **✅ Score query button, duplicate guard UX fix, new API endpoint, sendToCoaches() function.**
@@ -196,8 +200,7 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION
-1. **Coach push notification decision** — Choose: (A) Remove `NotificationPrompt` from `CoachHeader.tsx` entirely (score queries handled via app only), or (B) Check Vercel logs for subscribe endpoint errors and fix. The feature is low-value per Chris.
-2. **Coach library optimization** — Equipment & Body Parts lists need optimising.
+1. **Coach library optimization** — Equipment & Body Parts lists need optimising.
 3. **April 13 reminder:** Verify Stripe trial payment processed for test athlete (Stripe Dashboard → Payments, Supabase → members status, Vercel webhook logs)
 4. **Website integration** — Add "Member Login" link/button on Squarespace site pointing to `https://app.the-forge-functional-fitness.de`
 

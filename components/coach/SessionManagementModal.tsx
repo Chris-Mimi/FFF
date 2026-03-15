@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Trash2, X } from 'lucide-react';
+import { Lock, Trash2, Unlock, X } from 'lucide-react';
 import { useSessionDetails } from '@/hooks/coach/useSessionDetails';
 import { useSessionEditing } from '@/hooks/coach/useSessionEditing';
 import { useBookingManagement } from '@/hooks/coach/useBookingManagement';
@@ -369,13 +369,27 @@ export default function SessionManagementModal({
             isMobile ? '' : 'rounded-b-lg'
           }`}>
             {sessionDetails.session.status !== 'cancelled' && (
-              <button
-                onClick={sessionEditing.handleCancelSession}
-                className='flex items-center gap-2 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-lg transition text-sm'
-              >
-                <Trash2 size={16} />
-                Cancel Session
-              </button>
+              <div className='flex items-center gap-2'>
+                <button
+                  onClick={sessionEditing.handleToggleLock}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition text-sm ${
+                    sessionEditing.isEffectivelyLocked
+                      ? 'bg-amber-500 hover:bg-amber-600 text-white'
+                      : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                  }`}
+                  title={sessionEditing.isEffectivelyLocked ? 'Unlock session for bookings' : 'Lock session to prevent bookings'}
+                >
+                  {sessionEditing.isEffectivelyLocked ? <Unlock size={16} /> : <Lock size={16} />}
+                  {sessionEditing.isEffectivelyLocked ? 'Unlock' : 'Lock'}
+                </button>
+                <button
+                  onClick={sessionEditing.handleCancelSession}
+                  className='flex items-center gap-2 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-lg transition text-sm'
+                >
+                  <Trash2 size={16} />
+                  Cancel Session
+                </button>
+              </div>
             )}
             <button
               onClick={onClose}
