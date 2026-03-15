@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     if (subError) {
       console.error('[subscribe] UPSERT ERROR:', subError);
       return NextResponse.json(
-        { error: 'Failed to save subscription' },
+        { error: 'Failed to save subscription', detail: subError.message, code: subError.code },
         { status: 500 }
       );
     }
@@ -63,9 +63,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, debug: { userId: user.id, email: user.email } });
   } catch (error) {
-    console.error('Subscribe error:', error);
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error('[subscribe] CATCH:', msg);
     return NextResponse.json(
-      { error: 'An unexpected error occurred' },
+      { error: 'An unexpected error occurred', detail: msg },
       { status: 500 }
     );
   }
