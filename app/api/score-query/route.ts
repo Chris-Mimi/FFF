@@ -29,9 +29,9 @@ export async function POST(req: NextRequest) {
 
     const athleteName = member?.name || user.email || 'An athlete';
 
-    const pushResult = await notifyScoreQuery(athleteName, workoutName || '', message.trim());
+    notifyScoreQuery(athleteName, workoutName || '', message.trim());
 
-    return NextResponse.json({ success: true, pushResult });
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Score query error:', error);
     return NextResponse.json({ error: 'Failed to send query', detail: String(error) }, { status: 500 });

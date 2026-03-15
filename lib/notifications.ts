@@ -212,5 +212,7 @@ export async function notifyScoreQuery(athleteName: string, workoutName: string,
     data: { url: '/coach', type: 'score_query' },
   };
 
-  return await sendToCoaches(payload, 'score_query');
+  sendToCoaches(payload, 'score_query').catch((err) =>
+    console.error('notifyScoreQuery failed:', err)
+  );
 }

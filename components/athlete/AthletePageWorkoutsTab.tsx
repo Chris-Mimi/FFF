@@ -174,15 +174,10 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
         }),
       });
       if (!res.ok) throw new Error('Failed to send');
-      const data = await res.json();
       setScoreQueryModal(null);
       setScoreQueryMessage('');
       const { toast } = await import('sonner');
-      // DEBUG: show push result temporarily
-      const pr = data.pushResult;
-      const okCount = pr?.results?.filter((r: {ok:boolean}) => r.ok).length;
-      const codes = pr?.results?.map((r: {statusCode?: number; error?: string}) => r.statusCode || r.error).join(',');
-      toast.success(`Sent! coaches:${pr?.coachCount} subs:${pr?.subCount} ok:${okCount} codes:${codes}`);
+      toast.success('Score query sent to coaches');
     } catch {
       const { toast } = await import('sonner');
       toast.error('Failed to send score query. Please try again.');
