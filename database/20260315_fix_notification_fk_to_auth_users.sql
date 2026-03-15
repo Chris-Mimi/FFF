@@ -25,3 +25,7 @@ ALTER TABLE notification_log
 ALTER TABLE notification_log
   ADD CONSTRAINT notification_log_user_id_fkey
   FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+-- Allow same endpoint for multiple user accounts (same device, different logins)
+ALTER TABLE push_subscriptions DROP CONSTRAINT push_subscriptions_endpoint_key;
+ALTER TABLE push_subscriptions ADD CONSTRAINT push_subscriptions_user_endpoint_key UNIQUE(user_id, endpoint);

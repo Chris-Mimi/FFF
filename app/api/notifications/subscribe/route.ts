@@ -23,7 +23,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Upsert push subscription (ON CONFLICT endpoint)
+    // Upsert push subscription (unique on user_id + endpoint)
+    // This allows the same device/endpoint to be registered for multiple accounts
     const { error: subError } = await supabaseAdmin
       .from('push_subscriptions')
       .upsert(
@@ -34,7 +35,7 @@ export async function POST(request: NextRequest) {
           auth: subscription.keys.auth,
           user_agent: userAgent || null,
         },
-        { onConflict: 'endpoint' }
+        { onConflict: 'user_id,endpoint' }
       );
 
     if (subError) {
