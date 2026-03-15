@@ -44,24 +44,33 @@ interface PushSubscriptionRow {
 async function sendToSubscription(
   sub: PushSubscriptionRow,
   payload: PushPayload
-): Promise<boolean> {
+): Promise<{ ok: boolean; statusCode?: number; error?: string }> {
   try {
-    await webpush.sendNotification(
+    // Set VAPID inline before every send (matches working test endpoint pattern)
+    if (vapidConfigured) {
+      webpush.setVapidDetails(
+        process.env.VAPID_SUBJECT!,
+        process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
+        process.env.VAPID_PRIVATE_KEY!
+      );
+    }
+    const result = await webpush.sendNotification(
       {
         endpoint: sub.endpoint,
         keys: { p256dh: sub.p256dh, auth: sub.auth },
       },
       JSON.stringify(payload)
     );
-    return true;
+    return { ok: true, statusCode: result.statusCode };
   } catch (error: unknown) {
     const statusCode = (error as { statusCode?: number }).statusCode;
     if (statusCode === 410 || statusCode === 404) {
       // Subscription expired — clean up
       await supabaseAdmin.from('push_subscriptions').delete().eq('id', sub.id);
     }
-    console.error(`Push failed for sub ${sub.id}:`, statusCode || (error as Error).message);
-    return false;
+    const msg = (error as Error).message;
+    console.error(`Push failed for sub ${sub.id}:`, statusCode || msg);
+    return { ok: false, statusCode, error: msg };
   }
 }
 
@@ -204,7 +213,9 @@ export async function sendToCoaches(
   const settled = await Promise.allSettled(subs.map((sub) => sendToSubscription(sub, payload)));
   const results = settled.map((r, i) => ({
     subId: subs[i].id,
-    ok: r.status === 'fulfilled' && r.value === true,
+    ok: r.status === 'fulfilled' && r.value.ok === true,
+    statusCode: r.status === 'fulfilled' ? r.value.statusCode : undefined,
+    error: r.status === 'fulfilled' ? r.value.error : (r as PromiseRejectedResult).reason?.message,
   }));
 
   return { coachCount: coachIds.length, subCount: subs.length, results };
