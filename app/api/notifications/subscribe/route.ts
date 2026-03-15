@@ -16,20 +16,15 @@ export async function POST(request: NextRequest) {
   try {
     const { subscription, userAgent } = await request.json();
 
-    console.log('[subscribe] user:', user.id, user.email, 'role:', user.user_metadata?.role);
-
     if (!subscription?.endpoint || !subscription?.keys?.p256dh || !subscription?.keys?.auth) {
-      console.log('[subscribe] REJECTED: invalid subscription payload');
       return NextResponse.json(
         { error: 'Invalid push subscription' },
         { status: 400 }
       );
     }
 
-    console.log('[subscribe] endpoint:', subscription.endpoint.slice(0, 60) + '...');
-
     // Upsert push subscription (ON CONFLICT endpoint)
-    const { data: upsertData, error: subError } = await supabaseAdmin
+    const { error: subError } = await supabaseAdmin
       .from('push_subscriptions')
       .upsert(
         {
@@ -40,18 +35,15 @@ export async function POST(request: NextRequest) {
           user_agent: userAgent || null,
         },
         { onConflict: 'endpoint' }
-      )
-      .select('id, user_id');
+      );
 
     if (subError) {
-      console.error('[subscribe] UPSERT ERROR:', subError);
+      console.error('Push subscription upsert error:', subError);
       return NextResponse.json(
-        { error: 'Failed to save subscription', detail: subError.message, code: subError.code },
+        { error: 'Failed to save subscription' },
         { status: 500 }
       );
     }
-
-    console.log('[subscribe] UPSERT OK:', upsertData);
 
     // Ensure notification_preferences row exists with defaults
     await supabaseAdmin
@@ -61,12 +53,11 @@ export async function POST(request: NextRequest) {
         { onConflict: 'user_id', ignoreDuplicates: true }
       );
 
-    return NextResponse.json({ success: true, debug: { userId: user.id, email: user.email } });
+    return NextResponse.json({ success: true });
   } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
-    console.error('[subscribe] CATCH:', msg);
+    console.error('Subscribe error:', error);
     return NextResponse.json(
-      { error: 'An unexpected error occurred', detail: msg },
+      { error: 'An unexpected error occurred' },
       { status: 500 }
     );
   }
