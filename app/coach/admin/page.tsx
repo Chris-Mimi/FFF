@@ -3,9 +3,10 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth';
-import { UserPlus, ArrowLeft, BarChart2 } from 'lucide-react';
+import { UserPlus, ArrowLeft, BarChart2, Bell } from 'lucide-react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import { NotificationPrompt } from '@/components/ui/NotificationPrompt';
 
 interface IncidentStat {
   memberId: string;
@@ -195,6 +196,22 @@ export default function AdminToolsPage() {
               </div>
             </div>
           </Link>
+
+          {/* Push Notifications */}
+          <div className='bg-white rounded-lg shadow-md p-6 border-2 border-transparent'>
+            <div className='flex items-start gap-4'>
+              <div className='bg-[#178da6] text-white p-3 rounded-lg'>
+                <Bell size={24} />
+              </div>
+              <div>
+                <h2 className='text-xl font-semibold text-gray-900 mb-2'>Push Notifications</h2>
+                <p className='text-gray-600 mb-3'>
+                  Enable push notifications on this device to receive score queries and other alerts.
+                </p>
+                <NotificationPrompt />
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Attendance Reports */}
