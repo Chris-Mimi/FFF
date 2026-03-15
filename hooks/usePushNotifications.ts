@@ -68,6 +68,7 @@ export function usePushNotifications() {
         setIsSubscribed(!!subscription);
 
         // Auto-refresh: re-POST current subscription to keep DB keys fresh
+        // This ensures the subscription is linked to the currently logged-in user
         if (subscription) {
           authFetch('/api/notifications/subscribe', {
             method: 'POST',
@@ -75,7 +76,14 @@ export function usePushNotifications() {
               subscription: subscription.toJSON(),
               userAgent: navigator.userAgent,
             }),
-          }).catch(() => {/* silent refresh */});
+          })
+            .then(async (res) => {
+              const data = await res.json().catch(() => ({}));
+              console.log('[push-refresh] status:', res.status, 'data:', data);
+            })
+            .catch((err) => {
+              console.error('[push-refresh] FAILED:', err);
+            });
         }
       } catch {
         // Service worker not ready yet
