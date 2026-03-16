@@ -5,7 +5,7 @@ import { AthleteScoreValues, emptyScoreValues } from '@/hooks/coach/useScoreEntr
 
 interface AthleteScoreRowProps {
   athleteName: string;
-  memberId: string;
+  athleteId: string;
   sectionId: string;
   scoringFields: {
     time?: boolean;
@@ -20,12 +20,12 @@ interface AthleteScoreRowProps {
     time_amrap?: boolean;
   };
   values: AthleteScoreValues;
-  onChange: (memberId: string, sectionId: string, updates: Partial<AthleteScoreValues>) => void;
+  onChange: (athleteId: string, sectionId: string, updates: Partial<AthleteScoreValues>) => void;
 }
 
 export default function AthleteScoreRow({
   athleteName,
-  memberId,
+  athleteId,
   sectionId,
   scoringFields,
   values,
@@ -51,7 +51,7 @@ export default function AthleteScoreRow({
             task_completed: currentValues.task_completed,
             scaling_level: currentValues.scaling_level as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '',
           }}
-          onChange={(updates) => onChange(memberId, sectionId, updates as Partial<AthleteScoreValues>)}
+          onChange={(updates) => onChange(athleteId, sectionId, updates as Partial<AthleteScoreValues>)}
           showLabel={false}
         />
       </div>

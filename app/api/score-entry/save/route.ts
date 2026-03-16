@@ -10,7 +10,8 @@ const supabaseAdmin = createClient(
 );
 
 interface ScoreEntry {
-  memberId: string;
+  memberId?: string;
+  whiteboardName?: string;
   sectionId: string;
   scaling_level?: string;
   time_result?: string;
@@ -73,35 +74,43 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Look up user_ids for all member_ids via email match
-    const memberIds = [...new Set(scores.map(s => s.memberId))];
-    const { data: members } = await supabaseAdmin
-      .from('members')
-      .select('id, email')
-      .in('id', memberIds);
+    // Split scores into member-based and whiteboard-based
+    const memberScores = scores.filter(s => s.memberId);
+    const whiteboardScores = scores.filter(s => s.whiteboardName && !s.memberId);
 
-    const memberEmails = (members || []).map(m => m.email);
+    // Look up user_ids for member-based scores via email match
+    const memberIds = [...new Set(memberScores.map(s => s.memberId!))];
     const memberIdToEmail: Record<string, string> = {};
-    for (const m of members || []) {
-      memberIdToEmail[m.id] = m.email;
-    }
-
-    // Fetch auth users to map email → user_id
     const emailToUserId: Record<string, string> = {};
-    if (memberEmails.length > 0) {
-      const { data: { users: allAuthUsers } } = await supabaseAdmin.auth.admin.listUsers({
-        perPage: 1000,
-      });
-      for (const authUser of allAuthUsers || []) {
-        if (authUser.email && memberEmails.includes(authUser.email)) {
-          emailToUserId[authUser.email] = authUser.id;
+
+    if (memberIds.length > 0) {
+      const { data: members } = await supabaseAdmin
+        .from('members')
+        .select('id, email')
+        .in('id', memberIds);
+
+      const memberEmails = (members || []).map(m => m.email);
+      for (const m of members || []) {
+        memberIdToEmail[m.id] = m.email;
+      }
+
+      if (memberEmails.length > 0) {
+        const { data: { users: allAuthUsers } } = await supabaseAdmin.auth.admin.listUsers({
+          perPage: 1000,
+        });
+        for (const authUser of allAuthUsers || []) {
+          if (authUser.email && memberEmails.includes(authUser.email)) {
+            emailToUserId[authUser.email] = authUser.id;
+          }
         }
       }
     }
 
     // Build upsert records
     const records = [];
-    for (const score of scores) {
+
+    // Member-based scores
+    for (const score of memberScores) {
       if (isScoreEmpty(score)) continue;
 
       const validationError = validateScore(score);
@@ -109,14 +118,43 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: validationError }, { status: 400 });
       }
 
-      const memberEmail = memberIdToEmail[score.memberId];
+      const memberEmail = memberIdToEmail[score.memberId!];
       const userId = memberEmail ? emailToUserId[memberEmail] || null : null;
 
       records.push({
         wod_id: wodId,
         workout_date: workoutDate,
-        member_id: score.memberId,
+        member_id: score.memberId!,
         user_id: userId,
+        whiteboard_name: null,
+        section_id: `${score.sectionId}-content-0`,
+        scaling_level: score.scaling_level || null,
+        time_result: score.time_result || null,
+        reps_result: score.reps_result ?? null,
+        weight_result: score.weight_result ?? null,
+        rounds_result: score.rounds_result ?? null,
+        calories_result: score.calories_result ?? null,
+        metres_result: score.metres_result ?? null,
+        task_completed: score.task_completed ?? null,
+        updated_at: new Date().toISOString(),
+      });
+    }
+
+    // Whiteboard-based scores
+    for (const score of whiteboardScores) {
+      if (isScoreEmpty(score)) continue;
+
+      const validationError = validateScore(score);
+      if (validationError) {
+        return NextResponse.json({ error: validationError }, { status: 400 });
+      }
+
+      records.push({
+        wod_id: wodId,
+        workout_date: workoutDate,
+        member_id: null,
+        user_id: null,
+        whiteboard_name: score.whiteboardName!,
         section_id: `${score.sectionId}-content-0`,
         scaling_level: score.scaling_level || null,
         time_result: score.time_result || null,
@@ -142,7 +180,7 @@ export async function POST(request: NextRequest) {
     const errors: string[] = [];
 
     for (const record of records) {
-      // Check for existing record by member_id first, then user_id
+      // Check for existing record by member_id, user_id, or whiteboard_name
       let existingId: string | null = null;
 
       if (record.member_id) {
@@ -165,6 +203,18 @@ export async function POST(request: NextRequest) {
           .eq('section_id', record.section_id)
           .eq('workout_date', record.workout_date)
           .eq('user_id', record.user_id)
+          .maybeSingle();
+        if (existing) existingId = existing.id;
+      }
+
+      if (!existingId && record.whiteboard_name) {
+        const { data: existing } = await supabaseAdmin
+          .from('wod_section_results')
+          .select('id')
+          .eq('wod_id', record.wod_id)
+          .eq('section_id', record.section_id)
+          .eq('workout_date', record.workout_date)
+          .eq('whiteboard_name', record.whiteboard_name)
           .maybeSingle();
         if (existing) existingId = existing.id;
       }

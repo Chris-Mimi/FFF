@@ -24,9 +24,11 @@ export interface WodSection {
 }
 
 export interface ScoreEntryAthlete {
-  memberId: string;
+  id: string; // memberId for booked athletes, `wb:${name}` for whiteboard-only
+  memberId: string | null;
   userId: string | null;
   name: string;
+  whiteboardName: string | null;
 }
 
 export interface AthleteScoreValues {
@@ -41,8 +43,9 @@ export interface AthleteScoreValues {
 }
 
 interface ExistingResult {
-  member_id: string;
-  user_id: string;
+  member_id: string | null;
+  user_id: string | null;
+  whiteboard_name: string | null;
   section_id: string;
   scaling_level: string | null;
   time_result: string | null;
@@ -108,7 +111,7 @@ export function useScoreEntry(sessionId: string) {
 
   const selectedSection = scorableSections.find((s) => s.id === selectedSectionId) || null;
 
-  const getScoreKey = (memberId: string, sectionId: string) => `${memberId}_${sectionId}`;
+  const getScoreKey = (athleteId: string, sectionId: string) => `${athleteId}_${sectionId}`;
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -137,15 +140,18 @@ export function useScoreEntry(sessionId: string) {
       // Pre-fill scores from existing results
       const prefilled: Record<string, AthleteScoreValues> = {};
       for (const result of data.existingResults as ExistingResult[]) {
-        // Find matching athlete by member_id or user_id
+        // Find matching athlete by member_id, user_id, or whiteboard_name
         const athlete = (data.athletes as ScoreEntryAthlete[]).find(
-          (a) => a.memberId === result.member_id || (a.userId && a.userId === result.user_id)
+          (a) =>
+            (a.memberId && a.memberId === result.member_id) ||
+            (a.userId && a.userId === result.user_id) ||
+            (a.whiteboardName && a.whiteboardName === result.whiteboard_name)
         );
         if (!athlete) continue;
 
         // Strip -content-0 suffix to match WOD section IDs used as keys
         const rawSectionId = result.section_id.replace(/-content-\d+$/, '');
-        const key = getScoreKey(athlete.memberId, rawSectionId);
+        const key = getScoreKey(athlete.id, rawSectionId);
         prefilled[key] = {
           scaling_level: result.scaling_level || '',
           time_result: result.time_result || '',
@@ -168,8 +174,8 @@ export function useScoreEntry(sessionId: string) {
   }, [sessionId]);
 
   const updateScore = useCallback(
-    (memberId: string, sectionId: string, updates: Partial<AthleteScoreValues>) => {
-      const key = getScoreKey(memberId, sectionId);
+    (athleteId: string, sectionId: string, updates: Partial<AthleteScoreValues>) => {
+      const key = getScoreKey(athleteId, sectionId);
       setScores((prev) => ({
         ...prev,
         [key]: { ...(prev[key] || emptyScoreValues), ...updates },
@@ -188,7 +194,7 @@ export function useScoreEntry(sessionId: string) {
         .flatMap((section) =>
           athletes
             .map((athlete) => {
-              const key = getScoreKey(athlete.memberId, section.id);
+              const key = getScoreKey(athlete.id, section.id);
               const values = scores[key];
               if (!values) return null;
 
@@ -207,7 +213,8 @@ export function useScoreEntry(sessionId: string) {
               }
 
               return {
-                memberId: athlete.memberId,
+                memberId: athlete.memberId || undefined,
+                whiteboardName: athlete.whiteboardName || undefined,
                 sectionId: section.id,
                 scaling_level: values.scaling_level || undefined,
                 time_result: values.time_result || undefined,

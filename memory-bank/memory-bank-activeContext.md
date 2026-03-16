@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 88.0
-**Updated:** 2026-03-15 (Session 214 - Orphan workout cleanup + copy bug fix)
+**Version:** 89.0
+**Updated:** 2026-03-16 (Session 215 - Whiteboard score entry feature)
 
 ---
 
@@ -88,26 +88,24 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-16 Session 215 - Opus 4.6) — WHITEBOARD SCORE ENTRY:**
+- **✅ Session 214 fixes confirmed** — Copy/drag and delete no longer create orphans (manual testing passed).
+- **✅ Whiteboard Intro score entry** — Coach can enter scores for ALL athletes (booked + whiteboard-only). GET API parses Whiteboard Intro names, deduplicates against booked members via `members.whiteboard_name`.
+- **✅ Migration applied** — `whiteboard_name` column on `wod_section_results` + `members`, CHECK constraint updated.
+- **✅ PaulB dedup bug fixed** — Root cause: surname misspelled in DB ("Bielenski"), UPDATE by name didn't match. Fixed by ID.
+- **⚠️ NEEDS TESTING** — Full e2e: enter whiteboard scores, save, verify DB. Pre-fill on reload. Set `whiteboard_name` on remaining BETA testers.
+
 **Completed (2026-03-15 Session 214 - Opus 4.6) — ORPHAN WORKOUT CLEANUP + COPY BUG FIX:**
-- **✅ Orphan workout cleanup** — Deleted 85 orphan workout rows from database. Root causes: copy/drag overwrites, session deletes, and double-click saves.
-- **✅ Diagnostic script updated** — Added `orphan_wods` check to `Data Integrity and Orphan duplicate diagnostics`.
-- **✅ Copy/drag fix** — `handleCopyWOD` now: (a) uses `.select()` instead of `.maybeSingle()` to avoid throwing on duplicates, (b) cleans up duplicate sessions at same date/time, (c) only deletes old workouts after verifying no sessions reference them.
-- **✅ Delete session fix** — `handleDeleteSession` cleans up orphaned workout when no other sessions reference it.
-- **⚠️ NEEDS TESTING** — Copy workflow needs thorough testing: copy published workout to another day, copy multiple times, verify no orphans or duplicate sessions created. Run diagnostic SQL after each test.
+- **✅ Orphan cleanup + copy/drag/delete fixes.** Confirmed working in Session 215.
 
 **Completed (2026-03-15 Session 213 - Opus 4.6) — WHITEBOARD NAME EXTRACTION + SAVE DUPLICATE FIX:**
 - **✅ Name extraction script, save button double-click guard, duplicate wod prevention.**
-- **📝 Athlete name mapping started** — `Chris Notes/Forge app documentation/Athletes booking list`
 
 **Completed (2026-03-15 Session 212 - Opus 4.6) — CALENDAR CARD STYLING + ATTENDEE VISIBILITY:**
-- **✅ Draft card visual distinction** — Default/untouched drafts show light grey (`bg-gray-200`), edited drafts show darker grey (`bg-gray-400`).
-- **✅ Attendee list on booking page** — Athletes see "Also attending: Chris, Mimi" on sessions they're booked into.
+- **✅ Draft card visual distinction + attendee list on booking page.**
 
 **Completed (2026-03-15 Session 211 - Opus 4.6) — SESSION BOOKING LOCK/UNLOCK:**
-- **✅ Session lock feature** — `is_locked` tri-state column. Auto-locks at session start time. Coach can manually lock/unlock.
-
-**Completed (2026-03-15 Session 209/210 - Opus 4.6) — DEBUG CLEANUP + COACH PUSH FIX:**
-- **✅ Removed debug code** + coach push notification fixed.
+- **✅ Session lock feature** — `is_locked` tri-state column. Auto-locks at session start time.
 
 **Older Sessions (57-207):**
 See `project-history/` folder for detailed implementation history
@@ -159,6 +157,7 @@ See `project-history/` folder for detailed implementation history
 - ✅ `20260313_add_session_cancelled_preference.sql` — Adds `session_cancelled` boolean column to notification_preferences (Session 202, applied Session 203)
 - ✅ `20260314_add_member_id_to_section_results.sql` — Adds `member_id` column to wod_section_results, makes `user_id` nullable (Session 203, applied)
 - ✅ `20260314_add_score_recorded_preference.sql` — Adds `score_recorded` boolean column to notification_preferences (Session 205, applied)
+- ✅ `20260316_add_whiteboard_name_to_section_results.sql` — Adds `whiteboard_name` to wod_section_results + members, updates CHECK constraint (Session 215, applied)
 
 ---
 
@@ -201,7 +200,7 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION
-1. **TEST copy workflow thoroughly** — Copy published workout to another day, copy multiple times to same day, verify no orphans or duplicate sessions. Run diagnostic SQL after each test.
+1. **TEST whiteboard score entry e2e** — Enter scores for whiteboard-only names, save, verify in DB. Reload and confirm pre-fill. Set `whiteboard_name` on remaining BETA testers in members table.
 2. **Coach library optimization** — Equipment & Body Parts lists need optimising.
 3. **April 13 reminder:** Verify Stripe trial payment processed for test athlete (Stripe Dashboard → Payments, Supabase → members status, Vercel webhook logs)
 4. **Website integration** — Add "Member Login" link/button on Squarespace site pointing to `https://app.the-forge-functional-fitness.de`

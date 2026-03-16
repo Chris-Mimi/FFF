@@ -12,7 +12,7 @@ interface ScoreEntryGridProps {
   athletes: ScoreEntryAthlete[];
   section: WodSection;
   scores: Record<string, AthleteScoreValues>;
-  onUpdateScore: (memberId: string, sectionId: string, updates: Partial<AthleteScoreValues>) => void;
+  onUpdateScore: (athleteId: string, sectionId: string, updates: Partial<AthleteScoreValues>) => void;
 }
 
 export default function ScoreEntryGrid({
@@ -38,17 +38,17 @@ export default function ScoreEntryGrid({
       {/* Athlete Rows */}
       {athletes.length === 0 ? (
         <div className="py-8 text-center text-sm text-gray-400">
-          No athletes booked for this session
+          No athletes booked or listed in Whiteboard Intro
         </div>
       ) : (
         athletes.map((athlete) => (
           <AthleteScoreRow
-            key={athlete.memberId}
+            key={athlete.id}
             athleteName={athlete.name}
-            memberId={athlete.memberId}
+            athleteId={athlete.id}
             sectionId={section.id}
             scoringFields={section.scoring_fields!}
-            values={scores[`${athlete.memberId}_${section.id}`] || emptyScoreValues}
+            values={scores[`${athlete.id}_${section.id}`] || emptyScoreValues}
             onChange={onUpdateScore}
           />
         ))

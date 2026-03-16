@@ -86,36 +86,85 @@ export async function GET(
       }
     }
 
-    // 5. Build athletes array
-    const athletes = members.map((m: { id: string; name: string; email: string }) => ({
-      memberId: m.id,
-      userId: emailToUserId[m.email] || null,
-      name: m.name,
-    }));
+    // 5. Build athletes array from booked members
+    const athletes: { id: string; memberId: string | null; userId: string | null; name: string; whiteboardName: string | null }[] =
+      members.map((m: { id: string; name: string; email: string }) => ({
+        id: m.id,
+        memberId: m.id,
+        userId: emailToUserId[m.email] || null,
+        name: m.name,
+        whiteboardName: null,
+      }));
+
+    // 5b. Parse Whiteboard Intro section for additional attendees
+    const sections = wod.sections as { id: string; type: string; content: string }[] || [];
+    const whiteboardSection = sections.find(s => s.type === 'Whiteboard Intro');
+    if (whiteboardSection && whiteboardSection.content) {
+      // Strip HTML tags, then split by comma
+      const rawContent = whiteboardSection.content.replace(/<[^>]*>/g, '').trim();
+      const whiteboardNames = rawContent
+        .split(',')
+        .map((n: string) => n.trim())
+        .filter((n: string) => n.length > 0);
+
+      // Get whiteboard_name values for booked members to deduplicate
+      const bookedMemberIds = members.map((m: { id: string }) => m.id);
+      let bookedWhiteboardNames: string[] = [];
+      if (bookedMemberIds.length > 0) {
+        const { data: bookedMembers } = await supabaseAdmin
+          .from('members')
+          .select('whiteboard_name')
+          .in('id', bookedMemberIds)
+          .not('whiteboard_name', 'is', null);
+        bookedWhiteboardNames = (bookedMembers || [])
+          .map(m => (m.whiteboard_name as string).toLowerCase());
+      }
+
+      // Add whiteboard-only athletes (not already in booked list)
+      for (const wbName of whiteboardNames) {
+        if (bookedWhiteboardNames.includes(wbName.toLowerCase())) continue;
+        athletes.push({
+          id: `wb:${wbName}`,
+          memberId: null,
+          userId: null,
+          name: wbName,
+          whiteboardName: wbName,
+        });
+      }
+    }
 
     // 6. Fetch existing results for this WOD
-    const memberIds = athletes.map((a: { memberId: string }) => a.memberId);
+    const memberIds = athletes
+      .map(a => a.memberId)
+      .filter((id): id is string => id !== null);
     const userIds = athletes
-      .map((a: { userId: string | null }) => a.userId)
-      .filter((id: string | null): id is string => id !== null);
+      .map(a => a.userId)
+      .filter((id): id is string => id !== null);
+    const whiteboardNames = athletes
+      .map(a => a.whiteboardName)
+      .filter((n): n is string => n !== null);
 
     let existingResults: Record<string, unknown>[] = [];
-    if (memberIds.length > 0 || userIds.length > 0) {
-      // Fetch by member_id OR user_id
-      const { data: resultsByMember } = await supabaseAdmin
-        .from('wod_section_results')
-        .select('*')
-        .eq('wod_id', wod.id)
-        .in('member_id', memberIds);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const allResults: any[] = [];
 
-      const { data: resultsByUser } = await supabaseAdmin
-        .from('wod_section_results')
-        .select('*')
-        .eq('wod_id', wod.id)
-        .in('user_id', userIds);
+    if (memberIds.length > 0) {
+      const { data } = await supabaseAdmin
+        .from('wod_section_results').select('*').eq('wod_id', wod.id).in('member_id', memberIds);
+      if (data) allResults.push(...data);
+    }
+    if (userIds.length > 0) {
+      const { data } = await supabaseAdmin
+        .from('wod_section_results').select('*').eq('wod_id', wod.id).in('user_id', userIds);
+      if (data) allResults.push(...data);
+    }
+    if (whiteboardNames.length > 0) {
+      const { data } = await supabaseAdmin
+        .from('wod_section_results').select('*').eq('wod_id', wod.id).in('whiteboard_name', whiteboardNames);
+      if (data) allResults.push(...data);
+    }
 
-      // Merge and deduplicate by id
-      const allResults = [...(resultsByMember || []), ...(resultsByUser || [])];
+    if (allResults.length > 0) {
       const seen = new Set<string>();
       existingResults = allResults.filter(r => {
         if (seen.has(r.id)) return false;
