@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 89.0
-**Updated:** 2026-03-16 (Session 215 - Whiteboard score entry feature)
+**Version:** 90.0
+**Updated:** 2026-03-16 (Session 216 - Whiteboard score entry bugfixes)
 
 ---
 
@@ -88,12 +88,16 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-16 Session 216 - Opus 4.6) — WHITEBOARD SCORE ENTRY BUGFIXES:**
+- **✅ CHECK constraint bug fixed** — `chk_user_or_member` constraint (Session 203) was blocking whiteboard-only inserts. Dropped in Supabase. Migration file updated to drop both old constraint names.
+- **✅ Dedup logic improved** — Score entry GET API now deduplicates Whiteboard Intro names against booked member first name + full name + whiteboard_name (was only checking `whiteboard_name` field, causing duplicates like Anneke).
+- **✅ Leaderboard whiteboard support** — Query now fetches `whiteboard_name`, `rankSectionResults` and `bestResultPerUser` use it as fallback display name (was showing "Unknown").
+- **✅ Andreas Keip duplicate cleaned** — Deleted orphan whiteboard-only rows from `wod_section_results`.
+- **✅ 10 scores saved successfully** after constraint fix.
+
 **Completed (2026-03-16 Session 215 - Opus 4.6) — WHITEBOARD SCORE ENTRY:**
-- **✅ Session 214 fixes confirmed** — Copy/drag and delete no longer create orphans (manual testing passed).
-- **✅ Whiteboard Intro score entry** — Coach can enter scores for ALL athletes (booked + whiteboard-only). GET API parses Whiteboard Intro names, deduplicates against booked members via `members.whiteboard_name`.
-- **✅ Migration applied** — `whiteboard_name` column on `wod_section_results` + `members`, CHECK constraint updated.
-- **✅ PaulB dedup bug fixed** — Root cause: surname misspelled in DB ("Bielenski"), UPDATE by name didn't match. Fixed by ID.
-- **⚠️ NEEDS TESTING** — Full e2e: enter whiteboard scores, save, verify DB. Pre-fill on reload. Set `whiteboard_name` on remaining BETA testers.
+- **✅ Whiteboard Intro score entry** — Coach can enter scores for ALL athletes (booked + whiteboard-only).
+- **✅ Migration applied** — `whiteboard_name` column on `wod_section_results` + `members`.
 
 **Completed (2026-03-15 Session 214 - Opus 4.6) — ORPHAN WORKOUT CLEANUP + COPY BUG FIX:**
 - **✅ Orphan cleanup + copy/drag/delete fixes.** Confirmed working in Session 215.
@@ -104,10 +108,7 @@ Social Tables
 **Completed (2026-03-15 Session 212 - Opus 4.6) — CALENDAR CARD STYLING + ATTENDEE VISIBILITY:**
 - **✅ Draft card visual distinction + attendee list on booking page.**
 
-**Completed (2026-03-15 Session 211 - Opus 4.6) — SESSION BOOKING LOCK/UNLOCK:**
-- **✅ Session lock feature** — `is_locked` tri-state column. Auto-locks at session start time.
-
-**Older Sessions (57-207):**
+**Older Sessions (57-211):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -200,10 +201,11 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION
-1. **TEST whiteboard score entry e2e** — Enter scores for whiteboard-only names, save, verify in DB. Reload and confirm pre-fill. Set `whiteboard_name` on remaining BETA testers in members table.
-2. **Coach library optimization** — Equipment & Body Parts lists need optimising.
-3. **April 13 reminder:** Verify Stripe trial payment processed for test athlete (Stripe Dashboard → Payments, Supabase → members status, Vercel webhook logs)
-4. **Website integration** — Add "Member Login" link/button on Squarespace site pointing to `https://app.the-forge-functional-fitness.de`
+1. **Deploy + test whiteboard leaderboard** — Verify whiteboard-only athletes show names (not "Unknown") on athlete leaderboard after deploy.
+2. **Test pre-fill on reload** — Re-open score entry for a session with saved whiteboard scores, confirm they pre-fill.
+3. **Coach library optimization** — Equipment & Body Parts lists need optimising.
+4. **April 13 reminder:** Verify Stripe trial payment processed for test athlete (Stripe Dashboard → Payments, Supabase → members status, Vercel webhook logs)
+5. **Website integration** — Add "Member Login" link/button on Squarespace site pointing to `https://app.the-forge-functional-fitness.de`
 
 ### DEPLOYMENT (Session 158+)
 

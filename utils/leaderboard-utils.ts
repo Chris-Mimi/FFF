@@ -18,6 +18,7 @@ export interface LeaderboardEntry {
 export interface RawSectionResult {
   id: string;
   user_id: string;
+  whiteboard_name?: string | null;
   time_result?: string | null;
   reps_result?: number | null;
   weight_result?: number | null;
@@ -191,18 +192,19 @@ export function bestResultPerUser(
 ): RawSectionResult[] {
   const best = new Map<string, RawSectionResult>();
   for (const r of results) {
-    const existing = best.get(r.user_id);
+    const key = r.user_id || `wb:${r.whiteboard_name}`;
+    const existing = best.get(key);
     if (!existing) {
-      best.set(r.user_id, r);
+      best.set(key, r);
       continue;
     }
     const cmp = compareByScoringType(r, existing, scoringType);
     if (cmp < 0) {
       // Better score — replace
-      best.set(r.user_id, r);
+      best.set(key, r);
     } else if (cmp === 0 && r.workout_date && existing.workout_date && r.workout_date > existing.workout_date) {
       // Equal score — prefer most recent result so edits are reflected
-      best.set(r.user_id, r);
+      best.set(key, r);
     }
   }
   return [...best.values()];
@@ -253,7 +255,7 @@ export function rankSectionResults(
   return sorted.map((r, i) => ({
     id: r.id,
     userId: r.user_id,
-    memberName: memberNames[r.user_id] || 'Unknown',
+    memberName: memberNames[r.user_id] || r.whiteboard_name || 'Unknown',
     rank: i + 1,
     timeResult: r.time_result || undefined,
     repsResult: r.reps_result || undefined,

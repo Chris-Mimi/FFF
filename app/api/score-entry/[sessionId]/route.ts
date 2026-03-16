@@ -107,22 +107,31 @@ export async function GET(
         .map((n: string) => n.trim())
         .filter((n: string) => n.length > 0);
 
-      // Get whiteboard_name values for booked members to deduplicate
+      // Build dedup set from booked members: both whiteboard_name AND member name
       const bookedMemberIds = members.map((m: { id: string }) => m.id);
-      let bookedWhiteboardNames: string[] = [];
+      const bookedNamesSet = new Set<string>();
+      // Add booked member names (always available)
+      for (const m of members as { id: string; name: string }[]) {
+        // Add first name (whiteboard typically uses first name only)
+        const firstName = m.name.split(' ')[0];
+        bookedNamesSet.add(firstName.toLowerCase());
+        bookedNamesSet.add(m.name.toLowerCase());
+      }
+      // Also add explicit whiteboard_name values
       if (bookedMemberIds.length > 0) {
         const { data: bookedMembers } = await supabaseAdmin
           .from('members')
           .select('whiteboard_name')
           .in('id', bookedMemberIds)
           .not('whiteboard_name', 'is', null);
-        bookedWhiteboardNames = (bookedMembers || [])
-          .map(m => (m.whiteboard_name as string).toLowerCase());
+        for (const m of bookedMembers || []) {
+          bookedNamesSet.add((m.whiteboard_name as string).toLowerCase());
+        }
       }
 
       // Add whiteboard-only athletes (not already in booked list)
       for (const wbName of whiteboardNames) {
-        if (bookedWhiteboardNames.includes(wbName.toLowerCase())) continue;
+        if (bookedNamesSet.has(wbName.toLowerCase())) continue;
         athletes.push({
           id: `wb:${wbName}`,
           memberId: null,
