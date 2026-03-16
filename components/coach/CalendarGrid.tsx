@@ -230,11 +230,11 @@ export default function CalendarGrid({
                   e.stopPropagation();
                   window.open(`/tv/${wod.id}`, '_blank');
                 }}
-                className='flex-shrink-0 text-gray-400 hover:text-[#178da6] transition cursor-pointer'
+                className='flex-shrink-0 p-1 -m-1 text-gray-400 hover:text-[#178da6] transition cursor-pointer'
                 title='TV Display'
                 aria-label='Open TV display'
               >
-                <Monitor size={12} />
+                <Monitor size={16} />
               </button>
             )}
 
@@ -245,11 +245,11 @@ export default function CalendarGrid({
                   e.stopPropagation();
                   window.open(`/coach/score-entry/${wod.booking_info!.session_id}`, '_blank');
                 }}
-                className='flex-shrink-0 text-gray-400 hover:text-[#178da6] transition cursor-pointer'
+                className='flex-shrink-0 p-1 -m-1 text-gray-400 hover:text-[#178da6] transition cursor-pointer'
                 title='Enter Scores'
                 aria-label='Enter scores for this session'
               >
-                <ClipboardList size={12} />
+                <ClipboardList size={16} />
               </button>
             )}
 
