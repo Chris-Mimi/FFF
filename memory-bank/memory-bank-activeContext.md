@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 90.0
-**Updated:** 2026-03-16 (Session 216 - Whiteboard score entry bugfixes)
+**Version:** 91.0
+**Updated:** 2026-03-17 (Session 217 - Fist bump mobile UX + achievement bodyweight calc)
 
 ---
 
@@ -88,27 +88,25 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-17 Session 217 - Opus 4.6) — FIST BUMP MOBILE UX + ACHIEVEMENT BW CALC:**
+- **✅ Fist bump mobile UX reworked** — Tap gives fist bump, tap (when already reacted) shows who gave them, long-press removes. Popover anchored right with max-width, outside-tap dismissal. Table overflow fixed.
+- **✅ Leaderboard table tightened** — Reduced padding on Scale/Date/Actions columns for mobile fit.
+- **✅ CAP score format** — Removed superfluous "+" after CAP in time-capped leaderboard results.
+- **✅ Achievement bodyweight calculator** — Achievements with "@ N% Bodyweight" show calculated kg from athlete profile weight inline on badge.
+
 **Completed (2026-03-16 Session 216 - Opus 4.6) — WHITEBOARD SCORE ENTRY BUGFIXES:**
-- **✅ CHECK constraint bug fixed** — `chk_user_or_member` constraint (Session 203) was blocking whiteboard-only inserts. Dropped in Supabase. Migration file updated to drop both old constraint names.
-- **✅ Dedup logic improved** — Score entry GET API now deduplicates Whiteboard Intro names against booked member first name + full name + whiteboard_name (was only checking `whiteboard_name` field, causing duplicates like Anneke).
-- **✅ Leaderboard whiteboard support** — Query now fetches `whiteboard_name`, `rankSectionResults` and `bestResultPerUser` use it as fallback display name (was showing "Unknown").
-- **✅ Andreas Keip duplicate cleaned** — Deleted orphan whiteboard-only rows from `wod_section_results`.
-- **✅ 10 scores saved successfully** after constraint fix.
+- **✅ CHECK constraint bug fixed, dedup logic improved, leaderboard whiteboard support.**
 
 **Completed (2026-03-16 Session 215 - Opus 4.6) — WHITEBOARD SCORE ENTRY:**
-- **✅ Whiteboard Intro score entry** — Coach can enter scores for ALL athletes (booked + whiteboard-only).
-- **✅ Migration applied** — `whiteboard_name` column on `wod_section_results` + `members`.
+- **✅ Whiteboard Intro score entry + migration applied.**
 
 **Completed (2026-03-15 Session 214 - Opus 4.6) — ORPHAN WORKOUT CLEANUP + COPY BUG FIX:**
-- **✅ Orphan cleanup + copy/drag/delete fixes.** Confirmed working in Session 215.
+- **✅ Orphan cleanup + copy/drag/delete fixes.**
 
 **Completed (2026-03-15 Session 213 - Opus 4.6) — WHITEBOARD NAME EXTRACTION + SAVE DUPLICATE FIX:**
 - **✅ Name extraction script, save button double-click guard, duplicate wod prevention.**
 
-**Completed (2026-03-15 Session 212 - Opus 4.6) — CALENDAR CARD STYLING + ATTENDEE VISIBILITY:**
-- **✅ Draft card visual distinction + attendee list on booking page.**
-
-**Older Sessions (57-211):**
+**Older Sessions (57-212):**
 See `project-history/` folder for detailed implementation history
 
 ---

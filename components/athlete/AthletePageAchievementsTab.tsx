@@ -22,9 +22,16 @@ interface CategoryGroup {
   branches: BranchGroup[];
 }
 
+// Parse bodyweight percentage from achievement name (e.g. "@ 50% Bodyweight" → 0.5)
+function parseBodyweightMultiplier(name: string): number | null {
+  const match = name.match(/@\s*(\d+)%\s*Bodyweight/i);
+  return match ? parseInt(match[1]) / 100 : null;
+}
+
 export default function AthletePageAchievementsTab({ userId }: AthletePageAchievementsTabProps) {
   const [definitions, setDefinitions] = useState<AchievementDefinition[]>([]);
   const [achievements, setAchievements] = useState<AthleteAchievement[]>([]);
+  const [weightKg, setWeightKg] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
   const [claimModal, setClaimModal] = useState<AchievementDefinition | null>(null);
@@ -37,7 +44,7 @@ export default function AthletePageAchievementsTab({ userId }: AthletePageAchiev
   const [savingDate, setSavingDate] = useState(false);
 
   const fetchData = useCallback(async () => {
-    const [defsRes, achRes] = await Promise.all([
+    const [defsRes, achRes, profileRes] = await Promise.all([
       supabase
         .from('achievement_definitions')
         .select('*')
@@ -48,6 +55,11 @@ export default function AthletePageAchievementsTab({ userId }: AthletePageAchiev
         .from('athlete_achievements')
         .select('*')
         .eq('user_id', userId),
+      supabase
+        .from('athlete_profiles')
+        .select('weight_kg')
+        .eq('user_id', userId)
+        .maybeSingle(),
     ]);
 
     if (defsRes.error) {
@@ -62,6 +74,7 @@ export default function AthletePageAchievementsTab({ userId }: AthletePageAchiev
 
     setDefinitions(defsRes.data || []);
     setAchievements(achRes.data || []);
+    if (profileRes.data?.weight_kg) setWeightKg(Number(profileRes.data.weight_kg));
     setLoading(false);
   }, [userId]);
 
@@ -319,13 +332,15 @@ export default function AthletePageAchievementsTab({ userId }: AthletePageAchiev
                                   : 'bg-gray-800/40 border border-gray-600/30 text-gray-500 cursor-not-allowed opacity-60'
                               }
                             `}
-                            title={
-                              isUnlocked
-                                ? `Unlocked ${def.unlocked!.achieved_date} — tap for details`
-                                : canClaim
-                                  ? 'Tap to claim!'
-                                  : 'Complete previous tiers first'
-                            }
+                            title={(() => {
+                              const multiplier = parseBodyweightMultiplier(def.name);
+                              const bwNote = multiplier && weightKg
+                                ? ` (${(multiplier * weightKg).toFixed(1).replace(/\.0$/, '')} kg)`
+                                : '';
+                              if (isUnlocked) return `Unlocked ${def.unlocked!.achieved_date}${bwNote} — tap for details`;
+                              if (canClaim) return `Tap to claim!${bwNote}`;
+                              return `Complete previous tiers first${bwNote}`;
+                            })()}
                           >
                             {isUnlocked ? (
                               <Check size={14} className="text-yellow-400" />
@@ -336,6 +351,18 @@ export default function AthletePageAchievementsTab({ userId }: AthletePageAchiev
                               {'★'.repeat(def.tier)}
                             </span>
                             <span>{def.name}</span>
+                            {(() => {
+                              const multiplier = parseBodyweightMultiplier(def.name);
+                              if (multiplier && weightKg) {
+                                const targetKg = multiplier * weightKg;
+                                return (
+                                  <span className="text-[10px] opacity-70">
+                                    ({targetKg.toFixed(1).replace(/\.0$/, '')} kg)
+                                  </span>
+                                );
+                              }
+                              return null;
+                            })()}
                             {def.description && (
                               <span className="hidden sm:inline text-xs text-gray-400">
                                 — {def.description}

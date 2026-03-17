@@ -375,9 +375,9 @@ export function formatResult(entry: LeaderboardEntry, scoringType: string): stri
       primary = '-'; break;
     case 'time_with_cap':
       if (entry.timeResult) { primary = entry.timeResult; break; }
-      if (entry.roundsResult && entry.repsResult) { primary = `CAP +${entry.roundsResult}+${entry.repsResult}`; break; }
-      if (entry.roundsResult) { primary = `CAP +${entry.roundsResult} rounds`; break; }
-      primary = `CAP +${entry.repsResult || 0} reps`; break;
+      if (entry.roundsResult && entry.repsResult) { primary = `CAP ${entry.roundsResult}+${entry.repsResult}`; break; }
+      if (entry.roundsResult) { primary = `CAP ${entry.roundsResult} rounds`; break; }
+      primary = `CAP ${entry.repsResult || 0} reps`; break;
     case 'time_amrap': {
       const repsStr = entry.roundsResult && entry.repsResult
         ? `${entry.roundsResult}+${entry.repsResult}`

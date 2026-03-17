@@ -793,15 +793,15 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
               <p className='text-gray-500 text-sm'>No results logged yet.</p>
             </div>
           ) : (
-            <div className='bg-white rounded-lg shadow-sm overflow-hidden'>
+            <div className='bg-white rounded-lg shadow-sm overflow-visible'>
               <table className='w-full'>
                 <thead>
-                  <tr className='bg-gray-50 text-xs text-gray-500 uppercase'>
-                    <th className='px-3 py-2 text-left w-10'>#</th>
+                  <tr className='bg-gray-50 text-xs text-gray-500 uppercase rounded-t-lg'>
+                    <th className='px-3 py-2 text-left w-10 rounded-tl-lg'>#</th>
                     <th className='px-3 py-2 text-left'>Athlete</th>
                     <th className='px-3 py-2 text-right'>Result</th>
-                    {showScalingFilter && <th className='px-3 py-2 text-center w-14'>Scale</th>}
-                    <th className='px-3 py-2 text-right w-16'></th>
+                    {showScalingFilter && <th className='px-1 py-2 text-center w-12'>Scale</th>}
+                    <th className='px-1 py-2 text-right w-14'></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -829,7 +829,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
                           </span>
                         </td>
                         {showScalingFilter && (
-                          <td className='px-3 py-2.5 text-center'>
+                          <td className='px-1 py-2.5 text-center'>
                             {entry.scalingLevel && (
                               <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
                                 entry.scalingLevel === 'Rx' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
@@ -839,8 +839,8 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
                             )}
                           </td>
                         )}
-                        <td className='px-3 py-2.5 text-right'>
-                          <div className='flex items-center justify-end gap-1'>
+                        <td className='px-1 py-2.5 text-right'>
+                          <div className='flex items-center justify-end gap-0.5'>
                             {isMe && (
                               <ShareButton
                                 data={{
@@ -1023,16 +1023,16 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
           <p className='text-gray-500 text-sm'>No results logged for this benchmark yet.</p>
         </div>
       ) : (
-        <div className='bg-white rounded-lg shadow-sm overflow-hidden'>
+        <div className='bg-white rounded-lg shadow-sm overflow-visible'>
           <table className='w-full'>
             <thead>
-              <tr className='bg-gray-50 text-xs text-gray-500 uppercase'>
-                <th className='px-3 py-2 text-left w-10'>#</th>
+              <tr className='bg-gray-50 text-xs text-gray-500 uppercase rounded-t-lg'>
+                <th className='px-3 py-2 text-left w-10 rounded-tl-lg'>#</th>
                 <th className='px-3 py-2 text-left'>Athlete</th>
                 <th className='px-3 py-2 text-right'>Best Result</th>
-                <th className='px-3 py-2 text-center w-14'>Scale</th>
-                <th className='px-3 py-2 text-right text-[10px] w-20'>Date</th>
-                <th className='px-3 py-2 text-right w-16'></th>
+                <th className='px-1 py-2 text-center w-12'>Scale</th>
+                <th className='px-1 py-2 text-right text-[10px] w-16'>Date</th>
+                <th className='px-1 py-2 text-right w-14 rounded-tr-lg'></th>
               </tr>
             </thead>
             <tbody>
@@ -1059,7 +1059,7 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
                         {formatBenchmarkResult(entry)}
                       </span>
                     </td>
-                    <td className='px-3 py-2.5 text-center'>
+                    <td className='px-1 py-2.5 text-center'>
                       {entry.scalingLevel && (
                         <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
                           entry.scalingLevel === 'Rx' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
@@ -1068,15 +1068,15 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
                         </span>
                       )}
                     </td>
-                    <td className='px-3 py-2.5 text-right'>
+                    <td className='px-1 py-2.5 text-right'>
                       {entry.resultDate && (
                         <span className='text-[10px] text-gray-500'>
                           {new Date(entry.resultDate + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
                         </span>
                       )}
                     </td>
-                    <td className='px-3 py-2.5 text-right'>
-                      <div className='flex items-center justify-end gap-1'>
+                    <td className='px-1 py-2.5 text-right'>
+                      <div className='flex items-center justify-end gap-0.5'>
                         {isMe && selectedBenchmark && (
                           <ShareButton
                             data={{
