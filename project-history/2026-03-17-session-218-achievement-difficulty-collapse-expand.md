@@ -11,18 +11,19 @@
 4. **Collapse/expand all buttons** — Added to:
    - Coach Achievements tab (icon + text)
    - Athlete Achievements tab (icon + text)
-   - Athlete Benchmarks tab (icon only)
-   - Athlete Forge Benchmarks tab (icon only)
-   - Athlete Lifts tab (icon only, includes category groups)
+   - Records tab (icon only — toggles Benchmarks, Forge Benchmarks, Lifts, Achievements sections)
+
+5. **Session 219 fix:** Moved collapse/expand from wrong standalone tabs (AthletePageBenchmarksTab, AthletePageForgeBenchmarksTab, AthletePageLiftsTab) to the correct Records tab (AthletePageRecordsTab).
 
 ## Files Modified
 - `types/achievements.ts` — Added `AchievementDifficulty` type, `ACHIEVEMENT_DIFFICULTIES` constant, `difficulty` field on interface
 - `components/coach/AchievementsTab.tsx` — Difficulty filters, collapse/expand all, handleSave with difficulty
 - `components/coach/AchievementDefinitionModal.tsx` — Difficulty selector UI, wired through template/editing/submit
 - `components/athlete/AthletePageAchievementsTab.tsx` — Difficulty filters, collapse/expand all
-- `components/athlete/AthletePageBenchmarksTab.tsx` — Collapse/expand all icon button
-- `components/athlete/AthletePageForgeBenchmarksTab.tsx` — Collapse/expand all icon button
-- `components/athlete/AthletePageLiftsTab.tsx` — Collapse/expand all icon button (sections + categories)
+- `components/athlete/AthletePageRecordsTab.tsx` — Collapse/expand all icon button (toggles all 4 sections)
+- `components/athlete/AthletePageBenchmarksTab.tsx` — Reverted wrongly-added collapse/expand button
+- `components/athlete/AthletePageForgeBenchmarksTab.tsx` — Reverted wrongly-added collapse/expand button
+- `components/athlete/AthletePageLiftsTab.tsx` — Reverted wrongly-added collapse/expand button
 - `supabase/migrations/20260317000000_add_achievement_difficulty.sql` — New migration
 - `memory-bank/memory-bank-activeContext.md` — Updated
 
@@ -32,7 +33,7 @@
 - Filter chips use multi-select toggle (not single-select)
 
 ## Known Issues
-- **Collapse/expand on Benchmarks/Forge/Lifts tabs didn't work** after server restart + hard refresh — needs debugging next session
+- ~~Collapse/expand on Benchmarks/Forge/Lifts tabs didn't work~~ — **FIXED in Session 219.** Root cause: buttons were added to the wrong standalone tabs instead of the Records tab.
 
 ## Migration Pending
 ```sql

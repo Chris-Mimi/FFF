@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 92.0
-**Updated:** 2026-03-17 (Session 218 - Achievement difficulty levels + collapse/expand)
+**Version:** 93.0
+**Updated:** 2026-03-17 (Session 219 - Fix collapse/expand on Records tab)
 
 ---
 
@@ -88,12 +88,14 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-17 Session 219 - Opus 4.6) — FIX COLLAPSE/EXPAND ON RECORDS TAB:**
+- **✅ Fixed collapse/expand** — Moved from wrong standalone tabs to Records tab (AthletePageRecordsTab). Toggles all 4 sections.
+
 **Completed (2026-03-17 Session 218 - Opus 4.6) — ACHIEVEMENT DIFFICULTY LEVELS + COLLAPSE/EXPAND:**
 - **✅ Achievement difficulty system** — New `difficulty` column (bronze/silver/gold/platinum) independent of tier. Migration pending.
 - **✅ Difficulty filter chips** — Multi-select on both Coach and Athlete achievements tabs.
 - **✅ Coach definition modal** — Difficulty selector with metallic-colored buttons.
-- **✅ Collapse/expand all** — Added to Achievements, Benchmarks, Forge Benchmarks, Lifts tabs.
-- **⚠️ BUG: Collapse/expand on Benchmarks/Forge/Lifts didn't work** after server restart + hard refresh — needs debugging.
+- **✅ Collapse/expand all** — Added to Coach/Athlete Achievements tabs + Records tab.
 
 **Completed (2026-03-17 Session 217 - Opus 4.6) — FIST BUMP MOBILE UX + ACHIEVEMENT BW CALC:**
 - **✅ Fist bump mobile UX reworked, leaderboard tightened, CAP format fix, achievement bodyweight calculator.**
@@ -202,8 +204,8 @@ npm run restore 2025-12-06  # Restore specific date
 
 ### NEXT SESSION
 1. **Run achievement difficulty migration** — Apply `20260317000000_add_achievement_difficulty.sql` in Supabase SQL Editor.
-2. **Debug collapse/expand on Benchmarks/Forge/Lifts** — Didn't work after server restart + hard refresh.
-3. **Test difficulty filter + definition modal** — End-to-end after migration applied.
+2. **Test difficulty filter + definition modal** — End-to-end after migration applied.
+3. **Test collapse/expand on Records tab** — Verify all 4 sections toggle correctly.
 4. **Deploy + test whiteboard leaderboard** — Verify whiteboard-only athletes show names (not "Unknown") on athlete leaderboard after deploy.
 5. **Coach library optimization** — Equipment & Body Parts lists need optimising.
 6. **April 13 reminder:** Verify Stripe trial payment processed for test athlete.

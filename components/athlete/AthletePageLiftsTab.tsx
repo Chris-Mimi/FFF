@@ -308,30 +308,14 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
       <div className='bg-white rounded-xl shadow-lg p-4 sm:p-8'>
         <div className='flex items-center justify-between mb-2 sm:mb-4'>
           <h2 className='text-2xl sm:text-3xl font-extrabold text-gray-900'>Barbell Lifts</h2>
-          <div className='flex items-center gap-1'>
-            <button
-              onClick={() => {
-                const allSections = Object.values(expandedSections).every(Boolean);
-                const allCats = Object.values(expandedCategories).every(Boolean);
-                const allExpanded = allSections && allCats;
-                setExpandedSections({ recent: !allExpanded, workoutProgress: !allExpanded });
-                setExpandedCategories({ Olympic: !allExpanded, Press: !allExpanded, Pull: !allExpanded, Squat: !allExpanded });
-              }}
-              className='p-2 text-gray-600 hover:text-[#178da6] hover:bg-gray-100 rounded-lg transition'
-              title={Object.values(expandedSections).every(Boolean) && Object.values(expandedCategories).every(Boolean) ? 'Collapse all' : 'Expand all'}
-              aria-label='Toggle collapse all sections'
-            >
-              {Object.values(expandedSections).every(Boolean) && Object.values(expandedCategories).every(Boolean) ? <ChevronRight size={22} /> : <ChevronDown size={22} />}
-            </button>
-            <button
-              onClick={() => setShowRepMaxCalc(true)}
-              className='p-2 text-gray-600 hover:text-[#178da6] hover:bg-gray-100 rounded-lg transition'
-              title='Rep Max Calculator'
-              aria-label='Open rep max calculator'
-            >
-              <Calculator size={22} />
-            </button>
-          </div>
+          <button
+            onClick={() => setShowRepMaxCalc(true)}
+            className='p-2 text-gray-600 hover:text-[#178da6] hover:bg-gray-100 rounded-lg transition'
+            title='Rep Max Calculator'
+            aria-label='Open rep max calculator'
+          >
+            <Calculator size={22} />
+          </button>
         </div>
         <p className='text-sm sm:text-base text-gray-700 mb-4 sm:mb-8 leading-relaxed'>
           Track your strength progress with barbell movements.

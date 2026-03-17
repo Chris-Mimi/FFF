@@ -50,7 +50,8 @@ There's no app-switching, no spreadsheets, no whiteboards that get erased. Just 
 
 ### Achievements & Motivation
 
-- **Custom achievement system** — define badges across categories (Strength, Gymnastics, Endurance) with tier levels (Bronze, Silver, Gold)
+- **Custom achievement system** — define badges across categories (Strength, Gymnastics, Endurance) with tier levels and difficulty ratings (Bronze, Silver, Gold, Platinum). Tier tracks progression within a branch; difficulty reflects how hard the achievement is overall
+- **Difficulty filtering** — filter achievements by difficulty level with multi-select metallic-colored chips on both coach and athlete views
 - **Bodyweight calculator on achievements** — achievements with bodyweight percentages (e.g. "Bench Press @ 50% Bodyweight") automatically display the target weight in kg based on the athlete's profile weight
 - **Award achievements** — recognise athlete milestones with a tap. Athletes see their badges on their profile
 - **Self-claim with approval** — athletes can claim achievements they've earned; coaches verify and approve
@@ -94,7 +95,7 @@ There's no app-switching, no spreadsheets, no whiteboards that get erased. Just 
 
 ### Records & Sharing
 
-- **Personal records gallery** — all your PRs in one place, beautifully displayed
+- **Personal records gallery** — all your PRs in one place, beautifully displayed with collapse/expand all for quick navigation
 - **Social share cards** — generate branded images of your results with your photo, the workout details, and your gym's branding. Perfect for Instagram and WhatsApp
 - **Fist bump reactions** — give (and receive) encouragement on any logged result. Tap to give, tap again to see who reacted, long-press to remove. Optimised for mobile with proper popover positioning
 

@@ -242,17 +242,35 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
         <h2 className='text-2xl sm:text-3xl font-extrabold text-gray-50 mb-2 sm:mb-4'>Personal Records</h2>
         <div className='flex items-center justify-between mb-4 sm:mb-8'>
           <p className='text-gray-50 leading-relaxed text-sm sm:text-base'>All your personal bests in one place.</p>
-          <button
-            onClick={() => {
-              achievementsRef.current?.scrollIntoView({ behavior: 'smooth' });
-              setExpandedSections(prev => ({ ...prev, achievements: true }));
-            }}
-            className='flex items-center gap-1 text-amber-400 hover:text-amber-300 transition'
-            aria-label='Jump to achievements'
-          >
-            <Trophy size={18} />
-            <ChevronDown size={14} />
-          </button>
+          <div className='flex items-center gap-1'>
+            <button
+              onClick={() => {
+                const allExpanded = Object.values(expandedSections).every(Boolean);
+                setExpandedSections({
+                  benchmarks: !allExpanded,
+                  forgeBenchmarks: !allExpanded,
+                  lifts: !allExpanded,
+                  achievements: !allExpanded,
+                });
+              }}
+              className='p-2 text-gray-200 hover:text-white hover:bg-gray-400/30 rounded-lg transition'
+              title={Object.values(expandedSections).every(Boolean) ? 'Collapse all' : 'Expand all'}
+              aria-label='Toggle collapse all sections'
+            >
+              {Object.values(expandedSections).every(Boolean) ? <ChevronRight size={22} /> : <ChevronDown size={22} />}
+            </button>
+            <button
+              onClick={() => {
+                achievementsRef.current?.scrollIntoView({ behavior: 'smooth' });
+                setExpandedSections(prev => ({ ...prev, achievements: true }));
+              }}
+              className='flex items-center gap-1 text-amber-400 hover:text-amber-300 transition'
+              aria-label='Jump to achievements'
+            >
+              <Trophy size={18} />
+              <ChevronDown size={14} />
+            </button>
+          </div>
         </div>
 
         {/* Info Summary Boxes */}
