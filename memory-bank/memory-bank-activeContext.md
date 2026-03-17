@@ -160,7 +160,7 @@ See `project-history/` folder for detailed implementation history
 - ✅ `20260314_add_member_id_to_section_results.sql` — Adds `member_id` column to wod_section_results, makes `user_id` nullable (Session 203, applied)
 - ✅ `20260314_add_score_recorded_preference.sql` — Adds `score_recorded` boolean column to notification_preferences (Session 205, applied)
 - ✅ `20260316_add_whiteboard_name_to_section_results.sql` — Adds `whiteboard_name` to wod_section_results + members, updates CHECK constraint (Session 215, applied)
-- ⏳ `20260317000000_add_achievement_difficulty.sql` — Adds `difficulty TEXT` column to achievement_definitions with CHECK constraint (Session 218)
+- ✅ `20260317000000_add_achievement_difficulty.sql` — Adds `difficulty TEXT` column to achievement_definitions with CHECK constraint (Session 218, applied Session 219)
 
 ---
 
@@ -203,10 +203,7 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION
-1. **Run achievement difficulty migration** — Apply `20260317000000_add_achievement_difficulty.sql` in Supabase SQL Editor.
-2. **Test difficulty filter + definition modal** — End-to-end after migration applied.
-3. **Test collapse/expand on Records tab** — Verify all 4 sections toggle correctly.
-4. **Deploy + test whiteboard leaderboard** — Verify whiteboard-only athletes show names (not "Unknown") on athlete leaderboard after deploy.
+1. **Deploy + test whiteboard leaderboard** — Verify whiteboard-only athletes show names (not "Unknown") on athlete leaderboard after deploy.
 5. **Coach library optimization** — Equipment & Body Parts lists need optimising.
 6. **April 13 reminder:** Verify Stripe trial payment processed for test athlete.
 
