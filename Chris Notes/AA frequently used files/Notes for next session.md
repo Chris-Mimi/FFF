@@ -15,7 +15,6 @@ All equipment & Body Parts lists need optimising
 Integration with website
 Investigate the "Whiteboard Intro" sections appearing in earlier workouts
 2-tier payment family
-Achievements tab - percentage auto-calculate with weight filled in in profile
 Achievements Categories , Bronze, Silver, Gold, Platinum
 
 Athlete login:

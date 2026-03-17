@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 93.0
-**Updated:** 2026-03-17 (Session 219 - Fix collapse/expand on Records tab)
+**Version:** 94.0
+**Updated:** 2026-03-17 (Session 220 - Achievement difficulty badge colors)
 
 ---
 
@@ -88,11 +88,16 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-17 Session 220 - Opus 4.6) — ACHIEVEMENT DIFFICULTY BADGE COLORS:**
+- **✅ Difficulty-colored badges** — Coach + Athlete achievement badges now use difficulty-specific colors (bronze=amber, silver=gray, gold=yellow, platinum=cyan) for backgrounds, borders, stars, and text.
+- **✅ Athlete all states colored** — Unlocked (solid border), claimable (dashed border + pulse), and locked (thin border + 40% opacity) all show difficulty colors.
+- **✅ Tailwind safelist** — Added dynamic difficulty badge classes to CSS safelist.
+
 **Completed (2026-03-17 Session 219 - Opus 4.6) — FIX COLLAPSE/EXPAND ON RECORDS TAB:**
 - **✅ Fixed collapse/expand** — Moved from wrong standalone tabs to Records tab (AthletePageRecordsTab). Toggles all 4 sections.
 
 **Completed (2026-03-17 Session 218 - Opus 4.6) — ACHIEVEMENT DIFFICULTY LEVELS + COLLAPSE/EXPAND:**
-- **✅ Achievement difficulty system** — New `difficulty` column (bronze/silver/gold/platinum) independent of tier. Migration pending.
+- **✅ Achievement difficulty system** — New `difficulty` column (bronze/silver/gold/platinum) independent of tier. Migration applied.
 - **✅ Difficulty filter chips** — Multi-select on both Coach and Athlete achievements tabs.
 - **✅ Coach definition modal** — Difficulty selector with metallic-colored buttons.
 - **✅ Collapse/expand all** — Added to Coach/Athlete Achievements tabs + Records tab.
@@ -103,13 +108,7 @@ Social Tables
 **Completed (2026-03-16 Session 216 - Opus 4.6) — WHITEBOARD SCORE ENTRY BUGFIXES:**
 - **✅ CHECK constraint bug fixed, dedup logic improved, leaderboard whiteboard support.**
 
-**Completed (2026-03-16 Session 215 - Opus 4.6) — WHITEBOARD SCORE ENTRY:**
-- **✅ Whiteboard Intro score entry + migration applied.**
-
-**Completed (2026-03-15 Session 214 - Opus 4.6) — ORPHAN WORKOUT CLEANUP + COPY BUG FIX:**
-- **✅ Orphan cleanup + copy/drag/delete fixes.**
-
-**Older Sessions (57-213):**
+**Older Sessions (57-215):**
 See `project-history/` folder for detailed implementation history
 
 ---

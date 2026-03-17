@@ -17,7 +17,10 @@
 - [ ] **Create new file:** `project-history/YYYY-MM-DD-session-XX-description.md`
   - Document accomplishments, logic decisions, and major learnings.
 
-### 4. Run Database Backup ⚠️ BEFORE GIT
+### 4. Update Chris Notes/Forge app documentation/Forge-Feature-Overview.md
+- [ ]Write any new features in this file with a view to using this as publicity and user manual when we launch
+
+### 5. Run Database Backup ⚠️ BEFORE GIT
 - [ ] **Execute Backup:**
   ```bash
   npm run backup

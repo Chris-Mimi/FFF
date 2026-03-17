@@ -35,6 +35,13 @@ const DIFFICULTY_FILTERS: { value: AchievementDifficulty; label: string; bg: str
   { value: 'platinum', label: 'Platinum', bg: 'bg-cyan-600/20', border: 'border-cyan-400', text: 'text-cyan-300', activeBg: 'bg-cyan-600/40' },
 ];
 
+const DIFFICULTY_BADGE_STYLES: Record<AchievementDifficulty, { bg: string; border: string; star: string; name: string }> = {
+  bronze:   { bg: 'bg-amber-900/40',   border: 'border-amber-600',  star: 'text-amber-400',  name: 'text-amber-200' },
+  silver:   { bg: 'bg-gray-700/50',     border: 'border-gray-400',   star: 'text-gray-300',   name: 'text-gray-200' },
+  gold:     { bg: 'bg-yellow-900/40',   border: 'border-yellow-500', star: 'text-yellow-400', name: 'text-yellow-200' },
+  platinum: { bg: 'bg-cyan-900/40',     border: 'border-cyan-400',   star: 'text-cyan-300',   name: 'text-cyan-100' },
+};
+
 export default function AthletePageAchievementsTab({ userId }: AthletePageAchievementsTabProps) {
   const [definitions, setDefinitions] = useState<AchievementDefinition[]>([]);
   const [achievements, setAchievements] = useState<AthleteAchievement[]>([]);
@@ -387,6 +394,7 @@ export default function AthletePageAchievementsTab({ userId }: AthletePageAchiev
                         const isUnlocked = !!def.unlocked;
                         const canClaim = isNextClaimable(tiers, def);
                         const isLocked = !isUnlocked && !canClaim;
+                        const ds = DIFFICULTY_BADGE_STYLES[def.difficulty] || DIFFICULTY_BADGE_STYLES.bronze;
 
                         return (
                           <button
@@ -405,10 +413,10 @@ export default function AthletePageAchievementsTab({ userId }: AthletePageAchiev
                             className={`
                               flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition
                               ${isUnlocked
-                                ? 'bg-teal-900/60 border-2 border-yellow-400 text-yellow-200 hover:bg-teal-800/60 cursor-pointer'
+                                ? `${ds.bg} border-2 ${ds.border} ${ds.name} hover:brightness-125 cursor-pointer`
                                 : canClaim
-                                  ? 'bg-gray-700/40 border-2 border-dashed border-emerald-400 text-emerald-300 hover:bg-gray-600/50 cursor-pointer animate-pulse-subtle'
-                                  : 'bg-gray-800/40 border border-gray-600/30 text-gray-500 cursor-not-allowed opacity-60'
+                                  ? `${ds.bg} border-2 border-dashed ${ds.border} ${ds.name} hover:brightness-125 cursor-pointer animate-pulse-subtle`
+                                  : `${ds.bg} border ${ds.border} ${ds.name} cursor-not-allowed opacity-40`
                               }
                             `}
                             title={(() => {
@@ -422,11 +430,11 @@ export default function AthletePageAchievementsTab({ userId }: AthletePageAchiev
                             })()}
                           >
                             {isUnlocked ? (
-                              <Check size={14} className="text-yellow-400" />
+                              <Check size={14} className={ds.star} />
                             ) : isLocked ? (
-                              <Lock size={12} className="text-gray-500" />
+                              <Lock size={12} className={ds.star} />
                             ) : null}
-                            <span className={`text-xs ${isUnlocked ? 'text-yellow-400' : 'text-emerald-400'}`}>
+                            <span className={`text-xs ${ds.star}`}>
                               {'★'.repeat(def.tier)}
                             </span>
                             <span>{def.name}</span>

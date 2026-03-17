@@ -26,6 +26,13 @@ const DIFFICULTY_FILTERS: { value: AchievementDifficulty; label: string; bg: str
   { value: 'platinum', label: 'Platinum', bg: 'bg-cyan-600/20', border: 'border-cyan-400', text: 'text-cyan-300', activeBg: 'bg-cyan-600/40' },
 ];
 
+const DIFFICULTY_BADGE_STYLES: Record<AchievementDifficulty, { bg: string; border: string; star: string; name: string }> = {
+  bronze:   { bg: 'bg-amber-900/40',   border: 'border-amber-600',  star: 'text-amber-400',  name: 'text-amber-200' },
+  silver:   { bg: 'bg-gray-700/50',     border: 'border-gray-400',   star: 'text-gray-300',   name: 'text-gray-200' },
+  gold:     { bg: 'bg-yellow-900/40',   border: 'border-yellow-500', star: 'text-yellow-400', name: 'text-yellow-200' },
+  platinum: { bg: 'bg-cyan-900/40',     border: 'border-cyan-400',   star: 'text-cyan-300',   name: 'text-cyan-100' },
+};
+
 export default function AchievementsTab() {
   const [definitions, setDefinitions] = useState<AchievementDefinition[]>([]);
   const [loading, setLoading] = useState(true);
@@ -360,15 +367,17 @@ export default function AchievementsTab() {
 
                   {/* Tier badges */}
                   <div className="flex flex-wrap gap-2">
-                    {tiers.map((def) => (
+                    {tiers.map((def) => {
+                      const ds = DIFFICULTY_BADGE_STYLES[def.difficulty] || DIFFICULTY_BADGE_STYLES.bronze;
+                      return (
                       <div
                         key={def.id}
-                        className="group relative flex items-center gap-1.5 px-3 py-1.5 bg-teal-900/60 border-2 border-yellow-400 rounded-full text-sm"
+                        className={`group relative flex items-center gap-1.5 px-3 py-1.5 ${ds.bg} border-2 ${ds.border} rounded-full text-sm`}
                       >
-                        <span className="text-yellow-400 text-xs">
+                        <span className={`${ds.star} text-xs`}>
                           {'★'.repeat(def.tier)}
                         </span>
-                        <span className="text-yellow-200">{def.name}</span>
+                        <span className={ds.name}>{def.name}</span>
                         {def.description && (
                           <span className="text-gray-400 text-xs hidden sm:inline">
                             — {def.description}
@@ -396,7 +405,8 @@ export default function AchievementsTab() {
                           </button>
                         </div>
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               ))}
