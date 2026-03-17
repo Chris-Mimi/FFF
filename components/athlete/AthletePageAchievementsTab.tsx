@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { confirm } from '@/lib/confirm';
 import { FocusTrap } from '@/components/ui/FocusTrap';
-import type { AchievementDefinition, AthleteAchievement } from '@/types/achievements';
+import type { AchievementDefinition, AthleteAchievement, AchievementDifficulty } from '@/types/achievements';
 
 interface AthletePageAchievementsTabProps {
   userId: string;
@@ -28,12 +28,20 @@ function parseBodyweightMultiplier(name: string): number | null {
   return match ? parseInt(match[1]) / 100 : null;
 }
 
+const DIFFICULTY_FILTERS: { value: AchievementDifficulty; label: string; bg: string; border: string; text: string; activeBg: string }[] = [
+  { value: 'bronze', label: 'Bronze', bg: 'bg-amber-700/30', border: 'border-amber-600', text: 'text-amber-400', activeBg: 'bg-amber-700/60' },
+  { value: 'silver', label: 'Silver', bg: 'bg-gray-500/20', border: 'border-gray-400', text: 'text-gray-300', activeBg: 'bg-gray-500/40' },
+  { value: 'gold', label: 'Gold', bg: 'bg-yellow-600/20', border: 'border-yellow-500', text: 'text-yellow-400', activeBg: 'bg-yellow-600/40' },
+  { value: 'platinum', label: 'Platinum', bg: 'bg-cyan-600/20', border: 'border-cyan-400', text: 'text-cyan-300', activeBg: 'bg-cyan-600/40' },
+];
+
 export default function AthletePageAchievementsTab({ userId }: AthletePageAchievementsTabProps) {
   const [definitions, setDefinitions] = useState<AchievementDefinition[]>([]);
   const [achievements, setAchievements] = useState<AthleteAchievement[]>([]);
   const [weightKg, setWeightKg] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
+  const [selectedDifficulties, setSelectedDifficulties] = useState<Set<AchievementDifficulty>>(new Set());
   const [claimModal, setClaimModal] = useState<AchievementDefinition | null>(null);
   const [claimDate, setClaimDate] = useState(new Date().toISOString().split('T')[0]);
   const [claimNotes, setClaimNotes] = useState('');
@@ -118,6 +126,30 @@ export default function AthletePageAchievementsTab({ userId }: AthletePageAchiev
     }
     return result;
   })();
+
+  // Apply difficulty filter to grouped data
+  const filteredGrouped = selectedDifficulties.size === 0
+    ? grouped
+    : grouped
+        .map(({ category, branches }) => ({
+          category,
+          branches: branches
+            .map(({ branch, tiers }) => ({
+              branch,
+              tiers: tiers.filter((t) => selectedDifficulties.has(t.difficulty)),
+            }))
+            .filter(({ tiers }) => tiers.length > 0),
+        }))
+        .filter(({ branches }) => branches.length > 0);
+
+  const toggleDifficulty = (d: AchievementDifficulty) => {
+    setSelectedDifficulties((prev) => {
+      const next = new Set(prev);
+      if (next.has(d)) next.delete(d);
+      else next.add(d);
+      return next;
+    });
+  };
 
   // Check if a tier is the next claimable one in its branch
   const isNextClaimable = (branchTiers: (AchievementDefinition & { unlocked?: AthleteAchievement })[], tier: AchievementDefinition & { unlocked?: AthleteAchievement }) => {
@@ -252,10 +284,57 @@ export default function AthletePageAchievementsTab({ userId }: AthletePageAchiev
           <Trophy className="text-emerald-400" size={24} />
           <h2 className="text-lg sm:text-xl font-bold text-gray-100">Achievements</h2>
         </div>
-        <div className="text-sm">
-          <span className="font-semibold text-emerald-400">{totalUnlocked}</span>
-          <span className="text-gray-400"> / {totalDefined}</span>
+        <div className="flex items-center gap-3">
+          {grouped.length > 0 && (
+            <button
+              onClick={() => {
+                const allCats = grouped.map((g) => g.category);
+                const allCollapsed = allCats.every((c) => collapsedCategories.has(c));
+                setCollapsedCategories(allCollapsed ? new Set() : new Set(allCats));
+              }}
+              className="flex items-center gap-1 text-gray-400 hover:text-gray-200 transition text-xs"
+              title={collapsedCategories.size === grouped.length ? 'Expand all' : 'Collapse all'}
+            >
+              {collapsedCategories.size === grouped.length ? (
+                <><ChevronDown size={14} /> Expand</>
+              ) : (
+                <><ChevronRight size={14} /> Collapse</>
+              )}
+            </button>
+          )}
+          <div className="text-sm">
+            <span className="font-semibold text-emerald-400">{totalUnlocked}</span>
+            <span className="text-gray-400"> / {totalDefined}</span>
+          </div>
         </div>
+      </div>
+
+      {/* Difficulty filter chips */}
+      <div className="flex flex-wrap items-center gap-2">
+        {DIFFICULTY_FILTERS.map(({ value, label, bg, border, text, activeBg }) => {
+          const active = selectedDifficulties.has(value);
+          return (
+            <button
+              key={value}
+              onClick={() => toggleDifficulty(value)}
+              className={`px-3 py-1 rounded-full text-xs font-medium border transition ${
+                active
+                  ? `${activeBg} ${border} ${text}`
+                  : `${bg} border-transparent ${text} opacity-50 hover:opacity-80`
+              }`}
+            >
+              {label}
+            </button>
+          );
+        })}
+        {selectedDifficulties.size > 0 && (
+          <button
+            onClick={() => setSelectedDifficulties(new Set())}
+            className="text-xs text-gray-400 hover:text-gray-200 transition ml-1"
+          >
+            Clear
+          </button>
+        )}
       </div>
 
       {/* Progress bar */}
@@ -267,7 +346,7 @@ export default function AthletePageAchievementsTab({ userId }: AthletePageAchiev
       </div>
 
       {/* Category groups */}
-      {grouped.map(({ category, branches }) => {
+      {filteredGrouped.map(({ category, branches }) => {
         const categoryUnlocked = branches.reduce(
           (sum, b) => sum + b.tiers.filter((ti) => ti.unlocked).length,
           0

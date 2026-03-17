@@ -441,18 +441,31 @@ export default function AthletePageForgeBenchmarksTab({ userId }: AthletePageFor
       <div className='bg-white rounded-xl shadow-lg p-4 sm:p-8'>
         <div className='flex items-center justify-between mb-2 sm:mb-4'>
           <h2 className='text-2xl sm:text-3xl font-extrabold text-gray-800'>Forge Benchmarks</h2>
-          <button
-            onClick={() => setShowTimer(!showTimer)}
-            className={`p-2 rounded-lg transition ${
-              showTimer
-                ? 'text-white bg-[#178da6]'
-                : 'text-gray-600 hover:text-[#178da6] hover:bg-gray-100'
-            }`}
-            title='Workout Timer'
-            aria-label='Open workout timer'
-          >
-            <Timer size={22} />
-          </button>
+          <div className='flex items-center gap-1'>
+            <button
+              onClick={() => {
+                const allExpanded = Object.values(expandedSections).every(Boolean);
+                setExpandedSections({ recent: !allExpanded, charts: !allExpanded });
+              }}
+              className='p-2 text-gray-600 hover:text-[#178da6] hover:bg-gray-100 rounded-lg transition'
+              title={Object.values(expandedSections).every(Boolean) ? 'Collapse all' : 'Expand all'}
+              aria-label='Toggle collapse all sections'
+            >
+              {Object.values(expandedSections).every(Boolean) ? <ChevronRight size={22} /> : <ChevronDown size={22} />}
+            </button>
+            <button
+              onClick={() => setShowTimer(!showTimer)}
+              className={`p-2 rounded-lg transition ${
+                showTimer
+                  ? 'text-white bg-[#178da6]'
+                  : 'text-gray-600 hover:text-[#178da6] hover:bg-gray-100'
+              }`}
+              title='Workout Timer'
+              aria-label='Open workout timer'
+            >
+              <Timer size={22} />
+            </button>
+          </div>
         </div>
         {showTimer && (
           <div className='mb-4 border border-gray-200 rounded-lg p-4'>

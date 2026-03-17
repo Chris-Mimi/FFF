@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { confirm } from '@/lib/confirm';
 import AchievementDefinitionModal from './AchievementDefinitionModal';
 import AwardAchievementModal from './AwardAchievementModal';
-import type { AchievementDefinition } from '@/types/achievements';
+import type { AchievementDefinition, AchievementDifficulty } from '@/types/achievements';
 
 interface BranchGroup {
   branch: string;
@@ -19,6 +19,13 @@ interface CategoryGroup {
   branches: BranchGroup[];
 }
 
+const DIFFICULTY_FILTERS: { value: AchievementDifficulty; label: string; bg: string; border: string; text: string; activeBg: string }[] = [
+  { value: 'bronze', label: 'Bronze', bg: 'bg-amber-700/30', border: 'border-amber-600', text: 'text-amber-400', activeBg: 'bg-amber-700/60' },
+  { value: 'silver', label: 'Silver', bg: 'bg-gray-500/20', border: 'border-gray-400', text: 'text-gray-300', activeBg: 'bg-gray-500/40' },
+  { value: 'gold', label: 'Gold', bg: 'bg-yellow-600/20', border: 'border-yellow-500', text: 'text-yellow-400', activeBg: 'bg-yellow-600/40' },
+  { value: 'platinum', label: 'Platinum', bg: 'bg-cyan-600/20', border: 'border-cyan-400', text: 'text-cyan-300', activeBg: 'bg-cyan-600/40' },
+];
+
 export default function AchievementsTab() {
   const [definitions, setDefinitions] = useState<AchievementDefinition[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,6 +33,7 @@ export default function AchievementsTab() {
   const [editing, setEditing] = useState<AchievementDefinition | null>(null);
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
   const [showAwardModal, setShowAwardModal] = useState(false);
+  const [selectedDifficulties, setSelectedDifficulties] = useState<Set<AchievementDifficulty>>(new Set());
 
   const fetchDefinitions = useCallback(async () => {
     const { data, error } = await supabase
@@ -74,6 +82,30 @@ export default function AchievementsTab() {
     return result;
   })();
 
+  // Apply difficulty filter to grouped data
+  const filteredGrouped = selectedDifficulties.size === 0
+    ? grouped
+    : grouped
+        .map(({ category, branches }) => ({
+          category,
+          branches: branches
+            .map(({ branch, tiers }) => ({
+              branch,
+              tiers: tiers.filter((t) => selectedDifficulties.has(t.difficulty)),
+            }))
+            .filter(({ tiers }) => tiers.length > 0),
+        }))
+        .filter(({ branches }) => branches.length > 0);
+
+  const toggleDifficulty = (d: AchievementDifficulty) => {
+    setSelectedDifficulties((prev) => {
+      const next = new Set(prev);
+      if (next.has(d)) next.delete(d);
+      else next.add(d);
+      return next;
+    });
+  };
+
   const existingBranches = [...new Set(definitions.map((d) => d.branch))];
 
   const nextTierForBranch = useCallback(
@@ -90,6 +122,7 @@ export default function AchievementsTab() {
     category: string;
     branch: string;
     tier: number;
+    difficulty: AchievementDifficulty;
     description: string;
     display_order: number;
   }) => {
@@ -101,6 +134,7 @@ export default function AchievementsTab() {
           category: data.category,
           branch: data.branch,
           tier: data.tier,
+          difficulty: data.difficulty,
           description: data.description || null,
           display_order: data.display_order,
           updated_at: new Date().toISOString(),
@@ -119,6 +153,7 @@ export default function AchievementsTab() {
         category: data.category,
         branch: data.branch,
         tier: data.tier,
+        difficulty: data.difficulty,
         description: data.description || null,
         display_order: data.display_order,
       });
@@ -197,6 +232,23 @@ export default function AchievementsTab() {
           </span>
         </div>
         <div className="flex items-center gap-2">
+          {grouped.length > 0 && (
+            <button
+              onClick={() => {
+                const allCats = grouped.map((g) => g.category);
+                const allCollapsed = allCats.every((c) => collapsedCategories.has(c));
+                setCollapsedCategories(allCollapsed ? new Set() : new Set(allCats));
+              }}
+              className="flex items-center gap-1 px-2.5 py-2 text-gray-400 hover:text-gray-200 transition text-xs"
+              title={collapsedCategories.size === grouped.length ? 'Expand all' : 'Collapse all'}
+            >
+              {collapsedCategories.size === grouped.length ? (
+                <><ChevronDown size={14} /> Expand</>
+              ) : (
+                <><ChevronRight size={14} /> Collapse</>
+              )}
+            </button>
+          )}
           <button
             onClick={() => setShowAwardModal(true)}
             className="flex items-center gap-1.5 px-3 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium transition text-sm"
@@ -217,6 +269,36 @@ export default function AchievementsTab() {
         </div>
       </div>
 
+      {/* Difficulty filter chips */}
+      {definitions.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          {DIFFICULTY_FILTERS.map(({ value, label, bg, border, text, activeBg }) => {
+            const active = selectedDifficulties.has(value);
+            return (
+              <button
+                key={value}
+                onClick={() => toggleDifficulty(value)}
+                className={`px-3 py-1 rounded-full text-xs font-medium border transition ${
+                  active
+                    ? `${activeBg} ${border} ${text}`
+                    : `${bg} border-transparent ${text} opacity-50 hover:opacity-80`
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
+          {selectedDifficulties.size > 0 && (
+            <button
+              onClick={() => setSelectedDifficulties(new Set())}
+              className="text-xs text-gray-400 hover:text-gray-200 transition ml-1"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Empty state */}
       {definitions.length === 0 && (
         <div className="bg-white rounded-lg p-12 text-center">
@@ -235,7 +317,7 @@ export default function AchievementsTab() {
       )}
 
       {/* Category groups */}
-      {grouped.map(({ category, branches }) => (
+      {filteredGrouped.map(({ category, branches }) => (
         <div key={category} className="bg-gray-800/70 border-gray-600/40 rounded-lg overflow-hidden border">
           {/* Category header */}
           <button

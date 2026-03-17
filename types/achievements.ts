@@ -1,9 +1,16 @@
+export type AchievementDifficulty = 'bronze' | 'silver' | 'gold' | 'platinum';
+
+export const ACHIEVEMENT_DIFFICULTIES: AchievementDifficulty[] = [
+  'bronze', 'silver', 'gold', 'platinum',
+];
+
 export interface AchievementDefinition {
   id: string;
   name: string;
   category: string;
   branch: string;
   tier: number;
+  difficulty: AchievementDifficulty;
   description?: string;
   display_order: number;
   created_at: string;

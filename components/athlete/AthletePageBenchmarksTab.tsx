@@ -424,7 +424,20 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
   return (
     <div className='space-y-4 sm:space-y-6 bg-gray-500 p-3 sm:p-6 rounded-lg'>
       <div className='bg-white rounded-xl shadow-lg p-4 sm:p-8'>
-        <h2 className='text-2xl sm:text-3xl font-extrabold text-gray-800 mb-2 sm:mb-4'>Benchmark Workouts</h2>
+        <div className='flex items-center justify-between mb-2 sm:mb-4'>
+          <h2 className='text-2xl sm:text-3xl font-extrabold text-gray-800'>Benchmark Workouts</h2>
+          <button
+            onClick={() => {
+              const allExpanded = Object.values(expandedSections).every(Boolean);
+              setExpandedSections({ recent: !allExpanded, charts: !allExpanded });
+            }}
+            className='p-2 text-gray-600 hover:text-[#178da6] hover:bg-gray-100 rounded-lg transition'
+            title={Object.values(expandedSections).every(Boolean) ? 'Collapse all' : 'Expand all'}
+            aria-label='Toggle collapse all sections'
+          >
+            {Object.values(expandedSections).every(Boolean) ? <ChevronRight size={22} /> : <ChevronDown size={22} />}
+          </button>
+        </div>
         <p className='text-sm sm:text-base text-gray-700 mb-4 sm:mb-8 leading-relaxed'>
           Track your performance on classic CrossFit benchmark workouts.
         </p>

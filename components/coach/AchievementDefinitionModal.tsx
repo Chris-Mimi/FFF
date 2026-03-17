@@ -3,8 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { FocusTrap } from '@/components/ui/FocusTrap';
-import type { AchievementDefinition } from '@/types/achievements';
-import { ACHIEVEMENT_CATEGORIES } from '@/types/achievements';
+import type { AchievementDefinition, AchievementDifficulty } from '@/types/achievements';
+import { ACHIEVEMENT_CATEGORIES, ACHIEVEMENT_DIFFICULTIES } from '@/types/achievements';
 
 interface AchievementDefinitionModalProps {
   isOpen: boolean;
@@ -14,6 +14,7 @@ interface AchievementDefinitionModalProps {
     category: string;
     branch: string;
     tier: number;
+    difficulty: AchievementDifficulty;
     description: string;
     display_order: number;
   }) => void;
@@ -36,6 +37,7 @@ export default function AchievementDefinitionModal({
   const [category, setCategory] = useState('');
   const [branch, setBranch] = useState('');
   const [tier, setTier] = useState(1);
+  const [difficulty, setDifficulty] = useState<AchievementDifficulty>('bronze');
   const [description, setDescription] = useState('');
   const [displayOrder, setDisplayOrder] = useState(0);
   const [showBranchSuggestions, setShowBranchSuggestions] = useState(false);
@@ -61,6 +63,7 @@ export default function AchievementDefinitionModal({
     setCategory(def.category);
     setBranch(def.branch);
     setTier(nextTierForBranch(def.branch));
+    setDifficulty(def.difficulty || 'bronze');
     setDescription(def.description || '');
     setDisplayOrder(def.display_order);
     setName(''); // user must enter new name
@@ -73,6 +76,7 @@ export default function AchievementDefinitionModal({
     setCategory('');
     setBranch('');
     setTier(1);
+    setDifficulty('bronze');
     setDescription('');
     setDisplayOrder(0);
   };
@@ -83,6 +87,7 @@ export default function AchievementDefinitionModal({
       setCategory(editing.category);
       setBranch(editing.branch);
       setTier(editing.tier);
+      setDifficulty(editing.difficulty || 'bronze');
       setDescription(editing.description || '');
       setDisplayOrder(editing.display_order);
     } else {
@@ -90,6 +95,7 @@ export default function AchievementDefinitionModal({
       setCategory('');
       setBranch('');
       setTier(1);
+      setDifficulty('bronze');
       setDescription('');
       setDisplayOrder(0);
     }
@@ -138,6 +144,7 @@ export default function AchievementDefinitionModal({
       category,
       branch: branch.trim(),
       tier,
+      difficulty,
       description: description.trim(),
       display_order: displayOrder,
     });
@@ -310,6 +317,33 @@ export default function AchievementDefinitionModal({
               <span className="ml-2 text-sm text-gray-500">
                 {'★'.repeat(tier)}
               </span>
+            </div>
+
+            {/* Difficulty */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">
+                Difficulty Level
+              </label>
+              <div className="flex gap-2">
+                {ACHIEVEMENT_DIFFICULTIES.map((d) => {
+                  const styles: Record<string, string> = {
+                    bronze: difficulty === d ? 'bg-amber-700/60 border-amber-600 text-amber-200' : 'bg-amber-700/20 border-transparent text-amber-700 opacity-60 hover:opacity-80',
+                    silver: difficulty === d ? 'bg-gray-500/40 border-gray-400 text-gray-100' : 'bg-gray-500/15 border-transparent text-gray-500 opacity-60 hover:opacity-80',
+                    gold: difficulty === d ? 'bg-yellow-600/40 border-yellow-500 text-yellow-200' : 'bg-yellow-600/15 border-transparent text-yellow-700 opacity-60 hover:opacity-80',
+                    platinum: difficulty === d ? 'bg-cyan-600/40 border-cyan-400 text-cyan-200' : 'bg-cyan-600/15 border-transparent text-cyan-700 opacity-60 hover:opacity-80',
+                  };
+                  return (
+                    <button
+                      key={d}
+                      type="button"
+                      onClick={() => setDifficulty(d)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition capitalize ${styles[d]}`}
+                    >
+                      {d}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Name */}
