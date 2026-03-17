@@ -239,7 +239,7 @@ export default function AchievementsTab() {
                 const allCollapsed = allCats.every((c) => collapsedCategories.has(c));
                 setCollapsedCategories(allCollapsed ? new Set() : new Set(allCats));
               }}
-              className="flex items-center gap-1 px-2.5 py-2 text-gray-400 hover:text-gray-200 transition text-xs"
+              className="flex items-center gap-1 px-2.5 py-2 text-gray-200 hover:text-white hover:bg-gray-600/30 rounded-lg transition text-xs"
               title={collapsedCategories.size === grouped.length ? 'Expand all' : 'Collapse all'}
             >
               {collapsedCategories.size === grouped.length ? (
