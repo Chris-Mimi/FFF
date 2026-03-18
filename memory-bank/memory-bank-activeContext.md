@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 94.0
-**Updated:** 2026-03-17 (Session 220 - Achievement difficulty badge colors)
+**Version:** 95.0
+**Updated:** 2026-03-18 (Session 221 - Movement Demos video clip matching fix)
 
 ---
 
@@ -88,6 +88,11 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-18 Session 221 - Opus 4.6) — MOVEMENT DEMOS VIDEO CLIP MATCHING FIX:**
+- **✅ Fixed video clip detection** — Exercise names with any text prefix (e.g., "3x Back Squat", "EMOM: Deadlift") now correctly match when separated by a space.
+- **✅ Word boundary checking** — Prevents false positives from substring matches (e.g., "xBack Squat" won't match).
+- **✅ Parenthetical exercise names preserved** — Exercises like "90° Ext. Rotation (SU)" no longer broken by trailing-parenthesis stripping.
+
 **Completed (2026-03-17 Session 220 - Opus 4.6) — ACHIEVEMENT DIFFICULTY BADGE COLORS:**
 - **✅ Difficulty-colored badges** — Coach + Athlete achievement badges now use difficulty-specific colors (bronze=amber, silver=gray, gold=yellow, platinum=cyan) for backgrounds, borders, stars, and text.
 - **✅ Athlete all states colored** — Unlocked (solid border), claimable (dashed border + pulse), and locked (thin border + 40% opacity) all show difficulty colors.
@@ -105,10 +110,7 @@ Social Tables
 **Completed (2026-03-17 Session 217 - Opus 4.6) — FIST BUMP MOBILE UX + ACHIEVEMENT BW CALC:**
 - **✅ Fist bump mobile UX reworked, leaderboard tightened, CAP format fix, achievement bodyweight calculator.**
 
-**Completed (2026-03-16 Session 216 - Opus 4.6) — WHITEBOARD SCORE ENTRY BUGFIXES:**
-- **✅ CHECK constraint bug fixed, dedup logic improved, leaderboard whiteboard support.**
-
-**Older Sessions (57-215):**
+**Older Sessions (57-216):**
 See `project-history/` folder for detailed implementation history
 
 ---

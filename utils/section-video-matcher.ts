@@ -68,6 +68,14 @@ export function matchSectionExercises(
     let cleaned = line.replace(/^\s*(?:[*\-]\s*|\d+[.)]\s*)/, '').trim();
     if (!cleaned) continue;
 
+    // Strip leading rep/set prefixes
+    // e.g., "3x Back Squat" -> "Back Squat"
+    // e.g., "5x3 Deadlift" -> "Deadlift"
+    cleaned = cleaned
+      .replace(/^\d+x\d*\s+/i, '')          // 3x Back Squat, 5x3 Deadlift
+      .replace(/^\d+\s*(?:reps?|sets?)\s+/i, '') // 3 sets Back Squat
+      .trim();
+
     // Strip trailing rep/set/percentage info
     // e.g., "Deadlift 3x5 @ 80%" -> "Deadlift"
     // e.g., "Box Jumps (24in)" -> "Box Jumps"
@@ -93,22 +101,30 @@ export function matchSectionExercises(
       continue;
     }
 
-    // Try partial match: content line starts with exercise name
-    // This handles cases like "Deadlift - heavy" where stripping didn't catch the suffix
+    // Try partial match: exercise name appears anywhere in the line
+    // Handles prefixes like "3x Back Squat", "EMOM: Deadlift", "A1) Box Jumps"
+    // Use original line (lowered) so stripping doesn't remove parts of the exercise name (e.g., "(SU)")
+    const lineLower = line.toLowerCase();
     for (const [key, entry] of exerciseMap) {
       if (seen.has(entry.name.toLowerCase())) continue;
-      if (cleaned.toLowerCase().startsWith(key) || key.startsWith(cleaned.toLowerCase())) {
-        // Only match if the shorter string is at least 4 chars (avoid false positives like "Row")
-        const shorter = Math.min(cleaned.length, key.length);
-        if (shorter >= 4) {
-          seen.add(entry.name.toLowerCase());
-          matched.push({
-            exerciseName: entry.displayName,
-            videoUrl: entry.videoUrl,
-            lineIndex: i,
-          });
-          break;
-        }
+      // Only match exercise names at least 4 chars (avoid false positives like "Row")
+      if (key.length < 4) continue;
+      const idx = lineLower.indexOf(key);
+      if (idx !== -1) {
+        // Ensure match is at a word boundary (space, punctuation, or line edge on both sides)
+        const charBefore = idx > 0 ? lineLower[idx - 1] : ' ';
+        const charAfter = idx + key.length < lineLower.length ? lineLower[idx + key.length] : ' ';
+        const boundaryChar = /[\s,;:\-–—/|]/;
+        if (!boundaryChar.test(charBefore) || !boundaryChar.test(charAfter)) continue;
+      }
+      if (idx !== -1) {
+        seen.add(entry.name.toLowerCase());
+        matched.push({
+          exerciseName: entry.displayName,
+          videoUrl: entry.videoUrl,
+          lineIndex: i,
+        });
+        break;
       }
     }
   }
