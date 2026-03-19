@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 96.0
-**Updated:** 2026-03-19 (Session 222 - Gender filter for whiteboard athletes + Load 2 scoring chip)
+**Version:** 97.0
+**Updated:** 2026-03-19 (Session 223 - Load 2 label fix + score save investigation)
 
 ---
 
@@ -88,29 +88,23 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-19 Session 223 - Opus 4.6) — LOAD 2 LABEL FIX + SCORE SAVE INVESTIGATION:**
+- **✅ Load 2 visible labels** — Added "L1" and "L2" labels before load inputs in ScoringFieldInputs (coach score entry + athlete logbook). Only shows "L1" when Load 2 is also enabled.
+- **⚠️ Score save issue investigated** — Scores for 2 sessions on 2026-03-18 not persisted. Root cause unknown. Monitoring for recurrence (~Session 226-227).
+
 **Completed (2026-03-19 Session 222 - Opus 4.6) — GENDER FILTER FIX + LOAD 2 SCORING CHIP:**
-- **✅ Leaderboard gender filter for whiteboard athletes** — Hardcoded gender map for 42 unregistered athletes. Filter now works for M/F on all leaderboard types. Temporary bridge until full registration.
-- **✅ Load 2 scoring chip** — New `load2` chip + `weight_result_2` column. Dynamic label: "Load" when alone, "Load 1" when Load 2 enabled. Threaded through coach score entry, athlete logbook, save API, leaderboard display (shows `80/60 kg`).
+- **✅ Leaderboard gender filter for whiteboard athletes** — Hardcoded gender map for 42 unregistered athletes.
+- **✅ Load 2 scoring chip** — New `load2` chip + `weight_result_2` column. Dynamic label + leaderboard display (`80/60 kg`).
 - **✅ Migration applied** — `weight_result_2` column added to `wod_section_results`.
 
 **Completed (2026-03-18 Session 221 - Opus 4.6) — MOVEMENT DEMOS VIDEO CLIP MATCHING FIX:**
-- **✅ Fixed video clip detection** — Exercise names with any text prefix (e.g., "3x Back Squat", "EMOM: Deadlift") now correctly match when separated by a space.
-- **✅ Word boundary checking** — Prevents false positives from substring matches (e.g., "xBack Squat" won't match).
-- **✅ Parenthetical exercise names preserved** — Exercises like "90° Ext. Rotation (SU)" no longer broken by trailing-parenthesis stripping.
+- **✅ Fixed video clip detection** — Prefix text + word boundary checking + parenthetical names preserved.
 
 **Completed (2026-03-17 Session 220 - Opus 4.6) — ACHIEVEMENT DIFFICULTY BADGE COLORS:**
-- **✅ Difficulty-colored badges** — Coach + Athlete achievement badges now use difficulty-specific colors (bronze=amber, silver=gray, gold=yellow, platinum=cyan) for backgrounds, borders, stars, and text.
-- **✅ Athlete all states colored** — Unlocked (solid border), claimable (dashed border + pulse), and locked (thin border + 40% opacity) all show difficulty colors.
-- **✅ Tailwind safelist** — Added dynamic difficulty badge classes to CSS safelist.
+- **✅ Difficulty-colored badges** — Coach + Athlete badges use difficulty-specific colors. Tailwind safelist added.
 
-**Completed (2026-03-17 Session 219 - Opus 4.6) — FIX COLLAPSE/EXPAND ON RECORDS TAB:**
-- **✅ Fixed collapse/expand** — Moved from wrong standalone tabs to Records tab (AthletePageRecordsTab). Toggles all 4 sections.
-
-**Completed (2026-03-17 Session 218 - Opus 4.6) — ACHIEVEMENT DIFFICULTY LEVELS + COLLAPSE/EXPAND:**
-- **✅ Achievement difficulty system** — New `difficulty` column (bronze/silver/gold/platinum) independent of tier. Migration applied.
-- **✅ Difficulty filter chips** — Multi-select on both Coach and Athlete achievements tabs.
-- **✅ Coach definition modal** — Difficulty selector with metallic-colored buttons.
-- **✅ Collapse/expand all** — Added to Coach/Athlete Achievements tabs + Records tab.
+**Completed (2026-03-17 Session 218-219 - Opus 4.6) — ACHIEVEMENT DIFFICULTY + COLLAPSE/EXPAND:**
+- **✅ Achievement difficulty system** — `difficulty` column, filter chips, coach modal selector, collapse/expand all.
 
 **Older Sessions (57-217):**
 See `project-history/` folder for detailed implementation history

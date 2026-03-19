@@ -226,6 +226,7 @@ export default function ScoringFieldInputs({
       {/* Load/Weight Input */}
       {scoringFields.load && (
         <div className='flex items-center gap-1'>
+          {scoringFields.load2 && <span className={`text-xs ${textColor}`}>L1</span>}
           <input
             type='number'
             step='0.5'
@@ -243,6 +244,7 @@ export default function ScoringFieldInputs({
       {/* Load 2/Weight 2 Input */}
       {scoringFields.load2 && (
         <div className='flex items-center gap-1'>
+          <span className={`text-xs ${textColor}`}>L2</span>
           <input
             type='number'
             step='0.5'
