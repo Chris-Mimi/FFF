@@ -18,6 +18,7 @@ interface AthleteScoreRowProps {
     metres?: boolean;
     checkbox?: boolean;
     scaling?: boolean;
+    track?: boolean;
     time_amrap?: boolean;
   };
   values: AthleteScoreValues;
@@ -38,27 +39,29 @@ export default function AthleteScoreRow({
 
   return (
     <div className="flex items-center gap-3 py-2 px-3 border-b border-gray-100 hover:bg-gray-50/50">
-      <div className="w-36 min-w-[9rem] flex items-center gap-1.5">
+      <div className={`${scoringFields.track ? 'w-36 min-w-[9rem]' : 'w-24 min-w-[6rem]'} flex items-center gap-1.5`}>
         <span className="text-sm font-medium text-gray-800 truncate">{athleteName}</span>
-        <div className="flex gap-0.5 flex-shrink-0">
-          {['1', '2', '3'].map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => onChange(athleteId, sectionId, { track: trackValue === t ? '' : t })}
-              className={`w-5 h-5 text-[10px] font-bold rounded transition-colors ${
-                trackValue === t
-                  ? t === '1' ? 'bg-[#178da6] text-white'
-                  : t === '2' ? 'bg-amber-500 text-white'
-                  : 'bg-gray-500 text-white'
-                  : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
-              }`}
-              title={`Track ${t}`}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
+        {scoringFields.track && (
+          <div className="flex gap-0.5 flex-shrink-0">
+            {['1', '2', '3'].map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => onChange(athleteId, sectionId, { track: trackValue === t ? '' : t })}
+                className={`w-5 h-5 text-[10px] font-bold rounded transition-colors ${
+                  trackValue === t
+                    ? t === '1' ? 'bg-[#178da6] text-white'
+                    : t === '2' ? 'bg-amber-500 text-white'
+                    : 'bg-gray-500 text-white'
+                    : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                }`}
+                title={`Track ${t}`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
       <div className="flex-1">
         <ScoringFieldInputs

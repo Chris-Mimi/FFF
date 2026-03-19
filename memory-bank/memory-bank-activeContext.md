@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 98.0
-**Updated:** 2026-03-19 (Session 224 - Score entry modal + data integrity + leaderboard grouping)
+**Version:** 99.0
+**Updated:** 2026-03-19 (Session 226 - Track scoring toggle in Workout modal)
 
 ---
 
@@ -88,27 +88,29 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-19 Session 226 - Opus 4.6) — TRACK SCORING TOGGLE:**
+- **✅ "Trk" checkbox in Workout modal** — Added `track` to `scoring_fields` JSONB. Coaches tick "Trk" to enable track selector (1/2/3) in score entry. When unticked, track buttons hidden, scores save `track: NULL`, leaderboard ignores track dimension.
+
+**Completed (2026-03-19 Session 225 - Opus 4.6) — TRACK FIXES:**
+- **✅ Track column added to leaderboard query** — `track` was ranked/displayed but never fetched.
+- **✅ Sort priority fixed** — Scaling > Track > Score (Rx always beats Scaled regardless of track).
+- **✅ Badge order fixed** — Scaling badge renders before track badge.
+
 **Completed (2026-03-19 Session 224/224b - Opus 4.6) — SCORE ENTRY MODAL + DATA INTEGRITY + LEADERBOARD + TRACK FEATURE:**
-- **✅ Score entry modal** — Converted from new-tab (`window.open`) to overlay modal with X close button on coach page. New `ScoreEntryModal` component.
-- **✅ Data integrity cleanup** — Ran diagnostic SQL, deleted 3 orphan wods, fixed diagnostic query for NULL user_id false positives (whiteboard athletes). Added `limit(1)` safety to score save upsert lookups. Added partial unique index for whiteboard scores.
-- **✅ Leaderboard grouping window** — Extended from ±30 days to ±60 days for same-named workouts.
-- **✅ Track field (1/2/3)** — Per-athlete track selector in score entry, saved to DB. Leaderboard sorts Track 1 > 2 > 3 > untracked.
+- **✅ Score entry modal** — Converted from new-tab to overlay modal on coach page.
+- **✅ Data integrity cleanup** — Deleted 3 orphan wods, added `limit(1)` safety, partial unique index for whiteboard scores.
+- **✅ Leaderboard grouping window** — Extended from ±30 to ±60 days.
+- **✅ Track field (1/2/3)** — Per-athlete track selector in score entry, saved to DB.
 
 **Completed (2026-03-19 Session 223 - Opus 4.6) — LOAD 2 LABEL FIX + SCORE SAVE INVESTIGATION:**
-- **✅ Load 2 visible labels** — Added "L1" and "L2" labels before load inputs in ScoringFieldInputs.
+- **✅ Load 2 visible labels** — Added "L1" and "L2" labels in ScoringFieldInputs.
 - **⚠️ Score save issue investigated** — Monitoring for recurrence (~Session 226-227).
 
 **Completed (2026-03-19 Session 222 - Opus 4.6) — GENDER FILTER FIX + LOAD 2 SCORING CHIP:**
 - **✅ Leaderboard gender filter for whiteboard athletes** — Hardcoded gender map for 42 unregistered athletes.
 - **✅ Load 2 scoring chip** — New `load2` chip + `weight_result_2` column.
 
-**Completed (2026-03-18 Session 221 - Opus 4.6) — MOVEMENT DEMOS VIDEO CLIP MATCHING FIX:**
-- **✅ Fixed video clip detection** — Prefix text + word boundary checking + parenthetical names preserved.
-
-**Completed (2026-03-17 Session 220 - Opus 4.6) — ACHIEVEMENT DIFFICULTY BADGE COLORS:**
-- **✅ Difficulty-colored badges** — Coach + Athlete badges use difficulty-specific colors. Tailwind safelist added.
-
-**Older Sessions (57-217):**
+**Older Sessions (57-221):**
 See `project-history/` folder for detailed implementation history
 
 ---

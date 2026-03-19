@@ -370,6 +370,22 @@ function WODSectionComponent({
                     />
                     <span>Task✓</span>
                   </label>
+
+                  {/* Track selector */}
+                  <label className='flex items-center gap-1 text-xs cursor-pointer text-gray-900 whitespace-nowrap'>
+                    <input
+                      type='checkbox'
+                      checked={section.scoring_fields?.track ?? false}
+                      onChange={e => onUpdate({
+                        scoring_fields: {
+                          ...section.scoring_fields,
+                          track: e.target.checked
+                        }
+                      })}
+                      className='rounded border-gray-300'
+                    />
+                    <span>Trk</span>
+                  </label>
                 </div>
 
               {/* Time mode toggle: shown when Time + (Reps or Rounds+Reps) are both enabled */}
