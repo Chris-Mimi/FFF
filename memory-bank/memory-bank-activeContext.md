@@ -91,7 +91,7 @@ Social Tables
 **Completed (2026-03-19 Session 222 - Opus 4.6) — GENDER FILTER FIX + LOAD 2 SCORING CHIP:**
 - **✅ Leaderboard gender filter for whiteboard athletes** — Hardcoded gender map for 42 unregistered athletes. Filter now works for M/F on all leaderboard types. Temporary bridge until full registration.
 - **✅ Load 2 scoring chip** — New `load2` chip + `weight_result_2` column. Dynamic label: "Load" when alone, "Load 1" when Load 2 enabled. Threaded through coach score entry, athlete logbook, save API, leaderboard display (shows `80/60 kg`).
-- **⚠️ PENDING: Run migration** — `ALTER TABLE wod_section_results ADD COLUMN IF NOT EXISTS weight_result_2 numeric;`
+- **✅ Migration applied** — `weight_result_2` column added to `wod_section_results`.
 
 **Completed (2026-03-18 Session 221 - Opus 4.6) — MOVEMENT DEMOS VIDEO CLIP MATCHING FIX:**
 - **✅ Fixed video clip detection** — Exercise names with any text prefix (e.g., "3x Back Squat", "EMOM: Deadlift") now correctly match when separated by a space.
