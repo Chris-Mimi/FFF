@@ -66,7 +66,7 @@ Athlete Tables (linked to members.id)
 ├─ workout_logs (id, user_id, wod_id, result, notes)
 ├─ benchmark_results (id, user_id, benchmark_id, forge_benchmark_id [XOR], benchmark_name, benchmark_type, result_value, scaling_level, result_date)
 ├─ lift_records (id, user_id, lift_name, weight_kg, reps, rep_max_type ['1RM'|'3RM'|'5RM'|'10RM'], rep_scheme [workout patterns], calculated_1rm, notes, lift_date)
-├─ wod_section_results (id, user_id, wod_id, section_id, workout_date, time_result, reps_result, weight_result, scaling_level, rounds_result, calories_result, metres_result, task_completed)
+├─ wod_section_results (id, user_id, wod_id, section_id, workout_date, time_result, reps_result, weight_result, scaling_level, rounds_result, calories_result, metres_result, task_completed, track [SMALLINT, NULL or 1/2/3])
 
 Achievement Tables
 ├─ achievement_definitions (id, name, description, category, branch, tier, created_at)
@@ -88,10 +88,11 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
-**Completed (2026-03-19 Session 224 - Opus 4.6) — SCORE ENTRY MODAL + DATA INTEGRITY + LEADERBOARD GROUPING:**
+**Completed (2026-03-19 Session 224/224b - Opus 4.6) — SCORE ENTRY MODAL + DATA INTEGRITY + LEADERBOARD + TRACK FEATURE:**
 - **✅ Score entry modal** — Converted from new-tab (`window.open`) to overlay modal with X close button on coach page. New `ScoreEntryModal` component.
 - **✅ Data integrity cleanup** — Ran diagnostic SQL, deleted 3 orphan wods, fixed diagnostic query for NULL user_id false positives (whiteboard athletes). Added `limit(1)` safety to score save upsert lookups. Added partial unique index for whiteboard scores.
 - **✅ Leaderboard grouping window** — Extended from ±30 days to ±60 days for same-named workouts.
+- **✅ Track field (1/2/3)** — Per-athlete track selector in score entry, saved to DB. Leaderboard sorts Track 1 > 2 > 3 > untracked.
 
 **Completed (2026-03-19 Session 223 - Opus 4.6) — LOAD 2 LABEL FIX + SCORE SAVE INVESTIGATION:**
 - **✅ Load 2 visible labels** — Added "L1" and "L2" labels before load inputs in ScoringFieldInputs.
@@ -160,6 +161,7 @@ See `project-history/` folder for detailed implementation history
 - ✅ `20260316_add_whiteboard_name_to_section_results.sql` — Adds `whiteboard_name` to wod_section_results + members, updates CHECK constraint (Session 215, applied)
 - ✅ `20260317000000_add_achievement_difficulty.sql` — Adds `difficulty TEXT` column to achievement_definitions with CHECK constraint (Session 218, applied Session 219)
 - ✅ `idx_wod_section_results_whiteboard_unique` — Partial unique index on whiteboard scores (Session 224, applied directly in SQL Editor)
+- ✅ `20260319000000_add_track_to_section_results.sql` — Adds `track SMALLINT` column to wod_section_results with CHECK (NULL or 1/2/3) (Session 224b, applied)
 
 ---
 
@@ -202,9 +204,10 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION
-1. **Deploy + test whiteboard leaderboard** — Verify whiteboard-only athletes show names (not "Unknown") on athlete leaderboard after deploy.
-5. **Coach library optimization** — Equipment & Body Parts lists need optimising.
-6. **April 13 reminder:** Verify Stripe trial payment processed for test athlete.
+1. **Test score modal + track selector** — Verify modal opens/closes, track saves to DB, leaderboard sorts by track.
+2. **Deploy + test whiteboard leaderboard** — Verify whiteboard-only athletes show names (not "Unknown") on athlete leaderboard after deploy.
+4. **Coach library optimization** — Equipment & Body Parts lists need optimising.
+5. **April 13 reminder:** Verify Stripe trial payment processed for test athlete.
 
 ### DEPLOYMENT (Session 158+)
 

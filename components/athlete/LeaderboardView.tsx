@@ -585,7 +585,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
 
         const { data: results } = await supabase
           .from('wod_section_results')
-          .select('id, user_id, whiteboard_name, time_result, reps_result, weight_result, weight_result_2, rounds_result, calories_result, metres_result, scaling_level, task_completed, workout_date')
+          .select('id, user_id, whiteboard_name, time_result, reps_result, weight_result, weight_result_2, rounds_result, calories_result, metres_result, scaling_level, track, task_completed, workout_date')
           .in('wod_id', contentWodIds)
           .in('section_id', contentSectionIds);
 
@@ -829,6 +829,13 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
                         {showScalingFilter && (
                           <td className='px-1 py-2.5 text-center'>
                             <div className='flex items-center justify-center gap-1'>
+                              {entry.scalingLevel && (
+                                <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
+                                  entry.scalingLevel === 'Rx' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
+                                }`}>
+                                  {entry.scalingLevel}
+                                </span>
+                              )}
                               {entry.track && (
                                 <span className={`text-[10px] font-bold px-1 py-0.5 rounded ${
                                   entry.track === 1 ? 'bg-[#178da6]/10 text-[#178da6]'
@@ -836,13 +843,6 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
                                   : 'bg-gray-100 text-gray-500'
                                 }`}>
                                   T{entry.track}
-                                </span>
-                              )}
-                              {entry.scalingLevel && (
-                                <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
-                                  entry.scalingLevel === 'Rx' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
-                                }`}>
-                                  {entry.scalingLevel}
                                 </span>
                               )}
                             </div>
