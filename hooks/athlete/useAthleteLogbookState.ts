@@ -24,6 +24,7 @@ interface SectionResult {
   time_result?: string;
   reps_result?: string;
   weight_result?: string;
+  weight_result_2?: string;
   scaling_level?: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '';
   rounds_result?: string;
   calories_result?: string;

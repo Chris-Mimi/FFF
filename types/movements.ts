@@ -125,6 +125,7 @@ export interface WODSection {
     reps?: boolean;           // Show reps input (total)
     rounds_reps?: boolean;    // Show rounds + reps inputs (AMRAP)
     load?: boolean;           // Show weight/load input (kg)
+    load2?: boolean;          // Show second weight/load input (kg)
     calories?: boolean;       // Show calories input
     metres?: boolean;         // Show distance input (metres)
     checkbox?: boolean;       // Show task completion checkbox

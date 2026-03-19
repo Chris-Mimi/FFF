@@ -6,6 +6,7 @@ export interface LeaderboardEntry {
   timeResult?: string;
   repsResult?: number;
   weightResult?: number;
+  weightResult2?: number;
   roundsResult?: number;
   caloriesResult?: number;
   metresResult?: number;
@@ -15,6 +16,26 @@ export interface LeaderboardEntry {
   gender?: string | null;
 }
 
+// Gender map for whiteboard-only (unregistered) athletes
+const WHITEBOARD_GENDERS: Record<string, 'M' | 'F'> = {
+  'AndreasK': 'M', 'Carmine': 'M', 'DanielB': 'M', 'DanielS': 'M',
+  'Denis': 'M', 'Dimitar': 'M', 'Dor': 'M', 'JürgenB': 'M',
+  'Markus': 'M', 'Nils': 'M', 'Sebastian': 'M', 'Senol': 'M',
+  'Stefan': 'M', 'Sven': 'M', 'Teemu': 'M', 'ThomasG': 'M',
+  'ThomasH': 'M', 'TobiasB': 'M', 'Zoran': 'M',
+  'Anfisa': 'F', 'AnjaG': 'F', 'Annerose': 'F', 'AnneS': 'F',
+  'FranziskaH': 'F', 'FranziskaK': 'F', 'Irene': 'F', 'Jenny': 'F',
+  'JuliaW': 'F', 'Justine': 'F', 'Kathrin': 'F', 'Leah': 'F',
+  'Lena': 'F', 'LisaV': 'F', 'Madeleine': 'F', 'Martina': 'F',
+  'Miriam': 'F', 'Regina': 'F', 'Sabrina': 'F', 'Sandra': 'F',
+  'SusanneG': 'F', 'Valerie': 'F', 'Veronika': 'F',
+};
+
+export function getWhiteboardGender(name: string | null | undefined): string | null {
+  if (!name) return null;
+  return WHITEBOARD_GENDERS[name] || null;
+}
+
 export interface RawSectionResult {
   id: string;
   user_id: string;
@@ -22,6 +43,7 @@ export interface RawSectionResult {
   time_result?: string | null;
   reps_result?: number | null;
   weight_result?: number | null;
+  weight_result_2?: number | null;
   rounds_result?: number | null;
   calories_result?: number | null;
   metres_result?: number | null;
@@ -216,7 +238,8 @@ export function bestResultPerUser(
 export function rankSectionResults(
   results: RawSectionResult[],
   memberNames: Record<string, string>,
-  scoringType: string
+  scoringType: string,
+  memberGenders?: Record<string, string | null>
 ): LeaderboardEntry[] {
   // Filter out results with no meaningful data
   // Check primary scoring field first, then fall back to any non-empty field
@@ -260,11 +283,13 @@ export function rankSectionResults(
     timeResult: r.time_result || undefined,
     repsResult: r.reps_result || undefined,
     weightResult: r.weight_result || undefined,
+    weightResult2: r.weight_result_2 || undefined,
     roundsResult: r.rounds_result || undefined,
     caloriesResult: r.calories_result || undefined,
     metresResult: r.metres_result || undefined,
     scalingLevel: r.scaling_level || undefined,
     taskCompleted: r.task_completed ?? undefined,
+    gender: memberGenders?.[r.user_id] ?? getWhiteboardGender(r.whiteboard_name) ?? undefined,
   }));
 }
 
@@ -274,7 +299,8 @@ export function rankSectionResults(
 export function rankBenchmarkResults(
   results: RawBenchmarkResult[],
   memberNames: Record<string, string>,
-  benchmarkType: string
+  benchmarkType: string,
+  memberGenders?: Record<string, string | null>
 ): LeaderboardEntry[] {
   // Determine scoring direction from benchmark type
   const isTimeBased = benchmarkType.toLowerCase().includes('time');
@@ -322,6 +348,7 @@ export function rankBenchmarkResults(
     weightResult: r.weight_result || undefined,
     scalingLevel: r.scaling_level || undefined,
     resultDate: r.result_date,
+    gender: memberGenders?.[r.user_id] ?? undefined,
   }));
 }
 
@@ -344,7 +371,8 @@ export function bestLiftPerUser(results: RawLiftResult[]): RawLiftResult[] {
  */
 export function rankLiftResults(
   results: RawLiftResult[],
-  memberNames: Record<string, string>
+  memberNames: Record<string, string>,
+  memberGenders?: Record<string, string | null>
 ): LeaderboardEntry[] {
   const valid = results.filter(r => r.weight_kg > 0);
   const sorted = [...valid].sort((a, b) => b.weight_kg - a.weight_kg);
@@ -356,6 +384,7 @@ export function rankLiftResults(
     rank: i + 1,
     weightResult: r.weight_kg,
     resultDate: r.lift_date,
+    gender: memberGenders?.[r.user_id] ?? undefined,
   }));
 }
 
@@ -393,7 +422,10 @@ export function formatResult(entry: LeaderboardEntry, scoringType: string): stri
     case 'reps':
       primary = `${entry.repsResult || 0} reps`; break;
     case 'weight':
-      primary = `${entry.weightResult || 0} kg`; break;
+      primary = entry.weightResult2
+        ? `${entry.weightResult || 0}/${entry.weightResult2} kg`
+        : `${entry.weightResult || 0} kg`;
+      break;
     case 'calories':
       primary = `${entry.caloriesResult || 0} cal`; break;
     case 'metres':
@@ -406,7 +438,11 @@ export function formatResult(entry: LeaderboardEntry, scoringType: string): stri
 
   // Append extra fields not already shown in primary
   const extras: string[] = [];
-  if (scoringType !== 'weight' && entry.weightResult) extras.push(`${entry.weightResult} kg`);
+  if (scoringType !== 'weight' && entry.weightResult) {
+    extras.push(entry.weightResult2 ? `${entry.weightResult}/${entry.weightResult2} kg` : `${entry.weightResult} kg`);
+  } else if (entry.weightResult2) {
+    extras.push(`${entry.weightResult2} kg`);
+  }
   if (!['metres'].includes(scoringType) && entry.metresResult) extras.push(`${entry.metresResult} m`);
   if (!['reps', 'rounds_reps', 'time_with_cap', 'time_amrap'].includes(scoringType) && entry.repsResult) extras.push(`${entry.repsResult} reps`);
   if (!['calories'].includes(scoringType) && entry.caloriesResult) extras.push(`${entry.caloriesResult} cal`);

@@ -13,6 +13,7 @@ interface AthleteScoreRowProps {
     reps?: boolean;
     rounds_reps?: boolean;
     load?: boolean;
+    load2?: boolean;
     calories?: boolean;
     metres?: boolean;
     checkbox?: boolean;
@@ -46,6 +47,7 @@ export default function AthleteScoreRow({
             rounds_result: currentValues.rounds_result,
             reps_result: currentValues.reps_result,
             weight_result: currentValues.weight_result,
+            weight_result_2: currentValues.weight_result_2,
             calories_result: currentValues.calories_result,
             metres_result: currentValues.metres_result,
             task_completed: currentValues.task_completed,

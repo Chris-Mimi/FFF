@@ -17,6 +17,7 @@ interface ScoreEntry {
   time_result?: string;
   reps_result?: number | null;
   weight_result?: number | null;
+  weight_result_2?: number | null;
   rounds_result?: number | null;
   calories_result?: number | null;
   metres_result?: number | null;
@@ -29,6 +30,9 @@ function validateScore(score: ScoreEntry): string | null {
   }
   if (score.weight_result != null && (score.weight_result < 0 || score.weight_result > 500)) {
     return 'Weight must be between 0 and 500 kg';
+  }
+  if (score.weight_result_2 != null && (score.weight_result_2 < 0 || score.weight_result_2 > 500)) {
+    return 'Weight 2 must be between 0 and 500 kg';
   }
   if (score.rounds_result != null && (score.rounds_result < 0 || score.rounds_result > 1000)) {
     return 'Rounds must be between 0 and 1,000';
@@ -47,6 +51,7 @@ function isScoreEmpty(score: ScoreEntry): boolean {
     !score.time_result &&
     score.reps_result == null &&
     score.weight_result == null &&
+    score.weight_result_2 == null &&
     score.rounds_result == null &&
     score.calories_result == null &&
     score.metres_result == null &&
@@ -132,6 +137,7 @@ export async function POST(request: NextRequest) {
         time_result: score.time_result || null,
         reps_result: score.reps_result ?? null,
         weight_result: score.weight_result ?? null,
+        weight_result_2: score.weight_result_2 ?? null,
         rounds_result: score.rounds_result ?? null,
         calories_result: score.calories_result ?? null,
         metres_result: score.metres_result ?? null,
@@ -160,6 +166,7 @@ export async function POST(request: NextRequest) {
         time_result: score.time_result || null,
         reps_result: score.reps_result ?? null,
         weight_result: score.weight_result ?? null,
+        weight_result_2: score.weight_result_2 ?? null,
         rounds_result: score.rounds_result ?? null,
         calories_result: score.calories_result ?? null,
         metres_result: score.metres_result ?? null,

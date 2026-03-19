@@ -8,6 +8,7 @@ interface ScoringFields {
   reps?: boolean;
   rounds_reps?: boolean;
   load?: boolean;
+  load2?: boolean;
   calories?: boolean;
   metres?: boolean;
   checkbox?: boolean;
@@ -36,6 +37,7 @@ export interface AthleteScoreValues {
   time_result: string;
   reps_result: string;
   weight_result: string;
+  weight_result_2: string;
   rounds_result: string;
   calories_result: string;
   metres_result: string;
@@ -51,6 +53,7 @@ interface ExistingResult {
   time_result: string | null;
   reps_result: number | null;
   weight_result: number | null;
+  weight_result_2: number | null;
   rounds_result: number | null;
   calories_result: number | null;
   metres_result: number | null;
@@ -78,6 +81,7 @@ export const emptyScoreValues: AthleteScoreValues = {
   time_result: '',
   reps_result: '',
   weight_result: '',
+  weight_result_2: '',
   rounds_result: '',
   calories_result: '',
   metres_result: '',
@@ -157,6 +161,7 @@ export function useScoreEntry(sessionId: string) {
           time_result: result.time_result || '',
           reps_result: result.reps_result != null ? String(result.reps_result) : '',
           weight_result: result.weight_result != null ? String(result.weight_result) : '',
+          weight_result_2: result.weight_result_2 != null ? String(result.weight_result_2) : '',
           rounds_result: result.rounds_result != null ? String(result.rounds_result) : '',
           calories_result: result.calories_result != null ? String(result.calories_result) : '',
           metres_result: result.metres_result != null ? String(result.metres_result) : '',
@@ -204,6 +209,7 @@ export function useScoreEntry(sessionId: string) {
                 !values.time_result &&
                 !values.reps_result &&
                 !values.weight_result &&
+                !values.weight_result_2 &&
                 !values.rounds_result &&
                 !values.calories_result &&
                 !values.metres_result &&
@@ -220,6 +226,7 @@ export function useScoreEntry(sessionId: string) {
                 time_result: values.time_result || undefined,
                 reps_result: values.reps_result ? parseInt(values.reps_result) : null,
                 weight_result: values.weight_result ? parseFloat(values.weight_result) : null,
+                weight_result_2: values.weight_result_2 ? parseFloat(values.weight_result_2) : null,
                 rounds_result: values.rounds_result ? parseInt(values.rounds_result) : null,
                 calories_result: values.calories_result ? parseInt(values.calories_result) : null,
                 metres_result: values.metres_result ? parseFloat(values.metres_result) : null,

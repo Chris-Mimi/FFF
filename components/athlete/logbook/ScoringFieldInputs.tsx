@@ -18,6 +18,7 @@ interface ScoringFieldInputsProps {
     rounds_reps?: boolean;
     reps?: boolean;
     load?: boolean;
+    load2?: boolean;
     calories?: boolean;
     metres?: boolean;
     checkbox?: boolean;
@@ -29,6 +30,7 @@ interface ScoringFieldInputsProps {
     rounds_result?: string;
     reps_result?: string;
     weight_result?: string;
+    weight_result_2?: string;
     calories_result?: string;
     metres_result?: string;
     task_completed?: boolean;
@@ -229,9 +231,26 @@ export default function ScoringFieldInputs({
             step='0.5'
             min='0'
             max='999'
-            placeholder='Load'
+            placeholder={scoringFields.load2 ? 'Load 1' : 'Load'}
             value={values.weight_result || ''}
             onChange={(e) => onChange({ weight_result: e.target.value })}
+            className={`w-16 px-2 py-1 text-xs text-center border ${borderColor} rounded focus:ring-2 focus:ring-[#178da6] text-gray-900`}
+          />
+          <span className={`text-xs ${textColor}`}>kg</span>
+        </div>
+      )}
+
+      {/* Load 2/Weight 2 Input */}
+      {scoringFields.load2 && (
+        <div className='flex items-center gap-1'>
+          <input
+            type='number'
+            step='0.5'
+            min='0'
+            max='999'
+            placeholder='Load 2'
+            value={values.weight_result_2 || ''}
+            onChange={(e) => onChange({ weight_result_2: e.target.value })}
             className={`w-16 px-2 py-1 text-xs text-center border ${borderColor} rounded focus:ring-2 focus:ring-[#178da6] text-gray-900`}
           />
           <span className={`text-xs ${textColor}`}>kg</span>

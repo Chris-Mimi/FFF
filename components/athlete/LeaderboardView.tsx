@@ -360,7 +360,6 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
   const [loading, setLoading] = useState(false);
   const [scalingFilter, setScalingFilter] = useState<ScalingFilter>('all');
   const [genderFilter, setGenderFilter] = useState<'all' | 'M' | 'F'>('all');
-  const [memberGenders, setMemberGenders] = useState<Record<string, string | null>>({});
   const [groupInfo, setGroupInfo] = useState<{ count: number; dateRange: string } | null>(null);
   const [workoutTypesMap, setWorkoutTypesMap] = useState<Map<string, string>>(new Map());
   const { fetchReactions, toggleReaction, getReaction } = useReactions();
@@ -436,10 +435,10 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
   useEffect(() => { loadWods(); }, [loadWods]);
 
   // Helper: fetch member names + genders for a set of user IDs (uses RPC to bypass members RLS)
-  const fetchMemberNames = async (userIds: string[]): Promise<Record<string, string>> => {
+  const fetchMemberNames = async (userIds: string[]): Promise<{ names: Record<string, string>; genders: Record<string, string | null> }> => {
     const memberNames: Record<string, string> = {};
     const genders: Record<string, string | null> = {};
-    if (userIds.length === 0) return memberNames;
+    if (userIds.length === 0) return { names: memberNames, genders };
     const { data: members } = await supabase
       .rpc('get_member_names', { member_ids: userIds });
     if (members) {
@@ -448,8 +447,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
         genders[m.id] = m.gender;
       }
     }
-    setMemberGenders(prev => ({ ...prev, ...genders }));
-    return memberNames;
+    return { names: memberNames, genders };
   };
 
   // Helper: compute grouping info (±30 days for same workout_name)
@@ -532,8 +530,8 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
         }
 
         const userIds = [...new Set(filtered.map(r => r.user_id))];
-        const memberNames = await fetchMemberNames(userIds);
-        const ranked = rankLiftResults(filtered, memberNames);
+        const { names: memberNames, genders: fetchedGenders } = await fetchMemberNames(userIds);
+        const ranked = rankLiftResults(filtered, memberNames, fetchedGenders);
         setEntries(ranked);
 
         if (ranked.length > 0) {
@@ -560,8 +558,8 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
         }
 
         const userIds = [...new Set(filtered.map(r => r.user_id))];
-        const memberNames = await fetchMemberNames(userIds);
-        const ranked = rankBenchmarkResults(filtered, memberNames, selectedItem.benchmarkType || 'time');
+        const { names: memberNames, genders: fetchedGenders } = await fetchMemberNames(userIds);
+        const ranked = rankBenchmarkResults(filtered, memberNames, selectedItem.benchmarkType || 'time', fetchedGenders);
         setEntries(ranked);
 
         if (ranked.length > 0) {
@@ -587,7 +585,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
 
         const { data: results } = await supabase
           .from('wod_section_results')
-          .select('id, user_id, whiteboard_name, time_result, reps_result, weight_result, rounds_result, calories_result, metres_result, scaling_level, task_completed, workout_date')
+          .select('id, user_id, whiteboard_name, time_result, reps_result, weight_result, weight_result_2, rounds_result, calories_result, metres_result, scaling_level, task_completed, workout_date')
           .in('wod_id', contentWodIds)
           .in('section_id', contentSectionIds);
 
@@ -606,8 +604,8 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
         }
 
         const userIds = [...new Set(filtered.map(r => r.user_id))];
-        const memberNames = await fetchMemberNames(userIds);
-        const ranked = rankSectionResults(filtered, memberNames, scoringType);
+        const { names: memberNames, genders: fetchedGenders } = await fetchMemberNames(userIds);
+        const ranked = rankSectionResults(filtered, memberNames, scoringType, fetchedGenders);
         setEntries(ranked);
 
         if (ranked.length > 0) {
@@ -781,7 +779,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
             const displayEntries = genderFilter === 'all'
               ? entries
               : entries
-                  .filter(e => memberGenders[e.userId] === genderFilter)
+                  .filter(e => e.gender === genderFilter)
                   .map((e, i) => ({ ...e, rank: i + 1 }));
 
             return loading ? (

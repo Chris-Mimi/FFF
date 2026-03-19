@@ -280,13 +280,32 @@ function WODSectionComponent({
                       onChange={e => onUpdate({
                         scoring_fields: {
                           ...section.scoring_fields,
-                          load: e.target.checked
+                          load: e.target.checked,
+                          ...(!e.target.checked ? { load2: false } : {})
                         }
                       })}
                       className='rounded border-gray-300'
                     />
-                    <span>Load</span>
+                    <span>{section.scoring_fields?.load2 ? 'Load 1' : 'Load'}</span>
                   </label>
+
+                  {/* Load 2 — only available when Load is enabled */}
+                  {section.scoring_fields?.load && (
+                    <label className='flex items-center gap-1 text-xs cursor-pointer text-gray-900 whitespace-nowrap'>
+                      <input
+                        type='checkbox'
+                        checked={section.scoring_fields?.load2 ?? false}
+                        onChange={e => onUpdate({
+                          scoring_fields: {
+                            ...section.scoring_fields,
+                            load2: e.target.checked
+                          }
+                        })}
+                        className='rounded border-gray-300'
+                      />
+                      <span>Load 2</span>
+                    </label>
+                  )}
 
                   {/* Scaling */}
                   <label className='flex items-center gap-1 text-xs cursor-pointer text-gray-900 whitespace-nowrap'>
