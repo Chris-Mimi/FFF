@@ -9,7 +9,7 @@ SELECT
   (SELECT COUNT(*) FROM wods w LEFT JOIN weekly_sessions ws ON ws.workout_id = w.id WHERE ws.id IS NULL AND w.google_event_id IS NOT NULL) AS gcal_orphan_wods,
   (SELECT COUNT(*) FROM wod_section_results r LEFT JOIN wods w ON w.id = r.wod_id WHERE w.id IS NULL) AS results_deleted_wods,
   (SELECT COUNT(*) FROM bookings b LEFT JOIN members m ON m.id = b.member_id WHERE m.id IS NULL) AS orphan_bookings_no_member,
-  (SELECT COUNT(*) FROM (SELECT user_id, wod_id, section_id FROM wod_section_results GROUP BY user_id, wod_id, section_id HAVING COUNT(*) > 1) d) AS duplicate_section_results,
+  (SELECT COUNT(*) FROM (SELECT COALESCE(user_id::text, 'wb:' || whiteboard_name, 'mb:' || member_id::text), wod_id, section_id FROM wod_section_results GROUP BY COALESCE(user_id::text, 'wb:' || whiteboard_name, 'mb:' || member_id::text), wod_id, section_id HAVING COUNT(*) > 1) d) AS duplicate_section_results,
   (SELECT COUNT(*) FROM (SELECT user_id, benchmark_name, result_date FROM benchmark_results GROUP BY user_id, benchmark_name, result_date HAVING COUNT(*) > 1) d) AS duplicate_benchmarks,
   (SELECT COUNT(*) FROM (SELECT user_id, lift_name, lift_date, rep_max_type, rep_scheme FROM lift_records GROUP BY user_id, lift_name, lift_date, rep_max_type, rep_scheme HAVING COUNT(*) > 1) d) AS duplicate_lifts,
   (SELECT COUNT(*) FROM wods WHERE workout_publish_status = 'published' AND (workout_name IS NULL OR workout_name = '')) AS published_wods_no_name,

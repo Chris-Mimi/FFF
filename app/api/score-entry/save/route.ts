@@ -198,6 +198,7 @@ export async function POST(request: NextRequest) {
           .eq('section_id', record.section_id)
           .eq('workout_date', record.workout_date)
           .eq('member_id', record.member_id)
+          .limit(1)
           .maybeSingle();
         if (existing) existingId = existing.id;
       }
@@ -210,6 +211,7 @@ export async function POST(request: NextRequest) {
           .eq('section_id', record.section_id)
           .eq('workout_date', record.workout_date)
           .eq('user_id', record.user_id)
+          .limit(1)
           .maybeSingle();
         if (existing) existingId = existing.id;
       }
@@ -222,6 +224,7 @@ export async function POST(request: NextRequest) {
           .eq('section_id', record.section_id)
           .eq('workout_date', record.workout_date)
           .eq('whiteboard_name', record.whiteboard_name)
+          .limit(1)
           .maybeSingle();
         if (existing) existingId = existing.id;
       }

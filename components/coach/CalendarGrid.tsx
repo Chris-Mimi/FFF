@@ -84,6 +84,7 @@ interface CalendarGridProps {
   onPasteFromClipboard: (date: Date) => void;
   onCopyWODToDate: (wod: WODFormData, date: Date, sessionId: string) => void;
   onSessionManagementClick: (sessionId: string, workoutDate: string) => void;
+  onScoreEntry?: (sessionId: string) => void;
 }
 
 /**
@@ -117,6 +118,7 @@ export default function CalendarGrid({
   onPasteFromClipboard,
   onCopyWODToDate,
   onSessionManagementClick,
+  onScoreEntry,
 }: CalendarGridProps) {
   const [thursdayCollapsed, setThursdayCollapsed] = useState(true);
 
@@ -243,7 +245,7 @@ export default function CalendarGrid({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  window.open(`/coach/score-entry/${wod.booking_info!.session_id}`, '_blank');
+                  onScoreEntry?.(wod.booking_info!.session_id);
                 }}
                 className='flex-shrink-0 p-1 -m-1 text-gray-400 hover:text-[#178da6] transition cursor-pointer'
                 title='Enter Scores'

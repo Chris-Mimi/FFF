@@ -450,7 +450,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
     return { names: memberNames, genders };
   };
 
-  // Helper: compute grouping info (±30 days for same workout_name)
+  // Helper: compute grouping info (±60 days for same workout_name)
   const computeGrouping = useCallback(async (selectedWod: WodData) => {
     if (!selectedWod.workout_name) {
       setGroupInfo(null);
@@ -459,9 +459,9 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
 
     const anchor = new Date(weekMonday);
     const startDate = new Date(anchor);
-    startDate.setDate(startDate.getDate() - 30);
+    startDate.setDate(startDate.getDate() - 60);
     const endDate = new Date(anchor);
-    endDate.setDate(endDate.getDate() + 36); // +30 from Sunday
+    endDate.setDate(endDate.getDate() + 66); // +60 from Sunday
 
     const { data: grouped } = await supabase
       .from('wods')

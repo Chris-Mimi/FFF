@@ -8,6 +8,7 @@ import { CalendarNav } from '@/components/coach/CalendarNav';
 import CalendarGrid from '@/components/coach/CalendarGrid';
 import SearchPanel from '@/components/coach/SearchPanel';
 import QuickEditPanel from '@/components/coach/QuickEditPanel';
+import ScoreEntryModal from '@/components/coach/score-entry/ScoreEntryModal';
 // import NotesModal from '@/components/coach/NotesModal'; // ARCHIVED: Dead code - never triggered
 import { getCurrentUser, signOut } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
@@ -82,6 +83,9 @@ export default function CoachDashboard() {
     sessionId: string | null;
     workoutDate: string | null;
   }>({ isOpen: false, sessionId: null, workoutDate: null });
+
+  // Score entry modal
+  const [scoreEntrySessionId, setScoreEntrySessionId] = useState<string | null>(null);
 
   // Debounce search to avoid filtering on every keystroke
   const debouncedSearchQuery = useDebouncedValue(searchQuery);
@@ -380,6 +384,7 @@ export default function CoachDashboard() {
                     workoutDate,
                   });
                 }}
+                onScoreEntry={(sessionId) => setScoreEntrySessionId(sessionId)}
               />
             </>
           )}
@@ -502,6 +507,14 @@ export default function CoachDashboard() {
           fetchWODs();
         }}
       />
+
+      {/* Score Entry Modal */}
+      {scoreEntrySessionId && (
+        <ScoreEntryModal
+          sessionId={scoreEntrySessionId}
+          onClose={() => setScoreEntrySessionId(null)}
+        />
+      )}
 
       {/* Delete Workout Modal */}
       <DeleteWorkoutModal
