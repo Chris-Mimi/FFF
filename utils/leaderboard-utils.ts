@@ -11,6 +11,7 @@ export interface LeaderboardEntry {
   caloriesResult?: number;
   metresResult?: number;
   scalingLevel?: string;
+  track?: number;
   taskCompleted?: boolean;
   resultDate?: string;
   gender?: string | null;
@@ -48,6 +49,7 @@ export interface RawSectionResult {
   calories_result?: number | null;
   metres_result?: number | null;
   scaling_level?: string | null;
+  track?: number | null;
   task_completed?: boolean | null;
   workout_date?: string | null;
 }
@@ -265,9 +267,13 @@ export function rankSectionResults(
     }
   });
 
-  // Sort: Rx first, then by scoring type within each scaling group
+  // Sort: Track 1 first, then Track 2, Track 3, then untracked; within each track: Rx first, then by scoring type
   const scalingOrder: Record<string, number> = { 'Rx': 0, 'Sc1': 1, 'Sc2': 2, 'Sc3': 3 };
   const sorted = [...valid].sort((a, b) => {
+    // Track: 1 < 2 < 3 < null (lower track = higher rank)
+    const aTrack = a.track ?? 4;
+    const bTrack = b.track ?? 4;
+    if (aTrack !== bTrack) return aTrack - bTrack;
     const aScale = scalingOrder[a.scaling_level || ''] ?? 4;
     const bScale = scalingOrder[b.scaling_level || ''] ?? 4;
     if (aScale !== bScale) return aScale - bScale;
@@ -288,6 +294,7 @@ export function rankSectionResults(
     caloriesResult: r.calories_result || undefined,
     metresResult: r.metres_result || undefined,
     scalingLevel: r.scaling_level || undefined,
+    track: r.track || undefined,
     taskCompleted: r.task_completed ?? undefined,
     gender: memberGenders?.[r.user_id] ?? getWhiteboardGender(r.whiteboard_name) ?? undefined,
   }));

@@ -828,13 +828,24 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
                         </td>
                         {showScalingFilter && (
                           <td className='px-1 py-2.5 text-center'>
-                            {entry.scalingLevel && (
-                              <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
-                                entry.scalingLevel === 'Rx' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
-                              }`}>
-                                {entry.scalingLevel}
-                              </span>
-                            )}
+                            <div className='flex items-center justify-center gap-1'>
+                              {entry.track && (
+                                <span className={`text-[10px] font-bold px-1 py-0.5 rounded ${
+                                  entry.track === 1 ? 'bg-[#178da6]/10 text-[#178da6]'
+                                  : entry.track === 2 ? 'bg-amber-100 text-amber-700'
+                                  : 'bg-gray-100 text-gray-500'
+                                }`}>
+                                  T{entry.track}
+                                </span>
+                              )}
+                              {entry.scalingLevel && (
+                                <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
+                                  entry.scalingLevel === 'Rx' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
+                                }`}>
+                                  {entry.scalingLevel}
+                                </span>
+                              )}
+                            </div>
                           </td>
                         )}
                         <td className='px-1 py-2.5 text-right'>
