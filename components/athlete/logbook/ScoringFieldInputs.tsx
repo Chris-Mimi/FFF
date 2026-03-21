@@ -23,6 +23,7 @@ interface ScoringFieldInputsProps {
     metres?: boolean;
     checkbox?: boolean;
     scaling?: boolean;
+    scaling_2?: boolean;
     time_amrap?: boolean;
   };
   values: {
@@ -35,6 +36,7 @@ interface ScoringFieldInputsProps {
     metres_result?: string;
     task_completed?: boolean;
     scaling_level?: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '';
+    scaling_level_2?: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '';
   };
   onChange: (updates: Partial<ScoringFieldInputsProps['values']>) => void;
   variant?: 'default' | 'lift' | 'benchmark' | 'forge';
@@ -134,17 +136,38 @@ export default function ScoringFieldInputs({
 
       {/* Scaling Dropdown — always first when enabled */}
       {scoringFields.scaling && (
-        <select
-          value={values.scaling_level || ''}
-          onChange={(e) => onChange({ scaling_level: e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '' })}
-          className={`w-14 px-1 py-0.5 text-xs border ${borderColor} rounded focus:ring-2 focus:ring-[#178da6] text-gray-900 bg-white`}
-        >
-          <option value=''>-</option>
-          <option value='Rx'>Rx</option>
-          <option value='Sc1'>Sc1</option>
-          <option value='Sc2'>Sc2</option>
-          <option value='Sc3'>Sc3</option>
-        </select>
+        <div className='flex items-center gap-1'>
+          {scoringFields.scaling_2 && <span className={`text-xs ${textColor}`}>S1</span>}
+          <select
+            value={values.scaling_level || ''}
+            onChange={(e) => onChange({ scaling_level: e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '' })}
+            className={`w-14 px-1 py-0.5 text-xs border ${borderColor} rounded focus:ring-2 focus:ring-[#178da6] text-gray-900 bg-white`}
+          >
+            <option value=''>-</option>
+            <option value='Rx'>Rx</option>
+            <option value='Sc1'>Sc1</option>
+            <option value='Sc2'>Sc2</option>
+            <option value='Sc3'>Sc3</option>
+          </select>
+        </div>
+      )}
+
+      {/* Scaling 2 Dropdown */}
+      {scoringFields.scaling_2 && (
+        <div className='flex items-center gap-1'>
+          <span className={`text-xs ${textColor}`}>S2</span>
+          <select
+            value={values.scaling_level_2 || ''}
+            onChange={(e) => onChange({ scaling_level_2: e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '' })}
+            className={`w-14 px-1 py-0.5 text-xs border ${borderColor} rounded focus:ring-2 focus:ring-[#178da6] text-gray-900 bg-white`}
+          >
+            <option value=''>-</option>
+            <option value='Rx'>Rx</option>
+            <option value='Sc1'>Sc1</option>
+            <option value='Sc2'>Sc2</option>
+            <option value='Sc3'>Sc3</option>
+          </select>
+        </div>
       )}
 
       {/* For Time toggle: Finished vs Time Cap */}

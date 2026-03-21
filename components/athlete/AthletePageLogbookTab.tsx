@@ -30,6 +30,7 @@ interface SectionResult {
   weight_result?: string;
   weight_result_2?: string;
   scaling_level?: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '';
+  scaling_level_2?: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '';
   rounds_result?: string;
   calories_result?: string;
   metres_result?: string;
@@ -151,7 +152,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
     const resultsToSave = Object.entries(sectionResults).filter(([key, result]) => {
       const wodId = key.split(':::')[0];
       if (!validWodIds.has(wodId)) return false;
-      return result.time_result || result.reps_result || result.weight_result || result.weight_result_2 || result.scaling_level ||
+      return result.time_result || result.reps_result || result.weight_result || result.weight_result_2 || result.scaling_level || result.scaling_level_2 ||
         result.rounds_result || result.calories_result || result.metres_result || result.task_completed;
     });
 

@@ -7,6 +7,7 @@ interface SectionResult {
   weight_result?: string;
   weight_result_2?: string;
   scaling_level?: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '';
+  scaling_level_2?: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '';
   rounds_result?: string;
   calories_result?: string;
   metres_result?: string;
@@ -25,7 +26,7 @@ export async function saveSectionResult(
 ): Promise<void> {
   // Don't save if all fields are empty
   if (!result.time_result && !result.reps_result && !result.weight_result && !result.weight_result_2 &&
-      !result.scaling_level && !result.rounds_result && !result.calories_result &&
+      !result.scaling_level && !result.scaling_level_2 && !result.rounds_result && !result.calories_result &&
       !result.metres_result && result.task_completed === undefined) {
     return;
   }
@@ -77,6 +78,7 @@ export async function saveSectionResult(
         weight_result: parsedWeight,
         weight_result_2: parsedWeight2,
         scaling_level: result.scaling_level || null,
+        scaling_level_2: result.scaling_level_2 || null,
         rounds_result: parsedRounds,
         calories_result: parsedCalories,
         metres_result: parsedMetres,

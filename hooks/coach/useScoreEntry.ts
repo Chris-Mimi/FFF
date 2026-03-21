@@ -34,6 +34,7 @@ export interface ScoreEntryAthlete {
 
 export interface AthleteScoreValues {
   scaling_level: string;
+  scaling_level_2: string;
   track: string;
   time_result: string;
   reps_result: string;
@@ -51,6 +52,7 @@ interface ExistingResult {
   whiteboard_name: string | null;
   section_id: string;
   scaling_level: string | null;
+  scaling_level_2: string | null;
   track: number | null;
   time_result: string | null;
   reps_result: number | null;
@@ -80,6 +82,7 @@ interface WodData {
 
 export const emptyScoreValues: AthleteScoreValues = {
   scaling_level: '',
+  scaling_level_2: '',
   track: '',
   time_result: '',
   reps_result: '',
@@ -161,6 +164,7 @@ export function useScoreEntry(sessionId: string) {
         const key = getScoreKey(athlete.id, rawSectionId);
         prefilled[key] = {
           scaling_level: result.scaling_level || '',
+          scaling_level_2: result.scaling_level_2 || '',
           track: result.track != null ? String(result.track) : '',
           time_result: result.time_result || '',
           reps_result: result.reps_result != null ? String(result.reps_result) : '',
@@ -210,6 +214,7 @@ export function useScoreEntry(sessionId: string) {
               // Skip if all fields empty
               if (
                 !values.scaling_level &&
+                !values.scaling_level_2 &&
                 !values.track &&
                 !values.time_result &&
                 !values.reps_result &&
@@ -228,6 +233,7 @@ export function useScoreEntry(sessionId: string) {
                 whiteboardName: athlete.whiteboardName || undefined,
                 sectionId: section.id,
                 scaling_level: values.scaling_level || undefined,
+                scaling_level_2: values.scaling_level_2 || undefined,
                 track: values.track ? parseInt(values.track) : null,
                 time_result: values.time_result || undefined,
                 reps_result: values.reps_result ? parseInt(values.reps_result) : null,

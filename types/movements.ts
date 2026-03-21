@@ -130,6 +130,7 @@ export interface WODSection {
     metres?: boolean;         // Show distance input (metres)
     checkbox?: boolean;       // Show task completion checkbox
     scaling?: boolean;        // Show scaling dropdown
+    scaling_2?: boolean;      // Show second scaling dropdown
     track?: boolean;          // Show track selector (1/2/3) in score entry
     time_amrap?: boolean;     // Time + AMRAP mode: show both time (optional) and reps/rounds simultaneously
   };

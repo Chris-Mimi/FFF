@@ -7,6 +7,7 @@ interface SectionResult {
   weight_result?: string;
   weight_result_2?: string;
   scaling_level?: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '';
+  scaling_level_2?: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '';
   rounds_result?: string;
   calories_result?: string;
   metres_result?: string;
@@ -23,7 +24,7 @@ export async function loadSectionResults(
   try {
     const { data, error } = await supabase
       .from('wod_section_results')
-      .select('section_id, wod_id, time_result, reps_result, weight_result, weight_result_2, scaling_level, rounds_result, calories_result, metres_result, task_completed')
+      .select('section_id, wod_id, time_result, reps_result, weight_result, weight_result_2, scaling_level, scaling_level_2, rounds_result, calories_result, metres_result, task_completed')
       .eq('user_id', userId)
       .eq('workout_date', workoutDate);
 
@@ -51,6 +52,7 @@ export async function loadSectionResults(
           weight_result: result.weight_result?.toString() || '',
           weight_result_2: result.weight_result_2?.toString() || '',
           scaling_level: result.scaling_level || '',
+          scaling_level_2: result.scaling_level_2 || '',
           rounds_result: result.rounds_result?.toString() || '',
           calories_result: result.calories_result?.toString() || '',
           metres_result: result.metres_result?.toString() || '',

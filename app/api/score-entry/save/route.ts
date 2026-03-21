@@ -14,6 +14,7 @@ interface ScoreEntry {
   whiteboardName?: string;
   sectionId: string;
   scaling_level?: string;
+  scaling_level_2?: string;
   track?: number | null;
   time_result?: string;
   reps_result?: number | null;
@@ -57,7 +58,8 @@ function isScoreEmpty(score: ScoreEntry): boolean {
     score.calories_result == null &&
     score.metres_result == null &&
     score.task_completed == null &&
-    !score.scaling_level
+    !score.scaling_level &&
+    !score.scaling_level_2
   );
 }
 
@@ -135,6 +137,7 @@ export async function POST(request: NextRequest) {
         whiteboard_name: null,
         section_id: `${score.sectionId}-content-0`,
         scaling_level: score.scaling_level || null,
+        scaling_level_2: score.scaling_level_2 || null,
         track: score.track ?? null,
         time_result: score.time_result || null,
         reps_result: score.reps_result ?? null,
@@ -165,6 +168,7 @@ export async function POST(request: NextRequest) {
         whiteboard_name: score.whiteboardName!,
         section_id: `${score.sectionId}-content-0`,
         scaling_level: score.scaling_level || null,
+        scaling_level_2: score.scaling_level_2 || null,
         track: score.track ?? null,
         time_result: score.time_result || null,
         reps_result: score.reps_result ?? null,

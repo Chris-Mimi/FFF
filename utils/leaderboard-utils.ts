@@ -11,6 +11,7 @@ export interface LeaderboardEntry {
   caloriesResult?: number;
   metresResult?: number;
   scalingLevel?: string;
+  scalingLevel2?: string;
   track?: number;
   taskCompleted?: boolean;
   resultDate?: string;
@@ -49,6 +50,7 @@ export interface RawSectionResult {
   calories_result?: number | null;
   metres_result?: number | null;
   scaling_level?: string | null;
+  scaling_level_2?: string | null;
   track?: number | null;
   task_completed?: boolean | null;
   workout_date?: string | null;
@@ -294,6 +296,7 @@ export function rankSectionResults(
     caloriesResult: r.calories_result || undefined,
     metresResult: r.metres_result || undefined,
     scalingLevel: r.scaling_level || undefined,
+    scalingLevel2: r.scaling_level_2 || undefined,
     track: r.track || undefined,
     taskCompleted: r.task_completed ?? undefined,
     gender: memberGenders?.[r.user_id] ?? getWhiteboardGender(r.whiteboard_name) ?? undefined,

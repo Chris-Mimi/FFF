@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 99.0
-**Updated:** 2026-03-19 (Session 226 - Track scoring toggle in Workout modal)
+**Version:** 100.0
+**Updated:** 2026-03-21 (Session 227 - Scaling 2 dual scaling option)
 
 ---
 
@@ -88,6 +88,10 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-21 Session 227 - Opus 4.6) — SCALING 2 DUAL SCALING:**
+- **✅ Scaling 2 option** — Mirrors Load 2 pattern. "Scaling 2" chip in Workout modal (only visible when Scaling enabled). S1/S2 labels in score entry. Leaderboard displays both badges. Fully backward compatible — existing workouts unaffected.
+- **✅ Migration applied** — `scaling_level_2 text` column added to `wod_section_results`.
+
 **Completed (2026-03-19 Session 226 - Opus 4.6) — TRACK SCORING TOGGLE:**
 - **✅ "Trk" checkbox in Workout modal** — Added `track` to `scoring_fields` JSONB. Coaches tick "Trk" to enable track selector (1/2/3) in score entry. When unticked, track buttons hidden, scores save `track: NULL`, leaderboard ignores track dimension.
 
@@ -105,10 +109,6 @@ Social Tables
 **Completed (2026-03-19 Session 223 - Opus 4.6) — LOAD 2 LABEL FIX + SCORE SAVE INVESTIGATION:**
 - **✅ Load 2 visible labels** — Added "L1" and "L2" labels in ScoringFieldInputs.
 - **⚠️ Score save issue investigated** — Monitoring for recurrence (~Session 226-227).
-
-**Completed (2026-03-19 Session 222 - Opus 4.6) — GENDER FILTER FIX + LOAD 2 SCORING CHIP:**
-- **✅ Leaderboard gender filter for whiteboard athletes** — Hardcoded gender map for 42 unregistered athletes.
-- **✅ Load 2 scoring chip** — New `load2` chip + `weight_result_2` column.
 
 **Older Sessions (57-221):**
 See `project-history/` folder for detailed implementation history
@@ -164,6 +164,7 @@ See `project-history/` folder for detailed implementation history
 - ✅ `20260317000000_add_achievement_difficulty.sql` — Adds `difficulty TEXT` column to achievement_definitions with CHECK constraint (Session 218, applied Session 219)
 - ✅ `idx_wod_section_results_whiteboard_unique` — Partial unique index on whiteboard scores (Session 224, applied directly in SQL Editor)
 - ✅ `20260319000000_add_track_to_section_results.sql` — Adds `track SMALLINT` column to wod_section_results with CHECK (NULL or 1/2/3) (Session 224b, applied)
+- ✅ `20260321000000_add_scaling_level_2.sql` — Adds `scaling_level_2 text` column to wod_section_results (Session 227, applied)
 
 ---
 
@@ -206,10 +207,10 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION
-1. **Test score modal + track selector** — Verify modal opens/closes, track saves to DB, leaderboard sorts by track.
+1. **Test Scaling 2** — Verify dual scaling saves/loads correctly, leaderboard displays both badges. Test backward compat with single-scaling workouts.
 2. **Deploy + test whiteboard leaderboard** — Verify whiteboard-only athletes show names (not "Unknown") on athlete leaderboard after deploy.
-4. **Coach library optimization** — Equipment & Body Parts lists need optimising.
-5. **April 13 reminder:** Verify Stripe trial payment processed for test athlete.
+3. **Coach library optimization** — Equipment & Body Parts lists need optimising.
+4. **April 13 reminder:** Verify Stripe trial payment processed for test athlete.
 
 ### DEPLOYMENT (Session 158+)
 

@@ -48,6 +48,7 @@ There's no app-switching, no spreadsheets, no whiteboards that get erased. Just 
 - **Individual athlete profiles** — view any athlete's benchmark history, lift PRs, logbook entries, and payment status from one screen
 - **Log results on their behalf** — coaches can record benchmarks, lifts, and workout results for athletes directly
 - **Score entry modal** — quick overlay modal on the coach calendar to enter scores for all booked athletes at once, with per-athlete scaling and track selection
+- **Dual scaling** — enable a second scaling dropdown per section for workouts that need independent scaling on two components (e.g. Rx lifts with scaled gymnastics). Both scaling levels display as badges on the leaderboard
 - **Multi-track scoring** — assign athletes to Track 1, 2, or 3 per workout section. Tracks display on the leaderboard and sort within scaling level
 
 ### Achievements & Motivation

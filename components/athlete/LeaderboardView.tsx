@@ -585,7 +585,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
 
         const { data: results } = await supabase
           .from('wod_section_results')
-          .select('id, user_id, whiteboard_name, time_result, reps_result, weight_result, weight_result_2, rounds_result, calories_result, metres_result, scaling_level, track, task_completed, workout_date')
+          .select('id, user_id, whiteboard_name, time_result, reps_result, weight_result, weight_result_2, rounds_result, calories_result, metres_result, scaling_level, scaling_level_2, track, task_completed, workout_date')
           .in('wod_id', contentWodIds)
           .in('section_id', contentSectionIds);
 
@@ -834,6 +834,13 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
                                   entry.scalingLevel === 'Rx' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
                                 }`}>
                                   {entry.scalingLevel}
+                                </span>
+                              )}
+                              {entry.scalingLevel2 && (
+                                <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
+                                  entry.scalingLevel2 === 'Rx' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
+                                }`}>
+                                  {entry.scalingLevel2}
                                 </span>
                               )}
                               {entry.track && (

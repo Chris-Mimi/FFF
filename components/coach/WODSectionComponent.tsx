@@ -315,13 +315,32 @@ function WODSectionComponent({
                       onChange={e => onUpdate({
                         scoring_fields: {
                           ...section.scoring_fields,
-                          scaling: e.target.checked
+                          scaling: e.target.checked,
+                          ...(!e.target.checked ? { scaling_2: false } : {})
                         }
                       })}
                       className='rounded border-gray-300'
                     />
-                    <span>Scaling</span>
+                    <span>{section.scoring_fields?.scaling_2 ? 'Scaling 1' : 'Scaling'}</span>
                   </label>
+
+                  {/* Scaling 2 — only available when Scaling is enabled */}
+                  {section.scoring_fields?.scaling && (
+                    <label className='flex items-center gap-1 text-xs cursor-pointer text-gray-900 whitespace-nowrap'>
+                      <input
+                        type='checkbox'
+                        checked={section.scoring_fields?.scaling_2 ?? false}
+                        onChange={e => onUpdate({
+                          scoring_fields: {
+                            ...section.scoring_fields,
+                            scaling_2: e.target.checked
+                          }
+                        })}
+                        className='rounded border-gray-300'
+                      />
+                      <span>Scaling 2</span>
+                    </label>
+                  )}
 
                   {/* Calories */}
                   <label className='flex items-center gap-1 text-xs cursor-pointer text-gray-900 whitespace-nowrap'>
