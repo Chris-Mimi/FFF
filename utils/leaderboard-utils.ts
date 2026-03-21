@@ -20,17 +20,31 @@ export interface LeaderboardEntry {
 
 // Gender map for whiteboard-only (unregistered) athletes
 const WHITEBOARD_GENDERS: Record<string, 'M' | 'F'> = {
-  'AndreasK': 'M', 'Carmine': 'M', 'DanielB': 'M', 'DanielS': 'M',
-  'Denis': 'M', 'Dimitar': 'M', 'Dor': 'M', 'JürgenB': 'M',
-  'Markus': 'M', 'Nils': 'M', 'Sebastian': 'M', 'Senol': 'M',
-  'Stefan': 'M', 'Sven': 'M', 'Teemu': 'M', 'ThomasG': 'M',
-  'ThomasH': 'M', 'TobiasB': 'M', 'Zoran': 'M',
-  'Anfisa': 'F', 'AnjaG': 'F', 'Annerose': 'F', 'AnneS': 'F',
-  'FranziskaH': 'F', 'FranziskaK': 'F', 'Irene': 'F', 'Jenny': 'F',
-  'JuliaW': 'F', 'Justine': 'F', 'Kathrin': 'F', 'Leah': 'F',
-  'Lena': 'F', 'LisaV': 'F', 'Madeleine': 'F', 'Martina': 'F',
-  'Miriam': 'F', 'Regina': 'F', 'Sabrina': 'F', 'Sandra': 'F',
-  'SusanneG': 'F', 'Valerie': 'F', 'Veronika': 'F',
+  'AndreasK': 'M', 'Bodo': 'M', 'Carmine': 'M', 'Chris': 'M',
+  'ChristianM': 'M', 'ChristianT': 'M', 'DanielB': 'M', 'DanielG': 'M',
+  'DanielS': 'M', 'David': 'M', 'Denis': 'M', 'Dimitar': 'M', 'Dor': 'M',
+  'Jens': 'M', 'Jürgen': 'M', 'JürgenB': 'M', 'Lukas': 'M', 'LukasS': 'M',
+  'Manuel': 'M', 'ManuelH': 'M', 'Markus': 'M', 'MichaelG': 'M',
+  'MichaelJ': 'M', 'MichaelM': 'M', 'MichaelS': 'M', 'MichaelW': 'M',
+  'Nils': 'M', 'Patrik': 'M', 'Paul': 'M', 'PaulB': 'M', 'Peter': 'M',
+  'Petr': 'M', 'Ralph': 'M', 'Robert': 'M', 'Sebastian': 'M', 'Senol': 'M',
+  'Sergej': 'M', 'Stefan': 'M', 'Steven': 'M', 'Sven': 'M', 'SvenH': 'M',
+  'Teemu': 'M', 'ThomasG': 'M', 'ThomasH': 'M', 'ThomasS': 'M',
+  'Tobias': 'M', 'TobiasB': 'M', 'TobiasG': 'M', 'TobiasW': 'M',
+  'Torben': 'M', 'Wayne': 'M', 'Zoran': 'M',
+  'Aline': 'F', 'Anfisa': 'F', 'AnjaB': 'F', 'AnjaG': 'F', 'AnnaHa': 'F',
+  'AnnaHo': 'F', 'Anne': 'F', 'Anneke': 'F', 'Annerose': 'F', 'AnneS': 'F',
+  'Carole': 'F', 'Claudia': 'F', 'Dinny': 'F', 'FranziskaH': 'F',
+  'FranziskaK': 'F', 'Gloria': 'F', 'HannahS': 'F', 'Ina': 'F',
+  'Irene': 'F', 'Jenny': 'F', 'Jolanda': 'F', 'JuliaW': 'F', 'Justine': 'F',
+  'Katharina': 'F', 'KathiH': 'F', 'Kathrin': 'F', 'Katja': 'F',
+  'Leah': 'F', 'Lena': 'F', 'LisaB': 'F', 'LisaV': 'F', 'Madeleine': 'F',
+  'Marion': 'F', 'MarionW': 'F', 'Martina': 'F', 'MichaelaE': 'F',
+  'MichaelaS': 'F', 'Mimi': 'F', 'Minja': 'F', 'Miriam': 'F',
+  'NikolinaK': 'F', 'NikolinaV': 'F', 'Petra': 'F', 'Regina': 'F',
+  'Rosita': 'F', 'Sabrina': 'F', 'Sandra': 'F', 'Sigrid': 'F', 'Sole': 'F',
+  'Soledad': 'F', 'Sonja': 'F', 'SonjaH': 'F', 'Susanne': 'F',
+  'SusanneG': 'F', 'Tabea': 'F', 'Valerie': 'F', 'Veronika': 'F',
 };
 
 export function getWhiteboardGender(name: string | null | undefined): string | null {
@@ -454,7 +468,7 @@ export function formatResult(entry: LeaderboardEntry, scoringType: string): stri
     extras.push(`${entry.weightResult2} kg`);
   }
   if (!['metres'].includes(scoringType) && entry.metresResult) extras.push(`${entry.metresResult} m`);
-  if (!['reps', 'rounds_reps', 'time_with_cap', 'time_amrap'].includes(scoringType) && entry.repsResult) extras.push(`${entry.repsResult} reps`);
+  if (!['reps', 'rounds_reps', 'time', 'max_time', 'time_with_cap', 'time_amrap'].includes(scoringType) && entry.repsResult) extras.push(`${entry.repsResult} reps`);
   if (!['calories'].includes(scoringType) && entry.caloriesResult) extras.push(`${entry.caloriesResult} cal`);
 
   if (extras.length > 0) return `${primary} · ${extras.join(' · ')}`;

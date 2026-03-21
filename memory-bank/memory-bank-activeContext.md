@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 100.0
-**Updated:** 2026-03-21 (Session 227 - Scaling 2 dual scaling option)
+**Version:** 101.0
+**Updated:** 2026-03-21 (Session 228 - Leaderboard bugfixes)
 
 ---
 
@@ -88,6 +88,10 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-21 Session 228 - Opus 4.6) — LEADERBOARD BUGFIXES:**
+- **✅ Duplicate reps fix** — `time`/`max_time` scoring types added to reps exclusion in `formatResult`, preventing reps from appearing as both primary and extra (e.g., "336 reps · 30/125 kg · 336 reps" → "336 reps · 30/125 kg").
+- **✅ Gender filter fix** — Expanded `WHITEBOARD_GENDERS` map from 42 to ~95 athletes (all adults from booking list). Fixes missing athletes (Petra, Bodo, MichaelM, AnnaHa, AnnaHo, etc.) in M/F filter.
+
 **Completed (2026-03-21 Session 227 - Opus 4.6) — SCALING 2 DUAL SCALING:**
 - **✅ Scaling 2 option** — Mirrors Load 2 pattern. "Scaling 2" chip in Workout modal (only visible when Scaling enabled). S1/S2 labels in score entry. Leaderboard displays both badges. Fully backward compatible — existing workouts unaffected.
 - **✅ Migration applied** — `scaling_level_2 text` column added to `wod_section_results`.
@@ -106,11 +110,7 @@ Social Tables
 - **✅ Leaderboard grouping window** — Extended from ±30 to ±60 days.
 - **✅ Track field (1/2/3)** — Per-athlete track selector in score entry, saved to DB.
 
-**Completed (2026-03-19 Session 223 - Opus 4.6) — LOAD 2 LABEL FIX + SCORE SAVE INVESTIGATION:**
-- **✅ Load 2 visible labels** — Added "L1" and "L2" labels in ScoringFieldInputs.
-- **⚠️ Score save issue investigated** — Monitoring for recurrence (~Session 226-227).
-
-**Older Sessions (57-221):**
+**Older Sessions (57-223):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -207,8 +207,8 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION
-1. **Test Scaling 2** — Verify dual scaling saves/loads correctly, leaderboard displays both badges. Test backward compat with single-scaling workouts.
-2. **Deploy + test whiteboard leaderboard** — Verify whiteboard-only athletes show names (not "Unknown") on athlete leaderboard after deploy.
+1. **Test leaderboard fixes** — Verify duplicate reps gone, gender filter works for Petra/Bodo/MichaelM/AnnaHa/AnnaHo.
+2. **Test Scaling 2** — Verify dual scaling saves/loads correctly, leaderboard displays both badges.
 3. **Coach library optimization** — Equipment & Body Parts lists need optimising.
 4. **April 13 reminder:** Verify Stripe trial payment processed for test athlete.
 
