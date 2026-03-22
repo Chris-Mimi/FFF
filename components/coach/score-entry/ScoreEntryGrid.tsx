@@ -41,17 +41,24 @@ export default function ScoreEntryGrid({
           No athletes booked or listed in Whiteboard Intro
         </div>
       ) : (
-        athletes.map((athlete) => (
-          <AthleteScoreRow
-            key={athlete.id}
-            athleteName={athlete.name}
-            athleteId={athlete.id}
-            sectionId={section.id}
-            scoringFields={section.scoring_fields!}
-            values={scores[`${athlete.id}_${section.id}`] || emptyScoreValues}
-            onChange={onUpdateScore}
-          />
-        ))
+        athletes.map((athlete, idx) => {
+          const prevAthlete = idx > 0 ? athletes[idx - 1] : null;
+          const prevValues = prevAthlete
+            ? scores[`${prevAthlete.id}_${section.id}`] || null
+            : null;
+          return (
+            <AthleteScoreRow
+              key={athlete.id}
+              athleteName={athlete.name}
+              athleteId={athlete.id}
+              sectionId={section.id}
+              scoringFields={section.scoring_fields!}
+              values={scores[`${athlete.id}_${section.id}`] || emptyScoreValues}
+              onChange={onUpdateScore}
+              previousValues={prevValues}
+            />
+          );
+        })
       )}
     </div>
   );

@@ -247,7 +247,11 @@ export default function CalendarGrid({
                   e.stopPropagation();
                   onScoreEntry?.(wod.booking_info!.session_id);
                 }}
-                className='flex-shrink-0 p-1 -m-1 text-gray-400 hover:text-[#178da6] transition cursor-pointer'
+                className={`flex-shrink-0 p-1 -m-1 transition cursor-pointer ${
+                  wod.has_scores
+                    ? 'text-amber-600 hover:text-amber-700'
+                    : 'text-gray-400 hover:text-[#178da6]'
+                }`}
                 title='Enter Scores'
                 aria-label='Enter scores for this session'
               >

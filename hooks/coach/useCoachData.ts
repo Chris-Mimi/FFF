@@ -51,6 +51,13 @@ export const useCoachData = ({
 
       if (bookingsError) throw bookingsError;
 
+      // Fetch wod IDs that have scores entered
+      const { data: scoredWods } = await supabase
+        .from('wod_section_results')
+        .select('wod_id')
+        .not('wod_id', 'is', null);
+      const scoredWodIds = new Set((scoredWods || []).map(r => r.wod_id));
+
       // Fetch sessions with related WODs
       const { data, error } = await supabase
         .from('weekly_sessions')
@@ -145,6 +152,7 @@ export const useCoachData = ({
             publish_sections: workout.publish_sections || undefined,
             publish_duration: workout.publish_duration || undefined,
             booking_info: bookingInfo,
+            has_scores: scoredWodIds.has(workout.id),
           });
         } else {
           grouped[dateKey].push({

@@ -97,6 +97,7 @@ export interface WODFormData {
   };
   selectedSessionIds?: string[]; // For applying workout to multiple sessions
   video_clips?: { label: string; url: string }[]; // Manually attached movement demo clips
+  has_scores?: boolean; // Whether any scores have been entered for this workout
 }
 
 interface Track {

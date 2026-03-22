@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 101.0
-**Updated:** 2026-03-21 (Session 228 - Leaderboard bugfixes)
+**Version:** 102.0
+**Updated:** 2026-03-22 (Session 229 - Score entry UX + score indicator)
 
 ---
 
@@ -88,29 +88,26 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-22 Session 229 - Opus 4.6) — SCORE ENTRY UX + SCORE INDICATOR:**
+- **✅ Copy-down button** — Down-arrow button on each athlete row (except first) copies all score values from the row above. Only copies enabled fields with values.
+- **✅ Score entry icon indicator** — ClipboardList icon on calendar cards turns bronze/amber when scores exist for that workout, stays gray when no scores entered.
+
 **Completed (2026-03-21 Session 228 - Opus 4.6) — LEADERBOARD BUGFIXES:**
-- **✅ Duplicate reps fix** — `time`/`max_time` scoring types added to reps exclusion in `formatResult`, preventing reps from appearing as both primary and extra (e.g., "336 reps · 30/125 kg · 336 reps" → "336 reps · 30/125 kg").
-- **✅ Gender filter fix** — Expanded `WHITEBOARD_GENDERS` map from 42 to ~95 athletes (all adults from booking list). Fixes missing athletes (Petra, Bodo, MichaelM, AnnaHa, AnnaHo, etc.) in M/F filter.
+- **✅ Duplicate reps fix** — `time`/`max_time` scoring types added to reps exclusion in `formatResult`.
+- **✅ Gender filter fix** — Expanded `WHITEBOARD_GENDERS` map to ~95 athletes.
 
 **Completed (2026-03-21 Session 227 - Opus 4.6) — SCALING 2 DUAL SCALING:**
-- **✅ Scaling 2 option** — Mirrors Load 2 pattern. "Scaling 2" chip in Workout modal (only visible when Scaling enabled). S1/S2 labels in score entry. Leaderboard displays both badges. Fully backward compatible — existing workouts unaffected.
+- **✅ Scaling 2 option** — Mirrors Load 2 pattern. S1/S2 labels in score entry. Leaderboard displays both badges.
 - **✅ Migration applied** — `scaling_level_2 text` column added to `wod_section_results`.
 
 **Completed (2026-03-19 Session 226 - Opus 4.6) — TRACK SCORING TOGGLE:**
-- **✅ "Trk" checkbox in Workout modal** — Added `track` to `scoring_fields` JSONB. Coaches tick "Trk" to enable track selector (1/2/3) in score entry. When unticked, track buttons hidden, scores save `track: NULL`, leaderboard ignores track dimension.
+- **✅ "Trk" checkbox in Workout modal** — Added `track` to `scoring_fields` JSONB.
 
 **Completed (2026-03-19 Session 225 - Opus 4.6) — TRACK FIXES:**
 - **✅ Track column added to leaderboard query** — `track` was ranked/displayed but never fetched.
 - **✅ Sort priority fixed** — Scaling > Track > Score (Rx always beats Scaled regardless of track).
-- **✅ Badge order fixed** — Scaling badge renders before track badge.
 
-**Completed (2026-03-19 Session 224/224b - Opus 4.6) — SCORE ENTRY MODAL + DATA INTEGRITY + LEADERBOARD + TRACK FEATURE:**
-- **✅ Score entry modal** — Converted from new-tab to overlay modal on coach page.
-- **✅ Data integrity cleanup** — Deleted 3 orphan wods, added `limit(1)` safety, partial unique index for whiteboard scores.
-- **✅ Leaderboard grouping window** — Extended from ±30 to ±60 days.
-- **✅ Track field (1/2/3)** — Per-athlete track selector in score entry, saved to DB.
-
-**Older Sessions (57-223):**
+**Older Sessions (57-224):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -207,10 +204,11 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION
-1. **Test leaderboard fixes** — Verify duplicate reps gone, gender filter works for Petra/Bodo/MichaelM/AnnaHa/AnnaHo.
-2. **Test Scaling 2** — Verify dual scaling saves/loads correctly, leaderboard displays both badges.
-3. **Coach library optimization** — Equipment & Body Parts lists need optimising.
-4. **April 13 reminder:** Verify Stripe trial payment processed for test athlete.
+1. **Test copy-down button** — Verify it copies scaling, track, load, time, reps correctly between athlete rows.
+2. **Test score indicator** — Verify bronze icon appears on calendar cards with scores, gray on those without.
+3. **Consider Tab-Through** — Next score entry UX improvement (keyboard navigation between athletes).
+4. **Coach library optimization** — Equipment & Body Parts lists need optimising.
+5. **April 13 reminder:** Verify Stripe trial payment processed for test athlete.
 
 ### DEPLOYMENT (Session 158+)
 
