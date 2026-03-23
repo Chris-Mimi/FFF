@@ -342,7 +342,7 @@ export async function POST(request: NextRequest) {
             // Update existing record
             await supabaseAdmin
               .from('lift_records')
-              .update({ weight_kg: weight, calculated_1rm: calculated1rm })
+              .update({ weight_kg: weight, calculated_1rm: calculated1rm, wod_id: wodId })
               .eq('id', existingLift.id);
           } else {
             // Insert new record
@@ -356,6 +356,7 @@ export async function POST(request: NextRequest) {
                 rep_max_type: rmLift.rmTest,
                 calculated_1rm: calculated1rm,
                 lift_date: workoutDate,
+                wod_id: wodId,
               })
               .select('id')
               .single();

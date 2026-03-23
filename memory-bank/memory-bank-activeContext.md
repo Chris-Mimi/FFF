@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 105.0
-**Updated:** 2026-03-23 (Session 233 - RM Test auto-save lift records)
+**Version:** 106.0
+**Updated:** 2026-03-23 (Session 234 - Lift records CASCADE cleanup on WOD delete)
 
 ---
 
@@ -88,6 +88,10 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-23 Session 234 - Opus 4.6) — LIFT RECORDS CASCADE + VALIDATION TOAST:**
+- **✅ Lift records CASCADE cleanup** — Added `wod_id` FK with `ON DELETE CASCADE` to `lift_records` table. When a WOD is deleted, auto-created lift records are now cleaned up automatically. Manually entered lift records (no `wod_id`) are unaffected.
+- **✅ Validation toast on save** — Workout modal save (tick) now shows a toast with the first validation error, visible regardless of scroll position.
+
 **Completed (2026-03-23 Session 233 - Opus 4.6) — RM TEST AUTO-SAVE LIFT RECORDS:**
 - **✅ Auto lift_records from Score Entry** — When a WOD section has a lift with `rm_test` (1RM/3RM/5RM/10RM), Score Entry auto-shows a weight input. On save, auto-creates `lift_records` entry with Epley `calculated_1rm`, PR detection, and push notification.
 - **✅ Score Entry icon fix** — Calendar card icon now also shows for sections with rm_test lifts (not just manually checked scoring fields).
@@ -105,11 +109,7 @@ Social Tables
 - **✅ Enter-key navigation** — Press Enter to jump to same field on next athlete row.
 - **✅ Scaling 2 leaderboard sort** — Ranks by Scaling 1 → Scaling 2 → Track → Score.
 
-**Completed (2026-03-22 Session 229 - Opus 4.6) — SCORE ENTRY UX + SCORE INDICATOR:**
-- **✅ Copy-down button** — Copies all score values from row above.
-- **✅ Score entry icon indicator** — Bronze/amber when scores exist.
-
-**Older Sessions (57-224):**
+**Older Sessions (57-229):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -164,6 +164,7 @@ See `project-history/` folder for detailed implementation history
 - ✅ `idx_wod_section_results_whiteboard_unique` — Partial unique index on whiteboard scores (Session 224, applied directly in SQL Editor)
 - ✅ `20260319000000_add_track_to_section_results.sql` — Adds `track SMALLINT` column to wod_section_results with CHECK (NULL or 1/2/3) (Session 224b, applied)
 - ✅ `20260321000000_add_scaling_level_2.sql` — Adds `scaling_level_2 text` column to wod_section_results (Session 227, applied)
+- ✅ `20260323000001_add_wod_id_to_lift_records.sql` — Adds `wod_id` FK with CASCADE to lift_records for auto-cleanup on WOD delete (Session 234, applied)
 
 ---
 
@@ -206,10 +207,9 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION
-1. **Test RM auto-save end-to-end** — Program workout with 3RM + 1RM sections → enter scores via Score Entry → verify lift_records created for athletes → check PR notification fires.
-2. **Test Exercise Groups end-to-end** — Create group → toggle on/off → edit exercises → delete. Verify nested display, "x" isolation, no stale exercises.
-3. **Coach library optimization** — Equipment & Body Parts lists need optimising.
-4. **April 13 reminder:** Verify Stripe trial payment processed for test athlete.
+1. **Test Exercise Groups end-to-end** — Create group → toggle on/off → edit exercises → delete. Verify nested display, "x" isolation, no stale exercises.
+2. **Coach library optimization** — Equipment & Body Parts lists need optimising.
+3. **April 13 reminder:** Verify Stripe trial payment processed for test athlete.
 
 ### DEPLOYMENT (Session 158+)
 

@@ -708,6 +708,9 @@ export function useWorkoutModal(
     }
 
     setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) {
+      toast.error(Object.values(newErrors)[0]);
+    }
     return Object.keys(newErrors).length === 0;
   };
 
