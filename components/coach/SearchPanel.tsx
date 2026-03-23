@@ -8,7 +8,7 @@ import rehypeRaw from 'rehype-raw';
 import remarkBreaks from 'remark-breaks';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { formatLift, formatBenchmark, formatForgeBenchmark } from '@/utils/logbook/formatters';
-import { useTrackedExercises } from '@/lib/exercise-storage';
+import { useTrackedExercises, useExerciseGroups } from '@/lib/exercise-storage';
 import { useMovementTracking } from '@/hooks/coach/useMovementTracking';
 import MovementTrackingPanel from './MovementTrackingPanel';
 import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
@@ -129,7 +129,21 @@ export default function SearchPanel({
   const [exerciseSearch, setExerciseSearch] = useState('');
   const [exerciseDropdownOpen, setExerciseDropdownOpen] = useState(false);
   const exerciseSearchRef = useRef<HTMLDivElement>(null);
-  const { trackedExercises, addTracked, removeTracked, toggleTracked, deactivateAll } = useTrackedExercises();
+  const { trackedExercises, addTracked, removeTracked, toggleTracked, batchSetActive, deactivateAll } = useTrackedExercises();
+  const {
+    groups: exerciseGroups,
+    createGroup,
+    deleteGroup,
+    renameGroup,
+    updateGroupExercises,
+    toggleGroupActive,
+    deactivateAllGroups,
+    removeExerciseFromAllGroups,
+  } = useExerciseGroups();
+  const [showGroupNameInput, setShowGroupNameInput] = useState(false);
+  const [newGroupName, setNewGroupName] = useState('');
+  const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
+  const [editingGroupExercises, setEditingGroupExercises] = useState<string | null>(null);
 
   const filteredExercises = useMemo(() => {
     if (!exerciseSearch.trim()) return [];
@@ -639,7 +653,7 @@ export default function SearchPanel({
               <span>Custom Movements{trackedExercises.length > 0 && <span className='ml-1 text-xs text-gray-500'>({activeTrackedExercises.length}/{trackedExercises.length})</span>}</span>
               {activeTrackedExercises.length > 0 && (
                 <button
-                  onClick={e => { e.preventDefault(); deactivateAll(); }}
+                  onClick={e => { e.preventDefault(); deactivateAll(); deactivateAllGroups(); }}
                   className='text-[10px] text-gray-400 hover:text-red-500 px-1'
                   title='Deactivate all'
                 >
@@ -687,28 +701,228 @@ export default function SearchPanel({
                 )}
               </div>
 
-              {/* Tracked exercises list */}
-              {trackedExercises.map(ex => (
-                <div
-                  key={ex.id}
-                  className={`flex items-center justify-between px-2 py-1 rounded text-xs cursor-pointer ${
-                    ex.active !== false
-                      ? 'bg-amber-50 text-gray-900'
-                      : 'bg-gray-100 text-gray-400 line-through'
-                  }`}
-                  onClick={() => toggleTracked(ex.id)}
-                  title={ex.active !== false ? 'Click to deactivate' : 'Click to activate'}
-                >
-                  <span className='truncate'>{ex.display_name || ex.name}</span>
-                  <button
-                    onClick={e => { e.stopPropagation(); removeTracked(ex.id); }}
-                    className='ml-1 text-gray-400 hover:text-red-500 p-0.5 flex-shrink-0'
-                    title='Remove permanently'
-                  >
-                    <X size={12} />
-                  </button>
+              {/* Exercise Groups */}
+              {(exerciseGroups.length > 0 || activeTrackedExercises.length > 0) && (
+                <div className='space-y-1 py-1'>
+                  <div className='flex flex-wrap items-center gap-1'>
+                    {exerciseGroups.map(group => (
+                      <div key={group.id} className='relative group/chip'>
+                        <button
+                          onClick={async () => {
+                            const { exerciseIds, active } = await toggleGroupActive(group.id);
+                            const trackedIds = new Set(trackedExercises.map(e => e.id));
+                            const validIds = exerciseIds.filter(id => trackedIds.has(id));
+                            if (validIds.length > 0) {
+                              batchSetActive(validIds, active);
+                            }
+                          }}
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium transition-colors ${
+                            group.active
+                              ? 'bg-amber-200 text-amber-900 hover:bg-amber-300'
+                              : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                          }`}
+                          title={`${group.exercise_ids.filter(id => trackedExercises.some(e => e.id === id)).length} exercises — click to ${group.active ? 'deactivate' : 'activate'}`}
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full ${group.active ? 'bg-amber-600' : 'bg-gray-400'}`} />
+                          {group.name}
+                        </button>
+                        {/* Edit/delete on hover */}
+                        {editingGroupId === group.id ? (
+                          <div className='absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded shadow-lg z-30 p-2 min-w-[140px]'>
+                            <input
+                              type='text'
+                              defaultValue={group.name}
+                              autoFocus
+                              className='w-full px-1.5 py-0.5 text-[10px] border border-gray-300 rounded mb-1'
+                              onKeyDown={e => {
+                                if (e.key === 'Enter') {
+                                  const val = (e.target as HTMLInputElement).value.trim();
+                                  if (val && val !== group.name) renameGroup(group.id, val);
+                                  setEditingGroupId(null);
+                                }
+                                if (e.key === 'Escape') setEditingGroupId(null);
+                              }}
+                              onBlur={e => {
+                                const related = e.relatedTarget as HTMLElement;
+                                if (related?.closest('[data-group-menu]')) return;
+                                const val = e.target.value.trim();
+                                if (val && val !== group.name) renameGroup(group.id, val);
+                                setEditingGroupId(null);
+                              }}
+                            />
+                            <button
+                              data-group-menu
+                              onClick={() => {
+                                setEditingGroupExercises(group.id);
+                                setEditingGroupId(null);
+                              }}
+                              className='w-full text-left px-1.5 py-0.5 text-[10px] text-gray-700 hover:bg-gray-100 rounded'
+                            >
+                              Edit exercises
+                            </button>
+                            <button
+                              data-group-menu
+                              onClick={() => { deleteGroup(group.id); setEditingGroupId(null); }}
+                              className='w-full text-left px-1.5 py-0.5 text-[10px] text-red-600 hover:bg-red-50 rounded'
+                            >
+                              Delete group
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={e => { e.stopPropagation(); setEditingGroupId(group.id); }}
+                            className='absolute -top-1 -right-1 hidden group-hover/chip:flex w-3.5 h-3.5 items-center justify-center rounded-full bg-gray-200 hover:bg-gray-300 text-gray-500'
+                            title='Edit group'
+                          >
+                            <span className='text-[8px] leading-none'>✎</span>
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    {/* Save as Group button */}
+                    {activeTrackedExercises.length > 0 && !showGroupNameInput && (
+                      <button
+                        onClick={() => setShowGroupNameInput(true)}
+                        className='inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-50 text-gray-400 hover:bg-gray-100 hover:text-gray-600 border border-dashed border-gray-300'
+                      >
+                        + Save as Group
+                      </button>
+                    )}
+                    {showGroupNameInput && (
+                      <input
+                        type='text'
+                        value={newGroupName}
+                        onChange={e => setNewGroupName(e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter' && newGroupName.trim()) {
+                            createGroup(newGroupName.trim(), activeTrackedExercises.map(ex => ex.id));
+                            setNewGroupName('');
+                            setShowGroupNameInput(false);
+                          }
+                          if (e.key === 'Escape') {
+                            setNewGroupName('');
+                            setShowGroupNameInput(false);
+                          }
+                        }}
+                        onBlur={() => {
+                          if (newGroupName.trim()) {
+                            createGroup(newGroupName.trim(), activeTrackedExercises.map(ex => ex.id));
+                          }
+                          setNewGroupName('');
+                          setShowGroupNameInput(false);
+                        }}
+                        autoFocus
+                        placeholder='Group name...'
+                        className='px-2 py-0.5 text-[10px] border border-gray-300 rounded-full w-24 focus:ring-1 focus:ring-[#178da6] focus:border-transparent'
+                      />
+                    )}
+                  </div>
+
+                  {/* Active group exercise lists — nested under chips */}
+                  {exerciseGroups.filter(g => g.active).map(group => {
+                    const groupExercises = trackedExercises.filter(ex => group.exercise_ids.includes(ex.id));
+                    if (groupExercises.length === 0) return null;
+                    return (
+                      <div key={group.id} className='ml-2 border-l-2 border-amber-300 pl-2 space-y-0.5'>
+                        <div className='text-[9px] font-medium text-amber-700'>{group.name}</div>
+                        {groupExercises.map(ex => (
+                          <div key={ex.id} className='px-2 py-0.5 rounded text-xs bg-amber-50 text-gray-900 truncate'>
+                            {ex.display_name || ex.name}
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })}
                 </div>
-              ))}
+              )}
+
+              {/* Edit group exercises header */}
+              {editingGroupExercises && (() => {
+                const editGroup = exerciseGroups.find(g => g.id === editingGroupExercises);
+                if (!editGroup) return null;
+                const trackedIds = new Set(trackedExercises.map(e => e.id));
+                const validCount = editGroup.exercise_ids.filter(id => trackedIds.has(id)).length;
+                return (
+                  <div className='flex items-center justify-between px-2 py-1 bg-amber-100 rounded text-[10px] font-medium text-amber-800'>
+                    <span>Editing: {editGroup.name} ({validCount})</span>
+                    <button
+                      onClick={() => {
+                        const validIds = editGroup.exercise_ids.filter(id => trackedIds.has(id));
+                        if (validIds.length !== editGroup.exercise_ids.length) {
+                          updateGroupExercises(editGroup.id, validIds);
+                        }
+                        setEditingGroupExercises(null);
+                      }}
+                      className='px-1.5 py-0.5 bg-amber-200 hover:bg-amber-300 rounded text-amber-900'
+                    >
+                      Done
+                    </button>
+                  </div>
+                );
+              })()}
+
+              {/* Tracked exercises list — hide exercises shown in active groups */}
+              {(() => {
+                const activeGroupExerciseIds = new Set(
+                  exerciseGroups.filter(g => g.active).flatMap(g => g.exercise_ids)
+                );
+                const anyGroupActive = exerciseGroups.some(g => g.active);
+                const displayExercises = editingGroupExercises
+                  ? trackedExercises // Edit mode: show all
+                  : trackedExercises.filter(ex => !activeGroupExerciseIds.has(ex.id));
+
+                return displayExercises.map(ex => {
+                  const editGroup = editingGroupExercises ? exerciseGroups.find(g => g.id === editingGroupExercises) : null;
+                  const isInEditGroup = editGroup ? editGroup.exercise_ids.includes(ex.id) : false;
+
+                  return (
+                    <div
+                      key={ex.id}
+                      className={`flex items-center justify-between px-2 py-1 rounded text-xs cursor-pointer ${
+                        editingGroupExercises
+                          ? isInEditGroup ? 'bg-amber-100 text-gray-900' : 'bg-gray-50 text-gray-500'
+                          : ex.active !== false
+                            ? 'bg-amber-50 text-gray-900'
+                            : 'bg-gray-100 text-gray-400 line-through'
+                      }`}
+                      onClick={() => {
+                        if (editingGroupExercises && editGroup) {
+                          const newIds = isInEditGroup
+                            ? editGroup.exercise_ids.filter(id => id !== ex.id)
+                            : [...editGroup.exercise_ids, ex.id];
+                          updateGroupExercises(editingGroupExercises, newIds);
+                        } else {
+                          toggleTracked(ex.id);
+                        }
+                      }}
+                      title={editingGroupExercises
+                        ? isInEditGroup ? 'Click to remove from group' : 'Click to add to group'
+                        : ex.active !== false ? 'Click to deactivate' : 'Click to activate'
+                      }
+                    >
+                      <div className='flex items-center gap-1.5 truncate'>
+                        {editingGroupExercises && (
+                          <span className={`w-3 h-3 rounded border flex items-center justify-center flex-shrink-0 ${
+                            isInEditGroup ? 'bg-amber-500 border-amber-500 text-white' : 'border-gray-300'
+                          }`}>
+                            {isInEditGroup && <span className='text-[8px]'>✓</span>}
+                          </span>
+                        )}
+                        <span className='truncate'>{ex.display_name || ex.name}</span>
+                      </div>
+                      {!editingGroupExercises && (
+                        <button
+                          onClick={e => { e.stopPropagation(); removeTracked(ex.id); }}
+                          className='ml-1 text-gray-400 hover:text-red-500 p-0.5 flex-shrink-0'
+                          title='Remove permanently'
+                        >
+                          <X size={12} />
+                        </button>
+                      )}
+                    </div>
+                  );
+                });
+              })()}
               {trackedExercises.length === 0 && (
                 <p className='text-xs text-gray-500 px-2 py-1'>Search to add movements</p>
               )}

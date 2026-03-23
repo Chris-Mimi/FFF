@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 103.0
-**Updated:** 2026-03-23 (Session 230 - Enter-key vertical navigation)
+**Version:** 104.0
+**Updated:** 2026-03-23 (Session 232 - Exercise Groups fixes)
 
 ---
 
@@ -88,6 +88,16 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-23 Session 232 - Opus 4.6) — EXERCISE GROUPS FIXES:**
+- **✅ Group toggle UX** — Groups now batch-toggle active state without adding/removing from tracked list. Exercises controlled by groups, not re-created each toggle.
+- **✅ Nested group display** — Active group exercises render nested under group chip with amber left border, removed from main list to avoid duplication.
+- **✅ "x" button isolation** — Permanently removes from tracking only, does not modify group definitions. Groups retain exercise IDs independently.
+- **✅ Edit mode cleanup** — "Done" button cleans stale IDs from group. Count shows only valid (tracked) exercises.
+- **⚠️ Migration pending** — `exercise_groups` table not yet created. Run `supabase/migrations/20260323000000_add_exercise_groups.sql` in SQL Editor.
+
+**Completed (2026-03-23 Session 231 - Opus 4.6) — EXERCISE GROUPS FEATURE:**
+- **✅ Exercise Groups** — Named presets of tracked exercises (e.g., "Strength Builder"). Save as Group, rename, edit exercises, delete. Supabase-backed with RLS.
+
 **Completed (2026-03-23 Session 230 - Opus 4.6) — ENTER-KEY NAVIGATION + SCALING 2 SORT:**
 - **✅ Enter-key navigation** — Press Enter on any score entry input to jump to the same field on the next athlete row. Wraps to first athlete on last row.
 - **✅ Scaling 2 leaderboard sort** — Leaderboard now ranks by Scaling 1 → Scaling 2 → Track → Score. Rx/Rx beats Rx/Sc1.
@@ -99,13 +109,6 @@ Social Tables
 **Completed (2026-03-21 Session 228 - Opus 4.6) — LEADERBOARD BUGFIXES:**
 - **✅ Duplicate reps fix** — `time`/`max_time` scoring types added to reps exclusion in `formatResult`.
 - **✅ Gender filter fix** — Expanded `WHITEBOARD_GENDERS` map to ~95 athletes.
-
-**Completed (2026-03-21 Session 227 - Opus 4.6) — SCALING 2 DUAL SCALING:**
-- **✅ Scaling 2 option** — Mirrors Load 2 pattern. S1/S2 labels in score entry. Leaderboard displays both badges.
-- **✅ Migration applied** — `scaling_level_2 text` column added to `wod_section_results`.
-
-**Completed (2026-03-19 Session 226 - Opus 4.6) — TRACK SCORING TOGGLE:**
-- **✅ "Trk" checkbox in Workout modal** — Added `track` to `scoring_fields` JSONB.
 
 **Older Sessions (57-224):**
 See `project-history/` folder for detailed implementation history
@@ -204,11 +207,10 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION
-1. **Test Enter-key navigation** — Open score entry, type value, press Enter → should jump to same field on next athlete. Test wrap on last athlete.
-2. **Test copy-down button** — Verify it copies scaling, track, load, time, reps correctly between athlete rows.
-3. **Test score indicator** — Verify bronze icon appears on calendar cards with scores, gray on those without.
-4. **Coach library optimization** — Equipment & Body Parts lists need optimising.
-5. **April 13 reminder:** Verify Stripe trial payment processed for test athlete.
+1. **Run exercise_groups migration** — `supabase/migrations/20260323000000_add_exercise_groups.sql` in Supabase SQL Editor.
+2. **Test Exercise Groups end-to-end** — Create group → toggle on/off → edit exercises → delete. Verify nested display, "x" isolation, no stale exercises.
+3. **Coach library optimization** — Equipment & Body Parts lists need optimising.
+4. **April 13 reminder:** Verify Stripe trial payment processed for test athlete.
 
 ### DEPLOYMENT (Session 158+)
 

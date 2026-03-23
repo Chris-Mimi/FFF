@@ -31,6 +31,7 @@ There's no app-switching, no spreadsheets, no whiteboards that get erased. Just 
 - **Full-text search** across all workouts — find every time you've programmed a specific movement, workout name, or note
 - **Movement frequency tracking** — see how often you've programmed each exercise, with date-range filtering. Never accidentally neglect a movement pattern again
 - **Custom movement tracking panel** — pin the exercises you want to monitor and see at a glance when each was last programmed. Color-coded date aging (green/yellow/orange/red) highlights neglected movements instantly. Fully responsive on mobile with a dedicated toggle
+- **Exercise groups** — save named presets of tracked exercises (e.g., "Barbell Strength", "Oly Lifts") and toggle entire groups on or off with one click. Group exercises appear nested under their chip for a clean overview
 - **Workout deduplication** — search results intelligently group repeated workouts so you see unique programming, not duplicates
 - **Filter by track, type, section, or athlete** — slice your programming data any way you need
 

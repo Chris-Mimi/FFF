@@ -258,6 +258,29 @@ export function useTrackedExercises() {
     }
   }, [loadTracked]);
 
+  const batchSetActive = useCallback(async (exerciseIds: string[], active: boolean) => {
+    if (exerciseIds.length === 0) return;
+
+    // Optimistic update
+    setTrackedExercises(prev => prev.map(ex =>
+      exerciseIds.includes(ex.id) ? { ...ex, active } : ex
+    ));
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { error } = await supabase
+      .from('coach_tracked_exercises')
+      .update({ active })
+      .eq('user_id', user.id)
+      .in('exercise_id', exerciseIds);
+
+    if (error) {
+      console.error('Error batch updating tracked exercises:', error);
+      loadTracked();
+    }
+  }, [loadTracked]);
+
   const deactivateAll = useCallback(async () => {
     // Optimistic update
     setTrackedExercises(prev => prev.map(ex => ({ ...ex, active: false })));
@@ -276,5 +299,188 @@ export function useTrackedExercises() {
     }
   }, [loadTracked]);
 
-  return { trackedExercises, addTracked, removeTracked, toggleTracked, deactivateAll };
+  return { trackedExercises, addTracked, removeTracked, toggleTracked, batchSetActive, deactivateAll };
+}
+
+// --- Exercise Groups (Supabase-backed, named presets of tracked exercises) ---
+
+export interface ExerciseGroup {
+  id: string;
+  name: string;
+  exercise_ids: string[];
+  active: boolean;
+  display_order: number;
+}
+
+export function useExerciseGroups() {
+  const [groups, setGroups] = useState<ExerciseGroup[]>([]);
+
+  const loadGroups = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('exercise_groups')
+      .select('id, name, exercise_ids, active, display_order')
+      .order('display_order', { ascending: true })
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Error loading exercise groups:', error);
+      return;
+    }
+
+    setGroups(data || []);
+  }, []);
+
+  useEffect(() => {
+    loadGroups();
+  }, [loadGroups]);
+
+  const createGroup = useCallback(async (name: string, exerciseIds: string[]) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const newGroup: ExerciseGroup = {
+      id: crypto.randomUUID(),
+      name,
+      exercise_ids: exerciseIds,
+      active: false,
+      display_order: groups.length,
+    };
+
+    // Optimistic update
+    setGroups(prev => [...prev, newGroup]);
+
+    const { error } = await supabase
+      .from('exercise_groups')
+      .insert({
+        user_id: user.id,
+        name,
+        exercise_ids: exerciseIds,
+        active: false,
+        display_order: groups.length,
+      });
+
+    if (error) {
+      console.error('Error creating exercise group:', error);
+      loadGroups();
+    }
+  }, [groups.length, loadGroups]);
+
+  const deleteGroup = useCallback(async (groupId: string) => {
+    // Optimistic update
+    setGroups(prev => prev.filter(g => g.id !== groupId));
+
+    const { error } = await supabase
+      .from('exercise_groups')
+      .delete()
+      .eq('id', groupId);
+
+    if (error) {
+      console.error('Error deleting exercise group:', error);
+      loadGroups();
+    }
+  }, [loadGroups]);
+
+  const renameGroup = useCallback(async (groupId: string, name: string) => {
+    // Optimistic update
+    setGroups(prev => prev.map(g => g.id === groupId ? { ...g, name } : g));
+
+    const { error } = await supabase
+      .from('exercise_groups')
+      .update({ name })
+      .eq('id', groupId);
+
+    if (error) {
+      console.error('Error renaming exercise group:', error);
+      loadGroups();
+    }
+  }, [loadGroups]);
+
+  const updateGroupExercises = useCallback(async (groupId: string, exerciseIds: string[]) => {
+    // Optimistic update
+    setGroups(prev => prev.map(g => g.id === groupId ? { ...g, exercise_ids: exerciseIds } : g));
+
+    const { error } = await supabase
+      .from('exercise_groups')
+      .update({ exercise_ids: exerciseIds })
+      .eq('id', groupId);
+
+    if (error) {
+      console.error('Error updating exercise group:', error);
+      loadGroups();
+    }
+  }, [loadGroups]);
+
+  const toggleGroupActive = useCallback(async (groupId: string) => {
+    let newActive = true;
+    setGroups(prev => prev.map(g => {
+      if (g.id === groupId) {
+        newActive = !g.active;
+        return { ...g, active: newActive };
+      }
+      return g;
+    }));
+
+    const { error } = await supabase
+      .from('exercise_groups')
+      .update({ active: newActive })
+      .eq('id', groupId);
+
+    if (error) {
+      console.error('Error toggling exercise group:', error);
+      loadGroups();
+    }
+
+    // Return the group info so caller can batch-activate/deactivate exercises
+    const group = groups.find(g => g.id === groupId);
+    return { exerciseIds: group?.exercise_ids || [], active: newActive };
+  }, [groups, loadGroups]);
+
+  const deactivateAllGroups = useCallback(async () => {
+    // Optimistic update
+    setGroups(prev => prev.map(g => ({ ...g, active: false })));
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { error } = await supabase
+      .from('exercise_groups')
+      .update({ active: false })
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error('Error deactivating all groups:', error);
+      loadGroups();
+    }
+  }, [loadGroups]);
+
+  const removeExerciseFromAllGroups = useCallback(async (exerciseId: string) => {
+    const affectedGroups = groups.filter(g => g.exercise_ids.includes(exerciseId));
+    if (affectedGroups.length === 0) return;
+
+    // Optimistic update
+    setGroups(prev => prev.map(g => ({
+      ...g,
+      exercise_ids: g.exercise_ids.filter(id => id !== exerciseId),
+    })));
+
+    // Update each affected group in DB
+    for (const group of affectedGroups) {
+      const updatedIds = group.exercise_ids.filter(id => id !== exerciseId);
+      await supabase
+        .from('exercise_groups')
+        .update({ exercise_ids: updatedIds })
+        .eq('id', group.id);
+    }
+  }, [groups]);
+
+  return {
+    groups,
+    createGroup,
+    deleteGroup,
+    renameGroup,
+    updateGroupExercises,
+    toggleGroupActive,
+    deactivateAllGroups,
+    removeExerciseFromAllGroups,
+  };
 }
