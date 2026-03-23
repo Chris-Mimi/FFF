@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 102.0
-**Updated:** 2026-03-22 (Session 229 - Score entry UX + score indicator)
+**Version:** 103.0
+**Updated:** 2026-03-23 (Session 230 - Enter-key vertical navigation)
 
 ---
 
@@ -88,6 +88,10 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-23 Session 230 - Opus 4.6) — ENTER-KEY NAVIGATION + SCALING 2 SORT:**
+- **✅ Enter-key navigation** — Press Enter on any score entry input to jump to the same field on the next athlete row. Wraps to first athlete on last row.
+- **✅ Scaling 2 leaderboard sort** — Leaderboard now ranks by Scaling 1 → Scaling 2 → Track → Score. Rx/Rx beats Rx/Sc1.
+
 **Completed (2026-03-22 Session 229 - Opus 4.6) — SCORE ENTRY UX + SCORE INDICATOR:**
 - **✅ Copy-down button** — Down-arrow button on each athlete row (except first) copies all score values from the row above. Only copies enabled fields with values.
 - **✅ Score entry icon indicator** — ClipboardList icon on calendar cards turns bronze/amber when scores exist for that workout, stays gray when no scores entered.
@@ -102,10 +106,6 @@ Social Tables
 
 **Completed (2026-03-19 Session 226 - Opus 4.6) — TRACK SCORING TOGGLE:**
 - **✅ "Trk" checkbox in Workout modal** — Added `track` to `scoring_fields` JSONB.
-
-**Completed (2026-03-19 Session 225 - Opus 4.6) — TRACK FIXES:**
-- **✅ Track column added to leaderboard query** — `track` was ranked/displayed but never fetched.
-- **✅ Sort priority fixed** — Scaling > Track > Score (Rx always beats Scaled regardless of track).
 
 **Older Sessions (57-224):**
 See `project-history/` folder for detailed implementation history
@@ -204,9 +204,9 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION
-1. **Test copy-down button** — Verify it copies scaling, track, load, time, reps correctly between athlete rows.
-2. **Test score indicator** — Verify bronze icon appears on calendar cards with scores, gray on those without.
-3. **Consider Tab-Through** — Next score entry UX improvement (keyboard navigation between athletes).
+1. **Test Enter-key navigation** — Open score entry, type value, press Enter → should jump to same field on next athlete. Test wrap on last athlete.
+2. **Test copy-down button** — Verify it copies scaling, track, load, time, reps correctly between athlete rows.
+3. **Test score indicator** — Verify bronze icon appears on calendar cards with scores, gray on those without.
 4. **Coach library optimization** — Equipment & Body Parts lists need optimising.
 5. **April 13 reminder:** Verify Stripe trial payment processed for test athlete.
 

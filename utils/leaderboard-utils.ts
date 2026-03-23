@@ -283,12 +283,16 @@ export function rankSectionResults(
     }
   });
 
-  // Sort: Rx first, then Sc1/Sc2/Sc3; within each scaling level: Track 1 > 2 > 3 > untracked; then by scoring type
+  // Sort: Scaling 1 > Scaling 2 > Track > Scoring type
   const scalingOrder: Record<string, number> = { 'Rx': 0, 'Sc1': 1, 'Sc2': 2, 'Sc3': 3 };
   const sorted = [...valid].sort((a, b) => {
     const aScale = scalingOrder[a.scaling_level || ''] ?? 4;
     const bScale = scalingOrder[b.scaling_level || ''] ?? 4;
     if (aScale !== bScale) return aScale - bScale;
+    // Scaling 2: Rx > Sc1 > Sc2 > Sc3 > unset
+    const aScale2 = scalingOrder[a.scaling_level_2 || ''] ?? 4;
+    const bScale2 = scalingOrder[b.scaling_level_2 || ''] ?? 4;
+    if (aScale2 !== bScale2) return aScale2 - bScale2;
     // Track: 1 < 2 < 3 < null (lower track = higher rank)
     const aTrack = a.track ?? 4;
     const bTrack = b.track ?? 4;
