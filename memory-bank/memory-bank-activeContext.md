@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 104.0
-**Updated:** 2026-03-23 (Session 232 - Exercise Groups fixes)
+**Version:** 105.0
+**Updated:** 2026-03-23 (Session 233 - RM Test auto-save lift records)
 
 ---
 
@@ -88,27 +88,26 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-23 Session 233 - Opus 4.6) — RM TEST AUTO-SAVE LIFT RECORDS:**
+- **✅ Auto lift_records from Score Entry** — When a WOD section has a lift with `rm_test` (1RM/3RM/5RM/10RM), Score Entry auto-shows a weight input. On save, auto-creates `lift_records` entry with Epley `calculated_1rm`, PR detection, and push notification.
+- **✅ Score Entry icon fix** — Calendar card icon now also shows for sections with rm_test lifts (not just manually checked scoring fields).
+- **✅ Percentage cap raised** — ConfigureLiftModal percentage inputs now allow up to 120% (was 100%).
+
 **Completed (2026-03-23 Session 232 - Opus 4.6) — EXERCISE GROUPS FIXES:**
-- **✅ Group toggle UX** — Groups now batch-toggle active state without adding/removing from tracked list. Exercises controlled by groups, not re-created each toggle.
-- **✅ Nested group display** — Active group exercises render nested under group chip with amber left border, removed from main list to avoid duplication.
-- **✅ "x" button isolation** — Permanently removes from tracking only, does not modify group definitions. Groups retain exercise IDs independently.
-- **✅ Edit mode cleanup** — "Done" button cleans stale IDs from group. Count shows only valid (tracked) exercises.
-- **⚠️ Migration pending** — `exercise_groups` table not yet created. Run `supabase/migrations/20260323000000_add_exercise_groups.sql` in SQL Editor.
+- **✅ Group toggle UX** — Groups now batch-toggle active state without adding/removing from tracked list.
+- **✅ Nested group display** — Active group exercises render nested under group chip with amber left border.
+- **✅ "x" button isolation** — Permanently removes from tracking only, does not modify group definitions.
 
 **Completed (2026-03-23 Session 231 - Opus 4.6) — EXERCISE GROUPS FEATURE:**
-- **✅ Exercise Groups** — Named presets of tracked exercises (e.g., "Strength Builder"). Save as Group, rename, edit exercises, delete. Supabase-backed with RLS.
+- **✅ Exercise Groups** — Named presets of tracked exercises. Save as Group, rename, edit exercises, delete. Supabase-backed with RLS.
 
 **Completed (2026-03-23 Session 230 - Opus 4.6) — ENTER-KEY NAVIGATION + SCALING 2 SORT:**
-- **✅ Enter-key navigation** — Press Enter on any score entry input to jump to the same field on the next athlete row. Wraps to first athlete on last row.
-- **✅ Scaling 2 leaderboard sort** — Leaderboard now ranks by Scaling 1 → Scaling 2 → Track → Score. Rx/Rx beats Rx/Sc1.
+- **✅ Enter-key navigation** — Press Enter to jump to same field on next athlete row.
+- **✅ Scaling 2 leaderboard sort** — Ranks by Scaling 1 → Scaling 2 → Track → Score.
 
 **Completed (2026-03-22 Session 229 - Opus 4.6) — SCORE ENTRY UX + SCORE INDICATOR:**
-- **✅ Copy-down button** — Down-arrow button on each athlete row (except first) copies all score values from the row above. Only copies enabled fields with values.
-- **✅ Score entry icon indicator** — ClipboardList icon on calendar cards turns bronze/amber when scores exist for that workout, stays gray when no scores entered.
-
-**Completed (2026-03-21 Session 228 - Opus 4.6) — LEADERBOARD BUGFIXES:**
-- **✅ Duplicate reps fix** — `time`/`max_time` scoring types added to reps exclusion in `formatResult`.
-- **✅ Gender filter fix** — Expanded `WHITEBOARD_GENDERS` map to ~95 athletes.
+- **✅ Copy-down button** — Copies all score values from row above.
+- **✅ Score entry icon indicator** — Bronze/amber when scores exist.
 
 **Older Sessions (57-224):**
 See `project-history/` folder for detailed implementation history
@@ -207,7 +206,7 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION
-1. **Run exercise_groups migration** — `supabase/migrations/20260323000000_add_exercise_groups.sql` in Supabase SQL Editor.
+1. **Test RM auto-save end-to-end** — Program workout with 3RM + 1RM sections → enter scores via Score Entry → verify lift_records created for athletes → check PR notification fires.
 2. **Test Exercise Groups end-to-end** — Create group → toggle on/off → edit exercises → delete. Verify nested display, "x" isolation, no stale exercises.
 3. **Coach library optimization** — Equipment & Body Parts lists need optimising.
 4. **April 13 reminder:** Verify Stripe trial payment processed for test athlete.

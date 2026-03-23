@@ -241,7 +241,7 @@ export default function CalendarGrid({
             )}
 
             {/* Score Entry */}
-            {!isEmptySession && wod.booking_info?.session_id && wod.sections?.some(s => s.scoring_fields && Object.values(s.scoring_fields).some(v => v === true)) && (
+            {!isEmptySession && wod.booking_info?.session_id && wod.sections?.some(s => (s.scoring_fields && Object.values(s.scoring_fields).some(v => v === true)) || s.lifts?.some((l: { rm_test?: string }) => l.rm_test)) && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();

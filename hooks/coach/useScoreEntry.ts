@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { authFetch } from '@/lib/auth-fetch';
+import type { ConfiguredLift } from '@/types/movements';
 
 interface ScoringFields {
   time?: boolean;
@@ -22,6 +23,15 @@ export interface WodSection {
   duration: number;
   content: string;
   scoring_fields?: ScoringFields;
+  lifts?: ConfiguredLift[];
+}
+
+/** Returns the first rm_test lift in a section, or null */
+function getRmTestLift(section: WodSection): { name: string; rmTest: string } | null {
+  if (!section.lifts) return null;
+  const rmLift = section.lifts.find(l => l.rm_test);
+  if (!rmLift) return null;
+  return { name: rmLift.name, rmTest: rmLift.rm_test! };
 }
 
 export interface ScoreEntryAthlete {
@@ -107,17 +117,29 @@ export function useScoreEntry(sessionId: string) {
   const [scores, setScores] = useState<Record<string, AthleteScoreValues>>({});
 
   // Show sections that are scorable AND published to athletes
+  // Also include sections with rm_test lifts (auto-synthesize load scoring)
   const publishedIds = wod?.publish_sections;
-  const scorableSections = (wod?.sections || []).filter((s) => {
-    const isScorable = s.scoring_fields && Object.values(s.scoring_fields).some((v) => v === true);
-    if (!isScorable) return false;
-    // If publish_sections exists and is non-empty, filter by it
-    if (publishedIds && publishedIds.length > 0) {
-      return publishedIds.includes(s.id);
-    }
-    // Backwards compat: if no publish_sections, show all scorable
-    return true;
-  });
+  const scorableSections = (wod?.sections || [])
+    .map((s) => {
+      // Auto-enable load scoring for RM test sections
+      const rmLift = getRmTestLift(s);
+      if (rmLift && !s.scoring_fields?.load) {
+        return { ...s, scoring_fields: { ...s.scoring_fields, load: true } };
+      }
+      return s;
+    })
+    .filter((s) => {
+      const hasScoring = s.scoring_fields && Object.values(s.scoring_fields).some((v) => v === true);
+      const hasRmTest = getRmTestLift(s) !== null;
+      if (!hasScoring && !hasRmTest) return false;
+      // RM test sections always show (auto-published on save)
+      if (hasRmTest) return true;
+      // Other sections check publish_sections
+      if (publishedIds && publishedIds.length > 0) {
+        return publishedIds.includes(s.id);
+      }
+      return true;
+    });
 
   const selectedSection = scorableSections.find((s) => s.id === selectedSectionId) || null;
 
@@ -138,11 +160,13 @@ export function useScoreEntry(sessionId: string) {
       setAthletes(data.athletes);
       setExistingResults(data.existingResults);
 
-      // Find first scorable section
+      // Find first scorable section (including rm_test sections)
       const sections: WodSection[] = data.wod.sections || [];
-      const scorable = sections.filter(
-        (s: WodSection) => s.scoring_fields && Object.values(s.scoring_fields).some((v) => v === true)
-      );
+      const scorable = sections.filter((s: WodSection) => {
+        const hasScoring = s.scoring_fields && Object.values(s.scoring_fields).some((v) => v === true);
+        const hasRmTest = s.lifts?.some((l: ConfiguredLift) => l.rm_test);
+        return hasScoring || hasRmTest;
+      });
       if (scorable.length > 0 && !selectedSectionId) {
         setSelectedSectionId(scorable[0].id);
       }
@@ -253,12 +277,22 @@ export function useScoreEntry(sessionId: string) {
         return;
       }
 
+      // Build rm_test lift map for auto-creating lift_records
+      const rmTestLifts: Record<string, { liftName: string; rmTest: string }> = {};
+      for (const section of scorableSections) {
+        const rmLift = getRmTestLift(section);
+        if (rmLift) {
+          rmTestLifts[section.id] = { liftName: rmLift.name, rmTest: rmLift.rmTest };
+        }
+      }
+
       const res = await authFetch('/api/score-entry/save', {
         method: 'POST',
         body: JSON.stringify({
           wodId: wod.id,
           workoutDate: session.date,
           scores: scoreEntries,
+          rmTestLifts: Object.keys(rmTestLifts).length > 0 ? rmTestLifts : undefined,
         }),
       });
 

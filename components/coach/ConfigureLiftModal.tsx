@@ -475,7 +475,7 @@ function ConfigureLiftModal({
                     onChange={e => setPercentage(e.target.value ? parseInt(e.target.value) : undefined)}
                     placeholder='e.g., 75'
                     min='0'
-                    max='100'
+                    max='120'
                     className='flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
                   />
                   <span className='text-gray-600 font-semibold'>%</span>
@@ -518,7 +518,7 @@ function ConfigureLiftModal({
                             placeholder='%'
                             className='w-full px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
                             min='0'
-                            max='100'
+                            max='120'
                           />
                         </td>
                         <td className='px-4 py-2 text-center'>

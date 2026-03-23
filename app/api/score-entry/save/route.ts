@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { requireCoach, isAuthError } from '@/lib/auth-api';
 import { notifyScoreRecorded } from '@/lib/notifications';
+import { notifyPrAchieved } from '@/lib/notifications';
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -48,6 +49,19 @@ function validateScore(score: ScoreEntry): string | null {
   return null;
 }
 
+interface RmTestLift {
+  liftName: string;
+  rmTest: string; // '1RM' | '3RM' | '5RM' | '10RM'
+}
+
+const RM_TYPE_TO_REPS: Record<string, number> = { '1RM': 1, '3RM': 3, '5RM': 5, '10RM': 10 };
+
+function calculateEpley1RM(weight: number, reps: number): number | null {
+  if (reps === 1) return weight;
+  if (reps <= 0 || reps > 36) return null;
+  return Math.round(weight * 36 / (37 - reps) * 10) / 10;
+}
+
 function isScoreEmpty(score: ScoreEntry): boolean {
   return (
     !score.time_result &&
@@ -69,10 +83,11 @@ export async function POST(request: NextRequest) {
     if (isAuthError(user)) return user;
 
     const body = await request.json();
-    const { wodId, workoutDate, scores } = body as {
+    const { wodId, workoutDate, scores, rmTestLifts } = body as {
       wodId: string;
       workoutDate: string;
       scores: ScoreEntry[];
+      rmTestLifts?: Record<string, RmTestLift>;
     };
 
     if (!wodId || !workoutDate || !Array.isArray(scores)) {
@@ -289,6 +304,84 @@ export async function POST(request: NextRequest) {
         if (record.user_id && !notifiedUserIds.has(record.user_id)) {
           notifiedUserIds.add(record.user_id);
           notifyScoreRecorded(record.user_id, workoutName);
+        }
+      }
+
+      // Auto-save lift_records for RM test sections
+      if (rmTestLifts && Object.keys(rmTestLifts).length > 0) {
+        let liftsSaved = 0;
+        for (const score of scores) {
+          // Match score's sectionId to rm_test lift
+          const rmLift = rmTestLifts[score.sectionId];
+          if (!rmLift || score.weight_result == null) continue;
+
+          // Resolve user_id for this score
+          let userId: string | null = null;
+          if (score.memberId) {
+            const memberEmail = memberIdToEmail[score.memberId];
+            userId = memberEmail ? emailToUserId[memberEmail] || null : null;
+          }
+          // Whiteboard-only athletes can't have lift_records (no user account)
+          if (!userId) continue;
+
+          const weight = score.weight_result;
+          const reps = RM_TYPE_TO_REPS[rmLift.rmTest] || 1;
+          const calculated1rm = calculateEpley1RM(weight, reps);
+
+          // Upsert: check for existing record (same user, lift, rm_type, date)
+          const { data: existingLift } = await supabaseAdmin
+            .from('lift_records')
+            .select('id, weight_kg')
+            .eq('user_id', userId)
+            .eq('lift_name', rmLift.liftName)
+            .eq('rep_max_type', rmLift.rmTest)
+            .eq('lift_date', workoutDate)
+            .maybeSingle();
+
+          if (existingLift) {
+            // Update existing record
+            await supabaseAdmin
+              .from('lift_records')
+              .update({ weight_kg: weight, calculated_1rm: calculated1rm })
+              .eq('id', existingLift.id);
+          } else {
+            // Insert new record
+            const { data: newRecord } = await supabaseAdmin
+              .from('lift_records')
+              .insert({
+                user_id: userId,
+                lift_name: rmLift.liftName,
+                weight_kg: weight,
+                reps: reps,
+                rep_max_type: rmLift.rmTest,
+                calculated_1rm: calculated1rm,
+                lift_date: workoutDate,
+              })
+              .select('id')
+              .single();
+
+            // PR detection
+            if (newRecord) {
+              const { data: previousBest } = await supabaseAdmin
+                .from('lift_records')
+                .select('weight_kg')
+                .eq('user_id', userId)
+                .eq('lift_name', rmLift.liftName)
+                .eq('rep_max_type', rmLift.rmTest)
+                .neq('id', newRecord.id)
+                .order('weight_kg', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+
+              if (!previousBest || weight > previousBest.weight_kg) {
+                notifyPrAchieved(userId, rmLift.liftName, `${weight}kg (${rmLift.rmTest})`);
+              }
+            }
+          }
+          liftsSaved++;
+        }
+        if (liftsSaved > 0) {
+          console.log(`Auto-saved ${liftsSaved} lift record(s) from score entry`);
         }
       }
     }

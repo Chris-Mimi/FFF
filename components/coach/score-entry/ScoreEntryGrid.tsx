@@ -56,6 +56,10 @@ export default function ScoreEntryGrid({
 
   if (!section.scoring_fields) return null;
 
+  // Show lift name + RM type for rm_test sections
+  const rmLift = section.lifts?.find(l => l.rm_test);
+  const scoreLabel = rmLift ? `${rmLift.name} ${rmLift.rm_test}` : 'Score';
+
   return (
     <div ref={gridRef} onKeyDown={handleGridKeyDown} className="bg-white rounded-lg border border-gray-200 overflow-hidden">
       {/* Header */}
@@ -64,7 +68,7 @@ export default function ScoreEntryGrid({
           Athlete
         </div>
         <div className="flex-1 text-xs font-semibold text-gray-500 uppercase">
-          Score
+          {scoreLabel}
         </div>
       </div>
 
