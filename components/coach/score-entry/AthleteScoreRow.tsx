@@ -25,6 +25,7 @@ interface AthleteScoreRowProps {
   values: AthleteScoreValues;
   onChange: (athleteId: string, sectionId: string, updates: Partial<AthleteScoreValues>) => void;
   previousValues?: AthleteScoreValues | null;
+  athleteIndex: number;
 }
 
 export default function AthleteScoreRow({
@@ -35,6 +36,7 @@ export default function AthleteScoreRow({
   values,
   onChange,
   previousValues,
+  athleteIndex,
 }: AthleteScoreRowProps) {
   const currentValues = values || emptyScoreValues;
 
@@ -109,6 +111,7 @@ export default function AthleteScoreRow({
           }}
           onChange={(updates) => onChange(athleteId, sectionId, updates as Partial<AthleteScoreValues>)}
           showLabel={false}
+          athleteIndex={athleteIndex}
         />
       </div>
     </div>

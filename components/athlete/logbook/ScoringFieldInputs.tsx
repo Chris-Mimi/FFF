@@ -41,6 +41,7 @@ interface ScoringFieldInputsProps {
   onChange: (updates: Partial<ScoringFieldInputsProps['values']>) => void;
   variant?: 'default' | 'lift' | 'benchmark' | 'forge';
   showLabel?: boolean;
+  athleteIndex?: number;
 }
 
 export default function ScoringFieldInputs({
@@ -49,6 +50,7 @@ export default function ScoringFieldInputs({
   onChange,
   variant = 'default',
   showLabel = true,
+  athleteIndex,
 }: ScoringFieldInputsProps) {
   // Detect "Time + AMRAP" scenario: both time and reps/rounds shown simultaneously
   const isTimeAmrap = !!scoringFields.time_amrap && !!scoringFields.time && (!!scoringFields.reps || !!scoringFields.rounds_reps);
@@ -119,6 +121,12 @@ export default function ScoringFieldInputs({
   const borderColor = getBorderColor();
   const textColor = getTextColor();
 
+  // Data attributes for Enter-key vertical navigation in score entry grid
+  const fieldAttrs = (fieldType: string) =>
+    athleteIndex !== undefined
+      ? { 'data-field-type': fieldType, 'data-athlete-index': athleteIndex }
+      : {};
+
   // Check if any field is enabled
   const hasAnyEnabledField = Object.values(scoringFields).some(v => v === true);
   if (!hasAnyEnabledField) return null;
@@ -139,6 +147,7 @@ export default function ScoringFieldInputs({
         <div className='flex items-center gap-1'>
           {scoringFields.scaling_2 && <span className={`text-xs ${textColor}`}>S1</span>}
           <select
+            {...fieldAttrs('scaling')}
             value={values.scaling_level || ''}
             onChange={(e) => onChange({ scaling_level: e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '' })}
             className={`w-14 px-1 py-0.5 text-xs border ${borderColor} rounded focus:ring-2 focus:ring-[#178da6] text-gray-900 bg-white`}
@@ -157,6 +166,7 @@ export default function ScoringFieldInputs({
         <div className='flex items-center gap-1'>
           <span className={`text-xs ${textColor}`}>S2</span>
           <select
+            {...fieldAttrs('scaling_2')}
             value={values.scaling_level_2 || ''}
             onChange={(e) => onChange({ scaling_level_2: e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '' })}
             className={`w-14 px-1 py-0.5 text-xs border ${borderColor} rounded focus:ring-2 focus:ring-[#178da6] text-gray-900 bg-white`}
@@ -201,6 +211,7 @@ export default function ScoringFieldInputs({
       {/* Time Input (For Time or Max Time) — shown when not in "cap" mode */}
       {showTime && (
         <input
+          {...fieldAttrs('time')}
           type='text'
           placeholder='mm:ss'
           maxLength={8}
@@ -216,6 +227,7 @@ export default function ScoringFieldInputs({
         <>
           <div className='flex items-center gap-1'>
             <input
+              {...fieldAttrs('rounds')}
               type='number'
               placeholder='Rounds'
               min='0'
@@ -234,6 +246,7 @@ export default function ScoringFieldInputs({
       {(showCapFields || (!isForTimeWithCap && (scoringFields.reps || scoringFields.rounds_reps))) && (
         <div className='flex items-center gap-1'>
           <input
+            {...fieldAttrs('reps')}
             type='number'
             placeholder='Reps'
             min='0'
@@ -251,6 +264,7 @@ export default function ScoringFieldInputs({
         <div className='flex items-center gap-1'>
           {scoringFields.load2 && <span className={`text-xs ${textColor}`}>L1</span>}
           <input
+            {...fieldAttrs('load')}
             type='number'
             step='0.5'
             min='0'
@@ -269,6 +283,7 @@ export default function ScoringFieldInputs({
         <div className='flex items-center gap-1'>
           <span className={`text-xs ${textColor}`}>L2</span>
           <input
+            {...fieldAttrs('load2')}
             type='number'
             step='0.5'
             min='0'
@@ -286,6 +301,7 @@ export default function ScoringFieldInputs({
       {scoringFields.calories && (
         <div className='flex items-center gap-1'>
           <input
+            {...fieldAttrs('calories')}
             type='number'
             placeholder='Cal'
             min='0'
@@ -302,6 +318,7 @@ export default function ScoringFieldInputs({
       {scoringFields.metres && (
         <div className='flex items-center gap-1'>
           <input
+            {...fieldAttrs('metres')}
             type='number'
             step='0.1'
             min='0'
@@ -319,6 +336,7 @@ export default function ScoringFieldInputs({
       {scoringFields.checkbox && (
         <label className='flex items-center gap-1 text-xs'>
           <input
+            {...fieldAttrs('checkbox')}
             type='checkbox'
             checked={values.task_completed || false}
             onChange={(e) => onChange({ task_completed: e.target.checked })}

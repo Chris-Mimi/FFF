@@ -1,5 +1,6 @@
 'use client';
 
+import { useRef, useCallback } from 'react';
 import AthleteScoreRow from './AthleteScoreRow';
 import {
   ScoreEntryAthlete,
@@ -21,10 +22,42 @@ export default function ScoreEntryGrid({
   scores,
   onUpdateScore,
 }: ScoreEntryGridProps) {
+  const gridRef = useRef<HTMLDivElement>(null);
+
+  // Enter key → jump to same field on next athlete row
+  const handleGridKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key !== 'Enter') return;
+
+    const target = e.target as HTMLElement;
+    // Skip select elements (Enter opens/closes dropdown natively)
+    if (target.tagName === 'SELECT') return;
+
+    const fieldType = target.dataset.fieldType;
+    const athleteIndex = target.dataset.athleteIndex;
+    if (!fieldType || athleteIndex === undefined) return;
+
+    e.preventDefault();
+
+    const currentIdx = parseInt(athleteIndex, 10);
+    const nextIdx = currentIdx + 1;
+
+    // Try next athlete, same field — wrap to first if on last
+    const nextInput = (
+      gridRef.current?.querySelector(
+        `[data-field-type="${fieldType}"][data-athlete-index="${nextIdx}"]`
+      ) ||
+      gridRef.current?.querySelector(
+        `[data-field-type="${fieldType}"][data-athlete-index="0"]`
+      )
+    ) as HTMLElement | null;
+
+    nextInput?.focus();
+  }, []);
+
   if (!section.scoring_fields) return null;
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+    <div ref={gridRef} onKeyDown={handleGridKeyDown} className="bg-white rounded-lg border border-gray-200 overflow-hidden">
       {/* Header */}
       <div className="flex items-center gap-3 py-2 px-3 bg-gray-50 border-b border-gray-200">
         <div className="w-36 min-w-[9rem] text-xs font-semibold text-gray-500 uppercase">
@@ -49,6 +82,7 @@ export default function ScoreEntryGrid({
           return (
             <AthleteScoreRow
               key={athlete.id}
+              athleteIndex={idx}
               athleteName={athlete.name}
               athleteId={athlete.id}
               sectionId={section.id}
