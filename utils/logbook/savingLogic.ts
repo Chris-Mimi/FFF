@@ -6,8 +6,10 @@ interface SectionResult {
   reps_result?: string;
   weight_result?: string;
   weight_result_2?: string;
+  weight_result_3?: string;
   scaling_level?: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '';
   scaling_level_2?: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '';
+  scaling_level_3?: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '';
   rounds_result?: string;
   calories_result?: string;
   metres_result?: string;
@@ -25,8 +27,8 @@ export async function saveSectionResult(
   workoutDate: string
 ): Promise<void> {
   // Don't save if all fields are empty
-  if (!result.time_result && !result.reps_result && !result.weight_result && !result.weight_result_2 &&
-      !result.scaling_level && !result.scaling_level_2 && !result.rounds_result && !result.calories_result &&
+  if (!result.time_result && !result.reps_result && !result.weight_result && !result.weight_result_2 && !result.weight_result_3 &&
+      !result.scaling_level && !result.scaling_level_2 && !result.scaling_level_3 && !result.rounds_result && !result.calories_result &&
       !result.metres_result && result.task_completed === undefined) {
     return;
   }
@@ -39,6 +41,7 @@ export async function saveSectionResult(
     const parsedReps = result.reps_result ? parseInt(result.reps_result) : null;
     const parsedWeight = result.weight_result ? parseFloat(result.weight_result) : null;
     const parsedWeight2 = result.weight_result_2 ? parseFloat(result.weight_result_2) : null;
+    const parsedWeight3 = result.weight_result_3 ? parseFloat(result.weight_result_3) : null;
     const parsedRounds = result.rounds_result ? parseInt(result.rounds_result) : null;
     const parsedCalories = result.calories_result ? parseInt(result.calories_result) : null;
     const parsedMetres = result.metres_result ? parseFloat(result.metres_result) : null;
@@ -46,6 +49,7 @@ export async function saveSectionResult(
     if (parsedReps !== null && (parsedReps < 0 || parsedReps > 10000)) throw new Error('Reps must be between 0 and 10,000');
     if (parsedWeight !== null && (parsedWeight < 0 || parsedWeight > 500)) throw new Error('Weight must be between 0 and 500 kg');
     if (parsedWeight2 !== null && (parsedWeight2 < 0 || parsedWeight2 > 500)) throw new Error('Weight 2 must be between 0 and 500 kg');
+    if (parsedWeight3 !== null && (parsedWeight3 < 0 || parsedWeight3 > 500)) throw new Error('Weight 3 must be between 0 and 500 kg');
     if (parsedRounds !== null && (parsedRounds < 0 || parsedRounds > 1000)) throw new Error('Rounds must be between 0 and 1,000');
     if (parsedCalories !== null && (parsedCalories < 0 || parsedCalories > 10000)) throw new Error('Calories must be between 0 and 10,000');
     if (parsedMetres !== null && (parsedMetres < 0 || parsedMetres > 100000)) throw new Error('Metres must be between 0 and 100,000');
@@ -77,8 +81,10 @@ export async function saveSectionResult(
         reps_result: parsedReps,
         weight_result: parsedWeight,
         weight_result_2: parsedWeight2,
+        weight_result_3: parsedWeight3,
         scaling_level: result.scaling_level || null,
         scaling_level_2: result.scaling_level_2 || null,
+        scaling_level_3: result.scaling_level_3 || null,
         rounds_result: parsedRounds,
         calories_result: parsedCalories,
         metres_result: parsedMetres,

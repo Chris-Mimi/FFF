@@ -19,11 +19,13 @@ interface ScoringFieldInputsProps {
     reps?: boolean;
     load?: boolean;
     load2?: boolean;
+    load3?: boolean;
     calories?: boolean;
     metres?: boolean;
     checkbox?: boolean;
     scaling?: boolean;
     scaling_2?: boolean;
+    scaling_3?: boolean;
     time_amrap?: boolean;
   };
   values: {
@@ -32,11 +34,13 @@ interface ScoringFieldInputsProps {
     reps_result?: string;
     weight_result?: string;
     weight_result_2?: string;
+    weight_result_3?: string;
     calories_result?: string;
     metres_result?: string;
     task_completed?: boolean;
     scaling_level?: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '';
     scaling_level_2?: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '';
+    scaling_level_3?: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '';
   };
   onChange: (updates: Partial<ScoringFieldInputsProps['values']>) => void;
   variant?: 'default' | 'lift' | 'benchmark' | 'forge';
@@ -142,10 +146,10 @@ export default function ScoringFieldInputs({
         <span className='text-xs font-medium text-gray-600'>Result:</span>
       )}
 
-      {/* Scaling Dropdown — always first when enabled */}
+      {/* Scaling Dropdowns — always first when enabled */}
       {scoringFields.scaling && (
         <div className='flex items-center gap-1'>
-          {scoringFields.scaling_2 && <span className={`text-xs ${textColor}`}>S1</span>}
+          {(scoringFields.scaling_2 || scoringFields.scaling_3) && <span className={`text-xs ${textColor}`}>S1</span>}
           <select
             {...fieldAttrs('scaling')}
             value={values.scaling_level || ''}
@@ -161,7 +165,6 @@ export default function ScoringFieldInputs({
         </div>
       )}
 
-      {/* Scaling 2 Dropdown */}
       {scoringFields.scaling_2 && (
         <div className='flex items-center gap-1'>
           <span className={`text-xs ${textColor}`}>S2</span>
@@ -169,6 +172,24 @@ export default function ScoringFieldInputs({
             {...fieldAttrs('scaling_2')}
             value={values.scaling_level_2 || ''}
             onChange={(e) => onChange({ scaling_level_2: e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '' })}
+            className={`w-14 px-1 py-0.5 text-xs border ${borderColor} rounded focus:ring-2 focus:ring-[#178da6] text-gray-900 bg-white`}
+          >
+            <option value=''>-</option>
+            <option value='Rx'>Rx</option>
+            <option value='Sc1'>Sc1</option>
+            <option value='Sc2'>Sc2</option>
+            <option value='Sc3'>Sc3</option>
+          </select>
+        </div>
+      )}
+
+      {scoringFields.scaling_3 && (
+        <div className='flex items-center gap-1'>
+          <span className={`text-xs ${textColor}`}>S3</span>
+          <select
+            {...fieldAttrs('scaling_3')}
+            value={values.scaling_level_3 || ''}
+            onChange={(e) => onChange({ scaling_level_3: e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '' })}
             className={`w-14 px-1 py-0.5 text-xs border ${borderColor} rounded focus:ring-2 focus:ring-[#178da6] text-gray-900 bg-white`}
           >
             <option value=''>-</option>
@@ -259,17 +280,17 @@ export default function ScoringFieldInputs({
         </div>
       )}
 
-      {/* Load/Weight Input */}
+      {/* Load/Weight Inputs */}
       {scoringFields.load && (
         <div className='flex items-center gap-1'>
-          {scoringFields.load2 && <span className={`text-xs ${textColor}`}>L1</span>}
+          {(scoringFields.load2 || scoringFields.load3) && <span className={`text-xs ${textColor}`}>L1</span>}
           <input
             {...fieldAttrs('load')}
             type='number'
             step='0.5'
             min='0'
             max='999'
-            placeholder={scoringFields.load2 ? 'Load 1' : 'Load'}
+            placeholder={(scoringFields.load2 || scoringFields.load3) ? 'Load 1' : 'Load'}
             value={values.weight_result || ''}
             onChange={(e) => onChange({ weight_result: e.target.value })}
             className={`w-16 px-2 py-1 text-xs text-center border ${borderColor} rounded focus:ring-2 focus:ring-[#178da6] text-gray-900`}
@@ -278,7 +299,6 @@ export default function ScoringFieldInputs({
         </div>
       )}
 
-      {/* Load 2/Weight 2 Input */}
       {scoringFields.load2 && (
         <div className='flex items-center gap-1'>
           <span className={`text-xs ${textColor}`}>L2</span>
@@ -291,6 +311,24 @@ export default function ScoringFieldInputs({
             placeholder='Load 2'
             value={values.weight_result_2 || ''}
             onChange={(e) => onChange({ weight_result_2: e.target.value })}
+            className={`w-16 px-2 py-1 text-xs text-center border ${borderColor} rounded focus:ring-2 focus:ring-[#178da6] text-gray-900`}
+          />
+          <span className={`text-xs ${textColor}`}>kg</span>
+        </div>
+      )}
+
+      {scoringFields.load3 && (
+        <div className='flex items-center gap-1'>
+          <span className={`text-xs ${textColor}`}>L3</span>
+          <input
+            {...fieldAttrs('load3')}
+            type='number'
+            step='0.5'
+            min='0'
+            max='999'
+            placeholder='Load 3'
+            value={values.weight_result_3 || ''}
+            onChange={(e) => onChange({ weight_result_3: e.target.value })}
             className={`w-16 px-2 py-1 text-xs text-center border ${borderColor} rounded focus:ring-2 focus:ring-[#178da6] text-gray-900`}
           />
           <span className={`text-xs ${textColor}`}>kg</span>

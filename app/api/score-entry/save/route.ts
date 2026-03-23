@@ -16,11 +16,13 @@ interface ScoreEntry {
   sectionId: string;
   scaling_level?: string;
   scaling_level_2?: string;
+  scaling_level_3?: string;
   track?: number | null;
   time_result?: string;
   reps_result?: number | null;
   weight_result?: number | null;
   weight_result_2?: number | null;
+  weight_result_3?: number | null;
   rounds_result?: number | null;
   calories_result?: number | null;
   metres_result?: number | null;
@@ -36,6 +38,9 @@ function validateScore(score: ScoreEntry): string | null {
   }
   if (score.weight_result_2 != null && (score.weight_result_2 < 0 || score.weight_result_2 > 500)) {
     return 'Weight 2 must be between 0 and 500 kg';
+  }
+  if (score.weight_result_3 != null && (score.weight_result_3 < 0 || score.weight_result_3 > 500)) {
+    return 'Weight 3 must be between 0 and 500 kg';
   }
   if (score.rounds_result != null && (score.rounds_result < 0 || score.rounds_result > 1000)) {
     return 'Rounds must be between 0 and 1,000';
@@ -68,12 +73,14 @@ function isScoreEmpty(score: ScoreEntry): boolean {
     score.reps_result == null &&
     score.weight_result == null &&
     score.weight_result_2 == null &&
+    score.weight_result_3 == null &&
     score.rounds_result == null &&
     score.calories_result == null &&
     score.metres_result == null &&
     score.task_completed == null &&
     !score.scaling_level &&
-    !score.scaling_level_2
+    !score.scaling_level_2 &&
+    !score.scaling_level_3
   );
 }
 
@@ -153,11 +160,13 @@ export async function POST(request: NextRequest) {
         section_id: `${score.sectionId}-content-0`,
         scaling_level: score.scaling_level || null,
         scaling_level_2: score.scaling_level_2 || null,
+        scaling_level_3: score.scaling_level_3 || null,
         track: score.track ?? null,
         time_result: score.time_result || null,
         reps_result: score.reps_result ?? null,
         weight_result: score.weight_result ?? null,
         weight_result_2: score.weight_result_2 ?? null,
+        weight_result_3: score.weight_result_3 ?? null,
         rounds_result: score.rounds_result ?? null,
         calories_result: score.calories_result ?? null,
         metres_result: score.metres_result ?? null,
@@ -184,11 +193,13 @@ export async function POST(request: NextRequest) {
         section_id: `${score.sectionId}-content-0`,
         scaling_level: score.scaling_level || null,
         scaling_level_2: score.scaling_level_2 || null,
+        scaling_level_3: score.scaling_level_3 || null,
         track: score.track ?? null,
         time_result: score.time_result || null,
         reps_result: score.reps_result ?? null,
         weight_result: score.weight_result ?? null,
         weight_result_2: score.weight_result_2 ?? null,
+        weight_result_3: score.weight_result_3 ?? null,
         rounds_result: score.rounds_result ?? null,
         calories_result: score.calories_result ?? null,
         metres_result: score.metres_result ?? null,

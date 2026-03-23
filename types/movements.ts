@@ -126,11 +126,13 @@ export interface WODSection {
     rounds_reps?: boolean;    // Show rounds + reps inputs (AMRAP)
     load?: boolean;           // Show weight/load input (kg)
     load2?: boolean;          // Show second weight/load input (kg)
+    load3?: boolean;          // Show third weight/load input (kg)
     calories?: boolean;       // Show calories input
     metres?: boolean;         // Show distance input (metres)
     checkbox?: boolean;       // Show task completion checkbox
     scaling?: boolean;        // Show scaling dropdown
     scaling_2?: boolean;      // Show second scaling dropdown
+    scaling_3?: boolean;      // Show third scaling dropdown
     track?: boolean;          // Show track selector (1/2/3) in score entry
     time_amrap?: boolean;     // Time + AMRAP mode: show both time (optional) and reps/rounds simultaneously
   };

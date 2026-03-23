@@ -10,10 +10,13 @@ interface ScoringFields {
   rounds_reps?: boolean;
   load?: boolean;
   load2?: boolean;
+  load3?: boolean;
   calories?: boolean;
   metres?: boolean;
   checkbox?: boolean;
   scaling?: boolean;
+  scaling_2?: boolean;
+  scaling_3?: boolean;
   time_amrap?: boolean;
 }
 
@@ -45,11 +48,13 @@ export interface ScoreEntryAthlete {
 export interface AthleteScoreValues {
   scaling_level: string;
   scaling_level_2: string;
+  scaling_level_3: string;
   track: string;
   time_result: string;
   reps_result: string;
   weight_result: string;
   weight_result_2: string;
+  weight_result_3: string;
   rounds_result: string;
   calories_result: string;
   metres_result: string;
@@ -63,11 +68,13 @@ interface ExistingResult {
   section_id: string;
   scaling_level: string | null;
   scaling_level_2: string | null;
+  scaling_level_3: string | null;
   track: number | null;
   time_result: string | null;
   reps_result: number | null;
   weight_result: number | null;
   weight_result_2: number | null;
+  weight_result_3: number | null;
   rounds_result: number | null;
   calories_result: number | null;
   metres_result: number | null;
@@ -93,11 +100,13 @@ interface WodData {
 export const emptyScoreValues: AthleteScoreValues = {
   scaling_level: '',
   scaling_level_2: '',
+  scaling_level_3: '',
   track: '',
   time_result: '',
   reps_result: '',
   weight_result: '',
   weight_result_2: '',
+  weight_result_3: '',
   rounds_result: '',
   calories_result: '',
   metres_result: '',
@@ -189,11 +198,13 @@ export function useScoreEntry(sessionId: string) {
         prefilled[key] = {
           scaling_level: result.scaling_level || '',
           scaling_level_2: result.scaling_level_2 || '',
+          scaling_level_3: result.scaling_level_3 || '',
           track: result.track != null ? String(result.track) : '',
           time_result: result.time_result || '',
           reps_result: result.reps_result != null ? String(result.reps_result) : '',
           weight_result: result.weight_result != null ? String(result.weight_result) : '',
           weight_result_2: result.weight_result_2 != null ? String(result.weight_result_2) : '',
+          weight_result_3: result.weight_result_3 != null ? String(result.weight_result_3) : '',
           rounds_result: result.rounds_result != null ? String(result.rounds_result) : '',
           calories_result: result.calories_result != null ? String(result.calories_result) : '',
           metres_result: result.metres_result != null ? String(result.metres_result) : '',
@@ -239,11 +250,13 @@ export function useScoreEntry(sessionId: string) {
               if (
                 !values.scaling_level &&
                 !values.scaling_level_2 &&
+                !values.scaling_level_3 &&
                 !values.track &&
                 !values.time_result &&
                 !values.reps_result &&
                 !values.weight_result &&
                 !values.weight_result_2 &&
+                !values.weight_result_3 &&
                 !values.rounds_result &&
                 !values.calories_result &&
                 !values.metres_result &&
@@ -258,11 +271,13 @@ export function useScoreEntry(sessionId: string) {
                 sectionId: section.id,
                 scaling_level: values.scaling_level || undefined,
                 scaling_level_2: values.scaling_level_2 || undefined,
+                scaling_level_3: values.scaling_level_3 || undefined,
                 track: values.track ? parseInt(values.track) : null,
                 time_result: values.time_result || undefined,
                 reps_result: values.reps_result ? parseInt(values.reps_result) : null,
                 weight_result: values.weight_result ? parseFloat(values.weight_result) : null,
                 weight_result_2: values.weight_result_2 ? parseFloat(values.weight_result_2) : null,
+                weight_result_3: values.weight_result_3 ? parseFloat(values.weight_result_3) : null,
                 rounds_result: values.rounds_result ? parseInt(values.rounds_result) : null,
                 calories_result: values.calories_result ? parseInt(values.calories_result) : null,
                 metres_result: values.metres_result ? parseFloat(values.metres_result) : null,

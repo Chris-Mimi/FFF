@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 106.0
-**Updated:** 2026-03-23 (Session 234 - Lift records CASCADE cleanup on WOD delete)
+**Version:** 107.0
+**Updated:** 2026-03-23 (Session 235 - Scaling 3 + Load 3 levels, redesigned toggle UI)
 
 ---
 
@@ -66,7 +66,7 @@ Athlete Tables (linked to members.id)
 ├─ workout_logs (id, user_id, wod_id, result, notes)
 ├─ benchmark_results (id, user_id, benchmark_id, forge_benchmark_id [XOR], benchmark_name, benchmark_type, result_value, scaling_level, result_date)
 ├─ lift_records (id, user_id, lift_name, weight_kg, reps, rep_max_type ['1RM'|'3RM'|'5RM'|'10RM'], rep_scheme [workout patterns], calculated_1rm, notes, lift_date)
-├─ wod_section_results (id, user_id, wod_id, section_id, workout_date, time_result, reps_result, weight_result, scaling_level, rounds_result, calories_result, metres_result, task_completed, track [SMALLINT, NULL or 1/2/3])
+├─ wod_section_results (id, user_id, wod_id, section_id, workout_date, time_result, reps_result, weight_result, weight_result_2, weight_result_3, scaling_level, scaling_level_2, scaling_level_3, rounds_result, calories_result, metres_result, task_completed, track [SMALLINT, NULL or 1/2/3])
 
 Achievement Tables
 ├─ achievement_definitions (id, name, description, category, branch, tier, created_at)
@@ -88,6 +88,12 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-23 Session 235 - Opus 4.6) — SCALING 3 + LOAD 3 LEVELS:**
+- **✅ Scaling 3 + Load 3 support** — Added `scaling_level_3` and `weight_result_3` columns to `wod_section_results`. Full support across Score Entry, Logbook, and Leaderboard.
+- **✅ Redesigned toggle UI** — Replaced checkbox toggles in WODSectionComponent with numbered box UI (1/2/3). Greyed→purple states. Clicking higher number auto-enables lower; disabling lower disables higher.
+- **✅ Fixed missing interfaces** — Added `scaling_2`, `load2` to LeaderboardView and useScoreEntry ScoringFields interfaces that were previously missing.
+- **✅ 13 files changed** — Migration, types, coach WOD builder, score entry, logbook (loading/saving/display), leaderboard sort priority.
+
 **Completed (2026-03-23 Session 234 - Opus 4.6) — LIFT RECORDS CASCADE + VALIDATION TOAST:**
 - **✅ Lift records CASCADE cleanup** — Added `wod_id` FK with `ON DELETE CASCADE` to `lift_records` table. When a WOD is deleted, auto-created lift records are now cleaned up automatically. Manually entered lift records (no `wod_id`) are unaffected.
 - **✅ Validation toast on save** — Workout modal save (tick) now shows a toast with the first validation error, visible regardless of scroll position.
@@ -105,11 +111,7 @@ Social Tables
 **Completed (2026-03-23 Session 231 - Opus 4.6) — EXERCISE GROUPS FEATURE:**
 - **✅ Exercise Groups** — Named presets of tracked exercises. Save as Group, rename, edit exercises, delete. Supabase-backed with RLS.
 
-**Completed (2026-03-23 Session 230 - Opus 4.6) — ENTER-KEY NAVIGATION + SCALING 2 SORT:**
-- **✅ Enter-key navigation** — Press Enter to jump to same field on next athlete row.
-- **✅ Scaling 2 leaderboard sort** — Ranks by Scaling 1 → Scaling 2 → Track → Score.
-
-**Older Sessions (57-229):**
+**Older Sessions (57-230):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -165,6 +167,7 @@ See `project-history/` folder for detailed implementation history
 - ✅ `20260319000000_add_track_to_section_results.sql` — Adds `track SMALLINT` column to wod_section_results with CHECK (NULL or 1/2/3) (Session 224b, applied)
 - ✅ `20260321000000_add_scaling_level_2.sql` — Adds `scaling_level_2 text` column to wod_section_results (Session 227, applied)
 - ✅ `20260323000001_add_wod_id_to_lift_records.sql` — Adds `wod_id` FK with CASCADE to lift_records for auto-cleanup on WOD delete (Session 234, applied)
+- ✅ `20260323000002_add_scaling3_load3.sql` — Adds `scaling_level_3 text` and `weight_result_3 numeric` to wod_section_results (Session 235, applied)
 
 ---
 
@@ -207,9 +210,10 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION
-1. **Test Exercise Groups end-to-end** — Create group → toggle on/off → edit exercises → delete. Verify nested display, "x" isolation, no stale exercises.
-2. **Coach library optimization** — Equipment & Body Parts lists need optimising.
-3. **April 13 reminder:** Verify Stripe trial payment processed for test athlete.
+1. **Test Scaling 3 + Load 3 end-to-end** — Toggle UI in WOD builder, score save/load with all 3 levels, leaderboard sort with S3.
+2. **Test Exercise Groups end-to-end** — Create group → toggle on/off → edit exercises → delete. Verify nested display, "x" isolation, no stale exercises.
+3. **Coach library optimization** — Equipment & Body Parts lists need optimising.
+4. **April 13 reminder:** Verify Stripe trial payment processed for test athlete.
 
 ### DEPLOYMENT (Session 158+)
 

@@ -14,11 +14,13 @@ interface AthleteScoreRowProps {
     rounds_reps?: boolean;
     load?: boolean;
     load2?: boolean;
+    load3?: boolean;
     calories?: boolean;
     metres?: boolean;
     checkbox?: boolean;
     scaling?: boolean;
     scaling_2?: boolean;
+    scaling_3?: boolean;
     track?: boolean;
     time_amrap?: boolean;
   };
@@ -75,12 +77,14 @@ export default function AthleteScoreRow({
             const updates: Partial<AthleteScoreValues> = {};
             if (scoringFields.scaling && previousValues.scaling_level) updates.scaling_level = previousValues.scaling_level;
             if (scoringFields.scaling_2 && previousValues.scaling_level_2) updates.scaling_level_2 = previousValues.scaling_level_2;
+            if (scoringFields.scaling_3 && previousValues.scaling_level_3) updates.scaling_level_3 = previousValues.scaling_level_3;
             if (scoringFields.track && previousValues.track) updates.track = previousValues.track;
             if ((scoringFields.time || scoringFields.max_time || scoringFields.time_amrap) && previousValues.time_result) updates.time_result = previousValues.time_result;
             if ((scoringFields.reps || scoringFields.rounds_reps) && previousValues.reps_result) updates.reps_result = previousValues.reps_result;
             if (scoringFields.rounds_reps && previousValues.rounds_result) updates.rounds_result = previousValues.rounds_result;
             if (scoringFields.load && previousValues.weight_result) updates.weight_result = previousValues.weight_result;
             if (scoringFields.load2 && previousValues.weight_result_2) updates.weight_result_2 = previousValues.weight_result_2;
+            if (scoringFields.load3 && previousValues.weight_result_3) updates.weight_result_3 = previousValues.weight_result_3;
             if (scoringFields.calories && previousValues.calories_result) updates.calories_result = previousValues.calories_result;
             if (scoringFields.metres && previousValues.metres_result) updates.metres_result = previousValues.metres_result;
             if (scoringFields.checkbox) updates.task_completed = previousValues.task_completed;
@@ -103,11 +107,13 @@ export default function AthleteScoreRow({
             reps_result: currentValues.reps_result,
             weight_result: currentValues.weight_result,
             weight_result_2: currentValues.weight_result_2,
+            weight_result_3: currentValues.weight_result_3,
             calories_result: currentValues.calories_result,
             metres_result: currentValues.metres_result,
             task_completed: currentValues.task_completed,
             scaling_level: currentValues.scaling_level as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '',
             scaling_level_2: currentValues.scaling_level_2 as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '',
+            scaling_level_3: currentValues.scaling_level_3 as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '',
           }}
           onChange={(updates) => onChange(athleteId, sectionId, updates as Partial<AthleteScoreValues>)}
           showLabel={false}

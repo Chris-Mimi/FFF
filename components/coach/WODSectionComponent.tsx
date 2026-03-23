@@ -272,75 +272,79 @@ function WODSectionComponent({
                     <span>Rounds+Reps</span>
                   </label>
 
-                  {/* Load */}
-                  <label className='flex items-center gap-1 text-xs cursor-pointer text-gray-900 whitespace-nowrap'>
-                    <input
-                      type='checkbox'
-                      checked={section.scoring_fields?.load ?? false}
-                      onChange={e => onUpdate({
-                        scoring_fields: {
-                          ...section.scoring_fields,
-                          load: e.target.checked,
-                          ...(!e.target.checked ? { load2: false } : {})
-                        }
-                      })}
-                      className='rounded border-gray-300'
-                    />
-                    <span>{section.scoring_fields?.load2 ? 'Load 1' : 'Load'}</span>
-                  </label>
+                  {/* Load — numbered toggle boxes */}
+                  <div className='flex items-center gap-1 text-xs text-gray-900 whitespace-nowrap'>
+                    <span>Load</span>
+                    {[1, 2, 3].map(n => {
+                      const isActive = n === 1 ? !!section.scoring_fields?.load
+                        : n === 2 ? !!section.scoring_fields?.load2
+                        : !!section.scoring_fields?.load3;
+                      return (
+                        <button
+                          key={n}
+                          type='button'
+                          onClick={() => {
+                            const sf = { ...section.scoring_fields };
+                            if (isActive) {
+                              // Turning off: also disable higher levels
+                              if (n === 1) { sf.load = false; sf.load2 = false; sf.load3 = false; }
+                              else if (n === 2) { sf.load2 = false; sf.load3 = false; }
+                              else { sf.load3 = false; }
+                            } else {
+                              // Turning on: also enable lower levels
+                              if (n === 1) { sf.load = true; }
+                              else if (n === 2) { sf.load = true; sf.load2 = true; }
+                              else { sf.load = true; sf.load2 = true; sf.load3 = true; }
+                            }
+                            onUpdate({ scoring_fields: sf });
+                          }}
+                          className={`w-5 h-5 text-[10px] font-bold rounded transition-colors ${
+                            isActive
+                              ? 'bg-purple-600 text-white'
+                              : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                          }`}
+                        >
+                          {n}
+                        </button>
+                      );
+                    })}
+                  </div>
 
-                  {/* Load 2 — only available when Load is enabled */}
-                  {section.scoring_fields?.load && (
-                    <label className='flex items-center gap-1 text-xs cursor-pointer text-gray-900 whitespace-nowrap'>
-                      <input
-                        type='checkbox'
-                        checked={section.scoring_fields?.load2 ?? false}
-                        onChange={e => onUpdate({
-                          scoring_fields: {
-                            ...section.scoring_fields,
-                            load2: e.target.checked
-                          }
-                        })}
-                        className='rounded border-gray-300'
-                      />
-                      <span>Load 2</span>
-                    </label>
-                  )}
-
-                  {/* Scaling */}
-                  <label className='flex items-center gap-1 text-xs cursor-pointer text-gray-900 whitespace-nowrap'>
-                    <input
-                      type='checkbox'
-                      checked={section.scoring_fields?.scaling ?? false}
-                      onChange={e => onUpdate({
-                        scoring_fields: {
-                          ...section.scoring_fields,
-                          scaling: e.target.checked,
-                          ...(!e.target.checked ? { scaling_2: false } : {})
-                        }
-                      })}
-                      className='rounded border-gray-300'
-                    />
-                    <span>{section.scoring_fields?.scaling_2 ? 'Scaling 1' : 'Scaling'}</span>
-                  </label>
-
-                  {/* Scaling 2 — only available when Scaling is enabled */}
-                  {section.scoring_fields?.scaling && (
-                    <label className='flex items-center gap-1 text-xs cursor-pointer text-gray-900 whitespace-nowrap'>
-                      <input
-                        type='checkbox'
-                        checked={section.scoring_fields?.scaling_2 ?? false}
-                        onChange={e => onUpdate({
-                          scoring_fields: {
-                            ...section.scoring_fields,
-                            scaling_2: e.target.checked
-                          }
-                        })}
-                        className='rounded border-gray-300'
-                      />
-                      <span>Scaling 2</span>
-                    </label>
-                  )}
+                  {/* Scaling — numbered toggle boxes */}
+                  <div className='flex items-center gap-1 text-xs text-gray-900 whitespace-nowrap'>
+                    <span>Scaling</span>
+                    {[1, 2, 3].map(n => {
+                      const isActive = n === 1 ? !!section.scoring_fields?.scaling
+                        : n === 2 ? !!section.scoring_fields?.scaling_2
+                        : !!section.scoring_fields?.scaling_3;
+                      return (
+                        <button
+                          key={n}
+                          type='button'
+                          onClick={() => {
+                            const sf = { ...section.scoring_fields };
+                            if (isActive) {
+                              if (n === 1) { sf.scaling = false; sf.scaling_2 = false; sf.scaling_3 = false; }
+                              else if (n === 2) { sf.scaling_2 = false; sf.scaling_3 = false; }
+                              else { sf.scaling_3 = false; }
+                            } else {
+                              if (n === 1) { sf.scaling = true; }
+                              else if (n === 2) { sf.scaling = true; sf.scaling_2 = true; }
+                              else { sf.scaling = true; sf.scaling_2 = true; sf.scaling_3 = true; }
+                            }
+                            onUpdate({ scoring_fields: sf });
+                          }}
+                          className={`w-5 h-5 text-[10px] font-bold rounded transition-colors ${
+                            isActive
+                              ? 'bg-purple-600 text-white'
+                              : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                          }`}
+                        >
+                          {n}
+                        </button>
+                      );
+                    })}
+                  </div>
 
                   {/* Calories */}
                   <label className='flex items-center gap-1 text-xs cursor-pointer text-gray-900 whitespace-nowrap'>

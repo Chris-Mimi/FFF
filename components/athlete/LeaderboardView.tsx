@@ -25,11 +25,15 @@ interface ScoringFields {
   max_time?: boolean;
   reps?: boolean;
   load?: boolean;
+  load2?: boolean;
+  load3?: boolean;
   rounds_reps?: boolean;
   calories?: boolean;
   metres?: boolean;
   checkbox?: boolean;
   scaling?: boolean;
+  scaling_2?: boolean;
+  scaling_3?: boolean;
   time_amrap?: boolean;
 }
 
@@ -585,7 +589,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
 
         const { data: results } = await supabase
           .from('wod_section_results')
-          .select('id, user_id, whiteboard_name, time_result, reps_result, weight_result, weight_result_2, rounds_result, calories_result, metres_result, scaling_level, scaling_level_2, track, task_completed, workout_date')
+          .select('id, user_id, whiteboard_name, time_result, reps_result, weight_result, weight_result_2, weight_result_3, rounds_result, calories_result, metres_result, scaling_level, scaling_level_2, scaling_level_3, track, task_completed, workout_date')
           .in('wod_id', contentWodIds)
           .in('section_id', contentSectionIds);
 

@@ -7,11 +7,13 @@ export interface LeaderboardEntry {
   repsResult?: number;
   weightResult?: number;
   weightResult2?: number;
+  weightResult3?: number;
   roundsResult?: number;
   caloriesResult?: number;
   metresResult?: number;
   scalingLevel?: string;
   scalingLevel2?: string;
+  scalingLevel3?: string;
   track?: number;
   taskCompleted?: boolean;
   resultDate?: string;
@@ -60,11 +62,13 @@ export interface RawSectionResult {
   reps_result?: number | null;
   weight_result?: number | null;
   weight_result_2?: number | null;
+  weight_result_3?: number | null;
   rounds_result?: number | null;
   calories_result?: number | null;
   metres_result?: number | null;
   scaling_level?: string | null;
   scaling_level_2?: string | null;
+  scaling_level_3?: string | null;
   track?: number | null;
   task_completed?: boolean | null;
   workout_date?: string | null;
@@ -283,7 +287,7 @@ export function rankSectionResults(
     }
   });
 
-  // Sort: Scaling 1 > Scaling 2 > Track > Scoring type
+  // Sort: Scaling 1 > Scaling 2 > Scaling 3 > Track > Scoring type
   const scalingOrder: Record<string, number> = { 'Rx': 0, 'Sc1': 1, 'Sc2': 2, 'Sc3': 3 };
   const sorted = [...valid].sort((a, b) => {
     const aScale = scalingOrder[a.scaling_level || ''] ?? 4;
@@ -293,6 +297,10 @@ export function rankSectionResults(
     const aScale2 = scalingOrder[a.scaling_level_2 || ''] ?? 4;
     const bScale2 = scalingOrder[b.scaling_level_2 || ''] ?? 4;
     if (aScale2 !== bScale2) return aScale2 - bScale2;
+    // Scaling 3: Rx > Sc1 > Sc2 > Sc3 > unset
+    const aScale3 = scalingOrder[a.scaling_level_3 || ''] ?? 4;
+    const bScale3 = scalingOrder[b.scaling_level_3 || ''] ?? 4;
+    if (aScale3 !== bScale3) return aScale3 - bScale3;
     // Track: 1 < 2 < 3 < null (lower track = higher rank)
     const aTrack = a.track ?? 4;
     const bTrack = b.track ?? 4;
@@ -310,11 +318,13 @@ export function rankSectionResults(
     repsResult: r.reps_result || undefined,
     weightResult: r.weight_result || undefined,
     weightResult2: r.weight_result_2 || undefined,
+    weightResult3: r.weight_result_3 || undefined,
     roundsResult: r.rounds_result || undefined,
     caloriesResult: r.calories_result || undefined,
     metresResult: r.metres_result || undefined,
     scalingLevel: r.scaling_level || undefined,
     scalingLevel2: r.scaling_level_2 || undefined,
+    scalingLevel3: r.scaling_level_3 || undefined,
     track: r.track || undefined,
     taskCompleted: r.task_completed ?? undefined,
     gender: memberGenders?.[r.user_id] ?? getWhiteboardGender(r.whiteboard_name) ?? undefined,
