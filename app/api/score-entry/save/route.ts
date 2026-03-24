@@ -59,6 +59,12 @@ interface RmTestLift {
   rmTest: string; // '1RM' | '3RM' | '5RM' | '10RM'
 }
 
+interface NonRmLift {
+  liftName: string;
+  repScheme: string; // e.g. '5x5', '5-3-1'
+  reps: number;      // per-set reps (first set for variable)
+}
+
 const RM_TYPE_TO_REPS: Record<string, number> = { '1RM': 1, '3RM': 3, '5RM': 5, '10RM': 10 };
 
 function calculateEpley1RM(weight: number, reps: number): number | null {
@@ -90,11 +96,12 @@ export async function POST(request: NextRequest) {
     if (isAuthError(user)) return user;
 
     const body = await request.json();
-    const { wodId, workoutDate, scores, rmTestLifts, deletions } = body as {
+    const { wodId, workoutDate, scores, rmTestLifts, nonRmLifts, deletions } = body as {
       wodId: string;
       workoutDate: string;
       scores: ScoreEntry[];
       rmTestLifts?: Record<string, RmTestLift>;
+      nonRmLifts?: Record<string, NonRmLift>;
       deletions?: { memberId?: string; whiteboardName?: string; sectionId: string }[];
     };
 
@@ -394,7 +401,63 @@ export async function POST(request: NextRequest) {
           liftsSaved++;
         }
         if (liftsSaved > 0) {
-          console.log(`Auto-saved ${liftsSaved} lift record(s) from score entry`);
+          console.log(`Auto-saved ${liftsSaved} RM lift record(s) from score entry`);
+        }
+      }
+
+      // Auto-save lift_records for non-RM lift sections (e.g. 5x5 Snatch)
+      if (nonRmLifts && Object.keys(nonRmLifts).length > 0) {
+        let nonRmSaved = 0;
+        for (const score of scores) {
+          const nonRmLift = nonRmLifts[score.sectionId];
+          if (!nonRmLift || score.weight_result == null) continue;
+
+          // Resolve user_id for this score
+          let userId: string | null = null;
+          if (score.memberId) {
+            const memberEmail = memberIdToEmail[score.memberId];
+            userId = memberEmail ? emailToUserId[memberEmail] || null : null;
+          }
+          // Whiteboard-only athletes can't have lift_records (no user account)
+          if (!userId) continue;
+
+          const weight = score.weight_result;
+          const reps = nonRmLift.reps;
+          const calculated1rm = calculateEpley1RM(weight, reps);
+
+          // Upsert: check for existing record (same user, lift, rep_scheme, date)
+          const { data: existingLift } = await supabaseAdmin
+            .from('lift_records')
+            .select('id, weight_kg')
+            .eq('user_id', userId)
+            .eq('lift_name', nonRmLift.liftName)
+            .eq('rep_scheme', nonRmLift.repScheme)
+            .eq('lift_date', workoutDate)
+            .maybeSingle();
+
+          if (existingLift) {
+            await supabaseAdmin
+              .from('lift_records')
+              .update({ weight_kg: weight, reps, calculated_1rm: calculated1rm, wod_id: wodId })
+              .eq('id', existingLift.id);
+          } else {
+            await supabaseAdmin
+              .from('lift_records')
+              .insert({
+                user_id: userId,
+                lift_name: nonRmLift.liftName,
+                weight_kg: weight,
+                reps,
+                rep_scheme: nonRmLift.repScheme,
+                calculated_1rm: calculated1rm,
+                lift_date: workoutDate,
+                wod_id: wodId,
+              });
+          }
+          nonRmSaved++;
+        }
+        if (nonRmSaved > 0) {
+          console.log(`Auto-saved ${nonRmSaved} non-RM lift record(s) from score entry`);
         }
       }
     }
@@ -452,6 +515,21 @@ export async function POST(request: NextRequest) {
               .eq('user_id', existing.user_id)
               .eq('lift_name', rmLift.liftName)
               .eq('rep_max_type', rmLift.rmTest)
+              .eq('lift_date', workoutDate)
+              .eq('wod_id', wodId);
+          }
+        }
+
+        // Delete associated lift_records if this was a non-RM lift section
+        if (existing.user_id && nonRmLifts) {
+          const nonRmLift = nonRmLifts[del.sectionId];
+          if (nonRmLift) {
+            await supabaseAdmin
+              .from('lift_records')
+              .delete()
+              .eq('user_id', existing.user_id)
+              .eq('lift_name', nonRmLift.liftName)
+              .eq('rep_scheme', nonRmLift.repScheme)
               .eq('lift_date', workoutDate)
               .eq('wod_id', wodId);
           }

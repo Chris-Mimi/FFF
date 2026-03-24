@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 108.0
-**Updated:** 2026-03-24 (Session 236 - Whiteboard lift leaderboard fix, scoring UI redesign)
+**Version:** 111.0
+**Updated:** 2026-03-24 (Session 239 - Leaderboard sibling WOD sync fix)
 
 ---
 
@@ -87,6 +87,18 @@ Social Tables
 ---
 
 ## 📍 Current Status (Last 5 Sessions)
+
+**In Progress (2026-03-24 Session 239 - Opus 4.6) — LEADERBOARD SIBLING WOD SYNC:**
+- **⚠️ "Almost correct" per Chris — needs testing.** Root cause identified: independent WOD copies (different class times) diverge when coach edits one. Leaderboard dedup picked wrong copy.
+- **Fix 1:** `useWODOperations.ts` — On WOD save, syncs `sections`/`coach_notes`/`workout_name` to all sibling WODs (same `session_type` + `date`)
+- **Fix 2:** `LeaderboardView.tsx` — Dedup now picks WOD with most leaderboard items (not arbitrary first). Tracks all sibling WOD IDs. Content + lift whiteboard queries now include all sibling IDs.
+- **Previous Session 238 changes still in tree:** Non-RM lift Score Entry (`useScoreEntry.ts`, `route.ts`), Logbook `.or()` query (`loadingLogic.ts`)
+- **Still uninvestigated from 238:** RLS policies on `.or()` query; Logbook section key format (`:::lift-0` vs `:::content-0`); dev server hot reload for API routes
+
+**Completed (2026-03-24 Session 237 - Opus 4.6) — SCORE DELETION + NON-RM LIFT SCORING:**
+- **✅ Score deletion cleanup** — Score Entry detects cleared scores by comparing current to existingResults (matches by member_id, user_id, or whiteboard_name). API deletes wod_section_results + associated lift_records with user_id fallback.
+- **✅ Non-RM lift leaderboard** — Removed non-RM lifts from lift leaderboard; content-scoring path now used for sections with non-RM lifts (label shows lift name + rep scheme).
+- **✅ Score Entry display** — Section preview and grid header show lift name + rep scheme for non-RM lifts.
 
 **Completed (2026-03-24 Session 236 - Opus 4.6) — WHITEBOARD LIFT LEADERBOARD + SCORING UI REDESIGN:**
 - **✅ Whiteboard athletes on lift leaderboard** — Lift leaderboard now includes whiteboard-only (unregistered) athletes by supplementing `lift_records` query with `wod_section_results` data. Temporary measure until athlete registration + account-linking script.
@@ -206,11 +218,14 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION
-1. **Test whiteboard athletes on lift leaderboard** — Create a WOD with RM test lift, enter scores for whiteboard athletes via Score Entry, verify they appear on leaderboard alongside registered athletes.
-2. **Test scoring toggle UI** — Verify all teal toggle buttons work correctly in WOD builder (Time, Reps, Load 1/2/3, Scaling 1/2/3, Cal, m, Task, Trk).
-3. **Account-linking script** — Plan script to migrate whiteboard_name entries to user_id when athletes register (backfill lift_records, benchmark_results).
-4. **Coach library optimization** — Equipment & Body Parts lists need optimising.
-5. **April 13 reminder:** Verify Stripe trial payment processed for test athlete.
+1. **Test leaderboard sibling WOD sync fix** — Chris said "almost correct" re: Session 239 changes. Verify: edit original workout (add section/Snatch 5x5), save, check athlete leaderboard for new chip + scores. May need dev server restart.
+2. **Continue debugging non-RM lift Logbook visibility** — Still uninvestigated:
+   - RLS policies on `wod_section_results` for `member_id` access (`.or()` query may be blocked)
+   - Logbook section key format: `:::lift-0` vs `:::content-0` — `loadLiftResultsToSection` populates `:::lift-0` from `lift_records`
+   - Confirm API route changes are running (may need dev server restart)
+2. **Account-linking script** — Plan script to migrate whiteboard_name entries to user_id when athletes register.
+3. **Coach library optimization** — Equipment & Body Parts lists need optimising.
+4. **April 13 reminder:** Verify Stripe trial payment processed for test athlete.
 
 ### DEPLOYMENT (Session 158+)
 

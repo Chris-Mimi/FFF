@@ -49,6 +49,21 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
 
         if (error) throw error;
 
+        // Sync sections to sibling WOD copies (same session_type + date, different class times)
+        const sessionType = wodData.session_type || wodData.title;
+        const syncUpdate: Record<string, unknown> = {
+          sections: wodData.sections,
+          coach_notes: wodData.coach_notes || null,
+          workout_name: wodData.workout_name || null,
+          updated_at: new Date().toISOString(),
+        };
+        await supabase
+          .from('wods')
+          .update(syncUpdate)
+          .eq('session_type', sessionType)
+          .eq('date', dateKey)
+          .neq('id', editingWOD.id);
+
         await supabase
           .from('weekly_sessions')
           .update({ capacity: wodData.maxCapacity })

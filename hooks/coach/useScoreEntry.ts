@@ -37,6 +37,18 @@ function getRmTestLift(section: WodSection): { name: string; rmTest: string } | 
   return { name: rmLift.name, rmTest: rmLift.rm_test! };
 }
 
+/** Returns the first non-RM lift in a section, or null */
+function getNonRmLift(section: WodSection): { name: string; repScheme: string; reps: number } | null {
+  if (!section.lifts) return null;
+  const lift = section.lifts.find(l => !l.rm_test && l.name);
+  if (!lift) return null;
+  const repScheme = lift.rep_type === 'constant'
+    ? `${lift.sets || 1}x${lift.reps || 1}`
+    : lift.variable_sets?.map(s => s.reps).join('-') || '1';
+  const reps = lift.rep_type === 'constant' ? (lift.reps || 1) : (lift.variable_sets?.[0]?.reps || 1);
+  return { name: lift.name, repScheme, reps };
+}
+
 export interface ScoreEntryAthlete {
   id: string; // memberId for booked athletes, `wb:${name}` for whiteboard-only
   memberId: string | null;
@@ -337,10 +349,16 @@ export function useScoreEntry(sessionId: string) {
 
       // Build rm_test lift map for auto-creating lift_records
       const rmTestLifts: Record<string, { liftName: string; rmTest: string }> = {};
+      const nonRmLifts: Record<string, { liftName: string; repScheme: string; reps: number }> = {};
       for (const section of scorableSections) {
         const rmLift = getRmTestLift(section);
         if (rmLift) {
           rmTestLifts[section.id] = { liftName: rmLift.name, rmTest: rmLift.rmTest };
+        } else {
+          const nonRm = getNonRmLift(section);
+          if (nonRm) {
+            nonRmLifts[section.id] = { liftName: nonRm.name, repScheme: nonRm.repScheme, reps: nonRm.reps };
+          }
         }
       }
 
@@ -351,6 +369,7 @@ export function useScoreEntry(sessionId: string) {
           workoutDate: session.date,
           scores: scoreEntries,
           rmTestLifts: Object.keys(rmTestLifts).length > 0 ? rmTestLifts : undefined,
+          nonRmLifts: Object.keys(nonRmLifts).length > 0 ? nonRmLifts : undefined,
           deletions: deletions.length > 0 ? deletions : undefined,
         }),
       });

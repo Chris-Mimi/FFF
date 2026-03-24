@@ -24,10 +24,11 @@ export async function loadSectionResults(
   workoutDate: string
 ): Promise<Record<string, SectionResult>> {
   try {
+    // Query by user_id OR member_id (coach-entered scores may have member_id = auth user id)
     const { data, error } = await supabase
       .from('wod_section_results')
       .select('section_id, wod_id, time_result, reps_result, weight_result, weight_result_2, weight_result_3, scaling_level, scaling_level_2, scaling_level_3, rounds_result, calories_result, metres_result, task_completed')
-      .eq('user_id', userId)
+      .or(`user_id.eq.${userId},member_id.eq.${userId}`)
       .eq('workout_date', workoutDate);
 
     if (error) {

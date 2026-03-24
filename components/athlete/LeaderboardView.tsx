@@ -360,6 +360,7 @@ function WodDropdown({ wods, selectedWodId, workoutTypesMap, onSelect }: {
 function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string; initialDate?: Date; onDateChange?: (date: Date) => void }) {
   const [weekMonday, setWeekMonday] = useState(() => getMonday(initialDate || new Date()));
   const [wods, setWods] = useState<WodData[]>([]);
+  const [siblingWodIds, setSiblingWodIds] = useState<Record<string, string[]>>({}); // representative WOD ID → all sibling IDs
   const [selectedWodId, setSelectedWodId] = useState<string | null>(null);
   const [leaderboardItems, setLeaderboardItems] = useState<LeaderboardItem[]>([]);
   const [selectedItemIdx, setSelectedItemIdx] = useState<number>(0);
@@ -415,15 +416,29 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
       .order('date', { ascending: true });
 
     // Deduplicate WODs with same session_type + workout_name (e.g., same workout at 17:15 and 18:30)
-    // Then filter out stale WODs that have no scoreable items (orphaned after rename/republish)
+    // Keep the copy with most leaderboard items (most recently edited) and track all sibling IDs
     const allWods = (data || []) as WodData[];
-    const seen = new Set<string>();
-    const wodList = allWods.filter(w => {
+    const groups = new Map<string, { best: WodData; bestCount: number; allIds: string[] }>();
+    for (const w of allWods) {
       const key = `${w.session_type || w.title}|${w.workout_name || ''}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    }).filter(w => extractLeaderboardItems(w).length > 0);
+      const count = extractLeaderboardItems(w).length;
+      const existing = groups.get(key);
+      if (!existing) {
+        groups.set(key, { best: w, bestCount: count, allIds: [w.id] });
+      } else {
+        existing.allIds.push(w.id);
+        if (count > existing.bestCount) {
+          existing.best = w;
+          existing.bestCount = count;
+        }
+      }
+    }
+    const wodList = [...groups.values()].filter(g => g.bestCount > 0).map(g => g.best);
+    const siblings: Record<string, string[]> = {};
+    for (const g of groups.values()) {
+      siblings[g.best.id] = g.allIds;
+    }
+    setSiblingWodIds(siblings);
     setWods(wodList);
 
     if (wodList.length > 0) {
@@ -547,7 +562,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
         } else {
           const sections = (selectedWod.sections || []) as WodSection[];
           const sec = sections[selectedItem.sectionIndex];
-          if (sec) { liftSectionIds.push(`${sec.id}-content-0`); liftWodIds.push(selectedWodId); }
+          if (sec) { liftSectionIds.push(`${sec.id}-content-0`); liftWodIds.push(...(siblingWodIds[selectedWodId] || [selectedWodId])); }
         }
 
         let whiteboardLiftEntries: LeaderboardEntry[] = [];
@@ -624,7 +639,8 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
       if (selectedItem.type === 'content') {
         // Build content section IDs across grouped WODs
         let contentSectionIds = [selectedItem.contentSectionId!];
-        let contentWodIds = [selectedWodId];
+        // Include sibling WOD IDs (same workout at different class times) so scores from any copy are found
+        let contentWodIds = siblingWodIds[selectedWodId] || [selectedWodId];
 
         if (isGrouped && groupedWods) {
           contentSectionIds = groupedWods.map(w => {
@@ -669,7 +685,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
     } finally {
       setLoading(false);
     }
-  }, [selectedWodId, selectedItemIdx, scalingFilter, wods, computeGrouping, fetchReactions, selectedItem]);
+  }, [selectedWodId, selectedItemIdx, scalingFilter, wods, siblingWodIds, computeGrouping, fetchReactions, selectedItem]);
 
   useEffect(() => { loadResults(); }, [loadResults]);
 
