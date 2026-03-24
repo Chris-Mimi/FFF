@@ -513,11 +513,7 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
             <div
               key={index}
               onClick={() => {
-                if (workout.hasCoachScores) {
-                  setExpandedWorkoutId(prev => prev === workout.id ? null : workout.id);
-                } else {
-                  onNavigateToLogbook?.(date);
-                }
+                onNavigateToLogbook?.(date);
               }}
               className={`bg-white rounded-lg shadow-md overflow-hidden ${
                 isToday ? 'ring-4 ring-[#7dd3c0]' : 'border border-gray-400'

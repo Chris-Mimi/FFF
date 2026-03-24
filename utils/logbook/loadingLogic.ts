@@ -18,35 +18,46 @@ interface SectionResult {
 
 /**
  * Load section results for WOD sections from database
+ * Returns results AND a set of "wodId:::sectionId" keys where the coach entered the score
  */
 export async function loadSectionResults(
   userId: string,
   workoutDate: string
-): Promise<Record<string, SectionResult>> {
+): Promise<{ results: Record<string, SectionResult>; coachLockedSections: Set<string> }> {
   try {
     // Query by user_id OR member_id (coach-entered scores may have member_id = auth user id)
     const { data, error } = await supabase
       .from('wod_section_results')
-      .select('section_id, wod_id, time_result, reps_result, weight_result, weight_result_2, weight_result_3, scaling_level, scaling_level_2, scaling_level_3, rounds_result, calories_result, metres_result, task_completed')
+      .select('section_id, wod_id, member_id, time_result, reps_result, weight_result, weight_result_2, weight_result_3, scaling_level, scaling_level_2, scaling_level_3, rounds_result, calories_result, metres_result, task_completed')
       .or(`user_id.eq.${userId},member_id.eq.${userId}`)
       .eq('workout_date', workoutDate);
 
     if (error) {
       console.error('Error loading section results:', error);
-      return {};
+      return { results: {}, coachLockedSections: new Set() };
     }
 
     if (data) {
       const newSectionResults: Record<string, SectionResult> = {};
+      const coachLockedSections = new Set<string>();
+
       data.forEach(result => {
         // Handle content items that have format: sectionId-content-N
         // Need to convert to triple-colon format: wodId:::sectionId:::content-N
         let key: string;
+        let baseSectionId: string;
         if (result.section_id.includes('-content-')) {
           const parts = result.section_id.split('-content-');
           key = `${result.wod_id}:::${parts[0]}:::content-${parts[1]}`;
+          baseSectionId = parts[0];
         } else {
           key = `${result.wod_id}:::${result.section_id}`;
+          baseSectionId = result.section_id;
+        }
+
+        // Track coach-entered scores (member_id is set when coach enters via score-entry)
+        if (result.member_id) {
+          coachLockedSections.add(`${result.wod_id}:::${baseSectionId}`);
         }
 
         newSectionResults[key] = {
@@ -64,12 +75,12 @@ export async function loadSectionResults(
           task_completed: result.task_completed || false,
         };
       });
-      return newSectionResults;
+      return { results: newSectionResults, coachLockedSections };
     }
   } catch (error) {
     console.error('Error loading section results:', error);
   }
-  return {};
+  return { results: {}, coachLockedSections: new Set() };
 }
 
 /**

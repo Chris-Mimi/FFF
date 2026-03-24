@@ -46,6 +46,7 @@ interface ScoringFieldInputsProps {
   variant?: 'default' | 'lift' | 'benchmark' | 'forge';
   showLabel?: boolean;
   athleteIndex?: number;
+  disabled?: boolean;
 }
 
 export default function ScoringFieldInputs({
@@ -55,6 +56,7 @@ export default function ScoringFieldInputs({
   variant = 'default',
   showLabel = true,
   athleteIndex,
+  disabled = false,
 }: ScoringFieldInputsProps) {
   // Detect "Time + AMRAP" scenario: both time and reps/rounds shown simultaneously
   const isTimeAmrap = !!scoringFields.time_amrap && !!scoringFields.time && (!!scoringFields.reps || !!scoringFields.rounds_reps);
@@ -141,7 +143,7 @@ export default function ScoringFieldInputs({
   const showCapFields = isTimeAmrap ? true : isForTimeWithCap ? forTimeMode === 'cap' : false;
 
   return (
-    <div className='flex items-center gap-2 ml-auto flex-wrap'>
+    <div className={`flex items-center gap-2 ml-auto flex-wrap ${disabled ? 'opacity-60 pointer-events-none' : ''}`}>
       {showLabel && (
         <span className='text-xs font-medium text-gray-600'>Result:</span>
       )}

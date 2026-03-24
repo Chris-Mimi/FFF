@@ -1,7 +1,7 @@
 'use client';
 
 import { supabase } from '@/lib/supabase';
-import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
+import { Fragment, useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { ChevronLeft, ChevronRight, Trophy, ChevronDown } from 'lucide-react';
 import FistBumpButton from './FistBumpButton';
 import ShareButton from './ShareButton';
@@ -797,31 +797,43 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
               if (!sectionOrder.includes(i.sectionIndex)) sectionOrder.push(i.sectionIndex);
             });
 
-            let lastPartNum = -1;
+            // Group items by part number
+            const groups: { partNum: number; items: { item: typeof leaderboardItems[0]; globalIdx: number }[] }[] = [];
+            leaderboardItems.forEach((item, idx) => {
+              const partNum = sectionOrder.indexOf(item.sectionIndex) + 1;
+              let group = groups.find(g => g.partNum === partNum);
+              if (!group) {
+                group = { partNum, items: [] };
+                groups.push(group);
+              }
+              group.items.push({ item, globalIdx: idx });
+            });
+
             return (
               <div className='flex gap-2 flex-wrap items-center'>
-                {leaderboardItems.map((item, idx) => {
-                  const partNum = sectionOrder.indexOf(item.sectionIndex) + 1;
-                  const showPartLabel = isMultiPart && partNum !== lastPartNum;
-                  lastPartNum = partNum;
-                  return (
-                    <span key={`${item.type}-${idx}`} className='inline-flex items-center gap-1'>
-                      {showPartLabel && (
-                        <span className='text-[10px] text-gray-400 font-medium mr-0.5'>WOD pt.{partNum}</span>
-                      )}
+                {groups.map((group, gi) => (
+                  <Fragment key={group.partNum}>
+                    {isMultiPart && gi > 0 && (
+                      <span className='w-px h-5 bg-gray-300 mx-0.5' />
+                    )}
+                    {isMultiPart && (
+                      <span className='text-[11px] font-semibold text-white'>Pt.{group.partNum}</span>
+                    )}
+                    {group.items.map(({ item, globalIdx }) => (
                       <button
-                        onClick={() => setSelectedItemIdx(idx)}
+                        key={`${item.type}-${globalIdx}`}
+                        onClick={() => setSelectedItemIdx(globalIdx)}
                         className={`px-3 py-1.5 rounded-full text-xs font-medium transition ${
-                          selectedItemIdx === idx
+                          selectedItemIdx === globalIdx
                             ? 'bg-[#178da6] text-white'
                             : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                         }`}
                       >
                         {item.label}
                       </button>
-                    </span>
-                  );
-                })}
+                    ))}
+                  </Fragment>
+                ))}
               </div>
             );
           })()}

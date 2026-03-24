@@ -72,6 +72,9 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
     setShowPhotoModal,
   } = state;
 
+  // Track which sections have coach-entered scores (wodId:::sectionId)
+  const [coachLockedSections, setCoachLockedSections] = useState<Set<string>>(new Set());
+
   // Best 1RM per lift for auto percentage calculator
   const best1RMMap = useAthleteLiftPRs(userId);
 
@@ -115,7 +118,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
 
   // Wrapper functions that use utilities and update state
   const loadSectionResultsWrapper = async (workoutDate: string) => {
-    const newResults = await loadSectionResults(userId, workoutDate);
+    const { results: newResults, coachLockedSections: locked } = await loadSectionResults(userId, workoutDate);
     // Only keep results for WODs the user is actually booked into (prevents stray records from polluting state)
     const bookedWodIds = new Set(workouts.map(w => w.id));
     const filteredResults: Record<string, SectionResult> = {};
@@ -129,6 +132,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
       const updated = { ...prev, ...filteredResults };
       return updated;
     });
+    setCoachLockedSections(locked);
   };
 
   const saveSectionResultWrapper = async (wodId: string, sectionId: string, result: SectionResult, workoutDate: string) => {
@@ -413,7 +417,9 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                     <>
                       {/* Workout Sections */}
                       <div className='space-y-3 mb-4'>
-                    {getPublishedSections(wod).map(section => (
+                    {getPublishedSections(wod).map(section => {
+                      const sectionLocked = coachLockedSections.has(`${wod.id}:::${section.id}`);
+                      return (
                       <div key={section.id} className='bg-gray-50 rounded-lg p-3'>
                         <div className='flex items-center gap-3 flex-wrap mb-2'>
                           <span className='text-sm font-medium text-[#178da6] uppercase'>
@@ -421,6 +427,11 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                           </span>
                           {Number(section.duration) > 0 && (
                             <span className='text-sm text-gray-500'>{section.duration} min</span>
+                          )}
+                          {sectionLocked && (
+                            <span className='text-xs text-amber-600 font-medium bg-amber-50 px-2 py-0.5 rounded'>
+                              Scored by coach
+                            </span>
                           )}
 
                           {/* Inline Scoring Inputs for free-form content sections */}
@@ -451,6 +462,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                                   })
                                 }
                                 variant='default'
+                                disabled={sectionLocked}
                               />
                             );
                           })()}
@@ -512,6 +524,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                                       }
                                       variant='lift'
                                       showLabel={false}
+                                      disabled={sectionLocked}
                                     />
                                   </div>
                                 </div>
@@ -554,6 +567,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                                       }
                                       variant='benchmark'
                                       showLabel={false}
+                                      disabled={sectionLocked}
                                     />
                                   </div>
                                 </div>
@@ -596,6 +610,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                                       }
                                       variant='forge'
                                       showLabel={false}
+                                      disabled={sectionLocked}
                                     />
                                   </div>
                                 </div>
@@ -643,7 +658,8 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                           );
                         })()}
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
 
                   {/* Workout Notes Section */}
