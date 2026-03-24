@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 111.0
-**Updated:** 2026-03-24 (Session 239 - Leaderboard sibling WOD sync fix)
+**Version:** 112.0
+**Updated:** 2026-03-24 (Session 240 - Revert sibling sync + Logbook investigation)
 
 ---
 
@@ -88,38 +88,30 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
-**In Progress (2026-03-24 Session 239 - Opus 4.6) — LEADERBOARD SIBLING WOD SYNC:**
-- **⚠️ "Almost correct" per Chris — needs testing.** Root cause identified: independent WOD copies (different class times) diverge when coach edits one. Leaderboard dedup picked wrong copy.
-- **Fix 1:** `useWODOperations.ts` — On WOD save, syncs `sections`/`coach_notes`/`workout_name` to all sibling WODs (same `session_type` + `date`)
-- **Fix 2:** `LeaderboardView.tsx` — Dedup now picks WOD with most leaderboard items (not arbitrary first). Tracks all sibling WOD IDs. Content + lift whiteboard queries now include all sibling IDs.
-- **Previous Session 238 changes still in tree:** Non-RM lift Score Entry (`useScoreEntry.ts`, `route.ts`), Logbook `.or()` query (`loadingLogic.ts`)
-- **Still uninvestigated from 238:** RLS policies on `.or()` query; Logbook section key format (`:::lift-0` vs `:::content-0`); dev server hot reload for API routes
+**Completed (2026-03-24 Session 240 - Opus 4.6) — REVERT SIBLING SYNC + LOGBOOK INVESTIGATION:**
+- **⚠️ REVERTED Session 239 sibling WOD sync** — The sync in `useWODOperations.ts` matched by `session_type + date`, which overwrote ALL WODs of the same type on a date (e.g., 10:00, 11:00, 17:15, 18:30 all overwritten when one was saved). **Sync code removed entirely.** Data restored from 2026-03-23 backup (wods table only).
+- **✅ Leaderboard dedup fix (Session 239) retained** — `LeaderboardView.tsx` still picks WOD with most leaderboard items and queries all sibling WOD IDs. This part is safe.
+- **✅ Non-RM lift Logbook investigation** — Full data flow traced. Findings:
+  - Coach-entered non-RM lift scores → visible in logbook (via `lift_records` → `:::lift-0` key) ✅
+  - RLS on `.or()` query is NOT an issue — `user_id` is set correctly on coach-entered records
+  - Rep scheme format is identical between save (`useScoreEntry.ts`) and load (`loadingLogic.ts`)
+  - **Bug found:** Athlete self-entered lift scores save to `lift_records` only, NOT `wod_section_results` → won't appear on leaderboard
+  - **Bug found:** Coach-entered scoring fields (time, reps, rounds) for non-RM lifts stored in `:::content-0` key but lift section UI only reads `:::lift-0` — extra fields invisible
+- **Cleanup:** Old backups pruned (71MB → 17MB). Single-table restore script added.
 
 **Completed (2026-03-24 Session 237 - Opus 4.6) — SCORE DELETION + NON-RM LIFT SCORING:**
-- **✅ Score deletion cleanup** — Score Entry detects cleared scores by comparing current to existingResults (matches by member_id, user_id, or whiteboard_name). API deletes wod_section_results + associated lift_records with user_id fallback.
-- **✅ Non-RM lift leaderboard** — Removed non-RM lifts from lift leaderboard; content-scoring path now used for sections with non-RM lifts (label shows lift name + rep scheme).
-- **✅ Score Entry display** — Section preview and grid header show lift name + rep scheme for non-RM lifts.
+- **✅ Score deletion cleanup, non-RM lift leaderboard, Score Entry display**
 
 **Completed (2026-03-24 Session 236 - Opus 4.6) — WHITEBOARD LIFT LEADERBOARD + SCORING UI REDESIGN:**
-- **✅ Whiteboard athletes on lift leaderboard** — Lift leaderboard now includes whiteboard-only (unregistered) athletes by supplementing `lift_records` query with `wod_section_results` data. Temporary measure until athlete registration + account-linking script.
-- **✅ Scoring toggle UI redesign** — All scoring fields in WOD builder (Time, Max Time, Reps, Rds+Reps, Cal, m, Task, Trk) converted from native checkboxes to uniform teal toggle buttons (`bg-teal-600`). Consistent style with Load 1/2/3 and Scaling 1/2/3 numbered boxes.
-- **✅ Code review** — Verified Scaling 3 + Load 3 end-to-end data flow across all layers (toggle UI → score entry → save API → logbook load/save → leaderboard sort).
+- **✅ Whiteboard athletes on lift leaderboard, scoring toggle UI redesign, code review**
 
 **Completed (2026-03-23 Session 235 - Opus 4.6) — SCALING 3 + LOAD 3 LEVELS:**
-- **✅ Scaling 3 + Load 3 support** — Added `scaling_level_3` and `weight_result_3` columns to `wod_section_results`. Full support across Score Entry, Logbook, and Leaderboard.
-- **✅ Redesigned toggle UI** — Replaced checkbox toggles in WODSectionComponent with numbered box UI (1/2/3). Clicking higher number auto-enables lower; disabling lower disables higher.
+- **✅ Scaling 3 + Load 3 support, redesigned toggle UI**
 
 **Completed (2026-03-23 Session 234 - Opus 4.6) — LIFT RECORDS CASCADE + VALIDATION TOAST:**
-- **✅ Lift records CASCADE cleanup** — Added `wod_id` FK with `ON DELETE CASCADE` to `lift_records` table.
-- **✅ Validation toast on save** — Workout modal save (tick) now shows a toast with the first validation error.
+- **✅ Lift records CASCADE cleanup, validation toast on save**
 
-**Completed (2026-03-23 Session 233 - Opus 4.6) — RM TEST AUTO-SAVE LIFT RECORDS:**
-- **✅ Auto lift_records from Score Entry** — RM test sections auto-create `lift_records` with Epley `calculated_1rm`, PR detection, and push notification.
-
-**Completed (2026-03-23 Session 232 - Opus 4.6) — EXERCISE GROUPS FIXES:**
-- **✅ Group toggle UX** — Groups batch-toggle active state. Nested display. "x" button isolation.
-
-**Older Sessions (57-231):**
+**Older Sessions (57-233):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -218,12 +210,11 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION
-1. **Test leaderboard sibling WOD sync fix** — Chris said "almost correct" re: Session 239 changes. Verify: edit original workout (add section/Snatch 5x5), save, check athlete leaderboard for new chip + scores. May need dev server restart.
-2. **Continue debugging non-RM lift Logbook visibility** — Still uninvestigated:
-   - RLS policies on `wod_section_results` for `member_id` access (`.or()` query may be blocked)
-   - Logbook section key format: `:::lift-0` vs `:::content-0` — `loadLiftResultsToSection` populates `:::lift-0` from `lift_records`
-   - Confirm API route changes are running (may need dev server restart)
-2. **Account-linking script** — Plan script to migrate whiteboard_name entries to user_id when athletes register.
+1. **Fix non-RM lift Logbook bugs (from Session 240 investigation):**
+   - **Bug 1:** Athlete self-entered lift scores only save to `lift_records`, not `wod_section_results` → invisible on leaderboard. Fix: `AthletePageLogbookTab.tsx` save logic should also call `saveSectionResultWrapper()` for `:::lift-` items.
+   - **Bug 2:** Coach-entered scoring fields (time, reps, rounds, etc.) for non-RM lifts stored under `:::content-0` key but lift section UI only reads `:::lift-0` → extra fields invisible. Fix: merge `:::content-0` data into lift display, or change coach save to not duplicate.
+2. **Leaderboard sibling WOD problem (re-think):** Session 239 sync was reverted (overwrote different workouts). The original problem remains: leaderboard dedup picks arbitrary WOD copy. The dedup fix in `LeaderboardView.tsx` (pick most items, track sibling IDs) helps but only works if WODs actually ARE the same workout. Need a proper `workout_name`-based grouping instead of `session_type`-based.
+3. **Account-linking script** — Plan script to migrate whiteboard_name entries to user_id when athletes register.
 3. **Coach library optimization** — Equipment & Body Parts lists need optimising.
 4. **April 13 reminder:** Verify Stripe trial payment processed for test athlete.
 
