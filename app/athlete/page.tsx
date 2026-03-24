@@ -198,9 +198,9 @@ function AthletePageContent() {
 
   const tabs = [
     { id: 'profile' as TabName, label: 'Profile', icon: User, requiresFullAccess: false },
-    { id: 'workouts' as TabName, label: 'Workouts', icon: Calendar, requiresFullAccess: true },
+    { id: 'workouts' as TabName, label: 'My WODs', icon: Calendar, requiresFullAccess: true },
     { id: 'logbook' as TabName, label: 'Logbook', icon: BookOpen, requiresFullAccess: true },
-    { id: 'community' as TabName, label: 'Community', icon: Users, requiresFullAccess: true },
+    { id: 'community' as TabName, label: 'Leaderboard', icon: Users, requiresFullAccess: true },
     { id: 'benchmarks' as TabName, label: 'Benchmarks', icon: Trophy, requiresFullAccess: true },
     { id: 'forge-benchmarks' as TabName, label: 'Forge', icon: Target, requiresFullAccess: true },
     { id: 'lifts' as TabName, label: 'Lifts', icon: Dumbbell, requiresFullAccess: true },

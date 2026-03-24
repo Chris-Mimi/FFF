@@ -787,23 +787,44 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
       ) : (
         <>
           {/* Item picker pills */}
-          {leaderboardItems.length > 1 && (
-            <div className='flex gap-2 flex-wrap'>
-              {leaderboardItems.map((item, idx) => (
-                <button
-                  key={`${item.type}-${idx}`}
-                  onClick={() => setSelectedItemIdx(idx)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition ${
-                    selectedItemIdx === idx
-                      ? 'bg-[#178da6] text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          )}
+          {leaderboardItems.length > 1 && (() => {
+            // Check if items span multiple sections — if so, show "WOD pt.X" labels
+            const uniqueSections = new Set(leaderboardItems.map(i => i.sectionIndex));
+            const isMultiPart = uniqueSections.size > 1;
+            // Map sectionIndex to part number (1-based, ordered by first appearance)
+            const sectionOrder: number[] = [];
+            leaderboardItems.forEach(i => {
+              if (!sectionOrder.includes(i.sectionIndex)) sectionOrder.push(i.sectionIndex);
+            });
+
+            let lastPartNum = -1;
+            return (
+              <div className='flex gap-2 flex-wrap items-center'>
+                {leaderboardItems.map((item, idx) => {
+                  const partNum = sectionOrder.indexOf(item.sectionIndex) + 1;
+                  const showPartLabel = isMultiPart && partNum !== lastPartNum;
+                  lastPartNum = partNum;
+                  return (
+                    <span key={`${item.type}-${idx}`} className='inline-flex items-center gap-1'>
+                      {showPartLabel && (
+                        <span className='text-[10px] text-gray-400 font-medium mr-0.5'>WOD pt.{partNum}</span>
+                      )}
+                      <button
+                        onClick={() => setSelectedItemIdx(idx)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition ${
+                          selectedItemIdx === idx
+                            ? 'bg-[#178da6] text-white'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >
+                        {item.label}
+                      </button>
+                    </span>
+                  );
+                })}
+              </div>
+            );
+          })()}
 
           {/* Scaling filter (hidden for lifts) */}
           {showScalingFilter && (

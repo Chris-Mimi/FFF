@@ -736,6 +736,10 @@ export function useWorkoutModal(
   };
 
   const handlePublish = async (publishConfig: any) => {
+    if (!validate()) {
+      return;
+    }
+
     try {
       // Auto-save workout content before publishing
       if (onSave && editingWOD?.id) {

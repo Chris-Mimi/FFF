@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 112.0
-**Updated:** 2026-03-24 (Session 240 - Revert sibling sync + Logbook investigation)
+**Version:** 113.0
+**Updated:** 2026-03-24 (Session 241 - Publish validation, data cleanup, athlete tab renames)
 
 ---
 
@@ -88,6 +88,13 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-24 Session 241 - Opus 4.6) — PUBLISH VALIDATION + DATA CLEANUP + ATHLETE TAB RENAMES:**
+- **✅ Publish validation fix** — `handlePublish` now calls `validate()` before publishing, preventing WODs without workout_name from being published
+- **✅ Data integrity cleanup** — 4 orphan WODs deleted, 1 orphan lift reaction deleted, stale GCal event removed
+- **✅ Diagnostic query fix** — duplicate_section_results false positive (36) caused by missing COALESCE identity grouping in saved Supabase query. File version is correct.
+- **✅ Athlete tab renames** — "Workouts" → "My WODs", "Community" → "Leaderboard", default view = Leaderboard
+- **⚠️ WOD pt. labels on leaderboard chips — NEEDS ADJUSTMENT** — Chris flagged "not quite correct". See `Chris Notes/session-241-handoff.md`.
+
 **Completed (2026-03-24 Session 240 - Opus 4.6) — REVERT SIBLING SYNC + LOGBOOK INVESTIGATION:**
 - **⚠️ REVERTED Session 239 sibling WOD sync** — The sync in `useWODOperations.ts` matched by `session_type + date`, which overwrote ALL WODs of the same type on a date (e.g., 10:00, 11:00, 17:15, 18:30 all overwritten when one was saved). **Sync code removed entirely.** Data restored from 2026-03-23 backup (wods table only).
 - **✅ Leaderboard dedup fix (Session 239) retained** — `LeaderboardView.tsx` still picks WOD with most leaderboard items and queries all sibling WOD IDs. This part is safe.
@@ -108,10 +115,7 @@ Social Tables
 **Completed (2026-03-23 Session 235 - Opus 4.6) — SCALING 3 + LOAD 3 LEVELS:**
 - **✅ Scaling 3 + Load 3 support, redesigned toggle UI**
 
-**Completed (2026-03-23 Session 234 - Opus 4.6) — LIFT RECORDS CASCADE + VALIDATION TOAST:**
-- **✅ Lift records CASCADE cleanup, validation toast on save**
-
-**Older Sessions (57-233):**
+**Older Sessions (57-234):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -210,7 +214,8 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION
-1. **Fix non-RM lift Logbook bugs (from Session 240 investigation):**
+1. **Fix WOD pt. labels on leaderboard chips** — Chris flagged current implementation as "not quite correct". Ask what needs adjusting. See `Chris Notes/session-241-handoff.md`.
+2. **Fix non-RM lift Logbook bugs (from Session 240 investigation):**
    - **Bug 1:** Athlete self-entered lift scores only save to `lift_records`, not `wod_section_results` → invisible on leaderboard. Fix: `AthletePageLogbookTab.tsx` save logic should also call `saveSectionResultWrapper()` for `:::lift-` items.
    - **Bug 2:** Coach-entered scoring fields (time, reps, rounds, etc.) for non-RM lifts stored under `:::content-0` key but lift section UI only reads `:::lift-0` → extra fields invisible. Fix: merge `:::content-0` data into lift display, or change coach save to not duplicate.
 2. **Leaderboard sibling WOD problem (re-think):** Session 239 sync was reverted (overwrote different workouts). The original problem remains: leaderboard dedup picks arbitrary WOD copy. The dedup fix in `LeaderboardView.tsx` (pick most items, track sibling IDs) helps but only works if WODs actually ARE the same workout. Need a proper `workout_name`-based grouping instead of `session_type`-based.

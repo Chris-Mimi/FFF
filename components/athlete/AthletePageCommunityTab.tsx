@@ -47,7 +47,7 @@ interface AthletePageCommunityTabProps {
 const FEED_PAGE_SIZE = 20;
 
 export default function AthletePageCommunityTab({ userId, initialDate, onDateChange }: AthletePageCommunityTabProps) {
-  const [activeView, setActiveView] = useState<'feed' | 'leaderboard'>('feed');
+  const [activeView, setActiveView] = useState<'feed' | 'leaderboard'>('leaderboard');
   const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
