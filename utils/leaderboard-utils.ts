@@ -410,20 +410,32 @@ export function bestLiftPerUser(results: RawLiftResult[]): RawLiftResult[] {
 export function rankLiftResults(
   results: RawLiftResult[],
   memberNames: Record<string, string>,
-  memberGenders?: Record<string, string | null>
+  memberGenders?: Record<string, string | null>,
+  whiteboardEntries?: LeaderboardEntry[]
 ): LeaderboardEntry[] {
   const valid = results.filter(r => r.weight_kg > 0);
   const sorted = [...valid].sort((a, b) => b.weight_kg - a.weight_kg);
 
-  return sorted.map((r, i) => ({
+  const entries: LeaderboardEntry[] = sorted.map((r) => ({
     id: r.id,
     userId: r.user_id,
     memberName: memberNames[r.user_id] || 'Unknown',
-    rank: i + 1,
+    rank: 0,
     weightResult: r.weight_kg,
     resultDate: r.lift_date,
     gender: memberGenders?.[r.user_id] ?? undefined,
   }));
+
+  // Merge whiteboard athlete entries
+  if (whiteboardEntries?.length) {
+    entries.push(...whiteboardEntries);
+  }
+
+  // Sort all by weight descending, then assign ranks
+  entries.sort((a, b) => (b.weightResult || 0) - (a.weightResult || 0));
+  entries.forEach((e, i) => { e.rank = i + 1; });
+
+  return entries;
 }
 
 /**

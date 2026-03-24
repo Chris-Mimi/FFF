@@ -207,74 +207,50 @@ function WODSectionComponent({
               </label>
               <div className='flex flex-wrap gap-x-3 gap-y-1'>
                   {/* Time (lower is better) */}
-                  <label className='flex items-center gap-1 text-xs cursor-pointer text-gray-900 whitespace-nowrap'>
-                    <input
-                      type='checkbox'
-                      checked={section.scoring_fields?.time ?? false}
-                      onChange={e => onUpdate({
-                        scoring_fields: {
-                          ...section.scoring_fields,
-                          time: e.target.checked,
-                          ...(e.target.checked ? { max_time: false } : {})
-                        }
-                      })}
-                      className='rounded border-gray-300'
-                    />
-                    <span>Time</span>
-                  </label>
+                  <button
+                    type='button'
+                    onClick={() => {
+                      const isActive = section.scoring_fields?.time ?? false;
+                      onUpdate({ scoring_fields: { ...section.scoring_fields, time: !isActive, ...(!isActive ? { max_time: false } : {}) } });
+                    }}
+                    className={`h-5 px-1.5 text-[10px] font-bold rounded transition-colors ${
+                      section.scoring_fields?.time ? 'bg-teal-600 text-white' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                    }`}
+                  >Time</button>
 
                   {/* Max Time (higher is better, e.g. max hold) */}
-                  <label className='flex items-center gap-1 text-xs cursor-pointer text-gray-900 whitespace-nowrap'>
-                    <input
-                      type='checkbox'
-                      checked={section.scoring_fields?.max_time ?? false}
-                      onChange={e => onUpdate({
-                        scoring_fields: {
-                          ...section.scoring_fields,
-                          max_time: e.target.checked,
-                          ...(e.target.checked ? { time: false } : {})
-                        }
-                      })}
-                      className='rounded border-gray-300'
-                    />
-                    <span>Max Time</span>
-                  </label>
+                  <button
+                    type='button'
+                    onClick={() => {
+                      const isActive = section.scoring_fields?.max_time ?? false;
+                      onUpdate({ scoring_fields: { ...section.scoring_fields, max_time: !isActive, ...(!isActive ? { time: false } : {}) } });
+                    }}
+                    className={`h-5 px-1.5 text-[10px] font-bold rounded transition-colors ${
+                      section.scoring_fields?.max_time ? 'bg-teal-600 text-white' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                    }`}
+                  >Max Time</button>
 
                   {/* Reps */}
-                  <label className='flex items-center gap-1 text-xs cursor-pointer text-gray-900 whitespace-nowrap'>
-                    <input
-                      type='checkbox'
-                      checked={section.scoring_fields?.reps ?? false}
-                      onChange={e => onUpdate({
-                        scoring_fields: {
-                          ...section.scoring_fields,
-                          reps: e.target.checked
-                        }
-                      })}
-                      className='rounded border-gray-300'
-                    />
-                    <span>Reps</span>
-                  </label>
+                  <button
+                    type='button'
+                    onClick={() => onUpdate({ scoring_fields: { ...section.scoring_fields, reps: !section.scoring_fields?.reps } })}
+                    className={`h-5 px-1.5 text-[10px] font-bold rounded transition-colors ${
+                      section.scoring_fields?.reps ? 'bg-teal-600 text-white' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                    }`}
+                  >Reps</button>
 
                   {/* Rounds + Reps */}
-                  <label className='flex items-center gap-1 text-xs cursor-pointer text-gray-900 whitespace-nowrap'>
-                    <input
-                      type='checkbox'
-                      checked={section.scoring_fields?.rounds_reps ?? false}
-                      onChange={e => onUpdate({
-                        scoring_fields: {
-                          ...section.scoring_fields,
-                          rounds_reps: e.target.checked
-                        }
-                      })}
-                      className='rounded border-gray-300'
-                    />
-                    <span>Rounds+Reps</span>
-                  </label>
+                  <button
+                    type='button'
+                    onClick={() => onUpdate({ scoring_fields: { ...section.scoring_fields, rounds_reps: !section.scoring_fields?.rounds_reps } })}
+                    className={`h-5 px-1.5 text-[10px] font-bold rounded transition-colors ${
+                      section.scoring_fields?.rounds_reps ? 'bg-teal-600 text-white' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                    }`}
+                  >Rds+Reps</button>
 
                   {/* Load — numbered toggle boxes */}
-                  <div className='flex items-center gap-1 text-xs text-gray-900 whitespace-nowrap'>
-                    <span>Load</span>
+                  <div className='flex items-center gap-0.5 text-xs text-gray-900 whitespace-nowrap'>
+                    <span className='text-[10px] font-bold text-gray-500 mr-0.5'>Load</span>
                     {[1, 2, 3].map(n => {
                       const isActive = n === 1 ? !!section.scoring_fields?.load
                         : n === 2 ? !!section.scoring_fields?.load2
@@ -286,12 +262,10 @@ function WODSectionComponent({
                           onClick={() => {
                             const sf = { ...section.scoring_fields };
                             if (isActive) {
-                              // Turning off: also disable higher levels
                               if (n === 1) { sf.load = false; sf.load2 = false; sf.load3 = false; }
                               else if (n === 2) { sf.load2 = false; sf.load3 = false; }
                               else { sf.load3 = false; }
                             } else {
-                              // Turning on: also enable lower levels
                               if (n === 1) { sf.load = true; }
                               else if (n === 2) { sf.load = true; sf.load2 = true; }
                               else { sf.load = true; sf.load2 = true; sf.load3 = true; }
@@ -300,7 +274,7 @@ function WODSectionComponent({
                           }}
                           className={`w-5 h-5 text-[10px] font-bold rounded transition-colors ${
                             isActive
-                              ? 'bg-purple-600 text-white'
+                              ? 'bg-teal-600 text-white'
                               : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
                           }`}
                         >
@@ -311,8 +285,8 @@ function WODSectionComponent({
                   </div>
 
                   {/* Scaling — numbered toggle boxes */}
-                  <div className='flex items-center gap-1 text-xs text-gray-900 whitespace-nowrap'>
-                    <span>Scaling</span>
+                  <div className='flex items-center gap-0.5 text-xs text-gray-900 whitespace-nowrap'>
+                    <span className='text-[10px] font-bold text-gray-500 mr-0.5'>Scaling</span>
                     {[1, 2, 3].map(n => {
                       const isActive = n === 1 ? !!section.scoring_fields?.scaling
                         : n === 2 ? !!section.scoring_fields?.scaling_2
@@ -336,7 +310,7 @@ function WODSectionComponent({
                           }}
                           className={`w-5 h-5 text-[10px] font-bold rounded transition-colors ${
                             isActive
-                              ? 'bg-purple-600 text-white'
+                              ? 'bg-teal-600 text-white'
                               : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
                           }`}
                         >
@@ -347,68 +321,40 @@ function WODSectionComponent({
                   </div>
 
                   {/* Calories */}
-                  <label className='flex items-center gap-1 text-xs cursor-pointer text-gray-900 whitespace-nowrap'>
-                    <input
-                      type='checkbox'
-                      checked={section.scoring_fields?.calories ?? false}
-                      onChange={e => onUpdate({
-                        scoring_fields: {
-                          ...section.scoring_fields,
-                          calories: e.target.checked
-                        }
-                      })}
-                      className='rounded border-gray-300'
-                    />
-                    <span>Cal</span>
-                  </label>
+                  <button
+                    type='button'
+                    onClick={() => onUpdate({ scoring_fields: { ...section.scoring_fields, calories: !section.scoring_fields?.calories } })}
+                    className={`h-5 px-1.5 text-[10px] font-bold rounded transition-colors ${
+                      section.scoring_fields?.calories ? 'bg-teal-600 text-white' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                    }`}
+                  >Cal</button>
 
                   {/* Metres */}
-                  <label className='flex items-center gap-1 text-xs cursor-pointer text-gray-900 whitespace-nowrap'>
-                    <input
-                      type='checkbox'
-                      checked={section.scoring_fields?.metres ?? false}
-                      onChange={e => onUpdate({
-                        scoring_fields: {
-                          ...section.scoring_fields,
-                          metres: e.target.checked
-                        }
-                      })}
-                      className='rounded border-gray-300'
-                    />
-                    <span>m</span>
-                  </label>
+                  <button
+                    type='button'
+                    onClick={() => onUpdate({ scoring_fields: { ...section.scoring_fields, metres: !section.scoring_fields?.metres } })}
+                    className={`h-5 px-1.5 text-[10px] font-bold rounded transition-colors ${
+                      section.scoring_fields?.metres ? 'bg-teal-600 text-white' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                    }`}
+                  >m</button>
 
-                  {/* Checkbox */}
-                  <label className='flex items-center gap-1 text-xs cursor-pointer text-gray-900 whitespace-nowrap'>
-                    <input
-                      type='checkbox'
-                      checked={section.scoring_fields?.checkbox ?? false}
-                      onChange={e => onUpdate({
-                        scoring_fields: {
-                          ...section.scoring_fields,
-                          checkbox: e.target.checked
-                        }
-                      })}
-                      className='rounded border-gray-300'
-                    />
-                    <span>Task✓</span>
-                  </label>
+                  {/* Task checkbox */}
+                  <button
+                    type='button'
+                    onClick={() => onUpdate({ scoring_fields: { ...section.scoring_fields, checkbox: !section.scoring_fields?.checkbox } })}
+                    className={`h-5 px-1.5 text-[10px] font-bold rounded transition-colors ${
+                      section.scoring_fields?.checkbox ? 'bg-teal-600 text-white' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                    }`}
+                  >Task</button>
 
                   {/* Track selector */}
-                  <label className='flex items-center gap-1 text-xs cursor-pointer text-gray-900 whitespace-nowrap'>
-                    <input
-                      type='checkbox'
-                      checked={section.scoring_fields?.track ?? false}
-                      onChange={e => onUpdate({
-                        scoring_fields: {
-                          ...section.scoring_fields,
-                          track: e.target.checked
-                        }
-                      })}
-                      className='rounded border-gray-300'
-                    />
-                    <span>Trk</span>
-                  </label>
+                  <button
+                    type='button'
+                    onClick={() => onUpdate({ scoring_fields: { ...section.scoring_fields, track: !section.scoring_fields?.track } })}
+                    className={`h-5 px-1.5 text-[10px] font-bold rounded transition-colors ${
+                      section.scoring_fields?.track ? 'bg-teal-600 text-white' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                    }`}
+                  >Trk</button>
                 </div>
 
               {/* Time mode toggle: shown when Time + (Reps or Rounds+Reps) are both enabled */}

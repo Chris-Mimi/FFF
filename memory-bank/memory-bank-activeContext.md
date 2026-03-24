@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 107.0
-**Updated:** 2026-03-23 (Session 235 - Scaling 3 + Load 3 levels, redesigned toggle UI)
+**Version:** 108.0
+**Updated:** 2026-03-24 (Session 236 - Whiteboard lift leaderboard fix, scoring UI redesign)
 
 ---
 
@@ -88,30 +88,26 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-24 Session 236 - Opus 4.6) — WHITEBOARD LIFT LEADERBOARD + SCORING UI REDESIGN:**
+- **✅ Whiteboard athletes on lift leaderboard** — Lift leaderboard now includes whiteboard-only (unregistered) athletes by supplementing `lift_records` query with `wod_section_results` data. Temporary measure until athlete registration + account-linking script.
+- **✅ Scoring toggle UI redesign** — All scoring fields in WOD builder (Time, Max Time, Reps, Rds+Reps, Cal, m, Task, Trk) converted from native checkboxes to uniform teal toggle buttons (`bg-teal-600`). Consistent style with Load 1/2/3 and Scaling 1/2/3 numbered boxes.
+- **✅ Code review** — Verified Scaling 3 + Load 3 end-to-end data flow across all layers (toggle UI → score entry → save API → logbook load/save → leaderboard sort).
+
 **Completed (2026-03-23 Session 235 - Opus 4.6) — SCALING 3 + LOAD 3 LEVELS:**
 - **✅ Scaling 3 + Load 3 support** — Added `scaling_level_3` and `weight_result_3` columns to `wod_section_results`. Full support across Score Entry, Logbook, and Leaderboard.
-- **✅ Redesigned toggle UI** — Replaced checkbox toggles in WODSectionComponent with numbered box UI (1/2/3). Greyed→purple states. Clicking higher number auto-enables lower; disabling lower disables higher.
-- **✅ Fixed missing interfaces** — Added `scaling_2`, `load2` to LeaderboardView and useScoreEntry ScoringFields interfaces that were previously missing.
-- **✅ 13 files changed** — Migration, types, coach WOD builder, score entry, logbook (loading/saving/display), leaderboard sort priority.
+- **✅ Redesigned toggle UI** — Replaced checkbox toggles in WODSectionComponent with numbered box UI (1/2/3). Clicking higher number auto-enables lower; disabling lower disables higher.
 
 **Completed (2026-03-23 Session 234 - Opus 4.6) — LIFT RECORDS CASCADE + VALIDATION TOAST:**
-- **✅ Lift records CASCADE cleanup** — Added `wod_id` FK with `ON DELETE CASCADE` to `lift_records` table. When a WOD is deleted, auto-created lift records are now cleaned up automatically. Manually entered lift records (no `wod_id`) are unaffected.
-- **✅ Validation toast on save** — Workout modal save (tick) now shows a toast with the first validation error, visible regardless of scroll position.
+- **✅ Lift records CASCADE cleanup** — Added `wod_id` FK with `ON DELETE CASCADE` to `lift_records` table.
+- **✅ Validation toast on save** — Workout modal save (tick) now shows a toast with the first validation error.
 
 **Completed (2026-03-23 Session 233 - Opus 4.6) — RM TEST AUTO-SAVE LIFT RECORDS:**
-- **✅ Auto lift_records from Score Entry** — When a WOD section has a lift with `rm_test` (1RM/3RM/5RM/10RM), Score Entry auto-shows a weight input. On save, auto-creates `lift_records` entry with Epley `calculated_1rm`, PR detection, and push notification.
-- **✅ Score Entry icon fix** — Calendar card icon now also shows for sections with rm_test lifts (not just manually checked scoring fields).
-- **✅ Percentage cap raised** — ConfigureLiftModal percentage inputs now allow up to 120% (was 100%).
+- **✅ Auto lift_records from Score Entry** — RM test sections auto-create `lift_records` with Epley `calculated_1rm`, PR detection, and push notification.
 
 **Completed (2026-03-23 Session 232 - Opus 4.6) — EXERCISE GROUPS FIXES:**
-- **✅ Group toggle UX** — Groups now batch-toggle active state without adding/removing from tracked list.
-- **✅ Nested group display** — Active group exercises render nested under group chip with amber left border.
-- **✅ "x" button isolation** — Permanently removes from tracking only, does not modify group definitions.
+- **✅ Group toggle UX** — Groups batch-toggle active state. Nested display. "x" button isolation.
 
-**Completed (2026-03-23 Session 231 - Opus 4.6) — EXERCISE GROUPS FEATURE:**
-- **✅ Exercise Groups** — Named presets of tracked exercises. Save as Group, rename, edit exercises, delete. Supabase-backed with RLS.
-
-**Older Sessions (57-230):**
+**Older Sessions (57-231):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -210,10 +206,11 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION
-1. **Test Scaling 3 + Load 3 end-to-end** — Toggle UI in WOD builder, score save/load with all 3 levels, leaderboard sort with S3.
-2. **Test Exercise Groups end-to-end** — Create group → toggle on/off → edit exercises → delete. Verify nested display, "x" isolation, no stale exercises.
-3. **Coach library optimization** — Equipment & Body Parts lists need optimising.
-4. **April 13 reminder:** Verify Stripe trial payment processed for test athlete.
+1. **Test whiteboard athletes on lift leaderboard** — Create a WOD with RM test lift, enter scores for whiteboard athletes via Score Entry, verify they appear on leaderboard alongside registered athletes.
+2. **Test scoring toggle UI** — Verify all teal toggle buttons work correctly in WOD builder (Time, Reps, Load 1/2/3, Scaling 1/2/3, Cal, m, Task, Trk).
+3. **Account-linking script** — Plan script to migrate whiteboard_name entries to user_id when athletes register (backfill lift_records, benchmark_results).
+4. **Coach library optimization** — Equipment & Body Parts lists need optimising.
+5. **April 13 reminder:** Verify Stripe trial payment processed for test athlete.
 
 ### DEPLOYMENT (Session 158+)
 

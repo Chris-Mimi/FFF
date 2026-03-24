@@ -15,6 +15,7 @@ import {
   bestLiftPerUser,
   formatResult,
   formatBenchmarkResult,
+  getWhiteboardGender,
   type LeaderboardEntry,
   type RawSectionResult,
   type RawLiftResult,
@@ -526,16 +527,61 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
         }
 
         const { data: liftResults } = await query;
-        if (!liftResults || liftResults.length === 0) { setEntries([]); return; }
 
-        let filtered = liftResults as RawLiftResult[];
+        let filtered = (liftResults || []) as RawLiftResult[];
         if (isGrouped) {
           filtered = bestLiftPerUser(filtered);
         }
 
+        // Also fetch whiteboard athletes from wod_section_results for this section
+        const liftSectionIds: string[] = [];
+        const liftWodIds: string[] = [];
+        if (isGrouped && groupedWods) {
+          for (const w of groupedWods) {
+            const sections = (w.sections || []) as WodSection[];
+            const sec = sections[selectedItem.sectionIndex];
+            if (sec) { liftSectionIds.push(`${sec.id}-content-0`); liftWodIds.push(w.id); }
+          }
+        } else {
+          const sections = (selectedWod.sections || []) as WodSection[];
+          const sec = sections[selectedItem.sectionIndex];
+          if (sec) { liftSectionIds.push(`${sec.id}-content-0`); liftWodIds.push(selectedWodId); }
+        }
+
+        let whiteboardLiftEntries: LeaderboardEntry[] = [];
+        if (liftSectionIds.length > 0) {
+          const { data: wbResults } = await supabase
+            .from('wod_section_results')
+            .select('id, whiteboard_name, weight_result, workout_date')
+            .in('wod_id', liftWodIds)
+            .in('section_id', liftSectionIds)
+            .not('whiteboard_name', 'is', null)
+            .gt('weight_result', 0);
+
+          if (wbResults && wbResults.length > 0) {
+            // Deduplicate: best weight per whiteboard name
+            const bestPerWb = new Map<string, typeof wbResults[0]>();
+            for (const r of wbResults) {
+              const existing = bestPerWb.get(r.whiteboard_name!);
+              if (!existing || (r.weight_result ?? 0) > (existing.weight_result ?? 0)) {
+                bestPerWb.set(r.whiteboard_name!, r);
+              }
+            }
+            whiteboardLiftEntries = [...bestPerWb.values()].map(r => ({
+              id: r.id,
+              userId: `wb:${r.whiteboard_name}`,
+              memberName: r.whiteboard_name!,
+              rank: 0,
+              weightResult: r.weight_result ?? undefined,
+              resultDate: r.workout_date ?? undefined,
+              gender: getWhiteboardGender(r.whiteboard_name) ?? undefined,
+            }));
+          }
+        }
+
         const userIds = [...new Set(filtered.map(r => r.user_id))];
         const { names: memberNames, genders: fetchedGenders } = await fetchMemberNames(userIds);
-        const ranked = rankLiftResults(filtered, memberNames, fetchedGenders);
+        const ranked = rankLiftResults(filtered, memberNames, fetchedGenders, whiteboardLiftEntries);
         setEntries(ranked);
 
         if (ranked.length > 0) {
