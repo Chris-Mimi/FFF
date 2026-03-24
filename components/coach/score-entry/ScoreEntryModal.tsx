@@ -92,10 +92,26 @@ export default function ScoreEntryModal({ sessionId, onClose }: ScoreEntryModalP
                   </span>
                 </div>
 
-                {/* Section content preview */}
-                {selectedSection?.content && (
-                  <div className="mt-2 px-3 py-2 bg-gray-50 rounded border border-gray-200 text-xs text-gray-600 whitespace-pre-line max-h-32 overflow-y-auto">
-                    {selectedSection.content}
+                {/* Lift info + section content preview */}
+                {selectedSection && (
+                  <div className="mt-2 px-3 py-2 bg-gray-50 rounded border border-gray-200 text-xs text-gray-600 max-h-32 overflow-y-auto">
+                    {selectedSection.lifts?.map((lift, i) => {
+                      const repScheme = lift.rm_test
+                        ? lift.rm_test
+                        : lift.rep_type === 'constant'
+                          ? `${lift.sets || 1}x${lift.reps || 1}`
+                          : lift.variable_sets?.map(s => s.reps).join('-') || '';
+                      return (
+                        <div key={i} className="font-semibold text-gray-800">
+                          {lift.name} {repScheme}
+                        </div>
+                      );
+                    })}
+                    {selectedSection.content && (
+                      <div className={`whitespace-pre-line${selectedSection.lifts?.length ? ' mt-1' : ''}`}>
+                        {selectedSection.content}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

@@ -56,9 +56,18 @@ export default function ScoreEntryGrid({
 
   if (!section.scoring_fields) return null;
 
-  // Show lift name + RM type for rm_test sections
+  // Show lift name + rep scheme for sections with lifts
   const rmLift = section.lifts?.find(l => l.rm_test);
-  const scoreLabel = rmLift ? `${rmLift.name} ${rmLift.rm_test}` : 'Score';
+  const nonRmLift = section.lifts?.find(l => !l.rm_test);
+  let scoreLabel = 'Score';
+  if (rmLift) {
+    scoreLabel = `${rmLift.name} ${rmLift.rm_test}`;
+  } else if (nonRmLift) {
+    const repScheme = nonRmLift.rep_type === 'constant'
+      ? `${nonRmLift.sets || 1}x${nonRmLift.reps || 1}`
+      : nonRmLift.variable_sets?.map(s => s.reps).join('-') || '';
+    scoreLabel = repScheme ? `${nonRmLift.name} ${repScheme}` : nonRmLift.name;
+  }
 
   return (
     <div ref={gridRef} onKeyDown={handleGridKeyDown} className="bg-white rounded-lg border border-gray-200 overflow-hidden">

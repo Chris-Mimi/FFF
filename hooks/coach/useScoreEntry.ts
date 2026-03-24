@@ -287,7 +287,50 @@ export function useScoreEntry(sessionId: string) {
             .filter(Boolean)
         );
 
-      if (scoreEntries.length === 0) {
+      // Detect scores that existed before but are now cleared → need deletion
+      const deletions: { memberId?: string; whiteboardName?: string; sectionId: string }[] = [];
+      for (const section of scorableSections) {
+        for (const athlete of athletes) {
+          const key = getScoreKey(athlete.id, section.id);
+          const values = scores[key];
+          const isEmpty = !values || (
+            !values.scaling_level &&
+            !values.scaling_level_2 &&
+            !values.scaling_level_3 &&
+            !values.track &&
+            !values.time_result &&
+            !values.reps_result &&
+            !values.weight_result &&
+            !values.weight_result_2 &&
+            !values.weight_result_3 &&
+            !values.rounds_result &&
+            !values.calories_result &&
+            !values.metres_result &&
+            !values.task_completed
+          );
+          if (!isEmpty) continue;
+
+          // Check if this athlete+section had an existing result
+          // Match by member_id, user_id, OR whiteboard_name (same logic as pre-fill)
+          const hadExisting = existingResults.some((r) => {
+            const matchSection = r.section_id === `${section.id}-content-0`;
+            if (!matchSection) return false;
+            if (athlete.memberId && r.member_id === athlete.memberId) return true;
+            if (athlete.userId && r.user_id === athlete.userId) return true;
+            if (athlete.whiteboardName && r.whiteboard_name === athlete.whiteboardName) return true;
+            return false;
+          });
+          if (hadExisting) {
+            deletions.push({
+              memberId: athlete.memberId || undefined,
+              whiteboardName: athlete.whiteboardName || undefined,
+              sectionId: section.id,
+            });
+          }
+        }
+      }
+
+      if (scoreEntries.length === 0 && deletions.length === 0) {
         toast.error('No scores to save');
         return;
       }
@@ -308,6 +351,7 @@ export function useScoreEntry(sessionId: string) {
           workoutDate: session.date,
           scores: scoreEntries,
           rmTestLifts: Object.keys(rmTestLifts).length > 0 ? rmTestLifts : undefined,
+          deletions: deletions.length > 0 ? deletions : undefined,
         }),
       });
 
@@ -317,7 +361,10 @@ export function useScoreEntry(sessionId: string) {
       }
 
       const data = await res.json();
-      toast.success(`${data.saved} score${data.saved !== 1 ? 's' : ''} saved`);
+      const parts: string[] = [];
+      if (data.saved > 0) parts.push(`${data.saved} saved`);
+      if (data.deleted > 0) parts.push(`${data.deleted} deleted`);
+      toast.success(parts.join(', ') || 'No changes');
     } catch (error) {
       console.error('Error saving scores:', error);
       toast.error('Failed to save scores');
@@ -325,7 +372,7 @@ export function useScoreEntry(sessionId: string) {
       setSaving(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [wod, session, athletes, scores]);
+  }, [wod, session, athletes, scores, existingResults]);
 
   return {
     session,

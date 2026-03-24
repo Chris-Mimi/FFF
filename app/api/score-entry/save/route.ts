@@ -90,11 +90,12 @@ export async function POST(request: NextRequest) {
     if (isAuthError(user)) return user;
 
     const body = await request.json();
-    const { wodId, workoutDate, scores, rmTestLifts } = body as {
+    const { wodId, workoutDate, scores, rmTestLifts, deletions } = body as {
       wodId: string;
       workoutDate: string;
       scores: ScoreEntry[];
       rmTestLifts?: Record<string, RmTestLift>;
+      deletions?: { memberId?: string; whiteboardName?: string; sectionId: string }[];
     };
 
     if (!wodId || !workoutDate || !Array.isArray(scores)) {
@@ -398,7 +399,75 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ saved: savedCount, errors: errors.length > 0 ? errors : undefined });
+    // Process deletions — remove wod_section_results + associated lift_records
+    let deletedCount = 0;
+    if (deletions && deletions.length > 0) {
+      for (const del of deletions) {
+        const sectionIdWithSuffix = `${del.sectionId}-content-0`;
+
+        // Find the existing wod_section_results record
+        let query = supabaseAdmin
+          .from('wod_section_results')
+          .select('id, user_id')
+          .eq('wod_id', wodId)
+          .eq('section_id', sectionIdWithSuffix)
+          .eq('workout_date', workoutDate);
+
+        if (del.memberId) {
+          query = query.eq('member_id', del.memberId);
+        } else if (del.whiteboardName) {
+          query = query.eq('whiteboard_name', del.whiteboardName);
+        } else {
+          continue;
+        }
+
+        let { data: existing } = await query.maybeSingle();
+
+        // Fallback: try matching by user_id if member_id match failed
+        // (handles records saved from athlete logbook with user_id but no member_id)
+        if (!existing && del.memberId) {
+          const memberEmail = memberIdToEmail[del.memberId];
+          const userId = memberEmail ? emailToUserId[memberEmail] : null;
+          if (userId) {
+            const { data: byUser } = await supabaseAdmin
+              .from('wod_section_results')
+              .select('id, user_id')
+              .eq('wod_id', wodId)
+              .eq('section_id', sectionIdWithSuffix)
+              .eq('workout_date', workoutDate)
+              .eq('user_id', userId)
+              .maybeSingle();
+            if (byUser) existing = byUser;
+          }
+        }
+        if (!existing) continue;
+
+        // Delete associated lift_records if this was an RM test section
+        if (existing.user_id && rmTestLifts) {
+          const rmLift = rmTestLifts[del.sectionId];
+          if (rmLift) {
+            await supabaseAdmin
+              .from('lift_records')
+              .delete()
+              .eq('user_id', existing.user_id)
+              .eq('lift_name', rmLift.liftName)
+              .eq('rep_max_type', rmLift.rmTest)
+              .eq('lift_date', workoutDate)
+              .eq('wod_id', wodId);
+          }
+        }
+
+        // Delete the wod_section_results record
+        const { error: delError } = await supabaseAdmin
+          .from('wod_section_results')
+          .delete()
+          .eq('id', existing.id);
+
+        if (!delError) deletedCount++;
+      }
+    }
+
+    return NextResponse.json({ saved: savedCount, deleted: deletedCount, errors: errors.length > 0 ? errors : undefined });
   } catch (err) {
     console.error('Score entry save error:', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

@@ -115,6 +115,8 @@ function extractLeaderboardItems(wod: WodData): LeaderboardItem[] {
     // Lifts
     if (section.lifts?.length) {
       for (const lift of section.lifts) {
+        // Only show RM test lifts on leaderboard (1RM/3RM/5RM/10RM)
+        // Skip non-RM rep schemes (Constant/Variable) — no results to record
         if (lift.rm_test) {
           items.push({
             type: 'lift',
@@ -122,17 +124,6 @@ function extractLeaderboardItems(wod: WodData): LeaderboardItem[] {
             sectionIndex,
             liftName: lift.name,
             rmTest: lift.rm_test,
-          });
-        } else {
-          const repScheme = lift.rep_type === 'constant'
-            ? `${lift.sets || 1}x${lift.reps || 1}`
-            : lift.variable_sets?.map(s => s.reps).join('-') || '1';
-          items.push({
-            type: 'lift',
-            label: `${lift.name} (${repScheme})`,
-            sectionIndex,
-            liftName: lift.name,
-            repScheme,
           });
         }
       }
@@ -166,9 +157,10 @@ function extractLeaderboardItems(wod: WodData): LeaderboardItem[] {
       }
     }
 
-    // Content scoring (skip if section already has lifts/benchmarks)
+    // Content scoring (skip if section has RM-test lifts or benchmarks — those have their own leaderboard entries)
+    const hasRmTestLift = section.lifts?.some(l => l.rm_test);
     const sf = section.scoring_fields;
-    if (sf && Object.values(sf).some(Boolean) && !section.lifts?.length && !section.benchmarks?.length && !section.forge_benchmarks?.length) {
+    if (sf && Object.values(sf).some(Boolean) && !hasRmTestLift && !section.benchmarks?.length && !section.forge_benchmarks?.length) {
       const scoringType = detectScoringType(sf);
       const scoringLabel = scoringType === 'time' ? 'For Time'
         : scoringType === 'max_time' ? 'Max Time'
@@ -182,8 +174,18 @@ function extractLeaderboardItems(wod: WodData): LeaderboardItem[] {
         : scoringType === 'checkbox' ? 'Completion'
         : 'Result';
 
-      const exerciseSummary = extractExerciseSummary(section.content);
-      const labelPrefix = exerciseSummary || section.type;
+      // Use lift name + rep scheme if section has non-RM lifts, otherwise extract from content
+      const nonRmLift = section.lifts?.find(l => !l.rm_test);
+      let labelPrefix: string;
+      if (nonRmLift) {
+        const repScheme = nonRmLift.rep_type === 'constant'
+          ? `${nonRmLift.sets || 1}x${nonRmLift.reps || 1}`
+          : nonRmLift.variable_sets?.map(s => s.reps).join('-') || '';
+        labelPrefix = repScheme ? `${nonRmLift.name} ${repScheme}` : nonRmLift.name;
+      } else {
+        const exerciseSummary = extractExerciseSummary(section.content);
+        labelPrefix = exerciseSummary || section.type;
+      }
 
       items.push({
         type: 'content',
