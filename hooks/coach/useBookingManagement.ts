@@ -242,6 +242,29 @@ export function useBookingManagement({
           .eq('id', memberId);
       }
 
+      // Clean up scores for this member on this session's workout
+      const { data: session } = await supabase
+        .from('weekly_sessions')
+        .select('workout_id')
+        .eq('id', sessionId)
+        .single();
+
+      if (session?.workout_id) {
+        // Delete wod_section_results by member_id (coach-entered) and user_id (athlete self-entered)
+        await supabase
+          .from('wod_section_results')
+          .delete()
+          .eq('wod_id', session.workout_id)
+          .or(`member_id.eq.${memberId},user_id.eq.${memberId}`);
+
+        // Delete lift_records (user_id = memberId for registered athletes)
+        await supabase
+          .from('lift_records')
+          .delete()
+          .eq('wod_id', session.workout_id)
+          .eq('user_id', memberId);
+      }
+
       // Notify member (fire-and-forget)
       authFetch('/api/notifications/coach-booking', {
         method: 'POST',

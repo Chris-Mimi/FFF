@@ -159,6 +159,27 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Clean up scores for this member on this session's workout
+    const { data: sessionData } = await supabase
+      .from('weekly_sessions')
+      .select('workout_id')
+      .eq('id', booking.session_id)
+      .single();
+
+    if (sessionData?.workout_id) {
+      await supabase
+        .from('wod_section_results')
+        .delete()
+        .eq('wod_id', sessionData.workout_id)
+        .or(`member_id.eq.${booking.member_id},user_id.eq.${booking.member_id}`);
+
+      await supabase
+        .from('lift_records')
+        .delete()
+        .eq('wod_id', sessionData.workout_id)
+        .eq('user_id', booking.member_id);
+    }
+
     // Auto-promote first waitlist member if cancelled booking was confirmed
     if (booking.status === 'confirmed') {
       const { data: waitlistBookings } = await supabase

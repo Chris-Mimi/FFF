@@ -473,6 +473,9 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                           <div className='space-y-2 mb-2'>
                             {section.lifts.map((lift, liftIdx) => {
                               const itemKey = `${wod.id}:::${section.id}:::lift-${liftIdx}`;
+                              // Coach score-entry saves lift scores under content-0 key; fall back to it
+                              const contentKey = `${wod.id}:::${section.id}:::content-0`;
+                              const liftValues = sectionResults[itemKey] || sectionResults[contentKey] || {};
                               const scoringFields = section.scoring_fields || {};
 
                               return (
@@ -515,11 +518,11 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                                     {/* Configurable Scoring Inputs */}
                                     <ScoringFieldInputs
                                       scoringFields={scoringFields}
-                                      values={sectionResults[itemKey] || {}}
+                                      values={liftValues}
                                       onChange={(updates) =>
                                         setSectionResults({
                                           ...sectionResults,
-                                          [itemKey]: { ...(sectionResults[itemKey] || {}), ...updates },
+                                          [itemKey]: { ...liftValues, ...updates },
                                         })
                                       }
                                       variant='lift'

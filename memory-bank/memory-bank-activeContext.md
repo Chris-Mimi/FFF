@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 114.0
-**Updated:** 2026-03-24 (Session 242 - Leaderboard chip labels, logbook coach lock, My WODs navigation)
+**Version:** 115.0
+**Updated:** 2026-03-24 (Session 243 - Non-RM lift logbook fix, booking cancel score cleanup)
 
 ---
 
@@ -88,25 +88,23 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-24 Session 243 - Opus 4.6) — NON-RM LIFT LOGBOOK FIX + BOOKING CANCEL CLEANUP:**
+- **✅ Non-RM lift Logbook display fix** — Coach-entered lift scores (stored under `content-0` key) now display in lift badge area via fallback key lookup
+- **✅ Booking cancel score cleanup** — Both athlete and coach booking cancellations now delete associated `wod_section_results` and `lift_records`
+- **✅ Leaderboard sibling WOD issue closed** — Confirmed `workout_name` ±60 day grouping already works correctly
+- **Clarified:** Athlete self-entered lift scores correctly save to `lift_records` only (not leaderboard) — this is intended behavior, not a bug
+
 **Completed (2026-03-24 Session 242 - Opus 4.6) — LEADERBOARD CHIP LABELS + LOGBOOK COACH LOCK:**
-- **✅ Leaderboard chip labels** — "Pt.1"/"Pt.2" inline labels with vertical divider, white text, single row
-- **✅ Logbook coach score lock** — Scoring inputs disabled when coach has entered scores. Shows "Scored by coach" badge. `loadSectionResults` now returns `coachLockedSections` set. `ScoringFieldInputs` has new `disabled` prop.
-- **✅ My WODs card navigation** — All WOD cards now navigate to Logbook (previously coach-scored cards only toggled expansion)
+- **✅ Leaderboard chip labels, logbook coach score lock, My WODs card navigation**
 
 **Completed (2026-03-24 Session 241 - Opus 4.6) — PUBLISH VALIDATION + DATA CLEANUP + ATHLETE TAB RENAMES:**
 - **✅ Publish validation, data cleanup, diagnostic query fix, athlete tab renames**
 
 **Completed (2026-03-24 Session 240 - Opus 4.6) — REVERT SIBLING SYNC + LOGBOOK INVESTIGATION:**
 - **⚠️ REVERTED Session 239 sibling WOD sync** — overwrote all same-type WODs on a date. Sync code removed.
-- **✅ Leaderboard dedup fix retained, non-RM lift investigation done**
-- **Bug found:** Athlete self-entered lift scores save to `lift_records` only, NOT `wod_section_results` → won't appear on leaderboard
-- **Bug found:** Coach-entered scoring fields for non-RM lifts stored in `:::content-0` key but lift UI reads `:::lift-0`
 
 **Completed (2026-03-24 Session 237 - Opus 4.6) — SCORE DELETION + NON-RM LIFT SCORING:**
 - **✅ Score deletion cleanup, non-RM lift leaderboard, Score Entry display**
-
-**Completed (2026-03-24 Session 236 - Opus 4.6) — WHITEBOARD LIFT LEADERBOARD + SCORING UI REDESIGN:**
-- **✅ Whiteboard athletes on lift leaderboard, scoring toggle UI redesign, code review**
 
 **Older Sessions (57-234):**
 See `project-history/` folder for detailed implementation history
@@ -207,13 +205,9 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION
-1. **Fix non-RM lift Logbook bugs (from Session 240 investigation):**
-   - **Bug 1:** Athlete self-entered lift scores only save to `lift_records`, not `wod_section_results` → invisible on leaderboard. Fix: `AthletePageLogbookTab.tsx` save logic should also call `saveSectionResultWrapper()` for `:::lift-` items.
-   - **Bug 2:** Coach-entered scoring fields (time, reps, rounds, etc.) for non-RM lifts stored under `:::content-0` key but lift section UI only reads `:::lift-0` → extra fields invisible. Fix: merge `:::content-0` data into lift display, or change coach save to not duplicate.
-2. **Leaderboard sibling WOD problem (re-think):** Session 239 sync was reverted (overwrote different workouts). The original problem remains: leaderboard dedup picks arbitrary WOD copy. The dedup fix in `LeaderboardView.tsx` (pick most items, track sibling IDs) helps but only works if WODs actually ARE the same workout. Need a proper `workout_name`-based grouping instead of `session_type`-based.
-3. **Account-linking script** — Plan script to migrate whiteboard_name entries to user_id when athletes register.
-3. **Coach library optimization** — Equipment & Body Parts lists need optimising.
-4. **April 13 reminder:** Verify Stripe trial payment processed for test athlete.
+1. **Account-linking script** — Plan script to migrate whiteboard_name entries to user_id when athletes register.
+2. **Coach library optimization** — Equipment & Body Parts lists need optimising.
+3. **April 13 reminder:** Verify Stripe trial payment processed for test athlete.
 
 ### DEPLOYMENT (Session 158+)
 
