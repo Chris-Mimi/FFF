@@ -1105,6 +1105,7 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [scalingFilter, setScalingFilter] = useState<ScalingFilter>('all');
+  const [genderFilter, setGenderFilter] = useState<'all' | 'M' | 'F'>('all');
   const { fetchReactions, toggleReaction, getReaction } = useReactions();
 
   // Load benchmark list
@@ -1131,39 +1132,135 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
 
     setLoading(true);
     try {
-      const { data: results } = await supabase
+      // Fetch athlete self-entries from benchmark_results
+      const { data: bmResults } = await supabase
         .from('benchmark_results')
         .select('id, user_id, time_result, reps_result, weight_result, scaling_level, result_date')
         .eq('benchmark_name', selectedBenchmark.name);
 
-      if (!results || results.length === 0) {
+      // Fetch coach-entered scores from wod_section_results
+      // Step 1: Find WODs with sections referencing this benchmark
+      const { data: wods } = await supabase
+        .from('wods')
+        .select('id, sections')
+        .eq('is_published', true);
+
+      const wodSectionPairs: { wodId: string; sectionId: string }[] = [];
+      for (const wod of (wods || [])) {
+        const sections = (wod.sections || []) as WodSection[];
+        for (const section of sections) {
+          const hasBm = section.benchmarks?.some(b => b.name === selectedBenchmark.name) ||
+                        section.forge_benchmarks?.some(b => b.name === selectedBenchmark.name);
+          if (hasBm) {
+            wodSectionPairs.push({ wodId: wod.id, sectionId: `${section.id}-content-0` });
+          }
+        }
+      }
+
+      // Step 2: Fetch wod_section_results for matching WODs/sections
+      let coachEntries: (RawSectionResult & { member_id?: string })[] = [];
+      if (wodSectionPairs.length > 0) {
+        const wodIds = [...new Set(wodSectionPairs.map(p => p.wodId))];
+        const sectionIds = [...new Set(wodSectionPairs.map(p => p.sectionId))];
+        const { data: wsrResults } = await supabase
+          .from('wod_section_results')
+          .select('id, user_id, member_id, whiteboard_name, time_result, reps_result, weight_result, weight_result_2, weight_result_3, rounds_result, calories_result, metres_result, scaling_level, scaling_level_2, scaling_level_3, track, task_completed, workout_date')
+          .in('wod_id', wodIds)
+          .in('section_id', sectionIds);
+        if (wsrResults) coachEntries = wsrResults as unknown as (RawSectionResult & { member_id?: string })[];
+      }
+
+      // Step 3: Merge — coach entries take priority over athlete self-entries
+      type BmEntry = { id: string; user_id: string; time_result: string | null; reps_result: number | null; weight_result: number | null; scaling_level: string | null; track?: number | null; result_date?: string };
+
+      const whiteboardNameMap: Record<string, string> = {};
+      const memberIdNameMap: Record<string, string> = {};
+
+      // Resolve names for member_id-only entries
+      const unresolvedMemberIds = coachEntries
+        .filter(ce => !ce.user_id && !ce.whiteboard_name && ce.member_id)
+        .map(ce => ce.member_id!);
+      if (unresolvedMemberIds.length > 0) {
+        const { data: memberRows } = await supabase
+          .rpc('get_member_names', { member_ids: unresolvedMemberIds });
+        if (memberRows) {
+          for (const m of memberRows as { id: string; display_name: string | null; name: string | null }[]) {
+            memberIdNameMap[m.id] = m.display_name || m.name || 'Unknown';
+          }
+        }
+      }
+
+      // Coach entries take priority: exclude benchmark_results for users that have coach entries
+      const coachUserIds = new Set(
+        coachEntries.filter(ce => ce.user_id).map(ce => ce.user_id)
+      );
+      const mergedBm: BmEntry[] = (bmResults || []).filter(r => !coachUserIds.has(r.user_id));
+
+      // Best per user from coach entries (keep only the best per synthetic user_id)
+      for (const ce of coachEntries) {
+        let syntheticUserId = ce.user_id;
+        if (!syntheticUserId && ce.whiteboard_name) {
+          syntheticUserId = `wb:${ce.whiteboard_name}`;
+        } else if (!syntheticUserId && ce.member_id) {
+          syntheticUserId = `member:${ce.member_id}`;
+        } else if (!syntheticUserId) {
+          syntheticUserId = `unknown:${ce.id}`;
+        }
+        if (ce.user_id && ce.whiteboard_name) {
+          whiteboardNameMap[ce.user_id] = ce.whiteboard_name;
+        } else if (!ce.user_id && ce.whiteboard_name) {
+          whiteboardNameMap[`wb:${ce.whiteboard_name}`] = ce.whiteboard_name;
+        }
+        mergedBm.push({
+          id: ce.id,
+          user_id: syntheticUserId,
+          time_result: ce.time_result ?? null,
+          reps_result: ce.reps_result ?? null,
+          weight_result: ce.weight_result ?? null,
+          scaling_level: ce.scaling_level ?? null,
+          track: ce.track ?? null,
+          result_date: ce.workout_date ?? undefined,
+        });
+      }
+
+      if (mergedBm.length === 0) {
         setEntries([]);
         setLoading(false);
         return;
       }
 
       // Filter by scaling
-      let filtered = results;
+      let filtered = mergedBm;
       if (scalingFilter === 'rx') {
-        filtered = results.filter(r => r.scaling_level === 'Rx');
+        filtered = filtered.filter(r => r.scaling_level === 'Rx');
       } else if (scalingFilter === 'scaled') {
-        filtered = results.filter(r => r.scaling_level && r.scaling_level !== 'Rx');
+        filtered = filtered.filter(r => r.scaling_level && r.scaling_level !== 'Rx');
       }
 
-      // Get member names (uses RPC to bypass members RLS)
-      const userIds = [...new Set(filtered.map(r => r.user_id))];
+      // Resolve names
+      const allUserIds = [...new Set(filtered.map(r => r.user_id))];
+      const realUserIds = allUserIds.filter(id => !id.includes(':'));
       const memberNames: Record<string, string> = {};
-      if (userIds.length > 0) {
+      const memberGenders: Record<string, string | null> = {};
+      if (realUserIds.length > 0) {
         const { data: members } = await supabase
-          .rpc('get_member_names', { member_ids: userIds });
+          .rpc('get_member_names', { member_ids: realUserIds });
         if (members) {
-          for (const m of members as { id: string; display_name: string | null; name: string | null }[]) {
+          for (const m of members as { id: string; display_name: string | null; name: string | null; gender: string | null }[]) {
             memberNames[m.id] = m.display_name || m.name || 'Unknown';
+            memberGenders[m.id] = m.gender;
           }
         }
       }
+      // Inject whiteboard name fallbacks
+      for (const [uid, wbName] of Object.entries(whiteboardNameMap)) {
+        if (!memberNames[uid]) memberNames[uid] = wbName;
+      }
+      for (const [memberId, name] of Object.entries(memberIdNameMap)) {
+        memberNames[`member:${memberId}`] = name;
+      }
 
-      const ranked = rankBenchmarkResults(filtered, memberNames, selectedBenchmark.type);
+      const ranked = rankBenchmarkResults(filtered, memberNames, selectedBenchmark.type, memberGenders);
       setEntries(ranked);
 
       if (ranked.length > 0) {
@@ -1222,12 +1319,36 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
         ))}
       </div>
 
+      {/* Gender filter */}
+      <div className='flex gap-1'>
+        {(['all', 'M', 'F'] as const).map(f => (
+          <button
+            key={f}
+            onClick={() => setGenderFilter(f)}
+            className={`px-3 py-1 rounded text-xs font-medium transition ${
+              genderFilter === f
+                ? f === 'M' ? 'bg-blue-200 text-blue-800' : f === 'F' ? 'bg-pink-200 text-pink-800' : 'bg-gray-900 text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            {f === 'all' ? 'All' : f}
+          </button>
+        ))}
+      </div>
+
       {/* Results table */}
-      {loading ? (
+      {(() => {
+        const displayEntries = genderFilter === 'all'
+          ? entries
+          : entries
+              .filter(e => e.gender === genderFilter)
+              .map((e, i) => ({ ...e, rank: i + 1 }));
+
+        return loading ? (
         <div className='flex justify-center py-8'>
           <div className='animate-spin rounded-full h-6 w-6 border-b-2 border-[#178da6]' />
         </div>
-      ) : entries.length === 0 ? (
+      ) : displayEntries.length === 0 ? (
         <div className='bg-white rounded-lg shadow-sm p-6 text-center'>
           <Trophy size={32} className='mx-auto text-gray-400 mb-2' />
           <p className='text-gray-500 text-sm'>No results logged for this benchmark yet.</p>
@@ -1246,7 +1367,7 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
               </tr>
             </thead>
             <tbody>
-              {entries.map(entry => {
+              {displayEntries.map(entry => {
                 const isMe = entry.userId === userId;
                 const reaction = getReaction(entry.id);
                 return (
@@ -1317,7 +1438,8 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
             </tbody>
           </table>
         </div>
-      )}
+      );
+      })()}
     </div>
   );
 }

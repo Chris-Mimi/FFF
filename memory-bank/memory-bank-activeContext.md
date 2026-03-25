@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 118.0
-**Updated:** 2026-03-25 (Session 247 - Revert whiteboard tool, benchmark track priority fix)
+**Version:** 119.0
+**Updated:** 2026-03-26 (Session 248 - Benchmark tab fix: coach scores + gender filters)
 
 ---
 
@@ -88,13 +88,16 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-26 Session 248 - Opus 4.6) — BENCHMARK TAB FIX + GENDER FILTERS:**
+- **✅ Benchmark tab leaderboard fix** — `BenchmarkLeaderboard` only queried `benchmark_results`. Now also fetches `wod_section_results` (coach entries) by finding WODs with matching benchmark in sections JSONB, then merging with coach priority.
+- **✅ Gender filters on Benchmark tab** — Added All/M/F filter buttons matching per-workout leaderboard pattern.
+
 **Completed (2026-03-25 Session 247 - Opus 4.6) — REVERT WHITEBOARD TOOL + BENCHMARK TRACK FIX:**
 - **✅ Reverted Link Whiteboard Scores tool** — Unnecessary; one-time migration script is correct approach. Deleted 3 files + admin page reference.
-- **✅ Benchmark leaderboard track chip fix** — Coach entries (wod_section_results, has track) now take priority over athlete self-entries (benchmark_results, no track column). Previously benchmark_results won, hiding track chips.
-- **✅ Tobias/TobiasB duplicate** — Data cleanup in Supabase (not code fix). Whiteboard name rename creates duplicates but this is pre-launch only.
+- **✅ Benchmark leaderboard track chip fix** — Coach entries now take priority over athlete self-entries.
 
 **Completed (2026-03-25 Session 246 - Opus 4.6) — UNKNOWN NAMES FIX:**
-- **✅ "Unknown" names ROOT CAUSE FOUND + FIXED** — Synthetic `wb:` IDs broke `get_member_names` RPC. Fix: filter non-UUID IDs before RPC call.
+- **✅ "Unknown" names ROOT CAUSE FOUND + FIXED** — Synthetic `wb:` IDs broke `get_member_names` RPC.
 
 **Completed (2026-03-25 Session 245 - Opus 4.6) — BENCHMARK LEADERBOARD SORT + TRACK:**
 - **✅ Scaling sort, track sort + passthrough, whiteboard_name fallback + member_id lookup (partial fix)**
@@ -102,10 +105,7 @@ Social Tables
 **Completed (2026-03-25 Session 244 - Opus 4.6) — LOGBOOK PUBLISH FILTER + BENCHMARK LEADERBOARD:**
 - **✅ Logbook publish_sections fix, coach/Mimi override, benchmark leaderboard coach scores merged**
 
-**Completed (2026-03-24 Session 243 - Opus 4.6) — NON-RM LIFT LOGBOOK FIX + BOOKING CANCEL CLEANUP:**
-- **✅ Non-RM lift Logbook display fix, booking cancel score cleanup, leaderboard sibling WOD issue closed**
-
-**Older Sessions (57-241):**
+**Older Sessions (57-243):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -204,7 +204,7 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION (PRIORITY)
-1. **Bug fix: Nancy Benchmark leaderboard** — Only Chris and Lukas show on Benchmarks tab leaderboard for Nancy. Other athletes (Paul, whiteboard entries) are missing. Investigate why `benchmark_results` table only has Lukas's entry and coach-entered scores aren't appearing on the Benchmark tab.
+1. **Test Benchmark tab fix** — Verify Nancy now shows all athletes (Paul, whiteboard entries) on Benchmarks tab.
 2. **Test Logbook publish_sections fix** — Verify with Athlete Test 1 that only selected sections show.
 
 ### BACKLOG
