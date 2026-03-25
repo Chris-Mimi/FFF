@@ -616,8 +616,8 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
           .in('result_date', dates);
 
         // Also fetch coach-entered scores from wod_section_results
-        let bmSectionIds: string[] = [];
-        let bmWodIds: string[] = [];
+        const bmSectionIds: string[] = [];
+        const bmWodIds: string[] = [];
         if (isGrouped && groupedWods) {
           for (const w of groupedWods) {
             const sections = (w.sections || []) as WodSection[];
@@ -675,9 +675,11 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
           } else if (!syntheticUserId) {
             syntheticUserId = `unknown:${ce.id}`;
           }
-          // Store whiteboard_name fallback for registered athletes whose user_id may not be in members table
+          // Store whiteboard_name fallback for name resolution
           if (ce.user_id && ce.whiteboard_name) {
             whiteboardNameMap[ce.user_id] = ce.whiteboard_name;
+          } else if (!ce.user_id && ce.whiteboard_name) {
+            whiteboardNameMap[`wb:${ce.whiteboard_name}`] = ce.whiteboard_name;
           }
           mergedBm.push({
             id: ce.id,
@@ -701,8 +703,10 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
           filtered = filtered.filter(r => r.scaling_level && r.scaling_level !== 'Rx');
         }
 
-        const userIds = [...new Set(filtered.map(r => r.user_id))];
-        const { names: memberNames, genders: fetchedGenders } = await fetchMemberNames(userIds);
+        const allUserIds = [...new Set(filtered.map(r => r.user_id))];
+        // Only pass real UUIDs to the RPC — synthetic IDs (wb:, member:, unknown:) would break the UUID[] parameter
+        const realUserIds = allUserIds.filter(id => !id.includes(':'));
+        const { names: memberNames, genders: fetchedGenders } = await fetchMemberNames(realUserIds);
         // Inject fallback names: whiteboard_name for registered athletes, member_id lookups
         for (const [userId, wbName] of Object.entries(whiteboardNameMap)) {
           if (!memberNames[userId]) memberNames[userId] = wbName;

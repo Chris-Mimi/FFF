@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 116.0
-**Updated:** 2026-03-25 (Session 245 - Benchmark leaderboard scaling/track sort, Unknown names partial fix)
+**Version:** 117.0
+**Updated:** 2026-03-25 (Session 246 - Unknown names fix, Link Whiteboard Scores tool)
 
 ---
 
@@ -88,10 +88,12 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
-**Completed (2026-03-25 Session 245 - Opus 4.6) — BENCHMARK LEADERBOARD SORT + TRACK + UNKNOWN NAMES:**
-- **✅ Scaling sort** — `rankBenchmarkResults` now sorts Rx > Sc1 > Sc2 > Sc3 > unset before primary metric
-- **✅ Track sort + passthrough** — Track field preserved from coach entries, sorting added (1 < 2 < 3 < null), badge displays
-- **⚠️ "Unknown" names STILL SHOWING** — Added whiteboard_name fallback + member_id lookup, but registered athletes still show "Unknown". Root cause unresolved — likely `members.id` ≠ `auth.users.id` for these athletes, AND whiteboard_name fallback not triggering. Need to investigate actual data in Supabase next session.
+**Completed (2026-03-25 Session 246 - Opus 4.6) — UNKNOWN NAMES FIX + LINK WHITEBOARD SCORES TOOL:**
+- **✅ "Unknown" names ROOT CAUSE FOUND + FIXED** — Synthetic `wb:` IDs mixed with real UUIDs broke `get_member_names` RPC (UUID[] parameter). Fix: filter non-UUID IDs before RPC call. Also added `wb:` name mapping for whiteboard-only entries.
+- **⚠️ Link Whiteboard Scores admin tool BUILT** — Coach → Admin page. Shows unlinked whiteboard names, lets coach select registered member + link. Handles duplicates (deletes whiteboard row if registered entry exists). **Chris hasn't reviewed yet — may be unnecessary, discuss next session.**
+
+**Completed (2026-03-25 Session 245 - Opus 4.6) — BENCHMARK LEADERBOARD SORT + TRACK:**
+- **✅ Scaling sort, track sort + passthrough, whiteboard_name fallback + member_id lookup (partial fix)**
 
 **Completed (2026-03-25 Session 244 - Opus 4.6) — LOGBOOK PUBLISH FILTER + BENCHMARK LEADERBOARD:**
 - **✅ Logbook publish_sections fix, coach/Mimi override, benchmark leaderboard coach scores merged**
@@ -102,10 +104,7 @@ Social Tables
 **Completed (2026-03-24 Session 242 - Opus 4.6) — LEADERBOARD CHIP LABELS + LOGBOOK COACH LOCK:**
 - **✅ Leaderboard chip labels, logbook coach score lock, My WODs card navigation**
 
-**Completed (2026-03-24 Session 241 - Opus 4.6) — PUBLISH VALIDATION + DATA CLEANUP + ATHLETE TAB RENAMES:**
-- **✅ Publish validation, data cleanup, diagnostic query fix, athlete tab renames**
-
-**Older Sessions (57-240):**
+**Older Sessions (57-241):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -204,11 +203,12 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION (PRIORITY)
-1. **Benchmark leaderboard "Unknown" names — INVESTIGATE DATA** — Scaling/track sort done. "Unknown" still shows for 2 registered athletes. Session 245 added whiteboard_name fallback + member_id lookup but didn't fix it. **Next step: Chris check Supabase** — find the 2 "Unknown" entries in `wod_section_results` for a benchmark WOD and check: (a) is `user_id` set? (b) is `whiteboard_name` set? (c) is `member_id` set? (d) does `members.id` match `auth.users.id` for these athletes? This will reveal the root cause.
-2. **Test Logbook publish_sections fix** — Verify with Athlete Test 1 that only selected sections show.
+1. **Review Link Whiteboard Scores tool** — Chris feels it may be unnecessary. Discuss whether to keep, modify, or revert. Tool is on Coach → Admin page.
+2. **Test "Unknown" names fix** — Verify benchmark leaderboard now shows real names for registered athletes (Chris, Paul, Lukas, Michael).
+3. **Test Logbook publish_sections fix** — Verify with Athlete Test 1 that only selected sections show.
 
 ### BACKLOG
-1. **Account-linking script** — Plan script to migrate whiteboard_name entries to user_id when athletes register.
+1. **Account-linking workflow** — Link Whiteboard Scores tool built (Session 246) but needs Chris review.
 2. **Coach library optimization** — Equipment & Body Parts lists need optimising.
 3. **April 13 reminder:** Verify Stripe trial payment processed for test athlete.
 

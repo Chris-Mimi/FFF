@@ -7,6 +7,7 @@ import { UserPlus, ArrowLeft, BarChart2, Bell } from 'lucide-react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { NotificationPrompt } from '@/components/ui/NotificationPrompt';
+import LinkWhiteboardScores from '@/components/coach/admin/LinkWhiteboardScores';
 
 interface IncidentStat {
   memberId: string;
@@ -213,6 +214,9 @@ export default function AdminToolsPage() {
             </div>
           </div>
         </div>
+
+        {/* Link Whiteboard Scores */}
+        <LinkWhiteboardScores />
 
         {/* Attendance Reports */}
         <div className='bg-white rounded-lg shadow-md p-6'>
