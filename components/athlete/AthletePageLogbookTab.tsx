@@ -185,7 +185,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
         const [wodId, sectionId, itemIdentifier] = parts;
         // Find the specific workout this entry belongs to
         const entryWorkout = dateWorkouts.find(w => w.id === wodId);
-        const section = entryWorkout ? getPublishedSections(entryWorkout).find(s => s.id === sectionId) : null;
+        const section = entryWorkout ? getPublishedSections(entryWorkout, userId).find(s => s.id === sectionId) : null;
         if (!section) continue;
 
         // Determine item type
@@ -417,7 +417,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                     <>
                       {/* Workout Sections */}
                       <div className='space-y-3 mb-4'>
-                    {getPublishedSections(wod).map(section => {
+                    {getPublishedSections(wod, userId).map(section => {
                       const sectionLocked = coachLockedSections.has(`${wod.id}:::${section.id}`);
                       return (
                       <div key={section.id} className='bg-gray-50 rounded-lg p-3'>
@@ -673,7 +673,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                       {/* Coach Instructions (Athlete Notes) */}
                       {(() => {
                         const allNotes: string[] = [];
-                        const publishedSections = getPublishedSections(wod);
+                        const publishedSections = getPublishedSections(wod, userId);
                         publishedSections.forEach(section => {
                           // Collect lift athlete notes
                           section.lifts?.forEach(lift => {

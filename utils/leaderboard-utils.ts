@@ -379,14 +379,14 @@ export function rankBenchmarkResults(
   return bests.map((r, i) => ({
     id: r.id,
     userId: r.user_id,
-    memberName: memberNames[r.user_id] || 'Unknown',
+    memberName: memberNames[r.user_id] || (r.user_id.startsWith('wb:') ? r.user_id.slice(3) : 'Unknown'),
     rank: i + 1,
     timeResult: r.time_result || undefined,
     repsResult: r.reps_result || undefined,
     weightResult: r.weight_result || undefined,
     scalingLevel: r.scaling_level || undefined,
     resultDate: r.result_date,
-    gender: memberGenders?.[r.user_id] ?? undefined,
+    gender: memberGenders?.[r.user_id] ?? (r.user_id.startsWith('wb:') ? getWhiteboardGender(r.user_id.slice(3)) : undefined) ?? undefined,
   }));
 }
 

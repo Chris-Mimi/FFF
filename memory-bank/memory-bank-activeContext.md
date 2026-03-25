@@ -88,11 +88,14 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-25 Session 244 - Opus 4.6) — LOGBOOK PUBLISH FILTER + BENCHMARK LEADERBOARD:**
+- **✅ Logbook publish_sections fix** — Wrong column name (`published_section_ids` → `publish_sections`) caused Logbook to show all sections
+- **✅ Coach/Mimi all-sections override** — Both My WODs and Logbook now bypass section filtering for Chris + Mimi
+- **✅ Benchmark leaderboard coach scores** — Merged `wod_section_results` into benchmark leaderboard (was only querying `benchmark_results`)
+- **⚠️ REMAINING:** Benchmark leaderboard sort order wrong + 2 "Unknown" names (fix in next session)
+
 **Completed (2026-03-24 Session 243 - Opus 4.6) — NON-RM LIFT LOGBOOK FIX + BOOKING CANCEL CLEANUP:**
-- **✅ Non-RM lift Logbook display fix** — Coach-entered lift scores (stored under `content-0` key) now display in lift badge area via fallback key lookup
-- **✅ Booking cancel score cleanup** — Both athlete and coach booking cancellations now delete associated `wod_section_results` and `lift_records`
-- **✅ Leaderboard sibling WOD issue closed** — Confirmed `workout_name` ±60 day grouping already works correctly
-- **Clarified:** Athlete self-entered lift scores correctly save to `lift_records` only (not leaderboard) — this is intended behavior, not a bug
+- **✅ Non-RM lift Logbook display fix, booking cancel score cleanup, leaderboard sibling WOD issue closed**
 
 **Completed (2026-03-24 Session 242 - Opus 4.6) — LEADERBOARD CHIP LABELS + LOGBOOK COACH LOCK:**
 - **✅ Leaderboard chip labels, logbook coach score lock, My WODs card navigation**
@@ -103,10 +106,7 @@ Social Tables
 **Completed (2026-03-24 Session 240 - Opus 4.6) — REVERT SIBLING SYNC + LOGBOOK INVESTIGATION:**
 - **⚠️ REVERTED Session 239 sibling WOD sync** — overwrote all same-type WODs on a date. Sync code removed.
 
-**Completed (2026-03-24 Session 237 - Opus 4.6) — SCORE DELETION + NON-RM LIFT SCORING:**
-- **✅ Score deletion cleanup, non-RM lift leaderboard, Score Entry display**
-
-**Older Sessions (57-234):**
+**Older Sessions (57-239):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -204,7 +204,12 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### NEXT SESSION
+### NEXT SESSION (PRIORITY)
+1. **Benchmark leaderboard sort order** — `rankBenchmarkResults` needs scaling + track sorting (parity with `rankSectionResults`)
+2. **Benchmark leaderboard "Unknown" names** — 2 entries with member_id but no user_id or whiteboard_name. Need to resolve member_id → display name in LeaderboardView benchmark path.
+3. **Test Logbook publish_sections fix** — Verify with Athlete Test 1 that only selected sections show.
+
+### BACKLOG
 1. **Account-linking script** — Plan script to migrate whiteboard_name entries to user_id when athletes register.
 2. **Coach library optimization** — Equipment & Body Parts lists need optimising.
 3. **April 13 reminder:** Verify Stripe trial payment processed for test athlete.

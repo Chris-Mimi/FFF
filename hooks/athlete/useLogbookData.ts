@@ -115,7 +115,7 @@ export function useLogbookData({
           workout_name,
           date,
           sections,
-          published_section_ids,
+          publish_sections,
           tracks:track_id (name, color),
           workout_types:workout_type_id (name)
         `)
@@ -172,7 +172,7 @@ export function useLogbookData({
           title,
           date,
           sections,
-          published_section_ids,
+          publish_sections,
           tracks:track_id (name, color),
           workout_types:workout_type_id (name)
         `)
@@ -225,7 +225,7 @@ export function useLogbookData({
           title,
           date,
           sections,
-          published_section_ids,
+          publish_sections,
           tracks:track_id (name, color),
           workout_types:workout_type_id (name)
         `)

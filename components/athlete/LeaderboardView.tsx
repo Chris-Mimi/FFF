@@ -615,9 +615,55 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
           .eq('benchmark_name', selectedItem.benchmarkName!)
           .in('result_date', dates);
 
-        if (!bmResults || bmResults.length === 0) { setEntries([]); return; }
+        // Also fetch coach-entered scores from wod_section_results
+        let bmSectionIds: string[] = [];
+        let bmWodIds: string[] = [];
+        if (isGrouped && groupedWods) {
+          for (const w of groupedWods) {
+            const sections = (w.sections || []) as WodSection[];
+            const sec = sections[selectedItem.sectionIndex];
+            if (sec) { bmSectionIds.push(`${sec.id}-content-0`); bmWodIds.push(w.id); }
+          }
+        } else {
+          const selectedWod = wods.find(w => w.id === selectedWodId);
+          if (selectedWod) {
+            const sections = (selectedWod.sections || []) as WodSection[];
+            const sec = sections[selectedItem.sectionIndex];
+            if (sec) { bmSectionIds.push(`${sec.id}-content-0`); bmWodIds.push(...(siblingWodIds[selectedWodId] || [selectedWodId])); }
+          }
+        }
 
-        let filtered = bmResults;
+        let coachEntries: RawSectionResult[] = [];
+        if (bmSectionIds.length > 0) {
+          const { data: wsrResults } = await supabase
+            .from('wod_section_results')
+            .select('id, user_id, whiteboard_name, time_result, reps_result, weight_result, weight_result_2, weight_result_3, rounds_result, calories_result, metres_result, scaling_level, scaling_level_2, scaling_level_3, track, task_completed, workout_date')
+            .in('wod_id', bmWodIds)
+            .in('section_id', bmSectionIds);
+          if (wsrResults) coachEntries = wsrResults as unknown as RawSectionResult[];
+        }
+
+        // Merge: convert coach entries to benchmark format, skip duplicates already in benchmark_results
+        const bmUserIds = new Set((bmResults || []).map(r => r.user_id));
+        const mergedBm = [...(bmResults || [])];
+        for (const ce of coachEntries) {
+          // Skip if this user already has a benchmark_results entry
+          if (ce.user_id && bmUserIds.has(ce.user_id)) continue;
+          mergedBm.push({
+            id: ce.id,
+            user_id: ce.user_id || `wb:${ce.whiteboard_name}`,
+            benchmark_name: selectedItem.benchmarkName!,
+            time_result: ce.time_result ?? null,
+            reps_result: ce.reps_result ?? null,
+            weight_result: ce.weight_result ?? null,
+            scaling_level: ce.scaling_level ?? null,
+            result_date: ce.workout_date ?? undefined,
+          });
+        }
+
+        if (mergedBm.length === 0) { setEntries([]); return; }
+
+        let filtered = mergedBm;
         if (scalingFilter === 'rx') {
           filtered = filtered.filter(r => r.scaling_level === 'Rx');
         } else if (scalingFilter === 'scaled') {

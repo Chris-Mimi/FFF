@@ -449,8 +449,12 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
   };
 
   const getPublishedSections = (workout: PublishedWorkout): WorkoutSection[] => {
-    // Coach's athlete account sees all sections (for testing/review)
-    if (userId === '84280ec0-7cc6-40e2-818b-d8843c30ce29') {
+    // Coach/Mimi accounts see all sections (for testing/review)
+    const allSectionsUserIds = [
+      '84280ec0-7cc6-40e2-818b-d8843c30ce29', // Chris
+      'fc5b34d5-e3f2-42ea-b029-c5994b2cf610', // Mimi
+    ];
+    if (allSectionsUserIds.includes(userId)) {
       return workout.sections;
     }
     // Backwards compatibility: if publish_sections is null/empty, show all sections
