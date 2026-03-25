@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 117.0
-**Updated:** 2026-03-25 (Session 246 - Unknown names fix, Link Whiteboard Scores tool)
+**Version:** 118.0
+**Updated:** 2026-03-25 (Session 247 - Revert whiteboard tool, benchmark track priority fix)
 
 ---
 
@@ -88,9 +88,13 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
-**Completed (2026-03-25 Session 246 - Opus 4.6) — UNKNOWN NAMES FIX + LINK WHITEBOARD SCORES TOOL:**
-- **✅ "Unknown" names ROOT CAUSE FOUND + FIXED** — Synthetic `wb:` IDs mixed with real UUIDs broke `get_member_names` RPC (UUID[] parameter). Fix: filter non-UUID IDs before RPC call. Also added `wb:` name mapping for whiteboard-only entries.
-- **⚠️ Link Whiteboard Scores admin tool BUILT** — Coach → Admin page. Shows unlinked whiteboard names, lets coach select registered member + link. Handles duplicates (deletes whiteboard row if registered entry exists). **Chris hasn't reviewed yet — may be unnecessary, discuss next session.**
+**Completed (2026-03-25 Session 247 - Opus 4.6) — REVERT WHITEBOARD TOOL + BENCHMARK TRACK FIX:**
+- **✅ Reverted Link Whiteboard Scores tool** — Unnecessary; one-time migration script is correct approach. Deleted 3 files + admin page reference.
+- **✅ Benchmark leaderboard track chip fix** — Coach entries (wod_section_results, has track) now take priority over athlete self-entries (benchmark_results, no track column). Previously benchmark_results won, hiding track chips.
+- **✅ Tobias/TobiasB duplicate** — Data cleanup in Supabase (not code fix). Whiteboard name rename creates duplicates but this is pre-launch only.
+
+**Completed (2026-03-25 Session 246 - Opus 4.6) — UNKNOWN NAMES FIX:**
+- **✅ "Unknown" names ROOT CAUSE FOUND + FIXED** — Synthetic `wb:` IDs broke `get_member_names` RPC. Fix: filter non-UUID IDs before RPC call.
 
 **Completed (2026-03-25 Session 245 - Opus 4.6) — BENCHMARK LEADERBOARD SORT + TRACK:**
 - **✅ Scaling sort, track sort + passthrough, whiteboard_name fallback + member_id lookup (partial fix)**
@@ -100,9 +104,6 @@ Social Tables
 
 **Completed (2026-03-24 Session 243 - Opus 4.6) — NON-RM LIFT LOGBOOK FIX + BOOKING CANCEL CLEANUP:**
 - **✅ Non-RM lift Logbook display fix, booking cancel score cleanup, leaderboard sibling WOD issue closed**
-
-**Completed (2026-03-24 Session 242 - Opus 4.6) — LEADERBOARD CHIP LABELS + LOGBOOK COACH LOCK:**
-- **✅ Leaderboard chip labels, logbook coach score lock, My WODs card navigation**
 
 **Older Sessions (57-241):**
 See `project-history/` folder for detailed implementation history
@@ -203,14 +204,12 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION (PRIORITY)
-1. **Review Link Whiteboard Scores tool** — Chris feels it may be unnecessary. Discuss whether to keep, modify, or revert. Tool is on Coach → Admin page.
-2. **Test "Unknown" names fix** — Verify benchmark leaderboard now shows real names for registered athletes (Chris, Paul, Lukas, Michael).
-3. **Test Logbook publish_sections fix** — Verify with Athlete Test 1 that only selected sections show.
+1. **Bug fix: Nancy Benchmark leaderboard** — Only Chris and Lukas show on Benchmarks tab leaderboard for Nancy. Other athletes (Paul, whiteboard entries) are missing. Investigate why `benchmark_results` table only has Lukas's entry and coach-entered scores aren't appearing on the Benchmark tab.
+2. **Test Logbook publish_sections fix** — Verify with Athlete Test 1 that only selected sections show.
 
 ### BACKLOG
-1. **Account-linking workflow** — Link Whiteboard Scores tool built (Session 246) but needs Chris review.
-2. **Coach library optimization** — Equipment & Body Parts lists need optimising.
-3. **April 13 reminder:** Verify Stripe trial payment processed for test athlete.
+1. **Coach library optimization** — Equipment & Body Parts lists need optimising.
+2. **April 13 reminder:** Verify Stripe trial payment processed for test athlete.
 
 ### DEPLOYMENT (Session 158+)
 

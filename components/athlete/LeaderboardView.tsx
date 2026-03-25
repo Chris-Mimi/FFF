@@ -659,13 +659,18 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
           }
         }
 
-        // Merge: convert coach entries to benchmark format, skip duplicates already in benchmark_results
+        // Merge: convert coach entries to benchmark format
+        // Coach entries (wod_section_results) take priority over athlete self-entries (benchmark_results)
+        // because coach entries have track data and are the primary score source
         type BmEntry = { id: string; user_id: string; benchmark_name: string; time_result: string | null; reps_result: number | null; weight_result: number | null; scaling_level: string | null; track?: number | null; result_date?: string };
-        const bmUserIds = new Set((bmResults || []).map(r => r.user_id));
-        const mergedBm: BmEntry[] = [...(bmResults || [])];
+        const coachUserIds = new Set(
+          (coachEntries as (RawSectionResult & { member_id?: string })[])
+            .filter(ce => ce.user_id)
+            .map(ce => ce.user_id)
+        );
+        // Start with benchmark_results entries that DON'T have a coach entry
+        const mergedBm: BmEntry[] = (bmResults || []).filter(r => !coachUserIds.has(r.user_id));
         for (const ce of coachEntries as (RawSectionResult & { member_id?: string })[]) {
-          // Skip if this user already has a benchmark_results entry
-          if (ce.user_id && bmUserIds.has(ce.user_id)) continue;
           // Build synthetic user_id key: prefer user_id, then wb:name, then member:id
           let syntheticUserId = ce.user_id;
           if (!syntheticUserId && ce.whiteboard_name) {
