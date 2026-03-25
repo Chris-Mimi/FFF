@@ -637,26 +637,57 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
         if (bmSectionIds.length > 0) {
           const { data: wsrResults } = await supabase
             .from('wod_section_results')
-            .select('id, user_id, whiteboard_name, time_result, reps_result, weight_result, weight_result_2, weight_result_3, rounds_result, calories_result, metres_result, scaling_level, scaling_level_2, scaling_level_3, track, task_completed, workout_date')
+            .select('id, user_id, member_id, whiteboard_name, time_result, reps_result, weight_result, weight_result_2, weight_result_3, rounds_result, calories_result, metres_result, scaling_level, scaling_level_2, scaling_level_3, track, task_completed, workout_date')
             .in('wod_id', bmWodIds)
             .in('section_id', bmSectionIds);
-          if (wsrResults) coachEntries = wsrResults as unknown as RawSectionResult[];
+          if (wsrResults) coachEntries = wsrResults as unknown as (RawSectionResult & { member_id?: string })[];
+        }
+
+        // Collect whiteboard name fallbacks and member_id lookups for name resolution
+        const whiteboardNameMap: Record<string, string> = {};
+        const memberIdNameMap: Record<string, string> = {};
+        const unresolvedMemberIds = (coachEntries as (RawSectionResult & { member_id?: string })[])
+          .filter(ce => !ce.user_id && !ce.whiteboard_name && ce.member_id)
+          .map(ce => ce.member_id!);
+        if (unresolvedMemberIds.length > 0) {
+          const { data: memberRows } = await supabase
+            .rpc('get_member_names', { member_ids: unresolvedMemberIds });
+          if (memberRows) {
+            for (const m of memberRows as { id: string; display_name: string | null; name: string | null }[]) {
+              memberIdNameMap[m.id] = m.display_name || m.name || 'Unknown';
+            }
+          }
         }
 
         // Merge: convert coach entries to benchmark format, skip duplicates already in benchmark_results
+        type BmEntry = { id: string; user_id: string; benchmark_name: string; time_result: string | null; reps_result: number | null; weight_result: number | null; scaling_level: string | null; track?: number | null; result_date?: string };
         const bmUserIds = new Set((bmResults || []).map(r => r.user_id));
-        const mergedBm = [...(bmResults || [])];
-        for (const ce of coachEntries) {
+        const mergedBm: BmEntry[] = [...(bmResults || [])];
+        for (const ce of coachEntries as (RawSectionResult & { member_id?: string })[]) {
           // Skip if this user already has a benchmark_results entry
           if (ce.user_id && bmUserIds.has(ce.user_id)) continue;
+          // Build synthetic user_id key: prefer user_id, then wb:name, then member:id
+          let syntheticUserId = ce.user_id;
+          if (!syntheticUserId && ce.whiteboard_name) {
+            syntheticUserId = `wb:${ce.whiteboard_name}`;
+          } else if (!syntheticUserId && ce.member_id) {
+            syntheticUserId = `member:${ce.member_id}`;
+          } else if (!syntheticUserId) {
+            syntheticUserId = `unknown:${ce.id}`;
+          }
+          // Store whiteboard_name fallback for registered athletes whose user_id may not be in members table
+          if (ce.user_id && ce.whiteboard_name) {
+            whiteboardNameMap[ce.user_id] = ce.whiteboard_name;
+          }
           mergedBm.push({
             id: ce.id,
-            user_id: ce.user_id || `wb:${ce.whiteboard_name}`,
+            user_id: syntheticUserId,
             benchmark_name: selectedItem.benchmarkName!,
             time_result: ce.time_result ?? null,
             reps_result: ce.reps_result ?? null,
             weight_result: ce.weight_result ?? null,
             scaling_level: ce.scaling_level ?? null,
+            track: ce.track ?? null,
             result_date: ce.workout_date ?? undefined,
           });
         }
@@ -672,6 +703,13 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
 
         const userIds = [...new Set(filtered.map(r => r.user_id))];
         const { names: memberNames, genders: fetchedGenders } = await fetchMemberNames(userIds);
+        // Inject fallback names: whiteboard_name for registered athletes, member_id lookups
+        for (const [userId, wbName] of Object.entries(whiteboardNameMap)) {
+          if (!memberNames[userId]) memberNames[userId] = wbName;
+        }
+        for (const [memberId, name] of Object.entries(memberIdNameMap)) {
+          memberNames[`member:${memberId}`] = name;
+        }
         const ranked = rankBenchmarkResults(filtered, memberNames, selectedItem.benchmarkType || 'time', fetchedGenders);
         setEntries(ranked);
 

@@ -92,6 +92,7 @@ interface RawBenchmarkResult {
   reps_result?: number | null;
   weight_result?: number | null;
   scaling_level?: string | null;
+  track?: number | null;
   result_date?: string;
 }
 
@@ -368,9 +369,17 @@ export function rankBenchmarkResults(
     if (isBetter) bestByUser.set(r.user_id, r);
   }
 
-  // Sort best results
+  // Sort best results: scaling first (Rx > Sc1 > Sc2 > Sc3 > unset), then by primary metric
+  const scalingOrder: Record<string, number> = { 'Rx': 0, 'Sc1': 1, 'Sc2': 2, 'Sc3': 3 };
   const bests = [...bestByUser.values()];
   bests.sort((a, b) => {
+    const aScale = scalingOrder[a.scaling_level || ''] ?? 4;
+    const bScale = scalingOrder[b.scaling_level || ''] ?? 4;
+    if (aScale !== bScale) return aScale - bScale;
+    // Track: 1 < 2 < 3 < null (lower track = higher rank)
+    const aTrack = a.track ?? 4;
+    const bTrack = b.track ?? 4;
+    if (aTrack !== bTrack) return aTrack - bTrack;
     if (isTimeBased) return parseTimeToSeconds(a.time_result) - parseTimeToSeconds(b.time_result);
     if (isRepsBased) return (b.reps_result || 0) - (a.reps_result || 0);
     return (b.weight_result || 0) - (a.weight_result || 0);
@@ -385,6 +394,7 @@ export function rankBenchmarkResults(
     repsResult: r.reps_result || undefined,
     weightResult: r.weight_result || undefined,
     scalingLevel: r.scaling_level || undefined,
+    track: r.track || undefined,
     resultDate: r.result_date,
     gender: memberGenders?.[r.user_id] ?? (r.user_id.startsWith('wb:') ? getWhiteboardGender(r.user_id.slice(3)) : undefined) ?? undefined,
   }));

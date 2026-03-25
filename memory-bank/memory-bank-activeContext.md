@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 115.0
-**Updated:** 2026-03-24 (Session 243 - Non-RM lift logbook fix, booking cancel score cleanup)
+**Version:** 116.0
+**Updated:** 2026-03-25 (Session 245 - Benchmark leaderboard scaling/track sort, Unknown names partial fix)
 
 ---
 
@@ -88,11 +88,13 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-25 Session 245 - Opus 4.6) — BENCHMARK LEADERBOARD SORT + TRACK + UNKNOWN NAMES:**
+- **✅ Scaling sort** — `rankBenchmarkResults` now sorts Rx > Sc1 > Sc2 > Sc3 > unset before primary metric
+- **✅ Track sort + passthrough** — Track field preserved from coach entries, sorting added (1 < 2 < 3 < null), badge displays
+- **⚠️ "Unknown" names STILL SHOWING** — Added whiteboard_name fallback + member_id lookup, but registered athletes still show "Unknown". Root cause unresolved — likely `members.id` ≠ `auth.users.id` for these athletes, AND whiteboard_name fallback not triggering. Need to investigate actual data in Supabase next session.
+
 **Completed (2026-03-25 Session 244 - Opus 4.6) — LOGBOOK PUBLISH FILTER + BENCHMARK LEADERBOARD:**
-- **✅ Logbook publish_sections fix** — Wrong column name (`published_section_ids` → `publish_sections`) caused Logbook to show all sections
-- **✅ Coach/Mimi all-sections override** — Both My WODs and Logbook now bypass section filtering for Chris + Mimi
-- **✅ Benchmark leaderboard coach scores** — Merged `wod_section_results` into benchmark leaderboard (was only querying `benchmark_results`)
-- **⚠️ REMAINING:** Benchmark leaderboard sort order wrong + 2 "Unknown" names (fix in next session)
+- **✅ Logbook publish_sections fix, coach/Mimi override, benchmark leaderboard coach scores merged**
 
 **Completed (2026-03-24 Session 243 - Opus 4.6) — NON-RM LIFT LOGBOOK FIX + BOOKING CANCEL CLEANUP:**
 - **✅ Non-RM lift Logbook display fix, booking cancel score cleanup, leaderboard sibling WOD issue closed**
@@ -103,10 +105,7 @@ Social Tables
 **Completed (2026-03-24 Session 241 - Opus 4.6) — PUBLISH VALIDATION + DATA CLEANUP + ATHLETE TAB RENAMES:**
 - **✅ Publish validation, data cleanup, diagnostic query fix, athlete tab renames**
 
-**Completed (2026-03-24 Session 240 - Opus 4.6) — REVERT SIBLING SYNC + LOGBOOK INVESTIGATION:**
-- **⚠️ REVERTED Session 239 sibling WOD sync** — overwrote all same-type WODs on a date. Sync code removed.
-
-**Older Sessions (57-239):**
+**Older Sessions (57-240):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -205,9 +204,8 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION (PRIORITY)
-1. **Benchmark leaderboard sort order** — `rankBenchmarkResults` needs scaling + track sorting (parity with `rankSectionResults`)
-2. **Benchmark leaderboard "Unknown" names** — 2 entries with member_id but no user_id or whiteboard_name. Need to resolve member_id → display name in LeaderboardView benchmark path.
-3. **Test Logbook publish_sections fix** — Verify with Athlete Test 1 that only selected sections show.
+1. **Benchmark leaderboard "Unknown" names — INVESTIGATE DATA** — Scaling/track sort done. "Unknown" still shows for 2 registered athletes. Session 245 added whiteboard_name fallback + member_id lookup but didn't fix it. **Next step: Chris check Supabase** — find the 2 "Unknown" entries in `wod_section_results` for a benchmark WOD and check: (a) is `user_id` set? (b) is `whiteboard_name` set? (c) is `member_id` set? (d) does `members.id` match `auth.users.id` for these athletes? This will reveal the root cause.
+2. **Test Logbook publish_sections fix** — Verify with Athlete Test 1 that only selected sections show.
 
 ### BACKLOG
 1. **Account-linking script** — Plan script to migrate whiteboard_name entries to user_id when athletes register.
