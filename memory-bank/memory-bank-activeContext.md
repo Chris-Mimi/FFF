@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 124.0
-**Updated:** 2026-03-26 (Session 253 - Publish modal UX + leaderboard section preview)
+**Version:** 125.0
+**Updated:** 2026-03-26 (Session 255 - Coach library equipment/body parts cleanup)
 
 ---
 
@@ -88,10 +88,13 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-26 Session 255 - Opus 4.6) — COACH LIBRARY CLEANUP:**
+- **✅ Benchmark ranking fix verified** — Code correctly handles Infinity-Infinity in both best-per-user and final sort
+- **✅ Equipment cleanup** — 43 values standardized to Title Case (medball→Medicine Ball, ghd→GHD, Bulldog Assault Bike→Assault Bike, etc.)
+- **✅ Body parts cleanup** — 166 anatomy-textbook terms → 23 CrossFit-practical groups (Core, Shoulders, Quads, Glutes, Lats, etc.)
+
 **Completed (2026-03-26 Session 254 - Opus 4.6) — LEADERBOARD STYLING + BENCHMARK RANKING FIX:**
-- **✅ Leaderboard dark theme** — Section content preview, WOD dropdown, selected WOD button all use dark grey/teal with white text
-- **✅ Benchmark description preview** — Selected benchmark shows description below picker (same dark grey format)
-- **✅ Benchmark time-cap ranking fix** — Athletes who hit time cap now ranked by rounds+reps (was NaN from Infinity-Infinity)
+- **✅ Leaderboard dark theme + benchmark description preview + time-cap ranking fix**
 
 **Completed (2026-03-26 Session 253 - Opus 4.6) — PUBLISH MODAL UX + LEADERBOARD SECTION PREVIEW:**
 - **✅ Publish modal non-blocking + draggable + focus management + section content preview**
@@ -101,9 +104,6 @@ Social Tables
 
 **Completed (2026-03-26 Session 251 - Opus 4.6) — FEED REMOVAL + LEADERBOARD FIXES:**
 - **✅ Removed Feed view + WOD date column + "Time Cap" formatting + member_id dedup**
-
-**Completed (2026-03-26 Session 250 - Opus 4.6) — AGGREGATE SCALING + BENCHMARK MULTI-SCALING:**
-- **✅ Aggregate scaling ranking + 3rd scaling chip fix + benchmark multi-scaling + rounds+reps fix**
 
 **Older Sessions (57-249):**
 See `project-history/` folder for detailed implementation history
@@ -205,12 +205,10 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION (PRIORITY)
-1. **Verify benchmark ranking fix** — Check Nancy and other time-based benchmarks where athletes hit the cap — ranking should now be by rounds+reps.
-2. **Coach library optimization** — Equipment & Body Parts lists need optimising.
+1. **Check exercise library UI** — Verify equipment/body parts filters show clean consolidated values in the app.
 
 ### BACKLOG
-1. **Coach library optimization** — Equipment & Body Parts lists need optimising.
-2. **April 13 reminder:** Verify Stripe trial payment processed for test athlete.
+1. **April 13 reminder:** Verify Stripe trial payment processed for test athlete.
 
 ### DEPLOYMENT (Session 158+)
 
