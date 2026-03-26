@@ -205,7 +205,16 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION (PRIORITY)
-1. **Fix whiteboard duplicate bug** — Delete 3 bad AndreasK rows (`DELETE FROM wod_section_results WHERE whiteboard_name = 'AndreasK' AND user_id IS NULL AND member_id IS NULL`). Also check Weekend WOD #26.7 (Rx vs Sc1 duplicate). Scan for other whiteboard-only entries duplicating registered athletes. Consider systematic prevention.
+1. **Fix whiteboard duplicate bug** — On the Athlete Leaderboard, some athletes appear TWICE: once under their registered name (e.g., "Andreas Keip") and once under a coach-entered whiteboard name (e.g., "AndreasK"). The whiteboard entry shows wrong scores and only 1 scaling level while others have 2. This happens because the `wod_section_results` table has orphan rows with `whiteboard_name='AndreasK'` but `user_id=null` and `member_id=null` — these aren't linked to the registered athlete, so the leaderboard shows them as separate people.
+   - **Step 1:** Ask Chris to run this SQL in Supabase SQL Editor to delete the 3 known bad rows:
+     ```sql
+     DELETE FROM wod_section_results
+     WHERE whiteboard_name = 'AndreasK'
+     AND user_id IS NULL AND member_id IS NULL;
+     ```
+   - **Step 2:** Check Weekend WOD #26.7 — AndreasK also appears twice there (Rx correct, Sc1 wrong)
+   - **Step 3:** Scan ALL whiteboard-only entries for other duplicates of registered athletes
+   - **Step 4:** Consider systematic prevention (match whiteboard names to registered athletes at entry time, or improve leaderboard dedup)
 2. **Test aggregate scaling ranking** — Verify leaderboard order matches expected aggregate scoring on multi-scaling WODs.
 
 ### BACKLOG
