@@ -88,11 +88,13 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-26 Session 254 - Opus 4.6) — LEADERBOARD STYLING + BENCHMARK RANKING FIX:**
+- **✅ Leaderboard dark theme** — Section content preview, WOD dropdown, selected WOD button all use dark grey/teal with white text
+- **✅ Benchmark description preview** — Selected benchmark shows description below picker (same dark grey format)
+- **✅ Benchmark time-cap ranking fix** — Athletes who hit time cap now ranked by rounds+reps (was NaN from Infinity-Infinity)
+
 **Completed (2026-03-26 Session 253 - Opus 4.6) — PUBLISH MODAL UX + LEADERBOARD SECTION PREVIEW:**
-- **✅ Publish modal non-blocking** — Removed dark overlay, calendar clickable while publish modal is open
-- **✅ Publish modal draggable** — Grab teal header to reposition; opens right of Workout panel on desktop
-- **✅ Workout/Publish focus management** — Click either to bring to front (z-index toggle)
-- **✅ Leaderboard section content preview** — Selected chip shows full section content underneath for athlete context
+- **✅ Publish modal non-blocking + draggable + focus management + section content preview**
 
 **Completed (2026-03-26 Session 252 - Opus 4.6) — DATA CLEANUP + DUPLICATE SCAN:**
 - **✅ Whiteboard duplicate bug RESOLVED + full duplicate scan + orphan cleanup + migration plan saved**
@@ -103,10 +105,7 @@ Social Tables
 **Completed (2026-03-26 Session 250 - Opus 4.6) — AGGREGATE SCALING + BENCHMARK MULTI-SCALING:**
 - **✅ Aggregate scaling ranking + 3rd scaling chip fix + benchmark multi-scaling + rounds+reps fix**
 
-**Completed (2026-03-26 Sessions 248-249 - Opus 4.6) — LEADERBOARD POLISH:**
-- **✅ Benchmark tab fix + gender filters + alphabetize + visual cleanup**
-
-**Older Sessions (57-247):**
+**Older Sessions (57-249):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -206,7 +205,7 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION (PRIORITY)
-1. **Test aggregate scaling ranking** — Verify leaderboard order matches expected aggregate scoring on multi-scaling WODs.
+1. **Verify benchmark ranking fix** — Check Nancy and other time-based benchmarks where athletes hit the cap — ranking should now be by rounds+reps.
 2. **Coach library optimization** — Equipment & Body Parts lists need optimising.
 
 ### BACKLOG

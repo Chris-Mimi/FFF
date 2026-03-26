@@ -213,6 +213,7 @@ interface BenchmarkOption {
   id: string;
   name: string;
   type: string;
+  description: string | null;
   source: 'standard' | 'forge';
 }
 
@@ -329,13 +330,13 @@ function WodDropdown({ wods, selectedWodId, workoutTypesMap, onSelect }: {
     <div ref={ref} className='relative'>
       <button
         onClick={() => setOpen(!open)}
-        className='w-full px-3 py-2 bg-sky-100 border border-sky-300 rounded-lg text-sm text-gray-900 text-left flex items-center justify-between'
+        className='w-full px-3 py-2 bg-[#178da6] rounded-lg text-sm text-white text-left flex items-center justify-between'
       >
         <span className='truncate'>{selectedLabel}</span>
         <ChevronDown size={16} className={`ml-2 flex-shrink-0 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
-        <div className='absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto'>
+        <div className='absolute z-50 top-full left-0 right-0 mt-1 bg-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto divide-y divide-gray-500'>
           {wods.map(w => {
             const dayLabel = new Date(w.date + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short' });
             const isSelected = w.id === selectedWodId;
@@ -344,7 +345,7 @@ function WodDropdown({ wods, selectedWodId, workoutTypesMap, onSelect }: {
                 key={w.id}
                 onClick={() => { onSelect(w.id); setOpen(false); }}
                 className={`w-full px-3 py-2 text-left text-xs transition ${
-                  isSelected ? 'bg-[#178da6]/10 text-[#178da6] font-medium' : 'text-gray-700 hover:bg-gray-50'
+                  isSelected ? 'bg-[#178da6] text-white font-medium' : 'text-white hover:bg-gray-500'
                 }`}
               >
                 {dayLabel} – {w.session_type || w.title}{w.workout_name ? ` - ${w.workout_name}` : ''}{formatWodSummary(w.sections, workoutTypesMap)}
@@ -965,7 +966,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
             const section = selectedWodForPreview?.sections[selectedItem.sectionIndex];
             if (!section?.content?.trim()) return null;
             return (
-              <div className='bg-gray-50 rounded-lg px-3 py-2 text-sm text-gray-700 whitespace-pre-wrap max-h-[120px] overflow-y-auto border border-gray-200'>
+              <div className='bg-gray-600 rounded-lg px-3 py-2 text-sm text-white whitespace-pre-wrap max-h-[120px] overflow-y-auto'>
                 {section.content}
               </div>
             );
@@ -1168,8 +1169,8 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
   useEffect(() => {
     const loadBenchmarks = async () => {
       const [{ data: standard }, { data: forge }] = await Promise.all([
-        supabase.from('benchmark_workouts').select('id, name, type').order('name'),
-        supabase.from('forge_benchmarks').select('id, name, type').order('name'),
+        supabase.from('benchmark_workouts').select('id, name, type, description').order('name'),
+        supabase.from('forge_benchmarks').select('id, name, type, description').order('name'),
       ]);
 
       const options: BenchmarkOption[] = [
@@ -1343,7 +1344,7 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
           const bm = benchmarks.find(b => b.name === e.target.value);
           if (bm) setSelectedBenchmark(bm);
         }}
-        className='w-full px-3 py-2 bg-sky-100 border border-sky-300 rounded-lg text-sm text-gray-900'
+        className='w-full px-3 py-2 bg-[#178da6] rounded-lg text-sm text-white'
       >
         {benchmarks.length > 0 && (
           <>
@@ -1360,6 +1361,13 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
           </>
         )}
       </select>
+
+      {/* Benchmark description */}
+      {selectedBenchmark?.description?.trim() && (
+        <div className='bg-gray-600 rounded-lg px-3 py-2 text-sm text-white whitespace-pre-wrap max-h-[120px] overflow-y-auto'>
+          {selectedBenchmark.description}
+        </div>
+      )}
 
       {/* Filters row */}
       <div className='flex items-center gap-3'>

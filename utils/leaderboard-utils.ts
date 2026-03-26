@@ -364,7 +364,16 @@ export function rankBenchmarkResults(
     // Compare to find better result
     let isBetter = false;
     if (isTimeBased) {
-      isBetter = parseTimeToSeconds(r.time_result) < parseTimeToSeconds(existing.time_result);
+      const rTime = parseTimeToSeconds(r.time_result);
+      const eTime = parseTimeToSeconds(existing.time_result);
+      if (rTime !== Infinity && eTime !== Infinity) {
+        isBetter = rTime < eTime;
+      } else if (rTime !== Infinity) {
+        isBetter = true; // finisher beats cap-hitter
+      } else if (eTime === Infinity) {
+        // Both hit cap: more rounds+reps = better
+        isBetter = roundsRepsScore(r) > roundsRepsScore(existing);
+      }
     } else if (isRepsBased) {
       isBetter = roundsRepsScore(r) > roundsRepsScore(existing);
     } else {
@@ -390,7 +399,17 @@ export function rankBenchmarkResults(
     const aTrack = a.track ?? 4;
     const bTrack = b.track ?? 4;
     if (aTrack !== bTrack) return aTrack - bTrack;
-    if (isTimeBased) return parseTimeToSeconds(a.time_result) - parseTimeToSeconds(b.time_result);
+    if (isTimeBased) {
+      const aTime = parseTimeToSeconds(a.time_result);
+      const bTime = parseTimeToSeconds(b.time_result);
+      const aFinished = aTime !== Infinity;
+      const bFinished = bTime !== Infinity;
+      if (aFinished && bFinished) return aTime - bTime;
+      if (aFinished && !bFinished) return -1;
+      if (!aFinished && bFinished) return 1;
+      // Both hit cap: compare rounds+reps descending (more work = better)
+      return roundsRepsScore(b) - roundsRepsScore(a);
+    }
     if (isRepsBased) return roundsRepsScore(b) - roundsRepsScore(a);
     return (b.weight_result || 0) - (a.weight_result || 0);
   });
