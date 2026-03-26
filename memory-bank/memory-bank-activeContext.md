@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 125.0
-**Updated:** 2026-03-26 (Session 255 - Coach library equipment/body parts cleanup)
+**Version:** 126.0
+**Updated:** 2026-03-26 (Session 256 - Pre-launch audit critical fixes + lint cleanup)
 
 ---
 
@@ -88,10 +88,15 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-26 Session 256 - Opus 4.6) — PRE-LAUNCH AUDIT + CRITICAL FIXES:**
+- **✅ 5 parallel audit agents** — Large files, TypeScript quality, security, dead code, build health
+- **✅ CRITICAL: removed `detail: String(error)` leak** in `/api/score-query/route.ts`
+- **✅ Fixed 10 React Hook exhaustive-deps warnings** across 8 files
+- **✅ Removed console.log, fixed CoachHeader Lucide rename, suppressed legitimate img warnings**
+- **✅ Build passes cleanly**
+
 **Completed (2026-03-26 Session 255 - Opus 4.6) — COACH LIBRARY CLEANUP:**
-- **✅ Benchmark ranking fix verified** — Code correctly handles Infinity-Infinity in both best-per-user and final sort
-- **✅ Equipment cleanup** — 43 values standardized to Title Case (medball→Medicine Ball, ghd→GHD, Bulldog Assault Bike→Assault Bike, etc.)
-- **✅ Body parts cleanup** — 166 anatomy-textbook terms → 23 CrossFit-practical groups (Core, Shoulders, Quads, Glutes, Lats, etc.)
+- **✅ Equipment cleanup (43 values standardized) + Body parts cleanup (166→23 groups)**
 
 **Completed (2026-03-26 Session 254 - Opus 4.6) — LEADERBOARD STYLING + BENCHMARK RANKING FIX:**
 - **✅ Leaderboard dark theme + benchmark description preview + time-cap ranking fix**
@@ -100,10 +105,7 @@ Social Tables
 - **✅ Publish modal non-blocking + draggable + focus management + section content preview**
 
 **Completed (2026-03-26 Session 252 - Opus 4.6) — DATA CLEANUP + DUPLICATE SCAN:**
-- **✅ Whiteboard duplicate bug RESOLVED + full duplicate scan + orphan cleanup + migration plan saved**
-
-**Completed (2026-03-26 Session 251 - Opus 4.6) — FEED REMOVAL + LEADERBOARD FIXES:**
-- **✅ Removed Feed view + WOD date column + "Time Cap" formatting + member_id dedup**
+- **✅ Whiteboard duplicate bug RESOLVED + full duplicate scan + orphan cleanup**
 
 **Older Sessions (57-249):**
 See `project-history/` folder for detailed implementation history
@@ -112,9 +114,10 @@ See `project-history/` folder for detailed implementation history
 
 ## 🚨 Known Issues / Remaining Items
 
-**Pre-Deployment Audit — Sessions 96-101 + 154-155:**
-- ✅ All CRITICAL, HIGH, and MEDIUM items completed
-- **LOW remaining:** 8 files >500 lines, 22 `@typescript-eslint/no-explicit-any`, no rate limiting on registration
+**Pre-Deployment Audit — Sessions 96-101 + 154-155 + 256:**
+- ✅ All CRITICAL and HIGH items completed (Session 256: error detail leak fixed)
+- **MEDIUM remaining:** 97 lint warnings (31x unused markdown node, 6x unused catch vars), 7 `any` types, 3 missing `loading.tsx`, 5 TODO comments
+- **LOW remaining:** 7 files >500 lines, rate limiting on registration, Stripe webhook log sanitization, Recharts lazy loading
 
 **Feature Gaps (from competitor analysis — updated):**
 - ✅ #1 Social reactions (fist bumps) — DONE (Session 104)
@@ -205,7 +208,8 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION (PRIORITY)
-1. **Check exercise library UI** — Verify equipment/body parts filters show clean consolidated values in the app.
+1. **Check exercise library UI** — Verify equipment/body parts filters show clean consolidated values in the app
+2. **MEDIUM audit items** — Unused variable cleanup (97 lint warnings), `any` types (7 files), `loading.tsx` for /coach, /athlete, /member/book routes
 
 ### BACKLOG
 1. **April 13 reminder:** Verify Stripe trial payment processed for test athlete.

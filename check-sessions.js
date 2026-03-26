@@ -33,7 +33,7 @@ async function checkSessions() {
     .select('id, title, date, sections')
     .order('date', { ascending: false });
 
-  const wodIds = new Set(wods.map(w => w.id));
+  const _wodIds = new Set(wods.map(w => w.id));
   const sessionWodIds = new Set(sessions.map(s => s.workout_id).filter(Boolean));
 
   const orphanedWods = wods.filter(w => !sessionWodIds.has(w.id));

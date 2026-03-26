@@ -132,7 +132,7 @@ function MovementLibraryPopup({
   const [workoutTypes, setWorkoutTypes] = useState<Array<{ id: string; name: string }>>([]);
 
   // Favorites and Recently Used hooks
-  const { favorites, favoriteIds, isFavorited, toggleFavorite } = useUserFavorites();
+  const { favorites, favoriteIds: _favoriteIds, isFavorited, toggleFavorite } = useUserFavorites();
   const { recentExercises, addRecent } = useRecentExercises();
 
   // Collapsible sections state
@@ -411,7 +411,7 @@ function MovementLibraryPopup({
 
       const maxOrder = existing && existing.length > 0 ? existing[0].display_order : 0;
 
-      const { data, error } = await supabase
+      const { data: _data, error } = await supabase
         .from('forge_benchmarks')
         .insert({
           name: forgeForm.name.trim(),

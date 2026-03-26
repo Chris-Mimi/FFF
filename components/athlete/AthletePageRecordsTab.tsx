@@ -99,7 +99,7 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
 
       // For each benchmark, find the best result
       const finalBenchmarkPRs: BenchmarkResult[] = [];
-      benchmarkGroups.forEach((results, benchmarkName) => {
+      benchmarkGroups.forEach((results, _benchmarkName) => {
         let bestResult: BenchmarkResult | null = null;
 
         results.forEach(result => {
@@ -151,7 +151,7 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
       });
 
       const finalForgePRs: BenchmarkResult[] = [];
-      forgeGroups.forEach((results, benchmarkName) => {
+      forgeGroups.forEach((results, _benchmarkName) => {
         let bestResult: BenchmarkResult | null = null;
 
         results.forEach(result => {

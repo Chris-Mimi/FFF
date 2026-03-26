@@ -187,7 +187,7 @@ export default function LiftsTab({
 
   // Sort categories by predefined order, then add any unrecognized categories
   const allCategories = Object.keys(liftsByCategory);
-  const sortedCategories = [
+  const _sortedCategories = [
     ...CATEGORY_ORDER.filter(cat => liftsByCategory[cat]),
     ...allCategories.filter(cat => !CATEGORY_ORDER.includes(cat)).sort()
   ];

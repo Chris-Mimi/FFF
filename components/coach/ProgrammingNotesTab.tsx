@@ -8,7 +8,6 @@ import { FocusTrap } from '@/components/ui/FocusTrap';
 import { Bold, Italic, List, ListOrdered, Plus, Save, Trash2, Type, Underline as UnderlineIcon, Eye, Edit2, Folder, FolderPlus, ChevronDown, ChevronRight, MoreVertical, Search, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import remarkBreaks from 'remark-breaks';
 import rehypeRaw from 'rehype-raw';
 import {
   DndContext,
@@ -52,7 +51,7 @@ export default function ProgrammingNotesTab() {
   const [folders, setFolders] = useState<NoteFolder[]>([]);
   const [collapsedFolders, setCollapsedFolders] = useState<Record<string, boolean>>({});
   const [showFolderModal, setShowFolderModal] = useState(false);
-  const [editingFolder, setEditingFolder] = useState<NoteFolder | null>(null);
+  const [_editingFolder, _setEditingFolder] = useState<NoteFolder | null>(null);
   const [folderName, setFolderName] = useState('');
   const [showFolderMenu, setShowFolderMenu] = useState<string | null>(null);
 
@@ -868,7 +867,7 @@ export default function ProgrammingNotesTab() {
                     remarkPlugins={[remarkGfm]}
                     rehypePlugins={[rehypeRaw]}
                     components={{
-                      a: ({ node, ...props }) => (
+                      a: ({ ...props }) => (
                         <a
                           {...props}
                           target="_blank"

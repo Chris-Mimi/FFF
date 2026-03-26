@@ -1,11 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 
-interface Booking {
-  id: string;
-  member_id: string;
-  status: string;
-}
-
 /**
  * Validate new capacity against confirmed bookings
  * @param newCapacity - Proposed new capacity

@@ -8,7 +8,6 @@
  */
 
 import * as fs from 'fs';
-import * as path from 'path';
 
 // Valid categories from original
 const VALID_CATEGORIES = [

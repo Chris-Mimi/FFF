@@ -63,6 +63,7 @@ export async function getFavoriteExercises(): Promise<ExerciseWithFavorite[]> {
   }
 
   // Transform the data to include favorited_at
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (data || []).map((fav: any) => ({
     ...fav.exercises,
     is_favorited: true,

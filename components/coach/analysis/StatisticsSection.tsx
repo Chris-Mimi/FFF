@@ -63,7 +63,7 @@ export default function StatisticsSection({
   exercises,
   timeframePeriod,
   onTimeframePeriodChange,
-  selectedMonth,
+  selectedMonth: _selectedMonth,
   onChangeMonth,
   timeframeLabel,
   dateButtonRef,

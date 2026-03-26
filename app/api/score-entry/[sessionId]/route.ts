@@ -69,7 +69,7 @@ export async function GET(
     const emailToUserId: Record<string, string> = {};
     if (memberEmails.length > 0) {
       // Batch lookup: fetch all users and match by email
-      const { data: authUsers } = await supabaseAdmin
+      const { data: _authUsers } = await supabaseAdmin
         .from('members')
         .select('id, email')
         .in('email', memberEmails);

@@ -138,7 +138,7 @@ export default function SearchPanel({
     updateGroupExercises,
     toggleGroupActive,
     deactivateAllGroups,
-    removeExerciseFromAllGroups,
+    removeExerciseFromAllGroups: _removeExerciseFromAllGroups,
   } = useExerciseGroups();
   const [showGroupNameInput, setShowGroupNameInput] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
@@ -866,7 +866,7 @@ export default function SearchPanel({
                 const activeGroupExerciseIds = new Set(
                   exerciseGroups.filter(g => g.active).flatMap(g => g.exercise_ids)
                 );
-                const anyGroupActive = exerciseGroups.some(g => g.active);
+                const _anyGroupActive = exerciseGroups.some(g => g.active);
                 const displayExercises = editingGroupExercises
                   ? trackedExercises // Edit mode: show all
                   : trackedExercises.filter(ex => !activeGroupExerciseIds.has(ex.id));
@@ -1555,7 +1555,7 @@ export default function SearchPanel({
                           remarkPlugins={[remarkGfm, remarkBreaks]}
                           rehypePlugins={[rehypeRaw]}
                           components={{
-                            a: ({ node, ...props }) => (
+                            a: ({ ...props }) => (
                               <a
                                 {...props}
                                 target="_blank"
@@ -1563,15 +1563,15 @@ export default function SearchPanel({
                                 className="text-blue-600 hover:text-blue-800 underline"
                               />
                             ),
-                            p: ({ node, ...props }) => <p {...props} className="mb-2" />,
-                            ul: ({ node, ...props }) => <ul {...props} className="list-disc ml-4 mb-2" />,
-                            ol: ({ node, ...props }) => <ol {...props} className="list-decimal ml-4 mb-2" />,
-                            li: ({ node, ...props }) => <li {...props} className="mb-1" />,
-                            h1: ({ node, ...props }) => <h1 {...props} className="text-lg font-bold mb-2 mt-3" />,
-                            h2: ({ node, ...props }) => <h2 {...props} className="text-base font-bold mb-2 mt-2" />,
-                            h3: ({ node, ...props }) => <h3 {...props} className="text-sm font-bold mb-1 mt-2" />,
-                            strong: ({ node, ...props }) => <strong {...props} className="font-bold" />,
-                            em: ({ node, ...props }) => <em {...props} className="italic" />,
+                            p: ({ ...props }) => <p {...props} className="mb-2" />,
+                            ul: ({ ...props }) => <ul {...props} className="list-disc ml-4 mb-2" />,
+                            ol: ({ ...props }) => <ol {...props} className="list-decimal ml-4 mb-2" />,
+                            li: ({ ...props }) => <li {...props} className="mb-1" />,
+                            h1: ({ ...props }) => <h1 {...props} className="text-lg font-bold mb-2 mt-3" />,
+                            h2: ({ ...props }) => <h2 {...props} className="text-base font-bold mb-2 mt-2" />,
+                            h3: ({ ...props }) => <h3 {...props} className="text-sm font-bold mb-1 mt-2" />,
+                            strong: ({ ...props }) => <strong {...props} className="font-bold" />,
+                            em: ({ ...props }) => <em {...props} className="italic" />,
                           }}
                         >
                           {selectedSearchWOD.coach_notes}

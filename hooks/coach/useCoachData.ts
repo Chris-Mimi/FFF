@@ -1,6 +1,7 @@
 'use client';
 
-import { WODFormData } from '@/components/coach/WorkoutModal';
+import { WODFormData, WODSection } from '@/components/coach/WorkoutModal';
+import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
 import { supabase } from '@/lib/supabase';
 import { extractMovements, extractMovementsFromWod } from '@/utils/movement-extraction';
 import { useEffect, useState } from 'react';
@@ -108,9 +109,9 @@ export const useCoachData = ({
         const confirmedCount = sessionBookings.filter(b => b.status === 'confirmed').length;
         const waitlistCount = sessionBookings.filter(b => b.status === 'waitlist').length;
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const bookedMembers = sessionBookings
           .filter(b => b.status === 'confirmed' || b.status === 'waitlist')
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           .map((b: any) => {
             const m = b.members;
             return m?.display_name || m?.name || 'Unknown';
@@ -277,23 +278,23 @@ export const useCoachData = ({
             let combinedText = '';
 
             // Helper function to extract structured movement data from sections
-            const getStructuredMovements = (sections: any[]) => {
+            const getStructuredMovements = (sections: WODSection[]) => {
               return sections.flatMap(section => {
                 const movements: string[] = [];
 
                 // Extract lift names
-                section.lifts?.forEach((lift: any) => {
+                section.lifts?.forEach((lift: ConfiguredLift) => {
                   if (lift.name) movements.push(lift.name);
                 });
 
                 // Extract benchmark name and description (description contains movements like "150 Wallball Shots")
-                section.benchmarks?.forEach((benchmark: any) => {
+                section.benchmarks?.forEach((benchmark: ConfiguredBenchmark) => {
                   if (benchmark.name) movements.push(benchmark.name);
                   if (benchmark.description) movements.push(benchmark.description);
                 });
 
                 // Extract forge benchmark name and description
-                section.forge_benchmarks?.forEach((forge: any) => {
+                section.forge_benchmarks?.forEach((forge: ConfiguredForgeBenchmark) => {
                   if (forge.name) movements.push(forge.name);
                   if (forge.description) movements.push(forge.description);
                 });
@@ -489,6 +490,7 @@ export const useCoachData = ({
       const sectionTypeCountsMap: Record<string, number> = {};
       const uniqueSessionTypes = new Set<string>();
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       sessionsData?.forEach((session: any) => {
         const wod = session.wods;
         if (!wod) return;
@@ -506,7 +508,7 @@ export const useCoachData = ({
 
         // Count workout types and section types from sections
         const wodSectionTypes = new Set<string>();
-        wod.sections?.forEach((section: any) => {
+        wod.sections?.forEach((section: WODSection) => {
           if (section.workout_type_id) {
             workoutTypeCountsMap[section.workout_type_id] = (workoutTypeCountsMap[section.workout_type_id] || 0) + 1;
           }

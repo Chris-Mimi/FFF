@@ -18,6 +18,7 @@ async function check() {
 
   for (const wod of wods) {
     console.log(`\nWOD: ${wod.workout_name || '(no name)'} | id: ${wod.id}`);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const sections = wod.sections as any[];
     for (const s of sections) {
       console.log(`  Section: "${s.type}" id=${s.id}`);

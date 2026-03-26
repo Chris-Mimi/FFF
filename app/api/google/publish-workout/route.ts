@@ -65,17 +65,6 @@ interface WorkoutSection {
   forge_benchmarks?: ConfiguredForgeBenchmark[];
 }
 
-interface Workout {
-  id: string;
-  title: string;
-  session_type: string;
-  date: string;
-  sections: WorkoutSection[];
-  google_event_id?: string;
-  workout_name?: string;
-  track_id?: string;
-  tracks?: { name: string } | { name: string }[] | null;
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -390,7 +379,7 @@ export async function POST(request: NextRequest) {
               requestBody: event,
             });
             calendarEventId = response.data.id!;
-          } catch (updateError: unknown) {
+          } catch (_updateError: unknown) {
             // Event was deleted from calendar, create new one
             const response = await calendar.events.insert({
               calendarId: process.env.GOOGLE_CALENDAR_ID,

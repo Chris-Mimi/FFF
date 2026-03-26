@@ -12,8 +12,6 @@ import { useLiftManagement } from '@/hooks/athlete/useLiftManagement';
 import { useBenchmarkManagement } from '@/hooks/athlete/useBenchmarkManagement';
 import { useAthleteLiftPRs, roundToPlate } from '@/hooks/athlete/useAthleteLiftPRs';
 import { formatLocalDate, getPublishedSections } from '@/utils/logbook-utils';
-import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
-import { supabase } from '@/lib/supabase';
 import ScoringFieldInputs from './logbook/ScoringFieldInputs';
 import NavigationControls from './logbook/NavigationControls';
 import WeekView from './logbook/WeekView';
@@ -276,7 +274,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
     if (workoutLogs[currentWorkout.id]?.notes) {
       try {
         await saveWorkoutLog(currentWorkout.id);
-      } catch (error) {
+      } catch (_error) {
         errors.push('Failed to save notes');
       }
     }

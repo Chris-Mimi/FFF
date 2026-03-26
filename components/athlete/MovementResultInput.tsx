@@ -29,7 +29,7 @@ export function MovementResultInput({
   movement,
   value,
   onChange,
-  resultKey
+  resultKey: _resultKey
 }: MovementResultInputProps) {
   const resultFields = movement.result_fields;
 

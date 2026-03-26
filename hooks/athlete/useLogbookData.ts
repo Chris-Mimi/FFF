@@ -14,6 +14,22 @@ interface WorkoutLogEntry {
   date: string;
 }
 
+interface WorkoutLogRow {
+  wod_id?: string;
+  result?: string;
+  notes?: string;
+  workout_date?: string;
+}
+
+interface WodRow {
+  id: string;
+  date: string;
+  sections?: unknown[];
+  tracks?: { name: string; color: string } | { name: string; color: string }[];
+  workout_types?: { name: string } | { name: string }[];
+  [key: string]: unknown;
+}
+
 interface UseLogbookDataReturn {
   workouts: WOD[];
   workoutLogs: Record<string, WorkoutLogEntry>;
@@ -26,7 +42,7 @@ interface UseLogbookDataReturn {
  * Determines if workout is attended (past) or booked (future)
  */
 async function filterUserWorkouts(
-  wodsData: any[],
+  wodsData: WodRow[],
   userId: string
 ): Promise<WOD[]> {
   const userWorkouts = await Promise.all(
@@ -77,7 +93,7 @@ async function filterUserWorkouts(
 /**
  * Convert workout logs array to keyed object
  */
-function mapWorkoutLogs(logsData: any[], dateStr: string): Record<string, WorkoutLogEntry> {
+function mapWorkoutLogs(logsData: WorkoutLogRow[], dateStr: string): Record<string, WorkoutLogEntry> {
   const logsMap: Record<string, WorkoutLogEntry> = {};
   (logsData || []).forEach((log) => {
     if (log.wod_id) {
@@ -144,12 +160,13 @@ export function useLogbookData({
       if (logsError) throw logsError;
 
       setWorkoutLogs(mapWorkoutLogs(logsData, dateStr));
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as { message?: string; code?: string; details?: string; hint?: string };
       console.error('Error fetching WODs:', error);
-      console.error('Error message:', error?.message);
-      console.error('Error code:', error?.code);
-      console.error('Error details:', error?.details);
-      console.error('Error hint:', error?.hint);
+      console.error('Error message:', err?.message);
+      console.error('Error code:', err?.code);
+      console.error('Error details:', err?.details);
+      console.error('Error hint:', err?.hint);
       setWorkouts([]);
       setWorkoutLogs({});
     } finally {

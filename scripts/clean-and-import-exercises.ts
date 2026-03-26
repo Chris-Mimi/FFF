@@ -77,6 +77,7 @@ async function cleanAndImport(jsonFilePath: string) {
     .select('category');
 
   const byCategory: Record<string, number> = {};
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   allExercises?.forEach((ex: any) => {
     byCategory[ex.category] = (byCategory[ex.category] || 0) + 1;
   });

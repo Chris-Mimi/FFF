@@ -90,7 +90,6 @@ export function useExercisesCrud() {
 
       if (error) throw error;
       fetchExercises();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: unknown) {
       console.error('Error deleting exercise:', error);
       toast.error(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);

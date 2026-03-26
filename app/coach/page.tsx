@@ -151,17 +151,17 @@ export default function CoachDashboard() {
   } = useQuickEdit({ fetchWODs, fetchTracksAndCounts });
 
   const {
-    notesPanel,
-    notesDraft,
-    modalSize,
-    setNotesDraft,
-    setModalSize,
-    closeNotesPanel,
-    handleSaveNotes,
+    notesPanel: _notesPanel,
+    notesDraft: _notesDraft,
+    modalSize: _modalSize,
+    setNotesDraft: _setNotesDraft,
+    setModalSize: _setModalSize,
+    closeNotesPanel: _closeNotesPanel,
+    handleSaveNotes: _handleSaveNotes,
   } = useNotesPanel({ fetchWODs, fetchTracksAndCounts});
 
-  const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 });
-  const [isResizingModal, setIsResizingModal] = useState(false);
+  const [_resizeStart, _setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const [_isResizingModal, _setIsResizingModal] = useState(false);
 
   // Persist selectedDate to localStorage
   useEffect(() => {

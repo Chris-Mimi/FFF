@@ -95,10 +95,11 @@ export async function fetchPublishedWorkouts(filter?: DateRangeFilter, label = '
 
   const excludeTypes = filter?.excludeSessionTypes?.map(t => t.toLowerCase()) || [];
 
-  return sessions
-    ?.filter((s: any) => s.wods !== null && s.wods.workout_publish_status === 'published')
-    .filter((s: any) => excludeTypes.length === 0 || !excludeTypes.includes((s.wods.session_type || '').toLowerCase()))
-    .map((s: any) => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (sessions as any[])
+    ?.filter((s) => s.wods !== null && s.wods.workout_publish_status === 'published')
+    .filter((s) => excludeTypes.length === 0 || !excludeTypes.includes((s.wods.session_type || '').toLowerCase()))
+    .map((s) => ({
       id: s.wods.id,
       date: s.date,
       session_type: s.wods.session_type || '',

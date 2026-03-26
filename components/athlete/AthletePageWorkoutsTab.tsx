@@ -86,28 +86,6 @@ interface AthletePageWorkoutsTabProps {
   onNavigateToLogbook?: (date: Date) => void;
 }
 
-interface BookingResponse {
-  id: string;
-  session_id: string;
-  status: string;
-  weekly_sessions: {
-    id: string;
-    date: string;
-    time: string;
-    workout_id: string | null;
-    wods: {
-      id: string;
-      title: string;
-      track_id: string;
-      sections: WorkoutSection[];
-      publish_sections: string[];
-      publish_time: string;
-      publish_duration: number;
-      is_published: boolean;
-      tracks: { name: string; color: string } | { name: string; color: string }[];
-    } | null;
-  };
-}
 
 // Format helper functions for movement display
 function formatLift(lift: ConfiguredLift): string {
@@ -156,7 +134,7 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
   const [weekPhotos, setWeekPhotos] = useState<WhiteboardPhoto[]>([]);
   const [selectedPhoto, setSelectedPhoto] = useState<WhiteboardPhoto | null>(null);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
-  const [expandedWorkoutId, setExpandedWorkoutId] = useState<string | null>(null);
+  const [expandedWorkoutId, _setExpandedWorkoutId] = useState<string | null>(null);
   const [scoreQueryModal, setScoreQueryModal] = useState<{ workoutName: string } | null>(null);
   const [scoreQueryMessage, setScoreQueryMessage] = useState('');
   const [scoreQuerySending, setScoreQuerySending] = useState(false);

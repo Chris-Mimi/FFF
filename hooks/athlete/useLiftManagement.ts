@@ -122,7 +122,7 @@ export function useLiftManagement(
     for (const [_liftKey, record] of recordsToSave) {
       try {
         await saveLiftRecord(record.lift_name, record.weight_kg, record.reps, dateStr, record.rep_scheme);
-      } catch (error) {
+      } catch (_error) {
         errorCount++;
       }
     }

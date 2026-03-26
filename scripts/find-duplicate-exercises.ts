@@ -35,7 +35,7 @@ function calculateSimilarity(name1: string, name2: string): number {
   return intersection.size / union.size; // Jaccard similarity
 }
 
-function areExercisesSimilar(ex1: Exercise, ex2: Exercise): boolean {
+function _areExercisesSimilar(ex1: Exercise, ex2: Exercise): boolean {
   const norm1 = normalizeExerciseName(ex1.name);
   const norm2 = normalizeExerciseName(ex2.name);
 

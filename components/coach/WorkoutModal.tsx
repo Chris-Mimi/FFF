@@ -41,7 +41,6 @@ export default function WorkoutModal({
   date,
   editingWOD,
   isPanel = false,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   initialNotesOpen = false,
   onNotesToggle,
   onTimeUpdated,
@@ -105,7 +104,7 @@ export default function WorkoutModal({
             }}
             onTimeEditToggle={hook.setEditingTime}
             onTimeChange={(time, isNew) => {
-              isNew ? hook.setNewSessionTime(time) : hook.setTempTime(time);
+              if (isNew) { hook.setNewSessionTime(time); } else { hook.setTempTime(time); }
             }}
             onTimeSave={hook.handleTimeUpdate}
             onTempTimeChange={hook.setTempTime}
@@ -340,7 +339,7 @@ export default function WorkoutModal({
             }}
             onTimeEditToggle={hook.setEditingTime}
             onTimeChange={(time, isNew) => {
-              isNew ? hook.setNewSessionTime(time) : hook.setTempTime(time);
+              if (isNew) { hook.setNewSessionTime(time); } else { hook.setTempTime(time); }
             }}
             onTimeSave={hook.handleTimeUpdate}
             onTempTimeChange={hook.setTempTime}

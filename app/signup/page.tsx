@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signUpWithEmail } from '@/lib/auth';
-import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import { AlertCircle, Loader2, CheckCircle } from 'lucide-react';
 

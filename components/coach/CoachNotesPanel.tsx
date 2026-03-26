@@ -437,7 +437,7 @@ export default function CoachNotesPanel({
                       remarkPlugins={[remarkGfm, remarkBreaks]}
                       rehypePlugins={[rehypeRaw]}
                       components={{
-                        a: ({ node, ...props }) => (
+                        a: ({ ...props }) => (
                           <a
                             {...props}
                             target="_blank"
@@ -445,15 +445,15 @@ export default function CoachNotesPanel({
                             className="text-blue-600 hover:text-blue-800 underline"
                           />
                         ),
-                        p: ({ node, ...props }) => <p {...props} className="mb-2" />,
-                        ul: ({ node, ...props }) => <ul {...props} className="list-disc ml-4 mb-2" />,
-                        ol: ({ node, ...props }) => <ol {...props} className="list-decimal ml-4 mb-2" />,
-                        li: ({ node, ...props }) => <li {...props} className="mb-1" />,
-                        h1: ({ node, ...props }) => <h1 {...props} className="text-xl font-bold mb-2 mt-4" />,
-                        h2: ({ node, ...props }) => <h2 {...props} className="text-lg font-bold mb-2 mt-3" />,
-                        h3: ({ node, ...props }) => <h3 {...props} className="text-base font-bold mb-1 mt-2" />,
-                        strong: ({ node, ...props }) => <strong {...props} className="font-bold" />,
-                        em: ({ node, ...props }) => <em {...props} className="italic" />,
+                        p: ({ ...props }) => <p {...props} className="mb-2" />,
+                        ul: ({ ...props }) => <ul {...props} className="list-disc ml-4 mb-2" />,
+                        ol: ({ ...props }) => <ol {...props} className="list-decimal ml-4 mb-2" />,
+                        li: ({ ...props }) => <li {...props} className="mb-1" />,
+                        h1: ({ ...props }) => <h1 {...props} className="text-xl font-bold mb-2 mt-4" />,
+                        h2: ({ ...props }) => <h2 {...props} className="text-lg font-bold mb-2 mt-3" />,
+                        h3: ({ ...props }) => <h3 {...props} className="text-base font-bold mb-1 mt-2" />,
+                        strong: ({ ...props }) => <strong {...props} className="font-bold" />,
+                        em: ({ ...props }) => <em {...props} className="italic" />,
                       }}
                     >
                       {notes}
@@ -549,7 +549,7 @@ export default function CoachNotesPanel({
                   remarkPlugins={[remarkGfm]}
                   rehypePlugins={[rehypeRaw]}
                   components={{
-                    a: ({ node, ...props }) => (
+                    a: ({ ...props }) => (
                       <a
                         {...props}
                         target="_blank"
@@ -557,15 +557,15 @@ export default function CoachNotesPanel({
                         className="text-blue-600 hover:text-blue-800 underline"
                       />
                     ),
-                    p: ({ node, ...props }) => <p {...props} className="mb-2" />,
-                    ul: ({ node, ...props }) => <ul {...props} className="list-disc ml-4 mb-2" />,
-                    ol: ({ node, ...props }) => <ol {...props} className="list-decimal ml-4 mb-2" />,
-                    li: ({ node, ...props }) => <li {...props} className="mb-1" />,
-                    h1: ({ node, ...props }) => <h1 {...props} className="text-xl font-bold mb-2 mt-4" />,
-                    h2: ({ node, ...props }) => <h2 {...props} className="text-lg font-bold mb-2 mt-3" />,
-                    h3: ({ node, ...props }) => <h3 {...props} className="text-base font-bold mb-1 mt-2" />,
-                    strong: ({ node, ...props }) => <strong {...props} className="font-bold" />,
-                    em: ({ node, ...props }) => <em {...props} className="italic" />,
+                    p: ({ ...props }) => <p {...props} className="mb-2" />,
+                    ul: ({ ...props }) => <ul {...props} className="list-disc ml-4 mb-2" />,
+                    ol: ({ ...props }) => <ol {...props} className="list-decimal ml-4 mb-2" />,
+                    li: ({ ...props }) => <li {...props} className="mb-1" />,
+                    h1: ({ ...props }) => <h1 {...props} className="text-xl font-bold mb-2 mt-4" />,
+                    h2: ({ ...props }) => <h2 {...props} className="text-lg font-bold mb-2 mt-3" />,
+                    h3: ({ ...props }) => <h3 {...props} className="text-base font-bold mb-1 mt-2" />,
+                    strong: ({ ...props }) => <strong {...props} className="font-bold" />,
+                    em: ({ ...props }) => <em {...props} className="italic" />,
                   }}
                 >
                   {notes}

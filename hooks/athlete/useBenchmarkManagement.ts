@@ -96,7 +96,7 @@ export function useBenchmarkManagement(
 
     let errorCount = 0;
     const errors: Array<{ benchmark_name: string; error: string }> = [];
-    for (const [key, result] of resultsToSave) {
+    for (const [_key, result] of resultsToSave) {
       try {
         await saveBenchmarkResult(
           result.benchmark_name,

@@ -9,6 +9,7 @@ interface Exercise {
   name: string;
   display_name: string;
   category: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }
 
@@ -21,7 +22,7 @@ function removeDuplicates() {
   console.log(`Original count: ${exercises.length} exercises\n`);
 
   // Track duplicates
-  const seen = new Map<string, Exercise>();
+  const _seen = new Map<string, Exercise>();
   const duplicates: Array<{name: string, count: number}> = [];
   const nameCount = new Map<string, number>();
 

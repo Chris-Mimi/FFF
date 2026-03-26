@@ -295,7 +295,7 @@ export default function CoachSchedulePage() {
     await handleGenerateWeek(); // Uses default (next Monday)
   };
 
-  const getDayLabel = (dayNumber: number) => {
+  const _getDayLabel = (dayNumber: number) => {
     return DAYS_OF_WEEK.find(d => d.value === dayNumber)?.label || 'Unknown';
   };
 

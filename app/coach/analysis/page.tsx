@@ -11,10 +11,6 @@ import {
   getLiftFrequency,
   getBenchmarkFrequency,
   getForgeBenchmarkFrequency,
-  type ExerciseFrequency,
-  type LiftAnalysis,
-  type BenchmarkAnalysis,
-  type ForgeBenchmarkAnalysis
 } from '@/utils/movement-analytics';
 import { ArrowLeft, BarChart3, Calendar, LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -109,7 +105,7 @@ export default function AnalysisPage() {
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [timeframePeriod, setTimeframePeriod] = useState<TimeframePeriod>(12);
   const [statistics, setStatistics] = useState<Statistics | null>(null);
-  const [loadingStats, setLoadingStats] = useState(false);
+  const [_loadingStats, setLoadingStats] = useState(false);
 
   // Exercise Search State
   const [exerciseSearch, setExerciseSearch] = useState('');
@@ -503,7 +499,7 @@ export default function AnalysisPage() {
     });
   };
 
-  const formatMonthYear = (date: Date) => {
+  const _formatMonthYear = (date: Date) => {
     return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   };
 
@@ -535,12 +531,12 @@ export default function AnalysisPage() {
     setExerciseSearch('');
   };
 
-  const removeExerciseSelection = (exerciseToRemove: string) => {
+  const _removeExerciseSelection = (exerciseToRemove: string) => {
     setSelectedExercises(selectedExercises.filter(e => e !== exerciseToRemove));
     setExerciseSearch('');
   };
 
-  const clearAllExerciseSelections = () => {
+  const _clearAllExerciseSelections = () => {
     setSelectedExercises([]);
     setExerciseSearch('');
   };
@@ -557,7 +553,7 @@ export default function AnalysisPage() {
     setSelectedCategories([]);
   };
 
-  const toggleMovementType = (type: 'lift' | 'benchmark' | 'forge_benchmark' | 'exercise') => {
+  const _toggleMovementType = (type: 'lift' | 'benchmark' | 'forge_benchmark' | 'exercise') => {
     if (selectedMovementTypes.includes(type)) {
       setSelectedMovementTypes(selectedMovementTypes.filter(t => t !== type));
     } else {
@@ -595,7 +591,7 @@ export default function AnalysisPage() {
 
   // Filter movements (lifts, benchmarks, forge benchmarks, exercises) by search, category, and movement type
   // When showUnusedOnly is active, include ALL exercises from library with counts
-  const filteredExercises = (() => {
+  const _filteredExercises = (() => {
     if (showUnusedOnly) {
       // Use getAllExercisesWithCounts which includes library exercises with 0 counts
       return getAllExercisesWithCounts().filter(item => {

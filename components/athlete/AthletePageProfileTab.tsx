@@ -165,7 +165,7 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
     // Verify session exists
     const {
       data: { session },
-      error: sessionError,
+      error: _sessionError,
     } = await supabase.auth.getSession();
     if (!session) {
       toast.warning('No active session found. Please logout and login again.');
@@ -174,7 +174,7 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
 
     try {
       // Check if profile exists (get most recent if duplicates exist)
-      const { data: existingProfile, error: fetchError } = await supabase
+      const { data: existingProfile, error: _fetchError } = await supabase
         .from('athlete_profiles')
         .select('id')
         .eq('user_id', userId)
@@ -208,7 +208,7 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
 
       if (existingProfile) {
         // Update existing profile (for primary account holder)
-        const { data, error } = await supabase
+        const { data: _data, error } = await supabase
           .from('athlete_profiles')
           .update({
             ...profileData,

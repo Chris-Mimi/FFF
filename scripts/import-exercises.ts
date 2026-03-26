@@ -11,7 +11,6 @@
 
 import { createClient } from '@supabase/supabase-js';
 import * as fs from 'fs';
-import * as path from 'path';
 
 // Load environment variables
 import * as dotenv from 'dotenv';

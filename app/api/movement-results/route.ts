@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       userId,
       movementId,
       movementName,
-      movementCategory,
+      movementCategory: _movementCategory,
       timeResult,
       repsResult,
       weightResult,

@@ -167,7 +167,7 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
 
         if (error) throw error;
 
-        const { data: existingSessions } = await supabase
+        const { data: _existingSessions } = await supabase
           .from('weekly_sessions')
           .select('id')
           .eq('date', dateKey);

@@ -284,6 +284,7 @@ async function audit() {
   // 5. Audit
   const issues: { type: string; benchmarkName: string; candidate: string; suggestion: string }[] = [];
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const auditBenchmarks = (items: any[], type: string) => {
     for (const item of items) {
       if (!item.description) continue;

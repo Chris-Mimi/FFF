@@ -7,6 +7,7 @@
 import { fetchPublishedWorkouts, type DateRangeFilter } from '@/utils/movement-analytics';
 import { extractMovementsFromWod } from '@/utils/movement-extraction';
 import type { PatternWithExercises, PatternGapResult } from '@/types/planner';
+import type { WODFormData } from '@/components/coach/WorkoutModal';
 
 /**
  * Compute gap analysis for all movement patterns.
@@ -44,7 +45,7 @@ export async function computePatternGaps(
   const workoutMovements: { date: string; movements: Set<string> }[] = workouts.map(w => ({
     date: w.date,
     movements: extractMovementsFromWod(
-      { sections: w.sections, date: w.date } as any,
+      { sections: w.sections, date: w.date } as Pick<WODFormData, 'sections' | 'date'> as WODFormData,
       allExerciseNames
     ),
   }));
@@ -159,7 +160,7 @@ export async function detectWeeklyCoverage(
 
   for (const workout of workouts) {
     const movements = extractMovementsFromWod(
-      { sections: workout.sections, date: workout.date } as any,
+      { sections: workout.sections, date: workout.date } as Pick<WODFormData, 'sections' | 'date'> as WODFormData,
       allExerciseNames
     );
     const movementsLower = new Set(

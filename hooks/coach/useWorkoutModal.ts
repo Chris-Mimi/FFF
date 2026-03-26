@@ -67,6 +67,12 @@ export interface WODSection {
   };
 }
 
+export interface PublishConfig {
+  selectedSectionIds: string[];
+  eventTime: string;
+  eventDurationMinutes: number;
+}
+
 export interface WODFormData {
   id?: string;
   title: string;
@@ -182,7 +188,7 @@ export interface UseWorkoutModalResult {
   setActiveSection: React.Dispatch<React.SetStateAction<number | null>>;
 
   // Functions
-  handleChange: (field: keyof WODFormData, value: any) => void;
+  handleChange: (field: keyof WODFormData, value: WODFormData[keyof WODFormData]) => void;
   toggleClassTime: (time: string) => void;
   handleTimeUpdate: () => Promise<void>;
   toggleSectionExpanded: (sectionId: string, sectionIndex?: number) => void;
@@ -212,7 +218,7 @@ export interface UseWorkoutModalResult {
   getElapsedMinutes: (sectionIndex: number) => number;
   validate: () => boolean;
   handleSubmit: (e: React.FormEvent) => void;
-  handlePublish: (publishConfig: any) => Promise<void>;
+  handlePublish: (publishConfig: PublishConfig) => Promise<void>;
   handleUnpublish: () => Promise<void>;
   handlePanelDragOver: (e: React.DragEvent) => void;
   handlePanelDragLeave: (e: React.DragEvent) => void;
@@ -472,6 +478,7 @@ export function useWorkoutModal(
         setSessionTime(null);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, editingWOD, date]);
 
   // Handle drag and drop from search panel
@@ -744,7 +751,7 @@ export function useWorkoutModal(
     }
   };
 
-  const handlePublish = async (publishConfig: any) => {
+  const handlePublish = async (publishConfig: PublishConfig) => {
     if (!validate()) {
       return;
     }

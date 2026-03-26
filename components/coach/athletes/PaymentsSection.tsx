@@ -50,7 +50,7 @@ export default function PaymentsSection({ memberId }: { memberId?: string }) {
     try {
       // First try to get member data directly by ID (works for family members who have no email)
       let member = null;
-      const { data: memberById, error: memberByIdError } = await supabase
+      const { data: memberById, error: _memberByIdError } = await supabase
         .from('members')
         .select('id, email, stripe_customer_id, ten_card_sessions_used, ten_card_total, ten_card_expiry_date, membership_types')
         .eq('id', memberId)

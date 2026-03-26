@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { cookies } from 'next/headers';
 import { notifyWaitlistPromoted } from '@/lib/notifications';
 
 export async function POST(request: NextRequest) {
@@ -65,7 +64,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify user owns this booking (either their own or their family member's)
-    const { data: bookingMember, error: memberError } = await supabase
+    const { data: bookingMember, error: _memberError } = await supabase
       .from('members')
       .select('id, primary_member_id, account_type')
       .eq('id', booking.member_id)

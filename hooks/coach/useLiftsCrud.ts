@@ -80,7 +80,6 @@ export function useLiftsCrud() {
 
       setShowLiftModal(false);
       fetchLifts();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: unknown) {
       console.error('Error saving lift:', error);
       toast.error(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -176,7 +175,6 @@ export function useLiftsCrud() {
 
       if (error) throw error;
       fetchLifts();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: unknown) {
       console.error('Error deleting lift:', error);
       toast.error(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);

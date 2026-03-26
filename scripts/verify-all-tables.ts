@@ -23,7 +23,7 @@ async function verifyAllTables() {
   let allSuccess = true;
 
   for (const table of tables) {
-    const { data, error } = await supabase
+    const { data: _data, error } = await supabase
       .from(table.name)
       .select('*', { count: 'exact', head: true });
 

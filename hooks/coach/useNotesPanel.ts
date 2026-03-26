@@ -26,7 +26,7 @@ export const useNotesPanel = ({ fetchWODs, fetchTracksAndCounts }: UseNotesPanel
     setModalSize({ width: 768, height: 600 });
   };
 
-  const handleResizeStart = (e: React.MouseEvent, corner: string) => {
+  const handleResizeStart = (e: React.MouseEvent, _corner: string) => {
     e.preventDefault();
     e.stopPropagation();
     setIsResizing(true);

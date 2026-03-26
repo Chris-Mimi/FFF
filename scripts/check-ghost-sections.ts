@@ -18,6 +18,7 @@ async function check() {
   for (const wod of data || []) {
     console.log('\n' + '='.repeat(60));
     console.log(`${wod.session_type} - ${wod.workout_name || '(no name)'}`);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const sections = wod.sections as any[];
     for (const s of sections) {
       console.log(`  Section: "${s.type}" | workout_type_id: ${s.workout_type_id || 'NONE'}`);

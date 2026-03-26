@@ -1,4 +1,5 @@
 import { WODFormData } from '@/components/coach/WorkoutModal';
+import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
 
 // Words to exclude from movement names (noise words)
 // NOTE: Do NOT add words that are legitimate parts of exercise names
@@ -344,7 +345,7 @@ export const extractMovementsFromWod = (wod: WODFormData, knownExerciseNames?: S
 
   wod.sections.forEach(section => {
     // Source 1: Structured lift names (cross-reference to exercise library)
-    section.lifts?.forEach((lift: any) => {
+    section.lifts?.forEach((lift: ConfiguredLift) => {
       if (!lift.name) return;
       if (knownLower && knownList) {
         const match = findMatchingExercise(lift.name, knownLower, knownList);
@@ -354,7 +355,7 @@ export const extractMovementsFromWod = (wod: WODFormData, knownExerciseNames?: S
     });
 
     // Source 2: Structured benchmark names + parse descriptions for exercises
-    section.benchmarks?.forEach((benchmark: any) => {
+    section.benchmarks?.forEach((benchmark: ConfiguredBenchmark) => {
       if (benchmark.name) movements.add(normalizeMovement(benchmark.name));
       benchmark.exercises?.forEach((ex: string) => {
         if (ex) movements.add(normalizeMovement(ex));
@@ -365,7 +366,7 @@ export const extractMovementsFromWod = (wod: WODFormData, knownExerciseNames?: S
     });
 
     // Source 3: Structured forge benchmark names + parse descriptions for exercises
-    section.forge_benchmarks?.forEach((forge: any) => {
+    section.forge_benchmarks?.forEach((forge: ConfiguredForgeBenchmark) => {
       if (forge.name) movements.add(normalizeMovement(forge.name));
       forge.exercises?.forEach((ex: string) => {
         if (ex) movements.add(normalizeMovement(ex));

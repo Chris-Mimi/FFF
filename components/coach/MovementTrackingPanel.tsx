@@ -54,7 +54,7 @@ export default function MovementTrackingPanel({
               <th className='text-left px-2 py-1.5 font-semibold text-gray-700 w-[120px]'>
                 Athlete
               </th>
-              {exerciseNames.map((name, i) => (
+              {exerciseNames.map((name) => (
                 <th
                   key={name}
                   className='py-1.5 px-0.5 font-semibold text-gray-700 text-center w-[30px]'

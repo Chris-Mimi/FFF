@@ -33,7 +33,7 @@ if (!fs.existsSync(BACKUP_DIR)) {
   fs.mkdirSync(BACKUP_DIR, { recursive: true });
 }
 
-async function backupTable(tableName: string, description: string) {
+async function backupTable(tableName: string, _description: string) {
   console.log(`📦 Backing up ${tableName}...`);
 
   try {

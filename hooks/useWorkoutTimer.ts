@@ -332,7 +332,7 @@ export function useWorkoutTimer() {
         startRunning();
       }
     }, 100);
-  }, [mode, startRunning, clearCountdown, speakText]);
+  }, [startRunning, clearCountdown, speakText]);
 
   const pause = useCallback(() => {
     pausedElapsedRef.current = elapsed;

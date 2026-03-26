@@ -55,7 +55,7 @@ async function check() {
     if (!combos.has(key)) combos.set(key, []);
     combos.get(key)!.push(r);
   }
-  for (const [key, group] of combos) {
+  for (const [_key, group] of combos) {
     if (group.length > 1) {
       duplicateUserSections++;
       const wod = wodDateMap.get(group[0].wod_id);

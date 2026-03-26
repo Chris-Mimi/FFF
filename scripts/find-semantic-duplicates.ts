@@ -12,7 +12,7 @@ interface Exercise {
 }
 
 // Already confirmed duplicates to skip
-const KNOWN_DUPLICATES = new Set([
+const _KNOWN_DUPLICATES = new Set([
   'Bear Crawl', // Generic version of "Bear Crawl Forwards"
 ]);
 
