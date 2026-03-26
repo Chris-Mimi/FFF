@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 122.0
-**Updated:** 2026-03-26 (Session 251 - Remove Feed, WOD date column, Time Cap, whiteboard dedup)
+**Version:** 123.0
+**Updated:** 2026-03-26 (Session 252 - Data cleanup, whiteboard duplicate scan, orphan cleanup)
 
 ---
 
@@ -88,13 +88,14 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
-**Completed (2026-03-26 Session 251 - Opus 4.6) — FEED REMOVAL + LEADERBOARD FIXES + WHITEBOARD BUG:**
-- **✅ Removed Feed view** — Athlete Leaderboard tab now shows leaderboard directly, no Feed/Leaderboard toggle
-- **✅ WOD date column** — WOD section leaderboard now shows date of score entry (matching benchmark pattern)
-- **✅ "CAP" → "Time Cap"** — Both WOD and benchmark result formatting now show "Time Cap" prefix for capped results
-- **✅ member_id dedup** — Added `member_id` awareness to `bestResultPerUser` and content section queries/name resolution
-- **🔴 WHITEBOARD DUPLICATE BUG (OPEN)** — AndreasK whiteboard entries appear alongside registered athlete "Andreas Keip". Root cause: coach-entered whiteboard entries with `user_id=null, member_id=null` not linked to registered athlete. 3 bad rows identified. Also appears on Weekend WOD #26.7. **Next session: delete bad rows + scan for other duplicates + consider systematic fix.**
-- Confirmed manual backups (40 copies) are safe to delete — git + GitHub + SynologyDrive provides triple redundancy
+**Completed (2026-03-26 Session 252 - Opus 4.6) — DATA CLEANUP + DUPLICATE SCAN:**
+- **✅ Whiteboard duplicate bug RESOLVED** — Deleted 4 orphan whiteboard entries (Lena, Lukas, PaulB, LukasS) that duplicated registered athlete scores on leaderboard. AndreasK ×3 deleted in Session 251.
+- **✅ Full duplicate scan** — Queried all whiteboard-only entries (`user_id=null, member_id=null`), cross-referenced with registered athletes. No remaining duplicates.
+- **✅ Data integrity diagnostics** — Ran full orphan/duplicate check. Cleaned up 1 orphan reaction + 2 orphan WODs (unpublished test entries from Mar 25).
+- **✅ Saved whiteboard migration plan to Claude Code memory** — At launch, all whiteboard scores will be migrated to registered athlete profiles using name mapping in `Chris Notes/Forge app documentation/Athletes booking list`.
+
+**Completed (2026-03-26 Session 251 - Opus 4.6) — FEED REMOVAL + LEADERBOARD FIXES:**
+- **✅ Removed Feed view + WOD date column + "Time Cap" formatting + member_id dedup**
 
 **Completed (2026-03-26 Session 250 - Opus 4.6) — AGGREGATE SCALING + BENCHMARK MULTI-SCALING:**
 - **✅ Aggregate scaling ranking + 3rd scaling chip fix + benchmark multi-scaling + rounds+reps fix**
@@ -105,7 +106,7 @@ Social Tables
 **Completed (2026-03-25 Sessions 246-247 - Opus 4.6) — WHITEBOARD + NAMES:**
 - **✅ Reverted Link Whiteboard Scores tool + benchmark track fix + Unknown names fix**
 
-**Older Sessions (57-243):**
+**Older Sessions (57-245):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -205,17 +206,8 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION (PRIORITY)
-1. **Fix whiteboard duplicate bug** — On the Athlete Leaderboard, some athletes appear TWICE: once under their registered name (e.g., "Andreas Keip") and once under a coach-entered whiteboard name (e.g., "AndreasK"). The whiteboard entry shows wrong scores and only 1 scaling level while others have 2. This happens because the `wod_section_results` table has orphan rows with `whiteboard_name='AndreasK'` but `user_id=null` and `member_id=null` — these aren't linked to the registered athlete, so the leaderboard shows them as separate people.
-   - **Step 1:** Ask Chris to run this SQL in Supabase SQL Editor to delete the 3 known bad rows:
-     ```sql
-     DELETE FROM wod_section_results
-     WHERE whiteboard_name = 'AndreasK'
-     AND user_id IS NULL AND member_id IS NULL;
-     ```
-   - **Step 2:** Check Weekend WOD #26.7 — AndreasK also appears twice there (Rx correct, Sc1 wrong)
-   - **Step 3:** Scan ALL whiteboard-only entries for other duplicates of registered athletes
-   - **Step 4:** Consider systematic prevention (match whiteboard names to registered athletes at entry time, or improve leaderboard dedup)
-2. **Test aggregate scaling ranking** — Verify leaderboard order matches expected aggregate scoring on multi-scaling WODs.
+1. **Test aggregate scaling ranking** — Verify leaderboard order matches expected aggregate scoring on multi-scaling WODs.
+2. **Coach library optimization** — Equipment & Body Parts lists need optimising.
 
 ### BACKLOG
 1. **Coach library optimization** — Equipment & Body Parts lists need optimising.
