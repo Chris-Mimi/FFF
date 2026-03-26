@@ -329,7 +329,7 @@ function WodDropdown({ wods, selectedWodId, workoutTypesMap, onSelect }: {
     <div ref={ref} className='relative'>
       <button
         onClick={() => setOpen(!open)}
-        className='w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 text-left flex items-center justify-between'
+        className='w-full px-3 py-2 bg-sky-100 border border-sky-300 rounded-lg text-sm text-gray-900 text-left flex items-center justify-between'
       >
         <span className='truncate'>{selectedLabel}</span>
         <ChevronDown size={16} className={`ml-2 flex-shrink-0 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
@@ -847,28 +847,6 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
         </div>
       )}
 
-      {/* Workout selector (custom dropdown if multiple, static label if single) */}
-      {wods.length > 1 ? (
-        <WodDropdown
-          wods={wods}
-          selectedWodId={selectedWodId}
-          workoutTypesMap={workoutTypesMap}
-          onSelect={(wodId) => {
-            setSelectedWodId(wodId);
-            const wod = wods.find(w => w.id === wodId);
-            if (wod) {
-              const items = extractLeaderboardItems(wod);
-              setLeaderboardItems(items);
-              setSelectedItemIdx(0);
-            }
-          }}
-        />
-      ) : wods.length === 1 && (
-        <div className='w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-900'>
-          {wods[0].session_type || wods[0].title}{wods[0].workout_name ? ` - ${wods[0].workout_name}` : ''}{formatWodSummary(wods[0].sections, workoutTypesMap)}
-        </div>
-      )}
-
       {wods.length === 0 ? (
         <div className='bg-white rounded-lg shadow-sm p-8 text-center'>
           <p className='text-gray-500'>No published workouts on this date.</p>
@@ -879,6 +857,30 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
         </div>
       ) : (
         <>
+          {/* Controls */}
+          <div className='space-y-3'>
+            {/* Workout selector */}
+            {wods.length > 1 ? (
+              <WodDropdown
+                wods={wods}
+                selectedWodId={selectedWodId}
+                workoutTypesMap={workoutTypesMap}
+                onSelect={(wodId) => {
+                  setSelectedWodId(wodId);
+                  const wod = wods.find(w => w.id === wodId);
+                  if (wod) {
+                    const items = extractLeaderboardItems(wod);
+                    setLeaderboardItems(items);
+                    setSelectedItemIdx(0);
+                  }
+                }}
+              />
+            ) : wods.length === 1 && (
+              <div className='w-full px-3 py-2 bg-sky-100 border border-sky-300 rounded-lg text-sm font-medium text-gray-900'>
+                {wods[0].session_type || wods[0].title}{wods[0].workout_name ? ` - ${wods[0].workout_name}` : ''}{formatWodSummary(wods[0].sections, workoutTypesMap)}
+              </div>
+            )}
+
           {/* Item picker pills */}
           {leaderboardItems.length > 1 && (() => {
             // Check if items span multiple sections — if so, show "WOD pt.X" labels
@@ -919,7 +921,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
                         className={`px-3 py-1.5 rounded-full text-xs font-medium transition ${
                           selectedItemIdx === globalIdx
                             ? 'bg-[#178da6] text-white'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
                         }`}
                       >
                         {item.label}
@@ -931,40 +933,41 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
             );
           })()}
 
-          {/* Scaling filter (hidden for lifts) */}
-          {showScalingFilter && (
+          {/* Filters row */}
+          <div className='flex items-center gap-3'>
+            {showScalingFilter && (
+              <div className='flex gap-1'>
+                {(['all', 'rx', 'scaled'] as ScalingFilter[]).map(f => (
+                  <button
+                    key={f}
+                    onClick={() => setScalingFilter(f)}
+                    className={`px-3 py-1 rounded text-xs font-medium transition ${
+                      scalingFilter === f
+                        ? f === 'rx' ? 'bg-green-100 text-green-800 border border-green-300' : f === 'scaled' ? 'bg-orange-100 text-orange-800 border border-orange-300' : 'bg-[#178da6] text-white border border-[#178da6]'
+                        : f === 'rx' ? 'bg-gray-200 text-gray-600 border border-transparent hover:bg-green-50 hover:text-green-700 hover:border-green-200' : f === 'scaled' ? 'bg-gray-200 text-gray-600 border border-transparent hover:bg-orange-50 hover:text-orange-700 hover:border-orange-200' : 'bg-gray-200 text-gray-600 border border-transparent hover:bg-gray-300'
+                    }`}
+                  >
+                    {f === 'all' ? 'All' : f === 'rx' ? 'Rx' : 'Scaled'}
+                  </button>
+                ))}
+              </div>
+            )}
             <div className='flex gap-1'>
-              {(['all', 'rx', 'scaled'] as ScalingFilter[]).map(f => (
+              {(['all', 'M', 'F'] as const).map(f => (
                 <button
                   key={f}
-                  onClick={() => setScalingFilter(f)}
+                  onClick={() => setGenderFilter(f)}
                   className={`px-3 py-1 rounded text-xs font-medium transition ${
-                    scalingFilter === f
-                      ? 'bg-gray-900 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    genderFilter === f
+                      ? f === 'M' ? 'bg-blue-200 text-blue-800 border border-blue-300' : f === 'F' ? 'bg-pink-200 text-pink-800 border border-pink-300' : 'bg-[#178da6] text-white border border-[#178da6]'
+                      : f === 'M' ? 'bg-gray-200 text-gray-600 border border-transparent hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200' : f === 'F' ? 'bg-gray-200 text-gray-600 border border-transparent hover:bg-pink-50 hover:text-pink-700 hover:border-pink-200' : 'bg-gray-200 text-gray-600 border border-transparent hover:bg-gray-300'
                   }`}
                 >
-                  {f === 'all' ? 'All' : f === 'rx' ? 'Rx' : 'Scaled'}
+                  {f === 'all' ? 'All' : f}
                 </button>
               ))}
             </div>
-          )}
-
-          {/* Gender filter */}
-          <div className='flex gap-1'>
-            {(['all', 'M', 'F'] as const).map(f => (
-              <button
-                key={f}
-                onClick={() => setGenderFilter(f)}
-                className={`px-3 py-1 rounded text-xs font-medium transition ${
-                  genderFilter === f
-                    ? f === 'M' ? 'bg-blue-200 text-blue-800' : f === 'F' ? 'bg-pink-200 text-pink-800' : 'bg-gray-900 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                {f === 'all' ? 'All' : f}
-              </button>
-            ))}
+          </div>
           </div>
 
           {/* Results table */}
@@ -1112,8 +1115,8 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
   useEffect(() => {
     const loadBenchmarks = async () => {
       const [{ data: standard }, { data: forge }] = await Promise.all([
-        supabase.from('benchmark_workouts').select('id, name, type').order('display_order'),
-        supabase.from('forge_benchmarks').select('id, name, type').order('display_order'),
+        supabase.from('benchmark_workouts').select('id, name, type').order('name'),
+        supabase.from('forge_benchmarks').select('id, name, type').order('name'),
       ]);
 
       const options: BenchmarkOption[] = [
@@ -1284,7 +1287,7 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
           const bm = benchmarks.find(b => b.name === e.target.value);
           if (bm) setSelectedBenchmark(bm);
         }}
-        className='w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm text-gray-900'
+        className='w-full px-3 py-2 bg-sky-100 border border-sky-300 rounded-lg text-sm text-gray-900'
       >
         {benchmarks.length > 0 && (
           <>
@@ -1302,38 +1305,38 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
         )}
       </select>
 
-      {/* Scaling filter */}
-      <div className='flex gap-1'>
-        {(['all', 'rx', 'scaled'] as ScalingFilter[]).map(f => (
-          <button
-            key={f}
-            onClick={() => setScalingFilter(f)}
-            className={`px-3 py-1 rounded text-xs font-medium transition ${
-              scalingFilter === f
-                ? 'bg-gray-900 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            {f === 'all' ? 'All' : f === 'rx' ? 'Rx' : 'Scaled'}
-          </button>
-        ))}
-      </div>
-
-      {/* Gender filter */}
-      <div className='flex gap-1'>
-        {(['all', 'M', 'F'] as const).map(f => (
-          <button
-            key={f}
-            onClick={() => setGenderFilter(f)}
-            className={`px-3 py-1 rounded text-xs font-medium transition ${
-              genderFilter === f
-                ? f === 'M' ? 'bg-blue-200 text-blue-800' : f === 'F' ? 'bg-pink-200 text-pink-800' : 'bg-gray-900 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            {f === 'all' ? 'All' : f}
-          </button>
-        ))}
+      {/* Filters row */}
+      <div className='flex items-center gap-3'>
+        <div className='flex gap-1'>
+          {(['all', 'rx', 'scaled'] as ScalingFilter[]).map(f => (
+            <button
+              key={f}
+              onClick={() => setScalingFilter(f)}
+              className={`px-3 py-1 rounded text-xs font-medium transition ${
+                scalingFilter === f
+                  ? f === 'rx' ? 'bg-green-100 text-green-800 border border-green-300' : f === 'scaled' ? 'bg-orange-100 text-orange-800 border border-orange-300' : 'bg-[#178da6] text-white border border-[#178da6]'
+                  : f === 'rx' ? 'bg-gray-200 text-gray-600 border border-transparent hover:bg-green-50 hover:text-green-700 hover:border-green-200' : f === 'scaled' ? 'bg-gray-200 text-gray-600 border border-transparent hover:bg-orange-50 hover:text-orange-700 hover:border-orange-200' : 'bg-gray-200 text-gray-600 border border-transparent hover:bg-gray-300'
+              }`}
+            >
+              {f === 'all' ? 'All' : f === 'rx' ? 'Rx' : 'Scaled'}
+            </button>
+          ))}
+        </div>
+        <div className='flex gap-1'>
+          {(['all', 'M', 'F'] as const).map(f => (
+            <button
+              key={f}
+              onClick={() => setGenderFilter(f)}
+              className={`px-3 py-1 rounded text-xs font-medium transition ${
+                genderFilter === f
+                  ? f === 'M' ? 'bg-blue-200 text-blue-800 border border-blue-300' : f === 'F' ? 'bg-pink-200 text-pink-800 border border-pink-300' : 'bg-[#178da6] text-white border border-[#178da6]'
+                  : f === 'M' ? 'bg-gray-200 text-gray-600 border border-transparent hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200' : f === 'F' ? 'bg-gray-200 text-gray-600 border border-transparent hover:bg-pink-50 hover:text-pink-700 hover:border-pink-200' : 'bg-gray-200 text-gray-600 border border-transparent hover:bg-gray-300'
+              }`}
+            >
+              {f === 'all' ? 'All' : f}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Results table */}

@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 119.0
-**Updated:** 2026-03-26 (Session 248 - Benchmark tab fix: coach scores + gender filters)
+**Version:** 120.0
+**Updated:** 2026-03-26 (Session 249 - Leaderboard UI polish + benchmark alphabetize)
 
 ---
 
@@ -88,6 +88,10 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-26 Session 249 - Opus 4.6) — LEADERBOARD UI POLISH:**
+- **✅ Benchmarks alphabetized** — Both standard and forge benchmark lists sorted by name instead of display_order
+- **✅ Leaderboard visual cleanup** — Scaling + gender filters on one row, WOD selector teal background (sky-100), coloured filter chips (green=Rx, orange=Scaled, blue=M, pink=F, teal=All), hover colours + borders, consistent styling across WOD Sections and Benchmarks tabs
+
 **Completed (2026-03-26 Session 248 - Opus 4.6) — BENCHMARK TAB FIX + GENDER FILTERS:**
 - **✅ Benchmark tab leaderboard fix** — `BenchmarkLeaderboard` only queried `benchmark_results`. Now also fetches `wod_section_results` (coach entries) by finding WODs with matching benchmark in sections JSONB, then merging with coach priority.
 - **✅ Gender filters on Benchmark tab** — Added All/M/F filter buttons matching per-workout leaderboard pattern.
@@ -101,9 +105,6 @@ Social Tables
 
 **Completed (2026-03-25 Session 245 - Opus 4.6) — BENCHMARK LEADERBOARD SORT + TRACK:**
 - **✅ Scaling sort, track sort + passthrough, whiteboard_name fallback + member_id lookup (partial fix)**
-
-**Completed (2026-03-25 Session 244 - Opus 4.6) — LOGBOOK PUBLISH FILTER + BENCHMARK LEADERBOARD:**
-- **✅ Logbook publish_sections fix, coach/Mimi override, benchmark leaderboard coach scores merged**
 
 **Older Sessions (57-243):**
 See `project-history/` folder for detailed implementation history
@@ -204,8 +205,9 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION (PRIORITY)
-1. **Test Benchmark tab fix** — Verify Nancy now shows all athletes (Paul, whiteboard entries) on Benchmarks tab.
-2. **Test Logbook publish_sections fix** — Verify with Athlete Test 1 that only selected sections show.
+1. **Bug fix: 3rd scaling chip not showing** — When 3 scaling levels are selected on a workout, only 2 chips display on the leaderboard. Investigate `scaling_level_3` display logic.
+2. **Test Benchmark tab fix** — Verify Nancy now shows all athletes (Paul, whiteboard entries) on Benchmarks tab.
+3. **Test Logbook publish_sections fix** — Verify with Athlete Test 1 that only selected sections show.
 
 ### BACKLOG
 1. **Coach library optimization** — Equipment & Body Parts lists need optimising.
