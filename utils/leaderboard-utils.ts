@@ -57,6 +57,7 @@ export function getWhiteboardGender(name: string | null | undefined): string | n
 export interface RawSectionResult {
   id: string;
   user_id: string;
+  member_id?: string | null;
   whiteboard_name?: string | null;
   time_result?: string | null;
   reps_result?: number | null;
@@ -240,7 +241,7 @@ export function bestResultPerUser(
 ): RawSectionResult[] {
   const best = new Map<string, RawSectionResult>();
   for (const r of results) {
-    const key = r.user_id || `wb:${r.whiteboard_name}`;
+    const key = r.user_id || (r.member_id ? `member:${r.member_id}` : `wb:${r.whiteboard_name}`);
     const existing = best.get(key);
     if (!existing) {
       best.set(key, r);
@@ -311,8 +312,8 @@ export function rankSectionResults(
   // Assign ranks
   return sorted.map((r, i) => ({
     id: r.id,
-    userId: r.user_id,
-    memberName: memberNames[r.user_id] || r.whiteboard_name || 'Unknown',
+    userId: r.user_id || (r.member_id ? `member:${r.member_id}` : `wb:${r.whiteboard_name}`),
+    memberName: memberNames[r.user_id] || (r.member_id ? memberNames[`member:${r.member_id}`] : null) || r.whiteboard_name || 'Unknown',
     rank: i + 1,
     timeResult: r.time_result || undefined,
     repsResult: r.reps_result || undefined,
@@ -327,6 +328,7 @@ export function rankSectionResults(
     scalingLevel3: r.scaling_level_3 || undefined,
     track: r.track || undefined,
     taskCompleted: r.task_completed ?? undefined,
+    resultDate: r.workout_date || undefined,
     gender: memberGenders?.[r.user_id] ?? getWhiteboardGender(r.whiteboard_name) ?? undefined,
   }));
 }
@@ -475,9 +477,9 @@ export function formatResult(entry: LeaderboardEntry, scoringType: string): stri
       primary = '-'; break;
     case 'time_with_cap':
       if (entry.timeResult) { primary = entry.timeResult; break; }
-      if (entry.roundsResult && entry.repsResult) { primary = `CAP ${entry.roundsResult}+${entry.repsResult}`; break; }
-      if (entry.roundsResult) { primary = `CAP ${entry.roundsResult} rounds`; break; }
-      primary = `CAP ${entry.repsResult || 0} reps`; break;
+      if (entry.roundsResult && entry.repsResult) { primary = `Time Cap ${entry.roundsResult}+${entry.repsResult}`; break; }
+      if (entry.roundsResult) { primary = `Time Cap ${entry.roundsResult} rounds`; break; }
+      primary = `Time Cap ${entry.repsResult || 0} reps`; break;
     case 'time_amrap': {
       const repsStr = entry.roundsResult && entry.repsResult
         ? `${entry.roundsResult}+${entry.repsResult}`
@@ -528,12 +530,14 @@ export function formatResult(entry: LeaderboardEntry, scoringType: string): stri
 export function formatBenchmarkResult(entry: LeaderboardEntry): string {
   const parts: string[] = [];
   if (entry.timeResult) parts.push(entry.timeResult);
+  // No time but has rounds/reps = hit the time cap
+  const isTimeCap = !entry.timeResult && (entry.roundsResult || entry.repsResult);
   if (entry.roundsResult && entry.repsResult) {
-    parts.push(`${entry.roundsResult}+${entry.repsResult}`);
+    parts.push(`${isTimeCap ? 'Time Cap ' : ''}${entry.roundsResult}+${entry.repsResult}`);
   } else if (entry.roundsResult) {
-    parts.push(`${entry.roundsResult} rounds`);
+    parts.push(`${isTimeCap ? 'Time Cap ' : ''}${entry.roundsResult} rounds`);
   } else if (entry.repsResult) {
-    parts.push(`${entry.repsResult} reps`);
+    parts.push(`${isTimeCap ? 'Time Cap ' : ''}${entry.repsResult} reps`);
   }
   if (entry.weightResult) parts.push(`${entry.weightResult} kg`);
   return parts.join(' · ') || '-';

@@ -668,8 +668,16 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
             .filter(ce => ce.user_id)
             .map(ce => ce.user_id)
         );
-        // Start with benchmark_results entries that DON'T have a coach entry
-        const mergedBm: BmEntry[] = (bmResults || []).filter(r => !coachUserIds.has(r.user_id));
+        // Also exclude benchmark_results for athletes whose member_id appears in coach entries
+        const coachMemberIds = new Set(
+          (coachEntries as (RawSectionResult & { member_id?: string })[])
+            .filter(ce => ce.member_id)
+            .map(ce => ce.member_id!)
+        );
+        // Start with benchmark_results entries that DON'T have a coach entry (by user_id or member_id)
+        const mergedBm: BmEntry[] = (bmResults || []).filter(r =>
+          !coachUserIds.has(r.user_id) && !coachMemberIds.has(r.user_id)
+        );
         for (const ce of coachEntries as (RawSectionResult & { member_id?: string })[]) {
           // Build synthetic user_id key: prefer user_id, then wb:name, then member:id
           let syntheticUserId = ce.user_id;
@@ -749,7 +757,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
 
         const { data: results } = await supabase
           .from('wod_section_results')
-          .select('id, user_id, whiteboard_name, time_result, reps_result, weight_result, weight_result_2, weight_result_3, rounds_result, calories_result, metres_result, scaling_level, scaling_level_2, scaling_level_3, track, task_completed, workout_date')
+          .select('id, user_id, member_id, whiteboard_name, time_result, reps_result, weight_result, weight_result_2, weight_result_3, rounds_result, calories_result, metres_result, scaling_level, scaling_level_2, scaling_level_3, track, task_completed, workout_date')
           .in('wod_id', contentWodIds)
           .in('section_id', contentSectionIds);
 
@@ -769,6 +777,21 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
 
         const userIds = [...new Set(filtered.map(r => r.user_id))];
         const { names: memberNames, genders: fetchedGenders } = await fetchMemberNames(userIds);
+
+        // Resolve member_id names for coach entries without user_id
+        const unresolvedMemberIds = filtered
+          .filter(r => !r.user_id && r.member_id)
+          .map(r => r.member_id!);
+        if (unresolvedMemberIds.length > 0) {
+          const { data: memberRows } = await supabase
+            .rpc('get_member_names', { member_ids: unresolvedMemberIds });
+          if (memberRows) {
+            for (const m of memberRows as { id: string; display_name: string | null; name: string | null }[]) {
+              memberNames[`member:${m.id}`] = m.display_name || m.name || 'Unknown';
+            }
+          }
+        }
+
         const ranked = rankSectionResults(filtered, memberNames, scoringType, fetchedGenders);
         setEntries(ranked);
 
@@ -999,6 +1022,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
                     <th className='px-3 py-2 text-left'>Athlete</th>
                     <th className='px-3 py-2 text-right'>Result</th>
                     {showScalingFilter && <th className='px-1 py-2 text-center w-12'>Scale</th>}
+                    <th className='px-1 py-2 text-right'></th>
                     <th className='px-1 py-2 text-right w-14'></th>
                   </tr>
                 </thead>
@@ -1062,6 +1086,13 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
                             </div>
                           </td>
                         )}
+                        <td className='px-1 py-2.5 text-right'>
+                          {entry.resultDate && (
+                            <span className='text-[10px] text-gray-500'>
+                              {new Date(entry.resultDate + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                            </span>
+                          )}
+                        </td>
                         <td className='px-1 py-2.5 text-right'>
                           <div className='flex items-center justify-end gap-0.5'>
                             {isMe && (
