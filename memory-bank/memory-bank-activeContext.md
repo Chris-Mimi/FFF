@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 123.0
-**Updated:** 2026-03-26 (Session 252 - Data cleanup, whiteboard duplicate scan, orphan cleanup)
+**Version:** 124.0
+**Updated:** 2026-03-26 (Session 253 - Publish modal UX + leaderboard section preview)
 
 ---
 
@@ -88,11 +88,14 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-26 Session 253 - Opus 4.6) — PUBLISH MODAL UX + LEADERBOARD SECTION PREVIEW:**
+- **✅ Publish modal non-blocking** — Removed dark overlay, calendar clickable while publish modal is open
+- **✅ Publish modal draggable** — Grab teal header to reposition; opens right of Workout panel on desktop
+- **✅ Workout/Publish focus management** — Click either to bring to front (z-index toggle)
+- **✅ Leaderboard section content preview** — Selected chip shows full section content underneath for athlete context
+
 **Completed (2026-03-26 Session 252 - Opus 4.6) — DATA CLEANUP + DUPLICATE SCAN:**
-- **✅ Whiteboard duplicate bug RESOLVED** — Deleted 4 orphan whiteboard entries (Lena, Lukas, PaulB, LukasS) that duplicated registered athlete scores on leaderboard. AndreasK ×3 deleted in Session 251.
-- **✅ Full duplicate scan** — Queried all whiteboard-only entries (`user_id=null, member_id=null`), cross-referenced with registered athletes. No remaining duplicates.
-- **✅ Data integrity diagnostics** — Ran full orphan/duplicate check. Cleaned up 1 orphan reaction + 2 orphan WODs (unpublished test entries from Mar 25).
-- **✅ Saved whiteboard migration plan to Claude Code memory** — At launch, all whiteboard scores will be migrated to registered athlete profiles using name mapping in `Chris Notes/Forge app documentation/Athletes booking list`.
+- **✅ Whiteboard duplicate bug RESOLVED + full duplicate scan + orphan cleanup + migration plan saved**
 
 **Completed (2026-03-26 Session 251 - Opus 4.6) — FEED REMOVAL + LEADERBOARD FIXES:**
 - **✅ Removed Feed view + WOD date column + "Time Cap" formatting + member_id dedup**
@@ -103,10 +106,7 @@ Social Tables
 **Completed (2026-03-26 Sessions 248-249 - Opus 4.6) — LEADERBOARD POLISH:**
 - **✅ Benchmark tab fix + gender filters + alphabetize + visual cleanup**
 
-**Completed (2026-03-25 Sessions 246-247 - Opus 4.6) — WHITEBOARD + NAMES:**
-- **✅ Reverted Link Whiteboard Scores tool + benchmark track fix + Unknown names fix**
-
-**Older Sessions (57-245):**
+**Older Sessions (57-247):**
 See `project-history/` folder for detailed implementation history
 
 ---

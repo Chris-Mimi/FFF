@@ -15,6 +15,11 @@ interface PublishModalProps {
   currentPublishConfig?: PublishConfig | null;
   workoutDate: Date;
   sessionTime?: string; // Auto-populate from session
+  position?: { x: number; y: number } | null;
+  zIndex?: number;
+  isDragging?: boolean;
+  onDragStart?: (e: React.MouseEvent) => void;
+  onMouseDown?: () => void;
 }
 
 export interface PublishConfig {
@@ -38,6 +43,11 @@ export default function PublishModal({
   currentPublishConfig,
   workoutDate,
   sessionTime,
+  position,
+  zIndex = 50,
+  isDragging = false,
+  onDragStart,
+  onMouseDown,
 }: PublishModalProps) {
   // Determine initial time: sessionTime > currentPublishConfig > default
   const initialTime = sessionTime
@@ -122,10 +132,21 @@ export default function PublishModal({
 
   return (
     <FocusTrap>
-    <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4'>
-      <div className='bg-white text-gray-900 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col'>
-        {/* Header */}
-        <div className='bg-[#178da6] text-white p-4 flex justify-between items-center'>
+    <div
+      className={`fixed inset-0 pointer-events-none ${position ? '' : 'flex items-center justify-center'} p-4`}
+      style={{ zIndex }}
+    >
+      <div
+        data-publish-modal
+        className='pointer-events-auto bg-white text-gray-900 rounded-lg shadow-2xl ring-1 ring-black/10 max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col'
+        style={position ? { position: 'absolute', left: position.x, top: position.y } : undefined}
+        onMouseDown={onMouseDown}
+      >
+        {/* Header — draggable */}
+        <div
+          className={`bg-[#178da6] text-white p-4 flex justify-between items-center ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+          onMouseDown={onDragStart}
+        >
           <div>
             <h2 className='text-xl font-bold'>Publish Workout</h2>
             <p className='text-sm text-gray-100'>

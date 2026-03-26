@@ -13,11 +13,22 @@ export interface UseModalResizingResult {
   notesZIndex: number;
   libraryZIndex: number;
 
+  // Publish modal drag + focus
+  publishModalPos: { x: number; y: number } | null;
+  isDraggingPublish: boolean;
+  workoutPanelZIndex: number;
+  publishModalZIndex: number;
+
   // Functions
   handleNotesDragStart: (e: React.MouseEvent) => void;
   handleNotesResizeStart: (e: React.MouseEvent, corner: string) => void;
   bringNotesToFront: () => void;
   bringLibraryToFront: () => void;
+  handlePublishDragStart: (e: React.MouseEvent) => void;
+  bringWorkoutToFront: () => void;
+  bringPublishToFront: () => void;
+  resetPublishModalPos: () => void;
+  openPublishModal: () => void;
 }
 
 export function useModalResizing(): UseModalResizingResult {
@@ -36,6 +47,28 @@ export function useModalResizing(): UseModalResizingResult {
   const [dragStartNotes, setDragStartNotes] = useState({ x: 0, y: 0, bottom: 0, left: 0 });
   const [resizeCorner, setResizeCorner] = useState<string>('');
 
+  // Publish modal drag + workout/publish focus
+  const [publishModalPos, setPublishModalPos] = useState<{ x: number; y: number } | null>(null);
+  const [isDraggingPublish, setIsDraggingPublish] = useState(false);
+  const [dragStartPublish, setDragStartPublish] = useState({ x: 0, y: 0, posX: 0, posY: 0 });
+  const [focusedPanel, setFocusedPanel] = useState<'workout' | 'publish'>('publish');
+  const workoutPanelZIndex = focusedPanel === 'workout' ? 52 : 50;
+  const publishModalZIndex = focusedPanel === 'publish' ? 52 : 50;
+  const bringWorkoutToFront = () => setFocusedPanel('workout');
+  const bringPublishToFront = () => setFocusedPanel('publish');
+  const resetPublishModalPos = () => setPublishModalPos(null);
+
+  // Open publish modal to the right of the workout panel
+  const openPublishModal = () => {
+    // On desktop (lg: 1024px+), position right of 800px panel; otherwise center
+    if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
+      setPublishModalPos({ x: 816, y: 80 });
+    } else {
+      setPublishModalPos(null);
+    }
+    setFocusedPanel('publish');
+  };
+
   // Handle Notes modal drag (move)
   const handleNotesDragStart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -46,6 +79,19 @@ export function useModalResizing(): UseModalResizingResult {
       bottom: notesModalPos.bottom,
       left: notesModalPos.left,
     });
+  };
+
+  // Handle Publish modal drag (move)
+  const handlePublishDragStart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    bringPublishToFront();
+    // If no position set yet, calculate current center position from the element
+    const modalEl = (e.target as HTMLElement).closest('[data-publish-modal]');
+    const rect = modalEl?.getBoundingClientRect();
+    const currentX = publishModalPos?.x ?? (rect ? rect.left : (window.innerWidth - 672) / 2);
+    const currentY = publishModalPos?.y ?? (rect ? rect.top : (window.innerHeight - 500) / 2);
+    setIsDraggingPublish(true);
+    setDragStartPublish({ x: e.clientX, y: e.clientY, posX: currentX, posY: currentY });
   };
 
   // Handle Notes modal resize
@@ -164,6 +210,29 @@ export function useModalResizing(): UseModalResizingResult {
     }
   }, [isDraggingNotes, isResizingNotes, dragStartNotes, resizeStartNotes, resizeCorner, notesModalSize]);
 
+  // Publish modal drag effect
+  useEffect(() => {
+    if (!isDraggingPublish) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const deltaX = e.clientX - dragStartPublish.x;
+      const deltaY = e.clientY - dragStartPublish.y;
+      setPublishModalPos({
+        x: Math.max(0, dragStartPublish.posX + deltaX),
+        y: Math.max(0, dragStartPublish.posY + deltaY),
+      });
+    };
+
+    const handleMouseUp = () => setIsDraggingPublish(false);
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDraggingPublish, dragStartPublish]);
+
   return {
     notesModalSize,
     notesModalPos,
@@ -173,9 +242,18 @@ export function useModalResizing(): UseModalResizingResult {
     dragStartNotes,
     notesZIndex,
     libraryZIndex,
+    publishModalPos,
+    isDraggingPublish,
+    workoutPanelZIndex,
+    publishModalZIndex,
     handleNotesDragStart,
     handleNotesResizeStart,
     bringNotesToFront,
     bringLibraryToFront,
+    handlePublishDragStart,
+    bringWorkoutToFront,
+    bringPublishToFront,
+    resetPublishModalPos,
+    openPublishModal,
   };
 }

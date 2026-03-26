@@ -21,7 +21,7 @@ There's no app-switching, no spreadsheets, no whiteboards that get erased. Just 
 - **Visual weekly and monthly calendar** — see your entire programming cycle at a glance, color-coded by training track
 - **Multi-section workout builder** — structure each day with Warm-up, WOD, Strength, Skills, Accessory, and Cooldown sections, exactly how you'd write it on the whiteboard
 - **Drag-and-drop** — copy workouts between dates, reorder sections, and build training weeks effortlessly
-- **Publish control** — choose exactly which sections athletes can see (keep surprise WODs hidden until class time)
+- **Publish control** — choose exactly which sections athletes can see (keep surprise WODs hidden until class time). The publish modal is draggable and non-blocking, so you can edit the workout and publish settings side by side
 - **Coach notes** — attach workout intent and stimulus notes so athletes understand the "why" behind the programming
 - **Movement demos** — video clips are automatically detected from exercises in your workout sections and displayed in a collapsible bar. Coaches can also manually attach any YouTube or direct video link. One-click playback in a draggable, resizable player
 - **Google Calendar sync** — optionally publish workouts to a public Google Calendar for members who prefer that view
@@ -106,7 +106,7 @@ There's no app-switching, no spreadsheets, no whiteboards that get erased. Just 
 
 ### Community & Competition
 
-- **Per-workout leaderboards** — see how you stack up against other athletes, ranked by time, reps, or weight
+- **Per-workout leaderboards** — see how you stack up against other athletes, ranked by time, reps, or weight. Selecting a section chip shows the full workout description so you always know exactly what you're scoring
 - **Intelligent ranking** — proper tie-breaking, scaling-level separation, and multi-track support (Track 1/2/3 badges)
 - **Smart grouping** — same-named workouts within 60 days are automatically grouped, showing each athlete's best result across sessions
 - **Gender filtering** — toggle between All, Male, and Female views with re-ranked positions

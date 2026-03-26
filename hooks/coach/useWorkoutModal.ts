@@ -149,6 +149,10 @@ export interface UseWorkoutModalResult {
   notesModalPos: { bottom: number; left: number };
   notesZIndex: number;
   libraryZIndex: number;
+  publishModalPos: { x: number; y: number } | null;
+  isDraggingPublish: boolean;
+  workoutPanelZIndex: number;
+  publishModalZIndex: number;
   isResizingNotes: boolean;
   isDraggingNotes: boolean;
   resizeStartNotes: { x: number; y: number; width: number; height: number };
@@ -219,6 +223,11 @@ export interface UseWorkoutModalResult {
   handleNotesResizeStart: (e: React.MouseEvent, corner: string) => void;
   bringNotesToFront: () => void;
   bringLibraryToFront: () => void;
+  handlePublishDragStart: (e: React.MouseEvent) => void;
+  bringWorkoutToFront: () => void;
+  bringPublishToFront: () => void;
+  resetPublishModalPos: () => void;
+  openPublishModal: () => void;
   setPublishModalOpen: (open: boolean) => void;
   setApplySessionsOpen: (open: boolean) => void;
   handleSessionSelectionToggle: (sessionId: string, checked: boolean) => void;
@@ -855,6 +864,10 @@ export function useWorkoutModal(
     notesModalPos: modalResizing.notesModalPos,
     notesZIndex: modalResizing.notesZIndex,
     libraryZIndex: modalResizing.libraryZIndex,
+    publishModalPos: modalResizing.publishModalPos,
+    isDraggingPublish: modalResizing.isDraggingPublish,
+    workoutPanelZIndex: modalResizing.workoutPanelZIndex,
+    publishModalZIndex: modalResizing.publishModalZIndex,
     isResizingNotes: modalResizing.isResizingNotes,
     isDraggingNotes: modalResizing.isDraggingNotes,
     resizeStartNotes: modalResizing.resizeStartNotes,
@@ -925,6 +938,11 @@ export function useWorkoutModal(
     handleNotesResizeStart: modalResizing.handleNotesResizeStart,
     bringNotesToFront: modalResizing.bringNotesToFront,
     bringLibraryToFront: modalResizing.bringLibraryToFront,
+    handlePublishDragStart: modalResizing.handlePublishDragStart,
+    bringWorkoutToFront: modalResizing.bringWorkoutToFront,
+    bringPublishToFront: modalResizing.bringPublishToFront,
+    resetPublishModalPos: modalResizing.resetPublishModalPos,
+    openPublishModal: modalResizing.openPublishModal,
     setPublishModalOpen,
     setApplySessionsOpen,
     handleSessionSelectionToggle,

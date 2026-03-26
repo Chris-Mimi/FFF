@@ -959,6 +959,18 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
             );
           })()}
 
+          {/* Section content preview */}
+          {selectedItem && (() => {
+            const selectedWodForPreview = wods.find(w => w.id === selectedWodId) || wods[0];
+            const section = selectedWodForPreview?.sections[selectedItem.sectionIndex];
+            if (!section?.content?.trim()) return null;
+            return (
+              <div className='bg-gray-50 rounded-lg px-3 py-2 text-sm text-gray-700 whitespace-pre-wrap max-h-[120px] overflow-y-auto border border-gray-200'>
+                {section.content}
+              </div>
+            );
+          })()}
+
           {/* Filters row */}
           <div className='flex items-center gap-3'>
             {showScalingFilter && (

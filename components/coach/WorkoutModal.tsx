@@ -85,7 +85,11 @@ export default function WorkoutModal({
         />
 
         {/* WOD Panel - full width on mobile, 800px on desktop */}
-        <div className='fixed left-0 top-[72px] h-[calc(100vh-72px)] w-full lg:w-[800px] bg-white shadow-2xl z-50 flex flex-col border-r-2 border-[#178da6] border-t border-gray-400 animate-slide-in-left'>
+        <div
+          className='fixed left-0 top-[72px] h-[calc(100vh-72px)] w-full lg:w-[800px] bg-white shadow-2xl flex flex-col border-r-2 border-[#178da6] border-t border-gray-400 animate-slide-in-left'
+          style={{ zIndex: hook.workoutPanelZIndex }}
+          onMouseDown={hook.bringWorkoutToFront}
+        >
           {/* Header */}
           <WorkoutModalHeader
             editingWOD={editingWOD}
@@ -106,7 +110,7 @@ export default function WorkoutModal({
             onTimeSave={hook.handleTimeUpdate}
             onTempTimeChange={hook.setTempTime}
             onUnpublish={hook.handleUnpublish}
-            onPublishClick={() => hook.setPublishModalOpen(true)}
+            onPublishClick={() => { hook.openPublishModal(); hook.setPublishModalOpen(true); }}
             onSave={async () => {
               if (hook.validate()) {
                 // Save any pending time changes first
@@ -289,8 +293,13 @@ export default function WorkoutModal({
         {/* Publish Modal */}
         <PublishModal
           isOpen={hook.publishModalOpen}
-          onClose={() => hook.setPublishModalOpen(false)}
+          onClose={() => { hook.setPublishModalOpen(false); hook.resetPublishModalPos(); }}
           onPublish={hook.handlePublish}
+          position={hook.publishModalPos}
+          zIndex={hook.publishModalZIndex}
+          isDragging={hook.isDraggingPublish}
+          onDragStart={hook.handlePublishDragStart}
+          onMouseDown={hook.bringPublishToFront}
           sections={hook.formData.sections}
           workoutDate={date}
           sessionTime={publishSessionTime}
@@ -336,7 +345,7 @@ export default function WorkoutModal({
             onTimeSave={hook.handleTimeUpdate}
             onTempTimeChange={hook.setTempTime}
             onUnpublish={hook.handleUnpublish}
-            onPublishClick={() => hook.setPublishModalOpen(true)}
+            onPublishClick={() => { hook.openPublishModal(); hook.setPublishModalOpen(true); }}
             onSave={async () => {
               if (hook.validate()) {
                 // Save any pending time changes first
