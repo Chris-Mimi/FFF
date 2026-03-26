@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 121.0
-**Updated:** 2026-03-26 (Session 250 - Aggregate scaling ranking + benchmark multi-scaling)
+**Version:** 122.0
+**Updated:** 2026-03-26 (Session 251 - Remove Feed, WOD date column, Time Cap, whiteboard dedup)
 
 ---
 
@@ -88,24 +88,22 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-26 Session 251 - Opus 4.6) — FEED REMOVAL + LEADERBOARD FIXES + WHITEBOARD BUG:**
+- **✅ Removed Feed view** — Athlete Leaderboard tab now shows leaderboard directly, no Feed/Leaderboard toggle
+- **✅ WOD date column** — WOD section leaderboard now shows date of score entry (matching benchmark pattern)
+- **✅ "CAP" → "Time Cap"** — Both WOD and benchmark result formatting now show "Time Cap" prefix for capped results
+- **✅ member_id dedup** — Added `member_id` awareness to `bestResultPerUser` and content section queries/name resolution
+- **🔴 WHITEBOARD DUPLICATE BUG (OPEN)** — AndreasK whiteboard entries appear alongside registered athlete "Andreas Keip". Root cause: coach-entered whiteboard entries with `user_id=null, member_id=null` not linked to registered athlete. 3 bad rows identified. Also appears on Weekend WOD #26.7. **Next session: delete bad rows + scan for other duplicates + consider systematic fix.**
+- Confirmed manual backups (40 copies) are safe to delete — git + GitHub + SynologyDrive provides triple redundancy
+
 **Completed (2026-03-26 Session 250 - Opus 4.6) — AGGREGATE SCALING + BENCHMARK MULTI-SCALING:**
-- **✅ Aggregate scaling ranking** — Replaced sequential scaling comparison (Sc1→Sc2→Sc3) with summed score (Rx=0, Sc1=1, Sc2=2, Sc3=3). Lower total = higher rank. Fixes unfair ranking when exercise order in WOD gave arbitrary priority. Applied to both `rankSectionResults` and `rankBenchmarkResults`.
-- **✅ 3rd scaling chip fix** — `scalingLevel3` chip was missing from WOD leaderboard display.
-- **✅ Benchmark multi-scaling** — Full stack: DB migration (`scaling_level_2/3` on `benchmark_results`), API route updated, athlete entry UIs (both tabs) get "+ Add scaling level" buttons, leaderboard fetch/merge/display all updated.
-- **✅ Benchmark rounds+reps fix** — `BmEntry` types and merge code were dropping `rounds_result` from coach entries. Fixed both merge paths + `formatBenchmarkResult` now shows "X+Y" format. Also fixed AMRAP benchmark sorting (wasn't matching "amrap" type).
+- **✅ Aggregate scaling ranking + 3rd scaling chip fix + benchmark multi-scaling + rounds+reps fix**
 
-**Completed (2026-03-26 Session 249 - Opus 4.6) — LEADERBOARD UI POLISH:**
-- **✅ Benchmarks alphabetized** — Both standard and forge benchmark lists sorted by name instead of display_order
-- **✅ Leaderboard visual cleanup** — Scaling + gender filters on one row, coloured filter chips, consistent styling
+**Completed (2026-03-26 Sessions 248-249 - Opus 4.6) — LEADERBOARD POLISH:**
+- **✅ Benchmark tab fix + gender filters + alphabetize + visual cleanup**
 
-**Completed (2026-03-26 Session 248 - Opus 4.6) — BENCHMARK TAB FIX + GENDER FILTERS:**
-- **✅ Benchmark tab leaderboard fix + gender filters**
-
-**Completed (2026-03-25 Session 247 - Opus 4.6) — REVERT WHITEBOARD TOOL + BENCHMARK TRACK FIX:**
-- **✅ Reverted Link Whiteboard Scores tool + benchmark leaderboard track chip fix**
-
-**Completed (2026-03-25 Session 246 - Opus 4.6) — UNKNOWN NAMES FIX:**
-- **✅ "Unknown" names ROOT CAUSE FOUND + FIXED**
+**Completed (2026-03-25 Sessions 246-247 - Opus 4.6) — WHITEBOARD + NAMES:**
+- **✅ Reverted Link Whiteboard Scores tool + benchmark track fix + Unknown names fix**
 
 **Older Sessions (57-243):**
 See `project-history/` folder for detailed implementation history
@@ -207,7 +205,7 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION (PRIORITY)
-1. **Test Logbook publish_sections fix** — Verify with Athlete Test 1 that only selected sections show.
+1. **Fix whiteboard duplicate bug** — Delete 3 bad AndreasK rows (`DELETE FROM wod_section_results WHERE whiteboard_name = 'AndreasK' AND user_id IS NULL AND member_id IS NULL`). Also check Weekend WOD #26.7 (Rx vs Sc1 duplicate). Scan for other whiteboard-only entries duplicating registered athletes. Consider systematic prevention.
 2. **Test aggregate scaling ranking** — Verify leaderboard order matches expected aggregate scoring on multi-scaling WODs.
 
 ### BACKLOG
