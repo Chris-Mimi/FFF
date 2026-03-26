@@ -27,6 +27,7 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
 
   useEffect(() => {
     fetchPaymentStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   const fetchPaymentStatus = async () => {

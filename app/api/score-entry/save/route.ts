@@ -400,9 +400,7 @@ export async function POST(request: NextRequest) {
           }
           liftsSaved++;
         }
-        if (liftsSaved > 0) {
-          console.log(`Auto-saved ${liftsSaved} RM lift record(s) from score entry`);
-        }
+        if (liftsSaved > 0) { /* RM lifts auto-saved */ }
       }
 
       // Auto-save lift_records for non-RM lift sections (e.g. 5x5 Snatch)
@@ -456,9 +454,7 @@ export async function POST(request: NextRequest) {
           }
           nonRmSaved++;
         }
-        if (nonRmSaved > 0) {
-          console.log(`Auto-saved ${nonRmSaved} non-RM lift record(s) from score entry`);
-        }
+        if (nonRmSaved > 0) { /* Non-RM lifts auto-saved */ }
       }
     }
 

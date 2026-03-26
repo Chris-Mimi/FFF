@@ -247,6 +247,7 @@ function MovementLibraryPopup({
         if (!hasFetchedForge) fetchForgeBenchmarks();
         break;
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, activeTab, hasFetchedExercises, hasFetchedLifts, hasFetchedBenchmarks, hasFetchedForge]);
 
   // Reset filters when modal closes

@@ -50,6 +50,7 @@ export default function ExerciseVideoModal({
       const centerY = Math.max(0, (window.innerHeight - modalSize.height) / 2);
       setModalPos({ top: centerY, left: centerX });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]); // Only run when isOpen changes, not modalSize
 
   // Handle Escape key

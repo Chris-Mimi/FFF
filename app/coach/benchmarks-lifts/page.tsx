@@ -49,6 +49,7 @@ export default function BenchmarksLiftsManagementPage() {
     return () => {
       cancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 
   useEffect(() => {
@@ -73,6 +74,7 @@ export default function BenchmarksLiftsManagementPage() {
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading]);
 
   const checkAuth = async () => {

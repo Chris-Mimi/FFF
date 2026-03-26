@@ -202,6 +202,7 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
   useEffect(() => {
     fetchPublishedWorkouts();
     fetchWeekPhotos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate, userId]);
 
   const getWeekNumber = (date: Date): number => {
@@ -816,6 +817,7 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
                                 }}
                                 className='flex-shrink-0 cursor-pointer hover:opacity-80 transition'
                               >
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
                                   src={photo.photo_url}
                                   alt={photo.photo_label}
@@ -865,6 +867,7 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
               >
                 <X size={24} />
               </button>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={selectedPhoto.photo_url}
                 alt={selectedPhoto.photo_label}

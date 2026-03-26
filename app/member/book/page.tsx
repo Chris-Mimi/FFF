@@ -65,12 +65,14 @@ export default function MemberBookingPage() {
 
   useEffect(() => {
     checkAuth();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (user && bookingForMemberId) {
       fetchSessions();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [weekStart, user, bookingForMemberId]);
 
   const checkAuth = async () => {

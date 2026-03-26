@@ -70,6 +70,7 @@ export default function ShareCard({ data, logoBase64 }: ShareCardProps) {
     >
       {/* Header: Logo (contains gym name) */}
       <div style={{ textAlign: 'center' }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         {logoBase64 && (
           <img
             src={logoBase64}

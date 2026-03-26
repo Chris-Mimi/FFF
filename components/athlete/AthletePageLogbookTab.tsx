@@ -330,6 +330,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
     if (initialDate) {
       setSelectedDate(initialDate);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialDate]);
 
   // Notify parent when date changes so it can be persisted across tab switches

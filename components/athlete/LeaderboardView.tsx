@@ -805,6 +805,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
     } finally {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedWodId, selectedItemIdx, scalingFilter, wods, siblingWodIds, computeGrouping, fetchReactions, selectedItem]);
 
   useEffect(() => { loadResults(); }, [loadResults]);
