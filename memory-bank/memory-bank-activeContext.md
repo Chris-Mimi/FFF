@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 120.0
-**Updated:** 2026-03-26 (Session 249 - Leaderboard UI polish + benchmark alphabetize)
+**Version:** 121.0
+**Updated:** 2026-03-26 (Session 250 - Aggregate scaling ranking + benchmark multi-scaling)
 
 ---
 
@@ -64,7 +64,7 @@ Member Tables
 Athlete Tables (linked to members.id)
 ├─ athlete_profiles (id, user_id, full_name, emergency_contact)
 ├─ workout_logs (id, user_id, wod_id, result, notes)
-├─ benchmark_results (id, user_id, benchmark_id, forge_benchmark_id [XOR], benchmark_name, benchmark_type, result_value, scaling_level, result_date)
+├─ benchmark_results (id, user_id, benchmark_id, forge_benchmark_id [XOR], benchmark_name, benchmark_type, result_value, scaling_level, scaling_level_2, scaling_level_3, result_date)
 ├─ lift_records (id, user_id, lift_name, weight_kg, reps, rep_max_type ['1RM'|'3RM'|'5RM'|'10RM'], rep_scheme [workout patterns], calculated_1rm, notes, lift_date)
 ├─ wod_section_results (id, user_id, wod_id, section_id, workout_date, time_result, reps_result, weight_result, weight_result_2, weight_result_3, scaling_level, scaling_level_2, scaling_level_3, rounds_result, calories_result, metres_result, task_completed, track [SMALLINT, NULL or 1/2/3])
 
@@ -88,23 +88,24 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-26 Session 250 - Opus 4.6) — AGGREGATE SCALING + BENCHMARK MULTI-SCALING:**
+- **✅ Aggregate scaling ranking** — Replaced sequential scaling comparison (Sc1→Sc2→Sc3) with summed score (Rx=0, Sc1=1, Sc2=2, Sc3=3). Lower total = higher rank. Fixes unfair ranking when exercise order in WOD gave arbitrary priority. Applied to both `rankSectionResults` and `rankBenchmarkResults`.
+- **✅ 3rd scaling chip fix** — `scalingLevel3` chip was missing from WOD leaderboard display.
+- **✅ Benchmark multi-scaling** — Full stack: DB migration (`scaling_level_2/3` on `benchmark_results`), API route updated, athlete entry UIs (both tabs) get "+ Add scaling level" buttons, leaderboard fetch/merge/display all updated.
+- **✅ Benchmark rounds+reps fix** — `BmEntry` types and merge code were dropping `rounds_result` from coach entries. Fixed both merge paths + `formatBenchmarkResult` now shows "X+Y" format. Also fixed AMRAP benchmark sorting (wasn't matching "amrap" type).
+
 **Completed (2026-03-26 Session 249 - Opus 4.6) — LEADERBOARD UI POLISH:**
 - **✅ Benchmarks alphabetized** — Both standard and forge benchmark lists sorted by name instead of display_order
-- **✅ Leaderboard visual cleanup** — Scaling + gender filters on one row, WOD selector teal background (sky-100), coloured filter chips (green=Rx, orange=Scaled, blue=M, pink=F, teal=All), hover colours + borders, consistent styling across WOD Sections and Benchmarks tabs
+- **✅ Leaderboard visual cleanup** — Scaling + gender filters on one row, coloured filter chips, consistent styling
 
 **Completed (2026-03-26 Session 248 - Opus 4.6) — BENCHMARK TAB FIX + GENDER FILTERS:**
-- **✅ Benchmark tab leaderboard fix** — `BenchmarkLeaderboard` only queried `benchmark_results`. Now also fetches `wod_section_results` (coach entries) by finding WODs with matching benchmark in sections JSONB, then merging with coach priority.
-- **✅ Gender filters on Benchmark tab** — Added All/M/F filter buttons matching per-workout leaderboard pattern.
+- **✅ Benchmark tab leaderboard fix + gender filters**
 
 **Completed (2026-03-25 Session 247 - Opus 4.6) — REVERT WHITEBOARD TOOL + BENCHMARK TRACK FIX:**
-- **✅ Reverted Link Whiteboard Scores tool** — Unnecessary; one-time migration script is correct approach. Deleted 3 files + admin page reference.
-- **✅ Benchmark leaderboard track chip fix** — Coach entries now take priority over athlete self-entries.
+- **✅ Reverted Link Whiteboard Scores tool + benchmark leaderboard track chip fix**
 
 **Completed (2026-03-25 Session 246 - Opus 4.6) — UNKNOWN NAMES FIX:**
-- **✅ "Unknown" names ROOT CAUSE FOUND + FIXED** — Synthetic `wb:` IDs broke `get_member_names` RPC.
-
-**Completed (2026-03-25 Session 245 - Opus 4.6) — BENCHMARK LEADERBOARD SORT + TRACK:**
-- **✅ Scaling sort, track sort + passthrough, whiteboard_name fallback + member_id lookup (partial fix)**
+- **✅ "Unknown" names ROOT CAUSE FOUND + FIXED**
 
 **Older Sessions (57-243):**
 See `project-history/` folder for detailed implementation history
@@ -163,6 +164,7 @@ See `project-history/` folder for detailed implementation history
 - ✅ `20260321000000_add_scaling_level_2.sql` — Adds `scaling_level_2 text` column to wod_section_results (Session 227, applied)
 - ✅ `20260323000001_add_wod_id_to_lift_records.sql` — Adds `wod_id` FK with CASCADE to lift_records for auto-cleanup on WOD delete (Session 234, applied)
 - ✅ `20260323000002_add_scaling3_load3.sql` — Adds `scaling_level_3 text` and `weight_result_3 numeric` to wod_section_results (Session 235, applied)
+- ✅ `20260326000000_add_benchmark_multi_scaling.sql` — Adds `scaling_level_2 text` and `scaling_level_3 text` to benchmark_results (Session 250, applied)
 
 ---
 
@@ -205,9 +207,8 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION (PRIORITY)
-1. **Bug fix: 3rd scaling chip not showing** — When 3 scaling levels are selected on a workout, only 2 chips display on the leaderboard. Investigate `scaling_level_3` display logic.
-2. **Test Benchmark tab fix** — Verify Nancy now shows all athletes (Paul, whiteboard entries) on Benchmarks tab.
-3. **Test Logbook publish_sections fix** — Verify with Athlete Test 1 that only selected sections show.
+1. **Test Logbook publish_sections fix** — Verify with Athlete Test 1 that only selected sections show.
+2. **Test aggregate scaling ranking** — Verify leaderboard order matches expected aggregate scoring on multi-scaling WODs.
 
 ### BACKLOG
 1. **Coach library optimization** — Equipment & Body Parts lists need optimising.

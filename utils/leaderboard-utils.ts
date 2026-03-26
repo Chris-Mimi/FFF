@@ -90,8 +90,11 @@ interface RawBenchmarkResult {
   user_id: string;
   time_result?: string | null;
   reps_result?: number | null;
+  rounds_result?: number | null;
   weight_result?: number | null;
   scaling_level?: string | null;
+  scaling_level_2?: string | null;
+  scaling_level_3?: string | null;
   track?: number | null;
   result_date?: string;
 }
@@ -288,20 +291,16 @@ export function rankSectionResults(
     }
   });
 
-  // Sort: Scaling 1 > Scaling 2 > Scaling 3 > Track > Scoring type
-  const scalingOrder: Record<string, number> = { 'Rx': 0, 'Sc1': 1, 'Sc2': 2, 'Sc3': 3 };
+  // Sort: Aggregate scaling score (lower = better) > Track > Scoring type
+  // Rx=0, Sc1=1, Sc2=2, Sc3=3; sum all set levels for a single comparable score
+  const scalingValue: Record<string, number> = { 'Rx': 0, 'Sc1': 1, 'Sc2': 2, 'Sc3': 3 };
+  const aggregateScaling = (r: RawSectionResult) =>
+    (r.scaling_level ? (scalingValue[r.scaling_level] ?? 0) : 0) +
+    (r.scaling_level_2 ? (scalingValue[r.scaling_level_2] ?? 0) : 0) +
+    (r.scaling_level_3 ? (scalingValue[r.scaling_level_3] ?? 0) : 0);
   const sorted = [...valid].sort((a, b) => {
-    const aScale = scalingOrder[a.scaling_level || ''] ?? 4;
-    const bScale = scalingOrder[b.scaling_level || ''] ?? 4;
-    if (aScale !== bScale) return aScale - bScale;
-    // Scaling 2: Rx > Sc1 > Sc2 > Sc3 > unset
-    const aScale2 = scalingOrder[a.scaling_level_2 || ''] ?? 4;
-    const bScale2 = scalingOrder[b.scaling_level_2 || ''] ?? 4;
-    if (aScale2 !== bScale2) return aScale2 - bScale2;
-    // Scaling 3: Rx > Sc1 > Sc2 > Sc3 > unset
-    const aScale3 = scalingOrder[a.scaling_level_3 || ''] ?? 4;
-    const bScale3 = scalingOrder[b.scaling_level_3 || ''] ?? 4;
-    if (aScale3 !== bScale3) return aScale3 - bScale3;
+    const scaleDiff = aggregateScaling(a) - aggregateScaling(b);
+    if (scaleDiff !== 0) return scaleDiff;
     // Track: 1 < 2 < 3 < null (lower track = higher rank)
     const aTrack = a.track ?? 4;
     const bTrack = b.track ?? 4;
@@ -342,8 +341,13 @@ export function rankBenchmarkResults(
   memberGenders?: Record<string, string | null>
 ): LeaderboardEntry[] {
   // Determine scoring direction from benchmark type
-  const isTimeBased = benchmarkType.toLowerCase().includes('time');
-  const isRepsBased = benchmarkType.toLowerCase().includes('rep');
+  const typeLower = benchmarkType.toLowerCase();
+  const isTimeBased = typeLower.includes('time');
+  const isRepsBased = typeLower.includes('rep') || typeLower.includes('amrap');
+
+  // Composite score for rounds+reps comparison (higher = better)
+  const roundsRepsScore = (r: RawBenchmarkResult) =>
+    (r.rounds_result || 0) * 10000 + (r.reps_result || 0);
 
   // Group by user, pick best
   const bestByUser = new Map<string, RawBenchmarkResult>();
@@ -360,7 +364,7 @@ export function rankBenchmarkResults(
     if (isTimeBased) {
       isBetter = parseTimeToSeconds(r.time_result) < parseTimeToSeconds(existing.time_result);
     } else if (isRepsBased) {
-      isBetter = (r.reps_result || 0) > (existing.reps_result || 0);
+      isBetter = roundsRepsScore(r) > roundsRepsScore(existing);
     } else {
       // Default: weight-based (higher is better)
       isBetter = (r.weight_result || 0) > (existing.weight_result || 0);
@@ -369,19 +373,23 @@ export function rankBenchmarkResults(
     if (isBetter) bestByUser.set(r.user_id, r);
   }
 
-  // Sort best results: scaling first (Rx > Sc1 > Sc2 > Sc3 > unset), then by primary metric
-  const scalingOrder: Record<string, number> = { 'Rx': 0, 'Sc1': 1, 'Sc2': 2, 'Sc3': 3 };
+  // Sort best results: aggregate scaling score (lower = better) > Track > primary metric
+  // Rx=0, Sc1=1, Sc2=2, Sc3=3; sum all set levels for a single comparable score
+  const scalingValue: Record<string, number> = { 'Rx': 0, 'Sc1': 1, 'Sc2': 2, 'Sc3': 3 };
+  const aggregateScaling = (r: RawBenchmarkResult) =>
+    (r.scaling_level ? (scalingValue[r.scaling_level] ?? 0) : 0) +
+    (r.scaling_level_2 ? (scalingValue[r.scaling_level_2] ?? 0) : 0) +
+    (r.scaling_level_3 ? (scalingValue[r.scaling_level_3] ?? 0) : 0);
   const bests = [...bestByUser.values()];
   bests.sort((a, b) => {
-    const aScale = scalingOrder[a.scaling_level || ''] ?? 4;
-    const bScale = scalingOrder[b.scaling_level || ''] ?? 4;
-    if (aScale !== bScale) return aScale - bScale;
+    const scaleDiff = aggregateScaling(a) - aggregateScaling(b);
+    if (scaleDiff !== 0) return scaleDiff;
     // Track: 1 < 2 < 3 < null (lower track = higher rank)
     const aTrack = a.track ?? 4;
     const bTrack = b.track ?? 4;
     if (aTrack !== bTrack) return aTrack - bTrack;
     if (isTimeBased) return parseTimeToSeconds(a.time_result) - parseTimeToSeconds(b.time_result);
-    if (isRepsBased) return (b.reps_result || 0) - (a.reps_result || 0);
+    if (isRepsBased) return roundsRepsScore(b) - roundsRepsScore(a);
     return (b.weight_result || 0) - (a.weight_result || 0);
   });
 
@@ -392,8 +400,11 @@ export function rankBenchmarkResults(
     rank: i + 1,
     timeResult: r.time_result || undefined,
     repsResult: r.reps_result || undefined,
+    roundsResult: r.rounds_result || undefined,
     weightResult: r.weight_result || undefined,
     scalingLevel: r.scaling_level || undefined,
+    scalingLevel2: r.scaling_level_2 || undefined,
+    scalingLevel3: r.scaling_level_3 || undefined,
     track: r.track || undefined,
     resultDate: r.result_date,
     gender: memberGenders?.[r.user_id] ?? (r.user_id.startsWith('wb:') ? getWhiteboardGender(r.user_id.slice(3)) : undefined) ?? undefined,
@@ -517,7 +528,13 @@ export function formatResult(entry: LeaderboardEntry, scoringType: string): stri
 export function formatBenchmarkResult(entry: LeaderboardEntry): string {
   const parts: string[] = [];
   if (entry.timeResult) parts.push(entry.timeResult);
-  if (entry.repsResult) parts.push(`${entry.repsResult} reps`);
+  if (entry.roundsResult && entry.repsResult) {
+    parts.push(`${entry.roundsResult}+${entry.repsResult}`);
+  } else if (entry.roundsResult) {
+    parts.push(`${entry.roundsResult} rounds`);
+  } else if (entry.repsResult) {
+    parts.push(`${entry.repsResult} reps`);
+  }
   if (entry.weightResult) parts.push(`${entry.weightResult} kg`);
-  return parts.join(' / ') || '-';
+  return parts.join(' · ') || '-';
 }

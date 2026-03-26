@@ -41,6 +41,8 @@ export async function POST(request: NextRequest) {
       repsResult,
       weightResult,
       scalingLevel,
+      scalingLevel2,
+      scalingLevel3,
       notes,
       resultDate
     } = body;
@@ -161,6 +163,8 @@ export async function POST(request: NextRequest) {
           weight_result: parsedWeight,
           result_value: resultValue, // Also populate result_value for backwards compatibility
           scaling_level: scalingLevel || null,
+          scaling_level_2: scalingLevel2 || null,
+          scaling_level_3: scalingLevel3 || null,
           notes: notes || null,
           updated_at: new Date().toISOString()
         })
@@ -227,6 +231,8 @@ export async function POST(request: NextRequest) {
           weight_result: parsedWeight,
           result_value: resultValue, // Also populate result_value for backwards compatibility
           scaling_level: scalingLevel || null,
+          scaling_level_2: scalingLevel2 || null,
+          scaling_level_3: scalingLevel3 || null,
           notes: notes || null,
           result_date: resultDate || new Date().toISOString().split('T')[0]
         });

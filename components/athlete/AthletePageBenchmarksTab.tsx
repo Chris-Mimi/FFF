@@ -29,6 +29,8 @@ interface BenchmarkResult {
   notes?: string;
   result_date: string;
   scaling_level?: string;
+  scaling_level_2?: string;
+  scaling_level_3?: string;
 }
 
 interface AthletePageBenchmarksTabProps {
@@ -42,6 +44,8 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
   const [newNotes, setNewNotes] = useState('');
   const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0]);
   const [newScaling, setNewScaling] = useState<'Rx' | 'Sc1' | 'Sc2' | 'Sc3'>('Rx');
+  const [newScaling2, setNewScaling2] = useState<'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | ''>('');
+  const [newScaling3, setNewScaling3] = useState<'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | ''>('');
   const [benchmarkHistory, setBenchmarkHistory] = useState<BenchmarkResult[]>([]);
   const [recentBenchmarks, setRecentBenchmarks] = useState<BenchmarkResult[]>([]);
   const [editingBenchmarkId, setEditingBenchmarkId] = useState<string | null>(null);
@@ -128,6 +132,8 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
           repsResult,
           weightResult,
           scalingLevel: newScaling,
+          scalingLevel2: newScaling2 || undefined,
+          scalingLevel3: newScaling3 || undefined,
           notes: newNotes || null,
           resultDate: newDate,
         }),
@@ -148,6 +154,8 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
       setNewNotes('');
       setNewDate(new Date().toISOString().split('T')[0]);
       setNewScaling('Rx');
+      setNewScaling2('');
+      setNewScaling3('');
       setSelectedBenchmark(null);
       setEditingBenchmarkId(null);
     } catch (error) {
@@ -162,6 +170,8 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
     setNewNotes(entry.notes || '');
     setNewDate(entry.result_date);
     setNewScaling((entry.scaling_level as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3') || 'Rx');
+    setNewScaling2((entry.scaling_level_2 as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3') || '');
+    setNewScaling3((entry.scaling_level_3 as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3') || '');
     setEditingBenchmarkId(entry.id);
   };
 
@@ -675,16 +685,52 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
 
               <div>
                 <label className='block text-sm font-medium text-gray-100 mb-2'>Scaling</label>
-                <select
-                  value={newScaling}
-                  onChange={e => setNewScaling(e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3')}
-                  className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-100'
-                >
-                  <option value='Rx'>Rx (As Prescribed)</option>
-                  <option value='Sc1'>Scaled 1</option>
-                  <option value='Sc2'>Scaled 2</option>
-                  <option value='Sc3'>Scaled 3</option>
-                </select>
+                <div className='space-y-2'>
+                  <select
+                    value={newScaling}
+                    onChange={e => setNewScaling(e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3')}
+                    className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-100'
+                  >
+                    <option value='Rx'>Rx (As Prescribed)</option>
+                    <option value='Sc1'>Scaled 1</option>
+                    <option value='Sc2'>Scaled 2</option>
+                    <option value='Sc3'>Scaled 3</option>
+                  </select>
+                  {newScaling2 !== '' ? (
+                    <div className='flex gap-2'>
+                      <select
+                        value={newScaling2}
+                        onChange={e => setNewScaling2(e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '')}
+                        className='flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-100'
+                      >
+                        <option value='Rx'>Rx</option>
+                        <option value='Sc1'>Sc1</option>
+                        <option value='Sc2'>Sc2</option>
+                        <option value='Sc3'>Sc3</option>
+                      </select>
+                      <button type='button' onClick={() => { setNewScaling2(''); setNewScaling3(''); }} className='px-2 text-gray-400 hover:text-red-400'>✕</button>
+                    </div>
+                  ) : (
+                    <button type='button' onClick={() => setNewScaling2('Rx')} className='text-xs text-[#178da6] hover:underline'>+ Add scaling level</button>
+                  )}
+                  {newScaling2 !== '' && (newScaling3 !== '' ? (
+                    <div className='flex gap-2'>
+                      <select
+                        value={newScaling3}
+                        onChange={e => setNewScaling3(e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '')}
+                        className='flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-100'
+                      >
+                        <option value='Rx'>Rx</option>
+                        <option value='Sc1'>Sc1</option>
+                        <option value='Sc2'>Sc2</option>
+                        <option value='Sc3'>Sc3</option>
+                      </select>
+                      <button type='button' onClick={() => setNewScaling3('')} className='px-2 text-gray-400 hover:text-red-400'>✕</button>
+                    </div>
+                  ) : (
+                    <button type='button' onClick={() => setNewScaling3('Rx')} className='text-xs text-[#178da6] hover:underline'>+ Add scaling level</button>
+                  ))}
+                </div>
               </div>
 
               <div>

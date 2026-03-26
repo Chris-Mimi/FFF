@@ -662,7 +662,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
         // Merge: convert coach entries to benchmark format
         // Coach entries (wod_section_results) take priority over athlete self-entries (benchmark_results)
         // because coach entries have track data and are the primary score source
-        type BmEntry = { id: string; user_id: string; benchmark_name: string; time_result: string | null; reps_result: number | null; weight_result: number | null; scaling_level: string | null; track?: number | null; result_date?: string };
+        type BmEntry = { id: string; user_id: string; benchmark_name: string; time_result: string | null; reps_result: number | null; rounds_result?: number | null; weight_result: number | null; scaling_level: string | null; scaling_level_2?: string | null; scaling_level_3?: string | null; track?: number | null; result_date?: string };
         const coachUserIds = new Set(
           (coachEntries as (RawSectionResult & { member_id?: string })[])
             .filter(ce => ce.user_id)
@@ -692,8 +692,11 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
             benchmark_name: selectedItem.benchmarkName!,
             time_result: ce.time_result ?? null,
             reps_result: ce.reps_result ?? null,
+            rounds_result: ce.rounds_result ?? null,
             weight_result: ce.weight_result ?? null,
             scaling_level: ce.scaling_level ?? null,
+            scaling_level_2: ce.scaling_level_2 ?? null,
+            scaling_level_3: ce.scaling_level_3 ?? null,
             track: ce.track ?? null,
             result_date: ce.workout_date ?? undefined,
           });
@@ -1040,6 +1043,13 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
                                   {entry.scalingLevel2}
                                 </span>
                               )}
+                              {entry.scalingLevel3 && (
+                                <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
+                                  entry.scalingLevel3 === 'Rx' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
+                                }`}>
+                                  {entry.scalingLevel3}
+                                </span>
+                              )}
                               {entry.track && (
                                 <span className={`text-[10px] font-bold px-1 py-0.5 rounded ${
                                   entry.track === 1 ? 'bg-[#178da6]/10 text-[#178da6]'
@@ -1138,7 +1148,7 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
       // Fetch athlete self-entries from benchmark_results
       const { data: bmResults } = await supabase
         .from('benchmark_results')
-        .select('id, user_id, time_result, reps_result, weight_result, scaling_level, result_date')
+        .select('id, user_id, time_result, reps_result, weight_result, scaling_level, scaling_level_2, scaling_level_3, result_date')
         .eq('benchmark_name', selectedBenchmark.name);
 
       // Fetch coach-entered scores from wod_section_results
@@ -1174,7 +1184,7 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
       }
 
       // Step 3: Merge — coach entries take priority over athlete self-entries
-      type BmEntry = { id: string; user_id: string; time_result: string | null; reps_result: number | null; weight_result: number | null; scaling_level: string | null; track?: number | null; result_date?: string };
+      type BmEntry = { id: string; user_id: string; time_result: string | null; reps_result: number | null; rounds_result?: number | null; weight_result: number | null; scaling_level: string | null; scaling_level_2?: string | null; scaling_level_3?: string | null; track?: number | null; result_date?: string };
 
       const whiteboardNameMap: Record<string, string> = {};
       const memberIdNameMap: Record<string, string> = {};
@@ -1219,8 +1229,11 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
           user_id: syntheticUserId,
           time_result: ce.time_result ?? null,
           reps_result: ce.reps_result ?? null,
+          rounds_result: ce.rounds_result ?? null,
           weight_result: ce.weight_result ?? null,
           scaling_level: ce.scaling_level ?? null,
+          scaling_level_2: ce.scaling_level_2 ?? null,
+          scaling_level_3: ce.scaling_level_3 ?? null,
           track: ce.track ?? null,
           result_date: ce.workout_date ?? undefined,
         });
@@ -1394,13 +1407,29 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
                       </span>
                     </td>
                     <td className='px-1 py-2.5 text-center'>
-                      {entry.scalingLevel && (
-                        <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
-                          entry.scalingLevel === 'Rx' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
-                        }`}>
-                          {entry.scalingLevel}
-                        </span>
-                      )}
+                      <div className='flex items-center justify-center gap-0.5 flex-wrap'>
+                        {entry.scalingLevel && (
+                          <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
+                            entry.scalingLevel === 'Rx' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
+                          }`}>
+                            {entry.scalingLevel}
+                          </span>
+                        )}
+                        {entry.scalingLevel2 && (
+                          <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
+                            entry.scalingLevel2 === 'Rx' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
+                          }`}>
+                            {entry.scalingLevel2}
+                          </span>
+                        )}
+                        {entry.scalingLevel3 && (
+                          <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
+                            entry.scalingLevel3 === 'Rx' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
+                          }`}>
+                            {entry.scalingLevel3}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className='px-1 py-2.5 text-right'>
                       {entry.resultDate && (
