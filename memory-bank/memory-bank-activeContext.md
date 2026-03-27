@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 127.0
-**Updated:** 2026-03-26 (Session 257 - Lint/type cleanup 121→0 warnings, 34→0 errors, loading spinners)
+**Version:** 128.0
+**Updated:** 2026-03-27 (Session 258 - Wired Timer tab into athlete page)
 
 ---
 
@@ -88,12 +88,14 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-27 Session 258 - Opus 4.6) — TIMER TAB WIRED INTO ATHLETE PAGE:**
+- **✅ Connected existing WorkoutTimer component** — Was built (Sessions 135-136) but never added to athlete tab navigation
+- **✅ Added Timer tab** — Between "My WODs" and "Logbook" with Timer icon, requires full access
+
 **Completed (2026-03-26 Session 257 - Opus 4.6) — LINT/TYPE CLEANUP + LOADING SPINNERS:**
 - **✅ Lint warnings 121→0** — Removed unused imports, prefixed unused vars, removed markdown node params
 - **✅ Lint errors 34→0** — Added proper TypeScript types replacing `any` in 6 files
 - **✅ 3 loading.tsx files** — /coach, /athlete, /member/book routes
-- **✅ ESLint config** — varsIgnorePattern/argsIgnorePattern for _ prefix, require-imports off for .js
-- **✅ Permission config cleanup** — 59→44 rules in settings.local.json
 
 **Completed (2026-03-26 Session 256 - Opus 4.6) — PRE-LAUNCH AUDIT + CRITICAL FIXES:**
 - **✅ CRITICAL: removed `detail: String(error)` leak** + 10 exhaustive-deps fixes + build clean
@@ -103,9 +105,6 @@ Social Tables
 
 **Completed (2026-03-26 Session 254 - Opus 4.6) — LEADERBOARD STYLING + BENCHMARK RANKING FIX:**
 - **✅ Leaderboard dark theme + benchmark description preview + time-cap ranking fix**
-
-**Completed (2026-03-26 Session 253 - Opus 4.6) — PUBLISH MODAL UX + LEADERBOARD SECTION PREVIEW:**
-- **✅ Publish modal non-blocking + draggable + focus management + section content preview**
 
 **Older Sessions (57-249):**
 See `project-history/` folder for detailed implementation history

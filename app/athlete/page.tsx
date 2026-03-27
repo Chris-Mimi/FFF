@@ -10,6 +10,7 @@ import AthletePagePhotosTab from '@/components/athlete/AthletePagePhotosTab';
 import AthletePageProfileTab from '@/components/athlete/AthletePageProfileTab';
 import AthletePageRecordsTab from '@/components/athlete/AthletePageRecordsTab';
 import AthletePageSecurityTab from '@/components/athlete/AthletePageSecurityTab';
+import AthletePageTimerTab from '@/components/athlete/AthletePageTimerTab';
 import AthletePageCommunityTab from '@/components/athlete/AthletePageCommunityTab';
 import UpgradePrompt from '@/components/athlete/UpgradePrompt';
 import { NotificationPrompt } from '@/components/ui/NotificationPrompt';
@@ -28,6 +29,7 @@ import {
   LogOut,
   Shield,
   Target,
+  Timer,
   Trophy,
   User,
   Users,
@@ -36,7 +38,7 @@ import NextImage from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState, Suspense } from 'react';
 
-type TabName = 'profile' | 'workouts' | 'community' | 'logbook' | 'benchmarks' | 'forge-benchmarks' | 'lifts' | 'records' | 'photos' | 'payment' | 'security';
+type TabName = 'profile' | 'workouts' | 'timer' | 'community' | 'logbook' | 'benchmarks' | 'forge-benchmarks' | 'lifts' | 'records' | 'photos' | 'payment' | 'security';
 
 function AthletePageContent() {
   const router = useRouter();
@@ -199,6 +201,7 @@ function AthletePageContent() {
   const tabs = [
     { id: 'profile' as TabName, label: 'Profile', icon: User, requiresFullAccess: false },
     { id: 'workouts' as TabName, label: 'My WODs', icon: Calendar, requiresFullAccess: true },
+    { id: 'timer' as TabName, label: 'Timer', icon: Timer, requiresFullAccess: true },
     { id: 'logbook' as TabName, label: 'Logbook', icon: BookOpen, requiresFullAccess: true },
     { id: 'community' as TabName, label: 'Leaderboard', icon: Users, requiresFullAccess: true },
     { id: 'benchmarks' as TabName, label: 'Benchmarks', icon: Trophy, requiresFullAccess: true },
@@ -234,6 +237,8 @@ function AthletePageContent() {
         />;
       case 'community':
         return <AthletePageCommunityTab userId={activeProfileId} initialDate={selectedDate} onDateChange={setSelectedDate} />;
+      case 'timer':
+        return <AthletePageTimerTab />;
       case 'logbook':
         return (
           <AthletePageLogbookTab
