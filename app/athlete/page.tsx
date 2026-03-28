@@ -1,9 +1,11 @@
 'use client';
 
 import AthletePageWorkoutsTab from '@/components/athlete/AthletePageWorkoutsTab';
-import AthletePageBenchmarksTab from '@/components/athlete/AthletePageBenchmarksTab';
-import AthletePageForgeBenchmarksTab from '@/components/athlete/AthletePageForgeBenchmarksTab';
-import AthletePageLiftsTab from '@/components/athlete/AthletePageLiftsTab';
+import dynamic from 'next/dynamic';
+
+const AthletePageBenchmarksTab = dynamic(() => import('@/components/athlete/AthletePageBenchmarksTab'), { ssr: false });
+const AthletePageForgeBenchmarksTab = dynamic(() => import('@/components/athlete/AthletePageForgeBenchmarksTab'), { ssr: false });
+const AthletePageLiftsTab = dynamic(() => import('@/components/athlete/AthletePageLiftsTab'), { ssr: false });
 import AthletePageLogbookTab from '@/components/athlete/AthletePageLogbookTab';
 import AthletePagePaymentTab from '@/components/athlete/AthletePagePaymentTab';
 import AthletePagePhotosTab from '@/components/athlete/AthletePagePhotosTab';

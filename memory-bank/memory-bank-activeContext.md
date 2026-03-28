@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 128.0
-**Updated:** 2026-03-27 (Session 258 - Wired Timer tab into athlete page)
+**Version:** 129.0
+**Updated:** 2026-03-28 (Session 259 - LOW audit quick wins: rate limiting + Recharts lazy loading)
 
 ---
 
@@ -88,25 +88,25 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-28 Session 259 - Opus 4.6) — LOW AUDIT QUICK WINS:**
+- **✅ Rate limiting on registration** — New `app/api/auth/signup/route.ts` with in-memory rate limit (5 attempts/15 min/IP). Signup page now calls server-side API instead of Supabase Auth directly.
+- **✅ Recharts lazy loading** — Benchmarks, Forge Benchmarks, Lifts tabs now lazy-loaded via `next/dynamic` (defers ~200KB Recharts bundle)
+- **✅ Stripe webhook log sanitization** — Reviewed, already clean (no sensitive data logged)
+
 **Completed (2026-03-27 Session 258 - Opus 4.6) — TIMER TAB WIRED INTO ATHLETE PAGE:**
 - **✅ Connected existing WorkoutTimer component** — Was built (Sessions 135-136) but never added to athlete tab navigation
 - **✅ Added Timer tab** — Between "My WODs" and "Logbook" with Timer icon, requires full access
 
 **Completed (2026-03-26 Session 257 - Opus 4.6) — LINT/TYPE CLEANUP + LOADING SPINNERS:**
-- **✅ Lint warnings 121→0** — Removed unused imports, prefixed unused vars, removed markdown node params
-- **✅ Lint errors 34→0** — Added proper TypeScript types replacing `any` in 6 files
-- **✅ 3 loading.tsx files** — /coach, /athlete, /member/book routes
+- **✅ Lint warnings 121→0, errors 34→0** + 3 loading.tsx files
 
 **Completed (2026-03-26 Session 256 - Opus 4.6) — PRE-LAUNCH AUDIT + CRITICAL FIXES:**
-- **✅ CRITICAL: removed `detail: String(error)` leak** + 10 exhaustive-deps fixes + build clean
+- **✅ CRITICAL: removed `detail: String(error)` leak** + 10 exhaustive-deps fixes
 
 **Completed (2026-03-26 Session 255 - Opus 4.6) — COACH LIBRARY CLEANUP:**
 - **✅ Equipment cleanup (43 values standardized) + Body parts cleanup (166→23 groups)**
 
-**Completed (2026-03-26 Session 254 - Opus 4.6) — LEADERBOARD STYLING + BENCHMARK RANKING FIX:**
-- **✅ Leaderboard dark theme + benchmark description preview + time-cap ranking fix**
-
-**Older Sessions (57-249):**
+**Older Sessions (57-254):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -116,7 +116,8 @@ See `project-history/` folder for detailed implementation history
 **Pre-Deployment Audit — Sessions 96-101 + 154-155 + 256:**
 - ✅ All CRITICAL, HIGH, and MEDIUM lint/type items completed (Session 257)
 - **MEDIUM remaining:** 5 TODO comments (Phase 3 notification placeholders)
-- **LOW remaining:** 7 files >500 lines, rate limiting on registration, Stripe webhook log sanitization, Recharts lazy loading
+- ✅ Rate limiting, Stripe webhook sanitization, Recharts lazy loading — DONE (Session 259)
+- **LOW remaining:** 28 files >500 lines (top 3: SearchPanel 1652, LeaderboardView 1529, MovementLibraryPopup 1383)
 
 **Feature Gaps (from competitor analysis — updated):**
 - ✅ #1 Social reactions (fist bumps) — DONE (Session 104)
@@ -207,8 +208,7 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION (PRIORITY)
-1. **Check exercise library UI** — Verify equipment/body parts filters show clean consolidated values in the app (Session 255 cleanup)
-2. **Remaining LOW items** — 7 files >500 lines, rate limiting, Stripe webhook sanitization, Recharts lazy loading
+1. **File refactoring** — Extract sub-components/utilities from largest files: SearchPanel (1652 lines), LeaderboardView (1529 lines), MovementLibraryPopup (1383 lines). No behavior changes.
 
 ### BACKLOG
 1. **April 13 reminder:** Verify Stripe trial payment processed for test athlete.

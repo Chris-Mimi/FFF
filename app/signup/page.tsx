@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { signUpWithEmail } from '@/lib/auth';
+import { signInWithEmail } from '@/lib/auth';
 import Link from 'next/link';
 import { AlertCircle, Loader2, CheckCircle } from 'lucide-react';
 
@@ -37,14 +37,21 @@ export default function SignupPage() {
     }
 
     try {
-      // Sign up with Supabase
-      const { user } = await signUpWithEmail(email, password, fullName, role);
+      // Create account via rate-limited API route
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, fullName, role }),
+      });
 
-      if (!user) {
-        throw new Error('Signup failed');
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to create account');
       }
 
-      // Coach accounts don't need member records (coach role is set in user_roles table)
+      // Sign in with the newly created account
+      await signInWithEmail(email, password);
 
       setSuccess(true);
 
