@@ -35,8 +35,8 @@ export function NotificationPrompt({ hidePreferences = false }: { hidePreference
   const [dismissed, setDismissed] = useState(false);
   const [showPrefs, setShowPrefs] = useState(false);
 
-  // Don't render if not supported
-  if (!isSupported) return null;
+  // Don't render if not supported or still checking subscription status
+  if (!isSupported || loading) return null;
 
   // Permission blocked — show helper to unblock
   if (permission === 'denied') {
