@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 129.0
-**Updated:** 2026-03-28 (Session 259 - LOW audit quick wins: rate limiting + Recharts lazy loading)
+**Version:** 130.0
+**Updated:** 2026-03-28 (Session 261 - Mobile UX fixes: splash logo, calendar scroll, notification banner)
 
 ---
 
@@ -88,24 +88,22 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-28 Session 261 - Opus 4.6) — MOBILE UX FIXES:**
+- **✅ High-res PWA splash logo** — Created 512px icon from high-res source, added to manifest, splash page now shows actual logo image instead of text
+- **✅ Calendar scroll-to-day** — "Today" button now scrolls to the actual day cell on mobile. Closing workout modal preserves scroll position.
+- **✅ Notification banner false alarm fix** — Banner no longer flashes on app open; waits for subscription check to complete + retries after 1.5s if SW not ready yet
+
 **Completed (2026-03-28 Session 260 - Opus 4.6) — DISCUSSION ONLY (NO CODE CHANGES):**
 - **Decided: Skip large file refactoring** — File size has no runtime/performance impact. Chris doesn't edit code. Only revisit if a file exceeds ~3,000 lines or code needs reuse elsewhere.
-- **Confirmed leaderboard grouping behavior** — Athletes doing same workout twice within ±60 days: leaderboard shows best score only, both saved in DB.
 
 **Completed (2026-03-28 Session 259 - Opus 4.6) — LOW AUDIT QUICK WINS:**
-- **✅ Rate limiting on registration** — New `app/api/auth/signup/route.ts` with in-memory rate limit (5 attempts/15 min/IP). Signup page now calls server-side API instead of Supabase Auth directly.
-- **✅ Recharts lazy loading** — Benchmarks, Forge Benchmarks, Lifts tabs now lazy-loaded via `next/dynamic` (defers ~200KB Recharts bundle)
-- **✅ Stripe webhook log sanitization** — Reviewed, already clean (no sensitive data logged)
+- **✅ Rate limiting on registration**, Recharts lazy loading, Stripe webhook sanitization
 
 **Completed (2026-03-27 Session 258 - Opus 4.6) — TIMER TAB WIRED INTO ATHLETE PAGE:**
-- **✅ Connected existing WorkoutTimer component** — Was built (Sessions 135-136) but never added to athlete tab navigation
-- **✅ Added Timer tab** — Between "My WODs" and "Logbook" with Timer icon, requires full access
+- **✅ Connected existing WorkoutTimer component** + Timer tab added
 
 **Completed (2026-03-26 Session 257 - Opus 4.6) — LINT/TYPE CLEANUP + LOADING SPINNERS:**
 - **✅ Lint warnings 121→0, errors 34→0** + 3 loading.tsx files
-
-**Completed (2026-03-26 Session 256 - Opus 4.6) — PRE-LAUNCH AUDIT + CRITICAL FIXES:**
-- **✅ CRITICAL: removed `detail: String(error)` leak** + 10 exhaustive-deps fixes
 
 **Older Sessions (57-255):**
 See `project-history/` folder for detailed implementation history
