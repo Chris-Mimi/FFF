@@ -64,7 +64,14 @@ export function usePushNotifications() {
 
       try {
         const registration = await navigator.serviceWorker.ready;
-        const subscription = await registration.pushManager.getSubscription();
+        let subscription = await registration.pushManager.getSubscription();
+
+        // Retry after a short delay if SW just activated and subscription isn't available yet
+        if (!subscription && Notification.permission === 'granted') {
+          await new Promise((r) => setTimeout(r, 1500));
+          subscription = await registration.pushManager.getSubscription();
+        }
+
         setIsSubscribed(!!subscription);
 
         // Auto-refresh: re-POST current subscription to keep DB keys fresh
