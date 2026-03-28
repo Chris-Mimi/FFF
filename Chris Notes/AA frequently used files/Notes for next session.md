@@ -15,7 +15,7 @@ All equipment & Body Parts lists need optimising
 Integration with website
 Investigate the "Whiteboard Intro" sections appearing in earlier workouts
 2-tier payment family
-Achievements Categories , Bronze, Silver, Gold, Platinum
+Calendar view zoom to actual day on mobile
 
 Athlete login:
 

@@ -88,6 +88,10 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-28 Session 260 - Opus 4.6) — DISCUSSION ONLY (NO CODE CHANGES):**
+- **Decided: Skip large file refactoring** — File size has no runtime/performance impact. Chris doesn't edit code. Only revisit if a file exceeds ~3,000 lines or code needs reuse elsewhere.
+- **Confirmed leaderboard grouping behavior** — Athletes doing same workout twice within ±60 days: leaderboard shows best score only, both saved in DB.
+
 **Completed (2026-03-28 Session 259 - Opus 4.6) — LOW AUDIT QUICK WINS:**
 - **✅ Rate limiting on registration** — New `app/api/auth/signup/route.ts` with in-memory rate limit (5 attempts/15 min/IP). Signup page now calls server-side API instead of Supabase Auth directly.
 - **✅ Recharts lazy loading** — Benchmarks, Forge Benchmarks, Lifts tabs now lazy-loaded via `next/dynamic` (defers ~200KB Recharts bundle)
@@ -103,10 +107,7 @@ Social Tables
 **Completed (2026-03-26 Session 256 - Opus 4.6) — PRE-LAUNCH AUDIT + CRITICAL FIXES:**
 - **✅ CRITICAL: removed `detail: String(error)` leak** + 10 exhaustive-deps fixes
 
-**Completed (2026-03-26 Session 255 - Opus 4.6) — COACH LIBRARY CLEANUP:**
-- **✅ Equipment cleanup (43 values standardized) + Body parts cleanup (166→23 groups)**
-
-**Older Sessions (57-254):**
+**Older Sessions (57-255):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -117,7 +118,7 @@ See `project-history/` folder for detailed implementation history
 - ✅ All CRITICAL, HIGH, and MEDIUM lint/type items completed (Session 257)
 - **MEDIUM remaining:** 5 TODO comments (Phase 3 notification placeholders)
 - ✅ Rate limiting, Stripe webhook sanitization, Recharts lazy loading — DONE (Session 259)
-- **LOW remaining:** 28 files >500 lines (top 3: SearchPanel 1652, LeaderboardView 1529, MovementLibraryPopup 1383)
+- **LOW remaining (deferred):** 28 files >500 lines — discussed Session 260, decided not worth refactoring (no runtime impact, Chris doesn't edit code). Revisit only if any file exceeds ~3,000 lines.
 
 **Feature Gaps (from competitor analysis — updated):**
 - ✅ #1 Social reactions (fist bumps) — DONE (Session 104)
@@ -206,9 +207,6 @@ npm run restore 2025-12-06  # Restore specific date
 ---
 
 ## 📋 Next Immediate Steps
-
-### NEXT SESSION (PRIORITY)
-1. **File refactoring** — Extract sub-components/utilities from largest files: SearchPanel (1652 lines), LeaderboardView (1529 lines), MovementLibraryPopup (1383 lines). No behavior changes.
 
 ### BACKLOG
 1. **April 13 reminder:** Verify Stripe trial payment processed for test athlete.
