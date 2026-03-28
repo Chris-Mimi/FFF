@@ -465,6 +465,7 @@ export default function CalendarGrid({
       return (
         <div
           key={dateKey}
+          data-date={dateKey}
           className={`bg-white rounded-lg shadow ${padding} ${minHeight} relative cursor-pointer ${
             isToday ? 'ring-2 ring-[#178da6]' : ''
           } ${isSelected ? 'ring-4 ring-blue-400' : ''} ${!isCurrentMonth ? 'opacity-40' : ''}`}
@@ -513,6 +514,7 @@ export default function CalendarGrid({
       return (
         <div
           key={dateKey}
+          data-date={dateKey}
           className={`bg-white rounded-lg shadow ${padding} ${minHeight} cursor-pointer flex flex-col ${
             isToday ? 'ring-2 ring-[#178da6]' : ''
           } ${isSelected ? 'ring-4 ring-blue-400' : ''}`}

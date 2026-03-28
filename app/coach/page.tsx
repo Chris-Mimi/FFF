@@ -12,7 +12,7 @@ import ScoreEntryModal from '@/components/coach/score-entry/ScoreEntryModal';
 // import NotesModal from '@/components/coach/NotesModal'; // ARCHIVED: Dead code - never triggered
 import { getCurrentUser, signOut } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import {
   useCoachData,
@@ -21,7 +21,7 @@ import {
   useQuickEdit,
   useNotesPanel,
 } from '@/hooks/coach';
-import { getWeekDates, getMonthDates } from '@/utils/date-utils';
+import { formatDate, getWeekDates, getMonthDates } from '@/utils/date-utils';
 import { highlightText } from '@/utils/search-utils';
 
 type ViewMode = 'weekly' | 'monthly';
@@ -43,6 +43,18 @@ export default function CoachDashboard() {
     return new Date();
   });
   const [focusedDate, setFocusedDate] = useState<Date | null>(null);
+  const scrollPositionRef = useRef<number>(0);
+
+  // Scroll to a specific date's cell in the calendar
+  const scrollToDate = useCallback((date: Date) => {
+    requestAnimationFrame(() => {
+      const dateKey = formatDate(date);
+      const el = document.querySelector(`[data-date="${dateKey}"]`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    });
+  }, []);
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -219,18 +231,21 @@ export default function CoachDashboard() {
   };
 
   const openCreateModal = (date: Date) => {
+    scrollPositionRef.current = window.scrollY;
     setModalDate(date);
     setEditingWOD(null);
     setIsModalOpen(true);
   };
 
   const openEditModal = (wod: WODFormData) => {
+    scrollPositionRef.current = window.scrollY;
     setEditingWOD(wod);
     setModalDate(new Date(wod.date));
     setIsModalOpen(true);
   };
 
   const openEditModalWithNotes = (wod: WODFormData) => {
+    scrollPositionRef.current = window.scrollY;
     setEditingWOD(wod);
     setModalDate(new Date(wod.date));
     setNotesPanelOpen(true);
@@ -339,6 +354,7 @@ export default function CoachDashboard() {
                   const today = new Date();
                   setSelectedDate(today);
                   setFocusedDate(today);
+                  scrollToDate(today);
                 }}
                 onAddWorkout={() => openCreateModal(focusedDate || new Date())}
                 onCancelCopy={() => {
@@ -398,6 +414,9 @@ export default function CoachDashboard() {
           onClose={() => {
             setIsModalOpen(false);
             setNotesPanelOpen(false);
+            requestAnimationFrame(() => {
+              window.scrollTo(0, scrollPositionRef.current);
+            });
           }}
           date={modalDate}
           editingWOD={editingWOD}

@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Loader2 } from 'lucide-react';
+import Image from 'next/image';
 
 export default function Home() {
   const router = useRouter();
@@ -34,9 +35,8 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-700 to-teal-900 flex items-center justify-center">
       <div className="text-center text-white">
-        <Loader2 size={40} className="animate-spin mx-auto mb-4" />
-        <h1 className="text-2xl font-bold">The Forge</h1>
-        <p className="text-teal-200 mt-1">Functional Fitness</p>
+        <Image src='/icon-512.png' alt='The Forge Functional Fitness' width={180} height={180} priority className="mx-auto mb-4" />
+        <Loader2 size={32} className="animate-spin mx-auto mb-2 text-teal-200" />
       </div>
     </div>
   );
