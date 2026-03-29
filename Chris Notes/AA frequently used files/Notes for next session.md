@@ -7,15 +7,13 @@ http://192.168.178.75:3000
 # FIRST. FIX BUGS MAKE IMPROVEMENTS #
 # Coach Login #
 # Coach library #
-All equipment & Body Parts lists need optimising
 
-* Make a plan for how we export and then re-import the data from my Google Calendar workouts from the past 5 years.
     
 # Workout Library tab (coach) #
 Integration with website
 Investigate the "Whiteboard Intro" sections appearing in earlier workouts
 2-tier payment family
-Calendar view zoom to actual day on mobile
+
 
 Athlete login:
 
@@ -36,10 +34,11 @@ Athlete login:
 
 # Athlete Published Workouts Page #
 SHould only show the days on which athlete has attended a workout. For example, if athletes have not attended a workout on a day, the day should not be displayed.
+
 * 
 
-# Athlete Logbook Page #
-
+# Athlete Leaderboard Page #
+Senol appears above Leah in Nancy!
 # Member Management Page #
 *
 

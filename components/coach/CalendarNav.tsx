@@ -11,7 +11,7 @@ interface CalendarNavProps {
   selectedDate: Date;
   weekDates: Date[];
   focusedDate: Date | null;
-  copiedWOD: WODFormData | null;
+  copiedWOD: { wod: WODFormData; sourceDate: string } | null;
   onViewModeChange: (mode: ViewMode) => void;
   onPreviousPeriod: () => void;
   onNextPeriod: () => void;

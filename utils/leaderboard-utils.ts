@@ -399,6 +399,14 @@ export function rankBenchmarkResults(
     const aTrack = a.track ?? 4;
     const bTrack = b.track ?? 4;
     if (aTrack !== bTrack) return aTrack - bTrack;
+    // Weight tiebreaker: for non-weight-based benchmarks, higher load ranks first
+    if (!isTimeBased && !isRepsBased) {
+      // Weight IS the primary metric, skip tiebreaker
+    } else {
+      const aW = a.weight_result || 0;
+      const bW = b.weight_result || 0;
+      if (aW !== bW && (aW > 0 || bW > 0)) return bW - aW;
+    }
     if (isTimeBased) {
       const aTime = parseTimeToSeconds(a.time_result);
       const bTime = parseTimeToSeconds(b.time_result);

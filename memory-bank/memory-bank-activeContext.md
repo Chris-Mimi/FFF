@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 130.0
-**Updated:** 2026-03-28 (Session 261 - Mobile UX fixes: splash logo, calendar scroll, notification banner)
+**Version:** 131.0
+**Updated:** 2026-03-29 (Session 262 - Coach drag-drop fix + Benchmark leaderboard weight ranking)
 
 ---
 
@@ -88,6 +88,10 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-29 Session 262 - Opus 4.6) — COACH DRAG-DROP FIX + BENCHMARK RANKING:**
+- **✅ Drag-drop self-copy bug** — Fixed: Dragging workout onto same date/workout now blocked, prevents reverting to draft. Added source date tracking to copiedWOD state, consistent date comparison using formatDate().
+- **✅ Benchmark weight ranking** — Fixed: Benchmarks now sort by weight before rounds+reps when scaling/track equal (matches WOD logic). Nancy example: 15kg ranks above 7.5kg even if fewer reps.
+
 **Completed (2026-03-28 Session 261 - Opus 4.6) — MOBILE UX FIXES:**
 - **✅ High-res PWA splash logo** — Created 512px icon from high-res source, added to manifest, splash page now shows actual logo image instead of text
 - **✅ Calendar scroll-to-day** — "Today" button now scrolls to the actual day cell on mobile. Closing workout modal preserves scroll position.
@@ -102,10 +106,7 @@ Social Tables
 **Completed (2026-03-27 Session 258 - Opus 4.6) — TIMER TAB WIRED INTO ATHLETE PAGE:**
 - **✅ Connected existing WorkoutTimer component** + Timer tab added
 
-**Completed (2026-03-26 Session 257 - Opus 4.6) — LINT/TYPE CLEANUP + LOADING SPINNERS:**
-- **✅ Lint warnings 121→0, errors 34→0** + 3 loading.tsx files
-
-**Older Sessions (57-255):**
+**Older Sessions (57-257):**
 See `project-history/` folder for detailed implementation history
 
 ---

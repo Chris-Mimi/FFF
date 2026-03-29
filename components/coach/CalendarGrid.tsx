@@ -62,7 +62,7 @@ interface CalendarGridProps {
   tracks: Array<{ id: string; name: string }>;
   selectedDate: Date;
   focusedDate: Date | null;
-  copiedWOD: WODFormData | null;
+  copiedWOD: { wod: WODFormData; sourceDate: string } | null;
   hoveredWOD: string | null;
   dragHandleHovered: string | null;
   draggedWOD: { wod: WODFormData; sourceDate: string } | null;
@@ -76,7 +76,7 @@ interface CalendarGridProps {
   onDragStart: (e: React.DragEvent<HTMLDivElement>, wod: WODFormData, dateKey: string) => void;
   onWODHover: (id: string | null) => void;
   onDragHandleHover: (id: string | null) => void;
-  onCopyWOD: (wod: WODFormData) => void;
+  onCopyWOD: (wod: WODFormData, sourceDate: string) => void;
   onDeleteWOD: (dateKey: string, wodId: string) => void;
   onDeleteSession: (sessionId: string) => void;
   onOpenEditModal: (wod: WODFormData) => void;
@@ -165,6 +165,12 @@ export default function CalendarGrid({
 
           // Check if dropping a whole workout
           if (draggedWOD && wod.booking_info?.session_id) {
+            // Prevent dropping a workout onto itself (same date + same workout ID)
+            const isSameWorkout = draggedWOD.sourceDate === dateKey && draggedWOD.wod.id === wod.id;
+            if (isSameWorkout) {
+              return; // Ignore drop on same workout
+            }
+
             onCopyWODToDate(draggedWOD.wod, new Date(dateKey), wod.booking_info.session_id);
           }
         }}
@@ -313,7 +319,7 @@ export default function CalendarGrid({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                onCopyWOD(wod);
+                onCopyWOD(wod, dateKey);
               }}
               className={`hover:text-[#14758c] transition text-[#178da6] bg-white rounded shadow-sm ${
                 isMonthlyView ? 'p-0.5' : 'p-1'

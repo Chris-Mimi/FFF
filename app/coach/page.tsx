@@ -358,7 +358,7 @@ export default function CoachDashboard() {
                 }}
                 onAddWorkout={() => openCreateModal(focusedDate || new Date())}
                 onCancelCopy={() => {
-                if (copiedWOD) handleCopyToClipboard(null);
+                if (copiedWOD) handleCopyToClipboard(null, '');
               }}
               />
 

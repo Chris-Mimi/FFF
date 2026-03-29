@@ -2,10 +2,11 @@
 
 import { WODFormData } from '@/components/coach/WorkoutModal';
 import { useState } from 'react';
+import { formatDate } from '@/utils/date-utils';
 
 export const useDragDrop = () => {
   const [draggedWOD, setDraggedWOD] = useState<{ wod: WODFormData; sourceDate: string } | null>(null);
-  const [copiedWOD, setCopiedWOD] = useState<WODFormData | null>(null);
+  const [copiedWOD, setCopiedWOD] = useState<{ wod: WODFormData; sourceDate: string } | null>(null);
 
   const handleDragStart = (e: React.DragEvent, wod: WODFormData, sourceDate: string) => {
     setDraggedWOD({ wod, sourceDate });
@@ -23,17 +24,34 @@ export const useDragDrop = () => {
     e.preventDefault();
     if (!draggedWOD) return;
 
+    // Prevent dropping a workout onto the same date
+    const targetDateKey = formatDate(targetDate);
+    const isSameDate = draggedWOD.sourceDate === targetDateKey;
+    if (isSameDate) {
+      setDraggedWOD(null);
+      return; // Ignore drop on same date
+    }
+
     onCopy(draggedWOD.wod, targetDate);
     setDraggedWOD(null);
   };
 
-  const handleCopyToClipboard = (wod: WODFormData | null) => {
-    setCopiedWOD(wod);
+  const handleCopyToClipboard = (wod: WODFormData | null, sourceDate: string) => {
+    setCopiedWOD(wod ? { wod, sourceDate } : null);
   };
 
   const handlePasteFromClipboard = (targetDate: Date, onCopy: (wod: WODFormData, targetDate: Date) => void) => {
     if (!copiedWOD) return;
-    onCopy(copiedWOD, targetDate);
+
+    // Prevent pasting a workout onto the same date
+    const targetDateKey = formatDate(targetDate);
+    const isSameDate = copiedWOD.sourceDate === targetDateKey;
+    if (isSameDate) {
+      setCopiedWOD(null);
+      return; // Ignore paste on same date
+    }
+
+    onCopy(copiedWOD.wod, targetDate);
     setCopiedWOD(null);
   };
 
