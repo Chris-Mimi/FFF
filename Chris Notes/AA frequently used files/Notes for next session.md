@@ -38,7 +38,7 @@ SHould only show the days on which athlete has attended a workout. For example, 
 * 
 
 # Athlete Leaderboard Page #
-Senol appears above Leah in Nancy!
+
 # Member Management Page #
 *
 

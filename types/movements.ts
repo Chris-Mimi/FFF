@@ -78,6 +78,7 @@ export interface BarbellLift {
   name: string;
   category: string;  // e.g., "Squats", "Presses"
   display_order: number;
+  equipment?: string;  // e.g., "Barbell", "Dumbbell"
 }
 
 export interface Benchmark {

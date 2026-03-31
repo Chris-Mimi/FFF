@@ -347,10 +347,16 @@ export const extractMovementsFromWod = (wod: WODFormData, knownExerciseNames?: S
     // Source 1: Structured lift names (cross-reference to exercise library)
     section.lifts?.forEach((lift: ConfiguredLift) => {
       if (!lift.name) return;
+      // Try matching with "Barbell" prefix first (since lifts are from barbell_lifts table)
+      const barbellPrefixed = `Barbell ${lift.name}`;
       if (knownLower && knownList) {
+        const matchPrefixed = findMatchingExercise(barbellPrefixed, knownLower, knownList);
+        if (matchPrefixed) { movements.add(matchPrefixed); return; }
         const match = findMatchingExercise(lift.name, knownLower, knownList);
         if (match) { movements.add(match); return; }
       }
+      // Default: add both with and without "Barbell" prefix for tracking
+      movements.add(normalizeMovement(barbellPrefixed));
       movements.add(normalizeMovement(lift.name));
     });
 

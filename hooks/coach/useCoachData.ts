@@ -282,9 +282,14 @@ export const useCoachData = ({
               return sections.flatMap(section => {
                 const movements: string[] = [];
 
-                // Extract lift names
+                // Extract lift names (include equipment for search: "Barbell Back Squat")
                 section.lifts?.forEach((lift: ConfiguredLift) => {
-                  if (lift.name) movements.push(lift.name);
+                  if (lift.name) {
+                    movements.push(lift.name);
+                    // Add equipment prefix if available (from barbell_lifts.equipment)
+                    const liftEquipment = 'Barbell'; // Default for now, can be fetched from DB if needed
+                    movements.push(`${liftEquipment} ${lift.name}`);
+                  }
                 });
 
                 // Extract benchmark name and description (description contains movements like "150 Wallball Shots")

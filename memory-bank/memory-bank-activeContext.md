@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 131.0
-**Updated:** 2026-03-29 (Session 262 - Coach drag-drop fix + Benchmark leaderboard weight ranking)
+**Version:** 132.0
+**Updated:** 2026-03-31 (Session 263 - Lift search + benchmark searchability + data cleanup)
 
 ---
 
@@ -88,6 +88,12 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-03-31 Session 263 - Opus 4.6) — LIFT SEARCH + BENCHMARK SEARCHABILITY + DATA CLEANUP:**
+- **✅ Lift search by equipment prefix** — Lifts from barbell_lifts now searchable as "Barbell [name]" (e.g., "Barbell Back Squat"). Added equipment column to barbell_lifts table, updated search logic and movement extraction.
+- **✅ Movement tracking fix** — Tracking grid now correctly matches lifts to exercises with "Barbell" prefix (e.g., tracking "Barbell Back Squat" now finds workouts programmed with "Back Squat" lift).
+- **✅ Benchmark description searchability** — Added common abbreviations to forge_benchmarks descriptions: HSPU (Diane, The Seven), K2E (Filthy Fifty, The Seven), SDHP (Fight Gone Bad).
+- **✅ Data cleanup** — Deleted 4 orphaned "StevenZ" whiteboard entries, deleted 2 orphaned WODs with no data.
+
 **Completed (2026-03-29 Session 262 - Opus 4.6) — COACH DRAG-DROP FIX + BENCHMARK RANKING:**
 - **✅ Drag-drop self-copy bug** — Fixed: Dragging workout onto same date/workout now blocked, prevents reverting to draft. Added source date tracking to copiedWOD state, consistent date comparison using formatDate().
 - **✅ Benchmark weight ranking** — Fixed: Benchmarks now sort by weight before rounds+reps when scaling/track equal (matches WOD logic). Nancy example: 15kg ranks above 7.5kg even if fewer reps.
@@ -102,9 +108,6 @@ Social Tables
 
 **Completed (2026-03-28 Session 259 - Opus 4.6) — LOW AUDIT QUICK WINS:**
 - **✅ Rate limiting on registration**, Recharts lazy loading, Stripe webhook sanitization
-
-**Completed (2026-03-27 Session 258 - Opus 4.6) — TIMER TAB WIRED INTO ATHLETE PAGE:**
-- **✅ Connected existing WorkoutTimer component** + Timer tab added
 
 **Older Sessions (57-257):**
 See `project-history/` folder for detailed implementation history
@@ -166,6 +169,7 @@ See `project-history/` folder for detailed implementation history
 - ✅ `20260323000001_add_wod_id_to_lift_records.sql` — Adds `wod_id` FK with CASCADE to lift_records for auto-cleanup on WOD delete (Session 234, applied)
 - ✅ `20260323000002_add_scaling3_load3.sql` — Adds `scaling_level_3 text` and `weight_result_3 numeric` to wod_section_results (Session 235, applied)
 - ✅ `20260326000000_add_benchmark_multi_scaling.sql` — Adds `scaling_level_2 text` and `scaling_level_3 text` to benchmark_results (Session 250, applied)
+- ✅ `20260331000000_add_lift_equipment.sql` — Adds `equipment TEXT DEFAULT 'Barbell'` to barbell_lifts (Session 263, applied)
 
 ---
 
