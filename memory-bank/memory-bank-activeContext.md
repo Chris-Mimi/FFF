@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 132.0
-**Updated:** 2026-03-31 (Session 263 - Lift search + benchmark searchability + data cleanup)
+**Version:** 133.0
+**Updated:** 2026-04-01 (Session 264 - Booking page UX fix)
 
 ---
 
@@ -88,6 +88,9 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-04-01 Session 264 - Opus 4.6) — BOOKING PAGE UX FIX:**
+- **✅ Back button visibility** — Booking page "Back" button renamed to "Athlete App" and made visible on mobile (was hidden, only showing chevron icon). Beta testers couldn't find their way back to the athlete app.
+
 **Completed (2026-03-31 Session 263 - Opus 4.6) — LIFT SEARCH + BENCHMARK SEARCHABILITY + DATA CLEANUP:**
 - **✅ Lift search by equipment prefix** — Lifts from barbell_lifts now searchable as "Barbell [name]" (e.g., "Barbell Back Squat"). Added equipment column to barbell_lifts table, updated search logic and movement extraction.
 - **✅ Movement tracking fix** — Tracking grid now correctly matches lifts to exercises with "Barbell" prefix (e.g., tracking "Barbell Back Squat" now finds workouts programmed with "Back Squat" lift).
@@ -106,10 +109,7 @@ Social Tables
 **Completed (2026-03-28 Session 260 - Opus 4.6) — DISCUSSION ONLY (NO CODE CHANGES):**
 - **Decided: Skip large file refactoring** — File size has no runtime/performance impact. Chris doesn't edit code. Only revisit if a file exceeds ~3,000 lines or code needs reuse elsewhere.
 
-**Completed (2026-03-28 Session 259 - Opus 4.6) — LOW AUDIT QUICK WINS:**
-- **✅ Rate limiting on registration**, Recharts lazy loading, Stripe webhook sanitization
-
-**Older Sessions (57-257):**
+**Older Sessions (57-259):**
 See `project-history/` folder for detailed implementation history
 
 ---

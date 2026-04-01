@@ -581,7 +581,7 @@ export default function MemberBookingPage() {
               <Link href="/athlete">
                 <button className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg transition-colors duration-200 min-h-[44px] text-xs sm:text-sm bg-teal-500 hover:bg-teal-600 text-white">
                   <ChevronLeft size={16} />
-                  <span className="hidden sm:inline">Back</span>
+                  <span>Athlete App</span>
                 </button>
               </Link>
               <button
