@@ -48,9 +48,6 @@ function ConfigureLiftModal({
   // RM Test state
   const [rmTest, setRmTest] = useState<'1RM' | '3RM' | '5RM' | '10RM' | null>(null);
 
-  const [athleteNotes, setAthleteNotes] = useState('');
-  const [athleteNotesExpanded, setAthleteNotesExpanded] = useState(false);
-
   // Draggable state
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -66,21 +63,6 @@ function ConfigureLiftModal({
       }
     }
   }, [isOpen]);
-
-  // Load athlete notes from localStorage when lift changes
-  useEffect(() => {
-    if (lift && !editingLift) {
-      const storageKey = `athlete_notes_lift_${lift.name}`;
-      const savedNotes = localStorage.getItem(storageKey);
-      if (savedNotes) {
-        setAthleteNotes(savedNotes);
-        setAthleteNotesExpanded(true);
-      } else {
-        setAthleteNotes('');
-        setAthleteNotesExpanded(false);
-      }
-    }
-  }, [lift, editingLift]);
 
   // Pre-populate form when editing existing lift
   useEffect(() => {
@@ -99,9 +81,6 @@ function ConfigureLiftModal({
       }
 
       setRmTest(existingLift.rm_test || null);
-      setAthleteNotes(existingLift.athlete_notes || '');
-      // Expand athlete notes if they exist
-      setAthleteNotesExpanded(!!existingLift.athlete_notes);
     } else {
       // Reset to defaults when not editing
       setRmTest(null);
@@ -118,8 +97,6 @@ function ConfigureLiftModal({
         { set_number: 6, reps: 5, percentage_1rm: 85 },
         { set_number: 7, reps: 5, percentage_1rm: 90 },
       ]);
-      setAthleteNotes('Record your heaviest set');
-      setAthleteNotesExpanded(true);
     }
   }, [editingLift]);
 
@@ -215,14 +192,7 @@ function ConfigureLiftModal({
           ? { sets, reps, percentage_1rm: percentage }
           : { variable_sets: variableSets }),
       visibility: 'everyone',
-      athlete_notes: athleteNotes || undefined,
     };
-
-    // Save athlete notes to localStorage for future use
-    if (athleteNotes) {
-      const storageKey = `athlete_notes_lift_${lift.name}`;
-      localStorage.setItem(storageKey, athleteNotes);
-    }
 
     onAddToSection(selectedSectionId, configuredLift);
     // Don't close modal - let user add multiple items
@@ -574,26 +544,6 @@ function ConfigureLiftModal({
             </div>
           )}
 
-          {/* Athlete Notes */}
-          <div>
-            <button
-              onClick={() => setAthleteNotesExpanded(!athleteNotesExpanded)}
-              className='flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition'
-            >
-              <span className={`transform transition ${athleteNotesExpanded ? 'rotate-90' : ''}`}>▸</span>
-              Athlete notes...
-            </button>
-            {athleteNotesExpanded && (
-              <textarea
-                value={athleteNotes}
-                onChange={e => setAthleteNotes(e.target.value)}
-                placeholder='Notes visible to athletes'
-                maxLength={500}
-                className='mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
-                rows={3}
-              />
-            )}
-          </div>
         </div>
       </div>
     </div>

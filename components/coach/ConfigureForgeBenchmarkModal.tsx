@@ -25,9 +25,6 @@ function ConfigureForgeBenchmarkModal({
   const [selectedSectionId, setSelectedSectionId] = useState<string>(
     activeSection?.id || (availableSections.length > 0 ? availableSections[0].id : '')
   );
-  const [athleteNotes, setAthleteNotes] = useState('');
-  const [athleteNotesExpanded, setAthleteNotesExpanded] = useState(false);
-
   // Draggable state
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -43,21 +40,6 @@ function ConfigureForgeBenchmarkModal({
       }
     }
   }, [isOpen]);
-
-  // Load athlete notes from localStorage when forge benchmark changes
-  useEffect(() => {
-    if (forgeBenchmark) {
-      const storageKey = `athlete_notes_forge_${forgeBenchmark.name}`;
-      const savedNotes = localStorage.getItem(storageKey);
-      if (savedNotes) {
-        setAthleteNotes(savedNotes);
-        setAthleteNotesExpanded(true);
-      } else {
-        setAthleteNotes('');
-        setAthleteNotesExpanded(false);
-      }
-    }
-  }, [forgeBenchmark]);
 
   // Drag handlers
   const handleDragStart = (e: React.MouseEvent) => {
@@ -114,14 +96,7 @@ function ConfigureForgeBenchmarkModal({
       description: forgeBenchmark.description || undefined,
       has_scaling: forgeBenchmark.has_scaling,
       visibility: 'everyone',
-      athlete_notes: athleteNotes || undefined,
     };
-
-    // Save athlete notes to localStorage for future use
-    if (athleteNotes) {
-      const storageKey = `athlete_notes_forge_${forgeBenchmark.name}`;
-      localStorage.setItem(storageKey, athleteNotes);
-    }
 
     onAddToSection(selectedSectionId, configuredForgeBenchmark);
     // Don't close modal - let user add multiple items
@@ -203,26 +178,6 @@ function ConfigureForgeBenchmarkModal({
             </div>
           )}
 
-          {/* Athlete Notes */}
-          <div>
-            <button
-              onClick={() => setAthleteNotesExpanded(!athleteNotesExpanded)}
-              className='flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition'
-            >
-              <span className={`transform transition ${athleteNotesExpanded ? 'rotate-90' : ''}`}>▸</span>
-              Athlete notes...
-            </button>
-            {athleteNotesExpanded && (
-              <textarea
-                value={athleteNotes}
-                onChange={e => setAthleteNotes(e.target.value)}
-                placeholder='Notes visible to athletes'
-                maxLength={1000}
-                className='mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
-                rows={3}
-              />
-            )}
-          </div>
         </div>
       </div>
     </div>
