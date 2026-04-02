@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 133.0
-**Updated:** 2026-04-01 (Session 264 - Booking page UX fix)
+**Version:** 134.0
+**Updated:** 2026-04-02 (Session 265 - Configure modal mobile fix)
 
 ---
 
@@ -88,6 +88,10 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-04-02 Session 265 - Opus 4.6) — CONFIGURE MODAL MOBILE FIX:**
+- **✅ Configure Benchmark/Forge Benchmark/Lift modals now visible on mobile** — All three modals had hardcoded pixel positions (x:820/790) pushing them off-screen on mobile. On mobile (< 768px), modals now render as fullscreen overlays. Desktop behavior unchanged.
+- **⚠️ Not yet tested on Android** — Dev server had issues during session, needs verification.
+
 **Completed (2026-04-01 Session 264 - Opus 4.6) — BOOKING PAGE UX FIX:**
 - **✅ Back button visibility** — Booking page "Back" button renamed to "Athlete App" and made visible on mobile (was hidden, only showing chevron icon). Beta testers couldn't find their way back to the athlete app.
 
@@ -106,10 +110,7 @@ Social Tables
 - **✅ Calendar scroll-to-day** — "Today" button now scrolls to the actual day cell on mobile. Closing workout modal preserves scroll position.
 - **✅ Notification banner false alarm fix** — Banner no longer flashes on app open; waits for subscription check to complete + retries after 1.5s if SW not ready yet
 
-**Completed (2026-03-28 Session 260 - Opus 4.6) — DISCUSSION ONLY (NO CODE CHANGES):**
-- **Decided: Skip large file refactoring** — File size has no runtime/performance impact. Chris doesn't edit code. Only revisit if a file exceeds ~3,000 lines or code needs reuse elsewhere.
-
-**Older Sessions (57-259):**
+**Older Sessions (57-260):**
 See `project-history/` folder for detailed implementation history
 
 ---

@@ -56,14 +56,14 @@ function ConfigureLiftModal({
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
-  // Position modal to the right of WorkoutModal on open
+  // Position modal to the right of WorkoutModal on open (centered on mobile)
   useEffect(() => {
     if (isOpen) {
-      // WorkoutModal is 800px wide (panel mode) or max-w-5xl (modal mode ~896px)
-      // Position configure modal to the right with some padding
-      const rightX = 790; // 800px + 20px padding
-      const topY = 70; // Top padding
-      setPosition({ x: rightX, y: topY });
+      if (window.innerWidth < 768) {
+        setPosition({ x: 0, y: 0 });
+      } else {
+        setPosition({ x: 790, y: 70 });
+      }
     }
   }, [isOpen]);
 
@@ -245,11 +245,16 @@ function ConfigureLiftModal({
   return (
     <div className='fixed inset-0 z-[110] pointer-events-none'>
       <div
-        className='bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto pointer-events-auto absolute'
-        style={{
-          left: `${position.x}px`,
-          top: `${position.y}px`,
-        }}
+        className={`bg-white shadow-2xl overflow-y-auto pointer-events-auto absolute ${
+          position.x === 0 && position.y === 0
+            ? 'inset-0 max-h-full'
+            : 'rounded-lg w-full max-w-2xl max-h-[90vh]'
+        }`}
+        style={
+          position.x === 0 && position.y === 0
+            ? undefined
+            : { left: `${position.x}px`, top: `${position.y}px` }
+        }
       >
         {/* Header - Draggable */}
         <div
