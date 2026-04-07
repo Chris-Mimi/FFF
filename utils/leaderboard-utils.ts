@@ -295,10 +295,11 @@ export function rankSectionResults(
   // Sort: Aggregate scaling score (lower = better) > Track > Scoring type
   // Rx=0, Sc1=1, Sc2=2, Sc3=3; sum all set levels for a single comparable score
   const scalingValue: Record<string, number> = { 'Rx': 0, 'Sc1': 1, 'Sc2': 2, 'Sc3': 3 };
+  const MISSING_SCALING = 4; // null/blank scaling ranks below Sc3
   const aggregateScaling = (r: RawSectionResult) =>
-    (r.scaling_level ? (scalingValue[r.scaling_level] ?? 0) : 0) +
-    (r.scaling_level_2 ? (scalingValue[r.scaling_level_2] ?? 0) : 0) +
-    (r.scaling_level_3 ? (scalingValue[r.scaling_level_3] ?? 0) : 0);
+    (r.scaling_level ? (scalingValue[r.scaling_level] ?? MISSING_SCALING) : MISSING_SCALING) +
+    (r.scaling_level_2 ? (scalingValue[r.scaling_level_2] ?? MISSING_SCALING) : MISSING_SCALING) +
+    (r.scaling_level_3 ? (scalingValue[r.scaling_level_3] ?? MISSING_SCALING) : MISSING_SCALING);
   const sorted = [...valid].sort((a, b) => {
     const scaleDiff = aggregateScaling(a) - aggregateScaling(b);
     if (scaleDiff !== 0) return scaleDiff;
@@ -403,10 +404,11 @@ export function rankBenchmarkResults(
   // Sort best results: aggregate scaling score (lower = better) > Track > primary metric
   // Rx=0, Sc1=1, Sc2=2, Sc3=3; sum all set levels for a single comparable score
   const scalingValue: Record<string, number> = { 'Rx': 0, 'Sc1': 1, 'Sc2': 2, 'Sc3': 3 };
+  const MISSING_SCALING = 4; // null/blank scaling ranks below Sc3
   const aggregateScaling = (r: RawBenchmarkResult) =>
-    (r.scaling_level ? (scalingValue[r.scaling_level] ?? 0) : 0) +
-    (r.scaling_level_2 ? (scalingValue[r.scaling_level_2] ?? 0) : 0) +
-    (r.scaling_level_3 ? (scalingValue[r.scaling_level_3] ?? 0) : 0);
+    (r.scaling_level ? (scalingValue[r.scaling_level] ?? MISSING_SCALING) : MISSING_SCALING) +
+    (r.scaling_level_2 ? (scalingValue[r.scaling_level_2] ?? MISSING_SCALING) : MISSING_SCALING) +
+    (r.scaling_level_3 ? (scalingValue[r.scaling_level_3] ?? MISSING_SCALING) : MISSING_SCALING);
   const bests = [...bestByUser.values()];
   bests.sort((a, b) => {
     const scaleDiff = aggregateScaling(a) - aggregateScaling(b);

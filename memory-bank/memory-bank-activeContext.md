@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 135.0
-**Updated:** 2026-04-07 (Session 266 - Benchmark leaderboard ranking fix)
+**Version:** 136.0
+**Updated:** 2026-04-07 (Session 267 - Null scaling ranking fix)
 
 ---
 
@@ -88,12 +88,11 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
-**In Progress (2026-04-07 Session 266 - Opus 4.6) — BENCHMARK LEADERBOARD RANKING FIX:**
-- **⚠️ Partial fix — not yet verified working.** Tabata This (20 Feb) leaderboard showed wrong ranking, "Time Cap" label, and empty-score athletes.
-- **Root cause:** Benchmark type stored as `"Other"` in WOD JSON snapshot (stale — was later changed to "Tabata" in benchmark modal, but WOD JSON not updated).
-- **Fixes applied:** (1) Added "tabata" to reps-based sorting check. (2) Added data-based fallback for unrecognised types ("Other") — infers reps vs time vs weight from actual results. (3) Added validity filter to exclude all-zero entries. (4) `formatBenchmarkResult` now takes benchmarkType param — "Time Cap" prefix only for time-based benchmarks.
-- **Still not working correctly** — needs further investigation next session.
-- **Stale snapshot issue deferred** — WOD JSON stores benchmark type at time of creation; edits to benchmark type don't flow back.
+**Completed (2026-04-07 Session 267 - Opus 4.6) — NULL SCALING RANKING FIX:**
+- **✅ Fixed null/blank scaling ranking** — Athletes with missing scaling levels (e.g., didn't attempt a movement) were treated as Rx (score 0), ranking them above athletes who completed all movements at Sc2. Fix: null scaling now scores 4 (worse than Sc3=3). Applied to both `rankBenchmarkResults` and `rankSectionResults`.
+- **Example:** Sandra (Rx+Rx+blank = score 4) now correctly ranks below MichaelJ (Sc2+Rx+Rx = score 2).
+- **Session 266 fixes still in place** — Tabata type recognition, data-based fallback, validity filter, Time Cap label fix.
+- **Stale snapshot issue still deferred** — WOD JSON stores benchmark type at time of creation.
 
 **Completed (2026-04-02 Session 265 - Opus 4.6) — CONFIGURE MODAL MOBILE FIX:**
 - **✅ Configure Benchmark/Forge Benchmark/Lift modals now visible on mobile** — All three modals had hardcoded pixel positions (x:820/790) pushing them off-screen on mobile. On mobile (< 768px), modals now render as fullscreen overlays. Desktop behavior unchanged.
@@ -108,11 +107,7 @@ Social Tables
 - **✅ Benchmark description searchability** — Added common abbreviations to forge_benchmarks descriptions: HSPU (Diane, The Seven), K2E (Filthy Fifty, The Seven), SDHP (Fight Gone Bad).
 - **✅ Data cleanup** — Deleted 4 orphaned "StevenZ" whiteboard entries, deleted 2 orphaned WODs with no data.
 
-**Completed (2026-03-29 Session 262 - Opus 4.6) — COACH DRAG-DROP FIX + BENCHMARK RANKING:**
-- **✅ Drag-drop self-copy bug** — Fixed: Dragging workout onto same date/workout now blocked, prevents reverting to draft. Added source date tracking to copiedWOD state, consistent date comparison using formatDate().
-- **✅ Benchmark weight ranking** — Fixed: Benchmarks now sort by weight before rounds+reps when scaling/track equal (matches WOD logic). Nancy example: 15kg ranks above 7.5kg even if fewer reps.
-
-**Older Sessions (57-261):**
+**Older Sessions (57-262):**
 See `project-history/` folder for detailed implementation history
 
 ---
