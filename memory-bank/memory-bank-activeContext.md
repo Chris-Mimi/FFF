@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 134.0
-**Updated:** 2026-04-02 (Session 265 - Configure modal mobile fix)
+**Version:** 135.0
+**Updated:** 2026-04-07 (Session 266 - Benchmark leaderboard ranking fix)
 
 ---
 
@@ -88,6 +88,13 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**In Progress (2026-04-07 Session 266 - Opus 4.6) — BENCHMARK LEADERBOARD RANKING FIX:**
+- **⚠️ Partial fix — not yet verified working.** Tabata This (20 Feb) leaderboard showed wrong ranking, "Time Cap" label, and empty-score athletes.
+- **Root cause:** Benchmark type stored as `"Other"` in WOD JSON snapshot (stale — was later changed to "Tabata" in benchmark modal, but WOD JSON not updated).
+- **Fixes applied:** (1) Added "tabata" to reps-based sorting check. (2) Added data-based fallback for unrecognised types ("Other") — infers reps vs time vs weight from actual results. (3) Added validity filter to exclude all-zero entries. (4) `formatBenchmarkResult` now takes benchmarkType param — "Time Cap" prefix only for time-based benchmarks.
+- **Still not working correctly** — needs further investigation next session.
+- **Stale snapshot issue deferred** — WOD JSON stores benchmark type at time of creation; edits to benchmark type don't flow back.
+
 **Completed (2026-04-02 Session 265 - Opus 4.6) — CONFIGURE MODAL MOBILE FIX:**
 - **✅ Configure Benchmark/Forge Benchmark/Lift modals now visible on mobile** — All three modals had hardcoded pixel positions (x:820/790) pushing them off-screen on mobile. On mobile (< 768px), modals now render as fullscreen overlays. Desktop behavior unchanged.
 - **⚠️ Not yet tested on Android** — Dev server had issues during session, needs verification.
@@ -105,12 +112,7 @@ Social Tables
 - **✅ Drag-drop self-copy bug** — Fixed: Dragging workout onto same date/workout now blocked, prevents reverting to draft. Added source date tracking to copiedWOD state, consistent date comparison using formatDate().
 - **✅ Benchmark weight ranking** — Fixed: Benchmarks now sort by weight before rounds+reps when scaling/track equal (matches WOD logic). Nancy example: 15kg ranks above 7.5kg even if fewer reps.
 
-**Completed (2026-03-28 Session 261 - Opus 4.6) — MOBILE UX FIXES:**
-- **✅ High-res PWA splash logo** — Created 512px icon from high-res source, added to manifest, splash page now shows actual logo image instead of text
-- **✅ Calendar scroll-to-day** — "Today" button now scrolls to the actual day cell on mobile. Closing workout modal preserves scroll position.
-- **✅ Notification banner false alarm fix** — Banner no longer flashes on app open; waits for subscription check to complete + retries after 1.5s if SW not ready yet
-
-**Older Sessions (57-260):**
+**Older Sessions (57-261):**
 See `project-history/` folder for detailed implementation history
 
 ---

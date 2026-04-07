@@ -1061,7 +1061,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
                         </td>
                         <td className='px-3 py-2.5 text-right'>
                           <span className='text-sm font-medium text-gray-900'>
-                            {isBenchmarkItem ? formatBenchmarkResult(entry) : formatResult(entry, activeScoringType)}
+                            {isBenchmarkItem ? formatBenchmarkResult(entry, selectedItem?.benchmarkType) : formatResult(entry, activeScoringType)}
                           </span>
                         </td>
                         {showScalingFilter && (
@@ -1118,7 +1118,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
                                   athleteName: entry.memberName,
                                   date: entry.resultDate || mondayStr,
                                   resultLabel: selectedItem?.label || '',
-                                  resultValue: isBenchmarkItem ? formatBenchmarkResult(entry) : formatResult(entry, activeScoringType),
+                                  resultValue: isBenchmarkItem ? formatBenchmarkResult(entry, selectedItem?.benchmarkType) : formatResult(entry, activeScoringType),
                                   resultSubLabel: activeScoringType === 'time' ? 'For Time'
                                     : activeScoringType === 'max_time' ? 'Max Time'
                                     : activeScoringType === 'rounds_reps' ? 'AMRAP'
@@ -1455,7 +1455,7 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
                     </td>
                     <td className='px-3 py-2.5 text-right'>
                       <span className='text-sm font-medium text-gray-900'>
-                        {formatBenchmarkResult(entry)}
+                        {formatBenchmarkResult(entry, selectedBenchmark?.type)}
                       </span>
                     </td>
                     <td className='px-1 py-2.5 text-center'>
@@ -1499,7 +1499,7 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
                               athleteName: entry.memberName,
                               date: entry.resultDate || '',
                               resultLabel: selectedBenchmark.name,
-                              resultValue: formatBenchmarkResult(entry),
+                              resultValue: formatBenchmarkResult(entry, selectedBenchmark.type),
                               resultSubLabel: selectedBenchmark.type,
                               isPR: entry.rank === 1,
                               scalingLevel: entry.scalingLevel,

@@ -344,17 +344,33 @@ export function rankBenchmarkResults(
 ): LeaderboardEntry[] {
   // Determine scoring direction from benchmark type
   const typeLower = benchmarkType.toLowerCase();
-  const isTimeBased = typeLower.includes('time');
-  const isRepsBased = typeLower.includes('rep') || typeLower.includes('amrap');
+  let isTimeBased = typeLower.includes('time');
+  let isRepsBased = typeLower.includes('rep') || typeLower.includes('amrap') || typeLower.includes('tabata');
+  // Fallback for "Other" or unrecognised types: infer from actual data
+  if (!isTimeBased && !isRepsBased) {
+    const hasTime = results.some(r => r.time_result && r.time_result.trim() !== '');
+    const hasReps = results.some(r => (r.reps_result || 0) > 0 || (r.rounds_result || 0) > 0);
+    const hasWeight = results.some(r => (r.weight_result || 0) > 0);
+    if (hasTime) isTimeBased = true;
+    else if (hasReps && !hasWeight) isRepsBased = true;
+  }
 
   // Composite score for rounds+reps comparison (higher = better)
   const roundsRepsScore = (r: RawBenchmarkResult) =>
     (r.rounds_result || 0) * 10000 + (r.reps_result || 0);
 
+  // Filter out entries with no meaningful data
+  const valid = results.filter(r =>
+    (r.time_result && r.time_result.trim() !== '') ||
+    (r.reps_result || 0) > 0 ||
+    (r.rounds_result || 0) > 0 ||
+    (r.weight_result || 0) > 0
+  );
+
   // Group by user, pick best
   const bestByUser = new Map<string, RawBenchmarkResult>();
 
-  for (const r of results) {
+  for (const r of valid) {
     const existing = bestByUser.get(r.user_id);
     if (!existing) {
       bestByUser.set(r.user_id, r);
@@ -554,11 +570,13 @@ export function formatResult(entry: LeaderboardEntry, scoringType: string): stri
 /**
  * Format benchmark result for display (auto-detect from available fields).
  */
-export function formatBenchmarkResult(entry: LeaderboardEntry): string {
+export function formatBenchmarkResult(entry: LeaderboardEntry, benchmarkType?: string): string {
   const parts: string[] = [];
   if (entry.timeResult) parts.push(entry.timeResult);
-  // No time but has rounds/reps = hit the time cap
-  const isTimeCap = !entry.timeResult && (entry.roundsResult || entry.repsResult);
+  // No time but has rounds/reps = hit the time cap (only for time-based benchmarks)
+  const typeLower = (benchmarkType || '').toLowerCase();
+  const isTimeBasedBm = typeLower.includes('time');
+  const isTimeCap = isTimeBasedBm && !entry.timeResult && (entry.roundsResult || entry.repsResult);
   if (entry.roundsResult && entry.repsResult) {
     parts.push(`${isTimeCap ? 'Time Cap ' : ''}${entry.roundsResult}+${entry.repsResult}`);
   } else if (entry.roundsResult) {
