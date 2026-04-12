@@ -111,9 +111,9 @@ export default function AthleteScoreRow({
             calories_result: currentValues.calories_result,
             metres_result: currentValues.metres_result,
             task_completed: currentValues.task_completed,
-            scaling_level: currentValues.scaling_level as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '',
-            scaling_level_2: currentValues.scaling_level_2 as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '',
-            scaling_level_3: currentValues.scaling_level_3 as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '',
+            scaling_level: currentValues.scaling_level as 'Rx' | 'Rx(M)' | 'Sc1' | 'Sc2' | 'Sc3' | '',
+            scaling_level_2: currentValues.scaling_level_2 as 'Rx' | 'Rx(M)' | 'Sc1' | 'Sc2' | 'Sc3' | '',
+            scaling_level_3: currentValues.scaling_level_3 as 'Rx' | 'Rx(M)' | 'Sc1' | 'Sc2' | 'Sc3' | '',
           }}
           onChange={(updates) => onChange(athleteId, sectionId, updates as Partial<AthleteScoreValues>)}
           showLabel={false}

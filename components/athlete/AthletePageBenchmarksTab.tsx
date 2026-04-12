@@ -43,9 +43,9 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
   const [newTime, setNewTime] = useState('');
   const [newNotes, setNewNotes] = useState('');
   const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0]);
-  const [newScaling, setNewScaling] = useState<'Rx' | 'Sc1' | 'Sc2' | 'Sc3'>('Rx');
-  const [newScaling2, setNewScaling2] = useState<'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | ''>('');
-  const [newScaling3, setNewScaling3] = useState<'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | ''>('');
+  const [newScaling, setNewScaling] = useState<'Rx' | 'Rx(M)' | 'Sc1' | 'Sc2' | 'Sc3'>('Rx');
+  const [newScaling2, setNewScaling2] = useState<'Rx' | 'Rx(M)' | 'Sc1' | 'Sc2' | 'Sc3' | ''>('');
+  const [newScaling3, setNewScaling3] = useState<'Rx' | 'Rx(M)' | 'Sc1' | 'Sc2' | 'Sc3' | ''>('');
   const [benchmarkHistory, setBenchmarkHistory] = useState<BenchmarkResult[]>([]);
   const [recentBenchmarks, setRecentBenchmarks] = useState<BenchmarkResult[]>([]);
   const [editingBenchmarkId, setEditingBenchmarkId] = useState<string | null>(null);
@@ -169,9 +169,9 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
     setNewTime(entry.result_value || entry.time_result || entry.reps_result?.toString() || entry.weight_result?.toString() || '');
     setNewNotes(entry.notes || '');
     setNewDate(entry.result_date);
-    setNewScaling((entry.scaling_level as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3') || 'Rx');
-    setNewScaling2((entry.scaling_level_2 as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3') || '');
-    setNewScaling3((entry.scaling_level_3 as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3') || '');
+    setNewScaling((entry.scaling_level as 'Rx' | 'Rx(M)' | 'Sc1' | 'Sc2' | 'Sc3') || 'Rx');
+    setNewScaling2((entry.scaling_level_2 as 'Rx' | 'Rx(M)' | 'Sc1' | 'Sc2' | 'Sc3') || '');
+    setNewScaling3((entry.scaling_level_3 as 'Rx' | 'Rx(M)' | 'Sc1' | 'Sc2' | 'Sc3') || '');
     setEditingBenchmarkId(entry.id);
   };
 
@@ -199,8 +199,8 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
     const isHoldBenchmark = benchmarkName.toLowerCase().includes('hold') ||
                            benchmarkName.toLowerCase().includes('hang');
 
-    const rxResults = results.filter(r => r.scaling_level === 'Rx');
-    const scaledResults = results.filter(r => r.scaling_level !== 'Rx');
+    const rxResults = results.filter(r => r.scaling_level === 'Rx' || r.scaling_level === 'Rx(M)');
+    const scaledResults = results.filter(r => r.scaling_level !== 'Rx' && r.scaling_level !== 'Rx(M)');
 
     const timeToSeconds = (timeStr: string) => {
       if (timeStr.includes(':')) {
@@ -384,7 +384,9 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
     if (payload.isPR) {
       let badgeColor = '#dc2626'; // Red for Rx (default)
 
-      if (payload.scaling_level === 'Sc1') {
+      if (payload.scaling_level === 'Rx(M)') {
+        badgeColor = '#dc2626'; // Red for Masters Rx (same as Rx)
+      } else if (payload.scaling_level === 'Sc1') {
         badgeColor = '#1018ee'; // Blue for Sc1
       } else if (payload.scaling_level === 'Sc2') {
         badgeColor = '#4146f0'; // Medium blue for Sc2
@@ -688,10 +690,11 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                 <div className='space-y-2'>
                   <select
                     value={newScaling}
-                    onChange={e => setNewScaling(e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3')}
+                    onChange={e => setNewScaling(e.target.value as 'Rx' | 'Rx(M)' | 'Sc1' | 'Sc2' | 'Sc3')}
                     className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-100'
                   >
                     <option value='Rx'>Rx (As Prescribed)</option>
+                    <option value='Rx(M)'>Rx(M) (Masters)</option>
                     <option value='Sc1'>Scaled 1</option>
                     <option value='Sc2'>Scaled 2</option>
                     <option value='Sc3'>Scaled 3</option>
@@ -700,10 +703,11 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                     <div className='flex gap-2'>
                       <select
                         value={newScaling2}
-                        onChange={e => setNewScaling2(e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '')}
+                        onChange={e => setNewScaling2(e.target.value as 'Rx' | 'Rx(M)' | 'Sc1' | 'Sc2' | 'Sc3' | '')}
                         className='flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-100'
                       >
                         <option value='Rx'>Rx</option>
+                        <option value='Rx(M)'>Rx(M)</option>
                         <option value='Sc1'>Sc1</option>
                         <option value='Sc2'>Sc2</option>
                         <option value='Sc3'>Sc3</option>
@@ -717,10 +721,11 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                     <div className='flex gap-2'>
                       <select
                         value={newScaling3}
-                        onChange={e => setNewScaling3(e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '')}
+                        onChange={e => setNewScaling3(e.target.value as 'Rx' | 'Rx(M)' | 'Sc1' | 'Sc2' | 'Sc3' | '')}
                         className='flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-100'
                       >
                         <option value='Rx'>Rx</option>
+                        <option value='Rx(M)'>Rx(M)</option>
                         <option value='Sc1'>Sc1</option>
                         <option value='Sc2'>Sc2</option>
                         <option value='Sc3'>Sc3</option>
@@ -783,7 +788,7 @@ export default function AthletePageBenchmarksTab({ userId }: AthletePageBenchmar
                           </span>
                           <span
                             className={`text-xs px-2 py-1 rounded ${
-                              entry.scaling_level === 'Rx'
+                              entry.scaling_level === 'Rx' || entry.scaling_level === 'Rx(M)'
                                 ? 'bg-red-600 text-white'
                                 : entry.scaling_level === 'Sc1'
                                 ? 'bg-blue-800 text-white'

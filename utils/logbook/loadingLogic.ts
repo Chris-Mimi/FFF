@@ -7,9 +7,9 @@ interface SectionResult {
   weight_result?: string;
   weight_result_2?: string;
   weight_result_3?: string;
-  scaling_level?: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '';
-  scaling_level_2?: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '';
-  scaling_level_3?: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '';
+  scaling_level?: 'Rx' | 'Rx(M)' | 'Sc1' | 'Sc2' | 'Sc3' | '';
+  scaling_level_2?: 'Rx' | 'Rx(M)' | 'Sc1' | 'Sc2' | 'Sc3' | '';
+  scaling_level_3?: 'Rx' | 'Rx(M)' | 'Sc1' | 'Sc2' | 'Sc3' | '';
   rounds_result?: string;
   calories_result?: string;
   metres_result?: string;

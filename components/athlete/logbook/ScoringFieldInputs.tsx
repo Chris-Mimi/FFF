@@ -38,9 +38,9 @@ interface ScoringFieldInputsProps {
     calories_result?: string;
     metres_result?: string;
     task_completed?: boolean;
-    scaling_level?: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '';
-    scaling_level_2?: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '';
-    scaling_level_3?: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '';
+    scaling_level?: 'Rx' | 'Rx(M)' | 'Sc1' | 'Sc2' | 'Sc3' | '';
+    scaling_level_2?: 'Rx' | 'Rx(M)' | 'Sc1' | 'Sc2' | 'Sc3' | '';
+    scaling_level_3?: 'Rx' | 'Rx(M)' | 'Sc1' | 'Sc2' | 'Sc3' | '';
   };
   onChange: (updates: Partial<ScoringFieldInputsProps['values']>) => void;
   variant?: 'default' | 'lift' | 'benchmark' | 'forge';
@@ -155,11 +155,12 @@ export default function ScoringFieldInputs({
           <select
             {...fieldAttrs('scaling')}
             value={values.scaling_level || ''}
-            onChange={(e) => onChange({ scaling_level: e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '' })}
-            className={`w-14 px-1 py-0.5 text-xs border ${borderColor} rounded focus:ring-2 focus:ring-[#178da6] text-gray-900 bg-white`}
+            onChange={(e) => onChange({ scaling_level: e.target.value as 'Rx' | 'Rx(M)' | 'Sc1' | 'Sc2' | 'Sc3' | '' })}
+            className={`w-[4.5rem] px-1 py-0.5 text-xs border ${borderColor} rounded focus:ring-2 focus:ring-[#178da6] text-gray-900 bg-white`}
           >
             <option value=''>-</option>
             <option value='Rx'>Rx</option>
+            <option value='Rx(M)'>Rx(M)</option>
             <option value='Sc1'>Sc1</option>
             <option value='Sc2'>Sc2</option>
             <option value='Sc3'>Sc3</option>
@@ -173,11 +174,12 @@ export default function ScoringFieldInputs({
           <select
             {...fieldAttrs('scaling_2')}
             value={values.scaling_level_2 || ''}
-            onChange={(e) => onChange({ scaling_level_2: e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '' })}
-            className={`w-14 px-1 py-0.5 text-xs border ${borderColor} rounded focus:ring-2 focus:ring-[#178da6] text-gray-900 bg-white`}
+            onChange={(e) => onChange({ scaling_level_2: e.target.value as 'Rx' | 'Rx(M)' | 'Sc1' | 'Sc2' | 'Sc3' | '' })}
+            className={`w-[4.5rem] px-1 py-0.5 text-xs border ${borderColor} rounded focus:ring-2 focus:ring-[#178da6] text-gray-900 bg-white`}
           >
             <option value=''>-</option>
             <option value='Rx'>Rx</option>
+            <option value='Rx(M)'>Rx(M)</option>
             <option value='Sc1'>Sc1</option>
             <option value='Sc2'>Sc2</option>
             <option value='Sc3'>Sc3</option>
@@ -191,11 +193,12 @@ export default function ScoringFieldInputs({
           <select
             {...fieldAttrs('scaling_3')}
             value={values.scaling_level_3 || ''}
-            onChange={(e) => onChange({ scaling_level_3: e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3' | '' })}
-            className={`w-14 px-1 py-0.5 text-xs border ${borderColor} rounded focus:ring-2 focus:ring-[#178da6] text-gray-900 bg-white`}
+            onChange={(e) => onChange({ scaling_level_3: e.target.value as 'Rx' | 'Rx(M)' | 'Sc1' | 'Sc2' | 'Sc3' | '' })}
+            className={`w-[4.5rem] px-1 py-0.5 text-xs border ${borderColor} rounded focus:ring-2 focus:ring-[#178da6] text-gray-900 bg-white`}
           >
             <option value=''>-</option>
             <option value='Rx'>Rx</option>
+            <option value='Rx(M)'>Rx(M)</option>
             <option value='Sc1'>Sc1</option>
             <option value='Sc2'>Sc2</option>
             <option value='Sc3'>Sc3</option>

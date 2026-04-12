@@ -30,12 +30,18 @@ function getTypeBadge(data: ShareData): string {
 
 function getScalingColor(level: string): string {
   switch (level) {
-    case 'Rx': return '#dc2626';
+    case 'Rx':
+    case 'Rx(M)': return '#dc2626';
     case 'Sc1': return '#1e40af';
     case 'Sc2': return '#3b82f6';
     case 'Sc3': return '#60a5fa';
     default: return '#6b7280';
   }
+}
+
+function getScalingDisplayText(level: string): string {
+  if (level === 'Rx(M)') return 'Rx(M)';
+  return level;
 }
 
 function formatDate(dateStr: string): string {

@@ -226,6 +226,17 @@ interface LeaderboardViewProps {
 type SubView = 'wod' | 'benchmarks';
 type ScalingFilter = 'all' | 'rx' | 'scaled';
 
+/** Render scaling label with small superscript M for Rx(M) */
+function renderScalingText(level: string) {
+  if (level === 'Rx(M)') return <>Rx<span className="text-[7px] align-super leading-none">M</span></>;
+  return level;
+}
+
+/** Check if a scaling level counts as Rx for filtering */
+function isRxLevel(level: string | null | undefined): boolean {
+  return level === 'Rx' || level === 'Rx(M)';
+}
+
 export default function LeaderboardView({ userId, initialDate, onDateChange }: LeaderboardViewProps) {
   const [subView, setSubView] = useState<SubView>('wod');
 
@@ -715,9 +726,9 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
 
         let filtered = mergedBm;
         if (scalingFilter === 'rx') {
-          filtered = filtered.filter(r => r.scaling_level === 'Rx');
+          filtered = filtered.filter(r => isRxLevel(r.scaling_level));
         } else if (scalingFilter === 'scaled') {
-          filtered = filtered.filter(r => r.scaling_level && r.scaling_level !== 'Rx');
+          filtered = filtered.filter(r => r.scaling_level && !isRxLevel(r.scaling_level));
         }
 
         const allUserIds = [...new Set(filtered.map(r => r.user_id))];
@@ -766,9 +777,9 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
 
         let filtered = results as unknown as RawSectionResult[];
         if (scalingFilter === 'rx') {
-          filtered = filtered.filter(r => r.scaling_level === 'Rx');
+          filtered = filtered.filter(r => isRxLevel(r.scaling_level));
         } else if (scalingFilter === 'scaled') {
-          filtered = filtered.filter(r => r.scaling_level && r.scaling_level !== 'Rx');
+          filtered = filtered.filter(r => r.scaling_level && !isRxLevel(r.scaling_level));
         }
 
         const scoringType = selectedItem.scoringType || 'time';
@@ -1069,23 +1080,23 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
                             <div className='flex items-center justify-center gap-1'>
                               {entry.scalingLevel && (
                                 <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
-                                  entry.scalingLevel === 'Rx' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
+                                  isRxLevel(entry.scalingLevel) ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
                                 }`}>
-                                  {entry.scalingLevel}
+                                  {renderScalingText(entry.scalingLevel)}
                                 </span>
                               )}
                               {entry.scalingLevel2 && (
                                 <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
-                                  entry.scalingLevel2 === 'Rx' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
+                                  isRxLevel(entry.scalingLevel2) ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
                                 }`}>
-                                  {entry.scalingLevel2}
+                                  {renderScalingText(entry.scalingLevel2)}
                                 </span>
                               )}
                               {entry.scalingLevel3 && (
                                 <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
-                                  entry.scalingLevel3 === 'Rx' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
+                                  isRxLevel(entry.scalingLevel3) ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
                                 }`}>
-                                  {entry.scalingLevel3}
+                                  {renderScalingText(entry.scalingLevel3)}
                                 </span>
                               )}
                               {entry.track && (
@@ -1293,9 +1304,9 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
       // Filter by scaling
       let filtered = mergedBm;
       if (scalingFilter === 'rx') {
-        filtered = filtered.filter(r => r.scaling_level === 'Rx');
+        filtered = filtered.filter(r => isRxLevel(r.scaling_level));
       } else if (scalingFilter === 'scaled') {
-        filtered = filtered.filter(r => r.scaling_level && r.scaling_level !== 'Rx');
+        filtered = filtered.filter(r => r.scaling_level && !isRxLevel(r.scaling_level));
       }
 
       // Resolve names
@@ -1462,23 +1473,23 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
                       <div className='flex items-center justify-center gap-0.5 flex-wrap'>
                         {entry.scalingLevel && (
                           <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
-                            entry.scalingLevel === 'Rx' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
+                            isRxLevel(entry.scalingLevel) ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
                           }`}>
-                            {entry.scalingLevel}
+                            {renderScalingText(entry.scalingLevel)}
                           </span>
                         )}
                         {entry.scalingLevel2 && (
                           <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
-                            entry.scalingLevel2 === 'Rx' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
+                            isRxLevel(entry.scalingLevel2) ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
                           }`}>
-                            {entry.scalingLevel2}
+                            {renderScalingText(entry.scalingLevel2)}
                           </span>
                         )}
                         {entry.scalingLevel3 && (
                           <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
-                            entry.scalingLevel3 === 'Rx' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
+                            isRxLevel(entry.scalingLevel3) ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
                           }`}>
-                            {entry.scalingLevel3}
+                            {renderScalingText(entry.scalingLevel3)}
                           </span>
                         )}
                       </div>

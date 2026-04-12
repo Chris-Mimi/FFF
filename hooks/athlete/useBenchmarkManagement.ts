@@ -10,7 +10,7 @@ interface BenchmarkResult {
   time_result?: string;
   reps_result?: string;
   weight_result?: string;
-  scaling_level?: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3';
+  scaling_level?: 'Rx' | 'Rx(M)' | 'Sc1' | 'Sc2' | 'Sc3';
   benchmark_id?: string;
   forge_benchmark_id?: string;
 }
@@ -23,7 +23,7 @@ export interface BenchmarkManagementHandlers {
     repsResult: string,
     weightResult: string,
     resultDate: string,
-    scalingLevel?: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3',
+    scalingLevel?: 'Rx' | 'Rx(M)' | 'Sc1' | 'Sc2' | 'Sc3',
     benchmarkId?: string,
     forgeBenchmarkId?: string
   ) => Promise<void>;
@@ -43,7 +43,7 @@ export function useBenchmarkManagement(
     repsResult: string,
     weightResult: string,
     resultDate: string,
-    scalingLevel?: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3',
+    scalingLevel?: 'Rx' | 'Rx(M)' | 'Sc1' | 'Sc2' | 'Sc3',
     benchmarkId?: string,
     forgeBenchmarkId?: string
   ) => {

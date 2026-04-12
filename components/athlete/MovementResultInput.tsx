@@ -182,10 +182,11 @@ export function MovementResultInput({
           {!!(resultFields.scaling as boolean) && (movement.has_scaling ?? true) && (
             <select
               value={(value.scaling_level as string) || 'Rx'}
-              onChange={(e) => updateField('scaling_level', e.target.value as 'Rx' | 'Sc1' | 'Sc2' | 'Sc3')}
+              onChange={(e) => updateField('scaling_level', e.target.value as 'Rx' | 'Rx(M)' | 'Sc1' | 'Sc2' | 'Sc3')}
               className={`px-2 py-1 text-xs border ${getBorderColor()} rounded focus:ring-2 focus:border-transparent text-gray-900`}
             >
               <option value='Rx'>Rx</option>
+              <option value='Rx(M)'>Rx(M)</option>
               <option value='Sc1'>Sc1</option>
               <option value='Sc2'>Sc2</option>
               <option value='Sc3'>Sc3</option>

@@ -11,7 +11,7 @@ interface BenchmarkResult {
   id: string;
   benchmark_name: string;
   result_value: string;
-  scaling_level: 'Rx' | 'Sc1' | 'Sc2' | 'Sc3';
+  scaling_level: 'Rx' | 'Rx(M)' | 'Sc1' | 'Sc2' | 'Sc3';
   result_date: string;
 }
 
@@ -344,7 +344,7 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
                         />
                         <span
                           className={`text-xs px-2 py-1 rounded ${
-                            pr.scaling_level === 'Rx'
+                            pr.scaling_level === 'Rx' || pr.scaling_level === 'Rx(M)'
                               ? 'bg-red-600 text-white'
                               : pr.scaling_level === 'Sc1'
                               ? 'bg-blue-800 text-white'
@@ -353,7 +353,7 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
                               : 'bg-blue-400 text-white'
                           }`}
                         >
-                          {pr.scaling_level}
+                          {pr.scaling_level === 'Rx(M)' ? <>Rx<span className="text-[7px] align-super leading-none">M</span></> : pr.scaling_level}
                         </span>
                       </div>
                     </div>
@@ -406,7 +406,7 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
                         />
                         <span
                           className={`text-xs px-2 py-1 rounded ${
-                            pr.scaling_level === 'Rx'
+                            pr.scaling_level === 'Rx' || pr.scaling_level === 'Rx(M)'
                               ? 'bg-red-600 text-white'
                               : pr.scaling_level === 'Sc1'
                               ? 'bg-blue-800 text-white'
@@ -415,7 +415,7 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
                               : 'bg-blue-400 text-white'
                           }`}
                         >
-                          {pr.scaling_level}
+                          {pr.scaling_level === 'Rx(M)' ? <>Rx<span className="text-[7px] align-super leading-none">M</span></> : pr.scaling_level}
                         </span>
                       </div>
                     </div>

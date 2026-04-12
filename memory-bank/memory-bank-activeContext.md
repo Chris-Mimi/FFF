@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 136.0
-**Updated:** 2026-04-07 (Session 267 - Null scaling ranking fix)
+**Version:** 137.0
+**Updated:** 2026-04-12 (Session 268 - Rx(M) Masters scaling level)
 
 ---
 
@@ -88,6 +88,13 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-04-12 Session 268 - Opus 4.6) — RX(M) MASTERS SCALING LEVEL:**
+- **✅ Added Rx(M) scaling level** — New "Masters" Rx option across all scaling dropdowns (logbook, benchmarks, forge benchmarks, movement results). Ranks identically to Rx (value 0). Stored as `'Rx(M)'` in database.
+- **✅ Display** — Leaderboard badges show "Rx" with small superscript "M", green badge (same as Rx). Share cards, PR chart dots, records tab all treat Rx(M) as Rx for colors.
+- **✅ Filters** — "Rx" filter includes Rx(M) results. "Scaled" filter excludes them.
+- **✅ Best time grouping** — Rx(M) grouped with Rx in benchmark history charts.
+- **Files changed:** 13 files across dropdowns, type unions, ranking, display, and filters.
+
 **Completed (2026-04-07 Session 267 - Opus 4.6) — NULL SCALING RANKING FIX:**
 - **✅ Fixed null/blank scaling ranking** — Athletes with missing scaling levels (e.g., didn't attempt a movement) were treated as Rx (score 0), ranking them above athletes who completed all movements at Sc2. Fix: null scaling now scores 4 (worse than Sc3=3). Applied to both `rankBenchmarkResults` and `rankSectionResults`.
 - **Example:** Sandra (Rx+Rx+blank = score 4) now correctly ranks below MichaelJ (Sc2+Rx+Rx = score 2).
@@ -101,13 +108,7 @@ Social Tables
 **Completed (2026-04-01 Session 264 - Opus 4.6) — BOOKING PAGE UX FIX:**
 - **✅ Back button visibility** — Booking page "Back" button renamed to "Athlete App" and made visible on mobile (was hidden, only showing chevron icon). Beta testers couldn't find their way back to the athlete app.
 
-**Completed (2026-03-31 Session 263 - Opus 4.6) — LIFT SEARCH + BENCHMARK SEARCHABILITY + DATA CLEANUP:**
-- **✅ Lift search by equipment prefix** — Lifts from barbell_lifts now searchable as "Barbell [name]" (e.g., "Barbell Back Squat"). Added equipment column to barbell_lifts table, updated search logic and movement extraction.
-- **✅ Movement tracking fix** — Tracking grid now correctly matches lifts to exercises with "Barbell" prefix (e.g., tracking "Barbell Back Squat" now finds workouts programmed with "Back Squat" lift).
-- **✅ Benchmark description searchability** — Added common abbreviations to forge_benchmarks descriptions: HSPU (Diane, The Seven), K2E (Filthy Fifty, The Seven), SDHP (Fight Gone Bad).
-- **✅ Data cleanup** — Deleted 4 orphaned "StevenZ" whiteboard entries, deleted 2 orphaned WODs with no data.
-
-**Older Sessions (57-262):**
+**Older Sessions (57-263):**
 See `project-history/` folder for detailed implementation history
 
 ---
