@@ -50,7 +50,7 @@ export default function UpgradePrompt({ onNavigateToPayment }: UpgradePromptProp
         </button>
 
         <p className="text-xs text-gray-500 mt-4">
-          From &euro;7.50/month with 1 month free trial. Cancel anytime.
+          From &euro;8/month with 1 month free trial. Cancel anytime.
         </p>
       </div>
     </div>

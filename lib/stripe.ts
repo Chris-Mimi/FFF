@@ -24,21 +24,30 @@ export const stripe = {
 
 // Price IDs - configure these in Stripe Dashboard and add to .env.local
 export const STRIPE_PRICE_IDS = {
-  monthly: process.env.STRIPE_PRICE_MONTHLY_ID,
-  yearly: process.env.STRIPE_PRICE_YEARLY_ID,
+  member_monthly: process.env.STRIPE_PRICE_MEMBER_MONTHLY_ID,
+  member_yearly: process.env.STRIPE_PRICE_MEMBER_YEARLY_ID,
+  wellpass_monthly: process.env.STRIPE_PRICE_WELLPASS_MONTHLY_ID,
+  wellpass_yearly: process.env.STRIPE_PRICE_WELLPASS_YEARLY_ID,
   tenCard: process.env.STRIPE_PRICE_10CARD_ID,
 };
 
+// Subscription tiers
+export type SubscriptionTier = 'member' | 'wellpass';
+
 // Product types for checkout
-export type ProductType = 'monthly' | 'yearly' | '10card';
+export type ProductType = 'member_monthly' | 'member_yearly' | 'wellpass_monthly' | 'wellpass_yearly' | '10card';
 
 // Helper to get the correct price ID
 export function getPriceId(productType: ProductType): string | undefined {
   switch (productType) {
-    case 'monthly':
-      return STRIPE_PRICE_IDS.monthly;
-    case 'yearly':
-      return STRIPE_PRICE_IDS.yearly;
+    case 'member_monthly':
+      return STRIPE_PRICE_IDS.member_monthly;
+    case 'member_yearly':
+      return STRIPE_PRICE_IDS.member_yearly;
+    case 'wellpass_monthly':
+      return STRIPE_PRICE_IDS.wellpass_monthly;
+    case 'wellpass_yearly':
+      return STRIPE_PRICE_IDS.wellpass_yearly;
     case '10card':
       return STRIPE_PRICE_IDS.tenCard;
     default:
@@ -48,5 +57,33 @@ export function getPriceId(productType: ProductType): string | undefined {
 
 // Helper to determine if product is a subscription
 export function isSubscription(productType: ProductType): boolean {
-  return productType === 'monthly' || productType === 'yearly';
+  return productType !== '10card';
+}
+
+// Helper to extract tier from product type
+export function getTier(productType: ProductType): SubscriptionTier | null {
+  if (productType.startsWith('member_')) return 'member';
+  if (productType.startsWith('wellpass_')) return 'wellpass';
+  return null;
+}
+
+// Helper to extract billing period from product type
+export function getBillingPeriod(productType: ProductType): 'monthly' | 'yearly' | null {
+  if (productType.endsWith('_monthly')) return 'monthly';
+  if (productType.endsWith('_yearly')) return 'yearly';
+  return null;
+}
+
+// Reverse lookup: price ID → tier
+export function getTierFromPriceId(priceId: string): SubscriptionTier | null {
+  if (priceId === STRIPE_PRICE_IDS.member_monthly || priceId === STRIPE_PRICE_IDS.member_yearly) return 'member';
+  if (priceId === STRIPE_PRICE_IDS.wellpass_monthly || priceId === STRIPE_PRICE_IDS.wellpass_yearly) return 'wellpass';
+  return null;
+}
+
+// Reverse lookup: price ID → billing period
+export function getPlanTypeFromPriceId(priceId: string): 'monthly' | 'yearly' | null {
+  if (priceId === STRIPE_PRICE_IDS.member_monthly || priceId === STRIPE_PRICE_IDS.wellpass_monthly) return 'monthly';
+  if (priceId === STRIPE_PRICE_IDS.member_yearly || priceId === STRIPE_PRICE_IDS.wellpass_yearly) return 'yearly';
+  return null;
 }

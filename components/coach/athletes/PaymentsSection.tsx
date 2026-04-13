@@ -9,6 +9,7 @@ interface MemberData {
   id: string;
   email: string;
   stripe_customer_id: string | null;
+  subscription_tier: 'member' | 'wellpass' | null;
   ten_card_sessions_used: number | null;
   ten_card_total: number | null;
   ten_card_expiry_date: string | null;
@@ -52,7 +53,7 @@ export default function PaymentsSection({ memberId }: { memberId?: string }) {
       let member = null;
       const { data: memberById, error: _memberByIdError } = await supabase
         .from('members')
-        .select('id, email, stripe_customer_id, ten_card_sessions_used, ten_card_total, ten_card_expiry_date, membership_types')
+        .select('id, email, stripe_customer_id, subscription_tier, ten_card_sessions_used, ten_card_total, ten_card_expiry_date, membership_types')
         .eq('id', memberId)
         .single();
 
@@ -73,7 +74,7 @@ export default function PaymentsSection({ memberId }: { memberId?: string }) {
 
         const { data: memberByEmail, error: memberByEmailError } = await supabase
           .from('members')
-          .select('id, email, stripe_customer_id, ten_card_sessions_used, ten_card_total, ten_card_expiry_date, membership_types')
+          .select('id, email, stripe_customer_id, subscription_tier, ten_card_sessions_used, ten_card_total, ten_card_expiry_date, membership_types')
           .eq('email', athlete.email)
           .single();
 
@@ -193,7 +194,18 @@ export default function PaymentsSection({ memberId }: { memberId?: string }) {
 
       {/* Subscriptions */}
       <div className='bg-gray-50 rounded-lg p-3 md:p-4'>
-        <h4 className='font-semibold text-gray-900 mb-2 md:mb-3 text-sm md:text-base'>Subscriptions</h4>
+        <h4 className='font-semibold text-gray-900 mb-2 md:mb-3 text-sm md:text-base'>
+          Subscriptions
+          {memberData?.subscription_tier && (
+            <span className={`ml-2 text-xs font-medium px-2 py-0.5 rounded-full ${
+              memberData.subscription_tier === 'wellpass'
+                ? 'bg-orange-100 text-orange-700'
+                : 'bg-blue-100 text-blue-700'
+            }`}>
+              {memberData.subscription_tier === 'wellpass' ? 'Wellpass' : 'Member'}
+            </span>
+          )}
+        </h4>
         {subscriptions.length === 0 ? (
           <p className='text-xs md:text-sm text-gray-600'>No active subscriptions</p>
         ) : (

@@ -17,6 +17,7 @@ export interface Member {
   athlete_subscription_status: 'trial' | 'active' | 'expired';
   athlete_subscription_end: string | null;
   subscription_plan_type: 'monthly' | 'yearly' | null;
+  subscription_tier: 'member' | 'wellpass' | null;
   created_at: string;
   membership_types: MembershipType[];
   ten_card_purchase_date: string | null;
@@ -92,8 +93,9 @@ export const getTrialStatus = (member: Member) => {
     return daysLeft > 0 ? `${daysLeft} days left` : 'Expired';
   }
   if (member.athlete_subscription_status === 'active') {
-    if (member.subscription_plan_type === 'monthly') return 'Active (Monthly)';
-    if (member.subscription_plan_type === 'yearly') return 'Active (Yearly)';
+    const tierLabel = member.subscription_tier === 'wellpass' ? 'Wellpass' : 'Member';
+    if (member.subscription_plan_type === 'monthly') return `Active — ${tierLabel} (Monthly)`;
+    if (member.subscription_plan_type === 'yearly') return `Active — ${tierLabel} (Yearly)`;
     return 'Active';
   }
   return 'No access';

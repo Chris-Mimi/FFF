@@ -169,7 +169,7 @@ There's no app-switching, no spreadsheets, no whiteboards that get erased. Just 
 3. **Integrated athlete journey** — from booking a class to logging the workout to tracking PRs to sharing results, it's one seamless flow
 4. **Gym identity** — custom benchmarks, custom achievements, branded share cards. Forge becomes *your* gym's platform, not a generic tool
 5. **Family-friendly** — built-in family accounts with age-gating for kids' classes. Parents manage everything from one login
-6. **Affordable** — athlete subscriptions start at €7.50/month. No per-member fees for the gym. No expensive enterprise contracts
+6. **Affordable** — athlete subscriptions start at €8/month. No per-member fees for the gym. No expensive enterprise contracts
 
 ---
 

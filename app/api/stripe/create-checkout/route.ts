@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { stripe, getPriceId, isSubscription, ProductType } from '@/lib/stripe';
+import { stripe, getPriceId, isSubscription, getTier, getBillingPeriod, ProductType } from '@/lib/stripe';
 import { requireAuth, isAuthError } from '@/lib/auth-api';
 
 // Use service role for admin operations
@@ -105,6 +105,8 @@ export async function POST(request: NextRequest) {
       metadata: {
         member_id: memberId,
         product_type: productType,
+        subscription_tier: getTier(productType) || '',
+        billing_period: getBillingPeriod(productType) || '',
       },
     };
 

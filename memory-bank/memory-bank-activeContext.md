@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 138.0
-**Updated:** 2026-04-13 (Session 269 - DNF feature + workout_name trim fix)
+**Version:** 139.0
+**Updated:** 2026-04-13 (Session 270 - 2-tier payment system)
 
 ---
 
@@ -88,22 +88,25 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-04-13 Session 270 - Opus 4.6) — 2-TIER PAYMENT SYSTEM:**
+- **✅ 2-tier pricing implemented** — Members (€8/mo, €85/yr) + Wellpass (€10/mo, €100/yr). Replaces old single-tier €7.50/€75.
+- **✅ Stripe products created** — 2 new products with 4 prices in live Stripe dashboard. Old product can be archived.
+- **✅ Code changes** — 11 files: `lib/stripe.ts` (new ProductType, tier helpers), webhook (stores tier on member), checkout (passes tier metadata), AthletePagePaymentTab (2-tier UI with Member blue/teal + Wellpass orange), PaymentsSection (tier badge), UpgradePrompt (new price text).
+- **✅ DB migration** — `subscription_tier TEXT CHECK ('member','wellpass')` on members table.
+- **⏳ Pending deploy steps:** Run migration in Supabase, add 4 new env vars in Vercel, remove 2 old env vars, redeploy.
+
 **Completed (2026-04-13 Session 269 - Opus 4.6) — DNF FEATURE + WORKOUT NAME TRIM:**
-- **✅ DNF (Did Not Finish)** — New `dnf` boolean on `wod_section_results`. Toggle button in coach score entry (next to athlete name) and athlete logbook (end of scoring inputs). DNF entries always rank last on leaderboard. Red "DNF" badge replaces score value.
-- **✅ Workout name trim fix** — Trailing whitespace in `workout_name` caused leaderboard results not to merge. Fix: trim on save (`useWODOperations.ts`), trim on leaderboard grouping key + query (`LeaderboardView.tsx`). SQL provided to clean existing data.
-- **✅ 2-tier payment plan written** — Detailed plan in `Chris Notes/Forge app documentation/2-tier-payment-plan.md`. Members €8/€85, Wellpass €10/€100. On hold for next session.
-- **Files changed:** 14 files (12 for DNF, 2 for trim fix). Migration: `20260413000000_add_dnf_column.sql`.
+- **✅ DNF (Did Not Finish)** — New `dnf` boolean on `wod_section_results`. Toggle button in coach score entry and athlete logbook. DNF entries rank last on leaderboard.
+- **✅ Workout name trim fix** — Trailing whitespace caused leaderboard not to merge. Fix: trim on save + query.
 
 **Completed (2026-04-12 Session 268 - Opus 4.6) — RX(M) MASTERS SCALING LEVEL:**
-- **✅ Added Rx(M) scaling level** — New "Masters" Rx option across all scaling dropdowns (logbook, benchmarks, forge benchmarks, movement results). Ranks identically to Rx (value 0). Stored as `'Rx(M)'` in database.
-- **✅ Display** — Leaderboard badges show "Rx" with small superscript "M", green badge (same as Rx). Share cards, PR chart dots, records tab all treat Rx(M) as Rx for colors.
-- **Files changed:** 13 files across dropdowns, type unions, ranking, display, and filters.
+- **✅ Added Rx(M) scaling level** — 13 files. Ranks identically to Rx.
 
 **Completed (2026-04-07 Session 267 - Opus 4.6) — NULL SCALING RANKING FIX:**
-- **✅ Fixed null/blank scaling ranking** — null scaling now scores 4 (worse than Sc3=3). Applied to both `rankBenchmarkResults` and `rankSectionResults`.
+- **✅ Fixed null/blank scaling ranking** — null scaling now scores 4 (worse than Sc3=3).
 
 **Completed (2026-04-02 Session 265 - Opus 4.6) — CONFIGURE MODAL MOBILE FIX:**
-- **✅ Configure Benchmark/Forge Benchmark/Lift modals now visible on mobile** — fullscreen overlays on < 768px.
+- **✅ Configure modals visible on mobile** — fullscreen overlays on < 768px.
 
 **Older Sessions (57-264):**
 See `project-history/` folder for detailed implementation history
@@ -166,6 +169,7 @@ See `project-history/` folder for detailed implementation history
 - ✅ `20260323000002_add_scaling3_load3.sql` — Adds `scaling_level_3 text` and `weight_result_3 numeric` to wod_section_results (Session 235, applied)
 - ✅ `20260326000000_add_benchmark_multi_scaling.sql` — Adds `scaling_level_2 text` and `scaling_level_3 text` to benchmark_results (Session 250, applied)
 - ✅ `20260331000000_add_lift_equipment.sql` — Adds `equipment TEXT DEFAULT 'Barbell'` to barbell_lifts (Session 263, applied)
+- ⏳ `20260413000001_add_subscription_tier.sql` — Adds `subscription_tier TEXT` with CHECK constraint to members (Session 270)
 
 ---
 
@@ -208,7 +212,7 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION
-1. **2-tier payment system** — Implement Members (€8/€85) + Wellpass (€10/€100) pricing. Plan: `Chris Notes/Forge app documentation/2-tier-payment-plan.md`. Chris needs to create 2 Stripe products first (instructions in plan file).
+1. **Deploy 2-tier payment** — Run migration in Supabase, update 4 Vercel env vars, remove 2 old vars, redeploy. Test all 4 checkout flows.
 
 ### BACKLOG
 1. **April 13 reminder:** Verify Stripe trial payment processed for test athlete.
@@ -229,10 +233,11 @@ npm run restore 2025-12-06  # Restore specific date
 
 **Full deployment plan:** `Chris Notes/deployment-plan.md`
 
-### Business Model (decided Session 157)
+### Business Model (updated Session 270)
 - **Free:** All active members can book classes (no payment required)
 - **10-Card:** €150 for 10 gym sessions (drop-in alternative, separate from app)
-- **Athlete App:** €7.50/mo or €75/yr (logbook, records, leaderboards, achievements). Launch pricing rises to €10/€100 after 1 month.
+- **Athlete App — Members:** €8/mo or €85/yr (logbook, records, leaderboards, achievements)
+- **Athlete App — Wellpass:** €10/mo or €100/yr (same features, for Wellpass members)
 
 ---
 

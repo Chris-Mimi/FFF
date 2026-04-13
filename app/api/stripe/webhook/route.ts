@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { stripe } from '@/lib/stripe';
+import { stripe, getTierFromPriceId, getPlanTypeFromPriceId } from '@/lib/stripe';
 import Stripe from 'stripe';
 
 // Use service role for admin operations
@@ -126,17 +126,22 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       .eq('id', memberId);
 
   } else if (session.subscription) {
-    // Set initial subscription dates (subscription.created event will update with exact dates)
-    const subscriptionEndDate = productType === 'monthly'
-      ? new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
-      : new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000); // 365 days from now
+    // Extract tier and billing period from metadata
+    const tier = session.metadata?.subscription_tier || null;
+    const billingPeriod = session.metadata?.billing_period || null;
 
-    // Update member status
+    // Set initial subscription dates (subscription.created event will update with exact dates)
+    const subscriptionEndDate = billingPeriod === 'yearly'
+      ? new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000) // 365 days from now
+      : new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
+
+    // Update member status with tier
     await supabaseAdmin
       .from('members')
       .update({
         athlete_subscription_status: 'active',
         athlete_subscription_end: subscriptionEndDate.toISOString(),
+        subscription_tier: tier,
         updated_at: now.toISOString(),
       })
       .eq('id', memberId);
@@ -170,7 +175,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
           member_id: memberId,
           stripe_subscription_id: session.subscription as string,
           stripe_customer_id: memberData.stripe_customer_id,
-          plan_type: productType === 'monthly' ? 'monthly' : 'yearly',
+          plan_type: billingPeriod || 'monthly',
           status: 'active',
           current_period_start: now.toISOString(),
           current_period_end: subscriptionEndDate.toISOString(),
@@ -212,12 +217,10 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
     ? new Date(sub.current_period_start * 1000)
     : now;
 
-  // Determine plan type from price
-  let planType: 'monthly' | 'yearly' = 'monthly';
+  // Determine plan type and tier from price ID
   const priceId = subscription.items.data[0]?.price.id;
-  if (priceId === process.env.STRIPE_PRICE_YEARLY_ID) {
-    planType = 'yearly';
-  }
+  const planType = (priceId ? getPlanTypeFromPriceId(priceId) : null) || 'monthly';
+  const tier = priceId ? getTierFromPriceId(priceId) : null;
 
   // Upsert subscription record
   await supabaseAdmin
@@ -238,13 +241,14 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
       onConflict: 'stripe_subscription_id'
     });
 
-  // Update member's athlete subscription status
+  // Update member's athlete subscription status and tier
   if (subscription.status === 'active' || subscription.status === 'trialing') {
     await supabaseAdmin
       .from('members')
       .update({
         athlete_subscription_status: 'active',
         athlete_subscription_end: periodEnd.toISOString(),
+        ...(tier && { subscription_tier: tier }),
         updated_at: now.toISOString(),
       })
       .eq('id', member.id);
