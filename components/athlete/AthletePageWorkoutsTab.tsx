@@ -31,6 +31,7 @@ interface SectionResult {
   metres_result?: number;
   scaling_level?: string;
   task_completed?: boolean;
+  dnf?: boolean;
   is_coach_entered?: boolean;
 }
 
@@ -327,12 +328,12 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
         const [selfQuery, coachQuery] = await Promise.all([
           supabase
             .from('wod_section_results')
-            .select('id, section_id, time_result, reps_result, weight_result, rounds_result, calories_result, metres_result, scaling_level, task_completed, wod_id, member_id')
+            .select('id, section_id, time_result, reps_result, weight_result, rounds_result, calories_result, metres_result, scaling_level, task_completed, dnf, wod_id, member_id')
             .in('wod_id', workoutIds)
             .eq('user_id', userId),
           supabase
             .from('wod_section_results')
-            .select('id, section_id, time_result, reps_result, weight_result, rounds_result, calories_result, metres_result, scaling_level, task_completed, wod_id, member_id')
+            .select('id, section_id, time_result, reps_result, weight_result, rounds_result, calories_result, metres_result, scaling_level, task_completed, dnf, wod_id, member_id')
             .in('wod_id', workoutIds)
             .eq('member_id', userId)
             .not('member_id', 'is', null),

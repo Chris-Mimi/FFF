@@ -14,6 +14,7 @@ interface SectionResult {
   calories_result?: string;
   metres_result?: string;
   task_completed?: boolean;
+  dnf?: boolean;
 }
 
 /**
@@ -89,6 +90,7 @@ export async function saveSectionResult(
         calories_result: parsedCalories,
         metres_result: parsedMetres,
         task_completed: result.task_completed || null,
+        dnf: result.dnf || false,
         updated_at: new Date().toISOString(),
       }, {
         onConflict: 'user_id,wod_id,section_id,workout_date',

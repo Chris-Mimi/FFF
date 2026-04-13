@@ -33,6 +33,7 @@ interface SectionResult {
   calories_result?: string;
   metres_result?: string;
   task_completed?: boolean;
+  dnf?: boolean;
 }
 
 interface WhiteboardPhoto {

@@ -14,6 +14,7 @@ interface SectionResult {
   calories_result?: string;
   metres_result?: string;
   task_completed?: boolean;
+  dnf?: boolean;
 }
 
 /**
@@ -28,7 +29,7 @@ export async function loadSectionResults(
     // Query by user_id OR member_id (coach-entered scores may have member_id = auth user id)
     const { data, error } = await supabase
       .from('wod_section_results')
-      .select('section_id, wod_id, member_id, time_result, reps_result, weight_result, weight_result_2, weight_result_3, scaling_level, scaling_level_2, scaling_level_3, rounds_result, calories_result, metres_result, task_completed')
+      .select('section_id, wod_id, member_id, time_result, reps_result, weight_result, weight_result_2, weight_result_3, scaling_level, scaling_level_2, scaling_level_3, rounds_result, calories_result, metres_result, task_completed, dnf')
       .or(`user_id.eq.${userId},member_id.eq.${userId}`)
       .eq('workout_date', workoutDate);
 
@@ -73,6 +74,7 @@ export async function loadSectionResults(
           calories_result: result.calories_result?.toString() || '',
           metres_result: result.metres_result?.toString() || '',
           task_completed: result.task_completed || false,
+          dnf: result.dnf || false,
         };
       });
       return { results: newSectionResults, coachLockedSections };

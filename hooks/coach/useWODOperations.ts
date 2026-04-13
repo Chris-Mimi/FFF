@@ -20,6 +20,8 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
   ) => {
     const dateKey = formatDate(modalDate);
     const workoutWeek = calculateWorkoutWeek(modalDate);
+    // Trim workout_name to prevent whitespace-only differences splitting leaderboard results
+    if (wodData.workout_name) wodData.workout_name = wodData.workout_name.trim();
 
     try {
       // Check if we're editing a real workout (not an empty session with 'session-{uuid}' id)
@@ -470,7 +472,7 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
           {
             title: wod.title,
             session_type: wod.session_type || wod.title,
-            workout_name: wod.workout_name?.match(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/) ? null : (wod.workout_name || null),
+            workout_name: wod.workout_name?.match(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/) ? null : (wod.workout_name?.trim() || null),
             workout_week: targetWorkoutWeek,
             track_id: wod.track_id || null,
             workout_type_id: wod.workout_type_id || null,

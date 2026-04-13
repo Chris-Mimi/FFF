@@ -16,6 +16,7 @@ export interface LeaderboardEntry {
   scalingLevel3?: string;
   track?: number;
   taskCompleted?: boolean;
+  dnf?: boolean;
   resultDate?: string;
   gender?: string | null;
 }
@@ -72,6 +73,7 @@ export interface RawSectionResult {
   scaling_level_3?: string | null;
   track?: number | null;
   task_completed?: boolean | null;
+  dnf?: boolean | null;
   workout_date?: string | null;
 }
 
@@ -278,6 +280,8 @@ export function rankSectionResults(
     (r.calories_result || 0) > 0 ||
     (r.metres_result || 0) > 0;
   const valid = results.filter(r => {
+    // DNF entries always show on leaderboard
+    if (r.dnf) return true;
     switch (scoringType) {
       case 'time': return (r.time_result && r.time_result.trim() !== '') || hasAnyData(r);
       case 'time_with_cap': return (r.time_result && r.time_result.trim() !== '') || (r.rounds_result || 0) > 0 || (r.reps_result || 0) > 0;
@@ -301,6 +305,9 @@ export function rankSectionResults(
     (r.scaling_level_2 ? (scalingValue[r.scaling_level_2] ?? MISSING_SCALING) : MISSING_SCALING) +
     (r.scaling_level_3 ? (scalingValue[r.scaling_level_3] ?? MISSING_SCALING) : MISSING_SCALING);
   const sorted = [...valid].sort((a, b) => {
+    // DNF always ranks last
+    if (a.dnf && !b.dnf) return 1;
+    if (!a.dnf && b.dnf) return -1;
     const scaleDiff = aggregateScaling(a) - aggregateScaling(b);
     if (scaleDiff !== 0) return scaleDiff;
     // Track: 1 < 2 < 3 < null (lower track = higher rank)
@@ -329,6 +336,7 @@ export function rankSectionResults(
     scalingLevel3: r.scaling_level_3 || undefined,
     track: r.track || undefined,
     taskCompleted: r.task_completed ?? undefined,
+    dnf: r.dnf ?? undefined,
     resultDate: r.workout_date || undefined,
     gender: memberGenders?.[r.user_id] ?? getWhiteboardGender(r.whiteboard_name) ?? undefined,
   }));

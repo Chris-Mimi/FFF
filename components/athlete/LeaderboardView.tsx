@@ -432,7 +432,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
     const allWods = (data || []) as WodData[];
     const groups = new Map<string, { best: WodData; bestCount: number; allIds: string[] }>();
     for (const w of allWods) {
-      const key = `${w.session_type || w.title}|${w.workout_name || ''}`;
+      const key = `${w.session_type || w.title}|${(w.workout_name || '').trim()}`;
       const count = extractLeaderboardItems(w).length;
       const existing = groups.get(key);
       if (!existing) {
@@ -486,7 +486,8 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
 
   // Helper: compute grouping info (±60 days for same workout_name)
   const computeGrouping = useCallback(async (selectedWod: WodData) => {
-    if (!selectedWod.workout_name) {
+    const trimmedName = selectedWod.workout_name?.trim();
+    if (!trimmedName) {
       setGroupInfo(null);
       return { isGrouped: false, dates: allDates, wodIds: [selectedWod.id], groupedWods: null };
     }
@@ -500,7 +501,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
     const { data: grouped } = await supabase
       .from('wods')
       .select('id, date, sections')
-      .eq('workout_name', selectedWod.workout_name)
+      .eq('workout_name', trimmedName)
       .eq('is_published', true)
       .gte('date', startDate.toISOString().split('T')[0])
       .lte('date', endDate.toISOString().split('T')[0]);
@@ -649,7 +650,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
         if (bmSectionIds.length > 0) {
           const { data: wsrResults } = await supabase
             .from('wod_section_results')
-            .select('id, user_id, member_id, whiteboard_name, time_result, reps_result, weight_result, weight_result_2, weight_result_3, rounds_result, calories_result, metres_result, scaling_level, scaling_level_2, scaling_level_3, track, task_completed, workout_date')
+            .select('id, user_id, member_id, whiteboard_name, time_result, reps_result, weight_result, weight_result_2, weight_result_3, rounds_result, calories_result, metres_result, scaling_level, scaling_level_2, scaling_level_3, track, task_completed, dnf, workout_date')
             .in('wod_id', bmWodIds)
             .in('section_id', bmSectionIds);
           if (wsrResults) coachEntries = wsrResults as unknown as (RawSectionResult & { member_id?: string })[];
@@ -769,7 +770,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
 
         const { data: results } = await supabase
           .from('wod_section_results')
-          .select('id, user_id, member_id, whiteboard_name, time_result, reps_result, weight_result, weight_result_2, weight_result_3, rounds_result, calories_result, metres_result, scaling_level, scaling_level_2, scaling_level_3, track, task_completed, workout_date')
+          .select('id, user_id, member_id, whiteboard_name, time_result, reps_result, weight_result, weight_result_2, weight_result_3, rounds_result, calories_result, metres_result, scaling_level, scaling_level_2, scaling_level_3, track, task_completed, dnf, workout_date')
           .in('wod_id', contentWodIds)
           .in('section_id', contentSectionIds);
 
@@ -1071,9 +1072,13 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
                           </span>
                         </td>
                         <td className='px-3 py-2.5 text-right'>
-                          <span className='text-sm font-medium text-gray-900'>
-                            {isBenchmarkItem ? formatBenchmarkResult(entry, selectedItem?.benchmarkType) : formatResult(entry, activeScoringType)}
-                          </span>
+                          {entry.dnf ? (
+                            <span className='text-xs font-bold text-red-500 bg-red-50 px-1.5 py-0.5 rounded'>DNF</span>
+                          ) : (
+                            <span className='text-sm font-medium text-gray-900'>
+                              {isBenchmarkItem ? formatBenchmarkResult(entry, selectedItem?.benchmarkType) : formatResult(entry, activeScoringType)}
+                            </span>
+                          )}
                         </td>
                         {showScalingFilter && (
                           <td className='px-1 py-2.5 text-center'>
@@ -1233,7 +1238,7 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
         const sectionIds = [...new Set(wodSectionPairs.map(p => p.sectionId))];
         const { data: wsrResults } = await supabase
           .from('wod_section_results')
-          .select('id, user_id, member_id, whiteboard_name, time_result, reps_result, weight_result, weight_result_2, weight_result_3, rounds_result, calories_result, metres_result, scaling_level, scaling_level_2, scaling_level_3, track, task_completed, workout_date')
+          .select('id, user_id, member_id, whiteboard_name, time_result, reps_result, weight_result, weight_result_2, weight_result_3, rounds_result, calories_result, metres_result, scaling_level, scaling_level_2, scaling_level_3, track, task_completed, dnf, workout_date')
           .in('wod_id', wodIds)
           .in('section_id', sectionIds);
         if (wsrResults) coachEntries = wsrResults as unknown as (RawSectionResult & { member_id?: string })[];
@@ -1465,9 +1470,13 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
                       </span>
                     </td>
                     <td className='px-3 py-2.5 text-right'>
-                      <span className='text-sm font-medium text-gray-900'>
-                        {formatBenchmarkResult(entry, selectedBenchmark?.type)}
-                      </span>
+                      {entry.dnf ? (
+                        <span className='text-xs font-bold text-red-500 bg-red-50 px-1.5 py-0.5 rounded'>DNF</span>
+                      ) : (
+                        <span className='text-sm font-medium text-gray-900'>
+                          {formatBenchmarkResult(entry, selectedBenchmark?.type)}
+                        </span>
+                      )}
                     </td>
                     <td className='px-1 py-2.5 text-center'>
                       <div className='flex items-center justify-center gap-0.5 flex-wrap'>

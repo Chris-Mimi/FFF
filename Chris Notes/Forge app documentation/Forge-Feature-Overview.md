@@ -108,6 +108,7 @@ There's no app-switching, no spreadsheets, no whiteboards that get erased. Just 
 
 - **Per-workout leaderboards** — see how you stack up against other athletes, ranked by time, reps, or weight. Selecting a section chip shows the full workout description so you always know exactly what you're scoring
 - **Intelligent ranking** — proper tie-breaking, scaling-level separation, and multi-track support (Track 1/2/3 badges)
+- **DNF support** — mark an athlete as "Did Not Finish" with a single tap. DNF entries still appear on the leaderboard (so partial efforts are recognised) but always rank below athletes who completed the workout
 - **Smart grouping** — same-named workouts within 60 days are automatically grouped, showing each athlete's best result across sessions
 - **Gender filtering** — toggle between All, Male, and Female views with re-ranked positions
 
@@ -139,8 +140,10 @@ There's no app-switching, no spreadsheets, no whiteboards that get erased. Just 
 |------|-------|--------------|
 | **Free Member** | €0 | Class booking |
 | **10-Card Pass** | €150 | 10 drop-in sessions |
-| **Athlete Monthly** | €7.50/mo | Full athlete features (logbook, records, leaderboards, achievements, timer, notifications) |
-| **Athlete Yearly** | €75/yr | Same as monthly — save €15 |
+| **Athlete Monthly (Members)** | €8/mo | Full athlete features (logbook, records, leaderboards, achievements, timer, notifications) |
+| **Athlete Yearly (Members)** | €85/yr | Same as monthly — save €11 |
+| **Athlete Monthly (Wellpass)** | €10/mo | Full athlete features |
+| **Athlete Yearly (Wellpass)** | €100/yr | Same as monthly — save €20 |
 
 - Secure payments via **Stripe**
 - 1-month free trial for new athletes

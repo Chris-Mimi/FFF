@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 137.0
-**Updated:** 2026-04-12 (Session 268 - Rx(M) Masters scaling level)
+**Version:** 138.0
+**Updated:** 2026-04-13 (Session 269 - DNF feature + workout_name trim fix)
 
 ---
 
@@ -88,27 +88,24 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-04-13 Session 269 - Opus 4.6) — DNF FEATURE + WORKOUT NAME TRIM:**
+- **✅ DNF (Did Not Finish)** — New `dnf` boolean on `wod_section_results`. Toggle button in coach score entry (next to athlete name) and athlete logbook (end of scoring inputs). DNF entries always rank last on leaderboard. Red "DNF" badge replaces score value.
+- **✅ Workout name trim fix** — Trailing whitespace in `workout_name` caused leaderboard results not to merge. Fix: trim on save (`useWODOperations.ts`), trim on leaderboard grouping key + query (`LeaderboardView.tsx`). SQL provided to clean existing data.
+- **✅ 2-tier payment plan written** — Detailed plan in `Chris Notes/Forge app documentation/2-tier-payment-plan.md`. Members €8/€85, Wellpass €10/€100. On hold for next session.
+- **Files changed:** 14 files (12 for DNF, 2 for trim fix). Migration: `20260413000000_add_dnf_column.sql`.
+
 **Completed (2026-04-12 Session 268 - Opus 4.6) — RX(M) MASTERS SCALING LEVEL:**
 - **✅ Added Rx(M) scaling level** — New "Masters" Rx option across all scaling dropdowns (logbook, benchmarks, forge benchmarks, movement results). Ranks identically to Rx (value 0). Stored as `'Rx(M)'` in database.
 - **✅ Display** — Leaderboard badges show "Rx" with small superscript "M", green badge (same as Rx). Share cards, PR chart dots, records tab all treat Rx(M) as Rx for colors.
-- **✅ Filters** — "Rx" filter includes Rx(M) results. "Scaled" filter excludes them.
-- **✅ Best time grouping** — Rx(M) grouped with Rx in benchmark history charts.
 - **Files changed:** 13 files across dropdowns, type unions, ranking, display, and filters.
 
 **Completed (2026-04-07 Session 267 - Opus 4.6) — NULL SCALING RANKING FIX:**
-- **✅ Fixed null/blank scaling ranking** — Athletes with missing scaling levels (e.g., didn't attempt a movement) were treated as Rx (score 0), ranking them above athletes who completed all movements at Sc2. Fix: null scaling now scores 4 (worse than Sc3=3). Applied to both `rankBenchmarkResults` and `rankSectionResults`.
-- **Example:** Sandra (Rx+Rx+blank = score 4) now correctly ranks below MichaelJ (Sc2+Rx+Rx = score 2).
-- **Session 266 fixes still in place** — Tabata type recognition, data-based fallback, validity filter, Time Cap label fix.
-- **Stale snapshot issue still deferred** — WOD JSON stores benchmark type at time of creation.
+- **✅ Fixed null/blank scaling ranking** — null scaling now scores 4 (worse than Sc3=3). Applied to both `rankBenchmarkResults` and `rankSectionResults`.
 
 **Completed (2026-04-02 Session 265 - Opus 4.6) — CONFIGURE MODAL MOBILE FIX:**
-- **✅ Configure Benchmark/Forge Benchmark/Lift modals now visible on mobile** — All three modals had hardcoded pixel positions (x:820/790) pushing them off-screen on mobile. On mobile (< 768px), modals now render as fullscreen overlays. Desktop behavior unchanged.
-- **⚠️ Not yet tested on Android** — Dev server had issues during session, needs verification.
+- **✅ Configure Benchmark/Forge Benchmark/Lift modals now visible on mobile** — fullscreen overlays on < 768px.
 
-**Completed (2026-04-01 Session 264 - Opus 4.6) — BOOKING PAGE UX FIX:**
-- **✅ Back button visibility** — Booking page "Back" button renamed to "Athlete App" and made visible on mobile (was hidden, only showing chevron icon). Beta testers couldn't find their way back to the athlete app.
-
-**Older Sessions (57-263):**
+**Older Sessions (57-264):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -209,6 +206,9 @@ npm run restore 2025-12-06  # Restore specific date
 ---
 
 ## 📋 Next Immediate Steps
+
+### NEXT SESSION
+1. **2-tier payment system** — Implement Members (€8/€85) + Wellpass (€10/€100) pricing. Plan: `Chris Notes/Forge app documentation/2-tier-payment-plan.md`. Chris needs to create 2 Stripe products first (instructions in plan file).
 
 ### BACKLOG
 1. **April 13 reminder:** Verify Stripe trial payment processed for test athlete.

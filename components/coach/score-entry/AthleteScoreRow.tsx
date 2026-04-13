@@ -45,9 +45,21 @@ export default function AthleteScoreRow({
   const trackValue = currentValues.track || '';
 
   return (
-    <div className="flex items-center gap-3 py-2 px-3 border-b border-gray-100 hover:bg-gray-50/50">
+    <div className={`flex items-center gap-3 py-2 px-3 border-b border-gray-100 ${currentValues.dnf ? 'bg-red-50/50' : 'hover:bg-gray-50/50'}`}>
       <div className={`${scoringFields.track ? 'w-36 min-w-[9rem]' : 'w-24 min-w-[6rem]'} flex items-center gap-1.5`}>
         <span className="text-sm font-medium text-gray-800 truncate">{athleteName}</span>
+        <button
+          type="button"
+          onClick={() => onChange(athleteId, sectionId, { dnf: !currentValues.dnf })}
+          className={`flex-shrink-0 text-[9px] font-bold px-1 py-0.5 rounded transition-colors ${
+            currentValues.dnf
+              ? 'bg-red-500 text-white'
+              : 'bg-gray-100 text-gray-300 hover:bg-gray-200 hover:text-gray-500'
+          }`}
+          title="Did Not Finish"
+        >
+          DNF
+        </button>
         {scoringFields.track && (
           <div className="flex gap-0.5 flex-shrink-0">
             {['1', '2', '3'].map((t) => (
@@ -88,6 +100,7 @@ export default function AthleteScoreRow({
             if (scoringFields.calories && previousValues.calories_result) updates.calories_result = previousValues.calories_result;
             if (scoringFields.metres && previousValues.metres_result) updates.metres_result = previousValues.metres_result;
             if (scoringFields.checkbox) updates.task_completed = previousValues.task_completed;
+            if (previousValues.dnf) updates.dnf = previousValues.dnf;
             onChange(athleteId, sectionId, updates);
           }}
           className="w-5 h-5 flex items-center justify-center text-gray-300 hover:text-[#178da6] hover:bg-gray-100 rounded transition-colors flex-shrink-0"

@@ -38,6 +38,7 @@ interface ScoringFieldInputsProps {
     calories_result?: string;
     metres_result?: string;
     task_completed?: boolean;
+    dnf?: boolean;
     scaling_level?: 'Rx' | 'Rx(M)' | 'Sc1' | 'Sc2' | 'Sc3' | '';
     scaling_level_2?: 'Rx' | 'Rx(M)' | 'Sc1' | 'Sc2' | 'Sc3' | '';
     scaling_level_3?: 'Rx' | 'Rx(M)' | 'Sc1' | 'Sc2' | 'Sc3' | '';
@@ -388,6 +389,21 @@ export default function ScoringFieldInputs({
           <span>✓</span>
         </label>
       )}
+
+      {/* DNF Toggle */}
+      <button
+        type='button'
+        onClick={() => !disabled && onChange({ dnf: !values.dnf })}
+        className={`flex-shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded transition-colors ${
+          values.dnf
+            ? 'bg-red-500 text-white'
+            : 'bg-gray-100 text-gray-300 hover:bg-gray-200 hover:text-gray-500'
+        } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+        title='Did Not Finish'
+        disabled={disabled}
+      >
+        DNF
+      </button>
     </div>
   );
 }
