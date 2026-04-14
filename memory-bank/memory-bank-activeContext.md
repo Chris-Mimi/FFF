@@ -88,9 +88,13 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
-**Completed (2026-04-14 Session 271 - Opus 4.6) — PAYMENT FAILED WEBHOOK FIX:**
+**Completed (2026-04-14 Session 271 - Opus 4.6) — PAYMENT FAILED WEBHOOK FIX + UI + COACH NOTIFICATION:**
 - **✅ Fixed `handlePaymentFailed`** — Was only updating `subscriptions` table to `past_due`, now also updates `members.athlete_subscription_status`. Athletes lose app access on failed payment, regain it automatically when Stripe retry succeeds.
 - **✅ Added `past_due` status** — New status across type system (4 files): `Member` type, `PaymentStatus` interface, `TenCardModal`, coach dropdown. `getTrialStatus()` shows "Payment Failed" for coaches.
+- **✅ Payment Failed UI** — UpgradePrompt shows amber "Payment Failed" screen (instead of generic subscribe prompt) when `past_due`. Tells athlete to check Stripe email, notes access restores automatically.
+- **✅ Coach push notification** — `notifyPaymentFailed()` in `lib/notifications.ts`, called from webhook. Coaches get push: "[Name]'s subscription payment failed."
+- **✅ Stripe email recovery enabled** — Dashboard: revenue recovery emails on failed card payments + expiring card emails, both linking to Stripe hosted page. Smart Retries on, cancel subscription after all retries fail.
+- **✅ DB constraint updated** — `members_athlete_subscription_status_check` now includes `past_due`. Athlete Test 1 manually set to `past_due` for testing.
 
 **Completed (2026-04-13 Session 270 - Opus 4.6) — 2-TIER PAYMENT SYSTEM:**
 - **✅ 2-tier pricing implemented** — Members (€8/mo, €85/yr) + Wellpass (€10/mo, €100/yr). Replaces old single-tier €7.50/€75.
@@ -106,10 +110,7 @@ Social Tables
 **Completed (2026-04-12 Session 268 - Opus 4.6) — RX(M) MASTERS SCALING LEVEL:**
 - **✅ Added Rx(M) scaling level** — 13 files. Ranks identically to Rx.
 
-**Completed (2026-04-07 Session 267 - Opus 4.6) — NULL SCALING RANKING FIX:**
-- **✅ Fixed null/blank scaling ranking** — null scaling now scores 4 (worse than Sc3=3).
-
-**Older Sessions (57-265):**
+**Older Sessions (57-267):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -213,8 +214,8 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION
-1. **Deploy 2-tier payment** — Run migration in Supabase, update 4 Vercel env vars, remove 2 old vars, redeploy. Test all 4 checkout flows.
-2. **Athlete Test 1** — After deploy, manually set `athlete_subscription_status` to `past_due` in Supabase (webhook wasn't handling it when the Apr 12 failure occurred). Or trigger another failed retry to test the new webhook code.
+1. **Verify Session 271 deploy** — Check Athlete Test 1 shows "Payment Failed" screen (not generic UpgradePrompt). Test coach push notification works. Verify coach Members page shows "Payment Failed" status.
+2. **Deploy 2-tier payment** — Run migration in Supabase, update 4 Vercel env vars, remove 2 old vars, redeploy. Test all 4 checkout flows.
 
 ### DEPLOYMENT (Session 158+)
 

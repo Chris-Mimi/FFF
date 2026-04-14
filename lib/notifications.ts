@@ -216,3 +216,18 @@ export async function notifyScoreQuery(athleteName: string, workoutName: string,
     console.error('notifyScoreQuery failed:', err)
   );
 }
+
+/**
+ * Notify coaches that a member's payment has failed.
+ */
+export function notifyPaymentFailed(memberName: string): void {
+  const payload: PushPayload = {
+    title: 'Payment Failed',
+    body: `${memberName}'s subscription payment failed. Stripe will retry automatically.`,
+    data: { url: '/coach/members', type: 'payment_failed' },
+  };
+
+  sendToCoaches(payload, 'payment_failed').catch((err) =>
+    console.error('notifyPaymentFailed failed:', err)
+  );
+}

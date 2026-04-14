@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { stripe, getTierFromPriceId, getPlanTypeFromPriceId } from '@/lib/stripe';
+import { notifyPaymentFailed } from '@/lib/notifications';
 import Stripe from 'stripe';
 
 // Use service role for admin operations
@@ -342,5 +343,8 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
         updated_at: now.toISOString(),
       })
       .eq('id', member.id);
+
+    // Notify coaches about the failed payment
+    notifyPaymentFailed(member.name);
   }
 }

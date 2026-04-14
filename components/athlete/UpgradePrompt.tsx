@@ -1,12 +1,44 @@
 'use client';
 
-import { CreditCard, CheckCircle } from 'lucide-react';
+import { CreditCard, CheckCircle, AlertTriangle } from 'lucide-react';
 
 interface UpgradePromptProps {
   onNavigateToPayment: () => void;
+  isPastDue?: boolean;
 }
 
-export default function UpgradePrompt({ onNavigateToPayment }: UpgradePromptProps) {
+export default function UpgradePrompt({ onNavigateToPayment, isPastDue }: UpgradePromptProps) {
+  if (isPastDue) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 px-4">
+        <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 text-center">
+          <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <AlertTriangle className="w-8 h-8 text-amber-600" />
+          </div>
+
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">
+            Payment Failed
+          </h2>
+
+          <p className="text-gray-600 mb-6">
+            Your last payment could not be processed. Please check your email for a message from Stripe and update your payment method.
+          </p>
+
+          <p className="text-sm text-gray-500 mb-6">
+            Your access will be restored automatically once the payment is successful.
+          </p>
+
+          <button
+            onClick={onNavigateToPayment}
+            className="w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+          >
+            View Payment Details
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const benefits = [
     'Track your daily workout results',
     'Log and monitor your lift PRs',

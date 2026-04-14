@@ -74,6 +74,7 @@ function AthletePageContent() {
   const [familyMembers, setFamilyMembers] = useState<Array<{id: string, display_name: string, relationship: string}>>([]);
   const [selectedProfileName, setSelectedProfileName] = useState('');
   const [hasFullAccess, setHasFullAccess] = useState(false);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null);
   const tabsNavRef = useRef<HTMLDivElement>(null);
 
   // Check if tabs need scrolling + track scroll position for fade indicators
@@ -153,6 +154,7 @@ function AthletePageContent() {
         let fullAccess = !!member.is_beta_tester;
         if (!fullAccess && !rpcError && subscriptionData && subscriptionData.length > 0) {
           const { subscription_status, subscription_end } = subscriptionData[0];
+          setSubscriptionStatus(subscription_status);
           const now = new Date();
           const trialEnd = subscription_end ? new Date(subscription_end) : null;
           fullAccess =
@@ -221,7 +223,7 @@ function AthletePageContent() {
     // Check if current tab requires full access
     const currentTab = tabs.find(t => t.id === activeTab);
     if (currentTab?.requiresFullAccess && !hasFullAccess) {
-      return <UpgradePrompt onNavigateToPayment={() => setActiveTab('payment')} />;
+      return <UpgradePrompt onNavigateToPayment={() => setActiveTab('payment')} isPastDue={subscriptionStatus === 'past_due'} />;
     }
 
     switch (activeTab) {
