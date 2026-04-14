@@ -93,6 +93,7 @@ Social Tables
 - **✅ Widened name column** — Coach score entry name column expanded (w-24→w-32, w-36→w-44) so names aren't covered by DNF button.
 - **✅ Added whiteboard names** — Moritz (M) and Bettina (F) added to `WHITEBOARD_GENDERS` map.
 - **✅ Leaderboard dropdown styling** — Workout selector dropdown changed from grey to dark teal (`bg-[#0b4f5c]`) with white divider lines to differentiate from workout content.
+- **✅ Custom benchmark dropdown** — Replaced native `<select>` with custom `BenchmarkDropdown` component (matching WodDropdown pattern) for better mobile experience.
 
 **Completed (2026-04-14 Session 274 - Opus 4.6) — AUTO-EXPIRE TRIALS:**
 - **✅ Auto-expire trials** — `useMemberData` hook now auto-expires trial members past their end date when coach loads Members page. DB column updated via existing API.

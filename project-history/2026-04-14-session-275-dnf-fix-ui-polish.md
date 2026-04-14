@@ -21,8 +21,13 @@
 - **Fix:** Changed to dark teal (`bg-[#0b4f5c]`) with white divider lines (`divide-white/20`), hover state `bg-[#0e6270]`.
 - File: `components/athlete/LeaderboardView.tsx`
 
+### 5. Custom Benchmark Dropdown
+- **Problem:** Native `<select>` for benchmark picker was too large on mobile (OS-rendered).
+- **Fix:** Replaced with custom `BenchmarkDropdown` component matching `WodDropdown` pattern — dark teal, grouped Standard/Forge sections with headers, scrollable `max-h-60`.
+- File: `components/athlete/LeaderboardView.tsx`
+
 ## Files Changed
 - `components/athlete/logbook/ScoringFieldInputs.tsx` — added `hideDnf` prop
 - `components/coach/score-entry/AthleteScoreRow.tsx` — pass `hideDnf`, wider name column
 - `utils/leaderboard-utils.ts` — Moritz + Bettina whiteboard genders
-- `components/athlete/LeaderboardView.tsx` — dropdown dark teal styling
+- `components/athlete/LeaderboardView.tsx` — dropdown dark teal styling + custom benchmark dropdown

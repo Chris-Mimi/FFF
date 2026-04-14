@@ -314,6 +314,75 @@ function formatWodSummary(sections: WodSection[], workoutTypesMap: Map<string, s
   return dur ? ` | ${typeName} (${dur}')` : ` | ${typeName}`;
 }
 
+function BenchmarkDropdown({ benchmarks, selectedBenchmark, onSelect }: {
+  benchmarks: BenchmarkOption[];
+  selectedBenchmark: BenchmarkOption | null;
+  onSelect: (bm: BenchmarkOption) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [open]);
+
+  const standardBenchmarks = benchmarks.filter(b => b.source === 'standard');
+  const forgeBenchmarks = benchmarks.filter(b => b.source === 'forge');
+
+  return (
+    <div ref={ref} className='relative'>
+      <button
+        onClick={() => setOpen(!open)}
+        className='w-full px-3 py-2 bg-[#178da6] rounded-lg text-sm text-white text-left flex items-center justify-between'
+      >
+        <span className='truncate'>{selectedBenchmark ? `${selectedBenchmark.name} (${selectedBenchmark.type})` : 'Select benchmark'}</span>
+        <ChevronDown size={16} className={`ml-2 flex-shrink-0 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className='absolute z-50 top-full left-0 right-0 mt-1 bg-[#0b4f5c] rounded-lg shadow-lg max-h-60 overflow-y-auto divide-y divide-white/20'>
+          {standardBenchmarks.length > 0 && (
+            <>
+              <div className='px-3 py-1.5 text-[10px] font-semibold text-white/60 uppercase tracking-wider'>Standard Benchmarks</div>
+              {standardBenchmarks.map(b => (
+                <button
+                  key={b.id}
+                  onClick={() => { onSelect(b); setOpen(false); }}
+                  className={`w-full px-3 py-2 text-left text-xs transition ${
+                    selectedBenchmark?.id === b.id ? 'bg-[#178da6] text-white font-medium' : 'text-white hover:bg-[#0e6270]'
+                  }`}
+                >
+                  {b.name} ({b.type})
+                </button>
+              ))}
+            </>
+          )}
+          {forgeBenchmarks.length > 0 && (
+            <>
+              <div className='px-3 py-1.5 text-[10px] font-semibold text-white/60 uppercase tracking-wider'>Forge Benchmarks</div>
+              {forgeBenchmarks.map(b => (
+                <button
+                  key={b.id}
+                  onClick={() => { onSelect(b); setOpen(false); }}
+                  className={`w-full px-3 py-2 text-left text-xs transition ${
+                    selectedBenchmark?.id === b.id ? 'bg-[#178da6] text-white font-medium' : 'text-white hover:bg-[#0e6270]'
+                  }`}
+                >
+                  {b.name} ({b.type})
+                </button>
+              ))}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function WodDropdown({ wods, selectedWodId, workoutTypesMap, onSelect }: {
   wods: WodData[];
   selectedWodId: string | null;
@@ -1355,29 +1424,7 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
   return (
     <div className='space-y-3'>
       {/* Benchmark picker */}
-      <select
-        value={selectedBenchmark?.name || ''}
-        onChange={e => {
-          const bm = benchmarks.find(b => b.name === e.target.value);
-          if (bm) setSelectedBenchmark(bm);
-        }}
-        className='w-full px-3 py-2 bg-[#178da6] rounded-lg text-sm text-white'
-      >
-        {benchmarks.length > 0 && (
-          <>
-            <optgroup label='Standard Benchmarks'>
-              {benchmarks.filter(b => b.source === 'standard').map(b => (
-                <option key={b.id} value={b.name}>{b.name} ({b.type})</option>
-              ))}
-            </optgroup>
-            <optgroup label='Forge Benchmarks'>
-              {benchmarks.filter(b => b.source === 'forge').map(b => (
-                <option key={b.id} value={b.name}>{b.name} ({b.type})</option>
-              ))}
-            </optgroup>
-          </>
-        )}
-      </select>
+      <BenchmarkDropdown benchmarks={benchmarks} selectedBenchmark={selectedBenchmark} onSelect={setSelectedBenchmark} />
 
       {/* Benchmark description */}
       {selectedBenchmark?.description?.trim() && (
