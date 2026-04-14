@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 142.0
-**Updated:** 2026-04-14 (Session 274 - auto-expire trials)
+**Version:** 143.0
+**Updated:** 2026-04-14 (Session 275 - DNF fix + UI polish)
 
 ---
 
@@ -88,6 +88,12 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-04-14 Session 275 - Opus 4.6) — DNF FIX + UI POLISH:**
+- **✅ Fixed duplicate DNF button** — `ScoringFieldInputs` had its own DNF button + `AthleteScoreRow` had another. Added `hideDnf` prop, coach score row now hides the nested one.
+- **✅ Widened name column** — Coach score entry name column expanded (w-24→w-32, w-36→w-44) so names aren't covered by DNF button.
+- **✅ Added whiteboard names** — Moritz (M) and Bettina (F) added to `WHITEBOARD_GENDERS` map.
+- **✅ Leaderboard dropdown styling** — Workout selector dropdown changed from grey to dark teal (`bg-[#0b4f5c]`) with white divider lines to differentiate from workout content.
+
 **Completed (2026-04-14 Session 274 - Opus 4.6) — AUTO-EXPIRE TRIALS:**
 - **✅ Auto-expire trials** — `useMemberData` hook now auto-expires trial members past their end date when coach loads Members page. DB column updated via existing API.
 - **✅ Explicit "Expired" status** — `getTrialStatus()` now returns "Expired" for `expired` status (was "No access").
@@ -110,8 +116,8 @@ Social Tables
 - **✅ Payment Failed UI** — Amber UpgradePrompt + coach "Payment Failed" status.
 - **✅ Coach push notification** — `notifyPaymentFailed()` in `lib/notifications.ts`.
 
-**Completed (2026-04-13 Session 270 - Opus 4.6) — 2-TIER PAYMENT SYSTEM:**
-- **✅ 2-tier pricing** — Forge Members + Wellpass Members. 11 files, migration, deployed.
+**Older Sessions (57-270):**
+See `project-history/` folder for detailed implementation history
 
 **Older Sessions (57-269):**
 See `project-history/` folder for detailed implementation history
@@ -217,10 +223,7 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION
-- ✅ **Deploy Session 274** — Pushed, Vercel auto-deployed.
-- ✅ **SQL cleanup** — Removed stale `trial` from `membership_types` arrays.
-- ✅ **Assigned Mb or Wp** to all active members in Supabase.
-- ✅ **Athlete Test 1** — `athlete_subscription_status` stays `past_due` (correct per Session 271 webhook fix).
+- **Deploy Session 275** — Push and verify DNF fix + leaderboard dropdown styling.
 
 ### DEPLOYMENT (Session 158+)
 

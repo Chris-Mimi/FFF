@@ -347,7 +347,7 @@ function WodDropdown({ wods, selectedWodId, workoutTypesMap, onSelect }: {
         <ChevronDown size={16} className={`ml-2 flex-shrink-0 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
-        <div className='absolute z-50 top-full left-0 right-0 mt-1 bg-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto divide-y divide-gray-500'>
+        <div className='absolute z-50 top-full left-0 right-0 mt-1 bg-[#0b4f5c] rounded-lg shadow-lg max-h-60 overflow-y-auto divide-y divide-white/20'>
           {wods.map(w => {
             const dayLabel = new Date(w.date + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short' });
             const isSelected = w.id === selectedWodId;
@@ -356,7 +356,7 @@ function WodDropdown({ wods, selectedWodId, workoutTypesMap, onSelect }: {
                 key={w.id}
                 onClick={() => { onSelect(w.id); setOpen(false); }}
                 className={`w-full px-3 py-2 text-left text-xs transition ${
-                  isSelected ? 'bg-[#178da6] text-white font-medium' : 'text-white hover:bg-gray-500'
+                  isSelected ? 'bg-[#178da6] text-white font-medium' : 'text-white hover:bg-[#0e6270]'
                 }`}
               >
                 {dayLabel} – {w.session_type || w.title}{w.workout_name ? ` - ${w.workout_name}` : ''}{formatWodSummary(w.sections, workoutTypesMap)}

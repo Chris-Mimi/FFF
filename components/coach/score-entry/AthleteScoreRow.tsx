@@ -46,7 +46,7 @@ export default function AthleteScoreRow({
 
   return (
     <div className={`flex items-center gap-3 py-2 px-3 border-b border-gray-100 ${currentValues.dnf ? 'bg-red-50/50' : 'hover:bg-gray-50/50'}`}>
-      <div className={`${scoringFields.track ? 'w-36 min-w-[9rem]' : 'w-24 min-w-[6rem]'} flex items-center gap-1.5`}>
+      <div className={`${scoringFields.track ? 'w-44 min-w-[11rem]' : 'w-32 min-w-[8rem]'} flex items-center gap-1.5`}>
         <span className="text-sm font-medium text-gray-800 truncate">{athleteName}</span>
         <button
           type="button"
@@ -131,6 +131,7 @@ export default function AthleteScoreRow({
           onChange={(updates) => onChange(athleteId, sectionId, updates as Partial<AthleteScoreValues>)}
           showLabel={false}
           athleteIndex={athleteIndex}
+          hideDnf
         />
       </div>
     </div>

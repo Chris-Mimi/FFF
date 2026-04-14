@@ -48,6 +48,7 @@ interface ScoringFieldInputsProps {
   showLabel?: boolean;
   athleteIndex?: number;
   disabled?: boolean;
+  hideDnf?: boolean;
 }
 
 export default function ScoringFieldInputs({
@@ -58,6 +59,7 @@ export default function ScoringFieldInputs({
   showLabel = true,
   athleteIndex,
   disabled = false,
+  hideDnf = false,
 }: ScoringFieldInputsProps) {
   // Detect "Time + AMRAP" scenario: both time and reps/rounds shown simultaneously
   const isTimeAmrap = !!scoringFields.time_amrap && !!scoringFields.time && (!!scoringFields.reps || !!scoringFields.rounds_reps);
@@ -391,19 +393,21 @@ export default function ScoringFieldInputs({
       )}
 
       {/* DNF Toggle */}
-      <button
-        type='button'
-        onClick={() => !disabled && onChange({ dnf: !values.dnf })}
-        className={`flex-shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded transition-colors ${
-          values.dnf
-            ? 'bg-red-500 text-white'
-            : 'bg-gray-100 text-gray-300 hover:bg-gray-200 hover:text-gray-500'
-        } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-        title='Did Not Finish'
-        disabled={disabled}
-      >
-        DNF
-      </button>
+      {!hideDnf && (
+        <button
+          type='button'
+          onClick={() => !disabled && onChange({ dnf: !values.dnf })}
+          className={`flex-shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded transition-colors ${
+            values.dnf
+              ? 'bg-red-500 text-white'
+              : 'bg-gray-100 text-gray-300 hover:bg-gray-200 hover:text-gray-500'
+          } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+          title='Did Not Finish'
+          disabled={disabled}
+        >
+          DNF
+        </button>
+      )}
     </div>
   );
 }
