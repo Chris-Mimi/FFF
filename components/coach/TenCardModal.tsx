@@ -17,7 +17,7 @@ interface TenCardModalProps {
     ten_card_sessions_used: number;
     ten_card_total?: number;
     ten_card_expiry_date?: string | null;
-    athlete_subscription_status?: 'trial' | 'active' | 'expired';
+    athlete_subscription_status?: 'trial' | 'active' | 'past_due' | 'expired';
     athlete_subscription_end?: string | null;
   } | null;
   onUpdate: () => void;
@@ -46,7 +46,7 @@ export default function TenCardModal({
   });
 
   // Subscription state
-  const [subscriptionStatus, setSubscriptionStatus] = useState<'trial' | 'active' | 'expired'>(
+  const [subscriptionStatus, setSubscriptionStatus] = useState<'trial' | 'active' | 'past_due' | 'expired'>(
     member?.athlete_subscription_status || 'expired'
   );
   const [subscriptionEnd, setSubscriptionEnd] = useState(() => {
@@ -354,12 +354,13 @@ export default function TenCardModal({
                   </label>
                   <select
                     value={subscriptionStatus}
-                    onChange={(e) => setSubscriptionStatus(e.target.value as 'trial' | 'active' | 'expired')}
+                    onChange={(e) => setSubscriptionStatus(e.target.value as 'trial' | 'active' | 'past_due' | 'expired')}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                   >
                     <option value="expired">Expired / None</option>
                     <option value="trial">Trial</option>
                     <option value="active">Active (Paid)</option>
+                    <option value="past_due">Payment Failed</option>
                   </select>
                 </div>
 

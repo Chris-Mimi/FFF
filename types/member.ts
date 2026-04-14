@@ -14,7 +14,7 @@ export interface Member {
   account_type: 'primary' | 'family_member';
   primary_member_id: string | null;
   athlete_trial_start: string | null;
-  athlete_subscription_status: 'trial' | 'active' | 'expired';
+  athlete_subscription_status: 'trial' | 'active' | 'past_due' | 'expired';
   athlete_subscription_end: string | null;
   subscription_plan_type: 'monthly' | 'yearly' | null;
   subscription_tier: 'member' | 'wellpass' | null;
@@ -97,6 +97,9 @@ export const getTrialStatus = (member: Member) => {
     if (member.subscription_plan_type === 'monthly') return `Active — ${tierLabel} (Monthly)`;
     if (member.subscription_plan_type === 'yearly') return `Active — ${tierLabel} (Yearly)`;
     return 'Active';
+  }
+  if (member.athlete_subscription_status === 'past_due') {
+    return 'Payment Failed';
   }
   return 'No access';
 };

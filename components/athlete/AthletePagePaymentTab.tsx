@@ -6,7 +6,7 @@ import { CreditCard, Calendar, Package, ExternalLink, Loader2, CheckCircle, Aler
 import { useEffect, useState } from 'react';
 
 interface PaymentStatus {
-  subscriptionStatus: 'active' | 'trial' | 'expired' | null;
+  subscriptionStatus: 'active' | 'trial' | 'past_due' | 'expired' | null;
   subscriptionEnd: string | null;
   subscriptionPlanType: 'monthly' | 'yearly' | null;
   subscriptionTier: 'member' | 'wellpass' | null;

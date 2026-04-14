@@ -320,6 +320,8 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
     return;
   }
 
+  const now = new Date();
+
   // Update subscription status to past_due if it's a subscription invoice
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const inv = invoice as any;
@@ -328,8 +330,17 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
       .from('subscriptions')
       .update({
         status: 'past_due',
-        updated_at: new Date().toISOString(),
+        updated_at: now.toISOString(),
       })
       .eq('stripe_subscription_id', inv.subscription as string);
+
+    // Also update member status so athlete app access reflects the failed payment
+    await supabaseAdmin
+      .from('members')
+      .update({
+        athlete_subscription_status: 'past_due',
+        updated_at: now.toISOString(),
+      })
+      .eq('id', member.id);
   }
 }

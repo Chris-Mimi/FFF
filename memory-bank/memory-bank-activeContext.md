@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 139.0
-**Updated:** 2026-04-13 (Session 270 - 2-tier payment system)
+**Version:** 140.0
+**Updated:** 2026-04-14 (Session 271 - payment failed webhook fix)
 
 ---
 
@@ -88,6 +88,10 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-04-14 Session 271 - Opus 4.6) — PAYMENT FAILED WEBHOOK FIX:**
+- **✅ Fixed `handlePaymentFailed`** — Was only updating `subscriptions` table to `past_due`, now also updates `members.athlete_subscription_status`. Athletes lose app access on failed payment, regain it automatically when Stripe retry succeeds.
+- **✅ Added `past_due` status** — New status across type system (4 files): `Member` type, `PaymentStatus` interface, `TenCardModal`, coach dropdown. `getTrialStatus()` shows "Payment Failed" for coaches.
+
 **Completed (2026-04-13 Session 270 - Opus 4.6) — 2-TIER PAYMENT SYSTEM:**
 - **✅ 2-tier pricing implemented** — Members (€8/mo, €85/yr) + Wellpass (€10/mo, €100/yr). Replaces old single-tier €7.50/€75.
 - **✅ Stripe products created** — 2 new products with 4 prices in live Stripe dashboard. Old product can be archived.
@@ -105,10 +109,7 @@ Social Tables
 **Completed (2026-04-07 Session 267 - Opus 4.6) — NULL SCALING RANKING FIX:**
 - **✅ Fixed null/blank scaling ranking** — null scaling now scores 4 (worse than Sc3=3).
 
-**Completed (2026-04-02 Session 265 - Opus 4.6) — CONFIGURE MODAL MOBILE FIX:**
-- **✅ Configure modals visible on mobile** — fullscreen overlays on < 768px.
-
-**Older Sessions (57-264):**
+**Older Sessions (57-265):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -213,9 +214,7 @@ npm run restore 2025-12-06  # Restore specific date
 
 ### NEXT SESSION
 1. **Deploy 2-tier payment** — Run migration in Supabase, update 4 Vercel env vars, remove 2 old vars, redeploy. Test all 4 checkout flows.
-
-### BACKLOG
-1. **April 13 reminder:** Verify Stripe trial payment processed for test athlete.
+2. **Athlete Test 1** — After deploy, manually set `athlete_subscription_status` to `past_due` in Supabase (webhook wasn't handling it when the Apr 12 failure occurred). Or trigger another failed retry to test the new webhook code.
 
 ### DEPLOYMENT (Session 158+)
 
