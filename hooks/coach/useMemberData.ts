@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
+import { authFetch } from '@/lib/auth-fetch';
 import { useRouter } from 'next/navigation';
 import { MemberStatus, MembershipType, ClassType, Member, getAge } from '@/types/member';
 
@@ -186,12 +187,48 @@ export function useMemberData() {
       }
 
       setMembers(membersWithAttendance);
+
+      // Auto-expire any trials past their end date
+      autoExpireTrials(membersWithAttendance);
     } catch (error) {
       console.error('fetchMembersWithAttendance failed:', error);
       setLoading(false);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Auto-expire trials that have passed their end date
+  const expiredIdsRef = useRef<Set<string>>(new Set());
+  const autoExpireTrials = async (membersList: Member[]) => {
+    const now = new Date();
+    const expiredTrials = membersList.filter(m =>
+      m.athlete_subscription_status === 'trial' &&
+      m.athlete_subscription_end &&
+      new Date(m.athlete_subscription_end) < now &&
+      !expiredIdsRef.current.has(m.id)
+    );
+
+    if (expiredTrials.length === 0) return;
+
+    await Promise.all(expiredTrials.map(async (m) => {
+      try {
+        await authFetch('/api/members/athlete-subscription', {
+          method: 'POST',
+          body: JSON.stringify({ memberId: m.id, action: 'expire' }),
+        });
+        expiredIdsRef.current.add(m.id);
+      } catch (err) {
+        console.error('Auto-expire failed for', m.id, err);
+      }
+    }));
+
+    // Update local state
+    setMembers(prev => prev.map(m =>
+      expiredIdsRef.current.has(m.id)
+        ? { ...m, athlete_subscription_status: 'expired' }
+        : m
+    ));
   };
 
   const refreshData = () => fetchMembersWithAttendance(activeTab, attendanceTimeframe);

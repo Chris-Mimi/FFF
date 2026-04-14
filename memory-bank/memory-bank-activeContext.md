@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 141.0
-**Updated:** 2026-04-14 (Session 273 - tier-lock payment + remove PT)
+**Version:** 142.0
+**Updated:** 2026-04-14 (Session 274 - auto-expire trials)
 
 ---
 
@@ -88,6 +88,11 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-04-14 Session 274 - Opus 4.6) — AUTO-EXPIRE TRIALS:**
+- **✅ Auto-expire trials** — `useMemberData` hook now auto-expires trial members past their end date when coach loads Members page. DB column updated via existing API.
+- **✅ Explicit "Expired" status** — `getTrialStatus()` now returns "Expired" for `expired` status (was "No access").
+- **✅ Color-coded statuses** — MemberCard shows: green=active, teal=trial, amber=past_due, red=expired.
+
 **Completed (2026-04-14 Session 273 - Opus 4.6) — TIER-LOCK PAYMENT + REMOVE PT:**
 - **✅ Tier-locked payment page** — Athletes only see pricing matching their coach-assigned `membership_types` (Wellpass → Wellpass pricing, Member → Forge pricing). No type = "contact your coach" message.
 - **✅ Server-side tier validation** — Checkout API rejects requests where tier doesn't match `membership_types`.
@@ -108,11 +113,7 @@ Social Tables
 **Completed (2026-04-13 Session 270 - Opus 4.6) — 2-TIER PAYMENT SYSTEM:**
 - **✅ 2-tier pricing** — Forge Members + Wellpass Members. 11 files, migration, deployed.
 
-**Completed (2026-04-13 Session 269 - Opus 4.6) — DNF FEATURE + WORKOUT NAME TRIM:**
-- **✅ DNF (Did Not Finish)** — New `dnf` boolean on `wod_section_results`. DNF entries rank last on leaderboard.
-- **✅ Workout name trim fix** — Trailing whitespace caused leaderboard not to merge.
-
-**Older Sessions (57-268):**
+**Older Sessions (57-269):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -216,10 +217,10 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION
-1. **Deploy Session 273** — Tier-lock changes. Then test: Wellpass member sees only Wellpass pricing, Forge member sees only Forge pricing.
-2. **Assign membership types** — Set Mb or Wp on all active members before they can subscribe.
-3. **Reset Athlete Test 1** — Set `athlete_subscription_status` back from `past_due` to appropriate value after testing.
-4. **Clean up existing `trial` membership_types** — Any members with `trial` in their `membership_types` array need it removed (type no longer exists).
+1. **Deploy Session 274** — Auto-expire trials + status colors. Vercel auto-deploys from push.
+2. **Run SQL cleanup** — Remove stale `trial` from `membership_types` array: `UPDATE members SET membership_types = array_remove(membership_types, 'trial') WHERE 'trial' = ANY(membership_types);`
+3. **Assign Mb or Wp** to all active members in Supabase before they can subscribe.
+4. **Reset Athlete Test 1** — Set `athlete_subscription_status` back to NULL after testing.
 
 ### DEPLOYMENT (Session 158+)
 

@@ -138,8 +138,10 @@ export default function MemberCard({
                 <div>
                   <span className="text-gray-400">Athlete App:</span>{' '}
                   <span className={`font-medium ${
-                    member.athlete_subscription_status === 'trial' ? 'text-teal-400' :
                     member.athlete_subscription_status === 'active' ? 'text-green-400' :
+                    member.athlete_subscription_status === 'trial' ? 'text-teal-400' :
+                    member.athlete_subscription_status === 'past_due' ? 'text-amber-400' :
+                    member.athlete_subscription_status === 'expired' ? 'text-red-400' :
                     'text-gray-500'
                   }`}>
                     {getTrialStatus(member)}
