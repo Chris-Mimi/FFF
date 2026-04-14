@@ -265,7 +265,7 @@ export function useMemberData() {
 
   const getMembershipTypeCounts = () => {
     const counts: Record<MembershipType, number> = {
-      member: 0, drop_in: 0, ten_card: 0, wellpass: 0, hansefit: 0, trial: 0,
+      member: 0, drop_in: 0, ten_card: 0, wellpass: 0, hansefit: 0,
     };
     members.forEach(member => {
       member.membership_types?.forEach(type => {

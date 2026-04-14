@@ -147,6 +147,7 @@ There's no app-switching, no spreadsheets, no whiteboards that get erased. Just 
 
 - Secure payments via **Stripe**
 - 1-month free trial on monthly plans
+- Athletes only see the pricing tier matching their membership type (set by coach)
 - Self-service billing portal (update card, cancel, view invoices)
 - 10-card pass tracking with sessions remaining and expiry date
 

@@ -155,6 +155,11 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
     paymentStatus?.subscriptionEnd &&
     new Date(paymentStatus.subscriptionEnd) > new Date();
 
+  // Determine which tier the athlete is allowed to purchase based on coach-assigned membership_types
+  const isWellpass = paymentStatus?.membershipTypes?.includes('wellpass') || false;
+  const isMember = paymentStatus?.membershipTypes?.includes('member') || false;
+  const hasSubscriptionTier = isWellpass || isMember;
+
   return (
     <div className="space-y-8">
       {/* Error Banner */}
@@ -278,145 +283,157 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
           </ul>
         </div>
 
-        {/* ─── Members Tier ─── */}
-        <div className="mb-6">
-          <h3 className="text-base font-semibold text-gray-900 mb-3">Forge Members</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Members Monthly */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
-              <div className="p-5 flex flex-col flex-grow">
-                <div className="flex items-center gap-3 mb-3">
-                  <CreditCard className="text-blue-500" size={22} />
-                  <h4 className="font-semibold text-gray-900">Monthly</h4>
-                  {!hasActiveSubscription && !hasTrial && (
-                    <span className="ml-auto text-xs font-medium bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">1 month free</span>
-                  )}
+        {!hasSubscriptionTier ? (
+          /* No membership type assigned — cannot subscribe */
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 text-center">
+            <AlertCircle className="text-amber-500 mx-auto mb-3" size={32} />
+            <h3 className="font-semibold text-gray-900 mb-1">Membership type not assigned</h3>
+            <p className="text-sm text-gray-600">
+              Your coach needs to assign your membership type before you can subscribe.
+              Please contact your coach.
+            </p>
+          </div>
+        ) : isWellpass ? (
+          /* ─── Wellpass Tier ─── */
+          <div>
+            <h3 className="text-base font-semibold text-gray-900 mb-3">Wellpass Members</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Wellpass Monthly */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+                <div className="p-5 flex flex-col flex-grow">
+                  <div className="flex items-center gap-3 mb-3">
+                    <CreditCard className="text-orange-500" size={22} />
+                    <h4 className="font-semibold text-gray-900">Monthly</h4>
+                    {!hasActiveSubscription && !hasTrial && (
+                      <span className="ml-auto text-xs font-medium bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">1 month free</span>
+                    )}
+                  </div>
+                  <p className="text-3xl font-bold text-gray-900 mb-1">
+                    &euro;10
+                    <span className="text-sm font-normal text-gray-500 ml-1">/month</span>
+                  </p>
+                  <p className="text-gray-500 text-sm mb-4">Cancel anytime.</p>
+                  <button
+                    onClick={() => handlePurchase('wellpass_monthly')}
+                    disabled={!!purchasing || hasActiveSubscription}
+                    className="w-full py-3 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 mt-auto"
+                  >
+                    {purchasing === 'wellpass_monthly' ? (
+                      <Loader2 className="animate-spin" size={20} />
+                    ) : hasActiveSubscription ? (
+                      'Already Subscribed'
+                    ) : (
+                      'Start Free Trial'
+                    )}
+                  </button>
                 </div>
-                <p className="text-3xl font-bold text-gray-900 mb-1">
-                  &euro;8
-                  <span className="text-sm font-normal text-gray-500 ml-1">/month</span>
-                </p>
-                <p className="text-gray-500 text-sm mb-4">Cancel anytime.</p>
-                <button
-                  onClick={() => handlePurchase('member_monthly')}
-                  disabled={!!purchasing || hasActiveSubscription}
-                  className="w-full py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 mt-auto"
-                >
-                  {purchasing === 'member_monthly' ? (
-                    <Loader2 className="animate-spin" size={20} />
-                  ) : hasActiveSubscription ? (
-                    'Already Subscribed'
-                  ) : (
-                    'Start Free Trial'
-                  )}
-                </button>
               </div>
-            </div>
 
-            {/* Members Yearly */}
-            <div className="bg-white rounded-xl shadow-sm border-2 border-teal-500 overflow-hidden relative flex flex-col">
-              <div className="absolute top-0 right-0 bg-teal-500 text-white text-xs font-semibold px-3 py-1 rounded-bl-lg">
-                SAVE &euro;16
-              </div>
-              <div className="p-5 flex flex-col flex-grow">
-                <div className="flex items-center gap-3 mb-3">
-                  <CreditCard className="text-teal-500" size={22} />
-                  <h4 className="font-semibold text-gray-900">Yearly</h4>
+              {/* Wellpass Yearly */}
+              <div className="bg-white rounded-xl shadow-sm border-2 border-orange-500 overflow-hidden relative flex flex-col">
+                <div className="absolute top-0 right-0 bg-orange-500 text-white text-xs font-semibold px-3 py-1 rounded-bl-lg">
+                  SAVE &euro;20
                 </div>
-                <p className="text-3xl font-bold text-gray-900 mb-1">
-                  &euro;80
-                  <span className="text-sm font-normal text-gray-500 ml-1">/year</span>
-                </p>
-                <p className="text-gray-500 text-sm mb-4">
-                  &euro;6.67/month equivalent.
-                </p>
-                <button
-                  onClick={() => handlePurchase('member_yearly')}
-                  disabled={!!purchasing || hasActiveSubscription}
-                  className="w-full py-3 bg-teal-500 hover:bg-teal-600 disabled:bg-gray-300 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 mt-auto"
-                >
-                  {purchasing === 'member_yearly' ? (
-                    <Loader2 className="animate-spin" size={20} />
-                  ) : hasActiveSubscription ? (
-                    'Already Subscribed'
-                  ) : (
-                    'Subscribe Now'
-                  )}
-                </button>
+                <div className="p-5 flex flex-col flex-grow">
+                  <div className="flex items-center gap-3 mb-3">
+                    <CreditCard className="text-orange-500" size={22} />
+                    <h4 className="font-semibold text-gray-900">Yearly</h4>
+                  </div>
+                  <p className="text-3xl font-bold text-gray-900 mb-1">
+                    &euro;100
+                    <span className="text-sm font-normal text-gray-500 ml-1">/year</span>
+                  </p>
+                  <p className="text-gray-500 text-sm mb-4">
+                    &euro;8.33/month equivalent.
+                  </p>
+                  <button
+                    onClick={() => handlePurchase('wellpass_yearly')}
+                    disabled={!!purchasing || hasActiveSubscription}
+                    className="w-full py-3 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 mt-auto"
+                  >
+                    {purchasing === 'wellpass_yearly' ? (
+                      <Loader2 className="animate-spin" size={20} />
+                    ) : hasActiveSubscription ? (
+                      'Already Subscribed'
+                    ) : (
+                      'Subscribe Now'
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-
-        {/* ─── Wellpass Tier ─── */}
-        <div>
-          <h3 className="text-base font-semibold text-gray-900 mb-3">Wellpass Members</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Wellpass Monthly */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
-              <div className="p-5 flex flex-col flex-grow">
-                <div className="flex items-center gap-3 mb-3">
-                  <CreditCard className="text-orange-500" size={22} />
-                  <h4 className="font-semibold text-gray-900">Monthly</h4>
-                  {!hasActiveSubscription && !hasTrial && (
-                    <span className="ml-auto text-xs font-medium bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">1 month free</span>
-                  )}
+        ) : (
+          /* ─── Forge Members Tier ─── */
+          <div>
+            <h3 className="text-base font-semibold text-gray-900 mb-3">Forge Members</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Members Monthly */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+                <div className="p-5 flex flex-col flex-grow">
+                  <div className="flex items-center gap-3 mb-3">
+                    <CreditCard className="text-blue-500" size={22} />
+                    <h4 className="font-semibold text-gray-900">Monthly</h4>
+                    {!hasActiveSubscription && !hasTrial && (
+                      <span className="ml-auto text-xs font-medium bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">1 month free</span>
+                    )}
+                  </div>
+                  <p className="text-3xl font-bold text-gray-900 mb-1">
+                    &euro;8
+                    <span className="text-sm font-normal text-gray-500 ml-1">/month</span>
+                  </p>
+                  <p className="text-gray-500 text-sm mb-4">Cancel anytime.</p>
+                  <button
+                    onClick={() => handlePurchase('member_monthly')}
+                    disabled={!!purchasing || hasActiveSubscription}
+                    className="w-full py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 mt-auto"
+                  >
+                    {purchasing === 'member_monthly' ? (
+                      <Loader2 className="animate-spin" size={20} />
+                    ) : hasActiveSubscription ? (
+                      'Already Subscribed'
+                    ) : (
+                      'Start Free Trial'
+                    )}
+                  </button>
                 </div>
-                <p className="text-3xl font-bold text-gray-900 mb-1">
-                  &euro;10
-                  <span className="text-sm font-normal text-gray-500 ml-1">/month</span>
-                </p>
-                <p className="text-gray-500 text-sm mb-4">Cancel anytime.</p>
-                <button
-                  onClick={() => handlePurchase('wellpass_monthly')}
-                  disabled={!!purchasing || hasActiveSubscription}
-                  className="w-full py-3 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 mt-auto"
-                >
-                  {purchasing === 'wellpass_monthly' ? (
-                    <Loader2 className="animate-spin" size={20} />
-                  ) : hasActiveSubscription ? (
-                    'Already Subscribed'
-                  ) : (
-                    'Start Free Trial'
-                  )}
-                </button>
               </div>
-            </div>
 
-            {/* Wellpass Yearly */}
-            <div className="bg-white rounded-xl shadow-sm border-2 border-orange-500 overflow-hidden relative flex flex-col">
-              <div className="absolute top-0 right-0 bg-orange-500 text-white text-xs font-semibold px-3 py-1 rounded-bl-lg">
-                SAVE &euro;20
-              </div>
-              <div className="p-5 flex flex-col flex-grow">
-                <div className="flex items-center gap-3 mb-3">
-                  <CreditCard className="text-orange-500" size={22} />
-                  <h4 className="font-semibold text-gray-900">Yearly</h4>
+              {/* Members Yearly */}
+              <div className="bg-white rounded-xl shadow-sm border-2 border-teal-500 overflow-hidden relative flex flex-col">
+                <div className="absolute top-0 right-0 bg-teal-500 text-white text-xs font-semibold px-3 py-1 rounded-bl-lg">
+                  SAVE &euro;16
                 </div>
-                <p className="text-3xl font-bold text-gray-900 mb-1">
-                  &euro;100
-                  <span className="text-sm font-normal text-gray-500 ml-1">/year</span>
-                </p>
-                <p className="text-gray-500 text-sm mb-4">
-                  &euro;8.33/month equivalent.
-                </p>
-                <button
-                  onClick={() => handlePurchase('wellpass_yearly')}
-                  disabled={!!purchasing || hasActiveSubscription}
-                  className="w-full py-3 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 mt-auto"
-                >
-                  {purchasing === 'wellpass_yearly' ? (
-                    <Loader2 className="animate-spin" size={20} />
-                  ) : hasActiveSubscription ? (
-                    'Already Subscribed'
-                  ) : (
-                    'Subscribe Now'
-                  )}
-                </button>
+                <div className="p-5 flex flex-col flex-grow">
+                  <div className="flex items-center gap-3 mb-3">
+                    <CreditCard className="text-teal-500" size={22} />
+                    <h4 className="font-semibold text-gray-900">Yearly</h4>
+                  </div>
+                  <p className="text-3xl font-bold text-gray-900 mb-1">
+                    &euro;80
+                    <span className="text-sm font-normal text-gray-500 ml-1">/year</span>
+                  </p>
+                  <p className="text-gray-500 text-sm mb-4">
+                    &euro;6.67/month equivalent.
+                  </p>
+                  <button
+                    onClick={() => handlePurchase('member_yearly')}
+                    disabled={!!purchasing || hasActiveSubscription}
+                    className="w-full py-3 bg-teal-500 hover:bg-teal-600 disabled:bg-gray-300 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 mt-auto"
+                  >
+                    {purchasing === 'member_yearly' ? (
+                      <Loader2 className="animate-spin" size={20} />
+                    ) : hasActiveSubscription ? (
+                      'Already Subscribed'
+                    ) : (
+                      'Subscribe Now'
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* ─── SECTION 2: Gym Session Passes ─── */}

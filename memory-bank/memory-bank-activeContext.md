@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 140.0
-**Updated:** 2026-04-14 (Session 271 - payment failed webhook fix)
+**Version:** 141.0
+**Updated:** 2026-04-14 (Session 273 - tier-lock payment + remove PT)
 
 ---
 
@@ -88,36 +88,31 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-04-14 Session 273 - Opus 4.6) — TIER-LOCK PAYMENT + REMOVE PT:**
+- **✅ Tier-locked payment page** — Athletes only see pricing matching their coach-assigned `membership_types` (Wellpass → Wellpass pricing, Member → Forge pricing). No type = "contact your coach" message.
+- **✅ Server-side tier validation** — Checkout API rejects requests where tier doesn't match `membership_types`.
+- **✅ Removed "Pt" (Probetraining)** from `MembershipType` — one-time event before signup, not needed.
+- **✅ Activate button gated** — Coach must set Mb or Wp before activating athlete subscription. Amber hint text shown.
+
 **Completed (2026-04-14 Session 272 - Opus 4.6) — LAUNCH PREP + PRICING CHANGES:**
-- **✅ Verified Session 271 deploy** — Payment failed flow confirmed: amber UI, coach "Payment Failed" status, `notifyPaymentFailed()` exists, webhook tested via Stripe CLI (all 200s).
+- **✅ Verified Session 271 deploy** — Payment failed flow confirmed.
 - **✅ Renamed "Gym Members" → "Forge Members"** on athlete payment page.
-- **✅ No free trial on yearly subs** — Checkout API now only adds 30-day trial for monthly plans. Yearly cards show "Subscribe Now" instead of "Start Free Trial", no "1 month free" badge.
-- **✅ Member yearly price €85 → €80** — Updated UI (price, equivalent, save badge €16). New Stripe price created, Vercel env var updated.
-- **✅ Stripe CLI updated** — v1.35.1 → v1.40.5.
+- **✅ No free trial on yearly subs** — Monthly only. Yearly cards show "Subscribe Now".
+- **✅ Member yearly price €85 → €80** — New Stripe price created, Vercel env var updated.
 
 **Completed (2026-04-14 Session 271 - Opus 4.6) — PAYMENT FAILED WEBHOOK FIX + UI + COACH NOTIFICATION:**
-- **✅ Fixed `handlePaymentFailed`** — Now updates `members.athlete_subscription_status` to `past_due`.
-- **✅ Payment Failed UI** — Amber UpgradePrompt screen + coach `getTrialStatus()` shows "Payment Failed".
+- **✅ Fixed `handlePaymentFailed`** — Updates `athlete_subscription_status` to `past_due`.
+- **✅ Payment Failed UI** — Amber UpgradePrompt + coach "Payment Failed" status.
 - **✅ Coach push notification** — `notifyPaymentFailed()` in `lib/notifications.ts`.
 
 **Completed (2026-04-13 Session 270 - Opus 4.6) — 2-TIER PAYMENT SYSTEM:**
 - **✅ 2-tier pricing** — Forge Members + Wellpass Members. 11 files, migration, deployed.
 
 **Completed (2026-04-13 Session 269 - Opus 4.6) — DNF FEATURE + WORKOUT NAME TRIM:**
-- **✅ DNF (Did Not Finish)** — New `dnf` boolean on `wod_section_results`. Toggle button in coach score entry and athlete logbook. DNF entries rank last on leaderboard.
-- **✅ Workout name trim fix** — Trailing whitespace caused leaderboard not to merge. Fix: trim on save + query.
+- **✅ DNF (Did Not Finish)** — New `dnf` boolean on `wod_section_results`. DNF entries rank last on leaderboard.
+- **✅ Workout name trim fix** — Trailing whitespace caused leaderboard not to merge.
 
-**Completed (2026-04-12 Session 268 - Opus 4.6) — RX(M) MASTERS SCALING LEVEL:**
-- **✅ Added Rx(M) scaling level** — 13 files. Ranks identically to Rx.
-
-**Completed (2026-04-13 Session 269 - Opus 4.6) — DNF FEATURE + WORKOUT NAME TRIM:**
-- **✅ DNF (Did Not Finish)** — New `dnf` boolean on `wod_section_results`. Toggle button in coach score entry and athlete logbook. DNF entries rank last on leaderboard.
-- **✅ Workout name trim fix** — Trailing whitespace caused leaderboard not to merge. Fix: trim on save + query.
-
-**Completed (2026-04-12 Session 268 - Opus 4.6) — RX(M) MASTERS SCALING LEVEL:**
-- **✅ Added Rx(M) scaling level** — 13 files. Ranks identically to Rx.
-
-**Older Sessions (57-267):**
+**Older Sessions (57-268):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -221,8 +216,10 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION
-1. **Full launch week** — All payment infrastructure deployed and verified. Test checkout flows on live site after this deploy.
-2. **Reset Athlete Test 1** — Set `athlete_subscription_status` back from `past_due` to appropriate value after testing.
+1. **Deploy Session 273** — Tier-lock changes. Then test: Wellpass member sees only Wellpass pricing, Forge member sees only Forge pricing.
+2. **Assign membership types** — Set Mb or Wp on all active members before they can subscribe.
+3. **Reset Athlete Test 1** — Set `athlete_subscription_status` back from `past_due` to appropriate value after testing.
+4. **Clean up existing `trial` membership_types** — Any members with `trial` in their `membership_types` array need it removed (type no longer exists).
 
 ### DEPLOYMENT (Session 158+)
 

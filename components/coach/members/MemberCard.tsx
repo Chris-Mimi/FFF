@@ -265,41 +265,49 @@ export default function MemberCard({
             </div>
 
             {/* Athlete Subscription Management */}
-            {member.account_type === 'primary' && (
-              <div className="flex gap-2 pt-1 border-t border-gray-700">
-                {(!member.athlete_subscription_status || member.athlete_subscription_status === 'expired') && (
-                  <button
-                    onClick={() => onStartTrial(member.id, 30)}
-                    disabled={processingMemberId === member.id}
-                    className="flex items-center gap-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded transition-colors duration-200 text-xs"
-                    title="Start 30-day athlete trial"
-                  >
-                    Start Trial
-                  </button>
-                )}
-                {member.athlete_subscription_status === 'trial' && (
-                  <button
-                    onClick={() => onExtendTrial(member.id, 30)}
-                    disabled={processingMemberId === member.id}
-                    className="flex items-center gap-1 px-2 py-1 bg-teal-600 hover:bg-teal-700 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded transition-colors duration-200 text-xs"
-                    title="Add 30 days to trial"
-                  >
-                    +30d Trial
-                  </button>
-                )}
-                {(member.athlete_subscription_status === 'trial' || member.athlete_subscription_status === 'expired') && (
-                  <button
-                    onClick={() => onActivateSubscription(member.id)}
-                    disabled={processingMemberId === member.id}
-                    className="flex items-center gap-1 px-2 py-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded transition-colors duration-200 text-xs"
-                    title="Activate full subscription (no expiry)"
-                  >
-                    <Check size={12} />
-                    Activate
-                  </button>
-                )}
-              </div>
-            )}
+            {member.account_type === 'primary' && (() => {
+              const hasTierType = member.membership_types?.includes('member') || member.membership_types?.includes('wellpass');
+              return (
+                <div className="flex flex-col gap-1 pt-1 border-t border-gray-700">
+                  <div className="flex gap-2">
+                    {(!member.athlete_subscription_status || member.athlete_subscription_status === 'expired') && (
+                      <button
+                        onClick={() => onStartTrial(member.id, 30)}
+                        disabled={processingMemberId === member.id}
+                        className="flex items-center gap-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded transition-colors duration-200 text-xs"
+                        title="Start 30-day athlete trial"
+                      >
+                        Start Trial
+                      </button>
+                    )}
+                    {member.athlete_subscription_status === 'trial' && (
+                      <button
+                        onClick={() => onExtendTrial(member.id, 30)}
+                        disabled={processingMemberId === member.id}
+                        className="flex items-center gap-1 px-2 py-1 bg-teal-600 hover:bg-teal-700 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded transition-colors duration-200 text-xs"
+                        title="Add 30 days to trial"
+                      >
+                        +30d Trial
+                      </button>
+                    )}
+                    {(member.athlete_subscription_status === 'trial' || member.athlete_subscription_status === 'expired') && (
+                      <button
+                        onClick={() => onActivateSubscription(member.id)}
+                        disabled={processingMemberId === member.id || !hasTierType}
+                        className="flex items-center gap-1 px-2 py-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded transition-colors duration-200 text-xs"
+                        title={hasTierType ? 'Activate full subscription (no expiry)' : 'Set Mb or Wp membership type first'}
+                      >
+                        <Check size={12} />
+                        Activate
+                      </button>
+                    )}
+                  </div>
+                  {!hasTierType && (member.athlete_subscription_status === 'trial' || member.athlete_subscription_status === 'expired') && (
+                    <span className="text-[10px] text-amber-400">Set Mb or Wp first to activate</span>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         )}
         {activeTab === 'blocked' && (

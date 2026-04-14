@@ -40,10 +40,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Fetch member to get email and check existing customer
+    // Fetch member to get email, membership types, and check existing customer
     const { data: member, error: fetchError } = await supabaseAdmin
       .from('members')
-      .select('id, email, name, stripe_customer_id')
+      .select('id, email, name, stripe_customer_id, membership_types')
       .eq('id', memberId)
       .single();
 
@@ -59,6 +59,27 @@ export async function POST(request: NextRequest) {
         { error: 'Member email is required for payment' },
         { status: 400 }
       );
+    }
+
+    // Validate that the requested tier matches the member's assigned membership type
+    const requestedTier = getTier(productType);
+    if (requestedTier) {
+      const memberTypes: string[] = member.membership_types || [];
+      const allowedTier = memberTypes.includes('wellpass') ? 'wellpass' : memberTypes.includes('member') ? 'member' : null;
+
+      if (!allowedTier) {
+        return NextResponse.json(
+          { error: 'No membership type assigned. Please contact your coach.' },
+          { status: 403 }
+        );
+      }
+
+      if (requestedTier !== allowedTier) {
+        return NextResponse.json(
+          { error: 'Selected plan does not match your membership type' },
+          { status: 403 }
+        );
+      }
     }
 
     // Get or create Stripe customer

@@ -1,6 +1,6 @@
 export type MemberStatus = 'pending' | 'active' | 'blocked' | 'subscriptions' | 'at-risk';
 
-export type MembershipType = 'member' | 'drop_in' | 'ten_card' | 'wellpass' | 'hansefit' | 'trial';
+export type MembershipType = 'member' | 'drop_in' | 'ten_card' | 'wellpass' | 'hansefit';
 
 export type ClassType = 'ekt' | 't' | 'cfk' | 'cft';
 
@@ -37,7 +37,6 @@ export const MEMBERSHIP_TYPE_LABELS: Record<MembershipType, string> = {
   ten_card: '10',
   wellpass: 'Wp',
   hansefit: 'Hf',
-  trial: 'Pt',
 };
 
 export const MEMBERSHIP_TYPE_COLORS: Record<MembershipType, { active: string; inactive: string }> = {
@@ -46,7 +45,6 @@ export const MEMBERSHIP_TYPE_COLORS: Record<MembershipType, { active: string; in
   ten_card: { active: 'bg-purple-600 text-white', inactive: 'bg-gray-700 text-gray-300 hover:bg-purple-600/20' },
   wellpass: { active: 'bg-orange-600 text-white', inactive: 'bg-gray-700 text-gray-300 hover:bg-orange-600/20' },
   hansefit: { active: 'bg-pink-600 text-white', inactive: 'bg-gray-700 text-gray-300 hover:bg-pink-600/20' },
-  trial: { active: 'bg-amber-600 text-white', inactive: 'bg-gray-700 text-gray-300 hover:bg-amber-600/20' },
 };
 
 export const CLASS_TYPE_LABELS: Record<ClassType, string> = {
