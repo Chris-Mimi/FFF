@@ -217,10 +217,10 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION
-1. **Deploy Session 274** — Auto-expire trials + status colors. Vercel auto-deploys from push.
-2. **Run SQL cleanup** — Remove stale `trial` from `membership_types` array: `UPDATE members SET membership_types = array_remove(membership_types, 'trial') WHERE 'trial' = ANY(membership_types);`
-3. **Assign Mb or Wp** to all active members in Supabase before they can subscribe.
-4. **Reset Athlete Test 1** — Set `athlete_subscription_status` back to NULL after testing.
+- ✅ **Deploy Session 274** — Pushed, Vercel auto-deployed.
+- ✅ **SQL cleanup** — Removed stale `trial` from `membership_types` arrays.
+- ✅ **Assigned Mb or Wp** to all active members in Supabase.
+- ✅ **Athlete Test 1** — `athlete_subscription_status` stays `past_due` (correct per Session 271 webhook fix).
 
 ### DEPLOYMENT (Session 158+)
 
