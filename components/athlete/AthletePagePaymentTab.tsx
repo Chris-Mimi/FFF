@@ -280,7 +280,7 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
 
         {/* ─── Members Tier ─── */}
         <div className="mb-6">
-          <h3 className="text-base font-semibold text-gray-900 mb-3">Gym Members</h3>
+          <h3 className="text-base font-semibold text-gray-900 mb-3">Forge Members</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Members Monthly */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
@@ -316,22 +316,19 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
             {/* Members Yearly */}
             <div className="bg-white rounded-xl shadow-sm border-2 border-teal-500 overflow-hidden relative flex flex-col">
               <div className="absolute top-0 right-0 bg-teal-500 text-white text-xs font-semibold px-3 py-1 rounded-bl-lg">
-                SAVE &euro;11
+                SAVE &euro;16
               </div>
               <div className="p-5 flex flex-col flex-grow">
                 <div className="flex items-center gap-3 mb-3">
                   <CreditCard className="text-teal-500" size={22} />
                   <h4 className="font-semibold text-gray-900">Yearly</h4>
-                  {!hasActiveSubscription && !hasTrial && (
-                    <span className="ml-auto text-xs font-medium bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full">1 month free</span>
-                  )}
                 </div>
                 <p className="text-3xl font-bold text-gray-900 mb-1">
-                  &euro;85
+                  &euro;80
                   <span className="text-sm font-normal text-gray-500 ml-1">/year</span>
                 </p>
                 <p className="text-gray-500 text-sm mb-4">
-                  &euro;7.08/month equivalent.
+                  &euro;6.67/month equivalent.
                 </p>
                 <button
                   onClick={() => handlePurchase('member_yearly')}
@@ -343,7 +340,7 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
                   ) : hasActiveSubscription ? (
                     'Already Subscribed'
                   ) : (
-                    'Start Free Trial'
+                    'Subscribe Now'
                   )}
                 </button>
               </div>
@@ -395,9 +392,6 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
                 <div className="flex items-center gap-3 mb-3">
                   <CreditCard className="text-orange-500" size={22} />
                   <h4 className="font-semibold text-gray-900">Yearly</h4>
-                  {!hasActiveSubscription && !hasTrial && (
-                    <span className="ml-auto text-xs font-medium bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">1 month free</span>
-                  )}
                 </div>
                 <p className="text-3xl font-bold text-gray-900 mb-1">
                   &euro;100
@@ -416,7 +410,7 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
                   ) : hasActiveSubscription ? (
                     'Already Subscribed'
                   ) : (
-                    'Start Free Trial'
+                    'Subscribe Now'
                   )}
                 </button>
               </div>

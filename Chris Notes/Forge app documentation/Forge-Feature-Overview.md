@@ -141,12 +141,12 @@ There's no app-switching, no spreadsheets, no whiteboards that get erased. Just 
 | **Free Member** | €0 | Class booking |
 | **10-Card Pass** | €150 | 10 drop-in sessions |
 | **Athlete Monthly (Members)** | €8/mo | Full athlete features (logbook, records, leaderboards, achievements, timer, notifications) |
-| **Athlete Yearly (Members)** | €85/yr | Same as monthly — save €11 |
+| **Athlete Yearly (Members)** | €80/yr | Same as monthly — save €16 |
 | **Athlete Monthly (Wellpass)** | €10/mo | Full athlete features |
 | **Athlete Yearly (Wellpass)** | €100/yr | Same as monthly — save €20 |
 
 - Secure payments via **Stripe**
-- 1-month free trial for new athletes
+- 1-month free trial on monthly plans
 - Self-service billing portal (update card, cancel, view invoices)
 - 10-card pass tracking with sessions remaining and expiry date
 

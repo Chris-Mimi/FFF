@@ -110,8 +110,8 @@ export async function POST(request: NextRequest) {
       },
     };
 
-    // Add 30-day free trial for subscription products
-    if (trial && isSubMode) {
+    // Add 30-day free trial for monthly subscriptions only (yearly already discounted)
+    if (trial && isSubMode && getBillingPeriod(productType) === 'monthly') {
       checkoutParams.subscription_data = {
         trial_period_days: 30,
       };

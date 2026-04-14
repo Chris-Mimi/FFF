@@ -88,20 +88,27 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-04-14 Session 272 - Opus 4.6) — LAUNCH PREP + PRICING CHANGES:**
+- **✅ Verified Session 271 deploy** — Payment failed flow confirmed: amber UI, coach "Payment Failed" status, `notifyPaymentFailed()` exists, webhook tested via Stripe CLI (all 200s).
+- **✅ Renamed "Gym Members" → "Forge Members"** on athlete payment page.
+- **✅ No free trial on yearly subs** — Checkout API now only adds 30-day trial for monthly plans. Yearly cards show "Subscribe Now" instead of "Start Free Trial", no "1 month free" badge.
+- **✅ Member yearly price €85 → €80** — Updated UI (price, equivalent, save badge €16). New Stripe price created, Vercel env var updated.
+- **✅ Stripe CLI updated** — v1.35.1 → v1.40.5.
+
 **Completed (2026-04-14 Session 271 - Opus 4.6) — PAYMENT FAILED WEBHOOK FIX + UI + COACH NOTIFICATION:**
-- **✅ Fixed `handlePaymentFailed`** — Was only updating `subscriptions` table to `past_due`, now also updates `members.athlete_subscription_status`. Athletes lose app access on failed payment, regain it automatically when Stripe retry succeeds.
-- **✅ Added `past_due` status** — New status across type system (4 files): `Member` type, `PaymentStatus` interface, `TenCardModal`, coach dropdown. `getTrialStatus()` shows "Payment Failed" for coaches.
-- **✅ Payment Failed UI** — UpgradePrompt shows amber "Payment Failed" screen (instead of generic subscribe prompt) when `past_due`. Tells athlete to check Stripe email, notes access restores automatically.
-- **✅ Coach push notification** — `notifyPaymentFailed()` in `lib/notifications.ts`, called from webhook. Coaches get push: "[Name]'s subscription payment failed."
-- **✅ Stripe email recovery enabled** — Dashboard: revenue recovery emails on failed card payments + expiring card emails, both linking to Stripe hosted page. Smart Retries on, cancel subscription after all retries fail.
-- **✅ DB constraint updated** — `members_athlete_subscription_status_check` now includes `past_due`. Athlete Test 1 manually set to `past_due` for testing.
+- **✅ Fixed `handlePaymentFailed`** — Now updates `members.athlete_subscription_status` to `past_due`.
+- **✅ Payment Failed UI** — Amber UpgradePrompt screen + coach `getTrialStatus()` shows "Payment Failed".
+- **✅ Coach push notification** — `notifyPaymentFailed()` in `lib/notifications.ts`.
 
 **Completed (2026-04-13 Session 270 - Opus 4.6) — 2-TIER PAYMENT SYSTEM:**
-- **✅ 2-tier pricing implemented** — Members (€8/mo, €85/yr) + Wellpass (€10/mo, €100/yr). Replaces old single-tier €7.50/€75.
-- **✅ Stripe products created** — 2 new products with 4 prices in live Stripe dashboard. Old product can be archived.
-- **✅ Code changes** — 11 files: `lib/stripe.ts` (new ProductType, tier helpers), webhook (stores tier on member), checkout (passes tier metadata), AthletePagePaymentTab (2-tier UI with Member blue/teal + Wellpass orange), PaymentsSection (tier badge), UpgradePrompt (new price text).
-- **✅ DB migration** — `subscription_tier TEXT CHECK ('member','wellpass')` on members table.
-- **⏳ Pending deploy steps:** Run migration in Supabase, add 4 new env vars in Vercel, remove 2 old env vars, redeploy.
+- **✅ 2-tier pricing** — Forge Members + Wellpass Members. 11 files, migration, deployed.
+
+**Completed (2026-04-13 Session 269 - Opus 4.6) — DNF FEATURE + WORKOUT NAME TRIM:**
+- **✅ DNF (Did Not Finish)** — New `dnf` boolean on `wod_section_results`. Toggle button in coach score entry and athlete logbook. DNF entries rank last on leaderboard.
+- **✅ Workout name trim fix** — Trailing whitespace caused leaderboard not to merge. Fix: trim on save + query.
+
+**Completed (2026-04-12 Session 268 - Opus 4.6) — RX(M) MASTERS SCALING LEVEL:**
+- **✅ Added Rx(M) scaling level** — 13 files. Ranks identically to Rx.
 
 **Completed (2026-04-13 Session 269 - Opus 4.6) — DNF FEATURE + WORKOUT NAME TRIM:**
 - **✅ DNF (Did Not Finish)** — New `dnf` boolean on `wod_section_results`. Toggle button in coach score entry and athlete logbook. DNF entries rank last on leaderboard.
@@ -171,7 +178,7 @@ See `project-history/` folder for detailed implementation history
 - ✅ `20260323000002_add_scaling3_load3.sql` — Adds `scaling_level_3 text` and `weight_result_3 numeric` to wod_section_results (Session 235, applied)
 - ✅ `20260326000000_add_benchmark_multi_scaling.sql` — Adds `scaling_level_2 text` and `scaling_level_3 text` to benchmark_results (Session 250, applied)
 - ✅ `20260331000000_add_lift_equipment.sql` — Adds `equipment TEXT DEFAULT 'Barbell'` to barbell_lifts (Session 263, applied)
-- ⏳ `20260413000001_add_subscription_tier.sql` — Adds `subscription_tier TEXT` with CHECK constraint to members (Session 270)
+- ✅ `20260413000001_add_subscription_tier.sql` — Adds `subscription_tier TEXT` with CHECK constraint to members (Session 270, applied)
 
 ---
 
@@ -214,8 +221,8 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION
-1. **Verify Session 271 deploy** — Check Athlete Test 1 shows "Payment Failed" screen (not generic UpgradePrompt). Test coach push notification works. Verify coach Members page shows "Payment Failed" status.
-2. **Deploy 2-tier payment** — Run migration in Supabase, update 4 Vercel env vars, remove 2 old vars, redeploy. Test all 4 checkout flows.
+1. **Full launch week** — All payment infrastructure deployed and verified. Test checkout flows on live site after this deploy.
+2. **Reset Athlete Test 1** — Set `athlete_subscription_status` back from `past_due` to appropriate value after testing.
 
 ### DEPLOYMENT (Session 158+)
 
@@ -236,7 +243,7 @@ npm run restore 2025-12-06  # Restore specific date
 ### Business Model (updated Session 270)
 - **Free:** All active members can book classes (no payment required)
 - **10-Card:** €150 for 10 gym sessions (drop-in alternative, separate from app)
-- **Athlete App — Members:** €8/mo or €85/yr (logbook, records, leaderboards, achievements)
+- **Athlete App — Forge Members:** €8/mo or €80/yr (logbook, records, leaderboards, achievements)
 - **Athlete App — Wellpass:** €10/mo or €100/yr (same features, for Wellpass members)
 
 ---
