@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 145.0
-**Updated:** 2026-04-16 (Session 277 - subscription start date)
+**Version:** 146.0
+**Updated:** 2026-04-16 (Session 279 - no subscription label)
 
 ---
 
@@ -88,6 +88,10 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-04-16 Session 279 - Opus 4.6) — NO SUBSCRIPTION LABEL + MIGRATION CONFIRMED:**
+- **✅ "No Subscription" label** — `getTrialStatus()` now shows "No Subscription" instead of "Expired" for athletes who never had a subscription (checks `athlete_subscription_start` null).
+- **✅ Migration confirmed** — `20260416000000_add_subscription_start.sql` already applied.
+
 **Completed (2026-04-16 Session 278 - Opus 4.6) — WHITEBOARD NAME LINKING + FAMILY SUB INHERITANCE:**
 - **✅ Family subscription inheritance** — Family members now inherit primary member's subscription status on coach members page (was showing "Expired" for Cody/Neo).
 - **✅ Whiteboard name dropdown on approval** — Pending member cards now show a dropdown of unlinked whiteboard names. Coach selects the matching name before approving.
@@ -100,8 +104,8 @@ Social Tables
 - **✅ New `athlete_subscription_start` column** — Tracks when paid subscription began (separate from `created_at` which is booking registration).
 - **✅ Set on activation** — `activate` and `activate_permanent` actions stamp `athlete_subscription_start` to now. Stripe checkout also sets it.
 - **✅ MemberCard display** — Shows "Subscribed: [date]" in column 2 next to phone for active athletes.
-- **⚠️ Migration pending** — `20260416000000_add_subscription_start.sql` — run in Supabase SQL Editor.
-- **⚠️ Re-activate needed** — Members activated before this session won't have the date. Re-click 1yr/∞ or manually set in Supabase.
+- **✅ Migration applied** — `20260416000000_add_subscription_start.sql` confirmed applied (Session 279).
+- **⚠️ Re-activate needed** — Members activated before Session 277 won't have the date. Re-click 1yr/∞ or manually set in Supabase.
 
 **Completed (2026-04-16 Session 276 - Opus 4.6) — 1YR ACTIVATE + EXPIRY WARNINGS:**
 - **✅ Activate → 1-year** — "Activate" button now sets `athlete_subscription_end` to now + 365 days (was null/unlimited). For cash-paying athletes.
@@ -119,11 +123,7 @@ Social Tables
 - **✅ Auto-expire trials** — `useMemberData` hook auto-expires trials past end date.
 - **✅ Color-coded statuses** — green=active, teal=trial, amber=past_due, red=expired.
 
-**Completed (2026-04-14 Session 273 - Opus 4.6) — TIER-LOCK PAYMENT + REMOVE PT:**
-- **✅ Tier-locked payment page** — Athletes only see their tier's pricing.
-- **✅ Activate button gated** — Must set Mb or Wp first.
-
-**Older Sessions (57-272):**
+**Older Sessions (57-273):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -185,7 +185,7 @@ See `project-history/` folder for detailed implementation history
 - ✅ `20260326000000_add_benchmark_multi_scaling.sql` — Adds `scaling_level_2 text` and `scaling_level_3 text` to benchmark_results (Session 250, applied)
 - ✅ `20260331000000_add_lift_equipment.sql` — Adds `equipment TEXT DEFAULT 'Barbell'` to barbell_lifts (Session 263, applied)
 - ✅ `20260413000001_add_subscription_tier.sql` — Adds `subscription_tier TEXT` with CHECK constraint to members (Session 270, applied)
-- ⏳ `20260416000000_add_subscription_start.sql` — Adds `athlete_subscription_start TIMESTAMPTZ` to members (Session 277)
+- ✅ `20260416000000_add_subscription_start.sql` — Adds `athlete_subscription_start TIMESTAMPTZ` to members (Session 277, applied Session 279)
 
 ---
 

@@ -18,7 +18,9 @@ Investigate the "Whiteboard Intro" sections appearing in earlier workouts
 Athlete login:
 
  # Edit Workout Modal (coach) #
- IMPROVEMENTS/Bug Fixes:
+Once athletes start registering, you can re-run this script anytime to check the state:
+npx tsx scripts/check-whiteboard-name-conflicts.ts
+
 
 
   # Publish Workout Modal (coach) #

@@ -110,7 +110,7 @@ export const getTrialStatus = (member: Member) => {
     return 'Payment Failed';
   }
   if (member.athlete_subscription_status === 'expired') {
-    return 'Expired';
+    return member.athlete_subscription_start ? 'Expired' : 'No Subscription';
   }
   return 'No access';
 };
