@@ -124,6 +124,13 @@ export default function MemberCard({
             <div>
               <span className="text-gray-400">Phone:</span>{' '}
               <span className={member.phone ? 'text-white' : 'text-gray-600'}>{member.phone || '—'}</span>
+              {member.athlete_subscription_start && member.athlete_subscription_status === 'active' && (
+                <>
+                  <span className="text-gray-600 mx-1">|</span>
+                  <span className="text-gray-400">Subscribed:</span>{' '}
+                  <span className="text-green-400">{formatMemberDate(member.athlete_subscription_start)}</span>
+                </>
+              )}
             </div>
             <div>
               <span className="text-gray-400">Registered:</span>{' '}

@@ -141,6 +141,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       .from('members')
       .update({
         athlete_subscription_status: 'active',
+        athlete_subscription_start: now.toISOString(),
         athlete_subscription_end: subscriptionEndDate.toISOString(),
         subscription_tier: tier,
         updated_at: now.toISOString(),

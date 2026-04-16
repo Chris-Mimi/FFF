@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 144.0
-**Updated:** 2026-04-16 (Session 276 - 1yr activate + expiry warnings)
+**Version:** 145.0
+**Updated:** 2026-04-16 (Session 277 - subscription start date)
 
 ---
 
@@ -88,13 +88,19 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-04-16 Session 277 - Opus 4.6) — SUBSCRIPTION START DATE:**
+- **✅ New `athlete_subscription_start` column** — Tracks when paid subscription began (separate from `created_at` which is booking registration).
+- **✅ Set on activation** — `activate` and `activate_permanent` actions stamp `athlete_subscription_start` to now. Stripe checkout also sets it.
+- **✅ MemberCard display** — Shows "Subscribed: [date]" in column 2 next to phone for active athletes.
+- **⚠️ Migration pending** — `20260416000000_add_subscription_start.sql` — run in Supabase SQL Editor.
+- **⚠️ Re-activate needed** — Members activated before this session won't have the date. Re-click 1yr/∞ or manually set in Supabase.
+
 **Completed (2026-04-16 Session 276 - Opus 4.6) — 1YR ACTIVATE + EXPIRY WARNINGS:**
 - **✅ Activate → 1-year** — "Activate" button now sets `athlete_subscription_end` to now + 365 days (was null/unlimited). For cash-paying athletes.
 - **✅ Permanent activate** — New "∞" button for owner/family accounts. Sets no end date.
 - **✅ Auto-expire cash subs** — `autoExpireSubscriptions` now expires both trials AND active cash subs past their end date.
-- **✅ 14-day expiry warning** — New `/api/notifications/subscription-expiring` endpoint. Notifies both athlete ("expires in X days, contact your coach") and coach ("{name}'s subscription expires in X days"). Deduplicated daily via `notification_log`.
+- **✅ 14-day expiry warning** — New `/api/notifications/subscription-expiring` endpoint. Deduplicated daily via `notification_log`.
 - **✅ Status display** — `getTrialStatus()` now shows: `Active (1yr)`, `Active (14d left)`, or `Active (∞)` for cash/permanent subs.
-- **✅ Launch message draft** — English + German versions saved to `Chris Notes/Forge app documentation/athlete-app-launch-message.md`.
 
 **Completed (2026-04-14 Session 275 - Opus 4.6) — DNF FIX + UI POLISH:**
 - **✅ Fixed duplicate DNF button** — Added `hideDnf` prop to `ScoringFieldInputs`.
@@ -109,11 +115,7 @@ Social Tables
 - **✅ Tier-locked payment page** — Athletes only see their tier's pricing.
 - **✅ Activate button gated** — Must set Mb or Wp first.
 
-**Completed (2026-04-14 Session 272 - Opus 4.6) — LAUNCH PREP + PRICING CHANGES:**
-- **✅ Member yearly price €85 → €80** — New Stripe price, Vercel env var updated.
-- **✅ No free trial on yearly subs** — Monthly only.
-
-**Older Sessions (57-271):**
+**Older Sessions (57-272):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -175,6 +177,7 @@ See `project-history/` folder for detailed implementation history
 - ✅ `20260326000000_add_benchmark_multi_scaling.sql` — Adds `scaling_level_2 text` and `scaling_level_3 text` to benchmark_results (Session 250, applied)
 - ✅ `20260331000000_add_lift_equipment.sql` — Adds `equipment TEXT DEFAULT 'Barbell'` to barbell_lifts (Session 263, applied)
 - ✅ `20260413000001_add_subscription_tier.sql` — Adds `subscription_tier TEXT` with CHECK constraint to members (Session 270, applied)
+- ⏳ `20260416000000_add_subscription_start.sql` — Adds `athlete_subscription_start TIMESTAMPTZ` to members (Session 277)
 
 ---
 
@@ -217,8 +220,8 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION
-- **Deploy Session 276** — Push and verify 1yr activate, permanent activate, expiry warnings.
-- **Test live:** Activate a test member with 1yr, verify status shows "Active (1yr)". Activate family with ∞, verify "Active (∞)".
+- **Deploy Session 277** — Run migration `20260416000000_add_subscription_start.sql`, push, verify "Subscribed:" date appears on MemberCard after activating.
+- **Re-activate existing** — Members activated before Session 277 need re-click or manual SQL backfill for `athlete_subscription_start`.
 
 ### DEPLOYMENT (Session 158+)
 

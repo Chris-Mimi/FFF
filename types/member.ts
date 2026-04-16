@@ -15,6 +15,7 @@ export interface Member {
   primary_member_id: string | null;
   athlete_trial_start: string | null;
   athlete_subscription_status: 'trial' | 'active' | 'past_due' | 'expired';
+  athlete_subscription_start: string | null;
   athlete_subscription_end: string | null;
   subscription_plan_type: 'monthly' | 'yearly' | null;
   subscription_tier: 'member' | 'wellpass' | null;

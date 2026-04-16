@@ -48,6 +48,7 @@ export async function POST(request: NextRequest) {
     let updateData: {
       athlete_subscription_status?: 'trial' | 'active' | 'expired';
       athlete_subscription_end?: string | null;
+      athlete_subscription_start?: string | null;
       athlete_trial_start?: string | null;
       updated_at: string;
     } = {
@@ -94,6 +95,7 @@ export async function POST(request: NextRequest) {
         const activateEnd = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
         updateData = {
           athlete_subscription_status: 'active',
+          athlete_subscription_start: now.toISOString(),
           athlete_subscription_end: activateEnd.toISOString(),
           updated_at: now.toISOString()
         };
@@ -104,6 +106,7 @@ export async function POST(request: NextRequest) {
         // Activate permanent subscription (no end date — owner/family)
         updateData = {
           athlete_subscription_status: 'active',
+          athlete_subscription_start: now.toISOString(),
           athlete_subscription_end: null,
           updated_at: now.toISOString()
         };
@@ -153,6 +156,7 @@ export async function POST(request: NextRequest) {
           name: updatedMember.name,
           athlete_subscription_status: updatedMember.athlete_subscription_status,
           athlete_subscription_end: updatedMember.athlete_subscription_end,
+          athlete_subscription_start: updatedMember.athlete_subscription_start,
           athlete_trial_start: updatedMember.athlete_trial_start
         }
       },
