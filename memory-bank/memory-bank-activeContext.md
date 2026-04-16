@@ -88,6 +88,14 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-04-16 Session 278 - Opus 4.6) — WHITEBOARD NAME LINKING + FAMILY SUB INHERITANCE:**
+- **✅ Family subscription inheritance** — Family members now inherit primary member's subscription status on coach members page (was showing "Expired" for Cody/Neo).
+- **✅ Whiteboard name dropdown on approval** — Pending member cards now show a dropdown of unlinked whiteboard names. Coach selects the matching name before approving.
+- **✅ Score migration on approve** — When a whiteboard name is selected, all `wod_section_results` rows with that name get `member_id`/`user_id` set and `whiteboard_name` cleared.
+- **✅ Conflict check script** — `scripts/check-whiteboard-name-conflicts.ts` reports duplicates, multi-matches, and unlinked names.
+- **✅ VS Code cleanup** — Removed 5 unnecessary extensions (Augment, Copilot, Gemini, Cline, codeflow-studio). Only Claude Code remains.
+- **✅ German umlauts** — Fixed ae/oe/ue in `athlete-app-launch-message.md`.
+
 **Completed (2026-04-16 Session 277 - Opus 4.6) — SUBSCRIPTION START DATE:**
 - **✅ New `athlete_subscription_start` column** — Tracks when paid subscription began (separate from `created_at` which is booking registration).
 - **✅ Set on activation** — `activate` and `activate_permanent` actions stamp `athlete_subscription_start` to now. Stripe checkout also sets it.
@@ -220,8 +228,9 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION
-- **Deploy Session 277** — Run migration `20260416000000_add_subscription_start.sql`, push, verify "Subscribed:" date appears on MemberCard after activating.
+- **Deploy Session 277+278** — Run migration `20260416000000_add_subscription_start.sql`, push, verify family inheritance + whiteboard linking.
 - **Re-activate existing** — Members activated before Session 277 need re-click or manual SQL backfill for `athlete_subscription_start`.
+- **Test whiteboard linking** — Approve a pending member with whiteboard name selected, verify scores migrate. Run `npx tsx scripts/check-whiteboard-name-conflicts.ts` periodically as athletes register.
 
 ### DEPLOYMENT (Session 158+)
 

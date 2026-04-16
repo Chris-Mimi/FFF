@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     if (isAuthError(coach)) return coach;
 
     const body = await request.json();
-    const { memberId } = body;
+    const { memberId, whiteboardName } = body;
 
     // Validate required fields
     if (!memberId) {
@@ -55,12 +55,17 @@ export async function POST(request: NextRequest) {
     // Approve member (booking access only - no athlete page trial)
     const now = new Date();
 
+    const updatePayload: Record<string, unknown> = {
+      status: 'active',
+      updated_at: now.toISOString(),
+    };
+    if (whiteboardName) {
+      updatePayload.whiteboard_name = whiteboardName;
+    }
+
     const { data: updatedMember, error: updateError } = await supabaseAdmin
       .from('members')
-      .update({
-        status: 'active',
-        updated_at: now.toISOString()
-      })
+      .update(updatePayload)
       .eq('id', memberId)
       .select()
       .single();
@@ -73,7 +78,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TODO: Create in-app notification for member about approval
+    // Migrate whiteboard scores: link old whiteboard_name results to this member
+    let linkedScores = 0;
+    if (whiteboardName) {
+      const { data: wbResults, error: wbError } = await supabaseAdmin
+        .from('wod_section_results')
+        .update({
+          member_id: memberId,
+          user_id: memberId,
+          whiteboard_name: null,
+          updated_at: now.toISOString(),
+        })
+        .eq('whiteboard_name', whiteboardName)
+        .is('member_id', null)
+        .select('id');
+
+      if (wbError) {
+        console.error('Whiteboard score migration error:', wbError);
+      } else {
+        linkedScores = wbResults?.length || 0;
+        console.log(`Linked ${linkedScores} whiteboard scores ("${whiteboardName}") to member ${memberId}`);
+      }
+    }
 
     // Send approval email (non-blocking — don't fail the approval if email fails)
     if (updatedMember.email) {
@@ -90,6 +116,7 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         message: 'Member approved - can now book classes',
+        linkedScores,
         member: {
           id: updatedMember.id,
           email: updatedMember.email,

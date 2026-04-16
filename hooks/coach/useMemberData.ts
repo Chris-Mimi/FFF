@@ -15,6 +15,26 @@ export function useMemberData() {
   const [attendanceTimeframe, setAttendanceTimeframe] = useState<7 | 30 | 365 | 'all'>('all');
   const [pendingCount, setPendingCount] = useState(0);
   const [atRiskCount, setAtRiskCount] = useState(0);
+  const [unlinkedWhiteboardNames, setUnlinkedWhiteboardNames] = useState<string[]>([]);
+
+  const fetchUnlinkedWhiteboardNames = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('wod_section_results')
+        .select('whiteboard_name')
+        .not('whiteboard_name', 'is', null)
+        .is('member_id', null);
+
+      if (!error && data) {
+        const unique = [...new Set(data.map(r => r.whiteboard_name as string))].sort(
+          (a, b) => a.toLowerCase().localeCompare(b.toLowerCase())
+        );
+        setUnlinkedWhiteboardNames(unique);
+      }
+    } catch (err) {
+      console.error('Error fetching unlinked whiteboard names:', err);
+    }
+  };
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -27,6 +47,7 @@ export function useMemberData() {
     fetchMembersWithAttendance(activeTab, attendanceTimeframe);
     fetchPendingCount();
     fetchAtRiskCount(attendanceTimeframe);
+    fetchUnlinkedWhiteboardNames();
   }, [activeTab, attendanceTimeframe, router]);
 
   const fetchPendingCount = async () => {
@@ -174,6 +195,44 @@ export function useMemberData() {
         last_attendance_date: lastAttendanceMap[member.id] || null,
       }));
 
+      // Family members inherit subscription status from their primary member
+      const familyMembers = membersWithAttendance.filter(m => m.account_type === 'family_member' && m.primary_member_id);
+      if (familyMembers.length > 0) {
+        const primaryIds = [...new Set(familyMembers.map(m => m.primary_member_id!))];
+        // Check which primaries are already in the fetched set
+        const fetchedPrimaryMap = new Map<string, { athlete_subscription_status: string; athlete_subscription_start: string | null; athlete_subscription_end: string | null; subscription_tier: string | null; id: string }>(
+          membersWithAttendance.filter(m => primaryIds.includes(m.id)).map(m => [m.id, m])
+        );
+        // Fetch any missing primaries
+        const missingIds = primaryIds.filter(id => !fetchedPrimaryMap.has(id));
+        if (missingIds.length > 0) {
+          const { data: primaryData } = await supabase
+            .from('members')
+            .select('id, athlete_subscription_status, athlete_subscription_start, athlete_subscription_end, subscription_tier')
+            .in('id', missingIds);
+          if (primaryData) {
+            primaryData.forEach(p => fetchedPrimaryMap.set(p.id, p));
+          }
+        }
+        // Apply primary's subscription fields to family members
+        membersWithAttendance = membersWithAttendance.map(m => {
+          if (m.account_type === 'family_member' && m.primary_member_id) {
+            const primary = fetchedPrimaryMap.get(m.primary_member_id);
+            if (primary) {
+              return {
+                ...m,
+                athlete_subscription_status: primary.athlete_subscription_status,
+                athlete_subscription_start: primary.athlete_subscription_start,
+                athlete_subscription_end: primary.athlete_subscription_end,
+                subscription_tier: primary.subscription_tier,
+                subscription_plan_type: planTypeMap[primary.id] || null,
+              };
+            }
+          }
+          return m;
+        });
+      }
+
       // Filter at-risk: 0 attendance + regular membership types only
       if (status === 'at-risk') {
         const regularTypes = ['member', 'ten_card', 'wellpass', 'hansefit'];
@@ -205,6 +264,7 @@ export function useMemberData() {
   const autoExpireSubscriptions = async (membersList: Member[]) => {
     const now = new Date();
     const expired = membersList.filter(m =>
+      m.account_type !== 'family_member' &&
       (m.athlete_subscription_status === 'trial' || m.athlete_subscription_status === 'active') &&
       m.athlete_subscription_end &&
       new Date(m.athlete_subscription_end) < now &&
@@ -239,6 +299,7 @@ export function useMemberData() {
     const now = new Date();
     const fourteenDays = 14 * 24 * 60 * 60 * 1000;
     const expiringSoon = membersList.filter(m =>
+      m.account_type !== 'family_member' &&
       m.athlete_subscription_status === 'active' &&
       m.athlete_subscription_end &&
       !warnedIdsRef.current.has(m.id) &&
@@ -366,6 +427,8 @@ export function useMemberData() {
     membershipCounts,
     refreshData,
     refreshPendingCount,
+    refreshWhiteboardNames: fetchUnlinkedWhiteboardNames,
+    unlinkedWhiteboardNames,
     toggleFilter,
     toggleClassTypeFilter,
     handleAgeFilterChange,

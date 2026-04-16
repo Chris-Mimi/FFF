@@ -8,16 +8,17 @@ import { MembershipType, ClassType, Member } from '@/types/member';
 export function useMemberActions(
   refreshData: () => Promise<void>,
   refreshPendingCount: () => Promise<void>,
-  setMembers: React.Dispatch<React.SetStateAction<Member[]>>
+  setMembers: React.Dispatch<React.SetStateAction<Member[]>>,
+  refreshWhiteboardNames?: () => Promise<void>
 ) {
   const [processingMemberId, setProcessingMemberId] = useState<string | null>(null);
 
-  const handleApprove = async (memberId: string) => {
+  const handleApprove = async (memberId: string, whiteboardName?: string) => {
     setProcessingMemberId(memberId);
     try {
       const response = await authFetch('/api/members/approve', {
         method: 'POST',
-        body: JSON.stringify({ memberId })
+        body: JSON.stringify({ memberId, whiteboardName: whiteboardName || null })
       });
 
       const data = await response.json();
@@ -26,9 +27,11 @@ export function useMemberActions(
         throw new Error(data.error || 'Failed to approve member');
       }
 
-      toast.success(data.message || 'Member approved successfully');
+      const linkedMsg = data.linkedScores ? ` (${data.linkedScores} scores linked)` : '';
+      toast.success((data.message || 'Member approved successfully') + linkedMsg);
       await refreshData();
       await refreshPendingCount();
+      if (refreshWhiteboardNames) await refreshWhiteboardNames();
     } catch (error) {
       console.error('Error approving member:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to approve member. Please try again.');

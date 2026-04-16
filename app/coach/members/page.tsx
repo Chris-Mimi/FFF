@@ -37,6 +37,8 @@ export default function CoachMembersPage() {
     membershipCounts,
     refreshData,
     refreshPendingCount,
+    refreshWhiteboardNames,
+    unlinkedWhiteboardNames,
     toggleFilter,
     toggleClassTypeFilter,
     handleAgeFilterChange,
@@ -56,7 +58,7 @@ export default function CoachMembersPage() {
     handleToggleMembershipType,
     handleToggleClassType,
     handleSetGender,
-  } = useMemberActions(refreshData, refreshPendingCount, setMembers);
+  } = useMemberActions(refreshData, refreshPendingCount, setMembers, refreshWhiteboardNames);
 
   const handleLogout = async () => {
     try {
@@ -225,6 +227,7 @@ export default function CoachMembersPage() {
                 member={member}
                 activeTab={activeTab}
                 processingMemberId={processingMemberId}
+                unlinkedWhiteboardNames={unlinkedWhiteboardNames}
                 onApprove={handleApprove}
                 onBlock={handleBlock}
                 onUnapprove={handleUnapprove}

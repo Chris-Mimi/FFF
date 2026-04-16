@@ -36,23 +36,23 @@ Just open the app and see what you've been doing all year. No app store download
 
 In den letzten 6 Monaten haben wir an etwas Besonderem gearbeitet — und jetzt ist es soweit.
 
-Die Forge Athlete App ist ein Trainingsbegleiter, der speziell fuer unsere Community entwickelt wurde — von eurem Coach, nicht von einem Software-Unternehmen. Sie ist direkt mit unserer taeglichen Programmierung verbunden und bietet euch Tools, von denen die meisten Boxen nur traeumen koennen. Keine andere App oder Trainingssoftware hat Features wie unsere.
+Die Forge Athlete App ist ein Trainingsbegleiter, der speziell für unsere Community entwickelt wurde — von eurem Coach, nicht von einem Software-Unternehmen. Sie ist direkt mit unserer täglichen Programmierung verbunden und bietet euch Tools, von denen die meisten Boxen nur träumen können. Keine andere App oder Trainingssoftware hat Features wie unsere.
 
-**Athleten, die ihr Training tracken, erzielen bessere Ergebnisse.** Zu wissen, was du letzten Monat gehoben hast, zu sehen, wie sich deine Benchmark-Zeiten verbessern, deinen Fortschritt schwarz auf weiss vor dir zu haben — das veraendert, wie du trainierst. Die Forge Athlete App macht genau das muehelos moeglich.
+**Athleten, die ihr Training tracken, erzielen bessere Ergebnisse.** Zu wissen, was du letzten Monat gehoben hast, zu sehen, wie sich deine Benchmark-Zeiten verbessern, deinen Fortschritt schwarz auf weiß vor dir zu haben — das verändert, wie du trainierst. Die Forge Athlete App macht genau das mühelos möglich.
 
 **Das kann die App:**
 
 - **Deine Ergebnisse sind schon drin** — wir erfassen die Whiteboard-Ergebnisse seit Januar. Melde dich an und du findest Monate deiner WOD-Scores, Lift-Records und Benchmark-Ergebnisse bereits vor. Deine Trainingshistorie, ab Tag eins bereit.
-- **Sieh deinen Fortschritt ueber die Zeit** — tracke deine Benchmarks (Fran, Murph, Grace, plus unsere eigenen Forge-Benchmarks) auf einem Chart und beobachte, wie deine Zeiten sinken und deine Gewichte steigen. Da stecken die echten Erfolge.
-- **Lift Records & PR-Erkennung** — jeder Langhantel-Lift wird ueber 1RM, 3RM, 5RM und 10RM getrackt. Die App erkennt deine persoenlichen Rekorde automatisch, damit dir kein Meilenstein entgeht.
-- **Persoenliche Rekord-Galerie** — alle deine PRs an einem Ort. Erstelle gebrandete Share-Karten fuer Instagram oder WhatsApp, um deinen Fortschritt zu feiern.
+- **Sieh deinen Fortschritt über die Zeit** — tracke deine Benchmarks (Fran, Murph, Grace, plus unsere eigenen Forge-Benchmarks) auf einem Chart und beobachte, wie deine Zeiten sinken und deine Gewichte steigen. Da stecken die echten Erfolge.
+- **Lift Records & PR-Erkennung** — jeder Langhantel-Lift wird über 1RM, 3RM, 5RM und 10RM getrackt. Die App erkennt deine persönlichen Rekorde automatisch, damit dir kein Meilenstein entgeht.
+- **Persönliche Rekord-Galerie** — alle deine PRs an einem Ort. Erstelle gebrandete Share-Karten für Instagram oder WhatsApp, um deinen Fortschritt zu feiern.
 - **Achievements & Badges** — verdiene Anerkennung in den Kategorien Kraft, Gymnastics, Ausdauer und mehr. Bronze bis Platin — deine eigene Reise, dein eigenes Tempo.
-- **Workout-Leaderboards** — sieh die Ergebnisse jedes WODs, wenn du ein bisschen freundschaftlichen Wettbewerb moechtest. Aber die wichtigste Zahl auf dem Board ist deine eigene — verglichen mit letztem Mal.
+- **Workout-Leaderboards** — sieh die Ergebnisse jedes WODs, wenn du ein bisschen freundschaftlichen Wettbewerb möchtest. Aber die wichtigste Zahl auf dem Board ist deine eigene — verglichen mit letztem Mal.
 - **Integrierter Workout-Timer** — AMRAP, EMOM, Tabata, For Time. Keine extra App noetig.
 
-Kurs-Buchung bleibt fuer alle kostenlos. Die Athleten-Features kosten weniger als einen Kaffee pro Woche — und du kannst **30 Tage kostenlos testen**. Keine Verpflichtung, jederzeit kuendbar.
+Kurs-Buchung bleibt für alle kostenlos. Die Athleten-Features kosten weniger als einen Kaffee pro Woche — und du kannst **30 Tage kostenlos testen**. Keine Verpflichtung, jederzeit kündbar.
 
-Oeffne einfach die App und schau dir an, was du dieses Jahr alles gemacht hast. Kein App-Store-Download noetig — sie laeuft direkt im Browser deines Handys.
+Öffne einfach die App und schau dir an, was du dieses Jahr alles gemacht hast. Kein App-Store-Download nötig — sie läuft direkt im Browser deines Handys.
 
 *Vergleiche dich mit der Person, die du gestern warst, nicht mit der, die jemand anderes heute ist.* 💪
 

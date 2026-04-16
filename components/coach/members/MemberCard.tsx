@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { AlertTriangle, Check, Clock, X } from 'lucide-react';
 import {
   MemberStatus,
@@ -19,7 +20,8 @@ interface MemberCardProps {
   member: Member;
   activeTab: MemberStatus;
   processingMemberId: string | null;
-  onApprove: (memberId: string) => void;
+  unlinkedWhiteboardNames?: string[];
+  onApprove: (memberId: string, whiteboardName?: string) => void;
   onBlock: (memberId: string) => void;
   onUnapprove: (memberId: string) => void;
   onUnblock: (memberId: string) => void;
@@ -55,6 +57,7 @@ export default function MemberCard({
   member,
   activeTab,
   processingMemberId,
+  unlinkedWhiteboardNames = [],
   onApprove,
   onBlock,
   onUnapprove,
@@ -69,6 +72,8 @@ export default function MemberCard({
   onSetGender,
   onOpenTenCard,
 }: MemberCardProps) {
+  const [selectedWhiteboardName, setSelectedWhiteboardName] = useState<string>('');
+
   return (
     <div className="bg-gray-800 rounded-lg p-3 border border-gray-700 hover:border-gray-600 transition-colors duration-200">
       <div className="flex items-start justify-between">
@@ -244,23 +249,37 @@ export default function MemberCard({
 
         {/* Actions */}
         {activeTab === 'pending' && (
-          <div className="flex gap-2 ml-3">
-            <button
-              onClick={() => onApprove(member.id)}
-              disabled={processingMemberId === member.id}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-teal-500 hover:bg-teal-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200 text-sm"
-            >
-              <Check size={16} />
-              Approve
-            </button>
-            <button
-              onClick={() => onBlock(member.id)}
-              disabled={processingMemberId === member.id}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200 text-sm"
-            >
-              <X size={16} />
-              Block
-            </button>
+          <div className="flex flex-col gap-2 ml-3 items-end">
+            {unlinkedWhiteboardNames.length > 0 && (
+              <select
+                value={selectedWhiteboardName}
+                onChange={(e) => setSelectedWhiteboardName(e.target.value)}
+                className="w-full px-2 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              >
+                <option value="">Whiteboard name...</option>
+                {unlinkedWhiteboardNames.map(name => (
+                  <option key={name} value={name}>{name}</option>
+                ))}
+              </select>
+            )}
+            <div className="flex gap-2">
+              <button
+                onClick={() => onApprove(member.id, selectedWhiteboardName || undefined)}
+                disabled={processingMemberId === member.id}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-teal-500 hover:bg-teal-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200 text-sm"
+              >
+                <Check size={16} />
+                Approve
+              </button>
+              <button
+                onClick={() => onBlock(member.id)}
+                disabled={processingMemberId === member.id}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200 text-sm"
+              >
+                <X size={16} />
+                Block
+              </button>
+            </div>
           </div>
         )}
         {activeTab === 'active' && (
