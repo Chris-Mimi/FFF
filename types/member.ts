@@ -94,7 +94,16 @@ export const getTrialStatus = (member: Member) => {
     const tierLabel = member.subscription_tier === 'wellpass' ? 'Wellpass' : 'Member';
     if (member.subscription_plan_type === 'monthly') return `Active — ${tierLabel} (Monthly)`;
     if (member.subscription_plan_type === 'yearly') return `Active — ${tierLabel} (Yearly)`;
-    return 'Active';
+    // Cash-activated with end date
+    if (member.athlete_subscription_end) {
+      const daysLeft = Math.ceil(
+        (new Date(member.athlete_subscription_end).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
+      );
+      if (daysLeft <= 14) return `Active (${daysLeft}d left)`;
+      return 'Active (1yr)';
+    }
+    // Permanent (no end date, no Stripe plan)
+    return 'Active (∞)';
   }
   if (member.athlete_subscription_status === 'past_due') {
     return 'Payment Failed';

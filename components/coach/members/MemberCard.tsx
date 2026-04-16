@@ -26,6 +26,7 @@ interface MemberCardProps {
   onStartTrial: (memberId: string, days?: number) => void;
   onExtendTrial: (memberId: string, days?: number) => void;
   onActivateSubscription: (memberId: string) => void;
+  onActivatePermanent: (memberId: string) => void;
   onToggleMembershipType: (memberId: string, type: MembershipType, currentTypes: MembershipType[]) => void;
   onToggleClassType: (memberId: string, type: ClassType, currentClassTypes: ClassType[]) => void;
   onSetGender: (memberId: string, gender: 'M' | 'F' | null) => void;
@@ -60,6 +61,7 @@ export default function MemberCard({
   onStartTrial,
   onExtendTrial,
   onActivateSubscription,
+  onActivatePermanent,
   onToggleMembershipType,
   onToggleClassType,
   onSetGender,
@@ -293,15 +295,25 @@ export default function MemberCard({
                       </button>
                     )}
                     {(member.athlete_subscription_status === 'trial' || member.athlete_subscription_status === 'expired') && (
-                      <button
-                        onClick={() => onActivateSubscription(member.id)}
-                        disabled={processingMemberId === member.id || !hasTierType}
-                        className="flex items-center gap-1 px-2 py-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded transition-colors duration-200 text-xs"
-                        title={hasTierType ? 'Activate full subscription (no expiry)' : 'Set Mb or Wp membership type first'}
-                      >
-                        <Check size={12} />
-                        Activate
-                      </button>
+                      <>
+                        <button
+                          onClick={() => onActivateSubscription(member.id)}
+                          disabled={processingMemberId === member.id || !hasTierType}
+                          className="flex items-center gap-1 px-2 py-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded transition-colors duration-200 text-xs"
+                          title={hasTierType ? 'Activate 1-year subscription (cash payment)' : 'Set Mb or Wp membership type first'}
+                        >
+                          <Check size={12} />
+                          1yr
+                        </button>
+                        <button
+                          onClick={() => onActivatePermanent(member.id)}
+                          disabled={processingMemberId === member.id || !hasTierType}
+                          className="flex items-center gap-1 px-2 py-1 bg-emerald-700 hover:bg-emerald-800 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded transition-colors duration-200 text-xs"
+                          title={hasTierType ? 'Activate permanent subscription (no expiry)' : 'Set Mb or Wp membership type first'}
+                        >
+                          ∞
+                        </button>
+                      </>
                     )}
                   </div>
                   {!hasTierType && (member.athlete_subscription_status === 'trial' || member.athlete_subscription_status === 'expired') && (

@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 143.0
-**Updated:** 2026-04-14 (Session 275 - DNF fix + UI polish)
+**Version:** 144.0
+**Updated:** 2026-04-16 (Session 276 - 1yr activate + expiry warnings)
 
 ---
 
@@ -88,39 +88,32 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-04-16 Session 276 - Opus 4.6) — 1YR ACTIVATE + EXPIRY WARNINGS:**
+- **✅ Activate → 1-year** — "Activate" button now sets `athlete_subscription_end` to now + 365 days (was null/unlimited). For cash-paying athletes.
+- **✅ Permanent activate** — New "∞" button for owner/family accounts. Sets no end date.
+- **✅ Auto-expire cash subs** — `autoExpireSubscriptions` now expires both trials AND active cash subs past their end date.
+- **✅ 14-day expiry warning** — New `/api/notifications/subscription-expiring` endpoint. Notifies both athlete ("expires in X days, contact your coach") and coach ("{name}'s subscription expires in X days"). Deduplicated daily via `notification_log`.
+- **✅ Status display** — `getTrialStatus()` now shows: `Active (1yr)`, `Active (14d left)`, or `Active (∞)` for cash/permanent subs.
+- **✅ Launch message draft** — English + German versions saved to `Chris Notes/Forge app documentation/athlete-app-launch-message.md`.
+
 **Completed (2026-04-14 Session 275 - Opus 4.6) — DNF FIX + UI POLISH:**
-- **✅ Fixed duplicate DNF button** — `ScoringFieldInputs` had its own DNF button + `AthleteScoreRow` had another. Added `hideDnf` prop, coach score row now hides the nested one.
-- **✅ Widened name column** — Coach score entry name column expanded (w-24→w-32, w-36→w-44) so names aren't covered by DNF button.
-- **✅ Added whiteboard names** — Moritz (M) and Bettina (F) added to `WHITEBOARD_GENDERS` map.
-- **✅ Leaderboard dropdown styling** — Workout selector dropdown changed from grey to dark teal (`bg-[#0b4f5c]`) with white divider lines to differentiate from workout content.
-- **✅ Custom benchmark dropdown** — Replaced native `<select>` with custom `BenchmarkDropdown` component (matching WodDropdown pattern) for better mobile experience.
+- **✅ Fixed duplicate DNF button** — Added `hideDnf` prop to `ScoringFieldInputs`.
+- **✅ Widened name column** — Coach score entry name column expanded.
+- **✅ Leaderboard dropdown styling** — Dark teal + custom benchmark dropdown.
 
 **Completed (2026-04-14 Session 274 - Opus 4.6) — AUTO-EXPIRE TRIALS:**
-- **✅ Auto-expire trials** — `useMemberData` hook now auto-expires trial members past their end date when coach loads Members page. DB column updated via existing API.
-- **✅ Explicit "Expired" status** — `getTrialStatus()` now returns "Expired" for `expired` status (was "No access").
-- **✅ Color-coded statuses** — MemberCard shows: green=active, teal=trial, amber=past_due, red=expired.
+- **✅ Auto-expire trials** — `useMemberData` hook auto-expires trials past end date.
+- **✅ Color-coded statuses** — green=active, teal=trial, amber=past_due, red=expired.
 
 **Completed (2026-04-14 Session 273 - Opus 4.6) — TIER-LOCK PAYMENT + REMOVE PT:**
-- **✅ Tier-locked payment page** — Athletes only see pricing matching their coach-assigned `membership_types` (Wellpass → Wellpass pricing, Member → Forge pricing). No type = "contact your coach" message.
-- **✅ Server-side tier validation** — Checkout API rejects requests where tier doesn't match `membership_types`.
-- **✅ Removed "Pt" (Probetraining)** from `MembershipType` — one-time event before signup, not needed.
-- **✅ Activate button gated** — Coach must set Mb or Wp before activating athlete subscription. Amber hint text shown.
+- **✅ Tier-locked payment page** — Athletes only see their tier's pricing.
+- **✅ Activate button gated** — Must set Mb or Wp first.
 
 **Completed (2026-04-14 Session 272 - Opus 4.6) — LAUNCH PREP + PRICING CHANGES:**
-- **✅ Verified Session 271 deploy** — Payment failed flow confirmed.
-- **✅ Renamed "Gym Members" → "Forge Members"** on athlete payment page.
-- **✅ No free trial on yearly subs** — Monthly only. Yearly cards show "Subscribe Now".
-- **✅ Member yearly price €85 → €80** — New Stripe price created, Vercel env var updated.
+- **✅ Member yearly price €85 → €80** — New Stripe price, Vercel env var updated.
+- **✅ No free trial on yearly subs** — Monthly only.
 
-**Completed (2026-04-14 Session 271 - Opus 4.6) — PAYMENT FAILED WEBHOOK FIX + UI + COACH NOTIFICATION:**
-- **✅ Fixed `handlePaymentFailed`** — Updates `athlete_subscription_status` to `past_due`.
-- **✅ Payment Failed UI** — Amber UpgradePrompt + coach "Payment Failed" status.
-- **✅ Coach push notification** — `notifyPaymentFailed()` in `lib/notifications.ts`.
-
-**Older Sessions (57-270):**
-See `project-history/` folder for detailed implementation history
-
-**Older Sessions (57-269):**
+**Older Sessions (57-271):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -224,7 +217,8 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION
-- **Deploy Session 275** — Push and verify DNF fix + leaderboard dropdown styling.
+- **Deploy Session 276** — Push and verify 1yr activate, permanent activate, expiry warnings.
+- **Test live:** Activate a test member with 1yr, verify status shows "Active (1yr)". Activate family with ∞, verify "Active (∞)".
 
 ### DEPLOYMENT (Session 158+)
 

@@ -181,7 +181,7 @@ export function useMemberActions(
   };
 
   const handleActivateSubscription = async (memberId: string) => {
-    if (!await confirm({ title: 'Activate Subscription', message: 'Activate full subscription? This will remove the trial end date.', confirmText: 'Activate', variant: 'default' })) {
+    if (!await confirm({ title: 'Activate 1 Year', message: 'Activate subscription for 1 year? (e.g. cash payment)', confirmText: 'Activate', variant: 'default' })) {
       return;
     }
 
@@ -198,10 +198,38 @@ export function useMemberActions(
         throw new Error(data.error || 'Failed to activate subscription');
       }
 
-      toast.success(data.message || 'Subscription activated successfully');
+      toast.success(data.message || '1-year subscription activated');
       await refreshData();
     } catch (error) {
       console.error('Error activating subscription:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to activate subscription. Please try again.');
+    } finally {
+      setProcessingMemberId(null);
+    }
+  };
+
+  const handleActivatePermanent = async (memberId: string) => {
+    if (!await confirm({ title: 'Activate Permanent', message: 'Activate permanent subscription with no expiry date?', confirmText: 'Activate', variant: 'default' })) {
+      return;
+    }
+
+    setProcessingMemberId(memberId);
+    try {
+      const response = await authFetch('/api/members/athlete-subscription', {
+        method: 'POST',
+        body: JSON.stringify({ memberId, action: 'activate_permanent' })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to activate subscription');
+      }
+
+      toast.success(data.message || 'Permanent subscription activated');
+      await refreshData();
+    } catch (error) {
+      console.error('Error activating permanent subscription:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to activate subscription. Please try again.');
     } finally {
       setProcessingMemberId(null);
@@ -285,6 +313,7 @@ export function useMemberActions(
     handleStartTrial,
     handleExtendTrial,
     handleActivateSubscription,
+    handleActivatePermanent,
     handleToggleMembershipType,
     handleToggleClassType,
     handleSetGender,

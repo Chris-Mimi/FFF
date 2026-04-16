@@ -188,8 +188,10 @@ export function useMemberData() {
 
       setMembers(membersWithAttendance);
 
-      // Auto-expire any trials past their end date
-      autoExpireTrials(membersWithAttendance);
+      // Auto-expire trials and cash-activated subs past their end date
+      autoExpireSubscriptions(membersWithAttendance);
+      // Check for subscriptions expiring within 14 days
+      checkExpiringSubscriptions(membersWithAttendance);
     } catch (error) {
       console.error('fetchMembersWithAttendance failed:', error);
       setLoading(false);
@@ -198,20 +200,20 @@ export function useMemberData() {
     }
   };
 
-  // Auto-expire trials that have passed their end date
+  // Auto-expire trials and cash-activated subs that have passed their end date
   const expiredIdsRef = useRef<Set<string>>(new Set());
-  const autoExpireTrials = async (membersList: Member[]) => {
+  const autoExpireSubscriptions = async (membersList: Member[]) => {
     const now = new Date();
-    const expiredTrials = membersList.filter(m =>
-      m.athlete_subscription_status === 'trial' &&
+    const expired = membersList.filter(m =>
+      (m.athlete_subscription_status === 'trial' || m.athlete_subscription_status === 'active') &&
       m.athlete_subscription_end &&
       new Date(m.athlete_subscription_end) < now &&
       !expiredIdsRef.current.has(m.id)
     );
 
-    if (expiredTrials.length === 0) return;
+    if (expired.length === 0) return;
 
-    await Promise.all(expiredTrials.map(async (m) => {
+    await Promise.all(expired.map(async (m) => {
       try {
         await authFetch('/api/members/athlete-subscription', {
           method: 'POST',
@@ -229,6 +231,37 @@ export function useMemberData() {
         ? { ...m, athlete_subscription_status: 'expired' }
         : m
     ));
+  };
+
+  // Send 14-day expiry warning for cash-activated subs (once per session)
+  const warnedIdsRef = useRef<Set<string>>(new Set());
+  const checkExpiringSubscriptions = async (membersList: Member[]) => {
+    const now = new Date();
+    const fourteenDays = 14 * 24 * 60 * 60 * 1000;
+    const expiringSoon = membersList.filter(m =>
+      m.athlete_subscription_status === 'active' &&
+      m.athlete_subscription_end &&
+      !warnedIdsRef.current.has(m.id) &&
+      (() => {
+        const end = new Date(m.athlete_subscription_end!);
+        const diff = end.getTime() - now.getTime();
+        return diff > 0 && diff <= fourteenDays;
+      })()
+    );
+
+    if (expiringSoon.length === 0) return;
+
+    await Promise.all(expiringSoon.map(async (m) => {
+      try {
+        await authFetch('/api/notifications/subscription-expiring', {
+          method: 'POST',
+          body: JSON.stringify({ memberId: m.id }),
+        });
+        warnedIdsRef.current.add(m.id);
+      } catch (err) {
+        console.error('Expiry warning failed for', m.id, err);
+      }
+    }));
   };
 
   const refreshData = () => fetchMembersWithAttendance(activeTab, attendanceTimeframe);

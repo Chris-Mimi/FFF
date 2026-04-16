@@ -218,6 +218,36 @@ export async function notifyScoreQuery(athleteName: string, workoutName: string,
 }
 
 /**
+ * Notify an athlete that their subscription is expiring soon.
+ */
+export function notifySubscriptionExpiring(userId: string, daysLeft: number): void {
+  const payload: PushPayload = {
+    title: 'Subscription Expiring',
+    body: `Your Forge Athlete subscription expires in ${daysLeft} days. Contact your coach to renew.`,
+    data: { url: '/athlete', type: 'subscription_expiring' },
+  };
+
+  sendToUser(userId, payload).catch((err) =>
+    console.error('notifySubscriptionExpiring failed:', err)
+  );
+}
+
+/**
+ * Notify coaches that a member's subscription is expiring soon.
+ */
+export function notifySubscriptionExpiringCoach(memberName: string, daysLeft: number): void {
+  const payload: PushPayload = {
+    title: 'Subscription Expiring',
+    body: `${memberName}'s subscription expires in ${daysLeft} days.`,
+    data: { url: '/coach/members', type: 'subscription_expiring' },
+  };
+
+  sendToCoaches(payload, 'subscription_expiring').catch((err) =>
+    console.error('notifySubscriptionExpiringCoach failed:', err)
+  );
+}
+
+/**
  * Notify coaches that a member's payment has failed.
  */
 export function notifyPaymentFailed(memberName: string): void {
