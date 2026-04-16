@@ -105,10 +105,10 @@ export default function CoachAthletesPage() {
       </div>
 
       {/* Main Content */}
-      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8'>
-        <div className='grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6'>
+      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 md:h-[calc(100vh-80px)]'>
+        <div className='grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6 md:h-full'>
           {/* Athletes List */}
-          <div className='md:col-span-4'>
+          <div className='md:col-span-4 md:overflow-y-auto'>
             <div className='bg-white rounded-lg shadow p-3 md:p-6'>
               <h2 className='text-lg md:text-xl font-bold text-gray-900 mb-3 md:mb-4'>All Athletes</h2>
 
@@ -151,7 +151,7 @@ export default function CoachAthletesPage() {
           </div>
 
           {/* Athlete Details */}
-          <div className='md:col-span-8'>
+          <div className='md:col-span-8 md:overflow-y-auto'>
             {!selectedAthlete ? (
               <div className='hidden md:block bg-white rounded-lg shadow p-12 text-center text-gray-500'>
                 <User size={48} className='mx-auto mb-4 text-gray-400' />
