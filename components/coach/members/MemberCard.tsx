@@ -27,6 +27,7 @@ interface MemberCardProps {
   onExtendTrial: (memberId: string, days?: number) => void;
   onActivateSubscription: (memberId: string) => void;
   onActivatePermanent: (memberId: string) => void;
+  onCancelSubscription: (memberId: string) => void;
   onToggleMembershipType: (memberId: string, type: MembershipType, currentTypes: MembershipType[]) => void;
   onToggleClassType: (memberId: string, type: ClassType, currentClassTypes: ClassType[]) => void;
   onSetGender: (memberId: string, gender: 'M' | 'F' | null) => void;
@@ -62,6 +63,7 @@ export default function MemberCard({
   onExtendTrial,
   onActivateSubscription,
   onActivatePermanent,
+  onCancelSubscription,
   onToggleMembershipType,
   onToggleClassType,
   onSetGender,
@@ -321,6 +323,17 @@ export default function MemberCard({
                           ∞
                         </button>
                       </>
+                    )}
+                    {member.athlete_subscription_status === 'active' && (
+                      <button
+                        onClick={() => onCancelSubscription(member.id)}
+                        disabled={processingMemberId === member.id}
+                        className="flex items-center gap-1 px-2 py-1 bg-red-600 hover:bg-red-700 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded transition-colors duration-200 text-xs"
+                        title="Cancel subscription"
+                      >
+                        <X size={12} />
+                        Cancel Sub
+                      </button>
                     )}
                   </div>
                   {!hasTierType && (member.athlete_subscription_status === 'trial' || member.athlete_subscription_status === 'expired') && (

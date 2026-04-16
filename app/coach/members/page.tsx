@@ -52,6 +52,7 @@ export default function CoachMembersPage() {
     handleExtendTrial,
     handleActivateSubscription,
     handleActivatePermanent,
+    handleCancelSubscription,
     handleToggleMembershipType,
     handleToggleClassType,
     handleSetGender,
@@ -232,6 +233,7 @@ export default function CoachMembersPage() {
                 onExtendTrial={handleExtendTrial}
                 onActivateSubscription={handleActivateSubscription}
                 onActivatePermanent={handleActivatePermanent}
+                onCancelSubscription={handleCancelSubscription}
                 onToggleMembershipType={handleToggleMembershipType}
                 onToggleClassType={handleToggleClassType}
                 onSetGender={handleSetGender}

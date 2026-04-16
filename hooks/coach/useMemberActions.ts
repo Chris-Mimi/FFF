@@ -236,6 +236,34 @@ export function useMemberActions(
     }
   };
 
+  const handleCancelSubscription = async (memberId: string) => {
+    if (!await confirm({ title: 'Cancel Subscription', message: 'Cancel this athlete\'s subscription? They will lose access to the athlete app.', confirmText: 'Cancel Sub', variant: 'danger' })) {
+      return;
+    }
+
+    setProcessingMemberId(memberId);
+    try {
+      const response = await authFetch('/api/members/athlete-subscription', {
+        method: 'POST',
+        body: JSON.stringify({ memberId, action: 'expire' })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to cancel subscription');
+      }
+
+      toast.success('Subscription cancelled');
+      await refreshData();
+    } catch (error) {
+      console.error('Error cancelling subscription:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to cancel subscription. Please try again.');
+    } finally {
+      setProcessingMemberId(null);
+    }
+  };
+
   const handleToggleMembershipType = async (memberId: string, type: MembershipType, currentTypes: MembershipType[]) => {
     try {
       const newTypes = currentTypes.includes(type)
@@ -314,6 +342,7 @@ export function useMemberActions(
     handleExtendTrial,
     handleActivateSubscription,
     handleActivatePermanent,
+    handleCancelSubscription,
     handleToggleMembershipType,
     handleToggleClassType,
     handleSetGender,
