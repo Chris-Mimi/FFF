@@ -73,6 +73,7 @@ export default function MemberCard({
   onOpenTenCard,
 }: MemberCardProps) {
   const [selectedWhiteboardName, setSelectedWhiteboardName] = useState<string>('');
+  const hasMembershipType = (member.membership_types?.length ?? 0) > 0;
 
   return (
     <div className="bg-gray-800 rounded-lg p-3 border border-gray-700 hover:border-gray-600 transition-colors duration-200">
@@ -262,11 +263,15 @@ export default function MemberCard({
                 ))}
               </select>
             )}
+            {!hasMembershipType && (
+              <span className="text-[10px] text-amber-400">Select Mb, Wp, or 10-Card first</span>
+            )}
             <div className="flex gap-2">
               <button
                 onClick={() => onApprove(member.id, selectedWhiteboardName || undefined)}
-                disabled={processingMemberId === member.id}
+                disabled={processingMemberId === member.id || !hasMembershipType}
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-teal-500 hover:bg-teal-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200 text-sm"
+                title={hasMembershipType ? 'Approve member' : 'Select a membership type first'}
               >
                 <Check size={16} />
                 Approve
