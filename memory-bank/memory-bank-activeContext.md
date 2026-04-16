@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 146.0
-**Updated:** 2026-04-16 (Session 279 - no subscription label)
+**Version:** 147.0
+**Updated:** 2026-04-16 (Session 280 - approve validation + webhook logging + trialing subs)
 
 ---
 
@@ -88,40 +88,33 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-04-16 Session 280 - Opus 4.6) — APPROVE VALIDATION + WEBHOOK LOGGING + TRIALING SUBS:**
+- **✅ Approve button validation** — Disabled Approve button on pending members until at least one membership type (Mb/Wp/10-Card) selected. Amber warning text added.
+- **✅ Webhook error logging** — Added error checking to `handleCheckoutCompleted` and `handleSubscriptionUpdate` member update calls in `app/api/stripe/webhook/route.ts`. Previously failures were silent.
+- **✅ Trialing subscription query** — Changed `useMemberData.ts` subscriptions query from `.eq('status', 'active')` to `.in('status', ['active', 'trialing'])` so Stripe trial subscriptions populate `subscription_plan_type`.
+- **🐛 CRITICAL BUG — NOT RESOLVED:** Athlete subscribed to monthly plan (30-day trial). `subscriptions` table shows `status: 'trialing'` but `members.athlete_subscription_status` stayed `'expired'`. The `athlete_subscription_end` was set to 2026-04-16 (today) instead of 30 days out. Root cause: `autoExpireSubscriptions` in `useMemberData.ts` likely expired the member immediately because end date matched today. Possible that `handleSubscriptionUpdate` overwrote checkout handler's 30-day end date with Stripe's `current_period_end` (which for trials = trial end date).
+- **⚠️ Stefan Glocker** — Was approved without membership type (now prevented by validation). Status shows 'expired' — needs DB fix.
+- **✅ Christian Müller** — Whiteboard name "ChristianM" set via SQL (confirmed by Chris).
+
 **Completed (2026-04-16 Session 279 - Opus 4.6) — NO SUBSCRIPTION LABEL + MIGRATION CONFIRMED:**
 - **✅ "No Subscription" label** — `getTrialStatus()` now shows "No Subscription" instead of "Expired" for athletes who never had a subscription (checks `athlete_subscription_start` null).
 - **✅ Migration confirmed** — `20260416000000_add_subscription_start.sql` already applied.
 
 **Completed (2026-04-16 Session 278 - Opus 4.6) — WHITEBOARD NAME LINKING + FAMILY SUB INHERITANCE:**
-- **✅ Family subscription inheritance** — Family members now inherit primary member's subscription status on coach members page (was showing "Expired" for Cody/Neo).
-- **✅ Whiteboard name dropdown on approval** — Pending member cards now show a dropdown of unlinked whiteboard names. Coach selects the matching name before approving.
-- **✅ Score migration on approve** — When a whiteboard name is selected, all `wod_section_results` rows with that name get `member_id`/`user_id` set and `whiteboard_name` cleared.
-- **✅ Conflict check script** — `scripts/check-whiteboard-name-conflicts.ts` reports duplicates, multi-matches, and unlinked names.
-- **✅ VS Code cleanup** — Removed 5 unnecessary extensions (Augment, Copilot, Gemini, Cline, codeflow-studio). Only Claude Code remains.
-- **✅ German umlauts** — Fixed ae/oe/ue in `athlete-app-launch-message.md`.
+- **✅ Family subscription inheritance** — Family members now inherit primary member's subscription status on coach members page.
+- **✅ Whiteboard name dropdown on approval** — Pending member cards show dropdown of unlinked whiteboard names.
+- **✅ Score migration on approve** — Selected whiteboard name scores get `member_id`/`user_id` set.
 
 **Completed (2026-04-16 Session 277 - Opus 4.6) — SUBSCRIPTION START DATE:**
-- **✅ New `athlete_subscription_start` column** — Tracks when paid subscription began (separate from `created_at` which is booking registration).
-- **✅ Set on activation** — `activate` and `activate_permanent` actions stamp `athlete_subscription_start` to now. Stripe checkout also sets it.
-- **✅ MemberCard display** — Shows "Subscribed: [date]" in column 2 next to phone for active athletes.
-- **✅ Migration applied** — `20260416000000_add_subscription_start.sql` confirmed applied (Session 279).
-- **⚠️ Re-activate needed** — Members activated before Session 277 won't have the date. Re-click 1yr/∞ or manually set in Supabase.
+- **✅ New `athlete_subscription_start` column** — Tracks when paid subscription began.
+- **✅ Set on activation** — `activate` and `activate_permanent` actions stamp it. Stripe checkout too.
+- **⚠️ Re-activate needed** — Members activated before Session 277 need re-click or manual SQL.
 
 **Completed (2026-04-16 Session 276 - Opus 4.6) — 1YR ACTIVATE + EXPIRY WARNINGS:**
-- **✅ Activate → 1-year** — "Activate" button now sets `athlete_subscription_end` to now + 365 days (was null/unlimited). For cash-paying athletes.
-- **✅ Permanent activate** — New "∞" button for owner/family accounts. Sets no end date.
-- **✅ Auto-expire cash subs** — `autoExpireSubscriptions` now expires both trials AND active cash subs past their end date.
-- **✅ 14-day expiry warning** — New `/api/notifications/subscription-expiring` endpoint. Deduplicated daily via `notification_log`.
-- **✅ Status display** — `getTrialStatus()` now shows: `Active (1yr)`, `Active (14d left)`, or `Active (∞)` for cash/permanent subs.
-
-**Completed (2026-04-14 Session 275 - Opus 4.6) — DNF FIX + UI POLISH:**
-- **✅ Fixed duplicate DNF button** — Added `hideDnf` prop to `ScoringFieldInputs`.
-- **✅ Widened name column** — Coach score entry name column expanded.
-- **✅ Leaderboard dropdown styling** — Dark teal + custom benchmark dropdown.
-
-**Completed (2026-04-14 Session 274 - Opus 4.6) — AUTO-EXPIRE TRIALS:**
-- **✅ Auto-expire trials** — `useMemberData` hook auto-expires trials past end date.
-- **✅ Color-coded statuses** — green=active, teal=trial, amber=past_due, red=expired.
+- **✅ Activate → 1-year** — Sets `athlete_subscription_end` to now + 365 days.
+- **✅ Permanent activate** — "∞" button for owner/family accounts.
+- **✅ Auto-expire cash subs** — Expires trials AND active cash subs past end date.
+- **✅ 14-day expiry warning** — `/api/notifications/subscription-expiring` endpoint.
 
 **Older Sessions (57-273):**
 See `project-history/` folder for detailed implementation history
@@ -227,10 +220,12 @@ npm run restore 2025-12-06  # Restore specific date
 
 ## 📋 Next Immediate Steps
 
-### NEXT SESSION
-- **Deploy Session 277+278** — Run migration `20260416000000_add_subscription_start.sql`, push, verify family inheritance + whiteboard linking.
+### NEXT SESSION — URGENT
+- **🐛 FIX: Athlete subscription bug** — Athlete's `athlete_subscription_end` is set to 2026-04-16 (today). Run SQL to fix: `UPDATE members SET athlete_subscription_status = 'active', athlete_subscription_end = NOW() + INTERVAL '30 days' WHERE [identify member]`. Then investigate WHY `handleSubscriptionUpdate` set end date to today instead of 30 days out.
+- **🐛 FIX: `autoExpireSubscriptions` vs trialing** — Should `autoExpireSubscriptions` skip members who have an active `subscriptions` table record with `status = 'trialing'`? Currently it expires anyone past `athlete_subscription_end` regardless of Stripe status.
+- **🐛 FIX: Stefan Glocker** — Set membership type and subscription status correctly in DB.
+- **Investigate webhook event ordering** — Does `subscription.created` fire before or after `checkout.session.completed`? If `handleSubscriptionUpdate` runs second, it may overwrite the 30-day end date with Stripe's `current_period_end` (trial end = today for some reason).
 - **Re-activate existing** — Members activated before Session 277 need re-click or manual SQL backfill for `athlete_subscription_start`.
-- **Test whiteboard linking** — Approve a pending member with whiteboard name selected, verify scores migrate. Run `npx tsx scripts/check-whiteboard-name-conflicts.ts` periodically as athletes register.
 
 ### DEPLOYMENT (Session 158+)
 

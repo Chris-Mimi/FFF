@@ -249,14 +249,23 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
 
   // Update member's athlete subscription status and tier
   if (subscription.status === 'active' || subscription.status === 'trialing') {
+    // For trialing subs, don't overwrite athlete_subscription_end if checkout already set it
+    // Stripe's current_period_end for trials = trial end date (not subscription end),
+    // which can cause autoExpire to immediately expire the member
+    const memberUpdate: Record<string, string | null> = {
+      athlete_subscription_status: 'active',
+      ...(tier && { subscription_tier: tier }),
+      updated_at: now.toISOString(),
+    };
+
+    // Only set end date for active (non-trialing) subscriptions
+    if (subscription.status === 'active') {
+      memberUpdate.athlete_subscription_end = periodEnd.toISOString();
+    }
+
     const { error: memberUpdateError } = await supabaseAdmin
       .from('members')
-      .update({
-        athlete_subscription_status: 'active',
-        athlete_subscription_end: periodEnd.toISOString(),
-        ...(tier && { subscription_tier: tier }),
-        updated_at: now.toISOString(),
-      })
+      .update(memberUpdate)
       .eq('id', member.id);
 
     if (memberUpdateError) {

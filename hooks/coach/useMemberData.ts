@@ -248,7 +248,8 @@ export function useMemberData() {
       setMembers(membersWithAttendance);
 
       // Auto-expire trials and cash-activated subs past their end date
-      autoExpireSubscriptions(membersWithAttendance);
+      // Pass planTypeMap so members with active Stripe subscriptions are not expired
+      autoExpireSubscriptions(membersWithAttendance, planTypeMap);
       // Check for subscriptions expiring within 14 days
       checkExpiringSubscriptions(membersWithAttendance);
     } catch (error) {
@@ -260,15 +261,17 @@ export function useMemberData() {
   };
 
   // Auto-expire trials and cash-activated subs that have passed their end date
+  // Skip members with active/trialing Stripe subscriptions (Stripe is source of truth)
   const expiredIdsRef = useRef<Set<string>>(new Set());
-  const autoExpireSubscriptions = async (membersList: Member[]) => {
+  const autoExpireSubscriptions = async (membersList: Member[], stripeSubMap: Record<string, string>) => {
     const now = new Date();
     const expired = membersList.filter(m =>
       m.account_type !== 'family_member' &&
       (m.athlete_subscription_status === 'trial' || m.athlete_subscription_status === 'active') &&
       m.athlete_subscription_end &&
       new Date(m.athlete_subscription_end) < now &&
-      !expiredIdsRef.current.has(m.id)
+      !expiredIdsRef.current.has(m.id) &&
+      !stripeSubMap[m.id] // Skip if member has active/trialing Stripe subscription
     );
 
     if (expired.length === 0) return;
