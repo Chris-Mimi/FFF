@@ -140,7 +140,7 @@ export function useMemberData() {
           .from('subscriptions')
           .select('member_id, plan_type')
           .in('member_id', memberIds)
-          .eq('status', 'active');
+          .in('status', ['active', 'trialing']);
 
         if (subsData) {
           planTypeMap = Object.fromEntries(

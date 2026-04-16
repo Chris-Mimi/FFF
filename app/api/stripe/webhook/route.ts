@@ -137,7 +137,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       : new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
 
     // Update member status with tier
-    await supabaseAdmin
+    const { error: memberUpdateError } = await supabaseAdmin
       .from('members')
       .update({
         athlete_subscription_status: 'active',
@@ -147,6 +147,10 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
         updated_at: now.toISOString(),
       })
       .eq('id', memberId);
+
+    if (memberUpdateError) {
+      console.error(`Failed to update member ${memberId} on checkout.completed:`, memberUpdateError);
+    }
 
     // Get member data for athlete profile creation
     const { data: memberData } = await supabaseAdmin
@@ -245,7 +249,7 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
 
   // Update member's athlete subscription status and tier
   if (subscription.status === 'active' || subscription.status === 'trialing') {
-    await supabaseAdmin
+    const { error: memberUpdateError } = await supabaseAdmin
       .from('members')
       .update({
         athlete_subscription_status: 'active',
@@ -254,6 +258,10 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
         updated_at: now.toISOString(),
       })
       .eq('id', member.id);
+
+    if (memberUpdateError) {
+      console.error(`Failed to update member ${member.id} on subscription.${subscription.status}:`, memberUpdateError);
+    }
   }
 
 }
