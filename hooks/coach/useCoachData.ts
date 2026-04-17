@@ -411,28 +411,17 @@ export const useCoachData = ({
 
       if (membersError) throw membersError;
 
-      // Get session IDs with published wods
-      const { data: publishedSessions, error: psError } = await supabase
-        .from('weekly_sessions')
-        .select('id, wods!inner(workout_publish_status)')
-        .eq('wods.workout_publish_status', 'published');
+      const memberIds = (membersData || []).map(m => m.id);
+      const { data: attendanceData, error: attError } = await supabase.rpc(
+        'get_all_members_attendance',
+        { p_member_ids: memberIds, p_days_back: 36500 }
+      );
 
-      if (psError) throw psError;
-      const publishedSessionIds = new Set(publishedSessions?.map(s => s.id) || []);
-
-      // Get confirmed bookings
-      const { data: bookingsData, error: bError } = await supabase
-        .from('bookings')
-        .select('member_id, session_id')
-        .eq('status', 'confirmed');
-
-      if (bError) throw bError;
+      if (attError) throw attError;
 
       const memberCounts: Record<string, number> = {};
-      bookingsData?.forEach(b => {
-        if (publishedSessionIds.has(b.session_id)) {
-          memberCounts[b.member_id] = (memberCounts[b.member_id] || 0) + 1;
-        }
+      (attendanceData || []).forEach((row: { member_id: string; attendance_count: number }) => {
+        memberCounts[row.member_id] = Number(row.attendance_count);
       });
 
       setMembers(

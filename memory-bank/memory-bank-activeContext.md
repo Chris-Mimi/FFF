@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 150.0
-**Updated:** 2026-04-17 (Session 283 - sticky Workout Sections header in WorkoutModal)
+**Version:** 151.0
+**Updated:** 2026-04-17 (Session 284 - attendance count fix for whiteboard text mentions)
 
 ---
 
@@ -88,6 +88,15 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-04-17 Session 284 - Sonnet 4.6 / Opus 4.7) — ATTENDANCE COUNT FIX (WHITEBOARD TEXT):**
+- **🐛 Problem:** Members page `attendance_count` for pre-launch athletes was severely undercounting vs. truth. ThomasG: 8 on card, actually attended 22 sessions. Steven: 10 on card, 37 actual. DanielB: 8 on card, 20 actual.
+- **Root cause #1 — null param stripped by Supabase JS:** `useMemberData.ts` + `useCoachData.ts` passed `p_days_back: null` for "all time" but the JS client was dropping null keys → RPC used `DEFAULT 30` → always showed 30-day window regardless of selector. **Fix:** pass `36500` instead of `null`.
+- **Root cause #2 — whiteboard text mentions not counted:** Coaches record attendance by typing member names in the free-text "Whiteboard Intro" section content (`wods.sections[].content`). For pre-launch members with no booking and no structured `wod_section_results` row, those sessions were invisible to the RPC. The Workouts-tab search (which text-searches `sections::text`) saw 22 for ThomasG while the RPC saw 8.
+- **✅ Fix:** `database/update-attendance-functions-include-whiteboard-text.sql` — added a 3rd UNION to both attendance RPCs that matches `members.whiteboard_name` against `wods.sections::text` using POSIX word boundaries (`\yNAME\y`, case-insensitive). Applied in Supabase SQL Editor.
+- **✅ Code fix:** `hooks/coach/useMemberData.ts` + `hooks/coach/useCoachData.ts` — replaced `null` with `36500` for all-time attendance queries. Also replaced the manual published-bookings count in `useCoachData.ts::fetchMembers` with a call to `get_all_members_attendance` so Workouts-tab sidebar counts use the same source as the Members page.
+- **📝 All newly-registered athletes now show correct counts** — ThomasG, DanielB, Steven all match the Workouts-tab search results (exception: Steven, see next session).
+- **🐛 Steven discrepancy (carryover):** Members page shows 39, Workouts-tab search returns 37. Small gap (+2). Hypotheses: (a) word-boundary regex catches false positives (e.g., "Stevens" matching "Steven"), (b) two sessions where Steven's whiteboard_name appears but the Workouts-tab search misses them for some reason (e.g., search limit of 500), (c) his whiteboard_name in `members.whiteboard_name` matches substrings in other content. Needs investigation next session.
+
 **Completed (2026-04-17 Session 283 - Opus 4.7) — STICKY WORKOUT SECTIONS HEADER:**
 - **✅ Sticky header in Create/Edit Workout modal** — `components/coach/WorkoutModal.tsx`. Wrapped "Workout Sections" label + Library/Section buttons in `sticky top-0 z-20 bg-white pb-3 -mx-6 px-6`. Panel mode (mobile/side-panel) also includes the `MovementDemosBar` in the sticky wrapper (user chose Option B — demos bar is only 1 row). Modal mode (desktop popup) has no demos bar so sticky only wraps the header row.
 - **📝 Why `-mx-6 px-6`** — form uses `p-6` padding; the negative horizontal margins extend the sticky's white background edge-to-edge so sections scrolling up behind it don't peek around the sides.
@@ -115,11 +124,7 @@ Social Tables
 - **⚠️ Stefan Glocker** — Was approved without membership type (now prevented by validation). Status shows 'expired' — needs DB fix.
 - **✅ Christian Müller** — Whiteboard name "ChristianM" set via SQL (confirmed by Chris).
 
-**Completed (2026-04-16 Session 279 - Opus 4.6) — NO SUBSCRIPTION LABEL + MIGRATION CONFIRMED:**
-- **✅ "No Subscription" label** — `getTrialStatus()` now shows "No Subscription" instead of "Expired" for athletes who never had a subscription (checks `athlete_subscription_start` null).
-- **✅ Migration confirmed** — `20260416000000_add_subscription_start.sql` already applied.
-
-**Older Sessions (57-278):**
+**Older Sessions (57-279):**
 See `project-history/` folder for detailed implementation history
 
 ---
@@ -224,6 +229,7 @@ npm run restore 2025-12-06  # Restore specific date
 ## 📋 Next Immediate Steps
 
 ### NEXT SESSION — URGENT
+- **🐛 FIX: Steven attendance discrepancy (Session 284 carryover)** — Members page shows 39, Workouts-tab text search returns 37. Debug which 2 sessions differ. Hypotheses: (a) regex word-boundary false positive — whiteboard_name "Steven" matching other text (e.g., "Stevens" elsewhere, though Chris said names only appear in Whiteboard Intro sections), (b) Workouts-tab search 500-row limit cutting off some sessions, (c) `sections::text` regex catching a non-name occurrence. Query to run: `SELECT ws.date, w.sections::text FROM weekly_sessions ws JOIN wods w ON w.id = ws.workout_id WHERE w.sections::text ~* '\ySteven\y' ORDER BY ws.date DESC;` — compare against Workouts-tab results to find the 2 extra matches.
 - **🐛 FIX: Athlete subscription bug** — Athlete's `athlete_subscription_end` is set to 2026-04-16 (today). Run SQL to fix: `UPDATE members SET athlete_subscription_status = 'active', athlete_subscription_end = NOW() + INTERVAL '30 days' WHERE [identify member]`. Then investigate WHY `handleSubscriptionUpdate` set end date to today instead of 30 days out.
 - **🐛 FIX: `autoExpireSubscriptions` vs trialing** — Should `autoExpireSubscriptions` skip members who have an active `subscriptions` table record with `status = 'trialing'`? Currently it expires anyone past `athlete_subscription_end` regardless of Stripe status.
 - **🐛 FIX: Stefan Glocker** — Set membership type and subscription status correctly in DB.
