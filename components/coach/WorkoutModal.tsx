@@ -163,45 +163,47 @@ export default function WorkoutModal({
 
             {/* Sections */}
             <div>
-              <div className='flex justify-between items-center mb-3'>
-                <div>
-                  <label className='block text-sm font-semibold text-gray-900'>
-                    Workout Sections <span className='text-red-500'>*</span>
-                  </label>
-                  <p className='text-xs text-gray-600 mt-1'>
-                    Total Duration:{' '}
-                    <span className='font-semibold text-[#178da6]'>{totalDuration} mins</span>
-                  </p>
+              <div className='sticky top-0 z-20 bg-white pb-3 -mx-6 px-6'>
+                <div className='flex justify-between items-center mb-3'>
+                  <div>
+                    <label className='block text-sm font-semibold text-gray-900'>
+                      Workout Sections <span className='text-red-500'>*</span>
+                    </label>
+                    <p className='text-xs text-gray-600 mt-1'>
+                      Total Duration:{' '}
+                      <span className='font-semibold text-[#178da6]'>{totalDuration} mins</span>
+                    </p>
+                  </div>
+                  <div className='flex items-center gap-2'>
+                    <button
+                      type='button'
+                      onClick={hook.openLibrary}
+                      className='px-4 py-2 bg-white hover:bg-gray-50 border-2 border-[#178da6] text-[#178da6] text-sm font-medium rounded-lg flex items-center gap-2 transition'
+                      title='Open Exercise Library'
+                    >
+                      <Library size={16} />
+                      Library
+                    </button>
+                    <button
+                      type='button'
+                      onClick={hook.addSection}
+                      className='px-4 py-2 bg-[#178da6] hover:bg-[#14758c] text-white text-sm font-medium rounded-lg flex items-center gap-2 transition'
+                    >
+                      <Plus size={16} />
+                      Section
+                    </button>
+                  </div>
                 </div>
-                <div className='flex items-center gap-2'>
-                  <button
-                    type='button'
-                    onClick={hook.openLibrary}
-                    className='px-4 py-2 bg-white hover:bg-gray-50 border-2 border-[#178da6] text-[#178da6] text-sm font-medium rounded-lg flex items-center gap-2 transition'
-                    title='Open Exercise Library'
-                  >
-                    <Library size={16} />
-                    Library
-                  </button>
-                  <button
-                    type='button'
-                    onClick={hook.addSection}
-                    className='px-4 py-2 bg-[#178da6] hover:bg-[#14758c] text-white text-sm font-medium rounded-lg flex items-center gap-2 transition'
-                  >
-                    <Plus size={16} />
-                    Section
-                  </button>
-                </div>
+
+                {hook.errors.sections && <p className='text-red-500 text-sm mb-2'>{hook.errors.sections}</p>}
+
+                <MovementDemosBar
+                  sections={hook.formData.sections}
+                  exercises={hook.exercisesForVideo}
+                  videoClips={hook.formData.video_clips || []}
+                  onVideoClipsChange={(clips) => hook.handleChange('video_clips', clips)}
+                />
               </div>
-
-              {hook.errors.sections && <p className='text-red-500 text-sm mb-2'>{hook.errors.sections}</p>}
-
-              <MovementDemosBar
-                sections={hook.formData.sections}
-                exercises={hook.exercisesForVideo}
-                videoClips={hook.formData.video_clips || []}
-                onVideoClipsChange={(clips) => hook.handleChange('video_clips', clips)}
-              />
 
               <div className='space-y-4'>
                 {hook.formData.sections.map((section, index) => (
@@ -508,38 +510,40 @@ export default function WorkoutModal({
 
               {/* Sections */}
               <div>
-                <div className='flex justify-between items-center mb-3'>
-                  <div>
-                    <label className='block text-sm font-semibold text-gray-900'>
-                      Workout Sections <span className='text-red-500'>*</span>
-                    </label>
-                    <p className='text-xs text-gray-600 mt-1'>
-                      Total Duration:{' '}
-                      <span className='font-semibold text-[#178da6]'>{totalDuration} mins</span>
-                    </p>
+                <div className='sticky top-0 z-20 bg-white pb-3 -mx-6 px-6'>
+                  <div className='flex justify-between items-center mb-3'>
+                    <div>
+                      <label className='block text-sm font-semibold text-gray-900'>
+                        Workout Sections <span className='text-red-500'>*</span>
+                      </label>
+                      <p className='text-xs text-gray-600 mt-1'>
+                        Total Duration:{' '}
+                        <span className='font-semibold text-[#178da6]'>{totalDuration} mins</span>
+                      </p>
+                    </div>
+                    <div className='flex items-center gap-2'>
+                      <button
+                        type='button'
+                        onClick={hook.openLibrary}
+                        className='px-4 py-2 bg-white hover:bg-gray-50 border-2 border-[#178da6] text-[#178da6] text-sm font-medium rounded-lg flex items-center gap-2 transition'
+                        title='Open Exercise Library'
+                      >
+                        <Library size={16} />
+                        Library
+                      </button>
+                      <button
+                        type='button'
+                        onClick={hook.addSection}
+                        className='px-4 py-2 bg-[#178da6] hover:bg-[#14758c] text-white text-sm font-medium rounded-lg flex items-center gap-2 transition'
+                      >
+                        <Plus size={16} />
+                        Section
+                      </button>
+                    </div>
                   </div>
-                  <div className='flex items-center gap-2'>
-                    <button
-                      type='button'
-                      onClick={hook.openLibrary}
-                      className='px-4 py-2 bg-white hover:bg-gray-50 border-2 border-[#178da6] text-[#178da6] text-sm font-medium rounded-lg flex items-center gap-2 transition'
-                      title='Open Exercise Library'
-                    >
-                      <Library size={16} />
-                      Library
-                    </button>
-                    <button
-                      type='button'
-                      onClick={hook.addSection}
-                      className='px-4 py-2 bg-[#178da6] hover:bg-[#14758c] text-white text-sm font-medium rounded-lg flex items-center gap-2 transition'
-                    >
-                      <Plus size={16} />
-                      Section
-                    </button>
-                  </div>
-                </div>
 
-                {hook.errors.sections && <p className='text-red-500 text-sm mb-2'>{hook.errors.sections}</p>}
+                  {hook.errors.sections && <p className='text-red-500 text-sm mb-2'>{hook.errors.sections}</p>}
+                </div>
 
                 <div className='space-y-4'>
                   {hook.formData.sections.map((section, index) => (

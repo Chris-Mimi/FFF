@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 149.0
-**Updated:** 2026-04-17 (Session 282 - at-risk attendance fix + iPhone search fix)
+**Version:** 150.0
+**Updated:** 2026-04-17 (Session 283 - sticky Workout Sections header in WorkoutModal)
 
 ---
 
@@ -88,6 +88,11 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-04-17 Session 283 - Opus 4.7) — STICKY WORKOUT SECTIONS HEADER:**
+- **✅ Sticky header in Create/Edit Workout modal** — `components/coach/WorkoutModal.tsx`. Wrapped "Workout Sections" label + Library/Section buttons in `sticky top-0 z-20 bg-white pb-3 -mx-6 px-6`. Panel mode (mobile/side-panel) also includes the `MovementDemosBar` in the sticky wrapper (user chose Option B — demos bar is only 1 row). Modal mode (desktop popup) has no demos bar so sticky only wraps the header row.
+- **📝 Why `-mx-6 px-6`** — form uses `p-6` padding; the negative horizontal margins extend the sticky's white background edge-to-edge so sections scrolling up behind it don't peek around the sides.
+- **📝 Desktop confirmed by Chris.** iPhone test pending (Chris will test on Mimi's iPhone after this session close).
+
 **Completed (2026-04-17 Session 282 - Opus 4.7) — AT-RISK ATTENDANCE FIX + IPHONE SEARCH FIX:**
 - **✅ At-Risk / attendance RPCs redefined** — `get_all_members_attendance` and `get_members_last_attendance` now UNION confirmed bookings + linked `wod_section_results` (joined via `weekly_sessions.workout_id`). `COUNT(DISTINCT session_id)` prevents double-counting multi-section WODs or booking+score duplicates. Self-healing for all future pre-launch athletes who register — no runbook needed. File: `database/update-attendance-functions-include-scores.sql`.
 - **✅ iPhone "Search exercises" bug fixed** — `components/coach/MovementLibraryPopup.tsx` had a `readOnly` + `onFocus={removeAttribute('readonly')}` anti-autofill hack. React re-applies `readOnly` on every keystroke re-render; iOS Safari doesn't tolerate the race. Removed both; `autoComplete='off'` stays.
@@ -114,12 +119,7 @@ Social Tables
 - **✅ "No Subscription" label** — `getTrialStatus()` now shows "No Subscription" instead of "Expired" for athletes who never had a subscription (checks `athlete_subscription_start` null).
 - **✅ Migration confirmed** — `20260416000000_add_subscription_start.sql` already applied.
 
-**Completed (2026-04-16 Session 278 - Opus 4.6) — WHITEBOARD NAME LINKING + FAMILY SUB INHERITANCE:**
-- **✅ Family subscription inheritance** — Family members now inherit primary member's subscription status on coach members page.
-- **✅ Whiteboard name dropdown on approval** — Pending member cards show dropdown of unlinked whiteboard names.
-- **✅ Score migration on approve** — Selected whiteboard name scores get `member_id`/`user_id` set.
-
-**Older Sessions (57-277):**
+**Older Sessions (57-278):**
 See `project-history/` folder for detailed implementation history
 
 ---
