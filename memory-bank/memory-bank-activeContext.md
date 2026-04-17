@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 148.0
-**Updated:** 2026-04-17 (Session 281 - whiteboard score backfill)
+**Version:** 149.0
+**Updated:** 2026-04-17 (Session 282 - at-risk attendance fix + iPhone search fix)
 
 ---
 
@@ -88,6 +88,12 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-04-17 Session 282 - Opus 4.7) — AT-RISK ATTENDANCE FIX + IPHONE SEARCH FIX:**
+- **✅ At-Risk / attendance RPCs redefined** — `get_all_members_attendance` and `get_members_last_attendance` now UNION confirmed bookings + linked `wod_section_results` (joined via `weekly_sessions.workout_id`). `COUNT(DISTINCT session_id)` prevents double-counting multi-section WODs or booking+score duplicates. Self-healing for all future pre-launch athletes who register — no runbook needed. File: `database/update-attendance-functions-include-scores.sql`.
+- **✅ iPhone "Search exercises" bug fixed** — `components/coach/MovementLibraryPopup.tsx` had a `readOnly` + `onFocus={removeAttribute('readonly')}` anti-autofill hack. React re-applies `readOnly` on every keystroke re-render; iOS Safari doesn't tolerate the race. Removed both; `autoComplete='off'` stays.
+- **🐛 Latent bug (not fixed):** Same pattern exists in `components/coach/SearchPanel.tsx:946` ("Search workout history" on coach Analysis page). Deferred pending Chris's decision.
+- **📝 Decision logged:** Chose Option 1 (redefine counting) over Option 2 (backfill bookings rows). Option 2 would have required a recurring manual runbook for every future pre-launch registrant.
+
 **Completed (2026-04-17 Session 281 - Opus 4.7) — WHITEBOARD SCORE BACKFILL:**
 - **✅ One-time backfill script** — `scripts/link-whiteboard-scores.ts` (dry-run default, `--apply` to write). Matches `wod_section_results.whiteboard_name` → `members.whiteboard_name` (exact match), skips multi-member conflicts and no-match rows.
 - **✅ 44 scores linked** across 12 members (Steven, Anneke, Lena, Andreas, Thomas S, Wayne, Nikolina, Paul, Lukas, Stefan, David, Mimi partial).
@@ -113,12 +119,7 @@ Social Tables
 - **✅ Whiteboard name dropdown on approval** — Pending member cards show dropdown of unlinked whiteboard names.
 - **✅ Score migration on approve** — Selected whiteboard name scores get `member_id`/`user_id` set.
 
-**Completed (2026-04-16 Session 277 - Opus 4.6) — SUBSCRIPTION START DATE:**
-- **✅ New `athlete_subscription_start` column** — Tracks when paid subscription began.
-- **✅ Set on activation** — `activate` and `activate_permanent` actions stamp it. Stripe checkout too.
-- **⚠️ Re-activate needed** — Members activated before Session 277 need re-click or manual SQL.
-
-**Older Sessions (57-276):**
+**Older Sessions (57-277):**
 See `project-history/` folder for detailed implementation history
 
 ---
