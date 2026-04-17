@@ -1,11 +1,26 @@
 # At the START of every Claude session give this prompt:
 
 **Read in ONE parallel call (COPY EXACTLY!!!):**
-/Users/chrishiles/SynologyDrive/CrossFit Hammerschmiede (CFH)/AI Development/forge-functional-fitness/memory-bank/workflow-protocols.md
 /Users/chrishiles/SynologyDrive/CrossFit Hammerschmiede (CFH)/AI Development/forge-functional-fitness/memory-bank/memory-bank-activeContext.md
-/Users/chrishiles/SynologyDrive/CrossFit Hammerschmiede (CFH)/AI Development/forge-functional-fitness/memory-bank/memory-bank-techContext.md
-/Users/chrishiles/SynologyDrive/CrossFit Hammerschmiede (CFH)/AI Development/forge-functional-fitness/memory-bank/memory-bank-systemPatterns.md
-Then go into Plan Mode and either ask or suggest next steps based on information in the memory-bank-active-Context.md and last project-history file
+
+Plus the most recent file in `project-history/` (run `ls -t project-history | head -1` to find it).
+
+Only read `memory-bank/workflow-protocols.md`, `memory-bank-techContext.md`, or `memory-bank-systemPatterns.md` if the task actually needs them.
+
+Then suggest next steps directly based on activeContext + latest session. **Do not enter Plan Mode unless the task is a genuine 3+ file implementation.**
+
+---
+
+## 🪙 CONTEXT EFFICIENCY RULES (mandatory — Session 285)
+
+Past sessions burned 70%+ context on tasks that should cost 15%. Follow these:
+
+1. **No Explore agent for single-file lookups.** Use Grep/Read directly. Explore is for 3+ queries or genuinely unknown territory.
+2. **No Plan Mode for diagnose-and-delete or single-file tasks.** EnterPlanMode loads heavy tool schemas + writes a plan file. Worth it only for 3+ file implementations.
+3. **Targeted reads, not full reads.** Grep for the section, then `Read` with `offset`+`limit`. Never read 300+ line files when you need 20 lines.
+4. **Short agent prompts.** 40 words, not 200.
+5. **No TodoWrite for 1–3 step tasks.** TodoWrite is for 4+ step work with distinct phases.
+6. **Ask before exploring** if the task is ambiguous — cheaper than guessing wrong.
 
 
 # Note for Chris #

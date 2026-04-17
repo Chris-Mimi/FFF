@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 151.0
-**Updated:** 2026-04-17 (Session 284 - attendance count fix for whiteboard text mentions)
+**Version:** 152.0
+**Updated:** 2026-04-17 (Session 285 - trimmed for context efficiency)
 
 ---
 
@@ -9,24 +9,23 @@
 
 | Rule | Detail |
 |:---|:---|
-| **Mandate** | Read `memory-bank/workflow-protocols.md` BEFORE any work |
+| **Mandate** | Read `memory-bank/workflow-protocols.md` only when task actually needs it |
 | **Database Safety** | Run `npm run backup` BEFORE any migration or risky change |
-| **Agent Use** | Use Agent for 3+ step tasks, multi-file changes, bug investigations |
-| **Efficiency** | Target: Keep sessions under 50% context usage |
-| **Context Monitoring** | 50%/60%: Alert. 70%: STOP, create summary, commit code, tell user to start new session. 80%: Critical limit (Memory Bank updates in fresh session - see workflow-protocols.md) |
+| **Agent Use** | Agent only for 3+ step tasks, multi-file changes, genuine unknowns |
+| **Efficiency** | Target < 50% context. See `Chris Notes/AA frequently used files/Claude open or close session.md` for rules |
+| **Context Monitoring** | 50/60%: alert. 70%: STOP, summary+commit+new session. 80%: critical |
 
 ---
 
 ## 🎯 Project Overview
 
-**Goal:** CrossFit gym management app with WOD creation, analysis, member booking system, and athlete performance tracking.
+CrossFit gym management app — WOD creation, analysis, member booking, athlete performance tracking.
 
-**Tech Stack:**
-- Next.js 15 App Router + TypeScript + Tailwind
-- Supabase (PostgreSQL) with RLS enabled
-- Supabase Auth (signup/login/logout)
-- Recharts for progress visualization
-- Metric units enforced (kg, cm, meters)
+**Stack:** Next.js 15 App Router · TypeScript · Tailwind · Supabase (PostgreSQL + RLS) · Supabase Auth · Recharts · Stripe (live mode)
+
+**Deployed:** `https://app.the-forge-functional-fitness.de` (Stripe identity verified Session 193)
+
+**Units:** Metric (kg, cm, m)
 
 ---
 
@@ -49,7 +48,7 @@ Coach Tables
 ├─ weekly_sessions (id, date, time, workout_id, workout_type: TEXT, capacity, status, is_locked: BOOLEAN [NULL=auto, true=locked, false=unlocked])
 ├─ benchmark_workouts (id, name, type, description, display_order, has_scaling)
 ├─ forge_benchmarks (id, name, type, description, display_order, has_scaling)
-├─ barbell_lifts (id, name, category, display_order)
+├─ barbell_lifts (id, name, category, display_order, equipment)
 ├─ programming_notes (id, user_id, title, content [markdown], folder_id, created_at, updated_at)
 ├─ note_folders (id, user_id, name, display_order, created_at, updated_at)
 ├─ coach_tracked_exercises (id, user_id, exercise_id, display_name, active, created_at)
@@ -58,216 +57,90 @@ Coach Tables
 ├─ programming_plan_items (id, user_id, pattern_id, planned_date, created_at)
 
 Member Tables
-├─ members (id, email, name, status, membership_types[], account_type: primary|family_member, primary_member_id, display_name, date_of_birth, relationship, class_types[] [ekt|t|cfk|cft], gender [M|F|null])
-├─ bookings (id, session_id, member_id, status: confirmed|waitlist|cancelled|no_show|late_cancel)
+├─ members (id, email, name, status, membership_types[], account_type: primary|family_member, primary_member_id, display_name, date_of_birth, relationship, class_types[] [ekt|t|cfk|cft], gender [M|F|null], whiteboard_name, subscription_tier, athlete_subscription_start, athlete_subscription_end, athlete_subscription_status)
+├─ bookings (id, session_id, member_id, status: confirmed|waitlist|cancelled|no_show|late_cancel|coach_cancelled)
 
 Athlete Tables (linked to members.id)
 ├─ athlete_profiles (id, user_id, full_name, emergency_contact)
 ├─ workout_logs (id, user_id, wod_id, result, notes)
 ├─ benchmark_results (id, user_id, benchmark_id, forge_benchmark_id [XOR], benchmark_name, benchmark_type, result_value, scaling_level, scaling_level_2, scaling_level_3, result_date)
-├─ lift_records (id, user_id, lift_name, weight_kg, reps, rep_max_type ['1RM'|'3RM'|'5RM'|'10RM'], rep_scheme [workout patterns], calculated_1rm, notes, lift_date)
-├─ wod_section_results (id, user_id, wod_id, section_id, workout_date, time_result, reps_result, weight_result, weight_result_2, weight_result_3, scaling_level, scaling_level_2, scaling_level_3, rounds_result, calories_result, metres_result, task_completed, track [SMALLINT, NULL or 1/2/3])
+├─ lift_records (id, user_id, lift_name, weight_kg, reps, rep_max_type ['1RM'|'3RM'|'5RM'|'10RM'], rep_scheme, calculated_1rm, notes, lift_date, wod_id [CASCADE])
+├─ wod_section_results (id, user_id, member_id, wod_id, section_id, workout_date, time_result, reps_result, weight_result, weight_result_2, weight_result_3, scaling_level, scaling_level_2, scaling_level_3, rounds_result, calories_result, metres_result, task_completed, track [SMALLINT 1/2/3 or NULL], whiteboard_name)
 
 Achievement Tables
-├─ achievement_definitions (id, name, description, category, branch, tier, created_at)
+├─ achievement_definitions (id, name, description, category, branch, tier, difficulty, created_at)
 ├─ athlete_achievements (id, user_id, achievement_id, achieved_date, notes, awarded_by, created_at [UNIQUE user_id + achievement_id])
 
 Social Tables
 ├─ reactions (id, user_id, target_type ['wod_section_result'|'benchmark_result'|'lift_record'], target_id, reaction_type ['fist_bump'], created_at [UNIQUE user_id + target_type + target_id])
 ```
 
-**Workout Naming System (Session 49/50/52):**
-- `wods.session_type` - Replaces title (WOD, Foundations, Kids & Teens, etc.)
-- `wods.workout_name` - Optional name for tracking repeated workouts (e.g., "Overhead Fest", "Fran")
-- `wods.workout_week` - ISO week format YYYY-Www (e.g., "2025-W50"), auto-calculated from date
-- Unique workout identifier: `workout_name + workout_week` (NULL workout_name falls back to date)
-- Index: `idx_wods_workout_name_week` on (workout_name, workout_week)
-- **ISO Week Calculation:** UTC-based to match PostgreSQL (Jan 4 always in Week 1, Thursday determines week)
+**Workout naming:** `session_type` (WOD, Foundations, Kids & Teens…) + optional `workout_name` + auto-calculated `workout_week` (ISO, UTC-based). Unique identifier = `workout_name + workout_week` (falls back to date if null).
 
 ---
 
-## 📍 Current Status (Last 5 Sessions)
+## 📍 Current Status (Last 3 Sessions)
 
-**Completed (2026-04-17 Session 284 - Sonnet 4.6 / Opus 4.7) — ATTENDANCE COUNT FIX (WHITEBOARD TEXT):**
-- **🐛 Problem:** Members page `attendance_count` for pre-launch athletes was severely undercounting vs. truth. ThomasG: 8 on card, actually attended 22 sessions. Steven: 10 on card, 37 actual. DanielB: 8 on card, 20 actual.
-- **Root cause #1 — null param stripped by Supabase JS:** `useMemberData.ts` + `useCoachData.ts` passed `p_days_back: null` for "all time" but the JS client was dropping null keys → RPC used `DEFAULT 30` → always showed 30-day window regardless of selector. **Fix:** pass `36500` instead of `null`.
-- **Root cause #2 — whiteboard text mentions not counted:** Coaches record attendance by typing member names in the free-text "Whiteboard Intro" section content (`wods.sections[].content`). For pre-launch members with no booking and no structured `wod_section_results` row, those sessions were invisible to the RPC. The Workouts-tab search (which text-searches `sections::text`) saw 22 for ThomasG while the RPC saw 8.
-- **✅ Fix:** `database/update-attendance-functions-include-whiteboard-text.sql` — added a 3rd UNION to both attendance RPCs that matches `members.whiteboard_name` against `wods.sections::text` using POSIX word boundaries (`\yNAME\y`, case-insensitive). Applied in Supabase SQL Editor.
-- **✅ Code fix:** `hooks/coach/useMemberData.ts` + `hooks/coach/useCoachData.ts` — replaced `null` with `36500` for all-time attendance queries. Also replaced the manual published-bookings count in `useCoachData.ts::fetchMembers` with a call to `get_all_members_attendance` so Workouts-tab sidebar counts use the same source as the Members page.
-- **📝 All newly-registered athletes now show correct counts** — ThomasG, DanielB, Steven all match the Workouts-tab search results (exception: Steven, see next session).
-- **🐛 Steven discrepancy (carryover):** Members page shows 39, Workouts-tab search returns 37. Small gap (+2). Hypotheses: (a) word-boundary regex catches false positives (e.g., "Stevens" matching "Steven"), (b) two sessions where Steven's whiteboard_name appears but the Workouts-tab search misses them for some reason (e.g., search limit of 500), (c) his whiteboard_name in `members.whiteboard_name` matches substrings in other content. Needs investigation next session.
+**Session 285 (2026-04-17 — Opus 4.7) — ORPHAN WOD CLEANUP + EFFICIENCY RULES:**
+- Data Integrity SQL surfaced 8 orphan WODs (wods rows with no linked weekly_sessions).
+- All 8 = unpublished shells, zero dependent data (no section_results/logs/lifts). Deleted after backup.
+- Pattern: 3 duplicates of "CrossFit Open #15.2" created 5 min apart (duplicate-save), 5 default-named WODs from bulk-generate (likely `app/api/sessions/generate-weekly/route.ts` missing self-delete guard that `useWODOperations.ts:264-268` has).
+- Pruned activeContext.md from ~270 lines to target < 80 lines. Added efficiency rules to session-start doc.
 
-**Completed (2026-04-17 Session 283 - Opus 4.7) — STICKY WORKOUT SECTIONS HEADER:**
-- **✅ Sticky header in Create/Edit Workout modal** — `components/coach/WorkoutModal.tsx`. Wrapped "Workout Sections" label + Library/Section buttons in `sticky top-0 z-20 bg-white pb-3 -mx-6 px-6`. Panel mode (mobile/side-panel) also includes the `MovementDemosBar` in the sticky wrapper (user chose Option B — demos bar is only 1 row). Modal mode (desktop popup) has no demos bar so sticky only wraps the header row.
-- **📝 Why `-mx-6 px-6`** — form uses `p-6` padding; the negative horizontal margins extend the sticky's white background edge-to-edge so sections scrolling up behind it don't peek around the sides.
-- **📝 Desktop confirmed by Chris.** iPhone test pending (Chris will test on Mimi's iPhone after this session close).
+**Session 284 (2026-04-17) — ATTENDANCE COUNT FIX (whiteboard text):**
+- Pre-launch members severely undercounted (ThomasG 8→22, Steven 10→39, DanielB 8→20).
+- Root causes: (1) Supabase JS strips `null` → RPC fell to `DEFAULT 30`-day window. Fixed with `36500`. (2) Whiteboard Intro free-text mentions invisible to RPC. Added 3rd UNION matching `members.whiteboard_name` ~* `wods.sections::text` with POSIX `\y` word boundaries.
+- Files: `database/update-attendance-functions-include-whiteboard-text.sql`, `hooks/coach/useMemberData.ts`, `hooks/coach/useCoachData.ts`.
+- Carryover: Steven shows 39 on Members page vs 37 on Workouts-tab search — +2 discrepancy unresolved.
 
-**Completed (2026-04-17 Session 282 - Opus 4.7) — AT-RISK ATTENDANCE FIX + IPHONE SEARCH FIX:**
-- **✅ At-Risk / attendance RPCs redefined** — `get_all_members_attendance` and `get_members_last_attendance` now UNION confirmed bookings + linked `wod_section_results` (joined via `weekly_sessions.workout_id`). `COUNT(DISTINCT session_id)` prevents double-counting multi-section WODs or booking+score duplicates. Self-healing for all future pre-launch athletes who register — no runbook needed. File: `database/update-attendance-functions-include-scores.sql`.
-- **✅ iPhone "Search exercises" bug fixed** — `components/coach/MovementLibraryPopup.tsx` had a `readOnly` + `onFocus={removeAttribute('readonly')}` anti-autofill hack. React re-applies `readOnly` on every keystroke re-render; iOS Safari doesn't tolerate the race. Removed both; `autoComplete='off'` stays.
-- **🐛 Latent bug (not fixed):** Same pattern exists in `components/coach/SearchPanel.tsx:946` ("Search workout history" on coach Analysis page). Deferred pending Chris's decision.
-- **📝 Decision logged:** Chose Option 1 (redefine counting) over Option 2 (backfill bookings rows). Option 2 would have required a recurring manual runbook for every future pre-launch registrant.
+**Session 283 (2026-04-17) — STICKY WORKOUT SECTIONS HEADER:**
+- `components/coach/WorkoutModal.tsx` — sticky header wrapping "Workout Sections" label + buttons. Panel mode includes MovementDemosBar, modal mode doesn't.
 
-**Completed (2026-04-17 Session 281 - Opus 4.7) — WHITEBOARD SCORE BACKFILL:**
-- **✅ One-time backfill script** — `scripts/link-whiteboard-scores.ts` (dry-run default, `--apply` to write). Matches `wod_section_results.whiteboard_name` → `members.whiteboard_name` (exact match), skips multi-member conflicts and no-match rows.
-- **✅ 44 scores linked** across 12 members (Steven, Anneke, Lena, Andreas, Thomas S, Wayne, Nikolina, Paul, Lukas, Stefan, David, Mimi partial).
-- **✅ 1 orphan deleted** — Mimi had an Sc1/weight=4 whiteboard row entered 2 min before her Rx/172 reps registered row on same WOD (unique-key collision). Deleted incomplete whiteboard entry.
-- **📝 Key insight** — `members.whiteboard_name` and `wod_section_results.whiteboard_name` are TWO separate columns. The first is an alias used only by the approval flow to retro-link scores. The leaderboard reads the second (raw coach-typed name) for unlinked rows. If member's alias is null, backfill cannot match their old scores.
-- **✅ 2 members' whiteboard_name set manually in Dashboard** — Steven Zaft → "Steven", Anneke Spegele → "Anneke" (they were approved before the whiteboard-name-on-approval feature shipped).
-- **576 whiteboard scores remain unlinked** — all genuinely unregistered (drop-ins, former beta testers, trial visitors).
-
-**Completed (2026-04-16 Session 280 - Opus 4.6) — APPROVE VALIDATION + WEBHOOK LOGGING + TRIALING SUBS:**
-- **✅ Approve button validation** — Disabled Approve button on pending members until at least one membership type (Mb/Wp/10-Card) selected. Amber warning text added.
-- **✅ Webhook error logging** — Added error checking to `handleCheckoutCompleted` and `handleSubscriptionUpdate` member update calls in `app/api/stripe/webhook/route.ts`. Previously failures were silent.
-- **✅ Trialing subscription query** — Changed `useMemberData.ts` subscriptions query from `.eq('status', 'active')` to `.in('status', ['active', 'trialing'])` so Stripe trial subscriptions populate `subscription_plan_type`.
-- **🐛 CRITICAL BUG — NOT RESOLVED:** Athlete subscribed to monthly plan (30-day trial). `subscriptions` table shows `status: 'trialing'` but `members.athlete_subscription_status` stayed `'expired'`. The `athlete_subscription_end` was set to 2026-04-16 (today) instead of 30 days out. Root cause: `autoExpireSubscriptions` in `useMemberData.ts` likely expired the member immediately because end date matched today. Possible that `handleSubscriptionUpdate` overwrote checkout handler's 30-day end date with Stripe's `current_period_end` (which for trials = trial end date).
-- **⚠️ Stefan Glocker** — Was approved without membership type (now prevented by validation). Status shows 'expired' — needs DB fix.
-- **✅ Christian Müller** — Whiteboard name "ChristianM" set via SQL (confirmed by Chris).
-
-**Older Sessions (57-279):**
-See `project-history/` folder for detailed implementation history
+**Older sessions (57-282):** See `project-history/` folder.
 
 ---
 
-## 🚨 Known Issues / Remaining Items
+## 🚨 Known Open Issues
 
-**Pre-Deployment Audit — Sessions 96-101 + 154-155 + 256:**
-- ✅ All CRITICAL, HIGH, and MEDIUM lint/type items completed (Session 257)
-- **MEDIUM remaining:** 5 TODO comments (Phase 3 notification placeholders)
-- ✅ Rate limiting, Stripe webhook sanitization, Recharts lazy loading — DONE (Session 259)
-- **LOW remaining (deferred):** 28 files >500 lines — discussed Session 260, decided not worth refactoring (no runtime impact, Chris doesn't edit code). Revisit only if any file exceeds ~3,000 lines.
+- **Steven attendance +2** — Members page 39 vs Workouts-tab search 37. Debug regex: `SELECT ws.date, w.sections::text FROM weekly_sessions ws JOIN wods w ON w.id = ws.workout_id WHERE w.sections::text ~* '\ySteven\y' ORDER BY ws.date DESC;`
+- **Athlete subscription bug** — trialing sub sets `athlete_subscription_end = today` instead of +30d. Root causes possibly: webhook event order (`subscription.updated` overwriting checkout-handler end date), `autoExpireSubscriptions` not skipping `status='trialing'`. Stefan Glocker also needs manual DB fix.
+- **Orphan WOD regeneration** — Session 285 deleted 8; need to prevent recurrence. Suspect `app/api/sessions/generate-weekly/route.ts` lacks the self-delete guard `useWODOperations.ts:264-268` has.
+- **iPhone search bug (latent)** — same `readOnly` anti-autofill hack exists in `components/coach/SearchPanel.tsx:946` (Analysis page search). Deferred Session 282.
+- **`SearchPanel` 500-row limit** — `useCoachData.ts:245` caps queries at 500 rows (may be related to Steven +2).
 
-**Feature Gaps (from competitor analysis — updated):**
-- ✅ #1 Social reactions (fist bumps) — DONE (Session 104)
-- ✅ #2 Per-workout leaderboard — DONE (Session 104)
-- ✅ #3 Push notifications — All phases DONE (Sessions 130-134). Booking, WOD publish, PR notifications all working.
-- ✅ #4 Workout intent/stimulus notes — DONE (Session 137). Per-section notes with athlete visibility toggle.
-- ✅ #7 Workout timer — DONE (Sessions 135-136). 5 modes, persistent oscillator audio, fullscreen mobile. Mobile distortion deferred.
-- ✅ #5 At-risk member alerts — DONE (Session 140). At-Risk tab on Members page with last attended date.
-- ✅ #8 TV Display — DONE (Session 139). Dark theme, large fonts, per-section zoom, Monitor chip on cards.
-- ✅ #9 Share to social media — DONE (Session 141). Branded image cards from Records + Leaderboard.
-- ✅ #7 Auto % calculator from 1RM — DONE (Session 143). Computed kg in logbook lift badges.
-- ✅ #6 Badges/achievements — ALL PHASES DONE (Sessions 144-147). DB + coach management + athlete view + self-log + coach award flow + theme polish.
-- See: `Chris Notes/remaining-low-items.md` for outstanding LOW items
+**Pre-deployment:** All CRITICAL/HIGH/MEDIUM items done. LOW items (28 files >500 lines) deferred per Session 260.
 
-**Push Notification Issues:**
-- ✅ ~~Mimi profile not delivering~~ — FIXED (Session 138). Root cause: stale Chrome FCM connection. Fix: SW unregister + Chrome restart. Added auto-refresh + test endpoint to prevent recurrence.
-
-**Other Known Issues:**
-- **✅ ~~Leaderboard scaling bug~~ — FIXED (Sessions 125-127). Root cause: stray records from save bug. Fix: booking filter + tie-breaking + 33 stray records deleted.**
-- **✅ ~~Google Calendar EMOM bug~~** — FIXED (Session 151). Root cause: Workout Type dropdown was WOD-only; stale `workout_type_id` couldn't be cleared on other section types. Fix: dropdown now shown on all sections. Open "The Ghost" and clear the Type on Skill/WOD Movements sections, then re-publish.
-
-**Exercise Naming Conventions (Session 149):**
-- "Lunge Walking" (not "Walking Lunge") — groups lunge variants together
-- "Jump Rope Double-Unders (DUs)" — groups jump rope exercises together
-- KB Swing default = American (AKBS) for CF benchmarks
+**Exercise naming conventions (Session 149):**
+- "Lunge Walking" (not "Walking Lunge")
+- "Jump Rope Double-Unders (DUs)"
+- KB Swing default = American (AKBS)
 - Generic "Row" in benchmarks = C2 Rower
-
-**Migrations Pending (apply in Supabase SQL Editor):**
-- ✅ `get_public_tables()` RPC — confirmed working
-- ✅ `coach_cancelled` booking status — confirmed applied (Session 158)
-- ✅ `is_beta_tester` column — applied (Session 158)
-- ✅ `20260304000000_add_performance_indexes.sql` — 7 indexes on bookings/wods/weekly_sessions (Session 173, applied Session 190)
-- ✅ `20260307000000_drop_search_terms.sql` — Drop search_terms column, update search_vector trigger (Session 180, applied)
-- ✅ `20260307000001_add_programming_planner.sql` — 3 tables applied directly in SQL Editor (Session 183)
-- ✅ `20260307000002_add_pattern_track.sql` — Adds track column to movement_patterns + updated unique constraint (Session 184, applied)
-- ✅ `20260308000000_add_plan_items_indexes.sql` — Indexes on programming_plan_items(user_id, pattern_id) (Session 187, applied)
-- ✅ `20260310000000_add_duplicate_prevention_constraints.sql` — Unique indexes on wod_section_results + benchmark_results (Session 189, applied Session 190)
-- ✅ `20260313_add_session_cancelled_preference.sql` — Adds `session_cancelled` boolean column to notification_preferences (Session 202, applied Session 203)
-- ✅ `20260314_add_member_id_to_section_results.sql` — Adds `member_id` column to wod_section_results, makes `user_id` nullable (Session 203, applied)
-- ✅ `20260314_add_score_recorded_preference.sql` — Adds `score_recorded` boolean column to notification_preferences (Session 205, applied)
-- ✅ `20260316_add_whiteboard_name_to_section_results.sql` — Adds `whiteboard_name` to wod_section_results + members, updates CHECK constraint (Session 215, applied)
-- ✅ `20260317000000_add_achievement_difficulty.sql` — Adds `difficulty TEXT` column to achievement_definitions with CHECK constraint (Session 218, applied Session 219)
-- ✅ `idx_wod_section_results_whiteboard_unique` — Partial unique index on whiteboard scores (Session 224, applied directly in SQL Editor)
-- ✅ `20260319000000_add_track_to_section_results.sql` — Adds `track SMALLINT` column to wod_section_results with CHECK (NULL or 1/2/3) (Session 224b, applied)
-- ✅ `20260321000000_add_scaling_level_2.sql` — Adds `scaling_level_2 text` column to wod_section_results (Session 227, applied)
-- ✅ `20260323000001_add_wod_id_to_lift_records.sql` — Adds `wod_id` FK with CASCADE to lift_records for auto-cleanup on WOD delete (Session 234, applied)
-- ✅ `20260323000002_add_scaling3_load3.sql` — Adds `scaling_level_3 text` and `weight_result_3 numeric` to wod_section_results (Session 235, applied)
-- ✅ `20260326000000_add_benchmark_multi_scaling.sql` — Adds `scaling_level_2 text` and `scaling_level_3 text` to benchmark_results (Session 250, applied)
-- ✅ `20260331000000_add_lift_equipment.sql` — Adds `equipment TEXT DEFAULT 'Barbell'` to barbell_lifts (Session 263, applied)
-- ✅ `20260413000001_add_subscription_tier.sql` — Adds `subscription_tier TEXT` with CHECK constraint to members (Session 270, applied)
-- ✅ `20260416000000_add_subscription_start.sql` — Adds `athlete_subscription_start TIMESTAMPTZ` to members (Session 277, applied Session 279)
-
----
-
-## 🛡️ Database Safety Protocol
-
-**MANDATORY Before ANY Database Change:**
-
-```bash
-npm run backup  # Creates timestamped JSON backups
-```
-
-**When to Backup:**
-1. ✅ Before running ANY migration
-2. ✅ Before switching git branches (if branch has migrations)
-3. ✅ Before DROP TABLE, DELETE, TRUNCATE, or ALTER...DROP operations
-4. ✅ Daily before starting work session
-5. ✅ Before testing features that write to database
-
-**Emergency Restore:**
-```bash
-npm run restore              # List backups
-npm run restore 2025-12-06  # Restore specific date
-```
-
-**Pre-Migration Checklist:**
-- Read `PRE_MIGRATION_CHECKLIST.md` EVERY TIME
-- Review migration SQL for destructive operations
-- Verify backup exists
-- Run migration via Supabase Dashboard SQL Editor
-- Verify data still exists
-- Create new backup after success
-
-**Why This Matters:**
-- Dec 6, 2025 incident: Lost custom Forge Benchmarks + athlete lift records
-- Root cause: Assumed git branches protected database (they don't!)
-- Solution: Mandatory backups before risky operations
 
 ---
 
 ## 📋 Next Immediate Steps
 
-### NEXT SESSION — URGENT
-- **🐛 FIX: Steven attendance discrepancy (Session 284 carryover)** — Members page shows 39, Workouts-tab text search returns 37. Debug which 2 sessions differ. Hypotheses: (a) regex word-boundary false positive — whiteboard_name "Steven" matching other text (e.g., "Stevens" elsewhere, though Chris said names only appear in Whiteboard Intro sections), (b) Workouts-tab search 500-row limit cutting off some sessions, (c) `sections::text` regex catching a non-name occurrence. Query to run: `SELECT ws.date, w.sections::text FROM weekly_sessions ws JOIN wods w ON w.id = ws.workout_id WHERE w.sections::text ~* '\ySteven\y' ORDER BY ws.date DESC;` — compare against Workouts-tab results to find the 2 extra matches.
-- **🐛 FIX: Athlete subscription bug** — Athlete's `athlete_subscription_end` is set to 2026-04-16 (today). Run SQL to fix: `UPDATE members SET athlete_subscription_status = 'active', athlete_subscription_end = NOW() + INTERVAL '30 days' WHERE [identify member]`. Then investigate WHY `handleSubscriptionUpdate` set end date to today instead of 30 days out.
-- **🐛 FIX: `autoExpireSubscriptions` vs trialing** — Should `autoExpireSubscriptions` skip members who have an active `subscriptions` table record with `status = 'trialing'`? Currently it expires anyone past `athlete_subscription_end` regardless of Stripe status.
-- **🐛 FIX: Stefan Glocker** — Set membership type and subscription status correctly in DB.
-- **Investigate webhook event ordering** — Does `subscription.created` fire before or after `checkout.session.completed`? If `handleSubscriptionUpdate` runs second, it may overwrite the 30-day end date with Stripe's `current_period_end` (trial end = today for some reason).
-- **Re-activate existing** — Members activated before Session 277 need re-click or manual SQL backfill for `athlete_subscription_start`.
+1. **Steven attendance +2** — run debug regex above; compare against Workouts-tab. Likely regex false positive or 500-row limit.
+2. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
+3. **Orphan WOD prevention** — audit `app/api/sessions/generate-weekly/route.ts` for session-create failure; add self-delete guard.
 
-### DEPLOYMENT (Session 158+)
+---
 
-- ✅ **Phase 1:** Code changes DONE
-- ✅ **Phase 2:** Vercel Setup DONE — Hobby (free), percepto25 personal account, 15 env vars
-- ✅ **Phase 3:** Domain Setup DONE — `app.the-forge-functional-fitness.de`, CNAME in Squarespace
-- ✅ **Phase 4:** Supabase Config DONE — Production site URL + redirect URLs
+## 💰 Business Model (Session 270)
 
-**Open question from Chris:** "Why do we need a beta_tester flag? Can't I just activate them on the member page?" — Revisit. Options: (a) keep beta flag, (b) coach manually sets `athlete_subscription_status = 'active'`, (c) add UI toggle on Members page. Simplest may be (b).
-
-- ✅ **Phase 5:** Stripe Live Mode DONE (Session 190) — 3 products created, webhook configured, Vercel env vars updated, redeployed (Session 191)
-- ✅ **Phase 5b:** Stripe identity verification DONE + live keys fixed (Session 193)
-- ⏳ **Phase 6:** Beta Testing (4-5 testers) — Use coach manual override to grant access
-- **Phase 7:** Full Launch (after 1 month, update Stripe prices to €10/€100)
-
-**Full deployment plan:** `Chris Notes/deployment-plan.md`
-
-### Business Model (updated Session 270)
 - **Free:** All active members can book classes (no payment required)
 - **10-Card:** €150 for 10 gym sessions (drop-in alternative, separate from app)
-- **Athlete App — Forge Members:** €8/mo or €80/yr (logbook, records, leaderboards, achievements)
+- **Athlete App — Forge:** €8/mo or €80/yr (logbook, records, leaderboards, achievements)
 - **Athlete App — Wellpass:** €10/mo or €100/yr (same features, for Wellpass members)
 
 ---
 
-## 🗂️ Additional Resources
+## 🗂️ Resources
 
-- **Detailed History:** See `project-history/` for feature implementation details by date
-- **Critical Gotchas:** See `memory-bank/lessons-learned.md` for patterns
-- **Workflow Rules:** See `memory-bank/workflow-protocols.md` (includes DATABASE SAFETY PROTOCOL)
-- **Tech Details:** See `memory-bank/memory-bank-techContext.md`
-- **Code Patterns:** See `memory-bank/memory-bank-systemPatterns.md`
-
----
-
-**File Size:** ~4.5KB
+- **Detailed history:** `project-history/` folder
+- **Gotchas & patterns:** `memory-bank/lessons-learned.md`
+- **Workflow rules:** `memory-bank/workflow-protocols.md`
+- **Tech details:** `memory-bank/memory-bank-techContext.md`
+- **Code patterns:** `memory-bank/memory-bank-systemPatterns.md`
+- **Deployment plan:** `Chris Notes/deployment-plan.md`
+- **Orphan diagnostics:** `Chris Notes/supabase-orphan-check-queries.md`
