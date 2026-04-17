@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 147.0
-**Updated:** 2026-04-16 (Session 280 - approve validation + webhook logging + trialing subs)
+**Version:** 148.0
+**Updated:** 2026-04-17 (Session 281 - whiteboard score backfill)
 
 ---
 
@@ -88,6 +88,14 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Completed (2026-04-17 Session 281 - Opus 4.7) — WHITEBOARD SCORE BACKFILL:**
+- **✅ One-time backfill script** — `scripts/link-whiteboard-scores.ts` (dry-run default, `--apply` to write). Matches `wod_section_results.whiteboard_name` → `members.whiteboard_name` (exact match), skips multi-member conflicts and no-match rows.
+- **✅ 44 scores linked** across 12 members (Steven, Anneke, Lena, Andreas, Thomas S, Wayne, Nikolina, Paul, Lukas, Stefan, David, Mimi partial).
+- **✅ 1 orphan deleted** — Mimi had an Sc1/weight=4 whiteboard row entered 2 min before her Rx/172 reps registered row on same WOD (unique-key collision). Deleted incomplete whiteboard entry.
+- **📝 Key insight** — `members.whiteboard_name` and `wod_section_results.whiteboard_name` are TWO separate columns. The first is an alias used only by the approval flow to retro-link scores. The leaderboard reads the second (raw coach-typed name) for unlinked rows. If member's alias is null, backfill cannot match their old scores.
+- **✅ 2 members' whiteboard_name set manually in Dashboard** — Steven Zaft → "Steven", Anneke Spegele → "Anneke" (they were approved before the whiteboard-name-on-approval feature shipped).
+- **576 whiteboard scores remain unlinked** — all genuinely unregistered (drop-ins, former beta testers, trial visitors).
+
 **Completed (2026-04-16 Session 280 - Opus 4.6) — APPROVE VALIDATION + WEBHOOK LOGGING + TRIALING SUBS:**
 - **✅ Approve button validation** — Disabled Approve button on pending members until at least one membership type (Mb/Wp/10-Card) selected. Amber warning text added.
 - **✅ Webhook error logging** — Added error checking to `handleCheckoutCompleted` and `handleSubscriptionUpdate` member update calls in `app/api/stripe/webhook/route.ts`. Previously failures were silent.
@@ -110,13 +118,7 @@ Social Tables
 - **✅ Set on activation** — `activate` and `activate_permanent` actions stamp it. Stripe checkout too.
 - **⚠️ Re-activate needed** — Members activated before Session 277 need re-click or manual SQL.
 
-**Completed (2026-04-16 Session 276 - Opus 4.6) — 1YR ACTIVATE + EXPIRY WARNINGS:**
-- **✅ Activate → 1-year** — Sets `athlete_subscription_end` to now + 365 days.
-- **✅ Permanent activate** — "∞" button for owner/family accounts.
-- **✅ Auto-expire cash subs** — Expires trials AND active cash subs past end date.
-- **✅ 14-day expiry warning** — `/api/notifications/subscription-expiring` endpoint.
-
-**Older Sessions (57-273):**
+**Older Sessions (57-276):**
 See `project-history/` folder for detailed implementation history
 
 ---
