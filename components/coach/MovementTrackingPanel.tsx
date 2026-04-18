@@ -35,7 +35,32 @@ export default function MovementTrackingPanel({
 
   const exerciseNames = trackedExercises.map(e => e.display_name || e.name);
 
+  const ACRONYM_OVERRIDES: Record<string, string> = {
+    'Barbell Back Squat (BS)': 'BBS',
+    'Barbell Bench Press (BP)': 'BBP',
+    'Barbell Bent Over Row': 'BOR',
+    'Barbell Clean': 'CLN',
+    'Barbell Clean & Jerk (C&J)': 'C&J',
+    'Barbell Dead Row': 'BDR',
+    'Barbell Deadlift': 'BDL',
+    'Barbell Front Squat (FS)': 'BFS',
+    'Barbell Good Morning': 'BGM',
+    'Barbell Hang Power Clean (HPC)': 'HPC',
+    'Barbell Hang Power Snatch (HPS)': 'HPS',
+    'Barbell Overhead Squat (OHS)': 'OHS',
+    'Barbell Power Clean (PC)': 'PCN',
+    'Barbell Push Jerk (PJ)': 'PJK',
+    'Barbell Push Press (PP)': 'PPR',
+    'Barbell Snatch': 'SNT',
+    'Barbell Split Jerk (C&J)': 'SJK',
+    'Barbell Strict OH Press (OHP)': 'OHP',
+    'Barbell Sumo Deadlift': 'SDL',
+    'Barbell Thruster': 'THR',
+    'Pendlay Row': 'PRW',
+  };
+
   const getCode = (name: string): string => {
+    if (ACRONYM_OVERRIDES[name]) return ACRONYM_OVERRIDES[name];
     const words = name.split(/[\s-]+/).filter(w => /^[a-zA-Z]/.test(w));
     if (words.length >= 3) return (words[0][0] + words[1][0] + words[2][0]).toUpperCase();
     if (words.length === 2) return (words[0].slice(0, 2) + words[1][0]).toUpperCase();
