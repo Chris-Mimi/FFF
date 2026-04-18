@@ -538,6 +538,7 @@ export default function MemberBookingPage() {
   };
 
   const getCapacityColor = (confirmed: number, capacity: number, accentColor: string) => {
+    if (capacity === 0) return accentColor;
     const percentage = (confirmed / capacity) * 100;
     if (percentage >= 100) return 'text-red-400';
     if (percentage >= 80) return 'text-yellow-400';
@@ -545,6 +546,10 @@ export default function MemberBookingPage() {
   };
 
   const getCapacityBadge = (session: WeeklySession, accentColor: string) => {
+    if (session.capacity === 0) {
+      return <span className={`${accentColor} text-sm`}>Unlimited spots</span>;
+    }
+
     const spotsLeft = session.capacity - session.confirmed_count;
 
     if (spotsLeft > 0) {
@@ -870,7 +875,7 @@ export default function MemberBookingPage() {
                               <div className="flex items-center gap-1.5">
                                 <Users size={14} className={getCapacityColor(session.confirmed_count, session.capacity, textAccent)} />
                                 <span className="text-gray-400 text-xs">
-                                  {session.confirmed_count}/{session.capacity}
+                                  {session.confirmed_count}/{session.capacity === 0 ? '∞' : session.capacity}
                                 </span>
                                 {getCapacityBadge(session, textAccent)}
                               </div>

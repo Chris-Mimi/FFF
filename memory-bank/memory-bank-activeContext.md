@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 153.0
-**Updated:** 2026-04-18 (Session 287 - waitlist promotion fix)
+**Version:** 154.0
+**Updated:** 2026-04-18 (Session 288 - S287 verified + capacity=0 book page UI fix)
 
 ---
 
@@ -81,6 +81,11 @@ Social Tables
 
 ## 📍 Current Status (Last 3 Sessions)
 
+**Session 288 (2026-04-18 — Opus 4.7) — S287 VERIFICATION + capacity=0 MEMBER UI FIX:**
+- Walked Scenarios A–D from `Chris Notes/AA frequently used files/session-287-test-prompt.md` against a running dev server. All 4 passed: (A) capacity=0 bookings land as `confirmed`, (B) WOD save from cap=2→5 auto-promotes waitlist, (C) cap=0→10 via WOD save promotes a manually-waitlisted row, (D) session-modal Edit Capacity still promotes (no regression).
+- Fixed the deferred cosmetic bug: `app/member/book/page.tsx` now treats `capacity === 0` as unlimited — `getCapacityColor` skips the division, `getCapacityBadge` returns "Unlimited spots" in accent color, and the `{confirmed}/{capacity}` display shows `{confirmed}/∞`.
+- Athlete book-page card no longer renders "Full" / red overflow on unlimited sessions.
+
 **Session 287 (2026-04-18 — Opus 4.7) — WAITLIST PROMOTION FIX (capacity=0 + WOD save path):**
 - Reported: tomorrow's 10:30 session stuck at `1/10 confirmed + 1 waitlist` despite room on roster.
 - Two compounding bugs: (1) `capacity === 0` (meant "unlimited") was being treated as "zero spots" in booking logic — `confirmedCount < 0` always false → every booking went to waitlist. (2) `useWODOperations.ts` WOD-save paths update `weekly_sessions.capacity` but never call `promoteWaitlistMembers` — so when capacity was raised from 0→10 via Workout modal, waitlist stayed stuck.
@@ -110,7 +115,6 @@ Social Tables
 ## 🚨 Known Open Issues
 
 - **Athlete subscription bug** — trialing sub sets `athlete_subscription_end = today` instead of +30d. Root causes possibly: webhook event order (`subscription.updated` overwriting checkout-handler end date), `autoExpireSubscriptions` not skipping `status='trialing'`. Stefan Glocker also needs manual DB fix.
-- **Member booking page UI doesn't handle capacity=0** — `app/member/book/page.tsx:540-564` does `confirmed / capacity * 100` (division by zero) and `capacity - confirmed < 0` which renders as "Full". Cosmetic; unlimited sessions still book correctly. Deferred Session 287.
 - **iPhone search bug (latent)** — same `readOnly` anti-autofill hack exists in `components/coach/SearchPanel.tsx:946` (Analysis page search). Deferred Session 282.
 - **`SearchPanel` 500-row limit** — `useCoachData.ts:245` caps queries at 500 rows. Not a current concern (gym has far fewer published sessions than 500).
 
@@ -126,9 +130,8 @@ Social Tables
 
 ## 📋 Next Immediate Steps
 
-1. **Test Session 287 waitlist fix** — see `Chris Notes/AA frequently used files/session-287-test-prompt.md` for the exact test prompt.
-2. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
-3. **Member book page capacity=0 UI** — fix division-by-zero + "Full" display when capacity is 0 (unlimited). Cosmetic, low priority.
+1. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
+2. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing.
 
 ---
 
