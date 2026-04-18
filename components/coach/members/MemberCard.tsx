@@ -89,7 +89,7 @@ export default function MemberCard({
             )}
             {member.account_type === 'family_member' && (
               <span className="px-1.5 py-0.5 bg-purple-500/20 text-purple-300 text-xs rounded-full">
-                Family
+                {member.primary_member_name ? `Family of ${member.primary_member_name}` : 'Family'}
               </span>
             )}
             {member.membership_types?.includes('ten_card') && (

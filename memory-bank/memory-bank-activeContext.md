@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 154.0
-**Updated:** 2026-04-18 (Session 288 - S287 verified + capacity=0 book page UI fix)
+**Version:** 155.0
+**Updated:** 2026-04-18 (Session 289 - Susi Glocker duplicate diagnosis + family card label)
 
 ---
 
@@ -81,6 +81,11 @@ Social Tables
 
 ## 📍 Current Status (Last 3 Sessions)
 
+**Session 289 (2026-04-18 — Opus 4.7) — DUPLICATE MEMBER DIAGNOSIS + FAMILY CARD LABEL:**
+- Susi Glocker appeared twice on Workouts→Athlete List. Root cause (diagnostic only): `app/api/score-entry/[sessionId]/route.ts:48-56` filters bookings by `status='confirmed'` but never checks `members.status`, so bookings made by accounts that were later unapproved still show. Chris chose not to code-fix — user error, manual cleanup pending Susi's reply (primary duplicates: `0d5a0252` susanneglocker@gmx.de, `f91173a4` susi.strobel@gmx.de; family row `eac70c98` pending).
+- Confirmed via `updated_at` both primaries were explicitly approved 18s apart (20:11:04 + 20:11:22). No system bug — `/api/members/approve` is the only primary-activation path; `handleToggleMembershipType` only writes `membership_types`.
+- UX fix shipped: family_member member cards now display "Family of {primary_name}" instead of just "Family". Changed `types/member.ts` (added optional `primary_member_name`), `hooks/coach/useMemberData.ts` (extended existing primary-lookup block to fetch `name`/`display_name`), `components/coach/members/MemberCard.tsx:90-94`. Works for all existing + future family rows automatically.
+
 **Session 288 (2026-04-18 — Opus 4.7) — S287 VERIFICATION + capacity=0 MEMBER UI FIX:**
 - Walked Scenarios A–D from `Chris Notes/AA frequently used files/session-287-test-prompt.md` against a running dev server. All 4 passed: (A) capacity=0 bookings land as `confirmed`, (B) WOD save from cap=2→5 auto-promotes waitlist, (C) cap=0→10 via WOD save promotes a manually-waitlisted row, (D) session-modal Edit Capacity still promotes (no regression).
 - Fixed the deferred cosmetic bug: `app/member/book/page.tsx` now treats `capacity === 0` as unlimited — `getCapacityColor` skips the division, `getCapacityBadge` returns "Unlimited spots" in accent color, and the `{confirmed}/{capacity}` display shows `{confirmed}/∞`.
@@ -101,12 +106,6 @@ Social Tables
 - All 8 = unpublished shells, zero dependent data (no section_results/logs/lifts). Deleted after backup.
 - Pattern: 3 duplicates of "CrossFit Open #15.2" created 5 min apart (duplicate-save), 5 default-named WODs from bulk-generate (likely `app/api/sessions/generate-weekly/route.ts` missing self-delete guard that `useWODOperations.ts:264-268` has).
 - Pruned activeContext.md from ~270 lines to target < 80 lines. Added efficiency rules to session-start doc.
-
-**Session 284 (2026-04-17) — ATTENDANCE COUNT FIX (whiteboard text):**
-- Pre-launch members severely undercounted (ThomasG 8→22, Steven 10→39, DanielB 8→20).
-- Root causes: (1) Supabase JS strips `null` → RPC fell to `DEFAULT 30`-day window. Fixed with `36500`. (2) Whiteboard Intro free-text mentions invisible to RPC. Added 3rd UNION matching `members.whiteboard_name` ~* `wods.sections::text` with POSIX `\y` word boundaries.
-- Files: `database/update-attendance-functions-include-whiteboard-text.sql`, `hooks/coach/useMemberData.ts`, `hooks/coach/useCoachData.ts`.
-- Carryover: Steven shows 39 on Members page vs 37 on Workouts-tab search — +2 discrepancy unresolved.
 
 **Older sessions (57-284):** See `project-history/` folder.
 
@@ -130,8 +129,9 @@ Social Tables
 
 ## 📋 Next Immediate Steps
 
-1. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
-2. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing.
+1. **Susi Glocker cleanup (pending her reply)** — unapprove/block the duplicate primary she doesn't want (ids `0d5a0252` / `f91173a4`), delete pending family row `eac70c98` (`account_type='family_member'`). SQL in Session 289 transcript.
+2. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
+3. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing.
 
 ---
 

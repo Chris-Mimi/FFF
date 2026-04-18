@@ -200,7 +200,7 @@ export function useMemberData() {
       if (familyMembers.length > 0) {
         const primaryIds = [...new Set(familyMembers.map(m => m.primary_member_id!))];
         // Check which primaries are already in the fetched set
-        const fetchedPrimaryMap = new Map<string, { athlete_subscription_status: string; athlete_subscription_start: string | null; athlete_subscription_end: string | null; subscription_tier: string | null; id: string }>(
+        const fetchedPrimaryMap = new Map<string, { athlete_subscription_status: string; athlete_subscription_start: string | null; athlete_subscription_end: string | null; subscription_tier: string | null; id: string; name?: string | null; display_name?: string | null }>(
           membersWithAttendance.filter(m => primaryIds.includes(m.id)).map(m => [m.id, m])
         );
         // Fetch any missing primaries
@@ -208,7 +208,7 @@ export function useMemberData() {
         if (missingIds.length > 0) {
           const { data: primaryData } = await supabase
             .from('members')
-            .select('id, athlete_subscription_status, athlete_subscription_start, athlete_subscription_end, subscription_tier')
+            .select('id, name, display_name, athlete_subscription_status, athlete_subscription_start, athlete_subscription_end, subscription_tier')
             .in('id', missingIds);
           if (primaryData) {
             primaryData.forEach(p => fetchedPrimaryMap.set(p.id, p));
@@ -221,6 +221,7 @@ export function useMemberData() {
             if (primary) {
               return {
                 ...m,
+                primary_member_name: primary.display_name || primary.name || null,
                 athlete_subscription_status: primary.athlete_subscription_status,
                 athlete_subscription_start: primary.athlete_subscription_start,
                 athlete_subscription_end: primary.athlete_subscription_end,

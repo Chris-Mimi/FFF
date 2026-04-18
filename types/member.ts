@@ -13,6 +13,7 @@ export interface Member {
   status: MemberStatus;
   account_type: 'primary' | 'family_member';
   primary_member_id: string | null;
+  primary_member_name?: string | null;
   athlete_trial_start: string | null;
   athlete_subscription_status: 'trial' | 'active' | 'past_due' | 'expired';
   athlete_subscription_start: string | null;
