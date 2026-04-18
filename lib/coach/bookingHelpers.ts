@@ -45,11 +45,11 @@ export function calculateConfirmedCount(bookings: Booking[]): number {
 /**
  * Check if member can be added to session
  * @param confirmedCount - Current confirmed bookings
- * @param capacity - Session capacity
+ * @param capacity - Session capacity (0 = unlimited)
  * @returns True if can add to confirmed, false if should be waitlisted
  */
 export function canAddToSession(confirmedCount: number, capacity: number): boolean {
-  return confirmedCount < capacity;
+  return capacity === 0 || confirmedCount < capacity;
 }
 
 /**

@@ -168,8 +168,8 @@ export async function POST(request: NextRequest) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const confirmedCount = session.bookings?.filter((b: any) => b.status === 'confirmed').length || 0;
 
-    // Determine booking status (confirmed or waitlist)
-    const bookingStatus = confirmedCount < session.capacity ? 'confirmed' : 'waitlist';
+    // Determine booking status (confirmed or waitlist). capacity === 0 means unlimited.
+    const bookingStatus = session.capacity === 0 || confirmedCount < session.capacity ? 'confirmed' : 'waitlist';
 
     // Create booking
     const { data: booking, error: bookingError } = await supabase

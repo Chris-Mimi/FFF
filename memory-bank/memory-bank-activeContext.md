@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 152.0
-**Updated:** 2026-04-17 (Session 285 - trimmed for context efficiency)
+**Version:** 153.0
+**Updated:** 2026-04-18 (Session 287 - waitlist promotion fix)
 
 ---
 
@@ -81,6 +81,16 @@ Social Tables
 
 ## 📍 Current Status (Last 3 Sessions)
 
+**Session 287 (2026-04-18 — Opus 4.7) — WAITLIST PROMOTION FIX (capacity=0 + WOD save path):**
+- Reported: tomorrow's 10:30 session stuck at `1/10 confirmed + 1 waitlist` despite room on roster.
+- Two compounding bugs: (1) `capacity === 0` (meant "unlimited") was being treated as "zero spots" in booking logic — `confirmedCount < 0` always false → every booking went to waitlist. (2) `useWODOperations.ts` WOD-save paths update `weekly_sessions.capacity` but never call `promoteWaitlistMembers` — so when capacity was raised from 0→10 via Workout modal, waitlist stayed stuck.
+- Fixes: `lib/coach/bookingHelpers.ts` + `app/api/bookings/create/route.ts` now treat `capacity === 0` as unlimited. Added `promoteWaitlistForSession`/`promoteWaitlistForWorkout` helpers to `lib/coach/sessionCapacityHelpers.ts`; wired into all 5 capacity-update sites in `hooks/coach/useWODOperations.ts`.
+- DB state: Lukas (waitlist at that 10:30 session) promoted to confirmed via direct UPDATE. Christian+Kathrin were already self-cancelled.
+- Carryover: member booking page UI does not handle capacity=0 (`app/member/book/page.tsx:540-564` — division by zero, shows "Full"). Not fixed.
+
+**Session 286 (2026-04-17) — ORPHAN WOD PREVENTION:**
+- Added self-delete guards to WOD-creation paths (rapid-save + session-generate failures). Commit 98fa868.
+
 **Session 285 (2026-04-17 — Opus 4.7) — ORPHAN WOD CLEANUP + EFFICIENCY RULES:**
 - Data Integrity SQL surfaced 8 orphan WODs (wods rows with no linked weekly_sessions).
 - All 8 = unpublished shells, zero dependent data (no section_results/logs/lifts). Deleted after backup.
@@ -93,17 +103,14 @@ Social Tables
 - Files: `database/update-attendance-functions-include-whiteboard-text.sql`, `hooks/coach/useMemberData.ts`, `hooks/coach/useCoachData.ts`.
 - Carryover: Steven shows 39 on Members page vs 37 on Workouts-tab search — +2 discrepancy unresolved.
 
-**Session 283 (2026-04-17) — STICKY WORKOUT SECTIONS HEADER:**
-- `components/coach/WorkoutModal.tsx` — sticky header wrapping "Workout Sections" label + buttons. Panel mode includes MovementDemosBar, modal mode doesn't.
-
-**Older sessions (57-282):** See `project-history/` folder.
+**Older sessions (57-284):** See `project-history/` folder.
 
 ---
 
 ## 🚨 Known Open Issues
 
 - **Athlete subscription bug** — trialing sub sets `athlete_subscription_end = today` instead of +30d. Root causes possibly: webhook event order (`subscription.updated` overwriting checkout-handler end date), `autoExpireSubscriptions` not skipping `status='trialing'`. Stefan Glocker also needs manual DB fix.
-- **Orphan WOD regeneration** — Session 285 deleted 8; need to prevent recurrence. Suspect `app/api/sessions/generate-weekly/route.ts` lacks the self-delete guard `useWODOperations.ts:264-268` has.
+- **Member booking page UI doesn't handle capacity=0** — `app/member/book/page.tsx:540-564` does `confirmed / capacity * 100` (division by zero) and `capacity - confirmed < 0` which renders as "Full". Cosmetic; unlimited sessions still book correctly. Deferred Session 287.
 - **iPhone search bug (latent)** — same `readOnly` anti-autofill hack exists in `components/coach/SearchPanel.tsx:946` (Analysis page search). Deferred Session 282.
 - **`SearchPanel` 500-row limit** — `useCoachData.ts:245` caps queries at 500 rows. Not a current concern (gym has far fewer published sessions than 500).
 
@@ -119,8 +126,9 @@ Social Tables
 
 ## 📋 Next Immediate Steps
 
-1. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
-2. **Orphan WOD prevention** — audit `app/api/sessions/generate-weekly/route.ts` for session-create failure; add self-delete guard.
+1. **Test Session 287 waitlist fix** — see `Chris Notes/AA frequently used files/session-287-test-prompt.md` for the exact test prompt.
+2. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
+3. **Member book page capacity=0 UI** — fix division-by-zero + "Full" display when capacity is 0 (unlimited). Cosmetic, low priority.
 
 ---
 

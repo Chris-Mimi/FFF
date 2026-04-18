@@ -104,3 +104,54 @@ export async function updateWorkoutCapacity(
     .update({ max_capacity: newCapacity })
     .eq('id', workoutId);
 }
+
+/**
+ * Promote waitlist members for a session after its capacity has been updated.
+ * Handles capacity === 0 (unlimited) by promoting every waitlist entry.
+ */
+export async function promoteWaitlistForSession(
+  supabase: SupabaseClient,
+  sessionId: string,
+  newCapacity: number
+): Promise<string[]> {
+  if (newCapacity === 0) {
+    const { count: waitlistCount } = await supabase
+      .from('bookings')
+      .select('id', { count: 'exact', head: true })
+      .eq('session_id', sessionId)
+      .eq('status', 'waitlist');
+    return promoteWaitlistMembers(supabase, sessionId, waitlistCount || 0);
+  }
+
+  const { count: confirmedCount } = await supabase
+    .from('bookings')
+    .select('id', { count: 'exact', head: true })
+    .eq('session_id', sessionId)
+    .eq('status', 'confirmed');
+
+  const spotsOpened = newCapacity - (confirmedCount || 0);
+  return promoteWaitlistMembers(supabase, sessionId, spotsOpened);
+}
+
+/**
+ * Promote waitlist for every session linked to a given workout after its capacity changed.
+ */
+export async function promoteWaitlistForWorkout(
+  supabase: SupabaseClient,
+  workoutId: string,
+  newCapacity: number
+): Promise<string[]> {
+  const { data: sessions } = await supabase
+    .from('weekly_sessions')
+    .select('id')
+    .eq('workout_id', workoutId);
+
+  if (!sessions || sessions.length === 0) return [];
+
+  const promoted: string[] = [];
+  for (const s of sessions) {
+    const ids = await promoteWaitlistForSession(supabase, s.id, newCapacity);
+    promoted.push(...ids);
+  }
+  return promoted;
+}
