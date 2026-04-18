@@ -129,9 +129,10 @@ Social Tables
 
 ## 📋 Next Immediate Steps
 
-1. **Susi Glocker cleanup (pending her reply)** — unapprove/block the duplicate primary she doesn't want (ids `0d5a0252` / `f91173a4`), delete pending family row `eac70c98` (`account_type='family_member'`). SQL in Session 289 transcript.
-2. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
-3. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing.
+1. **Susi Glocker cleanup (pending her reply)** — see `memory/project_susi_glocker_cleanup.md` for full context + SQL. Don't act until Chris confirms which email she wants.
+2. **Guardian-only members (At-Risk noise)** — implement per `Chris Notes/Planning/guardian-only-members-at-risk-fix.md`. Add `members.guardian_only` boolean, MemberCard toggle, exclude from At-Risk filter.
+3. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
+4. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing.
 
 ---
 
