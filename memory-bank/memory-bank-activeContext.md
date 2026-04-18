@@ -102,11 +102,10 @@ Social Tables
 
 ## 🚨 Known Open Issues
 
-- **Steven attendance +2** — Members page 39 vs Workouts-tab search 37. Debug regex: `SELECT ws.date, w.sections::text FROM weekly_sessions ws JOIN wods w ON w.id = ws.workout_id WHERE w.sections::text ~* '\ySteven\y' ORDER BY ws.date DESC;`
 - **Athlete subscription bug** — trialing sub sets `athlete_subscription_end = today` instead of +30d. Root causes possibly: webhook event order (`subscription.updated` overwriting checkout-handler end date), `autoExpireSubscriptions` not skipping `status='trialing'`. Stefan Glocker also needs manual DB fix.
 - **Orphan WOD regeneration** — Session 285 deleted 8; need to prevent recurrence. Suspect `app/api/sessions/generate-weekly/route.ts` lacks the self-delete guard `useWODOperations.ts:264-268` has.
 - **iPhone search bug (latent)** — same `readOnly` anti-autofill hack exists in `components/coach/SearchPanel.tsx:946` (Analysis page search). Deferred Session 282.
-- **`SearchPanel` 500-row limit** — `useCoachData.ts:245` caps queries at 500 rows (may be related to Steven +2).
+- **`SearchPanel` 500-row limit** — `useCoachData.ts:245` caps queries at 500 rows. Not a current concern (gym has far fewer published sessions than 500).
 
 **Pre-deployment:** All CRITICAL/HIGH/MEDIUM items done. LOW items (28 files >500 lines) deferred per Session 260.
 
@@ -120,9 +119,8 @@ Social Tables
 
 ## 📋 Next Immediate Steps
 
-1. **Steven attendance +2** — run debug regex above; compare against Workouts-tab. Likely regex false positive or 500-row limit.
-2. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
-3. **Orphan WOD prevention** — audit `app/api/sessions/generate-weekly/route.ts` for session-create failure; add self-delete guard.
+1. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
+2. **Orphan WOD prevention** — audit `app/api/sessions/generate-weekly/route.ts` for session-create failure; add self-delete guard.
 
 ---
 

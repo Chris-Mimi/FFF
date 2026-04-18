@@ -163,6 +163,7 @@ export async function POST(request: NextRequest) {
 
       if (sessionError) {
         console.error('Error creating session:', sessionError);
+        await supabaseAdmin.from('wods').delete().eq('id', newWOD.id);
         continue;
       }
 

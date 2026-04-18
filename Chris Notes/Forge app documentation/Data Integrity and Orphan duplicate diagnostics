@@ -13,4 +13,13 @@ SELECT
   (SELECT COUNT(*) FROM (SELECT user_id, benchmark_name, result_date FROM benchmark_results GROUP BY user_id, benchmark_name, result_date HAVING COUNT(*) > 1) d) AS duplicate_benchmarks,
   (SELECT COUNT(*) FROM (SELECT user_id, lift_name, lift_date, rep_max_type, rep_scheme FROM lift_records GROUP BY user_id, lift_name, lift_date, rep_max_type, rep_scheme HAVING COUNT(*) > 1) d) AS duplicate_lifts,
   (SELECT COUNT(*) FROM wods WHERE workout_publish_status = 'published' AND (workout_name IS NULL OR workout_name = '')) AS published_wods_no_name,
+  (SELECT COUNT(*) FROM athlete_achievements aa LEFT JOIN achievement_definitions ad ON ad.id = aa.achievement_id LEFT JOIN auth.users u ON u.id = aa.user_id WHERE ad.id IS NULL OR u.id IS NULL) AS orphan_athlete_achievements,
+  (SELECT COUNT(*) FROM benchmark_results br LEFT JOIN benchmark_workouts bw ON bw.id = br.benchmark_id LEFT JOIN forge_benchmarks fb ON fb.id = br.forge_benchmark_id WHERE (br.benchmark_id IS NOT NULL AND bw.id IS NULL) OR (br.forge_benchmark_id IS NOT NULL AND fb.id IS NULL)) AS orphan_benchmark_results,
+  (SELECT COUNT(*) FROM members m WHERE m.account_type = 'family_member' AND m.primary_member_id IS NOT NULL AND m.primary_member_id NOT IN (SELECT id FROM members)) AS orphan_family_members,
+  (SELECT COUNT(*) FROM wod_section_results r LEFT JOIN members m ON m.id = r.member_id WHERE r.member_id IS NOT NULL AND m.id IS NULL) AS orphan_section_results_member_id,
+  (SELECT COUNT(*) FROM programming_plan_items ppi LEFT JOIN movement_patterns mp ON mp.id = ppi.pattern_id WHERE mp.id IS NULL) AS orphan_programming_plan_items,
+  (SELECT COUNT(*) FROM movement_pattern_exercises mpe LEFT JOIN movement_patterns mp ON mp.id = mpe.pattern_id LEFT JOIN exercises e ON e.id = mpe.exercise_id WHERE mp.id IS NULL OR e.id IS NULL) AS orphan_pattern_exercises,
+  (SELECT COUNT(*) FROM user_exercise_favorites uef LEFT JOIN exercises e ON e.id = uef.exercise_id LEFT JOIN auth.users u ON u.id = uef.user_id WHERE e.id IS NULL OR u.id IS NULL) AS orphan_favorites,
+  (SELECT COUNT(*) FROM coach_tracked_exercises cte LEFT JOIN exercises e ON e.id = cte.exercise_id LEFT JOIN auth.users u ON u.id = cte.user_id WHERE e.id IS NULL OR u.id IS NULL) AS orphan_coach_tracked,
+  (SELECT COUNT(*) FROM weekly_sessions ws LEFT JOIN bookings b ON b.session_id = ws.id WHERE ws.workout_id IS NULL AND b.id IS NULL) AS empty_sessions_no_bookings,
   (SELECT COUNT(*) FROM wods w LEFT JOIN weekly_sessions ws ON ws.workout_id = w.id WHERE ws.id IS NULL) AS orphan_wods;

@@ -146,6 +146,79 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
           }
         }
 
+        // Belt-and-braces orphan prevention: if any session at date+classTime already
+        // has a linked workout, update that workout instead of inserting a new one.
+        // Catches rapid re-saves where editingWOD.booking_info.session_id wasn't passed.
+        if (
+          wodData.classTimes &&
+          wodData.classTimes.length > 0 &&
+          (!wodData.selectedSessionIds || wodData.selectedSessionIds.length === 0)
+        ) {
+          const { data: preexistingLinked } = await supabase
+            .from('weekly_sessions')
+            .select('workout_id')
+            .eq('date', dateKey)
+            .in('time', wodData.classTimes)
+            .not('workout_id', 'is', null)
+            .limit(1);
+
+          const targetWorkoutId = preexistingLinked?.[0]?.workout_id;
+          if (targetWorkoutId) {
+            const { error: updateError } = await supabase
+              .from('wods')
+              .update({
+                title: wodData.title,
+                session_type: wodData.session_type || wodData.title,
+                workout_name: wodData.workout_name || null,
+                workout_week: workoutWeek,
+                track_id: wodData.track_id || null,
+                workout_type_id: wodData.workout_type_id || null,
+                class_times: wodData.classTimes,
+                max_capacity: wodData.maxCapacity,
+                date: dateKey,
+                sections: wodData.sections,
+                coach_notes: wodData.coach_notes || null,
+                workout_publish_status: hasContent ? 'draft' : null,
+                updated_at: new Date().toISOString(),
+              })
+              .eq('id', targetWorkoutId);
+
+            if (updateError) throw updateError;
+
+            for (const time of wodData.classTimes) {
+              const { data: existingSession } = await supabase
+                .from('weekly_sessions')
+                .select('id')
+                .eq('date', dateKey)
+                .eq('time', time)
+                .maybeSingle();
+
+              if (existingSession) {
+                await supabase
+                  .from('weekly_sessions')
+                  .update({
+                    workout_id: targetWorkoutId,
+                    capacity: wodData.maxCapacity,
+                    status: 'published',
+                  })
+                  .eq('id', existingSession.id);
+              } else {
+                await supabase.from('weekly_sessions').insert({
+                  date: dateKey,
+                  time: time,
+                  workout_id: targetWorkoutId,
+                  capacity: wodData.maxCapacity,
+                  status: 'published',
+                });
+              }
+            }
+
+            await fetchWODs();
+            await fetchTracksAndCounts();
+            return;
+          }
+        }
+
         const { data: newWOD, error } = await supabase
           .from('wods')
           .insert([
