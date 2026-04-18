@@ -58,6 +58,7 @@ export default function CoachMembersPage() {
     handleToggleMembershipType,
     handleToggleClassType,
     handleSetGender,
+    handleToggleGuardianOnly,
   } = useMemberActions(refreshData, refreshPendingCount, setMembers, refreshWhiteboardNames);
 
   const handleLogout = async () => {
@@ -240,6 +241,7 @@ export default function CoachMembersPage() {
                 onToggleMembershipType={handleToggleMembershipType}
                 onToggleClassType={handleToggleClassType}
                 onSetGender={handleSetGender}
+                onToggleGuardianOnly={handleToggleGuardianOnly}
                 onOpenTenCard={(m) => setTenCardModal({ isOpen: true, member: m })}
               />
             ))}

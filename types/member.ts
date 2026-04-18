@@ -31,6 +31,7 @@ export interface Member {
   date_of_birth: string | null;
   class_types: ClassType[];
   gender: 'M' | 'F' | null;
+  guardian_only: boolean;
 }
 
 export const MEMBERSHIP_TYPE_LABELS: Record<MembershipType, string> = {

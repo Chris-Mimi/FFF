@@ -33,6 +33,7 @@ interface MemberCardProps {
   onToggleMembershipType: (memberId: string, type: MembershipType, currentTypes: MembershipType[]) => void;
   onToggleClassType: (memberId: string, type: ClassType, currentClassTypes: ClassType[]) => void;
   onSetGender: (memberId: string, gender: 'M' | 'F' | null) => void;
+  onToggleGuardianOnly: (memberId: string, guardianOnly: boolean) => void;
   onOpenTenCard: (member: Member) => void;
 }
 
@@ -70,6 +71,7 @@ export default function MemberCard({
   onToggleMembershipType,
   onToggleClassType,
   onSetGender,
+  onToggleGuardianOnly,
   onOpenTenCard,
 }: MemberCardProps) {
   const [selectedWhiteboardName, setSelectedWhiteboardName] = useState<string>('');
@@ -90,6 +92,11 @@ export default function MemberCard({
             {member.account_type === 'family_member' && (
               <span className="px-1.5 py-0.5 bg-purple-500/20 text-purple-300 text-xs rounded-full">
                 {member.primary_member_name ? `Family of ${member.primary_member_name}` : 'Family'}
+              </span>
+            )}
+            {member.guardian_only && (
+              <span className="px-1.5 py-0.5 bg-amber-500/20 text-amber-300 text-xs rounded-full">
+                Guardian
               </span>
             )}
             {member.membership_types?.includes('ten_card') && (
@@ -219,6 +226,19 @@ export default function MemberCard({
                 {g}
               </button>
             ))}
+            {member.account_type === 'primary' && (
+              <button
+                onClick={() => onToggleGuardianOnly(member.id, !member.guardian_only)}
+                className={`ml-2 px-2 py-1 rounded text-xs font-medium cursor-pointer transition ${
+                  member.guardian_only
+                    ? 'bg-amber-500 text-white hover:bg-amber-600'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+                title="Guardian-only accounts don't train and are excluded from At-Risk"
+              >
+                Guardian only
+              </button>
+            )}
           </div>
 
           {/* Class Type Buttons (only for kids <16) */}

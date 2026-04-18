@@ -335,6 +335,30 @@ export function useMemberActions(
     }
   };
 
+  const handleToggleGuardianOnly = async (memberId: string, guardianOnly: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('members')
+        .update({ guardian_only: guardianOnly })
+        .eq('id', memberId);
+
+      if (error) throw error;
+
+      setMembers(prevMembers =>
+        prevMembers.map(m =>
+          m.id === memberId ? { ...m, guardian_only: guardianOnly } : m
+        )
+      );
+
+      if (guardianOnly) {
+        await refreshData();
+      }
+    } catch (error) {
+      console.error('Error updating guardian_only:', error);
+      toast.error('Failed to update guardian status');
+    }
+  };
+
   return {
     processingMemberId,
     handleApprove,
@@ -349,5 +373,6 @@ export function useMemberActions(
     handleToggleMembershipType,
     handleToggleClassType,
     handleSetGender,
+    handleToggleGuardianOnly,
   };
 }

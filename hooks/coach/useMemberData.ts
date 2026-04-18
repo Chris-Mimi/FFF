@@ -71,8 +71,9 @@ export function useMemberData() {
 
       const { data: activeMembers } = await supabase
         .from('members')
-        .select('id, membership_types')
-        .eq('status', 'active');
+        .select('id, membership_types, guardian_only')
+        .eq('status', 'active')
+        .eq('guardian_only', false);
 
       if (!activeMembers || activeMembers.length === 0) {
         setAtRiskCount(0);
@@ -111,7 +112,7 @@ export function useMemberData() {
     const daysParam = timeframe === 'all' ? 36500 : timeframe;
     setLoading(true);
     try {
-      let query = supabase.from('members').select('id, email, name, display_name, phone, status, account_type, primary_member_id, athlete_trial_start, athlete_subscription_status, athlete_subscription_start, athlete_subscription_end, subscription_tier, created_at, membership_types, ten_card_purchase_date, ten_card_sessions_used, ten_card_total, ten_card_expiry_date, date_of_birth, class_types, gender');
+      let query = supabase.from('members').select('id, email, name, display_name, phone, status, account_type, primary_member_id, athlete_trial_start, athlete_subscription_status, athlete_subscription_start, athlete_subscription_end, subscription_tier, created_at, membership_types, ten_card_purchase_date, ten_card_sessions_used, ten_card_total, ten_card_expiry_date, date_of_birth, class_types, gender, guardian_only');
 
       if (status === 'subscriptions') {
         query = query
@@ -234,7 +235,7 @@ export function useMemberData() {
         });
       }
 
-      // Filter at-risk: 0 attendance + regular membership types only
+      // Filter at-risk: 0 attendance + regular membership types, exclude guardian-only
       if (status === 'at-risk') {
         const regularTypes = ['member', 'ten_card', 'wellpass', 'hansefit'];
         membersWithAttendance = membersWithAttendance.filter(member => {
@@ -242,7 +243,7 @@ export function useMemberData() {
           const isRegularMember = member.membership_types?.some(
             (type: string) => regularTypes.includes(type)
           );
-          return hasZeroAttendance && isRegularMember;
+          return hasZeroAttendance && isRegularMember && !member.guardian_only;
         });
       }
 
