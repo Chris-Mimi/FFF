@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { requireCoach, isAuthError } from '@/lib/auth-api';
+import { cancelFutureBookingsForMember } from '@/lib/coach/memberBookingCleanup';
 
 // Use service role for admin operations
 const supabaseAdmin = createClient(
@@ -71,20 +72,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TODO: Cancel any active bookings for this member
+    const cancelledCount = await cancelFutureBookingsForMember(supabaseAdmin, memberId);
+
     // TODO: Create in-app notification for member about account status
     // TODO: Send email notification (Phase 3)
 
     return NextResponse.json(
       {
         success: true,
-        message: 'Member blocked successfully',
+        message:
+          cancelledCount > 0
+            ? `Member blocked successfully (${cancelledCount} upcoming booking${cancelledCount === 1 ? '' : 's'} cancelled)`
+            : 'Member blocked successfully',
         member: {
           id: updatedMember.id,
           email: updatedMember.email,
           name: updatedMember.name,
           status: updatedMember.status
-        }
+        },
+        cancelledBookings: cancelledCount
       },
       { status: 200 }
     );

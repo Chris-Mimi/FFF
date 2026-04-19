@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { requireCoach, isAuthError } from '@/lib/auth-api';
+import { cancelFutureBookingsForMember } from '@/lib/coach/memberBookingCleanup';
 
 // Use service role for admin operations
 const supabaseAdmin = createClient(
@@ -73,16 +74,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const cancelledCount = await cancelFutureBookingsForMember(supabaseAdmin, memberId);
+
     return NextResponse.json(
       {
         success: true,
-        message: 'Member moved back to pending status',
+        message:
+          cancelledCount > 0
+            ? `Member moved back to pending status (${cancelledCount} upcoming booking${cancelledCount === 1 ? '' : 's'} cancelled)`
+            : 'Member moved back to pending status',
         member: {
           id: updatedMember.id,
           email: updatedMember.email,
           name: updatedMember.name,
           status: updatedMember.status
-        }
+        },
+        cancelledBookings: cancelledCount
       },
       { status: 200 }
     );
