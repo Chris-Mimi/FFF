@@ -49,31 +49,31 @@ export async function updateBookingRules(patch: Partial<BookingRules>): Promise<
   return data as BookingRules;
 }
 
-export interface WorkoutTypeLockRule {
-  workout_type: string;
+export interface SessionTypeLockRule {
+  session_type: string;
   auto_lock_lead_minutes: number;
 }
 
-export async function getWorkoutTypeLockRules(): Promise<WorkoutTypeLockRule[]> {
+export async function getSessionTypeLockRules(): Promise<SessionTypeLockRule[]> {
   const supabase = adminClient();
   const { data, error } = await supabase
-    .from('booking_rules_by_workout_type')
-    .select('workout_type, auto_lock_lead_minutes');
+    .from('booking_rules_by_session_type')
+    .select('session_type, auto_lock_lead_minutes');
   if (error || !data) return [];
-  return data as WorkoutTypeLockRule[];
+  return data as SessionTypeLockRule[];
 }
 
-// Resolves the auto-lock lead minutes for a given workout type,
+// Resolves the auto-lock lead minutes for a given session type,
 // falling back to the global booking_rules value if no per-type row exists.
-export async function getLockLeadMinutesForType(workoutType: string | null | undefined): Promise<number> {
+export async function getLockLeadMinutesForSessionType(sessionType: string | null | undefined): Promise<number> {
   const rules = await getBookingRules();
-  if (!workoutType) return rules.auto_lock_lead_minutes;
+  if (!sessionType) return rules.auto_lock_lead_minutes;
 
   const supabase = adminClient();
   const { data } = await supabase
-    .from('booking_rules_by_workout_type')
+    .from('booking_rules_by_session_type')
     .select('auto_lock_lead_minutes')
-    .eq('workout_type', workoutType)
+    .eq('session_type', sessionType)
     .maybeSingle();
 
   if (data && typeof data.auto_lock_lead_minutes === 'number') {
@@ -82,22 +82,22 @@ export async function getLockLeadMinutesForType(workoutType: string | null | und
   return rules.auto_lock_lead_minutes;
 }
 
-// Upserts a per-type rule. Pass null to remove the override (fall back to global).
-export async function setWorkoutTypeLockRule(workoutType: string, minutes: number | null): Promise<void> {
+// Upserts a per-session-type rule. Pass null to remove the override (fall back to global).
+export async function setSessionTypeLockRule(sessionType: string, minutes: number | null): Promise<void> {
   const supabase = adminClient();
   if (minutes === null) {
     const { error } = await supabase
-      .from('booking_rules_by_workout_type')
+      .from('booking_rules_by_session_type')
       .delete()
-      .eq('workout_type', workoutType);
+      .eq('session_type', sessionType);
     if (error) throw error;
     return;
   }
   const { error } = await supabase
-    .from('booking_rules_by_workout_type')
+    .from('booking_rules_by_session_type')
     .upsert(
-      { workout_type: workoutType, auto_lock_lead_minutes: minutes, updated_at: new Date().toISOString() },
-      { onConflict: 'workout_type' }
+      { session_type: sessionType, auto_lock_lead_minutes: minutes, updated_at: new Date().toISOString() },
+      { onConflict: 'session_type' }
     );
   if (error) throw error;
 }

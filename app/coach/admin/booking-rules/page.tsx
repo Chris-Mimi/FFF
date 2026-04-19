@@ -16,7 +16,7 @@ type FormState = {
   advance_booking_days: string;
 };
 
-type PerTypeRow = { workout_type: string; value: string };
+type PerTypeRow = { session_type: string; value: string };
 
 const toForm = (r: BookingRules): FormState => ({
   ten_card_refund_hours: String(r.ten_card_refund_hours),
@@ -52,17 +52,17 @@ export default function BookingRulesPage() {
       try {
         const [rulesRes, typesRes] = await Promise.all([
           authFetch('/api/admin/booking-rules'),
-          authFetch('/api/admin/booking-rules/workout-types'),
+          authFetch('/api/admin/booking-rules/session-types'),
         ]);
         if (!rulesRes.ok) throw new Error('Failed to load rules');
-        if (!typesRes.ok) throw new Error('Failed to load workout types');
+        if (!typesRes.ok) throw new Error('Failed to load session types');
         const rules: BookingRules = await rulesRes.json();
-        const typesJson: { types: { workout_type: string; auto_lock_lead_minutes: number | null }[] } =
+        const typesJson: { types: { session_type: string; auto_lock_lead_minutes: number | null }[] } =
           await typesRes.json();
         setForm(toForm(rules));
         setPerType(
           typesJson.types.map((t) => ({
-            workout_type: t.workout_type,
+            session_type: t.session_type,
             value: t.auto_lock_lead_minutes == null ? '' : String(t.auto_lock_lead_minutes),
           }))
         );
@@ -93,21 +93,21 @@ export default function BookingRulesPage() {
       return;
     }
 
-    // Per-type: blank = null (fall back to global); otherwise non-negative integer.
-    const perTypeUpdates: { workout_type: string; auto_lock_lead_minutes: number | null }[] = [];
+    // Per-session-type: blank = null (fall back to global); otherwise non-negative integer.
+    const perTypeUpdates: { session_type: string; auto_lock_lead_minutes: number | null }[] = [];
     const perTypeInvalid: string[] = [];
     for (const row of perType) {
       const v = row.value.trim();
       if (v === '') {
-        perTypeUpdates.push({ workout_type: row.workout_type, auto_lock_lead_minutes: null });
+        perTypeUpdates.push({ session_type: row.session_type, auto_lock_lead_minutes: null });
         continue;
       }
       const n = Number(v);
       if (!Number.isInteger(n) || n < 0) {
-        perTypeInvalid.push(row.workout_type);
+        perTypeInvalid.push(row.session_type);
         continue;
       }
-      perTypeUpdates.push({ workout_type: row.workout_type, auto_lock_lead_minutes: n });
+      perTypeUpdates.push({ session_type: row.session_type, auto_lock_lead_minutes: n });
     }
     if (perTypeInvalid.length > 0) {
       setMessage({ kind: 'err', text: `Invalid per-type values: ${perTypeInvalid.join(', ')}` });
@@ -121,7 +121,7 @@ export default function BookingRulesPage() {
           method: 'PUT',
           body: JSON.stringify(parsed),
         }),
-        authFetch('/api/admin/booking-rules/workout-types', {
+        authFetch('/api/admin/booking-rules/session-types', {
           method: 'PUT',
           body: JSON.stringify({ updates: perTypeUpdates }),
         }),
@@ -217,18 +217,18 @@ export default function BookingRulesPage() {
 
           <div className='mb-5 border-t pt-5'>
             <label className='block text-sm font-medium text-gray-700 mb-1'>
-              Auto-lock lead time by workout type
+              Auto-lock lead time by session type
             </label>
             <p className='text-xs text-gray-500 mb-3'>
-              Override the default for specific workout types. Leave blank to use the default above.
+              Override the default for specific session types (WOD, Foundations, Kids & Teens, etc.). Leave blank to use the default above.
             </p>
             {perType.length === 0 ? (
-              <p className='text-sm text-gray-500'>No workout types defined.</p>
+              <p className='text-sm text-gray-500'>No session types defined.</p>
             ) : (
               <div className='space-y-2'>
                 {perType.map((row, idx) => (
-                  <div key={row.workout_type} className='flex items-center gap-2'>
-                    <span className='w-56 text-sm text-gray-700'>{row.workout_type}</span>
+                  <div key={row.session_type} className='flex items-center gap-2'>
+                    <span className='w-56 text-sm text-gray-700'>{row.session_type}</span>
                     <input
                       type='number'
                       min={0}
