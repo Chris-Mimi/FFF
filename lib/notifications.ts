@@ -248,6 +248,21 @@ export function notifySubscriptionExpiringCoach(memberName: string, daysLeft: nu
 }
 
 /**
+ * Notify coaches that a new member has registered and is awaiting approval.
+ */
+export function notifyNewMemberRegistered(memberName: string, memberEmail: string): void {
+  const payload: PushPayload = {
+    title: 'New Member Registration',
+    body: `${memberName} (${memberEmail}) is awaiting approval`,
+    data: { url: '/coach/members', type: 'new_registration' },
+  };
+
+  sendToCoaches(payload, 'new_registration').catch((err) =>
+    console.error('notifyNewMemberRegistered failed:', err)
+  );
+}
+
+/**
  * Notify coaches that a member's payment has failed.
  */
 export function notifyPaymentFailed(memberName: string): void {

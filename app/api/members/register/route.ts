@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { notifyNewMemberRegistered } from '@/lib/notifications';
 
 // Use service role for bypassing RLS during registration
 const supabaseAdmin = createClient(
@@ -145,8 +146,7 @@ export async function POST(request: NextRequest) {
       // Don't fail registration if athlete profile creation fails - can be added later
     }
 
-    // TODO: Create in-app notification for coaches about new pending member
-    // This will be implemented in Phase 3 (Notifications)
+    notifyNewMemberRegistered(memberData.name, memberData.email);
 
     return NextResponse.json(
       {
