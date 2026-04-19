@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { notifyBookingConfirmed, notifyBookingWaitlisted } from '@/lib/notifications';
+import { getBookingRules } from '@/lib/bookingRules';
 
 export async function POST(request: NextRequest) {
   try {
@@ -141,17 +142,79 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if session is locked (manually or auto-locked by start time)
+    // Load coach-configurable booking rules
+    const rules = await getBookingRules();
+
+    // Check if session is locked (manually or auto-locked by lead time before start)
     const sessionDateTime = new Date(`${session.date}T${session.time}`);
+    const lockThreshold = new Date(sessionDateTime.getTime() - rules.auto_lock_lead_minutes * 60 * 1000);
     const isEffectivelyLocked =
       session.is_locked === true ||
-      (session.is_locked === null && sessionDateTime < new Date());
+      (session.is_locked === null && lockThreshold < new Date());
 
     if (isEffectivelyLocked) {
       return NextResponse.json(
         { error: 'This session is locked and no longer accepting bookings' },
         { status: 403 }
       );
+    }
+
+    // Advance-booking horizon cap
+    if (rules.advance_booking_days !== null) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const maxDate = new Date(today);
+      maxDate.setDate(today.getDate() + rules.advance_booking_days);
+      const sessionDayOnly = new Date(session.date);
+      if (sessionDayOnly > maxDate) {
+        return NextResponse.json(
+          { error: `You can only book up to ${rules.advance_booking_days} days in advance` },
+          { status: 403 }
+        );
+      }
+    }
+
+    // Per-day cap
+    if (rules.max_bookings_per_day !== null) {
+      const { data: dayBookings } = await supabase
+        .from('bookings')
+        .select('id, weekly_sessions!inner(date)')
+        .eq('member_id', bookingMemberId)
+        .in('status', ['confirmed', 'waitlist'])
+        .eq('weekly_sessions.date', session.date);
+
+      if ((dayBookings?.length || 0) >= rules.max_bookings_per_day) {
+        return NextResponse.json(
+          { error: `Daily booking limit reached (${rules.max_bookings_per_day} per day)` },
+          { status: 403 }
+        );
+      }
+    }
+
+    // Per-week cap (Monday–Sunday containing session.date)
+    if (rules.max_bookings_per_week !== null) {
+      const sessionDay = new Date(session.date);
+      const dayOfWeek = sessionDay.getDay(); // 0 = Sunday
+      const monday = new Date(sessionDay);
+      monday.setDate(sessionDay.getDate() - ((dayOfWeek + 6) % 7));
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      const fmt = (d: Date) => d.toISOString().split('T')[0];
+
+      const { data: weekBookings } = await supabase
+        .from('bookings')
+        .select('id, weekly_sessions!inner(date)')
+        .eq('member_id', bookingMemberId)
+        .in('status', ['confirmed', 'waitlist'])
+        .gte('weekly_sessions.date', fmt(monday))
+        .lte('weekly_sessions.date', fmt(sunday));
+
+      if ((weekBookings?.length || 0) >= rules.max_bookings_per_week) {
+        return NextResponse.json(
+          { error: `Weekly booking limit reached (${rules.max_bookings_per_week} per week)` },
+          { status: 403 }
+        );
+      }
     }
 
     // Check if member already has a booking for this session

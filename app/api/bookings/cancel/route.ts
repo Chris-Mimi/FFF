@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { notifyWaitlistPromoted } from '@/lib/notifications';
+import { getBookingRules } from '@/lib/bookingRules';
 
 export async function POST(request: NextRequest) {
   try {
@@ -124,15 +125,16 @@ export async function POST(request: NextRequest) {
       const hasTenCardMembership = member?.membership_types?.includes('ten_card') || false;
       const tenCardUsed = member?.ten_card_sessions_used || 0;
 
-      // Calculate grace period (12 hours before class)
-      const GRACE_PERIOD_HOURS = 12;
+      // Grace period from coach-configurable booking rules
+      const rules = await getBookingRules();
+      const gracePeriodHours = rules.ten_card_refund_hours;
       let withinGracePeriod = false;
 
       if (session) {
         const sessionDateTime = new Date(`${session.date}T${session.time}`);
         const now = new Date();
         const hoursUntilSession = (sessionDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
-        withinGracePeriod = hoursUntilSession >= GRACE_PERIOD_HOURS;
+        withinGracePeriod = hoursUntilSession >= gracePeriodHours;
       }
 
       // Refund if: 10-card member, has used sessions, and within grace period
@@ -154,7 +156,7 @@ export async function POST(request: NextRequest) {
           console.error('Error handling 10-card refund:', error);
         }
       } else if (hasTenCardMembership && !withinGracePeriod) {
-        refundMessage = ' Note: 10-card session NOT refunded (cancellation less than 12 hours before class).';
+        refundMessage = ` Note: 10-card session NOT refunded (cancellation less than ${gracePeriodHours} hours before class).`;
       }
     }
 

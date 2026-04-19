@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 157.0
-**Updated:** 2026-04-19 (Session 292 - Coach push notification on new member registration)
+**Version:** 158.0
+**Updated:** 2026-04-19 (Session 294 - Booking Rules Admin UI)
 
 ---
 
@@ -81,6 +81,14 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 294 (2026-04-19 — Opus 4.7) — BOOKING RULES ADMIN UI:**
+- Replaced hardcoded booking constants with a coach-configurable `booking_rules` table (single-row, `CHECK (id = 1)`). Five rules exposed: 10-card refund window hours (default 12), auto-lock lead minutes before class (default 0), max bookings per day (nullable), max bookings per week (nullable, Mon–Sun of session date), advance-booking horizon days (nullable). Defaults match old hardcoded behavior = zero-risk deploy.
+- Shipped: `supabase/migrations/20260419000000_add_booking_rules.sql`, `lib/bookingRules.ts` (service-role read/update + `DEFAULT_BOOKING_RULES` fallback), `app/api/admin/booking-rules/route.ts` (GET+PUT coach-gated), `app/coach/admin/booking-rules/page.tsx` (new subpage), link card on `/coach/admin`. Wired into `app/api/bookings/create/route.ts` (lock threshold + per-day/week/advance caps) and `cancel/route.ts` (10-card refund hours).
+- Deferred: class-type restrictions (#5 on original list) — policy matrix, separate session with Chris input on Kids age gating + Foundations thresholds.
+
+**Session 293 (2026-04-19) — BOOKING PAGE UX (commit `7f3439e`):**
+- Auto-scroll to today on `/member/book`, Sunday defaults to next week. Also documented Mac Chrome hang + outstanding issues (commit `3cdfda7`).
+
 **Session 292 (2026-04-19 — Opus 4.7) — COACH REGISTRATION PUSH + MAC PUSH DIAG:**
 - **Shipped (commit `782d8ad`):** New coach push notification when a member registers. Added `notifyNewMemberRegistered()` to `lib/notifications.ts` (uses existing `sendToCoaches` / `new_registration` type pattern). Wired into `app/api/members/register/route.ts:148` replacing the Phase-3 TODO. Coaches now get "New Member Registration — {name} ({email}) is awaiting approval" push, click opens `/coach/members`.
 - **Not fixed — Mac push:** Chris's Macbook doesn't receive pushes (Android works). Full diagnostic: DB clean (2 subs, both 201), SW healthy (manual DevTools Push works, direct `showNotification` works, `activated and running`), but `chrome://gcm-internals/` Connection State stuck at **"Connecting"** (never reaches CONNECTED). Chrome on Mac cannot establish FCM handshake → no push ever arrives. Related to recurring Chrome-hang issue (see Known Open Issues). Deferred.
@@ -97,24 +105,7 @@ Social Tables
 - Added `members.guardian_only` boolean to exclude parents from the At-Risk filter (commit `a362e6b`).
 - Added custom barbell acronyms for Movement Tracking (commit `5000481`).
 
-**Session 289 (2026-04-18 — Opus 4.7) — DUPLICATE MEMBER DIAGNOSIS + FAMILY CARD LABEL:**
-- Susi Glocker appeared twice on Workouts→Athlete List. Root cause (diagnostic only): `app/api/score-entry/[sessionId]/route.ts:48-56` filters bookings by `status='confirmed'` but never checks `members.status`, so bookings made by accounts that were later unapproved still show. Chris chose not to code-fix — user error, manual cleanup pending Susi's reply (primary duplicates: `0d5a0252` susanneglocker@gmx.de, `f91173a4` susi.strobel@gmx.de; family row `eac70c98` pending).
-- Confirmed via `updated_at` both primaries were explicitly approved 18s apart (20:11:04 + 20:11:22). No system bug — `/api/members/approve` is the only primary-activation path; `handleToggleMembershipType` only writes `membership_types`.
-- UX fix shipped: family_member member cards now display "Family of {primary_name}" instead of just "Family". Changed `types/member.ts` (added optional `primary_member_name`), `hooks/coach/useMemberData.ts` (extended existing primary-lookup block to fetch `name`/`display_name`), `components/coach/members/MemberCard.tsx:90-94`. Works for all existing + future family rows automatically.
-
-**Session 288 (2026-04-18 — Opus 4.7) — S287 VERIFICATION + capacity=0 MEMBER UI FIX:**
-- Walked Scenarios A–D from `Chris Notes/AA frequently used files/session-287-test-prompt.md` against a running dev server. All 4 passed: (A) capacity=0 bookings land as `confirmed`, (B) WOD save from cap=2→5 auto-promotes waitlist, (C) cap=0→10 via WOD save promotes a manually-waitlisted row, (D) session-modal Edit Capacity still promotes (no regression).
-- Fixed the deferred cosmetic bug: `app/member/book/page.tsx` now treats `capacity === 0` as unlimited — `getCapacityColor` skips the division, `getCapacityBadge` returns "Unlimited spots" in accent color, and the `{confirmed}/{capacity}` display shows `{confirmed}/∞`.
-- Athlete book-page card no longer renders "Full" / red overflow on unlimited sessions.
-
-**Session 287 (2026-04-18 — Opus 4.7) — WAITLIST PROMOTION FIX (capacity=0 + WOD save path):**
-- Reported: tomorrow's 10:30 session stuck at `1/10 confirmed + 1 waitlist` despite room on roster.
-- Two compounding bugs: (1) `capacity === 0` (meant "unlimited") was being treated as "zero spots" in booking logic — `confirmedCount < 0` always false → every booking went to waitlist. (2) `useWODOperations.ts` WOD-save paths update `weekly_sessions.capacity` but never call `promoteWaitlistMembers` — so when capacity was raised from 0→10 via Workout modal, waitlist stayed stuck.
-- Fixes: `lib/coach/bookingHelpers.ts` + `app/api/bookings/create/route.ts` now treat `capacity === 0` as unlimited. Added `promoteWaitlistForSession`/`promoteWaitlistForWorkout` helpers to `lib/coach/sessionCapacityHelpers.ts`; wired into all 5 capacity-update sites in `hooks/coach/useWODOperations.ts`.
-- DB state: Lukas (waitlist at that 10:30 session) promoted to confirmed via direct UPDATE. Christian+Kathrin were already self-cancelled.
-- Carryover: member booking page UI does not handle capacity=0 (`app/member/book/page.tsx:540-564` — division by zero, shows "Full"). Not fixed.
-
-**Older sessions (57-288):** See `project-history/` folder.
+**Older sessions (57-289):** See `project-history/` folder.
 
 ---
 

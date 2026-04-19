@@ -78,6 +78,7 @@ There's no app-switching, no spreadsheets, no whiteboards that get erased. Just 
 - **Programming notes** — markdown-based coaching journal with folder organisation
 - **Resource library** — store links to form videos, articles, and equipment guides for quick reference
 - **Naming conventions** — define your gym's terminology and abbreviations
+- **Booking rules** — configure athlete booking behavior from one panel: 10-card cancellation refund window, auto-lock lead time before class, max bookings per day, max bookings per week, and how far in advance members can book. Leave caps blank for unlimited — no redeploy needed when policy changes
 
 ---
 

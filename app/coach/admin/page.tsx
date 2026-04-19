@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth';
-import { UserPlus, ArrowLeft, BarChart2, Bell } from 'lucide-react';
+import { UserPlus, ArrowLeft, BarChart2, Bell, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { NotificationPrompt } from '@/components/ui/NotificationPrompt';
@@ -193,6 +193,23 @@ export default function AdminToolsPage() {
                 <h2 className='text-xl font-semibold text-gray-900 mb-2'>Create New Coach Account</h2>
                 <p className='text-gray-600'>
                   Register a new coach to give them access to the coaching dashboard and all admin features.
+                </p>
+              </div>
+            </div>
+          </Link>
+
+          <Link
+            href='/coach/admin/booking-rules'
+            className='bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition border-2 border-transparent hover:border-[#178da6]'
+          >
+            <div className='flex items-start gap-4'>
+              <div className='bg-[#178da6] text-white p-3 rounded-lg'>
+                <Settings size={24} />
+              </div>
+              <div>
+                <h2 className='text-xl font-semibold text-gray-900 mb-2'>Booking Rules</h2>
+                <p className='text-gray-600'>
+                  Configure 10-card refund windows, auto-lock lead time, per-day/week booking caps, and advance-booking horizon.
                 </p>
               </div>
             </div>
