@@ -16,6 +16,8 @@ type FormState = {
   advance_booking_days: string;
 };
 
+type PerTypeRow = { workout_type: string; value: string };
+
 const toForm = (r: BookingRules): FormState => ({
   ten_card_refund_hours: String(r.ten_card_refund_hours),
   auto_lock_lead_minutes: String(r.auto_lock_lead_minutes),
@@ -36,6 +38,7 @@ export default function BookingRulesPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState<FormState | null>(null);
+  const [perType, setPerType] = useState<PerTypeRow[]>([]);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
 
@@ -47,10 +50,22 @@ export default function BookingRulesPage() {
         return;
       }
       try {
-        const res = await authFetch('/api/admin/booking-rules');
-        if (!res.ok) throw new Error('Failed to load');
-        const rules: BookingRules = await res.json();
+        const [rulesRes, typesRes] = await Promise.all([
+          authFetch('/api/admin/booking-rules'),
+          authFetch('/api/admin/booking-rules/workout-types'),
+        ]);
+        if (!rulesRes.ok) throw new Error('Failed to load rules');
+        if (!typesRes.ok) throw new Error('Failed to load workout types');
+        const rules: BookingRules = await rulesRes.json();
+        const typesJson: { types: { workout_type: string; auto_lock_lead_minutes: number | null }[] } =
+          await typesRes.json();
         setForm(toForm(rules));
+        setPerType(
+          typesJson.types.map((t) => ({
+            workout_type: t.workout_type,
+            value: t.auto_lock_lead_minutes == null ? '' : String(t.auto_lock_lead_minutes),
+          }))
+        );
       } catch (err) {
         console.error(err);
         setMessage({ kind: 'err', text: 'Failed to load booking rules.' });
@@ -78,15 +93,46 @@ export default function BookingRulesPage() {
       return;
     }
 
+    // Per-type: blank = null (fall back to global); otherwise non-negative integer.
+    const perTypeUpdates: { workout_type: string; auto_lock_lead_minutes: number | null }[] = [];
+    const perTypeInvalid: string[] = [];
+    for (const row of perType) {
+      const v = row.value.trim();
+      if (v === '') {
+        perTypeUpdates.push({ workout_type: row.workout_type, auto_lock_lead_minutes: null });
+        continue;
+      }
+      const n = Number(v);
+      if (!Number.isInteger(n) || n < 0) {
+        perTypeInvalid.push(row.workout_type);
+        continue;
+      }
+      perTypeUpdates.push({ workout_type: row.workout_type, auto_lock_lead_minutes: n });
+    }
+    if (perTypeInvalid.length > 0) {
+      setMessage({ kind: 'err', text: `Invalid per-type values: ${perTypeInvalid.join(', ')}` });
+      return;
+    }
+
     setSaving(true);
     try {
-      const res = await authFetch('/api/admin/booking-rules', {
-        method: 'PUT',
-        body: JSON.stringify(parsed),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || 'Failed to save');
-      setForm(toForm(data));
+      const [globalRes, typesRes] = await Promise.all([
+        authFetch('/api/admin/booking-rules', {
+          method: 'PUT',
+          body: JSON.stringify(parsed),
+        }),
+        authFetch('/api/admin/booking-rules/workout-types', {
+          method: 'PUT',
+          body: JSON.stringify({ updates: perTypeUpdates }),
+        }),
+      ]);
+      const globalData = await globalRes.json();
+      if (!globalRes.ok) throw new Error(globalData?.error || 'Failed to save global rules');
+      if (!typesRes.ok) {
+        const errData = await typesRes.json().catch(() => ({}));
+        throw new Error(errData?.error || 'Failed to save per-type rules');
+      }
+      setForm(toForm(globalData));
       setMessage({ kind: 'ok', text: 'Booking rules saved.' });
     } catch (err) {
       setMessage({ kind: 'err', text: err instanceof Error ? err.message : 'Failed to save' });
@@ -164,10 +210,44 @@ export default function BookingRulesPage() {
           )}
           {field(
             'auto_lock_lead_minutes',
-            'Auto-lock lead time',
+            'Auto-lock lead time (default)',
             'minutes before class start',
-            'Classes automatically lock this many minutes before start time. 0 = locks at start.'
+            'Used when no per-workout-type override is set below. 0 = locks at class start.'
           )}
+
+          <div className='mb-5 border-t pt-5'>
+            <label className='block text-sm font-medium text-gray-700 mb-1'>
+              Auto-lock lead time by workout type
+            </label>
+            <p className='text-xs text-gray-500 mb-3'>
+              Override the default for specific workout types. Leave blank to use the default above.
+            </p>
+            {perType.length === 0 ? (
+              <p className='text-sm text-gray-500'>No workout types defined.</p>
+            ) : (
+              <div className='space-y-2'>
+                {perType.map((row, idx) => (
+                  <div key={row.workout_type} className='flex items-center gap-2'>
+                    <span className='w-56 text-sm text-gray-700'>{row.workout_type}</span>
+                    <input
+                      type='number'
+                      min={0}
+                      value={row.value}
+                      onChange={(e) => {
+                        const next = [...perType];
+                        next[idx] = { ...row, value: e.target.value };
+                        setPerType(next);
+                      }}
+                      placeholder='uses default'
+                      className='w-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#178da6]'
+                    />
+                    <span className='text-sm text-gray-500'>minutes before start</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {field(
             'max_bookings_per_day',
             'Max bookings per athlete per day',
