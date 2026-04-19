@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 156.0
-**Updated:** 2026-04-19 (Session 291 - Susi Glocker duplicate hard-delete + cleanup resolved)
+**Version:** 157.0
+**Updated:** 2026-04-19 (Session 292 - Coach push notification on new member registration)
 
 ---
 
@@ -81,6 +81,11 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 292 (2026-04-19 — Opus 4.7) — COACH REGISTRATION PUSH + MAC PUSH DIAG:**
+- **Shipped (commit `782d8ad`):** New coach push notification when a member registers. Added `notifyNewMemberRegistered()` to `lib/notifications.ts` (uses existing `sendToCoaches` / `new_registration` type pattern). Wired into `app/api/members/register/route.ts:148` replacing the Phase-3 TODO. Coaches now get "New Member Registration — {name} ({email}) is awaiting approval" push, click opens `/coach/members`.
+- **Not fixed — Mac push:** Chris's Macbook doesn't receive pushes (Android works). Full diagnostic: DB clean (2 subs, both 201), SW healthy (manual DevTools Push works, direct `showNotification` works, `activated and running`), but `chrome://gcm-internals/` Connection State stuck at **"Connecting"** (never reaches CONNECTED). Chrome on Mac cannot establish FCM handshake → no push ever arrives. Related to recurring Chrome-hang issue (see Known Open Issues). Deferred.
+- **Minor bug found (deferred):** `app/api/notifications/test/route.ts` calls `webpush.sendNotification` directly instead of `sendToSubscription`, so the 410/404 auto-cleanup doesn't fire for Send Test. Stale rows persist until real flows run.
+
 **Session 291 (2026-04-19 — Opus 4.7) — SUSI GLOCKER HARD-DELETE CLEANUP:**
 - Susi confirmed `susi.strobel@gmx.de` (`f91173a4`) is her correct account. Cleanup of the duplicates.
 - Initial pass: set duplicate primary `0d5a0252` (susanneglocker@gmx.de) to `status='blocked'` and hard-deleted pending family row `eac70c98`.
@@ -115,6 +120,9 @@ Social Tables
 
 ## 🚨 Known Open Issues
 
+- **Mac Chrome hang (recurring, system-level)** — Chris's Macbook: after working a while, apps bounce in dock but won't launch ("Google Chrome is not responding"). Only full Mac restart fixes it. Happens increasingly often. Directly affects Forge pushes: Chrome in half-dead state = stuck GCM "Connecting", so Mac push never arrives. Not a Forge code issue; dedicated session needed. Diagnostic starting points: Activity Monitor Memory Pressure, disk free %, Chrome Helper memory leaks, `~/Library/Logs/DiagnosticReports/` for spindumps. (Session 292.)
+- **Mac push delivery (downstream of above)** — Mac never receives FCM pushes even with clean DB subs + healthy SW. `chrome://gcm-internals/` shows Connection State "Connecting". Will auto-resolve once the Chrome-hang root cause is fixed. Android push unaffected.
+- **Test endpoint doesn't cleanup 410s** — `app/api/notifications/test/route.ts` bypasses `sendToSubscription` helper so expired subs aren't auto-deleted when you click Send Test. Low priority — production flows still clean up 410s. (Session 292.)
 - **Athlete subscription bug** — trialing sub sets `athlete_subscription_end = today` instead of +30d. Root causes possibly: webhook event order (`subscription.updated` overwriting checkout-handler end date), `autoExpireSubscriptions` not skipping `status='trialing'`. Stefan Glocker also needs manual DB fix.
 - **iPhone search bug (latent)** — same `readOnly` anti-autofill hack exists in `components/coach/SearchPanel.tsx:946` (Analysis page search). Deferred Session 282.
 - **`SearchPanel` 500-row limit** — `useCoachData.ts:245` caps queries at 500 rows. Not a current concern (gym has far fewer published sessions than 500).
@@ -131,9 +139,11 @@ Social Tables
 
 ## 📋 Next Immediate Steps
 
-1. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
-2. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing.
-3. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts:48-56` only filters bookings by `status='confirmed'` and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
+1. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper processes), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
+2. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
+3. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing.
+4. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts:48-56` only filters bookings by `status='confirmed'` and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
+5. **Test endpoint 410 cleanup** (deferred from S292) — route `app/api/notifications/test/route.ts` through `sendToSubscription` so expired subs auto-delete on Send Test.
 
 ---
 
