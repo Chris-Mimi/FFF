@@ -1,7 +1,7 @@
 'use client';
 
 import { confirm } from '@/lib/confirm';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -40,7 +40,7 @@ interface FamilyMember {
 export default function MemberBookingPage() {
   const router = useRouter();
   const [user, setUser] = useState<{ id: string; email: string } | null>(null);
-  const [weekStart, setWeekStart] = useState<Date>(getMonday(new Date()));
+  const [weekStart, setWeekStart] = useState<Date>(getInitialWeekStart());
   const [sessions, setSessions] = useState<WeeklySession[]>([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState<string | null>(null);
@@ -62,6 +62,7 @@ export default function MemberBookingPage() {
   });
   const [bookingForMemberId, setBookingForMemberId] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'booked' | 'wod' | 'foundations' | 'kids'>('all');
+  const scrolledForWeekRef = useRef<string | null>(null);
 
   useEffect(() => {
     checkAuth();
@@ -74,6 +75,23 @@ export default function MemberBookingPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [weekStart, user, bookingForMemberId]);
+
+  // Scroll today's session group into view when viewing the current week.
+  // Program drops Sunday, so by mid-week the first days on screen are past and
+  // new users mistook them for bookable (attempted last-week bookings).
+  useEffect(() => {
+    if (loading || sessions.length === 0) return;
+    const todayStr = formatLocalDate(new Date());
+    const currentMonday = formatLocalDate(getMonday(new Date()));
+    const viewingMonday = formatLocalDate(weekStart);
+    if (viewingMonday !== currentMonday) return;
+    if (scrolledForWeekRef.current === viewingMonday) return;
+    const el = document.getElementById(`day-${todayStr}`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      scrolledForWeekRef.current = viewingMonday;
+    }
+  }, [loading, sessions, weekStart]);
 
   const checkAuth = async () => {
     const { data: { user: authUser } } = await supabase.auth.getUser();
@@ -136,14 +154,6 @@ export default function MemberBookingPage() {
     try {
       const weekEnd = new Date(weekStart);
       weekEnd.setDate(weekStart.getDate() + 7);
-
-      // Format dates in local timezone (YYYY-MM-DD) to avoid timezone shift
-      const formatLocalDate = (date: Date) => {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-      };
 
       // Fetch weekly sessions with booking counts
       const { data: sessionsData, error } = await supabase
@@ -803,7 +813,7 @@ export default function MemberBookingPage() {
                 const daySessions = filteredSessions.filter(s => s.date === date);
 
               return (
-                <div key={date}>
+                <div key={date} id={`day-${date}`} style={{ scrollMarginTop: '1rem' }}>
                   {/* Day Header */}
                   <h2 className="text-lg font-bold text-teal-400 mb-3">{formatDate(date)}</h2>
 
@@ -1027,6 +1037,25 @@ export default function MemberBookingPage() {
       )}
     </div>
   );
+}
+
+// Format a Date as YYYY-MM-DD in local timezone (avoids UTC day-shift)
+function formatLocalDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+// Default view on Sundays = next week (the program releases Sunday, so Sunday
+// visitors want the new week, not the week that's ending). Mon–Sat = current week.
+function getInitialWeekStart(): Date {
+  const now = new Date();
+  const monday = getMonday(now);
+  if (now.getDay() === 0) {
+    monday.setDate(monday.getDate() + 7);
+  }
+  return monday;
 }
 
 // Helper function to get Monday of current week
