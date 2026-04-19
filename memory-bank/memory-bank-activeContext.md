@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 155.0
-**Updated:** 2026-04-18 (Session 289 - Susi Glocker duplicate diagnosis + family card label)
+**Version:** 156.0
+**Updated:** 2026-04-19 (Session 291 - Susi Glocker duplicate hard-delete + cleanup resolved)
 
 ---
 
@@ -79,7 +79,18 @@ Social Tables
 
 ---
 
-## 📍 Current Status (Last 3 Sessions)
+## 📍 Current Status (Last 5 Sessions)
+
+**Session 291 (2026-04-19 — Opus 4.7) — SUSI GLOCKER HARD-DELETE CLEANUP:**
+- Susi confirmed `susi.strobel@gmx.de` (`f91173a4`) is her correct account. Cleanup of the duplicates.
+- Initial pass: set duplicate primary `0d5a0252` (susanneglocker@gmx.de) to `status='blocked'` and hard-deleted pending family row `eac70c98`.
+- After dependency check (only 1 `athlete_profiles` row + `auth.users` row, nothing else), hard-deleted the blocked primary via Supabase Auth Dashboard (cascaded through members + athlete_profiles).
+- Final state: single active primary for Susi. Memory file `project_susi_glocker_cleanup.md` removed from `~/.claude/` memory; MEMORY.md index updated.
+- No code changes this session — DB + memory only.
+
+**Session 290 (2026-04-18/19) — GUARDIAN_ONLY FLAG + BARBELL ACRONYMS:**
+- Added `members.guardian_only` boolean to exclude parents from the At-Risk filter (commit `a362e6b`).
+- Added custom barbell acronyms for Movement Tracking (commit `5000481`).
 
 **Session 289 (2026-04-18 — Opus 4.7) — DUPLICATE MEMBER DIAGNOSIS + FAMILY CARD LABEL:**
 - Susi Glocker appeared twice on Workouts→Athlete List. Root cause (diagnostic only): `app/api/score-entry/[sessionId]/route.ts:48-56` filters bookings by `status='confirmed'` but never checks `members.status`, so bookings made by accounts that were later unapproved still show. Chris chose not to code-fix — user error, manual cleanup pending Susi's reply (primary duplicates: `0d5a0252` susanneglocker@gmx.de, `f91173a4` susi.strobel@gmx.de; family row `eac70c98` pending).
@@ -98,16 +109,7 @@ Social Tables
 - DB state: Lukas (waitlist at that 10:30 session) promoted to confirmed via direct UPDATE. Christian+Kathrin were already self-cancelled.
 - Carryover: member booking page UI does not handle capacity=0 (`app/member/book/page.tsx:540-564` — division by zero, shows "Full"). Not fixed.
 
-**Session 286 (2026-04-17) — ORPHAN WOD PREVENTION:**
-- Added self-delete guards to WOD-creation paths (rapid-save + session-generate failures). Commit 98fa868.
-
-**Session 285 (2026-04-17 — Opus 4.7) — ORPHAN WOD CLEANUP + EFFICIENCY RULES:**
-- Data Integrity SQL surfaced 8 orphan WODs (wods rows with no linked weekly_sessions).
-- All 8 = unpublished shells, zero dependent data (no section_results/logs/lifts). Deleted after backup.
-- Pattern: 3 duplicates of "CrossFit Open #15.2" created 5 min apart (duplicate-save), 5 default-named WODs from bulk-generate (likely `app/api/sessions/generate-weekly/route.ts` missing self-delete guard that `useWODOperations.ts:264-268` has).
-- Pruned activeContext.md from ~270 lines to target < 80 lines. Added efficiency rules to session-start doc.
-
-**Older sessions (57-284):** See `project-history/` folder.
+**Older sessions (57-288):** See `project-history/` folder.
 
 ---
 
@@ -129,10 +131,9 @@ Social Tables
 
 ## 📋 Next Immediate Steps
 
-1. **Susi Glocker cleanup (pending her reply)** — see `memory/project_susi_glocker_cleanup.md` for full context + SQL. Don't act until Chris confirms which email she wants.
-2. **Guardian-only members (At-Risk noise)** — implement per `Chris Notes/Planning/guardian-only-members-at-risk-fix.md`. Add `members.guardian_only` boolean, MemberCard toggle, exclude from At-Risk filter.
-3. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
-4. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing.
+1. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
+2. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing.
+3. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts:48-56` only filters bookings by `status='confirmed'` and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
 
 ---
 
