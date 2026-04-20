@@ -6,9 +6,13 @@ http://192.168.178.75:3000
 
 # FIRST. FIX BUGS MAKE IMPROVEMENTS #
 # Coach Login #
-* Admin Tools: Attendance reports are not accurate.
+* Admin Tools: Attendance reports are not accurate. ALso give me a filter to find out how many times each appeared every month. Give me the function to delete/remove an entry for example the Incident report is populated but they are all test cases
 * Mobile view: I couldn't select from the dropdown on Schedule Page:Workout Type. No list appeared when I clicked in it.
-* Workouts page: Mo vement Tracking is not correct (Bench Press eg)
+* Workouts page: Movement Tracking is not correct (Bench Press eg)
+* 
+
+
+
 # Coach library #
 
     
