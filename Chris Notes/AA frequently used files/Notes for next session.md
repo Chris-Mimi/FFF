@@ -6,8 +6,9 @@ http://192.168.178.75:3000
 
 # FIRST. FIX BUGS MAKE IMPROVEMENTS #
 # Coach Login #
-Admin Tools: Attendance reports are not accurate.
-Mobile view: I couldn't select from the dropdown on Schedule Page:Workout Type. No list appeared when I clicked in it.
+* Admin Tools: Attendance reports are not accurate.
+* Mobile view: I couldn't select from the dropdown on Schedule Page:Workout Type. No list appeared when I clicked in it.
+* Workouts page: Mo vement Tracking is not correct (Bench Press eg)
 # Coach library #
 
     
