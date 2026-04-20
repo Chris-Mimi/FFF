@@ -272,6 +272,7 @@ export const useCoachData = ({
         let filteredResults = results;
 
         if (searchQuery) {
+          const endAnchor = /\s$/.test(searchQuery);
           const searchPhrase = searchQuery.trim();
 
           filteredResults = filteredResults.filter(wod => {
@@ -332,8 +333,10 @@ export const useCoachData = ({
             }
 
             const escapedPhrase = searchPhrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            // \b word boundary so "Ring" doesn't match "hamstring" or "during"
-            return new RegExp(`\\b${escapedPhrase}`, 'i').test(combinedText);
+            // \b word boundary so "Ring" doesn't match "hamstring" or "during".
+            // Trailing space in the raw query → require end-of-word too (exact match).
+            const pattern = endAnchor ? `\\b${escapedPhrase}\\b` : `\\b${escapedPhrase}`;
+            return new RegExp(pattern, 'i').test(combinedText);
           });
         }
 

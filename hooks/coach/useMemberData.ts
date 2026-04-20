@@ -19,18 +19,33 @@ export function useMemberData() {
 
   const fetchUnlinkedWhiteboardNames = async () => {
     try {
-      const { data, error } = await supabase
-        .from('wod_section_results')
-        .select('whiteboard_name')
-        .not('whiteboard_name', 'is', null)
-        .is('member_id', null);
+      const [scoresRes, membersRes] = await Promise.all([
+        supabase
+          .from('wod_section_results')
+          .select('whiteboard_name')
+          .not('whiteboard_name', 'is', null)
+          .is('member_id', null),
+        supabase
+          .from('members')
+          .select('whiteboard_name')
+          .not('whiteboard_name', 'is', null),
+      ]);
 
-      if (!error && data) {
-        const unique = [...new Set(data.map(r => r.whiteboard_name as string))].sort(
-          (a, b) => a.toLowerCase().localeCompare(b.toLowerCase())
+      if (scoresRes.error || membersRes.error) {
+        console.error(
+          'Error fetching unlinked whiteboard names:',
+          scoresRes.error || membersRes.error
         );
-        setUnlinkedWhiteboardNames(unique);
+        return;
       }
+
+      const assigned = new Set(
+        (membersRes.data || []).map(m => (m.whiteboard_name as string).toLowerCase())
+      );
+      const unique = [...new Set((scoresRes.data || []).map(r => r.whiteboard_name as string))]
+        .filter(name => !assigned.has(name.toLowerCase()))
+        .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+      setUnlinkedWhiteboardNames(unique);
     } catch (err) {
       console.error('Error fetching unlinked whiteboard names:', err);
     }
