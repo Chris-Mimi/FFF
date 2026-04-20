@@ -20,8 +20,10 @@ export interface Booking {
   booked_at: string;
   member: {
     id: string;
-    name: string;
+    name: string | null;
     email: string;
+    display_name: string | null;
+    account_type: 'primary' | 'family_member' | null;
   };
 }
 
@@ -82,7 +84,9 @@ export function useSessionDetails(
           members!bookings_member_id_fkey (
             id,
             name,
-            email
+            email,
+            display_name,
+            account_type
           )
         `)
         .eq('session_id', sessionId)

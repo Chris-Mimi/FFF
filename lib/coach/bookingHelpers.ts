@@ -3,8 +3,6 @@ interface Booking {
   status: 'confirmed' | 'waitlist' | 'cancelled' | 'no_show' | 'late_cancel' | 'coach_cancelled';
   member: {
     id: string;
-    name: string;
-    email: string;
   };
 }
 

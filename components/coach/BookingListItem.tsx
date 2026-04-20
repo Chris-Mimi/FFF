@@ -30,7 +30,8 @@ export default function BookingListItem({
   showUndoBtn = false,
   showCancelBtn = false,
 }: BookingListItemProps) {
-  const memberName = booking.member?.name || 'Unknown Member';
+  const memberName = booking.member?.name || booking.member?.display_name || 'Unknown Member';
+  const isFamilyMember = booking.member?.account_type === 'family_member';
 
   // Determine background color based on status
   const bgClass =
@@ -47,6 +48,11 @@ export default function BookingListItem({
       <div className='flex items-center gap-2 flex-wrap'>
         {status === 'no_show' && <UserX size={14} className='text-orange-600' />}
         <span className='font-medium text-gray-800'>{memberName}</span>
+        {isFamilyMember && (
+          <span className='text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded'>
+            family
+          </span>
+        )}
         <span className='text-xs text-gray-500'>
           Booked: {new Date(booking.booked_at).toLocaleDateString('en-GB')}
         </span>
