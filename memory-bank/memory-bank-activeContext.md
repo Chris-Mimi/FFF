@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 159.0
-**Updated:** 2026-04-20 (Session 295 - WOD Save Capacity Drift Fix)
+**Version:** 160.0
+**Updated:** 2026-04-20 (Session 296 - Athlete Timer Intervals Mode)
 
 ---
 
@@ -81,6 +81,12 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 296 (2026-04-20 — Opus 4.7) — ATHLETE TIMER INTERVALS MODE:**
+- New 6th Timer mode `Intervals` — generalizes Tabata to support variable work/rest per round. Config is `IntervalSpec[]` stored as `config.intervals` on `TimerConfig` in `hooks/useWorkoutTimer.ts`. Default = `12 × {work: 50, rest: 10}` (Chris's standard warm-up format).
+- Hook changes: added `'intervals'` to `TimerMode`, new `getTotalDuration` branch sums array, `tick()` walks intervals array to fire rest-entry beeps + round-start beeps/speech ("Round N" / "Last round!") — skips rest beep when `rest === 0` (handles EMOM-style continuous rounds). Derived state loop (currentRound/isWorkPhase/phaseRemaining) walks array to find current position from elapsed; idle state shows first round's work time.
+- UI (`components/athlete/WorkoutTimer.tsx`): added mode chip between Tabata and Hold. New `IntervalsEditor` sub-component with Quick Fill panel (rounds/work/rest + Apply to fill all rounds with same pattern) + editable rounds list (compact rows with W/R spinners, per-row delete, +Add / Duplicate last buttons, live Total duration). Max-height 72 scroll on list. Running display reuses Tabata green/red WORK/REST + Round N/M + phase countdown.
+- **Not yet tested live** — Chris testing this session on deployed app. Also: no localStorage persistence of `intervals` array (deferred, not requested).
+
 **Session 295 (2026-04-20 — Opus 4.7) — WOD SAVE CAPACITY DRIFT FIX:**
 - Chris saw Monday 17:15 session showing **10/12** (confirmed/capacity) after two cancellations that should have left it at 10/10. Root cause: `wods.max_capacity` (stale at 12, the default) and `weekly_sessions.capacity` (10) are parallel fields, and every WOD save in `hooks/coach/useWODOperations.ts` unconditionally wrote `wodData.maxCapacity` into `weekly_sessions.capacity`. Chris was editing the WOD between the cancellations and noticing the drift → save silently bumped capacity 10→12.
 - Fix: added `capacityChanged = !editingWOD || wodData.maxCapacity !== editingWOD.maxCapacity` guard at top of `handleSaveWOD`. Wrapped all 7 session-capacity UPDATE sites + their `promoteWaitlist*` calls in `if (capacityChanged)`. Capacity only propagates when the coach actually changed it in the modal. `INSERT`s unchanged (new sessions need a value). `wods.max_capacity` write untouched.
@@ -99,14 +105,7 @@ Social Tables
 - **Not fixed — Mac push:** Chris's Macbook doesn't receive pushes (Android works). Full diagnostic: DB clean (2 subs, both 201), SW healthy (manual DevTools Push works, direct `showNotification` works, `activated and running`), but `chrome://gcm-internals/` Connection State stuck at **"Connecting"** (never reaches CONNECTED). Chrome on Mac cannot establish FCM handshake → no push ever arrives. Related to recurring Chrome-hang issue (see Known Open Issues). Deferred.
 - **Minor bug found (deferred):** `app/api/notifications/test/route.ts` calls `webpush.sendNotification` directly instead of `sendToSubscription`, so the 410/404 auto-cleanup doesn't fire for Send Test. Stale rows persist until real flows run.
 
-**Session 291 (2026-04-19 — Opus 4.7) — SUSI GLOCKER HARD-DELETE CLEANUP:**
-- Susi confirmed `susi.strobel@gmx.de` (`f91173a4`) is her correct account. Cleanup of the duplicates.
-- Initial pass: set duplicate primary `0d5a0252` (susanneglocker@gmx.de) to `status='blocked'` and hard-deleted pending family row `eac70c98`.
-- After dependency check (only 1 `athlete_profiles` row + `auth.users` row, nothing else), hard-deleted the blocked primary via Supabase Auth Dashboard (cascaded through members + athlete_profiles).
-- Final state: single active primary for Susi. Memory file `project_susi_glocker_cleanup.md` removed from `~/.claude/` memory; MEMORY.md index updated.
-- No code changes this session — DB + memory only.
-
-**Older sessions (57-290):** See `project-history/` folder.
+**Older sessions (57-291):** See `project-history/` folder.
 
 ---
 

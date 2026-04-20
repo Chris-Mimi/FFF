@@ -1,7 +1,12 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 
-export type TimerMode = 'forTime' | 'amrap' | 'emom' | 'tabata' | 'hold';
+export type TimerMode = 'forTime' | 'amrap' | 'emom' | 'tabata' | 'intervals' | 'hold';
 export type TimerStatus = 'idle' | 'countdown' | 'running' | 'paused' | 'finished';
+
+export interface IntervalSpec {
+  work: number;
+  rest: number;
+}
 
 // Speech synthesis — unlock on first user gesture (iOS Safari)
 let speechUnlocked = false;
@@ -22,6 +27,7 @@ export interface TimerConfig {
   restTime: number;       // Tabata rest seconds
   holdTarget: number;     // Hold target seconds
   holdBeepInterval: number; // Hold beep every N seconds
+  intervals: IntervalSpec[]; // Intervals mode (variable work/rest per round)
 }
 
 export interface TimerState {
@@ -44,6 +50,7 @@ const DEFAULT_CONFIG: TimerConfig = {
   restTime: 10,        // 10s Tabata rest
   holdTarget: 30,      // 30s hold
   holdBeepInterval: 10, // beep every 10s
+  intervals: Array.from({ length: 12 }, () => ({ work: 50, rest: 10 })),
 };
 
 // Audio via pre-recorded WAV files — bypasses Web Audio API entirely
@@ -177,6 +184,7 @@ export function useWorkoutTimer() {
       case 'amrap': return config.duration;
       case 'emom': return config.rounds * config.interval;
       case 'tabata': return config.rounds * (config.workTime + config.restTime);
+      case 'intervals': return config.intervals.reduce((sum, iv) => sum + iv.work + iv.rest, 0);
       case 'hold': return config.holdTarget;
       default: return 0; // forTime has no limit
     }
@@ -245,6 +253,37 @@ export function useWorkoutTimer() {
           }
           spokeThisTick = true;
         }
+      }
+    }
+
+    if (mode === 'intervals') {
+      let t = 0;
+      for (let i = 0; i < config.intervals.length; i++) {
+        const { work, rest } = config.intervals[i];
+        // work → rest transition
+        if (rest > 0 && newElapsed === t + work) {
+          const key = `intervals-rest-${i}`;
+          if (!firedBeepsRef.current.has(key)) {
+            firedBeepsRef.current.add(key);
+            playShortBeep();
+          }
+        }
+        // rest → next round work transition
+        if (newElapsed === t + work + rest && i + 1 < config.intervals.length) {
+          const key = `intervals-work-${i + 1}`;
+          if (!firedBeepsRef.current.has(key)) {
+            firedBeepsRef.current.add(key);
+            playShortBeep();
+            const newRound = i + 2;
+            if (newRound === config.intervals.length) {
+              speakText('Last round!');
+            } else {
+              speakText(`Round ${newRound}`);
+            }
+            spokeThisTick = true;
+          }
+        }
+        t += work + rest;
       }
     }
 
@@ -398,6 +437,41 @@ export function useWorkoutTimer() {
       currentRound = totalRounds;
       isWorkPhase = false;
       phaseRemaining = 0;
+    }
+  }
+
+  if (mode === 'intervals') {
+    totalRounds = config.intervals.length;
+    let t = 0;
+    let found = false;
+    for (let i = 0; i < config.intervals.length; i++) {
+      const { work, rest } = config.intervals[i];
+      if (elapsed < t + work) {
+        currentRound = i + 1;
+        isWorkPhase = true;
+        phaseRemaining = (t + work) - elapsed;
+        found = true;
+        break;
+      }
+      if (elapsed < t + work + rest) {
+        currentRound = i + 1;
+        isWorkPhase = false;
+        phaseRemaining = (t + work + rest) - elapsed;
+        found = true;
+        break;
+      }
+      t += work + rest;
+    }
+    if (!found || status === 'finished') {
+      currentRound = totalRounds;
+      isWorkPhase = false;
+      phaseRemaining = 0;
+    }
+    if (status === 'idle' && totalRounds > 0) {
+      // Show first round's work time on idle display
+      currentRound = 1;
+      isWorkPhase = true;
+      phaseRemaining = config.intervals[0]?.work ?? 0;
     }
   }
 
