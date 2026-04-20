@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 158.0
-**Updated:** 2026-04-19 (Session 294 - Booking Rules Admin UI)
+**Version:** 159.0
+**Updated:** 2026-04-20 (Session 295 - WOD Save Capacity Drift Fix)
 
 ---
 
@@ -81,6 +81,11 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 295 (2026-04-20 — Opus 4.7) — WOD SAVE CAPACITY DRIFT FIX:**
+- Chris saw Monday 17:15 session showing **10/12** (confirmed/capacity) after two cancellations that should have left it at 10/10. Root cause: `wods.max_capacity` (stale at 12, the default) and `weekly_sessions.capacity` (10) are parallel fields, and every WOD save in `hooks/coach/useWODOperations.ts` unconditionally wrote `wodData.maxCapacity` into `weekly_sessions.capacity`. Chris was editing the WOD between the cancellations and noticing the drift → save silently bumped capacity 10→12.
+- Fix: added `capacityChanged = !editingWOD || wodData.maxCapacity !== editingWOD.maxCapacity` guard at top of `handleSaveWOD`. Wrapped all 7 session-capacity UPDATE sites + their `promoteWaitlist*` calls in `if (capacityChanged)`. Capacity only propagates when the coach actually changed it in the modal. `INSERT`s unchanged (new sessions need a value). `wods.max_capacity` write untouched.
+- Why not Option 2 (drop `wods.max_capacity`): cleaner structurally but requires migration + refactoring read sites + deploy risk. Option 1 closes the hit-case with a 50-line single-file change. Option 2 stays available if drift keeps recurring.
+
 **Session 294 (2026-04-19 — Opus 4.7) — BOOKING RULES ADMIN UI:**
 - Replaced hardcoded booking constants with a coach-configurable `booking_rules` table (single-row, `CHECK (id = 1)`). Five rules exposed: 10-card refund window hours (default 12), auto-lock lead minutes before class (default 0), max bookings per day (nullable), max bookings per week (nullable, Mon–Sun of session date), advance-booking horizon days (nullable). Defaults match old hardcoded behavior = zero-risk deploy.
 - Shipped: `supabase/migrations/20260419000000_add_booking_rules.sql`, `lib/bookingRules.ts` (service-role read/update + `DEFAULT_BOOKING_RULES` fallback), `app/api/admin/booking-rules/route.ts` (GET+PUT coach-gated), `app/coach/admin/booking-rules/page.tsx` (new subpage), link card on `/coach/admin`. Wired into `app/api/bookings/create/route.ts` (lock threshold + per-day/week/advance caps) and `cancel/route.ts` (10-card refund hours).
@@ -101,11 +106,7 @@ Social Tables
 - Final state: single active primary for Susi. Memory file `project_susi_glocker_cleanup.md` removed from `~/.claude/` memory; MEMORY.md index updated.
 - No code changes this session — DB + memory only.
 
-**Session 290 (2026-04-18/19) — GUARDIAN_ONLY FLAG + BARBELL ACRONYMS:**
-- Added `members.guardian_only` boolean to exclude parents from the At-Risk filter (commit `a362e6b`).
-- Added custom barbell acronyms for Movement Tracking (commit `5000481`).
-
-**Older sessions (57-289):** See `project-history/` folder.
+**Older sessions (57-290):** See `project-history/` folder.
 
 ---
 
