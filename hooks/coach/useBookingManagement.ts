@@ -250,6 +250,16 @@ export function useBookingManagement({
         .single();
 
       if (session?.workout_id) {
+        // Capture user_ids from wod_section_results before deletion — lift_records
+        // only has user_id (auth.users.id), which can differ from members.id.
+        const { data: existingResults } = await supabase
+          .from('wod_section_results')
+          .select('user_id')
+          .eq('wod_id', session.workout_id)
+          .or(`member_id.eq.${memberId},user_id.eq.${memberId}`);
+
+        const userIds = [...new Set((existingResults || []).map(r => r.user_id).filter(Boolean))];
+
         // Delete wod_section_results by member_id (coach-entered) and user_id (athlete self-entered)
         await supabase
           .from('wod_section_results')
@@ -257,12 +267,13 @@ export function useBookingManagement({
           .eq('wod_id', session.workout_id)
           .or(`member_id.eq.${memberId},user_id.eq.${memberId}`);
 
-        // Delete lift_records (user_id = memberId for registered athletes)
-        await supabase
-          .from('lift_records')
-          .delete()
-          .eq('wod_id', session.workout_id)
-          .eq('user_id', memberId);
+        if (userIds.length > 0) {
+          await supabase
+            .from('lift_records')
+            .delete()
+            .eq('wod_id', session.workout_id)
+            .in('user_id', userIds);
+        }
       }
 
       // Notify member (fire-and-forget)

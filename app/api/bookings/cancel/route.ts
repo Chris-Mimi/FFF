@@ -168,17 +168,29 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (sessionData?.workout_id) {
+      // Capture user_ids from wod_section_results before deletion — lift_records
+      // only has user_id (auth.users.id), which can differ from members.id.
+      const { data: existingResults } = await supabase
+        .from('wod_section_results')
+        .select('user_id')
+        .eq('wod_id', sessionData.workout_id)
+        .or(`member_id.eq.${booking.member_id},user_id.eq.${booking.member_id}`);
+
+      const userIds = [...new Set((existingResults || []).map(r => r.user_id).filter(Boolean))];
+
       await supabase
         .from('wod_section_results')
         .delete()
         .eq('wod_id', sessionData.workout_id)
         .or(`member_id.eq.${booking.member_id},user_id.eq.${booking.member_id}`);
 
-      await supabase
-        .from('lift_records')
-        .delete()
-        .eq('wod_id', sessionData.workout_id)
-        .eq('user_id', booking.member_id);
+      if (userIds.length > 0) {
+        await supabase
+          .from('lift_records')
+          .delete()
+          .eq('wod_id', sessionData.workout_id)
+          .in('user_id', userIds);
+      }
     }
 
     // Auto-promote first waitlist member if cancelled booking was confirmed
