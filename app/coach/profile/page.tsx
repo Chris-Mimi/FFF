@@ -13,7 +13,6 @@ export default function CoachProfilePage() {
   const [authLoading, setAuthLoading] = useState(true);
   const [email, setEmail] = useState<string>('');
 
-  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
@@ -50,31 +49,15 @@ export default function CoachProfilePage() {
       setError('New passwords do not match.');
       return;
     }
-    if (currentPassword === newPassword) {
-      setError('New password must be different from current password.');
-      return;
-    }
 
     setSubmitting(true);
 
     try {
-      const { error: verifyError } = await supabase.auth.signInWithPassword({
-        email,
-        password: currentPassword,
-      });
-
-      if (verifyError) {
-        setError('Current password is incorrect.');
-        setSubmitting(false);
-        return;
-      }
-
       const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
 
       if (updateError) throw updateError;
 
       setSuccess(true);
-      setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (err) {
@@ -131,23 +114,6 @@ export default function CoachProfilePage() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className='space-y-5'>
-              <div>
-                <label htmlFor='currentPassword' className='block text-sm font-medium text-gray-700 mb-2'>
-                  Current password
-                </label>
-                <input
-                  id='currentPassword'
-                  type='password'
-                  value={currentPassword}
-                  onChange={e => setCurrentPassword(e.target.value)}
-                  required
-                  maxLength={128}
-                  autoComplete='current-password'
-                  className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
-                  disabled={submitting}
-                />
-              </div>
-
               <div>
                 <label htmlFor='newPassword' className='block text-sm font-medium text-gray-700 mb-2'>
                   New password
