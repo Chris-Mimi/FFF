@@ -27,7 +27,22 @@ export async function GET(request: NextRequest) {
       }
     );
 
-    await supabase.auth.exchangeCodeForSession(code);
+    // For password recovery, sign out any existing session first so a failed
+    // code exchange can't leave the user authenticated as a different account
+    // (which would cause updateUser on /reset-password to change the wrong user's password).
+    const isRecovery = next === '/reset-password';
+    if (isRecovery) {
+      await supabase.auth.signOut();
+    }
+
+    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+
+    if (exchangeError) {
+      console.error('Code exchange failed:', exchangeError.message);
+      const errorUrl = new URL('/login', requestUrl.origin);
+      errorUrl.searchParams.set('error', 'reset_link_invalid');
+      return NextResponse.redirect(errorUrl);
+    }
 
     // If next param specifies a page (e.g. password reset), go there directly
     if (next && next !== '/') {

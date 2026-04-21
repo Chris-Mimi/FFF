@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import Image from 'next/image';
@@ -13,6 +13,21 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [sessionEmail, setSessionEmail] = useState<string | null>(null);
+  const [sessionChecked, setSessionChecked] = useState(false);
+
+  useEffect(() => {
+    // Verify an active session exists (required for updateUser to target the correct user).
+    // If no session, the recovery link exchange failed — redirect to login.
+    supabase.auth.getUser().then(({ data, error }) => {
+      if (error || !data.user) {
+        router.replace('/login?error=reset_link_invalid');
+        return;
+      }
+      setSessionEmail(data.user.email ?? null);
+      setSessionChecked(true);
+    });
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,7 +69,11 @@ export default function ResetPasswordPage() {
           <Image src='/logo.png' alt='The Forge Functional Fitness' width={220} height={220} priority />
         </div>
 
-        {success ? (
+        {!sessionChecked ? (
+          <div className='text-center py-8'>
+            <Loader2 size={24} className='animate-spin mx-auto text-gray-400' />
+          </div>
+        ) : success ? (
           <div className='text-center'>
             <div className='mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4'>
               <CheckCircle size={24} className='text-green-600' />
@@ -65,6 +84,11 @@ export default function ResetPasswordPage() {
         ) : (
           <>
             <h2 className='text-xl font-semibold text-gray-900 text-center mb-2'>Set new password</h2>
+            {sessionEmail && (
+              <p className='text-sm text-center mb-1'>
+                Updating password for <span className='font-semibold text-[#178da6]'>{sessionEmail}</span>
+              </p>
+            )}
             <p className='text-sm text-gray-600 text-center mb-6'>
               Enter your new password below.
             </p>
