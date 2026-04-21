@@ -1,8 +1,9 @@
 'use client';
 
 import { useWorkoutTimer, TimerMode } from '@/hooks/useWorkoutTimer';
-import { Play, Pause, RotateCcw, Maximize2, X, Volume2, VolumeX } from 'lucide-react';
+import { Play, Pause, RotateCcw, Maximize2, X, Volume2, VolumeX, Save, Trash2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
 
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -382,6 +383,8 @@ function TimerButton({ onClick, color, icon, label }: {
   );
 }
 
+type IntervalPreset = { name: string; intervals: Array<{ work: number; rest: number }> };
+
 function IntervalsEditor({ intervals, onChange }: {
   intervals: Array<{ work: number; rest: number }>;
   onChange: (intervals: Array<{ work: number; rest: number }>) => void;
@@ -389,6 +392,80 @@ function IntervalsEditor({ intervals, onChange }: {
   const [fillRounds, setFillRounds] = useState(12);
   const [fillWork, setFillWork] = useState(50);
   const [fillRest, setFillRest] = useState(10);
+  const [presets, setPresets] = useState<IntervalPreset[]>([]);
+  const [selectedPreset, setSelectedPreset] = useState<string>('');
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || cancelled) return;
+      const { data } = await supabase
+        .from('timer_presets')
+        .select('name, intervals')
+        .eq('user_id', user.id)
+        .order('name', { ascending: true });
+      if (cancelled) return;
+      setPresets((data || []) as IntervalPreset[]);
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const handleLoad = (name: string) => {
+    setSelectedPreset(name);
+    if (!name) return;
+    const preset = presets.find(p => p.name === name);
+    if (preset && preset.intervals.length > 0) {
+      onChange(preset.intervals.map(iv => ({ work: iv.work, rest: iv.rest })));
+    }
+  };
+
+  const handleSave = async () => {
+    const name = window.prompt('Name this routine:', selectedPreset || '');
+    if (!name) return;
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    const existing = presets.find(p => p.name === trimmed);
+    if (existing && !window.confirm(`Overwrite "${trimmed}"?`)) return;
+    setBusy(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setBusy(false); alert('Not signed in.'); return; }
+    const payload = {
+      user_id: user.id,
+      name: trimmed,
+      intervals: intervals.map(iv => ({ work: iv.work, rest: iv.rest })),
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = await supabase
+      .from('timer_presets')
+      .upsert(payload, { onConflict: 'user_id,name' });
+    setBusy(false);
+    if (error) { alert(`Save failed: ${error.message}`); return; }
+    const next = [
+      ...presets.filter(p => p.name !== trimmed),
+      { name: trimmed, intervals: payload.intervals },
+    ].sort((a, b) => a.name.localeCompare(b.name));
+    setPresets(next);
+    setSelectedPreset(trimmed);
+  };
+
+  const handleDelete = async () => {
+    if (!selectedPreset) return;
+    if (!window.confirm(`Delete "${selectedPreset}"?`)) return;
+    setBusy(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setBusy(false); return; }
+    const { error } = await supabase
+      .from('timer_presets')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('name', selectedPreset);
+    setBusy(false);
+    if (error) { alert(`Delete failed: ${error.message}`); return; }
+    setPresets(presets.filter(p => p.name !== selectedPreset));
+    setSelectedPreset('');
+  };
 
   const updateRow = (i: number, patch: Partial<{ work: number; rest: number }>) => {
     onChange(intervals.map((iv, idx) => (idx === i ? { ...iv, ...patch } : iv)));
@@ -421,6 +498,44 @@ function IntervalsEditor({ intervals, onChange }: {
 
   return (
     <div className="space-y-5">
+      <div className="bg-gray-800/60 rounded-xl p-4">
+        <div className="text-gray-300 text-sm md:text-base font-medium mb-3 text-center">
+          Presets
+        </div>
+        <div className="flex items-center gap-2">
+          <select
+            value={selectedPreset}
+            onChange={(e) => handleLoad(e.target.value)}
+            className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#178da6]"
+            aria-label="Load preset"
+          >
+            <option value="">— Load routine —</option>
+            {presets.map((p) => (
+              <option key={p.name} value={p.name}>{p.name}</option>
+            ))}
+          </select>
+          <button
+            onClick={handleSave}
+            disabled={busy}
+            className="px-3 py-2 rounded-lg bg-[#178da6] hover:bg-[#1a9db8] disabled:opacity-50 text-white transition flex items-center gap-1 text-sm font-medium"
+            aria-label="Save current routine"
+            title="Save current routine"
+          >
+            <Save size={16} />
+            <span className="hidden sm:inline">Save</span>
+          </button>
+          <button
+            onClick={handleDelete}
+            disabled={!selectedPreset || busy}
+            className="p-2 rounded-lg bg-gray-700 hover:bg-red-700 disabled:opacity-30 disabled:hover:bg-gray-700 text-white transition"
+            aria-label="Delete selected preset"
+            title="Delete selected preset"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      </div>
+
       <div className="bg-gray-800/60 rounded-xl p-4">
         <div className="text-gray-300 text-sm md:text-base font-medium mb-3 text-center">
           Quick Fill — set all rounds

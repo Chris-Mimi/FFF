@@ -117,6 +117,7 @@ There's no app-switching, no spreadsheets, no whiteboards that get erased. Just 
 
 - **Built-in 6-mode timer** — For Time, AMRAP, EMOM, Tabata, Intervals, and Hold modes with fullscreen support and voice cues. No need for a separate timer app
 - **Custom Intervals mode** — fully editable multi-round work/rest timer. Quick Fill a standard warm-up like "12 rounds of 50s work / 10s rest" in two taps, or build descending-work sessions (Rd 1: 50/10, Rd 2: 40/20, Rd 3: 30/30…) with per-round control. Add/duplicate/delete rounds, live total-duration display
+- **Named routines (cross-device)** — save any Intervals configuration with a custom name (e.g. "Warm-up 12×50/10") and reload it on any device you're signed in on. Save, overwrite, or delete from the Presets dropdown
 
 ### Notifications
 

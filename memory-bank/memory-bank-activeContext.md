@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 161.0
-**Updated:** 2026-04-21 (Session 297 - Password Reset Bug + Booking Lift Records Fix)
+**Version:** 162.0
+**Updated:** 2026-04-21 (Session 298 - Intervals Timer Named Presets, DB-backed)
 
 ---
 
@@ -73,6 +73,9 @@ Achievement Tables
 
 Social Tables
 ├─ reactions (id, user_id, target_type ['wod_section_result'|'benchmark_result'|'lift_record'], target_id, reaction_type ['fist_bump'], created_at [UNIQUE user_id + target_type + target_id])
+
+Athlete Tools
+├─ timer_presets (id, user_id → auth.users, name, intervals JSONB [{work, rest}[]], created_at, updated_at [UNIQUE user_id + name])
 ```
 
 **Workout naming:** `session_type` (WOD, Foundations, Kids & Teens…) + optional `workout_name` + auto-calculated `workout_week` (ISO, UTC-based). Unique identifier = `workout_name + workout_week` (falls back to date if null).
@@ -80,6 +83,12 @@ Social Tables
 ---
 
 ## 📍 Current Status (Last 5 Sessions)
+
+**Session 298 (2026-04-21 — Opus 4.7) — INTERVALS TIMER NAMED PRESETS (DB-backed):**
+- Cross-device persistence for S296 Intervals routines. New `timer_presets` table (`id, user_id → auth.users, name, intervals JSONB, created_at, updated_at`), `UNIQUE (user_id, name)`, RLS-gated on `auth.uid() = user_id` (select/insert/update/delete). Migration: `supabase/migrations/20260421000000_add_timer_presets.sql`, applied via dashboard SQL Editor.
+- `components/athlete/WorkoutTimer.tsx` IntervalsEditor: new Presets panel above Quick Fill — dropdown (load by name) + Save (upsert with `onConflict: 'user_id,name'`) + Delete. `busy` state disables buttons during network calls. No API route — direct supabase-js calls behind RLS.
+- Earlier in session: S297 follow-up marked done — `app/coach/profile/page.tsx` (change-password UI for logged-in coach) already present from parallel session, tested & working per Chris.
+- **Not yet tested live** — Chris live-testing cross-device after session close.
 
 **Session 297 (2026-04-21 — Opus 4.7) — PASSWORD RESET BUG + BOOKING LIFT RECORDS FIX:**
 - **Bug 1 (commit `3e0892d`):** Coach "Remove Booking" was silently skipping `lift_records` deletion. Root cause: `lift_records.user_id` → `auth.users.id`, but the filter used `members.id`. Fix: capture `user_id` from `wod_section_results` first, then delete `lift_records` by those IDs. Files: `hooks/coach/useBookingManagement.ts:252-275`, `app/api/bookings/cancel/route.ts:170-193`.
@@ -103,10 +112,7 @@ Social Tables
 - Shipped: `supabase/migrations/20260419000000_add_booking_rules.sql`, `lib/bookingRules.ts` (service-role read/update + `DEFAULT_BOOKING_RULES` fallback), `app/api/admin/booking-rules/route.ts` (GET+PUT coach-gated), `app/coach/admin/booking-rules/page.tsx` (new subpage), link card on `/coach/admin`. Wired into `app/api/bookings/create/route.ts` (lock threshold + per-day/week/advance caps) and `cancel/route.ts` (10-card refund hours).
 - Deferred: class-type restrictions (#5 on original list) — policy matrix, separate session with Chris input on Kids age gating + Foundations thresholds.
 
-**Session 293 (2026-04-19) — BOOKING PAGE UX (commit `7f3439e`):**
-- Auto-scroll to today on `/member/book`, Sunday defaults to next week. Also documented Mac Chrome hang + outstanding issues (commit `3cdfda7`).
-
-**Older sessions (57-292):** See `project-history/` folder.
+**Older sessions (57-293):** See `project-history/` folder.
 
 ---
 
@@ -131,9 +137,9 @@ Social Tables
 
 ## 📋 Next Immediate Steps
 
-1. **Coach profile / change-password page (S297 follow-up)** — no UI exists for a logged-in coach to change their own password, which is why a SQL fallback was needed in the S297 incident. Small page, same pattern as `/reset-password` but accessed while logged in. Chris requested.
-2. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app (should now show "Updating password for [email]" above form).
-3. **Live-test Intervals timer mode** (from S296) on deployed app.
+1. **Live-test Intervals timer presets** (S298) — save a routine on one device, sign in on another, verify it appears in the dropdown. Also confirm Save/Load/Delete behaviour.
+2. **Live-test Intervals timer mode itself** (S296) on deployed app — core mode never live-tested.
+3. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app (should now show "Updating password for [email]" above form).
 4. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper processes), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
 5. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
 6. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing.
