@@ -27,18 +27,13 @@ export async function GET(request: NextRequest) {
       }
     );
 
-    // For password recovery, sign out any existing session first so a failed
-    // code exchange can't leave the user authenticated as a different account
-    // (which would cause updateUser on /reset-password to change the wrong user's password).
-    const isRecovery = next === '/reset-password';
-    if (isRecovery) {
-      await supabase.auth.signOut();
-    }
-
     const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
 
     if (exchangeError) {
+      // Exchange failed — sign out any pre-existing session so /reset-password
+      // can't operate on the wrong user's session if they navigate there manually.
       console.error('Code exchange failed:', exchangeError.message);
+      await supabase.auth.signOut();
       const errorUrl = new URL('/login', requestUrl.origin);
       errorUrl.searchParams.set('error', 'reset_link_invalid');
       return NextResponse.redirect(errorUrl);
