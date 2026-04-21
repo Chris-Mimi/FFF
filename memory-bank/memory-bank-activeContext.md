@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 160.0
-**Updated:** 2026-04-20 (Session 296 - Athlete Timer Intervals Mode)
+**Version:** 161.0
+**Updated:** 2026-04-21 (Session 297 - Password Reset Bug + Booking Lift Records Fix)
 
 ---
 
@@ -81,6 +81,12 @@ Social Tables
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 297 (2026-04-21 — Opus 4.7) — PASSWORD RESET BUG + BOOKING LIFT RECORDS FIX:**
+- **Bug 1 (commit `3e0892d`):** Coach "Remove Booking" was silently skipping `lift_records` deletion. Root cause: `lift_records.user_id` → `auth.users.id`, but the filter used `members.id`. Fix: capture `user_id` from `wod_section_results` first, then delete `lift_records` by those IDs. Files: `hooks/coach/useBookingManagement.ts:252-275`, `app/api/bookings/cancel/route.ts:170-193`.
+- **Bug 2 (commit `bd594e4`) — CRITICAL, happened live:** Chris clicked an athlete's recovery link while logged in as coach in another tab. Code exchange at `/auth/callback` failed silently (error swallowed), his coach session stayed active, `updateUser({ password })` on `/reset-password` overwrote his coach password. Fix: sign out before recovery code exchange, surface exchange errors → `/login?error=reset_link_invalid`, add session-email display on reset page, show error on login. Both accounts restored via SQL `UPDATE auth.users SET encrypted_password = crypt(...)`.
+- **SMTP (dashboard config, not code):** Configured Resend as custom SMTP sender for Supabase Auth emails. Sender `noreply@the-forge-functional-fitness.de`. Password resets no longer use Supabase's 4/hour shared pool. Gmail still flags as suspicious on some cold sends — improves as DKIM/SPF/DMARC + sender reputation establish.
+- **Follow-ups:** Verify SPF/DKIM/DMARC all ✅ in Resend → Domains. Test full reset flow on deployed app. **Build coach profile / change-password page** (no UI for logged-in coach to change own password — would have avoided the SQL fallback).
+
 **Session 296 (2026-04-20 — Opus 4.7) — ATHLETE TIMER INTERVALS MODE:**
 - New 6th Timer mode `Intervals` — generalizes Tabata to support variable work/rest per round. Config is `IntervalSpec[]` stored as `config.intervals` on `TimerConfig` in `hooks/useWorkoutTimer.ts`. Default = `12 × {work: 50, rest: 10}` (Chris's standard warm-up format).
 - Hook changes: added `'intervals'` to `TimerMode`, new `getTotalDuration` branch sums array, `tick()` walks intervals array to fire rest-entry beeps + round-start beeps/speech ("Round N" / "Last round!") — skips rest beep when `rest === 0` (handles EMOM-style continuous rounds). Derived state loop (currentRound/isWorkPhase/phaseRemaining) walks array to find current position from elapsed; idle state shows first round's work time.
@@ -100,12 +106,7 @@ Social Tables
 **Session 293 (2026-04-19) — BOOKING PAGE UX (commit `7f3439e`):**
 - Auto-scroll to today on `/member/book`, Sunday defaults to next week. Also documented Mac Chrome hang + outstanding issues (commit `3cdfda7`).
 
-**Session 292 (2026-04-19 — Opus 4.7) — COACH REGISTRATION PUSH + MAC PUSH DIAG:**
-- **Shipped (commit `782d8ad`):** New coach push notification when a member registers. Added `notifyNewMemberRegistered()` to `lib/notifications.ts` (uses existing `sendToCoaches` / `new_registration` type pattern). Wired into `app/api/members/register/route.ts:148` replacing the Phase-3 TODO. Coaches now get "New Member Registration — {name} ({email}) is awaiting approval" push, click opens `/coach/members`.
-- **Not fixed — Mac push:** Chris's Macbook doesn't receive pushes (Android works). Full diagnostic: DB clean (2 subs, both 201), SW healthy (manual DevTools Push works, direct `showNotification` works, `activated and running`), but `chrome://gcm-internals/` Connection State stuck at **"Connecting"** (never reaches CONNECTED). Chrome on Mac cannot establish FCM handshake → no push ever arrives. Related to recurring Chrome-hang issue (see Known Open Issues). Deferred.
-- **Minor bug found (deferred):** `app/api/notifications/test/route.ts` calls `webpush.sendNotification` directly instead of `sendToSubscription`, so the 410/404 auto-cleanup doesn't fire for Send Test. Stale rows persist until real flows run.
-
-**Older sessions (57-291):** See `project-history/` folder.
+**Older sessions (57-292):** See `project-history/` folder.
 
 ---
 
@@ -130,11 +131,14 @@ Social Tables
 
 ## 📋 Next Immediate Steps
 
-1. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper processes), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
-2. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
-3. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing.
-4. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts:48-56` only filters bookings by `status='confirmed'` and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
-5. **Test endpoint 410 cleanup** (deferred from S292) — route `app/api/notifications/test/route.ts` through `sendToSubscription` so expired subs auto-delete on Send Test.
+1. **Coach profile / change-password page (S297 follow-up)** — no UI exists for a logged-in coach to change their own password, which is why a SQL fallback was needed in the S297 incident. Small page, same pattern as `/reset-password` but accessed while logged in. Chris requested.
+2. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app (should now show "Updating password for [email]" above form).
+3. **Live-test Intervals timer mode** (from S296) on deployed app.
+4. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper processes), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
+5. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
+6. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing.
+7. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts:48-56` only filters bookings by `status='confirmed'` and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
+8. **Test endpoint 410 cleanup** (deferred from S292) — route `app/api/notifications/test/route.ts` through `sendToSubscription` so expired subs auto-delete on Send Test.
 
 ---
 
