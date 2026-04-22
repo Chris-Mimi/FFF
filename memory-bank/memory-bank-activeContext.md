@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 163.0
-**Updated:** 2026-04-22 (Session 299 - Leaderboard reps+cals + Records sort + Intervals mobile fix)
+**Version:** 164.0
+**Updated:** 2026-04-22 (Session 300 - Leaderboard tiebreakers: shared ranks + age/date/time ordering)
 
 ---
 
@@ -84,6 +84,16 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 300 (2026-04-22 — Opus 4.7) — LEADERBOARD TIEBREAKERS + SHARED RANKS:**
+- Chris asked how tied scores are ordered. Discovered tied athletes previously got distinct sequential ranks (1,2,3,…) and final order was whatever PostgreSQL returned (roughly insertion order). Fix: new tiebreaker chain + shared-rank assignment.
+- **Shared ranks** in `rankSectionResults` (`utils/leaderboard-utils.ts`): split sort into `comparePrimary` (DNF → scaling → track → primary metric — the chain that defines a "tie") and display-order tiebreakers. Rank loop compares adjacent sorted entries via `comparePrimary`; ties inherit the previous rank → standard competition ranking `1,1,1,4,…`.
+- **Display-order tiebreakers (tied group only):** age DESC (older first, missing DOB treated as youngest) → `workout_date` ASC → `session_time` ASC (17:15 before 18:30).
+- **Age exposure:** extended `get_member_names` RPC to return integer `age` computed server-side from `date_of_birth` via `DATE_PART('year', AGE(dob))::INT`. Raw DOB never leaves the DB. Return-type change required `DROP FUNCTION` before `CREATE`. Migration: `database/20260422_add_age_to_get_member_names.sql` (applied via dashboard).
+- **Session-time lookup:** `wod_section_results` has no session_id, so inferred it: fetch `weekly_sessions` for (wod_id, date) pairs → fetch `bookings` (member_id → session_id) → match member's booking to the session, use that session's time. Single-session days skip the bookings query. Adds 2 lightweight queries per leaderboard load.
+- **Schema additions:** `RawSectionResult` gained optional `wod_id` and `session_time`. `rankSectionResults` gained optional `memberAges` 5th arg. `fetchMemberNames` in `LeaderboardView` now also returns `ages`.
+- Scope: `rankSectionResults` only (WOD section leaderboards). `rankBenchmarkResults` (benchmarks) + `rankLiftResults` (lift PRs) unchanged — noted as potential follow-up if Chris wants parity.
+- **Not yet live-tested.**
+
 **Session 299 (2026-04-22 — Opus 4.7) — LEADERBOARD reps+cals SCORING + RECORDS SORT + INTERVALS MOBILE FIX:**
 - **Intervals presets mobile overflow** (`components/athlete/WorkoutTimer.tsx`): Delete preset button was off-screen on small viewports. Root cause: native `<select>` inside `flex items-center` won't shrink below its longest option's intrinsic width, pushing siblings out. Fix: added `min-w-0` + reduced horizontal padding on the select. Save/Delete were already icon-only on mobile via `hidden sm:inline`.
 - **Leaderboard combined reps+cals scoring** (`utils/leaderboard-utils.ts`): when a section has both `reps` AND `calories` scoring fields enabled, ranking previously resolved to plain `reps` per priority ladder — the cals column looked unsorted. Added new `'reps_cals'` scoring type (positioned above plain `reps` in `detectScoringType`), sorts by `(reps_result + calories_result)` descending. Primary display: `"X reps + Y cal"`. Filter accepts entries with either value > 0. Extras suppressed (both already in primary).
@@ -108,12 +118,7 @@ Athlete Tools
 - UI (`components/athlete/WorkoutTimer.tsx`): added mode chip between Tabata and Hold. New `IntervalsEditor` sub-component with Quick Fill panel (rounds/work/rest + Apply to fill all rounds with same pattern) + editable rounds list (compact rows with W/R spinners, per-row delete, +Add / Duplicate last buttons, live Total duration). Max-height 72 scroll on list. Running display reuses Tabata green/red WORK/REST + Round N/M + phase countdown.
 - **Not yet tested live** — Chris testing this session on deployed app. Also: no localStorage persistence of `intervals` array (deferred, not requested).
 
-**Session 295 (2026-04-20 — Opus 4.7) — WOD SAVE CAPACITY DRIFT FIX:**
-- Chris saw Monday 17:15 session showing **10/12** (confirmed/capacity) after two cancellations that should have left it at 10/10. Root cause: `wods.max_capacity` (stale at 12, the default) and `weekly_sessions.capacity` (10) are parallel fields, and every WOD save in `hooks/coach/useWODOperations.ts` unconditionally wrote `wodData.maxCapacity` into `weekly_sessions.capacity`. Chris was editing the WOD between the cancellations and noticing the drift → save silently bumped capacity 10→12.
-- Fix: added `capacityChanged = !editingWOD || wodData.maxCapacity !== editingWOD.maxCapacity` guard at top of `handleSaveWOD`. Wrapped all 7 session-capacity UPDATE sites + their `promoteWaitlist*` calls in `if (capacityChanged)`. Capacity only propagates when the coach actually changed it in the modal. `INSERT`s unchanged (new sessions need a value). `wods.max_capacity` write untouched.
-- Why not Option 2 (drop `wods.max_capacity`): cleaner structurally but requires migration + refactoring read sites + deploy risk. Option 1 closes the hit-case with a 50-line single-file change. Option 2 stays available if drift keeps recurring.
-
-**Older sessions (57-294):** See `project-history/` folder.
+**Older sessions (57-295):** See `project-history/` folder.
 
 ---
 
@@ -138,14 +143,15 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-1. **Live-verify S299 changes** — (a) leaderboard with reps+cals section shows combined ranking and `"X reps + Y cal"` format, (b) Records page Barbell Lifts list sorts Olympic→Press→Pull→Squat with lifts grouped alphabetically, (c) Intervals presets Delete button visible on iPhone.
-2. **Live-test Intervals timer mode itself** (S296) on deployed app — core mode never live-tested (presets already confirmed working S298).
-3. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app (should now show "Updating password for [email]" above form).
-4. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper processes), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
-5. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
-6. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing.
-7. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts:48-56` only filters bookings by `status='confirmed'` and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
-8. **Test endpoint 410 cleanup** (deferred from S292) — route `app/api/notifications/test/route.ts` through `sendToSubscription` so expired subs auto-delete on Send Test.
+1. **Live-verify S300 leaderboard tiebreakers** — create/find a tie scenario (two athletes with DOBs set at same weight + same Rx, one booked 17:15, other 18:30). Confirm: they share the same rank number, older appears above younger, 17:15 above 18:30.
+2. **Live-verify S299 changes** — (a) leaderboard with reps+cals section shows combined ranking and `"X reps + Y cal"` format, (b) Records page Barbell Lifts list sorts Olympic→Press→Pull→Squat with lifts grouped alphabetically, (c) Intervals presets Delete button visible on iPhone.
+3. **Live-test Intervals timer mode itself** (S296) on deployed app — core mode never live-tested (presets already confirmed working S298).
+4. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app (should now show "Updating password for [email]" above form).
+5. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper processes), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
+6. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
+7. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing.
+8. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts:48-56` only filters bookings by `status='confirmed'` and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
+9. **Test endpoint 410 cleanup** (deferred from S292) — route `app/api/notifications/test/route.ts` through `sendToSubscription` so expired subs auto-delete on Send Test.
 
 ---
 

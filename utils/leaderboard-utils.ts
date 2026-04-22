@@ -75,6 +75,8 @@ export interface RawSectionResult {
   task_completed?: boolean | null;
   dnf?: boolean | null;
   workout_date?: string | null;
+  wod_id?: string | null;
+  session_time?: string | null; // "HH:MM" — annotated by caller for tiebreakers
 }
 
 export interface RawLiftResult {
@@ -271,7 +273,8 @@ export function rankSectionResults(
   results: RawSectionResult[],
   memberNames: Record<string, string>,
   scoringType: string,
-  memberGenders?: Record<string, string | null>
+  memberGenders?: Record<string, string | null>,
+  memberAges?: Record<string, number | null>
 ): LeaderboardEntry[] {
   // Filter out results with no meaningful data
   // Check primary scoring field first, then fall back to any non-empty field
@@ -308,25 +311,54 @@ export function rankSectionResults(
     (r.scaling_level ? (scalingValue[r.scaling_level] ?? MISSING_SCALING) : MISSING_SCALING) +
     (r.scaling_level_2 ? (scalingValue[r.scaling_level_2] ?? MISSING_SCALING) : MISSING_SCALING) +
     (r.scaling_level_3 ? (scalingValue[r.scaling_level_3] ?? MISSING_SCALING) : MISSING_SCALING);
-  const sorted = [...valid].sort((a, b) => {
-    // DNF always ranks last
+  // Primary comparator: the chain that determines whether two entries are tied for the same rank.
+  // Tiebreakers AFTER this chain (age/date/time) only affect display order, not rank number.
+  const comparePrimary = (a: RawSectionResult, b: RawSectionResult): number => {
     if (a.dnf && !b.dnf) return 1;
     if (!a.dnf && b.dnf) return -1;
     const scaleDiff = aggregateScaling(a) - aggregateScaling(b);
     if (scaleDiff !== 0) return scaleDiff;
-    // Track: 1 < 2 < 3 < null (lower track = higher rank)
     const aTrack = a.track ?? 4;
     const bTrack = b.track ?? 4;
     if (aTrack !== bTrack) return aTrack - bTrack;
     return compareByScoringType(a, b, scoringType);
+  };
+  const ageOf = (r: RawSectionResult): number => memberAges?.[r.user_id] ?? -Infinity;
+  const timeToMinutes = (t?: string | null): number => {
+    if (!t) return Infinity;
+    const [h, m] = t.split(':').map(Number);
+    if (isNaN(h) || isNaN(m)) return Infinity;
+    return h * 60 + m;
+  };
+  const sorted = [...valid].sort((a, b) => {
+    const primary = comparePrimary(a, b);
+    if (primary !== 0) return primary;
+    // Tiebreaker 1: age DESC (older first). Missing DOB ranks below any known age.
+    const ageDiff = ageOf(b) - ageOf(a);
+    if (ageDiff !== 0) return ageDiff;
+    // Tiebreaker 2: workout_date ASC (earlier = performed first).
+    const aDate = a.workout_date || '9999-99-99';
+    const bDate = b.workout_date || '9999-99-99';
+    if (aDate !== bDate) return aDate < bDate ? -1 : 1;
+    // Tiebreaker 3: session_time ASC (17:15 before 18:30).
+    return timeToMinutes(a.session_time) - timeToMinutes(b.session_time);
   });
 
-  // Assign ranks
+  // Assign ranks — tied entries (same primary chain) share the same rank number.
+  // Standard competition ranking: 1, 1, 1, 4, 5, ...
+  const ranks: number[] = [];
+  for (let i = 0; i < sorted.length; i++) {
+    if (i > 0 && comparePrimary(sorted[i - 1], sorted[i]) === 0) {
+      ranks.push(ranks[i - 1]);
+    } else {
+      ranks.push(i + 1);
+    }
+  }
   return sorted.map((r, i) => ({
     id: r.id,
     userId: r.user_id || (r.member_id ? `member:${r.member_id}` : `wb:${r.whiteboard_name}`),
     memberName: memberNames[r.user_id] || (r.member_id ? memberNames[`member:${r.member_id}`] : null) || r.whiteboard_name || 'Unknown',
-    rank: i + 1,
+    rank: ranks[i],
     timeResult: r.time_result || undefined,
     repsResult: r.reps_result || undefined,
     weightResult: r.weight_result || undefined,

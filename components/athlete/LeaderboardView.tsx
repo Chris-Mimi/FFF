@@ -538,19 +538,21 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
   useEffect(() => { loadWods(); }, [loadWods]);
 
   // Helper: fetch member names + genders for a set of user IDs (uses RPC to bypass members RLS)
-  const fetchMemberNames = async (userIds: string[]): Promise<{ names: Record<string, string>; genders: Record<string, string | null> }> => {
+  const fetchMemberNames = async (userIds: string[]): Promise<{ names: Record<string, string>; genders: Record<string, string | null>; ages: Record<string, number | null> }> => {
     const memberNames: Record<string, string> = {};
     const genders: Record<string, string | null> = {};
-    if (userIds.length === 0) return { names: memberNames, genders };
+    const ages: Record<string, number | null> = {};
+    if (userIds.length === 0) return { names: memberNames, genders, ages };
     const { data: members } = await supabase
       .rpc('get_member_names', { member_ids: userIds });
     if (members) {
-      for (const m of members as { id: string; display_name: string | null; name: string | null; gender: string | null }[]) {
+      for (const m of members as { id: string; display_name: string | null; name: string | null; gender: string | null; age: number | null }[]) {
         memberNames[m.id] = m.display_name || m.name || 'Unknown';
         genders[m.id] = m.gender;
+        ages[m.id] = m.age ?? null;
       }
     }
-    return { names: memberNames, genders };
+    return { names: memberNames, genders, ages };
   };
 
   // Helper: compute grouping info (±60 days for same workout_name)
@@ -839,7 +841,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
 
         const { data: results } = await supabase
           .from('wod_section_results')
-          .select('id, user_id, member_id, whiteboard_name, time_result, reps_result, weight_result, weight_result_2, weight_result_3, rounds_result, calories_result, metres_result, scaling_level, scaling_level_2, scaling_level_3, track, task_completed, dnf, workout_date')
+          .select('id, user_id, member_id, wod_id, whiteboard_name, time_result, reps_result, weight_result, weight_result_2, weight_result_3, rounds_result, calories_result, metres_result, scaling_level, scaling_level_2, scaling_level_3, track, task_completed, dnf, workout_date')
           .in('wod_id', contentWodIds)
           .in('section_id', contentSectionIds);
 
@@ -858,7 +860,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
         }
 
         const userIds = [...new Set(filtered.map(r => r.user_id))];
-        const { names: memberNames, genders: fetchedGenders } = await fetchMemberNames(userIds);
+        const { names: memberNames, genders: fetchedGenders, ages: fetchedAges } = await fetchMemberNames(userIds);
 
         // Resolve member_id names for coach entries without user_id
         const unresolvedMemberIds = filtered
@@ -874,7 +876,54 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
           }
         }
 
-        const ranked = rankSectionResults(filtered, memberNames, scoringType, fetchedGenders);
+        // Annotate each result with session_time for the day/class-time tiebreaker.
+        // Lookup chain: result(member_id, wod_id, workout_date) → bookings → weekly_sessions.time.
+        const tiebreakerWodIds = [...new Set(filtered.map(r => r.wod_id).filter((x): x is string => !!x))];
+        const tiebreakerDates = [...new Set(filtered.map(r => r.workout_date).filter((x): x is string => !!x))];
+        const tiebreakerMemberIds = [...new Set(filtered.map(r => r.member_id).filter((x): x is string => !!x))];
+        if (tiebreakerWodIds.length > 0 && tiebreakerDates.length > 0 && tiebreakerMemberIds.length > 0) {
+          const { data: sessionsData } = await supabase
+            .from('weekly_sessions')
+            .select('id, workout_id, date, time')
+            .in('workout_id', tiebreakerWodIds)
+            .in('date', tiebreakerDates);
+          const sessionsByWodDate = new Map<string, Array<{ id: string; time: string }>>();
+          const sessionTimeById = new Map<string, string>();
+          (sessionsData || []).forEach(s => {
+            const key = `${s.workout_id}|${s.date}`;
+            const arr = sessionsByWodDate.get(key) || [];
+            arr.push({ id: s.id as string, time: s.time as string });
+            sessionsByWodDate.set(key, arr);
+            sessionTimeById.set(s.id as string, s.time as string);
+          });
+          const sessionIds = (sessionsData || []).map(s => s.id as string);
+          const memberSessionMap = new Map<string, Set<string>>(); // member_id → session_ids they booked
+          if (sessionIds.length > 0) {
+            const { data: bookingsData } = await supabase
+              .from('bookings')
+              .select('session_id, member_id')
+              .in('session_id', sessionIds)
+              .in('member_id', tiebreakerMemberIds);
+            (bookingsData || []).forEach(b => {
+              const set = memberSessionMap.get(b.member_id as string) || new Set<string>();
+              set.add(b.session_id as string);
+              memberSessionMap.set(b.member_id as string, set);
+            });
+          }
+          for (const r of filtered) {
+            if (!r.wod_id || !r.workout_date) continue;
+            const sessions = sessionsByWodDate.get(`${r.wod_id}|${r.workout_date}`) || [];
+            if (sessions.length === 1) {
+              r.session_time = sessions[0].time;
+            } else if (sessions.length > 1 && r.member_id) {
+              const booked = memberSessionMap.get(r.member_id);
+              const match = sessions.find(s => booked?.has(s.id));
+              if (match) r.session_time = match.time;
+            }
+          }
+        }
+
+        const ranked = rankSectionResults(filtered, memberNames, scoringType, fetchedGenders, fetchedAges);
         setEntries(ranked);
 
         if (ranked.length > 0) {
