@@ -10,7 +10,7 @@ http://192.168.178.75:3000
 * Mobile view: I couldn't select from the dropdown on Schedule Page:Workout Type. No list appeared when I clicked in it.
 * Workouts page: Movement Tracking is not correct (Bench Press eg)
 
-* 
+* Mimi's iPhone copy/paste & delete function
 * check 
 * 
 * 
