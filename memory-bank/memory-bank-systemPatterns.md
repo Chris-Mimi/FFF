@@ -1,7 +1,21 @@
 # System Patterns
 
-Version: 1.1
-Timestamp: 2025-11-06
+Version: 1.2
+Timestamp: 2026-04-22
+
+---
+
+## Context Efficiency — Hard Rules (Session 301)
+
+Chris has raised "why is context already burned?" multiple sessions. These rules are non-negotiable. If I'm about to break one, stop and reconsider.
+
+1. **Never `Read` a utility file without `offset` + `limit`.** If a file is >100 lines and I need one function, Grep for the function name first, then Read with offset/limit ±30 lines. `utils/leaderboard-utils.ts` is 638 lines — never read in full.
+2. **For "X isn't working" bugs, find the caller before reading the implementation.** `Grep <functionName>` first to see every call site. That identifies which code path the user actually hit. Reading the implementation before confirming the path is wasted tokens.
+3. **Don't do multi-range exploratory Reads on the same file in one session.** If I Read `LeaderboardView.tsx` at three different offsets, I should have used one Grep with `-A`/`-B` context instead. Every new Read on the same file is a sign I guessed wrong.
+4. **Project-history files: cap at 80 lines.** Structure: Origin (≤3 lines) · What shipped (bullets, no code blocks unless critical) · Design decisions (bullets) · Files · Follow-ups. Don't reproduce code already in the commit diff.
+5. **activeContext session entries: cap at 6 bullets.** Ship-log, not a dissertation.
+6. **Don't narrate the diagnostic process.** When the root cause is a wrong code path, state it in one sentence and fix it. Don't explain the hypotheses ruled out.
+7. **Working budget is ~60%, not ~80%.** Session-start reads (CLAUDE.md + memory + activeContext + latest project-history) consume ~20% before any work begins.
 
 ---
 
