@@ -199,6 +199,7 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
       const memberUpdate: Record<string, string | null> = {};
       if (profile.full_name) memberUpdate.name = profile.full_name;
       memberUpdate.gender = gender || null;
+      memberUpdate.date_of_birth = profile.date_of_birth || null;
       if (Object.keys(memberUpdate).length > 0) {
         await supabase
           .from('members')

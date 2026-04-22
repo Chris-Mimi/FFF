@@ -327,7 +327,15 @@ export function rankSectionResults(
     if (aTrack !== bTrack) return aTrack - bTrack;
     return compareByScoringType(a, b, scoringType);
   };
-  const ageOf = (r: RawSectionResult): number => memberAges?.[r.user_id] ?? -Infinity;
+  const ageOf = (r: RawSectionResult): number | null => memberAges?.[r.user_id] ?? null;
+  const compareAge = (a: RawSectionResult, b: RawSectionResult): number => {
+    const aAge = ageOf(a);
+    const bAge = ageOf(b);
+    if (aAge === bAge) return 0;
+    if (aAge === null) return 1;
+    if (bAge === null) return -1;
+    return bAge - aAge;
+  };
   const timeToMinutes = (t?: string | null): number => {
     if (!t) return Infinity;
     const [h, m] = t.split(':').map(Number);
@@ -338,7 +346,7 @@ export function rankSectionResults(
     const primary = comparePrimary(a, b);
     if (primary !== 0) return primary;
     // Tiebreaker 1: age DESC (older first). Missing DOB ranks below any known age.
-    const ageDiff = ageOf(b) - ageOf(a);
+    const ageDiff = compareAge(a, b);
     if (ageDiff !== 0) return ageDiff;
     // Tiebreaker 2: workout_date ASC (earlier = performed first).
     const aDate = a.workout_date || '9999-99-99';
@@ -550,7 +558,15 @@ export function rankLiftResults(
     entries.push(...whiteboardEntries);
   }
 
-  const ageOf = (e: LeaderboardEntry): number => e.age ?? -Infinity;
+  const ageOf = (e: LeaderboardEntry): number | null => e.age ?? null;
+  const compareAge = (a: LeaderboardEntry, b: LeaderboardEntry): number => {
+    const aAge = ageOf(a);
+    const bAge = ageOf(b);
+    if (aAge === bAge) return 0;
+    if (aAge === null) return 1;
+    if (bAge === null) return -1;
+    return bAge - aAge;
+  };
   const timeToMinutes = (t?: string | null): number => {
     if (!t) return Infinity;
     const [h, m] = t.split(':').map(Number);
@@ -561,7 +577,7 @@ export function rankLiftResults(
   entries.sort((a, b) => {
     const weightDiff = (b.weightResult || 0) - (a.weightResult || 0);
     if (weightDiff !== 0) return weightDiff;
-    const ageDiff = ageOf(b) - ageOf(a);
+    const ageDiff = compareAge(a, b);
     if (ageDiff !== 0) return ageDiff;
     const aDate = a.resultDate || '9999-99-99';
     const bDate = b.resultDate || '9999-99-99';
