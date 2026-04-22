@@ -853,7 +853,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
         const allUserIds = [...new Set(filtered.map(r => r.user_id))];
         // Only pass real UUIDs to the RPC — synthetic IDs (wb:, member:, unknown:) would break the UUID[] parameter
         const realUserIds = allUserIds.filter(id => !id.includes(':'));
-        const { names: memberNames, genders: fetchedGenders } = await fetchMemberNames(realUserIds);
+        const { names: memberNames, genders: fetchedGenders, ages: fetchedAges } = await fetchMemberNames(realUserIds);
         // Inject fallback names: whiteboard_name for registered athletes, member_id lookups
         for (const [userId, wbName] of Object.entries(whiteboardNameMap)) {
           if (!memberNames[userId]) memberNames[userId] = wbName;
@@ -861,7 +861,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
         for (const [memberId, name] of Object.entries(memberIdNameMap)) {
           memberNames[`member:${memberId}`] = name;
         }
-        const ranked = rankBenchmarkResults(filtered, memberNames, selectedItem.benchmarkType || 'time', fetchedGenders);
+        const ranked = rankBenchmarkResults(filtered, memberNames, selectedItem.benchmarkType || 'time', fetchedGenders, fetchedAges);
         setEntries(ranked);
 
         if (ranked.length > 0) {
@@ -1484,13 +1484,15 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
       const realUserIds = allUserIds.filter(id => !id.includes(':'));
       const memberNames: Record<string, string> = {};
       const memberGenders: Record<string, string | null> = {};
+      const memberAges: Record<string, number | null> = {};
       if (realUserIds.length > 0) {
         const { data: members } = await supabase
           .rpc('get_member_names', { member_ids: realUserIds });
         if (members) {
-          for (const m of members as { id: string; display_name: string | null; name: string | null; gender: string | null }[]) {
+          for (const m of members as { id: string; display_name: string | null; name: string | null; gender: string | null; age: number | null }[]) {
             memberNames[m.id] = m.display_name || m.name || 'Unknown';
             memberGenders[m.id] = m.gender;
+            memberAges[m.id] = m.age ?? null;
           }
         }
       }
@@ -1502,7 +1504,7 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
         memberNames[`member:${memberId}`] = name;
       }
 
-      const ranked = rankBenchmarkResults(filtered, memberNames, selectedBenchmark.type, memberGenders);
+      const ranked = rankBenchmarkResults(filtered, memberNames, selectedBenchmark.type, memberGenders, memberAges);
       setEntries(ranked);
 
       if (ranked.length > 0) {

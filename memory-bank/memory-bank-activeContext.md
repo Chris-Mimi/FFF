@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 165.0
-**Updated:** 2026-04-22 (Session 301 - Lift leaderboard tiebreaker parity)
+**Version:** 166.0
+**Updated:** 2026-04-22 (Session 302 - Leaderboard tiebreaker NaN fix + DOB sync + benchmark parity)
 
 ---
 
@@ -84,6 +84,14 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 302 (2026-04-22 — Opus 4.7) — LEADERBOARD TIEBREAKER NaN FIX + DOB SYNC + BENCHMARK PARITY:**
+- Chris live-tested S301 "Front Squat 5RM" (7 tied at 80kg) and reported tiebreaker wasn't ordering him (oldest, DOB set) to the top of the tied group.
+- **Bug 1 — NaN poisoning the sort comparator** (`utils/leaderboard-utils.ts`): `ageOf` used `?? -Infinity` sentinel. When both entries had no DOB, `-Infinity - (-Infinity) = NaN`. `NaN !== 0` → `Array.sort()` silently abandoned remaining tiebreakers (date, session_time). Replaced with `compareAge` helper (both-null → 0 falls through, one-null → null ranks last, else older DESC). Applied in `rankSectionResults` and `rankLiftResults`.
+- **Bug 2 — DOB written to wrong table** (`components/athlete/AthletePageProfileTab.tsx:202`): athlete profile save wrote DOB to `athlete_profiles.date_of_birth` but never to `members.date_of_birth`. `get_member_names` RPC (added S300) reads from `members`. Added `memberUpdate.date_of_birth = profile.date_of_birth || null` to the existing members-sync block (already syncs name + gender). Chris ran a one-time backfill SQL (`UPDATE members SET date_of_birth = ap.date_of_birth FROM athlete_profiles ap WHERE members.id = ap.user_id AND members.date_of_birth IS NULL AND ap.date_of_birth IS NOT NULL;`).
+- **S301 live-tested ok** on Front Squat 5RM after Bug 1 + Bug 2 fixes.
+- **Benchmark parity (S301 leftover)**: ported tiebreaker chain + shared ranks to `rankBenchmarkResults` (`utils/leaderboard-utils.ts`). Split sort into `comparePrimary` (scaling → track → weight tiebreaker → primary metric) and display tiebreakers (age DESC → `result_date` ASC). No `session_time` — benchmarks are all-time bests, not session-linked. Added `memberAges` 6th arg and `age` to output entries. Both callers in `LeaderboardView.tsx` (lines ~864 and ~1505) updated to pass ages. Benchmark parity **not yet live-tested**.
+- Commits: `aeaa534` (bugs 1+2), S302 follow-up (benchmark parity) uncommitted at session close.
+
 **Session 301 (2026-04-22 — Opus 4.7) — LIFT LEADERBOARD TIEBREAKER PARITY:**
 - Chris tested S300 on a "Front Squat 5RM" leaderboard (Mon WOD, 7 athletes tied at 80kg). Shared ranks didn't apply — they still showed distinct ranks 2-8. Chris is the oldest athlete in the box with DOB set, so he expected to be at the top of the 80kg group.
 - Root cause: the "Front Squat 5RM" chip is a `type: 'lift'` item sourced from `lift_records`, routed through `rankLiftResults` — NOT `rankSectionResults` (which was the only function S300 patched). S300 log explicitly flagged this as follow-up scope.
@@ -146,17 +154,16 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-1. **Live-verify S301 lift leaderboard tiebreakers** — on the same "Front Squat 5RM" view (Mon WOD, 7 athletes at 80kg), confirm: they all share rank 2, Chris (oldest with DOB set) appears at the top of that tied group.
+1. **Live-verify S302 benchmark leaderboard tiebreakers** — find a benchmark with tied scores (e.g., two athletes tied on Fran time), confirm shared rank + age/date ordering within tied group.
 2. **Live-verify S300 section leaderboard tiebreakers** — find a tie scenario on a section-result view (weight/reps/time), same age/date/time ordering expected.
 3. **Live-verify S299 changes** — (a) leaderboard with reps+cals section shows combined ranking and `"X reps + Y cal"` format, (b) Records page Barbell Lifts list sorts Olympic→Press→Pull→Squat with lifts grouped alphabetically, (c) Intervals presets Delete button visible on iPhone.
 4. **Live-test Intervals timer mode itself** (S296) on deployed app — core mode never live-tested (presets already confirmed working S298).
-5. **Consider extending tiebreaker chain to `rankBenchmarkResults`** — last remaining leaderboard function without parity.
-6. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app (should now show "Updating password for [email]" above form).
-7. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper processes), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
-8. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
-9. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing.
-10. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts:48-56` only filters bookings by `status='confirmed'` and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
-11. **Test endpoint 410 cleanup** (deferred from S292) — route `app/api/notifications/test/route.ts` through `sendToSubscription` so expired subs auto-delete on Send Test.
+5. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app (should now show "Updating password for [email]" above form).
+6. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper processes), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
+7. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
+8. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing.
+9. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts:48-56` only filters bookings by `status='confirmed'` and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
+10. **Test endpoint 410 cleanup** (deferred from S292) — route `app/api/notifications/test/route.ts` through `sendToSubscription` so expired subs auto-delete on Send Test.
 
 ---
 

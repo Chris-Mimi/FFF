@@ -397,7 +397,8 @@ export function rankBenchmarkResults(
   results: RawBenchmarkResult[],
   memberNames: Record<string, string>,
   benchmarkType: string,
-  memberGenders?: Record<string, string | null>
+  memberGenders?: Record<string, string | null>,
+  memberAges?: Record<string, number | null>
 ): LeaderboardEntry[] {
   // Determine scoring direction from benchmark type
   const typeLower = benchmarkType.toLowerCase();
@@ -465,17 +466,16 @@ export function rankBenchmarkResults(
     (r.scaling_level ? (scalingValue[r.scaling_level] ?? MISSING_SCALING) : MISSING_SCALING) +
     (r.scaling_level_2 ? (scalingValue[r.scaling_level_2] ?? MISSING_SCALING) : MISSING_SCALING) +
     (r.scaling_level_3 ? (scalingValue[r.scaling_level_3] ?? MISSING_SCALING) : MISSING_SCALING);
-  const bests = [...bestByUser.values()];
-  bests.sort((a, b) => {
+  // Primary comparator: the chain that determines whether two entries are tied for the same rank.
+  // Tiebreakers AFTER this chain (age/date) only affect display order, not rank number.
+  const comparePrimary = (a: RawBenchmarkResult, b: RawBenchmarkResult): number => {
     const scaleDiff = aggregateScaling(a) - aggregateScaling(b);
     if (scaleDiff !== 0) return scaleDiff;
-    // Track: 1 < 2 < 3 < null (lower track = higher rank)
     const aTrack = a.track ?? 4;
     const bTrack = b.track ?? 4;
     if (aTrack !== bTrack) return aTrack - bTrack;
-    // Weight tiebreaker: for non-weight-based benchmarks, higher load ranks first
     if (!isTimeBased && !isRepsBased) {
-      // Weight IS the primary metric, skip tiebreaker
+      // Weight IS the primary metric, skip weight tiebreaker
     } else {
       const aW = a.weight_result || 0;
       const bW = b.weight_result || 0;
@@ -489,18 +489,49 @@ export function rankBenchmarkResults(
       if (aFinished && bFinished) return aTime - bTime;
       if (aFinished && !bFinished) return -1;
       if (!aFinished && bFinished) return 1;
-      // Both hit cap: compare rounds+reps descending (more work = better)
       return roundsRepsScore(b) - roundsRepsScore(a);
     }
     if (isRepsBased) return roundsRepsScore(b) - roundsRepsScore(a);
     return (b.weight_result || 0) - (a.weight_result || 0);
+  };
+  const ageOf = (r: RawBenchmarkResult): number | null => memberAges?.[r.user_id] ?? null;
+  const compareAge = (a: RawBenchmarkResult, b: RawBenchmarkResult): number => {
+    const aAge = ageOf(a);
+    const bAge = ageOf(b);
+    if (aAge === bAge) return 0;
+    if (aAge === null) return 1;
+    if (bAge === null) return -1;
+    return bAge - aAge;
+  };
+  const bests = [...bestByUser.values()];
+  bests.sort((a, b) => {
+    const primary = comparePrimary(a, b);
+    if (primary !== 0) return primary;
+    // Tiebreaker 1: age DESC (older first). Missing DOB ranks below any known age.
+    const ageDiff = compareAge(a, b);
+    if (ageDiff !== 0) return ageDiff;
+    // Tiebreaker 2: result_date ASC (earlier PR = performed first).
+    const aDate = a.result_date || '9999-99-99';
+    const bDate = b.result_date || '9999-99-99';
+    if (aDate !== bDate) return aDate < bDate ? -1 : 1;
+    return 0;
   });
+
+  // Assign ranks — tied entries (same primary chain) share the same rank number.
+  const ranks: number[] = [];
+  for (let i = 0; i < bests.length; i++) {
+    if (i > 0 && comparePrimary(bests[i - 1], bests[i]) === 0) {
+      ranks.push(ranks[i - 1]);
+    } else {
+      ranks.push(i + 1);
+    }
+  }
 
   return bests.map((r, i) => ({
     id: r.id,
     userId: r.user_id,
     memberName: memberNames[r.user_id] || (r.user_id.startsWith('wb:') ? r.user_id.slice(3) : 'Unknown'),
-    rank: i + 1,
+    rank: ranks[i],
     timeResult: r.time_result || undefined,
     repsResult: r.reps_result || undefined,
     roundsResult: r.rounds_result || undefined,
@@ -511,6 +542,7 @@ export function rankBenchmarkResults(
     track: r.track || undefined,
     resultDate: r.result_date,
     gender: memberGenders?.[r.user_id] ?? (r.user_id.startsWith('wb:') ? getWhiteboardGender(r.user_id.slice(3)) : undefined) ?? undefined,
+    age: memberAges?.[r.user_id] ?? null,
   }));
 }
 
