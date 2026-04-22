@@ -19,6 +19,8 @@ export interface LeaderboardEntry {
   dnf?: boolean;
   resultDate?: string;
   gender?: string | null;
+  age?: number | null;
+  sessionTime?: string;
 }
 
 // Gender map for whiteboard-only (unregistered) athletes
@@ -88,6 +90,8 @@ export interface RawLiftResult {
   rep_max_type?: string | null;
   rep_scheme?: string | null;
   lift_date?: string;
+  wod_id?: string | null;
+  session_time?: string | null; // "HH:MM" — annotated by caller for tiebreakers
 }
 
 interface RawBenchmarkResult {
@@ -518,17 +522,19 @@ export function bestLiftPerUser(results: RawLiftResult[]): RawLiftResult[] {
 
 /**
  * Rank lift results by weight descending (heavier = better).
+ * Tied entries share the same rank; within a tied group, display order is:
+ * age DESC (older first, missing DOB treated as youngest) → lift_date ASC → session_time ASC.
  */
 export function rankLiftResults(
   results: RawLiftResult[],
   memberNames: Record<string, string>,
   memberGenders?: Record<string, string | null>,
-  whiteboardEntries?: LeaderboardEntry[]
+  whiteboardEntries?: LeaderboardEntry[],
+  memberAges?: Record<string, number | null>
 ): LeaderboardEntry[] {
   const valid = results.filter(r => r.weight_kg > 0);
-  const sorted = [...valid].sort((a, b) => b.weight_kg - a.weight_kg);
 
-  const entries: LeaderboardEntry[] = sorted.map((r) => ({
+  const entries: LeaderboardEntry[] = valid.map((r) => ({
     id: r.id,
     userId: r.user_id,
     memberName: memberNames[r.user_id] || 'Unknown',
@@ -536,16 +542,40 @@ export function rankLiftResults(
     weightResult: r.weight_kg,
     resultDate: r.lift_date,
     gender: memberGenders?.[r.user_id] ?? undefined,
+    age: memberAges?.[r.user_id] ?? null,
+    sessionTime: r.session_time || undefined,
   }));
 
-  // Merge whiteboard athlete entries
   if (whiteboardEntries?.length) {
     entries.push(...whiteboardEntries);
   }
 
-  // Sort all by weight descending, then assign ranks
-  entries.sort((a, b) => (b.weightResult || 0) - (a.weightResult || 0));
-  entries.forEach((e, i) => { e.rank = i + 1; });
+  const ageOf = (e: LeaderboardEntry): number => e.age ?? -Infinity;
+  const timeToMinutes = (t?: string | null): number => {
+    if (!t) return Infinity;
+    const [h, m] = t.split(':').map(Number);
+    if (isNaN(h) || isNaN(m)) return Infinity;
+    return h * 60 + m;
+  };
+
+  entries.sort((a, b) => {
+    const weightDiff = (b.weightResult || 0) - (a.weightResult || 0);
+    if (weightDiff !== 0) return weightDiff;
+    const ageDiff = ageOf(b) - ageOf(a);
+    if (ageDiff !== 0) return ageDiff;
+    const aDate = a.resultDate || '9999-99-99';
+    const bDate = b.resultDate || '9999-99-99';
+    if (aDate !== bDate) return aDate < bDate ? -1 : 1;
+    return timeToMinutes(a.sessionTime) - timeToMinutes(b.sessionTime);
+  });
+
+  for (let i = 0; i < entries.length; i++) {
+    if (i > 0 && (entries[i - 1].weightResult || 0) === (entries[i].weightResult || 0)) {
+      entries[i].rank = entries[i - 1].rank;
+    } else {
+      entries[i].rank = i + 1;
+    }
+  }
 
   return entries;
 }

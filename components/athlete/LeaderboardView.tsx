@@ -617,7 +617,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
       if (selectedItem.type === 'lift') {
         let query = supabase
           .from('lift_records')
-          .select('id, user_id, lift_name, weight_kg, reps, rep_max_type, rep_scheme, lift_date')
+          .select('id, user_id, lift_name, weight_kg, reps, rep_max_type, rep_scheme, lift_date, wod_id')
           .eq('lift_name', selectedItem.liftName!)
           .in('lift_date', dates);
 
@@ -653,7 +653,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
         if (liftSectionIds.length > 0) {
           const { data: wbResults } = await supabase
             .from('wod_section_results')
-            .select('id, whiteboard_name, weight_result, workout_date')
+            .select('id, whiteboard_name, weight_result, workout_date, wod_id')
             .in('wod_id', liftWodIds)
             .in('section_id', liftSectionIds)
             .not('whiteboard_name', 'is', null)
@@ -676,13 +676,60 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
               weightResult: r.weight_result ?? undefined,
               resultDate: r.workout_date ?? undefined,
               gender: getWhiteboardGender(r.whiteboard_name) ?? undefined,
+              age: null,
             }));
           }
         }
 
         const userIds = [...new Set(filtered.map(r => r.user_id))];
-        const { names: memberNames, genders: fetchedGenders } = await fetchMemberNames(userIds);
-        const ranked = rankLiftResults(filtered, memberNames, fetchedGenders, whiteboardLiftEntries);
+        const { names: memberNames, genders: fetchedGenders, ages: fetchedAges } = await fetchMemberNames(userIds);
+
+        // Annotate each lift record with session_time via (wod_id, lift_date) → weekly_sessions → bookings.
+        // lift_records.user_id === members.id === bookings.member_id for registered athletes.
+        const liftTiebreakerWodIds = [...new Set(filtered.map(r => r.wod_id).filter((x): x is string => !!x))];
+        const liftTiebreakerDates = [...new Set(filtered.map(r => r.lift_date).filter((x): x is string => !!x))];
+        const liftTiebreakerMemberIds = [...new Set(filtered.map(r => r.user_id).filter((x): x is string => !!x))];
+        if (liftTiebreakerWodIds.length > 0 && liftTiebreakerDates.length > 0) {
+          const { data: sessionsData } = await supabase
+            .from('weekly_sessions')
+            .select('id, workout_id, date, time')
+            .in('workout_id', liftTiebreakerWodIds)
+            .in('date', liftTiebreakerDates);
+          const sessionsByWodDate = new Map<string, Array<{ id: string; time: string }>>();
+          (sessionsData || []).forEach(s => {
+            const key = `${s.workout_id}|${s.date}`;
+            const arr = sessionsByWodDate.get(key) || [];
+            arr.push({ id: s.id as string, time: s.time as string });
+            sessionsByWodDate.set(key, arr);
+          });
+          const sessionIds = (sessionsData || []).map(s => s.id as string);
+          const memberSessionMap = new Map<string, Set<string>>();
+          if (sessionIds.length > 0 && liftTiebreakerMemberIds.length > 0) {
+            const { data: bookingsData } = await supabase
+              .from('bookings')
+              .select('session_id, member_id')
+              .in('session_id', sessionIds)
+              .in('member_id', liftTiebreakerMemberIds);
+            (bookingsData || []).forEach(b => {
+              const set = memberSessionMap.get(b.member_id as string) || new Set<string>();
+              set.add(b.session_id as string);
+              memberSessionMap.set(b.member_id as string, set);
+            });
+          }
+          for (const r of filtered) {
+            if (!r.wod_id || !r.lift_date) continue;
+            const sessions = sessionsByWodDate.get(`${r.wod_id}|${r.lift_date}`) || [];
+            if (sessions.length === 1) {
+              r.session_time = sessions[0].time;
+            } else if (sessions.length > 1 && r.user_id) {
+              const booked = memberSessionMap.get(r.user_id);
+              const match = sessions.find(s => booked?.has(s.id));
+              if (match) r.session_time = match.time;
+            }
+          }
+        }
+
+        const ranked = rankLiftResults(filtered, memberNames, fetchedGenders, whiteboardLiftEntries, fetchedAges);
         setEntries(ranked);
 
         if (ranked.length > 0) {

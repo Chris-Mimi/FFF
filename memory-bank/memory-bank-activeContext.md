@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 164.0
-**Updated:** 2026-04-22 (Session 300 - Leaderboard tiebreakers: shared ranks + age/date/time ordering)
+**Version:** 165.0
+**Updated:** 2026-04-22 (Session 301 - Lift leaderboard tiebreaker parity)
 
 ---
 
@@ -84,6 +84,15 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 301 (2026-04-22 — Opus 4.7) — LIFT LEADERBOARD TIEBREAKER PARITY:**
+- Chris tested S300 on a "Front Squat 5RM" leaderboard (Mon WOD, 7 athletes tied at 80kg). Shared ranks didn't apply — they still showed distinct ranks 2-8. Chris is the oldest athlete in the box with DOB set, so he expected to be at the top of the 80kg group.
+- Root cause: the "Front Squat 5RM" chip is a `type: 'lift'` item sourced from `lift_records`, routed through `rankLiftResults` — NOT `rankSectionResults` (which was the only function S300 patched). S300 log explicitly flagged this as follow-up scope.
+- **Ported S300 tiebreaker chain + shared ranks to `rankLiftResults`** (`utils/leaderboard-utils.ts`). Tied-on-weight entries share rank; display order within tied group: age DESC (missing DOB → youngest) → `lift_date` ASC → `session_time` ASC.
+- **Schema additions:** `LeaderboardEntry` gained optional `age` + `sessionTime`. `RawLiftResult` gained optional `wod_id` + `session_time`. `rankLiftResults` gained optional 5th arg `memberAges`.
+- **LeaderboardView lift path wiring** (`components/athlete/LeaderboardView.tsx`): selects `wod_id` on lift_records query, destructures `ages` from `fetchMemberNames`, annotates `session_time` via the same (wod_id, lift_date) → `weekly_sessions` → `bookings` chain. Uses `lift_records.user_id` as `bookings.member_id` (valid because `members.id === auth.users.id`). Whiteboard lift entries get `age: null`.
+- **Still not covered:** `rankBenchmarkResults` (benchmark leaderboards). Left as follow-up — flag if Chris wants parity there too.
+- **Not yet live-tested.**
+
 **Session 300 (2026-04-22 — Opus 4.7) — LEADERBOARD TIEBREAKERS + SHARED RANKS:**
 - Chris asked how tied scores are ordered. Discovered tied athletes previously got distinct sequential ranks (1,2,3,…) and final order was whatever PostgreSQL returned (roughly insertion order). Fix: new tiebreaker chain + shared-rank assignment.
 - **Shared ranks** in `rankSectionResults` (`utils/leaderboard-utils.ts`): split sort into `comparePrimary` (DNF → scaling → track → primary metric — the chain that defines a "tie") and display-order tiebreakers. Rank loop compares adjacent sorted entries via `comparePrimary`; ties inherit the previous rank → standard competition ranking `1,1,1,4,…`.
@@ -112,13 +121,7 @@ Athlete Tools
 - **SMTP (dashboard config, not code):** Configured Resend as custom SMTP sender for Supabase Auth emails. Sender `noreply@the-forge-functional-fitness.de`. Password resets no longer use Supabase's 4/hour shared pool. Gmail still flags as suspicious on some cold sends — improves as DKIM/SPF/DMARC + sender reputation establish.
 - **Follow-ups:** Verify SPF/DKIM/DMARC all ✅ in Resend → Domains. Test full reset flow on deployed app. **Build coach profile / change-password page** (no UI for logged-in coach to change own password — would have avoided the SQL fallback).
 
-**Session 296 (2026-04-20 — Opus 4.7) — ATHLETE TIMER INTERVALS MODE:**
-- New 6th Timer mode `Intervals` — generalizes Tabata to support variable work/rest per round. Config is `IntervalSpec[]` stored as `config.intervals` on `TimerConfig` in `hooks/useWorkoutTimer.ts`. Default = `12 × {work: 50, rest: 10}` (Chris's standard warm-up format).
-- Hook changes: added `'intervals'` to `TimerMode`, new `getTotalDuration` branch sums array, `tick()` walks intervals array to fire rest-entry beeps + round-start beeps/speech ("Round N" / "Last round!") — skips rest beep when `rest === 0` (handles EMOM-style continuous rounds). Derived state loop (currentRound/isWorkPhase/phaseRemaining) walks array to find current position from elapsed; idle state shows first round's work time.
-- UI (`components/athlete/WorkoutTimer.tsx`): added mode chip between Tabata and Hold. New `IntervalsEditor` sub-component with Quick Fill panel (rounds/work/rest + Apply to fill all rounds with same pattern) + editable rounds list (compact rows with W/R spinners, per-row delete, +Add / Duplicate last buttons, live Total duration). Max-height 72 scroll on list. Running display reuses Tabata green/red WORK/REST + Round N/M + phase countdown.
-- **Not yet tested live** — Chris testing this session on deployed app. Also: no localStorage persistence of `intervals` array (deferred, not requested).
-
-**Older sessions (57-295):** See `project-history/` folder.
+**Older sessions (57-296):** See `project-history/` folder.
 
 ---
 
@@ -143,15 +146,17 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-1. **Live-verify S300 leaderboard tiebreakers** — create/find a tie scenario (two athletes with DOBs set at same weight + same Rx, one booked 17:15, other 18:30). Confirm: they share the same rank number, older appears above younger, 17:15 above 18:30.
-2. **Live-verify S299 changes** — (a) leaderboard with reps+cals section shows combined ranking and `"X reps + Y cal"` format, (b) Records page Barbell Lifts list sorts Olympic→Press→Pull→Squat with lifts grouped alphabetically, (c) Intervals presets Delete button visible on iPhone.
-3. **Live-test Intervals timer mode itself** (S296) on deployed app — core mode never live-tested (presets already confirmed working S298).
-4. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app (should now show "Updating password for [email]" above form).
-5. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper processes), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
-6. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
-7. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing.
-8. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts:48-56` only filters bookings by `status='confirmed'` and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
-9. **Test endpoint 410 cleanup** (deferred from S292) — route `app/api/notifications/test/route.ts` through `sendToSubscription` so expired subs auto-delete on Send Test.
+1. **Live-verify S301 lift leaderboard tiebreakers** — on the same "Front Squat 5RM" view (Mon WOD, 7 athletes at 80kg), confirm: they all share rank 2, Chris (oldest with DOB set) appears at the top of that tied group.
+2. **Live-verify S300 section leaderboard tiebreakers** — find a tie scenario on a section-result view (weight/reps/time), same age/date/time ordering expected.
+3. **Live-verify S299 changes** — (a) leaderboard with reps+cals section shows combined ranking and `"X reps + Y cal"` format, (b) Records page Barbell Lifts list sorts Olympic→Press→Pull→Squat with lifts grouped alphabetically, (c) Intervals presets Delete button visible on iPhone.
+4. **Live-test Intervals timer mode itself** (S296) on deployed app — core mode never live-tested (presets already confirmed working S298).
+5. **Consider extending tiebreaker chain to `rankBenchmarkResults`** — last remaining leaderboard function without parity.
+6. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app (should now show "Updating password for [email]" above form).
+7. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper processes), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
+8. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
+9. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing.
+10. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts:48-56` only filters bookings by `status='confirmed'` and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
+11. **Test endpoint 410 cleanup** (deferred from S292) — route `app/api/notifications/test/route.ts` through `sendToSubscription` so expired subs auto-delete on Send Test.
 
 ---
 
