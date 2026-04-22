@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 162.0
-**Updated:** 2026-04-21 (Session 298 - Intervals Timer Named Presets, DB-backed)
+**Version:** 163.0
+**Updated:** 2026-04-22 (Session 299 - Leaderboard reps+cals + Records sort + Intervals mobile fix)
 
 ---
 
@@ -84,6 +84,12 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 299 (2026-04-22 — Opus 4.7) — LEADERBOARD reps+cals SCORING + RECORDS SORT + INTERVALS MOBILE FIX:**
+- **Intervals presets mobile overflow** (`components/athlete/WorkoutTimer.tsx`): Delete preset button was off-screen on small viewports. Root cause: native `<select>` inside `flex items-center` won't shrink below its longest option's intrinsic width, pushing siblings out. Fix: added `min-w-0` + reduced horizontal padding on the select. Save/Delete were already icon-only on mobile via `hidden sm:inline`.
+- **Leaderboard combined reps+cals scoring** (`utils/leaderboard-utils.ts`): when a section has both `reps` AND `calories` scoring fields enabled, ranking previously resolved to plain `reps` per priority ladder — the cals column looked unsorted. Added new `'reps_cals'` scoring type (positioned above plain `reps` in `detectScoringType`), sorts by `(reps_result + calories_result)` descending. Primary display: `"X reps + Y cal"`. Filter accepts entries with either value > 0. Extras suppressed (both already in primary).
+- **Records page Barbell Lifts sort** (`components/athlete/AthletePageRecordsTab.tsx`): Chris asked about sort criteria — it was accidental Map insertion order (most-recently-logged new lift+rep combo first). Now explicit: parallel-fetches `barbell_lifts` (name, category, display_order), sorts by **category display_order → lift_name alphabetical → weight_kg DESC**. Keeps all rep-maxes of same lift together (Chris's preference after first pass used weight-desc as secondary).
+- **Non-events this session:** User started reporting a class-capacity drift bug (session showing 12/12 when set to 10) — turned out to be user error, no changes made. Related S295 fix still in place.
+
 **Session 298 (2026-04-21 — Opus 4.7) — INTERVALS TIMER NAMED PRESETS (DB-backed):**
 - Cross-device persistence for S296 Intervals routines. New `timer_presets` table (`id, user_id → auth.users, name, intervals JSONB, created_at, updated_at`), `UNIQUE (user_id, name)`, RLS-gated on `auth.uid() = user_id` (select/insert/update/delete). Migration: `supabase/migrations/20260421000000_add_timer_presets.sql`, applied via dashboard SQL Editor.
 - `components/athlete/WorkoutTimer.tsx` IntervalsEditor: new Presets panel above Quick Fill — dropdown (load by name) + Save (upsert with `onConflict: 'user_id,name'`) + Delete. `busy` state disables buttons during network calls. No API route — direct supabase-js calls behind RLS.
@@ -107,12 +113,7 @@ Athlete Tools
 - Fix: added `capacityChanged = !editingWOD || wodData.maxCapacity !== editingWOD.maxCapacity` guard at top of `handleSaveWOD`. Wrapped all 7 session-capacity UPDATE sites + their `promoteWaitlist*` calls in `if (capacityChanged)`. Capacity only propagates when the coach actually changed it in the modal. `INSERT`s unchanged (new sessions need a value). `wods.max_capacity` write untouched.
 - Why not Option 2 (drop `wods.max_capacity`): cleaner structurally but requires migration + refactoring read sites + deploy risk. Option 1 closes the hit-case with a 50-line single-file change. Option 2 stays available if drift keeps recurring.
 
-**Session 294 (2026-04-19 — Opus 4.7) — BOOKING RULES ADMIN UI:**
-- Replaced hardcoded booking constants with a coach-configurable `booking_rules` table (single-row, `CHECK (id = 1)`). Five rules exposed: 10-card refund window hours (default 12), auto-lock lead minutes before class (default 0), max bookings per day (nullable), max bookings per week (nullable, Mon–Sun of session date), advance-booking horizon days (nullable). Defaults match old hardcoded behavior = zero-risk deploy.
-- Shipped: `supabase/migrations/20260419000000_add_booking_rules.sql`, `lib/bookingRules.ts` (service-role read/update + `DEFAULT_BOOKING_RULES` fallback), `app/api/admin/booking-rules/route.ts` (GET+PUT coach-gated), `app/coach/admin/booking-rules/page.tsx` (new subpage), link card on `/coach/admin`. Wired into `app/api/bookings/create/route.ts` (lock threshold + per-day/week/advance caps) and `cancel/route.ts` (10-card refund hours).
-- Deferred: class-type restrictions (#5 on original list) — policy matrix, separate session with Chris input on Kids age gating + Foundations thresholds.
-
-**Older sessions (57-293):** See `project-history/` folder.
+**Older sessions (57-294):** See `project-history/` folder.
 
 ---
 
@@ -137,8 +138,8 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-1. **Live-test Intervals timer presets** (S298) — save a routine on one device, sign in on another, verify it appears in the dropdown. Also confirm Save/Load/Delete behaviour.
-2. **Live-test Intervals timer mode itself** (S296) on deployed app — core mode never live-tested.
+1. **Live-verify S299 changes** — (a) leaderboard with reps+cals section shows combined ranking and `"X reps + Y cal"` format, (b) Records page Barbell Lifts list sorts Olympic→Press→Pull→Squat with lifts grouped alphabetically, (c) Intervals presets Delete button visible on iPhone.
+2. **Live-test Intervals timer mode itself** (S296) on deployed app — core mode never live-tested (presets already confirmed working S298).
 3. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app (should now show "Updating password for [email]" above form).
 4. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper processes), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
 5. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.

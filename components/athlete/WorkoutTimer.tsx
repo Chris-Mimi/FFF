@@ -506,7 +506,7 @@ function IntervalsEditor({ intervals, onChange }: {
           <select
             value={selectedPreset}
             onChange={(e) => handleLoad(e.target.value)}
-            className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#178da6]"
+            className="flex-1 min-w-0 bg-gray-900 border border-gray-700 rounded-lg px-2 py-2 text-white text-sm focus:outline-none focus:border-[#178da6]"
             aria-label="Load preset"
           >
             <option value="">— Load routine —</option>

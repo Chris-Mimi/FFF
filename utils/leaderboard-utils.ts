@@ -117,7 +117,7 @@ interface ScoringFields {
 
 /**
  * Detect the primary scoring type from a section's scoring_fields.
- * Priority: time/max_time > rounds_reps > reps > load/weight > calories > metres > checkbox
+ * Priority: time/max_time > rounds_reps > reps+cals > reps > load/weight > calories > metres > checkbox
  */
 export function detectScoringType(scoringFields?: ScoringFields): string {
   if (!scoringFields) return 'time';
@@ -126,6 +126,7 @@ export function detectScoringType(scoringFields?: ScoringFields): string {
   if (scoringFields.time && (scoringFields.rounds_reps || scoringFields.reps)) return 'time_with_cap';
   if (scoringFields.time) return 'time';
   if (scoringFields.rounds_reps) return 'rounds_reps';
+  if (scoringFields.reps && scoringFields.calories) return 'reps_cals';
   if (scoringFields.reps) return 'reps';
   if (scoringFields.load) return 'weight';
   if (scoringFields.calories) return 'calories';
@@ -217,6 +218,8 @@ function compareByScoringType(a: RawSectionResult, b: RawSectionResult, type: st
     }
     case 'reps':
       return (b.reps_result || 0) - (a.reps_result || 0); // descending
+    case 'reps_cals':
+      return ((b.reps_result || 0) + (b.calories_result || 0)) - ((a.reps_result || 0) + (a.calories_result || 0)); // combined total, descending
     case 'weight':
       return (b.weight_result || 0) - (a.weight_result || 0); // descending
     case 'calories':
@@ -288,6 +291,7 @@ export function rankSectionResults(
       case 'time_amrap': return (r.rounds_result || 0) > 0 || (r.reps_result || 0) > 0;
       case 'rounds_reps': return (r.rounds_result || 0) > 0 || (r.reps_result || 0) > 0;
       case 'reps': return (r.reps_result || 0) > 0;
+      case 'reps_cals': return (r.reps_result || 0) > 0 || (r.calories_result || 0) > 0;
       case 'weight': return (r.weight_result || 0) > 0;
       case 'calories': return (r.calories_result || 0) > 0;
       case 'metres': return (r.metres_result || 0) > 0;
@@ -547,6 +551,8 @@ export function formatResult(entry: LeaderboardEntry, scoringType: string): stri
       primary = `${entry.repsResult || 0} reps`; break;
     case 'reps':
       primary = `${entry.repsResult || 0} reps`; break;
+    case 'reps_cals':
+      primary = `${entry.repsResult || 0} reps + ${entry.caloriesResult || 0} cal`; break;
     case 'weight':
       primary = entry.weightResult2
         ? `${entry.weightResult || 0}/${entry.weightResult2} kg`
@@ -570,8 +576,8 @@ export function formatResult(entry: LeaderboardEntry, scoringType: string): stri
     extras.push(`${entry.weightResult2} kg`);
   }
   if (!['metres'].includes(scoringType) && entry.metresResult) extras.push(`${entry.metresResult} m`);
-  if (!['reps', 'rounds_reps', 'time', 'max_time', 'time_with_cap', 'time_amrap'].includes(scoringType) && entry.repsResult) extras.push(`${entry.repsResult} reps`);
-  if (!['calories'].includes(scoringType) && entry.caloriesResult) extras.push(`${entry.caloriesResult} cal`);
+  if (!['reps', 'reps_cals', 'rounds_reps', 'time', 'max_time', 'time_with_cap', 'time_amrap'].includes(scoringType) && entry.repsResult) extras.push(`${entry.repsResult} reps`);
+  if (!['calories', 'reps_cals'].includes(scoringType) && entry.caloriesResult) extras.push(`${entry.caloriesResult} cal`);
 
   if (extras.length > 0) return `${primary} · ${extras.join(' · ')}`;
   return primary;

@@ -194,14 +194,28 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
 
       setForgeBenchmarkPRs(finalForgePRs);
 
-      // Fetch lift PRs
-      const { data: liftData, error: liftError } = await supabase
-        .from('lift_records')
-        .select('*')
-        .eq('user_id', userId)
-        .order('lift_date', { ascending: false });
+      // Fetch lift PRs + barbell_lifts metadata (for category-based sort) in parallel
+      const [{ data: liftData, error: liftError }, { data: barbellLifts }] = await Promise.all([
+        supabase
+          .from('lift_records')
+          .select('*')
+          .eq('user_id', userId)
+          .order('lift_date', { ascending: false }),
+        supabase.from('barbell_lifts').select('name, category, display_order'),
+      ]);
 
       if (liftError) throw liftError;
+
+      // Build lift_name → category + category → min(display_order) lookups
+      const liftNameToCategory: Record<string, string> = {};
+      const categoryOrder: Record<string, number> = {};
+      (barbellLifts || []).forEach(bl => {
+        liftNameToCategory[bl.name] = bl.category;
+        const existing = categoryOrder[bl.category];
+        if (existing === undefined || bl.display_order < existing) {
+          categoryOrder[bl.category] = bl.display_order;
+        }
+      });
 
       // Group by lift name and rep type (rep_max_type or rep_scheme), find highest weight for each
       const liftMap = new Map<string, LiftRecord>();
@@ -215,9 +229,21 @@ export default function AthletePageRecordsTab({ userId }: AthletePageRecordsTabP
         }
       });
 
-      // Note: We show ALL grouped records (per lift+rep_type combo), not just one per lift name
+      // Sort: category display_order ASC, then lift_name alphabetical, then weight_kg DESC.
+      // Unknown categories last.
+      const UNKNOWN_CATEGORY_ORDER = Number.MAX_SAFE_INTEGER;
+      const sortedLifts = Array.from(liftMap.values()).sort((a, b) => {
+        const aCat = liftNameToCategory[a.lift_name];
+        const bCat = liftNameToCategory[b.lift_name];
+        const aOrder = aCat ? categoryOrder[aCat] ?? UNKNOWN_CATEGORY_ORDER : UNKNOWN_CATEGORY_ORDER;
+        const bOrder = bCat ? categoryOrder[bCat] ?? UNKNOWN_CATEGORY_ORDER : UNKNOWN_CATEGORY_ORDER;
+        if (aOrder !== bOrder) return aOrder - bOrder;
+        const nameCmp = a.lift_name.localeCompare(b.lift_name);
+        if (nameCmp !== 0) return nameCmp;
+        return b.weight_kg - a.weight_kg;
+      });
 
-      setLiftPRs(Array.from(liftMap.values()));
+      setLiftPRs(sortedLifts);
     } catch (error) {
       console.error('Error fetching personal records:', error);
       setBenchmarkPRs([]);
