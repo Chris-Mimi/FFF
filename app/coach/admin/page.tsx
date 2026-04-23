@@ -1,12 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth';
-import { UserPlus, ArrowLeft, BarChart2, Bell, KeyRound, Settings, ChevronLeft, ChevronRight } from 'lucide-react';
+import { UserPlus, ArrowLeft, BarChart2, Bell, KeyRound, Settings, ChevronLeft, ChevronRight, ChevronDown, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { NotificationPrompt } from '@/components/ui/NotificationPrompt';
+import { confirm } from '@/lib/confirm';
+import { toast } from 'sonner';
 
 
 interface IncidentStat {
@@ -70,10 +72,11 @@ export default function AdminToolsPage() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('attended');
 
   // Incidents tab
-  const [allIncidents, setAllIncidents] = useState<{ memberId: string; name: string; status: string; date: string }[]>([]);
+  const [allIncidents, setAllIncidents] = useState<{ bookingId: string; memberId: string; name: string; status: string; date: string }[]>([]);
   const [incidentsLoading, setIncidentsLoading] = useState(false);
   const [incidentFilter, setIncidentFilter] = useState<AttendedFilter>('all');
   const [incidentSort, setIncidentSort] = useState<{ col: keyof IncidentStat; dir: 'asc' | 'desc' }>({ col: 'total', dir: 'desc' });
+  const [expandedIncidentMember, setExpandedIncidentMember] = useState<string | null>(null);
 
   // Attended tab — derived from the same RPC the Workouts page uses (bookings + linked scores + whiteboard text mentions, deduped per session)
   const [attendedRanking, setAttendedRanking] = useState<AttendedStat[]>([]);
@@ -108,21 +111,48 @@ export default function AdminToolsPage() {
     try {
       const { data, error } = await supabase
         .from('bookings')
-        .select('member_id, status, members(name), weekly_sessions!inner(date)')
+        .select('id, member_id, status, members(name, display_name), weekly_sessions!inner(date)')
         .in('status', ['coach_cancelled', 'late_cancel', 'no_show']);
       if (error) throw error;
 
-      const rows = (data || []).map((b) => ({
-        memberId: b.member_id,
-        name: (b.members as unknown as { name: string } | null)?.name || 'Unknown',
-        status: b.status,
-        date: (b.weekly_sessions as unknown as { date: string } | null)?.date || '',
-      }));
+      const rows = (data || []).map((b) => {
+        const m = b.members as unknown as { name: string | null; display_name: string | null } | null;
+        return {
+          bookingId: b.id as string,
+          memberId: b.member_id,
+          name: m?.name || m?.display_name || 'Unknown',
+          status: b.status,
+          date: (b.weekly_sessions as unknown as { date: string } | null)?.date || '',
+        };
+      });
       setAllIncidents(rows);
     } catch (err) {
       console.error('Error fetching incident stats:', err);
     } finally {
       setIncidentsLoading(false);
+    }
+  };
+
+  const handleDeleteIncident = async (bookingId: string, name: string, status: string, date: string) => {
+    const statusLabel =
+      status === 'coach_cancelled' ? 'Removed by Coach' :
+      status === 'late_cancel' ? 'Late Cancel' : 'No-Show';
+    const ok = await confirm({
+      title: 'Delete Incident',
+      message: `Permanently delete the ${statusLabel} record for ${name} on ${date}? This removes the booking row from the database.`,
+      confirmText: 'Delete',
+      variant: 'danger',
+    });
+    if (!ok) return;
+    try {
+      const { error } = await supabase.from('bookings').delete().eq('id', bookingId);
+      if (error) throw error;
+      toast.success('Incident deleted');
+      // Optimistic local removal so the UI updates without a full refetch
+      setAllIncidents(prev => prev.filter(r => r.bookingId !== bookingId));
+    } catch (err) {
+      console.error('Error deleting incident:', err);
+      toast.error('Failed to delete incident');
     }
   };
 
@@ -504,29 +534,76 @@ export default function AdminToolsPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {incidentStats.map((stat) => (
-                        <tr key={stat.memberId} className='border-b border-gray-100 last:border-0'>
-                          <td className='py-2 pr-4 font-medium text-gray-800'>{stat.name}</td>
-                          <td className='text-center py-2 px-3 text-gray-500'>
-                            {stat.coachCancelled > 0 ? stat.coachCancelled : '—'}
-                          </td>
-                          <td className='text-center py-2 px-3'>
-                            {stat.lateCancel > 0 ? (
-                              <span className='inline-block bg-purple-100 text-purple-800 font-medium px-2 py-0.5 rounded text-xs'>
-                                {stat.lateCancel}
-                              </span>
-                            ) : '—'}
-                          </td>
-                          <td className='text-center py-2 px-3'>
-                            {stat.noShow > 0 ? (
-                              <span className='inline-block bg-orange-100 text-orange-800 font-medium px-2 py-0.5 rounded text-xs'>
-                                {stat.noShow}
-                              </span>
-                            ) : '—'}
-                          </td>
-                          <td className='text-center py-2 pl-3 font-bold text-gray-900'>{stat.total}</td>
-                        </tr>
-                      ))}
+                      {incidentStats.map((stat) => {
+                        const isExpanded = expandedIncidentMember === stat.memberId;
+                        const cutoff = getFilterDate(incidentFilter);
+                        const memberIncidents = allIncidents
+                          .filter(r => r.memberId === stat.memberId && (!cutoff || r.date >= cutoff))
+                          .sort((a, b) => b.date.localeCompare(a.date));
+                        return (
+                          <React.Fragment key={stat.memberId}>
+                            <tr
+                              onClick={() => setExpandedIncidentMember(isExpanded ? null : stat.memberId)}
+                              className='border-b border-gray-100 last:border-0 cursor-pointer hover:bg-gray-50'
+                            >
+                              <td className='py-2 pr-4 font-medium text-gray-800'>
+                                <span className='inline-flex items-center gap-1'>
+                                  <ChevronDown size={14} className={`text-gray-400 transition-transform ${isExpanded ? '' : '-rotate-90'}`} />
+                                  {stat.name}
+                                </span>
+                              </td>
+                              <td className='text-center py-2 px-3 text-gray-500'>
+                                {stat.coachCancelled > 0 ? stat.coachCancelled : '—'}
+                              </td>
+                              <td className='text-center py-2 px-3'>
+                                {stat.lateCancel > 0 ? (
+                                  <span className='inline-block bg-purple-100 text-purple-800 font-medium px-2 py-0.5 rounded text-xs'>
+                                    {stat.lateCancel}
+                                  </span>
+                                ) : '—'}
+                              </td>
+                              <td className='text-center py-2 px-3'>
+                                {stat.noShow > 0 ? (
+                                  <span className='inline-block bg-orange-100 text-orange-800 font-medium px-2 py-0.5 rounded text-xs'>
+                                    {stat.noShow}
+                                  </span>
+                                ) : '—'}
+                              </td>
+                              <td className='text-center py-2 pl-3 font-bold text-gray-900'>{stat.total}</td>
+                            </tr>
+                            {isExpanded && (
+                              <tr className='bg-gray-50'>
+                                <td colSpan={5} className='py-2 px-4'>
+                                  <div className='space-y-1'>
+                                    {memberIncidents.map(inc => {
+                                      const label =
+                                        inc.status === 'coach_cancelled' ? { text: 'Removed by Coach', cls: 'bg-gray-200 text-gray-700' } :
+                                        inc.status === 'late_cancel' ? { text: 'Late Cancel', cls: 'bg-purple-100 text-purple-800' } :
+                                        { text: 'No-Show', cls: 'bg-orange-100 text-orange-800' };
+                                      return (
+                                        <div key={inc.bookingId} className='flex items-center justify-between bg-white rounded px-3 py-1.5 border border-gray-200 text-xs'>
+                                          <div className='flex items-center gap-2'>
+                                            <span className='text-gray-600 font-mono'>{inc.date}</span>
+                                            <span className={`inline-block ${label.cls} font-medium px-2 py-0.5 rounded`}>{label.text}</span>
+                                          </div>
+                                          <button
+                                            onClick={() => handleDeleteIncident(inc.bookingId, stat.name, inc.status, inc.date)}
+                                            className='flex items-center gap-1 px-2 py-1 text-xs bg-red-50 hover:bg-red-100 text-red-700 rounded transition'
+                                            title='Delete this incident permanently'
+                                          >
+                                            <Trash2 size={12} />
+                                            Delete
+                                          </button>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </React.Fragment>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
