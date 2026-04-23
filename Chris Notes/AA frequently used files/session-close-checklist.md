@@ -1,70 +1,72 @@
 # Session Close Checklist
 
+**Use this for:** clean session close with plenty of context remaining (< 50-60%) — you want to wrap up and start fresh tomorrow.
+
+**Do NOT use this for:** emergency handoff at 70%+ context. For that, paste the prompt from [`handoff-prompt.md`](handoff-prompt.md) instead — it produces a structured handoff doc without the memory-bank/history ritual (which is expensive in a bloated session and should happen in the fresh one).
+
+---
+
 ## Order of Operations (CRITICAL)
 
-### 1. Pre-Check: Terminal Lock & Sync
-- [ ] **Check Terminal Locks:** Ensure no background processes (like `npm run dev`, `vite`, or `nodemon`) are actively locking the database or JSON files. Kill them if necessary to prevent corrupted backups.
+### 1. Pre-Check: Terminal Locks & Sync
+- [ ] Check no background processes (`npm run dev`, `vite`, `nodemon`) are locking the DB or JSON files. Kill if needed — prevents corrupted backups.
 
-### 2. Update Memory Bank
-- [ ] **Update `memory-bank/memory-bank-activeContext.md`**
-  - Current focus/state (Persona focus: Athlete vs. Coach?)
-  - Known issues/bugs discovered
-  - Next immediate steps for the next session
- - **⚠️ KEEP IT CONCISE:** Only last 5 sessions, remove older sessions (detailed history is in `project-history/`)
-  - **Don't bloat activeContext** - Full details belong in project history files
+### 2. Review Uncommitted State
+- [ ] Run `git status`. Ask Claude: *"Should any of these files be excluded or split across separate commits?"*
+- [ ] Decide: one commit vs. several logical commits (feature / bugfix / docs).
+- [ ] Flag anything experimental that should NOT be committed yet.
 
-### 3. Create Project History File
-- [ ] **Create new file:** `project-history/YYYY-MM-DD-session-XX-description.md`
-  - Document accomplishments, logic decisions, and major learnings.
+### 3. Update Notes for Next Session
+- [ ] Overwrite `Chris Notes/AA frequently used files/Notes for next session.md` with:
+  - Next concrete action (the very first thing next-session-Claude should do).
+  - Files to open first, ranked.
+  - Any open questions from this session still unanswered.
+  - Landmines (migrations not run, tests pending, manual dashboard steps).
+- [ ] Keep it short — this is the "first 5 minutes of tomorrow" doc, not a history record.
 
-### 4. Update Chris Notes/Forge app documentation/Forge-Feature-Overview.md
-- [ ]Write any new features in this file with a view to using this as publicity and user manual when we launch
+### 4. Update Memory Bank
+- [ ] Update `memory-bank/memory-bank-activeContext.md`:
+  - Bump version + date.
+  - Add this session to "Current Status (Last 5 Sessions)" block.
+  - Remove the 6th-oldest session entry (detailed history lives in `project-history/`).
+  - Update "Next Immediate Steps" list.
+  - Update "Known Open Issues" if new bugs discovered.
+- [ ] **Keep it concise** — if an entry runs > 15 lines, move detail to `project-history/` and summarize.
 
-### 5. Run Database Backup ⚠️ BEFORE GIT
-- [ ] **Execute Backup:**
-  ```bash
-  npm run backup
- 
+### 5. Create Project History File
+- [ ] Create `project-history/YYYY-MM-DD-session-XXX-description.md`
+  - Accomplishments, logic decisions, rejected alternatives, major learnings.
+  - This is where the nuance that doesn't fit in activeContext goes.
 
-**Why before git?** Backup creates timestamped JSON files that should be version controlled alongside code changes.
+### 6. Update Feature Overview (if applicable)
+- [ ] If a new user-facing feature shipped: add an entry to `Chris Notes/Forge app documentation/Forge-Feature-Overview.md`. Written with launch-publicity / user-manual framing in mind.
 
-**Auto-discovers and backs up ALL public tables** using `get_public_tables()` RPC function (Session 95). Current tables include:
+### 7. Run Database Backup ⚠️ BEFORE GIT
+- [ ] Execute: `npm run backup`
+- Auto-discovers all public tables via `get_public_tables()` RPC (Session 95), so the schema list stays current automatically.
+- **Why before git:** timestamped JSON files should be version-controlled alongside code changes.
 
-**Movement/Workout Definitions (11):**
-- exercises, exercise_categories, user_exercise_favorites, benchmark_workouts, forge_benchmarks
-- barbell_lifts, section_types, workout_types, workout_titles, tracks, naming_conventions, resources
+### 8. Stage Changes (Deliberate, Not Blanket)
+- [ ] Prefer named-file staging: `git add path/to/file1 path/to/file2 ...`
+- [ ] `git add .` only after an explicit `git status` review — never as a reflex.
+- [ ] Never stage `.env*`, credentials, large binaries, or anything in `/tmp`.
 
-**Programmed Workouts (2):**
-- wods, weekly_sessions
+### 9. Commit
+Use the session-prefix pattern from recent git log:
 
-**User/Membership Data (3):**
-- members, bookings, athlete_profiles
-
-**Athlete Performance (4):**
-- workout_logs, benchmark_results, lift_records, wod_section_results
-
-**Social Features (1):**
-- reactions
-
-**Coach Tools (3):**
-- programming_notes, note_folders, whiteboard_photos
-
-### 5. Git Add
-```bash
-git add .
 ```
-Stages all changes including backup files.
+<type>(session-XXX): <short subject>
 
-### 6. Git Commit
-```bash
-git commit -m "descriptive message
+<optional body>
 
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>
 ```
 
-### 7. Git Push
+- `<type>`: `feat` | `fix` | `refactor` | `docs` | `chore` | `test`
+- `XXX`: current session number (check activeContext version or last commit).
+- Subject: imperative mood, specific (*what* changed and *why*, briefly).
+
+### 10. Push
 ```bash
 git push
 ```
@@ -73,9 +75,12 @@ git push
 
 ## Verification Checklist
 
-- [ ] Memory bank updated with current state
+- [ ] Notes for next session updated (points to tomorrow's first action)
+- [ ] Memory bank updated (version bumped, 5 sessions only)
 - [ ] Project history file created
+- [ ] Feature overview updated (if applicable)
 - [ ] Backup completed successfully
+- [ ] Commit message follows `type(session-XXX):` pattern
 - [ ] All changes committed (including backups)
 - [ ] Pushed to GitHub
 - [ ] Both accounts synced (if working across Mimi/Chris accounts)
@@ -84,9 +89,9 @@ git push
 
 ## Common Mistakes to Avoid
 
-❌ **Don't commit before backup** - Backup files won't be in the commit
-❌ **Don't skip project history** - Future sessions need context
-❌ **Don't use generic commit messages** - Be specific about what changed
-❌ **Don't bloat activeContext.md** - Keep only last 5 sessions, move older sessions to "See project-history/" summary
-❌ **Don't ignore the "84% Bug"** – If the CLI feels slow or blocks, run /clear immediately after finishing these steps.
-
+- ❌ **Committing before backup** — backup files won't be in the commit.
+- ❌ **Skipping project history** — nuance gets lost in activeContext's 5-session window.
+- ❌ **Generic commit messages** — no session number, no specifics.
+- ❌ **Bloating activeContext.md** — keep only last 5 sessions; older detail → `project-history/`.
+- ❌ **Reflex `git add .`** — review `git status` first; silent bulk stages have bitten before (Session 240 incident).
+- ❌ **Running this checklist at 70%+ context** — use `handoff-prompt.md` instead; the memory-bank update is too expensive in a bloated session.

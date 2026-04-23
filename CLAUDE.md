@@ -59,7 +59,9 @@ significant action.
   re-reads entire context = expensive). Memory Bank updates happen in fresh
   session using summary + git history. At **80%**: Critical limit, immediately
   execute handoff. See `workflow-protocols.md` TOKEN EFFICIENCY section for
-  detailed cost-optimal handoff protocol.
+  detailed cost-optimal handoff protocol. **Handoff trigger:** at 70%, Chris
+  pastes the prompt from `Chris Notes/AA frequently used files/handoff-prompt.md`
+  verbatim to force a structured handoff doc.
 
 ### 3. Chat and Tool Protocol (MAX TOKEN EFFICIENCY)
 
