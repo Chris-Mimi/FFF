@@ -100,14 +100,24 @@ export default function AdminToolsPage() {
     setAttendedLoading(true);
     try {
       const today = new Date().toISOString().split('T')[0];
-      const { data, error } = await supabase
-        .from('bookings')
-        .select('member_id, members(name), weekly_sessions!inner(date)')
-        .eq('status', 'confirmed')
-        .lte('weekly_sessions.date', today);
-      if (error) throw error;
+      // Paginated to bypass Supabase 1000-row select cap (total bookings now > 1500).
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const all: any[] = [];
+      const PAGE = 1000;
+      for (let from = 0; ; from += PAGE) {
+        const { data, error } = await supabase
+          .from('bookings')
+          .select('member_id, members(name), weekly_sessions!inner(date)')
+          .eq('status', 'confirmed')
+          .lte('weekly_sessions.date', today)
+          .range(from, from + PAGE - 1);
+        if (error) throw error;
+        if (!data || data.length === 0) break;
+        all.push(...data);
+        if (data.length < PAGE) break;
+      }
 
-      const rows = (data || []).map((b) => ({
+      const rows = all.map((b) => ({
         memberId: b.member_id,
         name: (b.members as unknown as { name: string } | null)?.name || 'Unknown',
         date: (b.weekly_sessions as unknown as { date: string } | null)?.date || '',

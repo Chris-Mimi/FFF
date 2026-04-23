@@ -47,19 +47,34 @@ export const useCoachData = ({
 
   const fetchWODs = async () => {
     try {
-      // Fetch all bookings
-      const { data: allBookings, error: bookingsError } = await supabase
-        .from('bookings')
-        .select('session_id, status, members(name, display_name)');
+      // Fetch all bookings — paginated to bypass Supabase 1000-row select cap
+      // (without this, count chips lag behind once total bookings > 1000).
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const allBookings: any[] = [];
+      const PAGE = 1000;
+      for (let from = 0; ; from += PAGE) {
+        const { data, error } = await supabase
+          .from('bookings')
+          .select('session_id, status, members(name, display_name)')
+          .range(from, from + PAGE - 1);
+        if (error) throw error;
+        if (!data || data.length === 0) break;
+        allBookings.push(...data);
+        if (data.length < PAGE) break;
+      }
 
-      if (bookingsError) throw bookingsError;
-
-      // Fetch wod IDs that have scores entered
-      const { data: scoredWods } = await supabase
-        .from('wod_section_results')
-        .select('wod_id')
-        .not('wod_id', 'is', null);
-      const scoredWodIds = new Set((scoredWods || []).map(r => r.wod_id));
+      // Fetch wod IDs that have scores entered — paginated for the same reason
+      const scoredWodIds = new Set<string>();
+      for (let from = 0; ; from += PAGE) {
+        const { data } = await supabase
+          .from('wod_section_results')
+          .select('wod_id')
+          .not('wod_id', 'is', null)
+          .range(from, from + PAGE - 1);
+        if (!data || data.length === 0) break;
+        for (const r of data) scoredWodIds.add(r.wod_id);
+        if (data.length < PAGE) break;
+      }
 
       // Fetch sessions with related WODs
       const { data, error } = await supabase
