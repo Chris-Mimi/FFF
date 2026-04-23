@@ -42,23 +42,23 @@ const genericToCanonical: Record<string, string> = {
   'cleans': 'barbell clean',
   'snatch': 'barbell snatch',
   'snatches': 'barbell snatch',
-  'push press': 'barbell push press (pp)',
-  'push jerk': 'barbell push jerk (pj)',
-  'push jerks': 'barbell push jerk (pj)',
-  'hang power clean': 'barbell hang power clean (hpc)',
-  'hang power cleans': 'barbell hang power clean (hpc)',
-  'clean & jerk': 'barbell clean & jerk (c&j)',
-  'clean & jerks': 'barbell clean & jerk (c&j)',
-  'clean and jerk': 'barbell clean & jerk (c&j)',
-  'clean and jerks': 'barbell clean & jerk (c&j)',
+  'push press': 'barbell push press',
+  'push jerk': 'barbell push jerk',
+  'push jerks': 'barbell push jerk',
+  'hang power clean': 'barbell hang power clean',
+  'hang power cleans': 'barbell hang power clean',
+  'clean & jerk': 'barbell clean & jerk',
+  'clean & jerks': 'barbell clean & jerk',
+  'clean and jerk': 'barbell clean & jerk',
+  'clean and jerks': 'barbell clean & jerk',
   'bench press': 'barbell bench press',
   'back squat': 'barbell back squat',
   'back squats': 'barbell back squat',
-  'front squat': 'barbell front squat (fs)',
-  'front squats': 'barbell front squat (fs)',
-  'overhead squat': 'overhead squat (ohs)',
-  'overhead squats': 'overhead squat (ohs)',
-  'strict overhead shoulder press': 'barbell strict overhead shoulder press (sp)',
+  'front squat': 'barbell front squat',
+  'front squats': 'barbell front squat',
+  'overhead squat': 'barbell overhead squat',
+  'overhead squats': 'barbell overhead squat',
+  'strict overhead shoulder press': 'barbell strict oh press',
   // Gymnastics
   'ring muscle-up': 'ring muscle-up (kipping)',
   'ring muscle-ups': 'ring muscle-up (kipping)',
@@ -67,20 +67,20 @@ const genericToCanonical: Record<string, string> = {
   'knees to elbows': 'bar hanging knees to elbows',
   'knee to elbow': 'bar hanging knees to elbows',
   // KB
-  'kb swing': 'kb swing american (akbs)',
-  'kb swings': 'kb swing american (akbs)',
-  'kettlebell swing': 'kb swing american (akbs)',
-  'kettlebell swings': 'kb swing american (akbs)',
+  'kb swing': 'kb swing american',
+  'kb swings': 'kb swing american',
+  'kettlebell swing': 'kb swing american',
+  'kettlebell swings': 'kb swing american',
   // Bodyweight — need prefix
   'sit-up': 'abmat sit-up',
   'sit-ups': 'abmat sit-up',
   'back extension': 'ghd back extension',
   'back extensions': 'ghd back extension',
   // Jump rope — naming convention uses "Jump Rope" prefix
-  'double-under': 'jump rope double-unders (dus)',
-  'double-unders': 'jump rope double-unders (dus)',
-  'double under': 'jump rope double-unders (dus)',
-  'double unders': 'jump rope double-unders (dus)',
+  'double-under': 'jump rope double-unders',
+  'double-unders': 'jump rope double-unders',
+  'double under': 'jump rope double-unders',
+  'double unders': 'jump rope double-unders',
   // Lunges — old convention "Walking Lunge" → new "Lunge Walking"
   'walking lunge': 'lunge walking',
   'walking lunges': 'lunge walking',
@@ -88,6 +88,13 @@ const genericToCanonical: Record<string, string> = {
   'row': 'c2 rower',
   'rowing': 'c2 rower',
 };
+
+/**
+ * Runtime-loaded acronym map (tag lowercase → exercise display_name lowercase).
+ * Built from exercises.tags at load time in useCoachData. Acronyms beyond the
+ * hardcoded genericToCanonical set (e.g. "dl" for Barbell Deadlift) come from here.
+ */
+export type AcronymMap = Map<string, string>;
 
 // Phrases that indicate coaching instructions, not exercises
 const instructionPhrases = [
@@ -334,7 +341,11 @@ const extractMovementsFromText = (
  * Sources: structured data (lifts, benchmarks, forge_benchmarks) + content text parsing
  * @returns Set of normalized movement names
  */
-export const extractMovementsFromWod = (wod: WODFormData, knownExerciseNames?: Set<string>): Set<string> => {
+export const extractMovementsFromWod = (
+  wod: WODFormData,
+  knownExerciseNames?: Set<string>,
+  acronymMap?: AcronymMap
+): Set<string> => {
   const movements = new Set<string>();
 
   // Pre-compute lowercase exercise names for matching
@@ -347,6 +358,19 @@ export const extractMovementsFromWod = (wod: WODFormData, knownExerciseNames?: S
     // Source 1: Structured lift names (cross-reference to exercise library)
     section.lifts?.forEach((lift: ConfiguredLift) => {
       if (!lift.name) return;
+      // Acronym shortcut — barbell_lifts may store short codes ("BS", "DL", "PP").
+      // findMatchingExercise rejects < 3 chars, so resolve via tags/genericToCanonical first.
+      const liftLower = lift.name.toLowerCase().trim();
+      const viaTag = acronymMap?.get(liftLower);
+      if (viaTag && knownLower?.has(viaTag)) {
+        movements.add(normalizeMovement(viaTag));
+        return;
+      }
+      const canonical = genericToCanonical[liftLower];
+      if (canonical && knownLower?.has(canonical)) {
+        movements.add(normalizeMovement(canonical));
+        return;
+      }
       // Try matching with "Barbell" prefix first (since lifts are from barbell_lifts table)
       const barbellPrefixed = `Barbell ${lift.name}`;
       if (knownLower && knownList) {
@@ -394,7 +418,11 @@ export const extractMovementsFromWod = (wod: WODFormData, knownExerciseNames?: S
  * @param wods - Array of WOD data to extract movements from
  * @returns Map of movement names to occurrence counts
  */
-export const extractMovements = (wods: WODFormData[], knownExerciseNames?: Set<string>): Map<string, number> => {
+export const extractMovements = (
+  wods: WODFormData[],
+  knownExerciseNames?: Set<string>,
+  acronymMap?: AcronymMap
+): Map<string, number> => {
   const movementCounts = new Map<string, number>();
   // Track which movements have been counted for each unique workout (dedup by name + 2-week window)
   const countedMovements = new Map<string, Set<string>>();
@@ -415,7 +443,7 @@ export const extractMovements = (wods: WODFormData[], knownExerciseNames?: Set<s
       workoutKey = wod.date;
     }
 
-    const movementsInThisWod = extractMovementsFromWod(wod, knownExerciseNames);
+    const movementsInThisWod = extractMovementsFromWod(wod, knownExerciseNames, acronymMap);
 
     // Only count each movement once per unique workout
     movementsInThisWod.forEach(movement => {

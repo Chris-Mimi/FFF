@@ -3,7 +3,7 @@
 import { WODFormData, WODSection } from '@/components/coach/WorkoutModal';
 import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
 import { supabase } from '@/lib/supabase';
-import { extractMovements, extractMovementsFromWod } from '@/utils/movement-extraction';
+import { extractMovements, extractMovementsFromWod, type AcronymMap } from '@/utils/movement-extraction';
 import { useEffect, useState } from 'react';
 
 interface UseCoachDataProps {
@@ -40,6 +40,8 @@ export const useCoachData = ({
   const [movements, setMovements] = useState<Map<string, number>>(new Map());
   const [exerciseNames, setExerciseNames] = useState<Set<string>>(new Set());
   const [exerciseList, setExerciseList] = useState<Array<{ id: string; name: string; display_name: string | null; category: string }>>([]);
+  const [acronymMap, setAcronymMap] = useState<AcronymMap>(new Map());
+  const [displayNameToAcronyms, setDisplayNameToAcronyms] = useState<Map<string, string[]>>(new Map());
   const [members, setMembers] = useState<Array<{ id: string; name: string; booking_count: number; date_of_birth: string | null }>>([]);
   const [loading, setLoading] = useState(true);
 
@@ -290,6 +292,18 @@ export const useCoachData = ({
                     // Add equipment prefix if available (from barbell_lifts.equipment)
                     const liftEquipment = 'Barbell'; // Default for now, can be fetched from DB if needed
                     movements.push(`${liftEquipment} ${lift.name}`);
+                    // Include exercise tags (acronyms) so searching "dl" finds "Barbell Deadlift" lifts (S303)
+                    const liftLower = lift.name.toLowerCase();
+                    const formsToTry = [
+                      liftLower,
+                      `barbell ${liftLower}`,
+                      `kb ${liftLower}`,
+                      `jump rope ${liftLower}`,
+                    ];
+                    for (const form of formsToTry) {
+                      const tags = displayNameToAcronyms.get(form);
+                      if (tags) { tags.forEach(t => movements.push(t)); break; }
+                    }
                   }
                 });
 
@@ -343,7 +357,7 @@ export const useCoachData = ({
         if (selectedMovements.length > 0) {
           const knownNames = exerciseNames.size > 0 ? exerciseNames : undefined;
           filteredResults = filteredResults.filter(wod => {
-            const wodMovements = extractMovementsFromWod(wod, knownNames);
+            const wodMovements = extractMovementsFromWod(wod, knownNames, acronymMap);
             return selectedMovements.every(movement =>
               wodMovements.has(movement)
             );
@@ -374,7 +388,7 @@ export const useCoachData = ({
 
         setSearchResults(filteredResults);
 
-        const allMovements = extractMovements(filteredResults, exerciseNames.size > 0 ? exerciseNames : undefined);
+        const allMovements = extractMovements(filteredResults, exerciseNames.size > 0 ? exerciseNames : undefined, acronymMap);
         setMovements(allMovements);
       } catch (error) {
         console.error('Error searching WODs:', error);
@@ -383,22 +397,33 @@ export const useCoachData = ({
 
     const timeoutId = setTimeout(searchWODs, 300);
     return () => clearTimeout(timeoutId);
-  }, [searchQuery, selectedMovements, selectedWorkoutTypes, selectedTracks, selectedSessionTypes, includedSectionTypes, selectedSectionTypeFilter, selectedMembers, exerciseNames]);
+  }, [searchQuery, selectedMovements, selectedWorkoutTypes, selectedTracks, selectedSessionTypes, includedSectionTypes, selectedSectionTypeFilter, selectedMembers, exerciseNames, acronymMap, displayNameToAcronyms]);
 
   const fetchExerciseNames = async () => {
     try {
       const { data, error } = await supabase
         .from('exercises')
-        .select('id, name, display_name, category');
+        .select('id, name, display_name, category, tags');
 
       if (error) throw error;
 
       const names = new Set<string>();
+      const acronyms: AcronymMap = new Map();
+      const reverse = new Map<string, string[]>();
       data?.forEach(ex => {
-        if (ex.display_name) names.add(ex.display_name);
+        if (!ex.display_name) return;
+        names.add(ex.display_name);
+        const dnLower = ex.display_name.toLowerCase();
+        const tags: string[] = Array.isArray(ex.tags) ? ex.tags.filter(Boolean).map((t: string) => t.toLowerCase()) : [];
+        if (tags.length > 0) {
+          reverse.set(dnLower, tags);
+          tags.forEach(tag => acronyms.set(tag, dnLower));
+        }
       });
       setExerciseNames(names);
-      setExerciseList(data || []);
+      setExerciseList((data || []).map(({ tags: _t, ...rest }) => rest));
+      setAcronymMap(acronyms);
+      setDisplayNameToAcronyms(reverse);
     } catch (error) {
       console.error('Error fetching exercise names:', error);
     }
