@@ -1,7 +1,8 @@
 'use client';
 
 import { supabase } from '@/lib/supabase';
-import { extractMovementsFromWod } from '@/utils/movement-extraction';
+import { extractMovementsFromWod, type AcronymMap } from '@/utils/movement-extraction';
+import { fetchAcronymMap } from '@/utils/movement-analytics';
 import { WODFormData } from '@/components/coach/WorkoutModal';
 import type { TrackedExercise } from '@/lib/exercise-storage';
 import { useEffect, useState, useRef, useCallback } from 'react';
@@ -34,8 +35,17 @@ export function useMovementTracking({
   const [lastPerformedData, setLastPerformedData] = useState<LastPerformedData>({});
   const [globalLastProgrammed, setGlobalLastProgrammed] = useState<GlobalLastProgrammedData>({});
   const [loading, setLoading] = useState(false);
+  const [acronymMap, setAcronymMap] = useState<AcronymMap>(new Map());
   const wodMovementCache = useRef<Map<string, Set<string>>>(new Map());
   const debounceRef = useRef<NodeJS.Timeout>(undefined);
+
+  // Load acronym map once (DB tags → display_name); invalidate cache when it changes
+  useEffect(() => {
+    fetchAcronymMap().then(map => {
+      setAcronymMap(map);
+      wodMovementCache.current.clear();
+    });
+  }, []);
 
   // Helper: extract movements per wod (memoized)
   const getWodMovements = useCallback((wodId: string, wod: WODFormData): Set<string> => {
@@ -43,10 +53,10 @@ export function useMovementTracking({
       return wodMovementCache.current.get(wodId)!;
     }
     const knownNames = exerciseNames.size > 0 ? exerciseNames : undefined;
-    const movs = extractMovementsFromWod(wod, knownNames);
+    const movs = extractMovementsFromWod(wod, knownNames, acronymMap);
     wodMovementCache.current.set(wodId, movs);
     return movs;
-  }, [exerciseNames]);
+  }, [exerciseNames, acronymMap]);
 
   // Compute global last-programmed dates (independent of athlete selection)
   const computeGlobal = useCallback(async () => {

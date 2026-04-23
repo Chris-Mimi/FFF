@@ -5,8 +5,32 @@
 
 import { supabase } from '@/lib/supabase';
 import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
-import { extractMovementsFromWod } from '@/utils/movement-extraction';
+import { extractMovementsFromWod, type AcronymMap } from '@/utils/movement-extraction';
 import type { WODFormData } from '@/components/coach/WorkoutModal';
+
+/**
+ * Fetch the acronym → display_name map from exercises.tags.
+ * Shared by movement extraction call sites that don't have access to useCoachData.
+ */
+export async function fetchAcronymMap(): Promise<AcronymMap> {
+  const { data, error } = await supabase
+    .from('exercises')
+    .select('display_name, tags');
+
+  if (error) {
+    console.error('Error fetching acronym map:', error);
+    return new Map();
+  }
+
+  const acronyms: AcronymMap = new Map();
+  data?.forEach(ex => {
+    if (!ex.display_name) return;
+    const dnLower = ex.display_name.toLowerCase();
+    const tags: string[] = Array.isArray(ex.tags) ? ex.tags.filter(Boolean).map((t: string) => t.toLowerCase()) : [];
+    tags.forEach(tag => acronyms.set(tag, dnLower));
+  });
+  return acronyms;
+}
 
 // ============================================
 // Types
@@ -410,16 +434,17 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
   // Fetch all exercises from database for matching
   const { data: exercisesData, error: exercisesError } = await supabase
     .from('exercises')
-    .select('id, name, display_name, category');
+    .select('id, name, display_name, category, tags');
 
   if (exercisesError) {
     console.error('Error fetching exercises:', exercisesError);
     return [];
   }
 
-  // Build name→exercise lookup (case-insensitive, by name and display_name)
+  // Build name→exercise lookup (case-insensitive, by name and display_name) + acronym map
   const exercisesByName = new Map<string, { id: string; name: string; category: string }>();
   const knownExerciseNames = new Set<string>();
+  const acronymMap: AcronymMap = new Map();
   exercisesData?.forEach(ex => {
     exercisesByName.set(ex.name.toLowerCase(), { id: ex.id, name: ex.name, category: ex.category });
     knownExerciseNames.add(ex.name);
@@ -427,6 +452,9 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
       exercisesByName.set(ex.display_name.toLowerCase(), { id: ex.id, name: ex.name, category: ex.category });
       knownExerciseNames.add(ex.display_name);
     }
+    const dnLower = (ex.display_name || ex.name).toLowerCase();
+    const tags: string[] = Array.isArray(ex.tags) ? ex.tags.filter(Boolean).map((t: string) => t.toLowerCase()) : [];
+    tags.forEach(tag => acronymMap.set(tag, dnLower));
   });
 
   const workouts = await fetchPublishedWorkouts(filter, 'workouts for exercise frequency');
@@ -453,7 +481,7 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
       maxCapacity: 0,
     };
 
-    const movements = extractMovementsFromWod(wodData, knownExerciseNames);
+    const movements = extractMovementsFromWod(wodData, knownExerciseNames, acronymMap);
 
     movements.forEach(movementName => {
       const exercise = exercisesByName.get(movementName.toLowerCase());

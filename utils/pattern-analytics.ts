@@ -4,7 +4,7 @@
  * when linked exercises last appeared in published workouts.
  */
 
-import { fetchPublishedWorkouts, type DateRangeFilter } from '@/utils/movement-analytics';
+import { fetchPublishedWorkouts, fetchAcronymMap, type DateRangeFilter } from '@/utils/movement-analytics';
 import { extractMovementsFromWod } from '@/utils/movement-extraction';
 import type { PatternWithExercises, PatternGapResult } from '@/types/planner';
 import type { WODFormData } from '@/components/coach/WorkoutModal';
@@ -31,8 +31,11 @@ export async function computePatternGaps(
     excludeSessionTypes,
   };
 
-  // Fetch all published workouts in the lookback window
-  const workouts = await fetchPublishedWorkouts(filter, 'pattern gap analysis');
+  // Fetch all published workouts in the lookback window + acronym map (parallel)
+  const [workouts, acronymMap] = await Promise.all([
+    fetchPublishedWorkouts(filter, 'pattern gap analysis'),
+    fetchAcronymMap(),
+  ]);
 
   // Build set of all known exercise names (for extraction matching)
   const allExerciseNames = new Set<string>();
@@ -46,7 +49,8 @@ export async function computePatternGaps(
     date: w.date,
     movements: extractMovementsFromWod(
       { sections: w.sections, date: w.date } as Pick<WODFormData, 'sections' | 'date'> as WODFormData,
-      allExerciseNames
+      allExerciseNames,
+      acronymMap
     ),
   }));
 
@@ -147,7 +151,10 @@ export async function detectWeeklyCoverage(
   if (patterns.length === 0) return new Map();
 
   const filter: DateRangeFilter = { startDate, endDate, excludeSessionTypes };
-  const workouts = await fetchPublishedWorkouts(filter, 'weekly coverage');
+  const [workouts, acronymMap] = await Promise.all([
+    fetchPublishedWorkouts(filter, 'weekly coverage'),
+    fetchAcronymMap(),
+  ]);
 
   const allExerciseNames = new Set<string>();
   patterns.forEach(p => p.exercises.forEach(e => {
@@ -161,7 +168,8 @@ export async function detectWeeklyCoverage(
   for (const workout of workouts) {
     const movements = extractMovementsFromWod(
       { sections: workout.sections, date: workout.date } as Pick<WODFormData, 'sections' | 'date'> as WODFormData,
-      allExerciseNames
+      allExerciseNames,
+      acronymMap
     );
     const movementsLower = new Set(
       Array.from(movements).map(m => m.toLowerCase())
