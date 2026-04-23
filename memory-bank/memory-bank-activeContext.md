@@ -152,9 +152,9 @@ Athlete Tools
 ## 📋 Next Immediate Steps
 
 1. **Decide whether to extend S303 acronym resolution** to `utils/pattern-analytics.ts:47,:162`, `hooks/coach/useMovementTracking.ts:46`, `utils/movement-analytics.ts:456`. Pattern: add optional `acronymMap?: AcronymMap` arg and plumb through from the calling hook (already has `exerciseNames` — expose the map the same way). Low priority.
-2. **Live-verify S302 benchmark leaderboard tiebreakers** — find a benchmark with tied scores (e.g., two athletes tied on Fran time), confirm shared rank + age/date ordering within tied group.
-3. **Live-verify S300 section leaderboard tiebreakers** — find a tie scenario on a section-result view (weight/reps/time), same age/date/time ordering expected.
-4. **Live-verify S299 changes** — (a) leaderboard with reps+cals section shows combined ranking and `"X reps + Y cal"` format, (b) Records page Barbell Lifts list sorts Olympic→Press→Pull→Squat with lifts grouped alphabetically, (c) Intervals presets Delete button visible on iPhone.
+2. ~~**Live-verify S302 benchmark leaderboard tiebreakers**~~ — **PINNED (S305).** Tied benchmark scores are an edge case that will almost never happen. Revisit only if it becomes a real problem.
+3. ~~**Live-verify S300 section leaderboard tiebreakers**~~ — **VERIFIED OK (S305).**
+4. ~~**Live-verify S299 changes**~~ — **VERIFIED OK (S305).** Reps+cals combined ranking, Records Barbell Lifts sort order, iPhone Intervals Delete button all confirmed.
 5. **Live-test Intervals timer mode itself** (S296) on deployed app — core mode never live-tested (presets already confirmed working S298).
 6. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app (should now show "Updating password for [email]" above form).
 7. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper processes), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
