@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { authFetch } from '@/lib/auth-fetch';
 import { supabase } from '@/lib/supabase';
-import { MembershipType, ClassType, Member } from '@/types/member';
+import { MembershipType, ClassType, Member, MEMBERSHIP_TYPE_LABELS } from '@/types/member';
 
 export function useMemberActions(
   refreshData: () => Promise<void>,
@@ -268,6 +268,22 @@ export function useMemberActions(
   };
 
   const handleToggleMembershipType = async (memberId: string, type: MembershipType, currentTypes: MembershipType[]) => {
+    // Guardrail: once a membership type is set (i.e. member has been approved with one), confirm any change.
+    // Prevents accidental clicks while a filter is on. No prompt on the very first selection.
+    if (currentTypes.length > 0) {
+      const isRemoving = currentTypes.includes(type);
+      const label = MEMBERSHIP_TYPE_LABELS[type];
+      const ok = await confirm({
+        title: 'Change membership type?',
+        message: isRemoving
+          ? `Remove "${label}" from this member?`
+          : `Add "${label}" to this member?`,
+        confirmText: isRemoving ? 'Remove' : 'Add',
+        variant: 'danger',
+      });
+      if (!ok) return;
+    }
+
     try {
       const newTypes = currentTypes.includes(type)
         ? currentTypes.filter(t => t !== type)

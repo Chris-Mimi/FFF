@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 170.0
-**Updated:** 2026-04-23 (Session 307 — Admin attendance: calendar-month grid + name search)
+**Version:** 170.1
+**Updated:** 2026-04-23 (Session 307 cont. — per-incident delete + membership-type change guard)
 
 ---
 
@@ -89,7 +89,10 @@ Athlete Tools
 - **Calendar-month grid in Admin Tools Attendance Reports** (`app/coach/admin/page.tsx`): added year selector with chevron arrows + 12-button month grid below the existing rolling-window pills. Mutually exclusive: clicking a pill clears `selectedMonth`; clicking a month deselects the pill. Re-clicking the same month deselects (toggle). New `getMonthRange(year, month)` helper returns `{ start, end }` as ISO date strings. `fetchAttendedStats` builds RPC args conditionally — month-mode passes `p_start_date`/`p_end_date`, pill-mode passes `p_days_back`.
 - **Name search input** above the rankings table: case-insensitive substring filter on `member.name`, persists across pill/month changes (pure UI filter, no refetch). Rank numbers stay anchored to the overall ranking even when filtered (so "#23" still shows #23, not 1/2/3 within the filtered subset).
 - **"Unknown" name fix:** the rankings showed 13 "Unknown" entries because `members.name` is NULL for family-member accounts (kids in K&T classes + 2 adult family members). Code change: `m.name || m.display_name || 'Unknown'`. Selected `display_name` from the `members` query.
-- **TS clean** throughout. Live-tested + verified by Chris.
+- **Per-incident selective delete (Admin Tools Incidents tab):** member rows now expand on click to show individual incident bookings (date + type pill, sorted newest-first respecting current filter). Each row has a red Delete button → confirm → hard-delete the `bookings` row → optimistic UI update. Hard-delete is the right semantic since the booking row IS the only record (no leaderboard/attendance impact, since incidents-status bookings are already excluded from those counts). Used for clearing test cases or any incident entered in error. File: `app/coach/admin/page.tsx`. Commit `25002b1e`.
+- **Membership-type change guard (Members page):** once a member has any membership type (Mb/Wp/Di/10/Hf) set, clicking any pill (add or remove) now triggers a confirm dialog. Initial selection (zero current types) still goes through silently. Prevents accidental clicks while a filter is on. File: `hooks/coach/useMemberActions.ts:handleToggleMembershipType`.
+- **Carla Rydval duplicate-account discovery (no fix yet):** SQL surfaced that Carla registered TWO primary accounts (`carla-muecke@web.de` 2026-04-18 + `c.rydval@web.de` 2026-04-21) and added both kids (Aileen + Alicia) under each — 4 kid rows total. None of them have bookings or scores yet. Pending: Chris asks Carla which email she'll keep, then delete the other primary + its 2 kid rows + auth.users row.
+- **TS clean** throughout. All shipped pieces live-tested + verified by Chris.
 
 **Session 306 (2026-04-23 — Opus 4.7) — ACRONYM PLUMBING + CANCELLED-BOOKING LIST + ATTENDANCE PARITY:**
 - **S303 acronym follow-up shipped:** added shared `fetchAcronymMap()` helper in `utils/movement-analytics.ts`. Plumbed through `getExerciseFrequency` (extends existing exercises select with `tags`), `computePatternGaps` + `detectWeeklyCoverage` (via `Promise.all` with workout fetch), and `useMovementTracking` (fetched once on mount, invalidates wodMovement cache). Movement Tracking + Pattern Gap analysis + Exercise Frequency now resolve `dl`-style acronyms same as Workouts search. Commit `efadd1f7`.
@@ -147,16 +150,18 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-1. **Re-enter Sonja Hujo's deleted score** (S305 cleanup) — both her orphan whiteboard row + registered-account row for the same WOD/section/date were deleted. Need to re-input via Score Entry UI; will land cleanly now that she has a booking from S305 backfill.
-2. **Backfill `members.name` for family-member accounts** (S307 follow-up) — 29 family-member rows have `name=NULL` (only `display_name` set). Code now falls back to display_name so they show correctly, but if other surfaces query `members.name` directly they'd still see "Unknown". One-shot SQL: `UPDATE members SET name = display_name WHERE name IS NULL AND display_name IS NOT NULL;` — only run if display_name is consistently the right value.
-3. **Build Reject/Delete button on Members Pending tab** — currently no UI affordance to remove pending members; only Approve/Unapprove. S306 had to use SQL to clean up Claudia Herrmann. Future feature.
-4. **Live-test Intervals timer mode itself** (S296) on deployed app — core mode never live-tested (presets already confirmed working S298).
-5. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app (should now show "Updating password for [email]" above form).
-6. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper processes), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
-7. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
-8. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing. **Note:** S305 backfill may have largely resolved this by retroactively booking whiteboard names; re-evaluate before doing the S251 work.
-9. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts:48-56` only filters bookings by `status='confirmed'` and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
-10. **Test endpoint 410 cleanup** (deferred from S292) — route `app/api/notifications/test/route.ts` through `sendToSubscription` so expired subs auto-delete on Send Test.
+1. **Carla Rydval duplicate-account cleanup** (S307 pending) — once Carla confirms which email she'll use, delete the other primary account + its 2 kid rows + auth.users row. Account 1: `carla-muecke@web.de` (id `666c7e65-…`) → kids Alicia `98c70cf3-…` + Aileen `0f8cd709-…`. Account 2: `c.rydval@web.de` (id `dd85adee-…`) → kids Alicia `98709904-…` + Aileen `d20ce712-…`. None have bookings/scores yet — clean slate.
+2. **Re-enter Sonja Hujo's deleted score** (S305 cleanup) — both her orphan whiteboard row + registered-account row for the same WOD/section/date were deleted. Need to re-input via Score Entry UI; will land cleanly now that she has a booking from S305 backfill.
+3. **Backfill `members.name` for family-member accounts** (S307 follow-up) — 29 family-member rows have `name=NULL` (only `display_name` set). Code now falls back to display_name so they show correctly, but if other surfaces query `members.name` directly they'd still see "Unknown". One-shot SQL: `UPDATE members SET name = display_name WHERE name IS NULL AND display_name IS NOT NULL;` — only run if display_name is consistently the right value.
+4. **Decide whether to extend the membership-type confirm guard to class types** (EKT / Tu / CFK / CFT) — same accidental-click risk applies to kids' class assignments. Chris not asked yet.
+5. **Build Reject/Delete button on Members Pending tab** — currently no UI affordance to remove pending members; only Approve/Unapprove. S306 had to use SQL to clean up Claudia Herrmann. Future feature.
+6. **Live-test Intervals timer mode itself** (S296) on deployed app — core mode never live-tested (presets already confirmed working S298).
+7. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app (should now show "Updating password for [email]" above form).
+8. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper processes), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
+9. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
+10. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing. **Note:** S305 backfill may have largely resolved this by retroactively booking whiteboard names; re-evaluate before doing the S251 work.
+11. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts:48-56` only filters bookings by `status='confirmed'` and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
+12. **Test endpoint 410 cleanup** (deferred from S292) — route `app/api/notifications/test/route.ts` through `sendToSubscription` so expired subs auto-delete on Send Test.
 
 ---
 

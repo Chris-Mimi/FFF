@@ -6,7 +6,7 @@ http://192.168.178.75:3000
 
 # FIRST. FIX BUGS MAKE IMPROVEMENTS #
 # Coach Login #
-* Give me the function to delete/remove an entry for example the Incident report is populated but they are all test cases
+* 
 * Mobile view: I couldn't select from the dropdown on Schedule Page:Workout Type. No list appeared when I clicked in it.
 * 
 * Mimi's iPhone copy/paste & delete function

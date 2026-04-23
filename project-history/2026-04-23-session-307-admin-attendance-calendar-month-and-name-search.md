@@ -133,3 +133,54 @@ for the surfaces that mattered.
   more family members with the same pattern. Worth considering a DB
   trigger or app-side approve flow that always populates both fields, not
   one or the other.
+
+---
+
+## Workstream — Per-Incident Selective Delete (continuation)
+
+After the calendar-month + name search shipped, Chris flagged that the
+Incidents tab still listed test cases. Added an expandable per-member
+view: clicking a member row expands it to show the individual incident
+bookings (date + type pill, sorted newest-first, respecting current
+filter pill). Each row has a red Delete button → `confirm()` → hard
+DELETE on the `bookings` row → optimistic local state update.
+
+Hard-delete is the right semantic here — the booking row IS the only
+record of the incident. Status='no_show' or 'late_cancel' bookings are
+already excluded from attendance counts (the RPC only UNIONs
+`status='confirmed'` for the bookings source) and from leaderboards (no
+score row exists). I initially proposed a "Mark as not-an-incident"
+softer path; Chris correctly pushed back — that would convert the row
+to `status='confirmed'` and incorrectly count the athlete as having
+attended.
+
+Files: [app/coach/admin/page.tsx](app/coach/admin/page.tsx) (added
+`bookingId` to `allIncidents`, `expandedIncidentMember` state,
+`handleDeleteIncident`, expanded-row render). Commit `25002b1e`.
+
+---
+
+## Workstream — Membership-Type Change Guard
+
+Chris asked for a confirm dialog when changing an already-set membership
+type (Mb / Wp / Di / 10 / Hf), to prevent accidental clicks while a
+filter is on. Implemented in
+[hooks/coach/useMemberActions.ts:handleToggleMembershipType](hooks/coach/useMemberActions.ts):
+the guard fires only when `currentTypes.length > 0`, so the very first
+selection (e.g. straight after approval) still passes through silently.
+Both adding and removing trigger the prompt with appropriate verb
+(`"Add 'Mb' to this member?"` / `"Remove 'Wp' from this member?"`).
+
+Open question for next session: extend the same guard to class types
+(EKT / Tu / CFK / CFT) for kids? Same risk profile.
+
+---
+
+## Side Discovery — Carla Rydval Duplicate Accounts
+
+While investigating "Unknown" entries, surfaced via SQL that Carla
+Rydval registered two primary accounts (`carla-muecke@web.de` and
+`c.rydval@web.de`) and added both kids (Aileen + Alicia) under each —
+4 family-member rows. None have bookings or scores yet. Chris is
+checking with Carla which email she'll keep; cleanup deferred. Logged
+as Next Step #1 with all four kid IDs + both primary IDs ready.
