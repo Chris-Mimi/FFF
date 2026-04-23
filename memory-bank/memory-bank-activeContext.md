@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 168.0
-**Updated:** 2026-04-23 (Session 305 — Whiteboard-name booking + score backfill)
+**Version:** 169.0
+**Updated:** 2026-04-23 (Session 306 — Acronym plumbing, cancelled-booking list, attendance parity)
 
 ---
 
@@ -84,6 +84,14 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 306 (2026-04-23 — Opus 4.7) — ACRONYM PLUMBING + CANCELLED-BOOKING LIST + ATTENDANCE PARITY:**
+- **S303 acronym follow-up shipped:** added shared `fetchAcronymMap()` helper in `utils/movement-analytics.ts`. Plumbed through `getExerciseFrequency` (extends existing exercises select with `tags`), `computePatternGaps` + `detectWeeklyCoverage` (via `Promise.all` with workout fetch), and `useMovementTracking` (fetched once on mount, invalidates wodMovement cache). Movement Tracking + Pattern Gap analysis + Exercise Frequency now resolve `dl`-style acronyms same as Workouts search. Commit `efadd1f7`.
+- **Pending family member cleanup (manual SQL):** Claudia Herrmann (pending under Michael Junkes's family) had no UI removal path. Found via `primary_member_id`. Cascade-deleted 2 `coach_cancelled` test bookings + members row + auth.users row. No Reject/Delete button exists on Pending tab — flagged as a possible feature.
+- **Cancelled-by-Athlete section added to SessionManagementModal:** `bookings.status='cancelled'` rows (athlete self-cancel) previously vanished from the modal. New "Cancelled by Athlete" section under Late Cancellations, sorted newest-first by `updated_at`, with strikethrough name + grey bg. Also added `dd/mm/yyyy HH:MM` timestamps to all booking rows (was date-only). Files: `useSessionDetails.ts` (selects `updated_at`), `BookingListItem.tsx` (status union extended, formatDateTime helper), `SessionManagementModal.tsx`. **Read-only — no Undo button (athlete can re-book themselves)**; flagged Restore as possible follow-up.
+- **Admin Tools attendance parity with Workouts Athletes List:** Admin previously counted only confirmed bookings; Workouts uses RPC `get_all_members_attendance` (bookings + linked scores + whiteboard text mentions, deduped per session). Switched Admin to call the same RPC via new `getFilterDaysBack()` translating filter pills (30d/90d/6m/12m/all) → `p_days_back`. Refetches per filter change. Members of any status included so ex-members surface. Removed obsolete `allAttended` state. File: `app/coach/admin/page.tsx`.
+- **Memory rule saved:** never write to `Chris Notes/AA frequently used files/Notes for next session.md` (Chris's personal notepad). Recovered + merged his pre-S304 reminder bullets back into the file at his request.
+- **Confirmed for Chris:** when an unregistered whiteboard athlete (e.g. AnneS) registers and is approved with `whiteboard_name='AnneS'`, orphan scores auto-link via approve route ([app/api/members/approve/route.ts:62-101](app/api/members/approve/route.ts#L62-L101)) and attendance count picks up via RPC's whiteboard-text source. Past `bookings` rows do NOT auto-create — re-run `scripts/backfill-whiteboard-bookings.ts` after approval batches.
+
 **Session 305 (2026-04-23 — Opus 4.7) — WHITEBOARD-NAME BOOKING + SCORE BACKFILL:**
 - One-shot script `scripts/backfill-whiteboard-bookings.ts` to retroactively (a) create `bookings` rows for whiteboard names that match registered members, and (b) re-attribute historical orphan `wod_section_results` rows (whiteboard_name set, member_id null) to the matched member. Dry-run by default, `--apply` to commit.
 - Matching uses members.whiteboard_name → first-name → full-name (lowercase), with `ALIAS_OVERRIDES` map for aliases that don't fit the canonical pattern (currently `kathih → kathi` for Katharina Herbst).
@@ -115,16 +123,7 @@ Athlete Tools
 - **Benchmark parity (S301 leftover)**: ported tiebreaker chain + shared ranks to `rankBenchmarkResults` (`utils/leaderboard-utils.ts`). Split sort into `comparePrimary` (scaling → track → weight tiebreaker → primary metric) and display tiebreakers (age DESC → `result_date` ASC). No `session_time` — benchmarks are all-time bests, not session-linked. Added `memberAges` 6th arg and `age` to output entries. Both callers in `LeaderboardView.tsx` (lines ~864 and ~1505) updated to pass ages. Benchmark parity **not yet live-tested**.
 - Commits: `aeaa534` (bugs 1+2), S302 follow-up (benchmark parity) uncommitted at session close.
 
-**Session 301 (2026-04-22 — Opus 4.7) — LIFT LEADERBOARD TIEBREAKER PARITY:**
-- Chris tested S300 on a "Front Squat 5RM" leaderboard (Mon WOD, 7 athletes tied at 80kg). Shared ranks didn't apply — they still showed distinct ranks 2-8. Chris is the oldest athlete in the box with DOB set, so he expected to be at the top of the 80kg group.
-- Root cause: the "Front Squat 5RM" chip is a `type: 'lift'` item sourced from `lift_records`, routed through `rankLiftResults` — NOT `rankSectionResults` (which was the only function S300 patched). S300 log explicitly flagged this as follow-up scope.
-- **Ported S300 tiebreaker chain + shared ranks to `rankLiftResults`** (`utils/leaderboard-utils.ts`). Tied-on-weight entries share rank; display order within tied group: age DESC (missing DOB → youngest) → `lift_date` ASC → `session_time` ASC.
-- **Schema additions:** `LeaderboardEntry` gained optional `age` + `sessionTime`. `RawLiftResult` gained optional `wod_id` + `session_time`. `rankLiftResults` gained optional 5th arg `memberAges`.
-- **LeaderboardView lift path wiring** (`components/athlete/LeaderboardView.tsx`): selects `wod_id` on lift_records query, destructures `ages` from `fetchMemberNames`, annotates `session_time` via the same (wod_id, lift_date) → `weekly_sessions` → `bookings` chain. Uses `lift_records.user_id` as `bookings.member_id` (valid because `members.id === auth.users.id`). Whiteboard lift entries get `age: null`.
-- **Still not covered:** `rankBenchmarkResults` (benchmark leaderboards). Left as follow-up — flag if Chris wants parity there too.
-- **Not yet live-tested.**
-
-**Older sessions (57-300):** See `project-history/` folder.
+**Older sessions (57-301):** See `project-history/` folder.
 
 ---
 
@@ -149,15 +148,16 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-1. **Re-enter Sonja Hujo's deleted score** (S305 cleanup) — both her orphan whiteboard row + registered-account row for the same WOD/section/date were deleted. Need to re-input via Score Entry UI; will land cleanly now that she has a booking from S305 backfill.
-2. **Decide whether to extend S303 acronym resolution** to `utils/pattern-analytics.ts:47,:162`, `hooks/coach/useMovementTracking.ts:46`, `utils/movement-analytics.ts:456`. Pattern: add optional `acronymMap?: AcronymMap` arg and plumb through from the calling hook (already has `exerciseNames` — expose the map the same way). Low priority.
-3. **Live-test Intervals timer mode itself** (S296) on deployed app — core mode never live-tested (presets already confirmed working S298).
-4. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app (should now show "Updating password for [email]" above form).
-5. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper processes), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
-6. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
-7. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing. **Note:** S305 backfill may have largely resolved this by retroactively booking whiteboard names; re-evaluate before doing the S251 work.
-8. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts:48-56` only filters bookings by `status='confirmed'` and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
-9. **Test endpoint 410 cleanup** (deferred from S292) — route `app/api/notifications/test/route.ts` through `sendToSubscription` so expired subs auto-delete on Send Test.
+1. **Live-verify S306 cancelled-booking section + Admin attendance parity** — open Session Management on a session with athlete-cancelled bookings; confirm the new section + timestamps render. Then open Admin Tools → Attendance Reports and confirm counts now match the Workouts page Athletes List for the same athletes.
+2. **Re-enter Sonja Hujo's deleted score** (S305 cleanup) — both her orphan whiteboard row + registered-account row for the same WOD/section/date were deleted. Need to re-input via Score Entry UI; will land cleanly now that she has a booking from S305 backfill.
+3. **Build Reject/Delete button on Members Pending tab** — currently no UI affordance to remove pending members; only Approve/Unapprove. S306 had to use SQL to clean up Claudia Herrmann. Future feature.
+4. **Live-test Intervals timer mode itself** (S296) on deployed app — core mode never live-tested (presets already confirmed working S298).
+5. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app (should now show "Updating password for [email]" above form).
+6. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper processes), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
+7. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
+8. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing. **Note:** S305 backfill may have largely resolved this by retroactively booking whiteboard names; re-evaluate before doing the S251 work.
+9. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts:48-56` only filters bookings by `status='confirmed'` and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
+10. **Test endpoint 410 cleanup** (deferred from S292) — route `app/api/notifications/test/route.ts` through `sendToSubscription` so expired subs auto-delete on Send Test.
 
 ---
 

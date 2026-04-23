@@ -45,6 +45,15 @@ function getFilterDate(filter: AttendedFilter): string | null {
   return now.toISOString().split('T')[0];
 }
 
+// Days-back values for the attendance RPC (matches the same lookback windows as getFilterDate).
+function getFilterDaysBack(filter: AttendedFilter): number {
+  if (filter === '30d') return 30;
+  if (filter === '90d') return 90;
+  if (filter === '6m') return 183;
+  if (filter === '12m') return 365;
+  return 36500; // 'all'
+}
+
 export default function AdminToolsPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -56,8 +65,8 @@ export default function AdminToolsPage() {
   const [incidentFilter, setIncidentFilter] = useState<AttendedFilter>('all');
   const [incidentSort, setIncidentSort] = useState<{ col: keyof IncidentStat; dir: 'asc' | 'desc' }>({ col: 'total', dir: 'desc' });
 
-  // Attended tab
-  const [allAttended, setAllAttended] = useState<{ memberId: string; name: string; date: string }[]>([]);
+  // Attended tab — derived from the same RPC the Workouts page uses (bookings + linked scores + whiteboard text mentions, deduped per session)
+  const [attendedRanking, setAttendedRanking] = useState<AttendedStat[]>([]);
   const [attendedLoading, setAttendedLoading] = useState(false);
   const [attendedFilter, setAttendedFilter] = useState<AttendedFilter>('all');
 
@@ -68,10 +77,16 @@ export default function AdminToolsPage() {
       if (user.user_metadata?.role !== 'coach') { router.push('/login'); return; }
       setLoading(false);
       fetchIncidentStats();
-      fetchAttendedStats();
     };
     checkAuth();
   }, [router]);
+
+  // Refetch attended stats whenever the filter changes (RPC takes the lookback window directly)
+  useEffect(() => {
+    if (loading) return;
+    fetchAttendedStats(attendedFilter);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, attendedFilter]);
 
   const fetchIncidentStats = async () => {
     setIncidentsLoading(true);
@@ -96,33 +111,37 @@ export default function AdminToolsPage() {
     }
   };
 
-  const fetchAttendedStats = async () => {
+  const fetchAttendedStats = async (filter: AttendedFilter) => {
     setAttendedLoading(true);
     try {
-      const today = new Date().toISOString().split('T')[0];
-      // Paginated to bypass Supabase 1000-row select cap (total bookings now > 1500).
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const all: any[] = [];
-      const PAGE = 1000;
-      for (let from = 0; ; from += PAGE) {
-        const { data, error } = await supabase
-          .from('bookings')
-          .select('member_id, members(name), weekly_sessions!inner(date)')
-          .eq('status', 'confirmed')
-          .lte('weekly_sessions.date', today)
-          .range(from, from + PAGE - 1);
-        if (error) throw error;
-        if (!data || data.length === 0) break;
-        all.push(...data);
-        if (data.length < PAGE) break;
-      }
+      // Pull every member id (any status — we want ex-members in the list too)
+      const { data: members, error: membersError } = await supabase
+        .from('members')
+        .select('id, name');
+      if (membersError) throw membersError;
 
-      const rows = all.map((b) => ({
-        memberId: b.member_id,
-        name: (b.members as unknown as { name: string } | null)?.name || 'Unknown',
-        date: (b.weekly_sessions as unknown as { date: string } | null)?.date || '',
-      }));
-      setAllAttended(rows);
+      const memberIds = (members || []).map(m => m.id);
+      const nameById = new Map<string, string>(
+        (members || []).map(m => [m.id, m.name || 'Unknown'])
+      );
+
+      // Use the same RPC the Workouts page uses: bookings + linked scores + whiteboard text mentions, deduped per session
+      const { data: attendance, error: rpcError } = await supabase.rpc(
+        'get_all_members_attendance',
+        { p_member_ids: memberIds, p_days_back: getFilterDaysBack(filter) }
+      );
+      if (rpcError) throw rpcError;
+
+      const ranking: AttendedStat[] = (attendance || [])
+        .map((row: { member_id: string; attendance_count: number }) => ({
+          memberId: row.member_id,
+          name: nameById.get(row.member_id) || 'Unknown',
+          count: Number(row.attendance_count),
+        }))
+        .filter((s: AttendedStat) => s.count > 0)
+        .sort((a: AttendedStat, b: AttendedStat) => b.count - a.count);
+
+      setAttendedRanking(ranking);
     } catch (err) {
       console.error('Error fetching attended stats:', err);
     } finally {
@@ -154,18 +173,6 @@ export default function AdminToolsPage() {
       return dir === 'asc' ? (av as number) - (bv as number) : (bv as number) - (av as number);
     });
     return arr;
-  })();
-
-  // Derive attended ranking from raw data + current filter
-  const attendedRanking: AttendedStat[] = (() => {
-    const cutoff = getFilterDate(attendedFilter);
-    const filtered = cutoff ? allAttended.filter((r) => r.date >= cutoff) : allAttended;
-    const map = new Map<string, AttendedStat>();
-    for (const row of filtered) {
-      if (!map.has(row.memberId)) map.set(row.memberId, { memberId: row.memberId, name: row.name, count: 0 });
-      map.get(row.memberId)!.count++;
-    }
-    return Array.from(map.values()).sort((a, b) => b.count - a.count);
   })();
 
   if (loading) {

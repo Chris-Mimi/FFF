@@ -5,7 +5,7 @@ import { Booking } from '@/hooks/coach/useSessionDetails';
 
 interface BookingListItemProps {
   booking: Booking;
-  status: 'confirmed' | 'waitlist' | 'no_show' | 'late_cancel';
+  status: 'confirmed' | 'waitlist' | 'no_show' | 'late_cancel' | 'cancelled';
   onMarkNoShow?: (bookingId: string, name: string) => void;
   onUndoNoShow?: (bookingId: string, name: string) => void;
   onLateCancel?: (bookingId: string, name: string) => void;
@@ -41,21 +41,34 @@ export default function BookingListItem({
         ? 'bg-orange-50 border border-orange-200'
         : status === 'late_cancel'
           ? 'bg-purple-50 border border-purple-200'
-          : 'bg-gray-50 border';
+          : status === 'cancelled'
+            ? 'bg-gray-100 border border-gray-200'
+            : 'bg-gray-50 border';
+
+  const formatDateTime = (iso: string) =>
+    new Date(iso).toLocaleString('en-GB', {
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit',
+    });
 
   return (
     <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0 ${bgClass} rounded px-3 py-2 text-sm`}>
       <div className='flex items-center gap-2 flex-wrap'>
         {status === 'no_show' && <UserX size={14} className='text-orange-600' />}
-        <span className='font-medium text-gray-800'>{memberName}</span>
+        <span className={`font-medium ${status === 'cancelled' ? 'text-gray-500 line-through' : 'text-gray-800'}`}>{memberName}</span>
         {isFamilyMember && (
           <span className='text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded'>
             family
           </span>
         )}
         <span className='text-xs text-gray-500'>
-          Booked: {new Date(booking.booked_at).toLocaleDateString('en-GB')}
+          Booked: {formatDateTime(booking.booked_at)}
         </span>
+        {status === 'cancelled' && (
+          <span className='text-xs text-gray-500'>
+            · Cancelled: {formatDateTime(booking.updated_at)}
+          </span>
+        )}
       </div>
       <div className='flex items-center gap-1.5'>
         {showCancelBtn && onCancelBooking && (

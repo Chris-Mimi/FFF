@@ -18,6 +18,7 @@ export interface Booking {
   id: string;
   status: 'confirmed' | 'waitlist' | 'cancelled' | 'no_show' | 'late_cancel' | 'coach_cancelled';
   booked_at: string;
+  updated_at: string;
   member: {
     id: string;
     name: string | null;
@@ -81,6 +82,7 @@ export function useSessionDetails(
           id,
           status,
           booked_at,
+          updated_at,
           members!bookings_member_id_fkey (
             id,
             name,
@@ -99,6 +101,7 @@ export function useSessionDetails(
         id: booking.id,
         status: booking.status as Booking['status'],
         booked_at: booking.booked_at,
+        updated_at: booking.updated_at,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         member: (booking as any).members, // Rename members field to member
       }));

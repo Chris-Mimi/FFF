@@ -71,6 +71,9 @@ export default function SessionManagementModal({
   const waitlistBookings = sessionDetails.bookings.filter(b => b.status === 'waitlist');
   const noShowBookings = sessionDetails.bookings.filter(b => b.status === 'no_show');
   const lateCancelBookings = sessionDetails.bookings.filter(b => b.status === 'late_cancel');
+  const cancelledBookings = sessionDetails.bookings
+    .filter(b => b.status === 'cancelled')
+    .sort((a, b) => b.updated_at.localeCompare(a.updated_at));
 
   // Modal drag handlers
   const handleDragStart = (e: React.MouseEvent) => {
@@ -336,6 +339,24 @@ export default function SessionManagementModal({
                         status='late_cancel'
                         onUndoLateCancel={bookingManagement.handleUndoLateCancel}
                         showUndoBtn={true}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Athlete-cancelled bookings */}
+              {cancelledBookings.length > 0 && (
+                <div>
+                  <h3 className='text-sm font-semibold text-gray-600 mb-2'>
+                    Cancelled by Athlete ({cancelledBookings.length})
+                  </h3>
+                  <div className='space-y-1'>
+                    {cancelledBookings.map(booking => (
+                      <BookingListItem
+                        key={booking.id}
+                        booking={booking}
+                        status='cancelled'
                       />
                     ))}
                   </div>
