@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 166.0
-**Updated:** 2026-04-22 (Session 302 - Leaderboard tiebreaker NaN fix + DOB sync + benchmark parity)
+**Version:** 167.0
+**Updated:** 2026-04-23 (Session 303/304 — Acronym search data-driven ship + session handoff infrastructure)
 
 ---
 
@@ -84,6 +84,21 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 304 (2026-04-23 — Opus 4.7) — SESSION HANDOFF INFRASTRUCTURE + S303 SHIP:**
+- Finished shipping S303 acronym work (previously uncommitted). Chris ran `database/20260423_add_acronym_tags.sql` in Supabase SQL Editor; verified `"Barbell Deadlift"` now has `dl` in `tags[]`. Live-tested Workouts page search + Movement Tracking — "seems good". Committed S303 code (`utils/movement-extraction.ts`, `hooks/coach/useCoachData.ts`, the migration SQL via `git add -f`).
+- **Session handoff docs (new discipline):** created `Chris Notes/AA frequently used files/handoff-prompt.md` — a reusable prompt to paste at 70% context to trigger a structured 8-point handoff doc. Added a one-line pointer to `CLAUDE.md` Context Monitoring section.
+- **Session-close checklist rewrite** (`Chris Notes/AA frequently used files/session-close-checklist.md`): fixed duplicate step numbering, added explicit `git status` review step (vs reflex `git add .` — Session 240 incident), added step for updating `Notes for next session.md` (was missing entirely), codified `type(session-XXX):` commit-message pattern from recent git log, updated model attribution to Opus 4.7, dropped stale frozen table list (backup auto-discovers via `get_public_tables()`), added cross-reference to `handoff-prompt.md` for the emergency (70%+) path vs. this checklist's clean-close (< 60%) path.
+- **Still open from S303:** 3 other callers of `extractMovementsFromWod` don't pass `acronymMap` — `utils/pattern-analytics.ts`, `hooks/coach/useMovementTracking.ts`, `utils/movement-analytics.ts`. Low priority, noted in Next Steps.
+
+**Session 303 (2026-04-22 / 04-23 — Opus 4.7 across two days) — DATA-DRIVEN ACRONYM SEARCH:**
+- Chris reported "BS" (Back Squat) didn't surface every intended workout in the Workouts search; asked for DL (Deadlift) too. Previous implementation had 26 acronyms hardcoded in `genericToCanonical`. Refactored to data-driven via `exercises.tags[]` so new acronyms are added via SQL, not code.
+- **Migration 1** (`database/20260422_session303_strip_acronym_suffixes.sql`): stripped 26 `(XX)` suffixes from `display_name`, moved the acronym into `tags[]` lowercase. Verified step-3 returned 0 rows after run.
+- **Migration 2** (`database/20260423_add_acronym_tags.sql`): added `'dl'` tag to `"Barbell Deadlift"` which had no parenthetical suffix. Template footer for future additions.
+- **`utils/movement-extraction.ts`**: removed the hardcoded 26-acronym block + `acronymForName`/`canonicalToAcronym`/`acronymEntries`. Exported `type AcronymMap = Map<string, string>`. Added optional 3rd arg `acronymMap?: AcronymMap` to `extractMovementsFromWod` + `extractMovements`. Source 1 (lifts) now checks `acronymMap` FIRST, then falls back to `genericToCanonical` (still holds non-acronym generic mappings). Also stripped `(xxx)` parentheticals from remaining `genericToCanonical` values; two values changed prefix to match new DB names (`'barbell overhead squat'`, `'barbell strict oh press'`).
+- **`hooks/coach/useCoachData.ts`**: `fetchExerciseNames` now selects `tags` too, builds 2 maps (`acronymMap`: tag → display_name, `displayNameToAcronyms`: display_name → tags). Search filter pushes all exercise tags into `combinedText` for Lifts-section lifts (tries `liftLower`, `barbell liftLower`, `kb liftLower`, `jump rope liftLower`). Both `extractMovementsFromWod` + `extractMovements` calls pass `acronymMap`.
+- **TS check clean** (`npx tsc --noEmit`). Live-tested + verified by Chris S304.
+- **Follow-up:** 3 other callers (pattern-analytics, useMovementTracking, movement-analytics) still don't pass `acronymMap` — deferred.
+
 **Session 302 (2026-04-22 — Opus 4.7) — LEADERBOARD TIEBREAKER NaN FIX + DOB SYNC + BENCHMARK PARITY:**
 - Chris live-tested S301 "Front Squat 5RM" (7 tied at 80kg) and reported tiebreaker wasn't ordering him (oldest, DOB set) to the top of the tied group.
 - **Bug 1 — NaN poisoning the sort comparator** (`utils/leaderboard-utils.ts`): `ageOf` used `?? -Infinity` sentinel. When both entries had no DOB, `-Infinity - (-Infinity) = NaN`. `NaN !== 0` → `Array.sort()` silently abandoned remaining tiebreakers (date, session_time). Replaced with `compareAge` helper (both-null → 0 falls through, one-null → null ranks last, else older DESC). Applied in `rankSectionResults` and `rankLiftResults`.
@@ -111,25 +126,7 @@ Athlete Tools
 - Scope: `rankSectionResults` only (WOD section leaderboards). `rankBenchmarkResults` (benchmarks) + `rankLiftResults` (lift PRs) unchanged — noted as potential follow-up if Chris wants parity.
 - **Not yet live-tested.**
 
-**Session 299 (2026-04-22 — Opus 4.7) — LEADERBOARD reps+cals SCORING + RECORDS SORT + INTERVALS MOBILE FIX:**
-- **Intervals presets mobile overflow** (`components/athlete/WorkoutTimer.tsx`): Delete preset button was off-screen on small viewports. Root cause: native `<select>` inside `flex items-center` won't shrink below its longest option's intrinsic width, pushing siblings out. Fix: added `min-w-0` + reduced horizontal padding on the select. Save/Delete were already icon-only on mobile via `hidden sm:inline`.
-- **Leaderboard combined reps+cals scoring** (`utils/leaderboard-utils.ts`): when a section has both `reps` AND `calories` scoring fields enabled, ranking previously resolved to plain `reps` per priority ladder — the cals column looked unsorted. Added new `'reps_cals'` scoring type (positioned above plain `reps` in `detectScoringType`), sorts by `(reps_result + calories_result)` descending. Primary display: `"X reps + Y cal"`. Filter accepts entries with either value > 0. Extras suppressed (both already in primary).
-- **Records page Barbell Lifts sort** (`components/athlete/AthletePageRecordsTab.tsx`): Chris asked about sort criteria — it was accidental Map insertion order (most-recently-logged new lift+rep combo first). Now explicit: parallel-fetches `barbell_lifts` (name, category, display_order), sorts by **category display_order → lift_name alphabetical → weight_kg DESC**. Keeps all rep-maxes of same lift together (Chris's preference after first pass used weight-desc as secondary).
-- **Non-events this session:** User started reporting a class-capacity drift bug (session showing 12/12 when set to 10) — turned out to be user error, no changes made. Related S295 fix still in place.
-
-**Session 298 (2026-04-21 — Opus 4.7) — INTERVALS TIMER NAMED PRESETS (DB-backed):**
-- Cross-device persistence for S296 Intervals routines. New `timer_presets` table (`id, user_id → auth.users, name, intervals JSONB, created_at, updated_at`), `UNIQUE (user_id, name)`, RLS-gated on `auth.uid() = user_id` (select/insert/update/delete). Migration: `supabase/migrations/20260421000000_add_timer_presets.sql`, applied via dashboard SQL Editor.
-- `components/athlete/WorkoutTimer.tsx` IntervalsEditor: new Presets panel above Quick Fill — dropdown (load by name) + Save (upsert with `onConflict: 'user_id,name'`) + Delete. `busy` state disables buttons during network calls. No API route — direct supabase-js calls behind RLS.
-- Earlier in session: S297 follow-up marked done — `app/coach/profile/page.tsx` (change-password UI for logged-in coach) already present from parallel session, tested & working per Chris.
-- **Not yet tested live** — Chris live-testing cross-device after session close.
-
-**Session 297 (2026-04-21 — Opus 4.7) — PASSWORD RESET BUG + BOOKING LIFT RECORDS FIX:**
-- **Bug 1 (commit `3e0892d`):** Coach "Remove Booking" was silently skipping `lift_records` deletion. Root cause: `lift_records.user_id` → `auth.users.id`, but the filter used `members.id`. Fix: capture `user_id` from `wod_section_results` first, then delete `lift_records` by those IDs. Files: `hooks/coach/useBookingManagement.ts:252-275`, `app/api/bookings/cancel/route.ts:170-193`.
-- **Bug 2 (commit `bd594e4`) — CRITICAL, happened live:** Chris clicked an athlete's recovery link while logged in as coach in another tab. Code exchange at `/auth/callback` failed silently (error swallowed), his coach session stayed active, `updateUser({ password })` on `/reset-password` overwrote his coach password. Fix: sign out before recovery code exchange, surface exchange errors → `/login?error=reset_link_invalid`, add session-email display on reset page, show error on login. Both accounts restored via SQL `UPDATE auth.users SET encrypted_password = crypt(...)`.
-- **SMTP (dashboard config, not code):** Configured Resend as custom SMTP sender for Supabase Auth emails. Sender `noreply@the-forge-functional-fitness.de`. Password resets no longer use Supabase's 4/hour shared pool. Gmail still flags as suspicious on some cold sends — improves as DKIM/SPF/DMARC + sender reputation establish.
-- **Follow-ups:** Verify SPF/DKIM/DMARC all ✅ in Resend → Domains. Test full reset flow on deployed app. **Build coach profile / change-password page** (no UI for logged-in coach to change own password — would have avoided the SQL fallback).
-
-**Older sessions (57-296):** See `project-history/` folder.
+**Older sessions (57-299):** See `project-history/` folder.
 
 ---
 
@@ -154,16 +151,17 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-1. **Live-verify S302 benchmark leaderboard tiebreakers** — find a benchmark with tied scores (e.g., two athletes tied on Fran time), confirm shared rank + age/date ordering within tied group.
-2. **Live-verify S300 section leaderboard tiebreakers** — find a tie scenario on a section-result view (weight/reps/time), same age/date/time ordering expected.
-3. **Live-verify S299 changes** — (a) leaderboard with reps+cals section shows combined ranking and `"X reps + Y cal"` format, (b) Records page Barbell Lifts list sorts Olympic→Press→Pull→Squat with lifts grouped alphabetically, (c) Intervals presets Delete button visible on iPhone.
-4. **Live-test Intervals timer mode itself** (S296) on deployed app — core mode never live-tested (presets already confirmed working S298).
-5. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app (should now show "Updating password for [email]" above form).
-6. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper processes), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
-7. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
-8. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing.
-9. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts:48-56` only filters bookings by `status='confirmed'` and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
-10. **Test endpoint 410 cleanup** (deferred from S292) — route `app/api/notifications/test/route.ts` through `sendToSubscription` so expired subs auto-delete on Send Test.
+1. **Decide whether to extend S303 acronym resolution** to `utils/pattern-analytics.ts:47,:162`, `hooks/coach/useMovementTracking.ts:46`, `utils/movement-analytics.ts:456`. Pattern: add optional `acronymMap?: AcronymMap` arg and plumb through from the calling hook (already has `exerciseNames` — expose the map the same way). Low priority.
+2. **Live-verify S302 benchmark leaderboard tiebreakers** — find a benchmark with tied scores (e.g., two athletes tied on Fran time), confirm shared rank + age/date ordering within tied group.
+3. **Live-verify S300 section leaderboard tiebreakers** — find a tie scenario on a section-result view (weight/reps/time), same age/date/time ordering expected.
+4. **Live-verify S299 changes** — (a) leaderboard with reps+cals section shows combined ranking and `"X reps + Y cal"` format, (b) Records page Barbell Lifts list sorts Olympic→Press→Pull→Squat with lifts grouped alphabetically, (c) Intervals presets Delete button visible on iPhone.
+5. **Live-test Intervals timer mode itself** (S296) on deployed app — core mode never live-tested (presets already confirmed working S298).
+6. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app (should now show "Updating password for [email]" above form).
+7. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper processes), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
+8. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
+9. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing.
+10. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts:48-56` only filters bookings by `status='confirmed'` and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
+11. **Test endpoint 410 cleanup** (deferred from S292) — route `app/api/notifications/test/route.ts` through `sendToSubscription` so expired subs auto-delete on Send Test.
 
 ---
 

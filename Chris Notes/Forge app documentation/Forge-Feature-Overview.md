@@ -29,6 +29,7 @@ There's no app-switching, no spreadsheets, no whiteboards that get erased. Just 
 ### Smart Search & Movement Intelligence
 
 - **Full-text search** across all workouts — find every time you've programmed a specific movement, workout name, or note
+- **Acronym-aware search** — type `BS`, `DL`, `OHS`, `C&J` or any common lift shortcut and get every workout featuring that lift, including Lifts sections that reference the movement by full name. Acronyms are defined per-exercise in the database, so coaches never need to memorise which shortcut resolves to which lift
 - **Movement frequency tracking** — see how often you've programmed each exercise, with date-range filtering. Never accidentally neglect a movement pattern again
 - **Custom movement tracking panel** — pin the exercises you want to monitor and see at a glance when each was last programmed. Color-coded date aging (green/yellow/orange/red) highlights neglected movements instantly. Fully responsive on mobile with a dedicated toggle
 - **Exercise groups** — save named presets of tracked exercises (e.g., "Barbell Strength", "Oly Lifts") and toggle entire groups on or off with one click. Group exercises appear nested under their chip for a clean overview
