@@ -6,14 +6,14 @@ http://192.168.178.75:3000
 
 # FIRST. FIX BUGS MAKE IMPROVEMENTS #
 # Coach Login #
-* Admin Tools: Attendance reports are not accurate. ALso give me a filter to find out how many times each appeared every month. Give me the function to delete/remove an entry for example the Incident report is populated but they are all test cases
+* Give me the function to delete/remove an entry for example the Incident report is populated but they are all test cases
 * Mobile view: I couldn't select from the dropdown on Schedule Page:Workout Type. No list appeared when I clicked in it.
 * 
-
 * Mimi's iPhone copy/paste & delete function
 * Box WiFi: Mac gets IPv6-only (no IPv4), dev sites (GitHub/Supabase/Vercel/Resend) unreachable. PC on same box WiFi works fine. At home all works. Debug next time at the box — see `SESSION-HANDOFF-S303-DNS-issue.md` for diagnostic history.
 * 
 * Has Fabian's parent got a login, if so who?
+* Make the M/F WP selectors give me a warning if I change a selected one
 
 
 

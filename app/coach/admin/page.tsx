@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth';
-import { UserPlus, ArrowLeft, BarChart2, Bell, KeyRound, Settings } from 'lucide-react';
+import { UserPlus, ArrowLeft, BarChart2, Bell, KeyRound, Settings, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { NotificationPrompt } from '@/components/ui/NotificationPrompt';
@@ -54,6 +54,16 @@ function getFilterDaysBack(filter: AttendedFilter): number {
   return 36500; // 'all'
 }
 
+const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+// First and last calendar day of a given (year, monthIndex 0-11) as ISO date strings.
+function getMonthRange(year: number, month: number): { start: string; end: string } {
+  const start = new Date(year, month, 1);
+  const end = new Date(year, month + 1, 0); // day 0 of next month = last day of this month
+  const fmt = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  return { start: fmt(start), end: fmt(end) };
+}
+
 export default function AdminToolsPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -69,6 +79,11 @@ export default function AdminToolsPage() {
   const [attendedRanking, setAttendedRanking] = useState<AttendedStat[]>([]);
   const [attendedLoading, setAttendedLoading] = useState(false);
   const [attendedFilter, setAttendedFilter] = useState<AttendedFilter>('all');
+  // Calendar-month override: when set, replaces the rolling-window pill choice
+  const [selectedMonth, setSelectedMonth] = useState<{ year: number; month: number } | null>(null);
+  const [monthYear, setMonthYear] = useState<number>(new Date().getFullYear());
+  // Name search — filters the displayed ranking (does not refetch)
+  const [nameQuery, setNameQuery] = useState<string>('');
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -81,12 +96,12 @@ export default function AdminToolsPage() {
     checkAuth();
   }, [router]);
 
-  // Refetch attended stats whenever the filter changes (RPC takes the lookback window directly)
+  // Refetch attended stats whenever the filter or selected month changes
   useEffect(() => {
     if (loading) return;
-    fetchAttendedStats(attendedFilter);
+    fetchAttendedStats(attendedFilter, selectedMonth);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, attendedFilter]);
+  }, [loading, attendedFilter, selectedMonth]);
 
   const fetchIncidentStats = async () => {
     setIncidentsLoading(true);
@@ -111,24 +126,34 @@ export default function AdminToolsPage() {
     }
   };
 
-  const fetchAttendedStats = async (filter: AttendedFilter) => {
+  const fetchAttendedStats = async (filter: AttendedFilter, month: { year: number; month: number } | null) => {
     setAttendedLoading(true);
     try {
       // Pull every member id (any status — we want ex-members in the list too)
       const { data: members, error: membersError } = await supabase
         .from('members')
-        .select('id, name');
+        .select('id, name, display_name');
       if (membersError) throw membersError;
 
       const memberIds = (members || []).map(m => m.id);
       const nameById = new Map<string, string>(
-        (members || []).map(m => [m.id, m.name || 'Unknown'])
+        (members || []).map(m => [m.id, m.name || m.display_name || 'Unknown'])
       );
+
+      // Calendar-month override → pass start/end. Otherwise use rolling window via days_back.
+      const rpcArgs: Record<string, unknown> = { p_member_ids: memberIds };
+      if (month) {
+        const range = getMonthRange(month.year, month.month);
+        rpcArgs.p_start_date = range.start;
+        rpcArgs.p_end_date = range.end;
+      } else {
+        rpcArgs.p_days_back = getFilterDaysBack(filter);
+      }
 
       // Use the same RPC the Workouts page uses: bookings + linked scores + whiteboard text mentions, deduped per session
       const { data: attendance, error: rpcError } = await supabase.rpc(
         'get_all_members_attendance',
-        { p_member_ids: memberIds, p_days_back: getFilterDaysBack(filter) }
+        rpcArgs
       );
       if (rpcError) throw rpcError;
 
@@ -303,53 +328,130 @@ export default function AdminToolsPage() {
           {/* Attended tab */}
           {activeTab === 'attended' && (
             <>
-              {/* Filter pills */}
-              <div className='flex gap-2 mb-4'>
-                {FILTER_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    onClick={() => setAttendedFilter(opt.value)}
-                    className={`px-3 py-1 rounded-full text-xs font-medium transition ${
-                      attendedFilter === opt.value
-                        ? 'bg-[#178da6] text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
+              {/* Rolling-window filter pills (mutually exclusive with calendar-month grid below) */}
+              <div className='flex gap-2 mb-3'>
+                {FILTER_OPTIONS.map((opt) => {
+                  const isActive = !selectedMonth && attendedFilter === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      onClick={() => { setSelectedMonth(null); setAttendedFilter(opt.value); }}
+                      className={`px-3 py-1 rounded-full text-xs font-medium transition ${
+                        isActive
+                          ? 'bg-[#178da6] text-white'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
               </div>
 
-              {attendedLoading ? (
-                <p className='text-gray-500 text-sm'>Loading...</p>
-              ) : attendedRanking.length === 0 ? (
-                <p className='text-gray-500 text-sm'>No sessions recorded yet.</p>
-              ) : (
-                <div className='overflow-x-auto'>
-                  <table className='w-full text-sm'>
-                    <thead>
-                      <tr className='border-b border-gray-200'>
-                        <th className='text-left py-2 pr-4 font-semibold text-gray-400 w-8'>#</th>
-                        <th className='text-left py-2 pr-4 font-semibold text-gray-700'>Member</th>
-                        <th className='text-right py-2 pl-3 font-semibold text-[#178da6]'>Sessions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {attendedRanking.map((stat, idx) => (
-                        <tr key={stat.memberId} className='border-b border-gray-100 last:border-0'>
-                          <td className='py-2 pr-4 text-gray-400 font-medium'>{idx + 1}</td>
-                          <td className='py-2 pr-4 font-medium text-gray-800'>{stat.name}</td>
-                          <td className='text-right py-2 pl-3'>
-                            <span className='inline-block bg-[#178da6]/10 text-[#178da6] font-semibold px-2 py-0.5 rounded text-xs'>
-                              {stat.count}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+              {/* Calendar-month grid (clicking a month overrides the rolling pill above; click again to clear) */}
+              <div className='mb-4 border border-gray-200 rounded-lg p-3 bg-gray-50'>
+                <div className='flex items-center justify-between mb-2'>
+                  <button
+                    onClick={() => setMonthYear(y => y - 1)}
+                    className='p-1 rounded hover:bg-gray-200 text-gray-600'
+                    title='Previous year'
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+                  <span className='text-sm font-semibold text-gray-700'>{monthYear}</span>
+                  <button
+                    onClick={() => setMonthYear(y => y + 1)}
+                    className='p-1 rounded hover:bg-gray-200 text-gray-600'
+                    title='Next year'
+                  >
+                    <ChevronRight size={16} />
+                  </button>
                 </div>
-              )}
+                <div className='grid grid-cols-6 sm:grid-cols-12 gap-1'>
+                  {MONTH_LABELS.map((label, idx) => {
+                    const isSelected = selectedMonth?.year === monthYear && selectedMonth?.month === idx;
+                    return (
+                      <button
+                        key={label}
+                        onClick={() => setSelectedMonth(isSelected ? null : { year: monthYear, month: idx })}
+                        className={`px-2 py-1 rounded text-xs font-medium transition ${
+                          isSelected
+                            ? 'bg-[#178da6] text-white'
+                            : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-100'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+                {selectedMonth && (
+                  <p className='text-xs text-gray-500 mt-2'>
+                    Showing {MONTH_LABELS[selectedMonth.month]} {selectedMonth.year}.{' '}
+                    <button onClick={() => setSelectedMonth(null)} className='text-[#178da6] hover:underline'>Clear</button>
+                  </p>
+                )}
+              </div>
+
+              {/* Name search — narrows displayed list, persists across pill/month changes */}
+              <div className='mb-3 flex items-center gap-2'>
+                <input
+                  type='text'
+                  value={nameQuery}
+                  onChange={(e) => setNameQuery(e.target.value)}
+                  placeholder='Search by name…'
+                  className='flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#178da6]/40'
+                />
+                {nameQuery && (
+                  <button
+                    onClick={() => setNameQuery('')}
+                    className='px-2 py-1 text-xs text-gray-600 hover:text-gray-800'
+                    title='Clear search'
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+
+              {(() => {
+                const q = nameQuery.trim().toLowerCase();
+                const filtered = q ? attendedRanking.filter(s => s.name.toLowerCase().includes(q)) : attendedRanking;
+
+                if (attendedLoading) return <p className='text-gray-500 text-sm'>Loading...</p>;
+                if (attendedRanking.length === 0) return <p className='text-gray-500 text-sm'>No sessions recorded yet.</p>;
+                if (filtered.length === 0) return <p className='text-gray-500 text-sm'>No matches for &ldquo;{nameQuery}&rdquo;.</p>;
+
+                return (
+                  <div className='overflow-x-auto'>
+                    <table className='w-full text-sm'>
+                      <thead>
+                        <tr className='border-b border-gray-200'>
+                          <th className='text-left py-2 pr-4 font-semibold text-gray-400 w-8'>#</th>
+                          <th className='text-left py-2 pr-4 font-semibold text-gray-700'>Member</th>
+                          <th className='text-right py-2 pl-3 font-semibold text-[#178da6]'>Sessions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filtered.map((stat) => {
+                          // Preserve overall ranking (1-based) even when filtered
+                          const overallRank = attendedRanking.findIndex(r => r.memberId === stat.memberId) + 1;
+                          return (
+                            <tr key={stat.memberId} className='border-b border-gray-100 last:border-0'>
+                              <td className='py-2 pr-4 text-gray-400 font-medium'>{overallRank}</td>
+                              <td className='py-2 pr-4 font-medium text-gray-800'>{stat.name}</td>
+                              <td className='text-right py-2 pl-3'>
+                                <span className='inline-block bg-[#178da6]/10 text-[#178da6] font-semibold px-2 py-0.5 rounded text-xs'>
+                                  {stat.count}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                );
+              })()}
             </>
           )}
 

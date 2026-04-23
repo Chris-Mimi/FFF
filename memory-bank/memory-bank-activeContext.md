@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 169.0
-**Updated:** 2026-04-23 (Session 306 — Acronym plumbing, cancelled-booking list, attendance parity)
+**Version:** 170.0
+**Updated:** 2026-04-23 (Session 307 — Admin attendance: calendar-month grid + name search)
 
 ---
 
@@ -84,6 +84,13 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 307 (2026-04-23 — Opus 4.7) — ADMIN ATTENDANCE: CALENDAR-MONTH GRID + NAME SEARCH:**
+- **RPC extended for calendar-month scope** (`database/20260423_attendance_rpc_calendar_month.sql`, run by Chris in Supabase): added optional `p_start_date` + `p_end_date` to `get_all_members_attendance` (DEFAULT NULL on both). When `p_start_date` is provided it overrides `p_days_back`; `p_end_date` defaults to `CURRENT_DATE`. Date predicate updated identically across all three UNION sources (bookings + linked scores + whiteboard text mentions). Existing 2-arg callers (Workouts page Athletes List, Members page) continue to work via Supabase named-arg RPC dispatch.
+- **Calendar-month grid in Admin Tools Attendance Reports** (`app/coach/admin/page.tsx`): added year selector with chevron arrows + 12-button month grid below the existing rolling-window pills. Mutually exclusive: clicking a pill clears `selectedMonth`; clicking a month deselects the pill. Re-clicking the same month deselects (toggle). New `getMonthRange(year, month)` helper returns `{ start, end }` as ISO date strings. `fetchAttendedStats` builds RPC args conditionally — month-mode passes `p_start_date`/`p_end_date`, pill-mode passes `p_days_back`.
+- **Name search input** above the rankings table: case-insensitive substring filter on `member.name`, persists across pill/month changes (pure UI filter, no refetch). Rank numbers stay anchored to the overall ranking even when filtered (so "#23" still shows #23, not 1/2/3 within the filtered subset).
+- **"Unknown" name fix:** the rankings showed 13 "Unknown" entries because `members.name` is NULL for family-member accounts (kids in K&T classes + 2 adult family members). Code change: `m.name || m.display_name || 'Unknown'`. Selected `display_name` from the `members` query.
+- **TS clean** throughout. Live-tested + verified by Chris.
+
 **Session 306 (2026-04-23 — Opus 4.7) — ACRONYM PLUMBING + CANCELLED-BOOKING LIST + ATTENDANCE PARITY:**
 - **S303 acronym follow-up shipped:** added shared `fetchAcronymMap()` helper in `utils/movement-analytics.ts`. Plumbed through `getExerciseFrequency` (extends existing exercises select with `tags`), `computePatternGaps` + `detectWeeklyCoverage` (via `Promise.all` with workout fetch), and `useMovementTracking` (fetched once on mount, invalidates wodMovement cache). Movement Tracking + Pattern Gap analysis + Exercise Frequency now resolve `dl`-style acronyms same as Workouts search. Commit `efadd1f7`.
 - **Pending family member cleanup (manual SQL):** Claudia Herrmann (pending under Michael Junkes's family) had no UI removal path. Found via `primary_member_id`. Cascade-deleted 2 `coach_cancelled` test bookings + members row + auth.users row. No Reject/Delete button exists on Pending tab — flagged as a possible feature.
@@ -115,15 +122,7 @@ Athlete Tools
 - **TS check clean** (`npx tsc --noEmit`). Live-tested + verified by Chris S304.
 - **Follow-up:** 3 other callers (pattern-analytics, useMovementTracking, movement-analytics) still don't pass `acronymMap` — deferred.
 
-**Session 302 (2026-04-22 — Opus 4.7) — LEADERBOARD TIEBREAKER NaN FIX + DOB SYNC + BENCHMARK PARITY:**
-- Chris live-tested S301 "Front Squat 5RM" (7 tied at 80kg) and reported tiebreaker wasn't ordering him (oldest, DOB set) to the top of the tied group.
-- **Bug 1 — NaN poisoning the sort comparator** (`utils/leaderboard-utils.ts`): `ageOf` used `?? -Infinity` sentinel. When both entries had no DOB, `-Infinity - (-Infinity) = NaN`. `NaN !== 0` → `Array.sort()` silently abandoned remaining tiebreakers (date, session_time). Replaced with `compareAge` helper (both-null → 0 falls through, one-null → null ranks last, else older DESC). Applied in `rankSectionResults` and `rankLiftResults`.
-- **Bug 2 — DOB written to wrong table** (`components/athlete/AthletePageProfileTab.tsx:202`): athlete profile save wrote DOB to `athlete_profiles.date_of_birth` but never to `members.date_of_birth`. `get_member_names` RPC (added S300) reads from `members`. Added `memberUpdate.date_of_birth = profile.date_of_birth || null` to the existing members-sync block (already syncs name + gender). Chris ran a one-time backfill SQL (`UPDATE members SET date_of_birth = ap.date_of_birth FROM athlete_profiles ap WHERE members.id = ap.user_id AND members.date_of_birth IS NULL AND ap.date_of_birth IS NOT NULL;`).
-- **S301 live-tested ok** on Front Squat 5RM after Bug 1 + Bug 2 fixes.
-- **Benchmark parity (S301 leftover)**: ported tiebreaker chain + shared ranks to `rankBenchmarkResults` (`utils/leaderboard-utils.ts`). Split sort into `comparePrimary` (scaling → track → weight tiebreaker → primary metric) and display tiebreakers (age DESC → `result_date` ASC). No `session_time` — benchmarks are all-time bests, not session-linked. Added `memberAges` 6th arg and `age` to output entries. Both callers in `LeaderboardView.tsx` (lines ~864 and ~1505) updated to pass ages. Benchmark parity **not yet live-tested**.
-- Commits: `aeaa534` (bugs 1+2), S302 follow-up (benchmark parity) uncommitted at session close.
-
-**Older sessions (57-301):** See `project-history/` folder.
+**Older sessions (57-302):** See `project-history/` folder.
 
 ---
 
@@ -148,8 +147,8 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-1. **Live-verify S306 cancelled-booking section + Admin attendance parity** — open Session Management on a session with athlete-cancelled bookings; confirm the new section + timestamps render. Then open Admin Tools → Attendance Reports and confirm counts now match the Workouts page Athletes List for the same athletes.
-2. **Re-enter Sonja Hujo's deleted score** (S305 cleanup) — both her orphan whiteboard row + registered-account row for the same WOD/section/date were deleted. Need to re-input via Score Entry UI; will land cleanly now that she has a booking from S305 backfill.
+1. **Re-enter Sonja Hujo's deleted score** (S305 cleanup) — both her orphan whiteboard row + registered-account row for the same WOD/section/date were deleted. Need to re-input via Score Entry UI; will land cleanly now that she has a booking from S305 backfill.
+2. **Backfill `members.name` for family-member accounts** (S307 follow-up) — 29 family-member rows have `name=NULL` (only `display_name` set). Code now falls back to display_name so they show correctly, but if other surfaces query `members.name` directly they'd still see "Unknown". One-shot SQL: `UPDATE members SET name = display_name WHERE name IS NULL AND display_name IS NOT NULL;` — only run if display_name is consistently the right value.
 3. **Build Reject/Delete button on Members Pending tab** — currently no UI affordance to remove pending members; only Approve/Unapprove. S306 had to use SQL to clean up Claudia Herrmann. Future feature.
 4. **Live-test Intervals timer mode itself** (S296) on deployed app — core mode never live-tested (presets already confirmed working S298).
 5. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app (should now show "Updating password for [email]" above form).
