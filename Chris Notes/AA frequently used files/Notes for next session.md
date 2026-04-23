@@ -11,7 +11,7 @@ http://192.168.178.75:3000
 * Workouts page: Movement Tracking is not correct (Bench Press eg)
 
 * Mimi's iPhone copy/paste & delete function
-* check 
+* Box WiFi: Mac gets IPv6-only (no IPv4), dev sites (GitHub/Supabase/Vercel/Resend) unreachable. PC on same box WiFi works fine. At home all works. Debug next time at the box — see `SESSION-HANDOFF-S303-DNS-issue.md` for diagnostic history.
 * 
 * 
 
