@@ -11,10 +11,11 @@
 ### 1. Pre-Check: Terminal Locks & Sync
 - [ ] Check no background processes (`npm run dev`, `vite`, `nodemon`) are locking the DB or JSON files. Kill if needed — prevents corrupted backups.
 
-### 2. Review Uncommitted State
-- [ ] Run `git status`. Ask Claude: *"Should any of these files be excluded or split across separate commits?"*
-- [ ] Decide: one commit vs. several logical commits (feature / bugfix / docs).
+### 2. Review Uncommitted State (plan BEFORE staging)
+- [ ] Run `git status` **once** at the start. Plan the entire commit split before touching `git add`.
+- [ ] Default: **single commit**. Split only if there's a clear reason (e.g. unrelated workstreams, one should land without the other).
 - [ ] Flag anything experimental that should NOT be committed yet.
+- [ ] Before using `git add -f <dir>/`: check `.gitignore` + `git status <dir>/` to see what's actually inside. Force-adding a gitignored directory can pull in hundreds of untracked historical files.
 
 ### 3. Update Notes for Next Session
 - [ ] Overwrite `Chris Notes/AA frequently used files/Notes for next session.md` with:
@@ -37,19 +38,21 @@
 - [ ] Create `project-history/YYYY-MM-DD-session-XXX-description.md`
   - Accomplishments, logic decisions, rejected alternatives, major learnings.
   - This is where the nuance that doesn't fit in activeContext goes.
+  - **Size target: ~150 lines / 5 KB**, matching neighbors in `project-history/`. If you're writing a design doc, you've gone too far — trim.
 
 ### 6. Update Feature Overview (if applicable)
 - [ ] If a new user-facing feature shipped: add an entry to `Chris Notes/Forge app documentation/Forge-Feature-Overview.md`. Written with launch-publicity / user-manual framing in mind.
 
 ### 7. Run Database Backup ⚠️ BEFORE GIT
-- [ ] Execute: `npm run backup`
+- [ ] Execute: `npm run backup 2>&1 | tail -3` — verbose per-table logs aren't useful; tail just shows success/failure.
 - Auto-discovers all public tables via `get_public_tables()` RPC (Session 95), so the schema list stays current automatically.
-- **Why before git:** timestamped JSON files should be version-controlled alongside code changes.
+- **Backups are local-only restore points.** `backups/` is in `.gitignore` — do NOT force-add it. The JSON files exist on disk as a safety net; restore via `scripts/restore-from-backup.ts` if needed.
 
 ### 8. Stage Changes (Deliberate, Not Blanket)
 - [ ] Prefer named-file staging: `git add path/to/file1 path/to/file2 ...`
 - [ ] `git add .` only after an explicit `git status` review — never as a reflex.
 - [ ] Never stage `.env*`, credentials, large binaries, or anything in `/tmp`.
+- [ ] **If splitting commits:** stage + commit each group back-to-back in a single message's tool calls when possible, instead of `status → stage → commit → status → stage → commit`. Each `git status` between commits re-dumps the file list — adds up fast.
 
 ### 9. Commit
 Use the session-prefix pattern from recent git log:
@@ -94,4 +97,7 @@ git push
 - ❌ **Generic commit messages** — no session number, no specifics.
 - ❌ **Bloating activeContext.md** — keep only last 5 sessions; older detail → `project-history/`.
 - ❌ **Reflex `git add .`** — review `git status` first; silent bulk stages have bitten before (Session 240 incident).
+- ❌ **Force-adding gitignored directories** without checking scope first — `git add -f backups/` pulls in every untracked file under it, often hundreds (Session 304 incident).
+- ❌ **Writing a design doc in `project-history/`** — target ~150 lines / 5 KB, match neighbors.
+- ❌ **Multiple commits by default** — prefer one commit unless there's a clear reason to split. Each extra commit costs an extra status+stage round-trip.
 - ❌ **Running this checklist at 70%+ context** — use `handoff-prompt.md` instead; the memory-bank update is too expensive in a bloated session.
