@@ -72,6 +72,7 @@ export interface AthleteScoreValues {
   metres_result: string;
   task_completed: boolean;
   dnf: boolean;
+  open_gym: boolean;
 }
 
 interface ExistingResult {
@@ -93,6 +94,7 @@ interface ExistingResult {
   metres_result: number | null;
   task_completed: boolean | null;
   dnf: boolean | null;
+  open_gym: boolean | null;
 }
 
 interface SessionData {
@@ -126,6 +128,7 @@ export const emptyScoreValues: AthleteScoreValues = {
   metres_result: '',
   task_completed: false,
   dnf: false,
+  open_gym: false,
 };
 
 export function useScoreEntry(sessionId: string) {
@@ -225,6 +228,7 @@ export function useScoreEntry(sessionId: string) {
           metres_result: result.metres_result != null ? String(result.metres_result) : '',
           task_completed: result.task_completed || false,
           dnf: result.dnf || false,
+          open_gym: result.open_gym || false,
         };
       }
       setScores(prefilled);
@@ -277,7 +281,8 @@ export function useScoreEntry(sessionId: string) {
                 !values.calories_result &&
                 !values.metres_result &&
                 !values.task_completed &&
-                !values.dnf
+                !values.dnf &&
+                !values.open_gym
               ) {
                 return null;
               }
@@ -300,6 +305,7 @@ export function useScoreEntry(sessionId: string) {
                 metres_result: values.metres_result ? parseFloat(values.metres_result) : null,
                 task_completed: values.task_completed || null,
                 dnf: values.dnf || null,
+                open_gym: values.open_gym || null,
               };
             })
             .filter(Boolean)
@@ -325,7 +331,8 @@ export function useScoreEntry(sessionId: string) {
             !values.calories_result &&
             !values.metres_result &&
             !values.task_completed &&
-            !values.dnf
+            !values.dnf &&
+            !values.open_gym
           );
           if (!isEmpty) continue;
 

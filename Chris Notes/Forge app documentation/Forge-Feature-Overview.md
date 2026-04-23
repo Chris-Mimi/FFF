@@ -111,6 +111,7 @@ There's no app-switching, no spreadsheets, no whiteboards that get erased. Just 
 - **Per-workout leaderboards** — see how you stack up against other athletes, ranked by time, reps, or weight. Selecting a section chip shows the full workout description so you always know exactly what you're scoring
 - **Intelligent ranking** — proper tie-breaking, scaling-level separation, and multi-track support (Track 1/2/3 badges)
 - **DNF support** — mark an athlete as "Did Not Finish" with a single tap. DNF entries still appear on the leaderboard (so partial efforts are recognised) but always rank below athletes who completed the workout
+- **Open Gym (OG) support** — for athletes who came to class but did their own thing (mobility work, pregnancy modifications, off-day cruising). One-click "OG" tag preserves attendance, surfaces their entry on the leaderboard at the very bottom (below DNFs), and skips score input. The OG chip stays out of sight by default — it appears only after the coach taps DNF, keeping the entry screen clean for normal classes
 - **Smart grouping** — same-named workouts within 60 days are automatically grouped, showing each athlete's best result across sessions
 - **Gender filtering** — toggle between All, Male, and Female views with re-ranked positions
 

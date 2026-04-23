@@ -768,7 +768,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
         if (bmSectionIds.length > 0) {
           const { data: wsrResults } = await supabase
             .from('wod_section_results')
-            .select('id, user_id, member_id, whiteboard_name, time_result, reps_result, weight_result, weight_result_2, weight_result_3, rounds_result, calories_result, metres_result, scaling_level, scaling_level_2, scaling_level_3, track, task_completed, dnf, workout_date')
+            .select('id, user_id, member_id, whiteboard_name, time_result, reps_result, weight_result, weight_result_2, weight_result_3, rounds_result, calories_result, metres_result, scaling_level, scaling_level_2, scaling_level_3, track, task_completed, dnf, open_gym, workout_date')
             .in('wod_id', bmWodIds)
             .in('section_id', bmSectionIds);
           if (wsrResults) coachEntries = wsrResults as unknown as (RawSectionResult & { member_id?: string })[];
@@ -888,7 +888,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
 
         const { data: results } = await supabase
           .from('wod_section_results')
-          .select('id, user_id, member_id, wod_id, whiteboard_name, time_result, reps_result, weight_result, weight_result_2, weight_result_3, rounds_result, calories_result, metres_result, scaling_level, scaling_level_2, scaling_level_3, track, task_completed, dnf, workout_date')
+          .select('id, user_id, member_id, wod_id, whiteboard_name, time_result, reps_result, weight_result, weight_result_2, weight_result_3, rounds_result, calories_result, metres_result, scaling_level, scaling_level_2, scaling_level_3, track, task_completed, dnf, open_gym, workout_date')
           .in('wod_id', contentWodIds)
           .in('section_id', contentSectionIds);
 
@@ -1237,7 +1237,9 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
                           </span>
                         </td>
                         <td className='px-3 py-2.5 text-right'>
-                          {entry.dnf ? (
+                          {entry.openGym ? (
+                            <span className='text-xs font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded'>OG</span>
+                          ) : entry.dnf ? (
                             <span className='text-xs font-bold text-red-500 bg-red-50 px-1.5 py-0.5 rounded'>DNF</span>
                           ) : (
                             <span className='text-sm font-medium text-gray-900'>
@@ -1403,7 +1405,7 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
         const sectionIds = [...new Set(wodSectionPairs.map(p => p.sectionId))];
         const { data: wsrResults } = await supabase
           .from('wod_section_results')
-          .select('id, user_id, member_id, whiteboard_name, time_result, reps_result, weight_result, weight_result_2, weight_result_3, rounds_result, calories_result, metres_result, scaling_level, scaling_level_2, scaling_level_3, track, task_completed, dnf, workout_date')
+          .select('id, user_id, member_id, whiteboard_name, time_result, reps_result, weight_result, weight_result_2, weight_result_3, rounds_result, calories_result, metres_result, scaling_level, scaling_level_2, scaling_level_3, track, task_completed, dnf, open_gym, workout_date')
           .in('wod_id', wodIds)
           .in('section_id', sectionIds);
         if (wsrResults) coachEntries = wsrResults as unknown as (RawSectionResult & { member_id?: string })[];
@@ -1615,7 +1617,9 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
                       </span>
                     </td>
                     <td className='px-3 py-2.5 text-right'>
-                      {entry.dnf ? (
+                      {entry.openGym ? (
+                        <span className='text-xs font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded'>OG</span>
+                      ) : entry.dnf ? (
                         <span className='text-xs font-bold text-red-500 bg-red-50 px-1.5 py-0.5 rounded'>DNF</span>
                       ) : (
                         <span className='text-sm font-medium text-gray-900'>

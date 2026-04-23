@@ -28,6 +28,7 @@ interface ScoreEntry {
   metres_result?: number | null;
   task_completed?: boolean | null;
   dnf?: boolean | null;
+  open_gym?: boolean | null;
 }
 
 function validateScore(score: ScoreEntry): string | null {
@@ -86,6 +87,7 @@ function isScoreEmpty(score: ScoreEntry): boolean {
     score.metres_result == null &&
     score.task_completed == null &&
     !score.dnf &&
+    !score.open_gym &&
     !score.scaling_level &&
     !score.scaling_level_2 &&
     !score.scaling_level_3
@@ -182,6 +184,7 @@ export async function POST(request: NextRequest) {
         metres_result: score.metres_result ?? null,
         task_completed: score.task_completed ?? null,
         dnf: score.dnf ?? false,
+        open_gym: score.open_gym ?? false,
         updated_at: new Date().toISOString(),
       });
     }
@@ -216,6 +219,7 @@ export async function POST(request: NextRequest) {
         metres_result: score.metres_result ?? null,
         task_completed: score.task_completed ?? null,
         dnf: score.dnf ?? false,
+        open_gym: score.open_gym ?? false,
         updated_at: new Date().toISOString(),
       });
     }

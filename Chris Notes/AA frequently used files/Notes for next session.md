@@ -13,7 +13,8 @@ http://192.168.178.75:3000
 * Box WiFi: Mac gets IPv6-only (no IPv4), dev sites (GitHub/Supabase/Vercel/Resend) unreachable. PC on same box WiFi works fine. At home all works. Debug next time at the box — see `SESSION-HANDOFF-S303-DNS-issue.md` for diagnostic history.
 * 
 * Has Fabian's parent got a login, if so who?
-* Make the M/F WP selectors give me a warning if I change a selected one
+* Open Gym registrations
+* PT how to handle them
 
 
 

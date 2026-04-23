@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 170.1
-**Updated:** 2026-04-23 (Session 307 cont. — per-incident delete + membership-type change guard)
+**Version:** 171.0
+**Updated:** 2026-04-23 (Session 308 — name backfill + guardian-only filter + Open Gym chip)
 
 ---
 
@@ -84,6 +84,18 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 308 (2026-04-23 — Opus 4.7) — NAME BACKFILL + GUARDIAN-ONLY FILTER + OPEN GYM "OG" CHIP:**
+- **`members.name` backfill (29 family-member rows):** Coach SearchPanel / ManualBookingPanel / MovementTrackingPanel / TenCardModal all read `member.name` directly with no `display_name` fallback, so kids in K&T + adult family members rendered blank. Ran `UPDATE members SET name = display_name WHERE name IS NULL AND display_name IS NOT NULL;` after preview-SELECT confirmation. 0 rows remain. (S307 had only patched the Admin attendance table with a code-side fallback; this fixes the underlying data so all surfaces benefit.)
+- **Guardian-only excluded from Workouts page Athletes List** ([hooks/coach/useCoachData.ts:447](hooks/coach/useCoachData.ts#L447)): added `.eq('guardian_only', false)` to `fetchMembers` query, matching the existing pattern in `useMemberData.ts:91`. Guardian-only members no longer pollute the per-athlete attendance view.
+- **Open Gym "OG" chip on Score Entry — full feature:** parallel to DNF, surfaces atttendance for athletes who came to class but did Open Gym instead of the WOD (e.g. pregnant member). 6 files:
+  1. `database/20260423_add_open_gym_flag.sql` — `ALTER TABLE wod_section_results ADD COLUMN open_gym BOOLEAN DEFAULT FALSE NOT NULL` (run by Chris in Supabase).
+  2. `hooks/coach/useScoreEntry.ts` — `AthleteScoreValues` + `ExistingResult` interfaces, `emptyScoreValues`, load mapping, save mapping, both `isEmpty` checks all extended with `open_gym`.
+  3. `app/api/score-entry/save/route.ts` — `ScoreEntry` interface + `isScoreEmpty` + both record-builder branches.
+  4. `components/coach/score-entry/AthleteScoreRow.tsx` — DNF chip toggles also clear `open_gym` (mutex). OG chip only renders when `dnf || open_gym` is true (default-hidden, appears after first DNF click). Click cycles: off → DNF (red bg) → OG (blue bg) → off, both chips vanishing back to DNF-only when both off. Row tints red/blue accordingly. "Copy from above" button also propagates open_gym.
+  5. `utils/leaderboard-utils.ts` — `LeaderboardEntry.openGym?` + `RawSectionResult.open_gym?`. Filter includes OG entries. New `tierOf()` helper (0=score, 1=DNF, 2=OG) replaces the inline DNF tiebreaker in `comparePrimary` so OG sorts strictly below DNF.
+  6. `components/athlete/LeaderboardView.tsx` — 3 SELECT strings (replaceAll) include `open_gym`; both rendering blocks check `entry.openGym ?` first (blue OG badge), then `entry.dnf ?` (red DNF badge), then real result.
+- **TS clean** throughout. `App.api/score-entry/[sessionId]/route.ts` SELECT uses `*`, so `open_gym` flows through automatically once the column exists — no edit needed.
+
 **Session 307 (2026-04-23 — Opus 4.7) — ADMIN ATTENDANCE: CALENDAR-MONTH GRID + NAME SEARCH:**
 - **RPC extended for calendar-month scope** (`database/20260423_attendance_rpc_calendar_month.sql`, run by Chris in Supabase): added optional `p_start_date` + `p_end_date` to `get_all_members_attendance` (DEFAULT NULL on both). When `p_start_date` is provided it overrides `p_days_back`; `p_end_date` defaults to `CURRENT_DATE`. Date predicate updated identically across all three UNION sources (bookings + linked scores + whiteboard text mentions). Existing 2-arg callers (Workouts page Athletes List, Members page) continue to work via Supabase named-arg RPC dispatch.
 - **Calendar-month grid in Admin Tools Attendance Reports** (`app/coach/admin/page.tsx`): added year selector with chevron arrows + 12-button month grid below the existing rolling-window pills. Mutually exclusive: clicking a pill clears `selectedMonth`; clicking a month deselects the pill. Re-clicking the same month deselects (toggle). New `getMonthRange(year, month)` helper returns `{ start, end }` as ISO date strings. `fetchAttendedStats` builds RPC args conditionally — month-mode passes `p_start_date`/`p_end_date`, pill-mode passes `p_days_back`.
@@ -116,16 +128,7 @@ Athlete Tools
 - **Session-close checklist rewrite** (`Chris Notes/AA frequently used files/session-close-checklist.md`): fixed duplicate step numbering, added explicit `git status` review step (vs reflex `git add .` — Session 240 incident), added step for updating `Notes for next session.md` (was missing entirely), codified `type(session-XXX):` commit-message pattern from recent git log, updated model attribution to Opus 4.7, dropped stale frozen table list (backup auto-discovers via `get_public_tables()`), added cross-reference to `handoff-prompt.md` for the emergency (70%+) path vs. this checklist's clean-close (< 60%) path.
 - **Still open from S303:** 3 other callers of `extractMovementsFromWod` don't pass `acronymMap` — `utils/pattern-analytics.ts`, `hooks/coach/useMovementTracking.ts`, `utils/movement-analytics.ts`. Low priority, noted in Next Steps.
 
-**Session 303 (2026-04-22 / 04-23 — Opus 4.7 across two days) — DATA-DRIVEN ACRONYM SEARCH:**
-- Chris reported "BS" (Back Squat) didn't surface every intended workout in the Workouts search; asked for DL (Deadlift) too. Previous implementation had 26 acronyms hardcoded in `genericToCanonical`. Refactored to data-driven via `exercises.tags[]` so new acronyms are added via SQL, not code.
-- **Migration 1** (`database/20260422_session303_strip_acronym_suffixes.sql`): stripped 26 `(XX)` suffixes from `display_name`, moved the acronym into `tags[]` lowercase. Verified step-3 returned 0 rows after run.
-- **Migration 2** (`database/20260423_add_acronym_tags.sql`): added `'dl'` tag to `"Barbell Deadlift"` which had no parenthetical suffix. Template footer for future additions.
-- **`utils/movement-extraction.ts`**: removed the hardcoded 26-acronym block + `acronymForName`/`canonicalToAcronym`/`acronymEntries`. Exported `type AcronymMap = Map<string, string>`. Added optional 3rd arg `acronymMap?: AcronymMap` to `extractMovementsFromWod` + `extractMovements`. Source 1 (lifts) now checks `acronymMap` FIRST, then falls back to `genericToCanonical` (still holds non-acronym generic mappings). Also stripped `(xxx)` parentheticals from remaining `genericToCanonical` values; two values changed prefix to match new DB names (`'barbell overhead squat'`, `'barbell strict oh press'`).
-- **`hooks/coach/useCoachData.ts`**: `fetchExerciseNames` now selects `tags` too, builds 2 maps (`acronymMap`: tag → display_name, `displayNameToAcronyms`: display_name → tags). Search filter pushes all exercise tags into `combinedText` for Lifts-section lifts (tries `liftLower`, `barbell liftLower`, `kb liftLower`, `jump rope liftLower`). Both `extractMovementsFromWod` + `extractMovements` calls pass `acronymMap`.
-- **TS check clean** (`npx tsc --noEmit`). Live-tested + verified by Chris S304.
-- **Follow-up:** 3 other callers (pattern-analytics, useMovementTracking, movement-analytics) still don't pass `acronymMap` — deferred.
-
-**Older sessions (57-302):** See `project-history/` folder.
+**Older sessions (57-303):** See `project-history/` folder.
 
 ---
 
@@ -152,7 +155,7 @@ Athlete Tools
 
 1. **Carla Rydval duplicate-account cleanup** (S307 pending) — once Carla confirms which email she'll use, delete the other primary account + its 2 kid rows + auth.users row. Account 1: `carla-muecke@web.de` (id `666c7e65-…`) → kids Alicia `98c70cf3-…` + Aileen `0f8cd709-…`. Account 2: `c.rydval@web.de` (id `dd85adee-…`) → kids Alicia `98709904-…` + Aileen `d20ce712-…`. None have bookings/scores yet — clean slate.
 2. **Re-enter Sonja Hujo's deleted score** (S305 cleanup) — both her orphan whiteboard row + registered-account row for the same WOD/section/date were deleted. Need to re-input via Score Entry UI; will land cleanly now that she has a booking from S305 backfill.
-3. **Backfill `members.name` for family-member accounts** (S307 follow-up) — 29 family-member rows have `name=NULL` (only `display_name` set). Code now falls back to display_name so they show correctly, but if other surfaces query `members.name` directly they'd still see "Unknown". One-shot SQL: `UPDATE members SET name = display_name WHERE name IS NULL AND display_name IS NOT NULL;` — only run if display_name is consistently the right value.
+3. **Live-test Open Gym "OG" chip** (S308) — open Score Entry for any session, click DNF on a row → confirm OG chip appears, click OG → switches to blue, save → reload to confirm persistence, then check the WOD's leaderboard for OG entry at bottom (below DNF).
 4. **Decide whether to extend the membership-type confirm guard to class types** (EKT / Tu / CFK / CFT) — same accidental-click risk applies to kids' class assignments. Chris not asked yet.
 5. **Build Reject/Delete button on Members Pending tab** — currently no UI affordance to remove pending members; only Approve/Unapprove. S306 had to use SQL to clean up Claudia Herrmann. Future feature.
 6. **Live-test Intervals timer mode itself** (S296) on deployed app — core mode never live-tested (presets already confirmed working S298).

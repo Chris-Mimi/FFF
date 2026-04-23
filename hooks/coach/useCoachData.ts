@@ -450,6 +450,7 @@ export const useCoachData = ({
         .from('members')
         .select('id, name, date_of_birth')
         .eq('status', 'active')
+        .eq('guardian_only', false)
         .order('name', { ascending: true });
 
       if (membersError) throw membersError;
