@@ -15,6 +15,7 @@ http://192.168.178.75:3000
 * Has Fabian's parent got a login, if so who?
 * Open Gym registrations
 * PT how to handle them
+* 
 
 
 

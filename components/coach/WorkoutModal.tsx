@@ -163,7 +163,7 @@ export default function WorkoutModal({
 
             {/* Sections */}
             <div>
-              <div className='sticky top-0 z-20 bg-white pb-3 -mx-6 px-6'>
+              <div className='sticky -top-6 z-20 bg-white pt-3 pb-3 -mx-6 px-6'>
                 <div className='flex justify-between items-center mb-3'>
                   <div>
                     <label className='block text-sm font-semibold text-gray-900'>
@@ -510,7 +510,7 @@ export default function WorkoutModal({
 
               {/* Sections */}
               <div>
-                <div className='sticky top-0 z-20 bg-white pb-3 -mx-6 px-6'>
+                <div className='sticky -top-6 z-20 bg-white pt-3 pb-3 -mx-6 px-6'>
                   <div className='flex justify-between items-center mb-3'>
                     <div>
                       <label className='block text-sm font-semibold text-gray-900'>

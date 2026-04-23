@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 171.0
-**Updated:** 2026-04-23 (Session 308 — name backfill + guardian-only filter + Open Gym chip)
+**Version:** 171.1
+**Updated:** 2026-04-23 (Session 309 — WorkoutModal sticky-heading gap fix)
 
 ---
 
@@ -84,6 +84,11 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 309 (2026-04-23 — Opus 4.7) — WORKOUTMODAL STICKY-HEADING GAP FIX:**
+- Bug: scrolling inside Edit/Create Workout modal showed a 24px modal-bg gap above the stuck "Workout Sections" heading.
+- Root cause: sticky positioning's containing block is the parent's content box (inside padding), not its padding box. Form has `p-6` (24px padding-top), so `sticky top-0` was sticking 24px below the form's outer top edge — leaving the padding-top region visible.
+- Fix: changed both `sticky top-0 ... pb-3 -mx-6 px-6` instances (Edit + Create form variants in [components/coach/WorkoutModal.tsx](components/coach/WorkoutModal.tsx)) to `sticky -top-6 ... pt-3 pb-3 -mx-6 px-6`. The `-top-6` (-1.5rem) lets the element stick 24px above content-box-top = flush with form's outer edge = flush with modal header. Added `pt-3` so the heading has 12px breathing room above (mirroring the existing `pb-3`). No responsive-padding overrides on the form, so works identically on mobile.
+
 **Session 308 (2026-04-23 — Opus 4.7) — NAME BACKFILL + GUARDIAN-ONLY FILTER + OPEN GYM "OG" CHIP:**
 - **`members.name` backfill (29 family-member rows):** Coach SearchPanel / ManualBookingPanel / MovementTrackingPanel / TenCardModal all read `member.name` directly with no `display_name` fallback, so kids in K&T + adult family members rendered blank. Ran `UPDATE members SET name = display_name WHERE name IS NULL AND display_name IS NOT NULL;` after preview-SELECT confirmation. 0 rows remain. (S307 had only patched the Admin attendance table with a code-side fallback; this fixes the underlying data so all surfaces benefit.)
 - **Guardian-only excluded from Workouts page Athletes List** ([hooks/coach/useCoachData.ts:447](hooks/coach/useCoachData.ts#L447)): added `.eq('guardian_only', false)` to `fetchMembers` query, matching the existing pattern in `useMemberData.ts:91`. Guardian-only members no longer pollute the per-athlete attendance view.
@@ -122,13 +127,7 @@ Athlete Tools
 - **Bug fixed mid-flight:** existing-bookings dedup fetch hit Supabase's default 1000-row select cap (we now have 1552 bookings). Added pagination via `.range(from, from+999)` loop. Without it, second `--apply` run mis-proposed 552 already-inserted bookings → duplicate-key error. Important pattern for any future scripts that fetch large tables for in-memory dedup.
 - **Phase 2 conflict-handling:** `wod_section_results_user_id_wod_id_section_id_workout_date_key` unique constraint can fire if a member already has a registered-account score for the same slot. Script catches the error, logs the orphan IDs, continues with remaining updates. Manual cleanup path is delete + re-enter via UI.
 
-**Session 304 (2026-04-23 — Opus 4.7) — SESSION HANDOFF INFRASTRUCTURE + S303 SHIP:**
-- Finished shipping S303 acronym work (previously uncommitted). Chris ran `database/20260423_add_acronym_tags.sql` in Supabase SQL Editor; verified `"Barbell Deadlift"` now has `dl` in `tags[]`. Live-tested Workouts page search + Movement Tracking — "seems good". Committed S303 code (`utils/movement-extraction.ts`, `hooks/coach/useCoachData.ts`, the migration SQL via `git add -f`).
-- **Session handoff docs (new discipline):** created `Chris Notes/AA frequently used files/handoff-prompt.md` — a reusable prompt to paste at 70% context to trigger a structured 8-point handoff doc. Added a one-line pointer to `CLAUDE.md` Context Monitoring section.
-- **Session-close checklist rewrite** (`Chris Notes/AA frequently used files/session-close-checklist.md`): fixed duplicate step numbering, added explicit `git status` review step (vs reflex `git add .` — Session 240 incident), added step for updating `Notes for next session.md` (was missing entirely), codified `type(session-XXX):` commit-message pattern from recent git log, updated model attribution to Opus 4.7, dropped stale frozen table list (backup auto-discovers via `get_public_tables()`), added cross-reference to `handoff-prompt.md` for the emergency (70%+) path vs. this checklist's clean-close (< 60%) path.
-- **Still open from S303:** 3 other callers of `extractMovementsFromWod` don't pass `acronymMap` — `utils/pattern-analytics.ts`, `hooks/coach/useMovementTracking.ts`, `utils/movement-analytics.ts`. Low priority, noted in Next Steps.
-
-**Older sessions (57-303):** See `project-history/` folder.
+**Older sessions (57-304):** See `project-history/` folder.
 
 ---
 
