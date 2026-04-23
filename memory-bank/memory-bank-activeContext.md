@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 167.0
-**Updated:** 2026-04-23 (Session 303/304 — Acronym search data-driven ship + session handoff infrastructure)
+**Version:** 168.0
+**Updated:** 2026-04-23 (Session 305 — Whiteboard-name booking + score backfill)
 
 ---
 
@@ -84,6 +84,14 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 305 (2026-04-23 — Opus 4.7) — WHITEBOARD-NAME BOOKING + SCORE BACKFILL:**
+- One-shot script `scripts/backfill-whiteboard-bookings.ts` to retroactively (a) create `bookings` rows for whiteboard names that match registered members, and (b) re-attribute historical orphan `wod_section_results` rows (whiteboard_name set, member_id null) to the matched member. Dry-run by default, `--apply` to commit.
+- Matching uses members.whiteboard_name → first-name → full-name (lowercase), with `ALIAS_OVERRIDES` map for aliases that don't fit the canonical pattern (currently `kathih → kathi` for Katharina Herbst).
+- **Phase 1 result:** 1083 bookings inserted (covers entire 253-WOD history, every WOD = single session so no ambiguity). 168 already existed.
+- **Phase 2 result:** 3 historical results re-attributed (AnjaB×2, Anja, SusanneG); 1 conflict deleted manually by Chris (Sonja Hujo had both an orphan whiteboard row and a registered-account row for same WOD/section/date — both deleted, will re-enter via UI). 115 unmatched names confirmed by Chris as drop-ins / unregistered.
+- **Bug fixed mid-flight:** existing-bookings dedup fetch hit Supabase's default 1000-row select cap (we now have 1552 bookings). Added pagination via `.range(from, from+999)` loop. Without it, second `--apply` run mis-proposed 552 already-inserted bookings → duplicate-key error. Important pattern for any future scripts that fetch large tables for in-memory dedup.
+- **Phase 2 conflict-handling:** `wod_section_results_user_id_wod_id_section_id_workout_date_key` unique constraint can fire if a member already has a registered-account score for the same slot. Script catches the error, logs the orphan IDs, continues with remaining updates. Manual cleanup path is delete + re-enter via UI.
+
 **Session 304 (2026-04-23 — Opus 4.7) — SESSION HANDOFF INFRASTRUCTURE + S303 SHIP:**
 - Finished shipping S303 acronym work (previously uncommitted). Chris ran `database/20260423_add_acronym_tags.sql` in Supabase SQL Editor; verified `"Barbell Deadlift"` now has `dl` in `tags[]`. Live-tested Workouts page search + Movement Tracking — "seems good". Committed S303 code (`utils/movement-extraction.ts`, `hooks/coach/useCoachData.ts`, the migration SQL via `git add -f`).
 - **Session handoff docs (new discipline):** created `Chris Notes/AA frequently used files/handoff-prompt.md` — a reusable prompt to paste at 70% context to trigger a structured 8-point handoff doc. Added a one-line pointer to `CLAUDE.md` Context Monitoring section.
@@ -116,17 +124,7 @@ Athlete Tools
 - **Still not covered:** `rankBenchmarkResults` (benchmark leaderboards). Left as follow-up — flag if Chris wants parity there too.
 - **Not yet live-tested.**
 
-**Session 300 (2026-04-22 — Opus 4.7) — LEADERBOARD TIEBREAKERS + SHARED RANKS:**
-- Chris asked how tied scores are ordered. Discovered tied athletes previously got distinct sequential ranks (1,2,3,…) and final order was whatever PostgreSQL returned (roughly insertion order). Fix: new tiebreaker chain + shared-rank assignment.
-- **Shared ranks** in `rankSectionResults` (`utils/leaderboard-utils.ts`): split sort into `comparePrimary` (DNF → scaling → track → primary metric — the chain that defines a "tie") and display-order tiebreakers. Rank loop compares adjacent sorted entries via `comparePrimary`; ties inherit the previous rank → standard competition ranking `1,1,1,4,…`.
-- **Display-order tiebreakers (tied group only):** age DESC (older first, missing DOB treated as youngest) → `workout_date` ASC → `session_time` ASC (17:15 before 18:30).
-- **Age exposure:** extended `get_member_names` RPC to return integer `age` computed server-side from `date_of_birth` via `DATE_PART('year', AGE(dob))::INT`. Raw DOB never leaves the DB. Return-type change required `DROP FUNCTION` before `CREATE`. Migration: `database/20260422_add_age_to_get_member_names.sql` (applied via dashboard).
-- **Session-time lookup:** `wod_section_results` has no session_id, so inferred it: fetch `weekly_sessions` for (wod_id, date) pairs → fetch `bookings` (member_id → session_id) → match member's booking to the session, use that session's time. Single-session days skip the bookings query. Adds 2 lightweight queries per leaderboard load.
-- **Schema additions:** `RawSectionResult` gained optional `wod_id` and `session_time`. `rankSectionResults` gained optional `memberAges` 5th arg. `fetchMemberNames` in `LeaderboardView` now also returns `ages`.
-- Scope: `rankSectionResults` only (WOD section leaderboards). `rankBenchmarkResults` (benchmarks) + `rankLiftResults` (lift PRs) unchanged — noted as potential follow-up if Chris wants parity.
-- **Not yet live-tested.**
-
-**Older sessions (57-299):** See `project-history/` folder.
+**Older sessions (57-300):** See `project-history/` folder.
 
 ---
 
@@ -151,17 +149,15 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-1. **Decide whether to extend S303 acronym resolution** to `utils/pattern-analytics.ts:47,:162`, `hooks/coach/useMovementTracking.ts:46`, `utils/movement-analytics.ts:456`. Pattern: add optional `acronymMap?: AcronymMap` arg and plumb through from the calling hook (already has `exerciseNames` — expose the map the same way). Low priority.
-2. ~~**Live-verify S302 benchmark leaderboard tiebreakers**~~ — **PINNED (S305).** Tied benchmark scores are an edge case that will almost never happen. Revisit only if it becomes a real problem.
-3. ~~**Live-verify S300 section leaderboard tiebreakers**~~ — **VERIFIED OK (S305).**
-4. ~~**Live-verify S299 changes**~~ — **VERIFIED OK (S305).** Reps+cals combined ranking, Records Barbell Lifts sort order, iPhone Intervals Delete button all confirmed.
-5. **Live-test Intervals timer mode itself** (S296) on deployed app — core mode never live-tested (presets already confirmed working S298).
-6. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app (should now show "Updating password for [email]" above form).
-7. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper processes), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
-8. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
-9. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing.
-10. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts:48-56` only filters bookings by `status='confirmed'` and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
-11. **Test endpoint 410 cleanup** (deferred from S292) — route `app/api/notifications/test/route.ts` through `sendToSubscription` so expired subs auto-delete on Send Test.
+1. **Re-enter Sonja Hujo's deleted score** (S305 cleanup) — both her orphan whiteboard row + registered-account row for the same WOD/section/date were deleted. Need to re-input via Score Entry UI; will land cleanly now that she has a booking from S305 backfill.
+2. **Decide whether to extend S303 acronym resolution** to `utils/pattern-analytics.ts:47,:162`, `hooks/coach/useMovementTracking.ts:46`, `utils/movement-analytics.ts:456`. Pattern: add optional `acronymMap?: AcronymMap` arg and plumb through from the calling hook (already has `exerciseNames` — expose the map the same way). Low priority.
+3. **Live-test Intervals timer mode itself** (S296) on deployed app — core mode never live-tested (presets already confirmed working S298).
+4. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app (should now show "Updating password for [email]" above form).
+5. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper processes), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
+6. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
+7. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing. **Note:** S305 backfill may have largely resolved this by retroactively booking whiteboard names; re-evaluate before doing the S251 work.
+8. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts:48-56` only filters bookings by `status='confirmed'` and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
+9. **Test endpoint 410 cleanup** (deferred from S292) — route `app/api/notifications/test/route.ts` through `sendToSubscription` so expired subs auto-delete on Send Test.
 
 ---
 
