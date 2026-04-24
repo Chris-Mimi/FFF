@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 174.0
-**Updated:** 2026-04-24 (Session 313 — housekeeping: Carla cleanup + stray whiteboard row + S312 migration run & live-test)
+**Version:** 175.0
+**Updated:** 2026-04-24 (Session 314 — historical lift records import)
 
 ---
 
@@ -84,6 +84,14 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 314 (2026-04-24 — Sonnet 4.6) — HISTORICAL LIFT RECORDS IMPORT:**
+- Created `data/athletes/` folder as structured seed-data store for athlete lift history.
+- Created JSON files for 8 athletes (Michi Städele, Chris Hiles, Thomas Spegele, Tobias Götte, Denis Koffler, Jürgen Bizjak, Paul Bielenski, Wayne Lucas) — all imported + moved to `data/athletes/processed/`.
+- Created `scripts/import-athlete-lift-records.ts` — dry-run-first import script. Resolves `user_id` via `members.name`, parses lift keys into `lift_name + reps + rep_max_type`, Epley 1RM, deduplication. 582 records inserted.
+- Fixed: "Overhead Press" → "Strict Overhead Shoulder Press" (50 records updated + script corrected). Fixed 8 duplicate OHP records for Chris.
+- 8 more athlete JSONs staged in `data/athletes/` for next session: Zoran Vrbanic, Lukas Simnacher, David Montgomery, Tobias Baumstark, Christian Müller, Daniel Bratz, Dimitar Peresyov, Stefan Glocker. Christian Tanner data still missing.
+- No app code changed.
+
 **Session 313 (2026-04-24 — Opus 4.7) — HOUSEKEEPING + S312 MIGRATION RUN + LIVE TEST:**
 - **Carla Rydval duplicate cleanup (Next Step #1 closed):** deleted `carla-muecke@web.de` primary + its 2 kid rows + auth.users row. Had 0 bookings / 0 scores; `c.rydval@web.de` retained (already active, not pending).
 - **Stray whiteboard row deleted:** single `whiteboard_name='Anja'` row (workout_date 2026-04-01, id `7890b9e5-…`) neither matched Anja Götte (always `AnjaG`, not in DB) nor Anja Biechele (`AnjaB`). Coach-entry typo. Deleted by id.
@@ -104,6 +112,14 @@ Athlete Tools
   6. [app/member/book/page.tsx](app/member/book/page.tsx) — fetches the public config on mount, computes `maxVisibleDate`, adds `.lte('date', formatLocalDate(maxVisibleDate))` to the session query. `releaseConfig` added to the fetchSessions effect deps so the filter applies once the config loads.
   7. [app/api/bookings/create/route.ts](app/api/bookings/create/route.ts) — added a server-side gate check after the existing rules load: rejects with 403 if the requested session's date is past `getMaxVisibleSessionDate(rules)`. Closes the bypass where a determined athlete could read session IDs via the supabase client in dev tools and replay `/api/bookings/create` with a hidden ID.
 - **TS clean** throughout. Existing booking-rule helpers (`advance_booking_days`, `max_bookings_per_day`, etc) untouched.
+
+**Session 313 (2026-04-24 — Sonnet 4.6) — HISTORICAL LIFT RECORDS IMPORT:**
+- Created `data/athletes/` folder as structured seed-data store for athlete lift history.
+- Created JSON files for 8 athletes (Michi Städele, Chris Hiles, Thomas Spegele, Tobias Götte, Denis Koffler, Jürgen Bizjak, Paul Bielenski, Wayne Lucas) — all imported + moved to `data/athletes/processed/`.
+- Created `scripts/import-athlete-lift-records.ts` — dry-run-first import script. Resolves `user_id` via `members.name`, parses lift keys (e.g. "3 RM BS") into `lift_name` + `reps` + `rep_max_type`, calculates Epley 1RM, deduplicates against existing records. 582 records inserted.
+- Fixed: "Overhead Press" lift name corrected to "Strict Overhead Shoulder Press" (matches DB) — 50 already-inserted records updated, script map corrected.
+- Fixed: 8 duplicate OHP records for Chris (caused by rename-after-import) — deleted.
+- 8 more athletes staged in `data/athletes/` ready for next session: Zoran Vrbanic, Lukas Simnacher, David Montgomery, Tobias Baumstark, Christian Müller, Daniel Bratz, Dimitar Peresyov, Stefan Glocker. Christian Tanner data still missing.
 
 **Session 311 (2026-04-24 — Opus 4.7) — TRIAL NAMES IN CALENDAR-TILE HOVER:**
 - S310 follow-up: trial athletes were missing from the booked-members hover tooltip on calendar tiles. Single-line fix in [hooks/coach/useCoachData.ts](hooks/coach/useCoachData.ts) — `bookedMembers` array now `.concat(trialNamesArr.map(n => `${n} (trial)`))` before sorting alphabetically. Trial names appear inline with booked members in the tooltip with a `(trial)` suffix.
@@ -151,7 +167,8 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-1. ~~**Carla Rydval duplicate-account cleanup**~~ ✅ Done 2026-04-24 — deleted `carla-muecke@web.de` primary + 2 kid rows + auth.users row (was the pending duplicate; 0 bookings, 0 scores). `c.rydval@web.de` is the kept account.
+1. **Import remaining lift JSON files** — 8 files in `data/athletes/` ready. Run `npx tsx scripts/import-athlete-lift-records.ts --apply` then move to `processed/`. Christian Tanner data still missing — ask Chris.
+2. ~~**Carla Rydval duplicate-account cleanup**~~ ✅ Done S313 — deleted `carla-muecke@web.de` primary + 2 kid rows + auth.users row. `c.rydval@web.de` is the kept account.
 2. **Re-enter Sonja Hujo's deleted score** (S305 cleanup) — both her orphan whiteboard row + registered-account row for the same WOD/section/date were deleted. Need to re-input via Score Entry UI; will land cleanly now that she has a booking from S305 backfill.
 3. **Live-test Open Gym "OG" chip** (S308) — open Score Entry for any session, click DNF on a row → confirm OG chip appears, click OG → switches to blue, save → reload to confirm persistence, then check the WOD's leaderboard for OG entry at bottom (below DNF).
 3b. **Live-test Trial Athletes flow end-to-end** (S310) — (a) add a trial via SessionManagementModal "+ Trial Athlete" dropdown option, confirm chip + capacity bump, (b) open Score Entry for that session, confirm "Anna (trial)" appears in the athlete list and a score saves cleanly, (c) approve a member with `whiteboard_name='Anna'` and confirm the trial session converts to a confirmed booking while still appearing in the Admin Tools Trial Athletes panel.

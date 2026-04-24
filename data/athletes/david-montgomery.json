@@ -1,0 +1,13 @@
+{
+  "athlete": "Dave",
+  "full_name": "David Montgomery",
+  "gender": "M",
+  "results": {
+    "1RM Back Squat (BS)": [{"weight_kg": 65.0, "date": "2025-03-25"}],
+    "1RM Snatch": [{"weight_kg": 50.0, "date": "2024-02-27"}],
+    "1RM Bench Press (BP)": [{"weight_kg": 60.0, "date": "2025-03-19"}],
+    "3 RM DL": [{"weight_kg": 110.0, "date": "2025-03-17"}],
+    "3 RM BS": [{"weight_kg": 65.0, "date": "2025-03-25"}],
+    "3 RM Bench Press": [{"weight_kg": 55.0, "date": "2025-03-21"}]
+  }
+}

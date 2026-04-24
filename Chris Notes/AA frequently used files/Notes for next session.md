@@ -3,6 +3,13 @@ This document is a template with headings to show you where the issue is or wher
 # Mobile URL #
 http://192.168.178.75:3000
 
+# Next Session — First Action #
+* Import the remaining athlete lift JSON files sitting in `data/athletes/` using the import script. Run dry run first, then --apply, then move files to `data/athletes/processed/`.
+
+```bash
+npx tsx scripts/import-athlete-lift-records.ts
+npx tsx scripts/import-athlete-lift-records.ts --apply
+```
 
 # FIRST. FIX BUGS MAKE IMPROVEMENTS #
 # Coach Login #
@@ -13,13 +20,11 @@ http://192.168.178.75:3000
 * Box WiFi: Mac gets IPv6-only (no IPv4), dev sites (GitHub/Supabase/Vercel/Resend) unreachable. PC on same box WiFi works fine. At home all works. Debug next time at the box — see `SESSION-HANDOFF-S303-DNS-issue.md` for diagnostic history.
 * 
 * Has Fabian's parent got a login, if so who?
-* 2 improvements:
-1. We need a tier system for registered athletes to book a session. We free up the program on Sunday afternoon for the following week and athletes who subscribe to the app or members should have a 2-hour headstart on Wp etc.
-2. Athletes should only be able to book (from Sunday) for the coming week (Mon through Sunday) This is so I can work on sessions and even publish them without them showing in the Athlete app until Sunday afternoon. At the moment, as soon as I click "This Week" or "Next Week" the sessions appear and are available to book. DO we need a separate "go live" or "active" button to activate them and allow athletes to book? Or what would you suggest? 
-* 
 * 
 
+Athletes ready to import: Zoran Vrbanic, Lukas Simnacher, David Montgomery, Tobias Baumstark, Christian Müller, Daniel Bratz, Dimitar Peresyov, Stefan Glocker.
 
+**MISSING: Christian Tanner** — data was never provided. Ask Chris for it before or after the batch import.
 
 # Coach library #
 
@@ -276,3 +281,4 @@ Clean close. Housekeeping session — no code changes. Closed Next Step #1 (Carl
 - `*.sql` is `.gitignore`'d by pattern — DB migrations need `git add -f` per commit.
 - `tsconfig.tsbuildinfo` is tracked (project convention); commits with TS changes.
 - **"Anja" with no whiteboard suffix is ambiguous** — Götte is always `AnjaG`, Biechele is `AnjaB`. A bare `Anja` entry should be treated as a typo to verify, not auto-assigned.
+- **Session 314 landmines:** none — no app code changed, no DB migrations run.
