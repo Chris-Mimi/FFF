@@ -14,7 +14,11 @@ type FormState = {
   max_bookings_per_day: string;
   max_bookings_per_week: string;
   advance_booking_days: string;
+  next_week_release_day_of_week: string;
+  next_week_release_time: string; // 'HH:MM' for the input
 };
+
+const DAY_LABELS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 type PerTypeRow = { session_type: string; value: string };
 
@@ -24,6 +28,8 @@ const toForm = (r: BookingRules): FormState => ({
   max_bookings_per_day: r.max_bookings_per_day == null ? '' : String(r.max_bookings_per_day),
   max_bookings_per_week: r.max_bookings_per_week == null ? '' : String(r.max_bookings_per_week),
   advance_booking_days: r.advance_booking_days == null ? '' : String(r.advance_booking_days),
+  next_week_release_day_of_week: String(r.next_week_release_day_of_week),
+  next_week_release_time: r.next_week_release_time.slice(0, 5), // 'HH:MM'
 });
 
 const parseInput = (s: string, nullable: boolean): number | null | 'invalid' => {
@@ -93,6 +99,16 @@ export default function BookingRulesPage() {
       return;
     }
 
+    const releaseDay = Number(form.next_week_release_day_of_week);
+    if (!Number.isInteger(releaseDay) || releaseDay < 0 || releaseDay > 6) {
+      setMessage({ kind: 'err', text: 'Release day must be 0-6 (0=Sunday).' });
+      return;
+    }
+    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(form.next_week_release_time)) {
+      setMessage({ kind: 'err', text: 'Release time must be HH:MM.' });
+      return;
+    }
+
     // Per-session-type: blank = null (fall back to global); otherwise non-negative integer.
     const perTypeUpdates: { session_type: string; auto_lock_lead_minutes: number | null }[] = [];
     const perTypeInvalid: string[] = [];
@@ -119,7 +135,11 @@ export default function BookingRulesPage() {
       const [globalRes, typesRes] = await Promise.all([
         authFetch('/api/admin/booking-rules', {
           method: 'PUT',
-          body: JSON.stringify(parsed),
+          body: JSON.stringify({
+            ...parsed,
+            next_week_release_day_of_week: releaseDay,
+            next_week_release_time: form.next_week_release_time,
+          }),
         }),
         authFetch('/api/admin/booking-rules/session-types', {
           method: 'PUT',
@@ -269,6 +289,33 @@ export default function BookingRulesPage() {
             'Blank = unlimited. Athletes can only book sessions up to this many days in the future.',
             true
           )}
+
+          <div className='mb-5 border-t pt-5'>
+            <label className='block text-sm font-medium text-gray-700 mb-1'>
+              Next-week release time
+            </label>
+            <p className='text-xs text-gray-500 mb-3'>
+              Athletes only see this week&apos;s sessions until this moment, then next week opens.
+              Lets you program/publish ahead without athletes seeing it. Default: Sunday 14:00.
+            </p>
+            <div className='flex items-center gap-2'>
+              <select
+                value={form.next_week_release_day_of_week}
+                onChange={(e) => setForm({ ...form, next_week_release_day_of_week: e.target.value })}
+                className='px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#178da6]'
+              >
+                {DAY_LABELS.map((label, idx) => (
+                  <option key={idx} value={idx}>{label}</option>
+                ))}
+              </select>
+              <input
+                type='time'
+                value={form.next_week_release_time}
+                onChange={(e) => setForm({ ...form, next_week_release_time: e.target.value })}
+                className='w-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#178da6]'
+              />
+            </div>
+          </div>
 
           {message && (
             <div

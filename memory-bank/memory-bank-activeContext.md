@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 172.1
-**Updated:** 2026-04-24 (Session 311 — trial names in calendar-tile hover tooltip)
+**Version:** 173.0
+**Updated:** 2026-04-24 (Session 312 — next-week release gate (UI + API enforcement))
 
 ---
 
@@ -84,6 +84,19 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 312 (2026-04-24 — Opus 4.7) — NEXT-WEEK RELEASE GATE (UI + API ENFORCEMENT):**
+- **Need:** coach wanted to publish next week's WODs ahead of time without athletes seeing/booking them until Sunday afternoon. Default behavior was: as soon as a session is `status='published'`, athletes see and book it.
+- **Design:** time-gated visibility, not a per-week "Go Live" button. Two new columns on `booking_rules`: `next_week_release_day_of_week` (SMALLINT, JS getDay 0-6, default 0=Sunday) + `next_week_release_time` (TIME, default '14:00:00'). Pure helper `getMaxVisibleSessionDate(rules, now)` returns end-of-this-week normally, end-of-next-week once the release moment in this ISO week has passed. Defaults to Sunday 14:00 with no per-week intervention required.
+- **Files (7):**
+  1. `database/20260424_add_next_week_release_gate.sql` — adds the two columns with defaults + CHECK constraint on day-of-week.
+  2. [lib/bookingRules.ts](lib/bookingRules.ts) — `BookingRules` interface + DEFAULT_BOOKING_RULES extended; getter/setter SELECT lists factored to a single `RULES_COLUMNS` constant; new pure helper `getMaxVisibleSessionDate()` (does NOT touch DB so safe to import client-side).
+  3. [app/api/admin/booking-rules/route.ts](app/api/admin/booking-rules/route.ts) — PUT validates day (0-6 integer) + time (`HH:MM` or `HH:MM:SS` regex), normalizes 5-char input to `HH:MM:00`.
+  4. [app/coach/admin/booking-rules/page.tsx](app/coach/admin/booking-rules/page.tsx) — new "Next-week release time" section with day-of-week `<select>` + native `<input type='time'>`. Saved as part of the existing PUT.
+  5. [app/api/booking-rules/public/route.ts](app/api/booking-rules/public/route.ts) — NEW lightweight GET, no auth, returns only the two release fields. Lets the athlete-side avoid pulling the full (admin-only) rules.
+  6. [app/member/book/page.tsx](app/member/book/page.tsx) — fetches the public config on mount, computes `maxVisibleDate`, adds `.lte('date', formatLocalDate(maxVisibleDate))` to the session query. `releaseConfig` added to the fetchSessions effect deps so the filter applies once the config loads.
+  7. [app/api/bookings/create/route.ts](app/api/bookings/create/route.ts) — added a server-side gate check after the existing rules load: rejects with 403 if the requested session's date is past `getMaxVisibleSessionDate(rules)`. Closes the bypass where a determined athlete could read session IDs via the supabase client in dev tools and replay `/api/bookings/create` with a hidden ID.
+- **TS clean** throughout. Existing booking-rule helpers (`advance_booking_days`, `max_bookings_per_day`, etc) untouched.
+
 **Session 311 (2026-04-24 — Opus 4.7) — TRIAL NAMES IN CALENDAR-TILE HOVER:**
 - S310 follow-up: trial athletes were missing from the booked-members hover tooltip on calendar tiles. Single-line fix in [hooks/coach/useCoachData.ts](hooks/coach/useCoachData.ts) — `bookedMembers` array now `.concat(trialNamesArr.map(n => `${n} (trial)`))` before sorting alphabetically. Trial names appear inline with booked members in the tooltip with a `(trial)` suffix.
 
@@ -117,17 +130,7 @@ Athlete Tools
   6. `components/athlete/LeaderboardView.tsx` — 3 SELECT strings (replaceAll) include `open_gym`; both rendering blocks check `entry.openGym ?` first (blue OG badge), then `entry.dnf ?` (red DNF badge), then real result.
 - **TS clean** throughout. `App.api/score-entry/[sessionId]/route.ts` SELECT uses `*`, so `open_gym` flows through automatically once the column exists — no edit needed.
 
-**Session 307 (2026-04-23 — Opus 4.7) — ADMIN ATTENDANCE: CALENDAR-MONTH GRID + NAME SEARCH:**
-- **RPC extended for calendar-month scope** (`database/20260423_attendance_rpc_calendar_month.sql`, run by Chris in Supabase): added optional `p_start_date` + `p_end_date` to `get_all_members_attendance` (DEFAULT NULL on both). When `p_start_date` is provided it overrides `p_days_back`; `p_end_date` defaults to `CURRENT_DATE`. Date predicate updated identically across all three UNION sources (bookings + linked scores + whiteboard text mentions). Existing 2-arg callers (Workouts page Athletes List, Members page) continue to work via Supabase named-arg RPC dispatch.
-- **Calendar-month grid in Admin Tools Attendance Reports** (`app/coach/admin/page.tsx`): added year selector with chevron arrows + 12-button month grid below the existing rolling-window pills. Mutually exclusive: clicking a pill clears `selectedMonth`; clicking a month deselects the pill. Re-clicking the same month deselects (toggle). New `getMonthRange(year, month)` helper returns `{ start, end }` as ISO date strings. `fetchAttendedStats` builds RPC args conditionally — month-mode passes `p_start_date`/`p_end_date`, pill-mode passes `p_days_back`.
-- **Name search input** above the rankings table: case-insensitive substring filter on `member.name`, persists across pill/month changes (pure UI filter, no refetch). Rank numbers stay anchored to the overall ranking even when filtered (so "#23" still shows #23, not 1/2/3 within the filtered subset).
-- **"Unknown" name fix:** the rankings showed 13 "Unknown" entries because `members.name` is NULL for family-member accounts (kids in K&T classes + 2 adult family members). Code change: `m.name || m.display_name || 'Unknown'`. Selected `display_name` from the `members` query.
-- **Per-incident selective delete (Admin Tools Incidents tab):** member rows now expand on click to show individual incident bookings (date + type pill, sorted newest-first respecting current filter). Each row has a red Delete button → confirm → hard-delete the `bookings` row → optimistic UI update. Hard-delete is the right semantic since the booking row IS the only record (no leaderboard/attendance impact, since incidents-status bookings are already excluded from those counts). Used for clearing test cases or any incident entered in error. File: `app/coach/admin/page.tsx`. Commit `25002b1e`.
-- **Membership-type change guard (Members page):** once a member has any membership type (Mb/Wp/Di/10/Hf) set, clicking any pill (add or remove) now triggers a confirm dialog. Initial selection (zero current types) still goes through silently. Prevents accidental clicks while a filter is on. File: `hooks/coach/useMemberActions.ts:handleToggleMembershipType`.
-- **Carla Rydval duplicate-account discovery (no fix yet):** SQL surfaced that Carla registered TWO primary accounts (`carla-muecke@web.de` 2026-04-18 + `c.rydval@web.de` 2026-04-21) and added both kids (Aileen + Alicia) under each — 4 kid rows total. None of them have bookings or scores yet. Pending: Chris asks Carla which email she'll keep, then delete the other primary + its 2 kid rows + auth.users row.
-- **TS clean** throughout. All shipped pieces live-tested + verified by Chris.
-
-**Older sessions (57-306):** See `project-history/` folder.
+**Older sessions (57-307):** See `project-history/` folder.
 
 ---
 
@@ -156,6 +159,7 @@ Athlete Tools
 2. **Re-enter Sonja Hujo's deleted score** (S305 cleanup) — both her orphan whiteboard row + registered-account row for the same WOD/section/date were deleted. Need to re-input via Score Entry UI; will land cleanly now that she has a booking from S305 backfill.
 3. **Live-test Open Gym "OG" chip** (S308) — open Score Entry for any session, click DNF on a row → confirm OG chip appears, click OG → switches to blue, save → reload to confirm persistence, then check the WOD's leaderboard for OG entry at bottom (below DNF).
 3b. **Live-test Trial Athletes flow end-to-end** (S310) — (a) add a trial via SessionManagementModal "+ Trial Athlete" dropdown option, confirm chip + capacity bump, (b) open Score Entry for that session, confirm "Anna (trial)" appears in the athlete list and a score saves cleanly, (c) approve a member with `whiteboard_name='Anna'` and confirm the trial session converts to a confirmed booking while still appearing in the Admin Tools Trial Athletes panel.
+3c. **Live-test next-week release gate** (S312) — (a) confirm `/coach/admin/booking-rules` shows the new "Next-week release time" section with Sunday + 14:00 default, (b) as an athlete, navigate to next week before Sunday 14:00 → empty/partial week, (c) bump release time to a minute from now, refresh → next week visible, (d) optional: try to POST to `/api/bookings/create` with a hidden session ID — should 403 "not yet open for booking".
 4. **Decide whether to extend the membership-type confirm guard to class types** (EKT / Tu / CFK / CFT) — same accidental-click risk applies to kids' class assignments. Chris not asked yet.
 5. **Build Reject/Delete button on Members Pending tab** — currently no UI affordance to remove pending members; only Approve/Unapprove. S306 had to use SQL to clean up Claudia Herrmann. Future feature.
 6. **Live-test Intervals timer mode itself** (S296) on deployed app — core mode never live-tested (presets already confirmed working S298).

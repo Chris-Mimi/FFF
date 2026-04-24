@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { notifyBookingConfirmed, notifyBookingWaitlisted } from '@/lib/notifications';
-import { getBookingRules, getLockLeadMinutesForSessionType } from '@/lib/bookingRules';
+import { getBookingRules, getLockLeadMinutesForSessionType, getMaxVisibleSessionDate } from '@/lib/bookingRules';
 
 export async function POST(request: NextRequest) {
   try {
@@ -158,6 +158,18 @@ export async function POST(request: NextRequest) {
     if (isEffectivelyLocked) {
       return NextResponse.json(
         { error: 'This session is locked and no longer accepting bookings' },
+        { status: 403 }
+      );
+    }
+
+    // Next-week release gate: reject sessions whose date is past the visibility cutoff.
+    // Mirrors the athlete-side query filter so determined replays of /api/bookings/create
+    // can't bypass the gate (see getMaxVisibleSessionDate for the cutoff logic).
+    const maxVisibleDate = getMaxVisibleSessionDate(rules);
+    const sessionDayDate = new Date(`${session.date}T00:00:00`);
+    if (sessionDayDate > maxVisibleDate) {
+      return NextResponse.json(
+        { error: 'This session is not yet open for booking' },
         { status: 403 }
       );
     }

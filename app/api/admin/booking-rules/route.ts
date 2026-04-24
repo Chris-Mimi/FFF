@@ -32,12 +32,32 @@ export async function PUT(request: NextRequest) {
     return null;
   };
 
+  // Validate next_week_release_day_of_week (0-6) and next_week_release_time ('HH:MM' or 'HH:MM:SS')
+  const validateRelease = (): string | null => {
+    if ('next_week_release_day_of_week' in body) {
+      const v = body.next_week_release_day_of_week;
+      if (typeof v !== 'number' || !Number.isInteger(v) || v < 0 || v > 6) {
+        return 'next_week_release_day_of_week must be an integer 0-6 (0=Sunday)';
+      }
+      patch.next_week_release_day_of_week = v;
+    }
+    if ('next_week_release_time' in body) {
+      const v = body.next_week_release_time;
+      if (typeof v !== 'string' || !/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/.test(v)) {
+        return 'next_week_release_time must be HH:MM or HH:MM:SS';
+      }
+      patch.next_week_release_time = v.length === 5 ? `${v}:00` : v;
+    }
+    return null;
+  };
+
   const errors = [
     intField('ten_card_refund_hours'),
     intField('auto_lock_lead_minutes'),
     intField('max_bookings_per_day', 1, true),
     intField('max_bookings_per_week', 1, true),
     intField('advance_booking_days', 1, true),
+    validateRelease(),
   ].filter(Boolean);
 
   if (errors.length > 0) {

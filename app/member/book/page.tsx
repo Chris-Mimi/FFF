@@ -11,6 +11,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { FocusTrap } from '@/components/ui/FocusTrap';
 import { NotificationPrompt } from '@/components/ui/NotificationPrompt';
+import { getMaxVisibleSessionDate, DEFAULT_BOOKING_RULES } from '@/lib/bookingRules';
 
 interface WeeklySession {
   id: string;
@@ -63,9 +64,18 @@ export default function MemberBookingPage() {
   const [bookingForMemberId, setBookingForMemberId] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'booked' | 'wod' | 'foundations' | 'kids'>('all');
   const scrolledForWeekRef = useRef<string | null>(null);
+  const [releaseConfig, setReleaseConfig] = useState<{ next_week_release_day_of_week: number; next_week_release_time: string }>({
+    next_week_release_day_of_week: DEFAULT_BOOKING_RULES.next_week_release_day_of_week,
+    next_week_release_time: DEFAULT_BOOKING_RULES.next_week_release_time,
+  });
 
   useEffect(() => {
     checkAuth();
+    // Load the next-week release config (non-sensitive; falls back to defaults on failure)
+    fetch('/api/booking-rules/public')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data) setReleaseConfig(data); })
+      .catch(() => { /* keep defaults */ });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -74,7 +84,7 @@ export default function MemberBookingPage() {
       fetchSessions();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [weekStart, user, bookingForMemberId]);
+  }, [weekStart, user, bookingForMemberId, releaseConfig]);
 
   // Scroll today's session group into view when viewing the current week.
   // Program drops Sunday, so by mid-week the first days on screen are past and
@@ -155,6 +165,13 @@ export default function MemberBookingPage() {
       const weekEnd = new Date(weekStart);
       weekEnd.setDate(weekStart.getDate() + 7);
 
+      // Time-gate next week: at most, athletes can see up to maxVisibleDate
+      // (defaults to end-of-this-week; bumps to end-of-next-week after Sunday 14:00)
+      const maxVisibleDate = getMaxVisibleSessionDate({
+        ...DEFAULT_BOOKING_RULES,
+        ...releaseConfig,
+      });
+
       // Fetch weekly sessions with booking counts
       const { data: sessionsData, error } = await supabase
         .from('weekly_sessions')
@@ -175,6 +192,7 @@ export default function MemberBookingPage() {
         .eq('status', 'published')
         .gte('date', formatLocalDate(weekStart))
         .lt('date', formatLocalDate(weekEnd))
+        .lte('date', formatLocalDate(maxVisibleDate))
         .order('date', { ascending: true })
         .order('time', { ascending: true });
 
