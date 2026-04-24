@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 176.0
-**Updated:** 2026-04-24 (Session 315 — historical lift records import, 27 athletes)
+**Version:** 177.0
+**Updated:** 2026-04-24 (Session 316 — cleanup + late-cancel gate)
 
 ---
 
@@ -84,6 +84,15 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 316 (2026-04-24 — Opus 4.7) — CLEANUP + LATE-CANCEL GATE:**
+- **Cleanup pass:** closed activeContext Next Steps 1 (historical lifts tab — no bug, records surface under athlete **Records** tab, not Lifts tab), 2 (Sonja Hujo re-entry — S305 didn't log the slot, not worth chasing), 3 (OG chip live-test), 3b (Trial Athletes flow live-test), 6 (Intervals timer live-test) — all confirmed done/working by Chris.
+- **Late-cancel gate (new feature):** confirmed bookings cancelled past the auto-lock threshold now land in `late_cancel` status instead of `cancelled`. Rationale: `late_cancel` enum already existed + rendered coach-side (BookingListItem, SessionManagementModal, Admin attendance rollup) but was only set by coach-side actions; the athlete-initiated cancel route always wrote `cancelled` regardless of timing. Mirrors the `/api/bookings/create` lock logic exactly (manual `is_locked=true` OR past `auto_lock_lead_minutes` threshold, per-session-type override wins).
+- **Files (2):**
+  1. [app/api/bookings/cancel/route.ts](app/api/bookings/cancel/route.ts) — imports `getLockLeadMinutesForSessionType`, moves session fetch (now includes `workout_type` + `is_locked`) before the UPDATE, computes `newStatus: 'cancelled' | 'late_cancel'`. Waitlist cancels always stay `cancelled` (no penalty for dropping waitlist). Response includes `status` field.
+  2. [app/member/book/page.tsx](app/member/book/page.tsx) — branches cancel toast on `data.status`: late cancels get `toast.warning('Booking cancelled. This is past the lock time, so it is recorded as a late cancel.')`.
+- **Design choices:** rejected hard-block (Option A) — athletes still need a way to free the slot for waitlisters in genuine emergencies. Rejected soft pre-warn dialog (Option C) — server message is sufficient, client-side warning would need to expose lead-minutes publicly. 10-card non-refund (separate `ten_card_refund_hours` rule) handles the money side independently.
+- **TS clean.** No schema change. No migration. Coach-side rendering already exists.
+
 **Session 315 (2026-04-24 — Sonnet 4.6) — HISTORICAL LIFT RECORDS IMPORT (27 ATHLETES):**
 - Received corrected master JSON (27 athletes) from Chris. Wrote 27 individual JSON files and ran import script.
 - 689 historical lift records inserted (686 + 3 for Petr Bezdek). 0 errors. 26 athletes imported (Peter Kroll not yet registered).
@@ -121,31 +130,7 @@ Athlete Tools
   7. [app/api/bookings/create/route.ts](app/api/bookings/create/route.ts) — added a server-side gate check after the existing rules load: rejects with 403 if the requested session's date is past `getMaxVisibleSessionDate(rules)`. Closes the bypass where a determined athlete could read session IDs via the supabase client in dev tools and replay `/api/bookings/create` with a hidden ID.
 - **TS clean** throughout. Existing booking-rule helpers (`advance_booking_days`, `max_bookings_per_day`, etc) untouched.
 
-**Session 313 (2026-04-24 — Sonnet 4.6) — HISTORICAL LIFT RECORDS IMPORT:**
-- Created `data/athletes/` folder as structured seed-data store for athlete lift history.
-- Created JSON files for 8 athletes (Michi Städele, Chris Hiles, Thomas Spegele, Tobias Götte, Denis Koffler, Jürgen Bizjak, Paul Bielenski, Wayne Lucas) — all imported + moved to `data/athletes/processed/`.
-- Created `scripts/import-athlete-lift-records.ts` — dry-run-first import script. Resolves `user_id` via `members.name`, parses lift keys (e.g. "3 RM BS") into `lift_name` + `reps` + `rep_max_type`, calculates Epley 1RM, deduplicates against existing records. 582 records inserted.
-- Fixed: "Overhead Press" lift name corrected to "Strict Overhead Shoulder Press" (matches DB) — 50 already-inserted records updated, script map corrected.
-- Fixed: 8 duplicate OHP records for Chris (caused by rename-after-import) — deleted.
-- 8 more athletes staged in `data/athletes/` ready for next session: Zoran Vrbanic, Lukas Simnacher, David Montgomery, Tobias Baumstark, Christian Müller, Daniel Bratz, Dimitar Peresyov, Stefan Glocker. Christian Tanner data still missing.
-
-**Session 311 (2026-04-24 — Opus 4.7) — TRIAL NAMES IN CALENDAR-TILE HOVER:**
-- S310 follow-up: trial athletes were missing from the booked-members hover tooltip on calendar tiles. Single-line fix in [hooks/coach/useCoachData.ts](hooks/coach/useCoachData.ts) — `bookedMembers` array now `.concat(trialNamesArr.map(n => `${n} (trial)`))` before sorting alphabetically. Trial names appear inline with booked members in the tooltip with a `(trial)` suffix.
-
-**Session 310 (2026-04-24 — Opus 4.7) — TRIAL-ATHLETE TRACKING + AUTO-MERGE ON REGISTRATION:**
-- **Need:** prior to S310 there was no formal way to mark trial athletes (pre-known, not yet registered, asked to register if they keep coming). Coach was writing "(trial)" in workout-section text. Wanted a structured slot that counted toward class capacity but didn't require a member row.
-- **Design (after iteration with Chris):** rejected the bigger restructure (relaxing `bookings.member_id` to nullable + adding `whiteboard_name` column on bookings) in favor of a low-impact `weekly_sessions.trial_names TEXT[]` array. Trial entries don't generate booking rows; they're displayed alongside bookings everywhere it matters and counted toward capacity in UI/booking-decision math. After registration they auto-convert to bookings while staying in `trial_names` as a permanent onboarding record (Option 2).
-- **Schema:** `database/20260424_add_trial_names.sql` — `ALTER TABLE weekly_sessions ADD COLUMN trial_names TEXT[] DEFAULT '{}' NOT NULL` (run by Chris in Supabase).
-- **Entry point:** [components/coach/ManualBookingPanel.tsx](components/coach/ManualBookingPanel.tsx) — added `+ Trial Athlete (enter name)` sentinel option to the Add Member dropdown. Selecting it fires a `window.prompt` for name, then calls a new `onAddTrialAthlete` handler. Dropdown resets to empty so the regular Add button stays disabled. Capacity copy now shows trial count as a parenthetical when non-zero.
-- **Display:** [components/coach/SessionManagementModal.tsx](components/coach/SessionManagementModal.tsx) — amber chip row above Confirmed Bookings, each chip with × to remove (confirms first). "Confirmed Bookings (X/Y)" header now sums `confirmedBookings.length + trial_names.length` so the chip shows total people attending.
-- **Calendar tile:** [hooks/coach/useCoachData.ts](hooks/coach/useCoachData.ts) — `weekly_sessions` select now pulls `trial_names`, `confirmed_count` includes `trial_names.length`. CalendarGrid badge naturally bumps up.
-- **Score Entry:** [app/api/score-entry/[sessionId]/route.ts](app/api/score-entry/[sessionId]/route.ts) — fetches `trial_names`, appends each as a whiteboard-style athlete entry (display name `Anna (trial)`, `whiteboardName: 'Anna'` for clean linking after registration). De-dupes against bookings + Whiteboard Intro section athletes.
-- **Booking decision logic:** [hooks/coach/useBookingManagement.ts](hooks/coach/useBookingManagement.ts) — new prop `trialNames`, `handleManualBooking` uses `confirmedCount + trialNames.length` for capacity check. New `handleAddTrialAthlete` (prompt + INSERT into trial_names array) and `handleRemoveTrialAthlete` (confirm + filter array).
-- **Admin Tools panel:** [app/coach/admin/page.tsx](app/coach/admin/page.tsx) — new `fetchTrialStats` queries `weekly_sessions` for the active date range (mirrors the attendance fetcher's window), flattens trial_names, groups by name with count + dates. Renders an amber "Trial Athletes" panel above the rankings table on the Attendance tab — header reads "X trial sessions · N unique athletes", chips show name + ×N if multi-tried (hover = comma-joined dates). Respects pill + month picker.
-- **Auto-merge on approve:** [app/api/members/approve/route.ts](app/api/members/approve/route.ts) — after the existing whiteboard-score migration, queries `weekly_sessions` where `trial_names` contains the new whiteboard_name and inserts `status='confirmed'` bookings for each (skipping any session the member is already booked in). `trial_names` array intentionally untouched — Trial panel stays as a permanent record.
-- **TS clean** throughout. 6 application files + 1 SQL migration.
-
-**Older sessions (57-309):** See `project-history/` folder.
+**Older sessions (57-311):** See `project-history/` folder.
 
 ---
 
@@ -170,21 +155,15 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-1. **Debug historical lift records not showing in athlete Lifts tab** — records are in DB, manually-entered records show fine, imported ones don't. Check browser console + DevTools network tab on Lifts tab. Compare a manually-entered vs imported record in DB for structural differences. See S315 project history for full context.
-2. ~~**Carla Rydval duplicate-account cleanup**~~ ✅ Done S313 — deleted `carla-muecke@web.de` primary + 2 kid rows + auth.users row. `c.rydval@web.de` is the kept account.
-2. **Re-enter Sonja Hujo's deleted score** (S305 cleanup) — both her orphan whiteboard row + registered-account row for the same WOD/section/date were deleted. Need to re-input via Score Entry UI; will land cleanly now that she has a booking from S305 backfill.
-3. **Live-test Open Gym "OG" chip** (S308) — open Score Entry for any session, click DNF on a row → confirm OG chip appears, click OG → switches to blue, save → reload to confirm persistence, then check the WOD's leaderboard for OG entry at bottom (below DNF).
-3b. **Live-test Trial Athletes flow end-to-end** (S310) — (a) add a trial via SessionManagementModal "+ Trial Athlete" dropdown option, confirm chip + capacity bump, (b) open Score Entry for that session, confirm "Anna (trial)" appears in the athlete list and a score saves cleanly, (c) approve a member with `whiteboard_name='Anna'` and confirm the trial session converts to a confirmed booking while still appearing in the Admin Tools Trial Athletes panel.
-3c. ~~**Live-test next-week release gate** (S312)~~ ✅ Done S313 — confirmed working after running the missing migration.
-4. **Decide whether to extend the membership-type confirm guard to class types** (EKT / Tu / CFK / CFT) — same accidental-click risk applies to kids' class assignments. Chris not asked yet.
-5. **Build Reject/Delete button on Members Pending tab** — currently no UI affordance to remove pending members; only Approve/Unapprove. S306 had to use SQL to clean up Claudia Herrmann. Future feature.
-6. **Live-test Intervals timer mode itself** (S296) on deployed app — core mode never live-tested (presets already confirmed working S298).
-7. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app (should now show "Updating password for [email]" above form).
-8. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper processes), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
-9. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
-10. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing. **Note:** S305 backfill may have largely resolved this by retroactively booking whiteboard names; re-evaluate before doing the S251 work.
-11. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts:48-56` only filters bookings by `status='confirmed'` and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
-12. **Test endpoint 410 cleanup** (deferred from S292) — route `app/api/notifications/test/route.ts` through `sendToSubscription` so expired subs auto-delete on Send Test.
+1. **Live-test the late-cancel gate (S316)** — pick a booking on a locked-window session (or set `auto_lock_lead_minutes` to push "now" inside the window), cancel from the athlete app, confirm distinct warning toast + purple Late Cancel chip in coach SessionManagementModal + correct attendance-rollup count.
+2. **Decide whether to extend the membership-type confirm guard to class types** (EKT / Tu / CFK / CFT) — same accidental-click risk applies to kids' class assignments. Chris not asked yet.
+3. **Build Reject/Delete button on Members Pending tab** — currently no UI affordance to remove pending members; only Approve/Unapprove. S306 had to use SQL to clean up Claudia Herrmann. Future feature.
+4. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app (should now show "Updating password for [email]" above form).
+5. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper processes), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
+6. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
+7. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing. **Note:** S305 backfill may have largely resolved this by retroactively booking whiteboard names; re-evaluate before doing the S251 work.
+8. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts:48-56` only filters bookings by `status='confirmed'` and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
+9. **Test endpoint 410 cleanup** (deferred from S292) — route `app/api/notifications/test/route.ts` through `sendToSubscription` so expired subs auto-delete on Send Test.
 
 ---
 

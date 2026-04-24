@@ -4,18 +4,16 @@ This document is a template with headings to show you where the issue is or wher
 http://192.168.178.75:3000
 
 # Next Session — First Action #
-* **Investigate why historical lift records aren't showing in the Lifts tab on the athlete app.**
-  Records ARE in the DB (confirmed via service role query — 156 records for Chris Hiles alone).
-  The athlete can see records they manually entered, but NOT the historically imported ones.
-  Chris was logged out before we could debug further. Start here:
-  1. Open the Lifts tab on the athlete app as Chris and check browser console for errors.
-  2. Check if there's a date filter or sort that might hide old records (oldest goes back to 2019).
-  3. The query in `components/athlete/AthletePageLiftsTab.tsx:83` uses RLS client — verify it's returning data by checking the Network tab in DevTools.
-  4. Cross-reference: manually entered records show up, imported ones don't — what's different? (Both use same user_id and lift_name format.)
+* **Live-test the late-cancel gate shipped in S316.**
+  1. Pick any booking on a locked-window session (or set `auto_lock_lead_minutes` to a large value so "now" is inside the lock window).
+  2. Cancel from the athlete app.
+  3. Expect toast: *"Booking cancelled. This is past the lock time, so it is recorded as a late cancel."*
+  4. Open the coach SessionManagementModal for that session → confirm the booking shows under Late Cancel with the purple chip.
+  5. Open Admin → Attendance rollup → confirm the late_cancel is counted in the rollup.
+  6. Sanity check: cancel a booking well before the lock window → expect normal *"Booking cancelled"* toast, status = `cancelled`.
 
 # FIRST. FIX BUGS MAKE IMPROVEMENTS #
 # Coach Login #
-* AThletes cancelled really late on Friday and didn't show as late cancellations
 * Mimi's iPhone copy/paste & delete function
 * Box WiFi: Mac gets IPv6-only (no IPv4), dev sites (GitHub/Supabase/Vercel/Resend) unreachable. PC on same box WiFi works fine. At home all works. Debug next time at the box — see `SESSION-HANDOFF-S303-DNS-issue.md` for diagnostic history.
 * Has Fabian's parent got a login, if so who?
@@ -54,31 +52,20 @@ Should only show the days on which athlete has attended a workout. For example, 
 # Member Management Page #
 *
 
-# S314 Close → S315 Handoff
+# S315 Close → S316 Summary
 
 ## Status
-Import session. 27 athlete JSON files written from a corrected master JSON (27 athletes). 689 historical lift records imported into `lift_records` table. All JSON files in `data/athletes/processed/`. No app code changed.
+Short close-out session. Cleaned up activeContext Next Steps 1/2/3/3b/6 (historical lifts tab mystery, Sonja Hujo re-entry, OG chip, Trial Athletes flow, Intervals timer) — all confirmed done or closed. Then shipped the **late-cancel gate**: athletes who cancel past the auto-lock threshold now land in `late_cancel` status instead of `cancelled`. Waitlist cancels always stay plain `cancelled`.
 
-## Open issue: historical records not visible in athlete app
-- Records ARE in DB (service-role confirmed). Chris's manually-entered records show fine.
-- Historical records from import are NOT showing in Lifts tab.
-- Session ended before root cause found. Likely a date-range filter, sort, or subtle display difference.
-- **Peter Kroll** not yet registered — his JSON is in `processed/` ready when he joins.
+## Historical lifts mystery (closed)
+Imported records were visible all along — Chris was looking in the athlete **Lifts** tab but imported records surface under the **Records** tab. No bug. The distinction: Lifts tab reads `barbell_lifts` + a filtered slice; Records tab shows the full `lift_records` history.
 
-## Athlete name corrections made this session (DB names ≠ intuitive names)
-| File | full_name in JSON |
-|---|---|
-| michi-stadele.json | Michael Städele |
-| dimitar-peresyov.json | Peresyov Dimitar |
-| daniel-bratz.json | Daniel Braatz |
-| stefan-glocker.json | Stefan G |
-| petr-bezdek.json | Petr  Bezdek (double space — Chris fixing manually in DB) |
+## Late-cancel gate — what shipped
+Two files:
+- `app/api/bookings/cancel/route.ts` — imports `getLockLeadMinutesForSessionType`, moves session fetch before the UPDATE, computes `isLocked` (manual `is_locked=true` OR past-threshold), sets status = `'late_cancel'` when a `confirmed` booking is cancelled past the lock threshold. Response now includes `status` field.
+- `app/member/book/page.tsx` — toast branches on `data.status`: late cancels get `toast.warning(...)` with a distinct message.
 
-## Files to open first
-1. `memory-bank/memory-bank-activeContext.md`
-2. `components/athlete/AthletePageLiftsTab.tsx` (Lifts tab display logic)
+No schema change — `late_cancel` enum already exists and is rendered coach-side (BookingListItem, SessionManagementModal, Admin attendance rollup).
 
 ## Landmines
-- `*.sql` is `.gitignore`'d — migrations need `git add -f`.
-- Peter Kroll not in DB yet — his JSON is staged in `processed/` for when he registers.
-- Petr Bezdek DB name has double space — Chris correcting manually.
+* None material. Dev servers still running on both machines — fine; they don't lock anything.

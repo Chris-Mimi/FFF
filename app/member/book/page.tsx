@@ -521,8 +521,12 @@ export default function MemberBookingPage() {
         throw new Error(data.error || 'Failed to cancel booking');
       }
 
-      // Show cancellation message with refund status
-      if (data.message) {
+      // Show cancellation message — late cancels get a distinct warning.
+      if (data.status === 'late_cancel') {
+        toast.warning(
+          'Booking cancelled. This is past the lock time, so it is recorded as a late cancel.'
+        );
+      } else if (data.message) {
         toast.info(data.message);
       }
 

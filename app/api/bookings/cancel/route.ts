@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { notifyWaitlistPromoted } from '@/lib/notifications';
-import { getBookingRules } from '@/lib/bookingRules';
+import { getBookingRules, getLockLeadMinutesForSessionType } from '@/lib/bookingRules';
 
 export async function POST(request: NextRequest) {
   try {
@@ -89,11 +89,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Fetch session details (needed for lock-threshold decision + refund timing + waitlist promotion notification)
+    const { data: session } = await supabase
+      .from('weekly_sessions')
+      .select('date, time, workout_type, is_locked')
+      .eq('id', booking.session_id)
+      .single();
+
+    // Decide final status: confirmed bookings cancelled past the auto-lock threshold
+    // become 'late_cancel' (audit trail). Waitlist cancels are always plain 'cancelled'.
+    let newStatus: 'cancelled' | 'late_cancel' = 'cancelled';
+    if (booking.status === 'confirmed' && session) {
+      const leadMinutes = await getLockLeadMinutesForSessionType(session.workout_type);
+      const sessionDateTime = new Date(`${session.date}T${session.time}`);
+      const lockThreshold = new Date(sessionDateTime.getTime() - leadMinutes * 60 * 1000);
+      const isLocked =
+        session.is_locked === true ||
+        (session.is_locked === null && lockThreshold < new Date());
+      if (isLocked) newStatus = 'late_cancel';
+    }
+
     // Cancel the booking
     const { error: cancelError } = await supabase
       .from('bookings')
       .update({
-        status: 'cancelled',
+        status: newStatus,
         updated_at: new Date().toISOString()
       })
       .eq('id', bookingId);
@@ -105,13 +125,6 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
-
-    // Fetch session details (needed for refund timing + waitlist promotion notification)
-    const { data: session } = await supabase
-      .from('weekly_sessions')
-      .select('date, time')
-      .eq('id', booking.session_id)
-      .single();
 
     // Refund 10-card session with grace period
     let refundMessage = '';
@@ -243,6 +256,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: true,
+        status: newStatus,
         message: `Booking cancelled successfully.${refundMessage}`
       },
       { status: 200 }
