@@ -5,21 +5,6 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { FocusTrap } from '@/components/ui/FocusTrap';
 
-const LIFTS = [
-  'Back Squat',
-  'Front Squat',
-  'Overhead Squat',
-  'Deadlift',
-  'Sumo Deadlift',
-  'Bench Press',
-  'Shoulder Press',
-  'Push Press',
-  'Jerk',
-  'Clean',
-  'Snatch',
-  'Clean & Jerk',
-];
-
 const calculate1RM = (weight: number, reps: number) => {
   if (reps === 1) return weight;
   return Math.round(weight * (36 / (37 - reps)));
@@ -36,6 +21,7 @@ export default function AddLiftModal({
   onClose: () => void;
   onSave: () => void;
 }) {
+  const [lifts, setLifts] = useState<string[]>([]);
   const [liftName, setLiftName] = useState('');
   const [weight, setWeight] = useState('');
   const [repMaxType, setRepMaxType] = useState<'1RM' | '3RM' | '5RM' | '10RM'>('1RM');
@@ -49,6 +35,22 @@ export default function AddLiftModal({
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
+
+  // Source of truth: barbell_lifts table (same as the Coach Toolkit).
+  useEffect(() => {
+    const fetchLifts = async () => {
+      const { data, error } = await supabase
+        .from('barbell_lifts')
+        .select('name')
+        .order('display_order');
+      if (error) {
+        console.error('Error loading barbell_lifts:', error);
+        return;
+      }
+      setLifts((data || []).map(l => l.name));
+    };
+    fetchLifts();
+  }, []);
 
   const handleSave = async () => {
     if (!athleteId || !liftName || !weight) {
@@ -96,7 +98,7 @@ export default function AddLiftModal({
               className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
             >
               <option value=''>Select lift...</option>
-              {LIFTS.map(name => (
+              {lifts.map(name => (
                 <option key={name} value={name}>
                   {name}
                 </option>

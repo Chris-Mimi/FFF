@@ -5,20 +5,12 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { FocusTrap } from '@/components/ui/FocusTrap';
 
-const BENCHMARKS = [
-  'Fran',
-  'Helen',
-  'Cindy',
-  'Grace',
-  'Isabel',
-  'Annie',
-  'Diane',
-  'Elizabeth',
-  'Kelly',
-  'Nancy',
-  'Jackie',
-  'Mary',
-];
+type BenchmarkOption = {
+  id: string;
+  name: string;
+  type: string;
+  kind: 'classic' | 'forge';
+};
 
 export default function AddBenchmarkModal({
   athleteId,
@@ -31,8 +23,10 @@ export default function AddBenchmarkModal({
   onClose: () => void;
   onSave: () => void;
 }) {
-  const [benchmarkName, setBenchmarkName] = useState('');
+  const [benchmarks, setBenchmarks] = useState<BenchmarkOption[]>([]);
+  const [selectedId, setSelectedId] = useState('');
   const [result, setResult] = useState('');
+  const [scalingLevel, setScalingLevel] = useState<'Rx' | 'Rx(M)' | 'Sc1' | 'Sc2' | 'Sc3'>('Rx');
   const [notes, setNotes] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
 
@@ -44,19 +38,52 @@ export default function AddBenchmarkModal({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
 
+  // Source of truth: benchmark_workouts + forge_benchmarks tables (same as the Coach Toolkit).
+  useEffect(() => {
+    const fetchBenchmarks = async () => {
+      const [classicRes, forgeRes] = await Promise.all([
+        supabase.from('benchmark_workouts').select('id, name, type').order('display_order'),
+        supabase.from('forge_benchmarks').select('id, name, type').order('display_order'),
+      ]);
+      if (classicRes.error) console.error('Error loading benchmark_workouts:', classicRes.error);
+      if (forgeRes.error) console.error('Error loading forge_benchmarks:', forgeRes.error);
+      const combined: BenchmarkOption[] = [
+        ...(classicRes.data || []).map(b => ({ ...b, kind: 'classic' as const })),
+        ...(forgeRes.data || []).map(b => ({ ...b, kind: 'forge' as const })),
+      ];
+      setBenchmarks(combined);
+    };
+    fetchBenchmarks();
+  }, []);
+
+  const selected = benchmarks.find(b => `${b.kind}:${b.id}` === selectedId);
+
   const handleSave = async () => {
-    if (!athleteId || !benchmarkName || !result) {
-      toast.warning('Please fill in benchmark name and result');
+    if (!athleteId || !selected || !result) {
+      toast.warning('Please select a benchmark and enter a result');
       return;
     }
+
+    const typeLower = selected.type.toLowerCase();
+    const timeResult = typeLower.includes('time') ? result : null;
+    const repsResult =
+      typeLower.includes('rep') || typeLower.includes('amrap') ? parseInt(result) || null : null;
+    const weightResult = typeLower.includes('load') || typeLower.includes('weight') ? result : null;
 
     try {
       const { error } = await supabase.from('benchmark_results').insert({
         user_id: athleteId,
-        benchmark_name: benchmarkName,
-        result: result,
+        benchmark_id: selected.kind === 'classic' ? selected.id : null,
+        forge_benchmark_id: selected.kind === 'forge' ? selected.id : null,
+        benchmark_name: selected.name,
+        benchmark_type: selected.type,
+        result_value: result,
+        time_result: timeResult,
+        reps_result: repsResult,
+        weight_result: weightResult,
+        scaling_level: scalingLevel,
         notes: notes || null,
-        workout_date: date,
+        result_date: date,
       });
 
       if (error) throw error;
@@ -67,6 +94,9 @@ export default function AddBenchmarkModal({
       toast.error('Failed to add benchmark result. Please try again.');
     }
   };
+
+  const classicBenchmarks = benchmarks.filter(b => b.kind === 'classic');
+  const forgeBenchmarks = benchmarks.filter(b => b.kind === 'forge');
 
   return (
     <FocusTrap>
@@ -80,16 +110,29 @@ export default function AddBenchmarkModal({
           <div>
             <label className='block text-sm font-medium text-gray-700 mb-2'>Benchmark</label>
             <select
-              value={benchmarkName}
-              onChange={e => setBenchmarkName(e.target.value)}
+              value={selectedId}
+              onChange={e => setSelectedId(e.target.value)}
               className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
             >
               <option value=''>Select benchmark...</option>
-              {BENCHMARKS.map(name => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
-              ))}
+              {classicBenchmarks.length > 0 && (
+                <optgroup label='Classic Benchmarks'>
+                  {classicBenchmarks.map(b => (
+                    <option key={`classic:${b.id}`} value={`classic:${b.id}`}>
+                      {b.name}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
+              {forgeBenchmarks.length > 0 && (
+                <optgroup label='Forge Benchmarks'>
+                  {forgeBenchmarks.map(b => (
+                    <option key={`forge:${b.id}`} value={`forge:${b.id}`}>
+                      {b.name}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
             </select>
           </div>
 
@@ -103,17 +146,33 @@ export default function AddBenchmarkModal({
             />
           </div>
 
-          <div>
-            <label className='block text-sm font-medium text-gray-700 mb-2'>Result</label>
-            <input
-              type='text'
-              value={result}
-              onChange={e => setResult(e.target.value)}
-              placeholder='e.g., 5:42, 15 rounds'
-              required
-              maxLength={50}
-              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
-            />
+          <div className='grid grid-cols-2 gap-4'>
+            <div>
+              <label className='block text-sm font-medium text-gray-700 mb-2'>Result</label>
+              <input
+                type='text'
+                value={result}
+                onChange={e => setResult(e.target.value)}
+                placeholder='e.g., 5:42, 120'
+                required
+                maxLength={50}
+                className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
+              />
+            </div>
+            <div>
+              <label className='block text-sm font-medium text-gray-700 mb-2'>Scaling</label>
+              <select
+                value={scalingLevel}
+                onChange={e => setScalingLevel(e.target.value as 'Rx' | 'Rx(M)' | 'Sc1' | 'Sc2' | 'Sc3')}
+                className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
+              >
+                <option value='Rx'>Rx</option>
+                <option value='Rx(M)'>Rx(M)</option>
+                <option value='Sc1'>Sc1</option>
+                <option value='Sc2'>Sc2</option>
+                <option value='Sc3'>Sc3</option>
+              </select>
+            </div>
           </div>
 
           <div>
