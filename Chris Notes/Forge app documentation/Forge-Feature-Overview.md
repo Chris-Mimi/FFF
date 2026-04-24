@@ -42,6 +42,7 @@ There's no app-switching, no spreadsheets, no whiteboards that get erased. Just 
 - **At-risk alerts** — automatically flag members with declining attendance (configurable timeframe)
 - **Class scheduling** — define recurring session templates with day, time, type, and capacity. Generate weekly sessions automatically
 - **Booking management** — see who's booked, waitlisted, or no-showed. Add members manually or let them self-book
+- **Trial-athlete tracking** — pre-known trial athletes (people coming to try a class but not yet registered) get added by name from the same Add Member dropdown. They count toward class capacity, appear in Score Entry as "Anna (trial)" so their score gets recorded against the workout, and show up in an Admin Tools panel that surfaces "how many trial sessions and unique athletes onboarded in any date range." When they later register and get their whiteboard name set, their trial sessions auto-convert to confirmed bookings — but stay in the Trial Athletes panel as a permanent onboarding record so the metric never erodes
 - **Family accounts** — link spouses and children under one primary account. Parents can book for the whole family
 - **Membership types & class categories** — assign members to specific class types (Group, Personal Training, Kids, Foundations)
 

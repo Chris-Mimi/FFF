@@ -87,6 +87,7 @@ export const useCoachData = ({
           status,
           workout_id,
           workout_type,
+          trial_names,
           wods (
             id,
             title,
@@ -123,7 +124,8 @@ export const useCoachData = ({
         }
 
         const sessionBookings = allBookings?.filter(b => b.session_id === session.id) || [];
-        const confirmedCount = sessionBookings.filter(b => b.status === 'confirmed').length;
+        const trialCount = (session.trial_names as string[] | null)?.length || 0;
+        const confirmedCount = sessionBookings.filter(b => b.status === 'confirmed').length + trialCount;
         const waitlistCount = sessionBookings.filter(b => b.status === 'waitlist').length;
 
         const bookedMembers = sessionBookings

@@ -11,6 +11,7 @@ interface UseBookingManagementProps {
   bookings: Booking[];
   availableMembers: Member[];
   capacity: number;
+  trialNames: string[];
   onRefresh: () => Promise<void>;
   onSessionUpdated: () => void;
 }
@@ -20,6 +21,8 @@ interface UseBookingManagementResult {
   addingMember: boolean;
   setSelectedMemberId: (id: string) => void;
   handleManualBooking: () => Promise<void>;
+  handleAddTrialAthlete: () => Promise<void>;
+  handleRemoveTrialAthlete: (name: string) => Promise<void>;
   handleMarkNoShow: (bookingId: string, memberName: string) => Promise<void>;
   handleUndoNoShow: (bookingId: string, memberName: string) => Promise<void>;
   handleLateCancel: (bookingId: string, memberName: string) => Promise<void>;
@@ -32,6 +35,7 @@ export function useBookingManagement({
   bookings,
   availableMembers,
   capacity,
+  trialNames,
   onRefresh,
   onSessionUpdated,
 }: UseBookingManagementProps): UseBookingManagementResult {
@@ -51,9 +55,9 @@ export function useBookingManagement({
         throw new Error('Member not found');
       }
 
-      // Determine booking status based on capacity
+      // Determine booking status based on capacity (trials count toward capacity)
       const confirmedCount = calculateConfirmedCount(bookings);
-      const bookingStatus = canAddToSession(confirmedCount, capacity)
+      const bookingStatus = canAddToSession(confirmedCount + trialNames.length, capacity)
         ? 'confirmed'
         : 'waitlist';
 
@@ -107,6 +111,52 @@ export function useBookingManagement({
       toast.error('Failed to book member');
     } finally {
       setAddingMember(false);
+    }
+  };
+
+  const handleAddTrialAthlete = async () => {
+    const raw = window.prompt('Trial athlete name (will appear at top of Score Entry as a whiteboard name):');
+    if (raw === null) return;
+    const name = raw.trim();
+    if (!name) return;
+    if (trialNames.some(n => n.toLowerCase() === name.toLowerCase())) {
+      toast.warning('That name is already in the trial list');
+      return;
+    }
+    try {
+      const { error } = await supabase
+        .from('weekly_sessions')
+        .update({ trial_names: [...trialNames, name] })
+        .eq('id', sessionId);
+      if (error) throw error;
+      await onRefresh();
+      onSessionUpdated();
+      toast.success(`${name} added as trial athlete`);
+    } catch (error) {
+      console.error('Error adding trial athlete:', error);
+      toast.error('Failed to add trial athlete');
+    }
+  };
+
+  const handleRemoveTrialAthlete = async (name: string) => {
+    if (!await confirm({
+      title: 'Remove Trial Athlete',
+      message: `Remove ${name} from the trial list?`,
+      confirmText: 'Remove',
+      variant: 'danger',
+    })) return;
+    try {
+      const { error } = await supabase
+        .from('weekly_sessions')
+        .update({ trial_names: trialNames.filter(n => n !== name) })
+        .eq('id', sessionId);
+      if (error) throw error;
+      await onRefresh();
+      onSessionUpdated();
+      toast.success(`${name} removed`);
+    } catch (error) {
+      console.error('Error removing trial athlete:', error);
+      toast.error('Failed to remove trial athlete');
     }
   };
 
@@ -297,6 +347,8 @@ export function useBookingManagement({
     addingMember,
     setSelectedMemberId,
     handleManualBooking,
+    handleAddTrialAthlete,
+    handleRemoveTrialAthlete,
     handleMarkNoShow,
     handleUndoNoShow,
     handleLateCancel,

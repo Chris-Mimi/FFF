@@ -62,6 +62,7 @@ export default function SessionManagementModal({
     bookings: sessionDetails.bookings,
     availableMembers: sessionDetails.availableMembers,
     capacity: sessionDetails.session?.capacity || 0,
+    trialNames: sessionDetails.session?.trial_names || [],
     onRefresh: sessionDetails.fetchSessionDetails,
     onSessionUpdated,
   });
@@ -273,16 +274,46 @@ export default function SessionManagementModal({
                 selectedMemberId={bookingManagement.selectedMemberId}
                 onMemberSelect={bookingManagement.setSelectedMemberId}
                 onAddMember={bookingManagement.handleManualBooking}
+                onAddTrialAthlete={bookingManagement.handleAddTrialAthlete}
                 isLoading={bookingManagement.addingMember}
                 capacity={sessionDetails.session.capacity}
                 confirmedCount={confirmedBookings.length}
+                trialCount={(sessionDetails.session.trial_names || []).length}
                 isSessionActive={sessionDetails.session.status !== 'cancelled'}
               />
+
+              {/* Trial Athletes */}
+              {(sessionDetails.session.trial_names || []).length > 0 && (
+                <div>
+                  <h3 className='text-base font-semibold text-gray-800 mb-2'>
+                    Trial Athletes ({sessionDetails.session.trial_names.length})
+                  </h3>
+                  <div className='flex flex-wrap gap-2'>
+                    {sessionDetails.session.trial_names.map(name => (
+                      <span
+                        key={name}
+                        className='inline-flex items-center gap-1.5 bg-amber-100 text-amber-800 text-sm font-medium px-2.5 py-1 rounded-full border border-amber-200'
+                      >
+                        {name}
+                        <button
+                          type='button'
+                          onClick={() => bookingManagement.handleRemoveTrialAthlete(name)}
+                          className='hover:bg-amber-200 rounded-full w-4 h-4 flex items-center justify-center'
+                          title={`Remove ${name}`}
+                          aria-label={`Remove ${name}`}
+                        >
+                          <X size={12} />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Confirmed Bookings */}
               <div>
                 <h3 className='text-base font-semibold text-gray-800 mb-2'>
-                  Confirmed Bookings ({confirmedBookings.length}/{sessionDetails.session.capacity === 0 ? '∞' : sessionDetails.session.capacity})
+                  Confirmed Bookings ({confirmedBookings.length + (sessionDetails.session.trial_names || []).length}/{sessionDetails.session.capacity === 0 ? '∞' : sessionDetails.session.capacity})
                 </h3>
                 {confirmedBookings.length === 0 ? (
                   <p className='text-gray-500 text-xs'>No confirmed bookings yet</p>

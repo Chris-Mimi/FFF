@@ -21,7 +21,7 @@ export async function GET(
     // 1. Fetch session
     const { data: session, error: sessionError } = await supabaseAdmin
       .from('weekly_sessions')
-      .select('id, date, time, workout_id, capacity, status')
+      .select('id, date, time, workout_id, capacity, status, trial_names')
       .eq('id', sessionId)
       .single();
 
@@ -140,6 +140,24 @@ export async function GET(
           whiteboardName: wbName,
         });
       }
+    }
+
+    // 5c. Append trial athletes (pre-known, not yet registered) as whiteboard-style entries
+    const trialNames = (session.trial_names as string[] | null) || [];
+    for (const trialName of trialNames) {
+      const trialNameLower = trialName.toLowerCase();
+      const alreadyAdded = athletes.some(
+        a => (a.whiteboardName && a.whiteboardName.toLowerCase() === trialNameLower) ||
+             (a.name && a.name.toLowerCase() === trialNameLower)
+      );
+      if (alreadyAdded) continue;
+      athletes.push({
+        id: `trial:${trialName}`,
+        memberId: null,
+        userId: null,
+        name: `${trialName} (trial)`,
+        whiteboardName: trialName,
+      });
     }
 
     // 6. Fetch existing results for this WOD

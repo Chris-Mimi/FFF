@@ -12,6 +12,7 @@ export interface SessionDetails {
   status: string;
   workout_id: string;
   is_locked: boolean | null;
+  trial_names: string[];
 }
 
 export interface Booking {

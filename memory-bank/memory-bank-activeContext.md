@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 171.1
-**Updated:** 2026-04-23 (Session 309 — WorkoutModal sticky-heading gap fix)
+**Version:** 172.0
+**Updated:** 2026-04-24 (Session 310 — trial-athlete tracking + auto-merge on registration)
 
 ---
 
@@ -84,6 +84,19 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 310 (2026-04-24 — Opus 4.7) — TRIAL-ATHLETE TRACKING + AUTO-MERGE ON REGISTRATION:**
+- **Need:** prior to S310 there was no formal way to mark trial athletes (pre-known, not yet registered, asked to register if they keep coming). Coach was writing "(trial)" in workout-section text. Wanted a structured slot that counted toward class capacity but didn't require a member row.
+- **Design (after iteration with Chris):** rejected the bigger restructure (relaxing `bookings.member_id` to nullable + adding `whiteboard_name` column on bookings) in favor of a low-impact `weekly_sessions.trial_names TEXT[]` array. Trial entries don't generate booking rows; they're displayed alongside bookings everywhere it matters and counted toward capacity in UI/booking-decision math. After registration they auto-convert to bookings while staying in `trial_names` as a permanent onboarding record (Option 2).
+- **Schema:** `database/20260424_add_trial_names.sql` — `ALTER TABLE weekly_sessions ADD COLUMN trial_names TEXT[] DEFAULT '{}' NOT NULL` (run by Chris in Supabase).
+- **Entry point:** [components/coach/ManualBookingPanel.tsx](components/coach/ManualBookingPanel.tsx) — added `+ Trial Athlete (enter name)` sentinel option to the Add Member dropdown. Selecting it fires a `window.prompt` for name, then calls a new `onAddTrialAthlete` handler. Dropdown resets to empty so the regular Add button stays disabled. Capacity copy now shows trial count as a parenthetical when non-zero.
+- **Display:** [components/coach/SessionManagementModal.tsx](components/coach/SessionManagementModal.tsx) — amber chip row above Confirmed Bookings, each chip with × to remove (confirms first). "Confirmed Bookings (X/Y)" header now sums `confirmedBookings.length + trial_names.length` so the chip shows total people attending.
+- **Calendar tile:** [hooks/coach/useCoachData.ts](hooks/coach/useCoachData.ts) — `weekly_sessions` select now pulls `trial_names`, `confirmed_count` includes `trial_names.length`. CalendarGrid badge naturally bumps up.
+- **Score Entry:** [app/api/score-entry/[sessionId]/route.ts](app/api/score-entry/[sessionId]/route.ts) — fetches `trial_names`, appends each as a whiteboard-style athlete entry (display name `Anna (trial)`, `whiteboardName: 'Anna'` for clean linking after registration). De-dupes against bookings + Whiteboard Intro section athletes.
+- **Booking decision logic:** [hooks/coach/useBookingManagement.ts](hooks/coach/useBookingManagement.ts) — new prop `trialNames`, `handleManualBooking` uses `confirmedCount + trialNames.length` for capacity check. New `handleAddTrialAthlete` (prompt + INSERT into trial_names array) and `handleRemoveTrialAthlete` (confirm + filter array).
+- **Admin Tools panel:** [app/coach/admin/page.tsx](app/coach/admin/page.tsx) — new `fetchTrialStats` queries `weekly_sessions` for the active date range (mirrors the attendance fetcher's window), flattens trial_names, groups by name with count + dates. Renders an amber "Trial Athletes" panel above the rankings table on the Attendance tab — header reads "X trial sessions · N unique athletes", chips show name + ×N if multi-tried (hover = comma-joined dates). Respects pill + month picker.
+- **Auto-merge on approve:** [app/api/members/approve/route.ts](app/api/members/approve/route.ts) — after the existing whiteboard-score migration, queries `weekly_sessions` where `trial_names` contains the new whiteboard_name and inserts `status='confirmed'` bookings for each (skipping any session the member is already booked in). `trial_names` array intentionally untouched — Trial panel stays as a permanent record.
+- **TS clean** throughout. 6 application files + 1 SQL migration.
+
 **Session 309 (2026-04-23 — Opus 4.7) — WORKOUTMODAL STICKY-HEADING GAP FIX:**
 - Bug: scrolling inside Edit/Create Workout modal showed a 24px modal-bg gap above the stuck "Workout Sections" heading.
 - Root cause: sticky positioning's containing block is the parent's content box (inside padding), not its padding box. Form has `p-6` (24px padding-top), so `sticky top-0` was sticking 24px below the form's outer top edge — leaving the padding-top region visible.
@@ -119,15 +132,7 @@ Athlete Tools
 - **Memory rule saved:** never write to `Chris Notes/AA frequently used files/Notes for next session.md` (Chris's personal notepad). Recovered + merged his pre-S304 reminder bullets back into the file at his request.
 - **Confirmed for Chris:** when an unregistered whiteboard athlete (e.g. AnneS) registers and is approved with `whiteboard_name='AnneS'`, orphan scores auto-link via approve route ([app/api/members/approve/route.ts:62-101](app/api/members/approve/route.ts#L62-L101)) and attendance count picks up via RPC's whiteboard-text source. Past `bookings` rows do NOT auto-create — re-run `scripts/backfill-whiteboard-bookings.ts` after approval batches.
 
-**Session 305 (2026-04-23 — Opus 4.7) — WHITEBOARD-NAME BOOKING + SCORE BACKFILL:**
-- One-shot script `scripts/backfill-whiteboard-bookings.ts` to retroactively (a) create `bookings` rows for whiteboard names that match registered members, and (b) re-attribute historical orphan `wod_section_results` rows (whiteboard_name set, member_id null) to the matched member. Dry-run by default, `--apply` to commit.
-- Matching uses members.whiteboard_name → first-name → full-name (lowercase), with `ALIAS_OVERRIDES` map for aliases that don't fit the canonical pattern (currently `kathih → kathi` for Katharina Herbst).
-- **Phase 1 result:** 1083 bookings inserted (covers entire 253-WOD history, every WOD = single session so no ambiguity). 168 already existed.
-- **Phase 2 result:** 3 historical results re-attributed (AnjaB×2, Anja, SusanneG); 1 conflict deleted manually by Chris (Sonja Hujo had both an orphan whiteboard row and a registered-account row for same WOD/section/date — both deleted, will re-enter via UI). 115 unmatched names confirmed by Chris as drop-ins / unregistered.
-- **Bug fixed mid-flight:** existing-bookings dedup fetch hit Supabase's default 1000-row select cap (we now have 1552 bookings). Added pagination via `.range(from, from+999)` loop. Without it, second `--apply` run mis-proposed 552 already-inserted bookings → duplicate-key error. Important pattern for any future scripts that fetch large tables for in-memory dedup.
-- **Phase 2 conflict-handling:** `wod_section_results_user_id_wod_id_section_id_workout_date_key` unique constraint can fire if a member already has a registered-account score for the same slot. Script catches the error, logs the orphan IDs, continues with remaining updates. Manual cleanup path is delete + re-enter via UI.
-
-**Older sessions (57-304):** See `project-history/` folder.
+**Older sessions (57-305):** See `project-history/` folder.
 
 ---
 
@@ -155,6 +160,7 @@ Athlete Tools
 1. **Carla Rydval duplicate-account cleanup** (S307 pending) — once Carla confirms which email she'll use, delete the other primary account + its 2 kid rows + auth.users row. Account 1: `carla-muecke@web.de` (id `666c7e65-…`) → kids Alicia `98c70cf3-…` + Aileen `0f8cd709-…`. Account 2: `c.rydval@web.de` (id `dd85adee-…`) → kids Alicia `98709904-…` + Aileen `d20ce712-…`. None have bookings/scores yet — clean slate.
 2. **Re-enter Sonja Hujo's deleted score** (S305 cleanup) — both her orphan whiteboard row + registered-account row for the same WOD/section/date were deleted. Need to re-input via Score Entry UI; will land cleanly now that she has a booking from S305 backfill.
 3. **Live-test Open Gym "OG" chip** (S308) — open Score Entry for any session, click DNF on a row → confirm OG chip appears, click OG → switches to blue, save → reload to confirm persistence, then check the WOD's leaderboard for OG entry at bottom (below DNF).
+3b. **Live-test Trial Athletes flow end-to-end** (S310) — (a) add a trial via SessionManagementModal "+ Trial Athlete" dropdown option, confirm chip + capacity bump, (b) open Score Entry for that session, confirm "Anna (trial)" appears in the athlete list and a score saves cleanly, (c) approve a member with `whiteboard_name='Anna'` and confirm the trial session converts to a confirmed booking while still appearing in the Admin Tools Trial Athletes panel.
 4. **Decide whether to extend the membership-type confirm guard to class types** (EKT / Tu / CFK / CFT) — same accidental-click risk applies to kids' class assignments. Chris not asked yet.
 5. **Build Reject/Delete button on Members Pending tab** — currently no UI affordance to remove pending members; only Approve/Unapprove. S306 had to use SQL to clean up Claudia Herrmann. Future feature.
 6. **Live-test Intervals timer mode itself** (S296) on deployed app — core mode never live-tested (presets already confirmed working S298).

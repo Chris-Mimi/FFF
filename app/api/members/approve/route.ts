@@ -101,6 +101,48 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Auto-merge trial-athlete sessions: any weekly_sessions.trial_names containing the
+    // whiteboard_name gets a confirmed booking row for this member. Trial entries stay
+    // in the array as a permanent onboarding record (Admin Tools Trial Athletes panel).
+    if (whiteboardName) {
+      const { data: trialSessions, error: trialError } = await supabaseAdmin
+        .from('weekly_sessions')
+        .select('id')
+        .contains('trial_names', [whiteboardName]);
+
+      if (trialError) {
+        console.error('Trial-session lookup error:', trialError);
+      } else if (trialSessions && trialSessions.length > 0) {
+        const sessionIds = trialSessions.map(s => s.id);
+
+        // Skip sessions where this member is already booked
+        const { data: existing } = await supabaseAdmin
+          .from('bookings')
+          .select('session_id')
+          .eq('member_id', memberId)
+          .in('session_id', sessionIds);
+        const existingIds = new Set((existing || []).map(b => b.session_id));
+
+        const newBookings = sessionIds
+          .filter(id => !existingIds.has(id))
+          .map(session_id => ({
+            session_id,
+            member_id: memberId,
+            status: 'confirmed',
+            booked_at: now.toISOString(),
+          }));
+
+        if (newBookings.length > 0) {
+          const { error: insertError } = await supabaseAdmin.from('bookings').insert(newBookings);
+          if (insertError) {
+            console.error('Trial-merge booking insert error:', insertError);
+          } else {
+            console.log(`Auto-merged ${newBookings.length} trial bookings for member ${memberId} ("${whiteboardName}")`);
+          }
+        }
+      }
+    }
+
     // Send approval email (non-blocking — don't fail the approval if email fails)
     if (updatedMember.email) {
       const emailResult = await sendApprovalEmail(

@@ -87,6 +87,8 @@ export default function AdminToolsPage() {
   const [monthYear, setMonthYear] = useState<number>(new Date().getFullYear());
   // Name search — filters the displayed ranking (does not refetch)
   const [nameQuery, setNameQuery] = useState<string>('');
+  // Trial athletes — pulled from weekly_sessions.trial_names, respects the same date filter
+  const [trialStats, setTrialStats] = useState<{ name: string; count: number; dates: string[] }[]>([]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -103,6 +105,7 @@ export default function AdminToolsPage() {
   useEffect(() => {
     if (loading) return;
     fetchAttendedStats(attendedFilter, selectedMonth);
+    fetchTrialStats(attendedFilter, selectedMonth);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, attendedFilter, selectedMonth]);
 
@@ -201,6 +204,51 @@ export default function AdminToolsPage() {
       console.error('Error fetching attended stats:', err);
     } finally {
       setAttendedLoading(false);
+    }
+  };
+
+  const fetchTrialStats = async (filter: AttendedFilter, month: { year: number; month: number } | null) => {
+    try {
+      // Date window mirrors the attendance fetcher
+      let startDate: string;
+      let endDate: string;
+      if (month) {
+        const range = getMonthRange(month.year, month.month);
+        startDate = range.start;
+        endDate = range.end;
+      } else {
+        const days = getFilterDaysBack(filter);
+        const start = new Date();
+        start.setDate(start.getDate() - days);
+        startDate = start.toISOString().slice(0, 10);
+        endDate = new Date().toISOString().slice(0, 10);
+      }
+
+      const { data, error } = await supabase
+        .from('weekly_sessions')
+        .select('date, trial_names')
+        .gte('date', startDate)
+        .lte('date', endDate)
+        .not('trial_names', 'is', null);
+      if (error) throw error;
+
+      const byName = new Map<string, { name: string; count: number; dates: Set<string> }>();
+      for (const row of (data || []) as { date: string; trial_names: string[] | null }[]) {
+        for (const name of row.trial_names || []) {
+          const key = name.trim();
+          if (!key) continue;
+          if (!byName.has(key)) byName.set(key, { name: key, count: 0, dates: new Set() });
+          const entry = byName.get(key)!;
+          entry.count++;
+          entry.dates.add(row.date);
+        }
+      }
+      const arr = Array.from(byName.values())
+        .map(e => ({ name: e.name, count: e.count, dates: Array.from(e.dates).sort() }))
+        .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+      setTrialStats(arr);
+    } catch (err) {
+      console.error('Error fetching trial stats:', err);
     }
   };
 
@@ -442,6 +490,32 @@ export default function AdminToolsPage() {
                   </button>
                 )}
               </div>
+
+              {/* Trial Athletes panel — pre-known trials added via SessionManagementModal, not member-linked yet */}
+              {trialStats.length > 0 && (
+                <div className='mb-6 bg-amber-50 border border-amber-200 rounded-lg p-4'>
+                  <div className='flex items-baseline justify-between mb-2'>
+                    <h3 className='text-sm font-semibold text-amber-900'>Trial Athletes</h3>
+                    <span className='text-xs text-amber-700'>
+                      {trialStats.reduce((sum, s) => sum + s.count, 0)} trial session{trialStats.reduce((sum, s) => sum + s.count, 0) === 1 ? '' : 's'} · {trialStats.length} unique athlete{trialStats.length === 1 ? '' : 's'}
+                    </span>
+                  </div>
+                  <div className='flex flex-wrap gap-2'>
+                    {trialStats.map(t => (
+                      <span
+                        key={t.name}
+                        className='inline-flex items-center gap-1.5 bg-white border border-amber-200 text-amber-900 text-xs font-medium px-2.5 py-1 rounded-full'
+                        title={t.dates.join(', ')}
+                      >
+                        {t.name}
+                        {t.count > 1 && (
+                          <span className='bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded-full text-[10px] font-semibold'>×{t.count}</span>
+                        )}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {(() => {
                 const q = nameQuery.trim().toLowerCase();

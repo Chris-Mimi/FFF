@@ -7,9 +7,11 @@ interface ManualBookingPanelProps {
   selectedMemberId: string;
   onMemberSelect: (memberId: string) => void;
   onAddMember: () => Promise<void>;
+  onAddTrialAthlete: () => Promise<void>;
   isLoading: boolean;
   capacity: number;
   confirmedCount: number;
+  trialCount: number;
   isSessionActive: boolean;
 }
 
@@ -18,12 +20,25 @@ export default function ManualBookingPanel({
   selectedMemberId,
   onMemberSelect,
   onAddMember,
+  onAddTrialAthlete,
   isLoading,
   capacity,
   confirmedCount,
+  trialCount,
   isSessionActive,
 }: ManualBookingPanelProps) {
   if (!isSessionActive) return null;
+
+  const handleSelect = (value: string) => {
+    if (value === '__trial__') {
+      onMemberSelect('');
+      void onAddTrialAthlete();
+      return;
+    }
+    onMemberSelect(value);
+  };
+
+  const totalTaken = confirmedCount + trialCount;
 
   return (
     <div className='bg-blue-50 border border-blue-200 rounded-lg p-4'>
@@ -31,13 +46,14 @@ export default function ManualBookingPanel({
       <div className='flex flex-col sm:flex-row gap-2'>
         <select
           value={selectedMemberId}
-          onChange={e => onMemberSelect(e.target.value)}
-          disabled={isLoading || availableMembers.length === 0}
+          onChange={e => handleSelect(e.target.value)}
+          disabled={isLoading}
           className='flex-1 px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 disabled:bg-gray-100'
         >
           <option value=''>
             {availableMembers.length === 0 ? 'No available members' : 'Select a member...'}
           </option>
+          <option value='__trial__'>+ Trial Athlete (enter name)</option>
           {availableMembers.map(member => (
             <option key={member.id} value={member.id}>
               {member.name}
@@ -55,9 +71,9 @@ export default function ManualBookingPanel({
       <p className='text-xs text-gray-600 mt-2'>
         {capacity === 0
           ? 'Unlimited spots available'
-          : confirmedCount >= capacity
+          : totalTaken >= capacity
             ? '⚠️ Session is full - member will be added to waitlist'
-            : `${capacity - confirmedCount} spot(s) available`}
+            : `${capacity - totalTaken} spot(s) available${trialCount > 0 ? ` (${trialCount} trial${trialCount === 1 ? '' : 's'} included)` : ''}`}
       </p>
     </div>
   );
