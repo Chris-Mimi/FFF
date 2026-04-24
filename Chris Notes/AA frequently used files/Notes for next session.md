@@ -17,6 +17,7 @@ http://192.168.178.75:3000
 * Mimi's iPhone copy/paste & delete function
 * Box WiFi: Mac gets IPv6-only (no IPv4), dev sites (GitHub/Supabase/Vercel/Resend) unreachable. PC on same box WiFi works fine. At home all works. Debug next time at the box — see `SESSION-HANDOFF-S303-DNS-issue.md` for diagnostic history.
 * Has Fabian's parent got a login, if so who?
+* Coach login, Athletes tab, Lifts, Benchmarks, Forge sections. Do the scores I input here automatically appear in the athlete's app? Also, I need to be able to delete and re-enter some scores here.
 
 # Coach library #
 
@@ -69,3 +70,23 @@ No schema change — `late_cancel` enum already exists and is rendered coach-sid
 
 ## Landmines
 * None material. Dev servers still running on both machines — fine; they don't lock anything.
+
+## 📅 Scheduled reminder — 2026-05-01 (check if gate is firing)
+If today is **2026-05-01 or later**, run this query in Supabase SQL editor:
+```sql
+select count(*) as total_late_cancels,
+       max(updated_at) as most_recent
+from bookings
+where status = 'late_cancel'
+  and updated_at >= '2026-04-24';
+
+select m.name, ws.date, ws."time", b.updated_at
+from bookings b
+join members m on m.id = b.member_id
+join weekly_sessions ws on ws.id = b.session_id
+where b.status = 'late_cancel'
+  and b.updated_at >= '2026-04-24'
+order by b.updated_at desc
+limit 5;
+```
+If total is 0 after a week of real usage → flag it, the gate may not be firing. If >0 → the gate is working, mark this reminder done and delete this block.
