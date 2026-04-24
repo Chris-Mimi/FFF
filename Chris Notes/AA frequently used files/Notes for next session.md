@@ -7,7 +7,7 @@ http://192.168.178.75:3000
 # FIRST. FIX BUGS MAKE IMPROVEMENTS #
 # Coach Login #
 * 
-* Mobile view: I couldn't select from the dropdown on Schedule Page:Workout Type. No list appeared when I clicked in it.
+* 
 * 
 * Mimi's iPhone copy/paste & delete function
 * Box WiFi: Mac gets IPv6-only (no IPv4), dev sites (GitHub/Supabase/Vercel/Resend) unreachable. PC on same box WiFi works fine. At home all works. Debug next time at the box — see `SESSION-HANDOFF-S303-DNS-issue.md` for diagnostic history.
@@ -247,32 +247,32 @@ SHould only show the days on which athlete has attended a workout. For example, 
 
 ---
 
-# S305 Close → S306 Handoff
+# S313 Close → S314 Handoff
 
 ## Status
-Clean close. S305 shipped one-shot whiteboard-name backfill: 1083 bookings inserted retroactively + 3 historical orphan scores re-attributed. Sonja Hujo's conflicting score was deleted manually (Chris will re-input via UI). S299/S300 leaderboard items live-verified OK; S302 benchmark tiebreakers pinned as edge case.
+Clean close. Housekeeping session — no code changes. Closed Next Step #1 (Carla Rydval duplicate cleanup), deleted a stray `Anja` whiteboard row (mis-typed, neither Götte nor Biechele), ran the missing S312 migration on this DB + verified the next-week release gate end-to-end.
 
-## Next concrete action (S306 start)
-1. **Re-input Sonja Hujo's deleted score** via Score Entry UI — she now has a booking from the S305 backfill, so the entry will land with `member_id` set cleanly. (Chris: just normal flow, nothing special.)
-2. **Sanity-check the backfill in production:** open Session Management for any past WOD that previously had whiteboard-only attendees (e.g. one of the early December 2025 dates from the dry-run sample) and confirm the names now show as booked members. Spot-check 2-3 sessions.
+## Next concrete actions (pick up S314 with)
+1. **Live-test Open Gym "OG" chip** (S308 — still pending) — DNF → OG toggle, save, reload, check leaderboard.
+2. **Live-test Trial Athletes flow** (S310 — still pending) — add trial, score it, approve a matching member, confirm auto-merge.
+3. **Re-input Sonja Hujo's deleted score** (S305 cleanup, still pending) — normal Score Entry flow.
 
-## Pending live-tests (carry-over, still not done)
-1. **S296** Intervals timer mode itself on deployed app (presets already confirmed S298).
-2. **S297** SPF/DKIM/DMARC in Resend → Domains + reset flow end-to-end on live app.
+## Other suggested next actions
+- **Verify Resend SPF/DKIM/DMARC** for `the-forge-functional-fitness.de` — prime suspect for the "forgot password doesn't work" complaints members have reported. Reset-flow code itself is clean.
+- **Extend membership-type confirm guard to class types** (EKT/Tu/CFK/CFT) — Chris still to decide, hasn't been asked yet.
 
-## Other open items
-- **Mac Chrome hang** — dedicated session needed. Activity Monitor (Memory Pressure, Chrome Helper), disk free %, `~/Library/Logs/DiagnosticReports/`. Fixes Mac push as a side effect.
+## Other open items (carry-over)
+- **Mac Chrome hang** — dedicated session. Activity Monitor + `~/Library/Logs/DiagnosticReports/`. Fixes Mac push as a side effect.
 - **Athlete subscription bug** — Stefan Glocker DB row + webhook ordering + `autoExpireSubscriptions` vs trialing.
-- **Whiteboard duplicate entries** (Session 251 uncommitted in `memory/project_whiteboard_duplicates.md`). **Note:** S305 backfill may have largely resolved this — re-evaluate before doing the S251 work.
+- **Whiteboard duplicate entries** (S251 uncommitted in `memory/project_whiteboard_duplicates.md`) — re-evaluate before touching; S305 backfill may have covered it.
 - **Score-entry API filter** (deferred S289) — `app/api/score-entry/[sessionId]/route.ts:48-56`.
 - **Test endpoint 410 cleanup** (deferred S292) — `app/api/notifications/test/route.ts`.
 
 ## Files to open first
-1. `memory-bank/memory-bank-activeContext.md` — v168.0 (just written)
-2. If revisiting whiteboard duplicates: `memory/project_whiteboard_duplicates.md` + check whether S305 already covers it
+1. `memory-bank/memory-bank-activeContext.md` — v174.0 (just written)
 
 ## Landmines
-- `scripts/backfill-whiteboard-bookings.ts` is a **one-shot** — don't re-run unless retroactively backfilling a fresh batch of historical Whiteboard Intro entries. It's idempotent (dedupes on existing bookings), but no reason to re-run.
-- **Supabase JS `.select()` caps at 1000 rows by default.** Any future script that builds in-memory state from a large table (`bookings`, `wod_section_results` if it grows) needs `.range(from, from+999)` pagination loop. See [scripts/backfill-whiteboard-bookings.ts:122-135](scripts/backfill-whiteboard-bookings.ts#L122-L135) for the pattern.
+- **When pulling from the other machine, always check whether new DB migrations ran on THIS DB.** S312's `20260424_add_next_week_release_gate.sql` had been run on Chris's side but not on Mimi's, which masked as a generic "Failed to update booking rules" 500. Fix: run the migration. Use `IF NOT EXISTS` pattern (already in that file) to make re-runs safe.
 - `*.sql` is `.gitignore`'d by pattern — DB migrations need `git add -f` per commit.
 - `tsconfig.tsbuildinfo` is tracked (project convention); commits with TS changes.
+- **"Anja" with no whiteboard suffix is ambiguous** — Götte is always `AnjaG`, Biechele is `AnjaB`. A bare `Anja` entry should be treated as a typo to verify, not auto-assigned.

@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 173.0
-**Updated:** 2026-04-24 (Session 312 — next-week release gate (UI + API enforcement))
+**Version:** 174.0
+**Updated:** 2026-04-24 (Session 313 — housekeeping: Carla cleanup + stray whiteboard row + S312 migration run & live-test)
 
 ---
 
@@ -84,6 +84,14 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 313 (2026-04-24 — Opus 4.7) — HOUSEKEEPING + S312 MIGRATION RUN + LIVE TEST:**
+- **Carla Rydval duplicate cleanup (Next Step #1 closed):** deleted `carla-muecke@web.de` primary + its 2 kid rows + auth.users row. Had 0 bookings / 0 scores; `c.rydval@web.de` retained (already active, not pending).
+- **Stray whiteboard row deleted:** single `whiteboard_name='Anja'` row (workout_date 2026-04-01, id `7890b9e5-…`) neither matched Anja Götte (always `AnjaG`, not in DB) nor Anja Biechele (`AnjaB`). Coach-entry typo. Deleted by id.
+- **S312 migration was missing on this DB** — generic "Failed to update booking rules" 500 while testing the next-week release gate turned out to be `column does not exist`. Ran `20260424_add_next_week_release_gate.sql` (idempotent via `IF NOT EXISTS`). Then hit a stale-JWT "Authentication required" on the retry; logout→login fixed it. Gate then confirmed working end-to-end.
+- **Password-reset complaints triaged (no code touched):** flow code is clean. Prime suspect is Resend SPF/DKIM/DMARC for `the-forge-functional-fitness.de` still unverified (Next Step #7). Other likely causes: 1hr link expiry, one-time code re-clicks, silent success on typo'd email (Supabase-security behavior), email-gateway link-preview scanners burning the code.
+- **Process lesson:** when S312 was pulled from the other machine, activeContext didn't flag its migration as unrun on this side. Going forward, migration "run-status per machine" needs to be explicit in session entries. (Logged in the project-history file.)
+- No application code changed.
+
 **Session 312 (2026-04-24 — Opus 4.7) — NEXT-WEEK RELEASE GATE (UI + API ENFORCEMENT):**
 - **Need:** coach wanted to publish next week's WODs ahead of time without athletes seeing/booking them until Sunday afternoon. Default behavior was: as soon as a session is `status='published'`, athletes see and book it.
 - **Design:** time-gated visibility, not a per-week "Go Live" button. Two new columns on `booking_rules`: `next_week_release_day_of_week` (SMALLINT, JS getDay 0-6, default 0=Sunday) + `next_week_release_time` (TIME, default '14:00:00'). Pure helper `getMaxVisibleSessionDate(rules, now)` returns end-of-this-week normally, end-of-next-week once the release moment in this ISO week has passed. Defaults to Sunday 14:00 with no per-week intervention required.
@@ -118,19 +126,7 @@ Athlete Tools
 - Root cause: sticky positioning's containing block is the parent's content box (inside padding), not its padding box. Form has `p-6` (24px padding-top), so `sticky top-0` was sticking 24px below the form's outer top edge — leaving the padding-top region visible.
 - Fix: changed both `sticky top-0 ... pb-3 -mx-6 px-6` instances (Edit + Create form variants in [components/coach/WorkoutModal.tsx](components/coach/WorkoutModal.tsx)) to `sticky -top-6 ... pt-3 pb-3 -mx-6 px-6`. The `-top-6` (-1.5rem) lets the element stick 24px above content-box-top = flush with form's outer edge = flush with modal header. Added `pt-3` so the heading has 12px breathing room above (mirroring the existing `pb-3`). No responsive-padding overrides on the form, so works identically on mobile.
 
-**Session 308 (2026-04-23 — Opus 4.7) — NAME BACKFILL + GUARDIAN-ONLY FILTER + OPEN GYM "OG" CHIP:**
-- **`members.name` backfill (29 family-member rows):** Coach SearchPanel / ManualBookingPanel / MovementTrackingPanel / TenCardModal all read `member.name` directly with no `display_name` fallback, so kids in K&T + adult family members rendered blank. Ran `UPDATE members SET name = display_name WHERE name IS NULL AND display_name IS NOT NULL;` after preview-SELECT confirmation. 0 rows remain. (S307 had only patched the Admin attendance table with a code-side fallback; this fixes the underlying data so all surfaces benefit.)
-- **Guardian-only excluded from Workouts page Athletes List** ([hooks/coach/useCoachData.ts:447](hooks/coach/useCoachData.ts#L447)): added `.eq('guardian_only', false)` to `fetchMembers` query, matching the existing pattern in `useMemberData.ts:91`. Guardian-only members no longer pollute the per-athlete attendance view.
-- **Open Gym "OG" chip on Score Entry — full feature:** parallel to DNF, surfaces atttendance for athletes who came to class but did Open Gym instead of the WOD (e.g. pregnant member). 6 files:
-  1. `database/20260423_add_open_gym_flag.sql` — `ALTER TABLE wod_section_results ADD COLUMN open_gym BOOLEAN DEFAULT FALSE NOT NULL` (run by Chris in Supabase).
-  2. `hooks/coach/useScoreEntry.ts` — `AthleteScoreValues` + `ExistingResult` interfaces, `emptyScoreValues`, load mapping, save mapping, both `isEmpty` checks all extended with `open_gym`.
-  3. `app/api/score-entry/save/route.ts` — `ScoreEntry` interface + `isScoreEmpty` + both record-builder branches.
-  4. `components/coach/score-entry/AthleteScoreRow.tsx` — DNF chip toggles also clear `open_gym` (mutex). OG chip only renders when `dnf || open_gym` is true (default-hidden, appears after first DNF click). Click cycles: off → DNF (red bg) → OG (blue bg) → off, both chips vanishing back to DNF-only when both off. Row tints red/blue accordingly. "Copy from above" button also propagates open_gym.
-  5. `utils/leaderboard-utils.ts` — `LeaderboardEntry.openGym?` + `RawSectionResult.open_gym?`. Filter includes OG entries. New `tierOf()` helper (0=score, 1=DNF, 2=OG) replaces the inline DNF tiebreaker in `comparePrimary` so OG sorts strictly below DNF.
-  6. `components/athlete/LeaderboardView.tsx` — 3 SELECT strings (replaceAll) include `open_gym`; both rendering blocks check `entry.openGym ?` first (blue OG badge), then `entry.dnf ?` (red DNF badge), then real result.
-- **TS clean** throughout. `App.api/score-entry/[sessionId]/route.ts` SELECT uses `*`, so `open_gym` flows through automatically once the column exists — no edit needed.
-
-**Older sessions (57-307):** See `project-history/` folder.
+**Older sessions (57-308):** See `project-history/` folder.
 
 ---
 
@@ -155,11 +151,11 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-1. **Carla Rydval duplicate-account cleanup** (S307 pending) — once Carla confirms which email she'll use, delete the other primary account + its 2 kid rows + auth.users row. Account 1: `carla-muecke@web.de` (id `666c7e65-…`) → kids Alicia `98c70cf3-…` + Aileen `0f8cd709-…`. Account 2: `c.rydval@web.de` (id `dd85adee-…`) → kids Alicia `98709904-…` + Aileen `d20ce712-…`. None have bookings/scores yet — clean slate.
+1. ~~**Carla Rydval duplicate-account cleanup**~~ ✅ Done 2026-04-24 — deleted `carla-muecke@web.de` primary + 2 kid rows + auth.users row (was the pending duplicate; 0 bookings, 0 scores). `c.rydval@web.de` is the kept account.
 2. **Re-enter Sonja Hujo's deleted score** (S305 cleanup) — both her orphan whiteboard row + registered-account row for the same WOD/section/date were deleted. Need to re-input via Score Entry UI; will land cleanly now that she has a booking from S305 backfill.
 3. **Live-test Open Gym "OG" chip** (S308) — open Score Entry for any session, click DNF on a row → confirm OG chip appears, click OG → switches to blue, save → reload to confirm persistence, then check the WOD's leaderboard for OG entry at bottom (below DNF).
 3b. **Live-test Trial Athletes flow end-to-end** (S310) — (a) add a trial via SessionManagementModal "+ Trial Athlete" dropdown option, confirm chip + capacity bump, (b) open Score Entry for that session, confirm "Anna (trial)" appears in the athlete list and a score saves cleanly, (c) approve a member with `whiteboard_name='Anna'` and confirm the trial session converts to a confirmed booking while still appearing in the Admin Tools Trial Athletes panel.
-3c. **Live-test next-week release gate** (S312) — (a) confirm `/coach/admin/booking-rules` shows the new "Next-week release time" section with Sunday + 14:00 default, (b) as an athlete, navigate to next week before Sunday 14:00 → empty/partial week, (c) bump release time to a minute from now, refresh → next week visible, (d) optional: try to POST to `/api/bookings/create` with a hidden session ID — should 403 "not yet open for booking".
+3c. ~~**Live-test next-week release gate** (S312)~~ ✅ Done S313 — confirmed working after running the missing migration.
 4. **Decide whether to extend the membership-type confirm guard to class types** (EKT / Tu / CFK / CFT) — same accidental-click risk applies to kids' class assignments. Chris not asked yet.
 5. **Build Reject/Delete button on Members Pending tab** — currently no UI affordance to remove pending members; only Approve/Unapprove. S306 had to use SQL to clean up Claudia Herrmann. Future feature.
 6. **Live-test Intervals timer mode itself** (S296) on deployed app — core mode never live-tested (presets already confirmed working S298).
