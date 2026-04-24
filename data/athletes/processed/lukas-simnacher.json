@@ -1,0 +1,9 @@
+{
+  "athlete": "LukasS",
+  "full_name": "Lukas Simnacher",
+  "gender": "M",
+  "results": {
+    "1RM Clean & Jerk (C&J)": [{"weight_kg": 45, "date": "2025-04-02"}],
+    "1RM Bench Press (BP)": [{"weight_kg": 85, "date": "2024-01-29"}]
+  }
+}

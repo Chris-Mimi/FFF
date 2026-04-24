@@ -1,0 +1,10 @@
+{
+  "athlete": "Steven",
+  "full_name": "Steven Zaft",
+  "gender": "M",
+  "results": {
+    "1RM Overhead Press (OHP)": [{"weight_kg": 50, "date": "2025-03-28"}],
+    "1RM Push Press (PP)": [{"weight_kg": 55, "date": "2025-03-28"}],
+    "3 RM DL": [{"weight_kg": 110, "date": "2025-03-17"}]
+  }
+}

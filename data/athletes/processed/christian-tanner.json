@@ -1,0 +1,11 @@
+{
+  "athlete": "ChristianT",
+  "full_name": "Christian Tanner",
+  "gender": "M",
+  "results": {
+    "1RM Back Squat (BS)": [{"weight_kg": 70, "date": "2025-03-24"}],
+    "1RM Overhead Squat (OHS)": [{"weight_kg": 45, "date": "2025-04-02"}],
+    "1RM Clean": [{"weight_kg": 30, "date": "2025-04-14"}],
+    "1RM Overhead Press (OHP)": [{"weight_kg": 80, "date": "2024-01-29"}]
+  }
+}

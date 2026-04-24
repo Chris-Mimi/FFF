@@ -1,0 +1,10 @@
+{
+  "athlete": "Stefan",
+  "full_name": "Stefan G",
+  "gender": "M",
+  "results": {
+    "1RM Back Squat (BS)": [{"weight_kg": 75, "date": "2025-04-01"}],
+    "1RM Snatch": [{"weight_kg": 40, "date": "2025-03-28"}],
+    "1RM Overhead Press (OHP)": [{"weight_kg": 47.5, "date": "2025-03-19"}]
+  }
+}

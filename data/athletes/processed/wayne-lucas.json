@@ -3,57 +3,22 @@
   "full_name": "Wayne Lucas",
   "gender": "M",
   "results": {
-    "1RM Deadlift (DL)": [
-      {"weight_kg": 140.0, "date": "2025-03-17"}
-    ],
-    "1RM Back Squat (BS)": [
-      {"weight_kg": 115.0, "date": "2025-03-24"},
-      {"weight_kg": 120.0, "date": "2024-01-31"}
-    ],
-    "1RM Clean & Jerk (C&J)": [
-      {"weight_kg": 45.0, "date": "2025-04-02"}
-    ],
-    "1RM Bench Press (BP)": [
-      {"weight_kg": 80.0, "date": "2024-01-29"}
-    ],
-    "3 RM BS": [
-      {"weight_kg": 75.0, "date": "2024-01-31"}
-    ],
-    "3 RM Clean & Jerk": [
-      {"weight_kg": 45.0, "date": "2025-04-02"}
-    ],
-    "3 RM Barbell OHP": [
-      {"weight_kg": 60.0, "date": "2025-03-26"}
-    ],
-    "3 RM PP": [
-      {"weight_kg": 72.5, "date": "2025-03-26"}
-    ],
-    "3 RM Bench Press": [
-      {"weight_kg": 75.0, "date": "2025-03-19"},
-      {"weight_kg": 70.0, "date": "2024-05-13"},
-      {"weight_kg": 76.0, "date": "2024-01-29"}
-    ],
-    "5 RM DL": [
-      {"weight_kg": 110.0, "date": "2024-01-22"}
-    ],
-    "5 RM BS": [
-      {"weight_kg": 80.0, "date": "2023-06-21"}
-    ],
-    "5 RM OHS": [
-      {"weight_kg": 25.0, "date": "2023-10-09"}
-    ],
-    "5 RM Bench Press": [
-      {"weight_kg": 70.0, "date": "2024-05-13"},
-      {"weight_kg": 65.0, "date": "2023-06-22"}
-    ],
-    "10 RM Sumo DL": [
-      {"weight_kg": 100.0, "date": "2023-10-11"}
-    ],
-    "10 RM FS": [
-      {"weight_kg": 60.0, "date": "2023-07-12"}
-    ],
-    "10 RM Bench Press": [
-      {"weight_kg": 60.0, "date": "2023-12-19"}
-    ]
+    "1RM Deadlift (DL)": [{"weight_kg": 140, "date": "2025-03-17"}],
+    "1RM Back Squat (BS)": [{"weight_kg": 115, "date": "2025-03-24"},{"weight_kg": 120, "date": "2024-01-31"}],
+    "1RM Clean & Jerk (C&J)": [{"weight_kg": 45, "date": "2025-04-02"}],
+    "1RM Snatch": [{"weight_kg": 45, "date": "2025-04-14"}],
+    "1RM Bench Press (BP)": [{"weight_kg": 85, "date": "2025-03-19"}],
+    "3 RM DL": [{"weight_kg": 130, "date": "2025-03-17"}],
+    "3 RM Clean & Jerk": [{"weight_kg": 70, "date": "2025-04-02"}],
+    "3 RM Barbell OHP": [{"weight_kg": 60, "date": "2025-03-26"}],
+    "3 RM PP": [{"weight_kg": 72.5, "date": "2025-03-26"}],
+    "3 RM Bench Press": [{"weight_kg": 75, "date": "2025-03-19"},{"weight_kg": 70, "date": "2024-05-13"},{"weight_kg": 76, "date": "2024-01-29"}],
+    "5 RM DL": [{"weight_kg": 110, "date": "2024-01-22"}],
+    "5 RM BS": [{"weight_kg": 80, "date": "2023-06-21"}],
+    "5 RM OHS": [{"weight_kg": 25, "date": "2023-10-09"}],
+    "5 RM Bench Press": [{"weight_kg": 70, "date": "2024-05-13"},{"weight_kg": 65, "date": "2023-06-22"}],
+    "10 RM Sumo DL": [{"weight_kg": 100, "date": "2023-10-11"}],
+    "10 RM FS": [{"weight_kg": 60, "date": "2023-07-12"}],
+    "10 RM Bench Press": [{"weight_kg": 60, "date": "2023-12-19"}]
   }
 }

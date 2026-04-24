@@ -3,246 +3,46 @@
   "full_name": "Chris Hiles",
   "gender": "M",
   "results": {
-    "1RM Deadlift (DL)": [
-      {"weight_kg": 125.0, "date": "2025-03-17"},
-      {"weight_kg": 140.0, "date": "2023-02-06"},
-      {"weight_kg": 125.0, "date": "2022-07-20"},
-      {"weight_kg": 120.0, "date": "2022-01-11"},
-      {"weight_kg": 135.0, "date": "2021-08-04"},
-      {"weight_kg": 120.0, "date": "2020-07-09"},
-      {"weight_kg": 125.0, "date": "2020-03-16"},
-      {"weight_kg": 122.5, "date": "2020-01-30"},
-      {"weight_kg": 120.0, "date": "2019-11-17"},
-      {"weight_kg": 110.0, "date": "2019-05-10"}
-    ],
-    "1RM Sumo DL": [
-      {"weight_kg": 130.0, "date": "2023-05-10"},
-      {"weight_kg": 120.0, "date": "2022-07-15"},
-      {"weight_kg": 120.0, "date": "2019-11-27"},
-      {"weight_kg": 115.0, "date": "2019-08-21"}
-    ],
-    "1RM Back Squat (BS)": [
-      {"weight_kg": 100.0, "date": "2025-03-24"},
-      {"weight_kg": 111.0, "date": "2024-01-31"},
-      {"weight_kg": 115.0, "date": "2023-01-30"},
-      {"weight_kg": 105.0, "date": "2022-06-29"},
-      {"weight_kg": 110.0, "date": "2022-01-12"},
-      {"weight_kg": 100.0, "date": "2019-07-31"}
-    ],
-    "1RM Front Squat (FS)": [
-      {"weight_kg": 90.0, "date": "2024-04-08"},
-      {"weight_kg": 95.0, "date": "2023-02-13"},
-      {"weight_kg": 90.0, "date": "2022-06-13"},
-      {"weight_kg": 87.0, "date": "2021-08-09"},
-      {"weight_kg": 85.0, "date": "2021-04-08"},
-      {"weight_kg": 87.5, "date": "2020-09-06"},
-      {"weight_kg": 85.5, "date": "2019-12-06"},
-      {"weight_kg": 80.0, "date": "2019-07-05"},
-      {"weight_kg": 70.0, "date": "2019-04-24"}
-    ],
-    "1RM Overhead Squat (OHS)": [
-      {"weight_kg": 70.0, "date": "2023-02-13"},
-      {"weight_kg": 65.0, "date": "2022-08-09"},
-      {"weight_kg": 62.0, "date": "2021-07-26"},
-      {"weight_kg": 60.0, "date": "2019-06-30"}
-    ],
-    "1RM Clean": [
-      {"weight_kg": 77.5, "date": "2021-11-02"},
-      {"weight_kg": 75.0, "date": "2021-04-11"},
-      {"weight_kg": 70.0, "date": "2020-08-20"},
-      {"weight_kg": 60.0, "date": "2019-05-09"}
-    ],
-    "1RM Clean & Jerk (C&J)": [
-      {"weight_kg": 70.0, "date": "2025-04-02"},
-      {"weight_kg": 70.0, "date": "2023-02-08"},
-      {"weight_kg": 72.5, "date": "2022-07-18"},
-      {"weight_kg": 70.0, "date": "2020-08-20"}
-    ],
-    "1RM Snatch": [
-      {"weight_kg": 50.0, "date": "2024-02-27"},
-      {"weight_kg": 55.0, "date": "2022-08-01"}
-    ],
-    "1RM Overhead Press (OHP)": [
-      {"weight_kg": 65.0, "date": "2025-03-26"},
-      {"weight_kg": 60.0, "date": "2023-01-30"},
-      {"weight_kg": 57.5, "date": "2022-07-13"},
-      {"weight_kg": 57.5, "date": "2021-11-05"},
-      {"weight_kg": 55.0, "date": "2021-03-30"},
-      {"weight_kg": 60.0, "date": "2019-11-25"},
-      {"weight_kg": 55.0, "date": "2019-08-30"},
-      {"weight_kg": 50.0, "date": "2019-05-09"}
-    ],
-    "1RM Push Press (PP)": [
-      {"weight_kg": 67.5, "date": "2025-03-26"},
-      {"weight_kg": 65.0, "date": "2023-01-30"},
-      {"weight_kg": 67.5, "date": "2022-07-13"},
-      {"weight_kg": 65.0, "date": "2021-08-14"},
-      {"weight_kg": 65.0, "date": "2019-11-25"},
-      {"weight_kg": 60.0, "date": "2019-10-30"}
-    ],
-    "1RM Bench Press (BP)": [
-      {"weight_kg": 90.0, "date": "2025-03-19"},
-      {"weight_kg": 85.0, "date": "2024-01-29"},
-      {"weight_kg": 82.5, "date": "2023-02-01"},
-      {"weight_kg": 82.5, "date": "2022-07-25"},
-      {"weight_kg": 80.0, "date": "2022-01-17"},
-      {"weight_kg": 85.0, "date": "2021-07-19"},
-      {"weight_kg": 84.0, "date": "2021-04-01"},
-      {"weight_kg": 82.5, "date": "2020-12-04"},
-      {"weight_kg": 82.0, "date": "2020-02-20"},
-      {"weight_kg": 80.0, "date": "2019-08-02"},
-      {"weight_kg": 70.0, "date": "2019-05-11"}
-    ],
-    "3 RM DL": [
-      {"weight_kg": 110.0, "date": "2025-03-17"},
-      {"weight_kg": 120.0, "date": "2024-01-22"},
-      {"weight_kg": 120.0, "date": "2023-02-06"},
-      {"weight_kg": 115.0, "date": "2022-01-11"},
-      {"weight_kg": 110.0, "date": "2021-08-04"}
-    ],
-    "3 RM Sumo DL": [
-      {"weight_kg": 115.0, "date": "2023-05-10"},
-      {"weight_kg": 110.0, "date": "2022-07-15"}
-    ],
-    "3 RM BS": [
-      {"weight_kg": 100.0, "date": "2025-03-24"},
-      {"weight_kg": 101.0, "date": "2024-01-31"},
-      {"weight_kg": 100.0, "date": "2023-01-31"},
-      {"weight_kg": 102.5, "date": "2022-10-12"},
-      {"weight_kg": 95.0, "date": "2022-01-12"},
-      {"weight_kg": 90.0, "date": "2020-07-31"}
-    ],
-    "3 RM FS": [
-      {"weight_kg": 85.0, "date": "2024-04-08"},
-      {"weight_kg": 80.0, "date": "2023-02-13"},
-      {"weight_kg": 70.0, "date": "2022-06-13"},
-      {"weight_kg": 70.0, "date": "2021-08-09"},
-      {"weight_kg": 75.0, "date": "2021-04-08"},
-      {"weight_kg": 70.0, "date": "2020-09-06"}
-    ],
-    "3 RM OHS": [
-      {"weight_kg": 60.0, "date": "2023-02-13"},
-      {"weight_kg": 55.0, "date": "2021-07-26"},
-      {"weight_kg": 45.0, "date": "2020-08-08"}
-    ],
-    "3 RM Clean": [
-      {"weight_kg": 55.0, "date": "2021-07-06"}
-    ],
-    "3 RM Clean & Jerk": [
-      {"weight_kg": 60.0, "date": "2025-04-02"},
-      {"weight_kg": 60.0, "date": "2023-02-08"},
-      {"weight_kg": 55.0, "date": "2021-07-06"}
-    ],
-    "3 RM Snatch": [
-      {"weight_kg": 40.0, "date": "2024-02-26"}
-    ],
-    "3 RM Barbell OHP": [
-      {"weight_kg": 57.5, "date": "2025-03-26"},
-      {"weight_kg": 52.5, "date": "2021-09-30"},
-      {"weight_kg": 50.0, "date": "2021-03-30"}
-    ],
-    "3 RM PP": [
-      {"weight_kg": 65.0, "date": "2025-03-26"},
-      {"weight_kg": 65.0, "date": "2022-04-13"},
-      {"weight_kg": 62.5, "date": "2021-09-30"},
-      {"weight_kg": 60.0, "date": "2020-10-07"}
-    ],
-    "3 RM Bench Press": [
-      {"weight_kg": 85.0, "date": "2025-03-19"},
-      {"weight_kg": 80.0, "date": "2024-05-13"},
-      {"weight_kg": 75.0, "date": "2023-02-01"},
-      {"weight_kg": 77.0, "date": "2022-09-14"},
-      {"weight_kg": 70.0, "date": "2022-01-17"},
-      {"weight_kg": 72.0, "date": "2021-07-23"},
-      {"weight_kg": 65.0, "date": "2020-09-03"},
-      {"weight_kg": 75.0, "date": "2020-11-24"}
-    ],
-    "5 RM DL": [
-      {"weight_kg": 120.0, "date": "2024-01-22"},
-      {"weight_kg": 120.0, "date": "2022-09-26"},
-      {"weight_kg": 110.0, "date": "2021-11-22"}
-    ],
-    "5 RM Sumo DL": [
-      {"weight_kg": 110.0, "date": "2023-01-19"},
-      {"weight_kg": 105.0, "date": "2022-04-12"},
-      {"weight_kg": 95.0, "date": "2021-09-17"},
-      {"weight_kg": 90.0, "date": "2020-10-30"}
-    ],
-    "5 RM BS": [
-      {"weight_kg": 102.5, "date": "2022-10-12"},
-      {"weight_kg": 90.0, "date": "2021-09-20"}
-    ],
-    "5 RM FS": [
-      {"weight_kg": 72.5, "date": "2023-04-19"},
-      {"weight_kg": 70.0, "date": "2022-05-02"},
-      {"weight_kg": 75.0, "date": "2021-11-23"},
-      {"weight_kg": 70.0, "date": "2021-04-08"}
-    ],
-    "5 RM OHS": [
-      {"weight_kg": 45.0, "date": "2023-10-09"}
-    ],
-    "5 RM Clean": [
-      {"weight_kg": 60.0, "date": "2022-04-22"}
-    ],
-    "5 RM Clean & Jerk": [
-      {"weight_kg": 55.0, "date": "2021-07-06"}
-    ],
-    "5 RM Barbell OHP": [
-      {"weight_kg": 52.0, "date": "2022-05-25"},
-      {"weight_kg": 50.0, "date": "2021-08-14"},
-      {"weight_kg": 50.0, "date": "2021-03-30"},
-      {"weight_kg": 45.0, "date": "2020-11-29"}
-    ],
-    "5 RM PJ": [
-      {"weight_kg": 62.5, "date": "2022-08-26"},
-      {"weight_kg": 55.0, "date": "2021-11-08"}
-    ],
-    "5 RM Bench Press": [
-      {"weight_kg": 80.0, "date": "2024-05-13"},
-      {"weight_kg": 75.0, "date": "2022-08-10"},
-      {"weight_kg": 72.5, "date": "2022-03-28"},
-      {"weight_kg": 70.0, "date": "2021-10-11"},
-      {"weight_kg": 70.0, "date": "2021-08-25"},
-      {"weight_kg": 70.0, "date": "2020-11-24"}
-    ],
-    "10 RM DL": [
-      {"weight_kg": 95.0, "date": "2022-05-18"},
-      {"weight_kg": 90.0, "date": "2020-03-16"}
-    ],
-    "10 RM Sumo DL": [
-      {"weight_kg": 80.0, "date": "2023-10-11"},
-      {"weight_kg": 100.0, "date": "2022-10-19"}
-    ],
-    "10 RM BS": [
-      {"weight_kg": 90.0, "date": "2023-03-13"},
-      {"weight_kg": 90.0, "date": "2022-08-19"},
-      {"weight_kg": 80.0, "date": "2021-11-14"}
-    ],
-    "10 RM FS": [
-      {"weight_kg": 65.0, "date": "2022-11-14"},
-      {"weight_kg": 60.0, "date": "2021-04-08"},
-      {"weight_kg": 50.0, "date": "2020-07-16"}
-    ],
-    "10 RM OHS": [
-      {"weight_kg": 45.0, "date": "2022-11-02"},
-      {"weight_kg": 45.0, "date": "2020-08-08"}
-    ],
-    "10 RM Clean & Jerk": [
-      {"weight_kg": 45.0, "date": "2022-08-29"},
-      {"weight_kg": 40.0, "date": "2020-08-20"}
-    ],
-    "10 RM Barbell OHP": [
-      {"weight_kg": 42.5, "date": "2022-04-13"},
-      {"weight_kg": 40.0, "date": "2021-04-30"},
-      {"weight_kg": 45.0, "date": "2020-10-07"}
-    ],
-    "10 RM PP": [
-      {"weight_kg": 50.0, "date": "2022-08-26"}
-    ],
-    "10 RM Bench Press": [
-      {"weight_kg": 70.0, "date": "2023-12-20"},
-      {"weight_kg": 65.0, "date": "2022-05-10"},
-      {"weight_kg": 60.0, "date": "2021-04-01"}
-    ]
+    "1RM Deadlift (DL)": [{"weight_kg": 125, "date": "2025-03-17"},{"weight_kg": 140, "date": "2023-02-06"},{"weight_kg": 125, "date": "2022-07-20"},{"weight_kg": 120, "date": "2022-01-11"},{"weight_kg": 135, "date": "2021-08-04"},{"weight_kg": 120, "date": "2020-07-09"},{"weight_kg": 125, "date": "2020-03-16"},{"weight_kg": 122.5, "date": "2020-01-30"},{"weight_kg": 120, "date": "2019-11-17"},{"weight_kg": 110, "date": "2019-05-10"}],
+    "1RM Sumo DL": [{"weight_kg": 130, "date": "2023-05-10"},{"weight_kg": 120, "date": "2022-07-15"},{"weight_kg": 120, "date": "2019-11-27"},{"weight_kg": 115, "date": "2019-08-21"}],
+    "1RM Back Squat (BS)": [{"weight_kg": 100, "date": "2025-03-24"},{"weight_kg": 111, "date": "2024-01-31"},{"weight_kg": 115, "date": "2023-01-30"},{"weight_kg": 105, "date": "2022-06-29"},{"weight_kg": 110, "date": "2022-01-12"},{"weight_kg": 100, "date": "2019-07-31"}],
+    "1RM Front Squat (FS)": [{"weight_kg": 90, "date": "2024-04-08"},{"weight_kg": 95, "date": "2023-02-13"},{"weight_kg": 90, "date": "2022-06-13"},{"weight_kg": 87, "date": "2021-08-09"},{"weight_kg": 85, "date": "2021-04-08"},{"weight_kg": 87.5, "date": "2020-09-06"},{"weight_kg": 85.5, "date": "2019-12-06"},{"weight_kg": 80, "date": "2019-07-05"},{"weight_kg": 70, "date": "2019-04-24"}],
+    "1RM Overhead Squat (OHS)": [{"weight_kg": 70, "date": "2023-02-13"},{"weight_kg": 65, "date": "2022-08-09"},{"weight_kg": 62, "date": "2021-07-26"},{"weight_kg": 60, "date": "2019-06-30"}],
+    "1RM Clean": [{"weight_kg": 77.5, "date": "2021-11-02"},{"weight_kg": 75, "date": "2021-04-11"},{"weight_kg": 70, "date": "2020-08-20"},{"weight_kg": 60, "date": "2019-05-09"}],
+    "1RM Clean & Jerk (C&J)": [{"weight_kg": 70, "date": "2025-04-02"},{"weight_kg": 70, "date": "2023-02-08"},{"weight_kg": 72.5, "date": "2022-07-18"},{"weight_kg": 70, "date": "2020-08-20"}],
+    "1RM Snatch": [{"weight_kg": 50, "date": "2025-04-14"},{"weight_kg": 55, "date": "2022-08-01"}],
+    "1RM Overhead Press (OHP)": [{"weight_kg": 65, "date": "2025-03-26"},{"weight_kg": 60, "date": "2023-01-30"},{"weight_kg": 57.5, "date": "2022-07-13"},{"weight_kg": 57.5, "date": "2021-11-05"},{"weight_kg": 55, "date": "2021-03-30"},{"weight_kg": 60, "date": "2019-11-25"},{"weight_kg": 55, "date": "2019-08-30"},{"weight_kg": 50, "date": "2019-05-09"}],
+    "1RM Push Press (PP)": [{"weight_kg": 67.5, "date": "2025-03-26"},{"weight_kg": 65, "date": "2023-01-30"},{"weight_kg": 67.5, "date": "2022-07-13"},{"weight_kg": 65, "date": "2021-08-14"},{"weight_kg": 65, "date": "2019-11-25"},{"weight_kg": 60, "date": "2019-10-30"}],
+    "1RM Bench Press (BP)": [{"weight_kg": 90, "date": "2025-03-19"},{"weight_kg": 85, "date": "2024-01-29"},{"weight_kg": 82.5, "date": "2023-02-01"},{"weight_kg": 82.5, "date": "2022-07-25"},{"weight_kg": 80, "date": "2022-01-17"},{"weight_kg": 85, "date": "2021-07-19"},{"weight_kg": 84, "date": "2021-04-01"},{"weight_kg": 82.5, "date": "2020-12-04"},{"weight_kg": 82, "date": "2020-02-20"},{"weight_kg": 80, "date": "2019-08-02"},{"weight_kg": 70, "date": "2019-05-11"}],
+    "3 RM DL": [{"weight_kg": 110, "date": "2025-03-17"},{"weight_kg": 120, "date": "2024-01-22"},{"weight_kg": 120, "date": "2023-02-06"},{"weight_kg": 115, "date": "2022-01-11"},{"weight_kg": 110, "date": "2021-08-04"}],
+    "3 RM Sumo DL": [{"weight_kg": 115, "date": "2023-05-10"},{"weight_kg": 110, "date": "2022-07-15"}],
+    "3 RM BS": [{"weight_kg": 100, "date": "2025-03-24"},{"weight_kg": 101, "date": "2024-01-31"},{"weight_kg": 100, "date": "2023-01-31"},{"weight_kg": 102.5, "date": "2022-10-12"},{"weight_kg": 95, "date": "2022-01-12"},{"weight_kg": 90, "date": "2020-07-31"}],
+    "3 RM FS": [{"weight_kg": 85, "date": "2024-04-08"},{"weight_kg": 80, "date": "2023-02-13"},{"weight_kg": 70, "date": "2022-06-13"},{"weight_kg": 70, "date": "2021-08-09"},{"weight_kg": 75, "date": "2021-04-08"},{"weight_kg": 70, "date": "2020-09-06"}],
+    "3 RM OHS": [{"weight_kg": 60, "date": "2023-02-13"},{"weight_kg": 55, "date": "2021-07-26"},{"weight_kg": 45, "date": "2020-08-08"}],
+    "3 RM Clean": [{"weight_kg": 55, "date": "2021-07-06"}],
+    "3 RM Clean & Jerk": [{"weight_kg": 60, "date": "2025-04-02"},{"weight_kg": 60, "date": "2023-02-08"},{"weight_kg": 55, "date": "2021-07-06"}],
+    "3 RM Snatch": [{"weight_kg": 40, "date": "2024-02-26"}],
+    "3 RM Barbell OHP": [{"weight_kg": 57.5, "date": "2025-03-26"},{"weight_kg": 52.5, "date": "2021-09-30"},{"weight_kg": 50, "date": "2021-03-30"}],
+    "3 RM PP": [{"weight_kg": 65, "date": "2025-03-26"},{"weight_kg": 65, "date": "2022-04-13"},{"weight_kg": 62.5, "date": "2021-09-30"},{"weight_kg": 60, "date": "2020-10-07"}],
+    "3 RM Bench Press": [{"weight_kg": 85, "date": "2025-03-19"},{"weight_kg": 80, "date": "2024-05-13"},{"weight_kg": 75, "date": "2023-02-01"},{"weight_kg": 77, "date": "2022-09-14"},{"weight_kg": 70, "date": "2022-01-17"},{"weight_kg": 72, "date": "2021-07-23"},{"weight_kg": 65, "date": "2020-09-03"},{"weight_kg": 75, "date": "2020-11-24"}],
+    "5 RM DL": [{"weight_kg": 120, "date": "2024-01-22"},{"weight_kg": 120, "date": "2022-09-26"},{"weight_kg": 110, "date": "2021-11-22"}],
+    "5 RM Sumo DL": [{"weight_kg": 110, "date": "2023-01-19"},{"weight_kg": 105, "date": "2022-04-12"},{"weight_kg": 95, "date": "2021-09-17"},{"weight_kg": 90, "date": "2020-10-30"}],
+    "5 RM BS": [{"weight_kg": 102.5, "date": "2022-10-12"},{"weight_kg": 90, "date": "2021-09-20"}],
+    "5 RM FS": [{"weight_kg": 72.5, "date": "2023-04-19"},{"weight_kg": 70, "date": "2022-05-02"},{"weight_kg": 75, "date": "2021-11-23"},{"weight_kg": 70, "date": "2021-04-08"}],
+    "5 RM OHS": [{"weight_kg": 45, "date": "2023-10-09"}],
+    "5 RM Clean": [{"weight_kg": 60, "date": "2022-04-22"}],
+    "5 RM Clean & Jerk": [{"weight_kg": 55, "date": "2021-07-06"}],
+    "5 RM Barbell OHP": [{"weight_kg": 52, "date": "2022-05-25"},{"weight_kg": 50, "date": "2021-08-14"},{"weight_kg": 50, "date": "2021-03-30"},{"weight_kg": 45, "date": "2020-11-29"}],
+    "5 RM PJ": [{"weight_kg": 62.5, "date": "2022-08-26"},{"weight_kg": 55, "date": "2021-11-08"}],
+    "5 RM Bench Press": [{"weight_kg": 80, "date": "2024-05-13"},{"weight_kg": 75, "date": "2022-08-10"},{"weight_kg": 72.5, "date": "2022-03-28"},{"weight_kg": 70, "date": "2021-10-11"},{"weight_kg": 70, "date": "2021-08-25"},{"weight_kg": 70, "date": "2020-11-24"}],
+    "10 RM DL": [{"weight_kg": 95, "date": "2022-05-18"},{"weight_kg": 90, "date": "2020-03-16"}],
+    "10 RM Sumo DL": [{"weight_kg": 80, "date": "2023-10-11"},{"weight_kg": 100, "date": "2022-10-19"}],
+    "10 RM BS": [{"weight_kg": 90, "date": "2023-03-13"},{"weight_kg": 90, "date": "2022-08-19"},{"weight_kg": 80, "date": "2021-11-14"}],
+    "10 RM FS": [{"weight_kg": 65, "date": "2022-11-14"},{"weight_kg": 60, "date": "2021-04-08"},{"weight_kg": 50, "date": "2020-07-16"}],
+    "10 RM OHS": [{"weight_kg": 45, "date": "2022-11-02"},{"weight_kg": 45, "date": "2020-08-08"}],
+    "10 RM Clean & Jerk": [{"weight_kg": 40, "date": "2020-08-20"}],
+    "10 RM Barbell OHP": [{"weight_kg": 40, "date": "2021-04-30"},{"weight_kg": 45, "date": "2020-10-07"}],
+    "10 RM PP": [{"weight_kg": 40, "date": "2020-08-29"}],
+    "10 RM Bench Press": [{"weight_kg": 65, "date": "2022-05-10"},{"weight_kg": 60, "date": "2021-04-01"}]
   }
 }

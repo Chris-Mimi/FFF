@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 175.0
-**Updated:** 2026-04-24 (Session 314 — historical lift records import)
+**Version:** 176.0
+**Updated:** 2026-04-24 (Session 315 — historical lift records import, 27 athletes)
 
 ---
 
@@ -84,6 +84,14 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 315 (2026-04-24 — Sonnet 4.6) — HISTORICAL LIFT RECORDS IMPORT (27 ATHLETES):**
+- Received corrected master JSON (27 athletes) from Chris. Wrote 27 individual JSON files and ran import script.
+- 689 historical lift records inserted (686 + 3 for Petr Bezdek). 0 errors. 26 athletes imported (Peter Kroll not yet registered).
+- Name mapping non-obvious: Michael Städele (not Michi), Peresyov Dimitar (reversed), Daniel Braatz (double-z), Stefan G (initial only), Petr  Bezdek (double space — Chris fixing manually).
+- All 27 JSONs moved to `data/athletes/processed/`.
+- **Open issue:** Historical records not showing in athlete Lifts tab. Manually-entered records do show. Records confirmed in DB via service role. Root cause not found — session ended. Next session: check browser console + network tab on Lifts tab.
+- No app code changed.
+
 **Session 314 (2026-04-24 — Sonnet 4.6) — HISTORICAL LIFT RECORDS IMPORT:**
 - Created `data/athletes/` folder as structured seed-data store for athlete lift history.
 - Created JSON files for 8 athletes (Michi Städele, Chris Hiles, Thomas Spegele, Tobias Götte, Denis Koffler, Jürgen Bizjak, Paul Bielenski, Wayne Lucas) — all imported + moved to `data/athletes/processed/`.
@@ -137,12 +145,7 @@ Athlete Tools
 - **Auto-merge on approve:** [app/api/members/approve/route.ts](app/api/members/approve/route.ts) — after the existing whiteboard-score migration, queries `weekly_sessions` where `trial_names` contains the new whiteboard_name and inserts `status='confirmed'` bookings for each (skipping any session the member is already booked in). `trial_names` array intentionally untouched — Trial panel stays as a permanent record.
 - **TS clean** throughout. 6 application files + 1 SQL migration.
 
-**Session 309 (2026-04-23 — Opus 4.7) — WORKOUTMODAL STICKY-HEADING GAP FIX:**
-- Bug: scrolling inside Edit/Create Workout modal showed a 24px modal-bg gap above the stuck "Workout Sections" heading.
-- Root cause: sticky positioning's containing block is the parent's content box (inside padding), not its padding box. Form has `p-6` (24px padding-top), so `sticky top-0` was sticking 24px below the form's outer top edge — leaving the padding-top region visible.
-- Fix: changed both `sticky top-0 ... pb-3 -mx-6 px-6` instances (Edit + Create form variants in [components/coach/WorkoutModal.tsx](components/coach/WorkoutModal.tsx)) to `sticky -top-6 ... pt-3 pb-3 -mx-6 px-6`. The `-top-6` (-1.5rem) lets the element stick 24px above content-box-top = flush with form's outer edge = flush with modal header. Added `pt-3` so the heading has 12px breathing room above (mirroring the existing `pb-3`). No responsive-padding overrides on the form, so works identically on mobile.
-
-**Older sessions (57-308):** See `project-history/` folder.
+**Older sessions (57-309):** See `project-history/` folder.
 
 ---
 
@@ -167,7 +170,7 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-1. **Import remaining lift JSON files** — 8 files in `data/athletes/` ready. Run `npx tsx scripts/import-athlete-lift-records.ts --apply` then move to `processed/`. Christian Tanner data still missing — ask Chris.
+1. **Debug historical lift records not showing in athlete Lifts tab** — records are in DB, manually-entered records show fine, imported ones don't. Check browser console + DevTools network tab on Lifts tab. Compare a manually-entered vs imported record in DB for structural differences. See S315 project history for full context.
 2. ~~**Carla Rydval duplicate-account cleanup**~~ ✅ Done S313 — deleted `carla-muecke@web.de` primary + 2 kid rows + auth.users row. `c.rydval@web.de` is the kept account.
 2. **Re-enter Sonja Hujo's deleted score** (S305 cleanup) — both her orphan whiteboard row + registered-account row for the same WOD/section/date were deleted. Need to re-input via Score Entry UI; will land cleanly now that she has a booking from S305 backfill.
 3. **Live-test Open Gym "OG" chip** (S308) — open Score Entry for any session, click DNF on a row → confirm OG chip appears, click OG → switches to blue, save → reload to confirm persistence, then check the WOD's leaderboard for OG entry at bottom (below DNF).

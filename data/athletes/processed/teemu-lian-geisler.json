@@ -1,0 +1,10 @@
+{
+  "athlete": "Teemu",
+  "full_name": "Teemu Lian Geisler",
+  "gender": "M",
+  "results": {
+    "1RM Back Squat (BS)": [{"weight_kg": 65, "date": "2025-03-25"}],
+    "1RM Snatch": [{"weight_kg": 37.5, "date": "2025-03-28"}],
+    "1RM Overhead Press (OHP)": [{"weight_kg": 50, "date": "2025-03-19"}]
+  }
+}
