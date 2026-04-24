@@ -13,8 +13,10 @@ http://192.168.178.75:3000
 * Box WiFi: Mac gets IPv6-only (no IPv4), dev sites (GitHub/Supabase/Vercel/Resend) unreachable. PC on same box WiFi works fine. At home all works. Debug next time at the box — see `SESSION-HANDOFF-S303-DNS-issue.md` for diagnostic history.
 * 
 * Has Fabian's parent got a login, if so who?
-* Open Gym registrations
-* PT how to handle them
+* 2 improvements:
+1. We need a tier system for registered athletes to book a session. We free up the program on Sunday afternoon for the following week and athletes who subscribe to the app or members should have a 2-hour headstart on Wp etc.
+2. Athletes should only be able to book (from Sunday) for the coming week (Mon through Sunday) This is so I can work on sessions and even publish them without them showing in the Athlete app until Sunday afternoon. At the moment, as soon as I click "This Week" or "Next Week" the sessions appear and are available to book. DO we need a separate "go live" or "active" button to activate them and allow athletes to book? Or what would you suggest? 
+* 
 * 
 
 

@@ -128,6 +128,7 @@ export const useCoachData = ({
         const confirmedCount = sessionBookings.filter(b => b.status === 'confirmed').length + trialCount;
         const waitlistCount = sessionBookings.filter(b => b.status === 'waitlist').length;
 
+        const trialNamesArr = (session.trial_names as string[] | null) || [];
         const bookedMembers = sessionBookings
           .filter(b => b.status === 'confirmed' || b.status === 'waitlist')
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -135,6 +136,7 @@ export const useCoachData = ({
             const m = b.members;
             return m?.display_name || m?.name || 'Unknown';
           })
+          .concat(trialNamesArr.map(n => `${n} (trial)`))
           .sort((a: string, b: string) => a.localeCompare(b));
 
         const bookingInfo = {

@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 172.0
-**Updated:** 2026-04-24 (Session 310 — trial-athlete tracking + auto-merge on registration)
+**Version:** 172.1
+**Updated:** 2026-04-24 (Session 311 — trial names in calendar-tile hover tooltip)
 
 ---
 
@@ -84,6 +84,9 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 311 (2026-04-24 — Opus 4.7) — TRIAL NAMES IN CALENDAR-TILE HOVER:**
+- S310 follow-up: trial athletes were missing from the booked-members hover tooltip on calendar tiles. Single-line fix in [hooks/coach/useCoachData.ts](hooks/coach/useCoachData.ts) — `bookedMembers` array now `.concat(trialNamesArr.map(n => `${n} (trial)`))` before sorting alphabetically. Trial names appear inline with booked members in the tooltip with a `(trial)` suffix.
+
 **Session 310 (2026-04-24 — Opus 4.7) — TRIAL-ATHLETE TRACKING + AUTO-MERGE ON REGISTRATION:**
 - **Need:** prior to S310 there was no formal way to mark trial athletes (pre-known, not yet registered, asked to register if they keep coming). Coach was writing "(trial)" in workout-section text. Wanted a structured slot that counted toward class capacity but didn't require a member row.
 - **Design (after iteration with Chris):** rejected the bigger restructure (relaxing `bookings.member_id` to nullable + adding `whiteboard_name` column on bookings) in favor of a low-impact `weekly_sessions.trial_names TEXT[]` array. Trial entries don't generate booking rows; they're displayed alongside bookings everywhere it matters and counted toward capacity in UI/booking-decision math. After registration they auto-convert to bookings while staying in `trial_names` as a permanent onboarding record (Option 2).
@@ -124,15 +127,7 @@ Athlete Tools
 - **Carla Rydval duplicate-account discovery (no fix yet):** SQL surfaced that Carla registered TWO primary accounts (`carla-muecke@web.de` 2026-04-18 + `c.rydval@web.de` 2026-04-21) and added both kids (Aileen + Alicia) under each — 4 kid rows total. None of them have bookings or scores yet. Pending: Chris asks Carla which email she'll keep, then delete the other primary + its 2 kid rows + auth.users row.
 - **TS clean** throughout. All shipped pieces live-tested + verified by Chris.
 
-**Session 306 (2026-04-23 — Opus 4.7) — ACRONYM PLUMBING + CANCELLED-BOOKING LIST + ATTENDANCE PARITY:**
-- **S303 acronym follow-up shipped:** added shared `fetchAcronymMap()` helper in `utils/movement-analytics.ts`. Plumbed through `getExerciseFrequency` (extends existing exercises select with `tags`), `computePatternGaps` + `detectWeeklyCoverage` (via `Promise.all` with workout fetch), and `useMovementTracking` (fetched once on mount, invalidates wodMovement cache). Movement Tracking + Pattern Gap analysis + Exercise Frequency now resolve `dl`-style acronyms same as Workouts search. Commit `efadd1f7`.
-- **Pending family member cleanup (manual SQL):** Claudia Herrmann (pending under Michael Junkes's family) had no UI removal path. Found via `primary_member_id`. Cascade-deleted 2 `coach_cancelled` test bookings + members row + auth.users row. No Reject/Delete button exists on Pending tab — flagged as a possible feature.
-- **Cancelled-by-Athlete section added to SessionManagementModal:** `bookings.status='cancelled'` rows (athlete self-cancel) previously vanished from the modal. New "Cancelled by Athlete" section under Late Cancellations, sorted newest-first by `updated_at`, with strikethrough name + grey bg. Also added `dd/mm/yyyy HH:MM` timestamps to all booking rows (was date-only). Files: `useSessionDetails.ts` (selects `updated_at`), `BookingListItem.tsx` (status union extended, formatDateTime helper), `SessionManagementModal.tsx`. **Read-only — no Undo button (athlete can re-book themselves)**; flagged Restore as possible follow-up.
-- **Admin Tools attendance parity with Workouts Athletes List:** Admin previously counted only confirmed bookings; Workouts uses RPC `get_all_members_attendance` (bookings + linked scores + whiteboard text mentions, deduped per session). Switched Admin to call the same RPC via new `getFilterDaysBack()` translating filter pills (30d/90d/6m/12m/all) → `p_days_back`. Refetches per filter change. Members of any status included so ex-members surface. Removed obsolete `allAttended` state. File: `app/coach/admin/page.tsx`.
-- **Memory rule saved:** never write to `Chris Notes/AA frequently used files/Notes for next session.md` (Chris's personal notepad). Recovered + merged his pre-S304 reminder bullets back into the file at his request.
-- **Confirmed for Chris:** when an unregistered whiteboard athlete (e.g. AnneS) registers and is approved with `whiteboard_name='AnneS'`, orphan scores auto-link via approve route ([app/api/members/approve/route.ts:62-101](app/api/members/approve/route.ts#L62-L101)) and attendance count picks up via RPC's whiteboard-text source. Past `bookings` rows do NOT auto-create — re-run `scripts/backfill-whiteboard-bookings.ts` after approval batches.
-
-**Older sessions (57-305):** See `project-history/` folder.
+**Older sessions (57-306):** See `project-history/` folder.
 
 ---
 
