@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { confirm } from '@/lib/confirm';
+import { toast } from 'sonner';
 
 interface BenchmarkResult {
   id: string;
@@ -50,6 +52,24 @@ export default function BenchmarksSection({
     }
   };
 
+  const handleDelete = async (id: string, benchmarkName: string, resultDate: string) => {
+    const ok = await confirm({
+      title: 'Delete Benchmark Result',
+      message: `Delete ${benchmarkName} on ${new Date(resultDate).toLocaleDateString()}? This cannot be undone.`,
+      confirmText: 'Delete',
+      variant: 'danger',
+    });
+    if (!ok) return;
+    const { error } = await supabase.from('benchmark_results').delete().eq('id', id);
+    if (error) {
+      console.error('Error deleting benchmark result:', error);
+      toast.error('Failed to delete benchmark result.');
+      return;
+    }
+    toast.success('Benchmark result deleted.');
+    setResults(prev => prev.filter(r => r.id !== id));
+  };
+
   if (loading) {
     return <p className='text-gray-500 text-center py-8'>Loading benchmark results...</p>;
   }
@@ -82,9 +102,18 @@ export default function BenchmarksSection({
                   {new Date(result.result_date).toLocaleDateString()}
                 </p>
               </div>
-              <div className='text-right'>
-                <p className='font-semibold text-[#178da6]'>{result.result_value}</p>
-                {result.notes && <p className='text-sm text-gray-600'>{result.notes}</p>}
+              <div className='flex items-center gap-3'>
+                <div className='text-right'>
+                  <p className='font-semibold text-[#178da6]'>{result.result_value}</p>
+                  {result.notes && <p className='text-sm text-gray-600'>{result.notes}</p>}
+                </div>
+                <button
+                  onClick={() => handleDelete(result.id, result.benchmark_name, result.result_date)}
+                  aria-label={`Delete ${result.benchmark_name}`}
+                  className='p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition'
+                >
+                  <Trash2 size={18} />
+                </button>
               </div>
             </div>
           ))}

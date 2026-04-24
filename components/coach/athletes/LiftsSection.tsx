@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { confirm } from '@/lib/confirm';
+import { toast } from 'sonner';
 
 interface LiftRecord {
   id: string;
@@ -46,6 +48,24 @@ export default function LiftsSection({ athleteId, onAddResult }: { athleteId?: s
     }
   };
 
+  const handleDelete = async (id: string, liftName: string, liftDate: string) => {
+    const ok = await confirm({
+      title: 'Delete Lift Record',
+      message: `Delete ${liftName} on ${new Date(liftDate).toLocaleDateString()}? This cannot be undone.`,
+      confirmText: 'Delete',
+      variant: 'danger',
+    });
+    if (!ok) return;
+    const { error } = await supabase.from('lift_records').delete().eq('id', id);
+    if (error) {
+      console.error('Error deleting lift record:', error);
+      toast.error('Failed to delete lift record.');
+      return;
+    }
+    toast.success('Lift record deleted.');
+    setResults(prev => prev.filter(r => r.id !== id));
+  };
+
   if (loading) {
     return <p className='text-gray-500 text-center py-8'>Loading lift records...</p>;
   }
@@ -78,14 +98,23 @@ export default function LiftsSection({ athleteId, onAddResult }: { athleteId?: s
                   {new Date(result.lift_date).toLocaleDateString()}
                 </p>
               </div>
-              <div className='text-right'>
-                <p className='font-semibold text-[#178da6]'>
-                  {result.weight_kg} kg ({result.rep_max_type || `${result.reps} reps`})
-                </p>
-                {result.reps > 1 && (
-                  <p className='text-xs text-gray-600'>Est. 1RM: {result.calculated_1rm} kg</p>
-                )}
-                {result.notes && <p className='text-sm text-gray-600 mt-1'>{result.notes}</p>}
+              <div className='flex items-center gap-3'>
+                <div className='text-right'>
+                  <p className='font-semibold text-[#178da6]'>
+                    {result.weight_kg} kg ({result.rep_max_type || `${result.reps} reps`})
+                  </p>
+                  {result.reps > 1 && (
+                    <p className='text-xs text-gray-600'>Est. 1RM: {result.calculated_1rm} kg</p>
+                  )}
+                  {result.notes && <p className='text-sm text-gray-600 mt-1'>{result.notes}</p>}
+                </div>
+                <button
+                  onClick={() => handleDelete(result.id, result.lift_name, result.lift_date)}
+                  aria-label={`Delete ${result.lift_name}`}
+                  className='p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition'
+                >
+                  <Trash2 size={18} />
+                </button>
               </div>
             </div>
           ))}
