@@ -57,13 +57,13 @@ export default function LoginPage() {
           if (member.status === 'pending') {
             // Sign out immediately (don't await to prevent navigation cascade)
             signOut();
-            setError('Your account is pending approval. Please wait for coach approval.');
+            setError('Dein Konto wartet auf die Freigabe. Bitte warte auf die Bestätigung durch den Coach.');
             setLoading(false);
             return;
           } else if (member.status === 'blocked') {
             // Sign out immediately (don't await to prevent navigation cascade)
             signOut();
-            setError('Your account has been blocked. Please contact the coach.');
+            setError('Dein Konto wurde gesperrt. Bitte wende dich an den Coach.');
             setLoading(false);
             return;
           } else {

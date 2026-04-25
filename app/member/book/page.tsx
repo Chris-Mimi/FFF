@@ -124,7 +124,7 @@ export default function MemberBookingPage() {
     }
 
     if (member.status !== 'active') {
-      toast.warning('Your account is pending approval. Please wait for coach approval.');
+      toast.warning('Dein Konto wartet auf die Freigabe. Bitte warte auf die Bestätigung durch den Coach.');
       router.push('/');
       return;
     }
