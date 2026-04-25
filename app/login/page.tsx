@@ -19,7 +19,7 @@ export default function LoginPage() {
   useEffect(() => {
     const errorParam = searchParams.get('error');
     if (errorParam === 'reset_link_invalid') {
-      setError('Your password reset link is invalid or has expired. Please request a new one.');
+      setError('Dein Link zum Zurücksetzen des Passworts ist ungültig oder abgelaufen. Bitte fordere einen Neuen an.');
     }
   }, [searchParams]);
 
@@ -79,31 +79,29 @@ export default function LoginPage() {
       console.error('Login error:', err);
       const errorMessage =
         err instanceof Error ? err.message : 'Failed to sign in. Please check your credentials.';
+      const isEmailNotConfirmed = errorMessage.toLowerCase().includes('email not confirmed');
 
-      // If Supabase says "email not confirmed", check if this is a pending member
-      if (errorMessage.toLowerCase().includes('email not confirmed')) {
-        try {
-          const response = await fetch('/api/members/check-status', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: email.toLowerCase() })
-          });
+      try {
+        const response = await fetch('/api/members/check-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email.toLowerCase() })
+        });
+        const data = await response.json();
 
-          const data = await response.json();
-
-          if (data.exists && data.status === 'pending') {
-            setError('Your account is pending approval. Please wait for coach approval.');
-          } else if (data.exists && data.status === 'blocked') {
-            setError('Your account has been blocked. Please contact the coach.');
-          } else {
-            // No member record or member is active (shouldn't reach here normally)
-            setError('Please check your email for a confirmation link before signing in.');
-          }
-        } catch (err) {
-          console.error('Failed to check member status:', err);
-          setError('Please check your email for a confirmation link before signing in.');
+        if (!data.exists) {
+          setError('Kein Konto mit dieser E-Mail-Adresse gefunden. Bitte überprüfe die Schreibweise oder registriere dich, falls noch nicht geschehen.');
+        } else if (data.status === 'pending') {
+          setError('Dein Konto wartet auf die Freigabe. Bitte warte auf die Bestätigung durch den Coach.');
+        } else if (data.status === 'blocked') {
+          setError('Dein Konto wurde gesperrt. Bitte wende dich an den Coach.');
+        } else if (isEmailNotConfirmed) {
+          setError('Bitte überprüfe deine E-Mails und klicke auf den Bestätigungslink, bevor du dich anmeldest.');
+        } else {
+          setError('E-Mail-Adresse erkannt, aber das Passwort ist falsch. Nutze „Passwort vergessen?", um es zurückzusetzen.');
         }
-      } else {
+      } catch (lookupErr) {
+        console.error('Failed to check member status:', lookupErr);
         setError(errorMessage);
       }
     } finally {

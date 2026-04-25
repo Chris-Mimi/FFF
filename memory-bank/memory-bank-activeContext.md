@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 177.0
-**Updated:** 2026-04-24 (Session 316 — cleanup + late-cancel gate)
+**Version:** 178.0
+**Updated:** 2026-04-25 (Session 317 — Anja rescue + German login error specificity)
 
 ---
 
@@ -84,6 +84,22 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 317 (2026-04-25 — Opus 4.7) — ANJA RESCUE + LOGIN ERROR SPECIFICITY:**
+- **Anja Götte couldn't log in after re-registration.** Diagnostic walkthrough confirmed auth row + member row both healthy (`last_sign_in_at` set, `confirmed_at` set, `members.status='active'`) — issue was password typing on her side, NOT deliverability or approval flow. Reset password manually via Supabase admin API.
+- **New script: [scripts/admin-set-password.ts](scripts/admin-set-password.ts)** — one-off rescue tool. Looks up `members.id` by email, calls `auth.admin.updateUserById(id, { password })`. Use when normal recovery email isn't reaching the user. Verified by logging in as Anja in incognito + logging out.
+- **Login error specificity refactor: [app/login/page.tsx](app/login/page.tsx).** Catch block now always calls `/api/members/check-status` (previously only when error was "email not confirmed") and branches on `(exists, status, isEmailNotConfirmed)`:
+  - `!exists` → "Kein Konto mit dieser E-Mail-Adresse gefunden..."
+  - `pending` → "Dein Konto wartet auf die Freigabe..."
+  - `blocked` → "Dein Konto wurde gesperrt..."
+  - `isEmailNotConfirmed` → "Bitte überprüfe deine E-Mails..."
+  - else (email valid + auth fail) → "E-Mail-Adresse erkannt, aber das Passwort ist falsch. Nutze „Passwort vergessen?", um es zurückzusetzen."
+  - check-status errors → fallback to raw Supabase message.
+  - Plus `reset_link_invalid` URL-param message translated.
+- **Why German for these 5+1 strings only:** rest of app stays English; login is the highest-friction moment. Chris reviewed + corrected wording (`Neuen` capitalisation, dropped `unten` in #5).
+- **Memory updated:** `project_registration_vs_athlete_subscription.md` — registration ≠ paid athlete subscription. `athlete_subscription_status='expired'` is the default for non-subscribed members and does NOT block login or class booking. (Misdiagnosed once this session; saved so it doesn't happen again.)
+- **Resend SPF/DKIM/DMARC still unverified** (Next Step #4 carries over) — wasn't the cause of Anja's issue but remains the open item from S313.
+- **Not yet live-tested in prod** — login change committed but new error messages need verification on `app.the-forge-functional-fitness.de` after deploy.
+
 **Session 316 (2026-04-24 — Opus 4.7) — CLEANUP + LATE-CANCEL GATE:**
 - **Cleanup pass:** closed activeContext Next Steps 1 (historical lifts tab — no bug, records surface under athlete **Records** tab, not Lifts tab), 2 (Sonja Hujo re-entry — S305 didn't log the slot, not worth chasing), 3 (OG chip live-test), 3b (Trial Athletes flow live-test), 6 (Intervals timer live-test) — all confirmed done/working by Chris.
 - **Late-cancel gate (new feature):** confirmed bookings cancelled past the auto-lock threshold now land in `late_cancel` status instead of `cancelled`. Rationale: `late_cancel` enum already existed + rendered coach-side (BookingListItem, SessionManagementModal, Admin attendance rollup) but was only set by coach-side actions; the athlete-initiated cancel route always wrote `cancelled` regardless of timing. Mirrors the `/api/bookings/create` lock logic exactly (manual `is_locked=true` OR past `auto_lock_lead_minutes` threshold, per-session-type override wins).
@@ -117,20 +133,7 @@ Athlete Tools
 - **Process lesson:** when S312 was pulled from the other machine, activeContext didn't flag its migration as unrun on this side. Going forward, migration "run-status per machine" needs to be explicit in session entries. (Logged in the project-history file.)
 - No application code changed.
 
-**Session 312 (2026-04-24 — Opus 4.7) — NEXT-WEEK RELEASE GATE (UI + API ENFORCEMENT):**
-- **Need:** coach wanted to publish next week's WODs ahead of time without athletes seeing/booking them until Sunday afternoon. Default behavior was: as soon as a session is `status='published'`, athletes see and book it.
-- **Design:** time-gated visibility, not a per-week "Go Live" button. Two new columns on `booking_rules`: `next_week_release_day_of_week` (SMALLINT, JS getDay 0-6, default 0=Sunday) + `next_week_release_time` (TIME, default '14:00:00'). Pure helper `getMaxVisibleSessionDate(rules, now)` returns end-of-this-week normally, end-of-next-week once the release moment in this ISO week has passed. Defaults to Sunday 14:00 with no per-week intervention required.
-- **Files (7):**
-  1. `database/20260424_add_next_week_release_gate.sql` — adds the two columns with defaults + CHECK constraint on day-of-week.
-  2. [lib/bookingRules.ts](lib/bookingRules.ts) — `BookingRules` interface + DEFAULT_BOOKING_RULES extended; getter/setter SELECT lists factored to a single `RULES_COLUMNS` constant; new pure helper `getMaxVisibleSessionDate()` (does NOT touch DB so safe to import client-side).
-  3. [app/api/admin/booking-rules/route.ts](app/api/admin/booking-rules/route.ts) — PUT validates day (0-6 integer) + time (`HH:MM` or `HH:MM:SS` regex), normalizes 5-char input to `HH:MM:00`.
-  4. [app/coach/admin/booking-rules/page.tsx](app/coach/admin/booking-rules/page.tsx) — new "Next-week release time" section with day-of-week `<select>` + native `<input type='time'>`. Saved as part of the existing PUT.
-  5. [app/api/booking-rules/public/route.ts](app/api/booking-rules/public/route.ts) — NEW lightweight GET, no auth, returns only the two release fields. Lets the athlete-side avoid pulling the full (admin-only) rules.
-  6. [app/member/book/page.tsx](app/member/book/page.tsx) — fetches the public config on mount, computes `maxVisibleDate`, adds `.lte('date', formatLocalDate(maxVisibleDate))` to the session query. `releaseConfig` added to the fetchSessions effect deps so the filter applies once the config loads.
-  7. [app/api/bookings/create/route.ts](app/api/bookings/create/route.ts) — added a server-side gate check after the existing rules load: rejects with 403 if the requested session's date is past `getMaxVisibleSessionDate(rules)`. Closes the bypass where a determined athlete could read session IDs via the supabase client in dev tools and replay `/api/bookings/create` with a hidden ID.
-- **TS clean** throughout. Existing booking-rule helpers (`advance_booking_days`, `max_bookings_per_day`, etc) untouched.
-
-**Older sessions (57-311):** See `project-history/` folder.
+**Older sessions (57-312):** See `project-history/` folder.
 
 ---
 
@@ -155,15 +158,16 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-1. **Live-test the late-cancel gate (S316)** — pick a booking on a locked-window session (or set `auto_lock_lead_minutes` to push "now" inside the window), cancel from the athlete app, confirm distinct warning toast + purple Late Cancel chip in coach SessionManagementModal + correct attendance-rollup count.
-2. **Decide whether to extend the membership-type confirm guard to class types** (EKT / Tu / CFK / CFT) — same accidental-click risk applies to kids' class assignments. Chris not asked yet.
-3. **Build Reject/Delete button on Members Pending tab** — currently no UI affordance to remove pending members; only Approve/Unapprove. S306 had to use SQL to clean up Claudia Herrmann. Future feature.
-4. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app (should now show "Updating password for [email]" above form).
-5. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper processes), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
-6. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
-7. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing. **Note:** S305 backfill may have largely resolved this by retroactively booking whiteboard names; re-evaluate before doing the S251 work.
-8. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts:48-56` only filters bookings by `status='confirmed'` and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
-9. **Test endpoint 410 cleanup** (deferred from S292) — route `app/api/notifications/test/route.ts` through `sendToSubscription` so expired subs auto-delete on Send Test.
+1. **Live-test the German login error messages (S317)** — after deploy: incognito → login page → try (a) non-existent email expect "Kein Konto..."; (b) real email + wrong password expect "E-Mail-Adresse erkannt, aber das Passwort ist falsch..."; pending/blocked branches unchanged logic (just translated).
+2. **Live-test the late-cancel gate (S316)** — pick a booking on a locked-window session (or set `auto_lock_lead_minutes` to push "now" inside the window), cancel from the athlete app, confirm distinct warning toast + purple Late Cancel chip in coach SessionManagementModal + correct attendance-rollup count.
+3. **Decide whether to extend the membership-type confirm guard to class types** (EKT / Tu / CFK / CFT) — same accidental-click risk applies to kids' class assignments. Chris not asked yet.
+4. **Build Reject/Delete button on Members Pending tab** — currently no UI affordance to remove pending members; only Approve/Unapprove. S306 had to use SQL to clean up Claudia Herrmann. Future feature.
+5. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app (should now show "Updating password for [email]" above form).
+6. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper processes), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
+7. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
+8. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing. **Note:** S305 backfill may have largely resolved this by retroactively booking whiteboard names; re-evaluate before doing the S251 work.
+9. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts:48-56` only filters bookings by `status='confirmed'` and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
+10. **Test endpoint 410 cleanup** (deferred from S292) — route `app/api/notifications/test/route.ts` through `sendToSubscription` so expired subs auto-delete on Send Test.
 
 ---
 

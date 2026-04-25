@@ -4,13 +4,18 @@ This document is a template with headings to show you where the issue is or wher
 http://192.168.178.75:3000
 
 # Next Session — First Action #
-* **Live-test the late-cancel gate shipped in S316.**
+* **Live-test the German login error messages shipped in S317** (after deploy lands).
+  1. Open `https://app.the-forge-functional-fitness.de/login` in incognito.
+  2. Try `nonexistent@example.com` + any password → expect *"Kein Konto mit dieser E-Mail-Adresse gefunden..."*
+  3. Try `chris@crossfit-hammerschmiede.com` + a wrong password → expect *"E-Mail-Adresse erkannt, aber das Passwort ist falsch..."*
+  4. Confirm pending/blocked branches still show their existing messages (just translated).
+
+* **Then live-test the late-cancel gate carried over from S316** (still open from yesterday).
   1. Pick any booking on a locked-window session (or set `auto_lock_lead_minutes` to a large value so "now" is inside the lock window).
   2. Cancel from the athlete app.
   3. Expect toast: *"Booking cancelled. This is past the lock time, so it is recorded as a late cancel."*
   4. Open the coach SessionManagementModal for that session → confirm the booking shows under Late Cancel with the purple chip.
-  5. Open Admin → Attendance rollup → confirm the late_cancel is counted in the rollup.
-  6. Sanity check: cancel a booking well before the lock window → expect normal *"Booking cancelled"* toast, status = `cancelled`.
+  5. Open Admin → Attendance rollup → confirm the late_cancel is counted.
 
 # FIRST. FIX BUGS MAKE IMPROVEMENTS #
 # Coach Login #
@@ -53,25 +58,31 @@ Should only show the days on which athlete has attended a workout. For example, 
 # Member Management Page #
 *
 
-# S315 Close → S316 Summary
+# S316 Close → S317 Summary
 
 ## Status
-Short close-out session. Cleaned up activeContext Next Steps 1/2/3/3b/6 (historical lifts tab mystery, Sonja Hujo re-entry, OG chip, Trial Athletes flow, Intervals timer) — all confirmed done or closed. Then shipped the **late-cancel gate**: athletes who cancel past the auto-lock threshold now land in `late_cancel` status instead of `cancelled`. Waitlist cancels always stay plain `cancelled`.
+Diagnostic + small fix session. Triaged Anja Götte's "can't log in" report — auth row + member row both healthy, password the only problem. Built `scripts/admin-set-password.ts` (one-off rescue tool), reset her password to `1234?ABCD!`, verified by logging in as her in incognito. Then refactored the login error UX so future cases are self-explanatory: Supabase's generic *"Invalid login credentials"* now becomes one of 5 specific German messages (no account / pending / blocked / unconfirmed / wrong password). Six total error strings now in German.
 
-## Historical lifts mystery (closed)
-Imported records were visible all along — Chris was looking in the athlete **Lifts** tab but imported records surface under the **Records** tab. No bug. The distinction: Lifts tab reads `barbell_lifts` + a filtered slice; Records tab shows the full `lift_records` history.
+## Anja Götte rescue
+Auth row created 2026-04-24 16:52, signed in once at 16:55, then she couldn't log in again. `last_sign_in_at` proved auth + email confirmation + member row were all fine, so it was a password-typing issue on her side. Sent her the temp password via WhatsApp; she logs in and changes it.
 
-## Late-cancel gate — what shipped
-Two files:
-- `app/api/bookings/cancel/route.ts` — imports `getLockLeadMinutesForSessionType`, moves session fetch before the UPDATE, computes `isLocked` (manual `is_locked=true` OR past-threshold), sets status = `'late_cancel'` when a `confirmed` booking is cancelled past the lock threshold. Response now includes `status` field.
-- `app/member/book/page.tsx` — toast branches on `data.status`: late cancels get `toast.warning(...)` with a distinct message.
+## Login error specificity — what shipped
+[app/login/page.tsx](app/login/page.tsx) — catch block now always calls `/api/members/check-status` (previously only when error was "email not confirmed") and branches on `(exists, status, isEmailNotConfirmed)`:
+- `!exists` → "Kein Konto mit dieser E-Mail-Adresse gefunden..."
+- `status === 'pending'` → "Dein Konto wartet auf die Freigabe..."
+- `status === 'blocked'` → "Dein Konto wurde gesperrt..."
+- `isEmailNotConfirmed` → "Bitte überprüfe deine E-Mails..."
+- else → "E-Mail-Adresse erkannt, aber das Passwort ist falsch..."
+- `check-status` itself errors → fallback to raw Supabase message
+Plus the `reset_link_invalid` URL-param message (line 22) translated.
 
-No schema change — `late_cancel` enum already exists and is rendered coach-side (BookingListItem, SessionManagementModal, Admin attendance rollup).
+## Resend deliverability still unverified
+Open from S313: `the-forge-functional-fitness.de` SPF/DKIM/DMARC may still be unverified. Not investigated this session — Anja's issue turned out to be password, not deliverability. Next Step #4 still applies.
 
 ## Landmines
-* None material. Dev servers still running on both machines — fine; they don't lock anything.
+* None material. Login change is deployed but not yet live-tested in prod.
 
-## 📅 Scheduled reminder — 2026-05-01 (check if gate is firing)
+## 📅 Scheduled reminder — 2026-05-01 (check if late-cancel gate is firing)
 If today is **2026-05-01 or later**, run this query in Supabase SQL editor:
 ```sql
 select count(*) as total_late_cancels,
