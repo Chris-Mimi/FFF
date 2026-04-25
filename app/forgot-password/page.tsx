@@ -26,7 +26,7 @@ export default function ForgotPasswordPage() {
       setSent(true);
     } catch (err) {
       console.error('Password reset error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to send reset email. Please try again.');
+      setError(err instanceof Error ? err.message : 'E-Mail zum Zurücksetzen konnte nicht gesendet werden. Bitte versuche es erneut.');
     } finally {
       setLoading(false);
     }

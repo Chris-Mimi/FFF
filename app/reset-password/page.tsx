@@ -34,12 +34,12 @@ export default function ResetPasswordPage() {
     setError('');
 
     if (password.length < 6) {
-      setError('Password must be at least 6 characters.');
+      setError('Das Passwort muss mindestens 6 Zeichen lang sein.');
       return;
     }
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match.');
+      setError('Die Passwörter stimmen nicht überein.');
       return;
     }
 
@@ -56,7 +56,7 @@ export default function ResetPasswordPage() {
       }, 3000);
     } catch (err) {
       console.error('Password update error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to update password. Please try again.');
+      setError(err instanceof Error ? err.message : 'Passwort konnte nicht aktualisiert werden. Bitte versuche es erneut.');
     } finally {
       setLoading(false);
     }

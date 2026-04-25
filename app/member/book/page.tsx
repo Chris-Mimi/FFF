@@ -118,7 +118,7 @@ export default function MemberBookingPage() {
       .single();
 
     if (!member) {
-      toast.warning('You must be a registered member to book sessions.');
+      toast.warning('Du musst registriertes Mitglied sein, um Sessions zu buchen.');
       router.push('/');
       return;
     }

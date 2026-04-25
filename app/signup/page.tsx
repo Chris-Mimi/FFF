@@ -24,14 +24,14 @@ export default function SignupPage() {
 
     // Validate passwords match
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError('Die Passwörter stimmen nicht überein.');
       setLoading(false);
       return;
     }
 
     // Validate password strength
     if (password.length < 6) {
-      setError('Password must be at least 6 characters long');
+      setError('Das Passwort muss mindestens 6 Zeichen lang sein.');
       setLoading(false);
       return;
     }
@@ -62,7 +62,7 @@ export default function SignupPage() {
     } catch (err) {
       console.error('Signup error:', err);
       const errorMessage =
-        err instanceof Error ? err.message : 'Failed to create account. Please try again.';
+        err instanceof Error ? err.message : 'Konto konnte nicht erstellt werden. Bitte versuche es erneut.';
       setError(errorMessage);
     } finally {
       setLoading(false);
