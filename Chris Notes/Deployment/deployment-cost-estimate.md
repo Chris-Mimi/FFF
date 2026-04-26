@@ -160,3 +160,4 @@ The app is cheap to run. Revenue concentration risk is low because per-user cost
 - Supabase Pro 8 GB storage is more than enough for years at this scale.
 - Vercel Free 100 GB bandwidth handles thousands of daily users.
 - First cost threshold likely to break: Resend free tier (3k emails/month) if booking-related notifications become frequent.
+

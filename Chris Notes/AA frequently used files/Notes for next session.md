@@ -4,18 +4,33 @@ This document is a template with headings to show you where the issue is or wher
 http://192.168.178.75:3000
 
 # Next Session — First Action #
-* **Live-test the German login error messages shipped in S317** (after deploy lands).
-  1. Open `https://app.the-forge-functional-fitness.de/login` in incognito.
-  2. Try `nonexistent@example.com` + any password → expect *"Kein Konto mit dieser E-Mail-Adresse gefunden..."*
-  3. Try `chris@crossfit-hammerschmiede.com` + a wrong password → expect *"E-Mail-Adresse erkannt, aber das Passwort ist falsch..."*
-  4. Confirm pending/blocked branches still show their existing messages (just translated).
 
-* **Then live-test the late-cancel gate carried over from S316** (still open from yesterday).
-  1. Pick any booking on a locked-window session (or set `auto_lock_lead_minutes` to a large value so "now" is inside the lock window).
-  2. Cancel from the athlete app.
-  3. Expect toast: *"Booking cancelled. This is past the lock time, so it is recorded as a late cancel."*
-  4. Open the coach SessionManagementModal for that session → confirm the booking shows under Late Cancel with the purple chip.
-  5. Open Admin → Attendance rollup → confirm the late_cancel is counted.
+* **PRIORITY 1 — Fix the booking unique-active-bookings constraint.** S316 introduced the `late_cancel` status, but the partial unique index on `bookings(session_id, member_id) WHERE status != 'cancelled'` was never updated. Result: any athlete who late-cancels (or whom the coach cancels via `coach_cancelled`) can NEVER be re-booked into the same session. Carole Schultz hit this today.
+
+  **Fix (one SQL migration):** drop and recreate the index excluding all "effectively cancelled" statuses:
+  ```sql
+  DROP INDEX IF EXISTS unique_active_bookings;
+  CREATE UNIQUE INDEX unique_active_bookings
+    ON bookings(session_id, member_id)
+    WHERE status NOT IN ('cancelled', 'late_cancel', 'coach_cancelled');
+  ```
+  Save as `database/fix-late-cancel-rebooking.sql`. Chris can run it in Supabase SQL Editor in 30 seconds. Then verify by re-booking any late-cancelled member in coach Session Management.
+
+* **PRIORITY 2 — Manual fix for Carole Schultz** (only matters if Chris hasn't done it himself yet). Supabase Dashboard → `bookings` table → filter `member_id` to Carole Schultz + the WOD session from 2026-04-23 → her row will have `status = 'late_cancel'` and `booked_at = 2026-04-23 23:31`. Either change `status` to `cancelled` (then re-book her in the app) or directly to `confirmed` (skip the re-book). Chris is "pretty sure she late-cancelled herself" — `late_cancel` status confirms that (athlete-initiated). She did Open Gym instead.
+
+* **PRIORITY 3 — Discuss Open Gym (OG) attendance flow with Chris.** Today's case (Carole) showed the gap: athletes who book a WOD then switch to OG currently late-cancel and disappear. Chris wants OG-attended athletes to still show in bookings. Three options I proposed but did NOT implement (he asked to defer):
+  - **(A)** New status `attended_og` + a coach-side button "Switch to Open Gym" — leaves booking visible, marks she came but did her own thing.
+  - **(B)** Just allow re-book to `confirmed` (current row overridden) — minimal change.
+  - **(C)** Track Open Gym as a separate session type so she books OG in parallel — proper separation, more work for the athlete.
+  Get Chris's preference, then implement.
+
+* **PRIORITY 4 — Confirm Chris reset the next-week release time** to `16:00` in Admin → Booking Rules. This session he set it to `14:00` as a band-aid while we deployed the timezone fix. The fix is live (commit `5af8005`); the field now means Berlin wall-clock time. If he forgot to reset, next Sunday's release will fire 4 hours early.
+
+# Carry-over from S317 (still untested in prod) #
+
+* **Live-test German login error messages** (S317): incognito → wrong-email expects "Kein Konto..."; right-email + wrong password expects "E-Mail-Adresse erkannt, aber das Passwort ist falsch...".
+* **Live-test late-cancel gate** (S316): cancel a confirmed booking past auto-lock threshold from athlete app → expect distinct toast + purple Late Cancel chip coach-side.
+* **Resend SPF/DKIM/DMARC** for `the-forge-functional-fitness.de` still unverified — separate from any session's work but the underlying email-deliverability risk persists.
 
 # FIRST. FIX BUGS MAKE IMPROVEMENTS #
 # Coach Login #
@@ -58,31 +73,7 @@ Should only show the days on which athlete has attended a workout. For example, 
 # Member Management Page #
 *
 
-# S316 Close → S317 Summary
-
-## Status
-Diagnostic + small fix session. Triaged Anja Götte's "can't log in" report — auth row + member row both healthy, password the only problem. Built `scripts/admin-set-password.ts` (one-off rescue tool), reset her password to `1234?ABCD!`, verified by logging in as her in incognito. Then refactored the login error UX so future cases are self-explanatory: Supabase's generic *"Invalid login credentials"* now becomes one of 5 specific German messages (no account / pending / blocked / unconfirmed / wrong password). Six total error strings now in German.
-
-## Anja Götte rescue
-Auth row created 2026-04-24 16:52, signed in once at 16:55, then she couldn't log in again. `last_sign_in_at` proved auth + email confirmation + member row were all fine, so it was a password-typing issue on her side. Sent her the temp password via WhatsApp; she logs in and changes it.
-
-## Login error specificity — what shipped
-[app/login/page.tsx](app/login/page.tsx) — catch block now always calls `/api/members/check-status` (previously only when error was "email not confirmed") and branches on `(exists, status, isEmailNotConfirmed)`:
-- `!exists` → "Kein Konto mit dieser E-Mail-Adresse gefunden..."
-- `status === 'pending'` → "Dein Konto wartet auf die Freigabe..."
-- `status === 'blocked'` → "Dein Konto wurde gesperrt..."
-- `isEmailNotConfirmed` → "Bitte überprüfe deine E-Mails..."
-- else → "E-Mail-Adresse erkannt, aber das Passwort ist falsch..."
-- `check-status` itself errors → fallback to raw Supabase message
-Plus the `reset_link_invalid` URL-param message (line 22) translated.
-
-## Resend deliverability still unverified
-Open from S313: `the-forge-functional-fitness.de` SPF/DKIM/DMARC may still be unverified. Not investigated this session — Anja's issue turned out to be password, not deliverability. Next Step #4 still applies.
-
-## Landmines
-* None material. Login change is deployed but not yet live-tested in prod.
-
-## 📅 Scheduled reminder — 2026-05-01 (check if late-cancel gate is firing)
+# 📅 Scheduled reminder — 2026-05-01 (check if late-cancel gate is firing)
 If today is **2026-05-01 or later**, run this query in Supabase SQL editor:
 ```sql
 select count(*) as total_late_cancels,
