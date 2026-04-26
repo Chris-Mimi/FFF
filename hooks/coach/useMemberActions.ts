@@ -211,6 +211,34 @@ export function useMemberActions(
     }
   };
 
+  const handleActivateMonthly = async (memberId: string) => {
+    if (!await confirm({ title: 'Activate 30 Days', message: 'Activate subscription for 30 days? (e.g. cash payment, monthly billing)', confirmText: 'Activate', variant: 'default' })) {
+      return;
+    }
+
+    setProcessingMemberId(memberId);
+    try {
+      const response = await authFetch('/api/members/athlete-subscription', {
+        method: 'POST',
+        body: JSON.stringify({ memberId, action: 'activate_monthly' })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to activate subscription');
+      }
+
+      toast.success(data.message || '30-day subscription activated');
+      await refreshData();
+    } catch (error) {
+      console.error('Error activating monthly subscription:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to activate subscription. Please try again.');
+    } finally {
+      setProcessingMemberId(null);
+    }
+  };
+
   const handleActivatePermanent = async (memberId: string) => {
     if (!await confirm({ title: 'Activate Permanent', message: 'Activate permanent subscription with no expiry date?', confirmText: 'Activate', variant: 'default' })) {
       return;
@@ -384,6 +412,7 @@ export function useMemberActions(
     handleStartTrial,
     handleExtendTrial,
     handleActivateSubscription,
+    handleActivateMonthly,
     handleActivatePermanent,
     handleCancelSubscription,
     handleToggleMembershipType,

@@ -28,6 +28,7 @@ interface MemberCardProps {
   onStartTrial: (memberId: string, days?: number) => void;
   onExtendTrial: (memberId: string, days?: number) => void;
   onActivateSubscription: (memberId: string) => void;
+  onActivateMonthly: (memberId: string) => void;
   onActivatePermanent: (memberId: string) => void;
   onCancelSubscription: (memberId: string) => void;
   onToggleMembershipType: (memberId: string, type: MembershipType, currentTypes: MembershipType[]) => void;
@@ -66,6 +67,7 @@ export default function MemberCard({
   onStartTrial,
   onExtendTrial,
   onActivateSubscription,
+  onActivateMonthly,
   onActivatePermanent,
   onCancelSubscription,
   onToggleMembershipType,
@@ -349,6 +351,15 @@ export default function MemberCard({
                     )}
                     {(member.athlete_subscription_status === 'trial' || member.athlete_subscription_status === 'expired') && (
                       <>
+                        <button
+                          onClick={() => onActivateMonthly(member.id)}
+                          disabled={processingMemberId === member.id || !hasTierType}
+                          className="flex items-center gap-1 px-2 py-1 bg-lime-600 hover:bg-lime-700 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded transition-colors duration-200 text-xs"
+                          title={hasTierType ? 'Activate 30-day subscription (cash payment, monthly)' : 'Tick a membership type first'}
+                        >
+                          <Check size={12} />
+                          30d
+                        </button>
                         <button
                           onClick={() => onActivateSubscription(member.id)}
                           disabled={processingMemberId === member.id || !hasTierType}

@@ -102,6 +102,18 @@ export async function POST(request: NextRequest) {
         break;
       }
 
+      case 'activate_monthly': {
+        // Activate subscription for 30 days (cash payments — paying-monthly customers)
+        const activateEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+        updateData = {
+          athlete_subscription_status: 'active',
+          athlete_subscription_start: now.toISOString(),
+          athlete_subscription_end: activateEnd.toISOString(),
+          updated_at: now.toISOString()
+        };
+        break;
+      }
+
       case 'activate_permanent': {
         // Activate permanent subscription (no end date — owner/family)
         updateData = {
@@ -125,7 +137,7 @@ export async function POST(request: NextRequest) {
 
       default:
         return NextResponse.json(
-          { error: 'Invalid action. Use: start_trial, extend_trial, activate, activate_permanent, or expire' },
+          { error: 'Invalid action. Use: start_trial, extend_trial, activate, activate_monthly, activate_permanent, or expire' },
           { status: 400 }
         );
     }

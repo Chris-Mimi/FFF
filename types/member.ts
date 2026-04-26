@@ -97,7 +97,21 @@ export const getTrialStatus = (member: Member) => {
     const tierLabel = member.subscription_tier === 'wellpass' ? 'Wellpass' : 'Member';
     if (member.subscription_plan_type === 'monthly') return `Active — ${tierLabel} (Monthly)`;
     if (member.subscription_plan_type === 'yearly') return `Active — ${tierLabel} (Yearly)`;
-    // Cash-activated with end date
+    // Cash-activated with end date — distinguish monthly vs yearly by total duration
+    if (member.athlete_subscription_start && member.athlete_subscription_end) {
+      const start = new Date(member.athlete_subscription_start).getTime();
+      const end = new Date(member.athlete_subscription_end).getTime();
+      const totalDays = Math.round((end - start) / (1000 * 60 * 60 * 24));
+      const daysLeft = Math.ceil((end - Date.now()) / (1000 * 60 * 60 * 24));
+      if (totalDays <= 45) {
+        // Cash monthly (~30 days)
+        return daysLeft > 0 ? `Active — Cash Monthly (${daysLeft}d left)` : 'Expired';
+      }
+      // Cash yearly
+      if (daysLeft <= 14) return `Active (${daysLeft}d left)`;
+      return 'Active (1yr)';
+    }
+    // Active with end date but no start (legacy data) — fall back to days-left only
     if (member.athlete_subscription_end) {
       const daysLeft = Math.ceil(
         (new Date(member.athlete_subscription_end).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
