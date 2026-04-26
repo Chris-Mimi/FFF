@@ -7,7 +7,7 @@ import { useMemberData } from '@/hooks/coach/useMemberData';
 import { useMemberActions } from '@/hooks/coach/useMemberActions';
 import { signOut } from '@/lib/auth';
 import { Member } from '@/types/member';
-import { AlertTriangle, Check, Clock, LogOut, UserCheck, UserX } from 'lucide-react';
+import { AlertTriangle, Check, Clock, LogOut, Search, UserCheck, UserX, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -42,6 +42,8 @@ export default function CoachMembersPage() {
     toggleFilter,
     toggleClassTypeFilter,
     handleAgeFilterChange,
+    searchQuery,
+    setSearchQuery,
   } = useMemberData();
 
   const {
@@ -199,6 +201,29 @@ export default function CoachMembersPage() {
         hasMembers={members.length > 0}
       />
 
+      {/* Search */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+        <div className="relative">
+          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search by name or email…"
+            className="w-full pl-10 pr-10 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+              aria-label="Clear search"
+            >
+              <X size={18} />
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-12">
         {loading ? (
@@ -218,7 +243,9 @@ export default function CoachMembersPage() {
           </div>
         ) : filteredMembers.length === 0 ? (
           <div className="bg-gray-800 rounded-lg p-12 text-center border border-gray-700">
-            <p className="text-gray-400 text-lg">No members match the selected filters</p>
+            <p className="text-gray-400 text-lg">
+              {searchQuery ? `No members match "${searchQuery}"` : 'No members match the selected filters'}
+            </p>
           </div>
         ) : (
           <div className="grid gap-2">

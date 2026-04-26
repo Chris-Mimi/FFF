@@ -16,6 +16,7 @@ export function useMemberData() {
   const [pendingCount, setPendingCount] = useState(0);
   const [atRiskCount, setAtRiskCount] = useState(0);
   const [unlinkedWhiteboardNames, setUnlinkedWhiteboardNames] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const fetchUnlinkedWhiteboardNames = async () => {
     try {
@@ -414,6 +415,15 @@ export function useMemberData() {
     );
   }
 
+  if (searchQuery.trim()) {
+    const q = searchQuery.trim().toLowerCase();
+    filteredMembers = filteredMembers.filter(member =>
+      member.name?.toLowerCase().includes(q) ||
+      member.display_name?.toLowerCase().includes(q) ||
+      member.email?.toLowerCase().includes(q)
+    );
+  }
+
   const getMembershipTypeCounts = () => {
     const counts: Record<MembershipType, number> = {
       member: 0, drop_in: 0, ten_card: 0, wellpass: 0, hansefit: 0,
@@ -452,5 +462,7 @@ export function useMemberData() {
     toggleFilter,
     toggleClassTypeFilter,
     handleAgeFilterChange,
+    searchQuery,
+    setSearchQuery,
   };
 }
