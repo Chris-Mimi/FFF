@@ -155,10 +155,10 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
     paymentStatus?.subscriptionEnd &&
     new Date(paymentStatus.subscriptionEnd) > new Date();
 
-  // Determine which tier the athlete is allowed to purchase based on coach-assigned membership_types
-  const isWellpass = paymentStatus?.membershipTypes?.includes('wellpass') || false;
+  // Tier rule: only `member` (regular gym members) get the Member discount price.
+  // Everyone else — Wellpass, 10-card, Hansefit, Drop-in — pays the Wellpass tier.
   const isMember = paymentStatus?.membershipTypes?.includes('member') || false;
-  const hasSubscriptionTier = isWellpass || isMember;
+  const isWellpass = !isMember;
 
   return (
     <div className="space-y-8">
@@ -283,20 +283,10 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
           </ul>
         </div>
 
-        {!hasSubscriptionTier ? (
-          /* No membership type assigned — cannot subscribe */
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 text-center">
-            <AlertCircle className="text-amber-500 mx-auto mb-3" size={32} />
-            <h3 className="font-semibold text-gray-900 mb-1">Membership type not assigned</h3>
-            <p className="text-sm text-gray-600">
-              Your coach needs to assign your membership type before you can subscribe.
-              Please contact your coach.
-            </p>
-          </div>
-        ) : isWellpass ? (
-          /* ─── Wellpass Tier ─── */
+        {isWellpass ? (
+          /* ─── Wellpass / 10-Card / Hansefit / Drop-in Tier ─── */
           <div>
-            <h3 className="text-base font-semibold text-gray-900 mb-3">Wellpass Members</h3>
+            <h3 className="text-base font-semibold text-gray-900 mb-3">Standard Plan</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Wellpass Monthly */}
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">

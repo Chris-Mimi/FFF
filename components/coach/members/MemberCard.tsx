@@ -323,7 +323,7 @@ export default function MemberCard({
 
             {/* Athlete Subscription Management */}
             {member.account_type === 'primary' && (() => {
-              const hasTierType = member.membership_types?.includes('member') || member.membership_types?.includes('wellpass');
+              const hasTierType = (member.membership_types?.length ?? 0) > 0;
               return (
                 <div className="flex flex-col gap-1 pt-1 border-t border-gray-700">
                   <div className="flex gap-2">
@@ -353,7 +353,7 @@ export default function MemberCard({
                           onClick={() => onActivateSubscription(member.id)}
                           disabled={processingMemberId === member.id || !hasTierType}
                           className="flex items-center gap-1 px-2 py-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded transition-colors duration-200 text-xs"
-                          title={hasTierType ? 'Activate 1-year subscription (cash payment)' : 'Set Mb or Wp membership type first'}
+                          title={hasTierType ? 'Activate 1-year subscription (cash payment)' : 'Tick a membership type first'}
                         >
                           <Check size={12} />
                           1yr
@@ -362,7 +362,7 @@ export default function MemberCard({
                           onClick={() => onActivatePermanent(member.id)}
                           disabled={processingMemberId === member.id || !hasTierType}
                           className="flex items-center gap-1 px-2 py-1 bg-emerald-700 hover:bg-emerald-800 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded transition-colors duration-200 text-xs"
-                          title={hasTierType ? 'Activate permanent subscription (no expiry)' : 'Set Mb or Wp membership type first'}
+                          title={hasTierType ? 'Activate permanent subscription (no expiry)' : 'Tick a membership type first'}
                         >
                           ∞
                         </button>
@@ -381,7 +381,7 @@ export default function MemberCard({
                     )}
                   </div>
                   {!hasTierType && (member.athlete_subscription_status === 'trial' || member.athlete_subscription_status === 'expired') && (
-                    <span className="text-[10px] text-amber-400">Set Mb or Wp first to activate</span>
+                    <span className="text-[10px] text-amber-400">Tick a membership type first</span>
                   )}
                 </div>
               );

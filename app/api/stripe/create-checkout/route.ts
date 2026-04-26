@@ -61,18 +61,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate that the requested tier matches the member's assigned membership type
+    // Validate that the requested tier matches the member's pricing eligibility.
+    // Only `member` (regular gym members) gets the Member discount price; everyone
+    // else (Wellpass, 10-card, Hansefit, Drop-in) pays the Wellpass tier.
     const requestedTier = getTier(productType);
     if (requestedTier) {
       const memberTypes: string[] = member.membership_types || [];
-      const allowedTier = memberTypes.includes('wellpass') ? 'wellpass' : memberTypes.includes('member') ? 'member' : null;
-
-      if (!allowedTier) {
-        return NextResponse.json(
-          { error: 'No membership type assigned. Please contact your coach.' },
-          { status: 403 }
-        );
-      }
+      const allowedTier = memberTypes.includes('member') ? 'member' : 'wellpass';
 
       if (requestedTier !== allowedTier) {
         return NextResponse.json(
