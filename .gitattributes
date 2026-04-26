@@ -1,0 +1,20 @@
+# Normalize all text files to LF on commit, regardless of OS or sync tool.
+# Prevents Synology Drive / Windows clients from creating phantom CRLF diffs.
+* text=auto eol=lf
+
+# Explicit binary types (never touch line endings)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.pdf binary
+*.zip binary
+*.gz binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.mp4 binary
+*.mov binary

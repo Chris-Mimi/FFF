@@ -188,5 +188,5 @@ Athlete Tools
 - **Workflow rules:** `memory-bank/workflow-protocols.md`
 - **Tech details:** `memory-bank/memory-bank-techContext.md`
 - **Code patterns:** `memory-bank/memory-bank-systemPatterns.md`
-- **Deployment plan:** `Chris Notes/deployment-plan.md`
-- **Orphan diagnostics:** `Chris Notes/supabase-orphan-check-queries.md`
+- **Deployment plan:** `Chris Notes/Deployment/deployment-plan.md`
+- **Orphan diagnostics:** `Chris Notes/Database & Supabase/supabase-orphan-check-queries.md`

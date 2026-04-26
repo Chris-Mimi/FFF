@@ -38,6 +38,9 @@ Thumbs.db
 # Misc
 *.log
 
+# TypeScript incremental build cache
+tsconfig.tsbuildinfo
+
 # Backups (local only - do not commit)
 backups/
 *.backup.json
