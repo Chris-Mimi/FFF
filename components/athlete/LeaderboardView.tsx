@@ -1005,6 +1005,19 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
   const showScalingFilter = selectedItem?.type !== 'lift';
   const isBenchmarkItem = selectedItem?.type === 'benchmark' || selectedItem?.type === 'forge_benchmark';
 
+  // For WOD content sections, derive which scaling slots the section currently
+  // uses from its scoring_fields. If a coach removes scaling_2 from a section,
+  // existing rows still have scaling_level_2 in the DB — gate the chip on the
+  // section's CURRENT scoring_fields so stale values don't render.
+  const selectedWodForChips = wods.find(w => w.id === selectedWodId);
+  const activeSection = (selectedItem?.type === 'content' && selectedWodForChips && selectedItem.sectionIndex !== undefined)
+    ? ((selectedWodForChips.sections as WodSection[])[selectedItem.sectionIndex] || null)
+    : null;
+  const sectionSf = activeSection?.scoring_fields;
+  const showScalingChip1 = sectionSf ? !!sectionSf.scaling : true;
+  const showScalingChip2 = sectionSf ? !!sectionSf.scaling_2 : true;
+  const showScalingChip3 = sectionSf ? !!sectionSf.scaling_3 : true;
+
   const prevWeek = () => {
     const d = new Date(weekMonday);
     d.setDate(d.getDate() - 7);
@@ -1250,21 +1263,21 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
                         {showScalingFilter && (
                           <td className='px-1 py-2.5 text-center'>
                             <div className='flex items-center justify-center gap-1'>
-                              {entry.scalingLevel && (
+                              {entry.scalingLevel && showScalingChip1 && (
                                 <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
                                   isRxLevel(entry.scalingLevel) ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
                                 }`}>
                                   {renderScalingText(entry.scalingLevel)}
                                 </span>
                               )}
-                              {entry.scalingLevel2 && (
+                              {entry.scalingLevel2 && showScalingChip2 && (
                                 <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
                                   isRxLevel(entry.scalingLevel2) ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
                                 }`}>
                                   {renderScalingText(entry.scalingLevel2)}
                                 </span>
                               )}
-                              {entry.scalingLevel3 && (
+                              {entry.scalingLevel3 && showScalingChip3 && (
                                 <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
                                   isRxLevel(entry.scalingLevel3) ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
                                 }`}>
