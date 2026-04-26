@@ -18,7 +18,7 @@ http://192.168.178.75:3000
 * Box WiFi: Mac gets IPv6-only (no IPv4), dev sites (GitHub/Supabase/Vercel/Resend) unreachable. PC on same box WiFi works fine. At home all works. Debug next time at the box — see `SESSION-HANDOFF-S303-DNS-issue.md` for diagnostic history.
 * Has Fabian's parent got a login, if so who?
 
-* Special event WOD showed Teemu as 1st because he had 2x Rx like me but didn't take Load into account so I had to add an extra scaling for it to display correctly.
+* 
 * Macbook still has internet problem at the box. Old Macbook Pro works fine.
 * Trial athletes: When I insert an Athlete under the Trial in Session management, where does this info show up? How can I track how many athletes we onboarded within a particular timescale? "DI" and "HF" are superfluous. Could I have a "Tr" for trial athletes.
 

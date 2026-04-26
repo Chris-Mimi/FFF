@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 180.0
-**Updated:** 2026-04-26 (Session 319 — rebooking constraint correction + cash-monthly activation path)
+**Version:** 181.0
+**Updated:** 2026-04-26 (Session 320 — leaderboard multi-load tiebreaker fix)
 
 ---
 
@@ -84,6 +84,19 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 320 (2026-04-26 — Opus 4.7) — LEADERBOARD MULTI-LOAD TIEBREAKER FIX:**
+- **Trigger.** Chris saw "Rinse & Repeat" Pt.2 leaderboard rank Teemu (Rx, 20kg sandbag, **10kg DBs**, 182 reps) above him (Rx, 20kg sandbag, **22.5kg DBs**, 165 reps) and asked why heavier DBs weren't honored.
+- **Diagnostic.** Pt.1 (shuttle run + burpees, `scoring_fields={reps:true}`) has no weights → Teemu's 45 > Chris's 43 is correct there. Pt.2 (`{load, reps, load2, scaling}`) is where the DB difference matters. Pulled the WOD's section JSON + 24 result rows from Supabase via a throwaway script (cleaned up after).
+- **Root cause.** [utils/leaderboard-utils.ts:173+](utils/leaderboard-utils.ts#L173) had two distinct code paths in `compareByScoringType()` that both read only `weight_result` and silently ignored `weight_result_2` / `_3`:
+  1. **Weight tiebreaker** (when primary metric ≠ weight): runs before falling through to reps/time/etc. Was checking only the primary load slot.
+  2. **Primary `'weight'` case** (when section IS scored on weight): also only compared `weight_result`. A section like "1RM Snatch + 1RM C&J" would only rank by snatch.
+- **Fix.** Both paths now chain `[weight_result, weight_result_2, weight_result_3]` in order; first slot where the values differ wins. Honors heavier secondary/tertiary loads in any multi-load section, retroactively across all past WODs.
+- **`aggregateScaling` was already correct** — it sums all 3 scaling slots. Only the load comparator was broken.
+- **Pushback caught path 2.** First pass only fixed the tiebreaker; Chris's "we've fixed this a few times now, why are 3 load scaling levels not taken into account?" prompted re-reading code and finding the primary `'weight'` case had the same bug.
+- **Carry-over:** Live-verify the Pt.2 leaderboard after deploy — Chris should now rank above Teemu. Expect rank changes on old multi-load WODs (net-positive correctness, but athletes may notice).
+- **`detectScoringType` priority gotcha (worth remembering):** sections with both `load: true` AND `reps: true` resolve to `'reps'` not `'weight'`, because reps wins priority at [utils/leaderboard-utils.ts:138](utils/leaderboard-utils.ts#L138) before the load check at line 139.
+- **TS clean.** Single-file change. Not yet committed at time of writing — committing as part of close.
+
 **Session 319 (2026-04-26 — Opus 4.7) — REBOOKING CONSTRAINT CORRECTION + CASH-MONTHLY ACTIVATION:**
 - **Rebooking unique-index correction.** S318 had drafted a migration that excluded both `late_cancel` AND `coach_cancelled` from the partial unique index on bookings. Chris ran a v1 of that, then realised the system was already working as intended for `late_cancel` — the coach UI has an Undo button (`handleUndoLateCancel`) that flips the existing row back to `confirmed`, so a fresh INSERT was never needed. Broadening the index for `late_cancel` would allow duplicate (session_id, member_id) rows. `coach_cancelled` has NO undo path, so it must remain excluded. Wrote [database/fix-rebooking-constraint-v2.sql](database/fix-rebooking-constraint-v2.sql) with the correct rule: `WHERE status NOT IN ('cancelled', 'coach_cancelled')`. Chris ran it. Carole Schultz was already re-booked (Undo did the work).
 - **Cash-monthly activation path (new feature).** Diagnosed three intertwined symptoms: Nikolina's card said "30 days left" with no start date while Andreas (1yr cash) said "Subscribed: today + Active (1yr)"; both showed "No active subscriptions" on the Athletes coach tab; no renewal reminder would fire for Nikolina. Root cause: the codebase only had Start Trial (`status='trial'`) and Activate 1yr / ∞ (`status='active'`) — no path for paying-cash-monthly customers. Coaches were forced to use Start Trial for cash-monthly people, which left them in `'trial'` status (excluded from the expiring-soon notification filter; "Subscribed: <date>" line on MemberCard is gated to `status === 'active'` only). Five files: [app/api/members/athlete-subscription/route.ts](app/api/members/athlete-subscription/route.ts) new `activate_monthly` action, [hooks/coach/useMemberActions.ts](hooks/coach/useMemberActions.ts) new `handleActivateMonthly`, [components/coach/members/MemberCard.tsx](components/coach/members/MemberCard.tsx) new "30d" lime button alongside 1yr / ∞, [app/coach/members/page.tsx](app/coach/members/page.tsx) wires the prop, [types/member.ts](types/member.ts) `getTrialStatus` distinguishes Cash Monthly vs Cash 1yr via `end - start ≤ 45d` heuristic and shows "Active — Cash Monthly (Xd left)".
@@ -130,15 +143,7 @@ Athlete Tools
 - **Design choices:** rejected hard-block (Option A) — athletes still need a way to free the slot for waitlisters in genuine emergencies. Rejected soft pre-warn dialog (Option C) — server message is sufficient, client-side warning would need to expose lead-minutes publicly. 10-card non-refund (separate `ten_card_refund_hours` rule) handles the money side independently.
 - **TS clean.** No schema change. No migration. Coach-side rendering already exists.
 
-**Session 315 (2026-04-24 — Sonnet 4.6) — HISTORICAL LIFT RECORDS IMPORT (27 ATHLETES):**
-- Received corrected master JSON (27 athletes) from Chris. Wrote 27 individual JSON files and ran import script.
-- 689 historical lift records inserted (686 + 3 for Petr Bezdek). 0 errors. 26 athletes imported (Peter Kroll not yet registered).
-- Name mapping non-obvious: Michael Städele (not Michi), Peresyov Dimitar (reversed), Daniel Braatz (double-z), Stefan G (initial only), Petr  Bezdek (double space — Chris fixing manually).
-- All 27 JSONs moved to `data/athletes/processed/`.
-- **Open issue:** Historical records not showing in athlete Lifts tab. Manually-entered records do show. Records confirmed in DB via service role. Root cause not found — session ended. Next session: check browser console + network tab on Lifts tab.
-- No app code changed.
-
-**Older sessions (57-314):** See `project-history/` folder.
+**Older sessions (57-315):** See `project-history/` folder.
 
 ---
 
@@ -163,20 +168,21 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-1. **Migrate Nikolina from trial → cash-monthly** — open coach Members page, find Nikolina, click the new lime "30d" button on her card. Sets `status='active'` + start=today + end=today+30. Verify card label flips to "Active — Cash Monthly (30d left)" and Athletes tab shows the coach-managed card.
-2. **Discuss OG (Open Gym) attendance flow with Chris** — three options proposed (A: new `attended_og` status; B: just allow re-book to confirmed; C: separate OG session type). Decision pending.
-3. **Confirm Chris reset next-week release time to `16:00`** in Admin → Booking Rules. He set it to `14:00` as band-aid in S318. The TZ fix is live (Berlin wall-clock interpretation), so leaving `14:00` would fire 4h early next Sunday.
-4. **Live-test German login error messages (S317)** — incognito → login page → try (a) non-existent email expect "Kein Konto..."; (b) real email + wrong password expect "E-Mail-Adresse erkannt..."; pending/blocked branches unchanged logic (just translated).
-5. **Set up `next-intl` i18n (DE/EN bilingual)** — Chris plans to commercialize. The ~11 inlined German strings from S317 should migrate to `messages/de.json` + matching `messages/en.json`. ~1 day of dedicated work. Stop adding more inline German until this lands. Memory: `project_commercialization_and_i18n.md`.
-6. **Live-test the late-cancel gate (S316)** — cancel a confirmed booking past auto-lock threshold from athlete app, confirm distinct warning toast + purple Late Cancel chip in coach SessionManagementModal + correct attendance-rollup count.
-7. **Decide whether to extend the membership-type confirm guard to class types** (EKT / Tu / CFK / CFT) — same accidental-click risk applies to kids' class assignments. Chris not asked yet.
-8. **Build Reject/Delete button on Members Pending tab** — currently no UI affordance to remove pending members; only Approve/Unapprove. S306 had to use SQL to clean up Claudia Herrmann.
-9. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app.
-10. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
-11. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
-12. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing. **Note:** S305 backfill may have largely resolved this by retroactively booking whiteboard names; re-evaluate before doing the S251 work.
-13. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts:48-56` only filters bookings by `status='confirmed'` and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
-14. **Test endpoint 410 cleanup** (deferred from S292) — route `app/api/notifications/test/route.ts` through `sendToSubscription` so expired subs auto-delete on Send Test.
+1. **Live-verify leaderboard multi-load fix (S320)** — open Pt.2 of `2026-04-26 Rinse & Repeat` after deploy. Chris (20kg sandbag, 22.5kg DBs) should now rank above Teemu (20kg sandbag, 10kg DBs) despite fewer reps, because the load2 tiebreaker now fires. Spot-check 2-3 older multi-load WODs to confirm rankings shifted as expected; surprise re-orderings should be net-positive.
+2. **Migrate Nikolina from trial → cash-monthly** — open coach Members page, find Nikolina, click the new lime "30d" button on her card. Sets `status='active'` + start=today + end=today+30. Verify card label flips to "Active — Cash Monthly (30d left)" and Athletes tab shows the coach-managed card.
+3. **Discuss OG (Open Gym) attendance flow with Chris** — three options proposed (A: new `attended_og` status; B: just allow re-book to confirmed; C: separate OG session type). Decision pending.
+4. **Confirm Chris reset next-week release time to `16:00`** in Admin → Booking Rules. He set it to `14:00` as band-aid in S318. The TZ fix is live (Berlin wall-clock interpretation), so leaving `14:00` would fire 4h early next Sunday.
+5. **Live-test German login error messages (S317)** — incognito → login page → try (a) non-existent email expect "Kein Konto..."; (b) real email + wrong password expect "E-Mail-Adresse erkannt..."; pending/blocked branches unchanged logic (just translated).
+6. **Set up `next-intl` i18n (DE/EN bilingual)** — Chris plans to commercialize. The ~11 inlined German strings from S317 should migrate to `messages/de.json` + matching `messages/en.json`. ~1 day of dedicated work. Stop adding more inline German until this lands. Memory: `project_commercialization_and_i18n.md`.
+7. **Live-test the late-cancel gate (S316)** — cancel a confirmed booking past auto-lock threshold from athlete app, confirm distinct warning toast + purple Late Cancel chip in coach SessionManagementModal + correct attendance-rollup count.
+8. **Decide whether to extend the membership-type confirm guard to class types** (EKT / Tu / CFK / CFT) — same accidental-click risk applies to kids' class assignments. Chris not asked yet.
+9. **Build Reject/Delete button on Members Pending tab** — currently no UI affordance to remove pending members; only Approve/Unapprove. S306 had to use SQL to clean up Claudia Herrmann.
+10. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app.
+11. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
+12. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
+13. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing. **Note:** S305 backfill may have largely resolved this by retroactively booking whiteboard names; re-evaluate before doing the S251 work.
+14. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts:48-56` only filters bookings by `status='confirmed'` and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
+15. **Test endpoint 410 cleanup** (deferred from S292) — route `app/api/notifications/test/route.ts` through `sendToSubscription` so expired subs auto-delete on Send Test.
 
 ---
 

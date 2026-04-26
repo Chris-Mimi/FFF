@@ -171,11 +171,16 @@ function parseTimeToSeconds(time?: string | null): number {
  * This matches CrossFit convention: heavier load at the same scaling = better.
  */
 function compareByScoringType(a: RawSectionResult, b: RawSectionResult, type: string): number {
-  // Weight tiebreaker: for non-weight primary types, higher load ranks first
+  // Weight tiebreaker: for non-weight primary types, higher load ranks first.
+  // Chains through all three load slots (weight_result, weight_result_2, weight_result_3)
+  // so that heavier secondary/tertiary loads (e.g. DB weight in a multi-movement WOD)
+  // are honored before falling through to the primary metric.
   if (type !== 'weight') {
-    const aW = a.weight_result || 0;
-    const bW = b.weight_result || 0;
-    if (aW !== bW && (aW > 0 || bW > 0)) return bW - aW;
+    const aLoads = [a.weight_result || 0, a.weight_result_2 || 0, a.weight_result_3 || 0];
+    const bLoads = [b.weight_result || 0, b.weight_result_2 || 0, b.weight_result_3 || 0];
+    for (let i = 0; i < 3; i++) {
+      if (aLoads[i] !== bLoads[i] && (aLoads[i] > 0 || bLoads[i] > 0)) return bLoads[i] - aLoads[i];
+    }
   }
 
   switch (type) {
@@ -228,8 +233,15 @@ function compareByScoringType(a: RawSectionResult, b: RawSectionResult, type: st
       return (b.reps_result || 0) - (a.reps_result || 0); // descending
     case 'reps_cals':
       return ((b.reps_result || 0) + (b.calories_result || 0)) - ((a.reps_result || 0) + (a.calories_result || 0)); // combined total, descending
-    case 'weight':
-      return (b.weight_result || 0) - (a.weight_result || 0); // descending
+    case 'weight': {
+      // Primary weight comparison chains through all three load slots
+      const aLoads = [a.weight_result || 0, a.weight_result_2 || 0, a.weight_result_3 || 0];
+      const bLoads = [b.weight_result || 0, b.weight_result_2 || 0, b.weight_result_3 || 0];
+      for (let i = 0; i < 3; i++) {
+        if (aLoads[i] !== bLoads[i]) return bLoads[i] - aLoads[i];
+      }
+      return 0;
+    }
     case 'calories':
       return (b.calories_result || 0) - (a.calories_result || 0); // descending
     case 'metres':
