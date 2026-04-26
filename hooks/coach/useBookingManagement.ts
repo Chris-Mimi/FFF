@@ -108,12 +108,14 @@ export function useBookingManagement({
       toast.success(statusMessage);
     } catch (error) {
       console.error('Error booking member:', error);
-      const raw = error instanceof Error ? error.message : String(error);
-      const isDuplicate = /unique_active_bookings|duplicate key|23505/i.test(raw);
+      const errObj = (error ?? {}) as { message?: string; code?: string; details?: string; hint?: string };
+      const raw = errObj.message || errObj.details || errObj.hint || JSON.stringify(error);
+      const code = errObj.code;
+      const isDuplicate = code === '23505' || /unique_active_bookings|duplicate key/i.test(raw);
       toast.error(
         isDuplicate
           ? 'Member already has an active booking for this session (confirmed, waitlist, no-show, or late-cancel). Cancel the existing booking first.'
-          : `Failed to book member: ${raw}`
+          : `Failed to book member: ${raw}${code ? ` (code ${code})` : ''}`
       );
     } finally {
       setAddingMember(false);
