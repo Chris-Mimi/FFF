@@ -58,30 +58,75 @@ export async function updateBookingRules(patch: Partial<BookingRules>): Promise<
 // Latest session date athletes are allowed to see/book at the given moment.
 // Default config (Sunday 14:00) means: Mon-Sat athletes see only this week (Mon-Sun),
 // Sunday before 14:00 still only this week, Sunday at/after 14:00 unlocks next week.
+//
+// All timestamps are evaluated in Europe/Berlin so the release time stored in
+// next_week_release_time is interpreted as Berlin wall-clock, regardless of the
+// runtime timezone (Vercel runs UTC).
 export function getMaxVisibleSessionDate(rules: BookingRules, now: Date = new Date()): Date {
-  const dow = now.getDay();              // 0=Sun, 1=Mon, ..., 6=Sat
-  const isoDay = dow === 0 ? 6 : dow - 1; // Mon=0, ..., Sun=6
-  const thisMonday = new Date(now);
-  thisMonday.setHours(0, 0, 0, 0);
-  thisMonday.setDate(now.getDate() - isoDay);
+  const tz = 'Europe/Berlin';
 
-  const thisSunday = new Date(thisMonday);
-  thisSunday.setDate(thisMonday.getDate() + 6);
-  thisSunday.setHours(23, 59, 59, 999);
+  const berlin = berlinWallClock(now);
+  const isoDay = berlin.dow === 0 ? 6 : berlin.dow - 1; // Mon=0, ..., Sun=6
+
+  // Build a UTC-midnight Date for the Berlin calendar day "Monday of this week",
+  // then advance/wind via setUTCDate so DST never shifts the date math.
+  const monday = new Date(Date.UTC(berlin.year, berlin.month - 1, berlin.day - isoDay));
+  const sunday = new Date(monday);
+  sunday.setUTCDate(monday.getUTCDate() + 6);
 
   const releaseDow = rules.next_week_release_day_of_week;
   const releaseIsoDay = releaseDow === 0 ? 6 : releaseDow - 1;
-  const releaseDate = new Date(thisMonday);
-  releaseDate.setDate(thisMonday.getDate() + releaseIsoDay);
+  const releaseDay = new Date(monday);
+  releaseDay.setUTCDate(monday.getUTCDate() + releaseIsoDay);
   const [hh, mm, ss = 0] = rules.next_week_release_time.split(':').map(Number);
-  releaseDate.setHours(hh, mm, ss, 0);
+  const releaseInstant = berlinWallTimeToUTC(
+    releaseDay.getUTCFullYear(),
+    releaseDay.getUTCMonth() + 1,
+    releaseDay.getUTCDate(),
+    hh, mm, ss
+  );
 
-  if (now >= releaseDate) {
-    const endOfNextWeek = new Date(thisSunday);
-    endOfNextWeek.setDate(thisSunday.getDate() + 7);
+  if (now >= releaseInstant) {
+    const endOfNextWeek = new Date(sunday);
+    endOfNextWeek.setUTCDate(sunday.getUTCDate() + 7);
+    endOfNextWeek.setUTCHours(23, 59, 59, 999);
     return endOfNextWeek;
   }
-  return thisSunday;
+  const endOfThisWeek = new Date(sunday);
+  endOfThisWeek.setUTCHours(23, 59, 59, 999);
+  return endOfThisWeek;
+
+  // --- helpers ---
+  function berlinWallClock(instant: Date) {
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: tz,
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+      hour12: false, weekday: 'short',
+    }).formatToParts(instant);
+    const get = (t: string) => parts.find(p => p.type === t)!.value;
+    const dowMap: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+    return {
+      year: parseInt(get('year')),
+      month: parseInt(get('month')),
+      day: parseInt(get('day')),
+      dow: dowMap[get('weekday')],
+    };
+  }
+
+  function berlinWallTimeToUTC(year: number, month: number, day: number, hour: number, minute: number, second: number): Date {
+    const guess = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: tz,
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+      hour12: false,
+    }).formatToParts(guess);
+    const get = (t: string) => parseInt(parts.find(p => p.type === t)!.value);
+    const berlinAsUTC = Date.UTC(get('year'), get('month') - 1, get('day'), get('hour'), get('minute'), get('second'));
+    const offsetMs = berlinAsUTC - guess.getTime();
+    return new Date(guess.getTime() - offsetMs);
+  }
 }
 
 export interface SessionTypeLockRule {
