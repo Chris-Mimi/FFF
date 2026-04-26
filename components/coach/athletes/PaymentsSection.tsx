@@ -14,6 +14,9 @@ interface MemberData {
   ten_card_total: number | null;
   ten_card_expiry_date: string | null;
   membership_types: string[] | null;
+  athlete_subscription_status: 'trial' | 'active' | 'past_due' | 'expired' | null;
+  athlete_subscription_start: string | null;
+  athlete_subscription_end: string | null;
 }
 
 interface Subscription {
@@ -53,7 +56,7 @@ export default function PaymentsSection({ memberId }: { memberId?: string }) {
       let member = null;
       const { data: memberById, error: _memberByIdError } = await supabase
         .from('members')
-        .select('id, email, stripe_customer_id, subscription_tier, ten_card_sessions_used, ten_card_total, ten_card_expiry_date, membership_types')
+        .select('id, email, stripe_customer_id, subscription_tier, ten_card_sessions_used, ten_card_total, ten_card_expiry_date, membership_types, athlete_subscription_status, athlete_subscription_start, athlete_subscription_end')
         .eq('id', memberId)
         .single();
 
@@ -74,7 +77,7 @@ export default function PaymentsSection({ memberId }: { memberId?: string }) {
 
         const { data: memberByEmail, error: memberByEmailError } = await supabase
           .from('members')
-          .select('id, email, stripe_customer_id, subscription_tier, ten_card_sessions_used, ten_card_total, ten_card_expiry_date, membership_types')
+          .select('id, email, stripe_customer_id, subscription_tier, ten_card_sessions_used, ten_card_total, ten_card_expiry_date, membership_types, athlete_subscription_status, athlete_subscription_start, athlete_subscription_end')
           .eq('email', athlete.email)
           .single();
 
@@ -207,7 +210,37 @@ export default function PaymentsSection({ memberId }: { memberId?: string }) {
           )}
         </h4>
         {subscriptions.length === 0 ? (
-          <p className='text-xs md:text-sm text-gray-600'>No active subscriptions</p>
+          (() => {
+            const status = memberData?.athlete_subscription_status;
+            if (status === 'active' || status === 'trial') {
+              const start = memberData?.athlete_subscription_start ? new Date(memberData.athlete_subscription_start) : null;
+              const end = memberData?.athlete_subscription_end ? new Date(memberData.athlete_subscription_end) : null;
+              const daysLeft = end ? Math.ceil((end.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
+              const totalDays = start && end ? Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) : null;
+              const label =
+                status === 'trial' ? 'Trial' :
+                end == null ? 'Active — Permanent' :
+                totalDays != null && totalDays <= 45 ? 'Active — Cash Monthly' :
+                'Active — Cash (1 year)';
+              const fmt = (d: Date) => d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+              return (
+                <div className='bg-white rounded-lg p-2.5 md:p-3 border border-gray-200'>
+                  <div className='flex items-start justify-between gap-2'>
+                    <div className='min-w-0'>
+                      <p className='font-semibold text-sm md:text-base text-gray-900'>{label}</p>
+                      <p className='text-xs md:text-sm text-gray-600'>
+                        {start && <>Started {fmt(start)}</>}
+                        {start && end && ' · '}
+                        {end && <>Ends {fmt(end)}{daysLeft != null && daysLeft > 0 ? ` (${daysLeft}d left)` : ''}</>}
+                      </p>
+                      <p className='text-[11px] md:text-xs text-gray-500 mt-1'>Coach-managed access (no Stripe subscription on file)</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+            return <p className='text-xs md:text-sm text-gray-600'>No active subscriptions on file (Stripe). Coach-managed plans appear in the Members tab.</p>;
+          })()
         ) : (
           <div className='space-y-2 md:space-y-3'>
             {subscriptions.map(sub => (
