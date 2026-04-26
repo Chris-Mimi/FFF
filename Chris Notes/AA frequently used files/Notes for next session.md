@@ -4,40 +4,21 @@ This document is a template with headings to show you where the issue is or wher
 http://192.168.178.75:3000
 
 # Next Session — First Action #
-
-* **PRIORITY 1 — Fix the booking unique-active-bookings constraint.** S316 introduced the `late_cancel` status, but the partial unique index on `bookings(session_id, member_id) WHERE status != 'cancelled'` was never updated. Result: any athlete who late-cancels (or whom the coach cancels via `coach_cancelled`) can NEVER be re-booked into the same session. Carole Schultz hit this today.
-
-  **Fix (one SQL migration):** drop and recreate the index excluding all "effectively cancelled" statuses:
-  ```sql
-  DROP INDEX IF EXISTS unique_active_bookings;
-  CREATE UNIQUE INDEX unique_active_bookings
-    ON bookings(session_id, member_id)
-    WHERE status NOT IN ('cancelled', 'late_cancel', 'coach_cancelled');
-  ```
-  Save as `database/fix-late-cancel-rebooking.sql`. Chris can run it in Supabase SQL Editor in 30 seconds. Then verify by re-booking any late-cancelled member in coach Session Management.
-
-* **PRIORITY 2 — Manual fix for Carole Schultz** (only matters if Chris hasn't done it himself yet). Supabase Dashboard → `bookings` table → filter `member_id` to Carole Schultz + the WOD session from 2026-04-23 → her row will have `status = 'late_cancel'` and `booked_at = 2026-04-23 23:31`. Either change `status` to `cancelled` (then re-book her in the app) or directly to `confirmed` (skip the re-book). Chris is "pretty sure she late-cancelled herself" — `late_cancel` status confirms that (athlete-initiated). She did Open Gym instead.
-
-* **PRIORITY 3 — Discuss Open Gym (OG) attendance flow with Chris.** Today's case (Carole) showed the gap: athletes who book a WOD then switch to OG currently late-cancel and disappear. Chris wants OG-attended athletes to still show in bookings. Three options I proposed but did NOT implement (he asked to defer):
-  - **(A)** New status `attended_og` + a coach-side button "Switch to Open Gym" — leaves booking visible, marks she came but did her own thing.
-  - **(B)** Just allow re-book to `confirmed` (current row overridden) — minimal change.
-  - **(C)** Track Open Gym as a separate session type so she books OG in parallel — proper separation, more work for the athlete.
-  Get Chris's preference, then implement.
-
-* **PRIORITY 4 — Confirm Chris reset the next-week release time** to `16:00` in Admin → Booking Rules. This session he set it to `14:00` as a band-aid while we deployed the timezone fix. The fix is live (commit `5af8005`); the field now means Berlin wall-clock time. If he forgot to reset, next Sunday's release will fire 4 hours early.
-
-# Carry-over from S317 (still untested in prod) #
-
-* **Live-test German login error messages** (S317): incognito → wrong-email expects "Kein Konto..."; right-email + wrong password expects "E-Mail-Adresse erkannt, aber das Passwort ist falsch...".
-* **Live-test late-cancel gate** (S316): cancel a confirmed booking past auto-lock threshold from athlete app → expect distinct toast + purple Late Cancel chip coach-side.
-* **Resend SPF/DKIM/DMARC** for `the-forge-functional-fitness.de` still unverified — separate from any session's work but the underlying email-deliverability risk persists.
+* **Live-test the late-cancel gate shipped in S316.**
+  1. Pick any booking on a locked-window session (or set `auto_lock_lead_minutes` to a large value so "now" is inside the lock window).
+  2. Cancel from the athlete app.
+  3. Expect toast: *"Booking cancelled. This is past the lock time, so it is recorded as a late cancel."*
+  4. Open the coach SessionManagementModal for that session → confirm the booking shows under Late Cancel with the purple chip.
+  5. Open Admin → Attendance rollup → confirm the late_cancel is counted in the rollup.
+  6. Sanity check: cancel a booking well before the lock window → expect normal *"Booking cancelled"* toast, status = `cancelled`.
 
 # FIRST. FIX BUGS MAKE IMPROVEMENTS #
 # Coach Login #
 * Mimi's iPhone copy/paste & delete function
 * Box WiFi: Mac gets IPv6-only (no IPv4), dev sites (GitHub/Supabase/Vercel/Resend) unreachable. PC on same box WiFi works fine. At home all works. Debug next time at the box — see `SESSION-HANDOFF-S303-DNS-issue.md` for diagnostic history.
 * Has Fabian's parent got a login, if so who?
-* Coach login, Athletes tab, Lifts, Benchmarks, Forge sections. Do the scores I input here automatically appear in the athlete's app? Also, I need to be able to delete and re-enter some scores here.
+* Nikolina cash paid monthly, add warning/reminder 
+* Special event WOD showed Teemu as 1st because he had 2x Rx like me but didn't take Load into account so I had to add an extra scaling for it to display correctly.
 
 # Coach library #
 
@@ -73,7 +54,25 @@ Should only show the days on which athlete has attended a workout. For example, 
 # Member Management Page #
 *
 
-# 📅 Scheduled reminder — 2026-05-01 (check if late-cancel gate is firing)
+# S315 Close → S316 Summary
+
+## Status
+Short close-out session. Cleaned up activeContext Next Steps 1/2/3/3b/6 (historical lifts tab mystery, Sonja Hujo re-entry, OG chip, Trial Athletes flow, Intervals timer) — all confirmed done or closed. Then shipped the **late-cancel gate**: athletes who cancel past the auto-lock threshold now land in `late_cancel` status instead of `cancelled`. Waitlist cancels always stay plain `cancelled`.
+
+## Historical lifts mystery (closed)
+Imported records were visible all along — Chris was looking in the athlete **Lifts** tab but imported records surface under the **Records** tab. No bug. The distinction: Lifts tab reads `barbell_lifts` + a filtered slice; Records tab shows the full `lift_records` history.
+
+## Late-cancel gate — what shipped
+Two files:
+- `app/api/bookings/cancel/route.ts` — imports `getLockLeadMinutesForSessionType`, moves session fetch before the UPDATE, computes `isLocked` (manual `is_locked=true` OR past-threshold), sets status = `'late_cancel'` when a `confirmed` booking is cancelled past the lock threshold. Response now includes `status` field.
+- `app/member/book/page.tsx` — toast branches on `data.status`: late cancels get `toast.warning(...)` with a distinct message.
+
+No schema change — `late_cancel` enum already exists and is rendered coach-side (BookingListItem, SessionManagementModal, Admin attendance rollup).
+
+## Landmines
+* None material. Dev servers still running on both machines — fine; they don't lock anything.
+
+## 📅 Scheduled reminder — 2026-05-01 (check if gate is firing)
 If today is **2026-05-01 or later**, run this query in Supabase SQL editor:
 ```sql
 select count(*) as total_late_cancels,

@@ -157,6 +157,7 @@ There's no app-switching, no spreadsheets, no whiteboards that get erased. Just 
 - Athletes only see the pricing tier matching their membership type (set by coach)
 - Self-service billing portal (update card, cancel, view invoices)
 - 10-card pass tracking with sessions remaining and expiry date
+- **Coach-managed activation paths** — coaches can also activate athlete-app access manually for cash-paying members (30-day, 1-year, or permanent). Members tab shows "Active — Cash Monthly (Xd left)" / "Active (1yr)" / "Active (∞)" depending on the path used; Athletes tab also surfaces these as coach-managed access cards even though no Stripe subscription is on file. Renewal reminder fires 14 days before any time-bound plan expires, regardless of whether it's Stripe-billed or cash
 
 ---
 

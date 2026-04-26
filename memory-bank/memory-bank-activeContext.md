@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 179.1
-**Updated:** 2026-04-26 (Session 318 — multi-fix + post-session correction to unique_active_bookings index)
+**Version:** 180.0
+**Updated:** 2026-04-26 (Session 319 — rebooking constraint correction + cash-monthly activation path)
 
 ---
 
@@ -84,6 +84,14 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 319 (2026-04-26 — Opus 4.7) — REBOOKING CONSTRAINT CORRECTION + CASH-MONTHLY ACTIVATION:**
+- **Rebooking unique-index correction.** S318 had drafted a migration that excluded both `late_cancel` AND `coach_cancelled` from the partial unique index on bookings. Chris ran a v1 of that, then realised the system was already working as intended for `late_cancel` — the coach UI has an Undo button (`handleUndoLateCancel`) that flips the existing row back to `confirmed`, so a fresh INSERT was never needed. Broadening the index for `late_cancel` would allow duplicate (session_id, member_id) rows. `coach_cancelled` has NO undo path, so it must remain excluded. Wrote [database/fix-rebooking-constraint-v2.sql](database/fix-rebooking-constraint-v2.sql) with the correct rule: `WHERE status NOT IN ('cancelled', 'coach_cancelled')`. Chris ran it. Carole Schultz was already re-booked (Undo did the work).
+- **Cash-monthly activation path (new feature).** Diagnosed three intertwined symptoms: Nikolina's card said "30 days left" with no start date while Andreas (1yr cash) said "Subscribed: today + Active (1yr)"; both showed "No active subscriptions" on the Athletes coach tab; no renewal reminder would fire for Nikolina. Root cause: the codebase only had Start Trial (`status='trial'`) and Activate 1yr / ∞ (`status='active'`) — no path for paying-cash-monthly customers. Coaches were forced to use Start Trial for cash-monthly people, which left them in `'trial'` status (excluded from the expiring-soon notification filter; "Subscribed: <date>" line on MemberCard is gated to `status === 'active'` only). Five files: [app/api/members/athlete-subscription/route.ts](app/api/members/athlete-subscription/route.ts) new `activate_monthly` action, [hooks/coach/useMemberActions.ts](hooks/coach/useMemberActions.ts) new `handleActivateMonthly`, [components/coach/members/MemberCard.tsx](components/coach/members/MemberCard.tsx) new "30d" lime button alongside 1yr / ∞, [app/coach/members/page.tsx](app/coach/members/page.tsx) wires the prop, [types/member.ts](types/member.ts) `getTrialStatus` distinguishes Cash Monthly vs Cash 1yr via `end - start ≤ 45d` heuristic and shows "Active — Cash Monthly (Xd left)".
+- **Athletes tab subscription clarity.** [components/coach/athletes/PaymentsSection.tsx](components/coach/athletes/PaymentsSection.tsx) only queried Stripe `subscriptions` table — coach-activated members showed "No active subscriptions" even when they had a coach-managed plan. Now extends the SELECT to include `athlete_subscription_status/start/end`, and when no Stripe row exists but the member has `'active'` or `'trial'` athlete subscription, renders a coach-managed card with label, dates, days-left, and a small note "Coach-managed access (no Stripe subscription on file)". Empty-state copy clarified for the truly-no-access case.
+- **Renewal reminder** for Nikolina once she's moved to `status='active'` (cash monthly): the existing 14-day expiring-soon notification flow ([useMemberData.ts:319+](hooks/coach/useMemberData.ts#L319)) already covers `status='active'` + `athlete_subscription_end`. No code change needed.
+- **TS clean.** Three feature commits: `523c1266` (rebooking constraint v2), `50590328` (cash-monthly path), `6df9e45a` (Athletes tab clarity).
+- **Carry-over:** Chris still needs to click the new 30d button on Nikolina's card to migrate her from `'trial'` to `'active'` (her existing trial row will be overwritten with start=today, end=today+30).
+
 **Session 318 (2026-04-26 — Opus 4.7) — MULTI-FIX (CHANGE-PASSWORD, SEARCH, TZ, SUBSCRIPTION GATE, REORG):**
 - **Athlete Change Password** — button on athlete Security tab was a stub with no `onClick`. Wired it up via `supabase.auth.updateUser` mirroring the coach profile pattern. Inline expand within the tab. [components/athlete/AthletePageSecurityTab.tsx](components/athlete/AthletePageSecurityTab.tsx)
 - **Coach Members live search** — added a search input above the member grid (filters by name/display_name/email, case-insensitive substring, combines with existing tab/membership/class/age filters). [hooks/coach/useMemberData.ts](hooks/coach/useMemberData.ts) + [app/coach/members/page.tsx](app/coach/members/page.tsx)
@@ -93,7 +101,7 @@ Athlete Tools
 - **Stripe fees doc** — Chris asked about Stripe fees on €100/yr and €8/mo plans. Wrote `Chris Notes/Deployment/stripe-fees-athlete-app.md` with both tier comparisons. Key insight: monthly billing nets ~€13–17 more per athlete than yearly because the fixed €0.25 fee is a much smaller % of monthly charges + the lower yearly price wipes out fee efficiency.
 - **Chris Notes folder reorg** — added `.md` extensions to 10 files; created `Workflow & Git/`, `Deployment/`, `Database & Supabase/`, `Archive/` folders; moved 23 files in. Activated path updates in this file. **STAGING MISTAKE:** the booking-error patch (commit `d53bae8`) accidentally bundled the reorg renames because they were already staged from `git mv`. Functionally fine, but the commit message says only "fix(coach): expose real Supabase error" while the changeset includes 24 file renames.
 - **Booking error toast clarity** — generic "Failed to book member" was hiding the real Supabase error. Now extracts `.message`/`.details`/`.hint`/`.code` from the Supabase error object and detects the `unique_active_bookings` violation specifically. Required two attempts: first attempt did `String(error)` which produced `[object Object]` because Supabase errors are plain objects, not Error instances. Fixed in commit `1153275`.
-- **C. Schultz booking blocker (RESOLVED post-session):** initial diagnosis was wrong. The system already had an Undo button on `late_cancel` rows (`handleUndoLateCancel`) — clicking it flips status back to `confirmed`. The first migration attempt broadened the unique index to exclude both `late_cancel` and `coach_cancelled`, but that allows duplicate (session, member) rows when a coach books fresh instead of using Undo. Corrected via [database/fix-rebooking-constraint-v2.sql](database/fix-rebooking-constraint-v2.sql): index now excludes `cancelled` + `coach_cancelled` only (coach_cancelled has no undo path, so it must be excluded; late_cancel is covered by Undo flow). Run in Supabase. Carole was already re-booked successfully via Undo.
+- **C. Schultz booking blocker (RESOLVED in S319):** initial diagnosis was wrong; the system was working as intended via the Undo button on late_cancel rows. See S319 entry for details.
 - **OG attendance flow design — DEFERRED:** Chris wants OG-attended athletes to still appear booked. Three options proposed (A: new `attended_og` status, B: just allow re-book to confirmed, C: separate OG session type). Decision pending.
 - **Memory updates:** none new this session — issue causes are documented inline above.
 
@@ -130,15 +138,7 @@ Athlete Tools
 - **Open issue:** Historical records not showing in athlete Lifts tab. Manually-entered records do show. Records confirmed in DB via service role. Root cause not found — session ended. Next session: check browser console + network tab on Lifts tab.
 - No app code changed.
 
-**Session 314 (2026-04-24 — Sonnet 4.6) — HISTORICAL LIFT RECORDS IMPORT:**
-- Created `data/athletes/` folder as structured seed-data store for athlete lift history.
-- Created JSON files for 8 athletes (Michi Städele, Chris Hiles, Thomas Spegele, Tobias Götte, Denis Koffler, Jürgen Bizjak, Paul Bielenski, Wayne Lucas) — all imported + moved to `data/athletes/processed/`.
-- Created `scripts/import-athlete-lift-records.ts` — dry-run-first import script. Resolves `user_id` via `members.name`, parses lift keys into `lift_name + reps + rep_max_type`, Epley 1RM, deduplication. 582 records inserted.
-- Fixed: "Overhead Press" → "Strict Overhead Shoulder Press" (50 records updated + script corrected). Fixed 8 duplicate OHP records for Chris.
-- 8 more athlete JSONs staged in `data/athletes/` for next session: Zoran Vrbanic, Lukas Simnacher, David Montgomery, Tobias Baumstark, Christian Müller, Daniel Bratz, Dimitar Peresyov, Stefan Glocker. Christian Tanner data still missing.
-- No app code changed.
-
-**Older sessions (57-313):** See `project-history/` folder.
+**Older sessions (57-314):** See `project-history/` folder.
 
 ---
 
@@ -163,19 +163,20 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-1. **Discuss OG (Open Gym) attendance flow with Chris** — three options proposed (A: new `attended_og` status; B: just allow re-book to confirmed; C: separate OG session type). Decision pending.
-2. **Confirm Chris reset next-week release time to `16:00`** in Admin → Booking Rules. He set it to `14:00` as band-aid this session. The TZ fix is live (Berlin wall-clock interpretation), so leaving `14:00` would fire 4h early next Sunday.
-3. **Live-test German login error messages (S317)** — incognito → login page → try (a) non-existent email expect "Kein Konto..."; (b) real email + wrong password expect "E-Mail-Adresse erkannt..."; pending/blocked branches unchanged logic (just translated).
-4. **Set up `next-intl` i18n (DE/EN bilingual)** — Chris plans to commercialize. The ~11 inlined German strings from S317 should migrate to `messages/de.json` + matching `messages/en.json`. ~1 day of dedicated work. Stop adding more inline German until this lands. Memory: `project_commercialization_and_i18n.md`.
-5. **Live-test the late-cancel gate (S316)** — cancel a confirmed booking past auto-lock threshold from athlete app, confirm distinct warning toast + purple Late Cancel chip in coach SessionManagementModal + correct attendance-rollup count.
-6. **Decide whether to extend the membership-type confirm guard to class types** (EKT / Tu / CFK / CFT) — same accidental-click risk applies to kids' class assignments. Chris not asked yet.
-7. **Build Reject/Delete button on Members Pending tab** — currently no UI affordance to remove pending members; only Approve/Unapprove. S306 had to use SQL to clean up Claudia Herrmann.
-8. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app.
-9. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
-10. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
-11. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing. **Note:** S305 backfill may have largely resolved this by retroactively booking whiteboard names; re-evaluate before doing the S251 work.
-12. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts:48-56` only filters bookings by `status='confirmed'` and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
-13. **Test endpoint 410 cleanup** (deferred from S292) — route `app/api/notifications/test/route.ts` through `sendToSubscription` so expired subs auto-delete on Send Test.
+1. **Migrate Nikolina from trial → cash-monthly** — open coach Members page, find Nikolina, click the new lime "30d" button on her card. Sets `status='active'` + start=today + end=today+30. Verify card label flips to "Active — Cash Monthly (30d left)" and Athletes tab shows the coach-managed card.
+2. **Discuss OG (Open Gym) attendance flow with Chris** — three options proposed (A: new `attended_og` status; B: just allow re-book to confirmed; C: separate OG session type). Decision pending.
+3. **Confirm Chris reset next-week release time to `16:00`** in Admin → Booking Rules. He set it to `14:00` as band-aid in S318. The TZ fix is live (Berlin wall-clock interpretation), so leaving `14:00` would fire 4h early next Sunday.
+4. **Live-test German login error messages (S317)** — incognito → login page → try (a) non-existent email expect "Kein Konto..."; (b) real email + wrong password expect "E-Mail-Adresse erkannt..."; pending/blocked branches unchanged logic (just translated).
+5. **Set up `next-intl` i18n (DE/EN bilingual)** — Chris plans to commercialize. The ~11 inlined German strings from S317 should migrate to `messages/de.json` + matching `messages/en.json`. ~1 day of dedicated work. Stop adding more inline German until this lands. Memory: `project_commercialization_and_i18n.md`.
+6. **Live-test the late-cancel gate (S316)** — cancel a confirmed booking past auto-lock threshold from athlete app, confirm distinct warning toast + purple Late Cancel chip in coach SessionManagementModal + correct attendance-rollup count.
+7. **Decide whether to extend the membership-type confirm guard to class types** (EKT / Tu / CFK / CFT) — same accidental-click risk applies to kids' class assignments. Chris not asked yet.
+8. **Build Reject/Delete button on Members Pending tab** — currently no UI affordance to remove pending members; only Approve/Unapprove. S306 had to use SQL to clean up Claudia Herrmann.
+9. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app.
+10. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
+11. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
+12. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing. **Note:** S305 backfill may have largely resolved this by retroactively booking whiteboard names; re-evaluate before doing the S251 work.
+13. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts:48-56` only filters bookings by `status='confirmed'` and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
+14. **Test endpoint 410 cleanup** (deferred from S292) — route `app/api/notifications/test/route.ts` through `sendToSubscription` so expired subs auto-delete on Send Test.
 
 ---
 
