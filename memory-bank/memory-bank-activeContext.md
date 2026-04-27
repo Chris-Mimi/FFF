@@ -21,7 +21,7 @@
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history scan._
 
-**First action:** Run [database/add-is-og-to-bookings.sql](database/add-is-og-to-bookings.sql) in Supabase SQL Editor (adds `bookings.is_og`, drops `wod_section_results.open_gym`). THEN deploy. THEN live-verify: (a) Session Management Modal on a confirmed booking → click new "OG" toggle → row shows blue OG badge + count moves to "M OG" line in header. (b) Calendar card shows extra blue "N OG" pill below booked pill when at least one OG flagged. (c) Score Entry no longer lists OG-flagged athletes; toggling OG off in Session Management makes them reappear. (d) Carry-overs from S321: late-cancel TZ fix in real situation (Chris will wait), Coach Remove not in Incidents (✓ confirmed S322).
+**First action:** Live-verify the OG flow on the deployed app: (a) Session Management Modal on a confirmed booking → click new "OG" toggle → row shows blue OG badge + count moves to "M OG" line in header. (b) Calendar card shows extra blue "N OG" pill below booked pill when at least one OG flagged. (c) Score Entry no longer lists OG-flagged athletes; toggling OG off in Session Management makes them reappear. (d) Carry-overs from S321: late-cancel TZ fix in real situation (Chris will wait), Coach Remove not in Incidents (✓ confirmed S322). **Migration already run in S322** — `bookings.is_og` exists, `wod_section_results.open_gym` dropped.
 
 **Files to open first if continuing code work:** none queued.
 
@@ -190,7 +190,7 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-1. **Run the OG migration** ([database/add-is-og-to-bookings.sql](database/add-is-og-to-bookings.sql)) in Supabase BEFORE deploying. Then deploy and live-verify (see Next Session Kickoff at top).
+1. **Live-verify OG flow on deployed app** (migration already run S322; see Next Session Kickoff at top for verification steps).
 2. **Set up `next-intl` i18n (DE/EN bilingual)** — Chris plans to commercialize. The ~11 inlined German strings from S317 should migrate to `messages/de.json` + matching `messages/en.json`. ~1 day of dedicated work. Stop adding more inline German until this lands. Memory: `project_commercialization_and_i18n.md`.
 3. **Decide whether to extend the membership-type confirm guard to class types** (EKT / Tu / CFK / CFT) — same accidental-click risk applies to kids' class assignments. Chris not asked yet.
 4. **Build Reject/Delete button on Members Pending tab** — currently no UI affordance to remove pending members; only Approve/Unapprove. S306 had to use SQL to clean up Claudia Herrmann.
