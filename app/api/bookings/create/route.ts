@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { notifyBookingConfirmed, notifyBookingWaitlisted } from '@/lib/notifications';
-import { getBookingRules, getLockLeadMinutesForSessionType, getMaxVisibleSessionDate } from '@/lib/bookingRules';
+import { getBookingRules, getLockLeadMinutesForSessionType, getMaxVisibleSessionDate, sessionStartInstant } from '@/lib/bookingRules';
 
 export async function POST(request: NextRequest) {
   try {
@@ -149,7 +149,7 @@ export async function POST(request: NextRequest) {
     // Per-session-type override wins over the global booking_rules value.
     // (weekly_sessions.workout_type is legacy-named but holds the session_type value.)
     const leadMinutes = await getLockLeadMinutesForSessionType(session.workout_type);
-    const sessionDateTime = new Date(`${session.date}T${session.time}`);
+    const sessionDateTime = sessionStartInstant(session.date, session.time);
     const lockThreshold = new Date(sessionDateTime.getTime() - leadMinutes * 60 * 1000);
     const isEffectivelyLocked =
       session.is_locked === true ||

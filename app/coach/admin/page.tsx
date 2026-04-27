@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth';
-import { UserPlus, ArrowLeft, BarChart2, Bell, KeyRound, Settings, ChevronLeft, ChevronRight, ChevronDown, Trash2 } from 'lucide-react';
+import { UserPlus, ArrowLeft, BarChart2, Bell, KeyRound, Settings, ChevronLeft, ChevronRight, ChevronDown, Trash2, X } from 'lucide-react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { NotificationPrompt } from '@/components/ui/NotificationPrompt';
@@ -14,7 +14,6 @@ import { toast } from 'sonner';
 interface IncidentStat {
   memberId: string;
   name: string;
-  coachCancelled: number;
   lateCancel: number;
   noShow: number;
   total: number;
@@ -87,8 +86,10 @@ export default function AdminToolsPage() {
   const [monthYear, setMonthYear] = useState<number>(new Date().getFullYear());
   // Name search — filters the displayed ranking (does not refetch)
   const [nameQuery, setNameQuery] = useState<string>('');
-  // Trial athletes — pulled from weekly_sessions.trial_names, respects the same date filter
-  const [trialStats, setTrialStats] = useState<{ name: string; count: number; dates: string[] }[]>([]);
+  // Trial athletes — pulled from weekly_sessions.trial_names, respects the same date filter.
+  // `registered` = the trial name matches a members.whiteboard_name (athlete signed up after).
+  const [trialStats, setTrialStats] = useState<{ name: string; count: number; dates: string[]; registered: boolean }[]>([]);
+  const [trialPanelExpanded, setTrialPanelExpanded] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -115,7 +116,7 @@ export default function AdminToolsPage() {
       const { data, error } = await supabase
         .from('bookings')
         .select('id, member_id, status, members(name, display_name), weekly_sessions!inner(date)')
-        .in('status', ['coach_cancelled', 'late_cancel', 'no_show']);
+        .in('status', ['late_cancel', 'no_show']);
       if (error) throw error;
 
       const rows = (data || []).map((b) => {
@@ -137,9 +138,7 @@ export default function AdminToolsPage() {
   };
 
   const handleDeleteIncident = async (bookingId: string, name: string, status: string, date: string) => {
-    const statusLabel =
-      status === 'coach_cancelled' ? 'Removed by Coach' :
-      status === 'late_cancel' ? 'Late Cancel' : 'No-Show';
+    const statusLabel = status === 'late_cancel' ? 'Late Cancel' : 'No-Show';
     const ok = await confirm({
       title: 'Delete Incident',
       message: `Permanently delete the ${statusLabel} record for ${name} on ${date}? This removes the booking row from the database.`,
@@ -156,6 +155,45 @@ export default function AdminToolsPage() {
     } catch (err) {
       console.error('Error deleting incident:', err);
       toast.error('Failed to delete incident');
+    }
+  };
+
+  // Strip a trial name from every weekly_sessions.trial_names array that contains it.
+  // Use case: long-time member accidentally tagged as trial, or trial cleanup after registration.
+  // Pulls all rows containing the name, filters it out, then PATCHes each row's array.
+  const handleDeleteTrial = async (name: string, totalCount: number) => {
+    const ok = await confirm({
+      title: 'Remove Trial Athlete',
+      message: `Remove "${name}" from the Trial Athletes list? This strips the name from ${totalCount} session${totalCount === 1 ? '' : 's'}. Member bookings (if any) are unaffected.`,
+      confirmText: 'Remove',
+      variant: 'danger',
+    });
+    if (!ok) return;
+    try {
+      const { data: rows, error: fetchErr } = await supabase
+        .from('weekly_sessions')
+        .select('id, trial_names')
+        .contains('trial_names', [name]);
+      if (fetchErr) throw fetchErr;
+
+      const updates = (rows || []).map(r => {
+        const filtered = ((r.trial_names as string[] | null) || []).filter(
+          n => n.trim().toLowerCase() !== name.trim().toLowerCase()
+        );
+        return supabase
+          .from('weekly_sessions')
+          .update({ trial_names: filtered.length > 0 ? filtered : null })
+          .eq('id', r.id);
+      });
+      const results = await Promise.all(updates);
+      const firstError = results.find(r => r.error)?.error;
+      if (firstError) throw firstError;
+
+      toast.success(`Removed "${name}" from trial list`);
+      setTrialStats(prev => prev.filter(t => t.name !== name));
+    } catch (err) {
+      console.error('Trial delete error:', err);
+      toast.error('Failed to remove trial athlete');
     }
   };
 
@@ -224,13 +262,27 @@ export default function AdminToolsPage() {
         endDate = new Date().toISOString().slice(0, 10);
       }
 
-      const { data, error } = await supabase
-        .from('weekly_sessions')
-        .select('date, trial_names')
-        .gte('date', startDate)
-        .lte('date', endDate)
-        .not('trial_names', 'is', null);
+      const [{ data, error }, { data: members }] = await Promise.all([
+        supabase
+          .from('weekly_sessions')
+          .select('date, trial_names')
+          .gte('date', startDate)
+          .lte('date', endDate)
+          .not('trial_names', 'is', null),
+        supabase
+          .from('members')
+          .select('whiteboard_name')
+          .not('whiteboard_name', 'is', null),
+      ]);
       if (error) throw error;
+
+      // Build a lowercase set of registered whiteboard names so trial-name comparisons
+      // are case-insensitive (coaches type freely; "Senol" vs "senol" should still match).
+      const registered = new Set(
+        (members || [])
+          .map((m) => (m.whiteboard_name as string | null)?.trim().toLowerCase())
+          .filter((s): s is string => !!s)
+      );
 
       const byName = new Map<string, { name: string; count: number; dates: Set<string> }>();
       for (const row of (data || []) as { date: string; trial_names: string[] | null }[]) {
@@ -244,7 +296,12 @@ export default function AdminToolsPage() {
         }
       }
       const arr = Array.from(byName.values())
-        .map(e => ({ name: e.name, count: e.count, dates: Array.from(e.dates).sort() }))
+        .map(e => ({
+          name: e.name,
+          count: e.count,
+          dates: Array.from(e.dates).sort(),
+          registered: registered.has(e.name.toLowerCase()),
+        }))
         .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
       setTrialStats(arr);
     } catch (err) {
@@ -259,13 +316,12 @@ export default function AdminToolsPage() {
     const map = new Map<string, IncidentStat>();
     for (const row of filtered) {
       if (!map.has(row.memberId)) {
-        map.set(row.memberId, { memberId: row.memberId, name: row.name, coachCancelled: 0, lateCancel: 0, noShow: 0, total: 0 });
+        map.set(row.memberId, { memberId: row.memberId, name: row.name, lateCancel: 0, noShow: 0, total: 0 });
       }
       const stat = map.get(row.memberId)!;
-      if (row.status === 'coach_cancelled') stat.coachCancelled++;
       if (row.status === 'late_cancel') stat.lateCancel++;
       if (row.status === 'no_show') stat.noShow++;
-      stat.total = stat.coachCancelled + stat.lateCancel + stat.noShow;
+      stat.total = stat.lateCancel + stat.noShow;
     }
     const arr = Array.from(map.values());
     const { col, dir } = incidentSort;
@@ -491,31 +547,64 @@ export default function AdminToolsPage() {
                 )}
               </div>
 
-              {/* Trial Athletes panel — pre-known trials added via SessionManagementModal, not member-linked yet */}
-              {trialStats.length > 0 && (
-                <div className='mb-6 bg-amber-50 border border-amber-200 rounded-lg p-4'>
-                  <div className='flex items-baseline justify-between mb-2'>
-                    <h3 className='text-sm font-semibold text-amber-900'>Trial Athletes</h3>
-                    <span className='text-xs text-amber-700'>
-                      {trialStats.reduce((sum, s) => sum + s.count, 0)} trial session{trialStats.reduce((sum, s) => sum + s.count, 0) === 1 ? '' : 's'} · {trialStats.length} unique athlete{trialStats.length === 1 ? '' : 's'}
-                    </span>
-                  </div>
-                  <div className='flex flex-wrap gap-2'>
-                    {trialStats.map(t => (
-                      <span
-                        key={t.name}
-                        className='inline-flex items-center gap-1.5 bg-white border border-amber-200 text-amber-900 text-xs font-medium px-2.5 py-1 rounded-full'
-                        title={t.dates.join(', ')}
-                      >
-                        {t.name}
-                        {t.count > 1 && (
-                          <span className='bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded-full text-[10px] font-semibold'>×{t.count}</span>
-                        )}
+              {/* Trial Athletes panel — collapsible. Green chip = registered (matched a member's
+                  whiteboard_name). Amber chip = trial only, hasn't registered. X removes the name
+                  from every session's trial_names array (for accidental tags). */}
+              {trialStats.length > 0 && (() => {
+                const totalSessions = trialStats.reduce((sum, s) => sum + s.count, 0);
+                const registeredCount = trialStats.filter(t => t.registered).length;
+                return (
+                  <div className='mb-6 bg-amber-50 border border-amber-200 rounded-lg'>
+                    <button
+                      onClick={() => setTrialPanelExpanded(prev => !prev)}
+                      className='w-full flex items-center justify-between px-4 py-3 text-left hover:bg-amber-100/50 transition rounded-lg'
+                    >
+                      <h3 className='text-sm font-semibold text-amber-900 inline-flex items-center gap-1.5'>
+                        <ChevronDown size={14} className={`text-amber-700 transition-transform ${trialPanelExpanded ? '' : '-rotate-90'}`} />
+                        Trial Athletes
+                      </h3>
+                      <span className='text-xs text-amber-700'>
+                        {totalSessions} trial session{totalSessions === 1 ? '' : 's'} · {trialStats.length} unique{registeredCount > 0 ? ` · ${registeredCount} registered` : ''}
                       </span>
-                    ))}
+                    </button>
+                    {trialPanelExpanded && (
+                      <div className='px-4 pb-4 space-y-1.5'>
+                        {trialStats.map(t => {
+                          const chipCls = t.registered
+                            ? 'bg-green-50 border-green-300 text-green-900'
+                            : 'bg-white border-amber-200 text-amber-900';
+                          const countCls = t.registered
+                            ? 'bg-green-200 text-green-900'
+                            : 'bg-amber-200 text-amber-900';
+                          return (
+                            <div key={t.name} className='flex items-center justify-between gap-3 bg-white/60 rounded px-2 py-1.5'>
+                              <span className={`inline-flex items-center gap-1.5 border text-xs font-medium px-2.5 py-1 rounded-full ${chipCls}`}>
+                                {t.name}
+                                {t.count > 1 && (
+                                  <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${countCls}`}>×{t.count}</span>
+                                )}
+                                {t.registered && (
+                                  <span className='text-[10px] font-semibold uppercase tracking-wide'>Registered</span>
+                                )}
+                              </span>
+                              <span className='text-xs text-gray-600 flex-1 truncate'>
+                                {t.dates.map(d => d.split('-').reverse().join('.')).join(', ')}
+                              </span>
+                              <button
+                                onClick={() => handleDeleteTrial(t.name, t.count)}
+                                className='text-gray-400 hover:text-red-600 transition'
+                                title='Remove from trial list'
+                              >
+                                <X size={14} />
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {(() => {
                 const q = nameQuery.trim().toLowerCase();
@@ -589,7 +678,6 @@ export default function AdminToolsPage() {
                       <tr className='border-b border-gray-200'>
                         {([
                           { col: 'name' as keyof IncidentStat, label: 'Member', align: 'left', color: 'text-gray-700' },
-                          { col: 'coachCancelled' as keyof IncidentStat, label: 'Removed by Coach', align: 'center', color: 'text-gray-500' },
                           { col: 'lateCancel' as keyof IncidentStat, label: 'Late Cancel', align: 'center', color: 'text-purple-700' },
                           { col: 'noShow' as keyof IncidentStat, label: 'No-Show', align: 'center', color: 'text-orange-700' },
                           { col: 'total' as keyof IncidentStat, label: 'Total', align: 'center', color: 'text-gray-900' },
@@ -626,9 +714,6 @@ export default function AdminToolsPage() {
                                   {stat.name}
                                 </span>
                               </td>
-                              <td className='text-center py-2 px-3 text-gray-500'>
-                                {stat.coachCancelled > 0 ? stat.coachCancelled : '—'}
-                              </td>
                               <td className='text-center py-2 px-3'>
                                 {stat.lateCancel > 0 ? (
                                   <span className='inline-block bg-purple-100 text-purple-800 font-medium px-2 py-0.5 rounded text-xs'>
@@ -647,11 +732,10 @@ export default function AdminToolsPage() {
                             </tr>
                             {isExpanded && (
                               <tr className='bg-gray-50'>
-                                <td colSpan={5} className='py-2 px-4'>
+                                <td colSpan={4} className='py-2 px-4'>
                                   <div className='space-y-1'>
                                     {memberIncidents.map(inc => {
                                       const label =
-                                        inc.status === 'coach_cancelled' ? { text: 'Removed by Coach', cls: 'bg-gray-200 text-gray-700' } :
                                         inc.status === 'late_cancel' ? { text: 'Late Cancel', cls: 'bg-purple-100 text-purple-800' } :
                                         { text: 'No-Show', cls: 'bg-orange-100 text-orange-800' };
                                       return (

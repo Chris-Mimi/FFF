@@ -55,6 +55,27 @@ export async function updateBookingRules(patch: Partial<BookingRules>): Promise<
   return data as BookingRules;
 }
 
+// Parse a weekly_sessions row's date ('YYYY-MM-DD') + time ('HH:MM' or 'HH:MM:SS')
+// as Berlin wall-clock, return the corresponding UTC instant. Use this anywhere
+// you'd otherwise write `new Date(`${session.date}T${session.time}`)` — that form
+// is interpreted as runtime-local (UTC on Vercel) and produces a 2h-offset bug.
+export function sessionStartInstant(dateStr: string, timeStr: string): Date {
+  const tz = 'Europe/Berlin';
+  const [y, mo, d] = dateStr.split('-').map(Number);
+  const [hh, mm, ss = 0] = timeStr.split(':').map(Number);
+  const guess = new Date(Date.UTC(y, mo - 1, d, hh, mm, ss));
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: tz,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    hour12: false,
+  }).formatToParts(guess);
+  const get = (t: string) => parseInt(parts.find(p => p.type === t)!.value);
+  const berlinAsUTC = Date.UTC(get('year'), get('month') - 1, get('day'), get('hour'), get('minute'), get('second'));
+  const offsetMs = berlinAsUTC - guess.getTime();
+  return new Date(guess.getTime() - offsetMs);
+}
+
 // Latest session date athletes are allowed to see/book at the given moment.
 // Default config (Sunday 14:00) means: Mon-Sat athletes see only this week (Mon-Sun),
 // Sunday before 14:00 still only this week, Sunday at/after 14:00 unlocks next week.

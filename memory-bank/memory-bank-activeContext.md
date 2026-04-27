@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 181.0
-**Updated:** 2026-04-26 (Session 320 — leaderboard multi-load tiebreaker fix)
+**Version:** 182.0
+**Updated:** 2026-04-27 (Session 321 — late-cancel TZ fix + Trial Athletes panel rework + Incidents tab cleanup)
 
 ---
 
@@ -14,6 +14,25 @@
 | **Agent Use** | Agent only for 3+ step tasks, multi-file changes, genuine unknowns |
 | **Efficiency** | Target < 50% context. See `Chris Notes/AA frequently used files/Claude open or close session.md` for rules |
 | **Context Monitoring** | 50/60%: alert. 70%: STOP, summary+commit+new session. 80%: critical |
+
+---
+
+## ⚡ Next Session Kickoff
+
+_Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history scan._
+
+**First action:** Live-verify on the deployed app: (a) late-cancel TZ fix — cancel a confirmed booking ~1h before a session whose lock-lead is 60min, expect `late_cancel` not `cancelled`; (b) Trial Athletes panel rework on Admin → Attended (collapsible, green chips for Daniella Simm + Kim Salzgeber if their `whiteboard_name` matches, X delete works); (c) Coach "Remove" no longer appears in Incidents tab.
+
+**Files to open first if continuing code work:** none queued — verification is browser-only.
+
+**Open questions still unanswered:**
+- OG (Open Gym) attendance flow — three options on the table (A: new `attended_og` status; B: just allow re-book to confirmed; C: separate OG session type). Chris hasn't picked.
+- Extend the membership-type confirm guard to class types (EKT / Tu / CFK / CFT)? Same accidental-click risk; not asked yet.
+
+**Landmines:**
+- TZ fix added `sessionStartInstant()` in [lib/bookingRules.ts](lib/bookingRules.ts) and threaded it through both `bookings/create/route.ts` and `bookings/cancel/route.ts`. If anything booking-related regresses, suspect that helper.
+- `Chris Notes/AA frequently used files/Notes for next session.md` is **Chris-owned** as of S321. Do NOT read or write to it. The kickoff info now lives in this section.
+- Trial-name match against `whiteboard_name` is case-insensitive but exact otherwise. A typo ("Daniela" vs "Daniella") leaves the chip amber instead of green. If Chris flags a registered athlete still showing amber, fix the member's `whiteboard_name` in Supabase.
 
 ---
 
@@ -84,6 +103,18 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 321 (2026-04-27 — Opus 4.7) — LATE-CANCEL TZ FIX + TRIAL ATHLETES REWORK + INCIDENTS CLEANUP:**
+- **Late-cancel gate TZ bug.** During the S316 gate live-test, Chris noticed two athletes (Marion + Michael Weber) who cancelled ~1h before a Friday class landed in `Cancelled by Athlete` instead of `Late Cancellations`. Same TZ bug class as S318's `getMaxVisibleSessionDate`: `new Date(\`${session.date}T${session.time}\`)` parses as runtime-local time (UTC on Vercel) but `weekly_sessions.time` is Berlin wall-clock. So an 18:00 CEST session was treated as 18:00 UTC = 20:00 CEST — the lock-threshold computation ran 2h late, gate didn't fire.
+- **Fix.** Added exported `sessionStartInstant(dateStr, timeStr)` to [lib/bookingRules.ts](lib/bookingRules.ts) — uses `Intl.DateTimeFormat` with `timeZone: 'Europe/Berlin'` to convert the wall-clock to a UTC instant. Threaded it through both routes: [app/api/bookings/cancel/route.ts](app/api/bookings/cancel/route.ts) (lock check + 10-card grace check) and [app/api/bookings/create/route.ts](app/api/bookings/create/route.ts) (lock check). Did NOT refactor the existing nested helper inside `getMaxVisibleSessionDate` — left it untouched per "no premature refactoring".
+- **Late-cancel timestamp display.** [components/coach/BookingListItem.tsx](components/coach/BookingListItem.tsx): the "Cancelled: <ts>" suffix on each row was gated to `status === 'cancelled'` only. Late cancels and no-shows showed only the booked timestamp. Extended to render for all three statuses with the right label ("Late cancel:", "Marked:", "Cancelled:"). Pulls from `booking.updated_at` which is already populated.
+- **Incidents tab — Coach Remove no longer counted as incident.** [app/coach/admin/page.tsx](app/coach/admin/page.tsx) Incidents tab dropped `coach_cancelled` from the query, type, aggregation, table column, expanded-row label, and `colSpan`. Chris's reasoning: when a coach Removes a booking it's intentional cleanup (booking made in error), not an athlete-side incident worth tracking. Late Cancel + No-Show remain. Existing `coach_cancelled` rows in DB are preserved (they're cleanup records) but invisible on this report.
+- **Trial Athletes panel rework.** Same admin page. Was: always-shown amber-pill panel with hover tooltip for dates. Now: collapsible (chevron toggle, collapsed by default — "doesn't clutter up the page when we get a few months in"); each trial gets a chip color based on whether their name matches a `members.whiteboard_name` (case-insensitive) — **green chip + "Registered" badge** if matched, **amber chip** otherwise; dates rendered inline (DD.MM.YYYY) instead of hover-only; **X delete button** strips the name from `weekly_sessions.trial_names` on every session that contains it (for accidental tags or post-registration cleanup, e.g. Senol once he registers). Empty arrays become `null`. Member bookings unaffected.
+- **`whiteboard_name` match is case-insensitive but not fuzzy.** Typos ("Daniela" vs "Daniella") leave a registered athlete showing amber. Document in landmines.
+- **Session-close checklist restructure.** Chris asked to remove step #3 (overwrite `Notes for next session.md`) — that file is his personal notes, not for Claude. Folded the next-session info into a new "⚡ Next Session Kickoff" section at the top of activeContext. Renumbered close-checklist steps 4-10 → 3-9, updated verification list. **`Notes for next session.md` is Chris-owned now — do not read or write to it.**
+- **Memory updates:** new `feedback_persist_status_answers.md` — when Chris confirms a carry-over is done, update activeContext in the same turn instead of just acknowledging in chat.
+- **TS clean.** Three logical changesets bundled into one session commit (per checklist default).
+- **Carry-over:** all live-verifications listed in the Next Session Kickoff block at the top of this file.
+
 **Session 320 (2026-04-26 — Opus 4.7) — LEADERBOARD MULTI-LOAD TIEBREAKER FIX:**
 - **Trigger.** Chris saw "Rinse & Repeat" Pt.2 leaderboard rank Teemu (Rx, 20kg sandbag, **10kg DBs**, 182 reps) above him (Rx, 20kg sandbag, **22.5kg DBs**, 165 reps) and asked why heavier DBs weren't honored.
 - **Diagnostic.** Pt.1 (shuttle run + burpees, `scoring_fields={reps:true}`) has no weights → Teemu's 45 > Chris's 43 is correct there. Pt.2 (`{load, reps, load2, scaling}`) is where the DB difference matters. Pulled the WOD's section JSON + 24 result rows from Supabase via a throwaway script (cleaned up after).
@@ -134,16 +165,7 @@ Athlete Tools
 - **Resend SPF/DKIM/DMARC still unverified** (Next Step #4 carries over) — wasn't the cause of Anja's issue but remains the open item from S313.
 - **Not yet live-tested in prod** — login change committed but new error messages need verification on `app.the-forge-functional-fitness.de` after deploy.
 
-**Session 316 (2026-04-24 — Opus 4.7) — CLEANUP + LATE-CANCEL GATE:**
-- **Cleanup pass:** closed activeContext Next Steps 1 (historical lifts tab — no bug, records surface under athlete **Records** tab, not Lifts tab), 2 (Sonja Hujo re-entry — S305 didn't log the slot, not worth chasing), 3 (OG chip live-test), 3b (Trial Athletes flow live-test), 6 (Intervals timer live-test) — all confirmed done/working by Chris.
-- **Late-cancel gate (new feature):** confirmed bookings cancelled past the auto-lock threshold now land in `late_cancel` status instead of `cancelled`. Rationale: `late_cancel` enum already existed + rendered coach-side (BookingListItem, SessionManagementModal, Admin attendance rollup) but was only set by coach-side actions; the athlete-initiated cancel route always wrote `cancelled` regardless of timing. Mirrors the `/api/bookings/create` lock logic exactly (manual `is_locked=true` OR past `auto_lock_lead_minutes` threshold, per-session-type override wins).
-- **Files (2):**
-  1. [app/api/bookings/cancel/route.ts](app/api/bookings/cancel/route.ts) — imports `getLockLeadMinutesForSessionType`, moves session fetch (now includes `workout_type` + `is_locked`) before the UPDATE, computes `newStatus: 'cancelled' | 'late_cancel'`. Waitlist cancels always stay `cancelled` (no penalty for dropping waitlist). Response includes `status` field.
-  2. [app/member/book/page.tsx](app/member/book/page.tsx) — branches cancel toast on `data.status`: late cancels get `toast.warning('Booking cancelled. This is past the lock time, so it is recorded as a late cancel.')`.
-- **Design choices:** rejected hard-block (Option A) — athletes still need a way to free the slot for waitlisters in genuine emergencies. Rejected soft pre-warn dialog (Option C) — server message is sufficient, client-side warning would need to expose lead-minutes publicly. 10-card non-refund (separate `ten_card_refund_hours` rule) handles the money side independently.
-- **TS clean.** No schema change. No migration. Coach-side rendering already exists.
-
-**Older sessions (57-315):** See `project-history/` folder.
+**Older sessions (57-316):** See `project-history/` folder.
 
 ---
 
@@ -168,21 +190,16 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-1. **Live-verify leaderboard multi-load fix (S320)** — open Pt.2 of `2026-04-26 Rinse & Repeat` after deploy. Chris (20kg sandbag, 22.5kg DBs) should now rank above Teemu (20kg sandbag, 10kg DBs) despite fewer reps, because the load2 tiebreaker now fires. Spot-check 2-3 older multi-load WODs to confirm rankings shifted as expected; surprise re-orderings should be net-positive.
-2. **Migrate Nikolina from trial → cash-monthly** — open coach Members page, find Nikolina, click the new lime "30d" button on her card. Sets `status='active'` + start=today + end=today+30. Verify card label flips to "Active — Cash Monthly (30d left)" and Athletes tab shows the coach-managed card.
-3. **Discuss OG (Open Gym) attendance flow with Chris** — three options proposed (A: new `attended_og` status; B: just allow re-book to confirmed; C: separate OG session type). Decision pending.
-4. **Confirm Chris reset next-week release time to `16:00`** in Admin → Booking Rules. He set it to `14:00` as band-aid in S318. The TZ fix is live (Berlin wall-clock interpretation), so leaving `14:00` would fire 4h early next Sunday.
-5. **Live-test German login error messages (S317)** — incognito → login page → try (a) non-existent email expect "Kein Konto..."; (b) real email + wrong password expect "E-Mail-Adresse erkannt..."; pending/blocked branches unchanged logic (just translated).
-6. **Set up `next-intl` i18n (DE/EN bilingual)** — Chris plans to commercialize. The ~11 inlined German strings from S317 should migrate to `messages/de.json` + matching `messages/en.json`. ~1 day of dedicated work. Stop adding more inline German until this lands. Memory: `project_commercialization_and_i18n.md`.
-7. **Live-test the late-cancel gate (S316)** — cancel a confirmed booking past auto-lock threshold from athlete app, confirm distinct warning toast + purple Late Cancel chip in coach SessionManagementModal + correct attendance-rollup count.
-8. **Decide whether to extend the membership-type confirm guard to class types** (EKT / Tu / CFK / CFT) — same accidental-click risk applies to kids' class assignments. Chris not asked yet.
-9. **Build Reject/Delete button on Members Pending tab** — currently no UI affordance to remove pending members; only Approve/Unapprove. S306 had to use SQL to clean up Claudia Herrmann.
-10. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app.
-11. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
-12. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
-13. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing. **Note:** S305 backfill may have largely resolved this by retroactively booking whiteboard names; re-evaluate before doing the S251 work.
-14. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts:48-56` only filters bookings by `status='confirmed'` and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
-15. **Test endpoint 410 cleanup** (deferred from S292) — route `app/api/notifications/test/route.ts` through `sendToSubscription` so expired subs auto-delete on Send Test.
+1. **Discuss OG (Open Gym) attendance flow with Chris** — three options proposed (A: new `attended_og` status; B: just allow re-book to confirmed; C: separate OG session type). Decision pending.
+2. **Set up `next-intl` i18n (DE/EN bilingual)** — Chris plans to commercialize. The ~11 inlined German strings from S317 should migrate to `messages/de.json` + matching `messages/en.json`. ~1 day of dedicated work. Stop adding more inline German until this lands. Memory: `project_commercialization_and_i18n.md`.
+3. **Decide whether to extend the membership-type confirm guard to class types** (EKT / Tu / CFK / CFT) — same accidental-click risk applies to kids' class assignments. Chris not asked yet.
+4. **Build Reject/Delete button on Members Pending tab** — currently no UI affordance to remove pending members; only Approve/Unapprove. S306 had to use SQL to clean up Claudia Herrmann.
+5. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app.
+6. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
+7. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
+8. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing. **Note:** S305 backfill may have largely resolved this by retroactively booking whiteboard names; re-evaluate before doing the S251 work.
+9. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts:48-56` only filters bookings by `status='confirmed'` and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
+10. **Test endpoint 410 cleanup** (deferred from S292) — route `app/api/notifications/test/route.ts` through `sendToSubscription` so expired subs auto-delete on Send Test.
 
 ---
 

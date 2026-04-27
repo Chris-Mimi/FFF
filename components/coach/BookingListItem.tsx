@@ -64,9 +64,9 @@ export default function BookingListItem({
         <span className='text-xs text-gray-500'>
           Booked: {formatDateTime(booking.booked_at)}
         </span>
-        {status === 'cancelled' && (
+        {(status === 'cancelled' || status === 'late_cancel' || status === 'no_show') && (
           <span className='text-xs text-gray-500'>
-            · Cancelled: {formatDateTime(booking.updated_at)}
+            · {status === 'late_cancel' ? 'Late cancel' : status === 'no_show' ? 'Marked' : 'Cancelled'}: {formatDateTime(booking.updated_at)}
           </span>
         )}
       </div>

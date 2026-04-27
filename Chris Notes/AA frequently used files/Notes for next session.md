@@ -17,10 +17,11 @@ http://192.168.178.75:3000
 * Mimi's iPhone copy/paste & delete function
 * Box WiFi: Mac gets IPv6-only (no IPv4), dev sites (GitHub/Supabase/Vercel/Resend) unreachable. PC on same box WiFi works fine. At home all works. Debug next time at the box — see `SESSION-HANDOFF-S303-DNS-issue.md` for diagnostic history.
 * Has Fabian's parent got a login, if so who?
+* IDEA: Put names of booked athletes in Whiteboard Intro so they also go into Google Calendar or find another way to register them in Google Calendar.
 
 * 
 * Macbook still has internet problem at the box. Old Macbook Pro works fine.
-* Trial athletes: When I insert an Athlete under the Trial in Session management, where does this info show up? How can I track how many athletes we onboarded within a particular timescale? "DI" and "HF" are superfluous. Could I have a "Tr" for trial athletes.
+* Trial athletes: When I insert an Athlete under the Trial in Session management, where does this info show up? How can I track how many athletes we onboarded within a particular timescale? Could I have a "Tr" for trial athletes.
 
 # Coach library #
 
