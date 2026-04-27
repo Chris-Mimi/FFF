@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { AlertTriangle, Check, Clock, X } from 'lucide-react';
+import { AlertTriangle, Check, Clock, Trash2, X } from 'lucide-react';
 import {
   MemberStatus,
   MembershipType,
@@ -22,6 +22,7 @@ interface MemberCardProps {
   processingMemberId: string | null;
   unlinkedWhiteboardNames?: string[];
   onApprove: (memberId: string, whiteboardName?: string) => void;
+  onReject: (memberId: string, memberName: string) => void;
   onBlock: (memberId: string) => void;
   onUnapprove: (memberId: string) => void;
   onUnblock: (memberId: string) => void;
@@ -61,6 +62,7 @@ export default function MemberCard({
   processingMemberId,
   unlinkedWhiteboardNames = [],
   onApprove,
+  onReject,
   onBlock,
   onUnapprove,
   onUnblock,
@@ -305,6 +307,15 @@ export default function MemberCard({
               >
                 <X size={16} />
                 Block
+              </button>
+              <button
+                onClick={() => onReject(member.id, member.display_name || member.name || member.email)}
+                disabled={processingMemberId === member.id}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-700 hover:bg-red-700 disabled:bg-gray-800 disabled:cursor-not-allowed text-gray-300 hover:text-white rounded-lg transition-colors duration-200 text-sm"
+                title="Permanently delete this pending registration"
+              >
+                <Trash2 size={16} />
+                Reject
               </button>
             </div>
           </div>

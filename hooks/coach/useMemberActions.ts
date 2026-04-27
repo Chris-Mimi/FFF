@@ -69,6 +69,40 @@ export function useMemberActions(
     }
   };
 
+  const handleReject = async (memberId: string, memberName: string) => {
+    if (!await confirm({
+      title: 'Reject Pending Member',
+      message: `Permanently delete ${memberName}'s registration? Their account and email will be removed and they can re-register from scratch. This cannot be undone.`,
+      confirmText: 'Reject & Delete',
+      variant: 'danger'
+    })) {
+      return;
+    }
+
+    setProcessingMemberId(memberId);
+    try {
+      const response = await authFetch('/api/members/reject', {
+        method: 'POST',
+        body: JSON.stringify({ memberId })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to reject member');
+      }
+
+      toast.success(data.message || 'Member rejected');
+      await refreshData();
+      await refreshPendingCount();
+    } catch (error) {
+      console.error('Error rejecting member:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to reject member. Please try again.');
+    } finally {
+      setProcessingMemberId(null);
+    }
+  };
+
   const handleUnapprove = async (memberId: string) => {
     if (!await confirm({ title: 'Unapprove Member', message: 'Move this member back to pending status? This will clear their trial period.', confirmText: 'Unapprove', variant: 'danger' })) {
       return;
@@ -406,6 +440,7 @@ export function useMemberActions(
   return {
     processingMemberId,
     handleApprove,
+    handleReject,
     handleBlock,
     handleUnapprove,
     handleUnblock,

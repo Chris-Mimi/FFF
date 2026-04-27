@@ -49,6 +49,7 @@ export default function CoachMembersPage() {
   const {
     processingMemberId,
     handleApprove,
+    handleReject,
     handleBlock,
     handleUnapprove,
     handleUnblock,
@@ -258,6 +259,7 @@ export default function CoachMembersPage() {
                 processingMemberId={processingMemberId}
                 unlinkedWhiteboardNames={unlinkedWhiteboardNames}
                 onApprove={handleApprove}
+                onReject={handleReject}
                 onBlock={handleBlock}
                 onUnapprove={handleUnapprove}
                 onUnblock={handleUnblock}

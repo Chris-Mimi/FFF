@@ -21,12 +21,16 @@
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history scan._
 
-**First action:** Live-verify the OG flow on the deployed app: (a) Session Management Modal on a confirmed booking → click new "OG" toggle → row shows blue OG badge + count moves to "M OG" line in header. (b) Calendar card shows extra blue "N OG" pill below booked pill when at least one OG flagged. (c) Score Entry no longer lists OG-flagged athletes; toggling OG off in Session Management makes them reappear. (d) Carry-overs from S321: late-cancel TZ fix in real situation (Chris will wait), Coach Remove not in Incidents (✓ confirmed S322). **Migration already run in S322** — `bookings.is_og` exists, `wod_section_results.open_gym` dropped.
+**First action:** Build Reject/Delete button on Members Pending tab (Chris pulled this off backlog at S323 start — no UI affordance currently to remove pending members; S306 had to use SQL to clean up Claudia Herrmann).
 
-**Files to open first if continuing code work:** none queued.
+**Files to open first if continuing code work:** Members Pending tab — start at [app/coach/members/page.tsx](app/coach/members/page.tsx).
 
-**Open questions still unanswered:**
-- Extend the membership-type confirm guard to class types (EKT / Tu / CFK / CFT)? Same accidental-click risk; not asked yet.
+**Carry-over status:**
+- ✅ S322 OG flow live-verified (Chris confirmed S323 — tested working).
+- ⏳ S321 late-cancel TZ fix — Chris waiting on a real cancellation organically.
+- ❌ Membership-type confirm guard extension to class types — Chris declined (not necessary).
+
+**Open questions still unanswered:** none active.
 
 **Landmines:**
 - **Migration must run before deploy.** Code at [hooks/coach/useCoachData.ts:58](hooks/coach/useCoachData.ts#L58) and elsewhere SELECTs `is_og`. Without the column, the query fails silently (Supabase error stringifies as `{}`) and no WODs load. Symptom Chris hit during build: "Error fetching WODs: {}". Run the SQL first.
