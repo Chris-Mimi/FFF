@@ -334,11 +334,14 @@ export function rankSectionResults(
   const comparePrimary = (a: RawSectionResult, b: RawSectionResult): number => {
     const tierDiff = tierOf(a) - tierOf(b);
     if (tierDiff !== 0) return tierDiff;
-    const scaleDiff = aggregateScaling(a) - aggregateScaling(b);
-    if (scaleDiff !== 0) return scaleDiff;
+    // Track wins over scaling: Track 1 = full prescription, Track 2/3 = lighter/shorter
+    // variant. Tracks are effectively different workouts, so a Track 1 Sc1 athlete
+    // ranks above a Track 2 Rx athlete.
     const aTrack = a.track ?? 4;
     const bTrack = b.track ?? 4;
     if (aTrack !== bTrack) return aTrack - bTrack;
+    const scaleDiff = aggregateScaling(a) - aggregateScaling(b);
+    if (scaleDiff !== 0) return scaleDiff;
     return compareByScoringType(a, b, scoringType);
   };
   const ageOf = (r: RawSectionResult): number | null => memberAges?.[r.user_id] ?? null;
@@ -483,11 +486,12 @@ export function rankBenchmarkResults(
   // Primary comparator: the chain that determines whether two entries are tied for the same rank.
   // Tiebreakers AFTER this chain (age/date) only affect display order, not rank number.
   const comparePrimary = (a: RawBenchmarkResult, b: RawBenchmarkResult): number => {
-    const scaleDiff = aggregateScaling(a) - aggregateScaling(b);
-    if (scaleDiff !== 0) return scaleDiff;
+    // Track wins over scaling — tracks are effectively different workouts.
     const aTrack = a.track ?? 4;
     const bTrack = b.track ?? 4;
     if (aTrack !== bTrack) return aTrack - bTrack;
+    const scaleDiff = aggregateScaling(a) - aggregateScaling(b);
+    if (scaleDiff !== 0) return scaleDiff;
     if (!isTimeBased && !isRepsBased) {
       // Weight IS the primary metric, skip weight tiebreaker
     } else {
