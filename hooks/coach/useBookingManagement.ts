@@ -28,6 +28,7 @@ interface UseBookingManagementResult {
   handleLateCancel: (bookingId: string, memberName: string) => Promise<void>;
   handleUndoLateCancel: (bookingId: string, memberName: string) => Promise<void>;
   handleCancelBooking: (bookingId: string, memberName: string, memberId: string) => Promise<void>;
+  handleToggleOg: (bookingId: string, memberName: string, isOg: boolean) => Promise<void>;
 }
 
 export function useBookingManagement({
@@ -350,6 +351,24 @@ export function useBookingManagement({
     }
   };
 
+  const handleToggleOg = async (bookingId: string, memberName: string, isOg: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .update({ is_og: isOg })
+        .eq('id', bookingId);
+
+      if (error) throw error;
+
+      await onRefresh();
+      onSessionUpdated();
+      toast.success(isOg ? `${memberName} marked as Open Gym` : `${memberName} no longer Open Gym`);
+    } catch (error) {
+      console.error('Error toggling OG flag:', error);
+      toast.error('Failed to update Open Gym flag');
+    }
+  };
+
   return {
     selectedMemberId,
     addingMember,
@@ -362,5 +381,6 @@ export function useBookingManagement({
     handleLateCancel,
     handleUndoLateCancel,
     handleCancelBooking,
+    handleToggleOg,
   };
 }

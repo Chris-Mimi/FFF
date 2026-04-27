@@ -96,6 +96,7 @@ export interface WODFormData {
   booking_info?: {
     session_id: string;
     confirmed_count: number;
+    og_count?: number;
     waitlist_count: number;
     capacity: number;
     time?: string;

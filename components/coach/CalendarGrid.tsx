@@ -267,7 +267,7 @@ export default function CalendarGrid({
 
             {/* Booking Info */}
             {wod.booking_info && (
-              <div className="relative group/booking flex-shrink-0">
+              <div className="relative group/booking flex-shrink-0 flex flex-col items-end gap-0.5">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -288,6 +288,11 @@ export default function CalendarGrid({
                   {wod.booking_info.confirmed_count}/{wod.booking_info.capacity === 0 ? '∞' : wod.booking_info.capacity}
                   {wod.booking_info.waitlist_count > 0 ? ` +${wod.booking_info.waitlist_count}` : ''}
                 </button>
+                {wod.booking_info.og_count != null && wod.booking_info.og_count > 0 && (
+                  <span className="text-[10px] font-bold text-white rounded px-1 py-0.5 bg-blue-600">
+                    {wod.booking_info.og_count} OG
+                  </span>
+                )}
                 {/* Booked athletes popover */}
                 {wod.booking_info.booked_members && wod.booking_info.booked_members.length > 0 && (
                   <div className="hidden group-hover/booking:block absolute left-0 bottom-full mb-1 bg-gray-800 border border-gray-600 rounded-lg shadow-xl p-2 z-[300] min-w-[140px] max-w-[200px]">

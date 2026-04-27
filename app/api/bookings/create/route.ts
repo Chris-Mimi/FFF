@@ -242,9 +242,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Count confirmed bookings
+    // Count confirmed bookings toward capacity. OG bookings (is_og=true) are off-capacity —
+    // OG athletes are admitted alongside the class but don't do the WOD, so they don't
+    // consume a slot.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const confirmedCount = session.bookings?.filter((b: any) => b.status === 'confirmed').length || 0;
+    const confirmedCount = session.bookings?.filter((b: any) => b.status === 'confirmed' && !b.is_og).length || 0;
 
     // Determine booking status (confirmed or waitlist). capacity === 0 means unlimited.
     const bookingStatus = session.capacity === 0 || confirmedCount < session.capacity ? 'confirmed' : 'waitlist';

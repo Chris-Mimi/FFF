@@ -17,7 +17,6 @@ export interface LeaderboardEntry {
   track?: number;
   taskCompleted?: boolean;
   dnf?: boolean;
-  openGym?: boolean;
   resultDate?: string;
   gender?: string | null;
   age?: number | null;
@@ -77,7 +76,6 @@ export interface RawSectionResult {
   track?: number | null;
   task_completed?: boolean | null;
   dnf?: boolean | null;
-  open_gym?: boolean | null;
   workout_date?: string | null;
   wod_id?: string | null;
   session_time?: string | null; // "HH:MM" — annotated by caller for tiebreakers
@@ -304,8 +302,8 @@ export function rankSectionResults(
     (r.calories_result || 0) > 0 ||
     (r.metres_result || 0) > 0;
   const valid = results.filter(r => {
-    // DNF + Open Gym entries always show on leaderboard (sorted to bottom)
-    if (r.dnf || r.open_gym) return true;
+    // DNF entries always show on leaderboard (sorted to bottom)
+    if (r.dnf) return true;
     switch (scoringType) {
       case 'time': return (r.time_result && r.time_result.trim() !== '') || hasAnyData(r);
       case 'time_with_cap': return (r.time_result && r.time_result.trim() !== '') || (r.rounds_result || 0) > 0 || (r.reps_result || 0) > 0;
@@ -331,8 +329,8 @@ export function rankSectionResults(
     (r.scaling_level_3 ? (scalingValue[r.scaling_level_3] ?? MISSING_SCALING) : MISSING_SCALING);
   // Primary comparator: the chain that determines whether two entries are tied for the same rank.
   // Tiebreakers AFTER this chain (age/date/time) only affect display order, not rank number.
-  // Tier: 0 = real score, 1 = DNF, 2 = Open Gym. Sort by tier first so OG falls below DNF.
-  const tierOf = (r: RawSectionResult): number => (r.open_gym ? 2 : r.dnf ? 1 : 0);
+  // Tier: 0 = real score, 1 = DNF. Sort by tier first so DNF falls below real scores.
+  const tierOf = (r: RawSectionResult): number => (r.dnf ? 1 : 0);
   const comparePrimary = (a: RawSectionResult, b: RawSectionResult): number => {
     const tierDiff = tierOf(a) - tierOf(b);
     if (tierDiff !== 0) return tierDiff;
@@ -401,7 +399,6 @@ export function rankSectionResults(
     track: r.track || undefined,
     taskCompleted: r.task_completed ?? undefined,
     dnf: r.dnf ?? undefined,
-    openGym: r.open_gym ?? undefined,
     resultDate: r.workout_date || undefined,
     gender: memberGenders?.[r.user_id] ?? getWhiteboardGender(r.whiteboard_name) ?? undefined,
   }));

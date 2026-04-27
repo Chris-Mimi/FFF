@@ -20,6 +20,7 @@ export interface Booking {
   status: 'confirmed' | 'waitlist' | 'cancelled' | 'no_show' | 'late_cancel' | 'coach_cancelled';
   booked_at: string;
   updated_at: string;
+  is_og: boolean;
   member: {
     id: string;
     name: string | null;
@@ -84,6 +85,7 @@ export function useSessionDetails(
           status,
           booked_at,
           updated_at,
+          is_og,
           members!bookings_member_id_fkey (
             id,
             name,
@@ -103,6 +105,7 @@ export function useSessionDetails(
         status: booking.status as Booking['status'],
         booked_at: booking.booked_at,
         updated_at: booking.updated_at,
+        is_og: booking.is_og ?? false,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         member: (booking as any).members, // Rename members field to member
       }));

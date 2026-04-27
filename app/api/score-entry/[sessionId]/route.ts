@@ -44,7 +44,10 @@ export async function GET(
       return NextResponse.json({ error: 'Workout not found' }, { status: 404 });
     }
 
-    // 3. Fetch confirmed bookings with member info
+    // 3. Fetch confirmed bookings with member info. OG bookings are excluded — those
+    // athletes are attending the session for Open Gym and aren't doing the WOD, so they
+    // shouldn't appear in score entry. If an OG athlete changes their mind, the coach
+    // toggles off the OG flag in Session Management and they reappear here.
     const { data: bookings, error: bookingsError } = await supabaseAdmin
       .from('bookings')
       .select(`
@@ -52,6 +55,7 @@ export async function GET(
         members!bookings_member_id_fkey (id, name, email)
       `)
       .eq('session_id', sessionId)
+      .eq('is_og', false)
       .in('status', ['confirmed'])
       .order('booked_at', { ascending: true });
 

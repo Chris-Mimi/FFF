@@ -11,10 +11,12 @@ interface BookingListItemProps {
   onLateCancel?: (bookingId: string, name: string) => void;
   onUndoLateCancel?: (bookingId: string, name: string) => void;
   onCancelBooking?: (bookingId: string, name: string, memberId: string) => void;
+  onToggleOg?: (bookingId: string, name: string, isOg: boolean) => void;
   showNoShowBtn?: boolean;
   showLateCancelBtn?: boolean;
   showUndoBtn?: boolean;
   showCancelBtn?: boolean;
+  showOgBtn?: boolean;
 }
 
 export default function BookingListItem({
@@ -25,10 +27,12 @@ export default function BookingListItem({
   onLateCancel,
   onUndoLateCancel,
   onCancelBooking,
+  onToggleOg,
   showNoShowBtn = false,
   showLateCancelBtn = false,
   showUndoBtn = false,
   showCancelBtn = false,
+  showOgBtn = false,
 }: BookingListItemProps) {
   const memberName = booking.member?.name || booking.member?.display_name || 'Unknown Member';
   const isFamilyMember = booking.member?.account_type === 'family_member';
@@ -56,6 +60,11 @@ export default function BookingListItem({
       <div className='flex items-center gap-2 flex-wrap'>
         {status === 'no_show' && <UserX size={14} className='text-orange-600' />}
         <span className={`font-medium ${status === 'cancelled' ? 'text-gray-500 line-through' : 'text-gray-800'}`}>{memberName}</span>
+        {booking.is_og && (
+          <span className='text-[10px] font-bold text-white bg-blue-600 px-1.5 py-0.5 rounded'>
+            OG
+          </span>
+        )}
         {isFamilyMember && (
           <span className='text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded'>
             family
@@ -71,6 +80,19 @@ export default function BookingListItem({
         )}
       </div>
       <div className='flex items-center gap-1.5'>
+        {showOgBtn && onToggleOg && (
+          <button
+            onClick={() => onToggleOg(booking.id, memberName, !booking.is_og)}
+            className={`flex items-center gap-1 px-2 py-1.5 text-xs rounded transition ${
+              booking.is_og
+                ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                : 'bg-blue-50 hover:bg-blue-100 text-blue-700'
+            }`}
+            title={booking.is_og ? 'Remove Open Gym flag (counts toward capacity again)' : 'Mark as Open Gym (off-capacity)'}
+          >
+            OG
+          </button>
+        )}
         {showCancelBtn && onCancelBooking && (
           <button
             onClick={() => onCancelBooking(booking.id, memberName, booking.member.id)}

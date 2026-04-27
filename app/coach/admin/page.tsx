@@ -271,18 +271,20 @@ export default function AdminToolsPage() {
           .not('trial_names', 'is', null),
         supabase
           .from('members')
-          .select('whiteboard_name')
-          .not('whiteboard_name', 'is', null),
+          .select('name, display_name, whiteboard_name'),
       ]);
       if (error) throw error;
 
-      // Build a lowercase set of registered whiteboard names so trial-name comparisons
-      // are case-insensitive (coaches type freely; "Senol" vs "senol" should still match).
-      const registered = new Set(
-        (members || [])
-          .map((m) => (m.whiteboard_name as string | null)?.trim().toLowerCase())
-          .filter((s): s is string => !!s)
-      );
+      // Match trial names against any registered name field (case-insensitive).
+      // whiteboard_name is legacy — new registrations don't set it — so name/display_name
+      // carry the match for new athletes once they sign up.
+      const registered = new Set<string>();
+      for (const m of (members || []) as { name: string | null; display_name: string | null; whiteboard_name: string | null }[]) {
+        for (const v of [m.name, m.display_name, m.whiteboard_name]) {
+          const s = v?.trim().toLowerCase();
+          if (s) registered.add(s);
+        }
+      }
 
       const byName = new Map<string, { name: string; count: number; dates: Set<string> }>();
       for (const row of (data || []) as { date: string; trial_names: string[] | null }[]) {

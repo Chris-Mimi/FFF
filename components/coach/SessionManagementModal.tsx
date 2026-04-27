@@ -67,8 +67,11 @@ export default function SessionManagementModal({
     onSessionUpdated,
   });
 
-  // Filter bookings by status
+  // Filter bookings by status. OG bookings are still status='confirmed' — they show in the
+  // confirmed list but don't count toward capacity.
   const confirmedBookings = sessionDetails.bookings.filter(b => b.status === 'confirmed');
+  const nonOgConfirmedCount = confirmedBookings.filter(b => !b.is_og).length;
+  const ogCount = confirmedBookings.filter(b => b.is_og).length;
   const waitlistBookings = sessionDetails.bookings.filter(b => b.status === 'waitlist');
   const noShowBookings = sessionDetails.bookings.filter(b => b.status === 'no_show');
   const lateCancelBookings = sessionDetails.bookings.filter(b => b.status === 'late_cancel');
@@ -277,7 +280,7 @@ export default function SessionManagementModal({
                 onAddTrialAthlete={bookingManagement.handleAddTrialAthlete}
                 isLoading={bookingManagement.addingMember}
                 capacity={sessionDetails.session.capacity}
-                confirmedCount={confirmedBookings.length}
+                confirmedCount={nonOgConfirmedCount}
                 trialCount={(sessionDetails.session.trial_names || []).length}
                 isSessionActive={sessionDetails.session.status !== 'cancelled'}
               />
@@ -313,7 +316,8 @@ export default function SessionManagementModal({
               {/* Confirmed Bookings */}
               <div>
                 <h3 className='text-base font-semibold text-gray-800 mb-2'>
-                  Confirmed Bookings ({confirmedBookings.length + (sessionDetails.session.trial_names || []).length}/{sessionDetails.session.capacity === 0 ? '∞' : sessionDetails.session.capacity})
+                  Confirmed Bookings ({nonOgConfirmedCount + (sessionDetails.session.trial_names || []).length}/{sessionDetails.session.capacity === 0 ? '∞' : sessionDetails.session.capacity})
+                  {ogCount > 0 && <span className='ml-2 text-sm font-normal text-blue-700'>· {ogCount} OG</span>}
                 </h3>
                 {confirmedBookings.length === 0 ? (
                   <p className='text-gray-500 text-xs'>No confirmed bookings yet</p>
@@ -327,9 +331,11 @@ export default function SessionManagementModal({
                         onMarkNoShow={bookingManagement.handleMarkNoShow}
                         onLateCancel={bookingManagement.handleLateCancel}
                         onCancelBooking={bookingManagement.handleCancelBooking}
+                        onToggleOg={bookingManagement.handleToggleOg}
                         showNoShowBtn={true}
                         showLateCancelBtn={true}
                         showCancelBtn={true}
+                        showOgBtn={true}
                       />
                     ))}
                   </div>

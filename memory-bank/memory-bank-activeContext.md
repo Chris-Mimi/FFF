@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 182.0
-**Updated:** 2026-04-27 (Session 321 — late-cancel TZ fix + Trial Athletes panel rework + Incidents tab cleanup)
+**Version:** 183.0
+**Updated:** 2026-04-27 (Session 322 — Open Gym redesigned at booking level + trial-chip name match expanded)
 
 ---
 
@@ -21,18 +21,20 @@
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history scan._
 
-**First action:** Live-verify on the deployed app: (a) late-cancel TZ fix — cancel a confirmed booking ~1h before a session whose lock-lead is 60min, expect `late_cancel` not `cancelled`; (b) Trial Athletes panel rework on Admin → Attended (collapsible, green chips for Daniella Simm + Kim Salzgeber if their `whiteboard_name` matches, X delete works); (c) Coach "Remove" no longer appears in Incidents tab.
+**First action:** Run [database/add-is-og-to-bookings.sql](database/add-is-og-to-bookings.sql) in Supabase SQL Editor (adds `bookings.is_og`, drops `wod_section_results.open_gym`). THEN deploy. THEN live-verify: (a) Session Management Modal on a confirmed booking → click new "OG" toggle → row shows blue OG badge + count moves to "M OG" line in header. (b) Calendar card shows extra blue "N OG" pill below booked pill when at least one OG flagged. (c) Score Entry no longer lists OG-flagged athletes; toggling OG off in Session Management makes them reappear. (d) Carry-overs from S321: late-cancel TZ fix in real situation (Chris will wait), Coach Remove not in Incidents (✓ confirmed S322).
 
-**Files to open first if continuing code work:** none queued — verification is browser-only.
+**Files to open first if continuing code work:** none queued.
 
 **Open questions still unanswered:**
-- OG (Open Gym) attendance flow — three options on the table (A: new `attended_og` status; B: just allow re-book to confirmed; C: separate OG session type). Chris hasn't picked.
 - Extend the membership-type confirm guard to class types (EKT / Tu / CFK / CFT)? Same accidental-click risk; not asked yet.
 
 **Landmines:**
-- TZ fix added `sessionStartInstant()` in [lib/bookingRules.ts](lib/bookingRules.ts) and threaded it through both `bookings/create/route.ts` and `bookings/cancel/route.ts`. If anything booking-related regresses, suspect that helper.
-- `Chris Notes/AA frequently used files/Notes for next session.md` is **Chris-owned** as of S321. Do NOT read or write to it. The kickoff info now lives in this section.
-- Trial-name match against `whiteboard_name` is case-insensitive but exact otherwise. A typo ("Daniela" vs "Daniella") leaves the chip amber instead of green. If Chris flags a registered athlete still showing amber, fix the member's `whiteboard_name` in Supabase.
+- **Migration must run before deploy.** Code at [hooks/coach/useCoachData.ts:58](hooks/coach/useCoachData.ts#L58) and elsewhere SELECTs `is_og`. Without the column, the query fails silently (Supabase error stringifies as `{}`) and no WODs load. Symptom Chris hit during build: "Error fetching WODs: {}". Run the SQL first.
+- **`open_gym` column dropped.** [utils/leaderboard-utils.ts](utils/leaderboard-utils.ts) and [components/athlete/LeaderboardView.tsx](components/athlete/LeaderboardView.tsx) no longer reference it. The 1 historical OG row vanishes with the column drop — Chris confirmed it's of no consequence.
+- **OG athletes are filtered out of Score Entry server-side** in [app/api/score-entry/[sessionId]/route.ts](app/api/score-entry/[sessionId]/route.ts) via `.eq('is_og', false)`. If an OG athlete decides to do the WOD, coach toggles OG off in Session Management first → they reappear in Score Entry. Edge case per Chris's design (B1 — minimal risk, score-entry override path not built).
+- Trial-name match expanded to `members.name` / `display_name` / `whiteboard_name` (case-insensitive). New registrations don't set `whiteboard_name` so the broader match is required for green chips going forward.
+- TZ fix from S321 added `sessionStartInstant()` in [lib/bookingRules.ts](lib/bookingRules.ts). If anything booking-related regresses, suspect that helper.
+- `Chris Notes/AA frequently used files/Notes for next session.md` is **Chris-owned** as of S321. Do NOT read or write to it.
 
 ---
 
@@ -103,6 +105,20 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 322 (2026-04-27 — Opus 4.7) — OG REDESIGNED AT BOOKING LEVEL + TRIAL CHIP NAME MATCH:**
+- **OG (Open Gym) moved from per-section to per-booking.** Old design: coach toggled `wod_section_results.open_gym` per athlete per section in the score-entry chip. Chris's new model: OG is decided when admitting the athlete to the session — they're attending but not doing the WOD (returning from injury, rehab, pregnant). They get an OG flag on the booking, don't count toward capacity, and don't appear in Score Entry at all. Edge case: if an OG athlete changes their mind and does the WOD, coach toggles OG off in Session Management first, then they reappear in Score Entry. Chris explicitly chose this minimal path (B1) over a score-entry override.
+- **New column: `bookings.is_og BOOLEAN DEFAULT false`.** [database/add-is-og-to-bookings.sql](database/add-is-og-to-bookings.sql) — migration adds the column with a partial index on `(session_id) WHERE is_og=true` and DROPS the legacy `wod_section_results.open_gym` column. Chris confirmed only 1 historical OG row exists (from last week); irrelevant once the column is gone.
+- **Capacity logic.** [app/api/bookings/create/route.ts:247](app/api/bookings/create/route.ts#L247) confirmed-count filter excludes `is_og=true`. [hooks/coach/useCoachData.ts:128](hooks/coach/useCoachData.ts#L128) splits `confirmed_count` (non-OG, counts toward capacity) and new `og_count` (off-capacity). Booked-members tooltip suffixes OG athletes with " (OG)".
+- **Calendar card** ([components/coach/CalendarGrid.tsx:269+](components/coach/CalendarGrid.tsx#L269)) — wrapped booked pill + new blue "N OG" pill in a flex-col when `og_count > 0`. Booked pill still shows non-OG count only.
+- **SessionManagementModal** — new "OG" toggle button on each confirmed-booking row (alongside Late/No-show/Remove); blue OG badge appears next to the athlete name when flagged; header line splits to "Confirmed (X/cap) · M OG"; manual booking + capacity gate use non-OG count only. Wiring: [hooks/coach/useBookingManagement.ts](hooks/coach/useBookingManagement.ts) `handleToggleOg` PATCHes `bookings.is_og` directly (same Supabase pattern as `handleMarkNoShow`). [components/coach/BookingListItem.tsx](components/coach/BookingListItem.tsx) gained `showOgBtn` + `onToggleOg` props and renders the blue OG badge.
+- **Score Entry stripped of OG plumbing.** [app/api/score-entry/[sessionId]/route.ts](app/api/score-entry/[sessionId]/route.ts) filters bookings `.eq('is_og', false)`. The manual OG button in [AthleteScoreRow.tsx](components/coach/score-entry/AthleteScoreRow.tsx) is removed. `open_gym` field removed from `AthleteScoreValues` / `emptyScoreValues` / prefill / save payload / empty checks ([useScoreEntry.ts](hooks/coach/useScoreEntry.ts), [save/route.ts](app/api/score-entry/save/route.ts)). Leaderboard tier logic removed: [utils/leaderboard-utils.ts](utils/leaderboard-utils.ts) drops the OG tier so DNF is now the only "below real scores" tier; LeaderboardView removes the OG chip from two result-cell renderers + the `open_gym` column from three SELECTs.
+- **Trial-chip name match expanded.** Earlier in session: Chris reported all trial chips on Admin → Attended showing the same amber color (the S321 green-for-registered didn't fire). Reason: legacy `members.whiteboard_name` field is being phased out — new registrations don't set it. Fix at [app/coach/admin/page.tsx:272](app/coach/admin/page.tsx#L272): the registered-name set now unions `name`, `display_name`, AND `whiteboard_name` (all case-insensitive, all trimmed). Daniela Simm's chip will go green automatically once she registers under that name.
+- **Pushback caught wrong direction once.** When Chris asked which option made sense for an OG athlete who does the WOD, I proposed (A) auto-locked, citing "we don't need the OG chip in Results". Chris corrected: that quote means the OG concept doesn't belong in Results modal at all — the score-entry filter handles that. The "did the WOD anyway" scenario needs (B) overridable. Then he asked for least work / risk → B1 (score-entry override flips only `wod_section_results.open_gym`, not `bookings.is_og`) — but ALSO: the score-entry filter means OG athletes don't appear there; if needed, coach toggles OG off in Session Management. So B1 effectively reduces to "no override path needed inside Score Entry, just toggle OG off in SessionMgmt and the athlete reappears."
+- **Migration ordering trap.** Chris hit "Error fetching WODs: {}" on local because the SELECT for `is_og` ran before the column existed. Documented as a landmine. Run migration BEFORE deploying code.
+- **Memory updates:** none new — the trial-chip whiteboard-name logic is in landmines.
+- **TS clean.** Single bundled commit (per checklist default). 15 files modified + 1 untracked SQL migration (`*.sql` is gitignored — the migration is local-only, run via Supabase SQL Editor).
+- **Carry-over:** all live-verifications listed in the Next Session Kickoff block at the top of this file.
+
 **Session 321 (2026-04-27 — Opus 4.7) — LATE-CANCEL TZ FIX + TRIAL ATHLETES REWORK + INCIDENTS CLEANUP:**
 - **Late-cancel gate TZ bug.** During the S316 gate live-test, Chris noticed two athletes (Marion + Michael Weber) who cancelled ~1h before a Friday class landed in `Cancelled by Athlete` instead of `Late Cancellations`. Same TZ bug class as S318's `getMaxVisibleSessionDate`: `new Date(\`${session.date}T${session.time}\`)` parses as runtime-local time (UTC on Vercel) but `weekly_sessions.time` is Berlin wall-clock. So an 18:00 CEST session was treated as 18:00 UTC = 20:00 CEST — the lock-threshold computation ran 2h late, gate didn't fire.
 - **Fix.** Added exported `sessionStartInstant(dateStr, timeStr)` to [lib/bookingRules.ts](lib/bookingRules.ts) — uses `Intl.DateTimeFormat` with `timeZone: 'Europe/Berlin'` to convert the wall-clock to a UTC instant. Threaded it through both routes: [app/api/bookings/cancel/route.ts](app/api/bookings/cancel/route.ts) (lock check + 10-card grace check) and [app/api/bookings/create/route.ts](app/api/bookings/create/route.ts) (lock check). Did NOT refactor the existing nested helper inside `getMaxVisibleSessionDate` — left it untouched per "no premature refactoring".
@@ -149,23 +165,7 @@ Athlete Tools
 - **OG attendance flow design — DEFERRED:** Chris wants OG-attended athletes to still appear booked. Three options proposed (A: new `attended_og` status, B: just allow re-book to confirmed, C: separate OG session type). Decision pending.
 - **Memory updates:** none new this session — issue causes are documented inline above.
 
-**Session 317 (2026-04-25 — Opus 4.7) — ANJA RESCUE + LOGIN ERROR SPECIFICITY:**
-- **Anja Götte couldn't log in after re-registration.** Diagnostic walkthrough confirmed auth row + member row both healthy (`last_sign_in_at` set, `confirmed_at` set, `members.status='active'`) — issue was password typing on her side, NOT deliverability or approval flow. Reset password manually via Supabase admin API.
-- **New script: [scripts/admin-set-password.ts](scripts/admin-set-password.ts)** — one-off rescue tool. Looks up `members.id` by email, calls `auth.admin.updateUserById(id, { password })`. Use when normal recovery email isn't reaching the user. Verified by logging in as Anja in incognito + logging out.
-- **Login error specificity refactor: [app/login/page.tsx](app/login/page.tsx).** Catch block now always calls `/api/members/check-status` (previously only when error was "email not confirmed") and branches on `(exists, status, isEmailNotConfirmed)`:
-  - `!exists` → "Kein Konto mit dieser E-Mail-Adresse gefunden..."
-  - `pending` → "Dein Konto wartet auf die Freigabe..."
-  - `blocked` → "Dein Konto wurde gesperrt..."
-  - `isEmailNotConfirmed` → "Bitte überprüfe deine E-Mails..."
-  - else (email valid + auth fail) → "E-Mail-Adresse erkannt, aber das Passwort ist falsch. Nutze „Passwort vergessen?", um es zurückzusetzen."
-  - check-status errors → fallback to raw Supabase message.
-  - Plus `reset_link_invalid` URL-param message translated.
-- **Why German for these 5+1 strings only:** rest of app stays English; login is the highest-friction moment. Chris reviewed + corrected wording (`Neuen` capitalisation, dropped `unten` in #5).
-- **Memory updated:** `project_registration_vs_athlete_subscription.md` — registration ≠ paid athlete subscription. `athlete_subscription_status='expired'` is the default for non-subscribed members and does NOT block login or class booking. (Misdiagnosed once this session; saved so it doesn't happen again.)
-- **Resend SPF/DKIM/DMARC still unverified** (Next Step #4 carries over) — wasn't the cause of Anja's issue but remains the open item from S313.
-- **Not yet live-tested in prod** — login change committed but new error messages need verification on `app.the-forge-functional-fitness.de` after deploy.
-
-**Older sessions (57-316):** See `project-history/` folder.
+**Older sessions (57-317):** See `project-history/` folder.
 
 ---
 
@@ -190,7 +190,7 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-1. **Discuss OG (Open Gym) attendance flow with Chris** — three options proposed (A: new `attended_og` status; B: just allow re-book to confirmed; C: separate OG session type). Decision pending.
+1. **Run the OG migration** ([database/add-is-og-to-bookings.sql](database/add-is-og-to-bookings.sql)) in Supabase BEFORE deploying. Then deploy and live-verify (see Next Session Kickoff at top).
 2. **Set up `next-intl` i18n (DE/EN bilingual)** — Chris plans to commercialize. The ~11 inlined German strings from S317 should migrate to `messages/de.json` + matching `messages/en.json`. ~1 day of dedicated work. Stop adding more inline German until this lands. Memory: `project_commercialization_and_i18n.md`.
 3. **Decide whether to extend the membership-type confirm guard to class types** (EKT / Tu / CFK / CFT) — same accidental-click risk applies to kids' class assignments. Chris not asked yet.
 4. **Build Reject/Delete button on Members Pending tab** — currently no UI affordance to remove pending members; only Approve/Unapprove. S306 had to use SQL to clean up Claudia Herrmann.
@@ -198,8 +198,9 @@ Athlete Tools
 6. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
 7. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
 8. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing. **Note:** S305 backfill may have largely resolved this by retroactively booking whiteboard names; re-evaluate before doing the S251 work.
-9. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts:48-56` only filters bookings by `status='confirmed'` and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
+9. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts` only filters bookings by `status='confirmed'` (and now `is_og=false`) and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
 10. **Test endpoint 410 cleanup** (deferred from S292) — route `app/api/notifications/test/route.ts` through `sendToSubscription` so expired subs auto-delete on Send Test.
+11. **Improve `fetchWODs` error logging** — when Supabase errors stringify as `{}` in the catch block (as happened in S322 with the missing `is_og` column), the cause is hidden. Same fix as S318 booking-error toast: extract `.message`/`.code`/`.details`/`.hint`. Low priority.
 
 ---
 

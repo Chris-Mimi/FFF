@@ -55,7 +55,7 @@ export const useCoachData = ({
       for (let from = 0; ; from += PAGE) {
         const { data, error } = await supabase
           .from('bookings')
-          .select('session_id, status, members(name, display_name)')
+          .select('session_id, status, is_og, members(name, display_name)')
           .range(from, from + PAGE - 1);
         if (error) throw error;
         if (!data || data.length === 0) break;
@@ -125,7 +125,9 @@ export const useCoachData = ({
 
         const sessionBookings = allBookings?.filter(b => b.session_id === session.id) || [];
         const trialCount = (session.trial_names as string[] | null)?.length || 0;
-        const confirmedCount = sessionBookings.filter(b => b.status === 'confirmed').length + trialCount;
+        // OG bookings are off-capacity — surfaced as a separate count for the second chip.
+        const confirmedCount = sessionBookings.filter(b => b.status === 'confirmed' && !b.is_og).length + trialCount;
+        const ogCount = sessionBookings.filter(b => b.status === 'confirmed' && b.is_og).length;
         const waitlistCount = sessionBookings.filter(b => b.status === 'waitlist').length;
 
         const trialNamesArr = (session.trial_names as string[] | null) || [];
@@ -134,7 +136,8 @@ export const useCoachData = ({
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           .map((b: any) => {
             const m = b.members;
-            return m?.display_name || m?.name || 'Unknown';
+            const label = m?.display_name || m?.name || 'Unknown';
+            return b.is_og ? `${label} (OG)` : label;
           })
           .concat(trialNamesArr.map(n => `${n} (trial)`))
           .sort((a: string, b: string) => a.localeCompare(b));
@@ -142,6 +145,7 @@ export const useCoachData = ({
         const bookingInfo = {
           session_id: session.id,
           confirmed_count: confirmedCount,
+          og_count: ogCount,
           waitlist_count: waitlistCount,
           capacity: session.capacity,
           time: session.time,
