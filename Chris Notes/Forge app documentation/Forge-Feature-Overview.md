@@ -38,7 +38,7 @@ There's no app-switching, no spreadsheets, no whiteboards that get erased. Just 
 
 ### Member & Class Management
 
-- **Self-registration with approval** — members sign up themselves; you approve, block, or manage their access
+- **Self-registration with approval** — members sign up themselves; you approve, block, or manage their access. Pending registrations that turn out to be spam, duplicates, or mistakes can be rejected with one click — the account and email are fully removed so the person can re-register from scratch
 - **At-risk alerts** — automatically flag members with declining attendance (configurable timeframe)
 - **Class scheduling** — define recurring session templates with day, time, type, and capacity. Generate weekly sessions automatically
 - **Booking management** — see who's booked, waitlisted, or no-showed. Add members manually or let them self-book
@@ -53,7 +53,7 @@ There's no app-switching, no spreadsheets, no whiteboards that get erased. Just 
 - **Score entry modal** — quick overlay modal on the coach calendar to enter scores for all booked athletes at once, with per-athlete scaling and track selection. Press Enter to jump to the same field on the next athlete for fast column entry
 - **Automatic lift record sync** — when a workout section includes a rep-max test (1RM, 3RM, 5RM, or 10RM), the score entry modal automatically shows a weight input. Coach enters the weight, and the athlete's lift records, progress charts, and calculated 1RM are updated instantly — no athlete input needed. PR detection and push notifications fire automatically
 - **Up to 3 scaling levels** — enable up to three independent scaling dropdowns per section for workouts with multiple scalable components (e.g. Rx lifts with scaled gymnastics and modified cardio). All scaling levels display as badges on the leaderboard and factor into ranking. Intuitive numbered toggle UI (1/2/3) in the workout builder — clicking a higher number auto-enables all lower levels
-- **Multi-track scoring** — assign athletes to Track 1, 2, or 3 per workout section. Tracks display on the leaderboard and sort within scaling level
+- **Multi-track scoring** — assign athletes to Track 1, 2, or 3 per workout section. Tracks display on the leaderboard and rank above scaling: a Track 1 (full-prescription) athlete on Sc1 ranks above a Track 2 (lighter / shorter) athlete on Rx, because the two tracks are effectively different workouts
 
 ### Achievements & Motivation
 

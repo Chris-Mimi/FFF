@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 183.0
-**Updated:** 2026-04-27 (Session 322 — Open Gym redesigned at booking level + trial-chip name match expanded)
+**Version:** 184.0
+**Updated:** 2026-04-28 (Session 323 — Pending-Reject button + leaderboard ranks Track above Scaling)
 
 ---
 
@@ -21,14 +21,20 @@
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history scan._
 
-**First action:** Build Reject/Delete button on Members Pending tab (Chris pulled this off backlog at S323 start — no UI affordance currently to remove pending members; S306 had to use SQL to clean up Claudia Herrmann).
+**First action:** None queued. S323 shipped two features (Reject button on Pending tab, leaderboard Track-above-Scaling) — both already live-verified by Chris. Pick from "Next Immediate Steps" below, or wait for new direction.
 
-**Files to open first if continuing code work:** Members Pending tab — start at [app/coach/members/page.tsx](app/coach/members/page.tsx).
+**Files to open first if continuing code work:** none queued.
 
 **Carry-over status:**
-- ✅ S322 OG flow live-verified (Chris confirmed S323 — tested working).
-- ⏳ S321 late-cancel TZ fix — Chris waiting on a real cancellation organically.
-- ❌ Membership-type confirm guard extension to class types — Chris declined (not necessary).
+- ✅ S323 Reject button — Chris tested, working. Live on Members → Pending tab.
+- ✅ S323 Leaderboard Track-above-Scaling — Chris tested ("Checked. ok").
+- ⏳ S321 late-cancel TZ fix — still waiting on a real organic cancellation to confirm.
+
+**Landmines (carry-over from prior sessions):**
+- **Anon key vs RLS in diagnostic scripts.** S323 burned time when `scripts/list-wods-with-track.ts` returned an empty set with the anon key — RLS on `wod_section_results` silently blocks it. Use `SUPABASE_SERVICE_ROLE_KEY` for any inspection script. Other scripts in `scripts/` may share the blind spot.
+- **Reject endpoint split-state edge case.** [app/api/members/reject/route.ts](app/api/members/reject/route.ts) deletes the `members` row first, then `auth.users`. If the auth delete fails (rare), the member is gone but the auth account lingers — error message tells coach to "contact support" so they know to investigate. No automatic rollback.
+- (Carry from S322) `bookings.is_og` migration is in production. OG path is fully live.
+- (Carry from S321) `Chris Notes/AA frequently used files/Notes for next session.md` is **Chris-owned** — Claude does NOT read or write its content, but DOES commit/push it when modified (two machines sync via git). Memory: `feedback_chris_notes_commit_but_dont_edit.md`.
 
 **Open questions still unanswered:** none active.
 
@@ -109,6 +115,15 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 323 (2026-04-28 — Opus 4.7) — PENDING-REJECT BUTTON + LEADERBOARD TRACK-ABOVE-SCALING:**
+- **Reject button on Members Pending tab.** S306 had to use raw SQL to remove Claudia Herrmann; no UI affordance existed. Chris chose option (b): full delete of both `members` and `auth.users` rows so the email is freed for clean re-registration. New endpoint [app/api/members/reject/route.ts](app/api/members/reject/route.ts) (`requireCoach`, verifies `status='pending'`, deletes from `members` then `auth.users` via `supabaseAdmin.auth.admin.deleteUser`). Wired through [hooks/coach/useMemberActions.ts](hooks/coach/useMemberActions.ts) `handleReject` (destructive confirm dialog), [components/coach/members/MemberCard.tsx](components/coach/members/MemberCard.tsx) (third button alongside Approve/Block, gray with red hover, `Trash2` icon), [app/coach/members/page.tsx](app/coach/members/page.tsx) (prop wiring).
+- **Leaderboard Track ranks above Scaling.** Chris's rule: tracks are effectively different workouts (Track 1 = full prescription, Track 2/3 = lighter / shorter variant), so a Track 1 Sc1 athlete should outrank a Track 2 Rx athlete. Old chain in [utils/leaderboard-utils.ts](utils/leaderboard-utils.ts) was `Tier → Scaling → Track → Score`; new chain `Tier → Track → Scaling → Score`. DNF still always last (Chris explicit). Same swap applied to `rankBenchmarkResults`. Verified on 2026-03-04 / 2026-03-16 Handstand Walk Drills sessions (all three tracks present).
+- **Diagnostic-script gotcha.** `scripts/list-wods-with-track.ts` first run with anon key returned zero results → I told Chris there was nothing to verify. Chris pushed back. Re-ran with service role: 23 sessions actually have track values. RLS on `wod_section_results` blocks anon entirely. Memory saved (`feedback_diagnostic_scripts_use_service_role.md`). Other scripts in `scripts/` use anon and may have the same blind spot — don't trust them for tables behind RLS.
+- **Chris Notes commit rule.** Misread S321's "don't read/write" rule as "don't commit" and left `Chris Notes/AA frequently used files/Notes for next session.md` in the working tree on the first commit pass. Chris flagged it (two machines sync via git). Committed afterwards as `chore: sync Chris's session notes`. Memory saved (`feedback_chris_notes_commit_but_dont_edit.md`).
+- **Pushback caught one direction wrong on Reject scope.** First-pass design didn't address the auth.users row at all — would have left orphaned auth records. Asked Chris explicitly between (a) members-only delete vs (b) full delete; he picked (b). Lesson: for any "delete user" feature, surface the auth-row question up front instead of assuming.
+- **TS clean throughout.** Three feature commits during the session (`f685439` reject, `2e8e9c7` leaderboard sort + script, `9c76834` script service-role fix); session-close commit bundles docs + memory.
+- **Carry-over:** none — both features live-verified.
+
 **Session 322 (2026-04-27 — Opus 4.7) — OG REDESIGNED AT BOOKING LEVEL + TRIAL CHIP NAME MATCH:**
 - **OG (Open Gym) moved from per-section to per-booking.** Old design: coach toggled `wod_section_results.open_gym` per athlete per section in the score-entry chip. Chris's new model: OG is decided when admitting the athlete to the session — they're attending but not doing the WOD (returning from injury, rehab, pregnant). They get an OG flag on the booking, don't count toward capacity, and don't appear in Score Entry at all. Edge case: if an OG athlete changes their mind and does the WOD, coach toggles OG off in Session Management first, then they reappear in Score Entry. Chris explicitly chose this minimal path (B1) over a score-entry override.
 - **New column: `bookings.is_og BOOLEAN DEFAULT false`.** [database/add-is-og-to-bookings.sql](database/add-is-og-to-bookings.sql) — migration adds the column with a partial index on `(session_id) WHERE is_og=true` and DROPS the legacy `wod_section_results.open_gym` column. Chris confirmed only 1 historical OG row exists (from last week); irrelevant once the column is gone.
@@ -156,20 +171,7 @@ Athlete Tools
 - **TS clean.** Three feature commits: `523c1266` (rebooking constraint v2), `50590328` (cash-monthly path), `6df9e45a` (Athletes tab clarity).
 - **Carry-over:** Chris still needs to click the new 30d button on Nikolina's card to migrate her from `'trial'` to `'active'` (her existing trial row will be overwritten with start=today, end=today+30).
 
-**Session 318 (2026-04-26 — Opus 4.7) — MULTI-FIX (CHANGE-PASSWORD, SEARCH, TZ, SUBSCRIPTION GATE, REORG):**
-- **Athlete Change Password** — button on athlete Security tab was a stub with no `onClick`. Wired it up via `supabase.auth.updateUser` mirroring the coach profile pattern. Inline expand within the tab. [components/athlete/AthletePageSecurityTab.tsx](components/athlete/AthletePageSecurityTab.tsx)
-- **Coach Members live search** — added a search input above the member grid (filters by name/display_name/email, case-insensitive substring, combines with existing tab/membership/class/age filters). [hooks/coach/useMemberData.ts](hooks/coach/useMemberData.ts) + [app/coach/members/page.tsx](app/coach/members/page.tsx)
-- **CRLF/Synology line-endings fix** — diagnosed 358-file phantom diff. Created `.gitattributes` with `* text=auto eol=lf` + ran `git add --renormalize .` (430 files normalized in one commit). NOTE: `.gitattributes` was initially missed by the renormalize commit because it was untracked; the follow-up commit `3032a35` actually added it to the repo.
-- **Next-week release timezone fix** — `getMaxVisibleSessionDate` in [lib/bookingRules.ts](lib/bookingRules.ts) was using `new Date()/getDay()/setHours()` which run in server-local time = UTC on Vercel. A release time of `16:00` was being interpreted as UTC = 18:00 CEST, blocking next-week bookings for an extra 2h every Sunday. Now uses `Intl.DateTimeFormat` with `timeZone: 'Europe/Berlin'` to evaluate "now" and convert wall-time → UTC instant. Works across CET/CEST. **CHRIS BAND-AID:** dropped release time to `14:00` to unblock today's bookings while the fix deployed; needs to reset to `16:00` in Admin → Booking Rules before next Sunday or release will fire 4h early.
-- **Athlete subscription gate fix** — Aline von Rüden (10-card holder) couldn't subscribe to the Athlete App; saw "Membership type not assigned. Please contact your coach." Old gate required `member` or `wellpass` in `membership_types`. Chris's actual rule: only `member` (regular gym members) gets the discount Member tier (€8/mo); everyone else (`wellpass`, `10`, `Hf`, `Di`) pays the Wellpass tier (€10/mo). Touches 3 files: [components/athlete/AthletePagePaymentTab.tsx](components/athlete/AthletePagePaymentTab.tsx) (gate + section title "Standard Plan"), [app/api/stripe/create-checkout/route.ts](app/api/stripe/create-checkout/route.ts) (server validation), [components/coach/members/MemberCard.tsx](components/coach/members/MemberCard.tsx) (1yr/∞ activation buttons require any ticked type, not specifically Mb/Wp; orange hint changed to "Tick a membership type first").
-- **Stripe fees doc** — Chris asked about Stripe fees on €100/yr and €8/mo plans. Wrote `Chris Notes/Deployment/stripe-fees-athlete-app.md` with both tier comparisons. Key insight: monthly billing nets ~€13–17 more per athlete than yearly because the fixed €0.25 fee is a much smaller % of monthly charges + the lower yearly price wipes out fee efficiency.
-- **Chris Notes folder reorg** — added `.md` extensions to 10 files; created `Workflow & Git/`, `Deployment/`, `Database & Supabase/`, `Archive/` folders; moved 23 files in. Activated path updates in this file. **STAGING MISTAKE:** the booking-error patch (commit `d53bae8`) accidentally bundled the reorg renames because they were already staged from `git mv`. Functionally fine, but the commit message says only "fix(coach): expose real Supabase error" while the changeset includes 24 file renames.
-- **Booking error toast clarity** — generic "Failed to book member" was hiding the real Supabase error. Now extracts `.message`/`.details`/`.hint`/`.code` from the Supabase error object and detects the `unique_active_bookings` violation specifically. Required two attempts: first attempt did `String(error)` which produced `[object Object]` because Supabase errors are plain objects, not Error instances. Fixed in commit `1153275`.
-- **C. Schultz booking blocker (RESOLVED in S319):** initial diagnosis was wrong; the system was working as intended via the Undo button on late_cancel rows. See S319 entry for details.
-- **OG attendance flow design — DEFERRED:** Chris wants OG-attended athletes to still appear booked. Three options proposed (A: new `attended_og` status, B: just allow re-book to confirmed, C: separate OG session type). Decision pending.
-- **Memory updates:** none new this session — issue causes are documented inline above.
-
-**Older sessions (57-317):** See `project-history/` folder.
+**Older sessions (57-318):** See `project-history/` folder.
 
 ---
 
@@ -194,17 +196,15 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-1. **Live-verify OG flow on deployed app** (migration already run S322; see Next Session Kickoff at top for verification steps).
-2. **Set up `next-intl` i18n (DE/EN bilingual)** — Chris plans to commercialize. The ~11 inlined German strings from S317 should migrate to `messages/de.json` + matching `messages/en.json`. ~1 day of dedicated work. Stop adding more inline German until this lands. Memory: `project_commercialization_and_i18n.md`.
-3. **Decide whether to extend the membership-type confirm guard to class types** (EKT / Tu / CFK / CFT) — same accidental-click risk applies to kids' class assignments. Chris not asked yet.
-4. **Build Reject/Delete button on Members Pending tab** — currently no UI affordance to remove pending members; only Approve/Unapprove. S306 had to use SQL to clean up Claudia Herrmann.
-5. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app.
-6. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
-7. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
-8. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing. **Note:** S305 backfill may have largely resolved this by retroactively booking whiteboard names; re-evaluate before doing the S251 work.
-9. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts` only filters bookings by `status='confirmed'` (and now `is_og=false`) and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
-10. **Test endpoint 410 cleanup** (deferred from S292) — route `app/api/notifications/test/route.ts` through `sendToSubscription` so expired subs auto-delete on Send Test.
-11. **Improve `fetchWODs` error logging** — when Supabase errors stringify as `{}` in the catch block (as happened in S322 with the missing `is_og` column), the cause is hidden. Same fix as S318 booking-error toast: extract `.message`/`.code`/`.details`/`.hint`. Low priority.
+1. **Set up `next-intl` i18n (DE/EN bilingual)** — Chris plans to commercialize. The ~11 inlined German strings from S317 should migrate to `messages/de.json` + matching `messages/en.json`. ~1 day of dedicated work. Stop adding more inline German until this lands. Memory: `project_commercialization_and_i18n.md`.
+2. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app.
+3. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
+4. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
+5. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing. **Note:** S305 backfill may have largely resolved this by retroactively booking whiteboard names; re-evaluate before doing the S251 work.
+6. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts` only filters bookings by `status='confirmed'` (and now `is_og=false`) and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
+7. **Test endpoint 410 cleanup** (deferred from S292) — route `app/api/notifications/test/route.ts` through `sendToSubscription` so expired subs auto-delete on Send Test.
+8. **Improve `fetchWODs` error logging** — when Supabase errors stringify as `{}` in the catch block (as happened in S322 with the missing `is_og` column), the cause is hidden. Same fix as S318 booking-error toast: extract `.message`/`.code`/`.details`/`.hint`. Low priority.
+9. **Audit other diagnostic scripts in `scripts/` for anon-key blind spot** (S323) — `check-ghost-scaling.ts` and others use `NEXT_PUBLIC_SUPABASE_ANON_KEY`; if they query RLS-protected tables they may silently return empty. Switch to service role.
 
 ---
 
