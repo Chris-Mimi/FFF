@@ -19,6 +19,8 @@ http://192.168.178.75:3000
 * Has Fabian's parent got a login, if so who?
 * IDEA: Put names of booked athletes in Whiteboard Intro so they also go into Google Calendar or find another way to register them in Google Calendar.
 * Nadine has 2 email addresses registered, which one has Leonhard as her family?
+* Mimi couldn't add a trial athlete
+* At Risk list. Guardian Only should not appear in the "At Risk" list as they will never appear in a session.
 
 * Workouts page: Exercise acronyms don't make sense
 * Barbell names do we need "Barbell"
