@@ -413,6 +413,46 @@ export function useMemberActions(
     }
   };
 
+  const handleSetPaymentMethod = async (memberId: string, method: MembershipType | null) => {
+    try {
+      const { error } = await supabase
+        .from('members')
+        .update({ primary_payment_method: method })
+        .eq('id', memberId);
+
+      if (error) throw error;
+
+      setMembers(prevMembers =>
+        prevMembers.map(m =>
+          m.id === memberId ? { ...m, primary_payment_method: method } : m
+        )
+      );
+    } catch (error) {
+      console.error('Error updating primary payment method:', error);
+      toast.error('Failed to update payment method');
+    }
+  };
+
+  const handleSetTenCardHolder = async (memberId: string, holderId: string | null) => {
+    try {
+      const { error } = await supabase
+        .from('members')
+        .update({ ten_card_holder_id: holderId })
+        .eq('id', memberId);
+
+      if (error) throw error;
+
+      setMembers(prevMembers =>
+        prevMembers.map(m =>
+          m.id === memberId ? { ...m, ten_card_holder_id: holderId } : m
+        )
+      );
+    } catch (error) {
+      console.error('Error updating 10-card holder:', error);
+      toast.error('Failed to update 10-card holder');
+    }
+  };
+
   const handleToggleGuardianOnly = async (memberId: string, guardianOnly: boolean) => {
     try {
       const { error } = await supabase
@@ -454,5 +494,7 @@ export function useMemberActions(
     handleToggleClassType,
     handleSetGender,
     handleToggleGuardianOnly,
+    handleSetPaymentMethod,
+    handleSetTenCardHolder,
   };
 }

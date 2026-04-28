@@ -32,7 +32,17 @@ export interface Member {
   class_types: ClassType[];
   gender: 'M' | 'F' | null;
   guardian_only: boolean;
+  primary_payment_method: MembershipType | null;
+  ten_card_holder_id: string | null;
+  ten_card_holder_name?: string | null;
 }
+
+// Effective payment method for self-bookings: explicit field wins, else first in membership_types.
+// Returns null if member has no membership types at all.
+export const getEffectivePaymentMethod = (member: Pick<Member, 'primary_payment_method' | 'membership_types'>): MembershipType | null => {
+  if (member.primary_payment_method) return member.primary_payment_method;
+  return member.membership_types?.[0] ?? null;
+};
 
 export const MEMBERSHIP_TYPE_LABELS: Record<MembershipType, string> = {
   member: 'Mb',

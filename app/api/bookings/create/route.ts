@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
     const { data: member } = await supabase
       .from('members')
       .select(`
-        id, status, membership_types,
+        id, status, membership_types, primary_payment_method, ten_card_holder_id,
         ten_card_sessions_used, ten_card_total, ten_card_expiry_date,
         athlete_subscription_status, athlete_subscription_end
       `)
@@ -95,30 +95,59 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check 10-card status (if member has ten_card membership type)
-    const hasTenCardMembership = member.membership_types?.includes('ten_card') || false;
+    // Resolve effective payment method: explicit primary_payment_method wins, else first
+    // membership type. This disambiguates multi-membership members (e.g. Miriam =
+    // wellpass + ten_card; her self-bookings should not burn her kids' card).
+    const effectiveMethod = member.primary_payment_method || member.membership_types?.[0] || null;
+    const usesTenCard = effectiveMethod === 'ten_card';
     const now = new Date();
 
-    const tenCardTotal = member.ten_card_total || 10;
-    const tenCardUsed = member.ten_card_sessions_used || 0;
-    const tenCardRemaining = tenCardTotal - tenCardUsed;
-    const tenCardExpired = member.ten_card_expiry_date && new Date(member.ten_card_expiry_date) < now;
-    const hasTenCardSessions = tenCardRemaining > 0 && !tenCardExpired;
+    // Resolve 10-card holder. NULL = debit own card; otherwise debit a different member's
+    // card (kid sharing parent's card, e.g. Miriam's three kids).
+    const holderId = usesTenCard ? (member.ten_card_holder_id || member.id) : null;
 
-    // Determine if we should decrement 10-card counter
-    const use10Card = hasTenCardMembership && hasTenCardSessions;
-
-    // Block booking ONLY if member has 10-card membership but no sessions left
-    if (hasTenCardMembership && !hasTenCardSessions) {
-      let errorMessage = 'Your 10-card has no sessions remaining. ';
-      if (tenCardExpired) {
-        errorMessage = 'Your 10-card has expired. ';
+    let holderCard: { id: string; ten_card_sessions_used: number; ten_card_total: number | null; ten_card_expiry_date: string | null } | null = null;
+    if (usesTenCard) {
+      if (holderId === member.id) {
+        holderCard = {
+          id: member.id,
+          ten_card_sessions_used: member.ten_card_sessions_used || 0,
+          ten_card_total: member.ten_card_total,
+          ten_card_expiry_date: member.ten_card_expiry_date,
+        };
+      } else {
+        const { data: holder } = await supabase
+          .from('members')
+          .select('id, ten_card_sessions_used, ten_card_total, ten_card_expiry_date')
+          .eq('id', holderId)
+          .single();
+        holderCard = holder;
       }
-      errorMessage += 'Please purchase a new 10-card to book classes.';
-      return NextResponse.json(
-        { error: errorMessage },
-        { status: 402 } // Payment Required
-      );
+    }
+
+    // Validate 10-card balance and expiry on the holder's card.
+    let tenCardRemaining = 0;
+    if (usesTenCard) {
+      if (!holderCard) {
+        return NextResponse.json(
+          { error: '10-card holder not found' },
+          { status: 400 }
+        );
+      }
+      const total = holderCard.ten_card_total || 10;
+      const used = holderCard.ten_card_sessions_used || 0;
+      tenCardRemaining = total - used;
+      const expired = holderCard.ten_card_expiry_date && new Date(holderCard.ten_card_expiry_date) < now;
+      if (tenCardRemaining <= 0 || expired) {
+        let errorMessage = expired
+          ? 'The 10-card has expired. '
+          : 'The 10-card has no sessions remaining. ';
+        errorMessage += 'Please purchase a new 10-card to book classes.';
+        return NextResponse.json(
+          { error: errorMessage },
+          { status: 402 } // Payment Required
+        );
+      }
     }
 
     // Check if session exists and is published
@@ -271,30 +300,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Increment 10-card sessions used if using 10-card payment method
+    // Increment 10-card sessions used on the HOLDER's card (not the booking member's
+    // own card if they share with a primary). Failure is logged, not surfaced — the
+    // booking is already created.
     let newTenCardRemaining = tenCardRemaining;
-    if (booking.status === 'confirmed' && use10Card) {
+    if (booking.status === 'confirmed' && usesTenCard && holderCard) {
       try {
-        // Safety check: ensure counter doesn't exceed total
-        const newSessionsUsed = Math.min(tenCardUsed + 1, tenCardTotal);
+        const total = holderCard.ten_card_total || 10;
+        const used = holderCard.ten_card_sessions_used || 0;
+        const newSessionsUsed = Math.min(used + 1, total);
 
-        // Increment the sessions used counter
         const { error: updateError } = await supabase
           .from('members')
           .update({
             ten_card_sessions_used: newSessionsUsed
           })
-          .eq('id', bookingMemberId);
+          .eq('id', holderCard.id);
 
         if (updateError) {
           console.error('Failed to increment 10-card sessions:', updateError);
-          // Don't fail the booking for this - just log it
         } else {
-          newTenCardRemaining = tenCardTotal - newSessionsUsed;
+          newTenCardRemaining = total - newSessionsUsed;
         }
       } catch (error) {
         console.error('Error handling 10-card logic:', error);
-        // Don't fail the booking for this
       }
     }
 
@@ -327,7 +356,7 @@ export async function POST(request: NextRequest) {
     };
 
     // Add 10-card warning if applicable
-    if (use10Card && booking.status === 'confirmed') {
+    if (usesTenCard && booking.status === 'confirmed') {
       response.paymentInfo = {
         type: '10card',
         sessionsRemaining: newTenCardRemaining,

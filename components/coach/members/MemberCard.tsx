@@ -14,6 +14,7 @@ import {
   getAge,
   formatMemberDate,
   getTrialStatus,
+  getEffectivePaymentMethod,
 } from '@/types/member';
 
 interface MemberCardProps {
@@ -36,6 +37,8 @@ interface MemberCardProps {
   onToggleClassType: (memberId: string, type: ClassType, currentClassTypes: ClassType[]) => void;
   onSetGender: (memberId: string, gender: 'M' | 'F' | null) => void;
   onToggleGuardianOnly: (memberId: string, guardianOnly: boolean) => void;
+  onSetPaymentMethod: (memberId: string, method: MembershipType | null) => void;
+  onSetTenCardHolder: (memberId: string, holderId: string | null) => void;
   onOpenTenCard: (member: Member) => void;
 }
 
@@ -76,6 +79,8 @@ export default function MemberCard({
   onToggleClassType,
   onSetGender,
   onToggleGuardianOnly,
+  onSetPaymentMethod,
+  onSetTenCardHolder,
   onOpenTenCard,
 }: MemberCardProps) {
   const [selectedWhiteboardName, setSelectedWhiteboardName] = useState<string>('');
@@ -213,6 +218,66 @@ export default function MemberCard({
               );
             })}
           </div>
+
+          {/* Primary payment method radio — only when member has 2+ membership types.
+              Disambiguates which one debits on self-bookings (e.g., Miriam has both
+              Wellpass and 10-Card; Wellpass for self, 10-Card for kids). */}
+          {(member.membership_types?.length ?? 0) > 1 && (
+            <div className="flex gap-2 mt-2 items-center flex-wrap">
+              <span className="text-xs text-gray-400 font-medium">Pay with:</span>
+              {(member.membership_types || []).map(type => (
+                <button
+                  key={type}
+                  onClick={() => onSetPaymentMethod(member.id, type)}
+                  className={`px-2 py-1 rounded text-xs font-medium cursor-pointer transition ${
+                    member.primary_payment_method === type
+                      ? MEMBERSHIP_TYPE_COLORS[type].active
+                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  }`}
+                >
+                  {MEMBERSHIP_TYPE_LABELS[type]}
+                </button>
+              ))}
+              {!member.primary_payment_method && (
+                <span className="text-[10px] text-amber-400">Pick one to disambiguate self-bookings</span>
+              )}
+            </div>
+          )}
+
+          {/* 10-card holder toggle — only for family members whose effective payment method
+              is ten_card. Lets coach mark "this kid shares the parent's 10-card" (e.g., Miriam's
+              three kids on one card). When off, the kid debits their own 10-card.
+              Hidden for 'member'/'wellpass'/etc. family members where 10-card sharing is irrelevant. */}
+          {member.account_type === 'family_member' &&
+            member.primary_member_id &&
+            member.primary_member_name &&
+            getEffectivePaymentMethod(member) === 'ten_card' && (
+            <div className="flex gap-2 mt-2 items-center flex-wrap">
+              <span className="text-xs text-gray-400 font-medium">10-card debits:</span>
+              <button
+                onClick={() => onSetTenCardHolder(member.id, null)}
+                className={`px-2 py-1 rounded text-xs font-medium cursor-pointer transition ${
+                  !member.ten_card_holder_id
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+                title="This member's own 10-card is debited on their bookings"
+              >
+                Own card
+              </button>
+              <button
+                onClick={() => onSetTenCardHolder(member.id, member.primary_member_id)}
+                className={`px-2 py-1 rounded text-xs font-medium cursor-pointer transition ${
+                  member.ten_card_holder_id === member.primary_member_id
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+                title={`${member.primary_member_name}'s 10-card is debited on this member's bookings`}
+              >
+                {member.primary_member_name}&apos;s card
+              </button>
+            </div>
+          )}
 
           {/* Gender Toggle */}
           <div className="flex gap-2 mt-2 items-center">

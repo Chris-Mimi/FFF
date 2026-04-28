@@ -128,7 +128,7 @@ export function useMemberData() {
     const daysParam = timeframe === 'all' ? 36500 : timeframe;
     setLoading(true);
     try {
-      let query = supabase.from('members').select('id, email, name, display_name, phone, status, account_type, primary_member_id, athlete_trial_start, athlete_subscription_status, athlete_subscription_start, athlete_subscription_end, subscription_tier, created_at, membership_types, ten_card_purchase_date, ten_card_sessions_used, ten_card_total, ten_card_expiry_date, date_of_birth, class_types, gender, guardian_only');
+      let query = supabase.from('members').select('id, email, name, display_name, phone, status, account_type, primary_member_id, athlete_trial_start, athlete_subscription_status, athlete_subscription_start, athlete_subscription_end, subscription_tier, created_at, membership_types, ten_card_purchase_date, ten_card_sessions_used, ten_card_total, ten_card_expiry_date, date_of_birth, class_types, gender, guardian_only, primary_payment_method, ten_card_holder_id');
 
       if (status === 'subscriptions') {
         query = query

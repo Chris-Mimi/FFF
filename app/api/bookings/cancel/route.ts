@@ -126,17 +126,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Refund 10-card session with grace period
+    // Refund 10-card session with grace period.
+    // Walk to the actual holder of the card (kid sharing parent's card → refund parent's row).
     let refundMessage = '';
     if (booking.status === 'confirmed') {
       const { data: member } = await supabase
         .from('members')
-        .select('ten_card_sessions_used, membership_types')
+        .select('id, ten_card_sessions_used, membership_types, primary_payment_method, ten_card_holder_id')
         .eq('id', booking.member_id)
         .single();
 
-      const hasTenCardMembership = member?.membership_types?.includes('ten_card') || false;
-      const tenCardUsed = member?.ten_card_sessions_used || 0;
+      const effectiveMethod = member?.primary_payment_method || member?.membership_types?.[0] || null;
+      const usesTenCard = effectiveMethod === 'ten_card';
+      const holderId = usesTenCard && member ? (member.ten_card_holder_id || member.id) : null;
+
+      let holderUsed = 0;
+      if (usesTenCard && member) {
+        if (holderId === member.id) {
+          holderUsed = member.ten_card_sessions_used || 0;
+        } else {
+          const { data: holder } = await supabase
+            .from('members')
+            .select('ten_card_sessions_used')
+            .eq('id', holderId)
+            .single();
+          holderUsed = holder?.ten_card_sessions_used || 0;
+        }
+      }
 
       // Grace period from coach-configurable booking rules
       const rules = await getBookingRules();
@@ -150,15 +166,14 @@ export async function POST(request: NextRequest) {
         withinGracePeriod = hoursUntilSession >= gracePeriodHours;
       }
 
-      // Refund if: 10-card member, has used sessions, and within grace period
-      if (hasTenCardMembership && tenCardUsed > 0 && withinGracePeriod) {
+      if (usesTenCard && holderId && holderUsed > 0 && withinGracePeriod) {
         try {
           const { error: updateError } = await supabase
             .from('members')
             .update({
-              ten_card_sessions_used: tenCardUsed - 1
+              ten_card_sessions_used: holderUsed - 1
             })
-            .eq('id', booking.member_id);
+            .eq('id', holderId);
 
           if (updateError) {
             console.error('Failed to refund 10-card session:', updateError);
@@ -168,7 +183,7 @@ export async function POST(request: NextRequest) {
         } catch (error) {
           console.error('Error handling 10-card refund:', error);
         }
-      } else if (hasTenCardMembership && !withinGracePeriod) {
+      } else if (usesTenCard && !withinGracePeriod) {
         refundMessage = ` Note: 10-card session NOT refunded (cancellation less than ${gracePeriodHours} hours before class).`;
       }
     }
@@ -225,25 +240,43 @@ export async function POST(request: NextRequest) {
           .update({ status: 'confirmed', updated_at: new Date().toISOString() })
           .eq('id', firstWaitlist.id);
 
-        // Increment 10-card if promoted member has 10-card membership
+        // Increment 10-card on the promoted member's holder (own card or shared parent card).
         const { data: promotedMember } = await supabase
           .from('members')
-          .select('membership_types, ten_card_sessions_used, ten_card_total')
+          .select('id, membership_types, primary_payment_method, ten_card_holder_id, ten_card_sessions_used, ten_card_total')
           .eq('id', firstWaitlist.member_id)
           .single();
 
-        const promotedHasTenCardMembership = promotedMember?.membership_types?.includes('ten_card') || false;
-        const promotedTenCardUsed = promotedMember?.ten_card_sessions_used || 0;
-        const promotedTenCardTotal = promotedMember?.ten_card_total || 10;
-        const promotedHasSessions = promotedTenCardUsed < promotedTenCardTotal;
+        const promotedMethod = promotedMember?.primary_payment_method || promotedMember?.membership_types?.[0] || null;
+        const promotedUsesTenCard = promotedMethod === 'ten_card';
+        const promotedHolderId = promotedUsesTenCard && promotedMember
+          ? (promotedMember.ten_card_holder_id || promotedMember.id)
+          : null;
 
-        if (promotedHasTenCardMembership && promotedHasSessions) {
-          await supabase
-            .from('members')
-            .update({
-              ten_card_sessions_used: promotedTenCardUsed + 1
-            })
-            .eq('id', firstWaitlist.member_id);
+        if (promotedUsesTenCard && promotedHolderId && promotedMember) {
+          let holderUsed: number;
+          let holderTotal: number;
+          if (promotedHolderId === promotedMember.id) {
+            holderUsed = promotedMember.ten_card_sessions_used || 0;
+            holderTotal = promotedMember.ten_card_total || 10;
+          } else {
+            const { data: holder } = await supabase
+              .from('members')
+              .select('ten_card_sessions_used, ten_card_total')
+              .eq('id', promotedHolderId)
+              .single();
+            holderUsed = holder?.ten_card_sessions_used || 0;
+            holderTotal = holder?.ten_card_total || 10;
+          }
+
+          if (holderUsed < holderTotal) {
+            await supabase
+              .from('members')
+              .update({
+                ten_card_sessions_used: holderUsed + 1
+              })
+              .eq('id', promotedHolderId);
+          }
         }
 
         // Notify promoted member
