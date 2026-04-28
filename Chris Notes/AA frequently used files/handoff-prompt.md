@@ -17,7 +17,7 @@ Paste this verbatim to Claude when context hits ~70%. Do NOT start new work afte
 > 7. **Next concrete action** — the very first thing next-session-Claude should do.
 > 8. **Files to open first** — ranked, with line numbers if relevant.
 >
-> Write it to `Chris Notes/AA frequently used files/Notes for next session.md` (overwrite). Then read it back and flag anything vague, missing, or that assumes context you have but the next session won't. Then stop — do not start new work, do not update memory bank (that happens next session).
+> Write it to `memory-bank/handoff.md` (overwrite — only one in-flight handoff at a time). Then read it back and flag anything vague, missing, or that assumes context you have but the next session won't. Then stop — do not start new work, do not update memory bank (that happens next session). **Do NOT touch `Chris Notes/AA frequently used files/Notes for next session.md` — that's Chris's personal notepad.**
 
 ---
 
@@ -37,7 +37,7 @@ Paste this verbatim to Claude when context hits ~70%. Do NOT start new work afte
 
 ## After pasting
 
-1. Verify the handoff doc is written and covers the 8 points.
+1. Verify `memory-bank/handoff.md` is written and covers the 8 points.
 2. Commit any safe-to-commit uncommitted work (ask Claude which files).
 3. Close the session.
-4. Next session: paste a short "continue from handoff" prompt; Claude reads memory bank + handoff doc and picks up.
+4. Next session: paste a short "continue from handoff" prompt; Claude reads memory bank + `memory-bank/handoff.md` and picks up.

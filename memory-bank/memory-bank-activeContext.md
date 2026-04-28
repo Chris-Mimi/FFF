@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 184.0
-**Updated:** 2026-04-28 (Session 323 — Pending-Reject button + leaderboard ranks Track above Scaling)
+**Version:** 185.0
+**Updated:** 2026-04-28 (Session 324 — 10-Card blindspots: family-shared cards, Guardian Only enforcement, Members popup edit parity)
 
 ---
 
@@ -21,30 +21,29 @@
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history scan._
 
-**First action:** None queued. S323 shipped two features (Reject button on Pending tab, leaderboard Track-above-Scaling) — both already live-verified by Chris. Pick from "Next Immediate Steps" below, or wait for new direction.
+**First action:** None queued. S324 shipped three related features (family-shared 10-cards, Guardian Only enforcement, Members popup edit parity). All live-verified by Chris. Pick from "Next Immediate Steps" below, or wait for new direction.
 
 **Files to open first if continuing code work:** none queued.
 
 **Carry-over status:**
-- ✅ S323 Reject button — Chris tested, working. Live on Members → Pending tab.
-- ✅ S323 Leaderboard Track-above-Scaling — Chris tested ("Checked. ok").
+- ✅ S324 Session A (family 10-cards) — Chris tested with Athlete Test 1, working.
+- ✅ S324 Session B (Guardian Only) — toggled Athlete Test 1 to guardian-only and back, both directions confirmed working.
+- ✅ S324 Session C (TenCardModal sessions-used input) — implemented, no specific test feedback (low risk: simple input → save).
+- ⚠️ **Manual data setup pending for Miriam Jacht's family.** Migration ran clean; only Miriam was multi-type ambiguous. Chris needs to (a) set Miriam's `primary_payment_method='wellpass'` via the new Members UI, and (b) ensure Aries / Anton / Adrian are registered as her family_members with `primary_payment_method='ten_card'` and `ten_card_holder_id=Miriam.id`. Without this setup, kid bookings won't debit Miriam's card. Carmine + Sandro's existing setup needs no changes (Sandro has own card).
 - ⏳ S321 late-cancel TZ fix — still waiting on a real organic cancellation to confirm.
 
-**Landmines (carry-over from prior sessions):**
-- **Anon key vs RLS in diagnostic scripts.** S323 burned time when `scripts/list-wods-with-track.ts` returned an empty set with the anon key — RLS on `wod_section_results` silently blocks it. Use `SUPABASE_SERVICE_ROLE_KEY` for any inspection script. Other scripts in `scripts/` may share the blind spot.
-- **Reject endpoint split-state edge case.** [app/api/members/reject/route.ts](app/api/members/reject/route.ts) deletes the `members` row first, then `auth.users`. If the auth delete fails (rare), the member is gone but the auth account lingers — error message tells coach to "contact support" so they know to investigate. No automatic rollback.
-- (Carry from S322) `bookings.is_og` migration is in production. OG path is fully live.
-- (Carry from S321) `Chris Notes/AA frequently used files/Notes for next session.md` is **Chris-owned** — Claude does NOT read or write its content, but DOES commit/push it when modified (two machines sync via git). Memory: `feedback_chris_notes_commit_but_dont_edit.md`.
+**Landmines:**
+- **Migration `database/add-payment-method-and-tencard-holder.sql` is in production.** Adds `members.primary_payment_method` (text, CHECK constraint enforces enum) and `members.ten_card_holder_id` (uuid FK to members, ON DELETE SET NULL). Backfill set `primary_payment_method` to first item in `membership_types` for unambiguous (single-type) members. Multi-type members stayed NULL and surface in the UI with an amber "Pick one" warning. SQL files are gitignored — re-run from a colleague's checkout requires getting the SQL from this commit (`630aff69`) or via Supabase migration history.
+- **Booking flow walks to a 10-card holder, not the booking member.** Three places use this walk: [app/api/bookings/create/route.ts](app/api/bookings/create/route.ts), [app/api/bookings/cancel/route.ts](app/api/bookings/cancel/route.ts) refund block + waitlist promotion. If a future change touches 10-card decrement logic, all three need the holder-walk preserved.
+- **Athletes tab has a JS-side guardian filter, not a SQL one** ([app/coach/athletes/page.tsx:64+](app/coach/athletes/page.tsx#L64)) — fetches all athlete_profiles, then queries members for guardian_only=true and filters in memory. Two-query approach because `athlete_profiles.user_id` and `members.id` both reference auth.users without a Supabase-recognised FK between them.
+- **TenCardModal save no longer auto-recalcs** ([components/coach/TenCardModal.tsx](components/coach/TenCardModal.tsx)). The "Recalc" button explicitly fills the input from confirmed bookings; save trusts what's typed. Old behavior (silent recalc on save) gone — if a coach changes purchase date and forgets to hit Recalc, sessions_used keeps its prior value.
+- **Anon key vs RLS in diagnostic scripts (S323).** Use `SUPABASE_SERVICE_ROLE_KEY` for inspection scripts on RLS-protected tables. Other scripts in `scripts/` may share the blind spot.
+- (Carry) `bookings.is_og` migration is in production. OG path fully live.
+- (Carry from S321) `Chris Notes/AA frequently used files/Notes for next session.md` is **Chris-owned** — Claude does NOT read/write its content, but DOES commit/push it when modified. Memory: `feedback_chris_notes_commit_but_dont_edit.md`.
+- (Carry) Trial-name match expanded to `members.name` / `display_name` / `whiteboard_name` (case-insensitive).
+- (Carry) `sessionStartInstant()` in [lib/bookingRules.ts](lib/bookingRules.ts) — TZ-safe session-start helper used by booking gates.
 
 **Open questions still unanswered:** none active.
-
-**Landmines:**
-- **Migration must run before deploy.** Code at [hooks/coach/useCoachData.ts:58](hooks/coach/useCoachData.ts#L58) and elsewhere SELECTs `is_og`. Without the column, the query fails silently (Supabase error stringifies as `{}`) and no WODs load. Symptom Chris hit during build: "Error fetching WODs: {}". Run the SQL first.
-- **`open_gym` column dropped.** [utils/leaderboard-utils.ts](utils/leaderboard-utils.ts) and [components/athlete/LeaderboardView.tsx](components/athlete/LeaderboardView.tsx) no longer reference it. The 1 historical OG row vanishes with the column drop — Chris confirmed it's of no consequence.
-- **OG athletes are filtered out of Score Entry server-side** in [app/api/score-entry/[sessionId]/route.ts](app/api/score-entry/[sessionId]/route.ts) via `.eq('is_og', false)`. If an OG athlete decides to do the WOD, coach toggles OG off in Session Management first → they reappear in Score Entry. Edge case per Chris's design (B1 — minimal risk, score-entry override path not built).
-- Trial-name match expanded to `members.name` / `display_name` / `whiteboard_name` (case-insensitive). New registrations don't set `whiteboard_name` so the broader match is required for green chips going forward.
-- TZ fix from S321 added `sessionStartInstant()` in [lib/bookingRules.ts](lib/bookingRules.ts). If anything booking-related regresses, suspect that helper.
-- `Chris Notes/AA frequently used files/Notes for next session.md` is **Chris-owned** as of S321. Do NOT read or write to it.
 
 ---
 
@@ -115,6 +114,31 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 324 (2026-04-28 — Opus 4.7) — 10-CARD BLINDSPOTS: FAMILY-SHARED CARDS, GUARDIAN ONLY, MEMBERS POPUP EDIT PARITY:**
+- **Trigger.** Chris flagged urgent: Miriam Jacht has Wellpass + 10-card; her three kids share that one card. Booking flow blindly debited her card on every self-booking (her membership_types includes `'ten_card'`, so the existing logic picked it). General rule needed for multi-membership households + family-shared 10-cards. Two adjacent issues bundled in: Guardian Only registrations shouldn't appear in Athletes tab, and Members popup 10-card editor was effectively read-only on `sessions_used` (had to switch to Athletes tab to edit).
+- **Three sub-sessions, one DB migration, four commits.**
+
+**Session A (commit `630aff69`) — Family-shared 10-cards + multi-membership disambiguation:**
+- Migration [database/add-payment-method-and-tencard-holder.sql](database/add-payment-method-and-tencard-holder.sql): adds `members.primary_payment_method` (text, CHECK constraint) and `members.ten_card_holder_id` (uuid FK ON DELETE SET NULL). Backfill set `primary_payment_method = membership_types[1]` for unambiguous single-type members. Multi-type members stayed NULL — surface in UI as amber warning. Audit query at S324 close found only Miriam ambiguous.
+- Booking flow walks to the 10-card HOLDER, not the booking member. [app/api/bookings/create/route.ts](app/api/bookings/create/route.ts) (debit + validation), [app/api/bookings/cancel/route.ts](app/api/bookings/cancel/route.ts) (refund block + waitlist-promotion debit). Helper `getEffectivePaymentMethod()` in [types/member.ts](types/member.ts).
+- MemberCard UI ([components/coach/members/MemberCard.tsx](components/coach/members/MemberCard.tsx)) gains "Pay with:" radio (only when `membership_types.length > 1`) and "10-card debits:" toggle (only when family_member AND effective method is `ten_card` — initially shown for all family_members; tightened mid-session after Chris flagged the warning showing on Irene Koffler's `member`-type kids).
+- `handleSetPaymentMethod` + `handleSetTenCardHolder` added to [hooks/coach/useMemberActions.ts](hooks/coach/useMemberActions.ts) (direct supabase patches, same pattern as `handleToggleGuardianOnly`).
+
+**Session B (commit `47632ea7`) — Guardian Only enforcement:**
+- Athletes tab ([app/coach/athletes/page.tsx](app/coach/athletes/page.tsx)) filters out guardian_only members. JS-side filter (two queries) because `athlete_profiles.user_id` and `members.id` share auth.users as parent without a Supabase-recognised FK between them.
+- `bookings/create` rejects self-bookings by guardian_only members ("Guardian-only accounts cannot book sessions. Book on behalf of a family member instead."). Family-member kids unaffected — they book via the existing primary→family path.
+- Note: the binary `guardian_only` toggle on MemberCard already existed (S272-ish). The "Guardian" derived badge from `primary_member_id` reverse lookup was discussed but NOT built — kept the existing single toggle. The auto-derived badge can be added later if Chris finds it useful.
+
+**Session C (commit `47632ea7`, same as B) — Members popup edit parity:**
+- [components/coach/TenCardModal.tsx](components/coach/TenCardModal.tsx) — "Sessions Used" is now an editable number input. Save uses what's typed (no auto-recalc on save). The old "Preview" button is now "Recalc" — explicit action to count from bookings, fills the input but doesn't auto-save.
+- Original plan was to extract a shared `<TenCardEditor>` between Members modal and Athletes tab `PaymentsSection.tsx`. Rejected mid-session: the two editors are structurally different (auto-calc-on-save vs manual-input). Pure refactor would require merging both behaviors into one component, which is a redesign, not a refactor. Patching TenCardModal to feature-parity is cheaper and sufficient.
+
+**Process moments worth remembering:**
+- **Pushback caught a UX miss in Session A.** First-pass MemberCard showed the "10-card debits:" toggle on every family_member regardless of payment method. Chris flagged it appearing on Irene Koffler's family (all `member`-type, no 10-card involvement). Tightened the gate to `getEffectivePaymentMethod(member) === 'ten_card'`. Lesson: when adding optional UI affordances to a list view, gate them on the actual data condition, not just the row type.
+- **Session-close handoff-prompt bug.** [Chris Notes/AA frequently used files/handoff-prompt.md](Chris%20Notes/AA%20frequently%20used%20files/handoff-prompt.md) line 20 was telling Claude to overwrite `Notes for next session.md` — directly contradicting the post-S304 rule (memory `feedback_dont_write_to_notes_for_next_session.md`). Redirected to `memory-bank/handoff.md` and added an explicit "do NOT touch Chris's Notes" guard to the prompt.
+- **TS clean** through all four commits. Each Session committed and pushed before moving to the next.
+- **Migration ran from Chris's machine via Supabase SQL Editor.** I drafted, Chris ran, audit query returned only Miriam — confirming the backfill worked.
+
 **Session 323 (2026-04-28 — Opus 4.7) — PENDING-REJECT BUTTON + LEADERBOARD TRACK-ABOVE-SCALING:**
 - **Reject button on Members Pending tab.** S306 had to use raw SQL to remove Claudia Herrmann; no UI affordance existed. Chris chose option (b): full delete of both `members` and `auth.users` rows so the email is freed for clean re-registration. New endpoint [app/api/members/reject/route.ts](app/api/members/reject/route.ts) (`requireCoach`, verifies `status='pending'`, deletes from `members` then `auth.users` via `supabaseAdmin.auth.admin.deleteUser`). Wired through [hooks/coach/useMemberActions.ts](hooks/coach/useMemberActions.ts) `handleReject` (destructive confirm dialog), [components/coach/members/MemberCard.tsx](components/coach/members/MemberCard.tsx) (third button alongside Approve/Block, gray with red hover, `Trash2` icon), [app/coach/members/page.tsx](app/coach/members/page.tsx) (prop wiring).
 - **Leaderboard Track ranks above Scaling.** Chris's rule: tracks are effectively different workouts (Track 1 = full prescription, Track 2/3 = lighter / shorter variant), so a Track 1 Sc1 athlete should outrank a Track 2 Rx athlete. Old chain in [utils/leaderboard-utils.ts](utils/leaderboard-utils.ts) was `Tier → Scaling → Track → Score`; new chain `Tier → Track → Scaling → Score`. DNF still always last (Chris explicit). Same swap applied to `rankBenchmarkResults`. Verified on 2026-03-04 / 2026-03-16 Handstand Walk Drills sessions (all three tracks present).
@@ -163,15 +187,7 @@ Athlete Tools
 - **`detectScoringType` priority gotcha (worth remembering):** sections with both `load: true` AND `reps: true` resolve to `'reps'` not `'weight'`, because reps wins priority at [utils/leaderboard-utils.ts:138](utils/leaderboard-utils.ts#L138) before the load check at line 139.
 - **TS clean.** Single-file change. Not yet committed at time of writing — committing as part of close.
 
-**Session 319 (2026-04-26 — Opus 4.7) — REBOOKING CONSTRAINT CORRECTION + CASH-MONTHLY ACTIVATION:**
-- **Rebooking unique-index correction.** S318 had drafted a migration that excluded both `late_cancel` AND `coach_cancelled` from the partial unique index on bookings. Chris ran a v1 of that, then realised the system was already working as intended for `late_cancel` — the coach UI has an Undo button (`handleUndoLateCancel`) that flips the existing row back to `confirmed`, so a fresh INSERT was never needed. Broadening the index for `late_cancel` would allow duplicate (session_id, member_id) rows. `coach_cancelled` has NO undo path, so it must remain excluded. Wrote [database/fix-rebooking-constraint-v2.sql](database/fix-rebooking-constraint-v2.sql) with the correct rule: `WHERE status NOT IN ('cancelled', 'coach_cancelled')`. Chris ran it. Carole Schultz was already re-booked (Undo did the work).
-- **Cash-monthly activation path (new feature).** Diagnosed three intertwined symptoms: Nikolina's card said "30 days left" with no start date while Andreas (1yr cash) said "Subscribed: today + Active (1yr)"; both showed "No active subscriptions" on the Athletes coach tab; no renewal reminder would fire for Nikolina. Root cause: the codebase only had Start Trial (`status='trial'`) and Activate 1yr / ∞ (`status='active'`) — no path for paying-cash-monthly customers. Coaches were forced to use Start Trial for cash-monthly people, which left them in `'trial'` status (excluded from the expiring-soon notification filter; "Subscribed: <date>" line on MemberCard is gated to `status === 'active'` only). Five files: [app/api/members/athlete-subscription/route.ts](app/api/members/athlete-subscription/route.ts) new `activate_monthly` action, [hooks/coach/useMemberActions.ts](hooks/coach/useMemberActions.ts) new `handleActivateMonthly`, [components/coach/members/MemberCard.tsx](components/coach/members/MemberCard.tsx) new "30d" lime button alongside 1yr / ∞, [app/coach/members/page.tsx](app/coach/members/page.tsx) wires the prop, [types/member.ts](types/member.ts) `getTrialStatus` distinguishes Cash Monthly vs Cash 1yr via `end - start ≤ 45d` heuristic and shows "Active — Cash Monthly (Xd left)".
-- **Athletes tab subscription clarity.** [components/coach/athletes/PaymentsSection.tsx](components/coach/athletes/PaymentsSection.tsx) only queried Stripe `subscriptions` table — coach-activated members showed "No active subscriptions" even when they had a coach-managed plan. Now extends the SELECT to include `athlete_subscription_status/start/end`, and when no Stripe row exists but the member has `'active'` or `'trial'` athlete subscription, renders a coach-managed card with label, dates, days-left, and a small note "Coach-managed access (no Stripe subscription on file)". Empty-state copy clarified for the truly-no-access case.
-- **Renewal reminder** for Nikolina once she's moved to `status='active'` (cash monthly): the existing 14-day expiring-soon notification flow ([useMemberData.ts:319+](hooks/coach/useMemberData.ts#L319)) already covers `status='active'` + `athlete_subscription_end`. No code change needed.
-- **TS clean.** Three feature commits: `523c1266` (rebooking constraint v2), `50590328` (cash-monthly path), `6df9e45a` (Athletes tab clarity).
-- **Carry-over:** Chris still needs to click the new 30d button on Nikolina's card to migrate her from `'trial'` to `'active'` (her existing trial row will be overwritten with start=today, end=today+30).
-
-**Older sessions (57-318):** See `project-history/` folder.
+**Older sessions (57-319):** See `project-history/` folder.
 
 ---
 
@@ -196,15 +212,17 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-1. **Set up `next-intl` i18n (DE/EN bilingual)** — Chris plans to commercialize. The ~11 inlined German strings from S317 should migrate to `messages/de.json` + matching `messages/en.json`. ~1 day of dedicated work. Stop adding more inline German until this lands. Memory: `project_commercialization_and_i18n.md`.
-2. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app.
-3. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
-4. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
-5. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing. **Note:** S305 backfill may have largely resolved this by retroactively booking whiteboard names; re-evaluate before doing the S251 work.
-6. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts` only filters bookings by `status='confirmed'` (and now `is_og=false`) and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
-7. **Test endpoint 410 cleanup** (deferred from S292) — route `app/api/notifications/test/route.ts` through `sendToSubscription` so expired subs auto-delete on Send Test.
-8. **Improve `fetchWODs` error logging** — when Supabase errors stringify as `{}` in the catch block (as happened in S322 with the missing `is_og` column), the cause is hidden. Same fix as S318 booking-error toast: extract `.message`/`.code`/`.details`/`.hint`. Low priority.
-9. **Audit other diagnostic scripts in `scripts/` for anon-key blind spot** (S323) — `check-ghost-scaling.ts` and others use `NEXT_PUBLIC_SUPABASE_ANON_KEY`; if they query RLS-protected tables they may silently return empty. Switch to service role.
+1. **Finish Miriam Jacht's family setup (S324 carry-over)** — set Miriam's `primary_payment_method='wellpass'` in Members UI. Confirm Aries / Anton / Adrian are registered as her family_members with `primary_payment_method='ten_card'` and `ten_card_holder_id=Miriam.id`. Test by booking one kid and checking Miriam's card decrements.
+2. **Set up `next-intl` i18n (DE/EN bilingual)** — Chris plans to commercialize. The ~11 inlined German strings from S317 should migrate to `messages/de.json` + matching `messages/en.json`. ~1 day of dedicated work. Stop adding more inline German until this lands. Memory: `project_commercialization_and_i18n.md`.
+3. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app.
+4. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
+5. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
+6. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing. **Note:** S305 backfill may have largely resolved this by retroactively booking whiteboard names; re-evaluate before doing the S251 work.
+7. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts` only filters bookings by `status='confirmed'` (and now `is_og=false`) and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
+8. **Test endpoint 410 cleanup** (deferred from S292) — route `app/api/notifications/test/route.ts` through `sendToSubscription` so expired subs auto-delete on Send Test.
+9. **Improve `fetchWODs` error logging** — when Supabase errors stringify as `{}` in the catch block (as happened in S322 with the missing `is_og` column), the cause is hidden. Same fix as S318 booking-error toast: extract `.message`/`.code`/`.details`/`.hint`. Low priority.
+10. **Audit other diagnostic scripts in `scripts/` for anon-key blind spot** (S323) — `check-ghost-scaling.ts` and others use `NEXT_PUBLIC_SUPABASE_ANON_KEY`; if they query RLS-protected tables they may silently return empty. Switch to service role.
+11. **Optional: derive a "Guardian" badge on MemberCard** (deferred from S324) — automatically show when a member has any rows pointing at them via `primary_member_id`. Distinct from the existing "Guardian Only" toggle (which means "doesn't train"). Was discussed in S324 but not built; the `guardian_only` binary toggle covers the immediate need.
 
 ---
 
