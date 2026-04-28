@@ -2,10 +2,13 @@
 
 **Read in ONE parallel call (COPY EXACTLY!!!):**
 /Users/chrishiles/SynologyDrive/CrossFit Hammerschmiede (CFH)/AI Development/forge-functional-fitness/memory-bank/memory-bank-activeContext.md
+/Users/chrishiles/SynologyDrive/CrossFit Hammerschmiede (CFH)/AI Development/forge-functional-fitness/memory-bank/claude-rules.md
 
 Plus the most recent file in `project-history/` (run `ls -t project-history | head -1` to find it).
 
 Only read `memory-bank/workflow-protocols.md`, `memory-bank-techContext.md`, or `memory-bank-systemPatterns.md` if the task actually needs them.
+
+`claude-rules.md` is the source of truth for hard rules (past incidents) + communication + context efficiency. Survives account/machine switches because it's git-tracked, unlike auto-memory in `~/.claude/`.
 
 Then suggest next steps directly based on activeContext + latest session. **Do not enter Plan Mode unless the task is a genuine 3+ file implementation.**
 

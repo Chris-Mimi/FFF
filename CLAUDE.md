@@ -18,6 +18,11 @@ truth for the project:
   constraints.
 - **memory-bank/systemPatterns.md:** Development standards, implementation
   patterns, and code examples.
+- **memory-bank/claude-rules.md:** Durable conventions promoted from
+  auto-memory — past-incident hard rules, communication norms, context
+  efficiency. **Read at session start.** This file is the source of truth
+  for cross-machine/cross-account rules; auto-memory may be stale or
+  missing on a given machine.
 
 ---
 
