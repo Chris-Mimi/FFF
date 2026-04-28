@@ -128,16 +128,13 @@ export default function TenCardModal({
   const handleSave = async () => {
     setLoading(true);
     try {
-      // Recalculate sessions_used based on confirmed bookings after purchase date
-      const recalculatedSessions = activeSection === '10card'
-        ? await recalculateSessionsUsed(purchaseDate)
-        : sessionsUsed;
-
       const updateData: Record<string, unknown> = {};
 
       if (activeSection === '10card') {
+        // Save the value currently in the input. Coaches use Recalc/Reset buttons to derive
+        // values from bookings; the save itself trusts what's typed.
         updateData.ten_card_purchase_date = purchaseDate || null;
-        updateData.ten_card_sessions_used = recalculatedSessions;
+        updateData.ten_card_sessions_used = sessionsUsed;
         updateData.ten_card_total = tenCardTotal;
         updateData.ten_card_expiry_date = tenCardExpiry || null;
       } else {
@@ -306,15 +303,21 @@ export default function TenCardModal({
                   </p>
                 </div>
 
-                {/* Sessions Used - Auto-calculated */}
+                {/* Sessions Used - Editable, with Recalc helper */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Sessions Used (Auto-calculated)
+                    Sessions Used
                   </label>
                   <div className="flex items-center gap-3">
-                    <div className="flex-1 px-3 py-2 border border-gray-300 bg-gray-50 rounded-md text-gray-700 font-medium">
-                      {sessionsUsed}/{tenCardTotal}
-                    </div>
+                    <input
+                      type="number"
+                      value={sessionsUsed}
+                      onChange={(e) => setSessionsUsed(Number(e.target.value) || 0)}
+                      min={0}
+                      max={tenCardTotal}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-[#178da6] focus:border-transparent"
+                    />
+                    <span className="text-sm text-gray-500">/ {tenCardTotal}</span>
                     <button
                       onClick={async () => {
                         const count = await recalculateSessionsUsed(purchaseDate);
@@ -323,11 +326,11 @@ export default function TenCardModal({
                       disabled={!purchaseDate}
                       className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-sm rounded-lg transition"
                     >
-                      Preview
+                      Recalc
                     </button>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
-                    Click Preview to see count based on current purchase date.
+                    Edit directly, or click Recalc to count confirmed bookings since the purchase date.
                   </p>
                 </div>
 

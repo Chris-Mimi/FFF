@@ -82,6 +82,7 @@ export async function POST(request: NextRequest) {
       .from('members')
       .select(`
         id, status, membership_types, primary_payment_method, ten_card_holder_id,
+        guardian_only,
         ten_card_sessions_used, ten_card_total, ten_card_expiry_date,
         athlete_subscription_status, athlete_subscription_end
       `)
@@ -91,6 +92,15 @@ export async function POST(request: NextRequest) {
     if (!member || member.status !== 'active') {
       return NextResponse.json(
         { error: 'Only active members can book sessions' },
+        { status: 403 }
+      );
+    }
+
+    // Guardian-only accounts (parents who don't train, only manage kids) cannot book sessions
+    // for themselves. Their family-member kids can still book via the primary→family path.
+    if (member.guardian_only) {
+      return NextResponse.json(
+        { error: 'Guardian-only accounts cannot book sessions. Book on behalf of a family member instead.' },
         { status: 403 }
       );
     }

@@ -70,7 +70,21 @@ export default function CoachAthletesPage() {
         .order('full_name', { ascending: true });
 
       if (error) throw error;
-      setAthletes(data || []);
+
+      // Filter out guardian_only members — they don't train, so they don't belong in
+      // the Athletes tab even if a stray athlete_profiles row exists for them.
+      const userIds = (data || []).map(a => a.user_id).filter(Boolean);
+      let guardianOnlyIds = new Set<string>();
+      if (userIds.length > 0) {
+        const { data: guardians } = await supabase
+          .from('members')
+          .select('id')
+          .in('id', userIds)
+          .eq('guardian_only', true);
+        guardianOnlyIds = new Set((guardians || []).map(g => g.id));
+      }
+
+      setAthletes((data || []).filter(a => !guardianOnlyIds.has(a.user_id)));
     } catch (error) {
       console.error('Error fetching athletes:', error);
       setAthletes([]);
