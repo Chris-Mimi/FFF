@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { authFetch } from '@/lib/auth-fetch';
 import { calculateConfirmedCount, canAddToSession } from '@/lib/coach/bookingHelpers';
+import { getEffectivePaymentMethod } from '@/types/member';
 import { Booking, Member } from './useSessionDetails';
 
 interface UseBookingManagementProps {
@@ -74,17 +75,27 @@ export function useBookingManagement({
 
       if (bookingError) throw bookingError;
 
-      // Increment 10-card sessions used if member has 10-card and booking is confirmed
-      if (
-        bookingStatus === 'confirmed' &&
-        selectedMember.membership_types?.includes('ten_card')
-      ) {
+      // Increment 10-card sessions used on the holder's card (walk to ten_card_holder_id
+      // for family-shared cards, e.g. Miriam's kids debit Miriam's card).
+      const effectiveMethod = getEffectivePaymentMethod({
+        primary_payment_method: selectedMember.primary_payment_method as never,
+        membership_types: selectedMember.membership_types as never,
+      });
+      if (bookingStatus === 'confirmed' && effectiveMethod === 'ten_card') {
+        const holderId = selectedMember.ten_card_holder_id || selectedMember.id;
+        let holderUsed = selectedMember.ten_card_sessions_used || 0;
+        if (holderId !== selectedMember.id) {
+          const { data: holder } = await supabase
+            .from('members')
+            .select('ten_card_sessions_used')
+            .eq('id', holderId)
+            .single();
+          holderUsed = holder?.ten_card_sessions_used || 0;
+        }
         const { error: updateError } = await supabase
           .from('members')
-          .update({
-            ten_card_sessions_used: selectedMember.ten_card_sessions_used + 1,
-          })
-          .eq('id', selectedMemberId);
+          .update({ ten_card_sessions_used: holderUsed + 1 })
+          .eq('id', holderId);
 
         if (updateError) {
           console.error('Failed to increment 10-card sessions:', updateError);
@@ -287,18 +298,36 @@ export function useBookingManagement({
 
       if (error) throw error;
 
-      // Always refund 10-card if applicable
+      // Refund 10-card on the holder's card (walk to ten_card_holder_id for family-shared cards).
       const { data: member } = await supabase
         .from('members')
-        .select('membership_types, ten_card_sessions_used')
+        .select('membership_types, ten_card_sessions_used, primary_payment_method, ten_card_holder_id')
         .eq('id', memberId)
         .single();
 
-      if (member?.membership_types?.includes('ten_card') && member.ten_card_sessions_used > 0) {
-        await supabase
-          .from('members')
-          .update({ ten_card_sessions_used: member.ten_card_sessions_used - 1 })
-          .eq('id', memberId);
+      const effectiveMethod = member
+        ? getEffectivePaymentMethod({
+            primary_payment_method: member.primary_payment_method as never,
+            membership_types: member.membership_types as never,
+          })
+        : null;
+      if (member && effectiveMethod === 'ten_card') {
+        const holderId = member.ten_card_holder_id || memberId;
+        let holderUsed = member.ten_card_sessions_used || 0;
+        if (holderId !== memberId) {
+          const { data: holder } = await supabase
+            .from('members')
+            .select('ten_card_sessions_used')
+            .eq('id', holderId)
+            .single();
+          holderUsed = holder?.ten_card_sessions_used || 0;
+        }
+        if (holderUsed > 0) {
+          await supabase
+            .from('members')
+            .update({ ten_card_sessions_used: holderUsed - 1 })
+            .eq('id', holderId);
+        }
       }
 
       // Clean up scores for this member on this session's workout

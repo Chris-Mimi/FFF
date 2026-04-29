@@ -12,6 +12,8 @@ interface Member {
   email: string;
   membership_types: string[];
   ten_card_sessions_used: number;
+  primary_payment_method: string | null;
+  ten_card_holder_id: string | null;
 }
 
 /**

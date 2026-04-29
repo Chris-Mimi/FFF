@@ -36,6 +36,8 @@ export interface Member {
   email: string;
   membership_types: string[];
   ten_card_sessions_used: number;
+  primary_payment_method: string | null;
+  ten_card_holder_id: string | null;
 }
 
 interface UseSessionDetailsResult {
@@ -115,7 +117,7 @@ export function useSessionDetails(
       // Fetch all active members for manual booking
       const { data: membersData, error: membersError } = await supabase
         .from('members')
-        .select('id, name, email, membership_types, ten_card_sessions_used')
+        .select('id, name, email, membership_types, ten_card_sessions_used, primary_payment_method, ten_card_holder_id')
         .eq('status', 'active')
         .order('name', { ascending: true });
 
