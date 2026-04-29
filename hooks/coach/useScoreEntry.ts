@@ -55,6 +55,7 @@ export interface ScoreEntryAthlete {
   userId: string | null;
   name: string;
   whiteboardName: string | null;
+  gender: 'M' | 'F' | null;
 }
 
 export interface AthleteScoreValues {

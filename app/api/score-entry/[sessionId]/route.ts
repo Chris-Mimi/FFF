@@ -52,7 +52,7 @@ export async function GET(
       .from('bookings')
       .select(`
         id, status, booked_at,
-        members!bookings_member_id_fkey (id, name, email)
+        members!bookings_member_id_fkey (id, name, email, gender)
       `)
       .eq('session_id', sessionId)
       .eq('is_og', false)
@@ -91,13 +91,14 @@ export async function GET(
     }
 
     // 5. Build athletes array from booked members
-    const athletes: { id: string; memberId: string | null; userId: string | null; name: string; whiteboardName: string | null }[] =
-      members.map((m: { id: string; name: string; email: string }) => ({
+    const athletes: { id: string; memberId: string | null; userId: string | null; name: string; whiteboardName: string | null; gender: 'M' | 'F' | null }[] =
+      members.map((m: { id: string; name: string; email: string; gender: 'M' | 'F' | null }) => ({
         id: m.id,
         memberId: m.id,
         userId: emailToUserId[m.email] || null,
         name: m.name,
         whiteboardName: null,
+        gender: m.gender || null,
       }));
 
     // 5b. Parse Whiteboard Intro section for additional attendees
@@ -142,6 +143,7 @@ export async function GET(
           userId: null,
           name: wbName,
           whiteboardName: wbName,
+          gender: null,
         });
       }
     }
@@ -161,8 +163,18 @@ export async function GET(
         userId: null,
         name: `${trialName} (trial)`,
         whiteboardName: trialName,
+        gender: null,
       });
     }
+
+    // Sort: girls first (alphabetical), then boys (alphabetical), then unknown gender
+    // (whiteboard-only + trial). Matches Chris's whiteboard writing order.
+    const genderRank = (g: 'M' | 'F' | null) => (g === 'F' ? 0 : g === 'M' ? 1 : 2);
+    athletes.sort((a, b) => {
+      const r = genderRank(a.gender) - genderRank(b.gender);
+      if (r !== 0) return r;
+      return a.name.localeCompare(b.name);
+    });
 
     // 6. Fetch existing results for this WOD
     const memberIds = athletes
