@@ -650,7 +650,26 @@ export function rankLiftResults(
  * Format a leaderboard entry's result as a display string.
  * Shows the primary result plus any additional non-empty fields as extras.
  */
-export function formatResult(entry: LeaderboardEntry, scoringType: string): string {
+/**
+ * Subset of section.scoring_fields used to gate which "extras" render alongside
+ * the primary result. Without this gate, stale fields left over from prior section
+ * edits (e.g. weight_result populated when the section is now reps-only) would
+ * surface on the leaderboard even though score-entry no longer captures them.
+ */
+export interface ScoringFieldsForFormat {
+  reps?: boolean;
+  load?: boolean;
+  load2?: boolean;
+  load3?: boolean;
+  calories?: boolean;
+  metres?: boolean;
+}
+
+export function formatResult(
+  entry: LeaderboardEntry,
+  scoringType: string,
+  scoringFields?: ScoringFieldsForFormat,
+): string {
   let primary: string;
 
   switch (scoringType) {
@@ -696,16 +715,25 @@ export function formatResult(entry: LeaderboardEntry, scoringType: string): stri
       primary = '-'; break;
   }
 
-  // Append extra fields not already shown in primary
+  // Append extra fields not already shown in primary. When scoringFields is provided,
+  // gate each extra on the section actually scoring that field — prevents orphan values
+  // (left over from prior section edits) from surfacing on the leaderboard.
+  const allowsLoad = !scoringFields || scoringFields.load || scoringFields.load2 || scoringFields.load3;
+  const allowsMetres = !scoringFields || scoringFields.metres;
+  const allowsReps = !scoringFields || scoringFields.reps;
+  const allowsCals = !scoringFields || scoringFields.calories;
+
   const extras: string[] = [];
-  if (scoringType !== 'weight' && entry.weightResult) {
-    extras.push(entry.weightResult2 ? `${entry.weightResult}/${entry.weightResult2} kg` : `${entry.weightResult} kg`);
-  } else if (entry.weightResult2) {
-    extras.push(`${entry.weightResult2} kg`);
+  if (allowsLoad) {
+    if (scoringType !== 'weight' && entry.weightResult) {
+      extras.push(entry.weightResult2 ? `${entry.weightResult}/${entry.weightResult2} kg` : `${entry.weightResult} kg`);
+    } else if (entry.weightResult2) {
+      extras.push(`${entry.weightResult2} kg`);
+    }
   }
-  if (!['metres'].includes(scoringType) && entry.metresResult) extras.push(`${entry.metresResult} m`);
-  if (!['reps', 'reps_cals', 'rounds_reps', 'time', 'max_time', 'time_with_cap', 'time_amrap'].includes(scoringType) && entry.repsResult) extras.push(`${entry.repsResult} reps`);
-  if (!['calories', 'reps_cals'].includes(scoringType) && entry.caloriesResult) extras.push(`${entry.caloriesResult} cal`);
+  if (allowsMetres && !['metres'].includes(scoringType) && entry.metresResult) extras.push(`${entry.metresResult} m`);
+  if (allowsReps && !['reps', 'reps_cals', 'rounds_reps', 'time', 'max_time', 'time_with_cap', 'time_amrap'].includes(scoringType) && entry.repsResult) extras.push(`${entry.repsResult} reps`);
+  if (allowsCals && !['calories', 'reps_cals'].includes(scoringType) && entry.caloriesResult) extras.push(`${entry.caloriesResult} cal`);
 
   if (extras.length > 0) return `${primary} · ${extras.join(' · ')}`;
   return primary;

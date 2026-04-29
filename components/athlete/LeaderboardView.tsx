@@ -485,6 +485,10 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
 
   const { mondayStr, sundayStr, allDates } = useMemo(() => getWeekDateStrings(weekMonday), [weekMonday]);
   const selectedItem = leaderboardItems[selectedItemIdx] || null;
+  const selectedWodForLeaderboard = wods.find(w => w.id === selectedWodId) || null;
+  const selectedSectionScoringFields = selectedWodForLeaderboard && selectedItem
+    ? selectedWodForLeaderboard.sections[selectedItem.sectionIndex]?.scoring_fields
+    : undefined;
 
   // Fetch published WODs for the selected week (Mon-Sun)
   const loadWods = useCallback(async () => {
@@ -878,11 +882,13 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
         let contentWodIds = siblingWodIds[selectedWodId] || [selectedWodId];
 
         if (isGrouped && groupedWods) {
-          contentSectionIds = groupedWods.map(w => {
-            const sections = (w.sections || []) as WodSection[];
-            const targetSection = sections[selectedItem.sectionIndex];
-            return targetSection ? `${targetSection.id}-content-0` : null;
-          }).filter((id): id is string => !!id);
+          // Cross-week aggregation: pull rows from all sibling WODs but ONLY for the
+          // selected section's UUID. Earlier this used sections[sectionIndex] across
+          // siblings, but positional lookup pulls in the wrong section when sibling
+          // WOD layouts differ (e.g. a different section sits at the same index in an
+          // older copy), surfacing orphan scores from sections that no longer exist
+          // in the current schema. Section UUIDs are reused across legitimate copies,
+          // so the exact-UUID filter still works for the cross-week case.
           contentWodIds = wodIds;
         }
 
@@ -1254,7 +1260,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
                             <span className='text-xs font-bold text-red-500 bg-red-50 px-1.5 py-0.5 rounded'>DNF</span>
                           ) : (
                             <span className='text-sm font-medium text-gray-900'>
-                              {isBenchmarkItem ? formatBenchmarkResult(entry, selectedItem?.benchmarkType) : formatResult(entry, activeScoringType)}
+                              {isBenchmarkItem ? formatBenchmarkResult(entry, selectedItem?.benchmarkType) : formatResult(entry, activeScoringType, selectedSectionScoringFields)}
                             </span>
                           )}
                         </td>
@@ -1312,7 +1318,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
                                   athleteName: entry.memberName,
                                   date: entry.resultDate || mondayStr,
                                   resultLabel: selectedItem?.label || '',
-                                  resultValue: isBenchmarkItem ? formatBenchmarkResult(entry, selectedItem?.benchmarkType) : formatResult(entry, activeScoringType),
+                                  resultValue: isBenchmarkItem ? formatBenchmarkResult(entry, selectedItem?.benchmarkType) : formatResult(entry, activeScoringType, selectedSectionScoringFields),
                                   resultSubLabel: activeScoringType === 'time' ? 'For Time'
                                     : activeScoringType === 'max_time' ? 'Max Time'
                                     : activeScoringType === 'rounds_reps' ? 'AMRAP'

@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 185.0
-**Updated:** 2026-04-28 (Session 324 — 10-Card blindspots: family-shared cards, Guardian Only enforcement, Members popup edit parity)
+**Version:** 186.0
+**Updated:** 2026-04-29 (Session 325 — Coach 10-card holder-walk parity, leaderboard orphan-section bug, cascade-delete on WOD edit)
 
 ---
 
@@ -21,27 +21,30 @@
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history scan._
 
-**First action:** None queued. S324 shipped three related features (family-shared 10-cards, Guardian Only enforcement, Members popup edit parity). All live-verified by Chris. Pick from "Next Immediate Steps" below, or wait for new direction.
+**First action:** None queued. S325 shipped 5 fixes around 10-card debits + leaderboard correctness + WOD-edit cascade. All live-verified. Pick from "Next Immediate Steps" or wait for direction.
 
 **Files to open first if continuing code work:** none queued.
 
 **Carry-over status:**
-- ✅ S324 Session A (family 10-cards) — Chris tested with Athlete Test 1, working.
-- ✅ S324 Session B (Guardian Only) — toggled Athlete Test 1 to guardian-only and back, both directions confirmed working.
-- ✅ S324 Session C (TenCardModal sessions-used input) — implemented, no specific test feedback (low risk: simple input → save).
-- ⚠️ **Manual data setup pending for Miriam Jacht's family.** Migration ran clean; only Miriam was multi-type ambiguous. Chris needs to (a) set Miriam's `primary_payment_method='wellpass'` via the new Members UI, and (b) ensure Aries / Anton / Adrian are registered as her family_members with `primary_payment_method='ten_card'` and `ten_card_holder_id=Miriam.id`. Without this setup, kid bookings won't debit Miriam's card. Carmine + Sandro's existing setup needs no changes (Sandro has own card).
+- ✅ S325 coach manual booking holder-walk — Chris re-tested Adrian Jacht booking, Miriam's card decrements correctly.
+- ✅ S325 score-entry gender sort — verified F → M → null ordering in Results modal.
+- ✅ S325 leaderboard formatResult `scoring_fields` gating — stale weight/metres/cals on Push-up Strict no longer surface.
+- ✅ S325 leaderboard positional sibling-index fix — Push-up Strict leaderboard now shows correct varied reps per athlete (was uniformly 46 from a sibling WOD's section at the same array index).
+- ✅ S325 WOD-edit cascade-delete — confirm dialog appears when saving a WOD that removes scored sections. Drafting workflow unaffected (no scored rows → no dialog).
+- ✅ S325 one-shot cleanup — 93 orphan rows deleted across 4 WODs (66 in `e525ad95`, the rest in older WODs).
 - ⏳ S321 late-cancel TZ fix — still waiting on a real organic cancellation to confirm.
 
 **Landmines:**
-- **Migration `database/add-payment-method-and-tencard-holder.sql` is in production.** Adds `members.primary_payment_method` (text, CHECK constraint enforces enum) and `members.ten_card_holder_id` (uuid FK to members, ON DELETE SET NULL). Backfill set `primary_payment_method` to first item in `membership_types` for unambiguous (single-type) members. Multi-type members stayed NULL and surface in the UI with an amber "Pick one" warning. SQL files are gitignored — re-run from a colleague's checkout requires getting the SQL from this commit (`630aff69`) or via Supabase migration history.
-- **Booking flow walks to a 10-card holder, not the booking member.** Three places use this walk: [app/api/bookings/create/route.ts](app/api/bookings/create/route.ts), [app/api/bookings/cancel/route.ts](app/api/bookings/cancel/route.ts) refund block + waitlist promotion. If a future change touches 10-card decrement logic, all three need the holder-walk preserved.
-- **Athletes tab has a JS-side guardian filter, not a SQL one** ([app/coach/athletes/page.tsx:64+](app/coach/athletes/page.tsx#L64)) — fetches all athlete_profiles, then queries members for guardian_only=true and filters in memory. Two-query approach because `athlete_profiles.user_id` and `members.id` both reference auth.users without a Supabase-recognised FK between them.
-- **TenCardModal save no longer auto-recalcs** ([components/coach/TenCardModal.tsx](components/coach/TenCardModal.tsx)). The "Recalc" button explicitly fills the input from confirmed bookings; save trusts what's typed. Old behavior (silent recalc on save) gone — if a coach changes purchase date and forgets to hit Recalc, sessions_used keeps its prior value.
-- **Anon key vs RLS in diagnostic scripts (S323).** Use `SUPABASE_SERVICE_ROLE_KEY` for inspection scripts on RLS-protected tables. Other scripts in `scripts/` may share the blind spot.
-- (Carry) `bookings.is_og` migration is in production. OG path fully live.
-- (Carry from S321) `Chris Notes/AA frequently used files/Notes for next session.md` is **Chris-owned** — Claude does NOT read/write its content, but DOES commit/push it when modified. Memory: `feedback_chris_notes_commit_but_dont_edit.md`.
-- (Carry) Trial-name match expanded to `members.name` / `display_name` / `whiteboard_name` (case-insensitive).
-- (Carry) `sessionStartInstant()` in [lib/bookingRules.ts](lib/bookingRules.ts) — TZ-safe session-start helper used by booking gates.
+- **WOD save now cascade-deletes scored sections that are removed.** [hooks/coach/useWODOperations.ts](hooks/coach/useWODOperations.ts) `handleSaveWOD` fetches old sections, computes removed IDs, prompts a destructive confirm if any `wod_section_results` rows exist for the removed sections. Confirm → deletes rows + saves. Cancel → aborts save entirely. Pure rename/reorder/scoring_fields edit is a no-op (UUID stable). If a coach's habit is delete-then-readd a section, the delete step destroys data — the confirm dialog is the only safety net.
+- **Leaderboard's grouped-mode sibling lookup uses ONLY the selected section's UUID** ([components/athlete/LeaderboardView.tsx](components/athlete/LeaderboardView.tsx) line ~884). Earlier it walked `sections[sectionIndex]` per sibling WOD, which pulled in wrong sections when sibling layouts differed. Section UUIDs are reused across legitimate copies, so the exact-UUID filter still aggregates cross-week scores correctly.
+- **`formatResult` accepts optional `scoringFields`** ([utils/leaderboard-utils.ts](utils/leaderboard-utils.ts) line ~653). When passed, gates extras (weight/metres/reps/cals) on the section's current scoring config. Backward-compat: undefined → renders all non-null fields. Both leaderboard call sites pass it.
+- **Coach manual booking ([hooks/coach/useBookingManagement.ts](hooks/coach/useBookingManagement.ts)) now walks to the 10-card holder.** Two places: `handleManualBooking` (debit on add) and `handleCancelBooking` (refund on Remove). Mirrors the `/api/bookings/create` flow. `useSessionDetails.Member` interface and `lib/coach/bookingHelpers` Member interface both gained `primary_payment_method` + `ten_card_holder_id`.
+- **Score-entry API ([app/api/score-entry/[sessionId]/route.ts](app/api/score-entry/[sessionId]/route.ts)) sorts athletes F → M → null by gender, then alphabetical name.** Whiteboard + trial entries (no gender) sort to bottom alphabetically. `members.gender` SELECTed.
+- **Diagnostic + cleanup scripts** in `scripts/`: `diagnose-mon-wod-46reps.ts` (one-shot, can adapt the WOD_ID constant) and `cleanup-orphan-section-results.ts` (sweeps all WODs for orphans; default dry-run, `--apply` to delete, `--wod=<id>` to limit). Both use `SUPABASE_SERVICE_ROLE_KEY`.
+- (Carry from S324) Migration `database/add-payment-method-and-tencard-holder.sql` is in production. SQL files are gitignored — re-run requires getting SQL from commit `630aff69` or Supabase migration history.
+- (Carry from S324) Booking flow walks to a 10-card holder, not the booking member, in `/api/bookings/create`, `/api/bookings/cancel` refund + waitlist promotion. After S325 the coach-side direct-supabase paths in `useBookingManagement.ts` also walk.
+- (Carry from S321) `Chris Notes/AA frequently used files/Notes for next session.md` is **Chris-owned** — Claude does NOT read/write content, but DOES commit/push when modified.
+- (Carry) `bookings.is_og` migration in production. `sessionStartInstant()` in `lib/bookingRules.ts` for TZ-safe gates.
 
 **Open questions still unanswered:** none active.
 
@@ -114,6 +117,21 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 325 (2026-04-29 — Opus 4.7) — COACH 10-CARD PARITY + LEADERBOARD ORPHAN-SECTION BUG + WOD-EDIT CASCADE:**
+- **Trigger.** Chris flagged that adding Adrian Jacht (Miriam's son, family-shared 10-card) to a workout from Session Management didn't decrement Miriam's card. S324 fixed `/api/bookings/create` but missed the coach-side direct-supabase path in [hooks/coach/useBookingManagement.ts](hooks/coach/useBookingManagement.ts).
+- **Fix 1 (commit `7ae38b1`, pushed).** `handleManualBooking` and `handleCancelBooking` now resolve effective payment method and walk to `ten_card_holder_id` before debit/refund. Mirrors API logic via `getEffectivePaymentMethod`. `useSessionDetails.Member` and `lib/coach/bookingHelpers` Member interface both gained `primary_payment_method` + `ten_card_holder_id`. Verified: Adrian booking now decrements Miriam.
+- **Fix 2 (commit `8cfd416`, push pending).** Score-entry API ([app/api/score-entry/[sessionId]/route.ts](app/api/score-entry/[sessionId]/route.ts)) sorts athletes F → M → null by gender, then alphabetical name. Pulls `members.gender`, carries through booked/whiteboard/trial entries. Matches Chris's whiteboard writing order.
+- **Fix 3 (uncommitted at trigger, bundled in close).** Leaderboard `formatResult` ([utils/leaderboard-utils.ts](utils/leaderboard-utils.ts)) gains optional `scoringFields` param. When passed, gates extras (weight/metres/reps/cals) on section's current scoring config. Stops stale fields from prior section edits surfacing as `· 50 kg · 200 m · 25 cal` extras after a section's scoring_fields was narrowed.
+- **Fix 4 (the deeper one).** Triggered by Chris seeing 11 athletes uniformly show "46 reps Rx" on Push-up Strict leaderboard while Score Entry showed correct varied values. Diagnostic script ([scripts/diagnose-mon-wod-46reps.ts](scripts/diagnose-mon-wod-46reps.ts)) revealed: 7 sibling WODs all named "WOD - Strict Movements..." for 2026-04-22; the leaderboard's grouped-mode logic walked `sections[sectionIndex]` per sibling, and sibling `11d9690d` had a different section (`section-1765536331392`, the orphan-46-reps section) sitting at the same array index. Fix: [components/athlete/LeaderboardView.tsx](components/athlete/LeaderboardView.tsx) line ~884 — always query `wod_section_results` by the selected WOD's exact `contentSectionId`, never positional. Section UUIDs are reused across legitimate copies, so cross-week aggregation still works.
+- **Fix 5 (the structural one).** Root cause of orphan rows: when a coach removes a section from a WOD, `wod_section_results` rows for that section_id are NEVER cleaned up — they sit forever, ready to surface via some future query path. Layer 1 fix: [hooks/coach/useWODOperations.ts](hooks/coach/useWODOperations.ts) `handleSaveWOD` UPDATE branch — fetch old sections, compute removed IDs, query `wod_section_results` for matching rows, show destructive confirm ("Saving will delete N scores from M athletes — continue?"). Cancel aborts save entirely; confirm deletes rows then saves. Drafting workflow unaffected (no rows → no dialog).
+- **Data cleanup (one-shot, applied).** [scripts/cleanup-orphan-section-results.ts](scripts/cleanup-orphan-section-results.ts) sweeps all WODs for `wod_section_results` whose `section_id` no longer matches a current section. Default dry-run; `--apply` deletes; `--wod=<id>` limits. Ran with `--apply`: deleted 93 orphan rows across 4 WODs (66 in `e525ad95`, 11 in `3dfa23cd`, 10 in `725bf793`, 6 in `64b90a43`). Verification re-run shows 0 orphans remaining.
+- **Process moments worth remembering:**
+  - **My fix 3 exposed bug 4.** The leaderboard "all 11 athletes show 46" symptom was actually pre-existing duplication that the random-extras suffix was visually masking (each row looked unique because of varying stale kg/m/cal). Once I gated extras on `scoring_fields`, the underlying uniform "46 reps" became visible. Lesson: when a display fix makes things look "worse", check if the new view is actually exposing data the old view was hiding.
+  - **Pushback caught wrong direction once.** I initially asked Chris to verify in Supabase Dashboard ("filter by member_id") but he hit zero results because `member_id` and `user_id` are different UUID columns in `wod_section_results`. Switched to a service-role diagnostic script (per `claude-rules.md`), which also caught the sibling-index bug systematically.
+  - **Layered fix scoping.** Chris asked "will this stop it happening in future?" — pushed me to articulate that layer 2 (positional fix) and layer 3 (cleanup) only address symptoms; layer 1 (cascade-delete on edit) is the only structural prevention. Sequence: ship layer 2 first (stops symptom), then layer 3 (cleans existing damage), then layer 1 (stops recurrence). Each can be tested independently.
+- **TS clean.** Five logical changesets, two commits already in (7ae38b1, 8cfd416), session-close commit bundles the rest.
+- **Carry-over:** none — all 5 fixes verified by Chris.
+
 **Session 324 (2026-04-28 — Opus 4.7) — 10-CARD BLINDSPOTS: FAMILY-SHARED CARDS, GUARDIAN ONLY, MEMBERS POPUP EDIT PARITY:**
 - **Trigger.** Chris flagged urgent: Miriam Jacht has Wellpass + 10-card; her three kids share that one card. Booking flow blindly debited her card on every self-booking (her membership_types includes `'ten_card'`, so the existing logic picked it). General rule needed for multi-membership households + family-shared 10-cards. Two adjacent issues bundled in: Guardian Only registrations shouldn't appear in Athletes tab, and Members popup 10-card editor was effectively read-only on `sessions_used` (had to switch to Athletes tab to edit).
 - **Three sub-sessions, one DB migration, four commits.**
@@ -174,20 +192,7 @@ Athlete Tools
 - **TS clean.** Three logical changesets bundled into one session commit (per checklist default).
 - **Carry-over:** all live-verifications listed in the Next Session Kickoff block at the top of this file.
 
-**Session 320 (2026-04-26 — Opus 4.7) — LEADERBOARD MULTI-LOAD TIEBREAKER FIX:**
-- **Trigger.** Chris saw "Rinse & Repeat" Pt.2 leaderboard rank Teemu (Rx, 20kg sandbag, **10kg DBs**, 182 reps) above him (Rx, 20kg sandbag, **22.5kg DBs**, 165 reps) and asked why heavier DBs weren't honored.
-- **Diagnostic.** Pt.1 (shuttle run + burpees, `scoring_fields={reps:true}`) has no weights → Teemu's 45 > Chris's 43 is correct there. Pt.2 (`{load, reps, load2, scaling}`) is where the DB difference matters. Pulled the WOD's section JSON + 24 result rows from Supabase via a throwaway script (cleaned up after).
-- **Root cause.** [utils/leaderboard-utils.ts:173+](utils/leaderboard-utils.ts#L173) had two distinct code paths in `compareByScoringType()` that both read only `weight_result` and silently ignored `weight_result_2` / `_3`:
-  1. **Weight tiebreaker** (when primary metric ≠ weight): runs before falling through to reps/time/etc. Was checking only the primary load slot.
-  2. **Primary `'weight'` case** (when section IS scored on weight): also only compared `weight_result`. A section like "1RM Snatch + 1RM C&J" would only rank by snatch.
-- **Fix.** Both paths now chain `[weight_result, weight_result_2, weight_result_3]` in order; first slot where the values differ wins. Honors heavier secondary/tertiary loads in any multi-load section, retroactively across all past WODs.
-- **`aggregateScaling` was already correct** — it sums all 3 scaling slots. Only the load comparator was broken.
-- **Pushback caught path 2.** First pass only fixed the tiebreaker; Chris's "we've fixed this a few times now, why are 3 load scaling levels not taken into account?" prompted re-reading code and finding the primary `'weight'` case had the same bug.
-- **Carry-over:** Live-verify the Pt.2 leaderboard after deploy — Chris should now rank above Teemu. Expect rank changes on old multi-load WODs (net-positive correctness, but athletes may notice).
-- **`detectScoringType` priority gotcha (worth remembering):** sections with both `load: true` AND `reps: true` resolve to `'reps'` not `'weight'`, because reps wins priority at [utils/leaderboard-utils.ts:138](utils/leaderboard-utils.ts#L138) before the load check at line 139.
-- **TS clean.** Single-file change. Not yet committed at time of writing — committing as part of close.
-
-**Older sessions (57-319):** See `project-history/` folder.
+**Older sessions (57-320):** See `project-history/` folder.
 
 ---
 
@@ -212,17 +217,18 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-1. **Finish Miriam Jacht's family setup (S324 carry-over)** — set Miriam's `primary_payment_method='wellpass'` in Members UI. Confirm Aries / Anton / Adrian are registered as her family_members with `primary_payment_method='ten_card'` and `ten_card_holder_id=Miriam.id`. Test by booking one kid and checking Miriam's card decrements.
-2. **Set up `next-intl` i18n (DE/EN bilingual)** — Chris plans to commercialize. The ~11 inlined German strings from S317 should migrate to `messages/de.json` + matching `messages/en.json`. ~1 day of dedicated work. Stop adding more inline German until this lands. Memory: `project_commercialization_and_i18n.md`.
-3. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app.
-4. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
-5. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
-6. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing. **Note:** S305 backfill may have largely resolved this by retroactively booking whiteboard names; re-evaluate before doing the S251 work.
-7. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts` only filters bookings by `status='confirmed'` (and now `is_og=false`) and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
-8. **Test endpoint 410 cleanup** (deferred from S292) — route `app/api/notifications/test/route.ts` through `sendToSubscription` so expired subs auto-delete on Send Test.
-9. **Improve `fetchWODs` error logging** — when Supabase errors stringify as `{}` in the catch block (as happened in S322 with the missing `is_og` column), the cause is hidden. Same fix as S318 booking-error toast: extract `.message`/`.code`/`.details`/`.hint`. Low priority.
-10. **Audit other diagnostic scripts in `scripts/` for anon-key blind spot** (S323) — `check-ghost-scaling.ts` and others use `NEXT_PUBLIC_SUPABASE_ANON_KEY`; if they query RLS-protected tables they may silently return empty. Switch to service role.
-11. **Optional: derive a "Guardian" badge on MemberCard** (deferred from S324) — automatically show when a member has any rows pointing at them via `primary_member_id`. Distinct from the existing "Guardian Only" toggle (which means "doesn't train"). Was discussed in S324 but not built; the `guardian_only` binary toggle covers the immediate need.
+1. **Set up `next-intl` i18n (DE/EN bilingual)** — Chris plans to commercialize. The ~11 inlined German strings from S317 should migrate to `messages/de.json` + matching `messages/en.json`. ~1 day of dedicated work. Stop adding more inline German until this lands. Memory: `project_commercialization_and_i18n.md`.
+2. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app.
+3. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
+4. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
+5. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing. **Note:** S305 backfill may have largely resolved this by retroactively booking whiteboard names; re-evaluate before doing the S251 work.
+6. **Cascade-delete to `lift_records`** (S325 follow-up) — when an RM-test or non-RM lift section is removed from a WOD, the `lift_records` rows it auto-created stay behind. The S325 layer-1 hook only deletes from `wod_section_results`. Worth bundling into the same confirm dialog: count + delete associated `lift_records` too.
+7. **Sibling WOD count bloat** (surfaced S325) — Chris had 7 WODs all named "WOD - Strict Movements..." for 2026-04-22, all from the duplicate-WOD-creation path in `useWODOperations.ts` (line 78-114) that creates one WOD per session. Worth auditing whether all are needed or if some are stale republish leftovers. Low priority — they're harmless after the S325 leaderboard fix.
+8. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts` only filters bookings by `status='confirmed'` (and now `is_og=false`) and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
+9. **Test endpoint 410 cleanup** (deferred from S292) — route `app/api/notifications/test/route.ts` through `sendToSubscription` so expired subs auto-delete on Send Test.
+10. **Improve `fetchWODs` error logging** — when Supabase errors stringify as `{}` in the catch block (as happened in S322 with the missing `is_og` column), the cause is hidden. Same fix as S318 booking-error toast: extract `.message`/`.code`/`.details`/`.hint`. Low priority.
+11. **Audit other diagnostic scripts in `scripts/` for anon-key blind spot** (S323) — `check-ghost-scaling.ts` and others use `NEXT_PUBLIC_SUPABASE_ANON_KEY`; if they query RLS-protected tables they may silently return empty. Switch to service role.
+12. **Optional: derive a "Guardian" badge on MemberCard** (deferred from S324) — automatically show when a member has any rows pointing at them via `primary_member_id`. Distinct from the existing "Guardian Only" toggle (which means "doesn't train"). Was discussed in S324 but not built; the `guardian_only` binary toggle covers the immediate need.
 
 ---
 

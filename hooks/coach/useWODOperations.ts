@@ -38,6 +38,49 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
       if (isEditingRealWorkout) {
         const hasContent = wodData.sections && wodData.sections.length > 0;
 
+        // Cascade-delete result rows for sections being removed in this save. Without
+        // this, removed sections leave orphan wod_section_results rows that surface in
+        // the leaderboard / analytics weeks later.
+        const newSectionIds = new Set((wodData.sections || []).map(s => s.id));
+        const { data: oldWod } = await supabase
+          .from('wods')
+          .select('sections')
+          .eq('id', editingWOD.id!)
+          .maybeSingle();
+        const oldSections = ((oldWod?.sections as Array<{ id: string }> | null) || []);
+        const removedSectionIds = oldSections
+          .map(s => s.id)
+          .filter(id => !newSectionIds.has(id));
+
+        if (removedSectionIds.length > 0) {
+          const removedKeys = removedSectionIds.map(id => `${id}-content-0`);
+          const { data: affectedRows } = await supabase
+            .from('wod_section_results')
+            .select('id, member_id, user_id, whiteboard_name')
+            .eq('wod_id', editingWOD.id!)
+            .in('section_id', removedKeys);
+
+          const rowCount = affectedRows?.length || 0;
+          if (rowCount > 0) {
+            const athleteCount = new Set(
+              (affectedRows || []).map(r => r.member_id || r.user_id || `wb:${r.whiteboard_name}`)
+            ).size;
+            const ok = await confirm({
+              title: 'Remove sections with saved scores?',
+              message: `Saving will delete ${rowCount} score${rowCount === 1 ? '' : 's'} from ${athleteCount} athlete${athleteCount === 1 ? '' : 's'} on the section${removedSectionIds.length === 1 ? '' : 's'} you removed.\n\nThis cannot be undone.`,
+              confirmText: 'Delete scores and save',
+              variant: 'danger',
+            });
+            if (!ok) return;
+            const { error: delErr } = await supabase
+              .from('wod_section_results')
+              .delete()
+              .eq('wod_id', editingWOD.id!)
+              .in('section_id', removedKeys);
+            if (delErr) throw delErr;
+          }
+        }
+
         const { error } = await supabase
           .from('wods')
           .update({
