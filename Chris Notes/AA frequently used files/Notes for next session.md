@@ -23,7 +23,8 @@ http://192.168.178.75:3000
 * Couldn't remove Franiska Eder from trial athlete
 * At Risk list. Guardian Only should not appear in the "At Risk" list as they will never appear in a session. Guardian only should also not appear in Athletes
 * adults & kids toggle in Attendance reports
-
+* girls first then boys in results modal, following Whiteboard protocol
+* Planner: exercises used show on hover over dot in planner
 * Workouts page: Exercise acronyms don't make sense
 * Barbell names do we need "Barbell"
 * Macbook still has internet problem at the box. Old Macbook Pro works fine.
