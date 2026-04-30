@@ -877,7 +877,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
       // ── CONTENT (wod_section_results) ──
       if (selectedItem.type === 'content') {
         // Build content section IDs across grouped WODs
-        let contentSectionIds = [selectedItem.contentSectionId!];
+        const contentSectionIds = [selectedItem.contentSectionId!];
         // Include sibling WOD IDs (same workout at different class times) so scores from any copy are found
         let contentWodIds = siblingWodIds[selectedWodId] || [selectedWodId];
 
