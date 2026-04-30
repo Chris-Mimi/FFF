@@ -16,9 +16,9 @@ http://192.168.178.75:3000
 # Coach Login #
 * Mimi's iPhone copy/paste & delete function
 * Box WiFi: Mac gets IPv6-only (no IPv4), dev sites (GitHub/Supabase/Vercel/Resend) unreachable. PC on same box WiFi works fine. At home all works. Debug next time at the box — see `SESSION-HANDOFF-S303-DNS-issue.md` for diagnostic history.
-* Has Fabian's parent got a login, if so who?
 * IDEA: Put names of booked athletes in Whiteboard Intro so they also go into Google Calendar or find another way to register them in Google Calendar.
 * Nadine has 2 email addresses registered, which one has Leonhard as her family?
+* Athletes should be able to input their own workouts but they should use the same exercise library as the coach library so we don't get issues with naming conventions. Also a diary where they can record their own workouts and things like playing volleyball, swimming etc. trackable over time
 * Mimi couldn't add a trial athlete
 * Couldn't remove Franiska Eder from trial athlete
 * At Risk list. Guardian Only should not appear in the "At Risk" list as they will never appear in a session. Guardian only should also not appear in Athletes

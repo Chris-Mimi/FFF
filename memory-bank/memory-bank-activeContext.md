@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 186.0
-**Updated:** 2026-04-29 (Session 325 — Coach 10-card holder-walk parity, leaderboard orphan-section bug, cascade-delete on WOD edit)
+**Version:** 187.0
+**Updated:** 2026-04-30 (Session 326 — lift_records cascade, Apply-to-Sessions removed, 13 orphan WODs cleaned)
 
 ---
 
@@ -21,28 +21,28 @@
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history scan._
 
-**First action:** None queued. S325 shipped 5 fixes around 10-card debits + leaderboard correctness + WOD-edit cascade. All live-verified. Pick from "Next Immediate Steps" or wait for direction.
+**First action:** None queued. S326 extended cascade-delete to lift_records, removed the buggy "Apply to Sessions" picker, and cleaned 13 orphan WODs. Pick from "Next Immediate Steps" or wait for direction.
 
 **Files to open first if continuing code work:** none queued.
 
 **Carry-over status:**
-- ✅ S325 coach manual booking holder-walk — Chris re-tested Adrian Jacht booking, Miriam's card decrements correctly.
-- ✅ S325 score-entry gender sort — verified F → M → null ordering in Results modal.
-- ✅ S325 leaderboard formatResult `scoring_fields` gating — stale weight/metres/cals on Push-up Strict no longer surface.
-- ✅ S325 leaderboard positional sibling-index fix — Push-up Strict leaderboard now shows correct varied reps per athlete (was uniformly 46 from a sibling WOD's section at the same array index).
-- ✅ S325 WOD-edit cascade-delete — confirm dialog appears when saving a WOD that removes scored sections. Drafting workflow unaffected (no scored rows → no dialog).
-- ✅ S325 one-shot cleanup — 93 orphan rows deleted across 4 WODs (66 in `e525ad95`, the rest in older WODs).
+- ✅ S326 lift_records cascade — confirm dialog now counts both `wod_section_results` and `lift_records`; tuple-matching with kept-section subtraction. Live-verified by Chris.
+- ✅ S326 Apply-to-Sessions removal — picker UI gone from WorkoutModal; drag-and-drop / copy-paste remain (already orphan-safe).
+- ✅ S326 orphan WOD cleanup — 13 phantom WODs deleted across 5 dates (2026-04-20, -22, -27, -28, -29). 0 orphans remaining as of close.
 - ⏳ S321 late-cancel TZ fix — still waiting on a real organic cancellation to confirm.
 
 **Landmines:**
-- **WOD save now cascade-deletes scored sections that are removed.** [hooks/coach/useWODOperations.ts](hooks/coach/useWODOperations.ts) `handleSaveWOD` fetches old sections, computes removed IDs, prompts a destructive confirm if any `wod_section_results` rows exist for the removed sections. Confirm → deletes rows + saves. Cancel → aborts save entirely. Pure rename/reorder/scoring_fields edit is a no-op (UUID stable). If a coach's habit is delete-then-readd a section, the delete step destroys data — the confirm dialog is the only safety net.
-- **Leaderboard's grouped-mode sibling lookup uses ONLY the selected section's UUID** ([components/athlete/LeaderboardView.tsx](components/athlete/LeaderboardView.tsx) line ~884). Earlier it walked `sections[sectionIndex]` per sibling WOD, which pulled in wrong sections when sibling layouts differed. Section UUIDs are reused across legitimate copies, so the exact-UUID filter still aggregates cross-week scores correctly.
-- **`formatResult` accepts optional `scoringFields`** ([utils/leaderboard-utils.ts](utils/leaderboard-utils.ts) line ~653). When passed, gates extras (weight/metres/reps/cals) on the section's current scoring config. Backward-compat: undefined → renders all non-null fields. Both leaderboard call sites pass it.
-- **Coach manual booking ([hooks/coach/useBookingManagement.ts](hooks/coach/useBookingManagement.ts)) now walks to the 10-card holder.** Two places: `handleManualBooking` (debit on add) and `handleCancelBooking` (refund on Remove). Mirrors the `/api/bookings/create` flow. `useSessionDetails.Member` interface and `lib/coach/bookingHelpers` Member interface both gained `primary_payment_method` + `ten_card_holder_id`.
-- **Score-entry API ([app/api/score-entry/[sessionId]/route.ts](app/api/score-entry/[sessionId]/route.ts)) sorts athletes F → M → null by gender, then alphabetical name.** Whiteboard + trial entries (no gender) sort to bottom alphabetically. `members.gender` SELECTed.
-- **Diagnostic + cleanup scripts** in `scripts/`: `diagnose-mon-wod-46reps.ts` (one-shot, can adapt the WOD_ID constant) and `cleanup-orphan-section-results.ts` (sweeps all WODs for orphans; default dry-run, `--apply` to delete, `--wod=<id>` to limit). Both use `SUPABASE_SERVICE_ROLE_KEY`.
-- (Carry from S324) Migration `database/add-payment-method-and-tencard-holder.sql` is in production. SQL files are gitignored — re-run requires getting SQL from commit `630aff69` or Supabase migration history.
-- (Carry from S324) Booking flow walks to a 10-card holder, not the booking member, in `/api/bookings/create`, `/api/bookings/cancel` refund + waitlist promotion. After S325 the coach-side direct-supabase paths in `useBookingManagement.ts` also walk.
+- **WOD-edit cascade-delete dialog now counts BOTH tables.** [hooks/coach/useWODOperations.ts](hooks/coach/useWODOperations.ts) `handleSaveWOD` builds `(lift_name, RM:<rm_test>)` or `(lift_name, RS:<rep_scheme>)` tuple keys for removed-vs-kept sections; deletes only orphan tuples. Lift records that are still represented in a kept section are preserved (defensive — same lift can appear in multiple sections of one WOD).
+- **"Apply to Sessions" no longer exists.** [components/coach/WorkoutModal.tsx](components/coach/WorkoutModal.tsx) and [components/coach/WorkoutFormFields.tsx](components/coach/WorkoutFormFields.tsx) no longer render the picker; [hooks/coach/useWorkoutModal.ts](hooks/coach/useWorkoutModal.ts) no longer ships `selectedSessionIds`/`otherSessions`/`applySessionsOpen`/`handleSessionSelectionToggle`; [hooks/coach/useWODOperations.ts](hooks/coach/useWODOperations.ts) `handleSaveWOD` no longer has the `selectedSessionIds` branches. Fan-out workflow is now drag-and-drop or copy-paste only — both already orphan-safe via `handleCopyWOD`'s explicit cleanup at lines 768-798.
+- **`scripts/audit-sibling-wods.ts`** (new diagnostic) — finds dates with 3+ sibling WODs and flags orphans (no sessions, no scores, no lifts). Run via `npx tsx`, service-role.
+- **`scripts/cleanup-orphan-wods.ts`** (rewritten) — generic orphan-WOD sweep, dry-run by default, `--apply` to delete. Re-verifies each row at delete-time, never trusts the audit. (Old S113 one-shot was overwritten — only S113 history references it.)
+- **`scripts/find-wod-with-lifts.ts`** (new) — service-role lookup for WODs with `lift_records`, used to pick test candidates for the cascade dialog.
+- (Carry from S325) WOD save cascade-deletes scored sections that are removed; confirm dialog gates the destructive write. Pure rename/reorder/scoring_fields edit is a no-op (UUID stable).
+- (Carry from S325) Leaderboard's grouped-mode sibling lookup uses ONLY the selected section's UUID. Section UUIDs are reused across legitimate copies, so the exact-UUID filter still aggregates cross-week scores correctly.
+- (Carry from S325) `formatResult` accepts optional `scoringFields` — gates extras (weight/metres/reps/cals) on the section's current scoring config.
+- (Carry from S325) Coach manual booking walks to the 10-card holder in `useBookingManagement.ts` `handleManualBooking` / `handleCancelBooking`.
+- (Carry from S324) Migration `database/add-payment-method-and-tencard-holder.sql` is in production. SQL files are gitignored.
+- (Carry from S324) Booking flow walks to a 10-card holder, not the booking member, in `/api/bookings/create`, `/api/bookings/cancel`.
 - (Carry from S321) `Chris Notes/AA frequently used files/Notes for next session.md` is **Chris-owned** — Claude does NOT read/write content, but DOES commit/push when modified.
 - (Carry) `bookings.is_og` migration in production. `sessionStartInstant()` in `lib/bookingRules.ts` for TZ-safe gates.
 
@@ -117,6 +117,19 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 326 (2026-04-30 — Opus 4.7) — LIFT_RECORDS CASCADE + APPLY-TO-SESSIONS REMOVED + 13 ORPHAN WODS CLEANED:**
+- **Trigger.** Continuing S325 follow-ups: (1) extend the new cascade-delete dialog to also clean orphaned `lift_records`, then (2) audit + fix the "sibling WOD count bloat" Chris had been seeing for weeks.
+- **Fix 1 (commit `d397005f`).** [hooks/coach/useWODOperations.ts](hooks/coach/useWODOperations.ts) `handleSaveWOD` extended: builds `(lift_name, RM:<rm_test>)` and `(lift_name, RS:<rep_scheme>)` tuple keys from removed-vs-kept sections, queries `lift_records` matching orphan tuples, includes them in the destructive confirm dialog count, deletes them on confirm. Defensive: a lift present in both a removed AND a kept section is preserved (lift_records have no section_id, so we infer association by tuple). Live-tested on `c2999101` (Front Squat 5RM) and `bccffaeb` (multi-Deadlift defensive case) — both behaved correctly.
+- **Audit 1.** [scripts/audit-sibling-wods.ts](scripts/audit-sibling-wods.ts) groups WODs by `(date, workout_name OR session_type)`, flags clusters of 3+ with `0 sessions / 0 bookings / 0 scores / 0 lifts` per row. Found 9 cluster-resident orphans across 4 dates (2026-04-22, -27, -28, -29). The 2026-04-22 "Strict Movements" cluster (S325's original bug source) had 5 of them.
+- **Root-cause investigation.** Chris asked "is Apply to Sessions introducing unnecessary complexity?" — yes. Both `selectedSessionIds` branches in [hooks/coach/useWODOperations.ts](hooks/coach/useWODOperations.ts) (UPDATE-existing line 195+, INSERT-new line 427+) created a fresh WOD per ticked session and re-pointed `weekly_sessions.workout_id` to it WITHOUT deleting the previously-linked WOD. Re-running the picker n times produced n orphans. Drag-and-drop and copy-paste (`handleCopyWOD`, line 599+) were already orphan-safe — they have explicit cleanup at line 768+.
+- **Fix 2 — feature deletion.** Removed the entire "Apply to Sessions" picker rather than patching it. Per Chris: drag-and-drop already covers the same use case, three fan-out paths is two too many. Files touched: [hooks/coach/useWorkoutModal.ts](hooks/coach/useWorkoutModal.ts) (state + handler + type field), [components/coach/WorkoutFormFields.tsx](components/coach/WorkoutFormFields.tsx) (UI block + props, restructured Max Capacity to standalone), [components/coach/WorkoutModal.tsx](components/coach/WorkoutModal.tsx) (inline UI block in the non-panel form, prop-passes, both `dataToSave` builders, `ChevronDown` import), [hooks/coach/useWODOperations.ts](hooks/coach/useWODOperations.ts) (both `selectedSessionIds` branches + the now-redundant guard). TS clean, dev server hot-reloaded both `/coach` and `/athlete` with no errors. Chris live-verified the picker is gone and saving works normally.
+- **Cleanup.** [scripts/cleanup-orphan-wods.ts](scripts/cleanup-orphan-wods.ts) rewritten as generic orphan sweep (dry-run by default, `--apply` to delete; re-verifies sessions/scores/lifts at delete-time). Old S113 one-shot was overwritten — only referenced in S113 history. Dry-run found 13 orphans (4 more than the cluster audit, since the audit filtered to clusters of 3+). Chris approved "all 13" → ran `--apply` → 13 deleted. Verification re-run shows 0 orphans.
+- **Process moments worth remembering:**
+  - **Cluster filter hides solo orphans.** The audit script's "3+ siblings" filter caught the obvious cases but missed 4 lone orphans (older auto-named WODs like `WOD 2026-04-29 18:30`). Always do a follow-up unfiltered sweep before deleting — what the cluster view shows isn't the whole picture.
+  - **Naming conflict gotcha.** I tried to write `scripts/cleanup-orphan-wods.ts` and Write blocked with "file not yet read". Read first revealed an unrelated S113 one-shot still sitting there. Lesson: even for a "new" script name, run the file-existence check before assuming.
+  - **Feature deletion > feature patch.** First instinct was to patch `selectedSessionIds` to overwrite-in-place instead of insert. Chris's question — "is this introducing unnecessary complexity?" — flipped that: if a feature has a clean alternative already in place, removing it is simpler than fixing it. Three fan-out paths down to two.
+- **TS clean.** Two commits: `d397005f` (lift_records cascade, mid-session) + session-close commit (Apply-to-Sessions deletion + cleanup script + audit script + activeContext + this history file).
+
 **Session 325 (2026-04-29 — Opus 4.7) — COACH 10-CARD PARITY + LEADERBOARD ORPHAN-SECTION BUG + WOD-EDIT CASCADE:**
 - **Trigger.** Chris flagged that adding Adrian Jacht (Miriam's son, family-shared 10-card) to a workout from Session Management didn't decrement Miriam's card. S324 fixed `/api/bookings/create` but missed the coach-side direct-supabase path in [hooks/coach/useBookingManagement.ts](hooks/coach/useBookingManagement.ts).
 - **Fix 1 (commit `7ae38b1`, pushed).** `handleManualBooking` and `handleCancelBooking` now resolve effective payment method and walk to `ten_card_holder_id` before debit/refund. Mirrors API logic via `getEffectivePaymentMethod`. `useSessionDetails.Member` and `lib/coach/bookingHelpers` Member interface both gained `primary_payment_method` + `ten_card_holder_id`. Verified: Adrian booking now decrements Miriam.
@@ -180,19 +193,7 @@ Athlete Tools
 - **TS clean.** Single bundled commit (per checklist default). 15 files modified + 1 untracked SQL migration (`*.sql` is gitignored — the migration is local-only, run via Supabase SQL Editor).
 - **Carry-over:** all live-verifications listed in the Next Session Kickoff block at the top of this file.
 
-**Session 321 (2026-04-27 — Opus 4.7) — LATE-CANCEL TZ FIX + TRIAL ATHLETES REWORK + INCIDENTS CLEANUP:**
-- **Late-cancel gate TZ bug.** During the S316 gate live-test, Chris noticed two athletes (Marion + Michael Weber) who cancelled ~1h before a Friday class landed in `Cancelled by Athlete` instead of `Late Cancellations`. Same TZ bug class as S318's `getMaxVisibleSessionDate`: `new Date(\`${session.date}T${session.time}\`)` parses as runtime-local time (UTC on Vercel) but `weekly_sessions.time` is Berlin wall-clock. So an 18:00 CEST session was treated as 18:00 UTC = 20:00 CEST — the lock-threshold computation ran 2h late, gate didn't fire.
-- **Fix.** Added exported `sessionStartInstant(dateStr, timeStr)` to [lib/bookingRules.ts](lib/bookingRules.ts) — uses `Intl.DateTimeFormat` with `timeZone: 'Europe/Berlin'` to convert the wall-clock to a UTC instant. Threaded it through both routes: [app/api/bookings/cancel/route.ts](app/api/bookings/cancel/route.ts) (lock check + 10-card grace check) and [app/api/bookings/create/route.ts](app/api/bookings/create/route.ts) (lock check). Did NOT refactor the existing nested helper inside `getMaxVisibleSessionDate` — left it untouched per "no premature refactoring".
-- **Late-cancel timestamp display.** [components/coach/BookingListItem.tsx](components/coach/BookingListItem.tsx): the "Cancelled: <ts>" suffix on each row was gated to `status === 'cancelled'` only. Late cancels and no-shows showed only the booked timestamp. Extended to render for all three statuses with the right label ("Late cancel:", "Marked:", "Cancelled:"). Pulls from `booking.updated_at` which is already populated.
-- **Incidents tab — Coach Remove no longer counted as incident.** [app/coach/admin/page.tsx](app/coach/admin/page.tsx) Incidents tab dropped `coach_cancelled` from the query, type, aggregation, table column, expanded-row label, and `colSpan`. Chris's reasoning: when a coach Removes a booking it's intentional cleanup (booking made in error), not an athlete-side incident worth tracking. Late Cancel + No-Show remain. Existing `coach_cancelled` rows in DB are preserved (they're cleanup records) but invisible on this report.
-- **Trial Athletes panel rework.** Same admin page. Was: always-shown amber-pill panel with hover tooltip for dates. Now: collapsible (chevron toggle, collapsed by default — "doesn't clutter up the page when we get a few months in"); each trial gets a chip color based on whether their name matches a `members.whiteboard_name` (case-insensitive) — **green chip + "Registered" badge** if matched, **amber chip** otherwise; dates rendered inline (DD.MM.YYYY) instead of hover-only; **X delete button** strips the name from `weekly_sessions.trial_names` on every session that contains it (for accidental tags or post-registration cleanup, e.g. Senol once he registers). Empty arrays become `null`. Member bookings unaffected.
-- **`whiteboard_name` match is case-insensitive but not fuzzy.** Typos ("Daniela" vs "Daniella") leave a registered athlete showing amber. Document in landmines.
-- **Session-close checklist restructure.** Chris asked to remove step #3 (overwrite `Notes for next session.md`) — that file is his personal notes, not for Claude. Folded the next-session info into a new "⚡ Next Session Kickoff" section at the top of activeContext. Renumbered close-checklist steps 4-10 → 3-9, updated verification list. **`Notes for next session.md` is Chris-owned now — do not read or write to it.**
-- **Memory updates:** new `feedback_persist_status_answers.md` — when Chris confirms a carry-over is done, update activeContext in the same turn instead of just acknowledging in chat.
-- **TS clean.** Three logical changesets bundled into one session commit (per checklist default).
-- **Carry-over:** all live-verifications listed in the Next Session Kickoff block at the top of this file.
-
-**Older sessions (57-320):** See `project-history/` folder.
+**Older sessions (57-321):** See `project-history/` folder.
 
 ---
 
@@ -222,13 +223,11 @@ Athlete Tools
 3. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
 4. **Athlete subscription bug** — fix Stefan Glocker DB row + investigate webhook ordering + `autoExpireSubscriptions` vs trialing.
 5. **Whiteboard duplicate entries** (see `memory/project_whiteboard_duplicates.md`) — uncommitted changes from Session 251 need reviewing/committing. **Note:** S305 backfill may have largely resolved this by retroactively booking whiteboard names; re-evaluate before doing the S251 work.
-6. **Cascade-delete to `lift_records`** (S325 follow-up) — when an RM-test or non-RM lift section is removed from a WOD, the `lift_records` rows it auto-created stay behind. The S325 layer-1 hook only deletes from `wod_section_results`. Worth bundling into the same confirm dialog: count + delete associated `lift_records` too.
-7. **Sibling WOD count bloat** (surfaced S325) — Chris had 7 WODs all named "WOD - Strict Movements..." for 2026-04-22, all from the duplicate-WOD-creation path in `useWODOperations.ts` (line 78-114) that creates one WOD per session. Worth auditing whether all are needed or if some are stale republish leftovers. Low priority — they're harmless after the S325 leaderboard fix.
-8. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts` only filters bookings by `status='confirmed'` (and now `is_og=false`) and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
-9. **Test endpoint 410 cleanup** (deferred from S292) — route `app/api/notifications/test/route.ts` through `sendToSubscription` so expired subs auto-delete on Send Test.
-10. **Improve `fetchWODs` error logging** — when Supabase errors stringify as `{}` in the catch block (as happened in S322 with the missing `is_og` column), the cause is hidden. Same fix as S318 booking-error toast: extract `.message`/`.code`/`.details`/`.hint`. Low priority.
-11. **Audit other diagnostic scripts in `scripts/` for anon-key blind spot** (S323) — `check-ghost-scaling.ts` and others use `NEXT_PUBLIC_SUPABASE_ANON_KEY`; if they query RLS-protected tables they may silently return empty. Switch to service role.
-12. **Optional: derive a "Guardian" badge on MemberCard** (deferred from S324) — automatically show when a member has any rows pointing at them via `primary_member_id`. Distinct from the existing "Guardian Only" toggle (which means "doesn't train"). Was discussed in S324 but not built; the `guardian_only` binary toggle covers the immediate need.
+6. **Score-entry API filter (deferred from S289)** — `app/api/score-entry/[sessionId]/route.ts` only filters bookings by `status='confirmed'` (and now `is_og=false`) and ignores `members.status`. If unapprove should cascade to hide bookings, filter in API or cascade-cancel bookings.
+7. **Test endpoint 410 cleanup** (deferred from S292) — route `app/api/notifications/test/route.ts` through `sendToSubscription` so expired subs auto-delete on Send Test.
+8. **Improve `fetchWODs` error logging** — when Supabase errors stringify as `{}` in the catch block (as happened in S322 with the missing `is_og` column), the cause is hidden. Same fix as S318 booking-error toast: extract `.message`/`.code`/`.details`/`.hint`. Low priority.
+9. **Audit other diagnostic scripts in `scripts/` for anon-key blind spot** (S323) — `check-ghost-scaling.ts` and others use `NEXT_PUBLIC_SUPABASE_ANON_KEY`; if they query RLS-protected tables they may silently return empty. Switch to service role.
+10. **Optional: derive a "Guardian" badge on MemberCard** (deferred from S324) — automatically show when a member has any rows pointing at them via `primary_member_id`. Distinct from the existing "Guardian Only" toggle (which means "doesn't train"). Was discussed in S324 but not built; the `guardian_only` binary toggle covers the immediate need.
 
 ---
 

@@ -16,7 +16,6 @@ import { FocusTrap } from '@/components/ui/FocusTrap';
 // Re-export types for backwards compatibility
 export type { WODFormData, WODSection } from '@/hooks/coach/useWorkoutModal';
 import {
-  ChevronDown,
   Library,
   Plus,
 } from 'lucide-react';
@@ -118,10 +117,7 @@ export default function WorkoutModal({
                 }
                 const dataToSave = {
                   ...hook.formData,
-                  selectedSessionIds: Array.from(hook.selectedSessionIds),
-                  classTimes: (!editingWOD && hook.selectedSessionIds.size === 0)
-                    ? [hook.newSessionTime]
-                    : hook.formData.classTimes,
+                  classTimes: !editingWOD ? [hook.newSessionTime] : hook.formData.classTimes,
                 };
                 await onSave(dataToSave);
                 onClose();
@@ -152,13 +148,8 @@ export default function WorkoutModal({
               errors={hook.errors}
               workoutTitles={hook.workoutTitles}
               tracks={hook.tracks}
-              otherSessions={hook.otherSessions}
-              selectedSessionIds={hook.selectedSessionIds}
-              applySessionsOpen={hook.applySessionsOpen}
               loadingTracks={hook.loadingTracks}
               onFieldChange={hook.handleChange}
-              onSessionSelectionToggle={hook.handleSessionSelectionToggle}
-              onApplySessionsToggle={() => hook.setApplySessionsOpen(!hook.applySessionsOpen)}
             />
 
             {/* Sections */}
@@ -355,10 +346,7 @@ export default function WorkoutModal({
                 }
                 const dataToSave = {
                   ...hook.formData,
-                  selectedSessionIds: Array.from(hook.selectedSessionIds),
-                  classTimes: (!editingWOD && hook.selectedSessionIds.size === 0)
-                    ? [hook.newSessionTime]
-                    : hook.formData.classTimes,
+                  classTimes: !editingWOD ? [hook.newSessionTime] : hook.formData.classTimes,
                 };
                 await onSave(dataToSave);
                 onClose();
@@ -429,83 +417,25 @@ export default function WorkoutModal({
                 </select>
               </div>
 
-              {/* Max Capacity & Apply to Sessions */}
+              {/* Max Capacity */}
               <div>
-                <div className='flex justify-between items-start gap-4'>
-                  <div className='flex-1'>
-                    <label className='block text-sm font-semibold mb-2 text-gray-900'>
-                      Max Capacity <span className='text-red-500'>*</span>
-                    </label>
-                    <input
-                      type='number'
-                      value={hook.formData.maxCapacity}
-                      onChange={e => hook.handleChange('maxCapacity', parseInt(e.target.value) || 0)}
-                      min='1'
-                      max='30'
-                      className={`w-32 px-3 py-1.5 text-sm border rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 ${
-                        hook.errors.maxCapacity ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                    />
-                    {hook.errors.maxCapacity && (
-                      <p className='text-red-500 text-sm mt-1'>{hook.errors.maxCapacity}</p>
-                    )}
-                    <p className='text-xs text-gray-500 mt-1'>Session times are managed via schedule templates</p>
-                  </div>
-
-                  {/* Apply to Sessions */}
-                  {hook.otherSessions.length > 0 && (
-                    <div className='relative'>
-                      <button
-                        type='button'
-                        onClick={() => hook.setApplySessionsOpen(!hook.applySessionsOpen)}
-                        className='mt-6 px-3 py-1.5 text-sm bg-white border-2 border-[#178da6] text-[#178da6] hover:bg-gray-50 rounded-lg flex items-center gap-2 transition'
-                        title='Apply this workout to other sessions'
-                      >
-                        <span>Apply to Sessions</span>
-                        {hook.selectedSessionIds.size > 0 && (
-                          <span className='bg-[#178da6] text-white text-xs px-1.5 py-0.5 rounded-full'>
-                            {hook.selectedSessionIds.size}
-                          </span>
-                        )}
-                        <ChevronDown size={16} className={`transition-transform ${hook.applySessionsOpen ? 'rotate-180' : ''}`} />
-                      </button>
-
-                      {hook.applySessionsOpen && (
-                        <div className='absolute right-0 mt-2 w-64 bg-white border border-gray-300 rounded-lg shadow-lg z-50'>
-                          <div className='p-3'>
-                            <p className='text-xs text-gray-600 mb-3'>
-                              Select existing sessions to apply this workout to:
-                            </p>
-                            <div className='space-y-2 max-h-48 overflow-y-auto'>
-                              {hook.otherSessions.map(session => (
-                                <label key={session.id} className='flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded'>
-                                  <input
-                                    type='checkbox'
-                                    checked={hook.selectedSessionIds.has(session.id)}
-                                    onChange={(e) => {
-                                      const newSelected = new Set(hook.selectedSessionIds);
-                                      if (e.target.checked) {
-                                        newSelected.add(session.id);
-                                      } else {
-                                        newSelected.delete(session.id);
-                                      }
-                                      hook.selectedSessionIds = newSelected;
-                                    }}
-                                    className='w-4 h-4 text-[#178da6] focus:ring-[#178da6] rounded'
-                                  />
-                                  <span className='text-sm text-gray-700'>
-                                    {session.time}
-                                    {session.workout_id && <span className='text-gray-500 ml-2'>(has workout)</span>}
-                                  </span>
-                                </label>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
+                <label className='block text-sm font-semibold mb-2 text-gray-900'>
+                  Max Capacity <span className='text-red-500'>*</span>
+                </label>
+                <input
+                  type='number'
+                  value={hook.formData.maxCapacity}
+                  onChange={e => hook.handleChange('maxCapacity', parseInt(e.target.value) || 0)}
+                  min='1'
+                  max='30'
+                  className={`w-32 px-3 py-1.5 text-sm border rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 ${
+                    hook.errors.maxCapacity ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                />
+                {hook.errors.maxCapacity && (
+                  <p className='text-red-500 text-sm mt-1'>{hook.errors.maxCapacity}</p>
+                )}
+                <p className='text-xs text-gray-500 mt-1'>Session times are managed via schedule templates</p>
               </div>
 
               {/* Sections */}

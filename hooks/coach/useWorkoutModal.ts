@@ -102,7 +102,6 @@ export interface WODFormData {
     time?: string;
     booked_members?: string[];
   };
-  selectedSessionIds?: string[]; // For applying workout to multiple sessions
   video_clips?: { label: string; url: string }[]; // Manually attached movement demo clips
   has_scores?: boolean; // Whether any scores have been entered for this workout
 }
@@ -168,9 +167,6 @@ export interface UseWorkoutModalResult {
   sessionTime: string | null;
   editingTime: boolean;
   tempTime: string;
-  otherSessions: Array<{id: string; time: string; workout_id: string | null}>;
-  selectedSessionIds: Set<string>;
-  applySessionsOpen: boolean;
   newSessionTime: string;
 
   // Movement Library state
@@ -236,8 +232,6 @@ export interface UseWorkoutModalResult {
   resetPublishModalPos: () => void;
   openPublishModal: () => void;
   setPublishModalOpen: (open: boolean) => void;
-  setApplySessionsOpen: (open: boolean) => void;
-  handleSessionSelectionToggle: (sessionId: string, checked: boolean) => void;
   handleTextareaInteraction: (sectionId: string, cursorPosition: number) => void;
 }
 
@@ -278,11 +272,6 @@ export function useWorkoutModal(
   const [sessionTime, setSessionTime] = useState<string | null>(null);
   const [editingTime, setEditingTime] = useState(false);
   const [tempTime, setTempTime] = useState('12:00');
-
-  // State for applying workout to other sessions
-  const [otherSessions, setOtherSessions] = useState<Array<{id: string; time: string; workout_id: string | null}>>([]);
-  const [selectedSessionIds, setSelectedSessionIds] = useState<Set<string>>(new Set());
-  const [applySessionsOpen, setApplySessionsOpen] = useState(false);
 
   // State for new session time when creating from scratch
   const [newSessionTime, setNewSessionTime] = useState('09:00');
@@ -353,24 +342,6 @@ export function useWorkoutModal(
   // Reset form when modal opens or editingWOD changes
   useEffect(() => {
     if (isOpen) {
-      // Fetch other sessions on the same date
-      const fetchOtherSessions = async () => {
-        const { data, error } = await supabase
-          .from('weekly_sessions')
-          .select('id, time, workout_id')
-          .eq('date', formatDateLocal(date))
-          .order('time', { ascending: true });
-
-        if (!error && data) {
-          // Filter out the current session if editing
-          const filtered = editingWOD?.booking_info?.session_id
-            ? data.filter(s => s.id !== editingWOD.booking_info!.session_id)
-            : data;
-          setOtherSessions(filtered);
-        }
-      };
-      fetchOtherSessions();
-
       if (editingWOD) {
         // Check for pending section drop from calendar card BEFORE setting formData
         const pendingSection = window.__draggedSection;
@@ -735,13 +706,10 @@ export function useWorkoutModal(
     e.preventDefault();
 
     if (validate()) {
-      // If creating new workout without selecting existing sessions, use newSessionTime
+      // If creating new workout, use newSessionTime as the class time
       const dataToSave = {
         ...formData,
-        selectedSessionIds: Array.from(selectedSessionIds),
-        classTimes: (!editingWOD && selectedSessionIds.size === 0)
-          ? [newSessionTime]
-          : formData.classTimes,
+        classTimes: !editingWOD ? [newSessionTime] : formData.classTimes,
       };
       if (onSave) {
         onSave(dataToSave);
@@ -837,18 +805,6 @@ export function useWorkoutModal(
     setLibraryOpen(false);
   };
 
-  const handleSessionSelectionToggle = (sessionId: string, checked: boolean) => {
-    setSelectedSessionIds(prev => {
-      const newSelected = new Set(prev);
-      if (checked) {
-        newSelected.add(sessionId);
-      } else {
-        newSelected.delete(sessionId);
-      }
-      return newSelected;
-    });
-  };
-
   return {
     // State
     formData,
@@ -884,9 +840,6 @@ export function useWorkoutModal(
     sessionTime,
     editingTime,
     tempTime,
-    otherSessions,
-    selectedSessionIds,
-    applySessionsOpen,
     newSessionTime,
 
     // Movement Library state
@@ -952,7 +905,5 @@ export function useWorkoutModal(
     resetPublishModalPos: modalResizing.resetPublishModalPos,
     openPublishModal: modalResizing.openPublishModal,
     setPublishModalOpen,
-    setApplySessionsOpen,
-    handleSessionSelectionToggle,
   };
 }
