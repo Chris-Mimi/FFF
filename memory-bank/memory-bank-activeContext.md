@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 188.0
-**Updated:** 2026-04-30 (Session 327 — display_name fallback for family-member kids; closed stale subscription-bug carry-over)
+**Version:** 188.1
+**Updated:** 2026-04-30 (Session 328 — login fallback hardened after Michaela Eder rescue)
 
 ---
 
@@ -21,11 +21,12 @@
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history scan._
 
-**First action:** None queued. S327 fixed family-member kids showing as blank rows in Score Entry / Manual Booking / SearchPanel by adding `display_name || name` resolution at four data sources, and closed the stale "Athlete subscription bug" carry-over (both root causes already fixed in code). Pick from "Next Immediate Steps" or wait for direction.
+**First action:** None queued. S328 rescued Michaela Eder (could not log in despite healthy account; same pattern as Anja S317 — cached pre-S317 service-worker bundle on her phone served the old generic-error code path). Set temp password via `scripts/admin-set-password.ts`; hardened the login `check-status`-failure fallback at [app/login/page.tsx:105](app/login/page.tsx#L105) to render a German message instead of the raw Supabase string. Awaiting Michaela's confirmation tomorrow.
 
 **Files to open first if continuing code work:** none queued.
 
 **Carry-over status:**
+- ⏳ S328 Michaela login — temp password sent; she'll confirm tomorrow. Likely root cause was a stale PWA service-worker bundle on her phone serving pre-S317 login code (raw "Invalid login credentials" → Chrome auto-translated to generic German with no actionable info). New fallback rendered when `check-status` itself fails: "Anmeldung fehlgeschlagen. Bitte versuche es erneut oder nutze „Passwort vergessen?", falls das Problem bestehen bleibt."
 - ✅ S327 family-member display_name fallback — booking-page insert now sets both `name` and `display_name`; coach-side reads in score-entry API, useCoachData, useSessionDetails, TenCardModal all fall back to `display_name || name`. New family kids and existing ones with NULL `name` both render correctly. Chris fixed Fabian Siebert + Hannah Sterk's `members.name` rows manually before the code fix.
 - ✅ S327 stale subscription-bug carry-over removed — webhook handler at [app/api/stripe/webhook/route.ts:251-264](app/api/stripe/webhook/route.ts#L251-L264) doesn't overwrite `athlete_subscription_end` for trialing subs; `autoExpireSubscriptions` at [hooks/coach/useMemberData.ts:284-292](hooks/coach/useMemberData.ts#L284-L292) skips members with active/trialing Stripe subs (`!stripeSubMap[m.id]`). Both root causes from S280 were already fixed; carry-over was outdated.
 - ⏳ S321 late-cancel TZ fix — still waiting on a real organic cancellation to confirm.

@@ -102,7 +102,7 @@ export default function LoginPage() {
         }
       } catch (lookupErr) {
         console.error('Failed to check member status:', lookupErr);
-        setError(errorMessage);
+        setError('Anmeldung fehlgeschlagen. Bitte versuche es erneut oder nutze „Passwort vergessen?", falls das Problem bestehen bleibt.');
       }
     } finally {
       setLoading(false);
