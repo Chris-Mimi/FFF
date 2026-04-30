@@ -40,17 +40,48 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
 
         // Cascade-delete result rows for sections being removed in this save. Without
         // this, removed sections leave orphan wod_section_results rows that surface in
-        // the leaderboard / analytics weeks later.
+        // the leaderboard / analytics weeks later. Also cascades to lift_records (which
+        // have no section_id, so we match on (lift_name, rep_max_type|rep_scheme) tuples
+        // and only delete tuples not still present in a kept section).
+        type OldSection = {
+          id: string;
+          lifts?: Array<{
+            name?: string;
+            rm_test?: string;
+            rep_type?: 'constant' | 'variable';
+            sets?: number;
+            reps?: number;
+            variable_sets?: Array<{ reps: number }>;
+          }>;
+        };
+        const liftTupleKey = (l: NonNullable<OldSection['lifts']>[number]): string | null => {
+          if (!l.name) return null;
+          if (l.rm_test) return `${l.name}|RM:${l.rm_test}`;
+          const repScheme = l.rep_type === 'constant'
+            ? `${l.sets || 1}x${l.reps || 1}`
+            : (l.variable_sets || []).map(s => s.reps).join('-') || '1';
+          return `${l.name}|RS:${repScheme}`;
+        };
+        const collectLiftTuples = (sections: OldSection[]): Set<string> => {
+          const out = new Set<string>();
+          for (const s of sections) {
+            for (const l of s.lifts || []) {
+              const k = liftTupleKey(l);
+              if (k) out.add(k);
+            }
+          }
+          return out;
+        };
+
         const newSectionIds = new Set((wodData.sections || []).map(s => s.id));
         const { data: oldWod } = await supabase
           .from('wods')
           .select('sections')
           .eq('id', editingWOD.id!)
           .maybeSingle();
-        const oldSections = ((oldWod?.sections as Array<{ id: string }> | null) || []);
-        const removedSectionIds = oldSections
-          .map(s => s.id)
-          .filter(id => !newSectionIds.has(id));
+        const oldSections = ((oldWod?.sections as OldSection[] | null) || []);
+        const removedSections = oldSections.filter(s => !newSectionIds.has(s.id));
+        const removedSectionIds = removedSections.map(s => s.id);
 
         if (removedSectionIds.length > 0) {
           const removedKeys = removedSectionIds.map(id => `${id}-content-0`);
@@ -60,24 +91,67 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
             .eq('wod_id', editingWOD.id!)
             .in('section_id', removedKeys);
 
+          const removedLiftTuples = collectLiftTuples(removedSections);
+          const keptLiftTuples = collectLiftTuples((wodData.sections || []) as OldSection[]);
+          const tuplesToDelete = new Set(
+            [...removedLiftTuples].filter(t => !keptLiftTuples.has(t))
+          );
+
+          let liftRowsToDelete: string[] = [];
+          if (tuplesToDelete.size > 0) {
+            const liftNames = [...new Set(
+              [...tuplesToDelete].map(t => t.split('|')[0])
+            )];
+            const { data: liftCandidates } = await supabase
+              .from('lift_records')
+              .select('id, lift_name, rep_max_type, rep_scheme')
+              .eq('wod_id', editingWOD.id!)
+              .in('lift_name', liftNames);
+            liftRowsToDelete = (liftCandidates || [])
+              .filter(r => {
+                const key = r.rep_max_type
+                  ? `${r.lift_name}|RM:${r.rep_max_type}`
+                  : `${r.lift_name}|RS:${r.rep_scheme}`;
+                return tuplesToDelete.has(key);
+              })
+              .map(r => r.id as string);
+          }
+
           const rowCount = affectedRows?.length || 0;
-          if (rowCount > 0) {
+          const liftCount = liftRowsToDelete.length;
+          if (rowCount > 0 || liftCount > 0) {
             const athleteCount = new Set(
               (affectedRows || []).map(r => r.member_id || r.user_id || `wb:${r.whiteboard_name}`)
             ).size;
+            const parts: string[] = [];
+            if (rowCount > 0) {
+              parts.push(`${rowCount} score${rowCount === 1 ? '' : 's'} from ${athleteCount} athlete${athleteCount === 1 ? '' : 's'}`);
+            }
+            if (liftCount > 0) {
+              parts.push(`${liftCount} lift record${liftCount === 1 ? '' : 's'}`);
+            }
             const ok = await confirm({
-              title: 'Remove sections with saved scores?',
-              message: `Saving will delete ${rowCount} score${rowCount === 1 ? '' : 's'} from ${athleteCount} athlete${athleteCount === 1 ? '' : 's'} on the section${removedSectionIds.length === 1 ? '' : 's'} you removed.\n\nThis cannot be undone.`,
-              confirmText: 'Delete scores and save',
+              title: 'Remove sections with saved data?',
+              message: `Saving will delete ${parts.join(' and ')} on the section${removedSectionIds.length === 1 ? '' : 's'} you removed.\n\nThis cannot be undone.`,
+              confirmText: 'Delete and save',
               variant: 'danger',
             });
             if (!ok) return;
-            const { error: delErr } = await supabase
-              .from('wod_section_results')
-              .delete()
-              .eq('wod_id', editingWOD.id!)
-              .in('section_id', removedKeys);
-            if (delErr) throw delErr;
+            if (rowCount > 0) {
+              const { error: delErr } = await supabase
+                .from('wod_section_results')
+                .delete()
+                .eq('wod_id', editingWOD.id!)
+                .in('section_id', removedKeys);
+              if (delErr) throw delErr;
+            }
+            if (liftCount > 0) {
+              const { error: liftDelErr } = await supabase
+                .from('lift_records')
+                .delete()
+                .in('id', liftRowsToDelete);
+              if (liftDelErr) throw liftDelErr;
+            }
           }
         }
 
