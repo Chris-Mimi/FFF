@@ -37,18 +37,23 @@
 ### 5. Update Feature Overview (if applicable)
 - [ ] If a new user-facing feature shipped: add an entry to `Chris Notes/Forge app documentation/Forge-Feature-Overview.md`. Written with launch-publicity / user-manual framing in mind.
 
-### 6. Run Database Backup ⚠️ BEFORE GIT
+### 6. Verify Production Build ⚠️ BEFORE BACKUP
+- [ ] Execute: `npm run build 2>&1 | tail -15` — runs the same lint + type-check pass Vercel uses. Catches `prefer-const`, unused vars, type errors, etc. that `next dev` skips silently.
+- If errors: fix them, re-run, **do not proceed** until clean. (Session 326 incident: an S325 `let`/`const` warning blocked Vercel deploy for two pushes because nobody ran `npm run build` before pushing.)
+- Warnings are OK to defer (they don't block Vercel) but worth noting in activeContext if they accumulate.
+
+### 7. Run Database Backup ⚠️ BEFORE GIT
 - [ ] Execute: `npm run backup 2>&1 | tail -3` — verbose per-table logs aren't useful; tail just shows success/failure.
 - Auto-discovers all public tables via `get_public_tables()` RPC (Session 95), so the schema list stays current automatically.
 - **Backups are local-only restore points.** `backups/` is in `.gitignore` — do NOT force-add it. The JSON files exist on disk as a safety net; restore via `scripts/restore-from-backup.ts` if needed.
 
-### 7. Stage Changes (Deliberate, Not Blanket)
+### 8. Stage Changes (Deliberate, Not Blanket)
 - [ ] Prefer named-file staging: `git add path/to/file1 path/to/file2 ...`
 - [ ] `git add .` only after an explicit `git status` review — never as a reflex.
 - [ ] Never stage `.env*`, credentials, large binaries, or anything in `/tmp`.
 - [ ] **If splitting commits:** stage + commit each group back-to-back in a single message's tool calls when possible, instead of `status → stage → commit → status → stage → commit`. Each `git status` between commits re-dumps the file list — adds up fast.
 
-### 8. Commit
+### 9. Commit
 Use the session-prefix pattern from recent git log:
 
 ```
@@ -63,7 +68,7 @@ Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>
 - `XXX`: current session number (check activeContext version or last commit).
 - Subject: imperative mood, specific (*what* changed and *why*, briefly).
 
-### 9. Push
+### 10. Push
 ```bash
 git push
 ```
@@ -76,6 +81,7 @@ git push
 - [ ] activeContext memory bank updated (version bumped, Last 5 Sessions, Next Immediate Steps)
 - [ ] Project history file created
 - [ ] Feature overview updated (if applicable)
+- [ ] **Production build passes** (`npm run build` clean — no Vercel surprises)
 - [ ] Backup completed successfully
 - [ ] Commit message follows `type(session-XXX):` pattern
 - [ ] All changes committed (including backups)
@@ -86,6 +92,7 @@ git push
 
 ## Common Mistakes to Avoid
 
+- ❌ **Pushing without `npm run build` first** — `next dev` skips the production lint pass; Vercel will fail on `prefer-const`, unused vars, etc. (Session 326 incident).
 - ❌ **Committing before backup** — backup files won't be in the commit.
 - ❌ **Skipping project history** — nuance gets lost in activeContext's 5-session window.
 - ❌ **Generic commit messages** — no session number, no specifics.
