@@ -117,15 +117,21 @@ export function useSessionDetails(
       // Fetch all active members for manual booking
       const { data: membersData, error: membersError } = await supabase
         .from('members')
-        .select('id, name, email, membership_types, ten_card_sessions_used, primary_payment_method, ten_card_holder_id')
+        .select('id, name, display_name, email, membership_types, ten_card_sessions_used, primary_payment_method, ten_card_holder_id')
         .eq('status', 'active')
         .order('name', { ascending: true });
 
       if (membersError) throw membersError;
 
+      // Resolve display_name → name (family-member kids only have display_name set).
+      const normalizedMembers = (membersData || []).map(m => ({
+        ...m,
+        name: m.display_name || m.name || '',
+      }));
+
       // Filter out members who already have active bookings
       const available = filterAvailableMembers(
-        membersData || [],
+        normalizedMembers,
         transformedBookings
       );
 

@@ -13,6 +13,7 @@ interface TenCardModalProps {
   member: {
     id: string;
     name: string;
+    display_name?: string | null;
     ten_card_purchase_date: string | null;
     ten_card_sessions_used: number;
     ten_card_total?: number;
@@ -223,7 +224,7 @@ export default function TenCardModal({
             {/* Member Info */}
             <div className="bg-gray-50 rounded-lg p-4">
               <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                {member.name}
+                {member.display_name || member.name}
               </h3>
               {activeSection === '10card' ? (
                 <div className={`text-sm font-medium px-3 py-1 rounded inline-block ${

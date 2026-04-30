@@ -456,7 +456,7 @@ export const useCoachData = ({
     try {
       const { data: membersData, error: membersError } = await supabase
         .from('members')
-        .select('id, name, date_of_birth')
+        .select('id, name, display_name, date_of_birth')
         .eq('status', 'active')
         .eq('guardian_only', false)
         .order('name', { ascending: true });
@@ -479,7 +479,7 @@ export const useCoachData = ({
       setMembers(
         (membersData || []).map(m => ({
           id: m.id,
-          name: m.name,
+          name: m.display_name || m.name || '',
           booking_count: memberCounts[m.id] || 0,
           date_of_birth: m.date_of_birth,
         }))

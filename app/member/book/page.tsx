@@ -339,6 +339,7 @@ export default function MemberBookingPage() {
         .insert({
           account_type: 'family_member',
           primary_member_id: user.id,
+          name: familyFormData.display_name.trim(),
           display_name: familyFormData.display_name.trim(),
           date_of_birth: familyFormData.date_of_birth || null,
           relationship: familyFormData.relationship,

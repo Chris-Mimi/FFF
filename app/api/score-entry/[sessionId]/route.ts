@@ -52,7 +52,7 @@ export async function GET(
       .from('bookings')
       .select(`
         id, status, booked_at,
-        members!bookings_member_id_fkey (id, name, email, gender)
+        members!bookings_member_id_fkey (id, name, display_name, email, gender)
       `)
       .eq('session_id', sessionId)
       .eq('is_og', false)
@@ -91,12 +91,14 @@ export async function GET(
     }
 
     // 5. Build athletes array from booked members
+    // Family-member rows (kids added via book/page) have display_name set but no name —
+    // fall back so kids don't render as blank rows.
     const athletes: { id: string; memberId: string | null; userId: string | null; name: string; whiteboardName: string | null; gender: 'M' | 'F' | null }[] =
-      members.map((m: { id: string; name: string; email: string; gender: 'M' | 'F' | null }) => ({
+      members.map((m: { id: string; name: string | null; display_name: string | null; email: string; gender: 'M' | 'F' | null }) => ({
         id: m.id,
         memberId: m.id,
         userId: emailToUserId[m.email] || null,
-        name: m.name,
+        name: m.display_name || m.name || '',
         whiteboardName: null,
         gender: m.gender || null,
       }));
@@ -116,11 +118,13 @@ export async function GET(
       const bookedMemberIds = members.map((m: { id: string }) => m.id);
       const bookedNamesSet = new Set<string>();
       // Add booked member names (always available)
-      for (const m of members as { id: string; name: string }[]) {
+      for (const m of members as { id: string; name: string | null; display_name: string | null }[]) {
+        const resolved = m.display_name || m.name;
+        if (!resolved) continue;
         // Add first name (whiteboard typically uses first name only)
-        const firstName = m.name.split(' ')[0];
+        const firstName = resolved.split(' ')[0];
         bookedNamesSet.add(firstName.toLowerCase());
-        bookedNamesSet.add(m.name.toLowerCase());
+        bookedNamesSet.add(resolved.toLowerCase());
       }
       // Also add explicit whiteboard_name values
       if (bookedMemberIds.length > 0) {
