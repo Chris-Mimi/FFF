@@ -21,13 +21,13 @@
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history scan._
 
-**First action:** Verify with Chris that (1) Carina logged in with the temp password from the runbook flow, (2) the new Adults/Kids filter on the Attendance Reports panel ([/coach/admin](app/coach/admin/page.tsx)) buckets Fabian Siebert + Lenny Kleinert under **Kids** (DOB-based detection — they're self-registered primary accounts under 18), and (3) the incident roll-up shows Alois Weihe's no-shows on Julia Weihe's row when filter = Adults or All.
+**First action:** None queued. S329 filters + roll-up + runbook all confirmed working by Chris (2026-05-01). Pick from "Next Immediate Steps" below or wait for the next ad-hoc ask.
 
 **Files to open first if continuing code work:** none queued.
 
 **Carry-over status:**
-- ⏳ S329 Carina login — Chris admin-set her password mid-session (initially under a wrong assumption that she was Xaver's mom; she isn't — Xaver doesn't have a member row at all). Password is now changed and unrecoverable; sent her the temp + apology message via WhatsApp. Awaiting confirmation.
-- ⏳ S329 Adults/Kids filter — `isKidMember()` in [app/coach/admin/page.tsx](app/coach/admin/page.tsx#L72) uses 3 signals: `account_type='family_member'`, `class_types` ∈ {cfk, cft}, OR DOB-derived age < 18. Live verification pending Chris's spot-check.
+- ✅ S329 Carina login — confirmed working. (Note: she's not actually Xaver's mom; Chris reset her password under a wrong assumption mid-session. Password change is one-way; sent her temp + apology, she logged in fine.)
+- ✅ S329 Adults/Kids filter — confirmed working. Fabian Siebert + Lenny Kleinert correctly appear under Kids via the DOB-age<18 fallback (`isKidMember()` in [app/coach/admin/page.tsx](app/coach/admin/page.tsx#L72)).
 - ⏳ S328 Michaela login — still awaiting her confirmation tomorrow.
 - ⏳ S321 late-cancel TZ fix — still waiting on a real organic cancellation to confirm.
 - ✅ S329 login-recovery runbook published at [Chris Notes/Forge app documentation/login-recovery-runbook.md](Chris%20Notes/Forge%20app%20documentation/login-recovery-runbook.md). 4-step flow (pick password → run script → verify in incognito → send via WhatsApp). Use for future PWA-stale-cache login issues.

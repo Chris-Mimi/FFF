@@ -20,15 +20,15 @@ http://192.168.178.75:3000
 * Nadine has 2 email addresses registered, which one has Leonhard as her family?
 * Athletes should be able to input their own workouts but they should use the same exercise library as the coach library so we don't get issues with naming conventions. Also a diary where they can record their own workouts and things like playing volleyball, swimming etc. trackable over time
 * Mimi couldn't add a trial athlete
-* Couldn't remove Franiska Eder from trial athlete
-* At Risk list. Guardian Only should not appear in the "At Risk" list as they will never appear in a session. Guardian only should also not appear in Athletes
-* adults & kids toggle in Attendance reports
-* girls first then boys in results modal, following Whiteboard protocol
+* I added Fabian's birthday but it's not correct, I have to ask him next time he's in.
+* 
+* 
+* 
 * Planner: exercises used show on hover over dot in planner
 * Workouts page: Exercise acronyms don't make sense
 * Barbell names do we need "Barbell"
 * Macbook still has internet problem at the box. Old Macbook Pro works fine.
-* Trial athletes: When I insert an Athlete under the Trial in Session management, where does this info show up? How can I track how many athletes we onboarded within a particular timescale? Could I have a "Tr" for trial athletes.
+* 
 
 # Coach library #
 

@@ -36,7 +36,7 @@ Open Terminal in the project folder (in Cursor/VS Code: `Terminal → New Termin
 
 **Copy the line below, replace the email and password, then paste into Terminal:**
 
-    npx tsx scripts/admin-set-password.ts athlete@example.com '1234?ABCD!'
+    npx tsx scripts/admin-set-password.ts athlete@example.com 'Forge2026!'
 
 Notes:
 - The password **must be wrapped in single quotes** `'…'` so the shell doesn't interpret special characters like `!` or `?`
@@ -69,7 +69,7 @@ Send via WhatsApp/SMS (not email — they may not check email reliably). Templat
 
 > Hallo [Name],
 >
-> Ich habe dir ein neues Passwort gesetzt: **`1234?ABCD!`**
+> Ich habe dir ein neues Passwort gesetzt: **`Forge2026!`**
 >
 > Bitte logge dich damit ein und ändere es danach unter **Profil → Sicherheit** in dein eigenes Passwort.
 >
