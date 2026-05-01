@@ -6,7 +6,8 @@
 
 import { fetchPublishedWorkouts, fetchAcronymMap, type DateRangeFilter } from '@/utils/movement-analytics';
 import { extractMovementsFromWod } from '@/utils/movement-extraction';
-import type { PatternWithExercises, PatternGapResult } from '@/types/planner';
+import { formatDate } from '@/utils/date-utils';
+import type { PatternWithExercises, PatternGapResult, WeeklyCoverageMap, PatternWeekCoverage } from '@/types/planner';
 import type { WODFormData } from '@/components/coach/WorkoutModal';
 
 /**
@@ -139,15 +140,16 @@ export async function computePatternGaps(
 }
 
 /**
- * For the planning grid: detect which patterns are covered in each week.
- * Returns a map of weekStart → Set of patternIds that were covered.
+ * For the planning grid: detect which patterns are covered in each week,
+ * AND which specific exercises matched on which workout dates.
+ * Returns weekMonday → patternId → { exercises[], dates[] }.
  */
 export async function detectWeeklyCoverage(
   patterns: PatternWithExercises[],
   startDate: string,
   endDate: string,
   excludeSessionTypes?: string[]
-): Promise<Map<string, Set<string>>> {
+): Promise<WeeklyCoverageMap> {
   if (patterns.length === 0) return new Map();
 
   const filter: DateRangeFilter = { startDate, endDate, excludeSessionTypes };
@@ -162,8 +164,7 @@ export async function detectWeeklyCoverage(
     if (e.display_name) allExerciseNames.add(e.display_name);
   }));
 
-  // Map: weekMonday → Set<patternId>
-  const coverage = new Map<string, Set<string>>();
+  const coverage: WeeklyCoverageMap = new Map();
 
   for (const workout of workouts) {
     const movements = extractMovementsFromWod(
@@ -175,24 +176,43 @@ export async function detectWeeklyCoverage(
       Array.from(movements).map(m => m.toLowerCase())
     );
 
-    // Find the Monday of this workout's week
     const workoutDate = new Date(workout.date + 'T00:00:00');
     const day = workoutDate.getDay();
     const monday = new Date(workoutDate);
     monday.setDate(workoutDate.getDate() - ((day + 6) % 7));
-    const mondayStr = monday.toISOString().split('T')[0];
+    const mondayStr = formatDate(monday);
 
     for (const pattern of patterns) {
-      const hasMatch = pattern.exercises.some(e =>
-        movementsLower.has(e.name.toLowerCase()) ||
-        (e.display_name && movementsLower.has(e.display_name.toLowerCase()))
-      );
-      if (hasMatch) {
-        if (!coverage.has(mondayStr)) {
-          coverage.set(mondayStr, new Set());
-        }
-        coverage.get(mondayStr)!.add(pattern.id);
+      const matched: string[] = [];
+      for (const e of pattern.exercises) {
+        const hit =
+          movementsLower.has(e.name.toLowerCase()) ||
+          (!!e.display_name && movementsLower.has(e.display_name.toLowerCase()));
+        if (hit) matched.push(e.display_name || e.name);
       }
+      if (matched.length === 0) continue;
+
+      let weekMap = coverage.get(mondayStr);
+      if (!weekMap) {
+        weekMap = new Map<string, PatternWeekCoverage>();
+        coverage.set(mondayStr, weekMap);
+      }
+      let detail = weekMap.get(pattern.id);
+      if (!detail) {
+        detail = { exercises: [], dates: [] };
+        weekMap.set(pattern.id, detail);
+      }
+      for (const m of matched) {
+        if (!detail.exercises.includes(m)) detail.exercises.push(m);
+      }
+      if (!detail.dates.includes(workout.date)) detail.dates.push(workout.date);
+    }
+  }
+
+  for (const weekMap of coverage.values()) {
+    for (const detail of weekMap.values()) {
+      detail.exercises.sort((a, b) => a.localeCompare(b));
+      detail.dates.sort();
     }
   }
 
@@ -208,7 +228,7 @@ export function getMonday(date: Date): Date {
   return d;
 }
 
-/** Generate array of week start dates (Mondays) for a range */
+/** Generate array of week start dates (Mondays, local time) for a range */
 export function generateWeeks(pastWeeks: number, futureWeeks: number): string[] {
   const today = new Date();
   const currentMonday = getMonday(today);
@@ -217,7 +237,7 @@ export function generateWeeks(pastWeeks: number, futureWeeks: number): string[] 
   for (let i = -pastWeeks; i <= futureWeeks; i++) {
     const d = new Date(currentMonday);
     d.setDate(d.getDate() + i * 7);
-    weeks.push(d.toISOString().split('T')[0]);
+    weeks.push(formatDate(d));
   }
 
   return weeks;

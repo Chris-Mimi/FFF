@@ -1,17 +1,26 @@
 'use client';
 
-import { useMemo } from 'react';
-import { Check } from 'lucide-react';
-import type { PatternWithExercises, ProgrammingPlanItem, PlanningGridWeek } from '@/types/planner';
+import { useMemo, useState } from 'react';
+import { Check, X } from 'lucide-react';
+import type { PatternWithExercises, ProgrammingPlanItem, PlanningGridWeek, WeeklyCoverageMap } from '@/types/planner';
 import { getMonday, generateWeeks } from '@/utils/pattern-analytics';
+import { formatDate } from '@/utils/date-utils';
 
 interface PlanningGridProps {
   patterns: PatternWithExercises[];
   planItems: ProgrammingPlanItem[];
-  coverage: Map<string, Set<string>>; // weekMonday → Set<patternId> (auto-detected)
+  coverage: WeeklyCoverageMap; // weekMonday → patternId → { exercises[], dates[] }
   onTogglePlan: (patternId: string, weekStart: string) => void;
   pastWeeks?: number;
   futureWeeks?: number;
+}
+
+interface SelectedPast {
+  patternId: string;
+  patternName: string;
+  color: string;
+  weekStart: string;
+  weekLabel: string;
 }
 
 export default function PlanningGrid({
@@ -24,7 +33,7 @@ export default function PlanningGrid({
 }: PlanningGridProps) {
   const weeks: PlanningGridWeek[] = useMemo(() => {
     const mondayStrs = generateWeeks(pastWeeks, futureWeeks);
-    const currentMonday = getMonday(new Date()).toISOString().split('T')[0];
+    const currentMonday = formatDate(getMonday(new Date()));
 
     return mondayStrs.map(ws => {
       const d = new Date(ws + 'T00:00:00');
@@ -45,6 +54,11 @@ export default function PlanningGrid({
     });
     return map;
   }, [planItems]);
+
+  const [selectedPast, setSelectedPast] = useState<SelectedPast | null>(null);
+  const selectedDetail = selectedPast
+    ? coverage.get(selectedPast.weekStart)?.get(selectedPast.patternId) || null
+    : null;
 
   if (patterns.length === 0) {
     return (
@@ -99,6 +113,60 @@ export default function PlanningGrid({
                 {weeks.map(week => {
                   const isCovered = coverage.get(week.weekStart)?.has(pattern.id) || false;
                   const isPlanned = planLookup.has(`${pattern.id}_${week.weekStart}`);
+                  const isSelected =
+                    selectedPast?.patternId === pattern.id &&
+                    selectedPast?.weekStart === week.weekStart;
+
+                  // Past + current: coverage view (covered dot is clickable for details).
+                  // Current also falls back to planning circle when no coverage yet.
+                  // Future: planning view only.
+                  const showCoverageView = week.isPast || week.isCurrent;
+                  const renderCovered = (
+                    <button
+                      type='button'
+                      onClick={() =>
+                        setSelectedPast(isSelected ? null : {
+                          patternId: pattern.id,
+                          patternName: pattern.name,
+                          color: pattern.color,
+                          weekStart: week.weekStart,
+                          weekLabel: week.weekLabel,
+                        })
+                      }
+                      className='w-full flex justify-center'
+                      title='Click to see exercises used'
+                    >
+                      <div
+                        className={`w-5 h-5 rounded-full flex items-center justify-center transition ${
+                          isSelected ? 'ring-2 ring-offset-1 ring-gray-700' : ''
+                        }`}
+                        style={{ backgroundColor: pattern.color }}
+                      >
+                        <Check size={12} className='text-white' />
+                      </div>
+                    </button>
+                  );
+                  const renderPlanningButton = (
+                    <button
+                      onClick={() => onTogglePlan(pattern.id, week.weekStart)}
+                      className='w-full flex justify-center'
+                      title={isPlanned ? 'Remove from plan' : 'Add to plan'}
+                    >
+                      {isPlanned ? (
+                        <div
+                          className='w-5 h-5 rounded-full border-2 flex items-center justify-center'
+                          style={{
+                            borderColor: pattern.color,
+                            backgroundColor: pattern.color + '20',
+                          }}
+                        >
+                          <Check size={10} style={{ color: pattern.color }} />
+                        </div>
+                      ) : (
+                        <div className='w-5 h-5 rounded-full border-2 border-dashed border-gray-300 hover:border-gray-400 transition' />
+                      )}
+                    </button>
+                  );
 
                   return (
                     <td
@@ -107,44 +175,20 @@ export default function PlanningGrid({
                         week.isCurrent ? 'bg-[#178da6]/5' : ''
                       }`}
                     >
-                      {week.isPast ? (
-                        // Past: show auto-detected coverage
+                      {showCoverageView ? (
                         isCovered ? (
-                          <div className='flex justify-center'>
-                            <div
-                              className='w-5 h-5 rounded-full flex items-center justify-center'
-                              style={{ backgroundColor: pattern.color }}
-                              title='Covered this week'
-                            >
-                              <Check size={12} className='text-white' />
-                            </div>
-                          </div>
+                          renderCovered
+                        ) : week.isCurrent ? (
+                          // Current week, no coverage yet: still let coach toggle planning
+                          renderPlanningButton
                         ) : (
+                          // Past, no coverage
                           <div className='flex justify-center'>
                             <div className='w-5 h-5 rounded-full bg-gray-100' />
                           </div>
                         )
                       ) : (
-                        // Future: click to toggle plan
-                        <button
-                          onClick={() => onTogglePlan(pattern.id, week.weekStart)}
-                          className='w-full flex justify-center'
-                          title={isPlanned ? 'Remove from plan' : 'Add to plan'}
-                        >
-                          {isPlanned ? (
-                            <div
-                              className='w-5 h-5 rounded-full border-2 flex items-center justify-center'
-                              style={{
-                                borderColor: pattern.color,
-                                backgroundColor: pattern.color + '20',
-                              }}
-                            >
-                              <Check size={10} style={{ color: pattern.color }} />
-                            </div>
-                          ) : (
-                            <div className='w-5 h-5 rounded-full border-2 border-dashed border-gray-300 hover:border-gray-400 transition' />
-                          )}
-                        </button>
+                        renderPlanningButton
                       )}
                     </td>
                   );
@@ -154,6 +198,54 @@ export default function PlanningGrid({
           </tbody>
         </table>
       </div>
+      {selectedPast && selectedDetail && (
+        <div className='border-t bg-gray-50 p-3 md:p-4'>
+          <div className='flex items-start justify-between gap-2 mb-2'>
+            <div className='flex items-center gap-2 flex-wrap'>
+              <div
+                className='w-2.5 h-2.5 rounded-full shrink-0'
+                style={{ backgroundColor: selectedPast.color }}
+              />
+              <span className='text-sm font-semibold text-gray-800'>
+                {selectedPast.patternName}
+              </span>
+              <span className='text-xs text-gray-500'>
+                · week of {selectedPast.weekLabel}
+              </span>
+            </div>
+            <button
+              type='button'
+              onClick={() => setSelectedPast(null)}
+              className='text-gray-400 hover:text-gray-600 shrink-0'
+              aria-label='Close details'
+            >
+              <X size={16} />
+            </button>
+          </div>
+          <div className='flex flex-wrap gap-1.5 mb-2'>
+            {selectedDetail.exercises.map(ex => (
+              <span
+                key={ex}
+                className='inline-flex items-center px-2 py-0.5 rounded text-xs bg-white border border-gray-200 text-gray-700'
+              >
+                {ex}
+              </span>
+            ))}
+          </div>
+          <div className='text-xs text-gray-500'>
+            Programmed on:{' '}
+            {selectedDetail.dates
+              .map(d =>
+                new Date(d + 'T00:00:00').toLocaleDateString('en-GB', {
+                  weekday: 'short',
+                  day: 'numeric',
+                  month: 'short',
+                })
+              )
+              .join(', ')}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

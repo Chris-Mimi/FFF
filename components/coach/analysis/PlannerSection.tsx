@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import type { PatternWithExercises, ProgrammingPlanItem, PatternGapResult } from '@/types/planner';
+import type { PatternWithExercises, ProgrammingPlanItem, PatternGapResult, WeeklyCoverageMap } from '@/types/planner';
 import { computePatternGaps, detectWeeklyCoverage, generateWeeks } from '@/utils/pattern-analytics';
 import { getExerciseFrequency } from '@/utils/movement-analytics';
 import PatternManager from './PatternManager';
@@ -29,7 +29,7 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
   const [patterns, setPatterns] = useState<PatternWithExercises[]>([]);
   const [planItems, setPlanItems] = useState<ProgrammingPlanItem[]>([]);
   const [gaps, setGaps] = useState<PatternGapResult[]>([]);
-  const [coverage, setCoverage] = useState<Map<string, Set<string>>>(new Map());
+  const [coverage, setCoverage] = useState<WeeklyCoverageMap>(new Map());
   const [, setLoading] = useState(true);
   const [, setGapLoading] = useState(false);
   const [exerciseLastDates, setExerciseLastDates] = useState<Map<string, string>>(new Map());

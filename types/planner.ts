@@ -50,3 +50,11 @@ export interface PlanningGridWeek {
   isPast: boolean;
   isCurrent: boolean;
 }
+
+export interface PatternWeekCoverage {
+  exercises: string[]; // display_name || name; deduped; sorted alphabetically
+  dates: string[];     // YYYY-MM-DD; deduped; sorted ascending
+}
+
+/** weekMonday (YYYY-MM-DD) → patternId → coverage detail */
+export type WeeklyCoverageMap = Map<string, Map<string, PatternWeekCoverage>>;
