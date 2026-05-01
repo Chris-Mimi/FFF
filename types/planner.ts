@@ -6,7 +6,6 @@ export interface MovementPattern {
   staleness_yellow: number;
   staleness_red: number;
   sort_order: number;
-  track: 'adults' | 'kids';
   created_at: string;
   updated_at: string;
 }

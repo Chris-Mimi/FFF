@@ -37,11 +37,12 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
   // Exercise picker state
   const [pickerPatternId, setPickerPatternId] = useState<string | null>(null);
 
-  // Track filter: 'adults' excludes Kids & Teens, 'kids' shows only Kids & Teens
+  // Track filter scopes the WODs feeding coverage/gap analysis.
+  // Patterns themselves are shared across both tracks.
   const [trackFilter, setTrackFilter] = useState<'adults' | 'kids'>('adults');
 
-  // Fetch patterns with their exercises (filtered by track)
-  const fetchPatterns = useCallback(async (track: 'adults' | 'kids' = 'adults') => {
+  // Fetch patterns with their exercises (shared across tracks)
+  const fetchPatterns = useCallback(async () => {
     const { data: user } = await supabase.auth.getUser();
     if (!user.user) return;
 
@@ -49,7 +50,6 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
       .from('movement_patterns')
       .select('*')
       .eq('user_id', user.user.id)
-      .eq('track', track)
       .order('sort_order');
 
     if (patternError) {
@@ -152,7 +152,7 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
   // Initial load
   useEffect(() => {
     const init = async () => {
-      const pats = await fetchPatterns(trackFilter);
+      const pats = await fetchPatterns();
       await Promise.all([fetchPlanItems(), fetchExerciseLastDates()]);
       if (pats && pats.length > 0) {
         await computeAnalysis(pats, trackFilter);
@@ -165,7 +165,7 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
   // Re-fetch patterns and re-compute when track filter changes
   useEffect(() => {
     const refresh = async () => {
-      const pats = await fetchPatterns(trackFilter);
+      const pats = await fetchPatterns();
       await fetchPlanItems();
       if (pats && pats.length > 0) {
         await computeAnalysis(pats, trackFilter);
@@ -187,7 +187,6 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
         name,
         color,
         sort_order: patterns.length,
-        track: trackFilter,
       });
 
     if (error) {
@@ -199,7 +198,7 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
       return;
     }
 
-    const pats = await fetchPatterns(trackFilter);
+    const pats = await fetchPatterns();
     if (pats) await computeAnalysis(pats, trackFilter);
     toast.success(`Created "${name}"`);
   };
@@ -218,7 +217,7 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
       return;
     }
 
-    const pats = await fetchPatterns(trackFilter);
+    const pats = await fetchPatterns();
     if (pats) await computeAnalysis(pats, trackFilter);
   };
 
@@ -233,7 +232,7 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
       return;
     }
 
-    const pats = await fetchPatterns(trackFilter);
+    const pats = await fetchPatterns();
     if (pats) await computeAnalysis(pats, trackFilter);
     toast.success('Pattern deleted');
   };
@@ -257,7 +256,7 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
     const failed = results.some(r => r.error);
     if (failed) {
       toast.error('Failed to save order');
-      await fetchPatterns(trackFilter);
+      await fetchPatterns();
     }
   };
 
@@ -294,7 +293,7 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
       }
     }
 
-    const pats = await fetchPatterns(trackFilter);
+    const pats = await fetchPatterns();
     if (pats) await computeAnalysis(pats, trackFilter);
   };
 
@@ -310,7 +309,7 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
       return;
     }
 
-    const pats = await fetchPatterns(trackFilter);
+    const pats = await fetchPatterns();
     if (pats) await computeAnalysis(pats, trackFilter);
   };
 

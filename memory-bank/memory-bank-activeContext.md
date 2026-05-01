@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 190
-**Updated:** 2026-05-01 (Session 330 — Planner past-week drill-in + Monday TZ fix + current-week shows coverage day-by-day)
+**Version:** 191
+**Updated:** 2026-05-01 (Session 331 — Planner patterns shared across Adults & Kids tracks)
 
 ---
 
@@ -21,20 +21,21 @@
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history scan._
 
-**First action:** Verify on the live Planner that S330 changes work as expected: (a) week labels now show Monday dates (e.g. "27 Apr"), (b) current-week dots fill when a published WOD this week matches a pattern's linked exercise, (c) past-week colored dot opens a details panel with the matched exercises + dates. If Clean & Jerk's pattern dot for w/o 27 Apr **still** doesn't light after reload, the bug is in the extractor (canonical-name mismatch — see Landmines).
+**First action:** Confirm on the live Planner that the same patterns now appear under both Adults and Kids & Teens toggles, and that coverage/gap analysis still differs between toggles (because WOD-side `excludeSessionTypes` still scopes which workouts feed the analysis). Chris confirmed S330 fixes (TZ labels, past drill-in, current-week coverage) all work.
 
 **Files to open first if continuing code work:**
-- [utils/pattern-analytics.ts](utils/pattern-analytics.ts) — `detectWeeklyCoverage` returns `WeeklyCoverageMap` (weekMonday → patternId → {exercises[], dates[]}).
-- [components/coach/analysis/PlanningGrid.tsx](components/coach/analysis/PlanningGrid.tsx) — past+current both use coverage view; current falls back to planning circle when no coverage.
-- [utils/movement-extraction.ts:50-53](utils/movement-extraction.ts#L50-L53) — `clean & jerk` → canonical `barbell clean & jerk`. If pattern's linked exercise is named "Clean & Jerk" (no Barbell prefix), the canonical-mapping branch fails the `knownLower?.has()` guard and falls through to fuzzy-match.
+- [components/coach/analysis/PlannerSection.tsx](components/coach/analysis/PlannerSection.tsx) — `fetchPatterns` now track-agnostic; `computeAnalysis` still receives `trackFilter` to scope `excludeSessionTypes`.
+- [types/planner.ts](types/planner.ts) — `MovementPattern.track` field removed.
+- [utils/movement-extraction.ts:50-53](utils/movement-extraction.ts#L50-L53) — extractor canonical-name guard, still the leading suspect if a programmed lift fails to light its pattern dot.
 
 **Carry-over status:**
-- ⏳ S330 Planner fixes — awaiting Chris's reload + confirmation. Two wins certain (TZ label fix is mechanical; current-week coverage is one-line render flip), one open question (will C&J actually light up, or is there a deeper extractor bug?).
+- ⏳ S331 shared-patterns change — awaiting Chris's live confirmation that both toggles now show the same 15 patterns (TEST 4–8 intentional placeholders).
+- ⏳ S330 Clean & Jerk dot — Chris confirmed S330 changes work; the C&J auto-detect verification per pattern still depends on extractor canonical-name behavior.
 - ⏳ S328 Michaela login — still awaiting her confirmation.
 - ⏳ S321 late-cancel TZ fix — still waiting on a real organic cancellation to confirm.
-- ✅ S329 Carina login + Adults/Kids filter + login-recovery runbook all closed previous session.
 
 **Landmines:**
+- **Movement patterns are global to the user — not track-scoped (S331).** `movement_patterns.track` column is gone. The Adults/Kids toggle in PlannerSection only changes which `session_type`s feed coverage/gap analysis (`excludeSessionTypes` in `computeAnalysis`); it does not filter the pattern list. If a pattern is exclusively for one track (e.g. Kids-only stretches), there is no DB-level enforcement — coach has to choose to not link that pattern to any Adults exercises, or just not toggle it. If you re-introduce per-track scoping, switch to a `tracks text[]` column so a pattern can belong to multiple tracks.
 - **Planner extractor canonical-name mismatch (S330, suspected, unconfirmed).** [utils/movement-extraction.ts:50-53](utils/movement-extraction.ts#L50-L53) maps lift name `Clean & Jerk` → canonical `barbell clean & jerk` and ONLY emits that canonical name if it exists in the exercises library (`knownLower?.has(canonical)`). If your `exercises` table stores it as just `Clean & Jerk` (no Barbell prefix), the canonical branch fails its guard, falls through to fuzzy-match, and may emit a name that doesn't equal what the pattern's linked exercise has. Same shape applies to other genericToCanonical mappings (deadlift, snatch, back squat, etc.). If S330's reload doesn't light up the dot, this is the next thing to verify — write a service-role script that prints both `extractMovementsFromWod()` output for a recent WOD AND the linked-exercise names per pattern, and look for case/prefix mismatches.
 - **Planner Monday-vs-Sunday labels: fixed in S330.** Was a `toISOString().split('T')[0]` UTC-shift bug in [utils/pattern-analytics.ts](utils/pattern-analytics.ts) `generateWeeks` and `detectWeeklyCoverage`. Now uses `formatDate(d)` from [utils/date-utils.ts](utils/date-utils.ts) which formats local-time YYYY-MM-DD. Same TZ class as S321. **Lesson:** any time you see `.toISOString().split('T')[0]` in this codebase, suspect it. Local midnight in Germany (UTC+1/+2) → UTC previous day.
 - **Login recovery: PWA cache root cause is NOT fixed by S328.** S328 hardened the `check-status` failure message but only helps users whose PWA bundle has refreshed past S317. Athletes whose PWA is still on the pre-S317 bundle (likely most active phone users) will keep hitting the old generic-error path. Manual recovery via [scripts/admin-set-password.ts](scripts/admin-set-password.ts) is the only fix per user until their SW updates. Three rescues so far: Anja (S317), Michaela (S328), Carina (S329).
@@ -120,6 +121,18 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 331 (2026-05-01 — Opus 4.7) — PLANNER PATTERNS SHARED ACROSS ADULTS & KIDS TRACKS:**
+- **Trigger.** Chris confirmed S330 Planner fixes work. He flagged that the Adults/Kids & Teens toggle in the Planner showed separate pattern lists per track, but the same patterns should be available to both — the toggle should only change which WODs feed coverage analysis.
+- **Decision.** Drop the per-pattern `track` scoping entirely. Patterns are global per user; the Adults/Kids toggle continues to scope coverage/gap analysis WOD-side via `excludeSessionTypes` in `computeAnalysis`. Considered a `tracks text[]` model so a pattern could belong to multiple tracks, but Chris said any track-specific exclusions can be handled by simply not linking that exercise to a pattern, or leaving the pattern unused on a given track. Simpler model wins.
+- **Migration.** `ALTER TABLE movement_patterns DROP COLUMN IF EXISTS track;` (run by Chris in Supabase Dashboard SQL Editor). SQL file at [database/20260501_drop_movement_patterns_track.sql](database/20260501_drop_movement_patterns_track.sql) — gitignored per project pattern but kept locally as the documented migration.
+- **Code.** [components/coach/analysis/PlannerSection.tsx](components/coach/analysis/PlannerSection.tsx) `fetchPatterns` no longer takes a track arg; pattern fetch dropped `.eq('track', …)`. Pattern create no longer writes `track`. [types/planner.ts](types/planner.ts) `MovementPattern` interface lost `track`. `computeAnalysis(pats, trackFilter)` still uses `trackFilter` to compute `excludeSessionTypes` — that's the only thing the toggle controls now.
+- **Verification.** Service-role probe confirmed column is gone and all 15 patterns load (10 real + 5 TEST placeholders kept intentionally for shape/visual testing).
+- **Process moments worth remembering:**
+  - **Asked single vs. multi-track up front.** Two valid models: (A) shared-only (drop the column), (B) `tracks text[]` for selective scoping. Chris picked (A) because there's no UI ceiling on pattern count and he can just order them. Cheaper choice both code-wise and migration-wise.
+  - **Backup before migration.** Per CLAUDE.md DB-safety rule, ran `npm run backup` before applying the column drop. 40/40 tables saved. Cheap insurance for a 5-second column drop, but the rule isn't conditional.
+- **Files touched:** `database/20260501_drop_movement_patterns_track.sql` (new, gitignored), `components/coach/analysis/PlannerSection.tsx`, `types/planner.ts`.
+- **TS clean.** Single commit per close-session checklist.
+
 **Session 330 (2026-05-01 — Opus 4.7) — PLANNER PAST-WEEK DRILL-IN + MONDAY TZ FIX + CURRENT-WEEK COVERAGE DAY-BY-DAY:**
 - **Trigger.** Chris asked what the colored dots in the Planner grid mean, whether they reflect plan-vs-execution, and whether past-week dots could show the exact exercises used on click. Mid-session: he flagged that his Clean & Jerk programmed on 27.04 hadn't lit up by 01.05, that he can't click past circles, and that week labels start on Sunday but the gym programs Mon-Sun.
 - **Fix 1 — past-week drill-in.** [utils/pattern-analytics.ts](utils/pattern-analytics.ts) `detectWeeklyCoverage` return type changed from `Map<string, Set<string>>` to `WeeklyCoverageMap` (weekMonday → patternId → `{exercises[], dates[]}`). Records matched exercise names + workout dates per (week, pattern). [components/coach/analysis/PlanningGrid.tsx](components/coach/analysis/PlanningGrid.tsx) past colored dots are now buttons; click opens a panel below the grid showing matched-exercise chips + "Programmed on:" date list. Selected dot gets a ring. Click again or X to close. New types `PatternWeekCoverage` + `WeeklyCoverageMap` in [types/planner.ts](types/planner.ts).
@@ -164,20 +177,7 @@ Athlete Tools
 - **TS clean.** Single commit (display_name fallback + carry-over removal + activeContext + history file).
 - **Carry-over:** all 5 code changes ready for live verification by Chris on next session start. Optional: backfill the existing 5 family-member kids in Supabase with `name = display_name` (he can do via Dashboard); not required since the code now handles NULL `name`.
 
-**Session 326 (2026-04-30 — Opus 4.7) — LIFT_RECORDS CASCADE + APPLY-TO-SESSIONS REMOVED + 13 ORPHAN WODS CLEANED:**
-- **Trigger.** Continuing S325 follow-ups: (1) extend the new cascade-delete dialog to also clean orphaned `lift_records`, then (2) audit + fix the "sibling WOD count bloat" Chris had been seeing for weeks.
-- **Fix 1 (commit `d397005f`).** [hooks/coach/useWODOperations.ts](hooks/coach/useWODOperations.ts) `handleSaveWOD` extended: builds `(lift_name, RM:<rm_test>)` and `(lift_name, RS:<rep_scheme>)` tuple keys from removed-vs-kept sections, queries `lift_records` matching orphan tuples, includes them in the destructive confirm dialog count, deletes them on confirm. Defensive: a lift present in both a removed AND a kept section is preserved (lift_records have no section_id, so we infer association by tuple). Live-tested on `c2999101` (Front Squat 5RM) and `bccffaeb` (multi-Deadlift defensive case) — both behaved correctly.
-- **Audit 1.** [scripts/audit-sibling-wods.ts](scripts/audit-sibling-wods.ts) groups WODs by `(date, workout_name OR session_type)`, flags clusters of 3+ with `0 sessions / 0 bookings / 0 scores / 0 lifts` per row. Found 9 cluster-resident orphans across 4 dates (2026-04-22, -27, -28, -29). The 2026-04-22 "Strict Movements" cluster (S325's original bug source) had 5 of them.
-- **Root-cause investigation.** Chris asked "is Apply to Sessions introducing unnecessary complexity?" — yes. Both `selectedSessionIds` branches in [hooks/coach/useWODOperations.ts](hooks/coach/useWODOperations.ts) (UPDATE-existing line 195+, INSERT-new line 427+) created a fresh WOD per ticked session and re-pointed `weekly_sessions.workout_id` to it WITHOUT deleting the previously-linked WOD. Re-running the picker n times produced n orphans. Drag-and-drop and copy-paste (`handleCopyWOD`, line 599+) were already orphan-safe — they have explicit cleanup at line 768+.
-- **Fix 2 — feature deletion.** Removed the entire "Apply to Sessions" picker rather than patching it. Per Chris: drag-and-drop already covers the same use case, three fan-out paths is two too many. Files touched: [hooks/coach/useWorkoutModal.ts](hooks/coach/useWorkoutModal.ts) (state + handler + type field), [components/coach/WorkoutFormFields.tsx](components/coach/WorkoutFormFields.tsx) (UI block + props, restructured Max Capacity to standalone), [components/coach/WorkoutModal.tsx](components/coach/WorkoutModal.tsx) (inline UI block in the non-panel form, prop-passes, both `dataToSave` builders, `ChevronDown` import), [hooks/coach/useWODOperations.ts](hooks/coach/useWODOperations.ts) (both `selectedSessionIds` branches + the now-redundant guard). TS clean, dev server hot-reloaded both `/coach` and `/athlete` with no errors. Chris live-verified the picker is gone and saving works normally.
-- **Cleanup.** [scripts/cleanup-orphan-wods.ts](scripts/cleanup-orphan-wods.ts) rewritten as generic orphan sweep (dry-run by default, `--apply` to delete; re-verifies sessions/scores/lifts at delete-time). Old S113 one-shot was overwritten — only referenced in S113 history. Dry-run found 13 orphans (4 more than the cluster audit, since the audit filtered to clusters of 3+). Chris approved "all 13" → ran `--apply` → 13 deleted. Verification re-run shows 0 orphans.
-- **Process moments worth remembering:**
-  - **Cluster filter hides solo orphans.** The audit script's "3+ siblings" filter caught the obvious cases but missed 4 lone orphans (older auto-named WODs like `WOD 2026-04-29 18:30`). Always do a follow-up unfiltered sweep before deleting — what the cluster view shows isn't the whole picture.
-  - **Naming conflict gotcha.** I tried to write `scripts/cleanup-orphan-wods.ts` and Write blocked with "file not yet read". Read first revealed an unrelated S113 one-shot still sitting there. Lesson: even for a "new" script name, run the file-existence check before assuming.
-  - **Feature deletion > feature patch.** First instinct was to patch `selectedSessionIds` to overwrite-in-place instead of insert. Chris's question — "is this introducing unnecessary complexity?" — flipped that: if a feature has a clean alternative already in place, removing it is simpler than fixing it. Three fan-out paths down to two.
-- **TS clean.** Two commits: `d397005f` (lift_records cascade, mid-session) + session-close commit (Apply-to-Sessions deletion + cleanup script + audit script + activeContext + this history file).
-
-**Older sessions (57-325):** See `project-history/` folder.
+**Older sessions (57-326):** See `project-history/` folder.
 
 ---
 
