@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 191
-**Updated:** 2026-05-01 (Session 331 — Planner patterns shared across Adults & Kids tracks)
+**Version:** 192
+**Updated:** 2026-05-01 (Session 332 — Athlete Personal Activities log on Logbook tab)
 
 ---
 
@@ -21,20 +21,23 @@
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history scan._
 
-**First action:** Confirm on the live Planner that the same patterns now appear under both Adults and Kids & Teens toggles, and that coverage/gap analysis still differs between toggles (because WOD-side `excludeSessionTypes` still scopes which workouts feed the analysis). Chris confirmed S330 fixes (TZ labels, past drill-in, current-week coverage) all work.
+**First action:** None blocking — S332 Personal Activities is shipped and Chris tested live. Optional follow-up: if Personal mode gets used over the next few weeks, build the Session-B heatmap + counts row (year-of-dots colored by activity type, plus "X swims · Y runs · Z hikes this year"). Skip if no usage.
 
 **Files to open first if continuing code work:**
-- [components/coach/analysis/PlannerSection.tsx](components/coach/analysis/PlannerSection.tsx) — `fetchPatterns` now track-agnostic; `computeAnalysis` still receives `trackFilter` to scope `excludeSessionTypes`.
-- [types/planner.ts](types/planner.ts) — `MovementPattern.track` field removed.
-- [utils/movement-extraction.ts:50-53](utils/movement-extraction.ts#L50-L53) — extractor canonical-name guard, still the leading suspect if a programmed lift fails to light its pattern dot.
+- [components/athlete/personal/PersonalActivitiesView.tsx](components/athlete/personal/PersonalActivitiesView.tsx) — list + add button.
+- [components/athlete/personal/PersonalActivityModal.tsx](components/athlete/personal/PersonalActivityModal.tsx) — add/edit form.
+- [hooks/athlete/usePersonalActivities.ts](hooks/athlete/usePersonalActivities.ts) — CRUD hook.
+- [types/personal-activity.ts](types/personal-activity.ts) — German activity type list (`PERSONAL_ACTIVITY_TYPES`).
 
 **Carry-over status:**
-- ⏳ S331 shared-patterns change — awaiting Chris's live confirmation that both toggles now show the same 15 patterns (TEST 4–8 intentional placeholders).
-- ⏳ S330 Clean & Jerk dot — Chris confirmed S330 changes work; the C&J auto-detect verification per pattern still depends on extractor canonical-name behavior.
+- ⏳ S332 Personal Activities — Chris tested live, working. Optional Session B heatmap + counts row deferred until usage justifies.
+- ⏳ S331 shared-patterns — Chris hasn't explicitly confirmed both toggles show same patterns, but no complaints either.
+- ⏳ S330 Clean & Jerk dot — Chris confirmed S330 changes work; deeper extractor canonical-name verification still pending if the dot doesn't light.
 - ⏳ S328 Michaela login — still awaiting her confirmation.
 - ⏳ S321 late-cancel TZ fix — still waiting on a real organic cancellation to confirm.
 
 **Landmines:**
+- **Personal activity types are stored as TEXT, not enum (S332).** [types/personal-activity.ts](types/personal-activity.ts) `PERSONAL_ACTIVITY_TYPES` is the single source of truth. Adding a type = add a string. Renaming a type = the constant change is a one-liner, but existing rows keep the old name; they'll display fine but won't match the dropdown until you UPDATE them. List is currently in German (Schwimmen, Laufen, Radfahren, Yoga, Wandern, Externes CrossFit, Anderes Studio, Sonstiges). When i18n lands, this is one of the things to migrate to messages files.
 - **Movement patterns are global to the user — not track-scoped (S331).** `movement_patterns.track` column is gone. The Adults/Kids toggle in PlannerSection only changes which `session_type`s feed coverage/gap analysis (`excludeSessionTypes` in `computeAnalysis`); it does not filter the pattern list. If a pattern is exclusively for one track (e.g. Kids-only stretches), there is no DB-level enforcement — coach has to choose to not link that pattern to any Adults exercises, or just not toggle it. If you re-introduce per-track scoping, switch to a `tracks text[]` column so a pattern can belong to multiple tracks.
 - **Planner extractor canonical-name mismatch (S330, suspected, unconfirmed).** [utils/movement-extraction.ts:50-53](utils/movement-extraction.ts#L50-L53) maps lift name `Clean & Jerk` → canonical `barbell clean & jerk` and ONLY emits that canonical name if it exists in the exercises library (`knownLower?.has(canonical)`). If your `exercises` table stores it as just `Clean & Jerk` (no Barbell prefix), the canonical branch fails its guard, falls through to fuzzy-match, and may emit a name that doesn't equal what the pattern's linked exercise has. Same shape applies to other genericToCanonical mappings (deadlift, snatch, back squat, etc.). If S330's reload doesn't light up the dot, this is the next thing to verify — write a service-role script that prints both `extractMovementsFromWod()` output for a recent WOD AND the linked-exercise names per pattern, and look for case/prefix mismatches.
 - **Planner Monday-vs-Sunday labels: fixed in S330.** Was a `toISOString().split('T')[0]` UTC-shift bug in [utils/pattern-analytics.ts](utils/pattern-analytics.ts) `generateWeeks` and `detectWeeklyCoverage`. Now uses `formatDate(d)` from [utils/date-utils.ts](utils/date-utils.ts) which formats local-time YYYY-MM-DD. Same TZ class as S321. **Lesson:** any time you see `.toISOString().split('T')[0]` in this codebase, suspect it. Local midnight in Germany (UTC+1/+2) → UTC previous day.
@@ -121,6 +124,19 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 332 (2026-05-01 — Opus 4.7) — ATHLETE PERSONAL ACTIVITIES LOG ON LOGBOOK TAB:**
+- **Trigger.** Chris asked for a way for athletes to log their own non-Forge workouts (holiday swims, external CrossFit, aerobics, etc.) so the app becomes a full personal training tracker — not just class-day logging. Wanted minimal complexity since usage will be light.
+- **Decision.** Forge / Personal toggle at the top of the Logbook tab. Personal mode = simple flat list sorted by date desc + an Add button. No day/week/month nav, no whiteboard, no scoring fields — just date, activity type, optional duration, optional effort (1–5), optional notes. Chose this over a separate top-level tab because the use case shares the "tracking my training history" mental model with the existing logbook.
+- **Schema.** `personal_activities (id, user_id → auth.users, activity_date, activity_type TEXT, duration_min, effort SMALLINT 1-5, notes, created_at, updated_at)`. RLS: `user_id = auth.uid()` for all ops. activity_type stored as TEXT (not enum) so the German list can be edited without a migration. Migration: [database/20260501_session332_personal_activities.sql](database/20260501_session332_personal_activities.sql) (gitignored, ran by Chris in Dashboard).
+- **UI.** [components/athlete/personal/PersonalActivitiesView.tsx](components/athlete/personal/PersonalActivitiesView.tsx) (list + add) and [components/athlete/personal/PersonalActivityModal.tsx](components/athlete/personal/PersonalActivityModal.tsx) (add/edit/delete form). [hooks/athlete/usePersonalActivities.ts](hooks/athlete/usePersonalActivities.ts) wraps Supabase CRUD with toasts. Toggle wired into [components/athlete/AthletePageLogbookTab.tsx](components/athlete/AthletePageLogbookTab.tsx) at the existing header — Forge mode unchanged, Personal mode renders the new component.
+- **German activity types.** Initial list shipped in English (Swim, Run, Bike, Yoga, Hike, External CrossFit, Other Gym, Other). Chris tested, confirmed it works, asked to translate the list. Now: Schwimmen, Laufen, Radfahren, Yoga, Wandern, Externes CrossFit, Anderes Studio, Sonstiges. Stored as TEXT so any English test rows still display verbatim.
+- **Process moments worth remembering:**
+  - **Asked single-session vs. split before building.** Two scopes: (A) ship CRUD now, add heatmap later if usage warrants; (B) ship both at once. Chris asked "is heatmap easy to add later?" — yes, the data is already structured by date+type, so it's purely a UI add. He picked split. Saved building stats infrastructure for a feature that may not see traffic.
+  - **Schema choice: TEXT not enum for activity_type.** Tempting to use a Postgres enum for type safety, but enums require ALTER TYPE migrations to add values. TEXT + a const array in TypeScript trades a bit of DB-level rigor for zero-friction list edits. The const array IS the source of truth; DB just stores whatever the app sent. Right call for a fast-iterating list.
+  - **Don't expand UI translation scope when only the list was asked.** When Chris asked for the activity list in German, I translated only the list, not the Date/Activity/Notes/Save labels. Existing logbook UI is mixed English/German per the deferred-i18n carry-over (`project_commercialization_and_i18n.md`); matching that convention beats partial translation that creates fresh inconsistency.
+- **Files touched:** `database/20260501_session332_personal_activities.sql` (new, gitignored), `types/personal-activity.ts` (new), `hooks/athlete/usePersonalActivities.ts` (new), `components/athlete/personal/PersonalActivitiesView.tsx` (new), `components/athlete/personal/PersonalActivityModal.tsx` (new), `components/athlete/AthletePageLogbookTab.tsx` (toggle wire-up), `Chris Notes/Forge app documentation/Forge-Feature-Overview.md` (Athletes → Daily Workouts & Logging entry).
+- **TS clean.** Single commit per close-session checklist.
+
 **Session 331 (2026-05-01 — Opus 4.7) — PLANNER PATTERNS SHARED ACROSS ADULTS & KIDS TRACKS:**
 - **Trigger.** Chris confirmed S330 Planner fixes work. He flagged that the Adults/Kids & Teens toggle in the Planner showed separate pattern lists per track, but the same patterns should be available to both — the toggle should only change which WODs feed coverage analysis.
 - **Decision.** Drop the per-pattern `track` scoping entirely. Patterns are global per user; the Adults/Kids toggle continues to scope coverage/gap analysis WOD-side via `excludeSessionTypes` in `computeAnalysis`. Considered a `tracks text[]` model so a pattern could belong to multiple tracks, but Chris said any track-specific exclusions can be handled by simply not linking that exercise to a pattern, or leaving the pattern unused on a given track. Simpler model wins.
@@ -165,19 +181,7 @@ Athlete Tools
 - **Code hardening at [app/login/page.tsx:105](app/login/page.tsx#L105).** When `check-status` itself fails (network / 5xx / unexpected throw), render German fallback `"Anmeldung fehlgeschlagen. Bitte versuche es erneut oder nutze „Passwort vergessen?", falls das Problem bestehen bleibt."` instead of bubbling the raw Supabase string. Doesn't fix the cached-PWA case (those users are still on the old bundle) — only helps fresh installs and PWAs that have refreshed since S317.
 - **Carry-over.** Awaiting Michaela's confirmation. The recurring pattern got documented in S329's runbook.
 
-**Session 327 (2026-04-30 — Opus 4.7) — FAMILY-MEMBER `display_name` FALLBACK + STALE SUBSCRIPTION CARRY-OVER CLOSED:**
-- **Trigger.** Chris hit two Score Entry display bugs: Fabian Siebert (kid) showing as `zielu2012`, Hannah Sterk (kid) rendering as a blank row in the Results modal. Asked where the names come from and what other coach views are affected.
-- **Root cause.** Score Entry API ([app/api/score-entry/[sessionId]/route.ts](app/api/score-entry/[sessionId]/route.ts)) reads `members.name` directly with no fallback. Family-member kids added via the parent's Book Class page ([app/member/book/page.tsx:337-346](app/member/book/page.tsx#L337-L346)) get inserted with `display_name` set and `name = NULL`. Adult signup via `/signup` does the opposite (sets `name`, leaves `display_name` NULL). Codebase was inconsistent: ~5 places used `display_name || name`, ~6 used only `name`.
-- **Fix — resolve at data sources, not UIs.** Five files: (1) [app/member/book/page.tsx:342](app/member/book/page.tsx#L342) — family-member insert now sets BOTH `name` and `display_name`. New kids unaffected going forward. (2) [app/api/score-entry/[sessionId]/route.ts](app/api/score-entry/[sessionId]/route.ts) — added `display_name` to SELECT, resolves into the athletes array `name` field, and the whiteboard-dedup name-set loop. (3) [hooks/coach/useCoachData.ts](hooks/coach/useCoachData.ts) `fetchMembers` — adds `display_name` to SELECT, maps `display_name || name` into the local `name` field. Covers SearchPanel + MovementTrackingPanel without touching them. (4) [hooks/coach/useSessionDetails.ts](hooks/coach/useSessionDetails.ts) — same pattern; normalizes before `filterAvailableMembers`. Covers ManualBookingPanel without touching it. (5) [components/coach/TenCardModal.tsx](components/coach/TenCardModal.tsx) — added `display_name` to prop type, header uses fallback.
-- **Stale carry-over closed.** Chris asked about the "Athlete subscription bug" (item 4 in Next Immediate Steps). Verified both root causes from S280 are already fixed: webhook handler at [app/api/stripe/webhook/route.ts:251-264](app/api/stripe/webhook/route.ts#L251-L264) gates `athlete_subscription_end` on `subscription.status === 'active'` (skips trialing); `autoExpireSubscriptions` at [hooks/coach/useMemberData.ts:284-292](hooks/coach/useMemberData.ts#L284-L292) skips members with active/trialing Stripe subs via `!stripeSubMap[m.id]`. Removed both the Known Open Issues entry and the Next Immediate Steps item; renumbered list.
-- **Process moments worth remembering:**
-  - **"Where does X come from?" → trace to data source, not UI.** Chris's question ("from where are the names populated?") could've been answered by reading the modal. Reading the API gave the actual answer (raw `members.name`, no transform) and exposed the inconsistency across the codebase. The follow-up grep `members\.name\|m\.name\|member\.name\b` mapped every read site in two minutes.
-  - **Fix at the data source, not every UI.** Six UI components used `member.name`. Changing each one would be 6 patches + 6 type updates. Resolving `display_name || name` in the two hooks (useCoachData, useSessionDetails) and the score-entry API covers 5 of those 6 components without touching them. Only TenCardModal needed direct touching.
-  - **Verify "open issue" claims before scheduling work.** S280's bug description (the one in activeContext) was true at write time but obsolete by S324-ish. Two greps + a code read closed an item that had been migrating between Next Immediate Steps lists for 30+ sessions. Worth checking other long-lived "Next Immediate Steps" items for the same staleness on a future session.
-- **TS clean.** Single commit (display_name fallback + carry-over removal + activeContext + history file).
-- **Carry-over:** all 5 code changes ready for live verification by Chris on next session start. Optional: backfill the existing 5 family-member kids in Supabase with `name = display_name` (he can do via Dashboard); not required since the code now handles NULL `name`.
-
-**Older sessions (57-326):** See `project-history/` folder.
+**Older sessions (57-327):** See `project-history/` folder.
 
 ---
 

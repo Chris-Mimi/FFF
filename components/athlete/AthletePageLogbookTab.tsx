@@ -18,6 +18,7 @@ import WeekView from './logbook/WeekView';
 import MonthView from './logbook/MonthView';
 import WhiteboardSection from './logbook/WhiteboardSection';
 import PhotoModal from './logbook/PhotoModal';
+import PersonalActivitiesView from './personal/PersonalActivitiesView';
 import { formatLift, formatBenchmark, formatForgeBenchmark } from '@/utils/logbook/formatters';
 import { saveSectionResult } from '@/utils/logbook/savingLogic';
 import { loadSectionResults, loadBenchmarkResultsToSection, loadLiftResultsToSection } from '@/utils/logbook/loadingLogic';
@@ -48,6 +49,7 @@ interface AthletePageLogbookTabProps {
 export default function AthletePageLogbookTab({ userId, initialDate, initialViewMode, onDateChange }: AthletePageLogbookTabProps) {
   const savingRef = useRef(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [logbookMode, setLogbookMode] = useState<'forge' | 'personal'>('forge');
   // State management via custom hook
   const state = useAthleteLogbookState(initialDate, initialViewMode);
   const {
@@ -342,10 +344,34 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
 
   return (
     <div className='bg-white rounded-lg shadow p-6'>
-      <div className='flex items-center justify-between mb-6'>
+      <div className='flex items-center justify-between mb-4 flex-wrap gap-2'>
         <h2 className='text-2xl font-bold text-gray-900'>Athlete Logbook</h2>
 
-        {/* View Mode Toggle */}
+        {/* Forge / Personal Mode Toggle */}
+        <div className='flex bg-gray-100 rounded-lg p-1'>
+          {(['forge', 'personal'] as const).map((mode) => (
+            <button
+              key={mode}
+              onClick={() => setLogbookMode(mode)}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition ${
+                logbookMode === mode
+                  ? 'bg-[#178da6] text-white'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              {mode === 'forge' ? 'Forge' : 'Personal'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {logbookMode === 'personal' ? (
+        <PersonalActivitiesView userId={userId} />
+      ) : (
+        <>
+
+      {/* Day/Week/Month View Mode Toggle (Forge mode only) */}
+      <div className='flex justify-end mb-6'>
         <div className='flex bg-gray-100 rounded-lg p-1'>
           {(['day', 'week', 'month'] as const).map((mode) => (
             <button
@@ -803,6 +829,8 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
           onPrevious={handlePreviousPhoto}
           onNext={handleNextPhoto}
         />
+      )}
+        </>
       )}
     </div>
   );
