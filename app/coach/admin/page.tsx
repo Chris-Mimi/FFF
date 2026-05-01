@@ -27,6 +27,16 @@ interface AttendedStat {
 
 type AttendedFilter = '30d' | '90d' | '6m' | '12m' | 'all';
 type ActiveTab = 'attended' | 'incidents';
+type ClassFilter = 'all' | 'adults' | 'kids';
+
+interface MemberInfo {
+  id: string;
+  name: string;
+  account_type: 'primary' | 'family_member' | null;
+  primary_member_id: string | null;
+  class_types: string[] | null;
+  date_of_birth: string | null;
+}
 
 const FILTER_OPTIONS: { label: string; value: AttendedFilter }[] = [
   { label: '30d', value: '30d' },
@@ -35,6 +45,42 @@ const FILTER_OPTIONS: { label: string; value: AttendedFilter }[] = [
   { label: '12m', value: '12m' },
   { label: 'All-time', value: 'all' },
 ];
+
+const CLASS_FILTER_OPTIONS: { label: string; value: ClassFilter }[] = [
+  { label: 'All', value: 'all' },
+  { label: 'Adults', value: 'adults' },
+  { label: 'Kids', value: 'kids' },
+];
+
+function ageFromDob(dob: string | null): number | null {
+  if (!dob) return null;
+  const d = new Date(dob);
+  if (isNaN(d.getTime())) return null;
+  const now = new Date();
+  let age = now.getFullYear() - d.getFullYear();
+  const m = now.getMonth() - d.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < d.getDate())) age--;
+  return age;
+}
+
+// Kid signals (any one is sufficient):
+//  1. account_type = 'family_member' (registered by a parent)
+//  2. class_types includes 'cfk' or 'cft' (kids/teens classes)
+//  3. date_of_birth makes them under 18 (catches self-registered teens)
+function isKidMember(m: MemberInfo | undefined): boolean {
+  if (!m) return false;
+  if (m.account_type === 'family_member') return true;
+  if ((m.class_types || []).some(c => c === 'cfk' || c === 'cft')) return true;
+  const age = ageFromDob(m.date_of_birth);
+  if (age !== null && age < 18) return true;
+  return false;
+}
+
+function passesClassFilter(m: MemberInfo | undefined, f: ClassFilter): boolean {
+  if (f === 'all') return true;
+  if (f === 'kids') return isKidMember(m);
+  return !isKidMember(m);
+}
 
 function getFilterDate(filter: AttendedFilter): string | null {
   if (filter === 'all') return null;
@@ -70,6 +116,11 @@ export default function AdminToolsPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<ActiveTab>('attended');
 
+  // Adults/Kids/All filter — scopes both Attended and Incidents tabs
+  const [classFilter, setClassFilter] = useState<ClassFilter>('all');
+  // Member lookup map (id → name/account_type/primary_member_id/class_types) used by both tabs
+  const [memberById, setMemberById] = useState<Map<string, MemberInfo>>(new Map());
+
   // Incidents tab
   const [allIncidents, setAllIncidents] = useState<{ bookingId: string; memberId: string; name: string; status: string; date: string }[]>([]);
   const [incidentsLoading, setIncidentsLoading] = useState(false);
@@ -97,18 +148,48 @@ export default function AdminToolsPage() {
       if (!user) { router.push('/login'); return; }
       if (user.user_metadata?.role !== 'coach') { router.push('/login'); return; }
       setLoading(false);
+      fetchAllMembers();
       fetchIncidentStats();
     };
     checkAuth();
   }, [router]);
 
-  // Refetch attended stats whenever the filter or selected month changes
+  // Refetch attended stats whenever the filter, selected month, or class filter changes.
+  // Wait for the member map so we can scope by Adults/Kids before hitting the RPC.
   useEffect(() => {
-    if (loading) return;
-    fetchAttendedStats(attendedFilter, selectedMonth);
+    if (loading || memberById.size === 0) return;
+    fetchAttendedStats(attendedFilter, selectedMonth, classFilter);
     fetchTrialStats(attendedFilter, selectedMonth);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, attendedFilter, selectedMonth]);
+  }, [loading, attendedFilter, selectedMonth, classFilter, memberById]);
+
+  // One-shot member fetch — populates memberById used by both tabs for filtering + guardian roll-up
+  const fetchAllMembers = async () => {
+    const { data, error } = await supabase
+      .from('members')
+      .select('id, name, display_name, account_type, primary_member_id, class_types, date_of_birth');
+    if (error) { console.error('Error fetching members:', error); return; }
+    const map = new Map<string, MemberInfo>();
+    for (const m of (data || []) as Array<{
+      id: string;
+      name: string | null;
+      display_name: string | null;
+      account_type: string | null;
+      primary_member_id: string | null;
+      class_types: string[] | null;
+      date_of_birth: string | null;
+    }>) {
+      map.set(m.id, {
+        id: m.id,
+        name: m.display_name || m.name || 'Unknown',
+        account_type: (m.account_type === 'primary' || m.account_type === 'family_member') ? m.account_type : null,
+        primary_member_id: m.primary_member_id,
+        class_types: m.class_types,
+        date_of_birth: m.date_of_birth,
+      });
+    }
+    setMemberById(map);
+  };
 
   const fetchIncidentStats = async () => {
     setIncidentsLoading(true);
@@ -197,19 +278,13 @@ export default function AdminToolsPage() {
     }
   };
 
-  const fetchAttendedStats = async (filter: AttendedFilter, month: { year: number; month: number } | null) => {
+  const fetchAttendedStats = async (filter: AttendedFilter, month: { year: number; month: number } | null, classF: ClassFilter) => {
     setAttendedLoading(true);
     try {
-      // Pull every member id (any status — we want ex-members in the list too)
-      const { data: members, error: membersError } = await supabase
-        .from('members')
-        .select('id, name, display_name');
-      if (membersError) throw membersError;
-
-      const memberIds = (members || []).map(m => m.id);
-      const nameById = new Map<string, string>(
-        (members || []).map(m => [m.id, m.name || m.display_name || 'Unknown'])
-      );
+      // Use the shared memberById map; filter by Adults/Kids before hitting the RPC so results are pre-scoped
+      const scopedMembers = Array.from(memberById.values()).filter(m => passesClassFilter(m, classF));
+      const memberIds = scopedMembers.map(m => m.id);
+      const nameById = new Map<string, string>(scopedMembers.map(m => [m.id, m.name]));
 
       // Calendar-month override → pass start/end. Otherwise use rolling window via days_back.
       const rpcArgs: Record<string, unknown> = { p_member_ids: memberIds };
@@ -311,21 +386,46 @@ export default function AdminToolsPage() {
     }
   };
 
-  // Derive incident stats from raw data + current filter
+  // Derive incident stats from raw data + current filter.
+  // Family-member kids' incidents also count toward their guardian's totals (parents are responsible
+  // for whether their kid shows up). The kid's own row keeps the same incident count too.
   const incidentStats: IncidentStat[] = (() => {
     const cutoff = getFilterDate(incidentFilter);
     const filtered = cutoff ? allIncidents.filter((r) => r.date >= cutoff) : allIncidents;
     const map = new Map<string, IncidentStat>();
-    for (const row of filtered) {
-      if (!map.has(row.memberId)) {
-        map.set(row.memberId, { memberId: row.memberId, name: row.name, lateCancel: 0, noShow: 0, total: 0 });
+
+    const upsert = (memberId: string, name: string) => {
+      if (!map.has(memberId)) {
+        map.set(memberId, { memberId, name, lateCancel: 0, noShow: 0, total: 0 });
       }
-      const stat = map.get(row.memberId)!;
+      return map.get(memberId)!;
+    };
+
+    for (const row of filtered) {
+      const stat = upsert(row.memberId, row.name);
       if (row.status === 'late_cancel') stat.lateCancel++;
       if (row.status === 'no_show') stat.noShow++;
       stat.total = stat.lateCancel + stat.noShow;
+
+      // Roll up to guardian when the booking belongs to a family-member kid
+      const member = memberById.get(row.memberId);
+      const guardianId = member?.primary_member_id;
+      if (guardianId && guardianId !== row.memberId) {
+        const guardian = memberById.get(guardianId);
+        const gStat = upsert(guardianId, guardian?.name || 'Unknown');
+        if (row.status === 'late_cancel') gStat.lateCancel++;
+        if (row.status === 'no_show') gStat.noShow++;
+        gStat.total = gStat.lateCancel + gStat.noShow;
+      }
     }
-    const arr = Array.from(map.values());
+
+    let arr = Array.from(map.values());
+
+    // Apply Adults/Kids filter — unknown members default to adult bucket
+    if (classFilter !== 'all') {
+      arr = arr.filter(s => passesClassFilter(memberById.get(s.memberId), classFilter));
+    }
+
     const { col, dir } = incidentSort;
     arr.sort((a, b) => {
       const av = a[col];
@@ -435,6 +535,24 @@ export default function AdminToolsPage() {
               <BarChart2 size={20} />
             </div>
             <h2 className='text-xl font-semibold text-gray-900'>Attendance Reports</h2>
+          </div>
+
+          {/* Adults/Kids/All filter — scopes both Attended and Incidents tabs */}
+          <div className='flex items-center gap-2 mb-4'>
+            <span className='text-xs font-medium text-gray-500 uppercase tracking-wide mr-1'>Show:</span>
+            {CLASS_FILTER_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setClassFilter(opt.value)}
+                className={`px-3 py-1 rounded-full text-xs font-medium transition ${
+                  classFilter === opt.value
+                    ? 'bg-gray-800 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
           </div>
 
           {/* Tabs */}
@@ -551,8 +669,10 @@ export default function AdminToolsPage() {
 
               {/* Trial Athletes panel — collapsible. Green chip = registered (matched a member's
                   whiteboard_name). Amber chip = trial only, hasn't registered. X removes the name
-                  from every session's trial_names array (for accidental tags). */}
-              {trialStats.length > 0 && (() => {
+                  from every session's trial_names array (for accidental tags).
+                  Hidden when Adults/Kids filter is active — trials aren't registered members so they
+                  have no class_types to scope by. */}
+              {classFilter === 'all' && trialStats.length > 0 && (() => {
                 const totalSessions = trialStats.reduce((sum, s) => sum + s.count, 0);
                 const registeredCount = trialStats.filter(t => t.registered).length;
                 return (
@@ -701,8 +821,14 @@ export default function AdminToolsPage() {
                       {incidentStats.map((stat) => {
                         const isExpanded = expandedIncidentMember === stat.memberId;
                         const cutoff = getFilterDate(incidentFilter);
+                        // Include own incidents AND any family-member kid incidents that roll up to this guardian
                         const memberIncidents = allIncidents
-                          .filter(r => r.memberId === stat.memberId && (!cutoff || r.date >= cutoff))
+                          .filter(r => {
+                            if (cutoff && r.date < cutoff) return false;
+                            if (r.memberId === stat.memberId) return true;
+                            const m = memberById.get(r.memberId);
+                            return m?.primary_member_id === stat.memberId;
+                          })
                           .sort((a, b) => b.date.localeCompare(a.date));
                         return (
                           <React.Fragment key={stat.memberId}>
@@ -740,14 +866,18 @@ export default function AdminToolsPage() {
                                       const label =
                                         inc.status === 'late_cancel' ? { text: 'Late Cancel', cls: 'bg-purple-100 text-purple-800' } :
                                         { text: 'No-Show', cls: 'bg-orange-100 text-orange-800' };
+                                      const isFromKid = inc.memberId !== stat.memberId;
                                       return (
                                         <div key={inc.bookingId} className='flex items-center justify-between bg-white rounded px-3 py-1.5 border border-gray-200 text-xs'>
                                           <div className='flex items-center gap-2'>
                                             <span className='text-gray-600 font-mono'>{inc.date}</span>
                                             <span className={`inline-block ${label.cls} font-medium px-2 py-0.5 rounded`}>{label.text}</span>
+                                            {isFromKid && (
+                                              <span className='text-gray-500 italic text-[11px]'>({inc.name})</span>
+                                            )}
                                           </div>
                                           <button
-                                            onClick={() => handleDeleteIncident(inc.bookingId, stat.name, inc.status, inc.date)}
+                                            onClick={() => handleDeleteIncident(inc.bookingId, inc.name, inc.status, inc.date)}
                                             className='flex items-center gap-1 px-2 py-1 text-xs bg-red-50 hover:bg-red-100 text-red-700 rounded transition'
                                             title='Delete this incident permanently'
                                           >
