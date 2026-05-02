@@ -25,6 +25,7 @@ interface Exercise {
   id: string;
   name: string;
   display_name?: string;
+  acronym?: string | null;
   category: string;
   subcategory?: string;
   description: string | null;
@@ -554,6 +555,7 @@ function MovementLibraryPopup({
         exercise =>
           matchesWordBoundary(exercise.name, trimmedSearch) ||
           matchesWordBoundary(exercise.display_name || '', trimmedSearch) ||
+          matchesWordBoundary(exercise.acronym || '', trimmedSearch) ||
           matchesWordBoundary(exercise.category, trimmedSearch) ||
           matchesWordBoundary(exercise.subcategory || '', trimmedSearch) ||
           exercise.tags?.some(tag => matchesWordBoundary(tag, trimmedSearch)) ||
@@ -590,7 +592,8 @@ function MovementLibraryPopup({
     const filtered: Record<string, BarbellLift[]> = {};
     Object.entries(grouped).forEach(([category, categoryLifts]) => {
       const matchingLifts = categoryLifts.filter(lift =>
-        matchesWordBoundary(lift.name, trimmedSearch)
+        matchesWordBoundary(lift.name, trimmedSearch) ||
+        matchesWordBoundary((lift as { acronym?: string | null }).acronym || '', trimmedSearch)
       );
       if (matchingLifts.length > 0) {
         filtered[category] = matchingLifts;
@@ -604,7 +607,8 @@ function MovementLibraryPopup({
     const trimmedSearch = debouncedSearch.trim();
     if (!trimmedSearch) return benchmarks;
     return benchmarks.filter(b =>
-      matchesWordBoundary(b.name, trimmedSearch)
+      matchesWordBoundary(b.name, trimmedSearch) ||
+      matchesWordBoundary((b as { acronym?: string | null }).acronym || '', trimmedSearch)
     );
   }, [benchmarks, debouncedSearch]);
 
@@ -613,7 +617,8 @@ function MovementLibraryPopup({
     const trimmedSearch = debouncedSearch.trim();
     if (!trimmedSearch) return forgeBenchmarks;
     return forgeBenchmarks.filter(f =>
-      matchesWordBoundary(f.name, trimmedSearch)
+      matchesWordBoundary(f.name, trimmedSearch) ||
+      matchesWordBoundary((f as { acronym?: string | null }).acronym || '', trimmedSearch)
     );
   }, [forgeBenchmarks, debouncedSearch]);
 
@@ -1035,6 +1040,9 @@ function MovementLibraryPopup({
                                 className='w-full text-left px-0.5 py-0.5 hover:bg-[#178da6] hover:text-white transition text-xs text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis pr-10'
                                 title={exercise.description || undefined}
                               >
+                                {exercise.acronym && (
+                                  <span className='font-mono text-[10px] font-semibold text-teal-700 mr-1.5'>{exercise.acronym}</span>
+                                )}
                                 {exercise.display_name || exercise.name}
                                 {exercise.video_url && (
                                   <span
@@ -1097,16 +1105,24 @@ function MovementLibraryPopup({
                           <h4 className='text-sm font-bold uppercase tracking-wide'>{category}</h4>
                         </div>
                         <div className='grid gap-0 mb-2' style={getColumnFirstStyle(categoryLifts.length)}>
-                          {categoryLifts.map(lift => (
+                          {categoryLifts.map(lift => {
+                            const liftAcr = (lift as { acronym?: string | null }).acronym;
+                            return (
                             <button
                               key={lift.id}
                               onClick={() => handleSelectLift(lift)}
                               className='text-left px-0.5 py-0.5 hover:bg-[#178da6] hover:text-white transition text-xs text-gray-900 flex items-center justify-between whitespace-nowrap overflow-hidden'
                             >
-                              <span className='overflow-hidden text-ellipsis'>{lift.name}</span>
+                              <span className='overflow-hidden text-ellipsis'>
+                                {liftAcr && (
+                                  <span className='font-mono text-[10px] font-semibold text-teal-700 mr-1.5'>{liftAcr}</span>
+                                )}
+                                {lift.name}
+                              </span>
                               <span className='text-gray-400 hover:text-white ml-1'>→</span>
                             </button>
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
                     ))}
@@ -1122,16 +1138,24 @@ function MovementLibraryPopup({
               {activeTab === 'benchmarks' && (
                 filteredBenchmarks.length > 0 ? (
                   <div className='grid gap-0' style={getColumnFirstStyle(filteredBenchmarks.length)}>
-                    {filteredBenchmarks.map(benchmark => (
+                    {filteredBenchmarks.map(benchmark => {
+                      const bmAcr = (benchmark as { acronym?: string | null }).acronym;
+                      return (
                       <button
                         key={benchmark.id}
                         onClick={() => handleSelectBenchmark(benchmark)}
                         className='text-left px-0.5 py-0.5 hover:bg-[#178da6] hover:text-white transition text-xs text-gray-900 flex items-center justify-between whitespace-nowrap overflow-hidden'
                       >
-                        <span className='overflow-hidden text-ellipsis'>{benchmark.name}</span>
+                        <span className='overflow-hidden text-ellipsis'>
+                          {bmAcr && (
+                            <span className='font-mono text-[10px] font-semibold text-teal-700 mr-1.5'>{bmAcr}</span>
+                          )}
+                          {benchmark.name}
+                        </span>
                         <span className='text-gray-400 hover:text-white ml-1'>→</span>
                       </button>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className='text-center py-8 text-gray-500'>
@@ -1144,16 +1168,24 @@ function MovementLibraryPopup({
               {activeTab === 'forge' && (
                 filteredForgeBenchmarks.length > 0 ? (
                   <div className='grid gap-0' style={getColumnFirstStyle(filteredForgeBenchmarks.length)}>
-                    {filteredForgeBenchmarks.map(forge => (
+                    {filteredForgeBenchmarks.map(forge => {
+                      const fAcr = (forge as { acronym?: string | null }).acronym;
+                      return (
                       <button
                         key={forge.id}
                         onClick={() => handleSelectForgeBenchmark(forge)}
                         className='text-left px-0.5 py-0.5 hover:bg-[#178da6] hover:text-white transition text-xs text-gray-900 flex items-center justify-between whitespace-nowrap overflow-hidden'
                       >
-                        <span className='overflow-hidden text-ellipsis'>{forge.name}</span>
+                        <span className='overflow-hidden text-ellipsis'>
+                          {fAcr && (
+                            <span className='font-mono text-[10px] font-semibold text-teal-700 mr-1.5'>{fAcr}</span>
+                          )}
+                          {forge.name}
+                        </span>
                         <span className='text-gray-400 hover:text-white ml-1'>→</span>
                       </button>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className='text-center py-8 text-gray-500'>

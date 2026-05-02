@@ -57,7 +57,7 @@ interface SearchPanelProps {
   workoutTypeCounts: Record<string, number>;
   sessionTypeCounts: Record<string, number>;
   members: Array<{ id: string; name: string; booking_count: number; date_of_birth: string | null }>;
-  exerciseList: Array<{ id: string; name: string; display_name: string | null; category: string }>;
+  exerciseList: Array<{ id: string; name: string; display_name: string | null; category: string; acronym: string | null }>;
   selectedMembers: string[];
   onSelectedMembersChange: (members: string[]) => void;
   selectedSearchWOD: WODFormData | null;
@@ -153,7 +153,10 @@ export default function SearchPanel({
       .filter(ex => {
         if (trackedIds.has(ex.id)) return false;
         const name = (ex.display_name || ex.name).toLowerCase();
-        return name.includes(query);
+        if (name.includes(query)) return true;
+        // Acronym match (S333) — typing "DPU" finds Push-up Diamond
+        if (ex.acronym && ex.acronym.toLowerCase().includes(query)) return true;
+        return false;
       })
 ;
   }, [exerciseSearch, exerciseList, trackedExercises]);
@@ -694,6 +697,9 @@ export default function SearchPanel({
                         }}
                         className='w-full text-left px-2 py-1 text-xs hover:bg-gray-100 text-gray-900 truncate'
                       >
+                        {ex.acronym && (
+                          <span className='font-mono text-[10px] font-semibold text-teal-700 mr-1.5'>{ex.acronym}</span>
+                        )}
                         {ex.display_name || ex.name}
                       </button>
                     ))}

@@ -48,6 +48,7 @@ interface Exercise {
   id: string;
   name: string;
   display_name?: string;
+  acronym?: string | null;
   category: string;
   subcategory?: string;
   description: string | null;

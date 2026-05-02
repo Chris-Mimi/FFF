@@ -9,26 +9,29 @@ import { extractMovementsFromWod, type AcronymMap } from '@/utils/movement-extra
 import type { WODFormData } from '@/components/coach/WorkoutModal';
 
 /**
- * Fetch the acronym → display_name map from exercises.tags.
+ * Fetch the acronym → display_name map across all four movement-source tables.
+ * Source of truth is the curated `acronym` column (Session 333).
  * Shared by movement extraction call sites that don't have access to useCoachData.
  */
 export async function fetchAcronymMap(): Promise<AcronymMap> {
-  const { data, error } = await supabase
-    .from('exercises')
-    .select('display_name, tags');
-
-  if (error) {
-    console.error('Error fetching acronym map:', error);
-    return new Map();
-  }
+  const [exRes, liftRes, bmRes, fbRes] = await Promise.all([
+    supabase.from('exercises').select('display_name, acronym'),
+    supabase.from('barbell_lifts').select('name, acronym'),
+    supabase.from('benchmark_workouts').select('name, acronym'),
+    supabase.from('forge_benchmarks').select('name, acronym'),
+  ]);
 
   const acronyms: AcronymMap = new Map();
-  data?.forEach(ex => {
-    if (!ex.display_name) return;
-    const dnLower = ex.display_name.toLowerCase();
-    const tags: string[] = Array.isArray(ex.tags) ? ex.tags.filter(Boolean).map((t: string) => t.toLowerCase()) : [];
-    tags.forEach(tag => acronyms.set(tag, dnLower));
-  });
+  const add = (acr: unknown, name: unknown) => {
+    if (!acr || !name || typeof acr !== 'string' || typeof name !== 'string') return;
+    acronyms.set(acr.toLowerCase(), name.toLowerCase());
+  };
+
+  exRes.data?.forEach(r => add(r.acronym, r.display_name));
+  liftRes.data?.forEach(r => add(r.acronym, r.name));
+  bmRes.data?.forEach(r => add(r.acronym, r.name));
+  fbRes.data?.forEach(r => add(r.acronym, r.name));
+
   return acronyms;
 }
 

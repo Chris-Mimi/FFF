@@ -39,7 +39,7 @@ export const useCoachData = ({
   const [searchResults, setSearchResults] = useState<WODFormData[]>([]);
   const [movements, setMovements] = useState<Map<string, number>>(new Map());
   const [exerciseNames, setExerciseNames] = useState<Set<string>>(new Set());
-  const [exerciseList, setExerciseList] = useState<Array<{ id: string; name: string; display_name: string | null; category: string }>>([]);
+  const [exerciseList, setExerciseList] = useState<Array<{ id: string; name: string; display_name: string | null; category: string; acronym: string | null }>>([]);
   const [acronymMap, setAcronymMap] = useState<AcronymMap>(new Map());
   const [displayNameToAcronyms, setDisplayNameToAcronyms] = useState<Map<string, string[]>>(new Map());
   const [members, setMembers] = useState<Array<{ id: string; name: string; booking_count: number; date_of_birth: string | null }>>([]);
@@ -330,15 +330,23 @@ export const useCoachData = ({
                   }
                 });
 
-                // Extract benchmark name and description (description contains movements like "150 Wallball Shots")
+                // Extract benchmark name + description (description carries movements like "150 Wallball Shots")
                 section.benchmarks?.forEach((benchmark: ConfiguredBenchmark) => {
-                  if (benchmark.name) movements.push(benchmark.name);
+                  if (benchmark.name) {
+                    movements.push(benchmark.name);
+                    const acrs = displayNameToAcronyms.get(benchmark.name.toLowerCase());
+                    if (acrs) acrs.forEach(a => movements.push(a));
+                  }
                   if (benchmark.description) movements.push(benchmark.description);
                 });
 
-                // Extract forge benchmark name and description
+                // Extract forge benchmark name + description
                 section.forge_benchmarks?.forEach((forge: ConfiguredForgeBenchmark) => {
-                  if (forge.name) movements.push(forge.name);
+                  if (forge.name) {
+                    movements.push(forge.name);
+                    const acrs = displayNameToAcronyms.get(forge.name.toLowerCase());
+                    if (acrs) acrs.forEach(a => movements.push(a));
+                  }
                   if (forge.description) movements.push(forge.description);
                 });
 
@@ -369,11 +377,20 @@ export const useCoachData = ({
               combinedText = `${workoutNameText} ${notesText} ${sectionsText} ${structuredMovements}`;
             }
 
-            const escapedPhrase = searchPhrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            // \b word boundary so "Ring" doesn't match "hamstring" or "during".
-            // Trailing space in the raw query → require end-of-word too (exact match).
-            const pattern = endAnchor ? `\\b${escapedPhrase}\\b` : `\\b${escapedPhrase}`;
-            return new RegExp(pattern, 'i').test(combinedText);
+            // Build pattern set: raw query + any acronym expansion (S333).
+            // If user types "DL", also search for "Barbell Deadlift" in content text.
+            const phrases = [searchPhrase];
+            const acrLookup = acronymMap.get(searchPhrase.toLowerCase());
+            if (acrLookup && !phrases.includes(acrLookup)) phrases.push(acrLookup);
+
+            const matchesAny = phrases.some(phrase => {
+              const escaped = phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+              // \b word boundary so "Ring" doesn't match "hamstring" or "during".
+              // Trailing space in the raw query → require end-of-word too (exact match).
+              const pattern = endAnchor ? `\\b${escaped}\\b` : `\\b${escaped}`;
+              return new RegExp(pattern, 'i').test(combinedText);
+            });
+            return matchesAny;
           });
         }
 
@@ -424,27 +441,48 @@ export const useCoachData = ({
 
   const fetchExerciseNames = async () => {
     try {
-      const { data, error } = await supabase
-        .from('exercises')
-        .select('id, name, display_name, category, tags');
-
-      if (error) throw error;
+      // Pull exercise rows + acronyms from all four movement-source tables
+      // so the WOD-search and movement-extraction paths can resolve any code
+      // (S333 — replaces the S303 tags-as-acronym pattern with a curated column).
+      const [exRes, liftRes, bmRes, fbRes] = await Promise.all([
+        supabase.from('exercises').select('id, name, display_name, category, acronym'),
+        supabase.from('barbell_lifts').select('name, acronym'),
+        supabase.from('benchmark_workouts').select('name, acronym'),
+        supabase.from('forge_benchmarks').select('name, acronym'),
+      ]);
+      if (exRes.error) throw exRes.error;
 
       const names = new Set<string>();
       const acronyms: AcronymMap = new Map();
       const reverse = new Map<string, string[]>();
-      data?.forEach(ex => {
+
+      exRes.data?.forEach(ex => {
         if (!ex.display_name) return;
         names.add(ex.display_name);
-        const dnLower = ex.display_name.toLowerCase();
-        const tags: string[] = Array.isArray(ex.tags) ? ex.tags.filter(Boolean).map((t: string) => t.toLowerCase()) : [];
-        if (tags.length > 0) {
-          reverse.set(dnLower, tags);
-          tags.forEach(tag => acronyms.set(tag, dnLower));
+        if (ex.acronym && typeof ex.acronym === 'string') {
+          const dnLower = ex.display_name.toLowerCase();
+          const acrLower = ex.acronym.toLowerCase();
+          acronyms.set(acrLower, dnLower);
+          reverse.set(dnLower, [acrLower]);
         }
       });
+      const addCrossSource = (rows?: Array<{ name: string | null; acronym: string | null }>) => {
+        rows?.forEach(r => {
+          if (!r.name || !r.acronym) return;
+          const nameLower = r.name.toLowerCase();
+          const acrLower = r.acronym.toLowerCase();
+          acronyms.set(acrLower, nameLower);
+          // Reverse-map populated for search expansion (combinedText in WOD search)
+          const existing = reverse.get(nameLower) ?? [];
+          if (!existing.includes(acrLower)) reverse.set(nameLower, [...existing, acrLower]);
+        });
+      };
+      addCrossSource(liftRes.data ?? undefined);
+      addCrossSource(bmRes.data ?? undefined);
+      addCrossSource(fbRes.data ?? undefined);
+
       setExerciseNames(names);
-      setExerciseList((data || []).map(({ tags: _t, ...rest }) => rest));
+      setExerciseList(exRes.data || []);
       setAcronymMap(acronyms);
       setDisplayNameToAcronyms(reverse);
     } catch (error) {

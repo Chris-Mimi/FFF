@@ -43,6 +43,7 @@ interface Exercise {
   id: string;
   name: string;
   display_name: string | null;
+  acronym?: string | null;
   category: string;
   subcategory?: string;
   equipment?: string[];
@@ -178,7 +179,7 @@ export default function AnalysisPage() {
     try {
       const [typesResult, exercisesResult] = await Promise.all([
         supabase.from('workout_types').select('*').order('name'),
-        supabase.from('exercises').select('id, name, display_name, category, subcategory, equipment, body_parts, difficulty').order('name'),
+        supabase.from('exercises').select('id, name, display_name, acronym, category, subcategory, equipment, body_parts, difficulty').order('name'),
       ]);
 
       if (typesResult.error) throw typesResult.error;

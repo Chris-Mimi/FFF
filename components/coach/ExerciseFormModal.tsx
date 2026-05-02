@@ -22,6 +22,7 @@ interface Exercise {
   id: string;
   name: string;
   display_name?: string;
+  acronym?: string | null;
   category: string;
   subcategory?: string;
   description: string | null;
@@ -159,6 +160,7 @@ export default function ExerciseFormModal({
   const [form, setForm] = useState({
     name: '',
     display_name: '',
+    acronym: '',
     category: '',
     subcategory: '',
     description: '',
@@ -282,6 +284,7 @@ export default function ExerciseFormModal({
       setForm({
         name: '',
         display_name: '',
+        acronym: '',
         category: '',
         subcategory: '',
         description: '',
@@ -301,6 +304,7 @@ export default function ExerciseFormModal({
       setForm({
         name: '', // Keep name empty so user must enter new name
         display_name: '',
+        acronym: '', // Don't copy template acronym — must be unique per row
         category: template.category,
         subcategory: template.subcategory || '',
         description: template.description || '',
@@ -386,6 +390,7 @@ export default function ExerciseFormModal({
       setForm({
         name: editingExercise.name,
         display_name: editingExercise.display_name || editingExercise.name,
+        acronym: editingExercise.acronym || '',
         category: editingExercise.category,
         subcategory: editingExercise.subcategory || '',
         description: editingExercise.description || '',
@@ -408,6 +413,7 @@ export default function ExerciseFormModal({
       setForm({
         name: '',
         display_name: '',
+        acronym: '',
         category: '',
         subcategory: '',
         description: '',
@@ -454,6 +460,7 @@ export default function ExerciseFormModal({
       ...(editingExercise && { id: editingExercise.id }),
       name: form.name,
       display_name: form.display_name || form.name,
+      acronym: form.acronym ? form.acronym.trim().toUpperCase() : null,
       category: finalCategory,
       subcategory: finalSubcategory || null,
       description: form.description || null,
@@ -571,19 +578,34 @@ export default function ExerciseFormModal({
             />
           </div>
 
-          {/* Display Name */}
-          <div>
-            <label className='block text-sm font-medium text-gray-100 mb-1'>
-              Display Name <span className='text-gray-400 text-xs'>(optional, defaults to Name)</span>
-            </label>
-            <input
-              type='text'
-              value={form.display_name}
-              onChange={(e) => setForm({ ...form, display_name: e.target.value })}
-              className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500'
-              placeholder='e.g., Clean'
-              maxLength={100}
-            />
+          {/* Display Name + Acronym */}
+          <div className='grid grid-cols-[1fr_140px] gap-4'>
+            <div>
+              <label className='block text-sm font-medium text-gray-100 mb-1'>
+                Display Name <span className='text-gray-400 text-xs'>(optional, defaults to Name)</span>
+              </label>
+              <input
+                type='text'
+                value={form.display_name}
+                onChange={(e) => setForm({ ...form, display_name: e.target.value })}
+                className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500'
+                placeholder='e.g., Clean'
+                maxLength={100}
+              />
+            </div>
+            <div>
+              <label className='block text-sm font-medium text-gray-100 mb-1'>
+                Acronym <span className='text-gray-400 text-xs'>(optional)</span>
+              </label>
+              <input
+                type='text'
+                value={form.acronym}
+                onChange={(e) => setForm({ ...form, acronym: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '') })}
+                className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 font-mono uppercase'
+                placeholder='e.g., DPU'
+                maxLength={6}
+              />
+            </div>
           </div>
 
           {/* Category & Subcategory Row */}
