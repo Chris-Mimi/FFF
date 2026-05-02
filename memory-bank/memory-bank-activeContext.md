@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 192
-**Updated:** 2026-05-01 (Session 332 — Athlete Personal Activities log on Logbook tab)
+**Version:** 193
+**Updated:** 2026-05-02 (Session 333 — curated exercise acronyms + cross-surface search)
 
 ---
 
@@ -21,22 +21,25 @@
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history scan._
 
-**First action:** None blocking — S332 Personal Activities is shipped and Chris tested live. Optional follow-up: if Personal mode gets used over the next few weeks, build the Session-B heatmap + counts row (year-of-dots colored by activity type, plus "X swims · Y runs · Z hikes this year"). Skip if no usage.
+**First action:** None blocking — S333 acronyms is shipped, push-up family backfilled, all tests pass. Curate acronyms for other families as you encounter them in the WOD editor (no big-bang). Lift / benchmark / forge **edit modal** acronym fields are deferred — when you need to set acronyms on those tables, use Supabase Dashboard SQL OR ask Claude to add the form fields (~15 min each).
 
 **Files to open first if continuing code work:**
-- [components/athlete/personal/PersonalActivitiesView.tsx](components/athlete/personal/PersonalActivitiesView.tsx) — list + add button.
-- [components/athlete/personal/PersonalActivityModal.tsx](components/athlete/personal/PersonalActivityModal.tsx) — add/edit form.
-- [hooks/athlete/usePersonalActivities.ts](hooks/athlete/usePersonalActivities.ts) — CRUD hook.
-- [types/personal-activity.ts](types/personal-activity.ts) — German activity type list (`PERSONAL_ACTIVITY_TYPES`).
+- [components/coach/ExerciseFormModal.tsx](components/coach/ExerciseFormModal.tsx) — Acronym input next to Display Name (auto-uppercase, max 6).
+- [components/coach/MovementLibraryPopup.tsx](components/coach/MovementLibraryPopup.tsx) — pill display per tab + acronym OR-match in search filters.
+- [components/coach/SearchPanel.tsx](components/coach/SearchPanel.tsx) — Custom Movements dropdown w/ tracked-badge + post-add group-assignment popover; uniqueSearchResults dedup-by-name.
+- [components/coach/MovementTrackingPanel.tsx](components/coach/MovementTrackingPanel.tsx) — `getCode()` reads curated acronym via `acronymByName` prop; falls back to initials.
+- [hooks/coach/useCoachData.ts](hooks/coach/useCoachData.ts) — `fetchExerciseNames` pulls acronym from all 4 movement tables; search-time acronym→name expansion in `combinedText` matcher.
+- [utils/movement-analytics.ts](utils/movement-analytics.ts) — `fetchAcronymMap` reads from acronym column across all 4 tables.
 
 **Carry-over status:**
+- ⏳ S333 Acronym form fields on Lifts / Benchmarks / Forge edit modals — deferred. Schema column + search + display all wired; only the in-app curation UI for those 3 tables is missing.
 - ⏳ S332 Personal Activities — Chris tested live, working. Optional Session B heatmap + counts row deferred until usage justifies.
 - ⏳ S331 shared-patterns — Chris hasn't explicitly confirmed both toggles show same patterns, but no complaints either.
 - ⏳ S330 Clean & Jerk dot — Chris confirmed S330 changes work; deeper extractor canonical-name verification still pending if the dot doesn't light.
-- ⏳ S328 Michaela login — still awaiting her confirmation.
 - ⏳ S321 late-cancel TZ fix — still waiting on a real organic cancellation to confirm.
 
 **Landmines:**
+- **Acronyms live in a curated `acronym TEXT` column on 4 tables (S333):** `exercises`, `barbell_lifts`, `benchmark_workouts`, `forge_benchmarks`. Each table has a `*_acronym_unique` partial unique index on `LOWER(acronym) WHERE acronym IS NOT NULL`. Form input enforces letters/digits, max 6 chars, auto-uppercase. **Replaces the S303 tags-as-acronym pattern** — `fetchAcronymMap` and `fetchExerciseNames` now read the column, NOT tags. The `dl` tag on Barbell Deadlift was promoted to `acronym='DL'` (tag still exists, harmless). If you re-introduce a tag-based acronym anywhere, the new column is still authoritative for search/display. **For movements that exist in two tables** (e.g. Clean & Jerk in `barbell_lifts` + Barbell Clean & Jerk in `exercises`), set the same acronym on both rows — there's no auto-sync (avoids the brittle name-mapping that already burned us in the S330 planner extractor). **WOD-search expansion** lives in `useCoachData` `combinedText` matcher: if the user types a known acronym, search ORs the canonical name(s) into the regex test, so historical WOD content gets matched correctly. **No content rewrites** — section content text is untouched.
 - **Personal activity types are stored as TEXT, not enum (S332).** [types/personal-activity.ts](types/personal-activity.ts) `PERSONAL_ACTIVITY_TYPES` is the single source of truth. Adding a type = add a string. Renaming a type = the constant change is a one-liner, but existing rows keep the old name; they'll display fine but won't match the dropdown until you UPDATE them. List is currently in German (Schwimmen, Laufen, Radfahren, Yoga, Wandern, Externes CrossFit, Anderes Studio, Sonstiges). When i18n lands, this is one of the things to migrate to messages files.
 - **Movement patterns are global to the user — not track-scoped (S331).** `movement_patterns.track` column is gone. The Adults/Kids toggle in PlannerSection only changes which `session_type`s feed coverage/gap analysis (`excludeSessionTypes` in `computeAnalysis`); it does not filter the pattern list. If a pattern is exclusively for one track (e.g. Kids-only stretches), there is no DB-level enforcement — coach has to choose to not link that pattern to any Adults exercises, or just not toggle it. If you re-introduce per-track scoping, switch to a `tracks text[]` column so a pattern can belong to multiple tracks.
 - **Planner extractor canonical-name mismatch (S330, suspected, unconfirmed).** [utils/movement-extraction.ts:50-53](utils/movement-extraction.ts#L50-L53) maps lift name `Clean & Jerk` → canonical `barbell clean & jerk` and ONLY emits that canonical name if it exists in the exercises library (`knownLower?.has(canonical)`). If your `exercises` table stores it as just `Clean & Jerk` (no Barbell prefix), the canonical branch fails its guard, falls through to fuzzy-match, and may emit a name that doesn't equal what the pattern's linked exercise has. Same shape applies to other genericToCanonical mappings (deadlift, snatch, back squat, etc.). If S330's reload doesn't light up the dot, this is the next thing to verify — write a service-role script that prints both `extractMovementsFromWod()` output for a recent WOD AND the linked-exercise names per pattern, and look for case/prefix mismatches.
@@ -124,6 +127,25 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 333 (2026-05-02 — Opus 4.7) — CURATED EXERCISE ACRONYMS + CROSS-SURFACE SEARCH:**
+- **Trigger.** Coach-side Workouts page acronyms were collision-heavy (3× PUD, 2× PUH, 3× PUS, 3× PUT, 2× SPU in the push-up family alone) because they were auto-generated from initials. Chris asked for a curated system that works across the Library popup, Workouts search, Planning + Statistics tabs, AND the Movement Tracking panel.
+- **Schema.** `acronym TEXT` column added to all 4 movement tables (`exercises`, `barbell_lifts`, `benchmark_workouts`, `forge_benchmarks`) with per-table case-insensitive unique partial indexes. Migration: [database/20260502_session333_acronyms.sql](database/20260502_session333_acronyms.sql) — gitignored, ran by Chris. Backfilled 22 push-ups + promoted the existing S303 `dl` tag to `acronym='DL'`. Final mapping ended at 5–6 char codes (SPSU, DPU, HSPU, HSPUK, RPSU, etc.) after Chris caught the RPU collision (Rings Push-Up vs Rings Pull-Up — now RPSU + reserved RPLU).
+- **Form.** [components/coach/ExerciseFormModal.tsx](components/coach/ExerciseFormModal.tsx) gets an Acronym input next to Display Name (auto-uppercase, letters/digits only, max 6 chars). Lift / benchmark / forge edit modals deferred to follow-up — Chris can curate via Dashboard SQL until then.
+- **Search wiring.** Library popup (all 4 tabs) ORs acronym into the word-boundary match. Workouts page exercise dropdown ORs acronym into the includes match. WOD-content search in [hooks/coach/useCoachData.ts](hooks/coach/useCoachData.ts) translates known acronyms to canonical names at search time — typing `DPU` finds every WOD containing "Push-up Diamond" without rewriting any historical content. `fetchExerciseNames` now pulls acronym from all 4 tables in parallel; reverse-map populated for cross-source lookup.
+- **Display.** Small teal monospace pill before the name in Library popup cards (4 tabs) + SearchPanel exercise dropdown. Renders only when an acronym is set; null acronyms render as before. [components/coach/MovementTrackingPanel.tsx](components/coach/MovementTrackingPanel.tsx) `getCode()` now reads the curated acronym via a new `acronymByName` prop instead of the hardcoded `ACRONYM_OVERRIDES` map (deleted) + initials algorithm (kept as fallback).
+- **Two pre-existing bugs surfaced + fixed (not S333-related, just visible now):**
+  - **Custom Movements dropdown silently hid tracked exercises** — typing HSPU returned nothing because Handstand Push-Up Strict was already tracked. Fixed: tracked rows now show with a `✓ tracked` badge, click is a no-op (presence at-a-glance + clear "already added" affordance).
+  - **"Show Unique" mode used a bi-weekly bucket** — same workout repeated across weeks counted as N unique entries (W13 → bucket W12, W14 → bucket W14, etc.). Switched to dedupe-by-`workout_name` only; one row per uniquely-named workout, ever. Most-recent occurrence is the one shown, with a small `×N` chip when N > 1. The bi-weekly logic was unrelated to "Apply to Sessions" removal (S326).
+- **Group-assignment popover (new UX).** When you add an exercise from the Custom Movements dropdown and groups exist, an amber-bordered popover appears with chips for each group + a Skip button. Click a chip to drop the new exercise straight into the group's `exercise_ids`. Resolves the gap where adding to *tracking* didn't auto-add to a *group* (separate concepts).
+- **Probe scripts (read-only, kept for reuse).** [scripts/probe-wod-naming-variants.ts](scripts/probe-wod-naming-variants.ts) scanned all WOD content for inconsistencies vs canonical names — Mimi's typing came back clean (only false-positive substring matches like "Fran" matching "Franziskah"). [scripts/probe-find-strings.ts](scripts/probe-find-strings.ts) locates specific text fragments by date+id. [scripts/probe-wods-for-acronym.ts](scripts/probe-wods-for-acronym.ts) for diagnosing dedup/expansion behavior per acronym.
+- **Process moments worth remembering:**
+  - **Conversation alignment before code.** ~10 design messages before any code: scope (single-table vs multi-table), display format (parens vs pill), search model (search-time expansion vs structured references), edge cases (existing-data impact, lift/exercise duplicates). Each clarification reframed scope. Worth the cost — building wrong would've been more expensive.
+  - **Probe before backfill.** Read-only probe scan of all WOD content gave evidence that Chris's typing was clean enough to ship search-time-expansion without a bulk content rewrite. Cheap insurance, immediate confidence boost.
+  - **"It's not a bug, it's a workflow gap" → enhancement.** When Chris reported HSPUK not appearing in his Push-up group after adding to tracking, the answer was "tracking and grouping are independent". But that prompted the natural enhancement (post-add group popover) — the gap was the bug.
+  - **One movement, two tables: no auto-sync.** Decided against name-mapping (the S330 brittle pattern) — Chris curates the same acronym on both rows when needed. Trade-off accepted.
+- **Files touched:** `database/20260502_session333_acronyms.sql` (new, gitignored), `app/coach/analysis/page.tsx`, `components/coach/ExerciseFormModal.tsx`, `components/coach/ExercisesTab.tsx`, `components/coach/MovementLibraryPopup.tsx`, `components/coach/MovementTrackingPanel.tsx`, `components/coach/SearchPanel.tsx`, `hooks/coach/useCoachData.ts`, `utils/movement-analytics.ts`, `scripts/probe-find-strings.ts` (new), `scripts/probe-wod-naming-variants.ts` (new), `scripts/probe-wods-for-acronym.ts` (new), `Chris Notes/Forge app documentation/Forge-Feature-Overview.md`.
+- **TS clean. Production build passes. Single commit per close-session checklist.**
+
 **Session 332 (2026-05-01 — Opus 4.7) — ATHLETE PERSONAL ACTIVITIES LOG ON LOGBOOK TAB:**
 - **Trigger.** Chris asked for a way for athletes to log their own non-Forge workouts (holiday swims, external CrossFit, aerobics, etc.) so the app becomes a full personal training tracker — not just class-day logging. Wanted minimal complexity since usage will be light.
 - **Decision.** Forge / Personal toggle at the top of the Logbook tab. Personal mode = simple flat list sorted by date desc + an Add button. No day/week/month nav, no whiteboard, no scoring fields — just date, activity type, optional duration, optional effort (1–5), optional notes. Chose this over a separate top-level tab because the use case shares the "tracking my training history" mental model with the existing logbook.
@@ -174,14 +196,7 @@ Athlete Tools
 - **Files touched:** `app/coach/admin/page.tsx` (filter pills, kid detection helpers, `memberById` state + fetch, incident roll-up + filter, expansion enrichment, hide trial panel when scoped), `Chris Notes/Forge app documentation/login-recovery-runbook.md` (new).
 - **TS clean.** Single commit (per checklist default).
 
-**Session 328 (2026-04-30 — Opus 4.7) — LOGIN FALLBACK HARDENED AFTER MICHAELA EDER RESCUE:**
-- **Trigger.** Michaela Eder couldn't log into the app on her phone despite a healthy account — same pattern as Anja (S317). Password reset email wasn't reaching her usefully.
-- **Recovery.** Set temp password via `scripts/admin-set-password.ts`; sent her the temp + change-it-after instructions.
-- **Root cause hypothesis.** Stale PWA service-worker bundle on her phone serving the pre-S317 login code path. Old code surfaced raw "Invalid login credentials" → Chrome auto-translated to a generic German "Es funktioniert nicht" with no actionable info.
-- **Code hardening at [app/login/page.tsx:105](app/login/page.tsx#L105).** When `check-status` itself fails (network / 5xx / unexpected throw), render German fallback `"Anmeldung fehlgeschlagen. Bitte versuche es erneut oder nutze „Passwort vergessen?", falls das Problem bestehen bleibt."` instead of bubbling the raw Supabase string. Doesn't fix the cached-PWA case (those users are still on the old bundle) — only helps fresh installs and PWAs that have refreshed since S317.
-- **Carry-over.** Awaiting Michaela's confirmation. The recurring pattern got documented in S329's runbook.
-
-**Older sessions (57-327):** See `project-history/` folder.
+**Older sessions (57-328):** See `project-history/` folder.
 
 ---
 
@@ -205,6 +220,7 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
+0. **Acronym form fields on Lifts / Benchmarks / Forge edit modals (S333 follow-up)** — schema column + search + display already wired; only the in-app curation UI for these 3 tables is missing. ~15 min each. Until then, set acronyms via Dashboard SQL (e.g. `UPDATE barbell_lifts SET acronym = 'CJ' WHERE name = 'Clean & Jerk';`).
 1. **Set up `next-intl` i18n (DE/EN bilingual)** — Chris plans to commercialize. The ~11 inlined German strings from S317 should migrate to `messages/de.json` + matching `messages/en.json`. ~1 day of dedicated work. Stop adding more inline German until this lands. Memory: `project_commercialization_and_i18n.md`.
 2. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app.
 3. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.

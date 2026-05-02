@@ -144,14 +144,16 @@ export default function SearchPanel({
   const [newGroupName, setNewGroupName] = useState('');
   const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
   const [editingGroupExercises, setEditingGroupExercises] = useState<string | null>(null);
+  // S333: after adding from the search dropdown, prompt to drop the new exercise into a group.
+  const [pendingGroupAdd, setPendingGroupAdd] = useState<{ exerciseId: string; displayName: string } | null>(null);
+
+  const trackedIdSet = useMemo(() => new Set(trackedExercises.map(e => e.id)), [trackedExercises]);
 
   const filteredExercises = useMemo(() => {
     if (!exerciseSearch.trim()) return [];
     const query = exerciseSearch.toLowerCase();
-    const trackedIds = new Set(trackedExercises.map(e => e.id));
     return exerciseList
       .filter(ex => {
-        if (trackedIds.has(ex.id)) return false;
         const name = (ex.display_name || ex.name).toLowerCase();
         if (name.includes(query)) return true;
         // Acronym match (S333) — typing "DPU" finds Push-up Diamond
@@ -159,7 +161,7 @@ export default function SearchPanel({
         return false;
       })
 ;
-  }, [exerciseSearch, exerciseList, trackedExercises]);
+  }, [exerciseSearch, exerciseList]);
 
   // Derive exerciseNames Set for movement tracking
   const exerciseNamesSet = useMemo(() => {
@@ -168,6 +170,16 @@ export default function SearchPanel({
       if (ex.display_name) names.add(ex.display_name);
     });
     return names;
+  }, [exerciseList]);
+
+  // S333: display_name (lowercase) → curated acronym, fed to MovementTrackingPanel
+  const acronymByName = useMemo(() => {
+    const m = new Map<string, string>();
+    exerciseList.forEach(ex => {
+      const dn = ex.display_name || ex.name;
+      if (dn && ex.acronym) m.set(dn.toLowerCase(), ex.acronym);
+    });
+    return m;
   }, [exerciseList]);
 
   const activeTrackedExercises = useMemo(() => trackedExercises.filter(ex => ex.active !== false), [trackedExercises]);
@@ -199,23 +211,25 @@ export default function SearchPanel({
     return { adultMembers: sortSelected(adults), kidMembers: sortSelected(kids) };
   }, [members, selectedMembers]);
 
-  // Deduplicate search results by workout_name + bi-weekly window
+  // Deduplicate search results by workout_name (Session 333 — was bi-weekly bucket
+  // before, but a workout repeated across weeks created N "unique" rows). Now: one
+  // row per uniquely-named workout, ever. Falls back to per-WOD-id when no name.
+  // Also tracks the most-recent date + total session count per name for display.
+  const uniqueSessionCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    searchResults.forEach(wod => {
+      const key = wod.workout_name || `${wod.id || wod.date}_${wod.time || ''}`;
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    });
+    return counts;
+  }, [searchResults]);
+
   const uniqueSearchResults = useMemo(() => {
     const seen = new Map<string, WODFormData>();
+    // searchResults arrives ordered most-recent-first, so the first occurrence
+    // we see for each workout_name IS the latest one — keep it.
     searchResults.forEach(wod => {
-      let key: string;
-      if (wod.workout_name && wod.workout_week) {
-        const match = wod.workout_week.match(/^(\d{4})-W(\d{2})$/);
-        if (match) {
-          const week = parseInt(match[2], 10);
-          const biWeek = week % 2 === 0 ? week : week - 1;
-          key = `${wod.workout_name}_${match[1]}-W${String(biWeek).padStart(2, '0')}`;
-        } else {
-          key = `${wod.workout_name}_${wod.workout_week}`;
-        }
-      } else {
-        key = `${wod.id || wod.date}_${wod.time || ''}`;
-      }
+      const key = wod.workout_name || `${wod.id || wod.date}_${wod.time || ''}`;
       if (!seen.has(key)) seen.set(key, wod);
     });
     return Array.from(seen.values());
@@ -680,12 +694,44 @@ export default function SearchPanel({
                   placeholder='Add exercise...'
                   className='w-full px-2 py-1 text-xs border border-gray-300 rounded bg-white text-gray-900 placeholder:text-gray-400 focus:ring-1 focus:ring-[#178da6] focus:border-transparent'
                 />
+                {/* S333: post-add group assignment popover */}
+                {pendingGroupAdd && (
+                  <div className='absolute top-full left-0 right-0 mt-0.5 bg-white border border-amber-300 rounded shadow-lg z-30 p-2'>
+                    <div className='text-[10px] text-gray-600 mb-1.5 truncate'>
+                      Add <span className='font-semibold text-gray-900'>{pendingGroupAdd.displayName}</span> to a group?
+                    </div>
+                    <div className='flex flex-wrap gap-1'>
+                      {exerciseGroups.map(g => (
+                        <button
+                          key={g.id}
+                          onClick={() => {
+                            updateGroupExercises(g.id, [...g.exercise_ids, pendingGroupAdd.exerciseId]);
+                            setPendingGroupAdd(null);
+                          }}
+                          className='inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-100 text-amber-900 hover:bg-amber-200 transition-colors'
+                        >
+                          <span className='w-1.5 h-1.5 rounded-full bg-amber-600' />
+                          {g.name}
+                        </button>
+                      ))}
+                      <button
+                        onClick={() => setPendingGroupAdd(null)}
+                        className='px-2 py-0.5 rounded-full text-[10px] font-medium text-gray-500 hover:bg-gray-100'
+                      >
+                        Skip
+                      </button>
+                    </div>
+                  </div>
+                )}
                 {exerciseDropdownOpen && filteredExercises.length > 0 && (
                   <div className='absolute top-full left-0 right-0 mt-0.5 bg-white border border-gray-200 rounded shadow-lg max-h-40 overflow-y-auto z-20'>
-                    {filteredExercises.map(ex => (
+                    {filteredExercises.map(ex => {
+                      const isTracked = trackedIdSet.has(ex.id);
+                      return (
                       <button
                         key={ex.id}
                         onClick={() => {
+                          if (isTracked) return;
                           addTracked({
                             id: ex.id,
                             name: ex.name,
@@ -694,15 +740,24 @@ export default function SearchPanel({
                           });
                           setExerciseSearch('');
                           setExerciseDropdownOpen(false);
+                          // S333: surface group-assignment prompt if any groups exist
+                          if (exerciseGroups.length > 0) {
+                            setPendingGroupAdd({ exerciseId: ex.id, displayName: ex.display_name || ex.name });
+                          }
                         }}
-                        className='w-full text-left px-2 py-1 text-xs hover:bg-gray-100 text-gray-900 truncate'
+                        className={`w-full text-left px-2 py-1 text-xs truncate flex items-center gap-1.5 ${isTracked ? 'text-gray-400 cursor-default bg-gray-50' : 'text-gray-900 hover:bg-gray-100'}`}
+                        title={isTracked ? 'Already tracked' : undefined}
                       >
                         {ex.acronym && (
-                          <span className='font-mono text-[10px] font-semibold text-teal-700 mr-1.5'>{ex.acronym}</span>
+                          <span className={`font-mono text-[10px] font-semibold ${isTracked ? 'text-gray-400' : 'text-teal-700'}`}>{ex.acronym}</span>
                         )}
-                        {ex.display_name || ex.name}
+                        <span className='truncate'>{ex.display_name || ex.name}</span>
+                        {isTracked && (
+                          <span className='ml-auto text-[10px] text-gray-400 shrink-0'>✓ tracked</span>
+                        )}
                       </button>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -1261,6 +1316,7 @@ export default function SearchPanel({
                 loading={trackingLoading}
                 selectedMembers={selectedMembers}
                 members={members}
+                acronymByName={acronymByName}
               />
             </div>
           )}
@@ -1374,8 +1430,16 @@ export default function SearchPanel({
                             N
                           </span>
                         )}
-                        <div className='text-[10px] sm:text-xs text-gray-500 mb-1'>
-                          {formattedDate}{formattedTime && ` at ${formattedTime}`}
+                        <div className='text-[10px] sm:text-xs text-gray-500 mb-1 flex items-center gap-1.5'>
+                          <span>{formattedDate}{formattedTime && ` at ${formattedTime}`}</span>
+                          {showUnique && wod.workout_name && (uniqueSessionCounts.get(wod.workout_name) ?? 0) > 1 && (
+                            <span
+                              className='text-[10px] font-medium bg-teal-50 text-teal-700 rounded px-1'
+                              title={`Programmed in ${uniqueSessionCounts.get(wod.workout_name)} sessions — most recent shown`}
+                            >
+                              ×{uniqueSessionCounts.get(wod.workout_name)}
+                            </span>
+                          )}
                         </div>
                         {wod.workout_name && (
                           <div className='text-xs sm:text-sm font-bold text-gray-700 mb-1'>
@@ -1617,6 +1681,7 @@ export default function SearchPanel({
                   loading={trackingLoading}
                   selectedMembers={selectedMembers}
                   members={members}
+                  acronymByName={acronymByName}
                 />
               </div>
             </div>
