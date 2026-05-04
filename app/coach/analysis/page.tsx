@@ -102,7 +102,7 @@ export default function AnalysisPage() {
   const [workoutTypes, setWorkoutTypes] = useState<WorkoutType[]>([]);
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'statistics' | 'planner'>('statistics');
+  const [activeTab, setActiveTab] = useState<'statistics' | 'planner'>('planner');
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [timeframePeriod, setTimeframePeriod] = useState<TimeframePeriod>(12);
   const [statistics, setStatistics] = useState<Statistics | null>(null);
@@ -628,19 +628,27 @@ export default function AnalysisPage() {
     }).map(m => ({ exercise: m.name, count: m.count, type: m.type, category: m.category })) || [];
   })();
 
-  const filteredTopExercises = statistics?.allMovementFrequency.filter(movement => {
-    // Category filtering only applies to exercises
+  const filteredTopExercises = (() => {
+    // No filter: top 50 across all movement types (current default).
     if (selectedCategories.length === 0) {
-      return true;
+      return (statistics?.allMovementFrequency || [])
+        .slice(0, 50)
+        .map(m => ({ exercise: m.name, count: m.count }));
     }
 
-    if (movement.type === 'exercise' && movement.category) {
-      return selectedCategories.includes(movement.category);
-    }
+    // Category filter active: walk the full exercise library so we include
+    // exercises with 0 appearances. Show every exercise in the selected
+    // categories with its count (looked up from allMovementFrequency).
+    const countByName = new Map<string, number>();
+    statistics?.allMovementFrequency.forEach(m => {
+      if (m.type === 'exercise') countByName.set(m.name, m.count);
+    });
 
-    // Non-exercise types (lifts/benchmarks) excluded when category filter active
-    return selectedCategories.length === 0;
-  }).slice(0, 50).map(m => ({ exercise: m.name, count: m.count })) || [];
+    return exercises
+      .filter(ex => selectedCategories.includes(ex.category))
+      .map(ex => ({ exercise: ex.name, count: countByName.get(ex.name) || 0 }))
+      .sort((a, b) => b.count - a.count || a.exercise.localeCompare(b.exercise));
+  })();
 
   // Handler functions for components
   const handleTimeframePeriodChange = (period: TimeframePeriod) => {
@@ -764,7 +772,7 @@ export default function AnalysisPage() {
             <div className='flex items-center justify-between mb-2'>
               <div className='flex items-center gap-2'>
                 <BarChart3 size={20} />
-                <h1 className='text-lg font-bold'>Analysis</h1>
+                <h1 className='text-lg font-bold'>Planner</h1>
               </div>
             </div>
             <div className='grid grid-cols-2 gap-2'>
@@ -796,7 +804,7 @@ export default function AnalysisPage() {
               </button>
               <div className='flex items-center gap-2'>
                 <BarChart3 size={24} />
-                <h1 className='text-2xl font-bold'>Workout Analysis</h1>
+                <h1 className='text-2xl font-bold'>Planner</h1>
               </div>
             </div>
             <button
@@ -813,17 +821,6 @@ export default function AnalysisPage() {
         {/* Tab bar */}
         <div className='flex gap-1 bg-white rounded-lg shadow-sm border p-1'>
           <button
-            onClick={() => setActiveTab('statistics')}
-            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition ${
-              activeTab === 'statistics'
-                ? 'bg-[#178da6] text-white'
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            <BarChart3 size={16} />
-            Statistics
-          </button>
-          <button
             onClick={() => setActiveTab('planner')}
             className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition ${
               activeTab === 'planner'
@@ -833,6 +830,17 @@ export default function AnalysisPage() {
           >
             <Calendar size={16} />
             Planner
+          </button>
+          <button
+            onClick={() => setActiveTab('statistics')}
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition ${
+              activeTab === 'statistics'
+                ? 'bg-[#178da6] text-white'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <BarChart3 size={16} />
+            Statistics
           </button>
         </div>
 

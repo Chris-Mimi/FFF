@@ -53,7 +53,7 @@ export const CoachHeader = ({
             </button>
             <button onClick={() => router.push('/coach/analysis')} className='flex items-center gap-2 bg-[#14758c] hover:bg-teal-800 px-4 py-2 rounded-lg transition'>
               <BarChart3 size={18} />
-              Analysis
+              Planner
             </button>
             <button onClick={() => router.push('/coach/benchmarks-lifts')} className='flex items-center gap-2 bg-[#14758c] hover:bg-teal-800 px-4 py-2 rounded-lg transition'>
               <Dumbbell size={18} />
@@ -101,7 +101,7 @@ export const CoachHeader = ({
             </button>
             <button onClick={() => router.push('/coach/analysis')} className={buttonClass}>
               <BarChart3 size={iconSize} />
-              <span>Analysis</span>
+              <span>Planner</span>
             </button>
             <button onClick={() => router.push('/coach/benchmarks-lifts')} className={buttonClass}>
               <Dumbbell size={iconSize} />

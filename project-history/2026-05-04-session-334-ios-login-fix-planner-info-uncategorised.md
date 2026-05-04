@@ -104,16 +104,66 @@ Edge case: if Chris hasn't created any patterns yet, panel says "No patterns yet
 
 ---
 
+## 4. Tab rename + reorder
+
+`/coach/analysis` page header renamed "Workout Analysis" → **"Planner"** (mobile + desktop). Tab bar reordered so **Planner is first**; default `activeTab` is now `'planner'` so the page lands on the Planner on open. Top-nav button label in `CoachHeader` updated from "Analysis" → "Planner" in both desktop and mobile layouts. Route `/coach/analysis` itself unchanged so existing bookmarks/links still work.
+
+---
+
+## 5. Statistics filter — show all exercises in selected category
+
+Previously: clicking a category chip filtered the top-50 movement list down to exercises in that category — capped at 50 and only including exercises that actually appeared in workouts during the timeframe.
+
+Now (`app/coach/analysis/page.tsx` `filteredTopExercises`):
+
+- **No category selected** → top 50 from `allMovementFrequency` (unchanged default).
+- **Category selected** → walk the full `exercises` library, keep every exercise in the selected categories, look up its programmed count from `allMovementFrequency` (defaulting to **0** for never-programmed). Sorted by count desc, then name asc. No 50-cap.
+
+Result: filtered view surfaces `(0×)` exercises immediately so Chris can see which exercises in a category have never been touched in the timeframe — exactly the gap-analysis surface he wanted for programming.
+
+---
+
+## 6. Relative-usage dimming on Statistics chips
+
+Goal: at-a-glance distinction between "well-programmed" / "rotating but underused" / "barely touched" — without the visual breaking down as the library matures.
+
+### The iteration
+
+The user's intuition was 10% / 30% breakpoints on % of max count in the view. First implementation used grey-only tiers — text-gray-400 italic for very-low and text-gray-700 for low, both against the page's `bg-gray-600` container. User reported chips were unreadable and only 2 visual differences came through. Second pass added dashed border + italic on the very-low tier. User pushed back: still only 2 distinct visuals (normal teal-bordered chips and the dashed-italic ones) — the middle tier blended into the top.
+
+Root cause: the differentiator on the top tier was the **teal border**, on the bottom it was the **dashed border + italic**. The middle tier had only "absence of teal border" + slightly-grey text, which reads as a faint variation on either neighbour.
+
+Final design uses traffic-light colour semantics so each tier carries an unambiguous accent:
+
+| Tier | Threshold | Background | Text | Border |
+|:---|:---|:---|:---|:---|
+| Top (>30% of max) | dominant | amber-50 | amber-900 | amber solid |
+| Middle (10–30%) | rotating | white | gray-900 | teal solid |
+| Bottom (≤10%) | barely touched | gray-50 | gray-500 italic | gray dashed |
+
+The user explicitly chose to put the amber palette on the **top** tier (the most-programmed) by asking for the visuals of top and middle tiers to be swapped after the first traffic-light layout. Reasoning he didn't state but I'd guess at: amber draws the eye, and what he wants to *avoid* programming repeatedly is the over-used heavy hitter — so visual prominence on the dominant tier acts as a "you're leaning on these" signal.
+
+### Threshold caveat (logged for re-evaluation)
+
+10% / 30% on `% of max` works when usage is fairly even (e.g. push-up family with one or two exercises at 8–12× and others at 2–4×). It can over-flag when one exercise dominates a category by 5×+ — then ≤30% of max sweeps in everything that isn't the heavy hitter, and the bottom tier loses signal.
+
+Logged in `memory-bank-activeContext.md` as Next Immediate Step **0b** to revisit after 1–2 weeks of use. If categories with a dominant exercise look mostly-dim: bump to 20% / 50%, or switch to quantile-based ranking (bottom 25% of the ranked list dims regardless of values).
+
+---
+
 ## Files touched
 
 | File | Change |
 |:---|:---|
 | `app/login/page.tsx` | 4× `router.push(...)` → `window.location.href = ...` post-`signInWithEmail` |
+| `app/coach/analysis/page.tsx` | Default tab `'planner'`; page header → "Planner"; tab bar Planner-first; `filteredTopExercises` rewrite to include 0-count exercises when filtering by category |
+| `components/coach/CoachHeader.tsx` | Top-nav button label "Analysis" → "Planner" (desktop + mobile) |
 | `components/coach/analysis/PlannerSection.tsx` | Info button next to Track toggle; renders `UncategorizedExercises`; new `handleAssignFromUncategorized` handler |
+| `components/coach/analysis/StatisticsSection.tsx` | 3-tier traffic-light dimming on chips by `% of max count in view` |
 | `components/coach/analysis/PlannerInfoModal.tsx` | NEW — static doc modal, 8 sections |
 | `components/coach/analysis/UncategorizedExercises.tsx` | NEW — set-difference panel with per-row Move-to popover |
 
-TS clean. Production build clean. Login fix committed and pushed separately as `fa0b862f`.
+TS clean. Production build clean. Three commits: login fix (`fa0b862f`), Planner Info + Uncategorised (`bb80a85c`), session-close bundle (this commit) covering tab rename + Statistics.
 
 ---
 

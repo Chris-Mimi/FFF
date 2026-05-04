@@ -285,22 +285,38 @@ export default function StatisticsSection({
 
             {filteredTopExercises.length > 0 ? (
               <div className='flex flex-wrap gap-1.5 md:gap-2'>
-                {filteredTopExercises.map((exercise, idx) => {
-                  const exerciseData = exercises.find(ex =>
-                    ex.name === exercise.exercise ||
-                    ex.display_name === exercise.exercise ||
-                    ex.name.toLowerCase() === exercise.exercise.toLowerCase() ||
-                    ex.display_name?.toLowerCase() === exercise.exercise.toLowerCase()
-                  );
-                  return (
-                    <span
-                      key={idx}
-                      className='inline-flex items-center px-2 md:px-3 py-1 md:py-2 bg-gray-100 text-gray-900 border-2 border-[#178da6] text-[10px] md:text-sm rounded-full font-medium'
-                    >
-                      {exerciseData?.display_name || exercise.exercise} ({exercise.count}x)
-                    </span>
-                  );
-                })}
+                {(() => {
+                  const maxCount = Math.max(...filteredTopExercises.map(e => e.count), 1);
+                  return filteredTopExercises.map((exercise, idx) => {
+                    const exerciseData = exercises.find(ex =>
+                      ex.name === exercise.exercise ||
+                      ex.display_name === exercise.exercise ||
+                      ex.name.toLowerCase() === exercise.exercise.toLowerCase() ||
+                      ex.display_name?.toLowerCase() === exercise.exercise.toLowerCase()
+                    );
+                    // Three visual tiers (traffic-light pattern) by % of max count in view.
+                    // >30% → teal border (well-programmed)
+                    // 10-30% → amber border (underused, watch)
+                    // ≤10% → dashed gray border + italic (action — barely touched)
+                    const pct = (exercise.count / maxCount) * 100;
+                    let tierClass: string;
+                    if (pct <= 10) {
+                      tierClass = 'bg-gray-50 text-gray-500 border-dashed border-gray-400 italic';
+                    } else if (pct <= 30) {
+                      tierClass = 'bg-white text-gray-900 border-[#178da6]';
+                    } else {
+                      tierClass = 'bg-amber-50 text-amber-900 border-amber-400';
+                    }
+                    return (
+                      <span
+                        key={idx}
+                        className={`inline-flex items-center px-2 md:px-3 py-1 md:py-2 text-[10px] md:text-sm rounded-full font-medium border-2 ${tierClass}`}
+                      >
+                        {exerciseData?.display_name || exercise.exercise} ({exercise.count}x)
+                      </span>
+                    );
+                  });
+                })()}
               </div>
             ) : (
               <p className='text-sm text-gray-400'>No exercises found for this category/timeframe</p>
