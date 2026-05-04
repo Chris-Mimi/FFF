@@ -40,10 +40,10 @@ export default function LoginPage() {
       const role = await getUserRole();
 
       if (role === 'coach') {
-        router.push('/coach');
+        window.location.href = '/coach';
         return;
       } else if (role === 'athlete') {
-        router.push('/athlete');
+        window.location.href = '/athlete';
         return;
       } else {
         // Check if user is a member
@@ -67,11 +67,11 @@ export default function LoginPage() {
             setLoading(false);
             return;
           } else {
-            router.push('/member/book');
+            window.location.href = '/member/book';
             return;
           }
         } else {
-          router.push('/athlete');
+          window.location.href = '/athlete';
           return;
         }
       }

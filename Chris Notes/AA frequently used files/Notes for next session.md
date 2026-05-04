@@ -18,10 +18,10 @@ http://192.168.178.75:3000
 * Box WiFi: Mac gets IPv6-only (no IPv4), dev sites (GitHub/Supabase/Vercel/Resend) unreachable. PC on same box WiFi works fine. At home all works. Debug next time at the box — see `SESSION-HANDOFF-S303-DNS-issue.md` for diagnostic history.
 * IDEA: Put names of booked athletes in Whiteboard Intro so they also go into Google Calendar or find another way to register them in Google Calendar.
 * 
-* Athletes should be able to input their own workouts but they should use the same exercise library as the coach library so we don't get issues with naming conventions. Also a diary where they can record their own workouts and things like playing volleyball, swimming etc. trackable over time
+* 
 * Mimi couldn't add a trial athlete
 * I added Fabian's birthday but it's not correct, I have to ask him next time he's in.
-* 
+* Workouts page: ability to mute/cancel athletes withour clearing the group
 * 
 * 
 * 
