@@ -8,6 +8,9 @@ import { computePatternGaps, detectWeeklyCoverage, generateWeeks } from '@/utils
 import { getExerciseFrequency } from '@/utils/movement-analytics';
 import PatternManager from './PatternManager';
 import PatternExercisePicker from './PatternExercisePicker';
+import PlannerInfoModal from './PlannerInfoModal';
+import UncategorizedExercises from './UncategorizedExercises';
+import { Info } from 'lucide-react';
 
 import PlanningGrid from './PlanningGrid';
 
@@ -36,6 +39,9 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
 
   // Exercise picker state
   const [pickerPatternId, setPickerPatternId] = useState<string | null>(null);
+
+  // Info modal
+  const [infoOpen, setInfoOpen] = useState(false);
 
   // Track filter scopes the WODs feeding coverage/gap analysis.
   // Patterns themselves are shared across both tracks.
@@ -297,6 +303,23 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
     if (pats) await computeAnalysis(pats, trackFilter);
   };
 
+  const handleAssignFromUncategorized = async (exerciseId: string, patternId: string) => {
+    const { error } = await supabase
+      .from('movement_pattern_exercises')
+      .insert({ pattern_id: patternId, exercise_id: exerciseId });
+
+    if (error) {
+      toast.error('Failed to assign exercise');
+      return;
+    }
+
+    const target = patterns.find(p => p.id === patternId);
+    toast.success(`Added to "${target?.name || 'pattern'}"`);
+
+    const pats = await fetchPatterns();
+    if (pats) await computeAnalysis(pats, trackFilter);
+  };
+
   const handleRemoveExercise = async (patternId: string, exerciseId: string) => {
     const { error } = await supabase
       .from('movement_pattern_exercises')
@@ -370,31 +393,41 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
 
   return (
     <div className='space-y-4'>
-      {/* Track filter toggle */}
-      <div className='flex items-center gap-2'>
-        <span className='text-xs font-medium text-gray-500'>Track:</span>
-        <div className='flex rounded-lg border border-gray-200 overflow-hidden'>
-          <button
-            onClick={() => setTrackFilter('adults')}
-            className={`px-3 py-1 text-xs font-medium transition ${
-              trackFilter === 'adults'
-                ? 'bg-[#178da6] text-white'
-                : 'bg-white text-gray-600 hover:bg-gray-50'
-            }`}
-          >
-            Adults
-          </button>
-          <button
-            onClick={() => setTrackFilter('kids')}
-            className={`px-3 py-1 text-xs font-medium transition border-l border-gray-200 ${
-              trackFilter === 'kids'
-                ? 'bg-[#178da6] text-white'
-                : 'bg-white text-gray-600 hover:bg-gray-50'
-            }`}
-          >
-            Kids & Teens
-          </button>
+      {/* Track filter toggle + Info button */}
+      <div className='flex items-center justify-between gap-2 flex-wrap'>
+        <div className='flex items-center gap-2'>
+          <span className='text-xs font-medium text-gray-500'>Track:</span>
+          <div className='flex rounded-lg border border-gray-200 overflow-hidden'>
+            <button
+              onClick={() => setTrackFilter('adults')}
+              className={`px-3 py-1 text-xs font-medium transition ${
+                trackFilter === 'adults'
+                  ? 'bg-[#178da6] text-white'
+                  : 'bg-white text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              Adults
+            </button>
+            <button
+              onClick={() => setTrackFilter('kids')}
+              className={`px-3 py-1 text-xs font-medium transition border-l border-gray-200 ${
+                trackFilter === 'kids'
+                  ? 'bg-[#178da6] text-white'
+                  : 'bg-white text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              Kids & Teens
+            </button>
+          </div>
         </div>
+        <button
+          onClick={() => setInfoOpen(true)}
+          className='flex items-center gap-1.5 text-xs px-2.5 py-1 rounded border border-gray-200 text-gray-600 hover:border-[#178da6] hover:text-[#178da6] transition'
+          title='How the Planner works'
+        >
+          <Info size={14} />
+          <span>How it works</span>
+        </button>
       </div>
 
       <PatternManager
@@ -417,6 +450,13 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
         futureWeeks={FUTURE_WEEKS}
       />
 
+      <UncategorizedExercises
+        exercises={exercises}
+        assignedIds={allPatternExerciseIds}
+        patterns={patterns}
+        onAssign={handleAssignFromUncategorized}
+      />
+
       <PatternExercisePicker
         isOpen={!!pickerPatternId}
         onClose={() => setPickerPatternId(null)}
@@ -427,6 +467,8 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
         exerciseLastDates={exerciseLastDates}
         allPatternExerciseIds={allPatternExerciseIds}
       />
+
+      <PlannerInfoModal isOpen={infoOpen} onClose={() => setInfoOpen(false)} />
     </div>
   );
 }

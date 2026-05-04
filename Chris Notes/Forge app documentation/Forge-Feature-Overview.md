@@ -75,6 +75,8 @@ There's no app-switching, no spreadsheets, no whiteboards that get erased. Just 
 - **Exercise library** with frequency badges — see which movements are programmed most (and least)
 - **Benchmark and lift frequency** — track how often you test standard and custom benchmarks
 - **Track statistics** — monitor training track distribution across your programming
+- **Planner** — group exercises into movement patterns (Push-up, Squat, Posterior Chain, etc.) and see at a glance which patterns are covered each week, which are stale, and which are overdue. Click past-week dots to see the exact exercises and dates programmed. Adults / Kids & Teens toggle scopes coverage to the relevant sessions. Pattern thresholds for "warning" and "overdue" are configurable per pattern. A built-in **How it works** info popup documents every colour, dot, threshold, and behaviour so the tool is easy to pick up after time away
+- **Uncategorised exercises panel** — a triage queue showing every exercise that isn't yet in any pattern. Click **Move to →** on any row to drop it into a pattern in one click. The list shrinks as you assign — the goal is to empty it
 
 ### Admin Tools
 

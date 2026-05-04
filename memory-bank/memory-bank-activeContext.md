@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 193
-**Updated:** 2026-05-02 (Session 333 — curated exercise acronyms + cross-surface search)
+**Version:** 194
+**Updated:** 2026-05-04 (Session 334 — iOS Safari login bounce fix + Planner Info modal + Uncategorised exercises panel)
 
 ---
 
@@ -21,17 +21,17 @@
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history scan._
 
-**First action:** None blocking — S333 acronyms is shipped, push-up family backfilled, all tests pass. Curate acronyms for other families as you encounter them in the WOD editor (no big-bang). Lift / benchmark / forge **edit modal** acronym fields are deferred — when you need to set acronyms on those tables, use Supabase Dashboard SQL OR ask Claude to add the form fields (~15 min each).
+**First action:** Verify the iOS Safari login fix works for the affected athlete (iPhone 16 Safari, "logs in then bounces back to start"). Once he confirms — that's the close on this thread; if he still bounces, suspect ITP cookie purge as the next culprit (different fix). Planner Info button + Uncategorised panel is shipped and ready for Chris to triage the unassigned movements over time.
 
 **Files to open first if continuing code work:**
-- [components/coach/ExerciseFormModal.tsx](components/coach/ExerciseFormModal.tsx) — Acronym input next to Display Name (auto-uppercase, max 6).
-- [components/coach/MovementLibraryPopup.tsx](components/coach/MovementLibraryPopup.tsx) — pill display per tab + acronym OR-match in search filters.
-- [components/coach/SearchPanel.tsx](components/coach/SearchPanel.tsx) — Custom Movements dropdown w/ tracked-badge + post-add group-assignment popover; uniqueSearchResults dedup-by-name.
-- [components/coach/MovementTrackingPanel.tsx](components/coach/MovementTrackingPanel.tsx) — `getCode()` reads curated acronym via `acronymByName` prop; falls back to initials.
-- [hooks/coach/useCoachData.ts](hooks/coach/useCoachData.ts) — `fetchExerciseNames` pulls acronym from all 4 movement tables; search-time acronym→name expansion in `combinedText` matcher.
-- [utils/movement-analytics.ts](utils/movement-analytics.ts) — `fetchAcronymMap` reads from acronym column across all 4 tables.
+- [app/login/page.tsx](app/login/page.tsx) — `window.location.href` post-`signInWithEmail` (replaces `router.push`) for full page load → guaranteed cookie flush before middleware.
+- [components/coach/analysis/PlannerSection.tsx](components/coach/analysis/PlannerSection.tsx) — Info button next to Track toggle; renders `UncategorizedExercises` after the Planning Grid; new `handleAssignFromUncategorized` handler.
+- [components/coach/analysis/PlannerInfoModal.tsx](components/coach/analysis/PlannerInfoModal.tsx) — static doc modal (8 sections covering all Planner mechanics).
+- [components/coach/analysis/UncategorizedExercises.tsx](components/coach/analysis/UncategorizedExercises.tsx) — exercises ∉ any pattern; per-row Move-to popover with pattern chips; default-hides Pre-Workout + Recovery & Stretching.
+- [middleware.ts](middleware.ts) — already correct (`@supabase/ssr` server client, refreshes session); the login bug was on the client-side push, not middleware.
 
 **Carry-over status:**
+- ⏳ S334 iOS Safari login fix — deployed; awaiting confirmation from the affected athlete (iPhone 16 Safari).
 - ⏳ S333 Acronym form fields on Lifts / Benchmarks / Forge edit modals — deferred. Schema column + search + display all wired; only the in-app curation UI for those 3 tables is missing.
 - ⏳ S332 Personal Activities — Chris tested live, working. Optional Session B heatmap + counts row deferred until usage justifies.
 - ⏳ S331 shared-patterns — Chris hasn't explicitly confirmed both toggles show same patterns, but no complaints either.
@@ -39,6 +39,7 @@ _Updated at every session close. The "first 5 minutes of tomorrow" — read this
 - ⏳ S321 late-cancel TZ fix — still waiting on a real organic cancellation to confirm.
 
 **Landmines:**
+- **Login flow uses `window.location.href` post-auth, NOT `router.push` (S334).** [app/login/page.tsx](app/login/page.tsx) lines 43-74. Reason: with `@supabase/ssr` browser client + Next.js middleware gating routes, `router.push` after `signInWithPassword` raced against cookie-flush + Next.js prefetch cache on iOS Safari → middleware saw no session → redirected back to `/login` → "logs in and bounces" symptom. Hard navigation forces a full page load so cookies are guaranteed propagated before middleware runs. **If you ever introduce another post-auth redirect (callback, magic-link, OAuth), use `window.location.href` not `router.push`.** Reset-password and registration redirects to `/login` are safe as `router.push` because `/login` is in `publicPaths` and middleware doesn't gate it.
 - **Acronyms live in a curated `acronym TEXT` column on 4 tables (S333):** `exercises`, `barbell_lifts`, `benchmark_workouts`, `forge_benchmarks`. Each table has a `*_acronym_unique` partial unique index on `LOWER(acronym) WHERE acronym IS NOT NULL`. Form input enforces letters/digits, max 6 chars, auto-uppercase. **Replaces the S303 tags-as-acronym pattern** — `fetchAcronymMap` and `fetchExerciseNames` now read the column, NOT tags. The `dl` tag on Barbell Deadlift was promoted to `acronym='DL'` (tag still exists, harmless). If you re-introduce a tag-based acronym anywhere, the new column is still authoritative for search/display. **For movements that exist in two tables** (e.g. Clean & Jerk in `barbell_lifts` + Barbell Clean & Jerk in `exercises`), set the same acronym on both rows — there's no auto-sync (avoids the brittle name-mapping that already burned us in the S330 planner extractor). **WOD-search expansion** lives in `useCoachData` `combinedText` matcher: if the user types a known acronym, search ORs the canonical name(s) into the regex test, so historical WOD content gets matched correctly. **No content rewrites** — section content text is untouched.
 - **Personal activity types are stored as TEXT, not enum (S332).** [types/personal-activity.ts](types/personal-activity.ts) `PERSONAL_ACTIVITY_TYPES` is the single source of truth. Adding a type = add a string. Renaming a type = the constant change is a one-liner, but existing rows keep the old name; they'll display fine but won't match the dropdown until you UPDATE them. List is currently in German (Schwimmen, Laufen, Radfahren, Yoga, Wandern, Externes CrossFit, Anderes Studio, Sonstiges). When i18n lands, this is one of the things to migrate to messages files.
 - **Movement patterns are global to the user — not track-scoped (S331).** `movement_patterns.track` column is gone. The Adults/Kids toggle in PlannerSection only changes which `session_type`s feed coverage/gap analysis (`excludeSessionTypes` in `computeAnalysis`); it does not filter the pattern list. If a pattern is exclusively for one track (e.g. Kids-only stretches), there is no DB-level enforcement — coach has to choose to not link that pattern to any Adults exercises, or just not toggle it. If you re-introduce per-track scoping, switch to a `tracks text[]` column so a pattern can belong to multiple tracks.
@@ -127,6 +128,17 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 334 (2026-05-04 — Opus 4.7) — iOS SAFARI LOGIN BOUNCE FIX + PLANNER INFO MODAL + UNCATEGORISED EXERCISES PANEL:**
+- **Login bounce-back fix.** Athlete on iPhone 16 Safari logged in fine last week, then this week landed straight back on `/login` after submitting credentials — no error message, just bounce. Root cause: `router.push('/athlete')` after `signInWithPassword` raced cookie-flush + Next.js prefetch cache on iOS Safari (slower cookie writes than Chrome). The middleware ran before cookies propagated, saw no session, redirected back to login. Replaced 4× `router.push` post-auth with `window.location.href` in [app/login/page.tsx](app/login/page.tsx) — full page load guarantees cookies are flushed before middleware runs. Reset-password and register-member redirects left alone (they push to `/login` which is public).
+- **Planner Info modal.** Chris asked for an info pop-up because the Planner is powerful but easy to forget when not used regularly. New [components/coach/analysis/PlannerInfoModal.tsx](components/coach/analysis/PlannerInfoModal.tsx) with 8 sections: what the Planner does, Adults/Kids toggle, past-week drill-in, current/future weeks, staleness thresholds, picker recency shading, auto-detection, and the new Uncategorised panel. Triggered by an "i How it works" button next to the Track toggle.
+- **Uncategorised Exercises panel.** New [components/coach/analysis/UncategorizedExercises.tsx](components/coach/analysis/UncategorizedExercises.tsx) renders below the Planning Grid. Computes set-difference: every exercise minus those in any pattern. Pre-Workout + Recovery & Stretching are hidden by default with an "Include warm-ups & stretches" toggle. Each row has a teal **Move to →** button that opens an amber popover listing all patterns as colour-dot chips; click → inserts into `movement_pattern_exercises`, refreshes patterns + analytics, exercise drops out of the panel. Empty state shows "All sorted ✓" green badge. Goal: triage queue that shrinks to empty as Chris categorises the library.
+- **Process moments worth remembering:**
+  - **Diagnose-first on the login bug.** "Logs in then bounces" with `@supabase/ssr` + middleware is a known race; verified the auth setup (`createBrowserClient` + middleware refresh + cookie chunking) before recommending the fix. Saved guessing wrong about ITP / cookie size / private mode. Fix is well-documented for this exact stack.
+  - **Asked A vs B before building Uncategorised.** Two valid models: (A) virtual pseudo-pattern at top of patterns list, (B) separate panel below grid. Recommended B because the goal is "list eventually empty" — fits a temporary triage panel better than a permanent fake pattern row, and avoids special-casing PatternManager.
+  - **Defaulted to excluding warmup/stretch.** They're not really pattern material. Toggle reveals them when needed. Avoided the "show everything by default → overwhelming list" failure mode.
+- **Files touched:** `app/login/page.tsx` (4× redirect), `components/coach/analysis/PlannerSection.tsx` (Info button + UncategorizedExercises wire-up + handleAssignFromUncategorized), `components/coach/analysis/PlannerInfoModal.tsx` (new), `components/coach/analysis/UncategorizedExercises.tsx` (new).
+- **TS clean. Production build clean.** Login fix shipped in a separate commit (`fa0b862f`) so it could deploy independently of the Planner work.
+
 **Session 333 (2026-05-02 — Opus 4.7) — CURATED EXERCISE ACRONYMS + CROSS-SURFACE SEARCH:**
 - **Trigger.** Coach-side Workouts page acronyms were collision-heavy (3× PUD, 2× PUH, 3× PUS, 3× PUT, 2× SPU in the push-up family alone) because they were auto-generated from initials. Chris asked for a curated system that works across the Library popup, Workouts search, Planning + Statistics tabs, AND the Movement Tracking panel.
 - **Schema.** `acronym TEXT` column added to all 4 movement tables (`exercises`, `barbell_lifts`, `benchmark_workouts`, `forge_benchmarks`) with per-table case-insensitive unique partial indexes. Migration: [database/20260502_session333_acronyms.sql](database/20260502_session333_acronyms.sql) — gitignored, ran by Chris. Backfilled 22 push-ups + promoted the existing S303 `dl` tag to `acronym='DL'`. Final mapping ended at 5–6 char codes (SPSU, DPU, HSPU, HSPUK, RPSU, etc.) after Chris caught the RPU collision (Rings Push-Up vs Rings Pull-Up — now RPSU + reserved RPLU).
@@ -183,20 +195,7 @@ Athlete Tools
 - **Files touched:** `types/planner.ts` (new types), `utils/pattern-analytics.ts` (richer return + TZ fix), `components/coach/analysis/PlannerSection.tsx` (state type), `components/coach/analysis/PlanningGrid.tsx` (drill-in panel + current-week coverage rendering + TZ fix).
 - **TS clean.** Single commit per close-session checklist.
 
-**Session 329 (2026-05-01 — Opus 4.7) — ADULTS/KIDS FILTER ON ATTENDANCE REPORTS + INCIDENT ROLL-UP TO GUARDIANS + LOGIN-RECOVERY RUNBOOK:**
-- **Trigger.** Chris asked for a coach-side filter on the Attendance Reports panel ([app/coach/admin/page.tsx](app/coach/admin/page.tsx)) to show Adults vs Kids; also asked that family-member kids' incidents (no-shows, late_cancels) roll up to the parent's row, since parents are responsible for whether a kid actually shows up.
-- **Adults/Kids filter — 3 signals.** Initial `isKidMember()` used `account_type === 'family_member' || class_types ∈ {cfk, cft}`. Chris flagged Fabian Siebert + Lenny Kleinert (both self-registered primary accounts) appearing in Adults. They're under 18 but registered themselves directly. Added DOB-based fallback: `ageFromDob() < 18`. Now any of three signals is sufficient. Trial Athletes panel hides when filter ≠ All (trials aren't members yet, no class_types or DOB). Pill row sits above the tab toggle so it scopes both Attended and Incidents.
-- **Incident roll-up to guardian.** `incidentStats` derivation now walks `primary_member_id` per row: kid's incident counts on the kid's row AND on the parent's row. Parent's expansion includes the kid's incidents with the kid's name in italic next to inherited rows. Delete button uses the booking-owner's name in the confirm dialog (so deleting Alois's no-show under Julia's expansion still says "delete Alois's …"). Filter-aware: under "Kids" only the kid's row shows; under "Adults" the parent's rolled-up total shows. Member lookup map (`memberById`) lifted to component-level state with a one-shot `fetchAllMembers` to avoid two separate fetchers double-querying.
-- **Login-recovery runbook published.** [Chris Notes/Forge app documentation/login-recovery-runbook.md](Chris%20Notes/Forge%20app%20documentation/login-recovery-runbook.md). Three rescues so far (Anja S317, Michaela S328, Carina S329); Chris asked for a documented procedure. 4 steps: pick simple temp password → run `npx tsx scripts/admin-set-password.ts <email> '<pw>'` → verify login in incognito → send password via WhatsApp with German template. Includes when-to-use criteria, why this keeps happening (PWA cache stuck on pre-S317 bundle), and escalation path if same user comes back twice.
-- **Carina/Xaver mistake.** Mid-session Chris asked how to link Xaver Hiltel as a family member of Carina in Supabase. I answered, then he ran the admin-set-password script for Carina — but Carina is not actually Xaver's mom. Password is now changed; bcrypt is one-way so unrecoverable. Sent her the temp + apology message. He declined to add a "verify before running" warning to the runbook ("a warning wouldn't have helped, I should have been more careful"). Worth noting: the runbook intentionally does NOT add a verification step for this reason.
-- **Process moments worth remembering:**
-  - **Self-registered teens slip past the obvious classification fields.** `account_type` and `class_types` only catch kids who came in through the parent flow or were explicitly tagged. DOB is the most-reliable signal because every member has one. Lesson: when classifying users, use the most stable demographic field as a fallback, not just app-flow metadata.
-  - **The PWA-cache login issue is a slow-burn UX bug, not a one-time incident.** Each rescue takes ~5 minutes but the same root cause keeps producing new victims. S328 message-fix doesn't retroactively help cached PWAs; only time fixes that. The runbook acknowledges this and gives Chris a turn-key script-driven path so he doesn't have to think through it each time.
-  - **"Don't write SQL for Chris" + "ask, don't guess" together.** When he asked how to link Xaver to Carina, I gave both the Dashboard-edit path and the via-app path; couldn't have predicted he'd run a different script (admin-set-password) in between. The mistake wasn't a missing warning; it was conflating two threads. Memory rules already say trust user statements; that holds.
-- **Files touched:** `app/coach/admin/page.tsx` (filter pills, kid detection helpers, `memberById` state + fetch, incident roll-up + filter, expansion enrichment, hide trial panel when scoped), `Chris Notes/Forge app documentation/login-recovery-runbook.md` (new).
-- **TS clean.** Single commit (per checklist default).
-
-**Older sessions (57-328):** See `project-history/` folder.
+**Older sessions (57-329):** See `project-history/` folder.
 
 ---
 
@@ -220,7 +219,8 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-0. **Acronym form fields on Lifts / Benchmarks / Forge edit modals (S333 follow-up)** — schema column + search + display already wired; only the in-app curation UI for these 3 tables is missing. ~15 min each. Until then, set acronyms via Dashboard SQL (e.g. `UPDATE barbell_lifts SET acronym = 'CJ' WHERE name = 'Clean & Jerk';`).
+0. **Confirm S334 iOS Safari login fix with the affected athlete** — `window.location.href` post-login replaces `router.push`. If he still bounces, ITP cookie purge is the next suspect (different fix; would involve cookie max-age / size hardening).
+0a. **Acronym form fields on Lifts / Benchmarks / Forge edit modals (S333 follow-up)** — schema column + search + display already wired; only the in-app curation UI for these 3 tables is missing. ~15 min each. Until then, set acronyms via Dashboard SQL (e.g. `UPDATE barbell_lifts SET acronym = 'CJ' WHERE name = 'Clean & Jerk';`).
 1. **Set up `next-intl` i18n (DE/EN bilingual)** — Chris plans to commercialize. The ~11 inlined German strings from S317 should migrate to `messages/de.json` + matching `messages/en.json`. ~1 day of dedicated work. Stop adding more inline German until this lands. Memory: `project_commercialization_and_i18n.md`.
 2. **Verify SPF/DKIM/DMARC + test reset flow on deployed app (S297 follow-up)** — Resend → Domains → `the-forge-functional-fitness.de` should show all ✅. Then test the full reset flow end-to-end on live app.
 3. **Mac Chrome hang investigation** — dedicated session. Start with Activity Monitor (Memory Pressure + Chrome Helper), disk free %, update status, then hang reports in `~/Library/Logs/DiagnosticReports/`. Will fix Mac push as a side effect.
