@@ -9,6 +9,10 @@ export interface Lift {
   name: string;
   category: string;
   display_order: number;
+  acronym?: string | null;
+  exercise_id?: string | null;
+  // Joined from exercises when exercise_id is set — source of truth for inherited acronym/display name.
+  exercises?: { id: string; display_name: string | null; acronym: string | null } | null;
 }
 
 export function useLiftsCrud() {
@@ -17,18 +21,22 @@ export function useLiftsCrud() {
   const [editingLift, setEditingLift] = useState<Lift | null>(null);
   const [liftForm, setLiftForm] = useState({
     name: '',
-    category: ''
+    category: '',
+    acronym: '',
+    exercise_id: '' // empty string = unlinked
   });
 
   const fetchLifts = async () => {
     try {
       const { data, error } = await supabase
         .from('barbell_lifts')
-        .select('*')
+        .select('id, name, category, display_order, acronym, exercise_id, exercises:exercise_id(id, display_name, acronym)')
         .order('display_order', { ascending: true });
 
       if (error) throw error;
-      setLifts(data || []);
+      // Supabase types embedded selects as either an object or array depending on relationship cardinality;
+      // exercise_id is a single FK so it returns an object.
+      setLifts((data as unknown as Lift[]) || []);
     } catch (error) {
       console.error('Error fetching lifts:', error);
     }
@@ -39,13 +47,17 @@ export function useLiftsCrud() {
       setEditingLift(lift);
       setLiftForm({
         name: lift.name,
-        category: lift.category
+        category: lift.category,
+        acronym: lift.acronym || '',
+        exercise_id: lift.exercise_id || ''
       });
     } else {
       setEditingLift(null);
       setLiftForm({
         name: '',
-        category: 'Olympic'
+        category: 'Olympic',
+        acronym: '',
+        exercise_id: ''
       });
     }
     setShowLiftModal(true);
@@ -53,12 +65,17 @@ export function useLiftsCrud() {
 
   const saveLift = async () => {
     try {
+      const exerciseId = liftForm.exercise_id || null;
+      // When linked to an exercise, the exercise is the acronym source of truth — null out the lift's own column.
+      const acronym = exerciseId ? null : (liftForm.acronym ? liftForm.acronym.trim().toUpperCase() : null);
       if (editingLift) {
         const { error } = await supabase
           .from('barbell_lifts')
           .update({
             name: liftForm.name,
             category: liftForm.category,
+            acronym,
+            exercise_id: exerciseId,
             updated_at: new Date().toISOString()
           })
           .eq('id', editingLift.id);
@@ -72,6 +89,8 @@ export function useLiftsCrud() {
           .insert({
             name: liftForm.name,
             category: liftForm.category,
+            acronym,
+            exercise_id: exerciseId,
             display_order: maxOrder + 1
           });
 

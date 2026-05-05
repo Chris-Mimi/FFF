@@ -14,7 +14,8 @@ export function useForgeBenchmarksCrud() {
     type: '',
     description: '',
     display_order: 0,
-    has_scaling: true
+    has_scaling: true,
+    acronym: ''
   });
 
   const fetchForgeBenchmarks = async () => {
@@ -39,7 +40,8 @@ export function useForgeBenchmarksCrud() {
         type: forge.type,
         description: forge.description || '',
         display_order: forge.display_order,
-        has_scaling: (forge as { has_scaling?: boolean }).has_scaling ?? true
+        has_scaling: (forge as { has_scaling?: boolean }).has_scaling ?? true,
+        acronym: forge.acronym || ''
       });
     } else {
       setEditingForge(null);
@@ -49,7 +51,8 @@ export function useForgeBenchmarksCrud() {
         type: 'For Time',
         description: '',
         display_order: maxOrder + 1,
-        has_scaling: true
+        has_scaling: true,
+        acronym: ''
       });
     }
     setShowForgeModal(true);
@@ -57,6 +60,7 @@ export function useForgeBenchmarksCrud() {
 
   const saveForge = async () => {
     try {
+      const acronym = forgeForm.acronym ? forgeForm.acronym.trim().toUpperCase() : null;
       if (editingForge) {
         const { error } = await supabase
           .from('forge_benchmarks')
@@ -66,6 +70,7 @@ export function useForgeBenchmarksCrud() {
             description: forgeForm.description,
             display_order: forgeForm.display_order,
             has_scaling: forgeForm.has_scaling,
+            acronym,
             updated_at: new Date().toISOString()
           })
           .eq('id', editingForge.id);
@@ -79,7 +84,8 @@ export function useForgeBenchmarksCrud() {
             type: forgeForm.type,
             description: forgeForm.description,
             display_order: forgeForm.display_order,
-            has_scaling: forgeForm.has_scaling
+            has_scaling: forgeForm.has_scaling,
+            acronym
           });
 
         if (error) throw error;

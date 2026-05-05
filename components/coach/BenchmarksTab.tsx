@@ -26,6 +26,7 @@ interface BenchmarksTabProps {
     description: string;
     display_order: number;
     has_scaling: boolean;
+    acronym: string;
   };
   onFormChange: (field: string, value: string | number | boolean) => void;
   onSave: () => void;
@@ -123,17 +124,32 @@ export default function BenchmarksTab({
             </div>
 
             <div className='space-y-4'>
-              <div>
-                <label className='block text-sm font-medium text-gray-100 mb-1'>
-                  Name
-                </label>
-                <input
-                  type='text'
-                  value={form.name}
-                  onChange={(e) => onFormChange('name', e.target.value)}
-                  className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent'
-                  placeholder='e.g., Fran, Helen, Murph'
-                />
+              <div className='grid grid-cols-[1fr_140px] gap-3'>
+                <div>
+                  <label className='block text-sm font-medium text-gray-100 mb-1'>
+                    Name
+                  </label>
+                  <input
+                    type='text'
+                    value={form.name}
+                    onChange={(e) => onFormChange('name', e.target.value)}
+                    className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent'
+                    placeholder='e.g., Fran, Helen, Murph'
+                  />
+                </div>
+                <div>
+                  <label className='block text-sm font-medium text-gray-100 mb-1'>
+                    Acronym <span className='text-gray-300 text-xs'>(optional)</span>
+                  </label>
+                  <input
+                    type='text'
+                    value={form.acronym}
+                    onChange={(e) => onFormChange('acronym', e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
+                    className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent font-mono uppercase'
+                    placeholder='e.g., FRAN'
+                    maxLength={6}
+                  />
+                </div>
               </div>
 
               <div>

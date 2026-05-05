@@ -446,7 +446,8 @@ export const useCoachData = ({
       // (S333 — replaces the S303 tags-as-acronym pattern with a curated column).
       const [exRes, liftRes, bmRes, fbRes] = await Promise.all([
         supabase.from('exercises').select('id, name, display_name, category, acronym'),
-        supabase.from('barbell_lifts').select('name, acronym'),
+        // S335 — when a lift is linked to an exercise, the exercise's acronym wins; use it as fallback below.
+        supabase.from('barbell_lifts').select('name, acronym, exercises:exercise_id(acronym)'),
         supabase.from('benchmark_workouts').select('name, acronym'),
         supabase.from('forge_benchmarks').select('name, acronym'),
       ]);
@@ -477,7 +478,14 @@ export const useCoachData = ({
           if (!existing.includes(acrLower)) reverse.set(nameLower, [...existing, acrLower]);
         });
       };
-      addCrossSource(liftRes.data ?? undefined);
+      // For barbell_lifts: use the lift's own acronym if set, else inherit from the linked exercise.
+      // Supabase types the embedded `exercises` join as an array; for a 1:1 FK it's at most one row.
+      const liftRows = ((liftRes.data ?? []) as unknown as Array<{ name: string | null; acronym: string | null; exercises: { acronym: string | null } | { acronym: string | null }[] | null }>)
+        .map(r => {
+          const linked = Array.isArray(r.exercises) ? r.exercises[0] : r.exercises;
+          return { name: r.name, acronym: r.acronym ?? linked?.acronym ?? null };
+        });
+      addCrossSource(liftRows);
       addCrossSource(bmRes.data ?? undefined);
       addCrossSource(fbRes.data ?? undefined);
 

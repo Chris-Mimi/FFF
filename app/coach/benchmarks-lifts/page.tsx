@@ -259,6 +259,9 @@ export default function BenchmarksLiftsManagementPage() {
             form={liftsCrud.liftForm}
             onFormChange={liftsCrud.handleLiftFormChange}
             onSave={liftsCrud.saveLift}
+            exerciseOptions={exercisesCrud.exercises
+              .filter(e => e.category === 'Olympic Lifting & Barbell Movements')
+              .map(e => ({ id: e.id, display_name: e.display_name ?? e.name, acronym: e.acronym ?? null }))}
           />
         )}
 

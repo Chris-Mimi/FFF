@@ -9,6 +9,7 @@ export interface Benchmark {
   type: string;
   description: string | null;
   display_order: number;
+  acronym?: string | null;
 }
 
 export function useBenchmarksCrud() {
@@ -20,7 +21,8 @@ export function useBenchmarksCrud() {
     type: '',
     description: '',
     display_order: 0,
-    has_scaling: true
+    has_scaling: true,
+    acronym: ''
   });
 
   const fetchBenchmarks = async () => {
@@ -45,7 +47,8 @@ export function useBenchmarksCrud() {
         type: benchmark.type,
         description: benchmark.description || '',
         display_order: benchmark.display_order,
-        has_scaling: (benchmark as { has_scaling?: boolean }).has_scaling ?? true
+        has_scaling: (benchmark as { has_scaling?: boolean }).has_scaling ?? true,
+        acronym: benchmark.acronym || ''
       });
     } else {
       setEditingBenchmark(null);
@@ -55,7 +58,8 @@ export function useBenchmarksCrud() {
         type: 'For Time',
         description: '',
         display_order: maxOrder + 1,
-        has_scaling: true
+        has_scaling: true,
+        acronym: ''
       });
     }
     setShowBenchmarkModal(true);
@@ -63,6 +67,7 @@ export function useBenchmarksCrud() {
 
   const saveBenchmark = async () => {
     try {
+      const acronym = benchmarkForm.acronym ? benchmarkForm.acronym.trim().toUpperCase() : null;
       if (editingBenchmark) {
         const { error } = await supabase
           .from('benchmark_workouts')
@@ -72,6 +77,7 @@ export function useBenchmarksCrud() {
             description: benchmarkForm.description,
             display_order: benchmarkForm.display_order,
             has_scaling: benchmarkForm.has_scaling,
+            acronym,
             updated_at: new Date().toISOString()
           })
           .eq('id', editingBenchmark.id);
@@ -85,7 +91,8 @@ export function useBenchmarksCrud() {
             type: benchmarkForm.type,
             description: benchmarkForm.description,
             display_order: benchmarkForm.display_order,
-            has_scaling: benchmarkForm.has_scaling
+            has_scaling: benchmarkForm.has_scaling,
+            acronym
           });
 
         if (error) throw error;

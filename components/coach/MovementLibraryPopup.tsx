@@ -303,10 +303,16 @@ function MovementLibraryPopup({
     try {
       const { data, error } = await supabase
         .from('barbell_lifts')
-        .select('*')
+        .select('*, exercises:exercise_id(acronym)')
         .order('display_order');
       if (error) throw error;
-      setLifts(data || []);
+      // S335 — when linked, inherit acronym from the exercise.
+      type Row = { id: string; name: string; category: string; display_order: number; acronym?: string | null; exercises?: { acronym: string | null } | { acronym: string | null }[] | null };
+      const merged = ((data ?? []) as unknown as Row[]).map(row => {
+        const linked = Array.isArray(row.exercises) ? row.exercises[0] : row.exercises;
+        return { ...row, acronym: row.acronym ?? linked?.acronym ?? null } as BarbellLift;
+      });
+      setLifts(merged);
       setHasFetchedLifts(true);
     } catch (error) {
       console.error('Error fetching lifts:', error);

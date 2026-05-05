@@ -26,6 +26,15 @@ interface Lift {
   name: string;
   category: string;
   display_order: number;
+  acronym?: string | null;
+  exercise_id?: string | null;
+  exercises?: { id: string; display_name: string | null; acronym: string | null } | null;
+}
+
+interface ExerciseOption {
+  id: string;
+  display_name: string | null;
+  acronym: string | null;
 }
 
 interface LiftsTabProps {
@@ -41,9 +50,12 @@ interface LiftsTabProps {
   form: {
     name: string;
     category: string;
+    acronym: string;
+    exercise_id: string;
   };
   onFormChange: (field: string, value: string | number) => void;
   onSave: () => void;
+  exerciseOptions: ExerciseOption[];
 }
 
 const CATEGORY_ORDER = ['Olympic', 'Squat', 'Press', 'Pull'];
@@ -147,7 +159,12 @@ export default function LiftsTab({
   form,
   onFormChange,
   onSave,
+  exerciseOptions,
 }: LiftsTabProps) {
+  const linkedExercise = form.exercise_id
+    ? exerciseOptions.find(e => e.id === form.exercise_id) || null
+    : null;
+  const inheritedAcronym = linkedExercise?.acronym || '';
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -279,17 +296,61 @@ export default function LiftsTab({
             </div>
 
             <div className='space-y-2 sm:space-y-3 md:space-y-4'>
+              <div className='grid grid-cols-[1fr_120px] gap-2 sm:gap-3'>
+                <div>
+                  <label className='block text-xs sm:text-sm font-medium text-gray-100 mb-1'>
+                    Name
+                  </label>
+                  <input
+                    type='text'
+                    value={form.name}
+                    onChange={(e) => onFormChange('name', e.target.value)}
+                    className='w-full px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent'
+                    placeholder='e.g., Back Squat, Deadlift'
+                  />
+                </div>
+                <div>
+                  <label className='block text-xs sm:text-sm font-medium text-gray-100 mb-1'>
+                    Acronym <span className='text-gray-300 text-[10px]'>(optional)</span>
+                  </label>
+                  <input
+                    type='text'
+                    value={linkedExercise ? inheritedAcronym : form.acronym}
+                    onChange={(e) => onFormChange('acronym', e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
+                    disabled={!!linkedExercise}
+                    title={linkedExercise ? 'Acronym is inherited from the linked exercise' : undefined}
+                    className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent font-mono uppercase ${
+                      linkedExercise ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-white text-gray-900'
+                    }`}
+                    placeholder='e.g., BS'
+                    maxLength={6}
+                  />
+                </div>
+              </div>
+
               <div>
                 <label className='block text-xs sm:text-sm font-medium text-gray-100 mb-1'>
-                  Name
+                  Linked Exercise <span className='text-gray-300 text-[10px]'>(optional — keeps acronym in sync with the exercise library)</span>
                 </label>
-                <input
-                  type='text'
-                  value={form.name}
-                  onChange={(e) => onFormChange('name', e.target.value)}
-                  className='w-full px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent'
-                  placeholder='e.g., Back Squat, Deadlift'
-                />
+                <select
+                  value={form.exercise_id}
+                  onChange={(e) => onFormChange('exercise_id', e.target.value)}
+                  className='w-full px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent cursor-pointer'
+                >
+                  <option value=''>— Not linked (use this lift&apos;s own acronym) —</option>
+                  {[...exerciseOptions]
+                    .sort((a, b) => (a.display_name || '').localeCompare(b.display_name || ''))
+                    .map(ex => (
+                      <option key={ex.id} value={ex.id}>
+                        {ex.display_name || '(unnamed)'}{ex.acronym ? ` — ${ex.acronym}` : ''}
+                      </option>
+                    ))}
+                </select>
+                {linkedExercise && (
+                  <p className='text-[10px] sm:text-xs text-teal-300 mt-1'>
+                    Acronym inherited: <span className='font-mono font-semibold'>{inheritedAcronym || '(linked exercise has no acronym yet)'}</span>
+                  </p>
+                )}
               </div>
 
               <div>

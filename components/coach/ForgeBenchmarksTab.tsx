@@ -139,6 +139,7 @@ interface ForgeBenchmarksTabProps {
     description: string;
     display_order: number;
     has_scaling: boolean;
+    acronym: string;
   };
   onFormChange: (field: string, value: string | number | boolean) => void;
   onSave: () => void;
@@ -215,16 +216,18 @@ export default function ForgeBenchmarksTab({
       onFormChange('type', '');
       onFormChange('description', '');
       onFormChange('has_scaling', false);
+      onFormChange('acronym', '');
       return;
     }
 
     const template = allForgeBenchmarks.find(f => f.id === forgeId);
     if (template) {
-      // Keep name empty so user must enter new name
+      // Keep name + acronym empty — both must be unique per row
       onFormChange('name', '');
       onFormChange('type', template.type);
       onFormChange('description', template.description || '');
       onFormChange('has_scaling', template.has_scaling || false);
+      onFormChange('acronym', '');
     }
   };
 
@@ -362,17 +365,32 @@ export default function ForgeBenchmarksTab({
                 </div>
               )}
 
-              <div>
-                <label className='block text-xs sm:text-sm font-medium text-gray-100 mb-1'>
-                  Name
-                </label>
-                <input
-                  type='text'
-                  value={form.name}
-                  onChange={(e) => onFormChange('name', e.target.value)}
-                  className='w-full px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent'
-                  placeholder='e.g., Forge Friday, The Grind'
-                />
+              <div className='grid grid-cols-[1fr_120px] gap-2 sm:gap-3'>
+                <div>
+                  <label className='block text-xs sm:text-sm font-medium text-gray-100 mb-1'>
+                    Name
+                  </label>
+                  <input
+                    type='text'
+                    value={form.name}
+                    onChange={(e) => onFormChange('name', e.target.value)}
+                    className='w-full px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent'
+                    placeholder='e.g., Forge Friday, The Grind'
+                  />
+                </div>
+                <div>
+                  <label className='block text-xs sm:text-sm font-medium text-gray-100 mb-1'>
+                    Acronym <span className='text-gray-300 text-[10px]'>(optional)</span>
+                  </label>
+                  <input
+                    type='text'
+                    value={form.acronym}
+                    onChange={(e) => onFormChange('acronym', e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
+                    className='w-full px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent font-mono uppercase'
+                    placeholder='e.g., FF'
+                    maxLength={6}
+                  />
+                </div>
               </div>
 
               <div>
