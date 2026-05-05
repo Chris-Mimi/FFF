@@ -28,6 +28,7 @@ export interface Member {
   ten_card_expiry_date?: string | null;
   attendance_count?: number;
   last_attendance_date?: string | null;
+  upcoming_ten_card_bookings?: number;
   date_of_birth: string | null;
   class_types: ClassType[];
   gender: 'M' | 'F' | null;

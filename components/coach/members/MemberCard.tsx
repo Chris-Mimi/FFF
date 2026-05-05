@@ -108,19 +108,27 @@ export default function MemberCard({
                 Guardian
               </span>
             )}
-            {member.membership_types?.includes('ten_card') && (
-              <button
-                onClick={() => onOpenTenCard(member)}
-                className={`px-2 py-0.5 rounded text-xs font-medium transition cursor-pointer ${
-                  member.ten_card_sessions_used >= 9
-                    ? 'bg-red-600 text-white hover:bg-red-700'
-                    : 'bg-purple-600 text-white hover:bg-purple-700'
-                }`}
-                title="Manage 10-card"
-              >
-                {member.ten_card_sessions_used || 0}/10
-              </button>
-            )}
+            {member.membership_types?.includes('ten_card') && (() => {
+              const total = member.ten_card_sessions_used || 0;
+              const upcoming = member.upcoming_ten_card_bookings || 0;
+              const consumed = Math.max(0, total - upcoming);
+              const tooltip = upcoming > 0
+                ? `10-card: ${consumed} consumed + ${upcoming} upcoming = ${total}/10. Click to manage.`
+                : `10-card: ${total}/10 sessions claimed. Click to manage.`;
+              return (
+                <button
+                  onClick={() => onOpenTenCard(member)}
+                  className={`px-2 py-0.5 rounded text-xs font-medium transition cursor-pointer ${
+                    total >= 9
+                      ? 'bg-red-600 text-white hover:bg-red-700'
+                      : 'bg-purple-600 text-white hover:bg-purple-700'
+                  }`}
+                  title={tooltip}
+                >
+                  {upcoming > 0 ? `${consumed}+${upcoming}/10` : `${total}/10`}
+                </button>
+              );
+            })()}
             {member.membership_types?.includes('wellpass') && (
               <button
                 onClick={() => onOpenTenCard(member)}

@@ -205,11 +205,41 @@ export function useMemberData() {
         }
       }
 
+      // Upcoming confirmed bookings that debit a ten-card. Attribution goes to the
+      // holder (booker.ten_card_holder_id || booker.id), matching the increment logic
+      // in /api/bookings/create. Used to split the badge into "consumed + upcoming".
+      const upcomingTenCardMap: Record<string, number> = {};
+      const tenCardHolderIds = (membersData || [])
+        .filter(m => (m.membership_types || []).includes('ten_card'))
+        .map(m => m.id);
+      if (tenCardHolderIds.length > 0) {
+        const todayIso = new Date().toISOString().split('T')[0];
+        const { data: upcomingBookings } = await supabase
+          .from('bookings')
+          .select('member_id, weekly_sessions!inner(date), members!inner(id, ten_card_holder_id, primary_payment_method, membership_types)')
+          .eq('status', 'confirmed')
+          .gte('weekly_sessions.date', todayIso);
+
+        type UpcomingRow = {
+          member_id: string;
+          members: { id: string; ten_card_holder_id: string | null; primary_payment_method: string | null; membership_types: string[] | null };
+        };
+        (upcomingBookings as UpcomingRow[] | null)?.forEach(row => {
+          const booker = Array.isArray(row.members) ? row.members[0] : row.members;
+          if (!booker) return;
+          const effectiveMethod = booker.primary_payment_method || booker.membership_types?.[0] || null;
+          if (effectiveMethod !== 'ten_card') return;
+          const holderId = booker.ten_card_holder_id || booker.id;
+          upcomingTenCardMap[holderId] = (upcomingTenCardMap[holderId] || 0) + 1;
+        });
+      }
+
       let membersWithAttendance = (membersData || []).map(member => ({
         ...member,
         subscription_plan_type: planTypeMap[member.id] || null,
         attendance_count: attendanceMap[member.id] || 0,
         last_attendance_date: lastAttendanceMap[member.id] || null,
+        upcoming_ten_card_bookings: upcomingTenCardMap[member.id] || 0,
       }));
 
       // Family members inherit subscription status from their primary member

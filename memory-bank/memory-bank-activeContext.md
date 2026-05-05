@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 196
-**Updated:** 2026-05-05 (Session 335 close — full session: countdown on Book a Class + checklist split + acronym CRUD on lift/benchmark/forge modals + lift↔exercise link inheritance)
+**Version:** 197
+**Updated:** 2026-05-05 (Session 336 mid-session checkpoint — exercise display_name "Barbell" prefix strip + 10-card badge split (consumed+upcoming) + TenCardModal bookings list)
 
 ---
 
@@ -21,7 +21,7 @@
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history scan._
 
-**First action:** Open the Lifts tab and pair the two unlinked lifts (**Hang Clean**, **Hang Snatch**) using the new **Linked Exercise** dropdown — or set their own acronyms in the Acronym field if they should stay standalone. The library only has Hang **Power** Clean / Hang **Power** Snatch which are technically different (full-squat vs power-position catch), so this is Chris's call. Once paired, all 20 lifts will inherit acronyms cross-surface from the exercise library — single source of truth. Then evaluate booking-window countdown thresholds (10/30 min red, 2h amber) after a few days of athlete use.
+**First action:** Evaluate booking-window countdown thresholds (10/30 min red, 2h amber) after a few days of athlete use, then re-evaluate Statistics chip dimming thresholds (10%/30%) after 1–2 weeks. Both first-pass values from S335.
 
 **Files to open first if continuing code work:**
 - [components/coach/LiftsTab.tsx](components/coach/LiftsTab.tsx) — new "Linked Exercise" dropdown filtered to `Olympic Lifting & Barbell Movements`; Acronym input auto-locks + shows inherited value as teal hint when linked.
@@ -34,7 +34,7 @@ _Updated at every session close. The "first 5 minutes of tomorrow" — read this
 **Carry-over status:**
 - ✅ S335 booking countdown deployed — awaiting field tuning of 2h/30m thresholds.
 - ✅ S335 acronym CRUD on Lifts / Benchmarks / Forge modals — done. The S333 follow-up is closed.
-- ✅ S335 lift↔exercise link inheritance — DDL run, 18 of 20 lifts auto-paired. Chris to manually pair Hang Clean + Hang Snatch (or leave standalone).
+- ✅ S335 lift↔exercise link inheritance — DDL run, all 20 lifts resolved (Hang Clean + Hang Snatch handled by Chris 2026-05-05).
 - ✅ S334 iOS Safari login fix — confirmed working on the affected athlete's iPhone 16 Safari.
 - ⏳ S332 Personal Activities — Chris tested live, working. Optional Session B heatmap + counts row deferred until usage justifies.
 - ⏳ S331 shared-patterns — Chris hasn't explicitly confirmed both toggles show same patterns, but no complaints either.
@@ -133,6 +133,12 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 336 (2026-05-05 — Opus 4.7) — IN PROGRESS — EXERCISE DISPLAY_NAME "BARBELL" PREFIX STRIP + 10-CARD BADGE SPLIT + TENCARDMODAL BOOKINGS LIST:**
+- **Exercise picker sort cleanup.** Stripped `Barbell ` prefix from `exercises.display_name` in the `Olympic Lifting & Barbell Movements` category (left `Barbell Row`, `Barbell Bent Over Row`, `Barbell Dead Row` intact — too ambiguous without prefix). Migration: [database/20260505_session336_strip_barbell_prefix_from_display_name.sql](database/20260505_session336_strip_barbell_prefix_from_display_name.sql) (gitignored). `exercises.name` (UNIQUE canonical) untouched — the `genericToCanonical` map in [utils/movement-extraction.ts](utils/movement-extraction.ts) and S335 lift-link FK inheritance keep working.
+- **10-card badge UX split.** [components/coach/members/MemberCard.tsx](components/coach/members/MemberCard.tsx) badge now reads `consumed+upcoming/10` (e.g. `5+2/10`) instead of just `7/10` — clarifies that the counter includes future-confirmed bookings, not just attended sessions. Falls back to single number when no upcoming bookings. Tooltip: "10-card: 5 consumed + 2 upcoming = 7/10". [hooks/coach/useMemberData.ts](hooks/coach/useMemberData.ts) gained an upcoming-bookings query attributed to the actual card holder (handles `ten_card_holder_id` family-share). [types/member.ts](types/member.ts) `Member` gained `upcoming_ten_card_bookings?: number`.
+- **TenCardModal bookings list.** [components/coach/TenCardModal.tsx](components/coach/TenCardModal.tsx) — when the 10-card section is open, lists every consuming booking (`confirmed`/`no_show`/`late_cancel`) since the card's purchase date, split into Consumed (past) and Upcoming. Each row shows date+time+status badge; family-share rows show the booker's name in italic purple. Resolves the "what dates went on this card?" question raised by the David Montgomery 7/10 investigation.
+- **Trigger.** Investigation: David Montgomery showed 7/10 used after only 5 attended sessions. Diagnosis: 7 confirmed bookings (5 past + 2 upcoming, no false counts). The counter is correct; the badge label was just ambiguous. Fix is UX-only — no counter logic change.
+
 **Session 335 (2026-05-05 — Opus 4.7) — BOOKING COUNTDOWN + CHECKLIST SPLIT + ACRONYM CRUD ON LIFT/BENCHMARK/FORGE + LIFT↔EXERCISE LINK INHERITANCE:**
 - **Book a Class booking-window countdown.** Cards now show "Closes in Xd Yh / Xh Ym / Xm" under capacity row. Gray normally, **amber <2h**, **red <30m**. Ticks every 60s. [app/api/booking-rules/public/route.ts](app/api/booking-rules/public/route.ts) extended to expose `auto_lock_lead_minutes` + per-type overrides. `lockAtMs = sessionStartInstant - leadMinutes * 60_000`. Latent UTC-vs-Berlin bug in `effectivelyLocked` fixed at the same time (was `new Date(\`${date}T${time}\`)`, now `sessionStartInstant`).
 - **Workflow: split session-close checklist.** New [Chris Notes/AA frequently used files/1-mid-session-checkpoint-checklist.md](Chris%20Notes/AA%20frequently%20used%20files/1-mid-session-checkpoint-checklist.md) — light "ship + redeploy + keep coding" version. Old checklist renamed [2-session-close-checklist.md](Chris%20Notes/AA%20frequently%20used%20files/2-session-close-checklist.md). Cues: "checkpoint" → file 1, "close session" → file 2.
@@ -226,7 +232,6 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-0. **Pair Hang Clean + Hang Snatch in the Lifts tab** (S335 carry) — open the Lifts tab, edit each, use the new Linked Exercise dropdown to either pair them to "Hang Power Clean" / "Hang Power Snatch" (if you treat them as the same movement) or set their own standalone acronyms. The library-side variants are technically different (full-squat vs power-position catch); your call.
 0a. **Re-evaluate booking-window countdown thresholds (S335)** — currently amber under 2h, red under 30m on Book a Class cards. If athletes report the warning fires too early/late after a few days of real use, tune the breakpoints in [app/member/book/page.tsx](app/member/book/page.tsx) `renderBookingCountdown`.
 0b. **Re-evaluate Statistics chip dimming thresholds after 1–2 weeks of use** — currently 10%/30% of max count in [components/coach/analysis/StatisticsSection.tsx](components/coach/analysis/StatisticsSection.tsx). If categories with one dominant exercise (e.g. Back Squat in Olympic Lifting) end up with most chips dimmed and the very-low tier loses signal, bump to 20%/50% or switch to quantile-based ranking (bottom 25% of the ranked list dims regardless of values). Three visual tiers: white/teal-border (normal), light-gray/gray-border (low), pale-gray/dashed-gray-border + italic (very low).
 1. **Set up `next-intl` i18n (DE/EN bilingual)** — Chris plans to commercialize. The ~11 inlined German strings from S317 should migrate to `messages/de.json` + matching `messages/en.json`. ~1 day of dedicated work. Stop adding more inline German until this lands. Memory: `project_commercialization_and_i18n.md`.

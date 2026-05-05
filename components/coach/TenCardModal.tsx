@@ -58,6 +58,17 @@ export default function TenCardModal({
 
   const [loading, setLoading] = useState(false);
 
+  type CardBooking = {
+    booking_id: string;
+    date: string;
+    time: string;
+    status: 'confirmed' | 'no_show' | 'late_cancel';
+    booker_name: string;
+    is_self: boolean;
+  };
+  const [cardBookings, setCardBookings] = useState<CardBooking[]>([]);
+  const [bookingsLoading, setBookingsLoading] = useState(false);
+
   // Update state when member prop changes (after refresh)
   useEffect(() => {
     if (member) {
@@ -97,6 +108,69 @@ export default function TenCardModal({
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
+
+  // Load bookings that debit this card. Includes the holder's own bookings + any
+  // family member whose ten_card_holder_id points at this holder. Filtered to
+  // statuses that consume the card (confirmed, no_show, late_cancel) and to
+  // sessions on/after the purchase date.
+  useEffect(() => {
+    if (!isOpen || activeSection !== '10card' || !member?.id) {
+      setCardBookings([]);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      setBookingsLoading(true);
+      try {
+        const { data: sharers } = await supabase
+          .from('members')
+          .select('id')
+          .eq('ten_card_holder_id', member.id);
+        const debitMemberIds = [member.id, ...(sharers || []).map(s => s.id)];
+
+        let query = supabase
+          .from('bookings')
+          .select('id, status, member_id, weekly_sessions!inner(date, time), members!inner(id, name, display_name)')
+          .in('member_id', debitMemberIds)
+          .in('status', ['confirmed', 'no_show', 'late_cancel']);
+
+        if (purchaseDate) {
+          query = query.gte('weekly_sessions.date', purchaseDate);
+        }
+
+        const { data, error } = await query;
+        if (error || cancelled) {
+          if (error) console.error('Failed to load card bookings:', error);
+          return;
+        }
+
+        type RawRow = {
+          id: string;
+          status: 'confirmed' | 'no_show' | 'late_cancel';
+          member_id: string;
+          weekly_sessions: { date: string; time: string } | { date: string; time: string }[];
+          members: { id: string; name: string; display_name: string | null } | { id: string; name: string; display_name: string | null }[];
+        };
+        const rows: CardBooking[] = (data as RawRow[] || []).map(r => {
+          const ws = Array.isArray(r.weekly_sessions) ? r.weekly_sessions[0] : r.weekly_sessions;
+          const mb = Array.isArray(r.members) ? r.members[0] : r.members;
+          return {
+            booking_id: r.id,
+            date: ws?.date || '',
+            time: ws?.time || '',
+            status: r.status,
+            booker_name: mb?.display_name || mb?.name || '—',
+            is_self: r.member_id === member.id,
+          };
+        }).sort((a, b) => `${a.date}T${a.time}`.localeCompare(`${b.date}T${b.time}`));
+
+        if (!cancelled) setCardBookings(rows);
+      } finally {
+        if (!cancelled) setBookingsLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [isOpen, activeSection, member?.id, purchaseDate]);
 
   if (!isOpen || !member) return null;
 
@@ -333,6 +407,62 @@ export default function TenCardModal({
                   <p className="text-xs text-gray-500 mt-1">
                     Edit directly, or click Recalc to count confirmed bookings since the purchase date.
                   </p>
+                </div>
+
+                {/* Bookings list — sessions consumed/upcoming on this card */}
+                <div className="pt-4 border-t">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">
+                    Bookings on this card{purchaseDate ? ` (since ${purchaseDate})` : ''}
+                  </h4>
+                  {bookingsLoading ? (
+                    <p className="text-xs text-gray-500">Loading…</p>
+                  ) : cardBookings.length === 0 ? (
+                    <p className="text-xs text-gray-500">No bookings found{purchaseDate ? ' since the purchase date' : ''}.</p>
+                  ) : (() => {
+                    const todayIso = new Date().toISOString().split('T')[0];
+                    const past = cardBookings.filter(b => b.date < todayIso);
+                    const upcoming = cardBookings.filter(b => b.date >= todayIso);
+                    const statusBadge = (s: CardBooking['status']) => {
+                      if (s === 'confirmed') return <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-100 text-green-700">attended</span>;
+                      if (s === 'no_show') return <span className="text-[10px] px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">no-show</span>;
+                      return <span className="text-[10px] px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">late-cancel</span>;
+                    };
+                    const upcomingBadge = () => (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">upcoming</span>
+                    );
+                    const renderRow = (b: CardBooking, isUpcoming: boolean) => (
+                      <div key={b.booking_id} className="flex items-center justify-between py-1 text-xs text-gray-700">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono">{b.date}</span>
+                          <span className="text-gray-500">{b.time?.slice(0, 5)}</span>
+                          {!b.is_self && (
+                            <span className="italic text-purple-700">{b.booker_name}</span>
+                          )}
+                        </div>
+                        {isUpcoming ? upcomingBadge() : statusBadge(b.status)}
+                      </div>
+                    );
+                    return (
+                      <div className="space-y-3">
+                        {past.length > 0 && (
+                          <div>
+                            <p className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Consumed ({past.length})</p>
+                            <div className="divide-y divide-gray-100 border border-gray-200 rounded">
+                              {past.map(b => renderRow(b, false))}
+                            </div>
+                          </div>
+                        )}
+                        {upcoming.length > 0 && (
+                          <div>
+                            <p className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Upcoming ({upcoming.length})</p>
+                            <div className="divide-y divide-gray-100 border border-gray-200 rounded">
+                              {upcoming.map(b => renderRow(b, true))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {/* Reset Button */}

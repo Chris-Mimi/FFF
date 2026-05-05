@@ -17,11 +17,11 @@ http://192.168.178.75:3000
 * Mimi's iPhone copy/paste & delete function
 * Box WiFi: Mac gets IPv6-only (no IPv4), dev sites (GitHub/Supabase/Vercel/Resend) unreachable. PC on same box WiFi works fine. At home all works. Debug next time at the box — see `SESSION-HANDOFF-S303-DNS-issue.md` for diagnostic history.
 * IDEA: Put names of booked athletes in Whiteboard Intro so they also go into Google Calendar or find another way to register them in Google Calendar.
-* 
+* iphone bug (I think) Coach-side: Workouts search box: Mimi can't type anythiong in the search box
 * Mimi couldn't add a trial athlete
 * I added Fabian's birthday but it's not correct, I have to ask him next time he's in.
 * Workouts page: ability to mute/cancel athletes withour clearing the group
-* 
+* Write a script to retroactively book registered athletes according to their whiteboard names. If Rosita appears in the Whiteboard, book her in the session management modal so it updates her 10-card use.
 * Barbell names do we need "Barbell"
 * Macbook still has internet problem at the box. Old Macbook Pro works fine.
 * 
