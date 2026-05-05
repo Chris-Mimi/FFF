@@ -11,7 +11,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { FocusTrap } from '@/components/ui/FocusTrap';
 import { NotificationPrompt } from '@/components/ui/NotificationPrompt';
-import { getMaxVisibleSessionDate, DEFAULT_BOOKING_RULES } from '@/lib/bookingRules';
+import { getMaxVisibleSessionDate, DEFAULT_BOOKING_RULES, sessionStartInstant } from '@/lib/bookingRules';
 
 interface WeeklySession {
   id: string;
@@ -27,6 +27,7 @@ interface WeeklySession {
   other_family_bookings: Array<{ name: string; id: string }>;
   is_locked: boolean;
   attendees: string[];
+  lock_at_ms: number; // ms epoch when this session's booking window closes (sessionStart - leadMinutes)
 }
 
 interface FamilyMember {
@@ -64,10 +65,23 @@ export default function MemberBookingPage() {
   const [bookingForMemberId, setBookingForMemberId] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'booked' | 'wod' | 'foundations' | 'kids'>('all');
   const scrolledForWeekRef = useRef<string | null>(null);
-  const [releaseConfig, setReleaseConfig] = useState<{ next_week_release_day_of_week: number; next_week_release_time: string }>({
+  const [releaseConfig, setReleaseConfig] = useState<{
+    next_week_release_day_of_week: number;
+    next_week_release_time: string;
+    auto_lock_lead_minutes: number;
+    session_type_lock_minutes: Array<{ session_type: string; auto_lock_lead_minutes: number }>;
+  }>({
     next_week_release_day_of_week: DEFAULT_BOOKING_RULES.next_week_release_day_of_week,
     next_week_release_time: DEFAULT_BOOKING_RULES.next_week_release_time,
+    auto_lock_lead_minutes: DEFAULT_BOOKING_RULES.auto_lock_lead_minutes,
+    session_type_lock_minutes: [],
   });
+  // Tick every 60s so card countdowns refresh without a full re-fetch.
+  const [nowMs, setNowMs] = useState<number>(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNowMs(Date.now()), 60_000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     checkAuth();
@@ -242,11 +256,17 @@ export default function MemberBookingPage() {
 
         const workoutType = session.workout_type || 'Class';
 
-        // Compute effective lock: is_locked=true, or is_locked=null and session start time passed
-        const sessionDateTime = new Date(`${session.date}T${session.time}`);
+        // Compute effective lock using Berlin-wall-clock session start, minus per-type lead minutes.
+        // (Per-type override → global override → 0.) Same shape as the server-side guard.
+        const startInstant = sessionStartInstant(session.date, session.time);
+        const leadMinutes =
+          releaseConfig.session_type_lock_minutes.find(r => r.session_type === workoutType)?.auto_lock_lead_minutes
+          ?? releaseConfig.auto_lock_lead_minutes
+          ?? 0;
+        const lockAtMs = startInstant.getTime() - leadMinutes * 60_000;
         const effectivelyLocked =
           session.is_locked === true ||
-          (session.is_locked === null && sessionDateTime < new Date());
+          (session.is_locked === null && lockAtMs <= Date.now());
 
         return {
           id: session.id,
@@ -262,6 +282,7 @@ export default function MemberBookingPage() {
           other_family_bookings: otherFamilyBookings,
           is_locked: effectivelyLocked,
           attendees: [],
+          lock_at_ms: lockAtMs,
         };
       });
 
@@ -568,6 +589,30 @@ export default function MemberBookingPage() {
 
   const formatTime = (time: string) => {
     return time.slice(0, 5); // HH:MM
+  };
+
+  // "Closes in 1d 4h" / "Closes in 3h 12m" / "Closes in 14m". Amber under 2h, red under 30m.
+  const renderBookingCountdown = (lockAtMs: number) => {
+    const ms = lockAtMs - nowMs;
+    if (ms <= 0) return null;
+    const totalMinutes = Math.floor(ms / 60_000);
+    const days = Math.floor(totalMinutes / (60 * 24));
+    const hours = Math.floor((totalMinutes - days * 60 * 24) / 60);
+    const minutes = totalMinutes - days * 60 * 24 - hours * 60;
+    let label: string;
+    if (days > 0) label = `${days}d ${hours}h`;
+    else if (hours > 0) label = `${hours}h ${minutes}m`;
+    else label = `${Math.max(1, minutes)}m`;
+    const color =
+      totalMinutes < 30 ? 'text-red-400'
+      : totalMinutes < 120 ? 'text-amber-400'
+      : 'text-gray-400';
+    return (
+      <div className={`flex items-center gap-1 text-xs ${color}`}>
+        <Clock size={12} />
+        <span>Closes in {label}</span>
+      </div>
+    );
   };
 
   const getCapacityColor = (confirmed: number, capacity: number, accentColor: string) => {
@@ -912,6 +957,7 @@ export default function MemberBookingPage() {
                                 </span>
                                 {getCapacityBadge(session, textAccent)}
                               </div>
+                              {!session.is_locked && renderBookingCountdown(session.lock_at_ms)}
                             </div>
 
                             {/* Attendee names - only visible when booked */}

@@ -1,8 +1,12 @@
 # Session Close Checklist
 
-**Use this for:** clean session close with plenty of context remaining (< 50-60%) — you want to wrap up and start fresh tomorrow.
+**Use this for:** clean session close with plenty of context remaining (< 50-60%) — you want to wrap up and **start fresh tomorrow**. Bumps the session number, rewrites the Next Session Kickoff section, creates a `project-history/` file.
 
-**Do NOT use this for:** emergency handoff at 70%+ context. For that, paste the prompt from [`handoff-prompt.md`](handoff-prompt.md) instead — it produces a structured handoff doc without the memory-bank/history ritual (which is expensive in a bloated session and should happen in the fresh one).
+**Do NOT use this for:**
+- **Mid-chat checkpoint** — when Chris wants to ship work + redeploy + keep coding in the same chat, use [`1-mid-session-checkpoint-checklist.md`](1-mid-session-checkpoint-checklist.md). Running the full close mid-chat fragments the log into two project-history files for one session.
+- **Emergency handoff at 70%+ context** — paste the prompt from [`handoff-prompt.md`](handoff-prompt.md) instead. It produces a structured handoff doc without the memory-bank/history ritual (which is expensive in a bloated session and should happen in the fresh one).
+
+**Cue phrase:** Chris says "**close session**" → run this. Chris says "**checkpoint**" → run [`1-mid-session-checkpoint-checklist.md`](1-mid-session-checkpoint-checklist.md) instead.
 
 ---
 

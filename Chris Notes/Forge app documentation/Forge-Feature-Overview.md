@@ -142,6 +142,7 @@ There's no app-switching, no spreadsheets, no whiteboards that get erased. Just 
 
 - **Weekly schedule view** — see all available classes with real-time capacity
 - **One-tap booking** — book into a class or join the waitlist if it's full
+- **Booking-window countdown** — every class card shows how long is left to book — "Closes in 1d 4h" / "3h 12m" / "14m". Turns amber under 2 hours and red under 30 minutes so you don't miss the cutoff
 - **Family bookings** — parents can book sessions for their children and spouse from one account
 - **Easy cancellation** — cancel with clear status tracking
 
