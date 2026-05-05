@@ -205,32 +205,48 @@ export function useMemberData() {
         }
       }
 
-      // Upcoming confirmed bookings that debit a ten-card. Attribution goes to the
-      // holder (booker.ten_card_holder_id || booker.id), matching the increment logic
-      // in /api/bookings/create. Used to split the badge into "consumed + upcoming".
+      // Bookings that debit a ten-card, split into past (consumed) and upcoming.
+      // Attribution goes to the holder (booker.ten_card_holder_id || booker.id),
+      // matching the increment logic in /api/bookings/create. The chip uses these
+      // to show actual usage; comparing against ten_card_sessions_used surfaces
+      // manual-override mismatches (e.g. coach typed in a counter without bookings).
       const upcomingTenCardMap: Record<string, number> = {};
-      const tenCardHolderIds = (membersData || [])
-        .filter(m => (m.membership_types || []).includes('ten_card'))
-        .map(m => m.id);
-      if (tenCardHolderIds.length > 0) {
+      const pastTenCardMap: Record<string, number> = {};
+      const tenCardHolders = (membersData || [])
+        .filter(m => (m.membership_types || []).includes('ten_card'));
+      if (tenCardHolders.length > 0) {
         const todayIso = new Date().toISOString().split('T')[0];
-        const { data: upcomingBookings } = await supabase
+        const { data: tenCardBookings } = await supabase
           .from('bookings')
-          .select('member_id, weekly_sessions!inner(date), members!inner(id, ten_card_holder_id, primary_payment_method, membership_types)')
-          .eq('status', 'confirmed')
-          .gte('weekly_sessions.date', todayIso);
+          .select('member_id, status, weekly_sessions!inner(date), members!inner(id, ten_card_holder_id, primary_payment_method, membership_types)')
+          .in('status', ['confirmed', 'no_show', 'late_cancel']);
 
-        type UpcomingRow = {
+        type Row = {
           member_id: string;
-          members: { id: string; ten_card_holder_id: string | null; primary_payment_method: string | null; membership_types: string[] | null };
+          status: 'confirmed' | 'no_show' | 'late_cancel';
+          weekly_sessions: { date: string } | { date: string }[];
+          members: { id: string; ten_card_holder_id: string | null; primary_payment_method: string | null; membership_types: string[] | null } | { id: string; ten_card_holder_id: string | null; primary_payment_method: string | null; membership_types: string[] | null }[];
         };
-        (upcomingBookings as UpcomingRow[] | null)?.forEach(row => {
+        const purchaseByHolder = new Map<string, string | null>(
+          tenCardHolders.map(m => [m.id, m.ten_card_purchase_date])
+        );
+        (tenCardBookings as Row[] | null)?.forEach(row => {
           const booker = Array.isArray(row.members) ? row.members[0] : row.members;
-          if (!booker) return;
+          const ws = Array.isArray(row.weekly_sessions) ? row.weekly_sessions[0] : row.weekly_sessions;
+          if (!booker || !ws?.date) return;
           const effectiveMethod = booker.primary_payment_method || booker.membership_types?.[0] || null;
           if (effectiveMethod !== 'ten_card') return;
           const holderId = booker.ten_card_holder_id || booker.id;
-          upcomingTenCardMap[holderId] = (upcomingTenCardMap[holderId] || 0) + 1;
+          const purchaseDate = purchaseByHolder.get(holderId);
+          // Bound by the holder's card purchase date — bookings before that
+          // belong to a previous card and should not count against this one.
+          if (purchaseDate && ws.date < purchaseDate) return;
+          if (ws.date >= todayIso) {
+            if (row.status !== 'confirmed') return; // only confirmed reserves a future slot
+            upcomingTenCardMap[holderId] = (upcomingTenCardMap[holderId] || 0) + 1;
+          } else {
+            pastTenCardMap[holderId] = (pastTenCardMap[holderId] || 0) + 1;
+          }
         });
       }
 
@@ -240,6 +256,7 @@ export function useMemberData() {
         attendance_count: attendanceMap[member.id] || 0,
         last_attendance_date: lastAttendanceMap[member.id] || null,
         upcoming_ten_card_bookings: upcomingTenCardMap[member.id] || 0,
+        past_ten_card_bookings: pastTenCardMap[member.id] || 0,
       }));
 
       // Family members inherit subscription status from their primary member

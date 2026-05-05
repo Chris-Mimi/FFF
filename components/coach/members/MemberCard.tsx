@@ -109,23 +109,29 @@ export default function MemberCard({
               </span>
             )}
             {member.membership_types?.includes('ten_card') && (() => {
-              const total = member.ten_card_sessions_used || 0;
+              const counter = member.ten_card_sessions_used || 0;
+              const past = member.past_ten_card_bookings || 0;
               const upcoming = member.upcoming_ten_card_bookings || 0;
-              const consumed = Math.max(0, total - upcoming);
-              const tooltip = upcoming > 0
-                ? `10-card: ${consumed} consumed + ${upcoming} upcoming = ${total}/10. Click to manage.`
-                : `10-card: ${total}/10 sessions claimed. Click to manage.`;
+              const actualTotal = past + upcoming;
+              const mismatch = counter !== actualTotal;
+              const display = upcoming > 0 ? `${past}+${upcoming}/10` : `${past}/10`;
+              const tooltip = mismatch
+                ? `10-card: ${past} past + ${upcoming} upcoming = ${actualTotal}/10 (counter manually set to ${counter} — mismatch). Click to manage.`
+                : upcoming > 0
+                  ? `10-card: ${past} past + ${upcoming} upcoming = ${actualTotal}/10. Click to manage.`
+                  : `10-card: ${past}/10 sessions claimed. Click to manage.`;
               return (
                 <button
                   onClick={() => onOpenTenCard(member)}
-                  className={`px-2 py-0.5 rounded text-xs font-medium transition cursor-pointer ${
-                    total >= 9
+                  className={`px-2 py-0.5 rounded text-xs font-medium transition cursor-pointer flex items-center gap-1 ${
+                    counter >= 9
                       ? 'bg-red-600 text-white hover:bg-red-700'
                       : 'bg-purple-600 text-white hover:bg-purple-700'
                   }`}
                   title={tooltip}
                 >
-                  {upcoming > 0 ? `${consumed}+${upcoming}/10` : `${total}/10`}
+                  <span>{display}</span>
+                  {mismatch && <span className="text-amber-300" aria-label="counter mismatch">⚠</span>}
                 </button>
               );
             })()}
