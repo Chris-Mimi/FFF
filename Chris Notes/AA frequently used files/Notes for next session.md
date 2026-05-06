@@ -24,7 +24,8 @@ http://192.168.178.75:3000
 * Write a script to retroactively book registered athletes according to their whiteboard names. If Rosita appears in the Whiteboard, book her in the session management modal so it updates her 10-card use.
 * Barbell names do we need "Barbell"
 * Macbook still has internet problem at the box. Old Macbook Pro works fine.
-* 
+* Guardian only should not appear in any athletes list
+* Formatting titles doesn't work in My Notes in "Aids" tab (Toolkit)
 
 # Coach library #
 
