@@ -112,19 +112,30 @@ export default function MemberCard({
               const counter = member.ten_card_sessions_used || 0;
               const past = member.past_ten_card_bookings || 0;
               const upcoming = member.upcoming_ten_card_bookings || 0;
-              const actualTotal = past + upcoming;
-              const mismatch = counter !== actualTotal;
-              const display = upcoming > 0 ? `${past}+${upcoming}/10` : `${past}/10`;
-              const tooltip = mismatch
-                ? `10-card: ${past} past + ${upcoming} upcoming = ${actualTotal}/10 (counter manually set to ${counter} — mismatch). Click to manage.`
+              const total = member.ten_card_total ?? 10;
+              const mismatch = counter !== past + upcoming;
+              // Mismatch (manual override): trust the counter — that's the coach's recorded
+              // truth for this card. Match (auto-incremented): split into past+upcoming when
+              // there are upcoming bookings, otherwise just show the count.
+              const display = mismatch
+                ? `${counter}/${total}`
                 : upcoming > 0
-                  ? `10-card: ${past} past + ${upcoming} upcoming = ${actualTotal}/10. Click to manage.`
-                  : `10-card: ${past}/10 sessions claimed. Click to manage.`;
+                  ? `${past}+${upcoming}/${total}`
+                  : `${counter}/${total}`;
+              const actual = past + upcoming;
+              const diff = counter - actual;
+              const tooltip = mismatch
+                ? diff > 0
+                  ? `10-card: ${counter}/${total} used. ${actual} from recorded bookings (${past} past + ${upcoming} upcoming) + ${diff} manually added (e.g. pre-app sessions). Click to manage.`
+                  : `10-card: counter shows ${counter}/${total} but recorded bookings total ${actual} (${past} past + ${upcoming} upcoming) — counter is lower than actual, may need Recalc. Click to manage.`
+                : upcoming > 0
+                  ? `10-card: ${past} past + ${upcoming} upcoming = ${counter}/${total}. Click to manage.`
+                  : `10-card: ${counter}/${total} sessions claimed. Click to manage.`;
               return (
                 <button
                   onClick={() => onOpenTenCard(member)}
                   className={`px-2 py-0.5 rounded text-xs font-medium transition cursor-pointer flex items-center gap-1 ${
-                    counter >= 9
+                    counter >= total - 1
                       ? 'bg-red-600 text-white hover:bg-red-700'
                       : 'bg-purple-600 text-white hover:bg-purple-700'
                   }`}

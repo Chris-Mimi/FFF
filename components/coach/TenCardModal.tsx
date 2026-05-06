@@ -245,7 +245,9 @@ export default function TenCardModal({
   };
 
   const sessionsRemaining = tenCardTotal - sessionsUsed;
-  const isNearExpiry = sessionsUsed >= tenCardTotal - 1;
+  const isFull = sessionsUsed >= tenCardTotal;
+  const isOneAwayFromFull = sessionsUsed === tenCardTotal - 1;
+  const isNearExpiry = isFull || isOneAwayFromFull;
 
   return (
     <FocusTrap>
@@ -321,7 +323,12 @@ export default function TenCardModal({
                    subscriptionStatus === 'trial' ? 'Trial' : 'Expired'}
                 </div>
               )}
-              {activeSection === '10card' && isNearExpiry && (
+              {activeSection === '10card' && isFull && (
+                <p className="text-red-600 text-xs mt-2 font-medium">
+                  ⚠️ Card is full — issue a new card before next booking
+                </p>
+              )}
+              {activeSection === '10card' && isOneAwayFromFull && (
                 <p className="text-red-600 text-xs mt-2 font-medium">
                   ⚠️ Next session will complete this card
                 </p>
