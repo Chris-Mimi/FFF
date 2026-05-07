@@ -17,15 +17,28 @@ interface SectionResult {
   dnf?: boolean;
 }
 
+interface SectionScoringFields {
+  load?: boolean;
+  load2?: boolean;
+  load3?: boolean;
+  scaling?: boolean;
+  scaling_2?: boolean;
+  scaling_3?: boolean;
+}
+
 /**
  * Save section result to database (atomic upsert using unique constraint)
+ *
+ * scoringFields gates load/scaling slots so legacy values from before a coach
+ * toggled a field off can't ride along on the next save.
  */
 export async function saveSectionResult(
   userId: string,
   wodId: string,
   sectionId: string,
   result: SectionResult,
-  workoutDate: string
+  workoutDate: string,
+  scoringFields?: SectionScoringFields
 ): Promise<void> {
   // Don't save if all fields are empty
   if (!result.time_result && !result.reps_result && !result.weight_result && !result.weight_result_2 && !result.weight_result_3 &&
@@ -70,6 +83,14 @@ export async function saveSectionResult(
       throw new Error('Your coach has already recorded your score for this section. Use "Query Score" if you believe it\'s incorrect.');
     }
 
+    const sf = scoringFields;
+    const allowLoad1 = sf?.load !== false;
+    const allowLoad2 = sf?.load2 !== false;
+    const allowLoad3 = sf?.load3 !== false;
+    const allowScaling1 = sf?.scaling !== false;
+    const allowScaling2 = sf?.scaling_2 !== false;
+    const allowScaling3 = sf?.scaling_3 !== false;
+
     // Atomic upsert — relies on unique index (user_id, wod_id, section_id, workout_date)
     const { error } = await supabase
       .from('wod_section_results')
@@ -80,12 +101,12 @@ export async function saveSectionResult(
         workout_date: workoutDate,
         time_result: result.time_result || null,
         reps_result: parsedReps,
-        weight_result: parsedWeight,
-        weight_result_2: parsedWeight2,
-        weight_result_3: parsedWeight3,
-        scaling_level: result.scaling_level || null,
-        scaling_level_2: result.scaling_level_2 || null,
-        scaling_level_3: result.scaling_level_3 || null,
+        weight_result: allowLoad1 ? parsedWeight : null,
+        weight_result_2: allowLoad2 ? parsedWeight2 : null,
+        weight_result_3: allowLoad3 ? parsedWeight3 : null,
+        scaling_level: allowScaling1 ? (result.scaling_level || null) : null,
+        scaling_level_2: allowScaling2 ? (result.scaling_level_2 || null) : null,
+        scaling_level_3: allowScaling3 ? (result.scaling_level_3 || null) : null,
         rounds_result: parsedRounds,
         calories_result: parsedCalories,
         metres_result: parsedMetres,

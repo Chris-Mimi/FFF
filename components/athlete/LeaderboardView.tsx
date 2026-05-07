@@ -81,6 +81,7 @@ interface LeaderboardItem {
   benchmarkType?: string;
   // Content fields
   scoringType?: string;
+  scoringFields?: ScoringFields;
   contentSectionId?: string;
 }
 
@@ -192,6 +193,7 @@ function extractLeaderboardItems(wod: WodData): LeaderboardItem[] {
         label: `${labelPrefix} - ${scoringLabel}${section.duration ? ` (${section.duration}m)` : ''}`,
         sectionIndex,
         scoringType,
+        scoringFields: sf,
         contentSectionId: `${section.id}-content-0`,
       });
     }
@@ -908,8 +910,9 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
         }
 
         const scoringType = selectedItem.scoringType || 'time';
+        const sectionScoringFields = selectedItem.scoringFields;
         if (isGrouped) {
-          filtered = bestResultPerUser(filtered, scoringType);
+          filtered = bestResultPerUser(filtered, scoringType, sectionScoringFields);
         }
 
         const userIds = [...new Set(filtered.map(r => r.user_id))];
@@ -976,7 +979,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
           }
         }
 
-        const ranked = rankSectionResults(filtered, memberNames, scoringType, fetchedGenders, fetchedAges);
+        const ranked = rankSectionResults(filtered, memberNames, scoringType, fetchedGenders, fetchedAges, sectionScoringFields);
         setEntries(ranked);
 
         if (ranked.length > 0) {

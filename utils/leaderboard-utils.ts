@@ -113,11 +113,15 @@ interface ScoringFields {
   max_time?: boolean;
   reps?: boolean;
   load?: boolean;
+  load2?: boolean;
+  load3?: boolean;
   rounds_reps?: boolean;
   calories?: boolean;
   metres?: boolean;
   checkbox?: boolean;
   scaling?: boolean;
+  scaling_2?: boolean;
+  scaling_3?: boolean;
   time_amrap?: boolean;
 }
 
@@ -260,10 +264,16 @@ function compareByScoringType(a: RawSectionResult, b: RawSectionResult, type: st
  */
 export function bestResultPerUser(
   results: RawSectionResult[],
-  scoringType: string
+  scoringType: string,
+  scoringFields?: ScoringFields
 ): RawSectionResult[] {
   const best = new Map<string, RawSectionResult>();
-  for (const r of results) {
+  // Mask off load slots that the section doesn't expose so they don't drive
+  // weight tiebreakers across stale data.
+  const masked = scoringFields
+    ? results.map((r) => maskDisabledFields(r, scoringFields))
+    : results;
+  for (const r of masked) {
     const key = r.user_id || (r.member_id ? `member:${r.member_id}` : `wb:${r.whiteboard_name}`);
     const existing = best.get(key);
     if (!existing) {
@@ -285,13 +295,32 @@ export function bestResultPerUser(
 /**
  * Rank WOD section results by scoring type.
  */
+/**
+ * Null out fields the section's scoring_fields says are off, so stale data
+ * (saved before a coach toggled a field off) doesn't affect ranking. Returns
+ * a shallow copy so callers don't mutate inputs.
+ */
+function maskDisabledFields(r: RawSectionResult, sf: ScoringFields): RawSectionResult {
+  return {
+    ...r,
+    weight_result: sf.load === false ? null : r.weight_result,
+    weight_result_2: sf.load2 === false ? null : r.weight_result_2,
+    weight_result_3: sf.load3 === false ? null : r.weight_result_3,
+    scaling_level: sf.scaling === false ? null : r.scaling_level,
+    scaling_level_2: sf.scaling_2 === false ? null : r.scaling_level_2,
+    scaling_level_3: sf.scaling_3 === false ? null : r.scaling_level_3,
+  };
+}
+
 export function rankSectionResults(
   results: RawSectionResult[],
   memberNames: Record<string, string>,
   scoringType: string,
   memberGenders?: Record<string, string | null>,
-  memberAges?: Record<string, number | null>
+  memberAges?: Record<string, number | null>,
+  scoringFields?: ScoringFields
 ): LeaderboardEntry[] {
+  if (scoringFields) results = results.map((r) => maskDisabledFields(r, scoringFields));
   // Filter out results with no meaningful data
   // Check primary scoring field first, then fall back to any non-empty field
   const hasAnyData = (r: RawSectionResult) =>

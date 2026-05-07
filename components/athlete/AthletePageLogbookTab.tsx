@@ -136,8 +136,8 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
     setCoachLockedSections(locked);
   };
 
-  const saveSectionResultWrapper = async (wodId: string, sectionId: string, result: SectionResult, workoutDate: string) => {
-    await saveSectionResult(userId, wodId, sectionId, result, workoutDate);
+  const saveSectionResultWrapper = async (wodId: string, sectionId: string, result: SectionResult, workoutDate: string, scoringFields?: { load?: boolean; load2?: boolean; load3?: boolean; scaling?: boolean; scaling_2?: boolean; scaling_3?: boolean }) => {
+    await saveSectionResult(userId, wodId, sectionId, result, workoutDate, scoringFields);
   };
 
   // UNIFIED SAVE FUNCTION - Handles all scoring data (lifts, benchmarks, forge, content) and notes
@@ -258,7 +258,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
           }
         } else if (itemIdentifier.startsWith('content-')) {
           // Save as general section result (free-form exercise)
-          await saveSectionResultWrapper(wodId, `${sectionId}-${itemIdentifier}`, result, workoutDate);
+          await saveSectionResultWrapper(wodId, `${sectionId}-${itemIdentifier}`, result, workoutDate, section.scoring_fields);
           savedCount++;
         }
       } catch (error) {

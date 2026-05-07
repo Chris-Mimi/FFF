@@ -43,8 +43,17 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
         // the leaderboard / analytics weeks later. Also cascades to lift_records (which
         // have no section_id, so we match on (lift_name, rep_max_type|rep_scheme) tuples
         // and only delete tuples not still present in a kept section).
+        type SectionScoringFields = {
+          load?: boolean;
+          load2?: boolean;
+          load3?: boolean;
+          scaling?: boolean;
+          scaling_2?: boolean;
+          scaling_3?: boolean;
+        };
         type OldSection = {
           id: string;
+          scoring_fields?: SectionScoringFields;
           lifts?: Array<{
             name?: string;
             rm_test?: string;
@@ -152,6 +161,45 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
                 .in('id', liftRowsToDelete);
               if (liftDelErr) throw liftDelErr;
             }
+          }
+        }
+
+        // For sections that survived the edit, detect any scoring_fields that
+        // flipped from true → false and null the corresponding columns on
+        // existing wod_section_results. Without this, the leaderboard ranker's
+        // safeguard would still hide the values, but stale data would persist
+        // in the DB and could resurface if the toggle is flipped back on.
+        const newSectionsByid = new Map(
+          ((wodData.sections || []) as OldSection[]).map((s) => [s.id, s])
+        );
+        const fieldToColumn: Array<{
+          field: keyof SectionScoringFields;
+          column: string;
+        }> = [
+          { field: 'load', column: 'weight_result' },
+          { field: 'load2', column: 'weight_result_2' },
+          { field: 'load3', column: 'weight_result_3' },
+          { field: 'scaling', column: 'scaling_level' },
+          { field: 'scaling_2', column: 'scaling_level_2' },
+          { field: 'scaling_3', column: 'scaling_level_3' },
+        ];
+        for (const oldS of oldSections) {
+          const newS = newSectionsByid.get(oldS.id);
+          if (!newS) continue;
+          const oldSf = oldS.scoring_fields || {};
+          const newSf = newS.scoring_fields || {};
+          const cleared: Record<string, null> = {};
+          for (const { field, column } of fieldToColumn) {
+            if (oldSf[field] === true && newSf[field] !== true) {
+              cleared[column] = null;
+            }
+          }
+          if (Object.keys(cleared).length > 0) {
+            await supabase
+              .from('wod_section_results')
+              .update(cleared)
+              .eq('wod_id', editingWOD.id!)
+              .eq('section_id', `${oldS.id}-content-0`);
           }
         }
 

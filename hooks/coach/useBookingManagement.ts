@@ -338,13 +338,29 @@ export function useBookingManagement({
         .single();
 
       if (session?.workout_id) {
+        // Resolve the member's auth user id. Athlete-entered scores save with
+        // user_id = auth.users.id, which is a different UUID from members.id —
+        // the previous OR clause testing both columns against memberId would
+        // miss those rows and leave the leaderboard / lifts tab populated.
+        let authUserId: string | null = null;
+        try {
+          const res = await authFetch(`/api/coach/resolve-auth-user?memberId=${memberId}`);
+          if (res.ok) {
+            const j = await res.json();
+            authUserId = (j.userId as string | null) ?? null;
+          }
+        } catch {
+          // fall through — deletion via member_id still runs
+        }
+        const userIdFilter = authUserId ?? memberId;
+
         // Capture user_ids from wod_section_results before deletion — lift_records
         // only has user_id (auth.users.id), which can differ from members.id.
         const { data: existingResults } = await supabase
           .from('wod_section_results')
           .select('user_id')
           .eq('wod_id', session.workout_id)
-          .or(`member_id.eq.${memberId},user_id.eq.${memberId}`);
+          .or(`member_id.eq.${memberId},user_id.eq.${userIdFilter}`);
 
         const userIds = [...new Set((existingResults || []).map(r => r.user_id).filter(Boolean))];
 
@@ -353,7 +369,7 @@ export function useBookingManagement({
           .from('wod_section_results')
           .delete()
           .eq('wod_id', session.workout_id)
-          .or(`member_id.eq.${memberId},user_id.eq.${memberId}`);
+          .or(`member_id.eq.${memberId},user_id.eq.${userIdFilter}`);
 
         if (userIds.length > 0) {
           await supabase

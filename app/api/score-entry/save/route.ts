@@ -114,6 +114,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Look up the section scoring_fields so we can null out fields the section
+    // doesn't expose. Without this guard, a payload carrying e.g. scaling_level
+    // when the section has scaling=false would persist a stale value that the
+    // leaderboard ranker still reads.
+    const { data: wodForSections } = await supabaseAdmin
+      .from('wods')
+      .select('sections')
+      .eq('id', wodId)
+      .maybeSingle();
+    type SectionFields = { load?: boolean; load2?: boolean; load3?: boolean; scaling?: boolean; scaling_2?: boolean; scaling_3?: boolean };
+    const fieldsBySection = new Map<string, SectionFields>();
+    for (const s of (wodForSections?.sections as Array<{ id?: string; scoring_fields?: SectionFields }> | null) || []) {
+      if (s?.id && s.scoring_fields) fieldsBySection.set(s.id, s.scoring_fields);
+    }
+    const maskRecord = <T extends Record<string, unknown>>(record: T, sectionId: string): T => {
+      const sf = fieldsBySection.get(sectionId);
+      if (!sf) return record;
+      return {
+        ...record,
+        weight_result: sf.load === false ? null : record.weight_result,
+        weight_result_2: sf.load2 === false ? null : record.weight_result_2,
+        weight_result_3: sf.load3 === false ? null : record.weight_result_3,
+        scaling_level: sf.scaling === false ? null : record.scaling_level,
+        scaling_level_2: sf.scaling_2 === false ? null : record.scaling_level_2,
+        scaling_level_3: sf.scaling_3 === false ? null : record.scaling_level_3,
+      };
+    };
+
     // Split scores into member-based and whiteboard-based
     const memberScores = scores.filter(s => s.memberId);
     const whiteboardScores = scores.filter(s => s.whiteboardName && !s.memberId);
@@ -161,7 +189,7 @@ export async function POST(request: NextRequest) {
       const memberEmail = memberIdToEmail[score.memberId!];
       const userId = memberEmail ? emailToUserId[memberEmail] || null : null;
 
-      records.push({
+      records.push(maskRecord({
         wod_id: wodId,
         workout_date: workoutDate,
         member_id: score.memberId!,
@@ -183,7 +211,7 @@ export async function POST(request: NextRequest) {
         task_completed: score.task_completed ?? null,
         dnf: score.dnf ?? false,
         updated_at: new Date().toISOString(),
-      });
+      }, score.sectionId));
     }
 
     // Whiteboard-based scores
@@ -195,7 +223,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: validationError }, { status: 400 });
       }
 
-      records.push({
+      records.push(maskRecord({
         wod_id: wodId,
         workout_date: workoutDate,
         member_id: null,
@@ -217,7 +245,7 @@ export async function POST(request: NextRequest) {
         task_completed: score.task_completed ?? null,
         dnf: score.dnf ?? false,
         updated_at: new Date().toISOString(),
-      });
+      }, score.sectionId));
     }
 
     if (records.length === 0) {

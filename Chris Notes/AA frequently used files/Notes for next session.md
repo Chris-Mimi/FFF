@@ -26,6 +26,9 @@ http://192.168.178.75:3000
 * Macbook still has internet problem at the box. Old Macbook Pro works fine.
 * Guardian only should not appear in any athletes list
 * Formatting titles doesn't work in My Notes in "Aids" tab (Toolkit)
+* Not recording my 3 & 1rm Deadlift or my 1km Rower in Forge
+* review the rep max calculator to show clearer percentages
+* Lifts modal coach-side should save last variable rep scheme
 
 # Coach library #
 
