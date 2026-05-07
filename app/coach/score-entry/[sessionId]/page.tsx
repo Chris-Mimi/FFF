@@ -112,15 +112,21 @@ export default function ScoreEntryPage() {
                   (selectedSection.benchmarks?.length ?? 0) > 0 ||
                   (selectedSection.forge_benchmarks?.length ?? 0) > 0) && (
                   <div className="mt-2 flex flex-wrap gap-1.5">
-                    {selectedSection.lifts?.map((l, i) => (
-                      <span
-                        key={`lift-${i}`}
-                        className="text-xs px-2 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-200"
-                      >
-                        {l.name}
-                        {l.rm_test ? ` · ${l.rm_test}` : ''}
-                      </span>
-                    ))}
+                    {selectedSection.lifts?.map((l, i) => {
+                      const repScheme = l.rm_test
+                        ? l.rm_test
+                        : l.rep_type === 'constant'
+                          ? `${l.sets || 1}x${l.reps || 1}`
+                          : l.variable_sets?.map(s => s.reps).join('-') || '';
+                      return (
+                        <span
+                          key={`lift-${i}`}
+                          className="text-xs px-2 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-200"
+                        >
+                          {l.name}{repScheme ? ` · ${repScheme}` : ''}
+                        </span>
+                      );
+                    })}
                     {selectedSection.benchmarks?.map((b, i) => (
                       <span
                         key={`bm-${i}`}

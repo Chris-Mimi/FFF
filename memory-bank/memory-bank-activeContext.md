@@ -75,6 +75,8 @@ _Updated at every session close. The "first 5 minutes of tomorrow" — read this
 - (Carry from S321) `Chris Notes/AA frequently used files/Notes for next session.md` is **Chris-owned** — Claude does NOT read/write content, but DOES commit/push when modified.
 - (Carry) `bookings.is_og` migration in production. `sessionStartInstant()` in `lib/bookingRules.ts` for TZ-safe gates.
 
+**Coach score-entry has TWO UIs sharing the `useScoreEntry` hook (S339-followup).** [components/coach/score-entry/ScoreEntryModal.tsx](components/coach/score-entry/ScoreEntryModal.tsx) is opened from `/coach` (the modal Chris uses day-to-day). [app/coach/score-entry/[sessionId]/page.tsx](app/coach/score-entry/[sessionId]/page.tsx) is the full-page route. **They share data fetching + save logic via `useScoreEntry`, but render JSX is duplicated.** Any visual change (chip rows, layout, section preview) MUST land in BOTH files. The S339 chip row was only added to the page on first pass; the modal showed nothing — exactly the symptom Chris reported on follow-up. If you find UI divergence between the two, treat it as a bug.
+
 **Open questions still unanswered:** none active.
 
 ---
@@ -154,6 +156,7 @@ Athlete Tools
   - **First diagnosis was wrong direction.** I started chasing the in-WOD athlete logbook flow before Chris clarified he saved through the coach-side modal. Asked one disambiguating question instead of guessing — saved an exploration cycle. Per `feedback_ask_when_unsure.md`.
   - **Asked "is dual-entry the cause?" — Chris's instinct was right that something was odd, wrong about which thing.** The dual entry was a UX papercut (could be fixed independently) but had nothing to do with the cascade bug. Worth surfacing both as separate work items rather than conflating.
   - **Single commit covers both fixes** — same code surface (score-entry flow), same trigger (Chris's 1km Rower test). Splitting would have produced two near-identical commit bodies.
+  - **S339-followup checkpoint (same day):** chip didn't land in `ScoreEntryModal.tsx` — only in the page route. Both UIs share `useScoreEntry` (saveScores cascade did fire from both), but the render JSX is duplicated. Patched modal + aligned page lift-chip rep-scheme display so both UIs match.
 
 **Session 338 (2026-05-07 — Opus 4.7) — LEADERBOARD IGNORES DISABLED SCORING FIELDS (READ + WRITE + TOGGLE-OFF + 146-ROW CLEANUP) + CANCEL-BOOKING FINDS ATHLETE-SELF-ENTERED SCORES:**
 - **Bug 1 trigger.** Chris flagged the AKBS Deadlift leaderboard ranking him (47 reps · 20 kg · T2) below Madeleine (48 reps · 12 kg · T2). Service-role probe revealed the screenshot section (`section-1774340929806`, "WOD Pt.3") had `scoring_fields.scaling: false` but every row still had `scaling_level` populated from before the toggle was flipped. Aggregate scaling (chain rank: tier → track → scaling → score) silently demoted Sc1 entries below Rx — invisibly, because the display correctly hid scaling badges per S325's `formatResult` gate.

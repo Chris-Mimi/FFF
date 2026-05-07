@@ -92,26 +92,50 @@ export default function ScoreEntryModal({ sessionId, onClose }: ScoreEntryModalP
                   </span>
                 </div>
 
-                {/* Lift info + section content preview */}
-                {selectedSection && (
-                  <div className="mt-2 px-3 py-2 bg-gray-50 rounded border border-gray-200 text-xs text-gray-600 max-h-32 overflow-y-auto">
-                    {selectedSection.lifts?.map((lift, i) => {
-                      const repScheme = lift.rm_test
-                        ? lift.rm_test
-                        : lift.rep_type === 'constant'
-                          ? `${lift.sets || 1}x${lift.reps || 1}`
-                          : lift.variable_sets?.map(s => s.reps).join('-') || '';
-                      return (
-                        <div key={i} className="font-semibold text-gray-800">
-                          {lift.name} {repScheme}
-                        </div>
-                      );
-                    })}
-                    {selectedSection.content && (
-                      <div className={`whitespace-pre-line${selectedSection.lifts?.length ? ' mt-1' : ''}`}>
-                        {selectedSection.content}
-                      </div>
-                    )}
+                {/* Configured movements — lift / benchmark / forge benchmark chips */}
+                {selectedSection &&
+                  ((selectedSection.lifts?.length ?? 0) > 0 ||
+                    (selectedSection.benchmarks?.length ?? 0) > 0 ||
+                    (selectedSection.forge_benchmarks?.length ?? 0) > 0) && (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {selectedSection.lifts?.map((lift, i) => {
+                        const repScheme = lift.rm_test
+                          ? lift.rm_test
+                          : lift.rep_type === 'constant'
+                            ? `${lift.sets || 1}x${lift.reps || 1}`
+                            : lift.variable_sets?.map(s => s.reps).join('-') || '';
+                        return (
+                          <span
+                            key={`lift-${i}`}
+                            className="text-xs px-2 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-200"
+                          >
+                            {lift.name}{repScheme ? ` · ${repScheme}` : ''}
+                          </span>
+                        );
+                      })}
+                      {selectedSection.benchmarks?.map((b, i) => (
+                        <span
+                          key={`bm-${i}`}
+                          className="text-xs px-2 py-0.5 rounded bg-teal-50 text-teal-800 border border-teal-200"
+                        >
+                          Benchmark · {b.name}
+                        </span>
+                      ))}
+                      {selectedSection.forge_benchmarks?.map((f, i) => (
+                        <span
+                          key={`fb-${i}`}
+                          className="text-xs px-2 py-0.5 rounded bg-cyan-50 text-cyan-800 border border-cyan-200"
+                        >
+                          Forge · {f.name}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                {/* Section content preview */}
+                {selectedSection?.content && (
+                  <div className="mt-2 px-3 py-2 bg-gray-50 rounded border border-gray-200 text-xs text-gray-600 whitespace-pre-line max-h-32 overflow-y-auto">
+                    {selectedSection.content}
                   </div>
                 )}
               </div>
