@@ -1,18 +1,23 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { Check, X } from 'lucide-react';
-import type { PatternWithExercises, ProgrammingPlanItem, PlanningGridWeek, WeeklyCoverageMap } from '@/types/planner';
+import { useMemo, useState, Fragment } from 'react';
+import { Check, X, ChevronRight, ChevronDown } from 'lucide-react';
+import type { PatternWithExercises, ProgrammingPlanItem, PlanningGridWeek, WeeklyCoverageMap, PatternGapResult } from '@/types/planner';
 import { getMonday, generateWeeks } from '@/utils/pattern-analytics';
 import { formatDate } from '@/utils/date-utils';
+import PatternExerciseChips from './PatternExerciseChips';
 
 interface PlanningGridProps {
   patterns: PatternWithExercises[];
   planItems: ProgrammingPlanItem[];
   coverage: WeeklyCoverageMap; // weekMonday → patternId → { exercises[], dates[] }
+  gaps: PatternGapResult[];
   onTogglePlan: (patternId: string, weekStart: string) => void;
+  onOpenExercisePicker: (patternId: string) => void;
+  onRemoveExercise: (patternId: string, exerciseId: string) => Promise<void> | void;
   pastWeeks?: number;
   futureWeeks?: number;
+  anchorDate?: Date;
 }
 
 interface SelectedPast {
@@ -27,12 +32,18 @@ export default function PlanningGrid({
   patterns,
   planItems,
   coverage,
+  gaps,
   onTogglePlan,
+  onOpenExercisePicker,
+  onRemoveExercise,
   pastWeeks = 6,
   futureWeeks = 12,
+  anchorDate,
 }: PlanningGridProps) {
+  const [inlineExpandedId, setInlineExpandedId] = useState<string | null>(null);
+  const anchorTime = anchorDate?.getTime();
   const weeks: PlanningGridWeek[] = useMemo(() => {
-    const mondayStrs = generateWeeks(pastWeeks, futureWeeks);
+    const mondayStrs = generateWeeks(pastWeeks, futureWeeks, anchorTime ? new Date(anchorTime) : undefined);
     const currentMonday = formatDate(getMonday(new Date()));
 
     return mondayStrs.map(ws => {
@@ -44,7 +55,7 @@ export default function PlanningGrid({
         isCurrent: ws === currentMonday,
       };
     });
-  }, [pastWeeks, futureWeeks]);
+  }, [pastWeeks, futureWeeks, anchorTime]);
 
   // Build plan item lookup: `${patternId}_${weekStart}` → PlanItem
   const planLookup = useMemo(() => {
@@ -97,18 +108,31 @@ export default function PlanningGrid({
             </tr>
           </thead>
           <tbody>
-            {patterns.map(pattern => (
-              <tr key={pattern.id} className='hover:bg-gray-50/50'>
+            {patterns.map(pattern => {
+              const isInlineExpanded = inlineExpandedId === pattern.id;
+              return (
+              <Fragment key={pattern.id}>
+              <tr className='hover:bg-gray-50/50'>
                 <td className='sticky left-0 z-10 bg-white px-3 py-2 border-b border-r'>
-                  <div className='flex items-center gap-2'>
+                  <button
+                    type='button'
+                    onClick={() => setInlineExpandedId(isInlineExpanded ? null : pattern.id)}
+                    className='flex items-center gap-1.5 w-full text-left hover:text-[#178da6] transition'
+                    title='Show exercises in this pattern'
+                  >
+                    {isInlineExpanded ? (
+                      <ChevronDown size={12} className='shrink-0 text-gray-400' />
+                    ) : (
+                      <ChevronRight size={12} className='shrink-0 text-gray-400' />
+                    )}
                     <div
                       className='w-2.5 h-2.5 rounded-full shrink-0'
                       style={{ backgroundColor: pattern.color }}
                     />
-                    <span className='text-xs md:text-sm font-medium text-gray-800 truncate'>
+                    <span className='text-xs md:text-sm font-medium truncate'>
                       {pattern.name}
                     </span>
-                  </div>
+                  </button>
                 </td>
                 {weeks.map(week => {
                   const isCovered = coverage.get(week.weekStart)?.has(pattern.id) || false;
@@ -194,7 +218,21 @@ export default function PlanningGrid({
                   );
                 })}
               </tr>
-            ))}
+              {isInlineExpanded && (
+                <tr>
+                  <td colSpan={weeks.length + 1} className='bg-gray-50/60 border-b px-3 py-2'>
+                    <PatternExerciseChips
+                      pattern={pattern}
+                      gaps={gaps}
+                      onOpenExercisePicker={onOpenExercisePicker}
+                      onRemoveExercise={onRemoveExercise}
+                    />
+                  </td>
+                </tr>
+              )}
+              </Fragment>
+              );
+            })}
           </tbody>
         </table>
       </div>

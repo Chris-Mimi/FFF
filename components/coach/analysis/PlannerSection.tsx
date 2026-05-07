@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import type { PatternWithExercises, ProgrammingPlanItem, PatternGapResult, WeeklyCoverageMap } from '@/types/planner';
@@ -10,7 +10,7 @@ import PatternManager from './PatternManager';
 import PatternExercisePicker from './PatternExercisePicker';
 import PlannerInfoModal from './PlannerInfoModal';
 import UncategorizedExercises from './UncategorizedExercises';
-import { Info } from 'lucide-react';
+import { Info, ChevronLeft, ChevronRight } from 'lucide-react';
 
 import PlanningGrid from './PlanningGrid';
 
@@ -25,8 +25,18 @@ interface PlannerSectionProps {
   exercises: Exercise[];
 }
 
-const PAST_WEEKS = 6;
-const FUTURE_WEEKS = 12;
+type ViewMonths = 1 | 3 | 6 | 12;
+const VIEW_TO_WEEKS: Record<ViewMonths, number> = { 1: 5, 3: 13, 6: 26, 12: 52 };
+const VIEW_STORAGE_KEY = 'planner-view-months';
+
+function deriveWindow(viewMonths: ViewMonths, anchorOffsetWeeks: number) {
+  const totalWeeks = VIEW_TO_WEEKS[viewMonths];
+  const pastWeeks = Math.floor((totalWeeks - 1) / 2);
+  const futureWeeks = totalWeeks - 1 - pastWeeks;
+  const anchorDate = new Date();
+  anchorDate.setDate(anchorDate.getDate() + anchorOffsetWeeks * 7);
+  return { pastWeeks, futureWeeks, anchorDate };
+}
 
 export default function PlannerSection({ exercises }: PlannerSectionProps) {
   const [patterns, setPatterns] = useState<PatternWithExercises[]>([]);
@@ -46,6 +56,36 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
   // Track filter scopes the WODs feeding coverage/gap analysis.
   // Patterns themselves are shared across both tracks.
   const [trackFilter, setTrackFilter] = useState<'adults' | 'kids'>('adults');
+
+  // Date-window controls. viewMonths persists across page loads;
+  // anchor offset resets to 0 (centered on today) each load.
+  const [viewMonths, setViewMonths] = useState<ViewMonths>(3);
+  const [anchorOffsetWeeks, setAnchorOffsetWeeks] = useState(0);
+
+  // PatternManager is fully self-managed again — the grid expands inline
+  // (see PlanningGrid's inlineExpandedId state) so the upper panel doesn't
+  // need to be controlled from here.
+  const [expandedPatternId, setExpandedPatternId] = useState<string | null>(null);
+  const [patternsPanelOpen, setPatternsPanelOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const raw = window.localStorage.getItem(VIEW_STORAGE_KEY);
+    if (raw === '1' || raw === '3' || raw === '6' || raw === '12') {
+      setViewMonths(Number(raw) as ViewMonths);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem(VIEW_STORAGE_KEY, String(viewMonths));
+  }, [viewMonths]);
+
+  const { pastWeeks, futureWeeks, anchorDate } = useMemo(
+    () => deriveWindow(viewMonths, anchorOffsetWeeks),
+    [viewMonths, anchorOffsetWeeks],
+  );
+  const anchorTime = anchorDate.getTime();
 
   // Fetch patterns with their exercises (shared across tracks)
   const fetchPatterns = useCallback(async () => {
@@ -97,7 +137,7 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
     const { data: user } = await supabase.auth.getUser();
     if (!user.user) return;
 
-    const weeks = generateWeeks(PAST_WEEKS, FUTURE_WEEKS);
+    const weeks = generateWeeks(pastWeeks, futureWeeks, new Date(anchorTime));
     const startDate = weeks[0];
     const endDate = weeks[weeks.length - 1];
 
@@ -109,7 +149,7 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
       .lte('week_start', endDate);
 
     setPlanItems(data || []);
-  }, []);
+  }, [pastWeeks, futureWeeks, anchorTime]);
 
   // Compute gap analysis and coverage
   const computeAnalysis = useCallback(async (pats: PatternWithExercises[], filter: 'adults' | 'kids' = 'adults') => {
@@ -126,7 +166,7 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
       ? ['Kids & Teens']
       : ['WOD', 'Foundations', 'Foundations/WOD', 'Endurance', 'Session', 'Specialty/Party/Other'];
 
-    const weeks = generateWeeks(PAST_WEEKS, FUTURE_WEEKS);
+    const weeks = generateWeeks(pastWeeks, futureWeeks, new Date(anchorTime));
     const startDate = weeks[0];
     const endDate = weeks[weeks.length - 1];
 
@@ -138,7 +178,7 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
     setGaps(gapResults);
     setCoverage(coverageResults);
     setGapLoading(false);
-  }, []);
+  }, [pastWeeks, futureWeeks, anchorTime]);
 
   // Fetch exercise last-programmed dates for picker staleness styling
   const fetchExerciseLastDates = useCallback(async () => {
@@ -180,6 +220,20 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
     refresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trackFilter]);
+
+  // Re-fetch plan items + recompute coverage when the date window changes.
+  // Patterns themselves don't depend on the window, so we skip refetching them.
+  const isInitialMount = useRef(true);
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    if (patterns.length === 0) return;
+    fetchPlanItems();
+    computeAnalysis(patterns, trackFilter);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pastWeeks, futureWeeks, anchorTime]);
 
   // Pattern CRUD
   const handleCreatePattern = async (name: string, color: string) => {
@@ -439,15 +493,70 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
         onOpenExercisePicker={setPickerPatternId}
         onRemoveExercise={handleRemoveExercise}
         onReorderPatterns={handleReorderPatterns}
+        expandedPatternId={expandedPatternId}
+        onExpandedPatternChange={setExpandedPatternId}
+        isPanelOpen={patternsPanelOpen}
+        onPanelOpenChange={setPatternsPanelOpen}
       />
+
+      {/* Date-window controls */}
+      <div className='flex items-center justify-between gap-2 flex-wrap'>
+        <div className='flex items-center gap-1'>
+          <button
+            onClick={() => setAnchorOffsetWeeks(o => o - Math.max(1, Math.floor(VIEW_TO_WEEKS[viewMonths] / 2)))}
+            className='flex items-center gap-1 text-xs px-2.5 py-1 rounded border border-gray-200 text-gray-600 hover:border-[#178da6] hover:text-[#178da6] transition'
+            title='Scroll back'
+          >
+            <ChevronLeft size={14} />
+            <span>Prev</span>
+          </button>
+          <button
+            onClick={() => setAnchorOffsetWeeks(0)}
+            disabled={anchorOffsetWeeks === 0}
+            className='text-xs px-2.5 py-1 rounded border border-gray-200 text-gray-600 hover:border-[#178da6] hover:text-[#178da6] transition disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-gray-200 disabled:hover:text-gray-600'
+            title='Center on today'
+          >
+            Today
+          </button>
+          <button
+            onClick={() => setAnchorOffsetWeeks(o => o + Math.max(1, Math.floor(VIEW_TO_WEEKS[viewMonths] / 2)))}
+            className='flex items-center gap-1 text-xs px-2.5 py-1 rounded border border-gray-200 text-gray-600 hover:border-[#178da6] hover:text-[#178da6] transition'
+            title='Scroll forward'
+          >
+            <span>Next</span>
+            <ChevronRight size={14} />
+          </button>
+        </div>
+        <div className='flex rounded-lg border border-gray-200 overflow-hidden'>
+          {([1, 3, 6, 12] as ViewMonths[]).map((m, i) => (
+            <button
+              key={m}
+              onClick={() => setViewMonths(m)}
+              className={`px-3 py-1 text-xs font-medium transition ${
+                i > 0 ? 'border-l border-gray-200' : ''
+              } ${
+                viewMonths === m
+                  ? 'bg-[#178da6] text-white'
+                  : 'bg-white text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              {m}mo
+            </button>
+          ))}
+        </div>
+      </div>
 
       <PlanningGrid
         patterns={patterns}
         planItems={planItems}
         coverage={coverage}
+        gaps={gaps}
         onTogglePlan={handleTogglePlan}
-        pastWeeks={PAST_WEEKS}
-        futureWeeks={FUTURE_WEEKS}
+        onOpenExercisePicker={setPickerPatternId}
+        onRemoveExercise={handleRemoveExercise}
+        pastWeeks={pastWeeks}
+        futureWeeks={futureWeeks}
+        anchorDate={anchorDate}
       />
 
       <UncategorizedExercises

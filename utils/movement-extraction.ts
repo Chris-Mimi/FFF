@@ -152,22 +152,31 @@ const findMatchingExercise = (
     if (wpCanonical && knownExercisesLower.has(wpCanonical)) return normalizeMovement(wpCanonical);
   }
 
-  // 4. Substring matching — known exercise found within candidate or vice versa
+  // 4. Substring matching — known exercise found within candidate or vice versa.
+  // Collect all candidates and return the longest match, so more-specific names
+  // win over shorter substrings (e.g. "Sumo Deadlift" beats "Deadlift" when
+  // matching "Barbell Sumo Deadlift").
+  let bestMatch: string | null = null;
   for (const exercise of knownExercisesList) {
     if (exercise.length < 4) continue;
 
+    let isMatch = false;
     // Known exercise contained in candidate (e.g., "back squat" in "heavy back squats")
     if (lower.includes(exercise) || lower.includes(exercise + 's')) {
-      return normalizeMovement(exercise);
+      isMatch = true;
     }
     // Candidate contained in known exercise (e.g., "arch stretch" in "partner arch stretch")
     // Require candidate to be at least 60% of exercise name length to prevent
     // single words like "advanced" matching "advanced tuck planche"
-    if (lower.length >= 4 && lower.length >= exercise.length * 0.6 &&
+    else if (lower.length >= 4 && lower.length >= exercise.length * 0.6 &&
         (exercise.includes(lower) || exercise.includes(depluralized))) {
-      return normalizeMovement(exercise);
+      isMatch = true;
+    }
+    if (isMatch && (!bestMatch || exercise.length > bestMatch.length)) {
+      bestMatch = exercise;
     }
   }
+  if (bestMatch) return normalizeMovement(bestMatch);
 
   return null;
 };

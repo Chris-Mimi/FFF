@@ -229,13 +229,13 @@ export function getMonday(date: Date): Date {
 }
 
 /** Generate array of week start dates (Mondays, local time) for a range */
-export function generateWeeks(pastWeeks: number, futureWeeks: number): string[] {
-  const today = new Date();
-  const currentMonday = getMonday(today);
+export function generateWeeks(pastWeeks: number, futureWeeks: number, anchorDate?: Date): string[] {
+  const anchor = anchorDate || new Date();
+  const anchorMonday = getMonday(anchor);
   const weeks: string[] = [];
 
   for (let i = -pastWeeks; i <= futureWeeks; i++) {
-    const d = new Date(currentMonday);
+    const d = new Date(anchorMonday);
     d.setDate(d.getDate() + i * 7);
     weeks.push(formatDate(d));
   }
