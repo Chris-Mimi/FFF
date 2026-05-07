@@ -17,6 +17,7 @@ export async function GET(request: NextRequest) {
       .from('members')
       .select('id, name, display_name')
       .eq('status', 'active')
+      .eq('guardian_only', false)
       .in('athlete_subscription_status', ['trial', 'active'])
       .order('name');
 

@@ -108,7 +108,7 @@ export default function WorkoutModal({
             onTimeSave={hook.handleTimeUpdate}
             onTempTimeChange={hook.setTempTime}
             onUnpublish={hook.handleUnpublish}
-            onPublishClick={() => { hook.openPublishModal(); hook.setPublishModalOpen(true); }}
+            onPublishClick={hook.requestOpenPublishModal}
             onSave={async () => {
               if (hook.validate()) {
                 // Save any pending time changes first
@@ -337,7 +337,7 @@ export default function WorkoutModal({
             onTimeSave={hook.handleTimeUpdate}
             onTempTimeChange={hook.setTempTime}
             onUnpublish={hook.handleUnpublish}
-            onPublishClick={() => { hook.openPublishModal(); hook.setPublishModalOpen(true); }}
+            onPublishClick={hook.requestOpenPublishModal}
             onSave={async () => {
               if (hook.validate()) {
                 // Save any pending time changes first
@@ -401,7 +401,9 @@ export default function WorkoutModal({
 
               {/* Track */}
               <div>
-                <label className='block text-sm font-semibold mb-2 text-gray-900'>Track</label>
+                <label className='block text-sm font-semibold mb-2 text-gray-900'>
+                  Track <span className='text-red-500'>*</span>
+                </label>
                 <select
                   value={hook.formData.track_id || ''}
                   onChange={e => hook.handleChange('track_id', e.target.value)}

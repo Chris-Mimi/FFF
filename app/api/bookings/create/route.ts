@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
     // for themselves. Their family-member kids can still book via the primary→family path.
     if (member.guardian_only) {
       return NextResponse.json(
-        { error: 'Guardian-only accounts cannot book sessions. Book on behalf of a family member instead.' },
+        { error: 'Dein Konto ist nur für Erziehungsberechtigte eingerichtet — du trainierst nicht selbst. Füge zuerst ein Familienmitglied (z.B. dein Kind) hinzu, um einen Kurs zu buchen.' },
         { status: 403 }
       );
     }

@@ -100,6 +100,28 @@ export default function MultiSelectDropdown({
         />
       </button>
 
+      {/* Selected chips — visible without re-opening the picker */}
+      {selectedValues.length > 0 && (
+        <div className='mt-1.5 flex flex-wrap gap-1'>
+          {selectedValues.map((value) => (
+            <span
+              key={value}
+              className='inline-flex items-center gap-1 px-2 py-0.5 bg-teal-50 text-teal-800 border border-teal-200 rounded text-xs'
+            >
+              {value}
+              <button
+                type='button'
+                onClick={() => toggleSelection(value)}
+                className='hover:bg-teal-200 rounded p-0.5 -mr-0.5'
+                aria-label={`Remove ${value}`}
+              >
+                <X size={12} />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
       {/* Dropdown menu */}
       {isOpen && (
         <div className='absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg'>

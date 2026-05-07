@@ -232,6 +232,7 @@ export interface UseWorkoutModalResult {
   resetPublishModalPos: () => void;
   openPublishModal: () => void;
   setPublishModalOpen: (open: boolean) => void;
+  requestOpenPublishModal: () => void;
   handleTextareaInteraction: (sectionId: string, cursorPosition: number) => void;
 }
 
@@ -720,8 +721,30 @@ export function useWorkoutModal(
     }
   };
 
+  // Publish requires a workout name AND a track. workout_name is also required for
+  // regular save (handled in validate()), but track_id is publish-only — coaches save
+  // drafts without a track set. Used both as a pre-flight before opening PublishModal
+  // and as a defence-in-depth check inside handlePublish.
+  const canPublish = (): boolean => {
+    if (!formData.workout_name?.trim()) {
+      toast.error('Workout name is required to publish');
+      return false;
+    }
+    if (!formData.track_id) {
+      toast.error('Track is required to publish');
+      return false;
+    }
+    return true;
+  };
+
+  const requestOpenPublishModal = () => {
+    if (!canPublish()) return;
+    modalResizing.openPublishModal();
+    setPublishModalOpen(true);
+  };
+
   const handlePublish = async (publishConfig: PublishConfig) => {
-    if (!validate()) {
+    if (!validate() || !canPublish()) {
       return;
     }
 
@@ -905,5 +928,6 @@ export function useWorkoutModal(
     resetPublishModalPos: modalResizing.resetPublishModalPos,
     openPublishModal: modalResizing.openPublishModal,
     setPublishModalOpen,
+    requestOpenPublishModal,
   };
 }

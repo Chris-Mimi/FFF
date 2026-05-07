@@ -65,7 +65,9 @@ export default function WorkoutFormFields({
 
       {/* Track */}
       <div>
-        <label className='block text-sm font-semibold mb-2 text-gray-900'>Track</label>
+        <label className='block text-sm font-semibold mb-2 text-gray-900'>
+          Track <span className='text-red-500'>*</span>
+        </label>
         <select
           value={formData.track_id || ''}
           onChange={e => onFieldChange('track_id', e.target.value)}
@@ -105,7 +107,7 @@ export default function WorkoutFormFields({
       {/* Workout Name Input */}
       <div>
         <label className='block text-sm font-semibold mb-2 text-gray-900'>
-          Workout Name
+          Workout Name <span className='text-red-500'>*</span>
         </label>
         <input
           type='text'
