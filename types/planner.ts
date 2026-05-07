@@ -50,9 +50,16 @@ export interface PlanningGridWeek {
   isCurrent: boolean;
 }
 
+export type RmTestType = '1RM' | '3RM' | '5RM' | '10RM';
+
+export interface CoveredExercise {
+  name: string;        // display_name || name
+  rmType?: RmTestType; // present if at least one occurrence in the matched week was an RM test
+}
+
 export interface PatternWeekCoverage {
-  exercises: string[]; // display_name || name; deduped; sorted alphabetically
-  dates: string[];     // YYYY-MM-DD; deduped; sorted ascending
+  exercises: CoveredExercise[]; // deduped by name; sorted alphabetically
+  dates: string[];              // YYYY-MM-DD; deduped; sorted ascending
 }
 
 /** weekMonday (YYYY-MM-DD) → patternId → coverage detail */

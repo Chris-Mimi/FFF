@@ -346,6 +346,111 @@ export const extractMovementsFromText = (
 };
 
 /**
+ * Per-movement metadata attached during extraction. Currently only carries
+ * RM-test type when the source was a lift slot flagged with `rm_test`. The map
+ * is keyed on the same normalized movement name that `extractMovementsFromWod`
+ * returns, so callers can mirror lookups across both functions.
+ */
+export type RmTestType = '1RM' | '3RM' | '5RM' | '10RM';
+export interface MovementMetadata {
+  rmType?: RmTestType;
+}
+
+/**
+ * Same extraction as `extractMovementsFromWod` but returns a richer map carrying
+ * metadata (currently `rmType` for movements emitted from rep-max-tested lift
+ * slots). Callers that only need names should keep using the Set-returning
+ * variant — this exists for the planner UI and any future feature that needs
+ * "was this movement an RM test that day".
+ */
+export const extractMovementsWithMetadata = (
+  wod: WODFormData,
+  knownExerciseNames?: Set<string>,
+  acronymMap?: AcronymMap
+): Map<string, MovementMetadata> => {
+  const map = new Map<string, MovementMetadata>();
+  const addName = (name: string) => {
+    if (!map.has(name)) map.set(name, {});
+  };
+  const tagRm = (name: string, rmType: RmTestType) => {
+    const existing = map.get(name) ?? {};
+    map.set(name, { ...existing, rmType });
+  };
+
+  const knownLower = knownExerciseNames && knownExerciseNames.size > 0
+    ? new Set(Array.from(knownExerciseNames).map(n => n.toLowerCase()))
+    : undefined;
+  const knownList = knownLower ? Array.from(knownLower) : undefined;
+
+  wod.sections.forEach(section => {
+    section.lifts?.forEach((lift: ConfiguredLift) => {
+      if (!lift.name) return;
+      // Resolve which name(s) this lift slot emits — same logic as the
+      // Set-based extractor below — then tag rmType on every emitted name.
+      const emitted: string[] = [];
+      const liftLower = lift.name.toLowerCase().trim();
+      const viaTag = acronymMap?.get(liftLower);
+      if (viaTag && knownLower?.has(viaTag)) {
+        emitted.push(normalizeMovement(viaTag));
+      } else {
+        const canonical = genericToCanonical[liftLower];
+        if (canonical && knownLower?.has(canonical)) {
+          emitted.push(normalizeMovement(canonical));
+        } else {
+          let resolved = false;
+          if (knownLower && knownList) {
+            const matchPrefixed = findMatchingExercise(`Barbell ${lift.name}`, knownLower, knownList);
+            if (matchPrefixed) { emitted.push(matchPrefixed); resolved = true; }
+            else {
+              const match = findMatchingExercise(lift.name, knownLower, knownList);
+              if (match) { emitted.push(match); resolved = true; }
+            }
+          }
+          if (!resolved) {
+            emitted.push(normalizeMovement(`Barbell ${lift.name}`));
+            emitted.push(normalizeMovement(lift.name));
+          }
+        }
+      }
+      for (const name of emitted) {
+        addName(name);
+        if (lift.rm_test) tagRm(name, lift.rm_test);
+      }
+    });
+
+    section.benchmarks?.forEach((benchmark: ConfiguredBenchmark) => {
+      if (benchmark.name) addName(normalizeMovement(benchmark.name));
+      benchmark.exercises?.forEach((ex: string) => {
+        if (ex) addName(normalizeMovement(ex));
+      });
+      if (benchmark.description) {
+        const tmp = new Set<string>();
+        extractMovementsFromText(benchmark.description, tmp, knownLower, knownList);
+        for (const n of tmp) addName(n);
+      }
+    });
+
+    section.forge_benchmarks?.forEach((forge: ConfiguredForgeBenchmark) => {
+      if (forge.name) addName(normalizeMovement(forge.name));
+      forge.exercises?.forEach((ex: string) => {
+        if (ex) addName(normalizeMovement(ex));
+      });
+      if (forge.description) {
+        const tmp = new Set<string>();
+        extractMovementsFromText(forge.description, tmp, knownLower, knownList);
+        for (const n of tmp) addName(n);
+      }
+    });
+
+    const tmp = new Set<string>();
+    extractMovementsFromText(section.content, tmp, knownLower, knownList);
+    for (const n of tmp) addName(n);
+  });
+
+  return map;
+};
+
+/**
  * Extract movement names from a single WOD's sections
  * Sources: structured data (lifts, benchmarks, forge_benchmarks) + content text parsing
  * @returns Set of normalized movement names

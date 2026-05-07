@@ -5,9 +5,9 @@
  */
 
 import { fetchPublishedWorkouts, fetchAcronymMap, type DateRangeFilter } from '@/utils/movement-analytics';
-import { extractMovementsFromWod } from '@/utils/movement-extraction';
+import { extractMovementsFromWod, extractMovementsWithMetadata, type MovementMetadata } from '@/utils/movement-extraction';
 import { formatDate } from '@/utils/date-utils';
-import type { PatternWithExercises, PatternGapResult, WeeklyCoverageMap, PatternWeekCoverage } from '@/types/planner';
+import type { PatternWithExercises, PatternGapResult, WeeklyCoverageMap, PatternWeekCoverage, CoveredExercise } from '@/types/planner';
 import type { WODFormData } from '@/components/coach/WorkoutModal';
 
 /**
@@ -167,14 +167,17 @@ export async function detectWeeklyCoverage(
   const coverage: WeeklyCoverageMap = new Map();
 
   for (const workout of workouts) {
-    const movements = extractMovementsFromWod(
+    const metaMap = extractMovementsWithMetadata(
       { sections: workout.sections, date: workout.date } as Pick<WODFormData, 'sections' | 'date'> as WODFormData,
       allExerciseNames,
       acronymMap
     );
-    const movementsLower = new Set(
-      Array.from(movements).map(m => m.toLowerCase())
-    );
+    // Build a lowercase → metadata lookup so pattern-exercise matching can pull
+    // rmType into the per-week coverage detail.
+    const metaByLower = new Map<string, MovementMetadata>();
+    for (const [name, meta] of metaMap.entries()) {
+      metaByLower.set(name.toLowerCase(), meta);
+    }
 
     const workoutDate = new Date(workout.date + 'T00:00:00');
     const day = workoutDate.getDay();
@@ -183,12 +186,17 @@ export async function detectWeeklyCoverage(
     const mondayStr = formatDate(monday);
 
     for (const pattern of patterns) {
-      const matched: string[] = [];
+      const matched: CoveredExercise[] = [];
       for (const e of pattern.exercises) {
-        const hit =
-          movementsLower.has(e.name.toLowerCase()) ||
-          (!!e.display_name && movementsLower.has(e.display_name.toLowerCase()));
-        if (hit) matched.push(e.display_name || e.name);
+        const hitName = metaByLower.get(e.name.toLowerCase());
+        const hitDisplay = e.display_name ? metaByLower.get(e.display_name.toLowerCase()) : undefined;
+        const hit = hitName || hitDisplay;
+        if (hit) {
+          matched.push({
+            name: e.display_name || e.name,
+            rmType: hit.rmType,
+          });
+        }
       }
       if (matched.length === 0) continue;
 
@@ -203,7 +211,12 @@ export async function detectWeeklyCoverage(
         weekMap.set(pattern.id, detail);
       }
       for (const m of matched) {
-        if (!detail.exercises.includes(m)) detail.exercises.push(m);
+        const existing = detail.exercises.find(x => x.name === m.name);
+        if (!existing) {
+          detail.exercises.push(m);
+        } else if (!existing.rmType && m.rmType) {
+          existing.rmType = m.rmType;
+        }
       }
       if (!detail.dates.includes(workout.date)) detail.dates.push(workout.date);
     }
@@ -211,7 +224,7 @@ export async function detectWeeklyCoverage(
 
   for (const weekMap of coverage.values()) {
     for (const detail of weekMap.values()) {
-      detail.exercises.sort((a, b) => a.localeCompare(b));
+      detail.exercises.sort((a, b) => a.name.localeCompare(b.name));
       detail.dates.sort();
     }
   }

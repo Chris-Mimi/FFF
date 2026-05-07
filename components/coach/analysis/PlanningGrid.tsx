@@ -18,6 +18,8 @@ interface PlanningGridProps {
   pastWeeks?: number;
   futureWeeks?: number;
   anchorDate?: Date;
+  /** When 'rm-only', a pattern-week only counts as covered if it includes at least one RM-tested exercise. */
+  contentFilter?: 'all' | 'rm-only';
 }
 
 interface SelectedPast {
@@ -39,8 +41,20 @@ export default function PlanningGrid({
   pastWeeks = 6,
   futureWeeks = 12,
   anchorDate,
+  contentFilter = 'all',
 }: PlanningGridProps) {
   const [inlineExpandedId, setInlineExpandedId] = useState<string | null>(null);
+
+  // Predicate: in rm-only mode a pattern-week is only "covered" if at least
+  // one matched exercise carried an rmType.
+  const isWeekCovered = (weekStart: string, patternId: string): boolean => {
+    const detail = coverage.get(weekStart)?.get(patternId);
+    if (!detail) return false;
+    if (contentFilter === 'rm-only') {
+      return detail.exercises.some(ex => !!ex.rmType);
+    }
+    return true;
+  };
   const anchorTime = anchorDate?.getTime();
   const weeks: PlanningGridWeek[] = useMemo(() => {
     const mondayStrs = generateWeeks(pastWeeks, futureWeeks, anchorTime ? new Date(anchorTime) : undefined);
@@ -67,9 +81,12 @@ export default function PlanningGrid({
   }, [planItems]);
 
   const [selectedPast, setSelectedPast] = useState<SelectedPast | null>(null);
-  const selectedDetail = selectedPast
+  const selectedDetailRaw = selectedPast
     ? coverage.get(selectedPast.weekStart)?.get(selectedPast.patternId) || null
     : null;
+  const selectedDetail = selectedDetailRaw && contentFilter === 'rm-only'
+    ? { ...selectedDetailRaw, exercises: selectedDetailRaw.exercises.filter(ex => !!ex.rmType) }
+    : selectedDetailRaw;
 
   if (patterns.length === 0) {
     return (
@@ -135,7 +152,7 @@ export default function PlanningGrid({
                   </button>
                 </td>
                 {weeks.map(week => {
-                  const isCovered = coverage.get(week.weekStart)?.has(pattern.id) || false;
+                  const isCovered = isWeekCovered(week.weekStart, pattern.id);
                   const isPlanned = planLookup.has(`${pattern.id}_${week.weekStart}`);
                   const isSelected =
                     selectedPast?.patternId === pattern.id &&
@@ -236,7 +253,7 @@ export default function PlanningGrid({
           </tbody>
         </table>
       </div>
-      {selectedPast && selectedDetail && (
+      {selectedPast && selectedDetail && selectedDetail.exercises.length > 0 && (
         <div className='border-t bg-gray-50 p-3 md:p-4'>
           <div className='flex items-start justify-between gap-2 mb-2'>
             <div className='flex items-center gap-2 flex-wrap'>
@@ -263,10 +280,19 @@ export default function PlanningGrid({
           <div className='flex flex-wrap gap-1.5 mb-2'>
             {selectedDetail.exercises.map(ex => (
               <span
-                key={ex}
-                className='inline-flex items-center px-2 py-0.5 rounded text-xs bg-white border border-gray-200 text-gray-700'
+                key={ex.name}
+                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs border ${
+                  ex.rmType
+                    ? 'bg-amber-50 border-amber-300 text-amber-800'
+                    : 'bg-white border-gray-200 text-gray-700'
+                }`}
               >
-                {ex}
+                {ex.name}
+                {ex.rmType && (
+                  <span className='inline-flex items-center px-1 py-px rounded bg-amber-200 text-amber-900 text-[10px] font-semibold'>
+                    {ex.rmType}
+                  </span>
+                )}
               </span>
             ))}
           </div>

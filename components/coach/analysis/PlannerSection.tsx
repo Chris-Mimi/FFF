@@ -62,6 +62,10 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
   const [viewMonths, setViewMonths] = useState<ViewMonths>(3);
   const [anchorOffsetWeeks, setAnchorOffsetWeeks] = useState(0);
 
+  // Content filter — restrict the grid to RM-tested exercises only.
+  // Non-persistent: defaults to 'all' on every load.
+  const [contentFilter, setContentFilter] = useState<'all' | 'rm-only'>('all');
+
   // PatternManager is fully self-managed again — the grid expands inline
   // (see PlanningGrid's inlineExpandedId state) so the upper panel doesn't
   // need to be controlled from here.
@@ -499,6 +503,33 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
         onPanelOpenChange={setPatternsPanelOpen}
       />
 
+      {/* Content filter (RM testing focus) */}
+      <div className='flex items-center gap-2'>
+        <span className='text-xs font-medium text-gray-500'>Show:</span>
+        <div className='flex rounded-lg border border-gray-200 overflow-hidden'>
+          <button
+            onClick={() => setContentFilter('all')}
+            className={`px-3 py-1 text-xs font-medium transition ${
+              contentFilter === 'all'
+                ? 'bg-[#178da6] text-white'
+                : 'bg-white text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            All
+          </button>
+          <button
+            onClick={() => setContentFilter('rm-only')}
+            className={`px-3 py-1 text-xs font-medium transition border-l border-gray-200 ${
+              contentFilter === 'rm-only'
+                ? 'bg-[#178da6] text-white'
+                : 'bg-white text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            RM Testing only
+          </button>
+        </div>
+      </div>
+
       {/* Date-window controls */}
       <div className='flex items-center justify-between gap-2 flex-wrap'>
         <div className='flex items-center gap-1'>
@@ -557,6 +588,7 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
         pastWeeks={pastWeeks}
         futureWeeks={futureWeeks}
         anchorDate={anchorDate}
+        contentFilter={contentFilter}
       />
 
       <UncategorizedExercises
