@@ -10,19 +10,31 @@ export interface Benchmark {
   description: string | null;
   display_order: number;
   acronym?: string | null;
+  exercises?: string[];
+}
+
+interface BenchmarkForm {
+  name: string;
+  type: string;
+  description: string;
+  display_order: number;
+  has_scaling: boolean;
+  acronym: string;
+  exercises: string[];
 }
 
 export function useBenchmarksCrud() {
   const [benchmarks, setBenchmarks] = useState<Benchmark[]>([]);
   const [showBenchmarkModal, setShowBenchmarkModal] = useState(false);
   const [editingBenchmark, setEditingBenchmark] = useState<Benchmark | null>(null);
-  const [benchmarkForm, setBenchmarkForm] = useState({
+  const [benchmarkForm, setBenchmarkForm] = useState<BenchmarkForm>({
     name: '',
     type: '',
     description: '',
     display_order: 0,
     has_scaling: true,
-    acronym: ''
+    acronym: '',
+    exercises: []
   });
 
   const fetchBenchmarks = async () => {
@@ -48,7 +60,8 @@ export function useBenchmarksCrud() {
         description: benchmark.description || '',
         display_order: benchmark.display_order,
         has_scaling: (benchmark as { has_scaling?: boolean }).has_scaling ?? true,
-        acronym: benchmark.acronym || ''
+        acronym: benchmark.acronym || '',
+        exercises: benchmark.exercises ?? []
       });
     } else {
       setEditingBenchmark(null);
@@ -59,13 +72,18 @@ export function useBenchmarksCrud() {
         description: '',
         display_order: maxOrder + 1,
         has_scaling: true,
-        acronym: ''
+        acronym: '',
+        exercises: []
       });
     }
     setShowBenchmarkModal(true);
   };
 
   const saveBenchmark = async () => {
+    if (benchmarkForm.exercises.length === 0) {
+      toast.error('Pick at least one linked library exercise — otherwise the planner will not see this benchmark when programmed.');
+      return;
+    }
     try {
       const acronym = benchmarkForm.acronym ? benchmarkForm.acronym.trim().toUpperCase() : null;
       if (editingBenchmark) {
@@ -78,6 +96,7 @@ export function useBenchmarksCrud() {
             display_order: benchmarkForm.display_order,
             has_scaling: benchmarkForm.has_scaling,
             acronym,
+            exercises: benchmarkForm.exercises,
             updated_at: new Date().toISOString()
           })
           .eq('id', editingBenchmark.id);
@@ -92,7 +111,8 @@ export function useBenchmarksCrud() {
             description: benchmarkForm.description,
             display_order: benchmarkForm.display_order,
             has_scaling: benchmarkForm.has_scaling,
-            acronym
+            acronym,
+            exercises: benchmarkForm.exercises
           });
 
         if (error) throw error;
@@ -126,7 +146,7 @@ export function useBenchmarksCrud() {
     }
   };
 
-  const handleBenchmarkFormChange = (field: string, value: string | number | boolean) => {
+  const handleBenchmarkFormChange = (field: string, value: string | number | boolean | string[]) => {
     setBenchmarkForm(prev => ({ ...prev, [field]: value }));
   };
 

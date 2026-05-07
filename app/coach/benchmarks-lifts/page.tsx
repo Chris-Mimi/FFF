@@ -224,6 +224,7 @@ export default function BenchmarksLiftsManagementPage() {
             onSave={benchmarksCrud.saveBenchmark}
             workoutTypes={workoutTypesCrud.workoutTypes}
             loadingWorkoutTypes={workoutTypesCrud.loadingWorkoutTypes}
+            availableExercises={exercisesCrud.exercises.map(e => e.name).sort()}
           />
         )}
 
@@ -243,6 +244,7 @@ export default function BenchmarksLiftsManagementPage() {
             onSave={forgeCrud.saveForge}
             workoutTypes={workoutTypesCrud.workoutTypes}
             loadingWorkoutTypes={workoutTypesCrud.loadingWorkoutTypes}
+            availableExercises={exercisesCrud.exercises.map(e => e.name).sort()}
           />
         )}
 

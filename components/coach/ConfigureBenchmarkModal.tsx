@@ -95,6 +95,7 @@ function ConfigureBenchmarkModal({
       type: benchmark.type,
       description: benchmark.description || undefined,
       has_scaling: benchmark.has_scaling,
+      exercises: benchmark.exercises ?? [],
       visibility: 'everyone',
     };
 

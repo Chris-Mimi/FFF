@@ -204,7 +204,7 @@ const stripInstructionParens = (text: string): string => {
  * Parse free-form text content and extract exercise names.
  * Used for both section content and benchmark/forge_benchmark descriptions.
  */
-const extractMovementsFromText = (
+export const extractMovementsFromText = (
   text: string,
   movements: Set<string>,
   knownLower?: Set<string>,

@@ -95,6 +95,7 @@ function ConfigureForgeBenchmarkModal({
       type: forgeBenchmark.type,
       description: forgeBenchmark.description || undefined,
       has_scaling: forgeBenchmark.has_scaling,
+      exercises: forgeBenchmark.exercises ?? [],
       visibility: 'everyone',
     };
 

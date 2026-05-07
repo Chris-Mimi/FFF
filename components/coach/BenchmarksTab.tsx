@@ -1,7 +1,10 @@
 'use client';
 
 import { Edit2, Plus, Save, Trash2, X } from 'lucide-react';
+import { useEffect } from 'react';
 import { FocusTrap } from '@/components/ui/FocusTrap';
+import MultiSelectDropdown from './MultiSelectDropdown';
+import { suggestExercisesForBenchmark } from '@/utils/benchmark-exercise-suggest';
 
 interface Benchmark {
   id: string;
@@ -9,6 +12,7 @@ interface Benchmark {
   type: string;
   description: string | null;
   display_order: number;
+  exercises?: string[];
 }
 
 interface BenchmarksTabProps {
@@ -27,11 +31,13 @@ interface BenchmarksTabProps {
     display_order: number;
     has_scaling: boolean;
     acronym: string;
+    exercises: string[];
   };
-  onFormChange: (field: string, value: string | number | boolean) => void;
+  onFormChange: (field: string, value: string | number | boolean | string[]) => void;
   onSave: () => void;
   workoutTypes: Array<{ id: string; name: string }>;
   loadingWorkoutTypes: boolean;
+  availableExercises: string[];
 }
 
 export default function BenchmarksTab({
@@ -47,7 +53,19 @@ export default function BenchmarksTab({
   onSave,
   workoutTypes,
   loadingWorkoutTypes,
+  availableExercises,
 }: BenchmarksTabProps) {
+  // Auto-suggest exercises when modal opens with an empty linked-exercises list.
+  // Runs once per modal-open; coach can confirm or tweak before save.
+  useEffect(() => {
+    if (!showModal) return;
+    if (form.exercises.length > 0) return;
+    if (!form.name && !form.description) return;
+    const suggested = suggestExercisesForBenchmark(form.name, form.description, availableExercises);
+    if (suggested.length > 0) onFormChange('exercises', suggested);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showModal, form.name, form.description]);
+
   return (
     <>
       <div className='bg-white rounded-lg shadow p-6'>
@@ -188,6 +206,22 @@ export default function BenchmarksTab({
                   className='w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent'
                   placeholder='Workout details (e.g., 21-15-9 Thrusters & Pull-ups)'
                 />
+              </div>
+
+              <div>
+                <label className='block text-sm font-medium text-gray-100 mb-1'>
+                  Linked library exercises <span className='text-red-300 text-xs'>(required)</span>
+                </label>
+                <MultiSelectDropdown
+                  label=''
+                  options={availableExercises}
+                  selectedValues={form.exercises}
+                  onChange={(values) => onFormChange('exercises', values)}
+                  placeholder='Pick the movements this benchmark trains…'
+                />
+                <p className='text-[10px] text-gray-300 mt-1'>
+                  Used by the planner so coverage analysis recognises this benchmark when programmed. Suggestions are pre-filled from the description — confirm or tweak.
+                </p>
               </div>
 
               <div className='flex items-center gap-2'>

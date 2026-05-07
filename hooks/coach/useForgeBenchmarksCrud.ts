@@ -5,17 +5,28 @@ import { supabase } from '@/lib/supabase';
 import { DragEndEvent } from '@dnd-kit/core';
 import { Benchmark } from './useBenchmarksCrud';
 
+interface ForgeForm {
+  name: string;
+  type: string;
+  description: string;
+  display_order: number;
+  has_scaling: boolean;
+  acronym: string;
+  exercises: string[];
+}
+
 export function useForgeBenchmarksCrud() {
   const [forgeBenchmarks, setForgeBenchmarks] = useState<Benchmark[]>([]);
   const [showForgeModal, setShowForgeModal] = useState(false);
   const [editingForge, setEditingForge] = useState<Benchmark | null>(null);
-  const [forgeForm, setForgeForm] = useState({
+  const [forgeForm, setForgeForm] = useState<ForgeForm>({
     name: '',
     type: '',
     description: '',
     display_order: 0,
     has_scaling: true,
-    acronym: ''
+    acronym: '',
+    exercises: []
   });
 
   const fetchForgeBenchmarks = async () => {
@@ -41,7 +52,8 @@ export function useForgeBenchmarksCrud() {
         description: forge.description || '',
         display_order: forge.display_order,
         has_scaling: (forge as { has_scaling?: boolean }).has_scaling ?? true,
-        acronym: forge.acronym || ''
+        acronym: forge.acronym || '',
+        exercises: forge.exercises ?? []
       });
     } else {
       setEditingForge(null);
@@ -52,13 +64,18 @@ export function useForgeBenchmarksCrud() {
         description: '',
         display_order: maxOrder + 1,
         has_scaling: true,
-        acronym: ''
+        acronym: '',
+        exercises: []
       });
     }
     setShowForgeModal(true);
   };
 
   const saveForge = async () => {
+    if (forgeForm.exercises.length === 0) {
+      toast.error('Pick at least one linked library exercise — otherwise the planner will not see this Forge benchmark when programmed.');
+      return;
+    }
     try {
       const acronym = forgeForm.acronym ? forgeForm.acronym.trim().toUpperCase() : null;
       if (editingForge) {
@@ -71,6 +88,7 @@ export function useForgeBenchmarksCrud() {
             display_order: forgeForm.display_order,
             has_scaling: forgeForm.has_scaling,
             acronym,
+            exercises: forgeForm.exercises,
             updated_at: new Date().toISOString()
           })
           .eq('id', editingForge.id);
@@ -85,7 +103,8 @@ export function useForgeBenchmarksCrud() {
             description: forgeForm.description,
             display_order: forgeForm.display_order,
             has_scaling: forgeForm.has_scaling,
-            acronym
+            acronym,
+            exercises: forgeForm.exercises
           });
 
         if (error) throw error;
@@ -232,7 +251,7 @@ export function useForgeBenchmarksCrud() {
     }
   };
 
-  const handleForgeFormChange = (field: string, value: string | number | boolean) => {
+  const handleForgeFormChange = (field: string, value: string | number | boolean | string[]) => {
     setForgeForm(prev => ({ ...prev, [field]: value }));
   };
 

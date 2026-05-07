@@ -22,6 +22,8 @@ import { Edit2, GripVertical, Plus, Save, Trash2, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { FocusTrap } from '@/components/ui/FocusTrap';
+import MultiSelectDropdown from './MultiSelectDropdown';
+import { suggestExercisesForBenchmark } from '@/utils/benchmark-exercise-suggest';
 
 interface Benchmark {
   id: string;
@@ -30,6 +32,8 @@ interface Benchmark {
   description: string | null;
   display_order: number;
   has_scaling?: boolean;
+  acronym?: string | null;
+  exercises?: string[];
 }
 
 // Sortable Forge Card Component
@@ -140,11 +144,13 @@ interface ForgeBenchmarksTabProps {
     display_order: number;
     has_scaling: boolean;
     acronym: string;
+    exercises: string[];
   };
-  onFormChange: (field: string, value: string | number | boolean) => void;
+  onFormChange: (field: string, value: string | number | boolean | string[]) => void;
   onSave: () => void;
   workoutTypes: Array<{ id: string; name: string }>;
   loadingWorkoutTypes: boolean;
+  availableExercises: string[];
 }
 
 export default function ForgeBenchmarksTab({
@@ -162,7 +168,19 @@ export default function ForgeBenchmarksTab({
   onSave,
   workoutTypes,
   loadingWorkoutTypes,
+  availableExercises,
 }: ForgeBenchmarksTabProps) {
+  // Auto-suggest linked exercises when modal opens with empty list.
+  // Coach reviews + tweaks before save.
+  useEffect(() => {
+    if (!showModal) return;
+    if (form.exercises.length > 0) return;
+    if (!form.name && !form.description) return;
+    const suggested = suggestExercisesForBenchmark(form.name, form.description, availableExercises);
+    if (suggested.length > 0) onFormChange('exercises', suggested);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showModal, form.name, form.description]);
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -217,6 +235,7 @@ export default function ForgeBenchmarksTab({
       onFormChange('description', '');
       onFormChange('has_scaling', false);
       onFormChange('acronym', '');
+      onFormChange('exercises', []);
       return;
     }
 
@@ -228,6 +247,7 @@ export default function ForgeBenchmarksTab({
       onFormChange('description', template.description || '');
       onFormChange('has_scaling', template.has_scaling || false);
       onFormChange('acronym', '');
+      onFormChange('exercises', template.exercises ?? []);
     }
   };
 
@@ -429,6 +449,22 @@ export default function ForgeBenchmarksTab({
                   className='w-full px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent'
                   placeholder='Workout details'
                 />
+              </div>
+
+              <div>
+                <label className='block text-xs sm:text-sm font-medium text-gray-100 mb-1'>
+                  Linked library exercises <span className='text-red-300 text-[10px]'>(required)</span>
+                </label>
+                <MultiSelectDropdown
+                  label=''
+                  options={availableExercises}
+                  selectedValues={form.exercises}
+                  onChange={(values) => onFormChange('exercises', values)}
+                  placeholder='Pick the movements this Forge benchmark trains…'
+                />
+                <p className='text-[10px] text-gray-300 mt-1'>
+                  Used by the planner so coverage analysis recognises this Forge benchmark when programmed. Suggestions are pre-filled from the description — confirm or tweak.
+                </p>
               </div>
 
               <div className='flex items-center gap-1.5 sm:gap-2'>

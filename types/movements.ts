@@ -88,6 +88,7 @@ export interface Benchmark {
   description?: string;
   display_order: number;
   has_scaling?: boolean;  // Whether this benchmark offers scaling options (Rx/Sc1/Sc2/Sc3)
+  exercises?: string[];   // Linked library exercise names — copied into section JSONB on attach so the planner sees this benchmark's movements when programmed (S340)
 }
 
 export interface ForgeBenchmark {
@@ -97,6 +98,7 @@ export interface ForgeBenchmark {
   description?: string;
   display_order: number;
   has_scaling?: boolean;  // Whether this benchmark offers scaling options (Rx/Sc1/Sc2/Sc3)
+  exercises?: string[];   // Linked library exercise names — copied into section JSONB on attach (S340)
 }
 
 // ============================================
