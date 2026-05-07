@@ -33,6 +33,7 @@ http://192.168.178.75:3000
 * entering a benchmark for an athlete on the coach page/athletes tab didn't work
 * Make it impossible to publish a workout without a Track or Workout Name.
 * When I am publishing and re-publishing, athletes are getting notifications, that could become annoying, especially as I'm testing different ways of writing the programs and saving scores. Is there a way I can turn these notications off until the Workout is completely ready?
+* Review and check how DNF is displayed and used in the athlete leaderboard.
 
 # Coach library #
 
