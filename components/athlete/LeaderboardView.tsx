@@ -502,21 +502,29 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
       .eq('is_published', true)
       .order('date', { ascending: true });
 
-    // Deduplicate WODs with same session_type + workout_name (e.g., same workout at 17:15 and 18:30)
-    // Keep the copy with most leaderboard items (most recently edited) and track all sibling IDs
+    // Deduplicate WODs with same session_type + workout_name (e.g., same workout at 17:15 and 18:30).
+    // Primary: most leaderboard items (most fully programmed). Tiebreaker: longest total section
+    // content — gives the coach a deliberate lever to make a sibling "primary" by writing extra
+    // notes there. Two identical-but-cloned sessions used to break ties non-deterministically.
+    const totalContentLength = (w: WodData) =>
+      w.sections.reduce((sum, s) => sum + (s.content?.length || 0), 0);
     const allWods = (data || []) as WodData[];
-    const groups = new Map<string, { best: WodData; bestCount: number; allIds: string[] }>();
+    const groups = new Map<string, { best: WodData; bestCount: number; bestContentLen: number; allIds: string[] }>();
     for (const w of allWods) {
       const key = `${w.session_type || w.title}|${(w.workout_name || '').trim()}`;
       const count = extractLeaderboardItems(w).length;
+      const contentLen = totalContentLength(w);
       const existing = groups.get(key);
       if (!existing) {
-        groups.set(key, { best: w, bestCount: count, allIds: [w.id] });
+        groups.set(key, { best: w, bestCount: count, bestContentLen: contentLen, allIds: [w.id] });
       } else {
         existing.allIds.push(w.id);
-        if (count > existing.bestCount) {
+        const winsByCount = count > existing.bestCount;
+        const tiesAndWinsByContent = count === existing.bestCount && contentLen > existing.bestContentLen;
+        if (winsByCount || tiesAndWinsByContent) {
           existing.best = w;
           existing.bestCount = count;
+          existing.bestContentLen = contentLen;
         }
       }
     }
