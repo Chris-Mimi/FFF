@@ -66,6 +66,18 @@ interface NonRmLift {
   reps: number;      // per-set reps (first set for variable)
 }
 
+interface BenchmarkRef {
+  benchmarkId: string;       // benchmark_workouts.id
+  name: string;
+  type: string;
+}
+
+interface ForgeBenchmarkRef {
+  forgeBenchmarkId: string;  // forge_benchmarks.id
+  name: string;
+  type: string;
+}
+
 const RM_TYPE_TO_REPS: Record<string, number> = { '1RM': 1, '3RM': 3, '5RM': 5, '10RM': 10 };
 
 function calculateEpley1RM(weight: number, reps: number): number | null {
@@ -98,12 +110,14 @@ export async function POST(request: NextRequest) {
     if (isAuthError(user)) return user;
 
     const body = await request.json();
-    const { wodId, workoutDate, scores, rmTestLifts, nonRmLifts, deletions } = body as {
+    const { wodId, workoutDate, scores, rmTestLifts, nonRmLifts, benchmarks, forgeBenchmarks, deletions } = body as {
       wodId: string;
       workoutDate: string;
       scores: ScoreEntry[];
       rmTestLifts?: Record<string, RmTestLift>;
       nonRmLifts?: Record<string, NonRmLift>;
+      benchmarks?: Record<string, BenchmarkRef>;
+      forgeBenchmarks?: Record<string, ForgeBenchmarkRef>;
       deletions?: { memberId?: string; whiteboardName?: string; sectionId: string }[];
     };
 
@@ -488,6 +502,99 @@ export async function POST(request: NextRequest) {
         }
         if (nonRmSaved > 0) { /* Non-RM lifts auto-saved */ }
       }
+
+      // Auto-save benchmark_results for sections with a benchmark or forge_benchmark.
+      // Without this, coach-entered scores show on the leaderboard (wod_section_results)
+      // but never appear in the athlete's Benchmarks / Forge Benchmarks / Records tabs
+      // (which all read benchmark_results).
+      const hasBenchmarkCascade =
+        (benchmarks && Object.keys(benchmarks).length > 0) ||
+        (forgeBenchmarks && Object.keys(forgeBenchmarks).length > 0);
+      if (hasBenchmarkCascade) {
+        for (const score of scores) {
+          if (isScoreEmpty(score)) continue;
+          if (!score.memberId) continue; // whiteboard-only athletes have no auth user
+
+          const memberEmail = memberIdToEmail[score.memberId];
+          const userId = memberEmail ? emailToUserId[memberEmail] || null : null;
+          if (!userId) continue;
+
+          const bm = benchmarks?.[score.sectionId];
+          const fbm = forgeBenchmarks?.[score.sectionId];
+          if (!bm && !fbm) continue;
+
+          // Build a benchmark_results row mirroring the score values.
+          // Encode result_value the same way the athlete-side path does so the
+          // Records / Forge Benchmarks tabs render consistent strings.
+          const hasTime = !!score.time_result;
+          const hasRounds = score.rounds_result != null;
+          const hasReps = score.reps_result != null;
+          const hasWeight = score.weight_result != null;
+          const hasMetres = score.metres_result != null;
+          const hasCalories = score.calories_result != null;
+
+          let resultValue = '';
+          if (hasTime) {
+            resultValue = score.time_result!.trim();
+          } else if (hasRounds) {
+            resultValue = `${score.rounds_result}+${score.reps_result ?? 0}`;
+          } else if (hasReps) {
+            resultValue = String(score.reps_result);
+          } else if (hasWeight) {
+            resultValue = String(score.weight_result);
+          } else if (hasMetres) {
+            resultValue = String(score.metres_result);
+          } else if (hasCalories) {
+            resultValue = String(score.calories_result);
+          }
+          if (!resultValue) continue;
+
+          const repsForColumn = hasRounds ? score.rounds_result : score.reps_result;
+
+          const targets: Array<{ benchmarkId: string | null; forgeBenchmarkId: string | null; name: string; type: string }> = [];
+          if (bm) targets.push({ benchmarkId: bm.benchmarkId, forgeBenchmarkId: null, name: bm.name, type: bm.type });
+          if (fbm) targets.push({ benchmarkId: null, forgeBenchmarkId: fbm.forgeBenchmarkId, name: fbm.name, type: fbm.type });
+
+          for (const t of targets) {
+            // Upsert by (user, benchmark/forge id, date)
+            let existingQuery = supabaseAdmin
+              .from('benchmark_results')
+              .select('id')
+              .eq('user_id', userId)
+              .eq('result_date', workoutDate);
+            if (t.benchmarkId) existingQuery = existingQuery.eq('benchmark_id', t.benchmarkId);
+            else if (t.forgeBenchmarkId) existingQuery = existingQuery.eq('forge_benchmark_id', t.forgeBenchmarkId);
+            const { data: existing } = await existingQuery.maybeSingle();
+
+            const payload = {
+              user_id: userId,
+              benchmark_id: t.benchmarkId,
+              forge_benchmark_id: t.forgeBenchmarkId,
+              benchmark_name: t.name,
+              benchmark_type: t.type,
+              time_result: hasTime ? score.time_result!.trim() : null,
+              reps_result: repsForColumn ?? null,
+              weight_result: score.weight_result ?? null,
+              result_value: resultValue,
+              scaling_level: score.scaling_level || null,
+              scaling_level_2: score.scaling_level_2 || null,
+              scaling_level_3: score.scaling_level_3 || null,
+              result_date: workoutDate,
+            };
+
+            if (existing) {
+              await supabaseAdmin
+                .from('benchmark_results')
+                .update({ ...payload, updated_at: new Date().toISOString() })
+                .eq('id', existing.id);
+            } else {
+              await supabaseAdmin
+                .from('benchmark_results')
+                .insert(payload);
+            }
+          }
+        }
+      }
     }
 
     // Process deletions — remove wod_section_results + associated lift_records
@@ -560,6 +667,28 @@ export async function POST(request: NextRequest) {
               .eq('rep_scheme', nonRmLift.repScheme)
               .eq('lift_date', workoutDate)
               .eq('wod_id', wodId);
+          }
+        }
+
+        // Delete associated benchmark_results if this was a benchmark/forge section
+        if (existing.user_id) {
+          const bm = benchmarks?.[del.sectionId];
+          if (bm) {
+            await supabaseAdmin
+              .from('benchmark_results')
+              .delete()
+              .eq('user_id', existing.user_id)
+              .eq('benchmark_id', bm.benchmarkId)
+              .eq('result_date', workoutDate);
+          }
+          const fbm = forgeBenchmarks?.[del.sectionId];
+          if (fbm) {
+            await supabaseAdmin
+              .from('benchmark_results')
+              .delete()
+              .eq('user_id', existing.user_id)
+              .eq('forge_benchmark_id', fbm.forgeBenchmarkId)
+              .eq('result_date', workoutDate);
           }
         }
 

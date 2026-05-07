@@ -105,6 +105,41 @@ export default function ScoreEntryPage() {
                 </span>
               </div>
 
+              {/* Configured movements — surfaces lift / benchmark / forge benchmark
+                  names so the coach doesn't have to duplicate them in content. */}
+              {selectedSection &&
+                ((selectedSection.lifts?.length ?? 0) > 0 ||
+                  (selectedSection.benchmarks?.length ?? 0) > 0 ||
+                  (selectedSection.forge_benchmarks?.length ?? 0) > 0) && (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {selectedSection.lifts?.map((l, i) => (
+                      <span
+                        key={`lift-${i}`}
+                        className="text-xs px-2 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-200"
+                      >
+                        {l.name}
+                        {l.rm_test ? ` · ${l.rm_test}` : ''}
+                      </span>
+                    ))}
+                    {selectedSection.benchmarks?.map((b, i) => (
+                      <span
+                        key={`bm-${i}`}
+                        className="text-xs px-2 py-0.5 rounded bg-teal-50 text-teal-800 border border-teal-200"
+                      >
+                        Benchmark · {b.name}
+                      </span>
+                    ))}
+                    {selectedSection.forge_benchmarks?.map((f, i) => (
+                      <span
+                        key={`fb-${i}`}
+                        className="text-xs px-2 py-0.5 rounded bg-cyan-50 text-cyan-800 border border-cyan-200"
+                      >
+                        Forge · {f.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
               {/* Section content preview */}
               {selectedSection?.content && (
                 <div className="mt-2 px-3 py-2 bg-gray-50 rounded border border-gray-200 text-xs text-gray-600 whitespace-pre-line max-h-32 overflow-y-auto">

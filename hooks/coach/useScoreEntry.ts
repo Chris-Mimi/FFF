@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { authFetch } from '@/lib/auth-fetch';
-import type { ConfiguredLift } from '@/types/movements';
+import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
 
 interface ScoringFields {
   time?: boolean;
@@ -27,6 +27,8 @@ export interface WodSection {
   content: string;
   scoring_fields?: ScoringFields;
   lifts?: ConfiguredLift[];
+  benchmarks?: ConfiguredBenchmark[];
+  forge_benchmarks?: ConfiguredForgeBenchmark[];
 }
 
 /** Returns the first rm_test lift in a section, or null */
@@ -358,6 +360,9 @@ export function useScoreEntry(sessionId: string) {
       // Build rm_test lift map for auto-creating lift_records
       const rmTestLifts: Record<string, { liftName: string; rmTest: string }> = {};
       const nonRmLifts: Record<string, { liftName: string; repScheme: string; reps: number }> = {};
+      // Build benchmark / forge_benchmark maps for auto-creating benchmark_results
+      const benchmarks: Record<string, { benchmarkId: string; name: string; type: string }> = {};
+      const forgeBenchmarks: Record<string, { forgeBenchmarkId: string; name: string; type: string }> = {};
       for (const section of scorableSections) {
         const rmLift = getRmTestLift(section);
         if (rmLift) {
@@ -368,6 +373,10 @@ export function useScoreEntry(sessionId: string) {
             nonRmLifts[section.id] = { liftName: nonRm.name, repScheme: nonRm.repScheme, reps: nonRm.reps };
           }
         }
+        const bm = section.benchmarks?.[0];
+        if (bm) benchmarks[section.id] = { benchmarkId: bm.id, name: bm.name, type: bm.type };
+        const fbm = section.forge_benchmarks?.[0];
+        if (fbm) forgeBenchmarks[section.id] = { forgeBenchmarkId: fbm.id, name: fbm.name, type: fbm.type };
       }
 
       const res = await authFetch('/api/score-entry/save', {
@@ -378,6 +387,8 @@ export function useScoreEntry(sessionId: string) {
           scores: scoreEntries,
           rmTestLifts: Object.keys(rmTestLifts).length > 0 ? rmTestLifts : undefined,
           nonRmLifts: Object.keys(nonRmLifts).length > 0 ? nonRmLifts : undefined,
+          benchmarks: Object.keys(benchmarks).length > 0 ? benchmarks : undefined,
+          forgeBenchmarks: Object.keys(forgeBenchmarks).length > 0 ? forgeBenchmarks : undefined,
           deletions: deletions.length > 0 ? deletions : undefined,
         }),
       });
