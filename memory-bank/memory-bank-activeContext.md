@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 203
-**Updated:** 2026-05-07 (Session 341 close — planner viewing improvements + extractor longest-match fix + S340 backfill applied + RM-test badge & filter on planner)
+**Version:** 204
+**Updated:** 2026-05-08 (Session 342 mid-checkpoint — coach-dashboard Subscriptions Due banner shipped, 7-day window)
 
 ---
 
@@ -81,6 +81,8 @@ _Updated at every session close. The "first 5 minutes of tomorrow" — read this
 - (Carry from S321) `Chris Notes/AA frequently used files/Notes for next session.md` is **Chris-owned** — Claude does NOT read/write content, but DOES commit/push when modified.
 - (Carry) `bookings.is_og` migration in production. `sessionStartInstant()` in `lib/bookingRules.ts` for TZ-safe gates.
 
+**Subscription-expiry thresholds DIVERGE: banner is 7d, push notification is 14d (S342).** [components/coach/SubscriptionsDueBanner.tsx](components/coach/SubscriptionsDueBanner.tsx) shows rows whose `athlete_subscription_end` or `subscriptions.current_period_end` is within 7 days. Push notification logic in [hooks/coach/useMemberData.ts](hooks/coach/useMemberData.ts) `checkExpiringSubscriptions` (line ~368) and the receiving endpoint [app/api/notifications/subscription-expiring/route.ts](app/api/notifications/subscription-expiring/route.ts) (line ~37 `daysLeft > 14`) still use 14d. **If you change one threshold, decide whether the other should match** — currently they're intentionally different (push at 14d gives early heads-up; banner at 7d is the action-window). The window 8–14d shows no banner but DOES fire a push. If a coach reports "I got a push but the banner was empty", that's expected, not a bug.
+
 **Section JSONB stores benchmark/forge `exercises[]` by snapshot at attach time (S340).** [components/coach/ConfigureBenchmarkModal.tsx](components/coach/ConfigureBenchmarkModal.tsx) / [components/coach/ConfigureForgeBenchmarkModal.tsx](components/coach/ConfigureForgeBenchmarkModal.tsx) copy `master.exercises` into the JSONB the moment a benchmark/forge is dragged into a section — same shape as `name`/`type`/`description`. **If you update a master row's exercises later, old WOD JSONB snapshots stay stale** — same drift class as the rest of the WOD JSONB convention. Re-saving the WOD in the editor would re-pull from master. **If you add another path that writes benchmarks/forge into section JSONB, copy `exercises` too** or planner coverage will silently miss those sections. Save validation in [hooks/coach/useBenchmarksCrud.ts](hooks/coach/useBenchmarksCrud.ts) / [hooks/coach/useForgeBenchmarksCrud.ts](hooks/coach/useForgeBenchmarksCrud.ts) forces non-empty exercises on master-row save — if you bypass that you'll get empty arrays in JSONB and silent coverage misses.
 
 **Coach score-entry has TWO UIs sharing the `useScoreEntry` hook (S339-followup).** [components/coach/score-entry/ScoreEntryModal.tsx](components/coach/score-entry/ScoreEntryModal.tsx) is opened from `/coach` (the modal Chris uses day-to-day). [app/coach/score-entry/[sessionId]/page.tsx](app/coach/score-entry/[sessionId]/page.tsx) is the full-page route. **They share data fetching + save logic via `useScoreEntry`, but render JSX is duplicated.** Any visual change (chip rows, layout, section preview) MUST land in BOTH files. The S339 chip row was only added to the page on first pass; the modal showed nothing — exactly the symptom Chris reported on follow-up. If you find UI divergence between the two, treat it as a bug.
@@ -155,6 +157,12 @@ Athlete Tools
 ---
 
 ## 📍 Current Status (Last 5 Sessions)
+
+**Session 342 (2026-05-08 — Opus 4.7) — COACH-DASHBOARD SUBSCRIPTIONS DUE BANNER (CASH + STRIPE, 7-DAY WINDOW):**
+- New [components/coach/SubscriptionsDueBanner.tsx](components/coach/SubscriptionsDueBanner.tsx) mounted in [app/coach/page.tsx](app/coach/page.tsx) above `<CalendarNav>`. Auto-hides when no athletes are within 7 days of `athlete_subscription_end` (cash-managed) or `subscriptions.current_period_end` (Stripe-managed).
+- Cash rows: name + days-left + `Renew 1 Month` / `Renew 1 Year` buttons calling existing `/api/members/athlete-subscription` with `activate_monthly` / `activate`. Stripe rows: green `Auto-renew · monthly|yearly` badge or red `Cancelling at period end` if `cancel_at_period_end=true`. Sorted ascending by days-left, color-coded red ≤3d / amber 4–7d.
+- Trigger: Chris pays Nikolina Vlasalija + Lisa Vrbanic in cash and wanted a passive reminder when their renewal is approaching. The push notification path (existing) fires once per session at 14d to both athlete + coach — banner is the visual fallback for missed/dismissed pushes.
+- Stripe-managed athletes are deduped from the cash list via `stripeMemberIds` set so a member with both `athlete_subscription_end` (legacy) and an active Stripe sub doesn't appear twice.
 
 **Session 341 (2026-05-07 — Opus 4.7) — PLANNER VIEWING IMPROVEMENTS + EXTRACTOR LONGEST-MATCH FIX + S340 BACKFILL + RM-TEST DISTINCTION:**
 - **Extractor longest-match fix** in [utils/movement-extraction.ts](utils/movement-extraction.ts) — substring loop returns longest known-name match instead of first-hit-wins. Triggered by Sumo Deadlift being misreported as "Deadlift" because "Deadlift" is a substring of "Barbell Sumo Deadlift" and was emitted first by Set iteration.

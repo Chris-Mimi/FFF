@@ -5,6 +5,7 @@ import SessionManagementModal from '@/components/coach/SessionManagementModal';
 import DeleteWorkoutModal from '@/components/coach/DeleteWorkoutModal';
 import { CoachHeader } from '@/components/coach/CoachHeader';
 import { CalendarNav } from '@/components/coach/CalendarNav';
+import SubscriptionsDueBanner from '@/components/coach/SubscriptionsDueBanner';
 import CalendarGrid from '@/components/coach/CalendarGrid';
 import SearchPanel from '@/components/coach/SearchPanel';
 import QuickEditPanel from '@/components/coach/QuickEditPanel';
@@ -340,6 +341,9 @@ export default function CoachDashboard() {
         <div className='flex-1 flex flex-col'>
           {!(isModalOpen && searchPanelOpen) && (
             <>
+              {/* Subscriptions Due reminder (auto-hides when nothing within 7 days) */}
+              <SubscriptionsDueBanner />
+
               {/* Calendar Navigation */}
               <CalendarNav
                 viewMode={viewMode}
