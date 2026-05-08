@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 205
-**Updated:** 2026-05-08 (Session 342 close — coach-dashboard Subscriptions Due banner + Members Subscriptions tab now sorts by first-subscription date)
+**Version:** 206
+**Updated:** 2026-05-08 (Session 343 close — trial-aware capacity in self-book + OG-toggle promotes waitlist + ConfigureLiftModal remembers last variable scheme)
 
 ---
 
@@ -21,14 +21,21 @@
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history scan._
 
-**First action:** Open `/coach`. If Nikolina Vlasalija or Lisa Vrbanic is within 7 days of their `athlete_subscription_end`, the new **Subscriptions Due banner** should appear above the calendar, color-coded by urgency (red ≤3d, amber 4–7d). Click `Renew 1 Month` on a cash row when they next pay — the row should disappear and the end date should shift to now+30d. If neither athlete is within 7 days, the banner auto-hides — that's expected. Then open `/coach/members` → Subscriptions tab — the list should now sort by Stripe sub creation date (or trial start as fallback), newest first. Cash renewals should NOT shuffle the order (since we use `athlete_trial_start`, not `athlete_subscription_start`).
+**First action:** Open today's Foundations 18:30 (`6e98aa50-0e7c-40ba-86a3-994cd1de3184`) leaderboard or any class with trials filling capacity, then have a test athlete try to self-book. Pre-S343 they would have been confirmed past cap; post-S343 they should land on waitlist if `confirmed (non-OG) + trials >= capacity`. Also: pick any future class with a confirmed booking + a waitlister, toggle the confirmed athlete's OG flag, and confirm the waitlister auto-promotes (toast: `… — first waitlist athlete promoted`). Then open the WOD editor for any session, click "Add lift" on a section → ConfigureLiftModal — your last variable-reps scheme should be restored (10@40, 6@50, 5@60, … or whatever you most recently configured).
 
 **Files to open first if continuing code work:**
-- [components/coach/SubscriptionsDueBanner.tsx](components/coach/SubscriptionsDueBanner.tsx) — new top-of-`/coach` banner. Lists athletes within 7d of expiry across BOTH cash-managed (`members.athlete_subscription_end`) and Stripe-managed (`subscriptions.current_period_end`). Renew calls `/api/members/athlete-subscription` with `activate_monthly` / `activate`.
-- [hooks/coach/useMemberData.ts](hooks/coach/useMemberData.ts) — new `subCreatedAtMap` built from `subscriptions.created_at`, applied as a Subscriptions-tab-only post-fetch sort. Other tabs untouched.
-- [app/coach/page.tsx](app/coach/page.tsx) — banner mounted inside the `!(isModalOpen && searchPanelOpen)` conditional, just above `<CalendarNav>`.
+- [app/api/bookings/create/route.ts](app/api/bookings/create/route.ts) ~line 290 — `onCapacityCount = confirmedBookingCount + trialCount` is the new capacity calc.
+- [lib/coach/promoteFromWaitlist.ts](lib/coach/promoteFromWaitlist.ts) — extracted helper. Used by both `/api/bookings/cancel` and `/api/bookings/toggle-og`.
+- [app/api/bookings/toggle-og/route.ts](app/api/bookings/toggle-og/route.ts) — new coach-only route that flips `is_og` and (when a slot frees) promotes first waitlister.
+- [hooks/coach/useBookingManagement.ts](hooks/coach/useBookingManagement.ts) `handleToggleOg` — now calls the route via `authFetch` instead of writing supabase directly. Toast surfaces the promotion.
+- [components/coach/ConfigureLiftModal.tsx](components/coach/ConfigureLiftModal.tsx) — top-of-file constants `LAST_VARIABLE_SETS_KEY` / `LAST_REP_TYPE_KEY` + the localStorage read/write effect.
 
 **Carry-over status:**
+- ✅ S343 trial-aware capacity in self-book — bug 1 fixed.
+- ✅ S343 OG-toggle promotes waitlist — bug 2 fixed via new server route + shared helper.
+- ✅ S343 Sunday 2026-05-10 Foundations 10:00 was healed via UI (Chris toggled Carole's OG off then on; Daniel Steller promoted). Working as expected on prod.
+- ⏳ S343 today's Foundations 2026-05-08 18:30 (13/12) — still over by 1. Coach call: remove Carla (trial) OR push Tobias Baumstark (last self-book) to waitlist. New self-book guard prevents recurrence.
+- ⏳ S343 ConfigureLiftModal user verification — confirm next time you add a lift with variable reps that the modal restores your last scheme + tab.
 - ✅ S342 Subscriptions Due banner shipped — checkpoint commit `ea21f50`.
 - ✅ S342 Members tab Subscriptions sort by first-subscription date (newest first) — close commit.
 - ⏳ S342 user verification — once Nikolina/Lisa enter the 7d window, confirm they appear and renewing works end-to-end. Both should currently exist as `active` cash subscribers per Chris's earlier confirmation.
@@ -77,6 +84,12 @@ _Updated at every session close. The "first 5 minutes of tomorrow" — read this
 - (Carry from S324) Migration `database/add-payment-method-and-tencard-holder.sql` is in production. SQL files are gitignored. Booking flow walks to a 10-card holder, not the booking member, in `/api/bookings/create`, `/api/bookings/cancel`.
 - (Carry from S321) `Chris Notes/AA frequently used files/Notes for next session.md` is **Chris-owned** — Claude does NOT read/write content, but DOES commit/push when modified.
 - (Carry) `bookings.is_og` migration in production. `sessionStartInstant()` in `lib/bookingRules.ts` for TZ-safe gates.
+
+**Capacity calc must include `trial_names.length` everywhere it's checked (S343).** [app/api/bookings/create/route.ts](app/api/bookings/create/route.ts) and [hooks/coach/useBookingManagement.ts](hooks/coach/useBookingManagement.ts) both now do `confirmedBookings (non-OG) + trialCount` against `capacity`. **If you add a third capacity-checking surface (a new booking source, a moveTo-session helper, an admin reschedule), replicate the trialCount addition** — pre-S343 the public API drifted from the coach-side calc and let athletes self-book past cap when trials filled it. The Set-of-counts pattern is: confirmed-non-OG = real seats taken; trial_names = also seats taken; OG bookings = off-capacity (don't count); waitlist = doesn't count yet.
+
+**Coach `handleAddTrialAthlete` does NOT check capacity (S343, deferred).** [hooks/coach/useBookingManagement.ts](hooks/coach/useBookingManagement.ts) ~line 137: a coach can add a trial name to a class that's already at confirmed cap, pushing it over. Athlete-side self-book is now guarded (S343 fix), but coach-side trial-add is still unguarded. **If Chris reports another 13/12 surfacing without an athlete self-book trail, this is the next thing to harden** — add a `confirmedCount + trialNames.length >= capacity` guard with confirmation prompt, or just block silently with a toast.
+
+**Booking writes that mutate capacity state must run waitlist promotion (S343).** [lib/coach/promoteFromWaitlist.ts](lib/coach/promoteFromWaitlist.ts) is the canonical helper — promotes longest-waiting waitlister, cascades 10-card increment for ten_card payers (own card or shared parent card), fires `notifyWaitlistPromoted`. Currently called by: cancel route + toggle-og route. **If you add a new path that frees a confirmed slot** (e.g. a "convert booking to no-show" flow, a mass-cancel admin tool), call this helper or you'll re-create the S343 stuck-waitlist bug. The helper assumes you've already mutated the freeing booking and only handles the downstream promotion; it does NOT verify the slot is actually free, so the caller must decide *when* to invoke it.
 
 **Subscription-expiry thresholds DIVERGE: banner is 7d, push notification is 14d (S342).** [components/coach/SubscriptionsDueBanner.tsx](components/coach/SubscriptionsDueBanner.tsx) shows rows whose `athlete_subscription_end` or `subscriptions.current_period_end` is within 7 days. Push notification logic in [hooks/coach/useMemberData.ts](hooks/coach/useMemberData.ts) `checkExpiringSubscriptions` (line ~368) and the receiving endpoint [app/api/notifications/subscription-expiring/route.ts](app/api/notifications/subscription-expiring/route.ts) (line ~37 `daysLeft > 14`) still use 14d. **If you change one threshold, decide whether the other should match** — currently they're intentionally different (push at 14d gives early heads-up; banner at 7d is the action-window). The window 8–14d shows no banner but DOES fire a push. If a coach reports "I got a push but the banner was empty", that's expected, not a bug.
 
@@ -155,6 +168,13 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 343 (2026-05-08 — Opus 4.7) — TRIAL-AWARE CAPACITY IN SELF-BOOK + OG-TOGGLE PROMOTES WAITLIST + CONFIGURELIFTMODAL REMEMBERS LAST VARIABLE SCHEME:**
+- **Two over-capacity bugs surfaced from one report.** Today's Foundations 18:30 showed 13/12; Sunday's Foundations 10:00 showed 9/10 + 1 stuck on waitlist. Diagnosis confirmed via service-role probes, not guessed.
+- **Bug 1 — self-book ignored trials.** [app/api/bookings/create/route.ts](app/api/bookings/create/route.ts) ~line 290: capacity check now `confirmedBookingCount + trialCount`. Coach-side `useBookingManagement` already had this; the public API drifted.
+- **Bug 2 — OG toggle skipped waitlist promotion.** Extracted the ~50-line waitlist-promote-with-10-card-cascade-and-notification block from `/api/bookings/cancel` to new [lib/coach/promoteFromWaitlist.ts](lib/coach/promoteFromWaitlist.ts). New [app/api/bookings/toggle-og/route.ts](app/api/bookings/toggle-og/route.ts) (`requireCoach`) flips `is_og` and calls helper when a confirmed booking flips non-OG → OG (slot freed). [hooks/coach/useBookingManagement.ts](hooks/coach/useBookingManagement.ts) `handleToggleOg` now `authFetch`'s the new endpoint; toast tells you when a waitlist promotion fired.
+- **ConfigureLiftModal persistence.** [components/coach/ConfigureLiftModal.tsx](components/coach/ConfigureLiftModal.tsx) — variable scheme + repType now persist across sessions via localStorage (`configureLiftModal:lastVariableSets`, `configureLiftModal:lastRepType`). Only writes when adding a new lift; editing an existing lift loads from that lift, not from preferences.
+- **Live data healed.** Sunday Foundations 10:00 fixed via UI flow (Carole's OG off→on triggered Daniel's promotion under new code). Today's 18:30 still over by 1 — coach call deferred.
+
 **Session 342 (2026-05-08 — Opus 4.7) — COACH-DASHBOARD SUBSCRIPTIONS DUE BANNER (CASH + STRIPE, 7-DAY WINDOW) + MEMBERS-TAB SUBSCRIPTIONS SORT:**
 - **Banner (checkpoint commit `ea21f50`).** New [components/coach/SubscriptionsDueBanner.tsx](components/coach/SubscriptionsDueBanner.tsx) mounted in [app/coach/page.tsx](app/coach/page.tsx) above `<CalendarNav>`. Auto-hides when no athletes are within 7 days of `athlete_subscription_end` (cash-managed) or `subscriptions.current_period_end` (Stripe-managed). Cash rows: name + days-left + `Renew 1 Month` / `Renew 1 Year` calling `/api/members/athlete-subscription` with `activate_monthly` / `activate`. Stripe rows: green `Auto-renew · plan` or red `Cancelling at period end`. Sorted ascending by days-left, color-coded red ≤3d / amber 4–7d.
 - **Trigger.** Chris pays Nikolina Vlasalija + Lisa Vrbanic in cash and wanted a passive reminder when their renewal is approaching. Existing 14d push notification (athlete + coach) is unchanged and acts as the early heads-up; banner is the 7d action window.
@@ -187,18 +207,7 @@ Athlete Tools
   - **Single commit covers both fixes** — same code surface (score-entry flow), same trigger (Chris's 1km Rower test). Splitting would have produced two near-identical commit bodies.
   - **S339-followup checkpoint (same day):** chip didn't land in `ScoreEntryModal.tsx` — only in the page route. Both UIs share `useScoreEntry` (saveScores cascade did fire from both), but the render JSX is duplicated. Patched modal + aligned page lift-chip rep-scheme display so both UIs match.
 
-**Session 338 (2026-05-07 — Opus 4.7) — LEADERBOARD IGNORES DISABLED SCORING FIELDS (READ + WRITE + TOGGLE-OFF + 146-ROW CLEANUP) + CANCEL-BOOKING FINDS ATHLETE-SELF-ENTERED SCORES:**
-- **Bug 1 trigger.** Chris flagged the AKBS Deadlift leaderboard ranking him (47 reps · 20 kg · T2) below Madeleine (48 reps · 12 kg · T2). Service-role probe revealed the screenshot section (`section-1774340929806`, "WOD Pt.3") had `scoring_fields.scaling: false` but every row still had `scaling_level` populated from before the toggle was flipped. Aggregate scaling (chain rank: tier → track → scaling → score) silently demoted Sc1 entries below Rx — invisibly, because the display correctly hid scaling badges per S325's `formatResult` gate.
-- **Defense-in-depth fix.** [utils/leaderboard-utils.ts](utils/leaderboard-utils.ts) — new `maskDisabledFields` zero-walks load/scaling slots when `scoring_fields` says they're off; both `bestResultPerUser` and `rankSectionResults` accept an optional `scoringFields` arg. [components/athlete/LeaderboardView.tsx](components/athlete/LeaderboardView.tsx) plumbs `section.scoring_fields` through. [utils/logbook/savingLogic.ts](utils/logbook/savingLogic.ts) (athlete) and [app/api/score-entry/save/route.ts](app/api/score-entry/save/route.ts) (coach) gate slots at write time too — the API endpoint fetches `wods.sections` at request start, builds a per-section field map, masks each record. [hooks/coach/useWODOperations.ts](hooks/coach/useWODOperations.ts) — coach edits to a section's scoring_fields now NULL the corresponding columns on existing rows (toggle-off cleanup). [scripts/cleanup-stale-scoring-fields.ts](scripts/cleanup-stale-scoring-fields.ts) — one-shot data heal: 146 rows across 21 sections nulled (Back Squat 22, BFS 5x5 22, AKBS Deadlift 13, Strict Movements 11, Weekend WOD #26.7 8, Isabel 1, etc.).
-- **Bug 2 trigger.** Chris recorded a test 200kg Sumo DL on a workout, then used Session Management → Remove Booking. The booking moved to `coach_cancelled` but the score remained on the leaderboard AND the Lifts tab. Root cause in [hooks/coach/useBookingManagement.ts:347](hooks/coach/useBookingManagement.ts#L347): `or(member_id.eq.${memberId},user_id.eq.${memberId})` tested both columns against the same `memberId` — but athlete-self-entered rows save with `user_id = auth.users.id`, a different UUID. The query missed the row, the lift_records cleanup was gated on `userIds.length > 0` from that query → both tables silently kept the data.
-- **Cancel-booking fix.** New [app/api/coach/resolve-auth-user/route.ts](app/api/coach/resolve-auth-user/route.ts) (coach-only) resolves `members.id → auth.users.id` via email lookup. `handleCancelBooking` calls it before the OR cleanup. Falls back to `memberId` if resolution fails so the existing coach-entered match still works.
-- **Process moments worth remembering:**
-  - **Stopped guessing after the second wrong theory.** First diagnosis was "load slot mismatch between dates" — Chris pushed back ("I just copied the workout, slots are identical"). Second was "stale data from edited section" — correct, but I wrote a probe FIRST this time before claiming. Probe revealed exact data, theory matched. Lesson: in a 5-bug-history-on-one-feature situation, write the probe before the theory.
-  - **Asked "how is stale data being saved in the first place?" turned a symptom fix into a defense-in-depth fix.** The original plan was just the read-time mask. Chris's question forced the full chain (read + write + toggle-off + cleanup) which is what actually solves it.
-  - **Bulk write paused for explicit go-ahead.** 146-row cleanup ran in dry-run first, presented the impact summary (per-section per-WOD), got "apply" confirmation, then ran with `--apply`. Matches the S240 silent-bulk-write rule.
-  - **Single commit for two unrelated bugs surfaced from one test.** Both came from the same Chris test session and both deploy-affect leaderboard correctness. No value in splitting; commit body covers both clearly.
-
-**Older sessions (57-337):** See `project-history/` folder.
+**Older sessions (57-338):** See `project-history/` folder.
 
 ---
 
@@ -222,7 +231,8 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-0. **Verify Subscriptions Due banner + Members Subscriptions sort (S342).** First action in the Kickoff section above. Once Nikolina/Lisa enter the 7d window, banner should list them with Renew buttons; clicking `Renew 1 Month` shifts the end date to now+30d and removes them from the banner. On `/coach/members` → Subscriptions tab, list should be ordered by Stripe sub creation / trial start (newest first), and a cash renewal should NOT shuffle the order.
+0. **Verify S343 fixes on prod.** Test self-book with trials filling cap (should waitlist post-S343), test OG-toggle on a class with a waitlister (should auto-promote with toast), open ConfigureLiftModal and confirm last variable scheme + tab restored. Then handle today's 2026-05-08 Foundations 18:30 (still 13/12) — coach call: remove Carla (trial) or push Tobias to waitlist.
+0a. **Verify Subscriptions Due banner + Members Subscriptions sort (S342).** Once Nikolina/Lisa enter the 7d window, banner should list them with Renew buttons; clicking `Renew 1 Month` shifts the end date to now+30d and removes them from the banner. On `/coach/members` → Subscriptions tab, list should be ordered by Stripe sub creation / trial start (newest first), and a cash renewal should NOT shuffle the order.
 0a. **Verify the RM-test distinction works on the deploy (S341).** Toggle `[ All | RM Testing only ]` on the planner; confirm dots filter correctly for the Sumo DL 10RM week + the Back Squat 1/3RM week. Click a covered dot — RM exercises should render with an amber pill. If the badge styling feels too loud, edit [components/coach/analysis/PlanningGrid.tsx](components/coach/analysis/PlanningGrid.tsx) lines ~280-298 (chip + pill className).
 1. **Verify the AKBS Deadlift leaderboard fix on the production deploy (S338).** Open the WOD's leaderboard for "WOD Pt.3" — Chris (47/20) should rank above Madeleine (48/12), and Irene (40/12) below them. Then spot-check Back Squat Testing, BFS 5x5, and Strict Movements/KBOHC leaderboards — all had stale rows cleaned by the one-shot script. If anything looks wrong, run `npx tsx scripts/cleanup-stale-scoring-fields.ts` (dry run) to detect new stale rows.
 1a. **Re-test the cancel-booking flow (S338).** Add a fake score to a workout via athlete UI, then use Session Management → Remove Booking. Both the leaderboard row AND the lift_record (if any) should disappear this time. Chris's earlier test 200kg Sumo DL is still live — easiest cleanup is to just run that flow on it now.

@@ -31,7 +31,7 @@ http://192.168.178.75:3000
 * Lifts modal coach-side should save last variable rep scheme
 * Why doesn't the data integrity sql catch things like this?
 * entering a benchmark for an athlete on the coach page/athletes tab didn't work
-* 
+* How it works/info/help file like in Planner
 * When I am publishing and re-publishing, athletes are getting notifications, that could become annoying, especially as I'm testing different ways of writing the programs and saving scores. Is there a way I can turn these notications off until the Workout is completely ready?
 * Review and check how DNF is displayed and used in the athlete leaderboard.
 

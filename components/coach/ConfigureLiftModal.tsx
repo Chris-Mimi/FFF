@@ -15,6 +15,40 @@ interface ConfigureLiftModalProps {
   onAddToSection: (sectionId: string, configuredLift: ConfiguredLift) => void;
 }
 
+const LAST_VARIABLE_SETS_KEY = 'configureLiftModal:lastVariableSets';
+const LAST_REP_TYPE_KEY = 'configureLiftModal:lastRepType';
+
+const DEFAULT_VARIABLE_SETS: VariableSet[] = [
+  { set_number: 1, reps: 10, percentage_1rm: 40 },
+  { set_number: 2, reps: 6, percentage_1rm: 50 },
+  { set_number: 3, reps: 5, percentage_1rm: 60 },
+  { set_number: 4, reps: 5, percentage_1rm: 70 },
+  { set_number: 5, reps: 5, percentage_1rm: 80 },
+  { set_number: 6, reps: 5, percentage_1rm: 85 },
+  { set_number: 7, reps: 5, percentage_1rm: 90 },
+];
+
+function readStoredVariableSets(): VariableSet[] {
+  if (typeof window === 'undefined') return DEFAULT_VARIABLE_SETS;
+  try {
+    const raw = localStorage.getItem(LAST_VARIABLE_SETS_KEY);
+    if (!raw) return DEFAULT_VARIABLE_SETS;
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed) && parsed.length > 0 && parsed.every(s =>
+      typeof s?.set_number === 'number' && typeof s?.reps === 'number'
+    )) {
+      return parsed as VariableSet[];
+    }
+  } catch { /* fall through to default */ }
+  return DEFAULT_VARIABLE_SETS;
+}
+
+function readStoredRepType(): 'constant' | 'variable' {
+  if (typeof window === 'undefined') return 'constant';
+  const v = localStorage.getItem(LAST_REP_TYPE_KEY);
+  return v === 'variable' ? 'variable' : 'constant';
+}
+
 function ConfigureLiftModal({
   isOpen,
   lift,
@@ -27,23 +61,16 @@ function ConfigureLiftModal({
   const [selectedSectionId, setSelectedSectionId] = useState<string>(
     activeSection?.id || (availableSections.length > 0 ? availableSections[0].id : '')
   );
-  const [repType, setRepType] = useState<'constant' | 'variable'>('constant');
+  const [repType, setRepType] = useState<'constant' | 'variable'>(readStoredRepType);
 
   // Constant reps state
   const [sets, setSets] = useState(5);
   const [reps, setReps] = useState(5);
   const [percentage, setPercentage] = useState<number | undefined>(undefined);
 
-  // Variable reps state
-  const [variableSets, setVariableSets] = useState<VariableSet[]>([
-    { set_number: 1, reps: 10, percentage_1rm: 40 },
-    { set_number: 2, reps: 6, percentage_1rm: 50 },
-    { set_number: 3, reps: 5, percentage_1rm: 60 },
-    { set_number: 4, reps: 5, percentage_1rm: 70 },
-    { set_number: 5, reps: 5, percentage_1rm: 80 },
-    { set_number: 6, reps: 5, percentage_1rm: 85 },
-    { set_number: 7, reps: 5, percentage_1rm: 90 },
-  ]);
+  // Variable reps state — initialised from last persisted scheme so the modal
+  // opens in the state the coach left it the last time they configured one.
+  const [variableSets, setVariableSets] = useState<VariableSet[]>(readStoredVariableSets);
 
   // RM Test state
   const [rmTest, setRmTest] = useState<'1RM' | '3RM' | '5RM' | '10RM' | null>(null);
@@ -82,23 +109,28 @@ function ConfigureLiftModal({
 
       setRmTest(existingLift.rm_test || null);
     } else {
-      // Reset to defaults when not editing
+      // Reset for a new lift — restore the last persisted variable scheme + rep type
+      // (so the modal opens in the state the coach left it). Constant fields fall
+      // back to a sensible default since most coaches re-enter sets/reps/percentage.
       setRmTest(null);
-      setRepType('constant');
+      setRepType(readStoredRepType());
       setSets(5);
       setReps(5);
       setPercentage(undefined);
-      setVariableSets([
-        { set_number: 1, reps: 10, percentage_1rm: 40 },
-        { set_number: 2, reps: 6, percentage_1rm: 50 },
-        { set_number: 3, reps: 5, percentage_1rm: 60 },
-        { set_number: 4, reps: 5, percentage_1rm: 70 },
-        { set_number: 5, reps: 5, percentage_1rm: 80 },
-        { set_number: 6, reps: 5, percentage_1rm: 85 },
-        { set_number: 7, reps: 5, percentage_1rm: 90 },
-      ]);
+      setVariableSets(readStoredVariableSets());
     }
   }, [editingLift]);
+
+  // Persist variable scheme + rep type whenever they change (only for new lifts;
+  // editing an existing lift loads from that lift, not from preferences).
+  useEffect(() => {
+    if (editingLift) return;
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.setItem(LAST_VARIABLE_SETS_KEY, JSON.stringify(variableSets));
+      localStorage.setItem(LAST_REP_TYPE_KEY, repType);
+    } catch { /* localStorage full or unavailable — silently ignore */ }
+  }, [variableSets, repType, editingLift]);
 
   // Drag handlers
   const handleDragStart = (e: React.MouseEvent) => {
