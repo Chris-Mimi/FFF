@@ -281,14 +281,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Count confirmed bookings toward capacity. OG bookings (is_og=true) are off-capacity —
-    // OG athletes are admitted alongside the class but don't do the WOD, so they don't
-    // consume a slot.
+    // Count confirmed bookings + trial athletes toward capacity. OG bookings (is_og=true)
+    // are off-capacity — OG athletes are admitted alongside the class but don't do the WOD,
+    // so they don't consume a slot. Trial names live in weekly_sessions.trial_names (string[])
+    // and DO consume capacity (matches the coach-side useBookingManagement check).
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const confirmedCount = session.bookings?.filter((b: any) => b.status === 'confirmed' && !b.is_og).length || 0;
+    const confirmedBookingCount = session.bookings?.filter((b: any) => b.status === 'confirmed' && !b.is_og).length || 0;
+    const trialCount = (session.trial_names as string[] | null)?.length ?? 0;
+    const onCapacityCount = confirmedBookingCount + trialCount;
 
     // Determine booking status (confirmed or waitlist). capacity === 0 means unlimited.
-    const bookingStatus = session.capacity === 0 || confirmedCount < session.capacity ? 'confirmed' : 'waitlist';
+    const bookingStatus = session.capacity === 0 || onCapacityCount < session.capacity ? 'confirmed' : 'waitlist';
 
     // Create booking
     const { data: booking, error: bookingError } = await supabase

@@ -398,16 +398,17 @@ export function useBookingManagement({
 
   const handleToggleOg = async (bookingId: string, memberName: string, isOg: boolean) => {
     try {
-      const { error } = await supabase
-        .from('bookings')
-        .update({ is_og: isOg })
-        .eq('id', bookingId);
-
-      if (error) throw error;
+      const res = await authFetch('/api/bookings/toggle-og', {
+        method: 'POST',
+        body: JSON.stringify({ bookingId, isOg }),
+      });
+      if (!res.ok) throw new Error('toggle failed');
+      const result = (await res.json()) as { promotedMemberId: string | null };
 
       await onRefresh();
       onSessionUpdated();
-      toast.success(isOg ? `${memberName} marked as Open Gym` : `${memberName} no longer Open Gym`);
+      const baseMsg = isOg ? `${memberName} marked as Open Gym` : `${memberName} no longer Open Gym`;
+      toast.success(result.promotedMemberId ? `${baseMsg} — first waitlist athlete promoted` : baseMsg);
     } catch (error) {
       console.error('Error toggling OG flag:', error);
       toast.error('Failed to update Open Gym flag');
