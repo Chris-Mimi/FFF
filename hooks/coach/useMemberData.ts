@@ -152,18 +152,25 @@ export function useMemberData() {
 
       // Fetch subscription plan types
       let planTypeMap: Record<string, 'monthly' | 'yearly'> = {};
+      let subCreatedAtMap: Record<string, string> = {};
       if (memberIds.length > 0) {
         const { data: subsData } = await supabase
           .from('subscriptions')
-          .select('member_id, plan_type')
+          .select('member_id, plan_type, created_at')
           .in('member_id', memberIds)
           .in('status', ['active', 'trialing']);
 
         if (subsData) {
           planTypeMap = Object.fromEntries(
-            subsData.map((row: { member_id: string; plan_type: string }) => [
+            subsData.map((row: { member_id: string; plan_type: string; created_at: string }) => [
               row.member_id,
               row.plan_type as 'monthly' | 'yearly',
+            ])
+          );
+          subCreatedAtMap = Object.fromEntries(
+            subsData.map((row: { member_id: string; plan_type: string; created_at: string }) => [
+              row.member_id,
+              row.created_at,
             ])
           );
         }
@@ -296,6 +303,23 @@ export function useMemberData() {
           }
           return m;
         });
+      }
+
+      // Subscriptions tab: sort by when the athlete first subscribed.
+      // Priority: Stripe sub created_at (own or primary's) → athlete_trial_start → member created_at.
+      // Direction: newest first. Stable across cash renewals (athlete_subscription_start would reset).
+      if (status === 'subscriptions') {
+        const sortKey = (m: typeof membersWithAttendance[number]): string => {
+          if (subCreatedAtMap[m.id]) return subCreatedAtMap[m.id];
+          if (m.account_type === 'family_member' && m.primary_member_id && subCreatedAtMap[m.primary_member_id]) {
+            return subCreatedAtMap[m.primary_member_id];
+          }
+          if (m.athlete_trial_start) return m.athlete_trial_start;
+          return m.created_at;
+        };
+        membersWithAttendance = [...membersWithAttendance].sort((a, b) =>
+          sortKey(b).localeCompare(sortKey(a))
+        );
       }
 
       // Filter at-risk: 0 attendance + regular membership types, exclude guardian-only

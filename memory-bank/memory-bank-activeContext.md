@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 204
-**Updated:** 2026-05-08 (Session 342 mid-checkpoint — coach-dashboard Subscriptions Due banner shipped, 7-day window)
+**Version:** 205
+**Updated:** 2026-05-08 (Session 342 close — coach-dashboard Subscriptions Due banner + Members Subscriptions tab now sorts by first-subscription date)
 
 ---
 
@@ -21,21 +21,18 @@
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history scan._
 
-**First action:** Open the Programming Planner. Toggle the new `[ All | RM Testing only ]` segmented control above the date-range row. In `RM Testing only` mode, only weeks where a lift was rep-max-tested should keep their dots lit (e.g. 2026-05-04 Sumo Deadlift 10RM, the Back Squat 1/3RM testing week). Click a covered dot — the bottom panel chips should show an amber `1RM` / `3RM` / `5RM` / `10RM` pill next to RM-tested exercise names; non-RM movements (the Strict OHP example, Nancy's Overhead Squat) stay plain. If the badge styling feels off, the chip block is in [components/coach/analysis/PlanningGrid.tsx](components/coach/analysis/PlanningGrid.tsx) lines ~280-298 — easy tweak.
+**First action:** Open `/coach`. If Nikolina Vlasalija or Lisa Vrbanic is within 7 days of their `athlete_subscription_end`, the new **Subscriptions Due banner** should appear above the calendar, color-coded by urgency (red ≤3d, amber 4–7d). Click `Renew 1 Month` on a cash row when they next pay — the row should disappear and the end date should shift to now+30d. If neither athlete is within 7 days, the banner auto-hides — that's expected. Then open `/coach/members` → Subscriptions tab — the list should now sort by Stripe sub creation date (or trial start as fallback), newest first. Cash renewals should NOT shuffle the order (since we use `athlete_trial_start`, not `athlete_subscription_start`).
 
 **Files to open first if continuing code work:**
-- [components/coach/analysis/PlannerSection.tsx](components/coach/analysis/PlannerSection.tsx) — view-months segmented control, anchor offset Prev/Today/Next, RM-test content filter.
-- [components/coach/analysis/PlanningGrid.tsx](components/coach/analysis/PlanningGrid.tsx) — inline pattern-row expand, dot rendering with `isWeekCovered` predicate, RM-badge chip render in the bottom panel.
-- [utils/movement-extraction.ts](utils/movement-extraction.ts) — new `extractMovementsWithMetadata` returns Map<string, { rmType? }>; longest-substring-match fix in `findMatchingExercise` step 4.
-- [utils/pattern-analytics.ts](utils/pattern-analytics.ts) `detectWeeklyCoverage` populates per-exercise `rmType`.
-- [components/coach/analysis/PatternExerciseChips.tsx](components/coach/analysis/PatternExerciseChips.tsx) — shared chip-grid, used by both PatternManager and PlanningGrid inline expansion.
+- [components/coach/SubscriptionsDueBanner.tsx](components/coach/SubscriptionsDueBanner.tsx) — new top-of-`/coach` banner. Lists athletes within 7d of expiry across BOTH cash-managed (`members.athlete_subscription_end`) and Stripe-managed (`subscriptions.current_period_end`). Renew calls `/api/members/athlete-subscription` with `activate_monthly` / `activate`.
+- [hooks/coach/useMemberData.ts](hooks/coach/useMemberData.ts) — new `subCreatedAtMap` built from `subscriptions.created_at`, applied as a Subscriptions-tab-only post-fetch sort. Other tabs untouched.
+- [app/coach/page.tsx](app/coach/page.tsx) — banner mounted inside the `!(isModalOpen && searchPanelOpen)` conditional, just above `<CalendarNav>`.
 
 **Carry-over status:**
-- ✅ S341 extractor longest-match fix shipped — substring loop returns longest known-name match (fixes Sumo Deadlift → "Deadlift" misreport).
-- ✅ S341 S340 backfill applied to 29 WODs / 37 slots — historical benchmark/forge JSONB snapshots now carry `exercises[]`.
-- ✅ S341 planner viewing improvements — 1/3/6/12-month views, Prev/Today/Next, localStorage persistence, inline-expand pattern rows.
-- ✅ S341 RM-testing distinction — extractor metadata + `[ All | RM Testing only ]` filter + amber RM badge on dot-click chips.
-- ⏳ S341 user verification — Chris hasn't yet tested the RM filter end-to-end on the production deploy. First action above.
+- ✅ S342 Subscriptions Due banner shipped — checkpoint commit `ea21f50`.
+- ✅ S342 Members tab Subscriptions sort by first-subscription date (newest first) — close commit.
+- ⏳ S342 user verification — once Nikolina/Lisa enter the 7d window, confirm they appear and renewing works end-to-end. Both should currently exist as `active` cash subscribers per Chris's earlier confirmation.
+- ⏳ S341 user verification — open `/coach/analysis` planner, toggle `[ All | RM Testing only ]`, confirm dot filtering + amber RM pills on the Sumo DL 10RM and Back Squat 1/3RM weeks.
 - ⏳ S338 verify on production — open AKBS Deadlift "WOD Pt.3" leaderboard (Chris 47/20 should rank above Madeleine 48/12). Spot-check Back Squat Testing, BFS 5x5, Strict Movements/KBOHC. If anything looks off, run `npx tsx scripts/cleanup-stale-scoring-fields.ts` (dry run).
 - ⏳ S338 Chris's test Sumo DL row — stale wod_section_results + lift_record from his earlier test still present. Use Session Management → Remove Booking flow now that it's fixed.
 - ⏳ S336 retroactive booking pass — 35 missing bookings remaining across 8 athletes (Anton 12, Max 8, Ole 5, Fabian 4, Leopold 3, Adrian 1, Kim 1, Bettina 1). Manual flow via Session Management modal increments the counter correctly when status lands as `confirmed`.
@@ -158,11 +155,11 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
-**Session 342 (2026-05-08 — Opus 4.7) — COACH-DASHBOARD SUBSCRIPTIONS DUE BANNER (CASH + STRIPE, 7-DAY WINDOW):**
-- New [components/coach/SubscriptionsDueBanner.tsx](components/coach/SubscriptionsDueBanner.tsx) mounted in [app/coach/page.tsx](app/coach/page.tsx) above `<CalendarNav>`. Auto-hides when no athletes are within 7 days of `athlete_subscription_end` (cash-managed) or `subscriptions.current_period_end` (Stripe-managed).
-- Cash rows: name + days-left + `Renew 1 Month` / `Renew 1 Year` buttons calling existing `/api/members/athlete-subscription` with `activate_monthly` / `activate`. Stripe rows: green `Auto-renew · monthly|yearly` badge or red `Cancelling at period end` if `cancel_at_period_end=true`. Sorted ascending by days-left, color-coded red ≤3d / amber 4–7d.
-- Trigger: Chris pays Nikolina Vlasalija + Lisa Vrbanic in cash and wanted a passive reminder when their renewal is approaching. The push notification path (existing) fires once per session at 14d to both athlete + coach — banner is the visual fallback for missed/dismissed pushes.
-- Stripe-managed athletes are deduped from the cash list via `stripeMemberIds` set so a member with both `athlete_subscription_end` (legacy) and an active Stripe sub doesn't appear twice.
+**Session 342 (2026-05-08 — Opus 4.7) — COACH-DASHBOARD SUBSCRIPTIONS DUE BANNER (CASH + STRIPE, 7-DAY WINDOW) + MEMBERS-TAB SUBSCRIPTIONS SORT:**
+- **Banner (checkpoint commit `ea21f50`).** New [components/coach/SubscriptionsDueBanner.tsx](components/coach/SubscriptionsDueBanner.tsx) mounted in [app/coach/page.tsx](app/coach/page.tsx) above `<CalendarNav>`. Auto-hides when no athletes are within 7 days of `athlete_subscription_end` (cash-managed) or `subscriptions.current_period_end` (Stripe-managed). Cash rows: name + days-left + `Renew 1 Month` / `Renew 1 Year` calling `/api/members/athlete-subscription` with `activate_monthly` / `activate`. Stripe rows: green `Auto-renew · plan` or red `Cancelling at period end`. Sorted ascending by days-left, color-coded red ≤3d / amber 4–7d.
+- **Trigger.** Chris pays Nikolina Vlasalija + Lisa Vrbanic in cash and wanted a passive reminder when their renewal is approaching. Existing 14d push notification (athlete + coach) is unchanged and acts as the early heads-up; banner is the 7d action window.
+- **Members Subscriptions sort (close commit).** [hooks/coach/useMemberData.ts](hooks/coach/useMemberData.ts) now sorts the Subscriptions tab by Stripe sub `created_at` if present (own or primary's for family members), falling back to `athlete_trial_start`, then `members.created_at`. Direction: descending (newest first). Stable across cash renewals — uses trial-start, not subscription_start (which resets on every `activate_monthly` call). Other tabs (Active / Pending / Blocked / At-Risk) keep the existing `created_at desc` order.
+- **Stripe-managed dedup in banner.** Members with both a stale `athlete_subscription_end` and an active Stripe sub are excluded from the cash list via `stripeMemberIds` set so they don't appear twice.
 
 **Session 341 (2026-05-07 — Opus 4.7) — PLANNER VIEWING IMPROVEMENTS + EXTRACTOR LONGEST-MATCH FIX + S340 BACKFILL + RM-TEST DISTINCTION:**
 - **Extractor longest-match fix** in [utils/movement-extraction.ts](utils/movement-extraction.ts) — substring loop returns longest known-name match instead of first-hit-wins. Triggered by Sumo Deadlift being misreported as "Deadlift" because "Deadlift" is a substring of "Barbell Sumo Deadlift" and was emitted first by Set iteration.
@@ -201,18 +198,7 @@ Athlete Tools
   - **Bulk write paused for explicit go-ahead.** 146-row cleanup ran in dry-run first, presented the impact summary (per-section per-WOD), got "apply" confirmation, then ran with `--apply`. Matches the S240 silent-bulk-write rule.
   - **Single commit for two unrelated bugs surfaced from one test.** Both came from the same Chris test session and both deploy-affect leaderboard correctness. No value in splitting; commit body covers both clearly.
 
-**Session 337 (2026-05-06 — Opus 4.7) — 10-CARD CHIP REAL-WORLD POLISH (FRIEDA TEST: CARD TOTAL + FULL/NEAR-FULL MESSAGES + MISMATCH TOOLTIP REWORD):**
-- **Chip uses `member.ten_card_total ?? 10`** instead of hardcoded `/10`. [components/coach/members/MemberCard.tsx](components/coach/members/MemberCard.tsx) — Frieda's 5-card now correctly reads `5/5` instead of `5/10`. Red `>=9` background also moved to `>= total - 1` so 5-cards turn red at 4/5. Future-proof for any card size (5, 10, 20).
-- **Mismatch chip shows the counter, not the split.** Counter is the source of truth when overridden (coach intent for pre-app sessions). For Frieda set to 5/10 with 2 actual bookings, chip reads `5/10 ⚠` (was `2+0/10 ⚠`). When no mismatch, behaviour unchanged: `past+upcoming/total` with split when there are upcoming bookings, otherwise just `counter/total`.
-- **Modal full vs near-full distinction.** [components/coach/TenCardModal.tsx](components/coach/TenCardModal.tsx) — `sessionsUsed >= total` now shows "Card is full — issue a new card before next booking" (was incorrectly "Next session will complete this card"). Near-full (`sessionsUsed === total - 1`) keeps the original message.
-- **Tooltip rewording — explains the split.** Old: "counter manually set to 5/10 — actual bookings show 2 past + 0 upcoming = 2" (technically correct, confusing). New: "10-card: 5/10 used. 2 from recorded bookings (2 past + 0 upcoming) + 3 manually added (e.g. pre-app sessions). Click to manage." When counter is BELOW actual (rare), tooltip suggests Recalc instead.
-- **Trigger.** Chris tested with Frieda Stromer (Crossfit Kids, pre-app card holder). Chip showed `0/10` with ⚠ instead of mirroring her 5/5 manual override. Modal said "Next session will complete this card" at 5/5 (it's already complete). Tooltip implied the counter was set to 5 when Chris had set it to 3 (the +2 came from real bookings). All three were UI bugs surfaced by real launch-transition data.
-- **Process moments worth remembering:**
-  - **Asked clarifying questions before coding** when Chris's message had both "don't write code" and a UX complaint. Resolved by asking — turns out he meant "no transient launch-only code", not "no fixes". Saved a guess in the wrong direction.
-  - **Three small fixes shipped together** because they all surfaced from one test scenario (Frieda). Single commit, single test pass. No splitting needed.
-  - **Real-world testing > theoretical correctness.** S336 looked clean in TS + build, but Chris's first test against a 5-card immediately surfaced 3 bugs that no synthetic test would have caught.
-
-**Older sessions (57-336):** See `project-history/` folder.
+**Older sessions (57-337):** See `project-history/` folder.
 
 ---
 
@@ -236,7 +222,8 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-0. **Verify the RM-test distinction works on the deploy (S341).** First action in the Kickoff section above. Toggle `[ All | RM Testing only ]` on the planner; confirm dots filter correctly for the Sumo DL 10RM week + the Back Squat 1/3RM week. Click a covered dot — RM exercises should render with an amber pill. If the badge styling feels too loud, edit [components/coach/analysis/PlanningGrid.tsx](components/coach/analysis/PlanningGrid.tsx) lines ~280-298 (chip + pill className).
+0. **Verify Subscriptions Due banner + Members Subscriptions sort (S342).** First action in the Kickoff section above. Once Nikolina/Lisa enter the 7d window, banner should list them with Renew buttons; clicking `Renew 1 Month` shifts the end date to now+30d and removes them from the banner. On `/coach/members` → Subscriptions tab, list should be ordered by Stripe sub creation / trial start (newest first), and a cash renewal should NOT shuffle the order.
+0a. **Verify the RM-test distinction works on the deploy (S341).** Toggle `[ All | RM Testing only ]` on the planner; confirm dots filter correctly for the Sumo DL 10RM week + the Back Squat 1/3RM week. Click a covered dot — RM exercises should render with an amber pill. If the badge styling feels too loud, edit [components/coach/analysis/PlanningGrid.tsx](components/coach/analysis/PlanningGrid.tsx) lines ~280-298 (chip + pill className).
 1. **Verify the AKBS Deadlift leaderboard fix on the production deploy (S338).** Open the WOD's leaderboard for "WOD Pt.3" — Chris (47/20) should rank above Madeleine (48/12), and Irene (40/12) below them. Then spot-check Back Squat Testing, BFS 5x5, and Strict Movements/KBOHC leaderboards — all had stale rows cleaned by the one-shot script. If anything looks wrong, run `npx tsx scripts/cleanup-stale-scoring-fields.ts` (dry run) to detect new stale rows.
 1a. **Re-test the cancel-booking flow (S338).** Add a fake score to a workout via athlete UI, then use Session Management → Remove Booking. Both the leaderboard row AND the lift_record (if any) should disappear this time. Chris's earlier test 200kg Sumo DL is still live — easiest cleanup is to just run that flow on it now.
 1b. **Finish retroactive 10-card bookings for the 8 remaining athletes (S336 carry).** Run `npx tsx scripts/probe-unbooked-whiteboard-athletes.ts` for the per-athlete date list. Manually book each via the Session Management modal — counter increments correctly when status lands as `confirmed`. After each athlete, glance at the chip — ⚠ glyph means a mismatch with `ten_card_sessions_used`; open TenCardModal → Recalc → Save to clear (or leave as a documented override per Rosita's case).
