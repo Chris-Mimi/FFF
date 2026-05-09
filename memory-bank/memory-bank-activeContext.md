@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 209
-**Updated:** 2026-05-09 (Session 344 close — + post-close deletion-orphan sweep: 386 wsr + 132 lift_records + 26 reactions cleaned)
+**Version:** 210
+**Updated:** 2026-05-09 (Session 345 checkpoint — whiteboard cleanup + retro-booking sweep: 92 bookings inserted, 168 WOD whiteboards cleaned)
 
 ---
 
@@ -176,6 +176,14 @@ Athlete Tools
 ---
 
 ## 📍 Current Status (Last 5 Sessions)
+
+**Session 345 (2026-05-09 — Opus 4.7) — WHITEBOARD-INTRO CLEANUP + RETRO BOOKING BACKFILL (CHECKPOINT):**
+- New tool [scripts/clean-whiteboard-and-book.ts](scripts/clean-whiteboard-and-book.ts) — combines two ops in one pass: (1) for any Whiteboard Intro name that resolves to a registered member, strip the name from the JSONB content; (2) if that member has no booking on the WOD's session, insert `confirmed`. Conservative match priority: `whiteboard_name` → ALIAS_OVERRIDES → full name (prefer `family_member` on dupe) → unique first name → FirstName+LastInitial pattern (e.g. `FranziskaK`, `LisaV`). Ambiguous (multi-candidate) names left on whiteboard with a per-WOD report.
+- Two `--apply` passes: first pass cleaned the easy-match cases (86 bookings, 156 WODs). Second pass added kids aliases (`anton → Anton Koffler`, `max → Max Labudda`, `lenny → Lenny Kleinert`, `luisa → Luisa Albrecht`) + tiebreak rule preferring `family_member` over `primary` when full names duplicate (Lenny Kleinert appears twice in `members`, once each). Picked up 6 more bookings + 12 more WODs.
+- **Total:** 92 confirmed bookings inserted, 168 WOD whiteboards rewritten, 1063 names removed. Re-run is idempotent (0 changes). Closes most of the S336 "35 missing bookings across 8 athletes" carry-over (kids only — Anton/Max/Lenny/Luisa now booked; remaining gaps are the genuine no-shows or unregistered visitors).
+- 10-card holders Recalc list (TenCardModal → Recalc → Save): **Nico Enzmann (+1)**, **Kim Salzgeber (+1)**. Other 17 affected members are wellpass / member / family_member kid (no counter to touch).
+- 4 ambiguous → 0 after aliases. 79 unmatched names left on whiteboards = the genuinely unregistered visitors (Jenny, Anfisa, LisaB, Sergej, MichaelaS, MichaelG, etc) per Chris's review.
+- New diagnostic scripts shipped alongside: [scripts/probe-whiteboard-name-candidates.ts](scripts/probe-whiteboard-name-candidates.ts) (per-name candidate dump regardless of status — used to figure out why Anton/Max/Lenny/Luisa weren't matching on first pass) and [scripts/probe-10card-recalc-list.ts](scripts/probe-10card-recalc-list.ts) (post-apply: which newly-booked members are 10-card payers).
 
 **Session 344 (2026-05-09 — Opus 4.7) — SCORE ENTRY NAME DISAMBIGUATION + PUBLISH-NOTIFY TOGGLE + LEGACY SECTION-TYPE CLEANUP + RLS-BLOCKED CANCEL CLEANUP ROOT CAUSE:**
 - **Score Entry name collision fix.** [components/coach/score-entry/ScoreEntryGrid.tsx](components/coach/score-entry/ScoreEntryGrid.tsx) — when 2+ athletes in a section share a first name, labels render as `Michael M.` / `Michael W.` instead of CSS-truncating to `Michael…`. Both ScoreEntryModal + full-page route share the fix.
