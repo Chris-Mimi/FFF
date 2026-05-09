@@ -26,6 +26,7 @@ export interface PublishConfig {
   selectedSectionIds: string[];
   eventTime: string;
   eventDurationMinutes: number;
+  notify?: boolean;
 }
 
 // Helper to strip seconds from time (HH:MM:SS -> HH:MM)
@@ -59,6 +60,8 @@ export default function PublishModal({
   const [eventDurationMinutes, setEventDurationMinutes] = useState(
     currentPublishConfig?.eventDurationMinutes || 60
   );
+  // First publish notifies by default; re-publish stays silent unless coach opts in.
+  const [notify, setNotify] = useState(!currentPublishConfig);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Reset state when modal opens or currentPublishConfig changes
@@ -84,6 +87,7 @@ export default function PublishModal({
         : (currentPublishConfig?.eventTime || '09:00');
       setEventTime(time);
       setEventDurationMinutes(currentPublishConfig?.eventDurationMinutes || 60);
+      setNotify(!currentPublishConfig);
     }
   }, [isOpen, currentPublishConfig, sessionTime, sections]);
 
@@ -118,6 +122,7 @@ export default function PublishModal({
         selectedSectionIds,
         eventTime,
         eventDurationMinutes,
+        notify,
       });
       onClose();
     } catch (error) {
@@ -349,8 +354,19 @@ export default function PublishModal({
 
         {/* Footer */}
         <div className='border-t p-4 flex justify-between items-center gap-4 bg-gray-50'>
-          <div className='text-sm text-gray-600'>
-            {selectedSectionIds.length} section{selectedSectionIds.length !== 1 ? 's' : ''} selected
+          <div className='flex items-center gap-4 text-sm text-gray-600'>
+            <span>
+              {selectedSectionIds.length} section{selectedSectionIds.length !== 1 ? 's' : ''} selected
+            </span>
+            <label className='flex items-center gap-2 cursor-pointer select-none'>
+              <input
+                type='checkbox'
+                checked={notify}
+                onChange={(e) => setNotify(e.target.checked)}
+                className='h-4 w-4 text-[#178da6] focus:ring-[#178da6] rounded'
+              />
+              <span>Notify athletes</span>
+            </label>
           </div>
           <div className='flex gap-2'>
             <button

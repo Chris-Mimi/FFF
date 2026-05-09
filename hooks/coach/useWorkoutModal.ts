@@ -71,6 +71,7 @@ export interface PublishConfig {
   selectedSectionIds: string[];
   eventTime: string;
   eventDurationMinutes: number;
+  notify?: boolean;
 }
 
 export interface WODFormData {

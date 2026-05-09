@@ -20,6 +20,7 @@ interface PublishConfig {
   selectedSectionIds: string[];
   eventTime: string;
   eventDurationMinutes: number;
+  notify?: boolean;
 }
 
 interface VariableSet {
@@ -455,11 +456,14 @@ export async function POST(request: NextRequest) {
         .eq('id', existingSession.id);
     }
 
-    // Fire-and-forget push notification to subscribed members
-    notifyWodPublished(
-      workout.workout_name || workout.session_type || '',
-      workout.date
-    );
+    // Fire-and-forget push notification to subscribed members.
+    // Coach can suppress via the "Notify athletes" toggle (default off on re-publish).
+    if (publishConfig.notify !== false) {
+      notifyWodPublished(
+        workout.workout_name || workout.session_type || '',
+        workout.date
+      );
+    }
 
     return NextResponse.json({
       success: true,

@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 206
-**Updated:** 2026-05-08 (Session 343 close — trial-aware capacity in self-book + OG-toggle promotes waitlist + ConfigureLiftModal remembers last variable scheme)
+**Version:** 207
+**Updated:** 2026-05-09 (Session 344 checkpoint — Score Entry first-name disambiguation + publish-notify smart-default toggle)
 
 ---
 
@@ -85,6 +85,10 @@ _Updated at every session close. The "first 5 minutes of tomorrow" — read this
 - (Carry from S321) `Chris Notes/AA frequently used files/Notes for next session.md` is **Chris-owned** — Claude does NOT read/write content, but DOES commit/push when modified.
 - (Carry) `bookings.is_og` migration in production. `sessionStartInstant()` in `lib/bookingRules.ts` for TZ-safe gates.
 
+**Publish-workout API gates `notifyWodPublished` on `publishConfig.notify !== false` (S344).** [app/api/google/publish-workout/route.ts](app/api/google/publish-workout/route.ts) ~line 460. The triple-state semantics matter: `true` → notify, `false` → silent, `undefined` → notify (back-compat for any old client missing the field). The Modal sets it explicitly to `!currentPublishConfig` so re-publish defaults to silent. **If you add a new publish call site (a bulk re-publish job, a copy-day flow, anything that POSTs to `/api/google/publish-workout`), decide deliberately whether to pass `notify: false`** — silence is often the right default for batch ops, but the API will notify if you forget the field entirely.
+
+**Score Entry display name disambiguates on first-name collision only (S344).** [components/coach/score-entry/ScoreEntryGrid.tsx](components/coach/score-entry/ScoreEntryGrid.tsx) `displayName()`. If 2+ athletes share a first name → emit `First L.`; otherwise pass the original name unchanged (the existing `truncate` class on `AthleteScoreRow` still handles overlong single names). **If you ever centralise this and want it everywhere (leaderboard, attendance card, push body), lift the `firstNameCounts` Map up to wherever the athlete list is composed** — the disambiguation needs the full set of names in the scope being displayed, not just one name in isolation. A single-name "smart shorten" helper would not work because collisions are scope-relative.
+
 **Capacity calc must include `trial_names.length` everywhere it's checked (S343).** [app/api/bookings/create/route.ts](app/api/bookings/create/route.ts) and [hooks/coach/useBookingManagement.ts](hooks/coach/useBookingManagement.ts) both now do `confirmedBookings (non-OG) + trialCount` against `capacity`. **If you add a third capacity-checking surface (a new booking source, a moveTo-session helper, an admin reschedule), replicate the trialCount addition** — pre-S343 the public API drifted from the coach-side calc and let athletes self-book past cap when trials filled it. The Set-of-counts pattern is: confirmed-non-OG = real seats taken; trial_names = also seats taken; OG bookings = off-capacity (don't count); waitlist = doesn't count yet.
 
 **Coach `handleAddTrialAthlete` does NOT check capacity (S343, deferred).** [hooks/coach/useBookingManagement.ts](hooks/coach/useBookingManagement.ts) ~line 137: a coach can add a trial name to a class that's already at confirmed cap, pushing it over. Athlete-side self-book is now guarded (S343 fix), but coach-side trial-add is still unguarded. **If Chris reports another 13/12 surfacing without an athlete self-book trail, this is the next thing to harden** — add a `confirmedCount + trialNames.length >= capacity` guard with confirmation prompt, or just block silently with a toast.
@@ -167,6 +171,11 @@ Athlete Tools
 ---
 
 ## 📍 Current Status (Last 5 Sessions)
+
+**Session 344 (2026-05-09 — Opus 4.7, CHECKPOINT) — SCORE ENTRY FIRST-NAME DISAMBIGUATION + PUBLISH-NOTIFY SMART-DEFAULT TOGGLE:**
+- **Score Entry name collision fix.** [components/coach/score-entry/ScoreEntryGrid.tsx](components/coach/score-entry/ScoreEntryGrid.tsx) — when 2+ athletes in a section share a first name (Michael Maier + Michael Weber), labels render as `Michael M.` / `Michael W.` instead of CSS-truncating to `Michael…`. Unique first names render unchanged. Both ScoreEntryModal (day-to-day) and the full-page route get the fix because they share `ScoreEntryGrid`. Tested working by Chris.
+- **Publish notify toggle.** [components/coach/PublishModal.tsx](components/coach/PublishModal.tsx) gains a "Notify athletes" checkbox in the footer, default = `!currentPublishConfig` (ON for first publish, OFF on re-publish). [hooks/coach/useWorkoutModal.ts](hooks/coach/useWorkoutModal.ts) `PublishConfig.notify?: boolean` plumbed straight through. [app/api/google/publish-workout/route.ts](app/api/google/publish-workout/route.ts) gates `notifyWodPublished` on `publishConfig.notify !== false` (back-compat: undefined → notifies). Solves Chris's "athletes spammed when I'm just iterating" pain. Untested on prod yet.
+- **Workout-detail-reveal explainer (no code change).** Athlete sees the booking immediately on publish; the workout body becomes visible 1h before the booked session's `time` (client-side gate, athlete's local clock — no Vercel-UTC TZ landmine). Re-publishes inside that window update the body live for booked athletes.
 
 **Session 343 (2026-05-08 — Opus 4.7) — TRIAL-AWARE CAPACITY IN SELF-BOOK + OG-TOGGLE PROMOTES WAITLIST + CONFIGURELIFTMODAL REMEMBERS LAST VARIABLE SCHEME:**
 - **Two over-capacity bugs surfaced from one report.** Today's Foundations 18:30 showed 13/12; Sunday's Foundations 10:00 showed 9/10 + 1 stuck on waitlist. Diagnosis confirmed via service-role probes, not guessed.

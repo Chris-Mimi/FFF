@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useMemo } from 'react';
 import AthleteScoreRow from './AthleteScoreRow';
 import {
   ScoreEntryAthlete,
@@ -54,6 +54,25 @@ export default function ScoreEntryGrid({
     nextInput?.focus();
   }, []);
 
+  // Disambiguate names that share a first name (e.g. Michael Maier + Michael Weber → "Michael M." / "Michael W.")
+  const firstNameCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const a of athletes) {
+      const first = (a.name || '').trim().split(/\s+/)[0]?.toLowerCase();
+      if (first) counts.set(first, (counts.get(first) ?? 0) + 1);
+    }
+    return counts;
+  }, [athletes]);
+
+  const displayName = (name: string): string => {
+    const parts = (name || '').trim().split(/\s+/);
+    if (parts.length < 2) return name;
+    const first = parts[0];
+    if ((firstNameCounts.get(first.toLowerCase()) ?? 0) <= 1) return name;
+    const last = parts[parts.length - 1];
+    return `${first} ${last[0]}.`;
+  };
+
   if (!section.scoring_fields) return null;
 
   // Show lift name + rep scheme for sections with lifts
@@ -96,7 +115,7 @@ export default function ScoreEntryGrid({
             <AthleteScoreRow
               key={athlete.id}
               athleteIndex={idx}
-              athleteName={athlete.name}
+              athleteName={displayName(athlete.name)}
               athleteId={athlete.id}
               sectionId={section.id}
               scoringFields={section.scoring_fields!}
