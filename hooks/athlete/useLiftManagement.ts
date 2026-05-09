@@ -13,7 +13,7 @@ interface LiftRecord {
 }
 
 export interface LiftManagementHandlers {
-  saveLiftRecord: (liftName: string, weightKg: string, reps: number, liftDate: string, repScheme?: string) => Promise<void>;
+  saveLiftRecord: (liftName: string, weightKg: string, reps: number, liftDate: string, repScheme?: string, wodId?: string) => Promise<void>;
   saveAllLiftRecords: (dateStr: string) => Promise<void>;
   loadLiftRecords: (workoutDate: string) => Promise<void>;
 }
@@ -24,8 +24,10 @@ export function useLiftManagement(
   setLiftRecords: Dispatch<SetStateAction<Record<string, LiftRecord>>>,
   workouts: WOD[]
 ): LiftManagementHandlers {
-  // Save lift record to database (upsert: update if exists, insert if new)
-  const saveLiftRecord = async (liftName: string, weightKg: string, reps: number, liftDate: string, repScheme?: string) => {
+  // Save lift record to database (upsert: update if exists, insert if new).
+  // wodId must be passed when saving from a workout context so cancel-cleanup
+  // can match by (wod_id, user_id) — see /api/bookings/cancel.
+  const saveLiftRecord = async (liftName: string, weightKg: string, reps: number, liftDate: string, repScheme?: string, wodId?: string) => {
     if (!weightKg || parseFloat(weightKg) <= 0) {
       return; // Don't save if no weight entered
     }
@@ -65,7 +67,7 @@ export function useLiftManagement(
       }
 
       if (existingRecord) {
-        // Update existing record
+        // Update existing record (also fills in wod_id if previously missing)
         const { error } = await supabase
           .from('lift_records')
           .update({
@@ -74,6 +76,7 @@ export function useLiftManagement(
             rep_scheme: repScheme || null,
             rep_max_type: repMaxType,
             calculated_1rm: calculated1rm,
+            ...(wodId ? { wod_id: wodId } : {}),
           })
           .eq('id', existingRecord.id);
 
@@ -95,6 +98,7 @@ export function useLiftManagement(
             rep_max_type: repMaxType,
             calculated_1rm: calculated1rm,
             lift_date: liftDate,
+            wod_id: wodId || null,
           });
 
         if (error) {

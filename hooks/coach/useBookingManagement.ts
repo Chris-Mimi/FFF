@@ -291,93 +291,17 @@ export function useBookingManagement({
     }
 
     try {
-      const { error } = await supabase
-        .from('bookings')
-        .update({ status: 'coach_cancelled' })
-        .eq('id', bookingId);
-
-      if (error) throw error;
-
-      // Refund 10-card on the holder's card (walk to ten_card_holder_id for family-shared cards).
-      const { data: member } = await supabase
-        .from('members')
-        .select('membership_types, ten_card_sessions_used, primary_payment_method, ten_card_holder_id')
-        .eq('id', memberId)
-        .single();
-
-      const effectiveMethod = member
-        ? getEffectivePaymentMethod({
-            primary_payment_method: member.primary_payment_method as never,
-            membership_types: member.membership_types as never,
-          })
-        : null;
-      if (member && effectiveMethod === 'ten_card') {
-        const holderId = member.ten_card_holder_id || memberId;
-        let holderUsed = member.ten_card_sessions_used || 0;
-        if (holderId !== memberId) {
-          const { data: holder } = await supabase
-            .from('members')
-            .select('ten_card_sessions_used')
-            .eq('id', holderId)
-            .single();
-          holderUsed = holder?.ten_card_sessions_used || 0;
-        }
-        if (holderUsed > 0) {
-          await supabase
-            .from('members')
-            .update({ ten_card_sessions_used: holderUsed - 1 })
-            .eq('id', holderId);
-        }
-      }
-
-      // Clean up scores for this member on this session's workout
-      const { data: session } = await supabase
-        .from('weekly_sessions')
-        .select('workout_id')
-        .eq('id', sessionId)
-        .single();
-
-      if (session?.workout_id) {
-        // Resolve the member's auth user id. Athlete-entered scores save with
-        // user_id = auth.users.id, which is a different UUID from members.id —
-        // the previous OR clause testing both columns against memberId would
-        // miss those rows and leave the leaderboard / lifts tab populated.
-        let authUserId: string | null = null;
-        try {
-          const res = await authFetch(`/api/coach/resolve-auth-user?memberId=${memberId}`);
-          if (res.ok) {
-            const j = await res.json();
-            authUserId = (j.userId as string | null) ?? null;
-          }
-        } catch {
-          // fall through — deletion via member_id still runs
-        }
-        const userIdFilter = authUserId ?? memberId;
-
-        // Capture user_ids from wod_section_results before deletion — lift_records
-        // only has user_id (auth.users.id), which can differ from members.id.
-        const { data: existingResults } = await supabase
-          .from('wod_section_results')
-          .select('user_id')
-          .eq('wod_id', session.workout_id)
-          .or(`member_id.eq.${memberId},user_id.eq.${userIdFilter}`);
-
-        const userIds = [...new Set((existingResults || []).map(r => r.user_id).filter(Boolean))];
-
-        // Delete wod_section_results by member_id (coach-entered) and user_id (athlete self-entered)
-        await supabase
-          .from('wod_section_results')
-          .delete()
-          .eq('wod_id', session.workout_id)
-          .or(`member_id.eq.${memberId},user_id.eq.${userIdFilter}`);
-
-        if (userIds.length > 0) {
-          await supabase
-            .from('lift_records')
-            .delete()
-            .eq('wod_id', session.workout_id)
-            .in('user_id', userIds);
-        }
+      // Server endpoint runs the booking-status update + 10-card refund + score
+      // cleanup with a service-role client. The previous browser-side path used
+      // the coach's auth, but RLS on wod_section_results / lift_records hid the
+      // athlete's rows from the coach → cleanup silently skipped.
+      const res = await authFetch('/api/coach/cancel-member-booking', {
+        method: 'POST',
+        body: JSON.stringify({ bookingId }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error(j.error || 'cancel failed');
       }
 
       // Notify member (fire-and-forget)

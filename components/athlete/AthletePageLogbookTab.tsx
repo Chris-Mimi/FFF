@@ -198,14 +198,14 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
             if (lift.rm_test) {
               // RM Test: save WITHOUT repScheme → triggers rep_max_type path
               const reps = parseInt(lift.rm_test.replace('RM', ''));
-              await saveLiftRecord(lift.name, result.weight_result, reps, workoutDate);
+              await saveLiftRecord(lift.name, result.weight_result, reps, workoutDate, undefined, wodId);
             } else {
               // Regular lift: save WITH repScheme as before
               const repScheme = lift.rep_type === 'constant'
                 ? `${lift.sets || 1}x${lift.reps || 1}`
                 : lift.variable_sets?.map(s => s.reps).join('-') || '1';
               const reps = parseInt(result.reps_result || '0') || 0;
-              await saveLiftRecord(lift.name, result.weight_result, reps, workoutDate, repScheme);
+              await saveLiftRecord(lift.name, result.weight_result, reps, workoutDate, repScheme, wodId);
             }
             savedCount++;
           }
