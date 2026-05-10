@@ -22,21 +22,17 @@ http://192.168.178.75:3000
 * I added Fabian's birthday but it's not correct, I have to ask him next time he's in.
 * Workouts page: ability to mute/cancel athletes withour clearing the group
 * 
-* I need a reminder for when a member should renew their contract. Payment happens outside the app but I want to to register when a member pays so I have a reminder when they are due.
+* 
 * Macbook still has internet problem at the box. Old Macbook Pro works fine.
 * 
-
-
-
 
 * Formatting titles doesn't work in My Notes in "Aids" tab (Toolkit)
 * 
 * review the rep max calculator to show clearer percentages
-* Lifts modal coach-side should save last variable rep scheme
+* Add membership halfway tghrough a contract
 * Why doesn't the data integrity sql catch things like this?
 * entering a benchmark for an athlete on the coach page/athletes tab didn't work
 * How it works/info/help file like in Planner
-* When I am publishing and re-publishing, athletes are getting notifications, that could become annoying, especially as I'm testing different ways of writing the programs and saving scores. Is there a way I can turn these notications off until the Workout is completely ready?
 * Review and check how DNF is displayed and used in the athlete leaderboard.
 
 # Coach library #

@@ -90,6 +90,7 @@ There's no app-switching, no spreadsheets, no whiteboards that get erased. Just 
 - **Naming conventions** — define your gym's terminology and abbreviations
 - **Booking rules** — configure athlete booking behavior from one panel: 10-card cancellation refund window, auto-lock lead time before class, max bookings per day, max bookings per week, and how far in advance members can book. Leave caps blank for unlimited — no redeploy needed when policy changes
 - **Next-week release gate** — program and publish next week's WODs in advance without athletes seeing them yet. Set a release moment (default Sunday 14:00) and athletes only see "this week" until that moment passes — then next week's sessions automatically open for booking. Server-enforced (not just a display filter), so direct API calls can't bypass it either
+- **Gym memberships tracking** — record gym membership contracts (full-year upfront, 1-year monthly, or 6-month monthly) with start date, end date auto-computed, and notes. The Memberships tab in Admin lists active contracts sorted by days-to-renewal, color-coded amber under 30 days and red under 14 days. Edit, cancel, or delete from the same tab. A separate "Memberships Due" banner on the coach dashboard surfaces any contract within 30 days of expiry — both that banner and the Subscriptions Due banner are now collapsible and remember your choice. Daily auto-expiry job flips contracts past their end date to expired automatically
 
 ---
 
