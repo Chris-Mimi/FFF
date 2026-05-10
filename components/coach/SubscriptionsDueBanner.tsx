@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { authFetch } from '@/lib/auth-fetch';
 import { toast } from 'sonner';
 
-type RowKind = 'cash' | 'stripe-auto' | 'stripe-cancelling';
+type RowKind = 'cash' | 'stripe-auto' | 'stripe-trial' | 'stripe-cancelling';
 
 interface DueRow {
   memberId: string;
@@ -38,7 +38,7 @@ export default function SubscriptionsDueBanner() {
       const { data: stripeSubs } = await supabase
         .from('subscriptions')
         .select('member_id, current_period_end, cancel_at_period_end, plan_type, status')
-        .eq('status', 'active')
+        .in('status', ['active', 'trialing'])
         .not('current_period_end', 'is', null)
         .gte('current_period_end', nowIso)
         .lte('current_period_end', sevenIso);
@@ -81,12 +81,17 @@ export default function SubscriptionsDueBanner() {
         const member = stripeMembersById.get(s.member_id);
         const end = new Date(s.current_period_end!);
         const daysLeft = Math.max(0, Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+        const kind: RowKind = s.cancel_at_period_end
+          ? 'stripe-cancelling'
+          : s.status === 'trialing'
+          ? 'stripe-trial'
+          : 'stripe-auto';
         return {
           memberId: s.member_id,
           name: member?.display_name || member?.name || 'Unknown',
           daysLeft,
           endDate: s.current_period_end!,
-          kind: s.cancel_at_period_end ? 'stripe-cancelling' : 'stripe-auto',
+          kind,
           planLabel: s.plan_type,
         };
       });
@@ -168,6 +173,11 @@ export default function SubscriptionsDueBanner() {
               {r.kind === 'stripe-auto' && (
                 <span className='px-2 py-0.5 text-xs font-medium rounded bg-green-100 text-green-700 flex-shrink-0'>
                   Auto-renew{r.planLabel ? ` · ${r.planLabel}` : ''}
+                </span>
+              )}
+              {r.kind === 'stripe-trial' && (
+                <span className='px-2 py-0.5 text-xs font-medium rounded bg-green-100 text-green-700 flex-shrink-0'>
+                  Trial{r.planLabel ? ` · ${r.planLabel}` : ''}
                 </span>
               )}
               {r.kind === 'stripe-cancelling' && (

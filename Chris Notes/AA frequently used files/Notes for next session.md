@@ -22,9 +22,13 @@ http://192.168.178.75:3000
 * I added Fabian's birthday but it's not correct, I have to ask him next time he's in.
 * Workouts page: ability to mute/cancel athletes withour clearing the group
 * Write a script to retroactively book registered athletes according to their whiteboard names. If Rosita appears in the Whiteboard, book her in the session management modal so it updates her 10-card use.
-* 
+* I need a reminder for when a member should renew their contract. Payment happens outside the app but I want to to register when a member pays so I have a reminder when they are due.
 * Macbook still has internet problem at the box. Old Macbook Pro works fine.
 * 
+
+
+
+
 * Formatting titles doesn't work in My Notes in "Aids" tab (Toolkit)
 * 
 * review the rep max calculator to show clearer percentages

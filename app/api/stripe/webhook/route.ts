@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { stripe, getTierFromPriceId, getPlanTypeFromPriceId } from '@/lib/stripe';
+import { stripe, getStripeServer, getTierFromPriceId, getPlanTypeFromPriceId } from '@/lib/stripe';
 import { notifyPaymentFailed } from '@/lib/notifications';
 import Stripe from 'stripe';
 
@@ -173,23 +173,49 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
     }
 
-    // Create initial subscription record (will be updated by subscription.created event)
-    if (memberData?.stripe_customer_id) {
-      await supabaseAdmin
-        .from('subscriptions')
-        .upsert({
-          member_id: memberId,
-          stripe_subscription_id: session.subscription as string,
-          stripe_customer_id: memberData.stripe_customer_id,
-          plan_type: billingPeriod || 'monthly',
-          status: 'active',
-          current_period_start: now.toISOString(),
-          current_period_end: subscriptionEndDate.toISOString(),
-          cancel_at_period_end: false,
-          updated_at: now.toISOString(),
-        }, {
-          onConflict: 'stripe_subscription_id'
-        });
+    // Create subscription record from Stripe ground-truth.
+    //
+    // We can't rely on the subsequent customer.subscription.* webhook to
+    // correct status: it may arrive before checkout.completed (and get
+    // clobbered) or fail to fire entirely. So we fetch from Stripe directly
+    // and write the real status (trialing/active/etc) up-front.
+    if (memberData?.stripe_customer_id && session.subscription) {
+      try {
+        const stripeSub = await getStripeServer().subscriptions.retrieve(session.subscription as string);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const sub = stripeSub as any;
+        const periodEndIso = sub.current_period_end
+          ? new Date(sub.current_period_end * 1000).toISOString()
+          : subscriptionEndDate.toISOString();
+        const periodStartIso = sub.current_period_start
+          ? new Date(sub.current_period_start * 1000).toISOString()
+          : now.toISOString();
+        const mappedStatus =
+          stripeSub.status === 'active' ? 'active' :
+          stripeSub.status === 'trialing' ? 'trialing' :
+          stripeSub.status === 'past_due' ? 'past_due' : 'cancelled';
+
+        await supabaseAdmin
+          .from('subscriptions')
+          .upsert({
+            member_id: memberId,
+            stripe_subscription_id: session.subscription as string,
+            stripe_customer_id: memberData.stripe_customer_id,
+            plan_type: billingPeriod || 'monthly',
+            status: mappedStatus,
+            current_period_start: periodStartIso,
+            current_period_end: periodEndIso,
+            cancel_at_period_end: stripeSub.cancel_at_period_end || false,
+            updated_at: now.toISOString(),
+          }, {
+            onConflict: 'stripe_subscription_id'
+          });
+      } catch (err) {
+        // Don't fail the webhook — member access is already granted via
+        // members.athlete_subscription_status above. The customer.subscription.*
+        // webhook will create the row when it fires.
+        console.error(`Failed to fetch/store subscription ${session.subscription} for member ${memberId}:`, err);
+      }
     }
 
   }
