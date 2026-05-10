@@ -126,10 +126,25 @@ export async function POST(request: NextRequest) {
       },
     };
 
+    // Always require a payment method on subscription signups, including trials.
+    // Stripe's default for trials is `if_required` which lets users start a trial
+    // with no card on file — those subs then get stuck in `trialing` at trial-end
+    // because Stripe can't bill anyone (S345 incident: 5 zombie subs).
+    if (isSubMode) {
+      checkoutParams.payment_method_collection = 'always';
+    }
+
     // Add 30-day free trial for monthly subscriptions only (yearly already discounted)
     if (trial && isSubMode && getBillingPeriod(productType) === 'monthly') {
       checkoutParams.subscription_data = {
         trial_period_days: 30,
+        // Backstop: if a sub somehow ends up trialing without a payment method,
+        // cancel it at trial-end instead of leaving it as a zombie.
+        trial_settings: {
+          end_behavior: {
+            missing_payment_method: 'cancel',
+          },
+        },
       };
     }
 
