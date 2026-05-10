@@ -7,6 +7,7 @@ import { UserPlus, ArrowLeft, BarChart2, Bell, KeyRound, Settings, ChevronLeft, 
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { NotificationPrompt } from '@/components/ui/NotificationPrompt';
+import MembershipsTab from '@/components/coach/admin/MembershipsTab';
 import { confirm } from '@/lib/confirm';
 import { toast } from 'sonner';
 
@@ -26,7 +27,7 @@ interface AttendedStat {
 }
 
 type AttendedFilter = '30d' | '90d' | '6m' | '12m' | 'all';
-type ActiveTab = 'attended' | 'incidents';
+type ActiveTab = 'attended' | 'incidents' | 'memberships';
 type ClassFilter = 'all' | 'adults' | 'kids';
 
 interface MemberInfo {
@@ -577,7 +578,19 @@ export default function AdminToolsPage() {
             >
               Incidents
             </button>
+            <button
+              onClick={() => setActiveTab('memberships')}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium transition ${
+                activeTab === 'memberships'
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              Memberships
+            </button>
           </div>
+
+          {activeTab === 'memberships' && <MembershipsTab />}
 
           {/* Attended tab */}
           {activeTab === 'attended' && (

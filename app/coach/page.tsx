@@ -6,6 +6,7 @@ import DeleteWorkoutModal from '@/components/coach/DeleteWorkoutModal';
 import { CoachHeader } from '@/components/coach/CoachHeader';
 import { CalendarNav } from '@/components/coach/CalendarNav';
 import SubscriptionsDueBanner from '@/components/coach/SubscriptionsDueBanner';
+import MembershipsDueBanner from '@/components/coach/MembershipsDueBanner';
 import CalendarGrid from '@/components/coach/CalendarGrid';
 import SearchPanel from '@/components/coach/SearchPanel';
 import QuickEditPanel from '@/components/coach/QuickEditPanel';
@@ -343,6 +344,9 @@ export default function CoachDashboard() {
             <>
               {/* Subscriptions Due reminder (auto-hides when nothing within 7 days) */}
               <SubscriptionsDueBanner />
+
+              {/* Memberships Due reminder (auto-hides when no contract is within 30 days) */}
+              <MembershipsDueBanner />
 
               {/* Calendar Navigation */}
               <CalendarNav

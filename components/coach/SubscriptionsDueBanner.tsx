@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { authFetch } from '@/lib/auth-fetch';
 import { toast } from 'sonner';
@@ -17,11 +18,24 @@ interface DueRow {
 }
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+const COLLAPSED_KEY = 'subscriptionsDueBanner:collapsed';
 
 export default function SubscriptionsDueBanner() {
   const [rows, setRows] = useState<DueRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [actingId, setActingId] = useState<string | null>(null);
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return window.localStorage.getItem(COLLAPSED_KEY) === '1';
+  });
+
+  const toggleCollapsed = () => {
+    setCollapsed((prev) => {
+      const next = !prev;
+      try { window.localStorage.setItem(COLLAPSED_KEY, next ? '1' : '0'); } catch {}
+      return next;
+    });
+  };
 
   useEffect(() => {
     fetchDueRows();
@@ -138,9 +152,15 @@ export default function SubscriptionsDueBanner() {
   return (
     <div className='bg-white border-b border-gray-200 px-3 md:px-4 py-2 md:py-3'>
       <div className='max-w-7xl mx-auto'>
-        <h3 className='text-xs md:text-sm font-semibold text-gray-700 mb-2'>
+        <button
+          onClick={toggleCollapsed}
+          className='flex items-center gap-1.5 text-xs md:text-sm font-semibold text-gray-700 mb-2 hover:text-gray-900 transition'
+          aria-expanded={!collapsed}
+        >
+          {collapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
           Subscriptions Due ({rows.length})
-        </h3>
+        </button>
+        {!collapsed && (
         <div className='space-y-1.5'>
           {rows.map(r => (
             <div
@@ -188,6 +208,7 @@ export default function SubscriptionsDueBanner() {
             </div>
           ))}
         </div>
+        )}
       </div>
     </div>
   );
