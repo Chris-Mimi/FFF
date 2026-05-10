@@ -235,13 +235,27 @@ export default function TenCardModal({
   };
 
   const handleResetCard = async () => {
-    if (!await confirm({ title: 'Reset 10-Card', message: 'Reset this 10-card? Sessions used will be set to 0 and purchase date will be set to today.', confirmText: 'Reset', variant: 'default' })) {
+    if (!await confirm({
+      title: 'Issue New 10-Card',
+      message: 'Issue a new 10-card for this athlete? Purchase date will be set to today, expiry to today + 12 months, and sessions used will be recalculated from today\'s bookings onward.',
+      confirmText: 'Issue New Card',
+      variant: 'default',
+    })) {
       return;
     }
 
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+    const todayDate = new Date();
+    const today = todayDate.toISOString().split('T')[0]; // YYYY-MM-DD
+    const expiry = new Date(todayDate.getTime() + 365 * 24 * 60 * 60 * 1000)
+      .toISOString().split('T')[0];
+
     setPurchaseDate(today);
-    setSessionsUsed(0);
+    setTenCardExpiry(expiry);
+    // Recalc sessions_used from bookings on/after today so a session the
+    // athlete already attended today (e.g. 10:00 class, card bought after)
+    // is counted on the new card without a second Recalc click.
+    const count = await recalculateSessionsUsed(today);
+    setSessionsUsed(count);
   };
 
   const sessionsRemaining = tenCardTotal - sessionsUsed;
@@ -426,9 +440,14 @@ export default function TenCardModal({
                   ) : cardBookings.length === 0 ? (
                     <p className="text-xs text-gray-500">No bookings found{purchaseDate ? ' since the purchase date' : ''}.</p>
                   ) : (() => {
-                    const todayIso = new Date().toISOString().split('T')[0];
-                    const past = cardBookings.filter(b => b.date < todayIso);
-                    const upcoming = cardBookings.filter(b => b.date >= todayIso);
+                    // Past/Upcoming split by date+time vs now (browser TZ).
+                    // A booking earlier today (e.g. 10:00 class) is correctly
+                    // labelled past once its session_time has passed.
+                    const nowMs = Date.now();
+                    const bookingMs = (b: CardBooking) =>
+                      new Date(`${b.date}T${b.time || '00:00:00'}`).getTime();
+                    const past = cardBookings.filter(b => bookingMs(b) < nowMs);
+                    const upcoming = cardBookings.filter(b => bookingMs(b) >= nowMs);
                     const statusBadge = (s: CardBooking['status']) => {
                       if (s === 'confirmed') return <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-100 text-green-700">attended</span>;
                       if (s === 'no_show') return <span className="text-[10px] px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">no-show</span>;
@@ -472,17 +491,17 @@ export default function TenCardModal({
                   })()}
                 </div>
 
-                {/* Reset Button */}
+                {/* Issue New Card Button */}
                 <div className="pt-4 border-t">
                   <button
                     onClick={handleResetCard}
                     className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition"
                   >
                     <RefreshCw size={18} />
-                    Reset Card
+                    Issue New Card
                   </button>
                   <p className="text-xs text-gray-500 mt-2">
-                    This will set purchase date to today and reset sessions to 0.
+                    Use this when the athlete has bought another 10-card. Sets purchase date to today, expiry to today + 12 months, and recalculates sessions used from today&apos;s bookings.
                   </p>
                 </div>
               </>
