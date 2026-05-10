@@ -5,7 +5,7 @@ import { authFetch } from '@/lib/auth-fetch';
 import { supabase } from '@/lib/supabase';
 import { confirm } from '@/lib/confirm';
 import { toast } from 'sonner';
-import { Plus, Trash2, X } from 'lucide-react';
+import { Plus, Trash2, Pencil, X } from 'lucide-react';
 import {
   CONTRACT_TYPE_LABELS,
   computeContractEndDate,
@@ -31,6 +31,7 @@ export default function MembershipsTab() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<Filter>('active');
   const [showAdd, setShowAdd] = useState(false);
+  const [editingRow, setEditingRow] = useState<Row | null>(null);
   const [members, setMembers] = useState<MemberOpt[]>([]);
 
   const fetchRows = async (f: Filter) => {
@@ -120,7 +121,14 @@ export default function MembershipsTab() {
         </p>
       ) : (
         <div className='space-y-2'>
-          {rows.map(r => <MembershipRow key={r.id} row={r} onDelete={handleDelete} />)}
+          {rows.map(r => (
+            <MembershipRow
+              key={r.id}
+              row={r}
+              onDelete={handleDelete}
+              onEdit={() => setEditingRow(r)}
+            />
+          ))}
         </div>
       )}
 
@@ -135,11 +143,23 @@ export default function MembershipsTab() {
           }}
         />
       )}
+
+      {/* Edit modal */}
+      {editingRow && (
+        <EditMembershipModal
+          row={editingRow}
+          onClose={() => setEditingRow(null)}
+          onSaved={() => {
+            setEditingRow(null);
+            fetchRows(filter);
+          }}
+        />
+      )}
     </div>
   );
 }
 
-function MembershipRow({ row, onDelete }: { row: Row; onDelete: (id: string, name: string) => void }) {
+function MembershipRow({ row, onDelete, onEdit }: { row: Row; onDelete: (id: string, name: string) => void; onEdit: () => void }) {
   const name = row.members?.display_name || row.members?.name || '?';
   const today = new Date().toISOString().slice(0, 10);
   const daysLeft = Math.ceil(
@@ -183,12 +203,159 @@ function MembershipRow({ row, onDelete }: { row: Row; onDelete: (id: string, nam
         {row.notes && <div className='text-xs text-gray-500 mt-0.5 italic'>{row.notes}</div>}
       </div>
       <button
+        onClick={onEdit}
+        className='p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition'
+        title='Edit'
+      >
+        <Pencil size={16} />
+      </button>
+      <button
         onClick={() => onDelete(row.id, name)}
         className='p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition'
         title='Delete row'
       >
         <Trash2 size={16} />
       </button>
+    </div>
+  );
+}
+
+function EditMembershipModal({
+  row,
+  onClose,
+  onSaved,
+}: {
+  row: Row;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const [contractType, setContractType] = useState<GymContractType>(row.contract_type);
+  const [startDate, setStartDate] = useState(row.start_date);
+  const [notes, setNotes] = useState(row.notes ?? '');
+  const [status, setStatus] = useState<GymMembershipStatus>(row.status);
+  const [saving, setSaving] = useState(false);
+
+  const previewEnd = startDate && /^\d{4}-\d{2}-\d{2}$/.test(startDate)
+    ? computeContractEndDate(startDate, contractType)
+    : null;
+
+  const memberName = row.members?.display_name || row.members?.name || '?';
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const res = await authFetch(`/api/coach/memberships/${row.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          contractType,
+          startDate,
+          notes: notes.trim() || null,
+          status,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'save failed');
+      toast.success('Membership updated');
+      onSaved();
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to update membership');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4'>
+      <div className='bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-hidden flex flex-col'>
+        <div className='bg-[#178da6] text-white p-4 flex items-center justify-between'>
+          <h2 className='text-lg font-bold'>Edit Membership</h2>
+          <button onClick={onClose} className='p-1 hover:bg-white/20 rounded' aria-label='Close'>
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className='flex-1 overflow-y-auto p-5 space-y-4'>
+          <div className='bg-gray-50 px-3 py-2 rounded text-sm font-medium text-gray-800'>
+            {memberName}
+          </div>
+
+          {/* Contract type */}
+          <div>
+            <label className='block text-sm font-medium text-gray-700 mb-1'>Contract type</label>
+            <select
+              value={contractType}
+              onChange={(e) => setContractType(e.target.value as GymContractType)}
+              className='w-full px-3 py-2 border border-gray-300 rounded-md text-sm'
+            >
+              {(Object.keys(CONTRACT_TYPE_LABELS) as GymContractType[]).map(t => (
+                <option key={t} value={t}>{CONTRACT_TYPE_LABELS[t]}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Start date */}
+          <div>
+            <label className='block text-sm font-medium text-gray-700 mb-1'>Start date</label>
+            <input
+              type='date'
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className='w-full px-3 py-2 border border-gray-300 rounded-md text-sm'
+            />
+            {previewEnd && (
+              <p className='text-xs text-gray-500 mt-1'>
+                End date: <span className='font-medium'>{previewEnd}</span>
+              </p>
+            )}
+          </div>
+
+          {/* Status */}
+          <div>
+            <label className='block text-sm font-medium text-gray-700 mb-1'>Status</label>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value as GymMembershipStatus)}
+              className='w-full px-3 py-2 border border-gray-300 rounded-md text-sm'
+            >
+              <option value='active'>Active</option>
+              <option value='cancelled'>Cancelled</option>
+              <option value='expired'>Expired</option>
+            </select>
+            <p className='text-xs text-gray-500 mt-1'>
+              Use Cancelled for early termination. Expired auto-applies daily once end_date passes.
+            </p>
+          </div>
+
+          {/* Notes */}
+          <div>
+            <label className='block text-sm font-medium text-gray-700 mb-1'>Notes</label>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={3}
+              placeholder='Anything to remember about this contract…'
+              className='w-full px-3 py-2 border border-gray-300 rounded-md text-sm'
+            />
+          </div>
+        </div>
+
+        <div className='border-t p-4 flex justify-end gap-2'>
+          <button
+            onClick={onClose}
+            className='px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm rounded-md transition'
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className='px-4 py-2 bg-[#178da6] hover:bg-[#14758c] disabled:bg-[#178da6]/50 text-white text-sm rounded-md transition'
+          >
+            {saving ? 'Saving…' : 'Save Changes'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
