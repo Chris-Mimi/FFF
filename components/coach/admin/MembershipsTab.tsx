@@ -377,9 +377,9 @@ function AddMembershipModal({
   const [saving, setSaving] = useState(false);
 
   const filteredMembers = useMemo(() => {
-    if (!search.trim()) return members.slice(0, 10);
+    if (!search.trim()) return members;
     const q = search.toLowerCase();
-    return members.filter(m => m.label.toLowerCase().includes(q)).slice(0, 10);
+    return members.filter(m => m.label.toLowerCase().includes(q));
   }, [search, members]);
 
   const previewEnd = startDate && /^\d{4}-\d{2}-\d{2}$/.test(startDate)
