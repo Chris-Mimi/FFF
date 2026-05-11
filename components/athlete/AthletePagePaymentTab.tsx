@@ -244,14 +244,14 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
             <button
               onClick={handleManageSubscription}
               disabled={!!purchasing}
-              className="flex items-center gap-2 text-sm text-gray-600 hover:text-teal-600 hover:underline transition-colors"
+              className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-4 py-2.5 text-sm font-medium text-teal-700 bg-white border-2 border-teal-600 rounded-lg hover:bg-teal-600 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {purchasing === 'portal' ? (
                 <Loader2 className="animate-spin" size={16} />
               ) : (
                 <ExternalLink size={16} />
               )}
-              Manage Subscription & Payment Methods
+              Manage or Cancel Subscription
             </button>
           </div>
         )}
