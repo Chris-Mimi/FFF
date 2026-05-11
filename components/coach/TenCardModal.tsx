@@ -122,11 +122,23 @@ export default function TenCardModal({
     (async () => {
       setBookingsLoading(true);
       try {
-        const { data: sharers } = await supabase
+        // Build the set of members who actually debit this card: the holder herself
+        // (only if her effective method is ten_card — Miriam has WP + ten_card and her
+        // own bookings should NOT burn the kids' card) plus any sharer pointing here.
+        const { data: candidates } = await supabase
           .from('members')
-          .select('id')
-          .eq('ten_card_holder_id', member.id);
-        const debitMemberIds = [member.id, ...(sharers || []).map(s => s.id)];
+          .select('id, primary_payment_method, membership_types, ten_card_holder_id')
+          .or(`id.eq.${member.id},ten_card_holder_id.eq.${member.id}`);
+        const debitMemberIds = (candidates || [])
+          .filter(c => {
+            const effective = c.primary_payment_method || (c.membership_types as string[] | null)?.[0] || null;
+            return effective === 'ten_card';
+          })
+          .map(c => c.id);
+        if (debitMemberIds.length === 0) {
+          if (!cancelled) setCardBookings([]);
+          return;
+        }
 
         let query = supabase
           .from('bookings')
@@ -178,12 +190,25 @@ export default function TenCardModal({
     if (!purchaseDateStr || !member) return sessionsUsed;
 
     try {
-      // Fetch all confirmed, no_show, AND late_cancel bookings for this member with session dates
-      // All three count toward 10-card usage (they reserved a slot)
+      // Holder herself counts only if her effective method is ten_card (so Miriam with
+      // WP + ten_card doesn't burn the kids' card on her own bookings). Sharers always
+      // count when their own effective method resolves to ten_card.
+      const { data: candidates } = await supabase
+        .from('members')
+        .select('id, primary_payment_method, membership_types, ten_card_holder_id')
+        .or(`id.eq.${member.id},ten_card_holder_id.eq.${member.id}`);
+      const debitMemberIds = (candidates || [])
+        .filter(c => {
+          const effective = c.primary_payment_method || (c.membership_types as string[] | null)?.[0] || null;
+          return effective === 'ten_card';
+        })
+        .map(c => c.id);
+      if (debitMemberIds.length === 0) return 0;
+
       const { data: bookings, error } = await supabase
         .from('bookings')
         .select('id, status, weekly_sessions!inner(date)')
-        .eq('member_id', member.id)
+        .in('member_id', debitMemberIds)
         .in('status', ['confirmed', 'no_show', 'late_cancel'])
         .gte('weekly_sessions.date', purchaseDateStr);
 
