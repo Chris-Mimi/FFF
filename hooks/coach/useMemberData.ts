@@ -15,6 +15,7 @@ export function useMemberData() {
   const [attendanceTimeframe, setAttendanceTimeframe] = useState<7 | 30 | 365 | 'all'>('all');
   const [pendingCount, setPendingCount] = useState(0);
   const [atRiskCount, setAtRiskCount] = useState(0);
+  const [lowTenCardCount, setLowTenCardCount] = useState(0);
   const [unlinkedWhiteboardNames, setUnlinkedWhiteboardNames] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -63,6 +64,7 @@ export function useMemberData() {
     fetchMembersWithAttendance(activeTab, attendanceTimeframe);
     fetchPendingCount();
     fetchAtRiskCount(attendanceTimeframe);
+    fetchLowTenCardCount();
     fetchUnlinkedWhiteboardNames();
   }, [activeTab, attendanceTimeframe, router]);
 
@@ -77,6 +79,31 @@ export function useMemberData() {
       setPendingCount(count || 0);
     } catch (error) {
       console.error('Error fetching pending count:', error);
+    }
+  };
+
+  // Count active ten_card holders whose remaining sessions are <= 1 (includes overage / negative).
+  // Used for the "10-Card" tab badge. Matches the same filter used in the tab content path.
+  const fetchLowTenCardCount = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('members')
+        .select('ten_card_sessions_used, ten_card_total, membership_types')
+        .eq('status', 'active')
+        .contains('membership_types', ['ten_card']);
+      if (error || !data) {
+        setLowTenCardCount(0);
+        return;
+      }
+      const count = data.filter(m => {
+        const total = m.ten_card_total ?? 10;
+        const used = m.ten_card_sessions_used ?? 0;
+        return total - used <= 1;
+      }).length;
+      setLowTenCardCount(count);
+    } catch (error) {
+      console.error('Error fetching low ten-card count:', error);
+      setLowTenCardCount(0);
     }
   };
 
@@ -136,6 +163,10 @@ export function useMemberData() {
           .in('athlete_subscription_status', ['trial', 'active']);
       } else if (status === 'at-risk') {
         query = query.eq('status', 'active');
+      } else if (status === 'low-ten-card') {
+        query = query
+          .eq('status', 'active')
+          .contains('membership_types', ['ten_card']);
       } else {
         query = query.eq('status', status);
       }
@@ -334,6 +365,22 @@ export function useMemberData() {
         });
       }
 
+      // Filter low-ten-card: only ten-card members with <= 1 sessions remaining (includes overage).
+      // Sort: smallest remaining first (overages on top).
+      if (status === 'low-ten-card') {
+        membersWithAttendance = membersWithAttendance
+          .filter(member => {
+            const total = member.ten_card_total ?? 10;
+            const used = member.ten_card_sessions_used ?? 0;
+            return total - used <= 1;
+          })
+          .sort((a, b) => {
+            const aRem = (a.ten_card_total ?? 10) - (a.ten_card_sessions_used ?? 0);
+            const bRem = (b.ten_card_total ?? 10) - (b.ten_card_sessions_used ?? 0);
+            return aRem - bRem;
+          });
+      }
+
       setMembers(membersWithAttendance);
 
       // Auto-expire trials and cash-activated subs past their end date
@@ -417,7 +464,12 @@ export function useMemberData() {
     }));
   };
 
-  const refreshData = () => fetchMembersWithAttendance(activeTab, attendanceTimeframe);
+  const refreshData = async () => {
+    await Promise.all([
+      fetchMembersWithAttendance(activeTab, attendanceTimeframe),
+      fetchLowTenCardCount(),
+    ]);
+  };
   const refreshPendingCount = () => fetchPendingCount();
 
   const toggleFilter = (type: MembershipType) => {
@@ -525,6 +577,7 @@ export function useMemberData() {
     setAttendanceTimeframe,
     pendingCount,
     atRiskCount,
+    lowTenCardCount,
     membershipCounts,
     refreshData,
     refreshPendingCount,

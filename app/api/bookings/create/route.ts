@@ -148,16 +148,14 @@ export async function POST(request: NextRequest) {
       const used = holderCard.ten_card_sessions_used || 0;
       tenCardRemaining = total - used;
       const expired = holderCard.ten_card_expiry_date && new Date(holderCard.ten_card_expiry_date) < now;
-      if (tenCardRemaining <= 0 || expired) {
-        let errorMessage = expired
-          ? 'The 10-card has expired. '
-          : 'The 10-card has no sessions remaining. ';
-        errorMessage += 'Please purchase a new 10-card to book classes.';
+      if (expired) {
         return NextResponse.json(
-          { error: errorMessage },
+          { error: 'The 10-card has expired. Please purchase a new 10-card to book classes.' },
           { status: 402 } // Payment Required
         );
       }
+      // Card-full is NOT a hard block — booking proceeds; counter increments past total.
+      // Coach reviews via Members → 10-Card tab and decides how to resolve.
     }
 
     // Check if session exists and is published
@@ -321,7 +319,8 @@ export async function POST(request: NextRequest) {
       try {
         const total = holderCard.ten_card_total || 10;
         const used = holderCard.ten_card_sessions_used || 0;
-        const newSessionsUsed = Math.min(used + 1, total);
+        // No cap — counter is allowed to exceed total so overage is visible to the coach.
+        const newSessionsUsed = used + 1;
 
         const { error: updateError } = await supabase
           .from('members')
@@ -376,10 +375,13 @@ export async function POST(request: NextRequest) {
         lowSessionsWarning: newTenCardRemaining <= 3
       };
 
-      if (newTenCardRemaining === 1) {
-        response.message = '⚠️ LAST SESSION REMAINING on your 10-card! Session booked successfully.';
+      if (newTenCardRemaining < 0) {
+        const over = -newTenCardRemaining;
+        response.message = `⚠️ Session booked, but your 10-card is over its limit by ${over}. Please purchase a new 10-card.`;
       } else if (newTenCardRemaining === 0) {
         response.message = '🎫 This was your FINAL 10-card session! Session booked successfully.';
+      } else if (newTenCardRemaining === 1) {
+        response.message = '⚠️ LAST SESSION REMAINING on your 10-card! Session booked successfully.';
       } else if (newTenCardRemaining <= 3) {
         response.message += ` ⚠️ (${newTenCardRemaining} sessions remaining on your 10-card)`;
       }

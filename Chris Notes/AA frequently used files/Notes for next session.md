@@ -21,7 +21,8 @@ http://192.168.178.75:3000
 * Mimi couldn't add a trial athlete
 * I added Fabian's birthday but it's not correct, I have to ask him next time he's in.
 * Workouts page: ability to mute/cancel athletes withour clearing the group
-* 
+* How can athletes cancel their subs
+* How does an athlete get to Stripe as a customer without inserting any card details? Is that normal practice? How can I tell if an athlete can actually access the functions in the app?
 * 
 * Macbook still has internet problem at the box. Old Macbook Pro works fine.
 * 

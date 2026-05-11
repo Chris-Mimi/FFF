@@ -34,6 +34,7 @@ export default function CoachMembersPage() {
     setAttendanceTimeframe,
     pendingCount,
     atRiskCount,
+    lowTenCardCount,
     membershipCounts,
     refreshData,
     refreshPendingCount,
@@ -185,6 +186,24 @@ export default function CoachMembersPage() {
               )}
             </div>
           </button>
+          <button
+            onClick={() => setActiveTab('low-ten-card')}
+            className={`px-3 md:px-6 py-2 md:py-3 font-medium transition-colors duration-200 border-b-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
+              activeTab === 'low-ten-card'
+                ? 'border-purple-500 text-purple-400'
+                : 'border-transparent text-gray-400 hover:text-gray-300'
+            }`}
+          >
+            <div className="flex items-center gap-1 md:gap-2">
+              <AlertTriangle size={16} className="md:w-[18px] md:h-[18px]" />
+              10-Card
+              {lowTenCardCount > 0 && activeTab !== 'low-ten-card' && (
+                <span className="inline-flex items-center justify-center w-4 h-4 md:w-5 md:h-5 text-[10px] md:text-xs font-bold text-white bg-purple-600 rounded-full">
+                  {lowTenCardCount}
+                </span>
+              )}
+            </div>
+          </button>
         </div>
       </div>
 
@@ -243,6 +262,7 @@ export default function CoachMembersPage() {
               {activeTab === 'blocked' && 'No blocked members'}
               {activeTab === 'subscriptions' && 'No members with subscriptions'}
               {activeTab === 'at-risk' && 'No at-risk members — everyone is attending!'}
+              {activeTab === 'low-ten-card' && 'No 10-card members are running low.'}
             </p>
           </div>
         ) : filteredMembers.length === 0 ? (
@@ -277,7 +297,12 @@ export default function CoachMembersPage() {
                 onToggleGuardianOnly={handleToggleGuardianOnly}
                 onSetPaymentMethod={handleSetPaymentMethod}
                 onSetTenCardHolder={handleSetTenCardHolder}
-                onOpenTenCard={(m) => setTenCardModal({ isOpen: true, member: m })}
+                onOpenTenCard={(m) => {
+                  // Refresh members list so chip + modal show fresh counter on open.
+                  // Cheap safety net for the "chip shows full, modal shows fewer used" drift case.
+                  refreshData();
+                  setTenCardModal({ isOpen: true, member: m });
+                }}
               />
             ))}
           </div>

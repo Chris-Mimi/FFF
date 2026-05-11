@@ -1,4 +1,4 @@
-export type MemberStatus = 'pending' | 'active' | 'blocked' | 'subscriptions' | 'at-risk';
+export type MemberStatus = 'pending' | 'active' | 'blocked' | 'subscriptions' | 'at-risk' | 'low-ten-card';
 
 export type MembershipType = 'member' | 'drop_in' | 'ten_card' | 'wellpass' | 'hansefit';
 
