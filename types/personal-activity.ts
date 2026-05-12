@@ -35,3 +35,10 @@ export interface PersonalActivityInput {
   effort: number | null;
   notes: string | null;
 }
+
+export interface PersonalActivityCustomType {
+  id: string;
+  user_id: string;
+  name: string;
+  created_at: string;
+}

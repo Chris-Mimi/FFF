@@ -17,7 +17,7 @@ const formatDateLabel = (dateStr: string) => {
 };
 
 export default function PersonalActivitiesView({ userId }: PersonalActivitiesViewProps) {
-  const { activities, loading, createActivity, updateActivity, deleteActivity } = usePersonalActivities(userId);
+  const { activities, customTypes, loading, createActivity, updateActivity, deleteActivity, deleteCustomType } = usePersonalActivities(userId);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<PersonalActivity | null>(null);
 
@@ -93,11 +93,13 @@ export default function PersonalActivitiesView({ userId }: PersonalActivitiesVie
       <PersonalActivityModal
         open={modalOpen}
         initial={editing}
+        customTypes={customTypes}
         onSave={editing
           ? (input) => updateActivity(editing.id, input)
           : (input) => createActivity(input)
         }
         onDelete={editing ? () => deleteActivity(editing.id) : undefined}
+        onDeleteCustomType={deleteCustomType}
         onClose={() => setModalOpen(false)}
       />
     </div>

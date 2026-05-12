@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { X } from 'lucide-react';
 import { PERSONAL_ACTIVITY_TYPES } from '@/types/personal-activity';
-import type { PersonalActivity, PersonalActivityInput } from '@/types/personal-activity';
+import type { PersonalActivity, PersonalActivityCustomType, PersonalActivityInput } from '@/types/personal-activity';
 
 const OTHER_TYPE = 'Sonstiges';
 const isPresetType = (t: string): boolean => (PERSONAL_ACTIVITY_TYPES as readonly string[]).includes(t);
@@ -10,8 +11,10 @@ const isPresetType = (t: string): boolean => (PERSONAL_ACTIVITY_TYPES as readonl
 interface PersonalActivityModalProps {
   open: boolean;
   initial?: PersonalActivity | null;
+  customTypes: PersonalActivityCustomType[];
   onSave: (input: PersonalActivityInput) => Promise<boolean>;
   onDelete?: () => Promise<boolean>;
+  onDeleteCustomType: (id: string) => Promise<boolean>;
   onClose: () => void;
 }
 
@@ -23,7 +26,7 @@ const todayStr = () => {
   return `${y}-${m}-${day}`;
 };
 
-export default function PersonalActivityModal({ open, initial, onSave, onDelete, onClose }: PersonalActivityModalProps) {
+export default function PersonalActivityModal({ open, initial, customTypes, onSave, onDelete, onDeleteCustomType, onClose }: PersonalActivityModalProps) {
   const [activityDate, setActivityDate] = useState(todayStr());
   const [activityType, setActivityType] = useState<string>('Laufen');
   const [customName, setCustomName] = useState('');
@@ -37,10 +40,11 @@ export default function PersonalActivityModal({ open, initial, onSave, onDelete,
     if (!open) return;
     if (initial) {
       setActivityDate(initial.activity_date);
-      // Custom activities (not in the preset list) are stored as the custom
-      // name in activity_type. Surface them by selecting "Sonstiges" and
-      // pre-filling the custom-name input.
-      if (isPresetType(initial.activity_type)) {
+      // Match initial type against preset list OR the user's saved custom
+      // types. If it matches either, select it directly. Otherwise (legacy
+      // row or a just-deleted custom type) fall back to Sonstiges + prefill.
+      const isCustomTypeMatch = customTypes.some(c => c.name === initial.activity_type);
+      if (isPresetType(initial.activity_type) || isCustomTypeMatch) {
         setActivityType(initial.activity_type);
         setCustomName('');
       } else {
@@ -60,7 +64,7 @@ export default function PersonalActivityModal({ open, initial, onSave, onDelete,
       setEffort(null);
       setNotes('');
     }
-  }, [open, initial]);
+  }, [open, initial, customTypes]);
 
   if (!open) return null;
 
@@ -129,7 +133,35 @@ export default function PersonalActivityModal({ open, initial, onSave, onDelete,
                   {t === OTHER_TYPE ? '+ Sonstiges (eigene)' : t}
                 </option>
               ))}
+              {customTypes.length > 0 && (
+                <optgroup label='Eigene Aktivitäten'>
+                  {customTypes.map((c) => (
+                    <option key={c.id} value={c.name}>{c.name}</option>
+                  ))}
+                </optgroup>
+              )}
             </select>
+            {customTypes.length > 0 && (
+              <div className='mt-2 flex flex-wrap gap-1.5'>
+                {customTypes.map((c) => (
+                  <span
+                    key={c.id}
+                    className='inline-flex items-center gap-1 text-xs bg-gray-100 text-gray-700 pl-2 pr-1 py-0.5 rounded'
+                  >
+                    {c.name}
+                    <button
+                      type='button'
+                      onClick={() => onDeleteCustomType(c.id)}
+                      className='p-0.5 rounded hover:bg-gray-200 text-gray-500 hover:text-red-600 transition'
+                      aria-label={`Delete custom activity ${c.name}`}
+                      title={`Remove "${c.name}" from your activity list`}
+                    >
+                      <X size={12} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           {activityType === OTHER_TYPE && (
