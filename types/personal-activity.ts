@@ -1,12 +1,15 @@
 export const PERSONAL_ACTIVITY_TYPES = [
-  'Schwimmen',
+  'Anderes Studio',
+  'Externes CrossFit',
+  'Gehen',
+  'Inlinern',
+  'Klettern',
   'Laufen',
   'Radfahren',
-  'Yoga',
-  'Wandern',
-  'Externes CrossFit',
-  'Anderes Studio',
+  'Schwimmen',
   'Sonstiges',
+  'Wandern',
+  'Yoga',
 ] as const;
 
 export type PersonalActivityType = typeof PERSONAL_ACTIVITY_TYPES[number];

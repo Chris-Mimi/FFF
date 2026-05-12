@@ -25,7 +25,7 @@ const todayStr = () => {
 
 export default function PersonalActivityModal({ open, initial, onSave, onDelete, onClose }: PersonalActivityModalProps) {
   const [activityDate, setActivityDate] = useState(todayStr());
-  const [activityType, setActivityType] = useState<string>(PERSONAL_ACTIVITY_TYPES[0]);
+  const [activityType, setActivityType] = useState<string>('Laufen');
   const [customName, setCustomName] = useState('');
   const [durationMin, setDurationMin] = useState<string>('');
   const [distanceKm, setDistanceKm] = useState<string>('');
@@ -53,7 +53,7 @@ export default function PersonalActivityModal({ open, initial, onSave, onDelete,
       setNotes(initial.notes || '');
     } else {
       setActivityDate(todayStr());
-      setActivityType(PERSONAL_ACTIVITY_TYPES[0]);
+      setActivityType('Laufen');
       setCustomName('');
       setDurationMin('');
       setDistanceKm('');
