@@ -212,14 +212,17 @@ export default function RepMaxCalculatorModal({ lifts, liftHistory, onClose }: R
                     <Minus size={16} />
                   </button>
                   <input
-                    type='number'
+                    type='text'
                     inputMode='decimal'
-                    value={weight}
-                    onChange={e => setWeight(e.target.value)}
+                    value={weight.replace('.', ',')}
+                    onChange={e => {
+                      const cleaned = e.target.value.replace(',', '.');
+                      if (cleaned === '' || /^\d*\.?\d*$/.test(cleaned)) {
+                        setWeight(cleaned);
+                      }
+                    }}
                     placeholder='0'
-                    min='0'
-                    step='0.5'
-                    className='w-full min-w-0 px-2 py-2 border-y border-gray-300 focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
+                    className='w-full min-w-0 px-2 py-2 border-y border-gray-300 focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 text-center'
                   />
                   <button
                     type='button'
