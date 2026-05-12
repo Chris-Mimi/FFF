@@ -121,7 +121,13 @@ export default function PersonalActivityModal({ open, initial, onSave, onDelete,
               className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
             >
               {PERSONAL_ACTIVITY_TYPES.map((t) => (
-                <option key={t} value={t}>{t}</option>
+                <option
+                  key={t}
+                  value={t}
+                  style={t === OTHER_TYPE ? { color: '#178da6', fontStyle: 'italic' } : undefined}
+                >
+                  {t === OTHER_TYPE ? '+ Sonstiges (eigene)' : t}
+                </option>
               ))}
             </select>
           </div>
