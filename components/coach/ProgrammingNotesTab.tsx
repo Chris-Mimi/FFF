@@ -358,15 +358,28 @@ export default function ProgrammingNotesTab() {
           cursorOffset = 3;
         }
         break;
-      case 'numbered':
+      case 'numbered': {
+        // Continue the count if the previous non-empty line is a numbered
+        // item, otherwise start at 1. Without this, every click on different
+        // lines emits "1." and the list never increments.
+        const before = content.substring(0, start);
+        const prevNewline = before.lastIndexOf('\n');
+        const prevLineStart = prevNewline === -1
+          ? 0
+          : before.lastIndexOf('\n', prevNewline - 1) + 1;
+        const prevLine = before.substring(prevLineStart, prevNewline === -1 ? before.length : prevNewline);
+        const prevMatch = prevLine.match(/^(\d+)\.\s/);
+        const nextNum = prevMatch ? parseInt(prevMatch[1], 10) + 1 : 1;
+        const marker = `${nextNum}. `;
         if (start === 0 || content[start - 1] === '\n') {
-          newText = `${beforeText}1. ${selectedText}${afterText}`;
-          cursorOffset = 3;
+          newText = `${beforeText}${marker}${selectedText}${afterText}`;
+          cursorOffset = marker.length;
         } else {
-          newText = `${beforeText}\n1. ${selectedText}${afterText}`;
-          cursorOffset = 4;
+          newText = `${beforeText}\n${marker}${selectedText}${afterText}`;
+          cursorOffset = marker.length + 1;
         }
         break;
+      }
       case 'h1':
         if (start === 0 || content[start - 1] === '\n') {
           newText = `${beforeText}# ${selectedText}${afterText}`;
@@ -830,14 +843,14 @@ export default function ProgrammingNotesTab() {
                       <UnderlineIcon size={14} className='sm:w-4 sm:h-4' />
                     </button>
                     <div className='w-px bg-gray-300 mx-0.5 sm:mx-1 hidden sm:block'></div>
-                    <button type='button' onClick={() => applyFormatting('h1')} className='p-1.5 sm:p-2 hover:bg-white rounded transition text-gray-700' title='Heading 1' aria-label='Heading 1'>
-                      <Type size={14} className='sm:w-4 sm:h-4 font-bold' />
+                    <button type='button' onClick={() => applyFormatting('h1')} className='px-2 sm:px-2.5 py-1 sm:py-1.5 hover:bg-white rounded transition text-gray-700 text-sm font-bold leading-none' title='Heading 1' aria-label='Heading 1'>
+                      H1
                     </button>
-                    <button type='button' onClick={() => applyFormatting('h2')} className='p-1.5 sm:p-2 hover:bg-white rounded transition text-gray-700' title='Heading 2' aria-label='Heading 2'>
-                      <Type size={12} className='sm:w-3.5 sm:h-3.5' />
+                    <button type='button' onClick={() => applyFormatting('h2')} className='px-2 sm:px-2.5 py-1 sm:py-1.5 hover:bg-white rounded transition text-gray-700 text-xs font-bold leading-none' title='Heading 2' aria-label='Heading 2'>
+                      H2
                     </button>
-                    <button type='button' onClick={() => applyFormatting('h3')} className='p-1.5 sm:p-2 hover:bg-white rounded transition text-gray-700' title='Heading 3' aria-label='Heading 3'>
-                      <Type size={10} className='sm:w-3 sm:h-3' />
+                    <button type='button' onClick={() => applyFormatting('h3')} className='px-2 sm:px-2.5 py-1 sm:py-1.5 hover:bg-white rounded transition text-gray-700 text-[11px] font-bold leading-none' title='Heading 3' aria-label='Heading 3'>
+                      H3
                     </button>
                     <div className='w-px bg-gray-300 mx-0.5 sm:mx-1 hidden sm:block'></div>
                     <button type='button' onClick={() => applyFormatting('bullet')} className='p-1.5 sm:p-2 hover:bg-white rounded transition text-gray-700' title='Bullet List' aria-label='Bullet list'>
@@ -853,6 +866,40 @@ export default function ProgrammingNotesTab() {
                     ref={textareaRef}
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
+                    onKeyDown={(e) => {
+                      // Auto-continue bullet / numbered lists on Enter.
+                      // Shift+Enter bypasses (manual line break).
+                      if (e.key !== 'Enter' || e.shiftKey) return;
+                      const ta = e.currentTarget;
+                      const cursor = ta.selectionStart;
+                      if (cursor !== ta.selectionEnd) return; // skip when text is selected
+                      const before = content.substring(0, cursor);
+                      const lineStart = before.lastIndexOf('\n') + 1;
+                      const currentLine = content.substring(lineStart, cursor);
+                      const bulletMatch = currentLine.match(/^- (.*)$/);
+                      const numberedMatch = currentLine.match(/^(\d+)\. (.*)$/);
+                      if (!bulletMatch && !numberedMatch) return;
+                      const rest = bulletMatch ? bulletMatch[1] : numberedMatch![2];
+                      if (rest.trim() === '') {
+                        // Empty list item — exit the list (remove the marker).
+                        e.preventDefault();
+                        const newContent = content.substring(0, lineStart) + content.substring(cursor);
+                        setContent(newContent);
+                        setTimeout(() => ta.setSelectionRange(lineStart, lineStart), 0);
+                        return;
+                      }
+                      // Continue the list.
+                      e.preventDefault();
+                      const insertion = bulletMatch
+                        ? '\n- '
+                        : `\n${parseInt(numberedMatch![1], 10) + 1}. `;
+                      const newContent = before + insertion + content.substring(cursor);
+                      setContent(newContent);
+                      setTimeout(() => {
+                        const pos = cursor + insertion.length;
+                        ta.setSelectionRange(pos, pos);
+                      }, 0);
+                    }}
                     className='flex-1 min-h-[150px] md:min-h-0 border border-gray-300 rounded-lg p-2 sm:p-3 md:p-4 font-mono text-xs sm:text-sm resize-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-900'
                     placeholder='Start typing your notes here... (supports Markdown)'
                     maxLength={50000}
@@ -867,6 +914,34 @@ export default function ProgrammingNotesTab() {
                     remarkPlugins={[remarkGfm]}
                     rehypePlugins={[rehypeRaw]}
                     components={{
+                      // Tailwind preflight strips heading sizes; prose
+                      // *should* restore them inside `.prose`, but here it
+                      // doesn't reach the rendered <h1/2/3> — likely a
+                      // specificity clash with the surrounding utilities.
+                      // Explicit classes guarantee visible heading hierarchy.
+                      h1: ({ ...props }) => (
+                        <h1 className="text-2xl font-bold mt-4 mb-2 text-gray-900 whitespace-normal" {...props} />
+                      ),
+                      h2: ({ ...props }) => (
+                        <h2 className="text-xl font-bold mt-3 mb-2 text-gray-900 whitespace-normal" {...props} />
+                      ),
+                      h3: ({ ...props }) => (
+                        <h3 className="text-lg font-semibold mt-2 mb-1 text-gray-900 whitespace-normal" {...props} />
+                      ),
+                      // whitespace-normal undoes the wrapper's whitespace-pre-wrap
+                      // for list elements — otherwise the `\n` between rendered
+                      // `<li>` tags in the HTML shows as a visible blank line.
+                      // Paragraphs keep pre-wrap so single-newline body text still
+                      // displays correctly.
+                      ul: ({ ...props }) => (
+                        <ul className="list-disc pl-6 my-2 whitespace-normal" {...props} />
+                      ),
+                      ol: ({ ...props }) => (
+                        <ol className="list-decimal pl-6 my-2 whitespace-normal" {...props} />
+                      ),
+                      li: ({ ...props }) => (
+                        <li className="whitespace-normal" {...props} />
+                      ),
                       a: ({ ...props }) => (
                         <a
                           {...props}

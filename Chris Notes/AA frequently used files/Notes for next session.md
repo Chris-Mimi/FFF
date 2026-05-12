@@ -23,14 +23,13 @@ http://192.168.178.75:3000
 * Workouts page: ability to mute/cancel athletes withour clearing the group
 * 
 * Ask Claude for a Magic link script to access athlete's accounts to check screen views so I can help them click the right buttons. I just give Claude the email ad.
-* Strict OHP was programmed in Week 19 but it doesn't show in the Workouts/Movement Tracking List (01.04)
+* 
 * Macbook still has internet problem at the box. Old Macbook Pro works fine.
 * 
-
-* Formatting titles doesn't work in My Notes in "Aids" tab (Toolkit)
+* 
 * 
 * review the rep max calculator to show clearer percentages
-* Add membership halfway tghrough a contract
+* 
 * Why doesn't the data integrity sql catch things like this?
 * entering a benchmark for an athlete on the coach page/athletes tab didn't work
 * How it works/info/help file like in Planner

@@ -72,3 +72,43 @@ The big one. Chris pointed out users shouldn't have to re-type "Klettern" every 
 - **Asking before exploring saved a wrong turn.** The waitlist-promote design had a fork (auto-promote on no-show vs. manual Promote button). Asked Chris first — manual button is what he wanted. Spending 5 minutes building auto-promote would have created an "undo no-show" headache.
 - **Trusting Chris's data.** When he said the in-app Payment tab didn't show "create-checkout" buttons for Claudia, the easy assumption was the buttons existed but he missed them. Wrote a diagnostic script (`scripts/probe-member-subscription.ts`) that printed her exact DB state — confirmed buttons WOULD render. Result was a UI-path explanation, not a code fix.
 - **Wasted-work avoided.** The earlier rep-max stepper commit got committed but the push was interrupted by Chris's "should be comma" request; rather than discovering it later, the existing commit landed alongside the comma fix in a clean two-commit sequence.
+
+---
+
+## Post-close additions
+
+### Athlete Guide rewrite
+
+[Chris Notes/Forge app documentation/Forge-Athlete-Guide.md](Chris%20Notes/Forge%20app%20documentation/Forge-Athlete-Guide.md) was significantly out of date and framed athlete-led ("log your workouts") which contradicts the actual product after the beta-test pivot. Reframed top-down as coach-driven: "your coach logs your results for you". Athlete self-entry preserved for outside-class benchmarks/lifts and personal activities. Fixed pricing table (was a single €7.50/€75 tier, real is €8/€80 + €10/€100 split). Added personal activity log, family-shared 10-card, waitlist-promotion push notification. Removed movement-demos line — they're coach-side only by Chris's pedagogical choice. Saved two project memories so future sessions don't reintroduce the wrong framing.
+
+Discussed (and parked on the todo list) a new `Forge-Coach-Pitch.md` for B2B sales — different audience, different tone, differentiator-first framing.
+
+### Movement extractor — closes S330 landmine
+
+Chris reported Strict OHP programmed in Week 19 was still showing "01.04" in Movement Tracking. Probed: lift "Strict Overhead Shoulder Press" → linked to exercise (`exercises.name = "barbell-strict-oh-press-ohp"`, `display_name = "Strict OH Press"`, `acronym = "OHP"`). The extractor had no way to bridge lift name → linked exercise name.
+
+Fix:
+- New [utils/movement-analytics.ts](utils/movement-analytics.ts) `fetchLiftExerciseMap()` joins `barbell_lifts.exercise_id` → `exercises.display_name || exercises.name`.
+- [utils/movement-extraction.ts](utils/movement-extraction.ts) both functions accept optional `liftExerciseMap`. Lift-branch resolution priority: **link → acronym → genericToCanonical → name-match → fallback**.
+- Threaded through 4 call sites: useMovementTracking, useCoachData (search), pattern-analytics (both functions), getExerciseFrequency.
+- Bonus: getExerciseFrequency was building its own stale acronym map from `exercises.tags` (pre-S333) — now uses `fetchAcronymMap()`.
+
+First attempt emitted `exercises.name` (slug-style for this row), which didn't match the upstream `knownExerciseNames` set (built from `display_name`). Caught by Chris testing after deploy. Quick probe via [scripts/probe-strict-ohp.ts](scripts/probe-strict-ohp.ts) confirmed the slug shape; second commit switched the helper to emit `display_name || name`.
+
+### Programming Notes ("My Notes" Coach Toolkit) — preview formatting
+
+Chris reported headings, bullets, and numbered lists weren't formatting in preview. Investigation:
+- Bold/italic worked (they have intrinsic browser defaults for `<strong>` and `<em>`).
+- Headings rendered at body-text size — Tailwind preflight resets headings, and the `prose prose-sm` on the wrapper wasn't reaching them (likely specificity clash with surrounding utility classes).
+- Lists had the same issue (preflight strips `list-style`).
+
+Fix: explicit `components` overrides in ReactMarkdown for `h1` / `h2` / `h3` / `ul` / `ol` / `li` with Tailwind classes. Then a second pass — preview showed double-spacing inside lists and around headings because the wrapper's `whitespace-pre-wrap` was preserving the `\n` between rendered HTML tags as visible blank lines. Solved by adding `whitespace-normal` on the same overridden elements (paragraphs keep `pre-wrap` so single-newline body text still displays correctly).
+
+Two UX additions:
+- Toolbar H1/H2/H3 buttons converted from indistinguishable Type icons (sizes 14/12/10 — same shape, just barely smaller) to text labels "H1" / "H2" / "H3", scaled by font-size.
+- Textarea now has an Enter handler that auto-continues bullet/numbered lists. Empty Enter exits the list. Shift+Enter bypasses for manual line breaks. Numbered button auto-increments based on the immediately-preceding line so consecutive clicks don't all emit `1.`.
+
+### Process moments (post-close)
+
+- **Don't assume — ask.** Initially shipped icon-label fix for the heading problem assuming it was UX confusion; Chris tested and confirmed headings genuinely don't render in preview. The real bug was prose specificity, not UI clarity. The icon labels stayed (independent UX improvement) but the actual fix was explicit `components` overrides. Lesson: when a bug report says "doesn't work", reproduce or ask before guessing what user means.
+- **Diagnostic script earned its keep.** First extractor fix shipped but didn't light up the column — Chris reported it, and instead of guessing again, wrote `scripts/probe-strict-ohp.ts` to inspect the actual DB shape. The slug-style `exercises.name` was unexpected; the probe revealed it in seconds.
