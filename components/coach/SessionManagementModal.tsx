@@ -401,22 +401,30 @@ export default function SessionManagementModal({
               )}
 
               {/* Waitlist */}
-              {waitlistBookings.length > 0 && (
-                <div>
-                  <h3 className='text-base font-semibold text-gray-800 mb-2'>
-                    Waitlist ({waitlistBookings.length})
-                  </h3>
-                  <div className='space-y-1'>
-                    {waitlistBookings.map(booking => (
-                      <BookingListItem
-                        key={booking.id}
-                        booking={booking}
-                        status='waitlist'
-                      />
-                    ))}
+              {waitlistBookings.length > 0 && sessionDetails.session && (() => {
+                const cap = sessionDetails.session.capacity;
+                const hasCapacity =
+                  cap === 0 ||
+                  nonOgConfirmedCount + (sessionDetails.session.trial_names || []).length < cap;
+                return (
+                  <div>
+                    <h3 className='text-base font-semibold text-gray-800 mb-2'>
+                      Waitlist ({waitlistBookings.length})
+                    </h3>
+                    <div className='space-y-1'>
+                      {waitlistBookings.map(booking => (
+                        <BookingListItem
+                          key={booking.id}
+                          booking={booking}
+                          status='waitlist'
+                          onPromote={bookingManagement.handlePromoteWaitlist}
+                          showPromoteBtn={hasCapacity}
+                        />
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
             </div>
           ) : null}
         </div>

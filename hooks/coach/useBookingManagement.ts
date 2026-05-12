@@ -30,6 +30,7 @@ interface UseBookingManagementResult {
   handleUndoLateCancel: (bookingId: string, memberName: string) => Promise<void>;
   handleCancelBooking: (bookingId: string, memberName: string, memberId: string) => Promise<void>;
   handleToggleOg: (bookingId: string, memberName: string, isOg: boolean) => Promise<void>;
+  handlePromoteWaitlist: (bookingId: string, memberName: string) => Promise<void>;
 }
 
 export function useBookingManagement({
@@ -320,6 +321,37 @@ export function useBookingManagement({
     }
   };
 
+  const handlePromoteWaitlist = async (bookingId: string, memberName: string) => {
+    if (
+      !await confirm({
+        title: 'Promote from Waitlist',
+        message: `Promote ${memberName} into the class?\n\nUse this when a slot has freed up (e.g. a no-show). If they have a 10-card, the session will count toward their usage.`,
+        confirmText: 'Promote',
+        variant: 'default',
+      })
+    ) {
+      return;
+    }
+
+    try {
+      const res = await authFetch('/api/coach/promote-waitlist', {
+        method: 'POST',
+        body: JSON.stringify({ bookingId }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error(j.error || 'promote failed');
+      }
+
+      await onRefresh();
+      onSessionUpdated();
+      toast.success(`${memberName} promoted to confirmed`);
+    } catch (error) {
+      console.error('Error promoting waitlist athlete:', error);
+      toast.error('Failed to promote waitlist athlete');
+    }
+  };
+
   const handleToggleOg = async (bookingId: string, memberName: string, isOg: boolean) => {
     try {
       const res = await authFetch('/api/bookings/toggle-og', {
@@ -352,5 +384,6 @@ export function useBookingManagement({
     handleUndoLateCancel,
     handleCancelBooking,
     handleToggleOg,
+    handlePromoteWaitlist,
   };
 }

@@ -2,26 +2,36 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { notifyWaitlistPromoted } from '@/lib/notifications';
 
 /**
- * Promotes the longest-waiting waitlist booking on a session to confirmed,
- * cascading the 10-card increment for ten_card payers (own card or shared
- * parent card) and firing the waitlist-promoted notification.
+ * Promotes a waitlist booking on a session to confirmed, cascading the
+ * 10-card increment for ten_card payers (own card or shared parent card)
+ * and firing the waitlist-promoted notification.
  *
- * Caller is responsible for deciding WHEN to promote (e.g. after a confirmed
- * booking was cancelled, or after a confirmed booking became OG and freed
- * a slot). This helper does NOT check capacity itself.
+ * If `bookingId` is provided, promotes that specific waitlist booking (used
+ * by the manual Promote button when a no-show frees a slot). If omitted,
+ * promotes the longest-waiting waitlister (auto-promote on cancel/OG-toggle).
+ *
+ * Caller is responsible for deciding WHEN to promote — this helper does NOT
+ * check capacity itself.
  */
 export async function promoteFromWaitlist(
   supabase: SupabaseClient,
   sessionId: string,
-  session: { date: string; time: string }
+  session: { date: string; time: string },
+  bookingId?: string
 ): Promise<{ promotedMemberId: string | null }> {
-  const { data: waitlistBookings } = await supabase
+  let query = supabase
     .from('bookings')
     .select('id, member_id')
     .eq('session_id', sessionId)
-    .eq('status', 'waitlist')
-    .order('booked_at', { ascending: true })
-    .limit(1);
+    .eq('status', 'waitlist');
+
+  if (bookingId) {
+    query = query.eq('id', bookingId);
+  } else {
+    query = query.order('booked_at', { ascending: true }).limit(1);
+  }
+
+  const { data: waitlistBookings } = await query;
 
   if (!waitlistBookings || waitlistBookings.length === 0) {
     return { promotedMemberId: null };

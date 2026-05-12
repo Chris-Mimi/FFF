@@ -1,6 +1,6 @@
 'use client';
 
-import { Undo2, UserX, X } from 'lucide-react';
+import { ArrowUp, Undo2, UserX, X } from 'lucide-react';
 import { Booking } from '@/hooks/coach/useSessionDetails';
 
 interface BookingListItemProps {
@@ -12,11 +12,13 @@ interface BookingListItemProps {
   onUndoLateCancel?: (bookingId: string, name: string) => void;
   onCancelBooking?: (bookingId: string, name: string, memberId: string) => void;
   onToggleOg?: (bookingId: string, name: string, isOg: boolean) => void;
+  onPromote?: (bookingId: string, name: string) => void;
   showNoShowBtn?: boolean;
   showLateCancelBtn?: boolean;
   showUndoBtn?: boolean;
   showCancelBtn?: boolean;
   showOgBtn?: boolean;
+  showPromoteBtn?: boolean;
 }
 
 export default function BookingListItem({
@@ -28,11 +30,13 @@ export default function BookingListItem({
   onUndoLateCancel,
   onCancelBooking,
   onToggleOg,
+  onPromote,
   showNoShowBtn = false,
   showLateCancelBtn = false,
   showUndoBtn = false,
   showCancelBtn = false,
   showOgBtn = false,
+  showPromoteBtn = false,
 }: BookingListItemProps) {
   const memberName = booking.member?.name || booking.member?.display_name || 'Unknown Member';
   const isFamilyMember = booking.member?.account_type === 'family_member';
@@ -80,6 +84,16 @@ export default function BookingListItem({
         )}
       </div>
       <div className='flex items-center gap-1.5'>
+        {showPromoteBtn && onPromote && (
+          <button
+            onClick={() => onPromote(booking.id, memberName)}
+            className='flex items-center gap-1 px-3 py-1.5 text-xs bg-green-100 hover:bg-green-200 text-green-800 rounded transition'
+            title='Promote to confirmed (slot freed by no-show or cancellation)'
+          >
+            <ArrowUp size={14} />
+            Promote
+          </button>
+        )}
         {showOgBtn && onToggleOg && (
           <button
             onClick={() => onToggleOg(booking.id, memberName, !booking.is_og)}
