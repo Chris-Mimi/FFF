@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react';
 import { PERSONAL_ACTIVITY_TYPES } from '@/types/personal-activity';
 import type { PersonalActivity, PersonalActivityInput } from '@/types/personal-activity';
 
+const OTHER_TYPE = 'Sonstiges';
+const isPresetType = (t: string): boolean => (PERSONAL_ACTIVITY_TYPES as readonly string[]).includes(t);
+
 interface PersonalActivityModalProps {
   open: boolean;
   initial?: PersonalActivity | null;
@@ -23,7 +26,9 @@ const todayStr = () => {
 export default function PersonalActivityModal({ open, initial, onSave, onDelete, onClose }: PersonalActivityModalProps) {
   const [activityDate, setActivityDate] = useState(todayStr());
   const [activityType, setActivityType] = useState<string>(PERSONAL_ACTIVITY_TYPES[0]);
+  const [customName, setCustomName] = useState('');
   const [durationMin, setDurationMin] = useState<string>('');
+  const [distanceKm, setDistanceKm] = useState<string>('');
   const [effort, setEffort] = useState<number | null>(null);
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
@@ -32,14 +37,26 @@ export default function PersonalActivityModal({ open, initial, onSave, onDelete,
     if (!open) return;
     if (initial) {
       setActivityDate(initial.activity_date);
-      setActivityType(initial.activity_type);
+      // Custom activities (not in the preset list) are stored as the custom
+      // name in activity_type. Surface them by selecting "Sonstiges" and
+      // pre-filling the custom-name input.
+      if (isPresetType(initial.activity_type)) {
+        setActivityType(initial.activity_type);
+        setCustomName('');
+      } else {
+        setActivityType(OTHER_TYPE);
+        setCustomName(initial.activity_type);
+      }
       setDurationMin(initial.duration_min != null ? String(initial.duration_min) : '');
+      setDistanceKm(initial.distance_km != null ? String(initial.distance_km) : '');
       setEffort(initial.effort);
       setNotes(initial.notes || '');
     } else {
       setActivityDate(todayStr());
       setActivityType(PERSONAL_ACTIVITY_TYPES[0]);
+      setCustomName('');
       setDurationMin('');
+      setDistanceKm('');
       setEffort(null);
       setNotes('');
     }
@@ -50,10 +67,18 @@ export default function PersonalActivityModal({ open, initial, onSave, onDelete,
   const handleSubmit = async () => {
     setSaving(true);
     const parsedDuration = durationMin.trim() === '' ? null : parseInt(durationMin, 10);
+    const parsedDistance = distanceKm.trim() === '' ? null : parseFloat(distanceKm);
+    // If user picked Sonstiges and typed a custom name, save the custom name
+    // as activity_type so the list reads "Klettern" instead of "Sonstiges".
+    const trimmedCustom = customName.trim();
+    const resolvedType = activityType === OTHER_TYPE && trimmedCustom !== ''
+      ? trimmedCustom
+      : activityType;
     const ok = await onSave({
       activity_date: activityDate,
-      activity_type: activityType,
+      activity_type: resolvedType,
       duration_min: Number.isFinite(parsedDuration as number) ? parsedDuration : null,
+      distance_km: Number.isFinite(parsedDistance as number) ? parsedDistance : null,
       effort,
       notes: notes.trim() || null,
     });
@@ -101,17 +126,48 @@ export default function PersonalActivityModal({ open, initial, onSave, onDelete,
             </select>
           </div>
 
-          <div>
-            <label className='block text-sm font-medium text-gray-700 mb-1'>Duration (min)</label>
-            <input
-              type='number'
-              min='0'
-              inputMode='numeric'
-              value={durationMin}
-              onChange={(e) => setDurationMin(e.target.value)}
-              placeholder='Optional'
-              className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
-            />
+          {activityType === OTHER_TYPE && (
+            <div>
+              <label className='block text-sm font-medium text-gray-700 mb-1'>Custom activity</label>
+              <input
+                type='text'
+                value={customName}
+                onChange={(e) => setCustomName(e.target.value)}
+                placeholder='z. B. Klettern, Tennis, Ski…'
+                className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
+              />
+            </div>
+          )}
+
+          <div className='flex gap-3'>
+            <div className='flex-1 min-w-0'>
+              <label className='block text-sm font-medium text-gray-700 mb-1'>Duration (min)</label>
+              <input
+                type='number'
+                min='0'
+                inputMode='numeric'
+                value={durationMin}
+                onChange={(e) => setDurationMin(e.target.value)}
+                placeholder='Optional'
+                className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
+              />
+            </div>
+            <div className='flex-1 min-w-0'>
+              <label className='block text-sm font-medium text-gray-700 mb-1'>Distance (km)</label>
+              <input
+                type='text'
+                inputMode='decimal'
+                value={distanceKm.replace('.', ',')}
+                onChange={(e) => {
+                  const cleaned = e.target.value.replace(',', '.');
+                  if (cleaned === '' || /^\d*\.?\d*$/.test(cleaned)) {
+                    setDistanceKm(cleaned);
+                  }
+                }}
+                placeholder='Optional'
+                className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
+              />
+            </div>
           </div>
 
           <div>
@@ -145,7 +201,7 @@ export default function PersonalActivityModal({ open, initial, onSave, onDelete,
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
-              placeholder='Optional — distance, location, how it felt…'
+              placeholder='Optional — location, how it felt…'
               className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 resize-none'
             />
           </div>

@@ -17,6 +17,7 @@ export interface PersonalActivity {
   activity_date: string;
   activity_type: PersonalActivityType | string;
   duration_min: number | null;
+  distance_km: number | null;
   effort: number | null;
   notes: string | null;
   created_at: string;
@@ -27,6 +28,7 @@ export interface PersonalActivityInput {
   activity_date: string;
   activity_type: PersonalActivityType | string;
   duration_min: number | null;
+  distance_km: number | null;
   effort: number | null;
   notes: string | null;
 }

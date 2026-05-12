@@ -65,6 +65,11 @@ export default function PersonalActivitiesView({ userId }: PersonalActivitiesVie
                 <div className='flex items-center gap-3 flex-wrap'>
                   <span className='text-sm font-semibold text-gray-900'>{a.activity_type}</span>
                   <span className='text-xs text-gray-500'>{formatDateLabel(a.activity_date)}</span>
+                  {a.distance_km != null && (
+                    <span className='text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded'>
+                      {String(a.distance_km).replace('.', ',')} km
+                    </span>
+                  )}
                   {a.duration_min != null && (
                     <span className='text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded'>
                       {a.duration_min} min
