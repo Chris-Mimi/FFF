@@ -39,8 +39,13 @@ export async function fetchLiftExerciseMap(): Promise<Map<string, string>> {
     if (!row.name) continue;
     // Supabase typing returns a joined row as `T | T[]` depending on cardinality.
     const linked = Array.isArray(row.exercises) ? row.exercises[0] : row.exercises;
-    if (!linked?.name) continue;
-    map.set(row.name.toLowerCase().trim(), linked.name.toLowerCase().trim());
+    // Emit display_name (or name as fallback). `knownExerciseNames` upstream is
+    // built from display_name; emitting the raw `name` column would miss every
+    // exercise whose `name` is slug-style (e.g. "barbell-strict-oh-press-ohp"
+    // → display_name "Strict OH Press").
+    const target = linked?.display_name || linked?.name;
+    if (!target) continue;
+    map.set(row.name.toLowerCase().trim(), target.toLowerCase().trim());
   }
   return map;
 }
