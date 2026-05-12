@@ -3,7 +3,8 @@
 import { WODFormData, WODSection } from '@/components/coach/WorkoutModal';
 import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
 import { supabase } from '@/lib/supabase';
-import { extractMovements, extractMovementsFromWod, type AcronymMap } from '@/utils/movement-extraction';
+import { extractMovements, extractMovementsFromWod, type AcronymMap, type LiftExerciseMap } from '@/utils/movement-extraction';
+import { fetchLiftExerciseMap } from '@/utils/movement-analytics';
 import { useEffect, useState } from 'react';
 
 interface UseCoachDataProps {
@@ -41,6 +42,7 @@ export const useCoachData = ({
   const [exerciseNames, setExerciseNames] = useState<Set<string>>(new Set());
   const [exerciseList, setExerciseList] = useState<Array<{ id: string; name: string; display_name: string | null; category: string; acronym: string | null }>>([]);
   const [acronymMap, setAcronymMap] = useState<AcronymMap>(new Map());
+  const [liftExerciseMap, setLiftExerciseMap] = useState<LiftExerciseMap>(new Map());
   const [displayNameToAcronyms, setDisplayNameToAcronyms] = useState<Map<string, string[]>>(new Map());
   const [members, setMembers] = useState<Array<{ id: string; name: string; booking_count: number; date_of_birth: string | null }>>([]);
   const [loading, setLoading] = useState(true);
@@ -397,7 +399,7 @@ export const useCoachData = ({
         if (selectedMovements.length > 0) {
           const knownNames = exerciseNames.size > 0 ? exerciseNames : undefined;
           filteredResults = filteredResults.filter(wod => {
-            const wodMovements = extractMovementsFromWod(wod, knownNames, acronymMap);
+            const wodMovements = extractMovementsFromWod(wod, knownNames, acronymMap, liftExerciseMap);
             return selectedMovements.every(movement =>
               wodMovements.has(movement)
             );
@@ -428,7 +430,7 @@ export const useCoachData = ({
 
         setSearchResults(filteredResults);
 
-        const allMovements = extractMovements(filteredResults, exerciseNames.size > 0 ? exerciseNames : undefined, acronymMap);
+        const allMovements = extractMovements(filteredResults, exerciseNames.size > 0 ? exerciseNames : undefined, acronymMap, liftExerciseMap);
         setMovements(allMovements);
       } catch (error) {
         console.error('Error searching WODs:', error);
@@ -437,7 +439,7 @@ export const useCoachData = ({
 
     const timeoutId = setTimeout(searchWODs, 300);
     return () => clearTimeout(timeoutId);
-  }, [searchQuery, selectedMovements, selectedWorkoutTypes, selectedTracks, selectedSessionTypes, includedSectionTypes, selectedSectionTypeFilter, selectedMembers, exerciseNames, acronymMap, displayNameToAcronyms]);
+  }, [searchQuery, selectedMovements, selectedWorkoutTypes, selectedTracks, selectedSessionTypes, includedSectionTypes, selectedSectionTypeFilter, selectedMembers, exerciseNames, acronymMap, liftExerciseMap, displayNameToAcronyms]);
 
   const fetchExerciseNames = async () => {
     try {
@@ -493,6 +495,10 @@ export const useCoachData = ({
       setExerciseList(exRes.data || []);
       setAcronymMap(acronyms);
       setDisplayNameToAcronyms(reverse);
+      // S348 — load the lift→exercise link map so extractor can resolve catalogued
+      // lifts (e.g. "Strict Overhead Shoulder Press") to their linked exercise
+      // ("Strict OHP") regardless of name differences.
+      setLiftExerciseMap(await fetchLiftExerciseMap());
     } catch (error) {
       console.error('Error fetching exercise names:', error);
     }

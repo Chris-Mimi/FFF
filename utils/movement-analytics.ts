@@ -9,6 +9,43 @@ import { extractMovementsFromWod, type AcronymMap } from '@/utils/movement-extra
 import type { WODFormData } from '@/components/coach/WorkoutModal';
 
 /**
+ * Fetch the lift-name → linked-exercise-name map. Walks `barbell_lifts.exercise_id`
+ * (the S335 link column) and joins to `exercises` for the canonical exercise name.
+ * Keys + values lowercased so the extractor can match section-JSONB `lift.name`
+ * regardless of casing. Lifts without a link are skipped — they fall through to
+ * the extractor's regular name-matching paths.
+ *
+ * Fixes the S330 landmine: a lift catalogued as "Strict Overhead Shoulder Press"
+ * linked to exercise "Strict OHP" wasn't crediting the exercise in Movement
+ * Tracking / Planner / search, because the name-matching paths couldn't bridge
+ * the two names.
+ */
+export async function fetchLiftExerciseMap(): Promise<Map<string, string>> {
+  const { data, error } = await supabase
+    .from('barbell_lifts')
+    .select('name, exercises:exercise_id ( name, display_name )')
+    .not('exercise_id', 'is', null);
+
+  const map = new Map<string, string>();
+  if (error || !data) {
+    if (error) console.error('Error fetching lift→exercise map:', error);
+    return map;
+  }
+
+  for (const row of data as unknown as Array<{
+    name: string;
+    exercises: { name: string; display_name: string | null } | { name: string; display_name: string | null }[] | null;
+  }>) {
+    if (!row.name) continue;
+    // Supabase typing returns a joined row as `T | T[]` depending on cardinality.
+    const linked = Array.isArray(row.exercises) ? row.exercises[0] : row.exercises;
+    if (!linked?.name) continue;
+    map.set(row.name.toLowerCase().trim(), linked.name.toLowerCase().trim());
+  }
+  return map;
+}
+
+/**
  * Fetch the acronym → display_name map across all four movement-source tables.
  * Source of truth is the curated `acronym` column (Session 333).
  * Shared by movement extraction call sites that don't have access to useCoachData.
@@ -434,20 +471,25 @@ export async function getForgeBenchmarkFrequencyById(forgeId: string, filter?: D
  * @returns Array of exercise frequencies sorted by count (descending)
  */
 export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<ExerciseFrequency[]> {
-  // Fetch all exercises from database for matching
-  const { data: exercisesData, error: exercisesError } = await supabase
-    .from('exercises')
-    .select('id, name, display_name, category, tags');
+  // Fetch all exercises + canonical acronym map + lift→exercise link map in parallel
+  // (acronymMap was previously built from stale `tags`; S333 made `acronym` the
+  // source of truth — using fetchAcronymMap() here so all extractor call sites
+  // share one definition).
+  const [exRes, acronymMap, liftExerciseMap] = await Promise.all([
+    supabase.from('exercises').select('id, name, display_name, category'),
+    fetchAcronymMap(),
+    fetchLiftExerciseMap(),
+  ]);
 
-  if (exercisesError) {
-    console.error('Error fetching exercises:', exercisesError);
+  if (exRes.error) {
+    console.error('Error fetching exercises:', exRes.error);
     return [];
   }
+  const exercisesData = exRes.data;
 
-  // Build name→exercise lookup (case-insensitive, by name and display_name) + acronym map
+  // Build name→exercise lookup (case-insensitive, by name and display_name)
   const exercisesByName = new Map<string, { id: string; name: string; category: string }>();
   const knownExerciseNames = new Set<string>();
-  const acronymMap: AcronymMap = new Map();
   exercisesData?.forEach(ex => {
     exercisesByName.set(ex.name.toLowerCase(), { id: ex.id, name: ex.name, category: ex.category });
     knownExerciseNames.add(ex.name);
@@ -455,9 +497,6 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
       exercisesByName.set(ex.display_name.toLowerCase(), { id: ex.id, name: ex.name, category: ex.category });
       knownExerciseNames.add(ex.display_name);
     }
-    const dnLower = (ex.display_name || ex.name).toLowerCase();
-    const tags: string[] = Array.isArray(ex.tags) ? ex.tags.filter(Boolean).map((t: string) => t.toLowerCase()) : [];
-    tags.forEach(tag => acronymMap.set(tag, dnLower));
   });
 
   const workouts = await fetchPublishedWorkouts(filter, 'workouts for exercise frequency');
@@ -484,7 +523,7 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
       maxCapacity: 0,
     };
 
-    const movements = extractMovementsFromWod(wodData, knownExerciseNames, acronymMap);
+    const movements = extractMovementsFromWod(wodData, knownExerciseNames, acronymMap, liftExerciseMap);
 
     movements.forEach(movementName => {
       const exercise = exercisesByName.get(movementName.toLowerCase());

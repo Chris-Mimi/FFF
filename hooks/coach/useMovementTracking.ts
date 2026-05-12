@@ -1,8 +1,8 @@
 'use client';
 
 import { supabase } from '@/lib/supabase';
-import { extractMovementsFromWod, type AcronymMap } from '@/utils/movement-extraction';
-import { fetchAcronymMap } from '@/utils/movement-analytics';
+import { extractMovementsFromWod, type AcronymMap, type LiftExerciseMap } from '@/utils/movement-extraction';
+import { fetchAcronymMap, fetchLiftExerciseMap } from '@/utils/movement-analytics';
 import { WODFormData } from '@/components/coach/WorkoutModal';
 import type { TrackedExercise } from '@/lib/exercise-storage';
 import { useEffect, useState, useRef, useCallback } from 'react';
@@ -36,13 +36,15 @@ export function useMovementTracking({
   const [globalLastProgrammed, setGlobalLastProgrammed] = useState<GlobalLastProgrammedData>({});
   const [loading, setLoading] = useState(false);
   const [acronymMap, setAcronymMap] = useState<AcronymMap>(new Map());
+  const [liftExerciseMap, setLiftExerciseMap] = useState<LiftExerciseMap>(new Map());
   const wodMovementCache = useRef<Map<string, Set<string>>>(new Map());
   const debounceRef = useRef<NodeJS.Timeout>(undefined);
 
-  // Load acronym map once (DB tags → display_name); invalidate cache when it changes
+  // Load acronym + lift-link maps once; invalidate cache when either changes.
   useEffect(() => {
-    fetchAcronymMap().then(map => {
-      setAcronymMap(map);
+    Promise.all([fetchAcronymMap(), fetchLiftExerciseMap()]).then(([acr, links]) => {
+      setAcronymMap(acr);
+      setLiftExerciseMap(links);
       wodMovementCache.current.clear();
     });
   }, []);
@@ -53,10 +55,10 @@ export function useMovementTracking({
       return wodMovementCache.current.get(wodId)!;
     }
     const knownNames = exerciseNames.size > 0 ? exerciseNames : undefined;
-    const movs = extractMovementsFromWod(wod, knownNames, acronymMap);
+    const movs = extractMovementsFromWod(wod, knownNames, acronymMap, liftExerciseMap);
     wodMovementCache.current.set(wodId, movs);
     return movs;
-  }, [exerciseNames, acronymMap]);
+  }, [exerciseNames, acronymMap, liftExerciseMap]);
 
   // Compute global last-programmed dates (independent of athlete selection)
   const computeGlobal = useCallback(async () => {

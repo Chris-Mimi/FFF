@@ -4,7 +4,7 @@
  * when linked exercises last appeared in published workouts.
  */
 
-import { fetchPublishedWorkouts, fetchAcronymMap, type DateRangeFilter } from '@/utils/movement-analytics';
+import { fetchPublishedWorkouts, fetchAcronymMap, fetchLiftExerciseMap, type DateRangeFilter } from '@/utils/movement-analytics';
 import { extractMovementsFromWod, extractMovementsWithMetadata, type MovementMetadata } from '@/utils/movement-extraction';
 import { formatDate } from '@/utils/date-utils';
 import type { PatternWithExercises, PatternGapResult, WeeklyCoverageMap, PatternWeekCoverage, CoveredExercise } from '@/types/planner';
@@ -32,10 +32,11 @@ export async function computePatternGaps(
     excludeSessionTypes,
   };
 
-  // Fetch all published workouts in the lookback window + acronym map (parallel)
-  const [workouts, acronymMap] = await Promise.all([
+  // Fetch all published workouts in the lookback window + acronym + lift-link maps (parallel)
+  const [workouts, acronymMap, liftExerciseMap] = await Promise.all([
     fetchPublishedWorkouts(filter, 'pattern gap analysis'),
     fetchAcronymMap(),
+    fetchLiftExerciseMap(),
   ]);
 
   // Build set of all known exercise names (for extraction matching)
@@ -51,7 +52,8 @@ export async function computePatternGaps(
     movements: extractMovementsFromWod(
       { sections: w.sections, date: w.date } as Pick<WODFormData, 'sections' | 'date'> as WODFormData,
       allExerciseNames,
-      acronymMap
+      acronymMap,
+      liftExerciseMap
     ),
   }));
 
@@ -153,9 +155,10 @@ export async function detectWeeklyCoverage(
   if (patterns.length === 0) return new Map();
 
   const filter: DateRangeFilter = { startDate, endDate, excludeSessionTypes };
-  const [workouts, acronymMap] = await Promise.all([
+  const [workouts, acronymMap, liftExerciseMap] = await Promise.all([
     fetchPublishedWorkouts(filter, 'weekly coverage'),
     fetchAcronymMap(),
+    fetchLiftExerciseMap(),
   ]);
 
   const allExerciseNames = new Set<string>();
@@ -170,7 +173,8 @@ export async function detectWeeklyCoverage(
     const metaMap = extractMovementsWithMetadata(
       { sections: workout.sections, date: workout.date } as Pick<WODFormData, 'sections' | 'date'> as WODFormData,
       allExerciseNames,
-      acronymMap
+      acronymMap,
+      liftExerciseMap
     );
     // Build a lowercase → metadata lookup so pattern-exercise matching can pull
     // rmType into the per-week coverage detail.

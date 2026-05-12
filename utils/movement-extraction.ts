@@ -363,10 +363,13 @@ export interface MovementMetadata {
  * variant — this exists for the planner UI and any future feature that needs
  * "was this movement an RM test that day".
  */
+export type LiftExerciseMap = Map<string, string>;
+
 export const extractMovementsWithMetadata = (
   wod: WODFormData,
   knownExerciseNames?: Set<string>,
-  acronymMap?: AcronymMap
+  acronymMap?: AcronymMap,
+  liftExerciseMap?: LiftExerciseMap
 ): Map<string, MovementMetadata> => {
   const map = new Map<string, MovementMetadata>();
   const addName = (name: string) => {
@@ -389,27 +392,30 @@ export const extractMovementsWithMetadata = (
       // Set-based extractor below — then tag rmType on every emitted name.
       const emitted: string[] = [];
       const liftLower = lift.name.toLowerCase().trim();
+      // Linked-lift shortcut — barbell_lifts.exercise_id resolves the canonical
+      // exercise name (e.g. lift "Strict Overhead Shoulder Press" → "Strict OHP").
+      const viaLink = liftExerciseMap?.get(liftLower);
       const viaTag = acronymMap?.get(liftLower);
-      if (viaTag && knownLower?.has(viaTag)) {
+      const canonical = genericToCanonical[liftLower];
+      if (viaLink && knownLower?.has(viaLink)) {
+        emitted.push(normalizeMovement(viaLink));
+      } else if (viaTag && knownLower?.has(viaTag)) {
         emitted.push(normalizeMovement(viaTag));
+      } else if (canonical && knownLower?.has(canonical)) {
+        emitted.push(normalizeMovement(canonical));
       } else {
-        const canonical = genericToCanonical[liftLower];
-        if (canonical && knownLower?.has(canonical)) {
-          emitted.push(normalizeMovement(canonical));
-        } else {
-          let resolved = false;
-          if (knownLower && knownList) {
-            const matchPrefixed = findMatchingExercise(`Barbell ${lift.name}`, knownLower, knownList);
-            if (matchPrefixed) { emitted.push(matchPrefixed); resolved = true; }
-            else {
-              const match = findMatchingExercise(lift.name, knownLower, knownList);
-              if (match) { emitted.push(match); resolved = true; }
-            }
+        let resolved = false;
+        if (knownLower && knownList) {
+          const matchPrefixed = findMatchingExercise(`Barbell ${lift.name}`, knownLower, knownList);
+          if (matchPrefixed) { emitted.push(matchPrefixed); resolved = true; }
+          else {
+            const match = findMatchingExercise(lift.name, knownLower, knownList);
+            if (match) { emitted.push(match); resolved = true; }
           }
-          if (!resolved) {
-            emitted.push(normalizeMovement(`Barbell ${lift.name}`));
-            emitted.push(normalizeMovement(lift.name));
-          }
+        }
+        if (!resolved) {
+          emitted.push(normalizeMovement(`Barbell ${lift.name}`));
+          emitted.push(normalizeMovement(lift.name));
         }
       }
       for (const name of emitted) {
@@ -458,7 +464,8 @@ export const extractMovementsWithMetadata = (
 export const extractMovementsFromWod = (
   wod: WODFormData,
   knownExerciseNames?: Set<string>,
-  acronymMap?: AcronymMap
+  acronymMap?: AcronymMap,
+  liftExerciseMap?: LiftExerciseMap
 ): Set<string> => {
   const movements = new Set<string>();
 
@@ -472,9 +479,17 @@ export const extractMovementsFromWod = (
     // Source 1: Structured lift names (cross-reference to exercise library)
     section.lifts?.forEach((lift: ConfiguredLift) => {
       if (!lift.name) return;
+      const liftLower = lift.name.toLowerCase().trim();
+      // Linked-lift shortcut — barbell_lifts.exercise_id resolves the canonical
+      // exercise name (e.g. lift "Strict Overhead Shoulder Press" → "Strict OHP").
+      // Highest-priority resolution because the link is the curated source of truth.
+      const viaLink = liftExerciseMap?.get(liftLower);
+      if (viaLink && knownLower?.has(viaLink)) {
+        movements.add(normalizeMovement(viaLink));
+        return;
+      }
       // Acronym shortcut — barbell_lifts may store short codes ("BS", "DL", "PP").
       // findMatchingExercise rejects < 3 chars, so resolve via tags/genericToCanonical first.
-      const liftLower = lift.name.toLowerCase().trim();
       const viaTag = acronymMap?.get(liftLower);
       if (viaTag && knownLower?.has(viaTag)) {
         movements.add(normalizeMovement(viaTag));
@@ -535,7 +550,8 @@ export const extractMovementsFromWod = (
 export const extractMovements = (
   wods: WODFormData[],
   knownExerciseNames?: Set<string>,
-  acronymMap?: AcronymMap
+  acronymMap?: AcronymMap,
+  liftExerciseMap?: LiftExerciseMap
 ): Map<string, number> => {
   const movementCounts = new Map<string, number>();
   // Track which movements have been counted for each unique workout (dedup by name + 2-week window)
@@ -557,7 +573,7 @@ export const extractMovements = (
       workoutKey = wod.date;
     }
 
-    const movementsInThisWod = extractMovementsFromWod(wod, knownExerciseNames, acronymMap);
+    const movementsInThisWod = extractMovementsFromWod(wod, knownExerciseNames, acronymMap, liftExerciseMap);
 
     // Only count each movement once per unique workout
     movementsInThisWod.forEach(movement => {
