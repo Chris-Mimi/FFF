@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { X } from 'lucide-react';
+import { Minus, Plus, X } from 'lucide-react';
 import { FocusTrap } from '@/components/ui/FocusTrap';
 
 interface LiftOption {
@@ -171,26 +171,72 @@ export default function RepMaxCalculatorModal({ lifts, liftHistory, onClose }: R
             <div className='flex gap-4'>
               <div className='flex-1'>
                 <label className='block text-sm font-semibold text-gray-700 mb-1'>Weight (kg)</label>
-                <input
-                  type='number'
-                  value={weight}
-                  onChange={e => setWeight(e.target.value)}
-                  placeholder='0'
-                  min='0'
-                  step='0.5'
-                  className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
-                />
+                <div className='flex items-stretch'>
+                  <button
+                    type='button'
+                    onClick={() => {
+                      const next = Math.max(0, (parseFloat(weight) || 0) - 0.5);
+                      setWeight(Number.isInteger(next) ? next.toString() : next.toFixed(1));
+                    }}
+                    className='px-3 border border-gray-300 rounded-l-lg bg-gray-50 hover:bg-gray-100 active:bg-gray-200 text-gray-700 transition'
+                    aria-label='Decrease weight'
+                  >
+                    <Minus size={16} />
+                  </button>
+                  <input
+                    type='number'
+                    inputMode='decimal'
+                    value={weight}
+                    onChange={e => setWeight(e.target.value)}
+                    placeholder='0'
+                    min='0'
+                    step='0.5'
+                    className='w-full min-w-0 px-3 py-2 border-y border-gray-300 focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
+                  />
+                  <button
+                    type='button'
+                    onClick={() => {
+                      const next = (parseFloat(weight) || 0) + 0.5;
+                      setWeight(Number.isInteger(next) ? next.toString() : next.toFixed(1));
+                    }}
+                    className='px-3 border border-gray-300 rounded-r-lg bg-gray-50 hover:bg-gray-100 active:bg-gray-200 text-gray-700 transition'
+                    aria-label='Increase weight'
+                  >
+                    <Plus size={16} />
+                  </button>
+                </div>
               </div>
-              <div className='w-28'>
+              <div className='w-36'>
                 <label className='block text-sm font-semibold text-gray-700 mb-1'>Reps</label>
-                <input
-                  type='number'
-                  value={reps}
-                  onChange={e => setReps(Math.min(10, Math.max(1, parseInt(e.target.value) || 1)))}
-                  min='1'
-                  max='10'
-                  className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
-                />
+                <div className='flex items-stretch'>
+                  <button
+                    type='button'
+                    onClick={() => setReps(r => Math.max(1, r - 1))}
+                    disabled={reps <= 1}
+                    className='px-3 border border-gray-300 rounded-l-lg bg-gray-50 hover:bg-gray-100 active:bg-gray-200 text-gray-700 transition disabled:opacity-40 disabled:cursor-not-allowed'
+                    aria-label='Decrease reps'
+                  >
+                    <Minus size={16} />
+                  </button>
+                  <input
+                    type='number'
+                    inputMode='numeric'
+                    value={reps}
+                    onChange={e => setReps(Math.min(10, Math.max(1, parseInt(e.target.value) || 1)))}
+                    min='1'
+                    max='10'
+                    className='w-full min-w-0 px-2 py-2 border-y border-gray-300 focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
+                  />
+                  <button
+                    type='button'
+                    onClick={() => setReps(r => Math.min(10, r + 1))}
+                    disabled={reps >= 10}
+                    className='px-3 border border-gray-300 rounded-r-lg bg-gray-50 hover:bg-gray-100 active:bg-gray-200 text-gray-700 transition disabled:opacity-40 disabled:cursor-not-allowed'
+                    aria-label='Increase reps'
+                  >
+                    <Plus size={16} />
+                  </button>
+                </div>
               </div>
             </div>
 
