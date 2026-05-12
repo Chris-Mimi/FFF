@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Minus, Plus, X } from 'lucide-react';
 import { FocusTrap } from '@/components/ui/FocusTrap';
 
@@ -55,6 +55,33 @@ export default function RepMaxCalculatorModal({ lifts, liftHistory, onClose }: R
   const [selectedLift, setSelectedLift] = useState('');
   const [weight, setWeight] = useState('');
   const [reps, setReps] = useState(1);
+
+  // Hold-to-repeat for the +/- stepper buttons. Fires once immediately on
+  // press, then auto-repeats at ~70ms after a 400ms initial delay.
+  const holdTimers = useRef<{ start?: ReturnType<typeof setTimeout>; repeat?: ReturnType<typeof setInterval> }>({});
+  const stopHold = () => {
+    if (holdTimers.current.start) clearTimeout(holdTimers.current.start);
+    if (holdTimers.current.repeat) clearInterval(holdTimers.current.repeat);
+    holdTimers.current = {};
+  };
+  const startHold = (action: () => void) => {
+    stopHold();
+    action();
+    holdTimers.current.start = setTimeout(() => {
+      holdTimers.current.repeat = setInterval(action, 70);
+    }, 400);
+  };
+  useEffect(() => stopHold, []);
+
+  const stepWeight = (delta: number) => {
+    setWeight(prev => {
+      const next = Math.max(0, (parseFloat(prev) || 0) + delta);
+      return Number.isInteger(next) ? next.toString() : next.toFixed(1);
+    });
+  };
+  const stepReps = (delta: number) => {
+    setReps(r => Math.min(10, Math.max(1, r + delta)));
+  };
 
   // Escape key
   useEffect(() => {
@@ -168,17 +195,18 @@ export default function RepMaxCalculatorModal({ lifts, liftHistory, onClose }: R
             </div>
 
             {/* Weight + Reps */}
-            <div className='flex gap-4'>
-              <div className='flex-1'>
+            <div className='flex gap-3'>
+              <div className='flex-1 min-w-0'>
                 <label className='block text-sm font-semibold text-gray-700 mb-1'>Weight (kg)</label>
                 <div className='flex items-stretch'>
                   <button
                     type='button'
-                    onClick={() => {
-                      const next = Math.max(0, (parseFloat(weight) || 0) - 0.5);
-                      setWeight(Number.isInteger(next) ? next.toString() : next.toFixed(1));
-                    }}
-                    className='px-3 border border-gray-300 rounded-l-lg bg-gray-50 hover:bg-gray-100 active:bg-gray-200 text-gray-700 transition'
+                    onPointerDown={() => startHold(() => stepWeight(-0.5))}
+                    onPointerUp={stopHold}
+                    onPointerLeave={stopHold}
+                    onPointerCancel={stopHold}
+                    onContextMenu={e => e.preventDefault()}
+                    className='px-2.5 border border-gray-300 rounded-l-lg bg-gray-50 hover:bg-gray-100 active:bg-gray-200 text-gray-700 transition touch-none select-none'
                     aria-label='Decrease weight'
                   >
                     <Minus size={16} />
@@ -191,29 +219,34 @@ export default function RepMaxCalculatorModal({ lifts, liftHistory, onClose }: R
                     placeholder='0'
                     min='0'
                     step='0.5'
-                    className='w-full min-w-0 px-3 py-2 border-y border-gray-300 focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
+                    className='w-full min-w-0 px-2 py-2 border-y border-gray-300 focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
                   />
                   <button
                     type='button'
-                    onClick={() => {
-                      const next = (parseFloat(weight) || 0) + 0.5;
-                      setWeight(Number.isInteger(next) ? next.toString() : next.toFixed(1));
-                    }}
-                    className='px-3 border border-gray-300 rounded-r-lg bg-gray-50 hover:bg-gray-100 active:bg-gray-200 text-gray-700 transition'
+                    onPointerDown={() => startHold(() => stepWeight(0.5))}
+                    onPointerUp={stopHold}
+                    onPointerLeave={stopHold}
+                    onPointerCancel={stopHold}
+                    onContextMenu={e => e.preventDefault()}
+                    className='px-2.5 border border-gray-300 rounded-r-lg bg-gray-50 hover:bg-gray-100 active:bg-gray-200 text-gray-700 transition touch-none select-none'
                     aria-label='Increase weight'
                   >
                     <Plus size={16} />
                   </button>
                 </div>
               </div>
-              <div className='w-36'>
+              <div className='w-24 shrink-0'>
                 <label className='block text-sm font-semibold text-gray-700 mb-1'>Reps</label>
                 <div className='flex items-stretch'>
                   <button
                     type='button'
-                    onClick={() => setReps(r => Math.max(1, r - 1))}
+                    onPointerDown={() => startHold(() => stepReps(-1))}
+                    onPointerUp={stopHold}
+                    onPointerLeave={stopHold}
+                    onPointerCancel={stopHold}
+                    onContextMenu={e => e.preventDefault()}
                     disabled={reps <= 1}
-                    className='px-3 border border-gray-300 rounded-l-lg bg-gray-50 hover:bg-gray-100 active:bg-gray-200 text-gray-700 transition disabled:opacity-40 disabled:cursor-not-allowed'
+                    className='px-2 border border-gray-300 rounded-l-lg bg-gray-50 hover:bg-gray-100 active:bg-gray-200 text-gray-700 transition disabled:opacity-40 disabled:cursor-not-allowed touch-none select-none'
                     aria-label='Decrease reps'
                   >
                     <Minus size={16} />
@@ -225,13 +258,17 @@ export default function RepMaxCalculatorModal({ lifts, liftHistory, onClose }: R
                     onChange={e => setReps(Math.min(10, Math.max(1, parseInt(e.target.value) || 1)))}
                     min='1'
                     max='10'
-                    className='w-full min-w-0 px-2 py-2 border-y border-gray-300 focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
+                    className='w-full min-w-0 px-1 py-2 border-y border-gray-300 focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
                   />
                   <button
                     type='button'
-                    onClick={() => setReps(r => Math.min(10, r + 1))}
+                    onPointerDown={() => startHold(() => stepReps(1))}
+                    onPointerUp={stopHold}
+                    onPointerLeave={stopHold}
+                    onPointerCancel={stopHold}
+                    onContextMenu={e => e.preventDefault()}
                     disabled={reps >= 10}
-                    className='px-3 border border-gray-300 rounded-r-lg bg-gray-50 hover:bg-gray-100 active:bg-gray-200 text-gray-700 transition disabled:opacity-40 disabled:cursor-not-allowed'
+                    className='px-2 border border-gray-300 rounded-r-lg bg-gray-50 hover:bg-gray-100 active:bg-gray-200 text-gray-700 transition disabled:opacity-40 disabled:cursor-not-allowed touch-none select-none'
                     aria-label='Increase reps'
                   >
                     <Plus size={16} />
