@@ -22,7 +22,7 @@ http://192.168.178.75:3000
 * I added Fabian's birthday but it's not correct, I have to ask him next time he's in.
 * Workouts page: ability to mute/cancel athletes withour clearing the group
 * 
-* How does an athlete get to Stripe as a customer without inserting any card details? Is that normal practice? How can I tell if an athlete can actually access the functions in the app when they have no payment system in place? Could I access an athletes app by using a temp password without disruptingtheir workflow?
+* Ask Claude for a Magic link script to access athlete's accounts to check screen views so I can help them click the right buttons. I just give Claude the email ad.
 * Strict OHP was programmed in Week 19 but it doesn't show in the Workouts/Movement Tracking List (01.04)
 * Macbook still has internet problem at the box. Old Macbook Pro works fine.
 * 
