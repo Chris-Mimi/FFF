@@ -31,7 +31,7 @@ http://192.168.178.75:3000
 * review the rep max calculator to show clearer percentages
 * 
 * Why doesn't the data integrity sql catch things like this?
-* entering a benchmark for an athlete on the coach page/athletes tab didn't work
+* 
 * How it works/info/help file like in Planner
 * Review and check how DNF is displayed and used in the athlete leaderboard.
 
