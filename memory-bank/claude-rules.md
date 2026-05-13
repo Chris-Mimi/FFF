@@ -48,9 +48,20 @@ These are project-wide rules that survive account/machine switches because they'
 
 **For the full reasoning, the kitchen/dining-room analogy I use with Chris, the 7-item scaling-trap map, and the search-UX options:** see `memory-bank/database-and-growth.md`. Read it on demand when a scaling question comes up; don't pull it into every session.
 
----
+### Documentation filing — use the navigation map, don't litter the project root
+**Why:** S349 docs reorg — 21 `.md` files had accumulated at the project root over months (handoff notes, one-shot setup guides, pre-deployment plans) because each session dropped a new file at the easiest location. The root became hard to scan and Chris couldn't tell what was current vs historical. Cleaned up by moving 19 of them to `Chris Notes/Archive/historical root docs/`. Chris is a fitness coach, not an engineer — he should be able to look at a folder and know what's in it.
 
-## 🤝 Communication
+**How to apply:**
+1. **Project root is for the 4 essentials only** — `README.md`, `CLAUDE.md`, `LICENSE`, `WHERE-IS-EVERYTHING.md`. Don't create new root-level `.md` files.
+2. **When creating a new doc, decide by audience and lifetime:**
+   - **Claude reads it at session start, or on demand for a class of question?** → `memory-bank/`. Lowercase-with-hyphens filename (e.g. `database-and-growth.md`).
+   - **User-facing guide for the deployed app?** → `Chris Notes/Forge app documentation/`.
+   - **Workflow / git / process help for Chris?** → `Chris Notes/Workflow & Git/` or `Chris Notes/AA frequently used files/`.
+   - **Per-session ship log?** → `project-history/YYYY-MM-DD-session-NNN-short-description.md`. Don't put session logs anywhere else.
+   - **One-shot doc that won't be re-read** (handoff, migration checklist, etc.)? Skip it — put the content in the relevant project-history entry instead. We don't need another loose file.
+3. **When a doc stops being relevant** — move to `Chris Notes/Archive/<topic>/`. Don't delete; git history retains it anyway.
+4. **When renaming or moving anything, update `WHERE-IS-EVERYTHING.md`** in the same commit so the map stays accurate.
+5. **`WHERE-IS-EVERYTHING.md` (project root)** is the navigation index. If I'm about to create a doc and I'm unsure where it goes, the table in that file answers it.
 
 ### Trust the user's statements exactly as given
 When Chris says something doesn't appear in a workout, it means exactly that — don't invent explanations or assume he's mistaken. He will explicitly say when he's unsure.
