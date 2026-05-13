@@ -28,6 +28,24 @@ These are project-wide rules that survive account/machine switches because they'
 
 **How to apply:** When writing or running a one-off inspection script that queries RLS-protected tables, use `SUPABASE_SERVICE_ROLE_KEY`. The existing scripts in `scripts/` (e.g. `check-ghost-scaling.ts`) use anon — don't trust their output for tables behind RLS without verifying with service role.
 
+### Never `.from(growing_table).select()` without a narrowing filter or pagination
+**Why:** S349 incident — the 10-card chip on the Members page silently broke because `useMemberData` fetched all 2,019 active bookings in one shot. PostgREST's default response cap is 1,000 rows; the request succeeds with no error, returns the first 1,000 ordered by insert sequence, and the rest are invisible. The chip's math was correct on the data it received; the data was just secretly half of reality. Audit found four more queries with the same shape; two were almost certainly already truncating without producing a noticeable symptom.
+
+**Growing tables to be cautious with:**
+`bookings`, `weekly_sessions`, `wods`, `wod_section_results`, `lift_records`, `benchmark_results`, `reactions`, `athlete_achievements`, `programming_plan_items`. As of 2026-05-13 the gym has ~2,000 bookings and grows ~330/month, so every one of these tables either has crossed or will cross 1,000 rows within months.
+
+**How to apply** — when writing OR reviewing code that does `supabase.from('<table above>').select(...)`:
+1. **Is there a narrowing filter** (`.eq('id', x)`, `.in('member_id', [...])`, `.eq('user_id', authedId)`)? If yes, fine.
+2. **No filter?** Then either (a) add `.range(from, from + 999)` in a paginated loop (pattern: see `hooks/coach/useCoachData.ts:fetchWODs` lines ~55-80, ~570-595), or (b) move the aggregation server-side via a SQL view / RPC function.
+3. **When to pick pagination vs SQL aggregation:**
+   - **Paginate** when the browser genuinely needs the rows (e.g., to walk them and build a Map). Pagination is a 5-line change; same hooks code; data semantics unchanged. Default choice unless the result set is going to be very large (>5,000 rows).
+   - **Server-side SQL** when the browser only needs a number / a small aggregate (chip counts, leaderboard rankings, gap-analysis frequencies). DB does the math in milliseconds; result is tiny; doesn't grow with data. Worth a 30-line SQL view migration to remove the bottleneck permanently. Use `supabase.rpc('view_or_function_name', { args })` on the client.
+4. **When in doubt, ASK Chris.** Pagination is the safer default if I'm not sure.
+
+**The user-facing explanation, when introducing a SQL view to Chris:** "Today the browser fetches every row and counts in JavaScript. Beyond ~1,000 rows that breaks silently. The fix is to ask the database to do the counting and return just the answer. I'll write the SQL, you paste it into Supabase SQL Editor and run it, then I change the TypeScript to call the new function. Total work for you: one click in Supabase."
+
+**Proactive check on new features.** Whenever I'm about to write a new hook or page that reads from a growing table, run through the checklist above BEFORE shipping. Don't wait for Chris to see the chip break. The bug class is invisible until the table crosses 1,000 rows — by then the wrong data has been rendering for weeks.
+
 ---
 
 ## 🤝 Communication
