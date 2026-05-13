@@ -411,7 +411,7 @@ const handleClick = useCallback(() => {
 **CRITICAL: Always provide Active Context first**
 
 **Setup (MANDATORY):**
-1. Have Cline read `memory-bank-activeContext.md` FIRST
+1. Have Cline read `activeContext.md` FIRST
 2. Then provide specific task prompt
 3. Cline works confidently in 1-2 minutes
 

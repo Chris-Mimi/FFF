@@ -59,7 +59,7 @@
   and perform the memory bank update. This is a multi-step task, so use the Agent."
 
   Claude will update:
-  - memory-bank-activeContext.md (concise summary)
+  - memory-bank/activeContext.md (concise summary)
   - session_history.md (detailed technical notes)
 
   Why? Documents what you did so the next Claude session knows where you left off.

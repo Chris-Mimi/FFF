@@ -102,5 +102,5 @@ Re-run the script if it's a fresh case. But if **the same athlete** comes back a
 ## What to do after the athlete confirms it worked
 
 - No code change needed (the script is the recovery; S328 is the long-term fix as PWAs update)
-- Add a one-line entry to `memory-bank/memory-bank-activeContext.md` carry-over so it shows up in future session-start scans
+- Add a one-line entry to `memory-bank/activeContext.md` carry-over so it shows up in future session-start scans
 - Optional: log the case in a "Recovered logins" list at the bottom of this file (date, name, root cause if known) so we can spot patterns

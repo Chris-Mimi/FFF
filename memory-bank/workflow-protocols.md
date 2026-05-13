@@ -40,9 +40,9 @@ git reset --hard origin/main  # Trust user, force sync
 ### STEP 3: Read Memory Bank Files
 **User will provide exact file paths in session start prompt.**
 Read all three files in ONE parallel call:
-- memory-bank-activeContext.md
-- memory-bank-techContext.md
-- memory-bank-systemPatterns.md
+- activeContext.md
+- techContext.md
+- systemPatterns.md
 
 ### STEP 4: Read Latest Project History
 **ALWAYS read the most recent project-history file:**

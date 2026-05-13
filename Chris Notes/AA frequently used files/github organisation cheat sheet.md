@@ -183,13 +183,13 @@ git pull
 git add "Chris Notes/AA frequently used files/Claude open or close session.md"
 
 # Memory bank files (NO spaces - quotes optional)
-git add memory-bank/memory-bank-activeContext.md
+git add memory-bank/activeContext.md
 
 # Project history (NO spaces - quotes optional)
 git add project-history/2025-12-10-session-44-workout-library-search.md
 
 # Multiple files at once
-git add "Chris Notes/AA frequently used files/Claude open or close session.md" memory-bank/memory-bank-activeContext.md
+git add "Chris Notes/AA frequently used files/Claude open or close session.md" memory-bank/activeContext.md
 ```
 
 ---
@@ -226,7 +226,7 @@ git push
 ```bash
 git status
 git add "Chris Notes/AA frequently used files/Claude open or close session.md"
-git add memory-bank/memory-bank-activeContext.md
+git add memory-bank/activeContext.md
 git commit -m "Updated session documentation"
 git push
 ```

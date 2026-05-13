@@ -1,7 +1,7 @@
 # Active Context
 
 **Version:** 215
-**Updated:** 2026-05-13 (Session 349 close — 10-card chip on Members page rendered `9/10 ⚠` for Max & Ole Labudda; root cause was a PostgREST 1000-row response cap silently truncating the bookings fetch + a string-comparison bug on `ten_card_purchase_date`. Fixed both, then audited the codebase and paginated four more queries with the same shape, bumped the workout-search cap 500 → 2000 with a tripwire, promoted the rule to `claude-rules.md`, and wrote `memory-bank/scaling-and-foundations.md` as the durable playbook.)
+**Updated:** 2026-05-13 (Session 349 close — 10-card chip on Members page rendered `9/10 ⚠` for Max & Ole Labudda; root cause was a PostgREST 1000-row response cap silently truncating the bookings fetch + a string-comparison bug on `ten_card_purchase_date`. Fixed both, then audited the codebase and paginated four more queries with the same shape, bumped the workout-search cap 500 → 2000 with a tripwire, promoted the rule to `claude-rules.md`, and wrote `memory-bank/database-and-growth.md` as the durable playbook.)
 
 ---
 
@@ -24,7 +24,7 @@ _Updated at every session close. The "first 5 minutes of tomorrow" — read this
 **First action:** Nothing urgent. S349 closed an invisible foundation bug (the chip mis-render was the visible tip; 5+ other queries were silently truncating) and put durable rules in place so future Claude sessions catch the class proactively. Pull main, dev server, pick a carry-over below.
 
 **Files to open first if continuing code work:**
-- [memory-bank/scaling-and-foundations.md](memory-bank/scaling-and-foundations.md) — NEW. Plain-English playbook for the 1000-row cap, the kitchen/dining-room analogy, the 7-category scaling map, search UX options. Both Chris-readable and Claude-readable.
+- [memory-bank/database-and-growth.md](memory-bank/database-and-growth.md) — NEW. Plain-English playbook for the 1000-row cap, the kitchen/dining-room analogy, the 7-category scaling map, search UX options. Both Chris-readable and Claude-readable.
 - [memory-bank/claude-rules.md](memory-bank/claude-rules.md) — new hard rule for "never `.from(growing_table).select()` without a filter or pagination."
 - [hooks/coach/useMemberData.ts](hooks/coach/useMemberData.ts) — the chip-fix pattern (paginate by member_id; normalize purchase-date string).
 - [hooks/coach/useCoachData.ts](hooks/coach/useCoachData.ts) — search-limit tripwire (`[search-limit-tripwire]` console.warn at ≥90% of 2000).
@@ -208,7 +208,7 @@ Athlete Tools
 - **Workout search safety patch.** [useCoachData.ts:searchWODs](hooks/coach/useCoachData.ts) — bumped hard limit 500 → 2000 (separate from the 1000-row cap; this is an intentional `.limit()`). Added `[search-limit-tripwire]` console.warn at ≥90% so we'll see it before older WODs start disappearing from unfiltered searches.
 - **Durable references.**
   - **Hard rule promoted to [memory-bank/claude-rules.md](memory-bank/claude-rules.md):** "Never `.from(growing_table).select()` without a narrowing filter or pagination" with full checklist (decision tree, growing tables list, paginate-vs-SQL-aggregation guidance).
-  - **NEW [memory-bank/scaling-and-foundations.md](memory-bank/scaling-and-foundations.md)** — Chris-readable + Claude-readable playbook. Covers the kitchen/dining-room analogy, S349 snapshot, decision tree, 4 search-UX options for when the tripwire fires (A: no cap; B: Load more; C: require filter; D: default date window), and a 7-category map of other scaling traps (missing indexes, N+1 queries, bundle size, image storage, cron drift, push deliverability, Stripe webhook race conditions).
+  - **NEW [memory-bank/database-and-growth.md](memory-bank/database-and-growth.md)** — Chris-readable + Claude-readable playbook. Covers the kitchen/dining-room analogy, S349 snapshot, decision tree, 4 search-UX options for when the tripwire fires (A: no cap; B: Load more; C: require filter; D: default date window), and a 7-category map of other scaling traps (missing indexes, N+1 queries, bundle size, image storage, cron drift, push deliverability, Stripe webhook race conditions).
 - **Process notes:**
   - The S347 "chip 7+2 split for family-member kids" carry-over was based on a misdiagnosis. Max & Ole have `primary_payment_method='ten_card'` (not the assumed multi-types scenario). Real bugs were the two above; the carry-over is retired.
   - Wrote and used `scripts/probe-max-ole.ts` (now deleted) to compare service-role count (8 past + 1 upcoming = 9) against the browser hook's result (6 past + 0 upcoming = 6), making the truncation visible.
@@ -268,7 +268,7 @@ Athlete Tools
 - **Mac push delivery (downstream of above)** — Mac never receives FCM pushes even with clean DB subs + healthy SW. `chrome://gcm-internals/` shows Connection State "Connecting". Will auto-resolve once the Chrome-hang root cause is fixed. Android push unaffected.
 - **Test endpoint doesn't cleanup 410s** — `app/api/notifications/test/route.ts` bypasses `sendToSubscription` helper so expired subs aren't auto-deleted when you click Send Test. Low priority — production flows still clean up 410s. (Session 292.)
 - **iPhone search bug (latent)** — same `readOnly` anti-autofill hack exists in `components/coach/SearchPanel.tsx:946` (Analysis page search). Deferred Session 282.
-- **Workout search 2000-row limit (S349)** — `useCoachData.ts:searchWODs` caps results at 2000 (bumped from 500 in S349). A `[search-limit-tripwire]` console.warn fires at 90% of the limit so we'll see it before older WODs start disappearing from unfiltered searches. When the tripwire fires: see `memory-bank/scaling-and-foundations.md` for the four UX options (A/B/C/D) and pick one.
+- **Workout search 2000-row limit (S349)** — `useCoachData.ts:searchWODs` caps results at 2000 (bumped from 500 in S349). A `[search-limit-tripwire]` console.warn fires at 90% of the limit so we'll see it before older WODs start disappearing from unfiltered searches. When the tripwire fires: see `memory-bank/database-and-growth.md` for the four UX options (A/B/C/D) and pick one.
 
 **Pre-deployment:** All CRITICAL/HIGH/MEDIUM items done. LOW items (28 files >500 lines) deferred per Session 260.
 
@@ -319,7 +319,7 @@ Athlete Tools
 - **Detailed history:** `project-history/` folder
 - **Gotchas & patterns:** `memory-bank/lessons-learned.md`
 - **Workflow rules:** `memory-bank/workflow-protocols.md`
-- **Tech details:** `memory-bank/memory-bank-techContext.md`
-- **Code patterns:** `memory-bank/memory-bank-systemPatterns.md`
+- **Tech details:** `memory-bank/techContext.md`
+- **Code patterns:** `memory-bank/systemPatterns.md`
 - **Deployment plan:** `Chris Notes/Deployment/deployment-plan.md`
 - **Orphan diagnostics:** `Chris Notes/Database & Supabase/supabase-orphan-check-queries.md`

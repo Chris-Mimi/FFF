@@ -25,7 +25,7 @@ Quick reference for switching between Claude Code and Cline with free models.
    ```
    Review our session and update the Memory Bank.
 
-   1. memory-bank/memory-bank-activeContext.md (CONCISE)
+   1. memory-bank/activeContext.md (CONCISE)
    2. project-history/session_history.md (VERBOSE)
    3. Use general-purpose agent
    ```
@@ -58,10 +58,10 @@ Quick reference for switching between Claude Code and Cline with free models.
 
 ```
 Read the following files for context:
-- memory-bank/memory-bank-activeContext.md
+- memory-bank/activeContext.md
 - Chris Notes/cline-member-management-tasks.md
 
-IMPORTANT: You CAN update memory-bank-activeContext.md as you complete features.
+IMPORTANT: You CAN update activeContext.md as you complete features.
 DO NOT modify project-history/session_history.md or other memory bank files.
 
 Start with [Feature Name from task list].
@@ -71,7 +71,7 @@ Start with [Feature Name from task list].
 
 **After completing each feature, tell Cline:**
 ```
-Update memory-bank/memory-bank-activeContext.md with what you just completed.
+Update memory-bank/activeContext.md with what you just completed.
 Add a concise entry following the existing table format.
 Then commit your changes.
 ```
@@ -82,7 +82,7 @@ Then commit your changes.
 
 1. **Tell current model (Grok):**
    ```
-   Update memory-bank-activeContext.md with your progress.
+   Update activeContext.md with your progress.
    Commit all changes.
    ```
 
@@ -90,7 +90,7 @@ Then commit your changes.
 
 3. **Tell new model (Supernova):**
    ```
-   Read memory-bank/memory-bank-activeContext.md for current status.
+   Read memory-bank/activeContext.md for current status.
    Continue with [next feature].
    ```
 
@@ -103,7 +103,7 @@ Then commit your changes.
 1. **Tell Cline:**
    ```
    Commit all remaining changes with clear commit message.
-   Update memory-bank-activeContext.md with final status.
+   Update activeContext.md with final status.
    ```
 
 2. **Verify everything committed:**

@@ -14,7 +14,7 @@
 - [ ] No stuck dev servers (`npm run dev`, `vite`) holding files. Kill if needed — backup needs a quiet disk.
 
 ### 2. Light Memory-Bank Touch (NOT the full close ritual)
-- [ ] If today's work **extends an existing session entry** in `memory-bank/memory-bank-activeContext.md`'s "Current Status" block: append a 1-line bullet under it. Don't rewrite the whole entry.
+- [ ] If today's work **extends an existing session entry** in `memory-bank/activeContext.md`'s "Current Status" block: append a 1-line bullet under it. Don't rewrite the whole entry.
 - [ ] If today's work is **new scope** with no entry yet: add a short entry (3-5 bullets) at the top of "Current Status". Use the **next** session number — that's the session we're now actively in. The full write-up happens at close.
 - [ ] If a **landmine** was introduced or removed (TZ bug, subtle invariant, anything that would bite a future reader): add it to the Landmines block now. These rot fast if deferred.
 - [ ] **Skip** the "⚡ Next Session Kickoff" rewrite. Kickoff is the "first 5 minutes of tomorrow" doc — it's still today.

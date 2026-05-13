@@ -22,7 +22,7 @@
 - [ ] Before using `git add -f <dir>/`: check `.gitignore` + `git status <dir>/` to see what's actually inside. Force-adding a gitignored directory can pull in hundreds of untracked historical files.
 
 ### 3. Update Memory Bank
-- [ ] Update `memory-bank/memory-bank-activeContext.md`:
+- [ ] Update `memory-bank/activeContext.md`:
   - Bump version + date.
   - **Rewrite the "⚡ Next Session Kickoff" section near the top** — first action, files to open first, open questions, landmines. This is the "first 5 minutes of tomorrow" doc; keep it short.
   - Add this session to "Current Status (Last 5 Sessions)" block.
