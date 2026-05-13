@@ -38,6 +38,9 @@ export default function CoachAthletesPage() {
   const [showBenchmarkModal, setShowBenchmarkModal] = useState(false);
   const [showLiftModal, setShowLiftModal] = useState(false);
 
+  // Bumped on successful save to force BenchmarksSection / LiftsSection to refetch.
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
   useEffect(() => {
     // Check authentication
     const checkAuth = async () => {
@@ -285,12 +288,14 @@ export default function CoachAthletesPage() {
                       <BenchmarksSection
                         athleteId={selectedAthlete.user_id}
                         onAddResult={() => setShowBenchmarkModal(true)}
+                        refreshTrigger={refreshTrigger}
                       />
                     )}
                     {activeSection === 'lifts' && (
                       <LiftsSection
                         athleteId={selectedAthlete.user_id}
                         onAddResult={() => setShowLiftModal(true)}
+                        refreshTrigger={refreshTrigger}
                       />
                     )}
                     {activeSection === 'logbook' && (
@@ -315,7 +320,7 @@ export default function CoachAthletesPage() {
           onClose={() => setShowBenchmarkModal(false)}
           onSave={() => {
             setShowBenchmarkModal(false);
-            // Refresh the section
+            setRefreshTrigger(prev => prev + 1);
           }}
         />
       )}
@@ -328,7 +333,7 @@ export default function CoachAthletesPage() {
           onClose={() => setShowLiftModal(false)}
           onSave={() => {
             setShowLiftModal(false);
-            // Refresh the section
+            setRefreshTrigger(prev => prev + 1);
           }}
         />
       )}

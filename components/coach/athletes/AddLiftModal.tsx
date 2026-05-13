@@ -63,18 +63,28 @@ export default function AddLiftModal({
     const calculated1RM = calculate1RM(weightNum, reps);
 
     try {
-      const { error } = await supabase.from('lift_records').insert({
-        user_id: athleteId,
-        lift_name: liftName,
-        weight_kg: weightNum,
-        reps: reps,
-        calculated_1rm: calculated1RM,
-        rep_max_type: repMaxType,
-        notes: notes || null,
-        lift_date: date,
+      // Server endpoint required: RLS on lift_records blocks the coach from
+      // inserting rows owned by the athlete. The endpoint uses service-role
+      // behind a requireCoach gate.
+      const res = await fetch('/api/coach/athletes/add-lift', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          athleteId,
+          lift_name: liftName,
+          weight_kg: weightNum,
+          reps: reps,
+          calculated_1rm: calculated1RM,
+          rep_max_type: repMaxType,
+          notes: notes || null,
+          lift_date: date,
+        }),
       });
 
-      if (error) throw error;
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || `HTTP ${res.status}`);
+      }
       toast.success('Lift record added successfully!');
       onSave();
     } catch (error) {

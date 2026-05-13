@@ -18,9 +18,11 @@ interface BenchmarkResult {
 export default function BenchmarksSection({
   athleteId,
   onAddResult,
+  refreshTrigger,
 }: {
   athleteId?: string;
   onAddResult: () => void;
+  refreshTrigger?: number;
 }) {
   const [results, setResults] = useState<BenchmarkResult[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,7 +32,7 @@ export default function BenchmarksSection({
       fetchResults();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [athleteId]);
+  }, [athleteId, refreshTrigger]);
 
   const fetchResults = async () => {
     if (!athleteId) return;
@@ -60,9 +62,15 @@ export default function BenchmarksSection({
       variant: 'danger',
     });
     if (!ok) return;
-    const { error } = await supabase.from('benchmark_results').delete().eq('id', id);
-    if (error) {
-      console.error('Error deleting benchmark result:', error);
+    // RLS blocks coach from deleting athlete's row via browser; use service-role endpoint.
+    const res = await fetch('/api/coach/athletes/delete-benchmark', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      console.error('Error deleting benchmark result:', body.error);
       toast.error('Failed to delete benchmark result.');
       return;
     }

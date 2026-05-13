@@ -17,7 +17,15 @@ interface LiftRecord {
   lift_date: string;
 }
 
-export default function LiftsSection({ athleteId, onAddResult }: { athleteId?: string; onAddResult: () => void }) {
+export default function LiftsSection({
+  athleteId,
+  onAddResult,
+  refreshTrigger,
+}: {
+  athleteId?: string;
+  onAddResult: () => void;
+  refreshTrigger?: number;
+}) {
   const [results, setResults] = useState<LiftRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -26,7 +34,7 @@ export default function LiftsSection({ athleteId, onAddResult }: { athleteId?: s
       fetchResults();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [athleteId]);
+  }, [athleteId, refreshTrigger]);
 
   const fetchResults = async () => {
     if (!athleteId) return;
@@ -56,9 +64,15 @@ export default function LiftsSection({ athleteId, onAddResult }: { athleteId?: s
       variant: 'danger',
     });
     if (!ok) return;
-    const { error } = await supabase.from('lift_records').delete().eq('id', id);
-    if (error) {
-      console.error('Error deleting lift record:', error);
+    // RLS blocks coach from deleting athlete's row via browser; use service-role endpoint.
+    const res = await fetch('/api/coach/athletes/delete-lift', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      console.error('Error deleting lift record:', body.error);
       toast.error('Failed to delete lift record.');
       return;
     }

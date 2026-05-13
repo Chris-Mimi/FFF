@@ -71,22 +71,32 @@ export default function AddBenchmarkModal({
     const weightResult = typeLower.includes('load') || typeLower.includes('weight') ? result : null;
 
     try {
-      const { error } = await supabase.from('benchmark_results').insert({
-        user_id: athleteId,
-        benchmark_id: selected.kind === 'classic' ? selected.id : null,
-        forge_benchmark_id: selected.kind === 'forge' ? selected.id : null,
-        benchmark_name: selected.name,
-        benchmark_type: selected.type,
-        result_value: result,
-        time_result: timeResult,
-        reps_result: repsResult,
-        weight_result: weightResult,
-        scaling_level: scalingLevel,
-        notes: notes || null,
-        result_date: date,
+      // Server endpoint required: RLS on benchmark_results blocks the coach
+      // from inserting rows owned by the athlete. The endpoint uses
+      // service-role behind a requireCoach gate.
+      const res = await fetch('/api/coach/athletes/add-benchmark', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          athleteId,
+          benchmark_id: selected.kind === 'classic' ? selected.id : null,
+          forge_benchmark_id: selected.kind === 'forge' ? selected.id : null,
+          benchmark_name: selected.name,
+          benchmark_type: selected.type,
+          result_value: result,
+          time_result: timeResult,
+          reps_result: repsResult,
+          weight_result: weightResult,
+          scaling_level: scalingLevel,
+          notes: notes || null,
+          result_date: date,
+        }),
       });
 
-      if (error) throw error;
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || `HTTP ${res.status}`);
+      }
       toast.success('Benchmark result added successfully!');
       onSave();
     } catch (error) {
