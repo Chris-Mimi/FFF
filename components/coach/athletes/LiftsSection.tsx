@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { authFetch } from '@/lib/auth-fetch';
 import { confirm } from '@/lib/confirm';
 import { toast } from 'sonner';
 
@@ -65,7 +66,7 @@ export default function LiftsSection({
     });
     if (!ok) return;
     // RLS blocks coach from deleting athlete's row via browser; use service-role endpoint.
-    const res = await fetch('/api/coach/athletes/delete-lift', {
+    const res = await authFetch('/api/coach/athletes/delete-lift', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id }),

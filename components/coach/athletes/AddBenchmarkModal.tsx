@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { authFetch } from '@/lib/auth-fetch';
 import { toast } from 'sonner';
 import { FocusTrap } from '@/components/ui/FocusTrap';
 
@@ -74,7 +75,7 @@ export default function AddBenchmarkModal({
       // Server endpoint required: RLS on benchmark_results blocks the coach
       // from inserting rows owned by the athlete. The endpoint uses
       // service-role behind a requireCoach gate.
-      const res = await fetch('/api/coach/athletes/add-benchmark', {
+      const res = await authFetch('/api/coach/athletes/add-benchmark', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

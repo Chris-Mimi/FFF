@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { authFetch } from '@/lib/auth-fetch';
 import { toast } from 'sonner';
 import { FocusTrap } from '@/components/ui/FocusTrap';
 
@@ -66,7 +67,7 @@ export default function AddLiftModal({
       // Server endpoint required: RLS on lift_records blocks the coach from
       // inserting rows owned by the athlete. The endpoint uses service-role
       // behind a requireCoach gate.
-      const res = await fetch('/api/coach/athletes/add-lift', {
+      const res = await authFetch('/api/coach/athletes/add-lift', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
