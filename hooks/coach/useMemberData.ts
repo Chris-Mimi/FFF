@@ -254,10 +254,23 @@ export function useMemberData() {
         .filter(m => (m.membership_types || []).includes('ten_card'));
       if (tenCardHolders.length > 0) {
         const todayIso = new Date().toISOString().split('T')[0];
+        const tenCardHolderIds = tenCardHolders.map(m => m.id);
+        // Kids sharing a holder's card don't appear in tenCardHolders themselves
+        // (they may have membership_types=['family_member'] or different types) but
+        // their bookings still debit the holder. Fetch them so we can include their
+        // bookings in the result set. Without this filter the system-wide bookings
+        // query silently truncates at PostgREST's 1000-row cap.
+        const { data: sharers } = await supabase
+          .from('members')
+          .select('id')
+          .in('ten_card_holder_id', tenCardHolderIds);
+        const relevantMemberIds = [...tenCardHolderIds, ...(sharers || []).map(s => s.id)];
+
         const { data: tenCardBookings } = await supabase
           .from('bookings')
           .select('member_id, status, weekly_sessions!inner(date), members!inner(id, ten_card_holder_id, primary_payment_method, membership_types)')
-          .in('status', ['confirmed', 'no_show', 'late_cancel']);
+          .in('status', ['confirmed', 'no_show', 'late_cancel'])
+          .in('member_id', relevantMemberIds);
 
         type Row = {
           member_id: string;
@@ -265,13 +278,21 @@ export function useMemberData() {
           weekly_sessions: { date: string } | { date: string }[];
           members: { id: string; ten_card_holder_id: string | null; primary_payment_method: string | null; membership_types: string[] | null } | { id: string; ten_card_holder_id: string | null; primary_payment_method: string | null; membership_types: string[] | null }[];
         };
+        // Normalize purchase date to YYYY-MM-DD for safe string comparison against
+        // weekly_sessions.date. The column comes back as a full ISO timestamp
+        // ('2026-04-20T00:00:00+00:00'), and `'2026-04-20' < '2026-04-20T...'` is
+        // TRUE in JS — which silently drops the boundary-date booking.
         const purchaseByHolder = new Map<string, string | null>(
-          tenCardHolders.map(m => [m.id, m.ten_card_purchase_date])
+          tenCardHolders.map(m => [m.id, m.ten_card_purchase_date ? m.ten_card_purchase_date.split('T')[0] : null])
         );
         (tenCardBookings as Row[] | null)?.forEach(row => {
           const booker = Array.isArray(row.members) ? row.members[0] : row.members;
           const ws = Array.isArray(row.weekly_sessions) ? row.weekly_sessions[0] : row.weekly_sessions;
           if (!booker || !ws?.date) return;
+          // Mirror the write-side decision (app/api/bookings/create): a booking
+          // debits a 10-card iff the booker's effective payment method is ten_card.
+          // Miriam (primary=wellpass, types=['wellpass','ten_card']) must NOT
+          // attribute her own bookings to her card.
           const effectiveMethod = booker.primary_payment_method || booker.membership_types?.[0] || null;
           if (effectiveMethod !== 'ten_card') return;
           const holderId = booker.ten_card_holder_id || booker.id;
