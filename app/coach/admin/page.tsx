@@ -195,11 +195,23 @@ export default function AdminToolsPage() {
   const fetchIncidentStats = async () => {
     setIncidentsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('bookings')
-        .select('id, member_id, status, members(name, display_name), weekly_sessions!inner(date)')
-        .in('status', ['late_cancel', 'no_show']);
-      if (error) throw error;
+      // Paginated — PostgREST caps a single response at 1000 rows and silently
+      // truncates. Incidents accumulate forever; this will eventually exceed 1000
+      // even on a modest-sized gym.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const data: any[] = [];
+      const PAGE = 1000;
+      for (let from = 0; ; from += PAGE) {
+        const { data: page, error } = await supabase
+          .from('bookings')
+          .select('id, member_id, status, members(name, display_name), weekly_sessions!inner(date)')
+          .in('status', ['late_cancel', 'no_show'])
+          .range(from, from + PAGE - 1);
+        if (error) throw error;
+        if (!page || page.length === 0) break;
+        data.push(...page);
+        if (page.length < PAGE) break;
+      }
 
       const rows = (data || []).map((b) => {
         const m = b.members as unknown as { name: string | null; display_name: string | null } | null;

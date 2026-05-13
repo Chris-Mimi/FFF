@@ -69,23 +69,35 @@ export function useMovementTracking({
 
     const trackedNames = trackedExercises.map(e => e.display_name || e.name);
 
-    // Fetch ALL published wods
-    const { data: sessions, error } = await supabase
-      .from('weekly_sessions')
-      .select(`
-        id,
-        date,
-        wods!inner (
+    // Fetch ALL published wods — paginated because PostgREST silently caps a single
+    // response at 1000 rows. With years of programmed sessions this matters.
+    const PAGE = 1000;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sessions: any[] = [];
+    let fetchError: unknown = null;
+    for (let from = 0; ; from += PAGE) {
+      const { data, error } = await supabase
+        .from('weekly_sessions')
+        .select(`
           id,
-          title,
-          sections,
-          workout_publish_status
-        )
-      `)
-      .eq('wods.workout_publish_status', 'published');
+          date,
+          wods!inner (
+            id,
+            title,
+            sections,
+            workout_publish_status
+          )
+        `)
+        .eq('wods.workout_publish_status', 'published')
+        .range(from, from + PAGE - 1);
+      if (error) { fetchError = error; break; }
+      if (!data || data.length === 0) break;
+      sessions.push(...data);
+      if (data.length < PAGE) break;
+    }
 
-    if (error) {
-      console.error('Error fetching global wods:', error);
+    if (fetchError) {
+      console.error('Error fetching global wods:', fetchError);
       return;
     }
 

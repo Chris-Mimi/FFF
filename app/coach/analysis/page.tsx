@@ -224,27 +224,38 @@ export default function AnalysisPage() {
       const startDateStr = startDate.toISOString().split('T')[0];
       const endDateStr = endDate.toISOString().split('T')[0];
 
-      const { data, error } = await supabase
-        .from('weekly_sessions')
-        .select(`
-          id,
-          date,
-          time,
-          workout_id,
-          wods (
+      // Paginated — PostgREST silently caps a single response at 1000 rows. A
+      // "1-year" or "2-year" timeframe can exceed that on an active gym.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const data: any[] = [];
+      const PAGE = 1000;
+      for (let from = 0; ; from += PAGE) {
+        const { data: page, error } = await supabase
+          .from('weekly_sessions')
+          .select(`
             id,
-            title,
-            workout_type_id,
-            sections,
-            workout_publish_status,
-            workout_name,
-            workout_week
-          )
-        `)
-        .gte('date', startDateStr)
-        .lte('date', endDateStr);
+            date,
+            time,
+            workout_id,
+            wods (
+              id,
+              title,
+              workout_type_id,
+              sections,
+              workout_publish_status,
+              workout_name,
+              workout_week
+            )
+          `)
+          .gte('date', startDateStr)
+          .lte('date', endDateStr)
+          .range(from, from + PAGE - 1);
 
-      if (error) throw error;
+        if (error) throw error;
+        if (!page || page.length === 0) break;
+        data.push(...page);
+        if (page.length < PAGE) break;
+      }
 
       interface SessionRecord {
         id: string;

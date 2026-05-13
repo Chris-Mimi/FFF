@@ -567,20 +567,30 @@ export const useCoachData = ({
       if (sectionTypesError) throw sectionTypesError;
       setSectionTypes(sectionTypesData || []);
 
-      // Query from weekly_sessions to match search results (excludes orphaned wods)
-      const { data: sessionsData, error: sessionsError } = await supabase
-        .from('weekly_sessions')
-        .select(`
-          wods!inner (
-            track_id,
-            title,
-            sections,
-            workout_publish_status
-          )
-        `)
-        .eq('wods.workout_publish_status', 'published');
-
-      if (sessionsError) throw sessionsError;
+      // Query from weekly_sessions to match search results (excludes orphaned wods).
+      // Paginated — PostgREST caps a single response at 1000 rows and silently truncates;
+      // these counts feed search-panel badges, so an undercount is hard to notice.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const sessionsData: any[] = [];
+      const PAGE = 1000;
+      for (let from = 0; ; from += PAGE) {
+        const { data, error } = await supabase
+          .from('weekly_sessions')
+          .select(`
+            wods!inner (
+              track_id,
+              title,
+              sections,
+              workout_publish_status
+            )
+          `)
+          .eq('wods.workout_publish_status', 'published')
+          .range(from, from + PAGE - 1);
+        if (error) throw error;
+        if (!data || data.length === 0) break;
+        sessionsData.push(...data);
+        if (data.length < PAGE) break;
+      }
 
       const trackCountsMap: Record<string, number> = {};
       const workoutTypeCountsMap: Record<string, number> = {};
