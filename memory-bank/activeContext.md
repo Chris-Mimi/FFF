@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 215
-**Updated:** 2026-05-13 (Session 349 close — 10-card chip on Members page rendered `9/10 ⚠` for Max & Ole Labudda; root cause was a PostgREST 1000-row response cap silently truncating the bookings fetch + a string-comparison bug on `ten_card_purchase_date`. Fixed both, then audited the codebase and paginated four more queries with the same shape, bumped the workout-search cap 500 → 2000 with a tripwire, promoted the rule to `claude-rules.md`, and wrote `memory-bank/database-and-growth.md` as the durable playbook.)
+**Version:** 216
+**Updated:** 2026-05-13 (Session 349 close v2 — initial close shipped the 10-card chip fix + 4 preventive pagination fixes + scaling playbook + search tripwire + first claude-rules hard rule for the 1000-row cap. Post-close additions: full docs reorg (renamed `memory-bank/` files to drop the redundant prefix; renamed `scaling-and-foundations.md` → `database-and-growth.md` to avoid clash with gym terms "Foundations" and "Scaling"; moved 19 stale `.md` files from project root to `Chris Notes/Archive/historical root docs/`; added `WHERE-IS-EVERYTHING.md` navigation map at the root; promoted a second hard rule for documentation filing discipline).
 
 ---
 
@@ -213,6 +213,11 @@ Athlete Tools
   - The S347 "chip 7+2 split for family-member kids" carry-over was based on a misdiagnosis. Max & Ole have `primary_payment_method='ten_card'` (not the assumed multi-types scenario). Real bugs were the two above; the carry-over is retired.
   - Wrote and used `scripts/probe-max-ole.ts` (now deleted) to compare service-role count (8 past + 1 upcoming = 9) against the browser hook's result (6 past + 0 upcoming = 6), making the truncation visible.
   - Three intermediate edits applied to `useMemberData.ts` before landing on the right fix; semantic refinements rolled back when the actual root cause turned out to be the row cap, not the filter shape.
+- **Post-close docs reorg.** Chris asked for the filing system to be more navigable so he could find docs without re-asking. Three changes shipped:
+  - **`memory-bank/` filename cleanup.** Renamed `memory-bank-activeContext.md` → `activeContext.md`, same for `techContext` and `systemPatterns`. Brings reality in line with what `CLAUDE.md` already referenced. Updated live references in workflow checklists, Chris Notes workflow docs, and the Forge login-recovery runbook. Project-history files left as-is (historical records).
+  - **Scaling doc renamed.** `scaling-and-foundations.md` → `database-and-growth.md` because "Foundations" (class type) and "Scaling" (workout movement scaling) are both daily-use gym terms — the old name was confusing Chris.
+  - **Project root cleaned.** 19 stale `.md` files moved to `Chris Notes/Archive/historical root docs/` (HANDOFF-*, PLAN.md, NEXT-SESSION-START-HERE.md, grok-tasks-*, EXERCISE_REFERENCE.md, etc.). Root is now 4 files: `README.md`, `CLAUDE.md`, `LICENSE`, new `WHERE-IS-EVERYTHING.md` (navigation map answering "I want to find X, where do I look?").
+  - **Second hard rule in `claude-rules.md`:** documentation filing discipline — root for the 4 essentials only, decision tree for where new docs go by audience + lifetime, archival pattern, navigation map must be updated in the same commit as any rename.
 
 **Session 348 (2026-05-12 — Opus 4.7) — MANUAL WAITLIST PROMOTE + REP-MAX MOBILE UX + PERSONAL ACTIVITIES UPGRADE:**
 - **Manual waitlist promotion.** Coach can now promote a waitlister directly when a no-show frees a slot (no more bumping capacity to 11). New endpoint [app/api/coach/promote-waitlist/route.ts](app/api/coach/promote-waitlist/route.ts) (`requireCoach` + service-role) wraps the existing [lib/coach/promoteFromWaitlist.ts](lib/coach/promoteFromWaitlist.ts) helper — extended to accept optional `bookingId` (undefined = FIFO; set = specific row). Green Promote button on waitlist rows in [components/coach/SessionManagementModal.tsx](components/coach/SessionManagementModal.tsx), capacity-gated.
