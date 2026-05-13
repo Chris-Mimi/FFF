@@ -317,7 +317,7 @@ export default function CalendarGrid({
         {/* Action Buttons - Only for workouts with content */}
         {!isEmptySession && (
           <div
-            className={`absolute flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity ${
+            className={`absolute flex gap-0.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity ${
               isMonthlyView ? 'top-1 right-1' : 'top-2 right-2 flex-col gap-1'
             }`}
           >
@@ -351,7 +351,7 @@ export default function CalendarGrid({
         {/* Action Buttons - For empty sessions */}
         {isEmptySession && wod.booking_info?.session_id && (
           <div
-            className={`absolute flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity ${
+            className={`absolute flex gap-0.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity ${
               isMonthlyView ? 'top-1 right-1' : 'top-2 right-2'
             }`}
           >
