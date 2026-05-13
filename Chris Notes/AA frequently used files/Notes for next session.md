@@ -25,7 +25,7 @@ http://192.168.178.75:3000
 * Ask Claude for a Magic link script to access athlete's accounts to check screen views so I can help them click the right buttons. I just give Claude the email ad.
 * 
 * Macbook still has internet problem at the box. Old Macbook Pro works fine.
-* 
+* Still have an issue when the Macbook has been on for a while on 2 Users that I switch to the other user and get a black screen, then I can't type anything or restart without holding down the start button.
 * 
 * 
 * review the rep max calculator to show clearer percentages
