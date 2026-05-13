@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 214
-**Updated:** 2026-05-12 (Session 348 close v2 — initial close shipped waitlist promote + rep-max mobile + personal activities. Post-close additions: athlete guide rewrite (coach-driven framing), movement extractor honours barbell_lifts.exercise_id link (closes S330 landmine), Programming Notes ("My Notes" Coach Toolkit) formatting overhaul — headings/lists now render correctly in preview + Enter auto-continues lists)
+**Version:** 215
+**Updated:** 2026-05-13 (Session 349 close — 10-card chip on Members page rendered `9/10 ⚠` for Max & Ole Labudda; root cause was a PostgREST 1000-row response cap silently truncating the bookings fetch + a string-comparison bug on `ten_card_purchase_date`. Fixed both, then audited the codebase and paginated four more queries with the same shape, bumped the workout-search cap 500 → 2000 with a tripwire, promoted the rule to `claude-rules.md`, and wrote `memory-bank/scaling-and-foundations.md` as the durable playbook.)
 
 ---
 
@@ -21,18 +21,16 @@
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history scan._
 
-**First action:** Nothing urgent. S348 v1 shipped three independent UX threads (waitlist promote, rep-max mobile, personal activities) — both new SQL migrations applied. Post-close: athlete guide rewrite, movement-extractor lift-link bug fix (closes the long-standing S330 landmine — verify by opening `/coach` and looking at Movement Tracking columns; Strict OHP / OHP should now show Week 19/20 not 01.04), and Programming Notes preview rendering fix. Pull main, dev server, pick a carry-over below.
+**First action:** Nothing urgent. S349 closed an invisible foundation bug (the chip mis-render was the visible tip; 5+ other queries were silently truncating) and put durable rules in place so future Claude sessions catch the class proactively. Pull main, dev server, pick a carry-over below.
 
 **Files to open first if continuing code work:**
-- [app/api/coach/promote-waitlist/route.ts](app/api/coach/promote-waitlist/route.ts) + [components/coach/SessionManagementModal.tsx](components/coach/SessionManagementModal.tsx) — manual Promote button on waitlist rows; capacity-gated.
-- [lib/coach/promoteFromWaitlist.ts](lib/coach/promoteFromWaitlist.ts) — helper now takes optional `bookingId` (undefined = FIFO for auto-callers; specific id = manual button path).
-- [components/athlete/RepMaxCalculatorModal.tsx](components/athlete/RepMaxCalculatorModal.tsx) — stepper widths + hold-to-repeat + German comma display pattern. Reusable for any future decimal input.
-- [components/athlete/personal/PersonalActivityModal.tsx](components/athlete/personal/PersonalActivityModal.tsx) + [hooks/athlete/usePersonalActivities.ts](hooks/athlete/usePersonalActivities.ts) — `personal_activity_custom_types` table + `ensureCustomType` (check-then-insert pattern for case-insensitive uniqueness).
-- [scripts/probe-member-subscription.ts](scripts/probe-member-subscription.ts) — new diagnostic; service-role, prints a member's full subscription state + computed Payment-tab flags.
+- [memory-bank/scaling-and-foundations.md](memory-bank/scaling-and-foundations.md) — NEW. Plain-English playbook for the 1000-row cap, the kitchen/dining-room analogy, the 7-category scaling map, search UX options. Both Chris-readable and Claude-readable.
+- [memory-bank/claude-rules.md](memory-bank/claude-rules.md) — new hard rule for "never `.from(growing_table).select()` without a filter or pagination."
+- [hooks/coach/useMemberData.ts](hooks/coach/useMemberData.ts) — the chip-fix pattern (paginate by member_id; normalize purchase-date string).
+- [hooks/coach/useCoachData.ts](hooks/coach/useCoachData.ts) — search-limit tripwire (`[search-limit-tripwire]` console.warn at ≥90% of 2000).
 
 **Carry-over status:**
-- ⏳ S347 chip "7+2" split for family-member kids — fix at [hooks/coach/useMemberData.ts:244-245](hooks/coach/useMemberData.ts#L244-L245). Switch attribution from `booker.primary_payment_method || booker.membership_types?.[0]` to `booker.membership_types?.includes('ten_card')`. Verify in Supabase first whether Max/Ole still render as `9/10 ⚠`.
-- ⏳ S347 Stripe zombies confirmation — Tobias / Zoran / Veronika / Soledad / Claudia. Walked Claudia through the Payment tab flow this session; she should re-subscribe via the S345-fixed checkout. Use `scripts/probe-member-subscription.ts <email>` to check who's reactivated.
+- ⏳ S347 Stripe zombies confirmation — Tobias / Zoran / Veronika / Soledad / Claudia. Use `scripts/probe-member-subscription.ts <email>` to check who's reactivated.
 - ⏳ S346 gym memberships live test — Add → Edit → Delete flow on `/coach/admin` Memberships tab; cron should auto-expire active rows past `end_date` at 06:00 UTC.
 - ⏳ S345 whiteboard backfill carry — Recalc Nico Enzmann + Kim Salzgeber 10-card counters (TenCardModal → Recalc → Save).
 - ⏳ S344 deletion-paths forward fix — two paths still skip wsr/lift_records/reactions cleanup: `handleDeleteIncident` ([app/coach/admin/page.tsx:231](app/coach/admin/page.tsx#L231)) + `handleDeleteSession` ([hooks/coach/useWODOperations.ts:534](hooks/coach/useWODOperations.ts#L534)). Plus reactions DELETE missing from all 4 cleanup paths.
@@ -198,6 +196,24 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 349 (2026-05-13 — Opus 4.7) — 10-CARD CHIP FIX + POSTGREST 1000-ROW CAP AUDIT + SCALING PLAYBOOK:**
+- **The visible bug.** Max & Ole Labudda's 10-card chip on Members page rendered `9/10 ⚠` (counter says 9, but past+upcoming attribution said 6). Two root causes stacked:
+  1. **PostgREST 1000-row cap.** [hooks/coach/useMemberData.ts](hooks/coach/useMemberData.ts) fetched ALL active bookings system-wide (2,019 total) with no member-side filter. Supabase silently truncates at 1,000. The most-recent bookings — exactly the ones the chip needed — were pruned. Fixed by filtering `.in('member_id', [holders + sharers])`.
+  2. **`ten_card_purchase_date` string-compare bug.** Column comes back as `'2026-04-20T00:00:00+00:00'`, but `weekly_sessions.date` is `'2026-04-20'`. In JS `'2026-04-20' < '2026-04-20T...'` is TRUE (prefix-shorter wins lexicographically), dropping the boundary-date booking. Fixed by `.split('T')[0]` before storing in the lookup Map.
+- **Audit + preventive fixes.** Found four more queries with the same unbounded shape; all paginated:
+  - [hooks/coach/useMovementTracking.ts](hooks/coach/useMovementTracking.ts) `computeGlobal` (almost certainly already truncating — stale Movement Tracking dots in production)
+  - [hooks/coach/useCoachData.ts](hooks/coach/useCoachData.ts) `fetchTracksAndCounts` (search-panel count badges undercounting silently)
+  - [app/coach/analysis/page.tsx](app/coach/analysis/page.tsx) `fetchMonthlyWODs` (defensive — would exceed 1000 at 1-year+ timeframes)
+  - [app/coach/admin/page.tsx](app/coach/admin/page.tsx) `fetchIncidentStats` (would hit cap in 12-24 months)
+- **Workout search safety patch.** [useCoachData.ts:searchWODs](hooks/coach/useCoachData.ts) — bumped hard limit 500 → 2000 (separate from the 1000-row cap; this is an intentional `.limit()`). Added `[search-limit-tripwire]` console.warn at ≥90% so we'll see it before older WODs start disappearing from unfiltered searches.
+- **Durable references.**
+  - **Hard rule promoted to [memory-bank/claude-rules.md](memory-bank/claude-rules.md):** "Never `.from(growing_table).select()` without a narrowing filter or pagination" with full checklist (decision tree, growing tables list, paginate-vs-SQL-aggregation guidance).
+  - **NEW [memory-bank/scaling-and-foundations.md](memory-bank/scaling-and-foundations.md)** — Chris-readable + Claude-readable playbook. Covers the kitchen/dining-room analogy, S349 snapshot, decision tree, 4 search-UX options for when the tripwire fires (A: no cap; B: Load more; C: require filter; D: default date window), and a 7-category map of other scaling traps (missing indexes, N+1 queries, bundle size, image storage, cron drift, push deliverability, Stripe webhook race conditions).
+- **Process notes:**
+  - The S347 "chip 7+2 split for family-member kids" carry-over was based on a misdiagnosis. Max & Ole have `primary_payment_method='ten_card'` (not the assumed multi-types scenario). Real bugs were the two above; the carry-over is retired.
+  - Wrote and used `scripts/probe-max-ole.ts` (now deleted) to compare service-role count (8 past + 1 upcoming = 9) against the browser hook's result (6 past + 0 upcoming = 6), making the truncation visible.
+  - Three intermediate edits applied to `useMemberData.ts` before landing on the right fix; semantic refinements rolled back when the actual root cause turned out to be the row cap, not the filter shape.
+
 **Session 348 (2026-05-12 — Opus 4.7) — MANUAL WAITLIST PROMOTE + REP-MAX MOBILE UX + PERSONAL ACTIVITIES UPGRADE:**
 - **Manual waitlist promotion.** Coach can now promote a waitlister directly when a no-show frees a slot (no more bumping capacity to 11). New endpoint [app/api/coach/promote-waitlist/route.ts](app/api/coach/promote-waitlist/route.ts) (`requireCoach` + service-role) wraps the existing [lib/coach/promoteFromWaitlist.ts](lib/coach/promoteFromWaitlist.ts) helper — extended to accept optional `bookingId` (undefined = FIFO; set = specific row). Green Promote button on waitlist rows in [components/coach/SessionManagementModal.tsx](components/coach/SessionManagementModal.tsx), capacity-gated.
 - **Rep-max calculator mobile.** [components/athlete/RepMaxCalculatorModal.tsx](components/athlete/RepMaxCalculatorModal.tsx) — three commits: (1) inline +/- stepper buttons (native browser spinners don't render on mobile); (2) width tuning so 3-digit / `70,5` fit + hold-to-repeat via pointer events (400ms delay, 70ms interval); (3) German decimal comma display (`type='text'` + `inputMode='decimal'`, internal state period-separated for `parseFloat`).
@@ -242,14 +258,7 @@ Athlete Tools
 - **Banner triplet**: SubscriptionsDueBanner now treats `trialing` as a green "Trial · monthly" chip (same green as Auto-renew, distinct label).
 - **Push-protection incident**: Stripe restricted key got pasted into Notes file → committed → blocked by GitHub push protection. Soft-reset, key removed from notes, re-committed clean. Key was already expired by then.
 
-**Session 344 (2026-05-09 — Opus 4.7) — SCORE ENTRY NAME DISAMBIGUATION + PUBLISH-NOTIFY TOGGLE + LEGACY SECTION-TYPE CLEANUP + RLS-BLOCKED CANCEL CLEANUP ROOT CAUSE:**
-- **Score Entry name collision fix.** [components/coach/score-entry/ScoreEntryGrid.tsx](components/coach/score-entry/ScoreEntryGrid.tsx) — when 2+ athletes in a section share a first name, labels render as `Michael M.` / `Michael W.` instead of CSS-truncating to `Michael…`. Both ScoreEntryModal + full-page route share the fix.
-- **Publish notify toggle.** [components/coach/PublishModal.tsx](components/coach/PublishModal.tsx) "Notify athletes" checkbox, default = ON for first publish, OFF on re-publish. [app/api/google/publish-workout/route.ts](app/api/google/publish-workout/route.ts) gates `notifyWodPublished` on `publishConfig.notify !== false`.
-- **Legacy section-type cleanup.** Chris reported old WODs (e.g. DT 19.01.26) showing "Whiteboard Intro" for non-intro sections in the Edit modal. Root: HTML `<select value=X>` falls back to first option when X doesn't match any option; "Whiteboard Intro" has `display_order=1`. Probe identified 2 legacy strings in 28 WODs (Dec 6 – Jan 30). One-shot migration renamed `"WOD Final Prep & Info"` → `"Final prep/Info"` and `"WOD movement practice"` → `"WOD movements"`. Re-probe → 0 legacy. The underlying `<select>` fallback bug NOT fixed — landmine documented.
-- **Score-cleanup-after-cancel root cause + fix.** Chris reported a self-entered Bench Press 5RM staying on Leaderboard / Lifts / Records / Coach Athletes Lifts after he removed his own booking via Session Management. Initial diagnosis was "athlete `saveLiftRecord` doesn't set `wod_id`" (true, fixed forward — see [hooks/athlete/useLiftManagement.ts](hooks/athlete/useLiftManagement.ts)) but the **load-bearing root cause** was different: the coach-side `handleCancelBooking` ran the wsr/lift_records cleanup browser-side using the coach's auth token; **RLS hides the athlete's rows from the coach's auth.uid**, so the SELECT returned 0 → `userIds.length > 0` gate failed → cleanup silently skipped. Fix: extracted to new server endpoint [app/api/coach/cancel-member-booking/route.ts](app/api/coach/cancel-member-booking/route.ts) (`requireCoach` + service-role client) — handles status flip + 10-card refund + wsr/lift_records cleanup. [hooks/coach/useBookingManagement.ts](hooks/coach/useBookingManagement.ts) `handleCancelBooking` now just `authFetch`s it. Sweep script ([scripts/sweep-orphan-scores.ts](scripts/sweep-orphan-scores.ts)) cleaned 3 existing orphan rows (Chris's bench press + 2 others). Re-run shows 0 orphans.
-- **Post-close: data-integrity SQL flagged additional orphans.** Chris ran the integrity check after the S344 close — `unbooked_section_results: 134`, `orphan_reactions_section: 1`, `orphan_reactions_lift: 2`. Probe revealed **two additional cleanup paths that don't run wsr/lift_records cleanup**: [`handleDeleteIncident`](app/coach/admin/page.tsx#L231) (Admin Incidents → Delete) and [`handleDeleteSession`](hooks/coach/useWODOperations.ts#L534) (cascade-deletes bookings via FK). PLUS no cleanup path anywhere deletes `reactions` when their target row is removed. New script [scripts/sweep-deletion-orphans.ts](scripts/sweep-deletion-orphans.ts) — predicate "wsr/lift_records with known user but NO booking on any session of the wod (whiteboard-only rows preserved); reactions whose target row doesn't exist". Cleaned **386 wsr + 132 lift_records + 26 reactions** (3 already orphan + 23 cascade from sweep). Re-probe → 0. Forward fixes for the deletion paths + reactions cleanup carried to next session.
-
-**Older sessions (57-343):** See `project-history/` folder.
+**Older sessions (57-344):** See `project-history/` folder.
 
 ---
 
@@ -259,7 +268,7 @@ Athlete Tools
 - **Mac push delivery (downstream of above)** — Mac never receives FCM pushes even with clean DB subs + healthy SW. `chrome://gcm-internals/` shows Connection State "Connecting". Will auto-resolve once the Chrome-hang root cause is fixed. Android push unaffected.
 - **Test endpoint doesn't cleanup 410s** — `app/api/notifications/test/route.ts` bypasses `sendToSubscription` helper so expired subs aren't auto-deleted when you click Send Test. Low priority — production flows still clean up 410s. (Session 292.)
 - **iPhone search bug (latent)** — same `readOnly` anti-autofill hack exists in `components/coach/SearchPanel.tsx:946` (Analysis page search). Deferred Session 282.
-- **`SearchPanel` 500-row limit** — `useCoachData.ts:245` caps queries at 500 rows. Not a current concern (gym has far fewer published sessions than 500).
+- **Workout search 2000-row limit (S349)** — `useCoachData.ts:searchWODs` caps results at 2000 (bumped from 500 in S349). A `[search-limit-tripwire]` console.warn fires at 90% of the limit so we'll see it before older WODs start disappearing from unfiltered searches. When the tripwire fires: see `memory-bank/scaling-and-foundations.md` for the four UX options (A/B/C/D) and pick one.
 
 **Pre-deployment:** All CRITICAL/HIGH/MEDIUM items done. LOW items (28 files >500 lines) deferred per Session 260.
 
@@ -273,9 +282,8 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-0. **S347 finish Stripe zombie cancellations.** See ⚡ Next Session Kickoff. 5 athletes, WhatsApp message already sent.
-0a. **S347 verify "10-Card" Members tab on prod.** Confirm Max & Ole Labudda appear, sort order is smallest remaining first.
-0b. **S347 chip "7+2" split fix (deferred).** If Max/Ole still show `9/10 ⚠` instead of `7+2/10`, update [hooks/coach/useMemberData.ts:244-245](hooks/coach/useMemberData.ts#L244-L245) to filter via `booker.membership_types?.includes('ten_card')` instead of the first-element check. Verify the kid's `primary_payment_method` in Supabase before changing — if it IS `'ten_card'`, the bug is elsewhere.
+0. **S347 finish Stripe zombie cancellations.** 5 athletes, WhatsApp message already sent. Use `scripts/probe-member-subscription.ts <email>`.
+0a. **S347 verify "10-Card" Members tab on prod.** Confirm Max & Ole Labudda appear with the correct `8+1/10` chip (no ⚠) after the S349 fix.
 0c. **S346 gym memberships live-test on prod.** Add → Edit → Delete a contract; verify daily cron expired any rows past `end_date` at 06:00 UTC.
 0d. **Recalc 10-card counters for Nico Enzmann + Kim Salzgeber (S345 carry).** TenCardModal → Recalc → Save. They each got +1 confirmed booking from the whiteboard backfill that didn't auto-bump the counter.
 0e. **S344 deletion-paths forward fix.** Two paths still skip wsr/lift_records/reactions cleanup: (1) `handleDeleteIncident` in [app/coach/admin/page.tsx:231](app/coach/admin/page.tsx#L231), (2) `handleDeleteSession` in [hooks/coach/useWODOperations.ts:534](hooks/coach/useWODOperations.ts#L534). Plus reactions DELETE missing from all 4 cleanup paths. Build `/api/coach/delete-incident` mirroring S344's `/api/coach/cancel-member-booking` shape; add reactions cleanup to all 4. Re-run `npx tsx scripts/sweep-deletion-orphans.ts` post-ship (should still show 0).
