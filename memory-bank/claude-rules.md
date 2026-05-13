@@ -63,6 +63,21 @@ These are project-wide rules that survive account/machine switches because they'
 4. **When renaming or moving anything, update `WHERE-IS-EVERYTHING.md`** in the same commit so the map stays accurate.
 5. **`WHERE-IS-EVERYTHING.md` (project root)** is the navigation index. If I'm about to create a doc and I'm unsure where it goes, the table in that file answers it.
 
+### Coach UI mutations on athlete-owned data must run server-side with service-role
+**Why:** S344 incident — `useBookingManagement.handleCancelBooking` ran wsr/lift_records cleanup browser-side using the coach's auth token. RLS hid the athlete's rows from the coach's session, so the cleanup matched 0 rows. The action appeared to succeed (toast fired) but athletes ended up with ghost scores forever — a silent partial-cleanup bug.
+
+**How to apply:** Tables under athlete-owner RLS (`wod_section_results`, `lift_records`, `benchmark_results`, `athlete_achievements`, `reactions`, `personal_activities`, `personal_activity_custom_types`) must be mutated from a server endpoint using `supabaseAdmin` (service-role), not from the browser. Gate the endpoint with `requireCoach()`. Patterns to copy: [app/api/coach/cancel-member-booking/route.ts](app/api/coach/cancel-member-booking/route.ts), [app/api/bookings/toggle-og/route.ts](app/api/bookings/toggle-og/route.ts), [app/api/coach/promote-waitlist/route.ts](app/api/coach/promote-waitlist/route.ts). **Symptom of forgetting:** toast fires successfully, data is unchanged for cross-user rows.
+
+### Stripe subscriptions: always collect payment up front, and webhooks must fetch authoritative state
+**Why:** S345 zombie incident, two-part. (1) Stripe's default `payment_method_collection: 'if_required'` lets users start a trial without a card. At trial-end there's nothing to charge, leaving the sub stuck in `trialing` forever — 5 zombies accumulated this way before the fix. (2) The `checkout.session.completed` webhook was writing a hard-coded `status='active'` and relying on `customer.subscription.created` to correct it; that secondary webhook can fire BEFORE `checkout.completed` (clobbering trialing→active) or fail to fire at all.
+
+**How to apply:** Any `stripe.checkout.sessions.create()` with `mode: 'subscription'` must pass `payment_method_collection: 'always'` AND `trial_settings.end_behavior.missing_payment_method: 'cancel'` (backstop). Any webhook handler that creates/updates `subscriptions` rows must fetch state via `stripe.subscriptions.retrieve(id)` — never hard-code status. Reconciliation script if drift sneaks in: `scripts/sync-subscriptions-from-stripe.ts`.
+
+### Date + time strings: never `new Date(\`${date}T${time}\`)` or `.toISOString().split('T')[0]`
+**Why:** S335 incident — Book-a-Class lock check used `new Date(\`${session.date}T${session.time}\`)` which JavaScript interprets as runtime-local (UTC on Vercel), producing a 2h offset on prod and firing "Class is locked" warnings 2h early. S330 flagged `.toISOString().split('T')[0]` as the same TZ bug class — it shifts local-midnight in Germany (UTC+1/+2) back to the previous day in UTC.
+
+**How to apply:** For session start instants → `sessionStartInstant(date, time)` from `lib/bookingRules.ts`. For "today as YYYY-MM-DD" → `formatDate(d)` from `utils/date-utils.ts`. If you find `new Date(\`${...}T${...}\`)` or `.toISOString().split('T')[0]` anywhere in this codebase, treat it as suspect and replace.
+
 ### Trust the user's statements exactly as given
 When Chris says something doesn't appear in a workout, it means exactly that — don't invent explanations or assume he's mistaken. He will explicitly say when he's unsure.
 
