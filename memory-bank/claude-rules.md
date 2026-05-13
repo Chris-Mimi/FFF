@@ -46,6 +46,8 @@ These are project-wide rules that survive account/machine switches because they'
 
 **Proactive check on new features.** Whenever I'm about to write a new hook or page that reads from a growing table, run through the checklist above BEFORE shipping. Don't wait for Chris to see the chip break. The bug class is invisible until the table crosses 1,000 rows — by then the wrong data has been rendering for weeks.
 
+**For the full reasoning, the kitchen/dining-room analogy I use with Chris, the 7-item scaling-trap map, and the search-UX options:** see `memory-bank/scaling-and-foundations.md`. Read it on demand when a scaling question comes up; don't pull it into every session.
+
 ---
 
 ## 🤝 Communication

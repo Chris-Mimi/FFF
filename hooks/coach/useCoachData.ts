@@ -269,9 +269,22 @@ export const useCoachData = ({
           query = query.in('id', sessionIds);
         }
 
-        const { data, error } = await query.order('date', { ascending: false }).limit(500);
+        // Hard limit: protects search responsiveness on slow connections. Bumped from
+        // 500 → 2000 at S349 to give ~18 months of headroom at current data growth.
+        // Tripwire below warns when we approach the limit so we can revisit before it
+        // silently truncates older WODs out of search results. See
+        // memory-bank/scaling-and-foundations.md for the full reasoning + UX options.
+        const SEARCH_LIMIT = 2000;
+        const { data, error } = await query.order('date', { ascending: false }).limit(SEARCH_LIMIT);
 
         if (error) throw error;
+        if (data && data.length >= SEARCH_LIMIT * 0.9) {
+          console.warn(
+            `[search-limit-tripwire] WOD search returned ${data.length}/${SEARCH_LIMIT} rows — approaching the limit. ` +
+            `Older WODs may start disappearing from unfiltered searches soon. Revisit the limit / paginate / add default date window. ` +
+            `See memory-bank/scaling-and-foundations.md.`
+          );
+        }
 
         const results: WODFormData[] =
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
