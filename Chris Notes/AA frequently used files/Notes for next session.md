@@ -21,7 +21,7 @@ http://192.168.178.75:3000
 * Mimi couldn't add a trial athlete
 * I added Fabian's birthday but it's not correct, I have to ask him next time he's in.
 * Workouts page: ability to mute/cancel athletes withour clearing the group
-* 
+* Check how trial athletes are calculated in workouts tab appearances in wods
 * Ask Claude for a Magic link script to access athlete's accounts to check screen views so I can help them click the right buttons. I just give Claude the email ad.
 * 
 * Macbook still has internet problem at the box. Old Macbook Pro works fine.

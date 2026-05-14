@@ -41,17 +41,42 @@ export default function BookingListItem({
   const memberName = booking.member?.name || booking.member?.display_name || 'Unknown Member';
   const isFamilyMember = booking.member?.account_type === 'family_member';
 
-  // Determine background color based on status
+  // 10-card warning tier — only meaningful on confirmed/waitlist (active bookings).
+  // overage: negative (over the limit per S347 soft-block); full: exactly 0;
+  // last: 1 more bookable; low: 2 more bookable.
+  const showCardWarning = status === 'confirmed' || status === 'waitlist';
+  const remaining = booking.tenCardRemaining;
+  const cardTier: 'overage' | 'full' | 'last' | 'low' | null =
+    showCardWarning && remaining !== null && remaining !== undefined
+      ? remaining < 0
+        ? 'overage'
+        : remaining === 0
+          ? 'full'
+          : remaining === 1
+            ? 'last'
+            : remaining === 2
+              ? 'low'
+              : null
+      : null;
+
+  // Determine background color based on status, with a 10-card warning tier
+  // overriding the confirmed default when relevant.
   const bgClass =
-    status === 'confirmed'
-      ? 'bg-white border'
-      : status === 'no_show'
-        ? 'bg-orange-50 border border-orange-200'
-        : status === 'late_cancel'
-          ? 'bg-purple-50 border border-purple-200'
-          : status === 'cancelled'
-            ? 'bg-gray-100 border border-gray-200'
-            : 'bg-gray-50 border';
+    cardTier === 'overage' || cardTier === 'full' || cardTier === 'last'
+      ? 'bg-red-50 border-2 border-red-400'
+      : cardTier === 'low'
+        ? 'bg-amber-50 border-2 border-amber-400'
+        : status === 'confirmed'
+          ? 'bg-white border'
+          : status === 'waitlist'
+            ? 'bg-gray-50 border'
+            : status === 'no_show'
+              ? 'bg-orange-50 border border-orange-200'
+              : status === 'late_cancel'
+                ? 'bg-purple-50 border border-purple-200'
+                : status === 'cancelled'
+                  ? 'bg-gray-100 border border-gray-200'
+                  : 'bg-gray-50 border';
 
   const formatDateTime = (iso: string) =>
     new Date(iso).toLocaleString('en-GB', {
@@ -72,6 +97,26 @@ export default function BookingListItem({
         {isFamilyMember && (
           <span className='text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded'>
             family
+          </span>
+        )}
+        {cardTier === 'overage' && (
+          <span className='text-[10px] font-bold text-white bg-red-600 px-1.5 py-0.5 rounded'>
+            ⚠ Over by {Math.abs(remaining ?? 0)}
+          </span>
+        )}
+        {cardTier === 'full' && (
+          <span className='text-[10px] font-bold text-white bg-red-600 px-1.5 py-0.5 rounded'>
+            ⚠ Card full
+          </span>
+        )}
+        {cardTier === 'last' && (
+          <span className='text-[10px] font-bold text-white bg-red-600 px-1.5 py-0.5 rounded'>
+            ⚠ 1 left
+          </span>
+        )}
+        {cardTier === 'low' && (
+          <span className='text-[10px] font-bold text-amber-900 bg-amber-200 px-1.5 py-0.5 rounded'>
+            2 left
           </span>
         )}
         <span className='text-xs text-gray-500'>

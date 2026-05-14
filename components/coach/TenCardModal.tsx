@@ -2,8 +2,9 @@
 
 import { confirm } from '@/lib/confirm';
 import { supabase } from '@/lib/supabase';
+import { authFetch } from '@/lib/auth-fetch';
 import { toast } from 'sonner';
-import { RefreshCw, X, CreditCard, Calendar, Package } from 'lucide-react';
+import { RefreshCw, X, CreditCard, Calendar, Package, ChevronDown, ChevronRight, History } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { FocusTrap } from '@/components/ui/FocusTrap';
 
@@ -18,6 +19,8 @@ interface TenCardModalProps {
     ten_card_sessions_used: number;
     ten_card_total?: number;
     ten_card_expiry_date?: string | null;
+    ten_card_notes?: string | null;
+    subscription_notes?: string | null;
     athlete_subscription_status?: 'trial' | 'active' | 'past_due' | 'expired';
     athlete_subscription_end?: string | null;
   } | null;
@@ -45,6 +48,7 @@ export default function TenCardModal({
     const dateStr = member.ten_card_expiry_date;
     return dateStr.includes('T') ? dateStr.split('T')[0] : dateStr.split(' ')[0];
   });
+  const [tenCardNotes, setTenCardNotes] = useState(member?.ten_card_notes || '');
 
   // Subscription state
   const [subscriptionStatus, setSubscriptionStatus] = useState<'trial' | 'active' | 'past_due' | 'expired'>(
@@ -55,6 +59,7 @@ export default function TenCardModal({
     const dateStr = member.athlete_subscription_end;
     return dateStr.includes('T') ? dateStr.split('T')[0] : dateStr.split(' ')[0];
   });
+  const [subscriptionNotes, setSubscriptionNotes] = useState(member?.subscription_notes || '');
 
   const [loading, setLoading] = useState(false);
 
@@ -69,9 +74,48 @@ export default function TenCardModal({
   const [cardBookings, setCardBookings] = useState<CardBooking[]>([]);
   const [bookingsLoading, setBookingsLoading] = useState(false);
 
+  type ArchiveEntry = {
+    id: string;
+    total: number;
+    sessions_used: number;
+    purchase_date: string;
+    closed_at: string;
+    bookings_snapshot: CardBooking[];
+    notes: string | null;
+  };
+  const [archive, setArchive] = useState<ArchiveEntry[]>([]);
+  const [archiveLoading, setArchiveLoading] = useState(false);
+  const [expandedArchiveIds, setExpandedArchiveIds] = useState<Set<string>>(new Set());
+  const [pendingClose, setPendingClose] = useState(false);
+  const [editingNoteArchiveId, setEditingNoteArchiveId] = useState<string | null>(null);
+  const [editingNoteText, setEditingNoteText] = useState('');
+  const [savingNote, setSavingNote] = useState(false);
+
+  // Subscription archive — parallel to card archive.
+  type SubArchiveEntry = {
+    id: string;
+    status: string | null;
+    tier: string | null;
+    start_date: string | null;
+    end_date: string | null;
+    notes: string | null;
+    closed_at: string;
+  };
+  const [subArchive, setSubArchive] = useState<SubArchiveEntry[]>([]);
+  const [subArchiveLoading, setSubArchiveLoading] = useState(false);
+  const [expandedSubArchiveIds, setExpandedSubArchiveIds] = useState<Set<string>>(new Set());
+  const [pendingSubClose, setPendingSubClose] = useState(false);
+  const [editingSubNoteArchiveId, setEditingSubNoteArchiveId] = useState<string | null>(null);
+  const [editingSubNoteText, setEditingSubNoteText] = useState('');
+  const [savingSubNote, setSavingSubNote] = useState(false);
+
   // Update state when member prop changes (after refresh)
   useEffect(() => {
     if (member) {
+      // Always clear any in-flight pending close when the source data refreshes —
+      // belt-and-braces guard against a stale "pending" flag surviving a re-render.
+      setPendingClose(false);
+      setPendingSubClose(false);
       // 10-card fields
       let formattedDate = '';
       if (member.ten_card_purchase_date) {
@@ -88,6 +132,7 @@ export default function TenCardModal({
         formattedExpiry = dateStr.includes('T') ? dateStr.split('T')[0] : dateStr.split(' ')[0];
       }
       setTenCardExpiry(formattedExpiry);
+      setTenCardNotes(member.ten_card_notes || '');
 
       // Subscription fields
       setSubscriptionStatus(member.athlete_subscription_status || 'expired');
@@ -97,6 +142,7 @@ export default function TenCardModal({
         formattedSubEnd = dateStr.includes('T') ? dateStr.split('T')[0] : dateStr.split(' ')[0];
       }
       setSubscriptionEnd(formattedSubEnd);
+      setSubscriptionNotes(member.subscription_notes || '');
     }
   }, [member]);
 
@@ -184,6 +230,53 @@ export default function TenCardModal({
     return () => { cancelled = true; };
   }, [isOpen, activeSection, member?.id, purchaseDate]);
 
+  // Load archived (closed) 10-cards for this member.
+  const loadArchive = async (memberId: string) => {
+    setArchiveLoading(true);
+    try {
+      const res = await authFetch(`/api/coach/ten-card-archive?memberId=${memberId}`);
+      if (!res.ok) return;
+      const json = await res.json();
+      setArchive(json.archive || []);
+    } catch (e) {
+      console.error('Failed to load 10-card history', e);
+    } finally {
+      setArchiveLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!isOpen || activeSection !== '10card' || !member?.id) {
+      setArchive([]);
+      setExpandedArchiveIds(new Set());
+      return;
+    }
+    loadArchive(member.id);
+  }, [isOpen, activeSection, member?.id]);
+
+  const loadSubArchive = async (memberId: string) => {
+    setSubArchiveLoading(true);
+    try {
+      const res = await authFetch(`/api/coach/subscription-archive?memberId=${memberId}`);
+      if (!res.ok) return;
+      const json = await res.json();
+      setSubArchive(json.archive || []);
+    } catch (e) {
+      console.error('Failed to load subscription history', e);
+    } finally {
+      setSubArchiveLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!isOpen || activeSection !== 'subscription' || !member?.id) {
+      setSubArchive([]);
+      setExpandedSubArchiveIds(new Set());
+      return;
+    }
+    loadSubArchive(member.id);
+  }, [isOpen, activeSection, member?.id]);
+
   if (!isOpen || !member) return null;
 
   const recalculateSessionsUsed = async (purchaseDateStr: string) => {
@@ -228,6 +321,54 @@ export default function TenCardModal({
   const handleSave = async () => {
     setLoading(true);
     try {
+      // Pending close: call the server-side close endpoint (archive + member reset).
+      // Skip the regular update path because the API handles the whole transaction.
+      if (activeSection === '10card' && pendingClose) {
+        const res = await authFetch('/api/coach/close-ten-card', {
+          method: 'POST',
+          body: JSON.stringify({
+            memberId: member.id,
+            newPurchaseDate: purchaseDate || undefined,
+            newExpiryDate: tenCardExpiry || undefined,
+            newTotal: tenCardTotal,
+            newSessionsUsed: sessionsUsed,
+            newNotes: tenCardNotes || undefined,
+          }),
+        });
+        if (!res.ok) {
+          const json = await res.json().catch(() => ({}));
+          toast.error(json.error || 'Failed to close card');
+          return;
+        }
+        toast.success('Card closed and new card issued');
+        setPendingClose(false);
+        onUpdate();
+        onClose();
+        return;
+      }
+
+      if (activeSection === 'subscription' && pendingSubClose) {
+        const res = await authFetch('/api/coach/close-subscription', {
+          method: 'POST',
+          body: JSON.stringify({
+            memberId: member.id,
+            newStatus: subscriptionStatus,
+            newEndDate: subscriptionEnd || null,
+            newNotes: subscriptionNotes || undefined,
+          }),
+        });
+        if (!res.ok) {
+          const json = await res.json().catch(() => ({}));
+          toast.error(json.error || 'Failed to close subscription');
+          return;
+        }
+        toast.success('Subscription closed and renewed');
+        setPendingSubClose(false);
+        onUpdate();
+        onClose();
+        return;
+      }
+
       const updateData: Record<string, unknown> = {};
 
       if (activeSection === '10card') {
@@ -237,9 +378,11 @@ export default function TenCardModal({
         updateData.ten_card_sessions_used = sessionsUsed;
         updateData.ten_card_total = tenCardTotal;
         updateData.ten_card_expiry_date = tenCardExpiry || null;
+        updateData.ten_card_notes = tenCardNotes || null;
       } else {
         updateData.athlete_subscription_status = subscriptionStatus;
         updateData.athlete_subscription_end = subscriptionEnd || null;
+        updateData.subscription_notes = subscriptionNotes || null;
       }
 
       const { error } = await supabase
@@ -259,28 +402,178 @@ export default function TenCardModal({
     }
   };
 
-  const handleResetCard = async () => {
+  // Deferred close — sets pendingClose=true and shows projected new-card values in
+  // the form. The actual DB write (archive + member reset) happens on Save. Cancel
+  // closes the modal without persisting.
+  const handleCloseAndIssueNew = async () => {
+    if (!member) return;
     if (!await confirm({
-      title: 'Issue New 10-Card',
-      message: 'Issue a new 10-card for this athlete? Purchase date will be set to today, expiry to today + 12 months, and sessions used will be recalculated from today\'s bookings onward.',
-      confirmText: 'Issue New Card',
+      title: 'Close & Issue New 10-Card',
+      message: `Close this card with ${sessionsUsed}/${tenCardTotal} sessions used and start a fresh card today? The closed card will appear in Card History after you click Save Changes. Click Cancel to abort.`,
+      confirmText: 'Close & Issue New',
+      variant: 'default',
+    })) {
+      return;
+    }
+
+    // Project the new card values in the form so the coach can preview before Save.
+    const todayDate = new Date();
+    const today = `${todayDate.getFullYear()}-${String(todayDate.getMonth() + 1).padStart(2, '0')}-${String(todayDate.getDate()).padStart(2, '0')}`;
+    const expiryDate = new Date(todayDate);
+    expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+    const expiry = `${expiryDate.getFullYear()}-${String(expiryDate.getMonth() + 1).padStart(2, '0')}-${String(expiryDate.getDate()).padStart(2, '0')}`;
+
+    setPurchaseDate(today);
+    setTenCardExpiry(expiry);
+    setSessionsUsed(0);
+    setTenCardNotes(''); // New card starts with blank notes; coach types fresh ones for the new card
+    setPendingClose(true);
+  };
+
+  const handleCancelPendingClose = () => {
+    if (!member) return;
+    // Revert form to current member state.
+    const original = member.ten_card_purchase_date || '';
+    setPurchaseDate(original.includes('T') ? original.split('T')[0] : original);
+    setSessionsUsed(member.ten_card_sessions_used || 0);
+    setTenCardTotal(member.ten_card_total || 10);
+    const origExpiry = member.ten_card_expiry_date || '';
+    setTenCardExpiry(origExpiry.includes('T') ? origExpiry.split('T')[0] : origExpiry);
+    setTenCardNotes(member.ten_card_notes || '');
+    setPendingClose(false);
+  };
+
+  const toggleArchiveExpanded = (id: string) => {
+    setExpandedArchiveIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const startEditingNote = (entry: ArchiveEntry) => {
+    setEditingNoteArchiveId(entry.id);
+    setEditingNoteText(entry.notes || '');
+  };
+
+  const cancelEditingNote = () => {
+    setEditingNoteArchiveId(null);
+    setEditingNoteText('');
+  };
+
+  const handleCloseAndRenewSub = async () => {
+    if (!member) return;
+    if (!await confirm({
+      title: 'Close & Renew Subscription',
+      message: `Close this subscription (${subscriptionStatus}${subscriptionEnd ? ', ends ' + subscriptionEnd : ''}) and start a fresh one today? Click Save Changes to commit or Cancel to abort.`,
+      confirmText: 'Close & Renew',
       variant: 'default',
     })) {
       return;
     }
 
     const todayDate = new Date();
-    const today = todayDate.toISOString().split('T')[0]; // YYYY-MM-DD
-    const expiry = new Date(todayDate.getTime() + 365 * 24 * 60 * 60 * 1000)
-      .toISOString().split('T')[0];
+    const today = `${todayDate.getFullYear()}-${String(todayDate.getMonth() + 1).padStart(2, '0')}-${String(todayDate.getDate()).padStart(2, '0')}`;
+    const endDate = new Date(todayDate);
+    endDate.setFullYear(endDate.getFullYear() + 1);
+    const newEnd = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`;
 
-    setPurchaseDate(today);
-    setTenCardExpiry(expiry);
-    // Recalc sessions_used from bookings on/after today so a session the
-    // athlete already attended today (e.g. 10:00 class, card bought after)
-    // is counted on the new card without a second Recalc click.
-    const count = await recalculateSessionsUsed(today);
-    setSessionsUsed(count);
+    setSubscriptionStatus('active');
+    setSubscriptionEnd(newEnd);
+    setSubscriptionNotes('');
+    setPendingSubClose(true);
+  };
+
+  const handleCancelPendingSubClose = () => {
+    if (!member) return;
+    setSubscriptionStatus(member.athlete_subscription_status || 'expired');
+    const origEnd = member.athlete_subscription_end || '';
+    setSubscriptionEnd(origEnd.includes('T') ? origEnd.split('T')[0] : origEnd);
+    setSubscriptionNotes(member.subscription_notes || '');
+    setPendingSubClose(false);
+  };
+
+  const toggleSubArchiveExpanded = (id: string) => {
+    setExpandedSubArchiveIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const startEditingSubNote = (entry: SubArchiveEntry) => {
+    setEditingSubNoteArchiveId(entry.id);
+    setEditingSubNoteText(entry.notes || '');
+  };
+
+  const cancelEditingSubNote = () => {
+    setEditingSubNoteArchiveId(null);
+    setEditingSubNoteText('');
+  };
+
+  const saveSubArchiveNote = async () => {
+    if (!editingSubNoteArchiveId) return;
+    setSavingSubNote(true);
+    try {
+      const res = await authFetch('/api/coach/subscription-archive', {
+        method: 'PATCH',
+        body: JSON.stringify({ id: editingSubNoteArchiveId, notes: editingSubNoteText }),
+      });
+      if (!res.ok) {
+        toast.error('Failed to update note');
+        return;
+      }
+      const newNote = editingSubNoteText.length > 0 ? editingSubNoteText : null;
+      setSubArchive(prev =>
+        prev.map(a => (a.id === editingSubNoteArchiveId ? { ...a, notes: newNote } : a))
+      );
+      setEditingSubNoteArchiveId(null);
+      setEditingSubNoteText('');
+      toast.success('Note updated');
+    } catch (e) {
+      console.error('Failed to update subscription archive note', e);
+      toast.error('Failed to update note');
+    } finally {
+      setSavingSubNote(false);
+    }
+  };
+
+  const saveArchiveNote = async () => {
+    if (!editingNoteArchiveId) return;
+    setSavingNote(true);
+    try {
+      const res = await authFetch('/api/coach/ten-card-archive', {
+        method: 'PATCH',
+        body: JSON.stringify({ id: editingNoteArchiveId, notes: editingNoteText }),
+      });
+      if (!res.ok) {
+        toast.error('Failed to update note');
+        return;
+      }
+      // Update local archive state
+      const newNote = editingNoteText.length > 0 ? editingNoteText : null;
+      setArchive(prev =>
+        prev.map(a => (a.id === editingNoteArchiveId ? { ...a, notes: newNote } : a))
+      );
+      setEditingNoteArchiveId(null);
+      setEditingNoteText('');
+      toast.success('Note updated');
+    } catch (e) {
+      console.error('Failed to update archive note', e);
+      toast.error('Failed to update note');
+    } finally {
+      setSavingNote(false);
+    }
+  };
+
+  const formatDateDe = (iso: string): string => {
+    // 'YYYY-MM-DD' → 'DD.MM.YY'
+    const s = iso.includes('T') ? iso.split('T')[0] : iso;
+    const [y, m, d] = s.split('-');
+    if (!y || !m || !d) return s;
+    return `${d}.${m}.${y.slice(2)}`;
   };
 
   const sessionsRemaining = tenCardTotal - sessionsUsed;
@@ -376,6 +669,43 @@ export default function TenCardModal({
 
             {activeSection === '10card' ? (
               <>
+                {/* Close & Issue New Card Button (top) */}
+                <div className="pb-4 border-b">
+                  {pendingClose ? (
+                    <div className="rounded-lg border border-amber-300 bg-amber-50 p-3">
+                      <p className="text-sm font-medium text-amber-900">
+                        Close pending — not yet saved
+                      </p>
+                      <p className="text-xs text-amber-800 mt-1">
+                        New card defaults to today. <span className="font-semibold">Change Purchase Date below</span> if the new card should start on a different day (e.g. tomorrow, when today&apos;s session was the last on the old card).
+                      </p>
+                      <p className="text-xs text-amber-800 mt-1">
+                        Click <span className="font-semibold">Save Changes</span> to commit, or <span className="font-semibold">Revert</span> to abort.
+                      </p>
+                      <button
+                        onClick={handleCancelPendingClose}
+                        className="mt-2 px-3 py-1.5 bg-white hover:bg-gray-50 border border-amber-400 text-amber-900 text-sm rounded-lg transition"
+                      >
+                        Revert
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <button
+                        onClick={handleCloseAndIssueNew}
+                        disabled={!member.ten_card_purchase_date}
+                        className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg transition"
+                      >
+                        <RefreshCw size={18} />
+                        Close &amp; Issue New
+                      </button>
+                      <p className="text-xs text-gray-500 mt-2">
+                        Archives the current card with its bookings, then issues a fresh card (purchase today, expiry +12 months, 0 sessions used). Changes are previewed in the form fields and only persist when you click Save Changes.
+                      </p>
+                    </>
+                  )}
+                </div>
+
                 {/* Purchase Date */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -455,6 +785,23 @@ export default function TenCardModal({
                   </p>
                 </div>
 
+                {/* Notes — free-text for payment-tracking on this card */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Notes
+                  </label>
+                  <textarea
+                    value={tenCardNotes}
+                    onChange={(e) => setTenCardNotes(e.target.value)}
+                    rows={2}
+                    placeholder="e.g. paid by PayPal to Mimi 14.05.26"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 text-sm"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Payment trail or anything else worth remembering. Archived with the card when you Close &amp; Issue New.
+                  </p>
+                </div>
+
                 {/* Bookings list — sessions consumed/upcoming on this card */}
                 <div className="pt-4 border-t">
                   <h4 className="text-sm font-medium text-gray-700 mb-2">
@@ -516,22 +863,164 @@ export default function TenCardModal({
                   })()}
                 </div>
 
-                {/* Issue New Card Button */}
+                {/* Card History */}
                 <div className="pt-4 border-t">
-                  <button
-                    onClick={handleResetCard}
-                    className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition"
-                  >
-                    <RefreshCw size={18} />
-                    Issue New Card
-                  </button>
-                  <p className="text-xs text-gray-500 mt-2">
-                    Use this when the athlete has bought another 10-card. Sets purchase date to today, expiry to today + 12 months, and recalculates sessions used from today&apos;s bookings.
-                  </p>
+                  <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <History size={16} />
+                    Card History
+                  </h4>
+                  {archiveLoading ? (
+                    <p className="text-xs text-gray-500">Loading…</p>
+                  ) : archive.length === 0 ? (
+                    <p className="text-xs text-gray-500">No closed cards yet.</p>
+                  ) : (
+                    <div className="space-y-1">
+                      {archive.map(entry => {
+                        const isExpanded = expandedArchiveIds.has(entry.id);
+                        const closedDate = entry.closed_at.split('T')[0];
+                        const snapshot = entry.bookings_snapshot || [];
+                        return (
+                          <div key={entry.id} className="border border-gray-200 rounded">
+                            <button
+                              onClick={() => toggleArchiveExpanded(entry.id)}
+                              className="w-full flex items-center justify-between gap-2 px-3 py-2 text-left text-xs hover:bg-gray-50 transition"
+                            >
+                              <div className="flex items-center gap-2">
+                                {isExpanded ? (
+                                  <ChevronDown size={14} className="text-gray-500" />
+                                ) : (
+                                  <ChevronRight size={14} className="text-gray-500" />
+                                )}
+                                <span className="font-mono text-gray-700">
+                                  {formatDateDe(entry.purchase_date)} — {formatDateDe(closedDate)}
+                                </span>
+                                <span className="text-gray-500">·</span>
+                                <span className="font-medium text-gray-800">
+                                  {entry.sessions_used}/{entry.total}
+                                </span>
+                              </div>
+                              <span className="text-[10px] text-gray-400">
+                                {snapshot.length} {snapshot.length === 1 ? 'booking' : 'bookings'}
+                              </span>
+                            </button>
+                            {isExpanded && (
+                              <div className="border-t border-gray-100 px-3 py-2 bg-gray-50">
+                                {snapshot.length === 0 ? (
+                                  <p className="text-[11px] text-gray-500">No bookings recorded on this card.</p>
+                                ) : (
+                                  <div className="divide-y divide-gray-200">
+                                    {snapshot.map(b => (
+                                      <div key={b.booking_id} className="flex items-center justify-between py-1 text-[11px] text-gray-700">
+                                        <div className="flex items-center gap-2">
+                                          <span className="font-mono">{b.date}</span>
+                                          <span className="text-gray-500">{b.time?.slice(0, 5)}</span>
+                                          {!b.is_self && (
+                                            <span className="italic text-purple-700">{b.booker_name}</span>
+                                          )}
+                                        </div>
+                                        <span className={`text-[10px] px-1.5 py-0.5 rounded ${
+                                          b.status === 'confirmed'
+                                            ? 'bg-green-100 text-green-700'
+                                            : 'bg-orange-100 text-orange-700'
+                                        }`}>
+                                          {b.status === 'confirmed' ? 'attended' : b.status === 'no_show' ? 'no-show' : 'late-cancel'}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                                {/* Notes — view + edit/delete. */}
+                                <div className="mt-2">
+                                  {editingNoteArchiveId === entry.id ? (
+                                    <div className="space-y-1">
+                                      <textarea
+                                        value={editingNoteText}
+                                        onChange={(e) => setEditingNoteText(e.target.value)}
+                                        rows={2}
+                                        placeholder="Notes (leave empty to delete)"
+                                        className="w-full px-2 py-1.5 border border-gray-300 rounded text-[11px] text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#178da6]"
+                                      />
+                                      <div className="flex items-center gap-1.5">
+                                        <button
+                                          onClick={saveArchiveNote}
+                                          disabled={savingNote}
+                                          className="px-2 py-1 bg-[#178da6] hover:bg-[#14758c] disabled:bg-gray-300 text-white text-[10px] rounded transition"
+                                        >
+                                          {savingNote ? 'Saving…' : 'Save'}
+                                        </button>
+                                        <button
+                                          onClick={cancelEditingNote}
+                                          disabled={savingNote}
+                                          className="px-2 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 text-[10px] rounded transition"
+                                        >
+                                          Cancel
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-start justify-between gap-2">
+                                      {entry.notes ? (
+                                        <p className="text-[11px] text-gray-600 italic flex-1">Notes: {entry.notes}</p>
+                                      ) : (
+                                        <p className="text-[11px] text-gray-400 italic flex-1">No notes</p>
+                                      )}
+                                      <button
+                                        onClick={() => startEditingNote(entry)}
+                                        className="text-[10px] text-blue-600 hover:text-blue-800 underline whitespace-nowrap"
+                                      >
+                                        {entry.notes ? 'Edit' : 'Add note'}
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </>
             ) : (
               <>
+                {/* Close & Renew Subscription Button (top) */}
+                <div className="pb-4 border-b">
+                  {pendingSubClose ? (
+                    <div className="rounded-lg border border-amber-300 bg-amber-50 p-3">
+                      <p className="text-sm font-medium text-amber-900">
+                        Renew pending — not yet saved
+                      </p>
+                      <p className="text-xs text-amber-800 mt-1">
+                        New subscription defaults to active, starting today, ending in 1 year. Adjust the fields below if needed.
+                      </p>
+                      <p className="text-xs text-amber-800 mt-1">
+                        Click <span className="font-semibold">Save Changes</span> to commit, or <span className="font-semibold">Revert</span> to abort.
+                      </p>
+                      <button
+                        onClick={handleCancelPendingSubClose}
+                        className="mt-2 px-3 py-1.5 bg-white hover:bg-gray-50 border border-amber-400 text-amber-900 text-sm rounded-lg transition"
+                      >
+                        Revert
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <button
+                        onClick={handleCloseAndRenewSub}
+                        disabled={subscriptionStatus === 'expired'}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg transition"
+                      >
+                        <RefreshCw size={18} />
+                        Close &amp; Renew
+                      </button>
+                      <p className="text-xs text-gray-500 mt-2">
+                        Archives the current subscription with its notes, then starts a fresh one (active, today + 1 year, blank notes). Changes are previewed and only persist when you click Save Changes.
+                      </p>
+                    </>
+                  )}
+                </div>
+
                 {/* Subscription Status */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -569,6 +1058,23 @@ export default function TenCardModal({
                   </p>
                 </div>
 
+                {/* Notes — free-text for payment-tracking on this subscription */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Notes
+                  </label>
+                  <textarea
+                    value={subscriptionNotes}
+                    onChange={(e) => setSubscriptionNotes(e.target.value)}
+                    rows={2}
+                    placeholder="e.g. paid by PayPal to Mimi 14.05.26"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 text-sm"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Payment trail or anything else worth remembering. Leave empty to clear.
+                  </p>
+                </div>
+
                 {/* Quick Actions */}
                 <div className="pt-4 border-t space-y-3">
                   <p className="text-sm font-medium text-gray-700">Quick Actions</p>
@@ -603,6 +1109,100 @@ export default function TenCardModal({
                       Expire Now
                     </button>
                   </div>
+                </div>
+
+                {/* Subscription History */}
+                <div className="pt-4 border-t">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <History size={16} />
+                    Subscription History
+                  </h4>
+                  {subArchiveLoading ? (
+                    <p className="text-xs text-gray-500">Loading…</p>
+                  ) : subArchive.length === 0 ? (
+                    <p className="text-xs text-gray-500">No closed subscriptions yet.</p>
+                  ) : (
+                    <div className="space-y-1">
+                      {subArchive.map(entry => {
+                        const isExpanded = expandedSubArchiveIds.has(entry.id);
+                        const closedDate = entry.closed_at.split('T')[0];
+                        return (
+                          <div key={entry.id} className="border border-gray-200 rounded">
+                            <button
+                              onClick={() => toggleSubArchiveExpanded(entry.id)}
+                              className="w-full flex items-center justify-between gap-2 px-3 py-2 text-left text-xs hover:bg-gray-50 transition"
+                            >
+                              <div className="flex items-center gap-2">
+                                {isExpanded ? (
+                                  <ChevronDown size={14} className="text-gray-500" />
+                                ) : (
+                                  <ChevronRight size={14} className="text-gray-500" />
+                                )}
+                                <span className="font-mono text-gray-700">
+                                  {entry.start_date ? formatDateDe(entry.start_date) : '—'} — {entry.end_date ? formatDateDe(entry.end_date) : 'unlimited'}
+                                </span>
+                                <span className="text-gray-500">·</span>
+                                <span className="font-medium text-gray-800">
+                                  {entry.status ?? '—'}
+                                  {entry.tier ? ` (${entry.tier})` : ''}
+                                </span>
+                              </div>
+                              <span className="text-[10px] text-gray-400">
+                                closed {formatDateDe(closedDate)}
+                              </span>
+                            </button>
+                            {isExpanded && (
+                              <div className="border-t border-gray-100 px-3 py-2 bg-gray-50">
+                                <div className="mt-1">
+                                  {editingSubNoteArchiveId === entry.id ? (
+                                    <div className="space-y-1">
+                                      <textarea
+                                        value={editingSubNoteText}
+                                        onChange={(e) => setEditingSubNoteText(e.target.value)}
+                                        rows={2}
+                                        placeholder="Notes (leave empty to delete)"
+                                        className="w-full px-2 py-1.5 border border-gray-300 rounded text-[11px] text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                      />
+                                      <div className="flex items-center gap-1.5">
+                                        <button
+                                          onClick={saveSubArchiveNote}
+                                          disabled={savingSubNote}
+                                          className="px-2 py-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white text-[10px] rounded transition"
+                                        >
+                                          {savingSubNote ? 'Saving…' : 'Save'}
+                                        </button>
+                                        <button
+                                          onClick={cancelEditingSubNote}
+                                          disabled={savingSubNote}
+                                          className="px-2 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 text-[10px] rounded transition"
+                                        >
+                                          Cancel
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-start justify-between gap-2">
+                                      {entry.notes ? (
+                                        <p className="text-[11px] text-gray-600 italic flex-1">Notes: {entry.notes}</p>
+                                      ) : (
+                                        <p className="text-[11px] text-gray-400 italic flex-1">No notes</p>
+                                      )}
+                                      <button
+                                        onClick={() => startEditingSubNote(entry)}
+                                        className="text-[10px] text-blue-600 hover:text-blue-800 underline whitespace-nowrap"
+                                      >
+                                        {entry.notes ? 'Edit' : 'Add note'}
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </>
             )}

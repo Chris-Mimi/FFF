@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { authFetch } from '@/lib/auth-fetch';
 import { useRouter } from 'next/navigation';
 import { MemberStatus, MembershipType, ClassType, Member, getAge } from '@/types/member';
+import { sessionStartInstant } from '@/lib/bookingRules';
 
 export function useMemberData() {
   const router = useRouter();
@@ -155,7 +156,7 @@ export function useMemberData() {
     const daysParam = timeframe === 'all' ? 36500 : timeframe;
     setLoading(true);
     try {
-      let query = supabase.from('members').select('id, email, name, display_name, phone, status, account_type, primary_member_id, athlete_trial_start, athlete_subscription_status, athlete_subscription_start, athlete_subscription_end, subscription_tier, created_at, membership_types, ten_card_purchase_date, ten_card_sessions_used, ten_card_total, ten_card_expiry_date, date_of_birth, class_types, gender, guardian_only, primary_payment_method, ten_card_holder_id');
+      let query = supabase.from('members').select('id, email, name, display_name, phone, status, account_type, primary_member_id, athlete_trial_start, athlete_subscription_status, athlete_subscription_start, athlete_subscription_end, subscription_tier, created_at, membership_types, ten_card_purchase_date, ten_card_sessions_used, ten_card_total, ten_card_expiry_date, ten_card_notes, subscription_notes, date_of_birth, class_types, gender, guardian_only, primary_payment_method, ten_card_holder_id');
 
       if (status === 'subscriptions') {
         query = query
@@ -253,7 +254,7 @@ export function useMemberData() {
       const tenCardHolders = (membersData || [])
         .filter(m => (m.membership_types || []).includes('ten_card'));
       if (tenCardHolders.length > 0) {
-        const todayIso = new Date().toISOString().split('T')[0];
+        const nowMs = Date.now();
         const tenCardHolderIds = tenCardHolders.map(m => m.id);
         // Kids sharing a holder's card don't appear in tenCardHolders themselves
         // (they may have membership_types=['family_member'] or different types) but
@@ -268,14 +269,14 @@ export function useMemberData() {
 
         const { data: tenCardBookings } = await supabase
           .from('bookings')
-          .select('member_id, status, weekly_sessions!inner(date), members!inner(id, ten_card_holder_id, primary_payment_method, membership_types)')
+          .select('member_id, status, weekly_sessions!inner(date, time), members!inner(id, ten_card_holder_id, primary_payment_method, membership_types)')
           .in('status', ['confirmed', 'no_show', 'late_cancel'])
           .in('member_id', relevantMemberIds);
 
         type Row = {
           member_id: string;
           status: 'confirmed' | 'no_show' | 'late_cancel';
-          weekly_sessions: { date: string } | { date: string }[];
+          weekly_sessions: { date: string; time: string } | { date: string; time: string }[];
           members: { id: string; ten_card_holder_id: string | null; primary_payment_method: string | null; membership_types: string[] | null } | { id: string; ten_card_holder_id: string | null; primary_payment_method: string | null; membership_types: string[] | null }[];
         };
         // Normalize purchase date to YYYY-MM-DD for safe string comparison against
@@ -300,7 +301,13 @@ export function useMemberData() {
           // Bound by the holder's card purchase date — bookings before that
           // belong to a previous card and should not count against this one.
           if (purchaseDate && ws.date < purchaseDate) return;
-          if (ws.date >= todayIso) {
+          // Past/upcoming split by date+time vs now (Berlin TZ-safe via
+          // sessionStartInstant — naïve `new Date('YYYY-MM-DDTHH:MM')` would
+          // be interpreted as runtime-local on Vercel and shift by 2h). A
+          // 10:00 session today reads "past" at 10:01 instead of staying
+          // "upcoming" until midnight.
+          const sessionMs = sessionStartInstant(ws.date, ws.time || '00:00:00').getTime();
+          if (sessionMs >= nowMs) {
             if (row.status !== 'confirmed') return; // only confirmed reserves a future slot
             upcomingTenCardMap[holderId] = (upcomingTenCardMap[holderId] || 0) + 1;
           } else {

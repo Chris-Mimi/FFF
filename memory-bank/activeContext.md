@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 217
-**Updated:** 2026-05-13 (Session 349 close v3 — activeContext prune pass. The file was 32k tokens / ~16% of the context window every session start. Removed ~40 lines of stale Landmines (S341-and-older bulleted entries + 4 code-truth paragraph entries from S344). Promoted 3 broad-class rules into `claude-rules.md`: coach mutations on athlete-owned data must run server-side with service-role; Stripe subscriptions must always collect payment + webhook handlers must fetch authoritative state; `new Date(\`${date}T${time}\`)` and `.toISOString().split('T')[0]` are TZ bug classes — use the local-TZ helpers. Code-truth landmines deleted outright — git history retains them, and the code itself is the source of truth.
+**Version:** 218
+**Updated:** 2026-05-14 (Session 350 — full close-and-renew lifecycle for 10-cards AND subscriptions. New `ten_card_archive` + `subscription_archive` tables, Close & Issue New / Close & Renew flows with deferred-save pattern, editable archived notes, 10-card warning badges on Session Management modal, chip past/upcoming TZ fix.)
 
 ---
 
@@ -21,13 +21,13 @@
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history scan._
 
-**First action:** Nothing urgent. S349 closed an invisible foundation bug (the chip mis-render was the visible tip; 5+ other queries were silently truncating) and put durable rules in place so future Claude sessions catch the class proactively. Pull main, dev server, pick a carry-over below.
+**First action:** Live-test the new Close & Renew flow for subscriptions on a real upcoming renewal (Aline-style scenario: pays today for next year, but the new period should start when the old one ends). Also confirm the 10-card warning badges (Card full / 1 left / 2 left / Over by N) look right on the Session Management modal across a few real sessions.
 
 **Files to open first if continuing code work:**
-- [memory-bank/database-and-growth.md](memory-bank/database-and-growth.md) — NEW. Plain-English playbook for the 1000-row cap, the kitchen/dining-room analogy, the 7-category scaling map, search UX options. Both Chris-readable and Claude-readable.
-- [memory-bank/claude-rules.md](memory-bank/claude-rules.md) — new hard rule for "never `.from(growing_table).select()` without a filter or pagination."
-- [hooks/coach/useMemberData.ts](hooks/coach/useMemberData.ts) — the chip-fix pattern (paginate by member_id; normalize purchase-date string).
-- [hooks/coach/useCoachData.ts](hooks/coach/useCoachData.ts) — search-limit tripwire (`[search-limit-tripwire]` console.warn at ≥90% of 2000).
+- [components/coach/TenCardModal.tsx](components/coach/TenCardModal.tsx) — Close & Issue New + Close & Renew flows, deferred-save pattern (`pendingClose` / `pendingSubClose`), editable archived notes.
+- [app/api/coach/close-ten-card/route.ts](app/api/coach/close-ten-card/route.ts) + [app/api/coach/close-subscription/route.ts](app/api/coach/close-subscription/route.ts) — service-role endpoints; archive snapshot + member reset transactionally.
+- [hooks/coach/useSessionDetails.ts](hooks/coach/useSessionDetails.ts) — per-booking 10-card attribution: badge fires only when the session date >= the active card's purchase_date.
+- [components/coach/BookingListItem.tsx](components/coach/BookingListItem.tsx) — 4-tier badge (overage / full / 1 left / 2 left) + red/amber border on confirmed and waitlist rows.
 
 **Carry-over status:**
 - ⏳ S347 Stripe zombies confirmation — Tobias / Zoran / Veronika / Soledad / Claudia. Use `scripts/probe-member-subscription.ts <email>` to check who's reactivated.
@@ -147,6 +147,16 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 350 (2026-05-14 — Opus 4.7) — TEN-CARD / SUBSCRIPTION CLOSE-AND-RENEW LIFECYCLE + COACH-SIDE WARNING BADGES + CHIP TZ FIX:**
+- **Full close-and-renew lifecycle for both payment systems.** Two new archive tables (`ten_card_archive`, `subscription_archive`) preserve closed-card/closed-sub history. Two new endpoints ([app/api/coach/close-ten-card/route.ts](app/api/coach/close-ten-card/route.ts), [app/api/coach/close-subscription/route.ts](app/api/coach/close-subscription/route.ts)) snapshot the active state + reset to a fresh one in one server-side transaction (`requireCoach` + service-role per the S344 rule).
+- **Deferred-save UX pattern.** Clicking "Close & Issue New" (or "Close & Renew") sets `pendingClose` / `pendingSubClose`, projects the new values into the form fields for preview, and shows an amber "Close pending" banner with a Revert button. Save commits via the API; closing the modal or clicking Revert aborts cleanly. Caught a critical bug on first test where the API fired immediately on confirm — fix was to defer to Save like the rest of the modal already did.
+- **Editable start dates.** API accepts `newPurchaseDate` / `newStartDate` / `newEndDate` etc., defaulting to today / today+12mo (cards) or today+1y (subs). Form fields are editable in pending mode so coach can defer the new card to tomorrow (Aline scenario: today's session is the last on the old card; new card shouldn't pick it up).
+- **Notes — three new TEXT columns.** `members.ten_card_notes`, `members.subscription_notes`, plus the existing `ten_card_archive.notes` (already in schema) and new `subscription_archive.notes`. Active-card notes editable in modal, persist with Save. On Close & Issue New / Close & Renew, the OLD notes carry into the archive row's `notes`, NEW notes start blank. Archived notes are also editable inline — expand the closed-card/sub row, click Edit / Add note, save via PATCH endpoint. Empty save = delete.
+- **Card History + Subscription History sections.** Collapsed rows showing `DD.MM.YY — DD.MM.YY · N/total` (cards) or `start — end · status (tier)` (subs). Click to expand → frozen bookings snapshot (cards) or notes-only (subs). Notes editable inline.
+- **Coach-side 10-card warning badges on Session Management modal.** [components/coach/BookingListItem.tsx](components/coach/BookingListItem.tsx) + [hooks/coach/useSessionDetails.ts](hooks/coach/useSessionDetails.ts) `tenCardRemaining`. Four tiers: red `⚠ Over by N` / red `⚠ Card full` / red `⚠ 1 left` / amber `2 left`. Fires on confirmed AND waitlist rows. Attribution rule: badge fires only if session date >= active card's `purchase_date` — bookings before that fall on a previous (archived) card and don't show the badge. Tried an archive-fallback attribution; rolled it back because the archive only stores the frozen final count (10/10) and labeling 10 past sessions as "Card full" was misleading. Shared-card kids inherit the holder's remaining count.
+- **Chip past/upcoming TZ fix.** [hooks/coach/useMemberData.ts](hooks/coach/useMemberData.ts) — past/upcoming split now uses `sessionStartInstant(date, time)` (Berlin TZ-safe) compared against `Date.now()` instead of date-only string comparison vs `new Date().toISOString().split('T')[0]`. A session today at 10:00 is correctly classified as "past" at 10:01 instead of staying "upcoming" until midnight. Closes the original Aline chip 9+1/10 bug from her last session this morning.
+- **SQL applied manually** (per gitignore-on-SQL convention): `database/20260514_session350_ten_card_archive.sql`, `database/20260514_session350_subscription_archive.sql`, plus `ALTER TABLE members ADD COLUMN ten_card_notes/subscription_notes`, plus RLS SELECT policies for coaches on both archive tables.
+
 **Session 349 (2026-05-13 — Opus 4.7) — 10-CARD CHIP FIX + POSTGREST 1000-ROW CAP AUDIT + SCALING PLAYBOOK:**
 - **The visible bug.** Max & Ole Labudda's 10-card chip on Members page rendered `9/10 ⚠` (counter says 9, but past+upcoming attribution said 6). Two root causes stacked:
   1. **PostgREST 1000-row cap.** [hooks/coach/useMemberData.ts](hooks/coach/useMemberData.ts) fetched ALL active bookings system-wide (2,019 total) with no member-side filter. Supabase silently truncates at 1,000. The most-recent bookings — exactly the ones the chip needed — were pruned. Fixed by filtering `.in('member_id', [holders + sharers])`.
@@ -205,16 +215,7 @@ Athlete Tools
 - Daily Vercel cron at [app/api/cron/expire-memberships/route.ts](app/api/cron/expire-memberships/route.ts) flips active rows past `end_date` to `expired`. `vercel.json` schedule = 06:00 UTC. CRON_SECRET env var Production-only.
 - Manual deploy steps: SQL migration applied via Supabase SQL editor; CRON_SECRET added to Vercel Production + redeployed.
 
-**Session 345 (2026-05-09 → 2026-05-10 — Opus 4.7) — WHITEBOARD CLEANUP + STRIPE ZOMBIE INVESTIGATION + TENCARDMODAL POLISH:**
-- **Whiteboard backfill** ([scripts/clean-whiteboard-and-book.ts](scripts/clean-whiteboard-and-book.ts)): two `--apply` passes (second added kids aliases anton/max/lenny/luisa with full-name targets + family_member tiebreak). Total: 92 confirmed bookings inserted, 168 WOD whiteboards rewritten, 1063 names removed. 10-card Recalc still owed: Nico Enzmann, Kim Salzgeber.
-- **Stripe trial zombies** — Stefan G + Tobias showing as cash-renew while Justine + Thomas Graf showed Auto-renew. Probe revealed Justine's local row was stale `'active'` while Stripe said `'trialing'`. Root cause: [`app/api/stripe/webhook/route.ts:185`](app/api/stripe/webhook/route.ts#L185) `checkout.session.completed` was hard-coding `status='active'` and relying on `customer.subscription.*` to correct it (race / non-fire). Fix: webhook now fetches from Stripe API and writes real status.
-- **Sync script** ([scripts/sync-subscriptions-from-stripe.ts](scripts/sync-subscriptions-from-stripe.ts)) reconciled 9 of 19 local rows (`active → trialing`). 5 STALE rows (Tobias, Zoran, Veronika, Soledad, Claudia) match Stripe's own zombie state — separate Stripe-side issue, will lapse via `athlete_subscription_end` over the next 4-26 days.
-- **Trial-signup root cause + fix**: [`app/api/stripe/create-checkout/route.ts`](app/api/stripe/create-checkout/route.ts) was missing `payment_method_collection`, falling back to Stripe's `'if_required'` default which lets users start a trial without a card. Fix: `payment_method_collection: 'always'` + `trial_settings.end_behavior.missing_payment_method: 'cancel'` as backstop. Verified incognito with fresh email — card now required.
-- **TenCardModal polish**: "Reset Card" → "Issue New Card" (Chris bought another card for Rosita today). Auto-recalcs sessions_used from today's bookings, sets expiry to today + 12mo. Past/upcoming filter now uses date+time vs now (browser TZ) instead of date-only.
-- **Banner triplet**: SubscriptionsDueBanner now treats `trialing` as a green "Trial · monthly" chip (same green as Auto-renew, distinct label).
-- **Push-protection incident**: Stripe restricted key got pasted into Notes file → committed → blocked by GitHub push protection. Soft-reset, key removed from notes, re-committed clean. Key was already expired by then.
-
-**Older sessions (57-344):** See `project-history/` folder.
+**Older sessions (57-345):** See `project-history/` folder.
 
 ---
 

@@ -26,6 +26,8 @@ export interface Member {
   ten_card_sessions_used: number;
   ten_card_total?: number;
   ten_card_expiry_date?: string | null;
+  ten_card_notes?: string | null;
+  subscription_notes?: string | null;
   attendance_count?: number;
   last_attendance_date?: string | null;
   upcoming_ten_card_bookings?: number;

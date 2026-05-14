@@ -21,6 +21,9 @@ export interface Booking {
   booked_at: string;
   updated_at: string;
   is_og: boolean;
+  // null if athlete isn't paying with a 10-card on this booking. Otherwise the
+  // holder's remaining sessions (counter delta, can be negative for overage per S347).
+  tenCardRemaining: number | null;
   member: {
     id: string;
     name: string | null;
@@ -79,7 +82,8 @@ export function useSessionDetails(
       setNewCapacity(sessionData.capacity);
       setNewTime(padTime(sessionData.time));
 
-      // Fetch bookings with member details
+      // Fetch bookings with member details + 10-card fields so the booking row can
+      // surface a "Last session!" / "2 left" badge for athletes paying via 10-card.
       const { data: bookingsData, error: bookingsError } = await supabase
         .from('bookings')
         .select(`
@@ -93,7 +97,13 @@ export function useSessionDetails(
             name,
             email,
             display_name,
-            account_type
+            account_type,
+            membership_types,
+            primary_payment_method,
+            ten_card_holder_id,
+            ten_card_total,
+            ten_card_sessions_used,
+            ten_card_purchase_date
           )
         `)
         .eq('session_id', sessionId)
@@ -101,16 +111,104 @@ export function useSessionDetails(
 
       if (bookingsError) throw bookingsError;
 
-      // Transform data to rename members to member for consistency
-      const transformedBookings = (bookingsData || []).map(booking => ({
-        id: booking.id,
-        status: booking.status as Booking['status'],
-        booked_at: booking.booked_at,
-        updated_at: booking.updated_at,
-        is_og: booking.is_og ?? false,
+      // For each 10-card booker, surface the holder's ACTIVE card state — but
+      // only if this session falls within the active card's window (date >=
+      // active card's purchase_date). Bookings on a previous card (now archived)
+      // get no badge, because the archive only stores the frozen final count and
+      // can't tell us what the running counter looked like at booking time —
+      // labelling 10 past sessions as "Card full" is misleading.
+      //
+      // Concrete cases:
+      //   - Markus on his current card (9/10): all his bookings within this card's
+      //     window show "1 left" — the actionable reminder to sell him a new card.
+      //   - Aline after coach closed her old card today and issued a new one
+      //     starting tomorrow: today's session falls BEFORE the new card's start,
+      //     so no badge fires (her old card is closed; her new card is fresh).
+      //   - Anyone with a fresh card (remaining > 2): no badge.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const bookersRaw = (bookingsData || []).map(b => (b as any).members);
+
+      type HolderCard = {
+        total: number;
+        used: number;
+        purchaseDate: string | null;
+      };
+      const holderMap = new Map<string, HolderCard>();
+
+      // Seed with booker's own row when they're their own holder; collect shared
+      // holder IDs for a separate fetch.
+      const sharedHolderIds = new Set<string>();
+      for (const m of bookersRaw) {
+        if (!m) continue;
+        const effective = m.primary_payment_method || m.membership_types?.[0] || null;
+        if (effective !== 'ten_card') continue;
+        if (m.ten_card_holder_id) {
+          sharedHolderIds.add(m.ten_card_holder_id as string);
+        } else {
+          const pd = m.ten_card_purchase_date
+            ? (m.ten_card_purchase_date as string).split('T')[0]
+            : null;
+          holderMap.set(m.id, {
+            total: m.ten_card_total ?? 10,
+            used: m.ten_card_sessions_used ?? 0,
+            purchaseDate: pd,
+          });
+        }
+      }
+
+      if (sharedHolderIds.size > 0) {
+        const { data: holders } = await supabase
+          .from('members')
+          .select('id, ten_card_total, ten_card_sessions_used, ten_card_purchase_date')
+          .in('id', Array.from(sharedHolderIds));
+        (holders || []).forEach(h => {
+          const pd = h.ten_card_purchase_date
+            ? (h.ten_card_purchase_date as string).split('T')[0]
+            : null;
+          holderMap.set(h.id, {
+            total: h.ten_card_total ?? 10,
+            used: h.ten_card_sessions_used ?? 0,
+            purchaseDate: pd,
+          });
+        });
+      }
+
+      const sessionDateForBooking = (sessionData?.date ?? '').includes('T')
+        ? (sessionData?.date ?? '').split('T')[0]
+        : (sessionData?.date ?? '');
+
+      // Transform data to rename members to member for consistency + compute tenCardRemaining.
+      const transformedBookings = (bookingsData || []).map(booking => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        member: (booking as any).members, // Rename members field to member
-      }));
+        const raw = (booking as any).members;
+        const effective = raw?.primary_payment_method || raw?.membership_types?.[0] || null;
+        let tenCardRemaining: number | null = null;
+        if (effective === 'ten_card' && raw) {
+          const holderId = (raw.ten_card_holder_id as string | null) || raw.id;
+          const card = holderMap.get(holderId);
+          // Only attribute if the session falls within the active card's window.
+          if (card?.purchaseDate && sessionDateForBooking >= card.purchaseDate) {
+            tenCardRemaining = card.total - card.used;
+          }
+        }
+        return {
+          id: booking.id,
+          status: booking.status as Booking['status'],
+          booked_at: booking.booked_at,
+          updated_at: booking.updated_at,
+          is_og: booking.is_og ?? false,
+          tenCardRemaining,
+          // Strip the 10-card fields from the public member shape; downstream only
+          // needs the original five.
+          member: {
+            id: raw?.id,
+            name: raw?.name ?? null,
+            email: raw?.email,
+            display_name: raw?.display_name ?? null,
+            account_type: raw?.account_type ?? null,
+          },
+        };
+      });
 
       setBookings(transformedBookings);
 
