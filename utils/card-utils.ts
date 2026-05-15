@@ -41,7 +41,7 @@ const KIDS_KEYWORDS = ['kids', 'kids & teens', 'kids and teens', 'fitkids turnen
 const getSessionTier = (title?: string): SessionTier => {
   if (!title) return 'standard';
   const lower = title.toLowerCase();
-  if (KIDS_KEYWORDS.some((k) => lower === k)) return 'kids';
+  if (KIDS_KEYWORDS.some((k) => lower === k || lower.startsWith(k))) return 'kids';
   if (FOUNDATIONS_KEYWORDS.some((k) => lower === k || lower.startsWith(k))) return 'foundations';
   return 'standard';
 };
