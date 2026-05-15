@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 219
-**Updated:** 2026-05-15 (Session 351 — trial-to-member linking + Path B drift-proof 10-card tracking. New `bookings.is_trial` + `linked_trial_name` + `ten_card_consumed` columns, `/api/coach/link-trial-to-member` endpoint, "Link to member" UI on trial chips with green "linked" badge + amber "Trial" badge on linked bookings. DB trigger now auto-recomputes `members.ten_card_sessions_used` on any booking change — including outright row deletions. Bulk reconcile of 11 drifters completed (8 over, 3 under).)
+**Version:** 220
+**Updated:** 2026-05-15 (Session 352 — kids calendar color regression fix + Gloria Stoffer family→primary profile merge. `KIDS_KEYWORDS` matcher switched from strict equality to `startsWith` so age-suffixed titles like "Kids & Teens 6-9" (added around 2026-04-20 when Mimi specified age groups) render in the lighter teal-400 again. Member merge done as a 3-statement SQL transaction in Supabase — bookings + wod_section_results repointed to new primary id, family-member row deleted; S351 trigger auto-resynced the 10-card counter.)
 
 ---
 
@@ -21,15 +21,18 @@
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history scan._
 
-**First action:** Once Chris has paper-card access (~2 days), enter `purchase_date` for the 10-card holders missing it, then click Recalc + Save on each to sync. After that they're auto-tracked by the S351 trigger forever. Until then, those holders' counters stay where they are (trigger bails on null `purchase_date`).
+**First action:** Visual-verify on prod that kids-class calendar cards render in the lighter teal-400 again (after Vercel deploys S352 commit `32f50d1`). Open `/coach`, scan the current week — any Kids & Teens / FitKids Turnen / Elternkind Turnen card with an age suffix should be light teal, not the dark WOD teal.
+
+**Second action:** Once Chris has paper-card access (~1 day from now), enter `purchase_date` for the 10-card holders missing it, then click Recalc + Save on each to sync. After that they're auto-tracked by the S351 trigger forever. Until then, those holders' counters stay where they are (trigger bails on null `purchase_date`).
 
 **Files to open first if continuing code work:**
-- [database/20260515_session351_ten_card_consumed.sql](database/20260515_session351_ten_card_consumed.sql) — column + trigger function + backfill + initial sync. Lives in DB now; file is for reference.
-- [app/api/coach/link-trial-to-member/route.ts](app/api/coach/link-trial-to-member/route.ts) — new endpoint, sets `is_trial=true` + `linked_trial_name` on insert; keeps the trial_names text entry intact.
-- [components/coach/SessionManagementModal.tsx](components/coach/SessionManagementModal.tsx) — trial chips render a `link` icon when not linked, green `linked` badge when linked. `linkedTrialNames` Map computed from confirmed `is_trial` bookings on the session.
-- [app/api/bookings/create/route.ts](app/api/bookings/create/route.ts) + [app/api/bookings/cancel/route.ts](app/api/bookings/cancel/route.ts) + [app/api/coach/cancel-member-booking/route.ts](app/api/coach/cancel-member-booking/route.ts) + [lib/coach/promoteFromWaitlist.ts](lib/coach/promoteFromWaitlist.ts) — all writes now set `ten_card_consumed`. NO manual `+/- 1` on the counter — the trigger handles it.
+- [utils/card-utils.ts](utils/card-utils.ts) — kids matcher now uses `startsWith` (same pattern foundations already used). If a future title needs a different prefix family (e.g. "Junior CrossFit"), add to `KIDS_KEYWORDS`.
+- [database/20260515_session351_ten_card_consumed.sql](database/20260515_session351_ten_card_consumed.sql) — S351 trigger + column. Lives in DB now; file is for reference.
+- [app/api/coach/link-trial-to-member/route.ts](app/api/coach/link-trial-to-member/route.ts) — S351 trial-link endpoint.
+- [components/coach/SessionManagementModal.tsx](components/coach/SessionManagementModal.tsx) — trial chips + link UI from S351.
 
 **Carry-over status:**
+- ⏳ S352 visual-verify kids-class calendar color on prod after Vercel deploys commit `32f50d1`.
 - ⏳ S351 paper-card sync — enter `purchase_date` for ~10 holders missing it, click Recalc + Save once each. After that, drift is mathematically impossible for that holder.
 - ⏳ S346 gym memberships live test — Add → Edit → Delete flow on `/coach/admin` Memberships tab; cron should auto-expire active rows past `end_date` at 06:00 UTC.
 - ⏳ S345 whiteboard backfill — Nico Enzmann still needs Recalc + Save. Kim Salzgeber done (S351 via bulk reconcile + trial-link).
@@ -149,6 +152,13 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 352 (2026-05-15 — Opus 4.7) — KIDS CALENDAR COLOR FIX + GLORIA STOFFER FAMILY→PRIMARY MERGE:**
+- **Kids cards rendered as WOD teal-700 since 2026-04-20.** Root cause: [utils/card-utils.ts:44](utils/card-utils.ts#L44) `KIDS_KEYWORDS` matched via strict equality after lowercasing. Around S295 (2026-04-19/20), Chris + Mimi edited `workout_titles` to add age suffixes — "Kids & Teens 6-9", "FitKids Turnen 4-6", etc. — and none of those exact-match the 5 base keywords. Foundations was already robust because its branch used `lower === k || lower.startsWith(k)`. Fix: same `startsWith` pattern for kids. One-line change, commit `32f50d1`.
+- **Gloria Stoffer family→primary profile merge.** She had a family-member row under Torben Stoffer (`cee4213e-9ebc-4439-a2c6-894dbed61186`) and registered her own standalone profile (`551e4612-a2a8-431f-8862-936f13205631`). 3-statement SQL transaction in Supabase: UPDATE `bookings.member_id` (old→new), UPDATE `wod_section_results.member_id` (old→new), DELETE old members row. Atomic; preserves original `bookings.created_at` and all score history. S351 trigger auto-resynced the new profile's 10-card counter via the member_id UPDATE.
+- **Pre-flight duplicate check returned a false positive.** `GROUP BY session_id HAVING COUNT(*) > 1` flagged the 2026-05-14 10:00 session as a duplicate. Inspection revealed both rows were already on the NEW profile — a `coach_cancelled` row at 10:19 followed by a fresh `confirmed` row at 19:31. Normal cancel-and-rebook, not a cross-profile collision. The check is worth keeping in future merge SOPs but the row-inspection follow-up is mandatory before deleting anything.
+- **Tables NOT migrated for Gloria (zero rows expected for family-member profiles):** `lift_records`, `benchmark_results`, `athlete_achievements`, `reactions` — all keyed off `auth.users.id`, and family-member profiles typically have no auth user. Verified before running the merge.
+- **No new landmines introduced.** Both fixes are operational; no architectural changes; no schema migrations; no new RPCs or endpoints.
+
 **Session 351 (2026-05-15 — Opus 4.7) — TRIAL-TO-MEMBER LINKING + PATH B DRIFT-PROOF 10-CARD TRACKING:**
 - **Trial-to-member linking.** New `bookings.is_trial` + `linked_trial_name` columns; new [app/api/coach/link-trial-to-member/route.ts](app/api/coach/link-trial-to-member/route.ts) (`requireCoach` + service-role); UI in [components/coach/SessionManagementModal.tsx](components/coach/SessionManagementModal.tsx) renders a link icon on each trial chip → inline member-picker → creates a confirmed booking with `is_trial=true` + `linked_trial_name=<chip text>`. **`weekly_sessions.trial_names` is preserved** as Chris's historical record of every trial ever held — the linking adds a parallel attendance row without erasing the trial chip. Trial chip then shows a green `linked` badge; the linked booking row shows an amber `Trial` badge. Capacity calcs everywhere now exclude `is_trial` bookings (they shadow the trial_names slot).
 - **+1 drift investigation (pre-S351 cause).** 11 of 29 ten-card holders drifting (38%). Patterns: legacy renewal carryover (Silvia +7, Hannah +6, Cleo +6 — counter wasn't reset when purchase_date moved forward), cancellation outside grace (Frieda et al, +2-3), missed-bump (Daniel et al, −1). Ran bulk reconcile to set everyone to current Recalc truth as Path B baseline.
@@ -205,17 +215,7 @@ Athlete Tools
   - **Movement extractor lift-link fix (closes S330 landmine).** Added `fetchLiftExerciseMap` in [utils/movement-analytics.ts](utils/movement-analytics.ts) that joins `barbell_lifts.exercise_id` → `exercises.display_name`. Threaded through 4 extractor call sites. Strict OHP was the trigger ("Strict Overhead Shoulder Press" in the Lifts catalogue, linked to display_name "Strict OH Press" — name-matching couldn't bridge them, so Movement Tracking showed stale 01.04 instead of Week 19). First attempt emitted `exercises.name` (slug-style for this row); follow-up corrected to `display_name || name`.
   - **Programming Notes ("My Notes" Coach Toolkit) formatting overhaul.** [components/coach/ProgrammingNotesTab.tsx](components/coach/ProgrammingNotesTab.tsx). Heading/list rendering wasn't reaching `<h1>` / `<ul>` / `<ol>` in preview (prose specificity clash with surrounding utilities). Fixed via explicit `components` overrides in ReactMarkdown with Tailwind classes. Added `whitespace-normal` on those elements to neutralize the wrapper's `whitespace-pre-wrap` (which is correct for paragraphs but caused blank lines inside lists/headings). Toolbar H1/H2/H3 buttons converted from indistinguishable Type icons to text labels. Enter auto-continues bullet/numbered lists (empty Enter exits the list). Numbered button increments from the previous line's number.
 
-**Session 347 (2026-05-11 — Opus 4.7) — 10-CARD SOFT-LIMIT + MEMBERS "10-CARD" TAB + COACH IMPERSONATION + SUBSCRIPTION BUTTON RESTYLE + STRIPE ZOMBIE WALKTHROUGH:**
-- **Trigger.** A mum tried to book her two kids (Max & Ole Labudda) and was hard-blocked because their 10-card counter said full. When Mimi opened the modal, it actually showed 7 used. Chris asked for a soft-limit, a proactive low-card tab, and a chip-vs-modal sync fix.
-- **10-card hard-block removed.** [app/api/bookings/create/route.ts](app/api/bookings/create/route.ts) — the `tenCardRemaining <= 0` 402-return deleted; counter increments past total (the `Math.min(used+1, total)` cap was the bug that hid overage). Expired card still blocks. Overage toast: "Session booked, but your 10-card is over its limit by N. Please purchase a new 10-card."
-- **New "10-Card" Members tab.** [app/coach/members/page.tsx](app/coach/members/page.tsx) + [hooks/coach/useMemberData.ts](hooks/coach/useMemberData.ts) + [types/member.ts](types/member.ts) (`MemberStatus` adds `'low-ten-card'`). Filter: `(ten_card_total ?? 10) - ten_card_sessions_used <= 1`. Sort: smallest remaining first (overages on top). Purple badge mirrors At-Risk pattern. `refreshData` now `Promise.all`s the list fetch + the count fetch.
-- **Stale-chip refresh.** `onOpenTenCard` triggers `refreshData()` before opening the modal, so chip + modal start from fresh data. Cheap safety net for the "chip 10/10 red while modal shows 7" drift case Mimi hit.
-- **Coach impersonation flow.** [scripts/admin-magic-link.ts](scripts/admin-magic-link.ts) + new [app/auth/impersonate/page.tsx](app/auth/impersonate/page.tsx). Uses Supabase admin `generateLink` to get a `hashed_token`, then the page exchanges it via `verifyOtp` client-side. Bypasses Supabase's verify endpoint entirely (whose redirect_to is bound to the token signature and falls back to Site URL, which our root page auto-signs-out). Used to log in as Kathrin to confirm she could see the cancel button — she could, just visually weak.
-- **Supabase URL Configuration:** Chris added `https://app.the-forge-functional-fitness.de/**` wildcard to Redirect URLs during the impersonation debugging. Required for magic-link generation.
-- **"Manage or Cancel Subscription" button restyle.** [components/athlete/AthletePagePaymentTab.tsx](components/athlete/AthletePagePaymentTab.tsx). Was subtle gray text (mistaken for body copy). Now outlined teal button (border + padding + fill-on-hover), full-width on mobile. Label renamed to surface cancel intent.
-- **Stripe zombie walkthrough.** Coached Chris through cancelling the 5 stuck `trialing` subs (Tobias, Zoran, Veronika, Soledad, Claudia). WhatsApp message sent in German. Sequence: cancel via Stripe Dashboard → Customer → Actions → Cancel subscription → Cancel immediately. Do NOT delete the customer. Webhook auto-syncs local DB. Athlete data (lift records, benchmarks, achievements) is preserved across the cancel/re-sub cycle — nothing FK-cascades from `subscriptions`.
-
-**Older sessions (57-346):** See `project-history/` folder.
+**Older sessions (57-347):** See `project-history/` folder.
 
 ---
 
