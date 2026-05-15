@@ -283,22 +283,28 @@ export async function POST(request: NextRequest) {
     // are off-capacity — OG athletes are admitted alongside the class but don't do the WOD,
     // so they don't consume a slot. Trial names live in weekly_sessions.trial_names (string[])
     // and DO consume capacity (matches the coach-side useBookingManagement check).
+    // is_trial bookings are also off-capacity (S351) — they shadow a trial_names entry which
+    // already counts; including them would double-book the slot.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const confirmedBookingCount = session.bookings?.filter((b: any) => b.status === 'confirmed' && !b.is_og).length || 0;
+    const confirmedBookingCount = session.bookings?.filter((b: any) => b.status === 'confirmed' && !b.is_og && !b.is_trial).length || 0;
     const trialCount = (session.trial_names as string[] | null)?.length ?? 0;
     const onCapacityCount = confirmedBookingCount + trialCount;
 
     // Determine booking status (confirmed or waitlist). capacity === 0 means unlimited.
     const bookingStatus = session.capacity === 0 || onCapacityCount < session.capacity ? 'confirmed' : 'waitlist';
 
-    // Create booking
+    // Create booking. ten_card_consumed=true if this booking eats a session from the
+    // holder's card. The DB trigger (S351 Path B) recomputes members.ten_card_sessions_used
+    // from the sum of consumed=true bookings — we no longer manually +1 the counter.
+    const consumesCard = bookingStatus === 'confirmed' && usesTenCard;
     const { data: booking, error: bookingError } = await supabase
       .from('bookings')
       .insert({
         session_id: sessionId,
         member_id: bookingMemberId,
         status: bookingStatus,
-        booked_at: new Date().toISOString()
+        booked_at: new Date().toISOString(),
+        ten_card_consumed: consumesCard,
       })
       .select()
       .single();
@@ -311,31 +317,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Increment 10-card sessions used on the HOLDER's card (not the booking member's
-    // own card if they share with a primary). Failure is logged, not surfaced — the
-    // booking is already created.
+    // For the response, re-read the holder's now-trigger-maintained counter so the UI
+    // gets accurate remaining.
     let newTenCardRemaining = tenCardRemaining;
-    if (booking.status === 'confirmed' && usesTenCard && holderCard) {
-      try {
-        const total = holderCard.ten_card_total || 10;
-        const used = holderCard.ten_card_sessions_used || 0;
-        // No cap — counter is allowed to exceed total so overage is visible to the coach.
-        const newSessionsUsed = used + 1;
-
-        const { error: updateError } = await supabase
-          .from('members')
-          .update({
-            ten_card_sessions_used: newSessionsUsed
-          })
-          .eq('id', holderCard.id);
-
-        if (updateError) {
-          console.error('Failed to increment 10-card sessions:', updateError);
-        } else {
-          newTenCardRemaining = total - newSessionsUsed;
-        }
-      } catch (error) {
-        console.error('Error handling 10-card logic:', error);
+    if (consumesCard && holderCard) {
+      const { data: refreshedHolder } = await supabase
+        .from('members')
+        .select('ten_card_total, ten_card_sessions_used')
+        .eq('id', holderCard.id)
+        .single();
+      if (refreshedHolder) {
+        newTenCardRemaining = (refreshedHolder.ten_card_total || 10) - (refreshedHolder.ten_card_sessions_used || 0);
       }
     }
 

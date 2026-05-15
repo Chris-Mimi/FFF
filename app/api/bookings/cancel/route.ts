@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
     // Fetch booking to verify ownership
     const { data: booking, error: fetchError } = await supabase
       .from('bookings')
-      .select('id, member_id, status, session_id')
+      .select('id, member_id, status, session_id, is_trial')
       .eq('id', bookingId)
       .single();
 
@@ -109,13 +109,51 @@ export async function POST(request: NextRequest) {
       if (isLocked) newStatus = 'late_cancel';
     }
 
-    // Cancel the booking
+    // 10-card refund decision (S351 Path B): flip ten_card_consumed=false on the
+    // booking row when the athlete is within grace. The DB trigger then drops the
+    // holder's counter automatically. Past grace = no refund (consumed stays true).
+    let refundMessage = '';
+    let refundConsumed = false;
+    let isTenCardCancel = false;
+
+    if (booking.status === 'confirmed' && !booking.is_trial) {
+      const { data: member } = await supabase
+        .from('members')
+        .select('id, membership_types, primary_payment_method')
+        .eq('id', booking.member_id)
+        .single();
+
+      const effectiveMethod = member?.primary_payment_method || member?.membership_types?.[0] || null;
+      isTenCardCancel = effectiveMethod === 'ten_card';
+
+      if (isTenCardCancel && session) {
+        const rules = await getBookingRules();
+        const gracePeriodHours = rules.ten_card_refund_hours;
+        const sessionDateTime = sessionStartInstant(session.date, session.time);
+        const now = new Date();
+        const hoursUntilSession = (sessionDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+        const withinGracePeriod = hoursUntilSession >= gracePeriodHours;
+
+        if (withinGracePeriod) {
+          refundConsumed = true;
+          refundMessage = ' Your 10-card session has been refunded.';
+        } else {
+          refundMessage = ` Note: 10-card session NOT refunded (cancellation less than ${gracePeriodHours} hours before class).`;
+        }
+      }
+    }
+
+    const cancelUpdate: { status: typeof newStatus; updated_at: string; ten_card_consumed?: boolean } = {
+      status: newStatus,
+      updated_at: new Date().toISOString(),
+    };
+    if (refundConsumed) {
+      cancelUpdate.ten_card_consumed = false;
+    }
+
     const { error: cancelError } = await supabase
       .from('bookings')
-      .update({
-        status: newStatus,
-        updated_at: new Date().toISOString()
-      })
+      .update(cancelUpdate)
       .eq('id', bookingId);
 
     if (cancelError) {
@@ -124,68 +162,6 @@ export async function POST(request: NextRequest) {
         { error: 'Failed to cancel booking' },
         { status: 500 }
       );
-    }
-
-    // Refund 10-card session with grace period.
-    // Walk to the actual holder of the card (kid sharing parent's card → refund parent's row).
-    let refundMessage = '';
-    if (booking.status === 'confirmed') {
-      const { data: member } = await supabase
-        .from('members')
-        .select('id, ten_card_sessions_used, membership_types, primary_payment_method, ten_card_holder_id')
-        .eq('id', booking.member_id)
-        .single();
-
-      const effectiveMethod = member?.primary_payment_method || member?.membership_types?.[0] || null;
-      const usesTenCard = effectiveMethod === 'ten_card';
-      const holderId = usesTenCard && member ? (member.ten_card_holder_id || member.id) : null;
-
-      let holderUsed = 0;
-      if (usesTenCard && member) {
-        if (holderId === member.id) {
-          holderUsed = member.ten_card_sessions_used || 0;
-        } else {
-          const { data: holder } = await supabase
-            .from('members')
-            .select('ten_card_sessions_used')
-            .eq('id', holderId)
-            .single();
-          holderUsed = holder?.ten_card_sessions_used || 0;
-        }
-      }
-
-      // Grace period from coach-configurable booking rules
-      const rules = await getBookingRules();
-      const gracePeriodHours = rules.ten_card_refund_hours;
-      let withinGracePeriod = false;
-
-      if (session) {
-        const sessionDateTime = sessionStartInstant(session.date, session.time);
-        const now = new Date();
-        const hoursUntilSession = (sessionDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
-        withinGracePeriod = hoursUntilSession >= gracePeriodHours;
-      }
-
-      if (usesTenCard && holderId && holderUsed > 0 && withinGracePeriod) {
-        try {
-          const { error: updateError } = await supabase
-            .from('members')
-            .update({
-              ten_card_sessions_used: holderUsed - 1
-            })
-            .eq('id', holderId);
-
-          if (updateError) {
-            console.error('Failed to refund 10-card session:', updateError);
-          } else {
-            refundMessage = ' Your 10-card session has been refunded.';
-          }
-        } catch (error) {
-          console.error('Error handling 10-card refund:', error);
-        }
-      } else if (usesTenCard && !withinGracePeriod) {
-        refundMessage = ` Note: 10-card session NOT refunded (cancellation less than ${gracePeriodHours} hours before class).`;
-      }
     }
 
     // Clean up scores for this member on this session's workout

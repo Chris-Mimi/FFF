@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { requireCoach, isAuthError } from '@/lib/auth-api';
-import { getEffectivePaymentMethod } from '@/types/member';
 
 // Service-role client bypasses RLS so cleanup of cross-user wod_section_results
 // + lift_records actually completes. The browser-side equivalent in
@@ -26,7 +25,7 @@ export async function POST(request: NextRequest) {
 
     const { data: booking, error: fetchError } = await supabaseAdmin
       .from('bookings')
-      .select('id, member_id, session_id, status')
+      .select('id, member_id, session_id, status, is_trial')
       .eq('id', bookingId)
       .single();
 
@@ -35,48 +34,27 @@ export async function POST(request: NextRequest) {
     }
 
     const memberId: string = booking.member_id;
+    const isTrialBooking: boolean = booking.is_trial ?? false;
+
+    // S351 Path B: coach cancel always refunds. Flip ten_card_consumed=false in
+    // the same UPDATE so the DB trigger drops the counter automatically. is_trial
+    // bookings were never consumed, so skip the flip.
+    const cancelUpdate: { status: string; updated_at: string; ten_card_consumed?: boolean } = {
+      status: 'coach_cancelled',
+      updated_at: new Date().toISOString(),
+    };
+    if (!isTrialBooking) {
+      cancelUpdate.ten_card_consumed = false;
+    }
 
     const { error: updateError } = await supabaseAdmin
       .from('bookings')
-      .update({ status: 'coach_cancelled', updated_at: new Date().toISOString() })
+      .update(cancelUpdate)
       .eq('id', bookingId);
 
     if (updateError) {
       console.error('cancel-member-booking update failed:', updateError);
       return NextResponse.json({ error: 'Failed to cancel booking' }, { status: 500 });
-    }
-
-    // 10-card refund — walks to ten_card_holder_id for family-shared cards.
-    const { data: member } = await supabaseAdmin
-      .from('members')
-      .select('membership_types, ten_card_sessions_used, primary_payment_method, ten_card_holder_id')
-      .eq('id', memberId)
-      .single();
-
-    if (member) {
-      const effectiveMethod = getEffectivePaymentMethod({
-        primary_payment_method: member.primary_payment_method as never,
-        membership_types: member.membership_types as never,
-      });
-
-      if (effectiveMethod === 'ten_card') {
-        const holderId = member.ten_card_holder_id || memberId;
-        let holderUsed = member.ten_card_sessions_used || 0;
-        if (holderId !== memberId) {
-          const { data: holder } = await supabaseAdmin
-            .from('members')
-            .select('ten_card_sessions_used')
-            .eq('id', holderId)
-            .single();
-          holderUsed = holder?.ten_card_sessions_used || 0;
-        }
-        if (holderUsed > 0) {
-          await supabaseAdmin
-            .from('members')
-            .update({ ten_card_sessions_used: holderUsed - 1 })
-            .eq('id', holderId);
-        }
-      }
     }
 
     // Cleanup scores for this member on this session's WOD.

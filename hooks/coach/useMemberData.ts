@@ -270,7 +270,7 @@ export function useMemberData() {
         const { data: tenCardBookings } = await supabase
           .from('bookings')
           .select('member_id, status, weekly_sessions!inner(date, time), members!inner(id, ten_card_holder_id, primary_payment_method, membership_types)')
-          .in('status', ['confirmed', 'no_show', 'late_cancel'])
+          .eq('ten_card_consumed', true)
           .in('member_id', relevantMemberIds);
 
         type Row = {

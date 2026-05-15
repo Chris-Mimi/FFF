@@ -39,46 +39,28 @@ export async function promoteFromWaitlist(
 
   const firstWaitlist = waitlistBookings[0];
 
-  await supabase
-    .from('bookings')
-    .update({ status: 'confirmed', updated_at: new Date().toISOString() })
-    .eq('id', firstWaitlist.id);
-
+  // S351 Path B: figure out whether this booking should consume a card session,
+  // then set ten_card_consumed in the same UPDATE that promotes to confirmed.
+  // The DB trigger handles the counter.
   const { data: promotedMember } = await supabase
     .from('members')
-    .select('id, membership_types, primary_payment_method, ten_card_holder_id, ten_card_sessions_used, ten_card_total')
+    .select('id, membership_types, primary_payment_method')
     .eq('id', firstWaitlist.member_id)
     .single();
 
   const promotedMethod = promotedMember?.primary_payment_method || promotedMember?.membership_types?.[0] || null;
   const promotedUsesTenCard = promotedMethod === 'ten_card';
-  const promotedHolderId = promotedUsesTenCard && promotedMember
-    ? (promotedMember.ten_card_holder_id || promotedMember.id)
-    : null;
 
-  if (promotedUsesTenCard && promotedHolderId && promotedMember) {
-    let holderUsed: number;
-    let holderTotal: number;
-    if (promotedHolderId === promotedMember.id) {
-      holderUsed = promotedMember.ten_card_sessions_used || 0;
-      holderTotal = promotedMember.ten_card_total || 10;
-    } else {
-      const { data: holder } = await supabase
-        .from('members')
-        .select('ten_card_sessions_used, ten_card_total')
-        .eq('id', promotedHolderId)
-        .single();
-      holderUsed = holder?.ten_card_sessions_used || 0;
-      holderTotal = holder?.ten_card_total || 10;
-    }
-
-    if (holderUsed < holderTotal) {
-      await supabase
-        .from('members')
-        .update({ ten_card_sessions_used: holderUsed + 1 })
-        .eq('id', promotedHolderId);
-    }
-  }
+  await supabase
+    .from('bookings')
+    .update({
+      status: 'confirmed',
+      updated_at: new Date().toISOString(),
+      // Trial-linked bookings are never on waitlist (they're created directly as
+      // confirmed by /api/coach/link-trial-to-member), so no is_trial check here.
+      ten_card_consumed: promotedUsesTenCard,
+    })
+    .eq('id', firstWaitlist.id);
 
   notifyWaitlistPromoted(firstWaitlist.member_id, session.date, session.time);
 

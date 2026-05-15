@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Lock, Trash2, Unlock, X } from 'lucide-react';
+import { Link2, Lock, Trash2, Unlock, X } from 'lucide-react';
 import { useSessionDetails } from '@/hooks/coach/useSessionDetails';
 import { useSessionEditing } from '@/hooks/coach/useSessionEditing';
 import { useBookingManagement } from '@/hooks/coach/useBookingManagement';
@@ -37,6 +37,9 @@ export default function SessionManagementModal({
   // Mobile detection
   const [isMobile, setIsMobile] = useState(false);
 
+  // Which trial_name (if any) currently has the "link to member" picker open
+  const [linkingTrial, setLinkingTrial] = useState<string | null>(null);
+
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
@@ -70,7 +73,18 @@ export default function SessionManagementModal({
   // Filter bookings by status. OG bookings are still status='confirmed' — they show in the
   // confirmed list but don't count toward capacity.
   const confirmedBookings = sessionDetails.bookings.filter(b => b.status === 'confirmed');
-  const nonOgConfirmedCount = confirmedBookings.filter(b => !b.is_og).length;
+  // Map of trial_name → linked member display name, so the trial chip can show
+  // a "✓ linked to X" indicator (S351).
+  const linkedTrialNames = new Map<string, string>();
+  for (const b of confirmedBookings) {
+    if (b.is_trial && b.linked_trial_name) {
+      const memberName = b.member?.display_name || b.member?.name || 'member';
+      linkedTrialNames.set(b.linked_trial_name, memberName);
+    }
+  }
+  // is_trial bookings shadow a trial_names entry — exclude from capacity count
+  // (the trial_names entry already counts).
+  const nonOgConfirmedCount = confirmedBookings.filter(b => !b.is_og && !b.is_trial).length;
   const ogCount = confirmedBookings.filter(b => b.is_og).length;
   const waitlistBookings = sessionDetails.bookings.filter(b => b.status === 'waitlist');
   const noShowBookings = sessionDetails.bookings.filter(b => b.status === 'no_show');
@@ -291,24 +305,72 @@ export default function SessionManagementModal({
                   <h3 className='text-base font-semibold text-gray-800 mb-2'>
                     Trial Athletes ({sessionDetails.session.trial_names.length})
                   </h3>
-                  <div className='flex flex-wrap gap-2'>
-                    {sessionDetails.session.trial_names.map(name => (
-                      <span
-                        key={name}
-                        className='inline-flex items-center gap-1.5 bg-amber-100 text-amber-800 text-sm font-medium px-2.5 py-1 rounded-full border border-amber-200'
-                      >
-                        {name}
-                        <button
-                          type='button'
-                          onClick={() => bookingManagement.handleRemoveTrialAthlete(name)}
-                          className='hover:bg-amber-200 rounded-full w-4 h-4 flex items-center justify-center'
-                          title={`Remove ${name}`}
-                          aria-label={`Remove ${name}`}
-                        >
-                          <X size={12} />
-                        </button>
-                      </span>
-                    ))}
+                  <div className='flex flex-col gap-2'>
+                    {sessionDetails.session.trial_names.map(name => {
+                      const linkedTo = linkedTrialNames.get(name);
+                      const isLinked = Boolean(linkedTo);
+                      return (
+                      <div key={name} className='flex flex-col gap-1'>
+                        <div className='inline-flex items-center gap-1.5 bg-amber-100 text-amber-800 text-sm font-medium px-2.5 py-1 rounded-full border border-amber-200 self-start'>
+                          {name}
+                          {isLinked && (
+                            <span
+                              className='inline-flex items-center gap-0.5 text-[10px] text-emerald-700 bg-emerald-100 border border-emerald-300 px-1 py-0.5 rounded'
+                              title={`Linked to ${linkedTo}`}
+                            >
+                              <Link2 size={9} /> linked
+                            </span>
+                          )}
+                          {!isLinked && (
+                            <button
+                              type='button'
+                              onClick={() => setLinkingTrial(linkingTrial === name ? null : name)}
+                              className='hover:bg-amber-200 rounded-full w-4 h-4 flex items-center justify-center'
+                              title={`Link ${name} to a registered member`}
+                              aria-label={`Link ${name} to a registered member`}
+                            >
+                              <Link2 size={12} />
+                            </button>
+                          )}
+                          <button
+                            type='button'
+                            onClick={() => bookingManagement.handleRemoveTrialAthlete(name)}
+                            className='hover:bg-amber-200 rounded-full w-4 h-4 flex items-center justify-center'
+                            title={`Remove ${name}`}
+                            aria-label={`Remove ${name}`}
+                          >
+                            <X size={12} />
+                          </button>
+                        </div>
+                        {linkingTrial === name && (
+                          <div className='ml-2 flex items-center gap-2'>
+                            <select
+                              value=''
+                              onChange={async e => {
+                                const memberId = e.target.value;
+                                if (!memberId) return;
+                                await bookingManagement.handleLinkTrialToMember(name, memberId);
+                                setLinkingTrial(null);
+                              }}
+                              className='text-xs border border-gray-300 rounded px-2 py-1 flex-1 max-w-xs'
+                            >
+                              <option value=''>Select member to link…</option>
+                              {sessionDetails.availableMembers.map(m => (
+                                <option key={m.id} value={m.id}>{m.name}</option>
+                              ))}
+                            </select>
+                            <button
+                              type='button'
+                              onClick={() => setLinkingTrial(null)}
+                              className='text-xs text-gray-500 hover:text-gray-700'
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}

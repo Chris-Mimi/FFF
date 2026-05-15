@@ -1,6 +1,8 @@
 interface Booking {
   id: string;
   status: 'confirmed' | 'waitlist' | 'cancelled' | 'no_show' | 'late_cancel' | 'coach_cancelled';
+  is_og?: boolean;
+  is_trial?: boolean;
   member: {
     id: string;
   };
@@ -34,12 +36,12 @@ export function filterAvailableMembers(
 }
 
 /**
- * Calculate number of confirmed bookings
- * @param bookings - All bookings for session
- * @returns Count of confirmed bookings
+ * Calculate number of confirmed bookings that consume capacity.
+ * Excludes is_og (off-capacity by design) and is_trial (S351 — shadows a
+ * trial_names entry which already counts).
  */
 export function calculateConfirmedCount(bookings: Booking[]): number {
-  return bookings.filter(b => b.status === 'confirmed').length;
+  return bookings.filter(b => b.status === 'confirmed' && !b.is_og && !b.is_trial).length;
 }
 
 /**

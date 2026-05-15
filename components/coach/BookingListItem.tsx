@@ -94,6 +94,14 @@ export default function BookingListItem({
             OG
           </span>
         )}
+        {booking.is_trial && (
+          <span
+            className='text-[10px] font-bold text-amber-800 bg-amber-100 border border-amber-300 px-1.5 py-0.5 rounded'
+            title='Linked from a trial appearance — does not debit 10-card, does not consume capacity'
+          >
+            Trial
+          </span>
+        )}
         {isFamilyMember && (
           <span className='text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded'>
             family

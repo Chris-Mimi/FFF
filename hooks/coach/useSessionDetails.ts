@@ -21,6 +21,8 @@ export interface Booking {
   booked_at: string;
   updated_at: string;
   is_og: boolean;
+  is_trial: boolean;
+  linked_trial_name: string | null;
   // null if athlete isn't paying with a 10-card on this booking. Otherwise the
   // holder's remaining sessions (counter delta, can be negative for overage per S347).
   tenCardRemaining: number | null;
@@ -92,6 +94,8 @@ export function useSessionDetails(
           booked_at,
           updated_at,
           is_og,
+          is_trial,
+          linked_trial_name,
           members!bookings_member_id_fkey (
             id,
             name,
@@ -197,6 +201,8 @@ export function useSessionDetails(
           booked_at: booking.booked_at,
           updated_at: booking.updated_at,
           is_og: booking.is_og ?? false,
+          is_trial: booking.is_trial ?? false,
+          linked_trial_name: (booking as { linked_trial_name?: string | null }).linked_trial_name ?? null,
           tenCardRemaining,
           // Strip the 10-card fields from the public member shape; downstream only
           // needs the original five.

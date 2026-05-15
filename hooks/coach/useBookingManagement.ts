@@ -24,6 +24,7 @@ interface UseBookingManagementResult {
   handleManualBooking: () => Promise<void>;
   handleAddTrialAthlete: () => Promise<void>;
   handleRemoveTrialAthlete: (name: string) => Promise<void>;
+  handleLinkTrialToMember: (trialName: string, memberId: string) => Promise<void>;
   handleMarkNoShow: (bookingId: string, memberName: string) => Promise<void>;
   handleUndoNoShow: (bookingId: string, memberName: string) => Promise<void>;
   handleLateCancel: (bookingId: string, memberName: string) => Promise<void>;
@@ -178,6 +179,32 @@ export function useBookingManagement({
     } catch (error) {
       console.error('Error removing trial athlete:', error);
       toast.error('Failed to remove trial athlete');
+    }
+  };
+
+  const handleLinkTrialToMember = async (trialName: string, memberId: string) => {
+    const member = availableMembers.find(m => m.id === memberId);
+    const memberName = member?.name || 'this member';
+    if (!await confirm({
+      title: 'Link Trial to Member',
+      message: `Link ${trialName}'s trial to ${memberName}'s account?\n\nThis creates a confirmed booking for ${memberName} on this session. The 10-card is NOT debited.`,
+      confirmText: 'Link',
+      variant: 'default',
+    })) return;
+    try {
+      const res = await authFetch('/api/coach/link-trial-to-member', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, trialName, memberId }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error || 'Failed to link trial');
+      await onRefresh();
+      onSessionUpdated();
+      toast.success(`Linked ${trialName} to ${memberName}`);
+    } catch (error) {
+      console.error('Error linking trial to member:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to link trial');
     }
   };
 
@@ -378,6 +405,7 @@ export function useBookingManagement({
     handleManualBooking,
     handleAddTrialAthlete,
     handleRemoveTrialAthlete,
+    handleLinkTrialToMember,
     handleMarkNoShow,
     handleUndoNoShow,
     handleLateCancel,

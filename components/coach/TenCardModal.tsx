@@ -298,11 +298,14 @@ export default function TenCardModal({
         .map(c => c.id);
       if (debitMemberIds.length === 0) return 0;
 
+      // S351 Path B: source of truth is bookings.ten_card_consumed.
+      // The DB trigger normally keeps the counter in sync; Recalc is a manual
+      // re-sync if anything looks off.
       const { data: bookings, error } = await supabase
         .from('bookings')
-        .select('id, status, weekly_sessions!inner(date)')
+        .select('id, weekly_sessions!inner(date)')
         .in('member_id', debitMemberIds)
-        .in('status', ['confirmed', 'no_show', 'late_cancel'])
+        .eq('ten_card_consumed', true)
         .gte('weekly_sessions.date', purchaseDateStr);
 
       if (error) {
