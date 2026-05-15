@@ -21,7 +21,7 @@
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history scan._
 
-**First action:** Live-test the new Close & Renew flow for subscriptions on a real upcoming renewal (Aline-style scenario: pays today for next year, but the new period should start when the old one ends). Also confirm the 10-card warning badges (Card full / 1 left / 2 left / Over by N) look right on the Session Management modal across a few real sessions.
+**First action:** ✅ Close & Renew flow + 10-card warning badges confirmed working in production (2026-05-15).
 
 **Files to open first if continuing code work:**
 - [components/coach/TenCardModal.tsx](components/coach/TenCardModal.tsx) — Close & Issue New + Close & Renew flows, deferred-save pattern (`pendingClose` / `pendingSubClose`), editable archived notes.
@@ -30,7 +30,7 @@ _Updated at every session close. The "first 5 minutes of tomorrow" — read this
 - [components/coach/BookingListItem.tsx](components/coach/BookingListItem.tsx) — 4-tier badge (overage / full / 1 left / 2 left) + red/amber border on confirmed and waitlist rows.
 
 **Carry-over status:**
-- ⏳ S347 Stripe zombies confirmation — Tobias / Zoran / Veronika / Soledad / Claudia. Use `scripts/probe-member-subscription.ts <email>` to check who's reactivated.
+- ✅ S347 Stripe zombies — outreach complete (2026-05-15): Claudia reactivated; Soledad declined for now; Zoran + Tobias Baumstark said they would but haven't yet; Veronika not yet contacted. Ball is in athletes' court except Veronika (still needs message).
 - ⏳ S346 gym memberships live test — Add → Edit → Delete flow on `/coach/admin` Memberships tab; cron should auto-expire active rows past `end_date` at 06:00 UTC.
 - ⏳ S345 whiteboard backfill carry — Recalc Nico Enzmann + Kim Salzgeber 10-card counters (TenCardModal → Recalc → Save).
 - ⏳ S344 deletion-paths forward fix — two paths still skip wsr/lift_records/reactions cleanup: `handleDeleteIncident` ([app/coach/admin/page.tsx:231](app/coach/admin/page.tsx#L231)) + `handleDeleteSession` ([hooks/coach/useWODOperations.ts:534](hooks/coach/useWODOperations.ts#L534)). Plus reactions DELETE missing from all 4 cleanup paths.
@@ -239,7 +239,7 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-0. **S347 finish Stripe zombie cancellations.** 5 athletes, WhatsApp message already sent. Use `scripts/probe-member-subscription.ts <email>`.
+0. ~~S347 Stripe zombie cancellations~~ — outreach done 2026-05-15. Claudia reactivated; Soledad declined; Zoran + Tobias said yes but pending; Veronika still needs message.
 0a. **S347 verify "10-Card" Members tab on prod.** Confirm Max & Ole Labudda appear with the correct `8+1/10` chip (no ⚠) after the S349 fix.
 0c. **S346 gym memberships live-test on prod.** Add → Edit → Delete a contract; verify daily cron expired any rows past `end_date` at 06:00 UTC.
 0d. **Recalc 10-card counters for Nico Enzmann + Kim Salzgeber (S345 carry).** TenCardModal → Recalc → Save. They each got +1 confirmed booking from the whiteboard backfill that didn't auto-bump the counter.
