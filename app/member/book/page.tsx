@@ -401,6 +401,11 @@ export default function MemberBookingPage() {
       return;
     }
 
+    if (!familyFormData.date_of_birth) {
+      toast.warning('Please enter a date of birth');
+      return;
+    }
+
     setProcessing('family-edit');
     try {
       const { error } = await supabase
