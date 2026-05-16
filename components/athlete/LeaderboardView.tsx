@@ -57,11 +57,15 @@ interface WodSection {
     id: string;
     name: string;
     type: string;
+    description?: string;
+    exercises?: string[];
   }>;
   forge_benchmarks?: Array<{
     id: string;
     name: string;
     type: string;
+    description?: string;
+    exercises?: string[];
   }>;
 }
 
@@ -1169,14 +1173,37 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
             );
           })()}
 
-          {/* Section content preview */}
+          {/* Section content + benchmark detail preview */}
           {selectedItem && (() => {
             const selectedWodForPreview = wods.find(w => w.id === selectedWodId) || wods[0];
             const section = selectedWodForPreview?.sections[selectedItem.sectionIndex];
-            if (!section?.content?.trim()) return null;
+            if (!section) return null;
+
+            // If selected item is a benchmark, pull its detail off the JSONB snapshot
+            let bmDetail: { name: string; exercises?: string[]; description?: string } | null = null;
+            if (selectedItem.type === 'benchmark' && selectedItem.benchmarkId) {
+              bmDetail = section.benchmarks?.find(b => b.id === selectedItem.benchmarkId) || null;
+            } else if (selectedItem.type === 'forge_benchmark' && selectedItem.benchmarkId) {
+              bmDetail = section.forge_benchmarks?.find(b => b.id === selectedItem.benchmarkId) || null;
+            }
+            const hasBmExercises = (bmDetail?.exercises?.length ?? 0) > 0;
+            const hasBmDesc = !!bmDetail?.description?.trim();
+            const hasContent = !!section.content?.trim();
+            if (!hasBmExercises && !hasBmDesc && !hasContent) return null;
+
             return (
-              <div className='bg-gray-600 rounded-lg px-3 py-2 text-sm text-white whitespace-pre-wrap max-h-[120px] overflow-y-auto'>
-                {section.content}
+              <div className='bg-gray-600 rounded-lg px-3 py-2 text-sm text-white max-h-[160px] overflow-y-auto space-y-1'>
+                {hasBmExercises && (
+                  <div className='font-medium'>{bmDetail!.exercises!.join(' • ')}</div>
+                )}
+                {hasBmDesc && (
+                  <div className='whitespace-pre-wrap text-gray-200'>{bmDetail!.description}</div>
+                )}
+                {hasContent && (
+                  <div className={`whitespace-pre-wrap ${(hasBmExercises || hasBmDesc) ? 'text-gray-200 border-t border-white/15 pt-1 mt-1' : ''}`}>
+                    {section.content}
+                  </div>
+                )}
               </div>
             );
           })()}
