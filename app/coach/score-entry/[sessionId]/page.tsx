@@ -146,6 +146,38 @@ export default function ScoreEntryPage() {
                   </div>
                 )}
 
+              {/* Benchmark / Forge detail — exercises + description from JSONB snapshot */}
+              {selectedSection &&
+                ((selectedSection.benchmarks?.some(b => (b.exercises?.length ?? 0) > 0 || !!b.description?.trim()) ?? false) ||
+                  (selectedSection.forge_benchmarks?.some(f => (f.exercises?.length ?? 0) > 0 || !!f.description?.trim()) ?? false)) && (
+                  <div className="mt-2 px-3 py-2 bg-teal-50 rounded border border-teal-200 text-xs text-teal-900 space-y-2 max-h-40 overflow-y-auto">
+                    {selectedSection.benchmarks?.map((b, i) => {
+                      const hasExercises = (b.exercises?.length ?? 0) > 0;
+                      const hasDesc = !!b.description?.trim();
+                      if (!hasExercises && !hasDesc) return null;
+                      return (
+                        <div key={`bm-detail-${i}`}>
+                          <div className="font-semibold">{b.name}</div>
+                          {hasExercises && <div className="mt-0.5">{b.exercises!.join(' • ')}</div>}
+                          {hasDesc && <div className="mt-0.5 whitespace-pre-wrap text-teal-800/90">{b.description}</div>}
+                        </div>
+                      );
+                    })}
+                    {selectedSection.forge_benchmarks?.map((f, i) => {
+                      const hasExercises = (f.exercises?.length ?? 0) > 0;
+                      const hasDesc = !!f.description?.trim();
+                      if (!hasExercises && !hasDesc) return null;
+                      return (
+                        <div key={`fb-detail-${i}`}>
+                          <div className="font-semibold">{f.name}</div>
+                          {hasExercises && <div className="mt-0.5">{f.exercises!.join(' • ')}</div>}
+                          {hasDesc && <div className="mt-0.5 whitespace-pre-wrap text-teal-800/90">{f.description}</div>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
               {/* Section content preview */}
               {selectedSection?.content && (
                 <div className="mt-2 px-3 py-2 bg-gray-50 rounded border border-gray-200 text-xs text-gray-600 whitespace-pre-line max-h-32 overflow-y-auto">

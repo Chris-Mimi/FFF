@@ -216,6 +216,7 @@ interface BenchmarkOption {
   name: string;
   type: string;
   description: string | null;
+  exercises: string[] | null;
   source: 'standard' | 'forge';
 }
 
@@ -1381,8 +1382,8 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
   useEffect(() => {
     const loadBenchmarks = async () => {
       const [{ data: standard }, { data: forge }] = await Promise.all([
-        supabase.from('benchmark_workouts').select('id, name, type, description').order('name'),
-        supabase.from('forge_benchmarks').select('id, name, type, description').order('name'),
+        supabase.from('benchmark_workouts').select('id, name, type, description, exercises').order('name'),
+        supabase.from('forge_benchmarks').select('id, name, type, description, exercises').order('name'),
       ]);
 
       const options: BenchmarkOption[] = [
@@ -1554,10 +1555,15 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
       {/* Benchmark picker */}
       <BenchmarkDropdown benchmarks={benchmarks} selectedBenchmark={selectedBenchmark} onSelect={setSelectedBenchmark} />
 
-      {/* Benchmark description */}
-      {selectedBenchmark?.description?.trim() && (
-        <div className='bg-gray-600 rounded-lg px-3 py-2 text-sm text-white whitespace-pre-wrap max-h-[120px] overflow-y-auto'>
-          {selectedBenchmark.description}
+      {/* Benchmark detail: exercises + description */}
+      {(selectedBenchmark?.exercises?.length || selectedBenchmark?.description?.trim()) && (
+        <div className='bg-gray-600 rounded-lg px-3 py-2 text-sm text-white max-h-[160px] overflow-y-auto space-y-1'>
+          {selectedBenchmark.exercises && selectedBenchmark.exercises.length > 0 && (
+            <div className='font-medium'>{selectedBenchmark.exercises.join(' • ')}</div>
+          )}
+          {selectedBenchmark.description?.trim() && (
+            <div className='whitespace-pre-wrap text-gray-200'>{selectedBenchmark.description}</div>
+          )}
         </div>
       )}
 
