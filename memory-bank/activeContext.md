@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 220
-**Updated:** 2026-05-15 (Session 352 — kids calendar color regression fix + Gloria Stoffer family→primary profile merge. `KIDS_KEYWORDS` matcher switched from strict equality to `startsWith` so age-suffixed titles like "Kids & Teens 6-9" (added around 2026-04-20 when Mimi specified age groups) render in the lighter teal-400 again. Member merge done as a 3-statement SQL transaction in Supabase — bookings + wod_section_results repointed to new primary id, family-member row deleted; S351 trigger auto-resynced the 10-card counter.)
+**Version:** 221
+**Updated:** 2026-05-16 (Session 353 — two more parent-kid family-member cleanups using the Gloria pattern: Lenny Kleinert under Katja Brückner (two-profile merge, 4 duplicate bookings dropped) and Frieda Stromer under Burgl Stromer (single-profile case using a plpgsql DO block to INSERT new family_member row + migrate atomically). Plus two UX features: (age N) on coach Member cards next to names, and guardian_only accounts auto-select first family member on Book-a-Class with the "You" chip hidden. Commits were tagged session-352 due to label drift; actual work is S353.)
 
 ---
 
@@ -21,19 +21,21 @@
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history scan._
 
-**First action:** Visual-verify on prod that kids-class calendar cards render in the lighter teal-400 again (after Vercel deploys S352 commit `32f50d1`). Open `/coach`, scan the current week — any Kids & Teens / FitKids Turnen / Elternkind Turnen card with an age suffix should be light teal, not the dark WOD teal.
+**First action:** Visual-verify on prod (after Vercel deploys S353 commits `e9ff696` + `4ea2caf`): impersonate Katja Brückner — Book-a-Class should auto-select Lenny, no "You" chip rendered. Then check Members page → kids whose DOB is set show `(age N)`. (Lenny + Frieda both currently have NULL DOB; this is one of the carry-over items.)
 
-**Second action:** Once Chris has paper-card access (~1 day from now), enter `purchase_date` for the 10-card holders missing it, then click Recalc + Save on each to sync. After that they're auto-tracked by the S351 trigger forever. Until then, those holders' counters stay where they are (trigger bails on null `purchase_date`).
+**Second action:** Paper-card sync (S351 carry, now overdue) — enter `purchase_date` for the ~10 ten-card holders missing it, click Recalc + Save once each. Once done, they're auto-tracked by the S351 trigger forever.
 
 **Files to open first if continuing code work:**
-- [utils/card-utils.ts](utils/card-utils.ts) — kids matcher now uses `startsWith` (same pattern foundations already used). If a future title needs a different prefix family (e.g. "Junior CrossFit"), add to `KIDS_KEYWORDS`.
+- [components/coach/members/MemberCard.tsx](components/coach/members/MemberCard.tsx) — `(age N)` rendered via existing `getAge` helper. If you add a fourth UI surface for ages (Session Management booking list, family-member dropdown, etc.), the helper is already imported in [types/member.ts](types/member.ts).
+- [app/member/book/page.tsx](app/member/book/page.tsx) — guardian-only auto-select + "You" chip filter. The `fetchFamilyMembers` SELECT now pulls `guardian_only`; the default `bookingForMemberId` and the chip filter both branch on it.
+- [app/api/bookings/create/route.ts:101](app/api/bookings/create/route.ts#L101) — pre-existing server-side guardian_only 403 block. UI changes today align with this rule but don't introduce it.
 - [database/20260515_session351_ten_card_consumed.sql](database/20260515_session351_ten_card_consumed.sql) — S351 trigger + column. Lives in DB now; file is for reference.
-- [app/api/coach/link-trial-to-member/route.ts](app/api/coach/link-trial-to-member/route.ts) — S351 trial-link endpoint.
-- [components/coach/SessionManagementModal.tsx](components/coach/SessionManagementModal.tsx) — trial chips + link UI from S351.
+- [utils/card-utils.ts](utils/card-utils.ts) — S352 kids matcher (`startsWith` pattern). Reference if you need to add another tier or a different prefix family.
 
 **Carry-over status:**
-- ⏳ S352 visual-verify kids-class calendar color on prod after Vercel deploys commit `32f50d1`.
-- ⏳ S351 paper-card sync — enter `purchase_date` for ~10 holders missing it, click Recalc + Save once each. After that, drift is mathematically impossible for that holder.
+- ⏳ S353 visual-verify on prod: Katja impersonation → Book-a-Class auto-selects Lenny + "You" chip hidden. Member cards show `(age N)` once DOBs are entered.
+- ⏳ S353 fill in DOB for Lenny Kleinert + Frieda Stromer (both currently NULL) so the new age display kicks in for them.
+- ⏳ S352 paper-card sync — enter `purchase_date` for ~10 holders missing it, click Recalc + Save once each. After that, drift is mathematically impossible for that holder. (Overdue by 1+ day.)
 - ⏳ S346 gym memberships live test — Add → Edit → Delete flow on `/coach/admin` Memberships tab; cron should auto-expire active rows past `end_date` at 06:00 UTC.
 - ⏳ S345 whiteboard backfill — Nico Enzmann still needs Recalc + Save. Kim Salzgeber done (S351 via bulk reconcile + trial-link).
 - ⏳ S344 deletion-paths forward fix — two paths still skip wsr/lift_records/reactions cleanup: `handleDeleteIncident` ([app/coach/admin/page.tsx:231](app/coach/admin/page.tsx#L231)) + `handleDeleteSession` ([hooks/coach/useWODOperations.ts:534](hooks/coach/useWODOperations.ts#L534)). Plus reactions DELETE missing from all 4 cleanup paths.
@@ -152,6 +154,14 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 353 (2026-05-16 — Opus 4.7) — LENNY+FRIEDA FAMILY-MEMBER CLEANUPS + AGES ON CARDS + GUARDIAN-ONLY AUTO-SELECT:**
+- **Lenny Kleinert two-profile merge.** Mum (Katja Brückner) had registered Lenny as primary on her email AND as family_member — two Lenny profiles with the parent profile actually being hers, misnamed. Step 1: set `ten_card_holder_id` + `primary_payment_method='ten_card'` on the family-member row to wire the cascade. Step 2: atomic transaction — DELETE 4 duplicate Profile B bookings (May-9 dupes of April-23 originals — Lenny only attended once each), UPDATE bookings + wod_section_results from A→B, rename Profile A to Katja + `guardian_only=true`. Direction-of-drop mattered: A's bookings had `consumed=true` from S351 backfill, B's had `consumed=false` — dropping the wrong side would silently leave the counter at 5 instead of 9.
+- **Frieda Stromer single-profile cleanup.** Same anti-pattern, only one profile. Used a plpgsql `DO $$ ... END $$` block with `DECLARE v_new_id UUID` to INSERT new family_member row + reference its returning id in the subsequent UPDATEs, all in one transaction. Frieda's `gender='F'` travels to the new row, cleared on Burgl's (mum). Burgl gets `guardian_only=true` + `primary_payment_method='ten_card'`.
+- **A third Katja-named row (Katja Neumann, Wellpass, `neumann-kjl@gmx.de`)** surfaced in the name-search but is a completely different person per Chris — untouched.
+- **`(age N)` on coach Member cards** — [components/coach/members/MemberCard.tsx](components/coach/members/MemberCard.tsx). Subtle gray span next to member name, hidden when DOB is null. Uses the existing `getAge` helper already imported for class-type-buttons gating. Three other surfaces were candidates (Session Management booking list, family booking dropdown, all-three); Chris picked Members-page-only to keep scope tight.
+- **Guardian-only auto-select on Book-a-Class** — [app/member/book/page.tsx](app/member/book/page.tsx). FamilyMember type + SELECT pull `guardian_only`. Default `bookingForMemberId` is first family_member when primary is guardian-only (else self, unchanged). Booking-for chip selector filters out the primary entry when guardian-only → no "You" chip rendered. Server-side block at [app/api/bookings/create/route.ts:101](app/api/bookings/create/route.ts#L101) was already in place.
+- **Commits tagged session-352 by mistake** (date boundary slipped) — `e9ff696` (feature) + `4ea2caf` (Chris notes sync). Actual calendar-day work is S353. Not amended (prefer new commits over rewriting history).
+
 **Session 352 (2026-05-15 — Opus 4.7) — KIDS CALENDAR COLOR FIX + GLORIA STOFFER FAMILY→PRIMARY MERGE:**
 - **Kids cards rendered as WOD teal-700 since 2026-04-20.** Root cause: [utils/card-utils.ts:44](utils/card-utils.ts#L44) `KIDS_KEYWORDS` matched via strict equality after lowercasing. Around S295 (2026-04-19/20), Chris + Mimi edited `workout_titles` to add age suffixes — "Kids & Teens 6-9", "FitKids Turnen 4-6", etc. — and none of those exact-match the 5 base keywords. Foundations was already robust because its branch used `lower === k || lower.startsWith(k)`. Fix: same `startsWith` pattern for kids. One-line change, commit `32f50d1`.
 - **Gloria Stoffer family→primary profile merge.** She had a family-member row under Torben Stoffer (`cee4213e-9ebc-4439-a2c6-894dbed61186`) and registered her own standalone profile (`551e4612-a2a8-431f-8862-936f13205631`). 3-statement SQL transaction in Supabase: UPDATE `bookings.member_id` (old→new), UPDATE `wod_section_results.member_id` (old→new), DELETE old members row. Atomic; preserves original `bookings.created_at` and all score history. S351 trigger auto-resynced the new profile's 10-card counter via the member_id UPDATE.
@@ -199,23 +209,7 @@ Athlete Tools
   - **Project root cleaned.** 19 stale `.md` files moved to `Chris Notes/Archive/historical root docs/` (HANDOFF-*, PLAN.md, NEXT-SESSION-START-HERE.md, grok-tasks-*, EXERCISE_REFERENCE.md, etc.). Root is now 4 files: `README.md`, `CLAUDE.md`, `LICENSE`, new `WHERE-IS-EVERYTHING.md` (navigation map answering "I want to find X, where do I look?").
   - **Second hard rule in `claude-rules.md`:** documentation filing discipline — root for the 4 essentials only, decision tree for where new docs go by audience + lifetime, archival pattern, navigation map must be updated in the same commit as any rename.
 
-**Session 348 (2026-05-12 — Opus 4.7) — MANUAL WAITLIST PROMOTE + REP-MAX MOBILE UX + PERSONAL ACTIVITIES UPGRADE:**
-- **Manual waitlist promotion.** Coach can now promote a waitlister directly when a no-show frees a slot (no more bumping capacity to 11). New endpoint [app/api/coach/promote-waitlist/route.ts](app/api/coach/promote-waitlist/route.ts) (`requireCoach` + service-role) wraps the existing [lib/coach/promoteFromWaitlist.ts](lib/coach/promoteFromWaitlist.ts) helper — extended to accept optional `bookingId` (undefined = FIFO; set = specific row). Green Promote button on waitlist rows in [components/coach/SessionManagementModal.tsx](components/coach/SessionManagementModal.tsx), capacity-gated.
-- **Rep-max calculator mobile.** [components/athlete/RepMaxCalculatorModal.tsx](components/athlete/RepMaxCalculatorModal.tsx) — three commits: (1) inline +/- stepper buttons (native browser spinners don't render on mobile); (2) width tuning so 3-digit / `70,5` fit + hold-to-repeat via pointer events (400ms delay, 70ms interval); (3) German decimal comma display (`type='text'` + `inputMode='decimal'`, internal state period-separated for `parseFloat`).
-- **Personal activities (Logbook → Personal).** Four commits + two SQL migrations:
-  - Distance (km) field added next to Duration (min). Migration [database/20260512_session348_personal_activity_distance.sql](database/20260512_session348_personal_activity_distance.sql) adds `distance_km NUMERIC(6,2)`.
-  - "Sonstiges" picker now reveals a "Custom activity" text input — saves the name as the row's `activity_type` (column is TEXT per S332).
-  - Preset list expanded: Inlinern, Gehen, Klettern. Alphabetised. Default = `'Laufen'` literal (was `PERSONAL_ACTIVITY_TYPES[0]`, which alpha-sort changed to "Anderes Studio").
-  - Sonstiges option rendered as `+ Sonstiges (eigene)` in teal italic for cross-platform visual distinction.
-  - **Custom names persist per-athlete.** Migration [database/20260512_session348_personal_activity_custom_types.sql](database/20260512_session348_personal_activity_custom_types.sql) — new table, case-insensitive unique index, RLS. Auto-insert on activity save, render via `<optgroup>` next time. Delete via X chip below the dropdown. Past activities preserve their text-stored type.
-- **Earlier carry from same calendar-day:** `e9436b86 fix(session-348): TenCardModal recalc + bookings list walk shared-card debiters` (committed before this chat).
-- **Coached Claudia (Stripe zombie) through the reactivation flow.** Impersonation diagnostic confirmed her Payment tab buttons render correctly; the issue was UX (she only clicked "Manage or Cancel Subscription" instead of scrolling to the subscribe section). New script [scripts/probe-member-subscription.ts](scripts/probe-member-subscription.ts) for inspecting any member's subscription state going forward.
-- **Post-close additions:**
-  - **Athlete Guide rewrite ([Chris Notes/Forge app documentation/Forge-Athlete-Guide.md](Chris%20Notes/Forge%20app%20documentation/Forge-Athlete-Guide.md))** — reframed as coach-driven ("your coach logs your results for you"), not athlete-led. Pricing corrected to current €8/€10 tier split, personal activity log added, family-shared 10-card surfaced, waitlist promotion push noted. Two project memories saved: coach-driven score entry is canonical, movement demos are coach-side-only by Chris's pedagogical choice.
-  - **Movement extractor lift-link fix (closes S330 landmine).** Added `fetchLiftExerciseMap` in [utils/movement-analytics.ts](utils/movement-analytics.ts) that joins `barbell_lifts.exercise_id` → `exercises.display_name`. Threaded through 4 extractor call sites. Strict OHP was the trigger ("Strict Overhead Shoulder Press" in the Lifts catalogue, linked to display_name "Strict OH Press" — name-matching couldn't bridge them, so Movement Tracking showed stale 01.04 instead of Week 19). First attempt emitted `exercises.name` (slug-style for this row); follow-up corrected to `display_name || name`.
-  - **Programming Notes ("My Notes" Coach Toolkit) formatting overhaul.** [components/coach/ProgrammingNotesTab.tsx](components/coach/ProgrammingNotesTab.tsx). Heading/list rendering wasn't reaching `<h1>` / `<ul>` / `<ol>` in preview (prose specificity clash with surrounding utilities). Fixed via explicit `components` overrides in ReactMarkdown with Tailwind classes. Added `whitespace-normal` on those elements to neutralize the wrapper's `whitespace-pre-wrap` (which is correct for paragraphs but caused blank lines inside lists/headings). Toolbar H1/H2/H3 buttons converted from indistinguishable Type icons to text labels. Enter auto-continues bullet/numbered lists (empty Enter exits the list). Numbered button increments from the previous line's number.
-
-**Older sessions (57-347):** See `project-history/` folder.
+**Older sessions (57-348):** See `project-history/` folder.
 
 ---
 
