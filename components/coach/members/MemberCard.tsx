@@ -91,7 +91,13 @@ export default function MemberCard({
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
-            <h3 className="text-base font-semibold text-white">{member.display_name || member.name}</h3>
+            <h3 className="text-base font-semibold text-white">
+              {member.display_name || member.name}
+              {(() => {
+                const age = getAge(member.date_of_birth);
+                return age !== null ? <span className="ml-1.5 text-xs font-normal text-gray-400">(age {age})</span> : null;
+              })()}
+            </h3>
             {activeTab === 'at-risk' && (
               <span className="px-1.5 py-0.5 bg-orange-500/20 text-orange-300 text-xs rounded-full flex items-center gap-1">
                 <AlertTriangle size={10} />

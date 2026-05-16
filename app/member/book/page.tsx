@@ -37,6 +37,7 @@ interface FamilyMember {
   date_of_birth: string | null;
   relationship: 'self' | 'spouse' | 'child' | 'other';
   account_type: 'primary' | 'family_member';
+  guardian_only: boolean | null;
 }
 
 export default function MemberBookingPage() {
@@ -326,16 +327,26 @@ export default function MemberBookingPage() {
     try {
       const { data, error } = await supabase
         .from('members')
-        .select('id, display_name, name, date_of_birth, relationship, account_type')
+        .select('id, display_name, name, date_of_birth, relationship, account_type, guardian_only')
         .or(`id.eq.${userId},primary_member_id.eq.${userId}`)
         .order('account_type', { ascending: false }); // Primary first
 
       if (error) throw error;
-      setFamilyMembers(data || []);
+      const members = data || [];
+      setFamilyMembers(members);
 
-      // Set default booking member to primary user (yourself)
+      // Set default booking member. Guardian-only accounts can't self-book, so default
+      // to their first family member (saves a click). Falls back to userId if no family
+      // members exist yet — the server-side guard will reject the booking and the UI
+      // surface will show "+ Family" so they can add one.
       if (!bookingForMemberId) {
-        setBookingForMemberId(userId);
+        const primary = members.find(m => m.id === userId);
+        const firstFamily = members.find(m => m.account_type === 'family_member');
+        if (primary?.guardian_only && firstFamily) {
+          setBookingForMemberId(firstFamily.id);
+        } else {
+          setBookingForMemberId(userId);
+        }
       }
     } catch (error) {
       console.error('Error fetching family members:', error);
@@ -768,7 +779,9 @@ export default function MemberBookingPage() {
               </div>
 
               <div className="flex flex-wrap gap-2">
-                {familyMembers.map((member) => (
+                {familyMembers
+                  .filter(member => !(member.account_type === 'primary' && member.guardian_only))
+                  .map((member) => (
                   <div
                     key={member.id}
                     onClick={() => setBookingForMemberId(member.id)}
