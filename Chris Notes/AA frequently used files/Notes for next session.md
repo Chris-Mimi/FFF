@@ -21,9 +21,9 @@ http://192.168.178.75:3000
 * Mimi couldn't add a trial athlete
 * I added Fabian's birthday but it's not correct, I have to ask him next time he's in.
 * Workouts page: ability to mute/cancel athletes without clearing the group
-* Kids in Athletes list on Workouts page: Engels Frida, Frieda Strömer, Leopold Wischhöfer, Nico Enzmann, Silvia Maritati (Diapers & Dumbbells?), Tobias Schiegg? Gloria Stoffer? Lenny Kleinert x2? Luisa Gruber?
+* Kids in Athletes list on Workouts page: Engels Frida, Frieda Stromer, Leopold Wischhöfer, Nico Enzmann, Silvia Maritati (Diapers & Dumbbells?), Tobias Schiegg? 
 * Ask Claude for a Magic link script to access athlete's accounts to check screen views so I can help them click the right buttons. I just give Claude the email ad.
-* 
+* Make the Guardian Only athlete booking app always default to their family member and make sure they can't book themselves into a class.
 * Macbook still has internet problem at the box. Old Macbook Pro works fine.
 * Still have an issue when the Macbook has been on for a while on 2 Users that I switch to the other user and get a black screen, then I can't type anything or restart without holding down the start button.
 * 
