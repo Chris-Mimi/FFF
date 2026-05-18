@@ -37,6 +37,43 @@ const DAYS_OF_WEEK = [
   { value: 7, label: 'Sunday' }
 ];
 
+// --- Week-math helpers (local time, ISO week) ---
+function getMondayOfDate(d: Date): Date {
+  const result = new Date(d);
+  const day = result.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  result.setDate(result.getDate() + diff);
+  result.setHours(0, 0, 0, 0);
+  return result;
+}
+
+function formatYMD(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function getISOWeek(d: Date): { year: number; week: number } {
+  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dow = date.getUTCDay() || 7;
+  date.setUTCDate(date.getUTCDate() + 4 - dow);
+  const isoYear = date.getUTCFullYear();
+  const jan4 = new Date(Date.UTC(isoYear, 0, 4));
+  const jan4Dow = jan4.getUTCDay() || 7;
+  const firstThursday = new Date(Date.UTC(isoYear, 0, 4 + (4 - jan4Dow)));
+  const week = Math.floor((date.getTime() - firstThursday.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1;
+  return { year: isoYear, week };
+}
+
+function formatWeekRange(monday: Date): string {
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  const fmt = (d: Date) =>
+    d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+  return `${fmt(monday)} – ${fmt(sunday)}`;
+}
+
 export default function CoachSchedulePage() {
   const router = useRouter();
   const [templates, setTemplates] = useState<SessionTemplate[]>([]);
@@ -275,24 +312,72 @@ export default function CoachSchedulePage() {
   };
 
   const handleGenerateCurrentWeek = async () => {
-    // Calculate Monday of current week
-    const today = new Date();
-    const day = today.getDay();
-    const diff = day === 0 ? -6 : 1 - day; // Sunday: go back 6 days, others: calculate from Monday
-    const monday = new Date(today);
-    monday.setDate(today.getDate() + diff);
-
-    // Format as YYYY-MM-DD
-    const year = monday.getFullYear();
-    const month = String(monday.getMonth() + 1).padStart(2, '0');
-    const dayNum = String(monday.getDate()).padStart(2, '0');
-    const formattedDate = `${year}-${month}-${dayNum}`;
-
-    await handleGenerateWeek(formattedDate);
+    const monday = getMondayOfDate(new Date());
+    const { week } = getISOWeek(monday);
+    const range = formatWeekRange(monday);
+    const ok = await confirm({
+      title: 'Generate sessions for this week?',
+      message: `Week ${week}\n${range}\n\nGenerate all active templates for this week? Existing sessions for the same date+time are skipped.`,
+      confirmText: 'Generate',
+    });
+    if (!ok) return;
+    await handleGenerateWeek(formatYMD(monday));
   };
 
   const handleGenerateNextWeek = async () => {
-    await handleGenerateWeek(); // Uses default (next Monday)
+    const monday = getMondayOfDate(new Date());
+    const nextMonday = new Date(monday);
+    nextMonday.setDate(monday.getDate() + 7);
+    const { week } = getISOWeek(nextMonday);
+    const range = formatWeekRange(nextMonday);
+    const ok = await confirm({
+      title: 'Generate sessions for next week?',
+      message: `Week ${week}\n${range}\n\nGenerate all active templates for next week? Existing sessions for the same date+time are skipped.`,
+      confirmText: 'Generate',
+    });
+    if (!ok) return;
+    await handleGenerateWeek(formatYMD(nextMonday));
+  };
+
+  const handleDeleteWeek = async (monday: Date) => {
+    const { week } = getISOWeek(monday);
+    const range = formatWeekRange(monday);
+    const startDate = formatYMD(monday);
+    const ok = await confirm({
+      title: 'Delete all sessions for this week?',
+      message: `Week ${week}\n${range}\n\nThis deletes every generated session AND its draft workout for the week. Only allowed if no session has bookings and no workout has been edited or published.`,
+      confirmText: 'Delete',
+      variant: 'danger',
+    });
+    if (!ok) return;
+
+    setGenerating(true);
+    setGenerationResult(null);
+    try {
+      const response = await authFetch('/api/sessions/delete-week', {
+        method: 'POST',
+        body: JSON.stringify({ start_date: startDate }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to delete week');
+      }
+      setGenerationResult(data.message);
+      setTimeout(() => setGenerationResult(null), 6000);
+    } catch (error) {
+      console.error('Delete week error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to delete week');
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handleDeleteCurrentWeek = () => handleDeleteWeek(getMondayOfDate(new Date()));
+  const handleDeleteNextWeek = () => {
+    const monday = getMondayOfDate(new Date());
+    const nextMonday = new Date(monday);
+    nextMonday.setDate(monday.getDate() + 7);
+    handleDeleteWeek(nextMonday);
   };
 
   const _getDayLabel = (dayNumber: number) => {
@@ -470,6 +555,28 @@ export default function CoachSchedulePage() {
                 Logout
               </button>
             </div>
+          </div>
+          {/* Reset week: only succeeds if no sessions are booked AND no workouts have been edited/published */}
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span className="text-xs text-gray-400">Reset week (untouched only):</span>
+            <button
+              onClick={handleDeleteCurrentWeek}
+              disabled={generating}
+              className="flex items-center gap-1 px-2.5 py-1 bg-red-700/30 hover:bg-red-700/50 border border-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-red-300 rounded text-xs transition-colors"
+              title="Delete all sessions for this week (only if untouched)"
+            >
+              <Trash2 size={12} />
+              Delete This Week
+            </button>
+            <button
+              onClick={handleDeleteNextWeek}
+              disabled={generating}
+              className="flex items-center gap-1 px-2.5 py-1 bg-red-700/30 hover:bg-red-700/50 border border-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-red-300 rounded text-xs transition-colors"
+              title="Delete all sessions for next week (only if untouched)"
+            >
+              <Trash2 size={12} />
+              Delete Next Week
+            </button>
           </div>
           {generationResult && (
             <div className="mt-3 px-4 py-2 bg-teal-500/20 border border-teal-500 text-teal-300 rounded-lg text-sm inline-block">
