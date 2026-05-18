@@ -17,16 +17,16 @@ http://192.168.178.75:3000
 * Mimi's iPhone copy/paste & delete function
 * Box WiFi: Mac gets IPv6-only (no IPv4), dev sites (GitHub/Supabase/Vercel/Resend) unreachable. PC on same box WiFi works fine. At home all works. Debug next time at the box — see `SESSION-HANDOFF-S303-DNS-issue.md` for diagnostic history.
 * IDEA: Put names of booked athletes in Whiteboard Intro so they also go into Google Calendar or find another way to register them in Google Calendar.
-* iphone bug (I think) Coach-side: Workouts search box: Mimi can't type anythiong in the search box
+* iphone bug (I think) Coach-side: Workouts search box: Mimi can't type anything in the search box
 * Mimi couldn't add a trial athlete
-* I added Fabian's birthday but it's not correct, I have to ask him next time he's in.
+* 
 * Workouts page: ability to mute/cancel athletes without clearing the group
 * Kids in Athletes list on Workouts page:
 Need DOB: Engels Frida, Frieda Stromer, Leopold Wischhöfer, Nico Enzmann, 
 Ask Mimi Silvia Maritati (Diapers & Dumbbells?)
 
 * Ask Claude for a Magic link script to access athlete's accounts to check screen views so I can help them click the right buttons. I just give Claude the email ad.
-* Make the Guardian Only athlete booking app always default to their family member and make sure they can't book themselves into a class.
+* 
 * Macbook still has internet problem at the box. Old Macbook Pro works fine.
 * Still have an issue when the Macbook has been on for a while on 2 Users that I switch to the other user and get a black screen, then I can't type anything or restart without holding down the start button.
 * 
