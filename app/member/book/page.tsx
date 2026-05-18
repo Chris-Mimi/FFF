@@ -40,6 +40,21 @@ interface FamilyMember {
   guardian_only: boolean | null;
 }
 
+// Match the kids / foundations matchers in utils/card-utils.ts (S352): startsWith pattern
+// covers age-suffixed names like "Kids & Teens 6-9", "FitKids Turnen 4-6".
+const KIDS_KEYWORDS = ['kids', 'kids & teens', 'kids and teens', 'fitkids turnen', 'elternkind turnen'];
+const FOUNDATIONS_KEYWORDS = ['foundations', 'foundations/wod', 'diapers & dumbbells', 'diapers and dumbbells'];
+const isKidsClass = (workoutType?: string) => {
+  if (!workoutType) return false;
+  const lower = workoutType.toLowerCase();
+  return KIDS_KEYWORDS.some(k => lower === k || lower.startsWith(k));
+};
+const isFoundationsClass = (workoutType?: string) => {
+  if (!workoutType) return false;
+  const lower = workoutType.toLowerCase();
+  return FOUNDATIONS_KEYWORDS.some(k => lower === k || lower.startsWith(k));
+};
+
 export default function MemberBookingPage() {
   const router = useRouter();
   const [user, setUser] = useState<{ id: string; email: string } | null>(null);
@@ -873,17 +888,20 @@ export default function MemberBookingPage() {
             {/* Group sessions by day */}
             {(() => {
               // Filter sessions based on filter state
-              const KIDS_TYPES = ['Kids', 'Kids & Teens', 'ElternKind Turnen', 'FitKids Turnen'];
-              const FOUNDATIONS_TYPES = ['Foundations', 'Foundations/WOD', 'Diapers & Dumbbells'];
               const filteredSessions = filter === 'booked'
                 ? sessions.filter(s => s.user_booking_status === 'confirmed' || s.user_booking_status === 'waitlist')
                 : filter === 'kids'
-                ? sessions.filter(s => KIDS_TYPES.includes(s.workout_type))
+                ? sessions.filter(s => isKidsClass(s.workout_type))
                 : filter === 'foundations'
-                ? sessions.filter(s => FOUNDATIONS_TYPES.includes(s.workout_type))
+                ? sessions.filter(s => isFoundationsClass(s.workout_type))
                 : filter === 'wod'
-                ? sessions.filter(s => !KIDS_TYPES.includes(s.workout_type) && !FOUNDATIONS_TYPES.includes(s.workout_type))
+                ? sessions.filter(s => !isKidsClass(s.workout_type) && !isFoundationsClass(s.workout_type))
                 : sessions;
+
+              // Block parents (primary with at least one family_member) from booking
+              // kids classes under their own name. They can still book non-kids classes
+              // for themselves. Mirrors the server-side guard in /api/bookings/create.
+              const primaryHasFamilyKids = familyMembers.some(fm => fm.account_type === 'family_member');
 
               if (filteredSessions.length === 0) {
                 return (
@@ -906,8 +924,9 @@ export default function MemberBookingPage() {
                   {/* Sessions Grid - 3 columns */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {daySessions.map((session) => {
-                      const isKids = KIDS_TYPES.includes(session.workout_type);
-                      const isFoundations = FOUNDATIONS_TYPES.includes(session.workout_type);
+                      const isKids = isKidsClass(session.workout_type);
+                      const isFoundations = isFoundationsClass(session.workout_type);
+                      const parentSelfBookingBlocked = isKids && primaryHasFamilyKids && bookingForMemberId === user?.id;
                       const borderAccent = isKids
                         ? 'border-l-teal-400'
                         : isFoundations
@@ -995,6 +1014,10 @@ export default function MemberBookingPage() {
                               <div className="flex items-center gap-1.5 px-3 py-2 text-gray-500 text-sm">
                                 <Lock size={16} />
                                 Locked
+                              </div>
+                            ) : parentSelfBookingBlocked && session.user_booking_status === 'none' ? (
+                              <div className="text-xs text-amber-300 leading-tight max-w-[160px] text-right">
+                                Bitte unter dem Namen deines Kindes buchen
                               </div>
                             ) : session.user_booking_status === 'none' ? (
                               <button

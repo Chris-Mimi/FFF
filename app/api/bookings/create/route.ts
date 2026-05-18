@@ -179,6 +179,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Block parents (primary accounts with at least one registered family member) from
+    // booking Kids / Eltern-Kind-Turnen / Teens classes under their own name. They must
+    // book those classes via the primary→family path. They can still book non-kids
+    // classes (WOD, Foundations, etc.) for themselves. Mirrors the inline UI guard in
+    // app/member/book/page.tsx. Uses startsWith to match age-suffixed names like
+    // "Kids & Teens 6-9", "FitKids Turnen 4-6" (matcher source: utils/card-utils.ts).
+    if (bookingMemberId === user.id) {
+      const kidsKeywords = ['kids', 'kids & teens', 'kids and teens', 'fitkids turnen', 'elternkind turnen'];
+      const sessionTypeLower = (session.workout_type || '').toLowerCase();
+      const isKidsClass = kidsKeywords.some(k => sessionTypeLower === k || sessionTypeLower.startsWith(k));
+      if (isKidsClass) {
+        const { data: family } = await supabase
+          .from('members')
+          .select('id')
+          .eq('primary_member_id', user.id)
+          .eq('account_type', 'family_member')
+          .limit(1);
+        if (family && family.length > 0) {
+          return NextResponse.json(
+            { error: 'Diese Klasse ist für Kinder/Jugendliche — bitte buche unter dem Namen deines Kindes (Familienmitglied), nicht unter deinem eigenen.' },
+            { status: 403 }
+          );
+        }
+      }
+    }
+
     // Load coach-configurable booking rules
     const rules = await getBookingRules();
 
