@@ -21,18 +21,15 @@
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history scan._
 
-**First action:** **Run the capacity backfill SQL in Supabase** (`Chris Notes/Database & Supabase/` or paste directly):
+**🚨 First action (URGENT — data loss bug):** **Wide audit for lost WOD scores caused by re-publish.** Two classes confirmed-lost in S355: 2026-05-06 17:15 WOD (Chris re-entered today) and 2026-05-05 18:30 Foundations/Advanced (Chris re-entered 4 of 8 — still missing scores for Thomas Graf, Stefan G, Teemu Lian Geisler, Christian Müller, Pt.1 + Pt.2 times). Probable cause: `hooks/coach/useWODOperations.ts` cascade-deletes `wod_section_results` rows whose section_id no longer matches the WOD's current `sections[].id` after an edit/re-publish. When Chris re-published these workouts (he had originally given multiple classes the same workout_name due to a shared 1km Rower/SkiErg component and abandoned that), the editor regenerated some section_ids and the cleanup deleted those scores. **Diagnostic scripts ready:** `scripts/diagnose-missing-scores.ts`, `scripts/wsr-by-date.ts`, `scripts/cross-ref-scores.ts`, `scripts/sessions-on-dates.ts`, `scripts/wsr-timestamps.ts`, `scripts/compare-duplicate-wods.ts`. **Wide audit pattern (build on the above):** for each date in last 60 days, find sessions whose `weekly_sessions.workout_id` has fewer WSR rows than `confirmed bookings × scorable sections`. Cross-reference with WSRs that exist on the same `workout_date` under a *different* wod_id (would-be-original-attached-to-the-wrong-session). Surface to Chris for re-entry while memory is fresh. **Hard-refresh check before audit:** Chris reported the 06/05 17:15 modal STILL empty after his re-entry today — likely a stale browser tab; verify with hard-refresh and confirm his 44 rows are now visible (they ARE in DB on `c8ab57fe`).
 
-```sql
-UPDATE wods SET max_capacity = ws.capacity FROM weekly_sessions ws
-WHERE ws.workout_id = wods.id AND wods.max_capacity IS DISTINCT FROM ws.capacity;
-```
+**Second action — Stop the bleed:** Decide whether to disable the cascade-delete in [hooks/coach/useWODOperations.ts](hooks/coach/useWODOperations.ts) (lines ~41-200 area, the "Cascade-delete result rows for sections being removed in this save" block). If left in, every WOD re-publish risks more loss. Options to consider: (a) remove the cleanup entirely — accept harmless orphan WSRs that "may surface in the leaderboard / analytics weeks later" per S339's comment; (b) match by `(section.type, section.name)` rather than `section.id` so renamed-but-equivalent sections survive; (c) require coach confirmation before deleting any WSR with non-empty values.
 
-Idempotent. This aligns historical drift between `wods.max_capacity` and `weekly_sessions.capacity` after the S355 SoT refactor (commit `21a39af`). Without it the two columns stay split on existing rows; future writes are fine.
+**Third action:** **Run the capacity backfill SQL in Supabase**: `UPDATE wods SET max_capacity = ws.capacity FROM weekly_sessions ws WHERE ws.workout_id = wods.id AND wods.max_capacity IS DISTINCT FROM ws.capacity;` Idempotent. Aligns historical drift after S355 capacity SoT refactor.
 
-**Second action:** Visual-verify the S355 + S354 surfaces on prod. (a) Open any session's Workout Modal — the Max Capacity field should be **gone**; capacity edits happen only on Session Management Modal now. (b) Spot-check a woman's Lifts tab (Mimi, Sandra, Claudia, or Anneke) — historical records from 2019–2025 should appear under each lift category. (c) Verify Peter Kroll's Lifts tab — 10 historical records now visible alongside his 2 recent Front Squat entries. (d) The five S354 surfaces still pending: athlete Leaderboard Benchmarks + WOD subviews, Coach Score Entry modal + page (benchmark detail), /member/book parent-block on Kids classes, /coach/schedule confirm + reset-week buttons.
+**Fourth action:** Visual-verify S355 + S354 surfaces on prod (capacity field gone from WOD modal; women's lift records visible for Mimi/Sandra/Claudia/Anneke; Peter Kroll's 10 records; S354 benchmark detail surfaces).
 
-**Third action:** Paper-card sync (S351 carry) — ~9 ten-card holders remain missing `purchase_date`. For each: enter the date, click Recalc + Save once.
+**Fifth action:** Paper-card sync (S351 carry) — ~9 holders missing `purchase_date`.
 
 **Files to open first if continuing code work:**
 - [hooks/coach/useWODOperations.ts](hooks/coach/useWODOperations.ts) — capacity propagation to `weekly_sessions.capacity` was removed (S355). WOD save no longer touches session.capacity. Comment at line ~30 documents the new contract.
@@ -44,6 +41,8 @@ Idempotent. This aligns historical drift between `wods.max_capacity` and `weekly
 - [app/coach/schedule/page.tsx](app/coach/schedule/page.tsx) + [app/api/sessions/delete-week/route.ts](app/api/sessions/delete-week/route.ts) — Coach Schedule confirm + reset-week (S354).
 
 **Carry-over status:**
+- 🚨 **S355 WOD score loss audit + cascade-delete decision** (see First/Second actions above). Two classes confirmed-lost so far; wider audit pending in next session. Chris is out of time today.
+- ⏳ **S355 finish 05/05 18:30 re-entry** — 4 athletes still missing (Thomas Graf, Stefan G, Teemu Lian Geisler, Christian Müller).
 - ⏳ **S355 capacity backfill SQL** — run the one-liner above in Supabase.
 - ⏳ **S355 verify women's lift records visible** on athlete app for Mimi / Sandra / Claudia / Anneke.
 - ⏳ **S355 verify Peter Kroll's records** visible after his late-import.
