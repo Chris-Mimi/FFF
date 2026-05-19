@@ -1,0 +1,119 @@
+{
+  "athlete": "Kathrin",
+  "full_name": "Kathrin Mühlen",
+  "gender": "F",
+  "results": {
+    "1RM Deadlift (DL)": [
+      {
+        "weight_kg": 85,
+        "date": "2023-02-06"
+      }
+    ],
+    "1RM Back Squat (BS)": [
+      {
+        "weight_kg": 65,
+        "date": "2023-01-30"
+      }
+    ],
+    "1RM Front Squat (FS)": [
+      {
+        "weight_kg": 57.5,
+        "date": "2023-02-13"
+      },
+      {
+        "weight_kg": 42.5,
+        "date": "2022-11-04"
+      }
+    ],
+    "1RM Overhead Squat (OHS)": [
+      {
+        "weight_kg": 45,
+        "date": "2023-02-13"
+      }
+    ],
+    "3RM Deadlift (DL)": [
+      {
+        "weight_kg": 75,
+        "date": "2023-02-06"
+      }
+    ],
+    "3RM Back Squat (BS)": [
+      {
+        "weight_kg": 57.5,
+        "date": "2023-06-21"
+      },
+      {
+        "weight_kg": 55,
+        "date": "2023-01-31"
+      }
+    ],
+    "3RM Front Squat (FS)": [
+      {
+        "weight_kg": 50,
+        "date": "2023-02-13"
+      },
+      {
+        "weight_kg": 30,
+        "date": "2022-11-04"
+      }
+    ],
+    "3RM Overhead Squat (OHS)": [
+      {
+        "weight_kg": 35,
+        "date": "2023-02-13"
+      }
+    ],
+    "3RM Snatch": [
+      {
+        "weight_kg": 40,
+        "date": "2024-02-26"
+      }
+    ],
+    "5RM Deadlift (DL)": [
+      {
+        "weight_kg": 70,
+        "date": "2024-01-22"
+      }
+    ],
+    "5RM Back Squat (BS)": [
+      {
+        "weight_kg": 55,
+        "date": "2023-06-21"
+      },
+      {
+        "weight_kg": 50,
+        "date": "2022-11-15"
+      }
+    ],
+    "5RM Overhead Squat (OHS)": [
+      {
+        "weight_kg": 22.5,
+        "date": "2023-10-09"
+      }
+    ],
+    "5RM Barbell OHP": [
+      {
+        "weight_kg": 25,
+        "date": "2022-10-22"
+      }
+    ],
+    "10RM Sumo DL": [
+      {
+        "weight_kg": 60,
+        "date": "2023-10-11"
+      }
+    ],
+    "10RM Back Squat (BS)": [
+      {
+        "weight_kg": 45,
+        "date": "2023-03-14"
+      }
+    ],
+    "10RM Bench Press (BP)": [
+      {
+        "weight_kg": 35,
+        "date": "2023-12-19"
+      }
+    ]
+  }
+}

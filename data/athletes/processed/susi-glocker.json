@@ -1,0 +1,77 @@
+{
+  "athlete": "SusiG",
+  "full_name": "Susi Glocker",
+  "gender": "F",
+  "results": {
+    "1RM Back Squat (BS)": [
+      {
+        "weight_kg": 65,
+        "date": "2025-04-01"
+      }
+    ],
+    "1RM Overhead Press (OHP)": [
+      {
+        "weight_kg": 25,
+        "date": "2025-03-28"
+      }
+    ],
+    "1RM Push Press (PP)": [
+      {
+        "weight_kg": 27.5,
+        "date": "2025-03-28"
+      }
+    ],
+    "1RM Bench Press (BP)": [
+      {
+        "weight_kg": 22.5,
+        "date": "2025-03-19"
+      },
+      {
+        "weight_kg": 25,
+        "date": "2023-02-01"
+      }
+    ],
+    "3RM Deadlift (DL)": [
+      {
+        "weight_kg": 50,
+        "date": "2025-03-17"
+      }
+    ],
+    "3RM Back Squat (BS)": [
+      {
+        "weight_kg": 35,
+        "date": "2024-01-31"
+      },
+      {
+        "weight_kg": 35,
+        "date": "2023-06-21"
+      },
+      {
+        "weight_kg": 35,
+        "date": "2023-01-30"
+      },
+      {
+        "weight_kg": 32.5,
+        "date": "2022-10-12"
+      }
+    ],
+    "3RM Barbell OHP": [
+      {
+        "weight_kg": 25,
+        "date": "2025-03-28"
+      }
+    ],
+    "3RM Push Press (PP)": [
+      {
+        "weight_kg": 27.5,
+        "date": "2025-03-28"
+      }
+    ],
+    "3RM Bench Press (BP)": [
+      {
+        "weight_kg": 21,
+        "date": "2025-03-21"
+      }
+    ]
+  }
+}

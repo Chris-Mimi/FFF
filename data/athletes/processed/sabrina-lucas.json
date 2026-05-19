@@ -1,0 +1,127 @@
+{
+  "athlete": "SabrinaN",
+  "full_name": "Sabrina Lucas",
+  "gender": "F",
+  "results": {
+    "1RM Back Squat (BS)": [
+      {
+        "weight_kg": 50,
+        "date": "2025-03-24"
+      },
+      {
+        "weight_kg": 50,
+        "date": "2024-01-31"
+      }
+    ],
+    "1RM Snatch": [
+      {
+        "weight_kg": 22.5,
+        "date": "2025-04-14"
+      }
+    ],
+    "1RM Overhead Press (OHP)": [
+      {
+        "weight_kg": 25,
+        "date": "2025-03-26"
+      }
+    ],
+    "1RM Push Press (PP)": [
+      {
+        "weight_kg": 40,
+        "date": "2025-03-26"
+      }
+    ],
+    "1RM Bench Press (BP)": [
+      {
+        "weight_kg": 42.5,
+        "date": "2025-03-19"
+      },
+      {
+        "weight_kg": 25,
+        "date": "2023-02-01"
+      }
+    ],
+    "3RM Deadlift (DL)": [
+      {
+        "weight_kg": 50,
+        "date": "2025-03-17"
+      }
+    ],
+    "3RM Back Squat (BS)": [
+      {
+        "weight_kg": 35,
+        "date": "2024-01-31"
+      },
+      {
+        "weight_kg": 35,
+        "date": "2023-06-21"
+      },
+      {
+        "weight_kg": 35,
+        "date": "2023-01-30"
+      },
+      {
+        "weight_kg": 32.5,
+        "date": "2022-10-12"
+      }
+    ],
+    "3RM Barbell OHP": [
+      {
+        "weight_kg": 22.5,
+        "date": "2025-03-26"
+      }
+    ],
+    "3RM Push Press (PP)": [
+      {
+        "weight_kg": 35,
+        "date": "2025-03-26"
+      }
+    ],
+    "3RM Bench Press (BP)": [
+      {
+        "weight_kg": 35,
+        "date": "2025-03-19"
+      },
+      {
+        "weight_kg": 27.5,
+        "date": "2024-01-29"
+      }
+    ],
+    "5RM Deadlift (DL)": [
+      {
+        "weight_kg": 32.5,
+        "date": "2024-01-22"
+      }
+    ],
+    "5RM Back Squat (BS)": [
+      {
+        "weight_kg": 35,
+        "date": "2023-06-21"
+      }
+    ],
+    "10RM Deadlift (DL)": [
+      {
+        "weight_kg": 30,
+        "date": "2023-07-19"
+      }
+    ],
+    "10RM Sumo DL": [
+      {
+        "weight_kg": 37.5,
+        "date": "2023-10-11"
+      }
+    ],
+    "10RM Front Squat (FS)": [
+      {
+        "weight_kg": 17.5,
+        "date": "2023-07-12"
+      }
+    ],
+    "10RM Bench Press (BP)": [
+      {
+        "weight_kg": 20,
+        "date": "2023-12-19"
+      }
+    ]
+  }
+}

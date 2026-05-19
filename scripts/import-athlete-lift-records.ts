@@ -74,8 +74,9 @@ const LIFT_NAME_MAP: Record<string, string> = {
   'bp':                     'Bench Press',
 
   // Jerk
-  'pj':                     'Power Jerk',
-  'power jerk':             'Power Jerk',
+  'push jerk (pj)':         'Push Jerk',
+  'push jerk':              'Push Jerk',
+  'pj':                     'Push Jerk',
 };
 
 const REP_MAX_TYPE: Record<number, string> = {

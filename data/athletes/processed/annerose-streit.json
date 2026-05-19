@@ -1,0 +1,127 @@
+{
+  "athlete": "Annerose",
+  "full_name": "Annerose Streit",
+  "gender": "F",
+  "results": {
+    "1RM Deadlift (DL)": [
+      {
+        "weight_kg": 50,
+        "date": "2025-03-17"
+      },
+      {
+        "weight_kg": 50,
+        "date": "2019-08-01"
+      }
+    ],
+    "1RM Sumo DL": [
+      {
+        "weight_kg": 84,
+        "date": "2019-11-27"
+      }
+    ],
+    "1RM Back Squat (BS)": [
+      {
+        "weight_kg": 65,
+        "date": "2019-11-13"
+      }
+    ],
+    "1RM Clean": [
+      {
+        "weight_kg": 30,
+        "date": "2023-02-08"
+      }
+    ],
+    "1RM Clean & Jerk (C&J)": [
+      {
+        "weight_kg": 30,
+        "date": "2023-02-08"
+      }
+    ],
+    "1RM Overhead Press (OHP)": [
+      {
+        "weight_kg": 25,
+        "date": "2025-03-26"
+      }
+    ],
+    "1RM Push Press (PP)": [
+      {
+        "weight_kg": 30,
+        "date": "2025-03-26"
+      }
+    ],
+    "1RM Bench Press (BP)": [
+      {
+        "weight_kg": 30,
+        "date": "2025-03-19"
+      },
+      {
+        "weight_kg": 25,
+        "date": "2023-02-01"
+      }
+    ],
+    "3RM Deadlift (DL)": [
+      {
+        "weight_kg": 50,
+        "date": "2025-03-17"
+      }
+    ],
+    "3RM Back Squat (BS)": [
+      {
+        "weight_kg": 35,
+        "date": "2024-01-31"
+      },
+      {
+        "weight_kg": 35,
+        "date": "2023-06-21"
+      },
+      {
+        "weight_kg": 35,
+        "date": "2023-01-30"
+      },
+      {
+        "weight_kg": 32.5,
+        "date": "2022-10-12"
+      }
+    ],
+    "3RM Barbell OHP": [
+      {
+        "weight_kg": 22.5,
+        "date": "2025-03-26"
+      }
+    ],
+    "3RM Push Press (PP)": [
+      {
+        "weight_kg": 27.5,
+        "date": "2025-03-26"
+      }
+    ],
+    "5RM Deadlift (DL)": [
+      {
+        "weight_kg": 57.5,
+        "date": "2022-09-26"
+      },
+      {
+        "weight_kg": 65,
+        "date": "2021-11-22"
+      }
+    ],
+    "5RM Front Squat (FS)": [
+      {
+        "weight_kg": 30,
+        "date": "2022-05-03"
+      }
+    ],
+    "5RM Barbell OHP": [
+      {
+        "weight_kg": 20,
+        "date": "2022-09-16"
+      }
+    ],
+    "10RM Bench Press (BP)": [
+      {
+        "weight_kg": 20,
+        "date": "2022-05-10"
+      }
+    ]
+  }
+}

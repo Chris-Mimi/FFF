@@ -1,0 +1,453 @@
+{
+  "athlete": "Anneke",
+  "full_name": "Anneke Spegele",
+  "gender": "F",
+  "results": {
+    "1RM Deadlift (DL)": [
+      {
+        "weight_kg": 70,
+        "date": "2025-03-17"
+      },
+      {
+        "weight_kg": 85,
+        "date": "2023-02-06"
+      },
+      {
+        "weight_kg": 57,
+        "date": "2022-01-10"
+      },
+      {
+        "weight_kg": 75,
+        "date": "2020-07-09"
+      },
+      {
+        "weight_kg": 62.5,
+        "date": "2020-01-30"
+      },
+      {
+        "weight_kg": 55,
+        "date": "2020-11-28"
+      },
+      {
+        "weight_kg": 30,
+        "date": "2019-08-01"
+      }
+    ],
+    "1RM Sumo DL": [
+      {
+        "weight_kg": 50,
+        "date": "2019-11-28"
+      }
+    ],
+    "1RM Back Squat (BS)": [
+      {
+        "weight_kg": 65,
+        "date": "2025-03-24"
+      },
+      {
+        "weight_kg": 60,
+        "date": "2023-01-30"
+      },
+      {
+        "weight_kg": 40,
+        "date": "2022-06-29"
+      },
+      {
+        "weight_kg": 64,
+        "date": "2021-07-12"
+      },
+      {
+        "weight_kg": 60,
+        "date": "2019-12-12"
+      }
+    ],
+    "1RM Front Squat (FS)": [
+      {
+        "weight_kg": 50,
+        "date": "2023-02-13"
+      },
+      {
+        "weight_kg": 40,
+        "date": "2022-06-13"
+      },
+      {
+        "weight_kg": 45,
+        "date": "2020-08-31"
+      }
+    ],
+    "1RM Overhead Squat (OHS)": [
+      {
+        "weight_kg": 37.5,
+        "date": "2023-02-13"
+      },
+      {
+        "weight_kg": 37.5,
+        "date": "2022-08-08"
+      }
+    ],
+    "1RM Clean": [
+      {
+        "weight_kg": 35,
+        "date": "2023-02-08"
+      },
+      {
+        "weight_kg": 35,
+        "date": "2022-01-24"
+      },
+      {
+        "weight_kg": 41,
+        "date": "2021-11-01"
+      },
+      {
+        "weight_kg": 40,
+        "date": "2020-08-19"
+      }
+    ],
+    "1RM Clean & Jerk (C&J)": [
+      {
+        "weight_kg": 37.5,
+        "date": "2023-02-08"
+      },
+      {
+        "weight_kg": 42.5,
+        "date": "2022-07-18"
+      },
+      {
+        "weight_kg": 40,
+        "date": "2020-08-19"
+      }
+    ],
+    "1RM Snatch": [
+      {
+        "weight_kg": 25,
+        "date": "2025-04-14"
+      },
+      {
+        "weight_kg": 30,
+        "date": "2022-08-01"
+      },
+      {
+        "weight_kg": 25,
+        "date": "2022-01-19"
+      }
+    ],
+    "1RM Overhead Press (OHP)": [
+      {
+        "weight_kg": 28,
+        "date": "2023-01-30"
+      },
+      {
+        "weight_kg": 30,
+        "date": "2022-07-13"
+      },
+      {
+        "weight_kg": 25,
+        "date": "2019-11-25"
+      }
+    ],
+    "1RM Push Press (PP)": [
+      {
+        "weight_kg": 40,
+        "date": "2023-01-30"
+      },
+      {
+        "weight_kg": 40,
+        "date": "2022-07-13"
+      },
+      {
+        "weight_kg": 40,
+        "date": "2020-10-08"
+      },
+      {
+        "weight_kg": 30,
+        "date": "2019-11-25"
+      }
+    ],
+    "1RM Bench Press (BP)": [
+      {
+        "weight_kg": 40,
+        "date": "2025-03-19"
+      },
+      {
+        "weight_kg": 38,
+        "date": "2024-01-29"
+      },
+      {
+        "weight_kg": 37.5,
+        "date": "2023-02-01"
+      },
+      {
+        "weight_kg": 35,
+        "date": "2022-07-25"
+      },
+      {
+        "weight_kg": 35,
+        "date": "2022-01-17"
+      },
+      {
+        "weight_kg": 36,
+        "date": "2020-09-03"
+      },
+      {
+        "weight_kg": 35,
+        "date": "2020-02-20"
+      },
+      {
+        "weight_kg": 32.5,
+        "date": "2019-11-07"
+      }
+    ],
+    "3RM Deadlift (DL)": [
+      {
+        "weight_kg": 65,
+        "date": "2025-03-17"
+      },
+      {
+        "weight_kg": 65,
+        "date": "2023-02-06"
+      },
+      {
+        "weight_kg": 55,
+        "date": "2022-01-10"
+      }
+    ],
+    "3RM Back Squat (BS)": [
+      {
+        "weight_kg": 55,
+        "date": "2025-03-24"
+      },
+      {
+        "weight_kg": 55,
+        "date": "2023-06-21"
+      },
+      {
+        "weight_kg": 50,
+        "date": "2023-01-30"
+      },
+      {
+        "weight_kg": 60,
+        "date": "2021-07-12"
+      },
+      {
+        "weight_kg": 54,
+        "date": "2020-10-01"
+      }
+    ],
+    "3RM Front Squat (FS)": [
+      {
+        "weight_kg": 50,
+        "date": "2023-02-13"
+      },
+      {
+        "weight_kg": 40,
+        "date": "2022-06-13"
+      },
+      {
+        "weight_kg": 45,
+        "date": "2020-08-31"
+      }
+    ],
+    "3RM Overhead Squat (OHS)": [
+      {
+        "weight_kg": 32.5,
+        "date": "2023-02-13"
+      }
+    ],
+    "3RM Clean": [
+      {
+        "weight_kg": 32.5,
+        "date": "2022-01-24"
+      }
+    ],
+    "3RM Clean & Jerk (C&J)": [
+      {
+        "weight_kg": 35,
+        "date": "2025-04-02"
+      },
+      {
+        "weight_kg": 31.25,
+        "date": "2020-08-19"
+      }
+    ],
+    "3RM Snatch": [
+      {
+        "weight_kg": 40,
+        "date": "2024-02-26"
+      }
+    ],
+    "3RM Push Press (PP)": [
+      {
+        "weight_kg": 30,
+        "date": "2022-04-13"
+      },
+      {
+        "weight_kg": 35,
+        "date": "2020-10-08"
+      }
+    ],
+    "3RM Bench Press (BP)": [
+      {
+        "weight_kg": 38,
+        "date": "2025-03-19"
+      },
+      {
+        "weight_kg": 32.5,
+        "date": "2024-01-29"
+      },
+      {
+        "weight_kg": 32.5,
+        "date": "2023-02-01"
+      },
+      {
+        "weight_kg": 32,
+        "date": "2022-01-17"
+      },
+      {
+        "weight_kg": 28,
+        "date": "2020-09-03"
+      }
+    ],
+    "5RM Deadlift (DL)": [
+      {
+        "weight_kg": 60,
+        "date": "2024-01-22"
+      }
+    ],
+    "5RM Sumo DL": [
+      {
+        "weight_kg": 70,
+        "date": "2023-01-19"
+      },
+      {
+        "weight_kg": 50,
+        "date": "2022-04-11"
+      }
+    ],
+    "5RM Back Squat (BS)": [
+      {
+        "weight_kg": 50,
+        "date": "2023-06-21"
+      },
+      {
+        "weight_kg": 35,
+        "date": "2022-05-11"
+      }
+    ],
+    "5RM Front Squat (FS)": [
+      {
+        "weight_kg": 38,
+        "date": "2021-06-28"
+      }
+    ],
+    "5RM Clean & Jerk (C&J)": [
+      {
+        "weight_kg": 35,
+        "date": "2021-07-05"
+      }
+    ],
+    "5RM Barbell OHP": [
+      {
+        "weight_kg": 25,
+        "date": "2022-05-25"
+      }
+    ],
+    "5RM Push Jerk (PJ)": [
+      {
+        "weight_kg": 30,
+        "date": "2021-11-08"
+      }
+    ],
+    "5RM Bench Press (BP)": [
+      {
+        "weight_kg": 25,
+        "date": "2022-05-09"
+      }
+    ],
+    "10RM Deadlift (DL)": [
+      {
+        "weight_kg": 65,
+        "date": "2023-07-19"
+      },
+      {
+        "weight_kg": 55,
+        "date": "2022-05-18"
+      },
+      {
+        "weight_kg": 57,
+        "date": "2021-06-21"
+      }
+    ],
+    "10RM Sumo DL": [
+      {
+        "weight_kg": 60,
+        "date": "2022-10-19"
+      },
+      {
+        "weight_kg": 60,
+        "date": "2022-10-19"
+      }
+    ],
+    "10RM Back Squat (BS)": [
+      {
+        "weight_kg": 49,
+        "date": "2023-03-13"
+      },
+      {
+        "weight_kg": 48,
+        "date": "2020-09-10"
+      }
+    ],
+    "10RM Front Squat (FS)": [
+      {
+        "weight_kg": 38,
+        "date": "2023-07-12"
+      }
+    ],
+    "10RM Overhead Squat (OHS)": [
+      {
+        "weight_kg": 18,
+        "date": "2021-06-16"
+      }
+    ],
+    "10RM Clean": [
+      {
+        "weight_kg": 30,
+        "date": "2021-09-27"
+      }
+    ],
+    "10RM Clean & Jerk (C&J)": [
+      {
+        "weight_kg": 20,
+        "date": "2022-08-29"
+      },
+      {
+        "weight_kg": 25.5,
+        "date": "2020-08-19"
+      }
+    ],
+    "10RM Barbell OHP": [
+      {
+        "weight_kg": 25,
+        "date": "2020-10-08"
+      },
+      {
+        "weight_kg": 25,
+        "date": "2020-10-08"
+      }
+    ],
+    "10RM Bench Press (BP)": [
+      {
+        "weight_kg": 30,
+        "date": "2023-12-19"
+      },
+      {
+        "weight_kg": 25,
+        "date": "2022-05-09"
+      },
+      {
+        "weight_kg": 25,
+        "date": "2021-06-07"
+      }
+    ]
+  }
+}

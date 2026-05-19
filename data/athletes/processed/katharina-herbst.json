@@ -1,0 +1,31 @@
+{
+  "athlete": "Katharina",
+  "full_name": "Katharina Herbst",
+  "gender": "F",
+  "results": {
+    "1RM Bench Press (BP)": [
+      {
+        "weight_kg": 45,
+        "date": "2025-04-01"
+      }
+    ],
+    "3RM Deadlift (DL)": [
+      {
+        "weight_kg": 40,
+        "date": "2025-03-18"
+      }
+    ],
+    "3RM Back Squat (BS)": [
+      {
+        "weight_kg": 25,
+        "date": "2025-03-25"
+      }
+    ],
+    "3RM Bench Press (BP)": [
+      {
+        "weight_kg": 45,
+        "date": "2025-04-01"
+      }
+    ]
+  }
+}

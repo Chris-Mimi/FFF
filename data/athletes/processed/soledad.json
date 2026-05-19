@@ -1,0 +1,185 @@
+{
+  "athlete": "Sole",
+  "full_name": "Soledad",
+  "gender": "F",
+  "results": {
+    "1RM Deadlift (DL)": [
+      {
+        "weight_kg": 51,
+        "date": "2022-07-20"
+      },
+      {
+        "weight_kg": 55,
+        "date": "2019-11-24"
+      }
+    ],
+    "1RM Back Squat (BS)": [
+      {
+        "weight_kg": 40,
+        "date": "2024-01-31"
+      },
+      {
+        "weight_kg": 35,
+        "date": "2020-02-21"
+      },
+      {
+        "weight_kg": 30,
+        "date": "2019-11-20"
+      }
+    ],
+    "1RM Front Squat (FS)": [
+      {
+        "weight_kg": 25,
+        "date": "2021-08-09"
+      }
+    ],
+    "1RM Clean": [
+      {
+        "weight_kg": 25,
+        "date": "2023-02-08"
+      },
+      {
+        "weight_kg": 25,
+        "date": "2022-01-24"
+      }
+    ],
+    "1RM Clean & Jerk (C&J)": [
+      {
+        "weight_kg": 27.5,
+        "date": "2023-02-08"
+      }
+    ],
+    "1RM Snatch": [
+      {
+        "weight_kg": 16,
+        "date": "2022-08-01"
+      }
+    ],
+    "1RM Bench Press (BP)": [
+      {
+        "weight_kg": 29,
+        "date": "2020-09-10"
+      },
+      {
+        "weight_kg": 27.5,
+        "date": "2019-11-27"
+      }
+    ],
+    "3RM Back Squat (BS)": [
+      {
+        "weight_kg": 35,
+        "date": "2024-01-31"
+      },
+      {
+        "weight_kg": 32.5,
+        "date": "2023-06-21"
+      }
+    ],
+    "3RM Front Squat (FS)": [
+      {
+        "weight_kg": 21,
+        "date": "2021-08-09"
+      }
+    ],
+    "3RM Overhead Squat (OHS)": [
+      {
+        "weight_kg": 14.5,
+        "date": "2020-08-08"
+      }
+    ],
+    "3RM Clean": [
+      {
+        "weight_kg": 22.5,
+        "date": "2022-01-24"
+      }
+    ],
+    "3RM Clean & Jerk (C&J)": [
+      {
+        "weight_kg": 25,
+        "date": "2023-02-08"
+      }
+    ],
+    "3RM Snatch": [
+      {
+        "weight_kg": 40,
+        "date": "2024-02-26"
+      }
+    ],
+    "3RM Push Press (PP)": [
+      {
+        "weight_kg": 25,
+        "date": "2022-04-13"
+      }
+    ],
+    "5RM Deadlift (DL)": [
+      {
+        "weight_kg": 50,
+        "date": "2024-01-22"
+      }
+    ],
+    "5RM Sumo DL": [
+      {
+        "weight_kg": 51,
+        "date": "2022-04-15"
+      },
+      {
+        "weight_kg": 47.5,
+        "date": "2020-10-30"
+      }
+    ],
+    "5RM Back Squat (BS)": [
+      {
+        "weight_kg": 32.5,
+        "date": "2023-06-21"
+      },
+      {
+        "weight_kg": 32.5,
+        "date": "2022-05-11"
+      }
+    ],
+    "5RM Clean": [
+      {
+        "weight_kg": 25,
+        "date": "2022-04-22"
+      }
+    ],
+    "5RM Bench Press (BP)": [
+      {
+        "weight_kg": 22.5,
+        "date": "2022-08-10"
+      },
+      {
+        "weight_kg": 20,
+        "date": "2021-10-11"
+      },
+      {
+        "weight_kg": 25,
+        "date": "2020-10-21"
+      }
+    ],
+    "10RM Deadlift (DL)": [
+      {
+        "weight_kg": 30,
+        "date": "2022-05-24"
+      }
+    ],
+    "10RM Back Squat (BS)": [
+      {
+        "weight_kg": 30,
+        "date": "2023-03-14"
+      }
+    ],
+    "10RM Overhead Squat (OHS)": [
+      {
+        "weight_kg": 10,
+        "date": "2022-11-02"
+      }
+    ],
+    "10RM Barbell OHP": [
+      {
+        "weight_kg": 17.5,
+        "date": "2022-04-13"
+      }
+    ]
+  }
+}

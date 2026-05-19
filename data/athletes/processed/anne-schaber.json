@@ -1,0 +1,31 @@
+{
+  "athlete": "AnneS",
+  "full_name": "Anne Schaber",
+  "gender": "F",
+  "results": {
+    "1RM Deadlift (DL)": [
+      {
+        "weight_kg": 67.5,
+        "date": "2025-03-18"
+      }
+    ],
+    "1RM Back Squat (BS)": [
+      {
+        "weight_kg": 55,
+        "date": "2025-03-24"
+      }
+    ],
+    "3RM Deadlift (DL)": [
+      {
+        "weight_kg": 62.5,
+        "date": "2025-03-18"
+      }
+    ],
+    "3RM Back Squat (BS)": [
+      {
+        "weight_kg": 55,
+        "date": "2025-03-24"
+      }
+    ]
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "athlete": "Dinny",
+  "full_name": "Dinny Braatz",
+  "gender": "F",
+  "results": {
+    "1RM Deadlift (DL)": [
+      {
+        "weight_kg": 70,
+        "date": "2025-03-17"
+      }
+    ],
+    "1RM Back Squat (BS)": [
+      {
+        "weight_kg": 45,
+        "date": "2025-03-24"
+      }
+    ],
+    "3RM Deadlift (DL)": [
+      {
+        "weight_kg": 65,
+        "date": "2025-03-17"
+      }
+    ],
+    "3RM Back Squat (BS)": [
+      {
+        "weight_kg": 40,
+        "date": "2025-03-24"
+      }
+    ]
+  }
+}
