@@ -49,7 +49,7 @@ async function main() {
       : { data: [] };
     const nameById = new Map((members ?? []).map(m => [m.id, m.name]));
 
-    const byWod = new Map<string, typeof allRows>();
+    const byWod = new Map<string, NonNullable<typeof allRows>>();
     allRows?.forEach(r => {
       if (!byWod.has(r.wod_id)) byWod.set(r.wod_id, []);
       byWod.get(r.wod_id)!.push(r);

@@ -48,6 +48,7 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
         };
         type OldSection = {
           id: string;
+          type: string;
           scoring_fields?: SectionScoringFields;
           lifts?: Array<{
             name?: string;
@@ -84,7 +85,47 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
           .eq('id', editingWOD.id!)
           .maybeSingle();
         const oldSections = ((oldWod?.sections as OldSection[] | null) || []);
-        const removedSections = oldSections.filter(s => !newSectionIds.has(s.id));
+        const allRemovedSections = oldSections.filter(s => !newSectionIds.has(s.id));
+
+        // Rename detection. Section IDs use `section-${Date.now()}` and regenerate
+        // on drag-drop or remove-and-re-add, even when the section's type/role is
+        // unchanged. Without this step, the cascade below would treat every
+        // regenerated ID as a removal and silently offer to delete its WSRs —
+        // the S356 incident. For each removed-old, match positionally to an
+        // unmatched-new section of the same type and migrate WSR section_id
+        // instead of deleting. Genuine type-changes / actual removals still
+        // fall through to the cascade.
+        const oldSectionIds = new Set(oldSections.map(s => s.id));
+        const unmatchedNewSections = ((wodData.sections || []) as OldSection[])
+          .filter(s => !oldSectionIds.has(s.id));
+        const removedByType = new Map<string, OldSection[]>();
+        for (const old of allRemovedSections) {
+          if (!removedByType.has(old.type)) removedByType.set(old.type, []);
+          removedByType.get(old.type)!.push(old);
+        }
+        const unmatchedNewByType = new Map<string, OldSection[]>();
+        for (const n of unmatchedNewSections) {
+          if (!unmatchedNewByType.has(n.type)) unmatchedNewByType.set(n.type, []);
+          unmatchedNewByType.get(n.type)!.push(n);
+        }
+        const migrations = new Map<string, string>();
+        for (const [type, removedOfType] of removedByType) {
+          const candidates = unmatchedNewByType.get(type) || [];
+          const pairCount = Math.min(removedOfType.length, candidates.length);
+          for (let i = 0; i < pairCount; i++) {
+            migrations.set(removedOfType[i].id, candidates[i].id);
+          }
+        }
+        for (const [oldId, newId] of migrations) {
+          const { error: migrateErr } = await supabase
+            .from('wod_section_results')
+            .update({ section_id: `${newId}-content-0` })
+            .eq('wod_id', editingWOD.id!)
+            .eq('section_id', `${oldId}-content-0`);
+          if (migrateErr) throw migrateErr;
+        }
+
+        const removedSections = allRemovedSections.filter(s => !migrations.has(s.id));
         const removedSectionIds = removedSections.map(s => s.id);
 
         if (removedSectionIds.length > 0) {
@@ -159,12 +200,13 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
           }
         }
 
-        // For sections that survived the edit, detect any scoring_fields that
-        // flipped from true → false and null the corresponding columns on
-        // existing wod_section_results. Without this, the leaderboard ranker's
-        // safeguard would still hide the values, but stale data would persist
-        // in the DB and could resurface if the toggle is flipped back on.
-        const newSectionsByid = new Map(
+        // For sections that survived the edit (or were just migrated by the
+        // rename-detection step above), detect any scoring_fields that flipped
+        // from true → false and null the corresponding columns on existing
+        // wod_section_results. Without this, the leaderboard ranker's safeguard
+        // would still hide the values, but stale data would persist in the DB
+        // and could resurface if the toggle is flipped back on.
+        const newSectionsById = new Map(
           ((wodData.sections || []) as OldSection[]).map((s) => [s.id, s])
         );
         const fieldToColumn: Array<{
@@ -179,7 +221,9 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
           { field: 'scaling_3', column: 'scaling_level_3' },
         ];
         for (const oldS of oldSections) {
-          const newS = newSectionsByid.get(oldS.id);
+          // Resolve to the new section: survivor (same id) or migration target.
+          const newId = migrations.get(oldS.id) ?? oldS.id;
+          const newS = newSectionsById.get(newId);
           if (!newS) continue;
           const oldSf = oldS.scoring_fields || {};
           const newSf = newS.scoring_fields || {};
@@ -190,11 +234,12 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
             }
           }
           if (Object.keys(cleared).length > 0) {
+            // WSRs now live at newId-content-0 (migration already applied).
             await supabase
               .from('wod_section_results')
               .update(cleared)
               .eq('wod_id', editingWOD.id!)
-              .eq('section_id', `${oldS.id}-content-0`);
+              .eq('section_id', `${newS.id}-content-0`);
           }
         }
 

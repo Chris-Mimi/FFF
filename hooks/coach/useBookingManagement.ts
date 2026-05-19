@@ -261,7 +261,7 @@ export function useBookingManagement({
     if (
       !await confirm({
         title: 'Late Cancellation',
-        message: `Mark ${memberName} as late cancellation?\n\nThis will count toward their 10-card usage but NOT toward attendance statistics.`,
+        message: `Mark ${memberName} as late cancellation?\n\nThis will count toward their 10-card usage but NOT toward attendance statistics. Any scores already entered for ${memberName} on this class will be removed.`,
         confirmText: 'Mark Late Cancel',
         variant: 'danger',
       })
@@ -270,13 +270,14 @@ export function useBookingManagement({
     }
 
     try {
-      const { error } = await supabase
-        .from('bookings')
-        .update({ status: 'late_cancel' })
-        .eq('id', bookingId);
-
-      if (error) throw error;
-
+      const res = await authFetch('/api/coach/mark-late-cancel', {
+        method: 'POST',
+        body: JSON.stringify({ bookingId }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error || 'Failed to mark as late cancellation');
+      }
       await onRefresh();
       onSessionUpdated();
     } catch (error) {

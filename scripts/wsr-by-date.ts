@@ -24,7 +24,7 @@ async function main() {
       .order('wod_id', { ascending: true });
 
     // Group by wod_id
-    const byWodId = new Map<string, typeof rows>();
+    const byWodId = new Map<string, NonNullable<typeof rows>>();
     rows?.forEach(r => {
       if (!byWodId.has(r.wod_id)) byWodId.set(r.wod_id, []);
       byWodId.get(r.wod_id)!.push(r);
