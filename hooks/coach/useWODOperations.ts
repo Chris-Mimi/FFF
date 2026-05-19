@@ -6,10 +6,6 @@ import { supabase } from '@/lib/supabase';
 import { authFetch } from '@/lib/auth-fetch';
 import { toast } from 'sonner';
 import { formatDate, calculateWorkoutWeek } from '@/utils/date-utils';
-import {
-  promoteWaitlistForSession,
-  promoteWaitlistForWorkout,
-} from '@/lib/coach/sessionCapacityHelpers';
 
 interface UseWODOperationsProps {
   fetchWODs: () => Promise<void>;
@@ -27,9 +23,8 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
     // Trim workout_name to prevent whitespace-only differences splitting leaderboard results
     if (wodData.workout_name) wodData.workout_name = wodData.workout_name.trim();
 
-    // Only propagate capacity to weekly_sessions when the coach actually changed it.
-    // Prevents a stale wods.max_capacity from silently overwriting session.capacity on save.
-    const capacityChanged = !editingWOD || wodData.maxCapacity !== editingWOD.maxCapacity;
+    // Capacity is owned by weekly_sessions.capacity and edited via Session Management Modal.
+    // wods.max_capacity is preserved on writes for legacy compatibility but never propagated.
 
     try {
       // Check if we're editing a real workout (not an empty session with 'session-{uuid}' id)
@@ -224,15 +219,6 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
 
         if (error) throw error;
 
-        if (capacityChanged) {
-          await supabase
-            .from('weekly_sessions')
-            .update({ capacity: wodData.maxCapacity })
-            .eq('workout_id', editingWOD.id);
-
-          await promoteWaitlistForWorkout(supabase, editingWOD.id!, wodData.maxCapacity);
-        }
-
         if (editingWOD.booking_info?.session_id) {
           await supabase
             .from('weekly_sessions')
@@ -274,15 +260,6 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
               .eq('id', currentSession.workout_id);
 
             if (updateError) throw updateError;
-
-            if (capacityChanged) {
-              await supabase
-                .from('weekly_sessions')
-                .update({ capacity: wodData.maxCapacity })
-                .eq('workout_id', currentSession.workout_id);
-
-              await promoteWaitlistForWorkout(supabase, currentSession.workout_id, wodData.maxCapacity);
-            }
 
             await fetchWODs();
             await fetchTracksAndCounts();
@@ -339,16 +316,8 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
               if (existingSession) {
                 await supabase
                   .from('weekly_sessions')
-                  .update(
-                    capacityChanged
-                      ? { workout_id: targetWorkoutId, capacity: wodData.maxCapacity, status: 'published' }
-                      : { workout_id: targetWorkoutId, status: 'published' }
-                  )
+                  .update({ workout_id: targetWorkoutId, status: 'published' })
                   .eq('id', existingSession.id);
-
-                if (capacityChanged) {
-                  await promoteWaitlistForSession(supabase, existingSession.id, wodData.maxCapacity);
-                }
               } else {
                 await supabase.from('weekly_sessions').insert({
                   date: dateKey,
@@ -408,16 +377,8 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
               // Update existing session
               await supabase
                 .from('weekly_sessions')
-                .update(
-                  capacityChanged
-                    ? { workout_id: newWOD.id, capacity: wodData.maxCapacity, status: 'published' }
-                    : { workout_id: newWOD.id, status: 'published' }
-                )
+                .update({ workout_id: newWOD.id, status: 'published' })
                 .eq('id', existingSession.id);
-
-              if (capacityChanged) {
-                await promoteWaitlistForSession(supabase, existingSession.id, wodData.maxCapacity);
-              }
             } else {
               // Create new session
               await supabase.from('weekly_sessions').insert({
@@ -433,16 +394,8 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
           // Editing an empty session - link the new workout to this session
           await supabase
             .from('weekly_sessions')
-            .update(
-              capacityChanged
-                ? { workout_id: newWOD.id, capacity: wodData.maxCapacity, status: 'published' }
-                : { workout_id: newWOD.id, status: 'published' }
-            )
+            .update({ workout_id: newWOD.id, status: 'published' })
             .eq('id', editingWOD.booking_info.session_id);
-
-          if (capacityChanged) {
-            await promoteWaitlistForSession(supabase, editingWOD.booking_info.session_id, wodData.maxCapacity);
-          }
         }
 
         // Guard: verify the new wod is linked to at least one session

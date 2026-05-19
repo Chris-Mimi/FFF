@@ -419,27 +419,6 @@ export default function WorkoutModal({
                 </select>
               </div>
 
-              {/* Max Capacity */}
-              <div>
-                <label className='block text-sm font-semibold mb-2 text-gray-900'>
-                  Max Capacity <span className='text-red-500'>*</span>
-                </label>
-                <input
-                  type='number'
-                  value={hook.formData.maxCapacity}
-                  onChange={e => hook.handleChange('maxCapacity', parseInt(e.target.value) || 0)}
-                  min='1'
-                  max='30'
-                  className={`w-32 px-3 py-1.5 text-sm border rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 ${
-                    hook.errors.maxCapacity ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                />
-                {hook.errors.maxCapacity && (
-                  <p className='text-red-500 text-sm mt-1'>{hook.errors.maxCapacity}</p>
-                )}
-                <p className='text-xs text-gray-500 mt-1'>Session times are managed via schedule templates</p>
-              </div>
-
               {/* Sections */}
               <div>
                 <div className='sticky -top-6 z-20 bg-white pt-3 pb-3 -mx-6 px-6'>

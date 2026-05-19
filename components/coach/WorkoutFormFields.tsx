@@ -83,27 +83,6 @@ export default function WorkoutFormFields({
         </select>
       </div>
 
-      {/* Max Capacity */}
-      <div>
-        <label className='block text-sm font-semibold mb-2 text-gray-900'>
-          Max Capacity <span className='text-red-500'>*</span>
-        </label>
-        <input
-          type='number'
-          value={formData.maxCapacity}
-          onChange={e => onFieldChange('maxCapacity', parseInt(e.target.value) || 0)}
-          min='0'
-          max='30'
-          className={`w-32 px-3 py-1.5 text-sm border rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 ${
-            errors.maxCapacity ? 'border-red-500' : 'border-gray-300'
-          }`}
-        />
-        {errors.maxCapacity && (
-          <p className='text-red-500 text-sm mt-1'>{errors.maxCapacity}</p>
-        )}
-        <p className='text-xs text-gray-500 mt-1'>0 = unlimited capacity</p>
-      </div>
-
       {/* Workout Name Input */}
       <div>
         <label className='block text-sm font-semibold mb-2 text-gray-900'>
