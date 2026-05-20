@@ -19,7 +19,7 @@ http://192.168.178.75:3000
 * IDEA: Put names of booked athletes in Whiteboard Intro so they also go into Google Calendar or find another way to register them in Google Calendar.
 * iphone bug (I think) Coach-side: Workouts search box: Mimi can't type anything in the search box
 * Mimi couldn't add a trial athlete
-* 
+* Friday workout at 9, workout/open gym
 * Workouts page: ability to mute/cancel athletes without clearing the group
 * Kids in Athletes list on Workouts page:
 Need DOB: Engels Frida, Frieda Stromer, Leopold Wischhöfer, Nico Enzmann, 

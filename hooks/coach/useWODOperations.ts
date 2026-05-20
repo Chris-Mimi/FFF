@@ -247,7 +247,7 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
           .from('wods')
           .update({
             title: wodData.title,
-            session_type: wodData.session_type || wodData.title,
+            session_type: wodData.title || wodData.session_type,
             workout_name: wodData.workout_name || null,
             workout_week: workoutWeek,
             track_id: wodData.track_id || null,
@@ -271,6 +271,15 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
             .eq('id', editingWOD.booking_info.session_id);
         }
 
+        // Sync the type label across three columns. wods.title is the UI-driven source
+        // of truth (the "Session Type" input writes to it); wods.session_type and
+        // weekly_sessions.workout_type are mirrors. Athlete book page reads workout_type,
+        // so without this sync the athlete app shows the old schedule-template value.
+        await supabase
+          .from('weekly_sessions')
+          .update({ workout_type: wodData.title || wodData.session_type })
+          .eq('workout_id', editingWOD.id);
+
       } else {
         const hasContent = wodData.sections && wodData.sections.length > 0;
 
@@ -289,7 +298,7 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
               .from('wods')
               .update({
                 title: wodData.title,
-                session_type: wodData.session_type || wodData.title,
+                session_type: wodData.title || wodData.session_type,
                 workout_name: wodData.workout_name || null,
                 workout_week: workoutWeek,
                 track_id: wodData.track_id || null,
@@ -305,6 +314,11 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
               .eq('id', currentSession.workout_id);
 
             if (updateError) throw updateError;
+
+            await supabase
+              .from('weekly_sessions')
+              .update({ workout_type: wodData.title || wodData.session_type })
+              .eq('workout_id', currentSession.workout_id);
 
             await fetchWODs();
             await fetchTracksAndCounts();
@@ -333,7 +347,7 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
               .from('wods')
               .update({
                 title: wodData.title,
-                session_type: wodData.session_type || wodData.title,
+                session_type: wodData.title || wodData.session_type,
                 workout_name: wodData.workout_name || null,
                 workout_week: workoutWeek,
                 track_id: wodData.track_id || null,
@@ -374,6 +388,11 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
               }
             }
 
+            await supabase
+              .from('weekly_sessions')
+              .update({ workout_type: wodData.title || wodData.session_type })
+              .eq('workout_id', targetWorkoutId);
+
             await fetchWODs();
             await fetchTracksAndCounts();
             return;
@@ -385,7 +404,7 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
           .insert([
             {
               title: wodData.title,
-              session_type: wodData.session_type || wodData.title,
+              session_type: wodData.title || wodData.session_type,
               workout_name: wodData.workout_name || null,
               workout_week: workoutWeek,
               track_id: wodData.track_id || null,
@@ -457,6 +476,11 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
             toast.error('Could not save: no session time slot linked. Please select a time.');
             return;
           }
+
+          await supabase
+            .from('weekly_sessions')
+            .update({ workout_type: wodData.title || wodData.session_type })
+            .eq('workout_id', newWOD.id);
         }
       }
 
@@ -661,7 +685,7 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
         .insert([
           {
             title: wod.title,
-            session_type: wod.session_type || wod.title,
+            session_type: wod.title || wod.session_type,
             workout_name: wod.workout_name?.match(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/) ? null : (wod.workout_name?.trim() || null),
             workout_week: targetWorkoutWeek,
             track_id: wod.track_id || null,
@@ -724,6 +748,13 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
             });
           }
         }
+      }
+
+      if (newWorkout) {
+        await supabase
+          .from('weekly_sessions')
+          .update({ workout_type: wod.title || wod.session_type })
+          .eq('workout_id', newWorkout.id);
       }
 
       // Clean up old workouts: only delete if no sessions still reference them
