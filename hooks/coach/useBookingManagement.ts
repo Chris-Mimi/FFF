@@ -212,7 +212,7 @@ export function useBookingManagement({
     if (
       !await confirm({
         title: 'Mark No-Show',
-        message: `Mark ${memberName} as no-show?\n\nIf they have a 10-card, this will still count toward their usage. They won't count toward attendance statistics.`,
+        message: `Mark ${memberName} as no-show?\n\nIf they have a 10-card, this will still count toward their usage. They won't count toward attendance statistics. Any scores already entered for ${memberName} on this class will be removed.`,
         confirmText: 'Mark No-Show',
         variant: 'danger',
       })
@@ -221,13 +221,14 @@ export function useBookingManagement({
     }
 
     try {
-      const { error } = await supabase
-        .from('bookings')
-        .update({ status: 'no_show' })
-        .eq('id', bookingId);
-
-      if (error) throw error;
-
+      const res = await authFetch('/api/coach/mark-no-show', {
+        method: 'POST',
+        body: JSON.stringify({ bookingId }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error || 'Failed to mark as no-show');
+      }
       await onRefresh();
       onSessionUpdated();
     } catch (error) {
@@ -311,7 +312,7 @@ export function useBookingManagement({
     if (
       !await confirm({
         title: 'Remove Booking',
-        message: `Remove ${memberName}'s booking?\n\nThis is for bookings made in error. The 10-card session will be refunded if applicable.`,
+        message: `Remove ${memberName}'s booking?\n\nThis is for bookings made in error. The 10-card session will be refunded if applicable. Any scores already entered for ${memberName} on this class will be removed.`,
         confirmText: 'Remove Booking',
         variant: 'danger',
       })

@@ -3,11 +3,10 @@ import { createClient } from '@supabase/supabase-js';
 import { requireCoach, isAuthError } from '@/lib/auth-api';
 import { cleanupAthleteScoresForWod, resolveAuthUserId } from '@/lib/coach/scoreCleanup';
 
-// Service-role client bypasses RLS so cleanup of cross-user wod_section_results
-// + lift_records + reactions actually completes. The browser-side equivalent in
-// useBookingManagement used the coach's auth token; RLS hid the athlete's rows
-// → SELECT returned 0 → cleanup silently skipped → ghost rows on leaderboard
-// / Lifts / Records (S344).
+// Symmetric with /api/coach/mark-late-cancel: marking no-show should also clear
+// any score that was entered for the athlete on this class (typically via
+// copy-down by mistake). Pre-S357 handleMarkNoShow only flipped the booking
+// status, leaving ghost scores on the Leaderboard.
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -26,7 +25,7 @@ export async function POST(request: NextRequest) {
 
     const { data: booking, error: fetchError } = await supabaseAdmin
       .from('bookings')
-      .select('id, member_id, session_id, status, is_trial')
+      .select('id, member_id, session_id, status')
       .eq('id', bookingId)
       .single();
 
@@ -35,27 +34,17 @@ export async function POST(request: NextRequest) {
     }
 
     const memberId: string = booking.member_id;
-    const isTrialBooking: boolean = booking.is_trial ?? false;
 
-    // S351 Path B: coach cancel always refunds. Flip ten_card_consumed=false in
-    // the same UPDATE so the DB trigger drops the counter automatically. is_trial
-    // bookings were never consumed, so skip the flip.
-    const cancelUpdate: { status: string; updated_at: string; ten_card_consumed?: boolean } = {
-      status: 'coach_cancelled',
-      updated_at: new Date().toISOString(),
-    };
-    if (!isTrialBooking) {
-      cancelUpdate.ten_card_consumed = false;
-    }
-
+    // No-show DOES consume the 10-card (per existing UX copy), so we do NOT
+    // flip ten_card_consumed.
     const { error: updateError } = await supabaseAdmin
       .from('bookings')
-      .update(cancelUpdate)
+      .update({ status: 'no_show', updated_at: new Date().toISOString() })
       .eq('id', bookingId);
 
     if (updateError) {
-      console.error('cancel-member-booking update failed:', updateError);
-      return NextResponse.json({ error: 'Failed to cancel booking' }, { status: 500 });
+      console.error('mark-no-show update failed:', updateError);
+      return NextResponse.json({ error: 'Failed to mark no-show' }, { status: 500 });
     }
 
     const { data: session } = await supabaseAdmin
@@ -88,7 +77,7 @@ export async function POST(request: NextRequest) {
       reactionsDeleted,
     });
   } catch (error) {
-    console.error('cancel-member-booking error:', error);
+    console.error('mark-no-show error:', error);
     return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 });
   }
 }

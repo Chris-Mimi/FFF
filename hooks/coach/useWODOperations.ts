@@ -541,37 +541,16 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
   };
 
   const handleDeleteSession = async (sessionId: string) => {
-    if (!await confirm({ title: 'Delete Session', message: 'Delete this session entirely? This will cancel all member bookings for this time slot.', confirmText: 'Delete', variant: 'danger' })) return;
+    if (!await confirm({ title: 'Delete Session', message: 'Delete this session entirely? This cancels every booking for this time slot and clears any scores entered for those athletes.', confirmText: 'Delete', variant: 'danger' })) return;
 
     try {
-      // Get the workout_id before deleting the session
-      const { data: session } = await supabase
-        .from('weekly_sessions')
-        .select('workout_id')
-        .eq('id', sessionId)
-        .single();
-
-      const workoutId = session?.workout_id;
-
-      // Delete the session (bookings will cascade delete if FK is set up that way)
-      const { error } = await supabase
-        .from('weekly_sessions')
-        .delete()
-        .eq('id', sessionId);
-
-      if (error) throw error;
-
-      // Clean up orphaned workout if no other session references it
-      if (workoutId) {
-        const { data: otherSessions } = await supabase
-          .from('weekly_sessions')
-          .select('id')
-          .eq('workout_id', workoutId)
-          .limit(1);
-
-        if (!otherSessions || otherSessions.length === 0) {
-          await supabase.from('wods').delete().eq('id', workoutId);
-        }
+      const res = await authFetch('/api/coach/delete-session', {
+        method: 'POST',
+        body: JSON.stringify({ sessionId }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error || 'Failed to delete session');
       }
 
       await fetchWODs();

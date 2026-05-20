@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 225
-**Updated:** 2026-05-19 (Session 356 — three fixes landed: (1) **cascade-delete in `useWODOperations.ts`** now does rename detection — when an old section.id is "removed" but an unmatched-new section of the same `type` exists, WSRs migrate to the new section_id instead of being deleted. Stops the silent data-loss that wiped scores when coaches drag-replaced sections / re-published WODs. (2) New service-role endpoint **`/api/coach/mark-late-cancel`** with WSR + lift_records cleanup; **`handleLateCancel`** updated to call it. Closes the gap that left Jürgen Bizjak's accidentally-entered score on the Leaderboard after he was marked late-cancel. (3) **Wider audit script** (`scripts/audit-missing-scores-s356.ts`) ran the last 60 days — 8 high-confidence loss sessions surfaced for Chris's review.)
+**Version:** 226
+**Updated:** 2026-05-20 (Session 357 — three workstreams: (1) **WOD session-type drift fix** — athletes saw "Open Gym" on Friday 22.05 09:00 while coach saw "WOD". Root cause: deprecated `wods.title` is the UI-driven source-of-truth but `wods.session_type` was being preserved by `wodData.session_type || wodData.title` precedence, leaving stale "Open Gym" on `weekly_sessions.workout_type` (which the athlete book page reads). Flipped precedence to `title || session_type` across 10 sites, added sync of all three columns on every wods write, backfill SQL aligned existing drift. (2) **S344 deletion-paths forward fix — complete sweep.** New shared helper `lib/coach/scoreCleanup.ts` (`cleanupAthleteScoresForWod` + `resolveAuthUserId`) used by 6 deletion paths. Three new endpoints (`/api/coach/delete-incident`, `/api/coach/delete-session`, `/api/coach/mark-no-show`). Three refactored (cancel-member-booking, mark-late-cancel, bookings/cancel). Reactions cleanup added to all six. Browser-side delete paths in admin page + WOD operations rewired to call new endpoints via `authFetch`. (3) `handleMarkNoShow` now wipes scores too, symmetric with mark-late-cancel.)
 
 ---
 
@@ -21,56 +21,56 @@
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history scan._
 
-**🚨 First action — visual-test the cascade-delete rename-detection fix on prod.** [hooks/coach/useWODOperations.ts:80-130](hooks/coach/useWODOperations.ts#L80) now matches removed-old sections to unmatched-new sections by `type` and UPDATEs the WSR section_id instead of deleting. **Test:** pick any past WOD with saved scores, open the editor, drag-replace a section of the same type, save → confirm dialog should NOT mention deleting scores; existing scores should remain attached. Then open Score Entry modal for that session and confirm the scores still pre-fill.
-
-**Second action — Chris reviews the 8 high-confidence loss sessions** from the S356 audit script and re-enters scores for any that were real losses (vs intentional non-scoring like Partner Bash or Open Gym):
-- 2026-03-30 17:15 — Deadlift Testing 3 & 1RM, AKBS, HS Hold, Pull-Up Hold (8 athletes × 4 sections)
+**🚨 First action — S356 audit re-entry pass.** Chris reviews the 8 high-confidence loss sessions from `scripts/audit-missing-scores-s356.ts` and re-enters scores for any that were real losses (vs intentional non-scoring like Partner Bash or Open Gym). Re-entries are safe now that the S356 cascade rename detection + S357 deletion-path cleanup are both live.
+- 2026-03-30 17:15 — Deadlift Testing 3 & 1RM, AKBS, HS Hold, Pull-Up Hold (8 × 4)
 - 2026-04-02 18:30 — Open Gym / Filthy Fifty (10 × 1) — likely intentional
 - 2026-04-12 11:00 — TGU, MetCon review (4 × 2)
 - 2026-04-17 09:00 — Barbell GM, KB C&PP, KB Row (5 × 2)
 - 2026-04-24 17:15 + 18:30 — Weekend WOD #26.11 (14 + 10)
-- 2026-05-01 09:00 + 17:15 — Labour Day Partner Bash (18 + 8) — likely intentional partner-format
-Re-entries are safe now that cascade is fixed. Script to re-run: `npx tsx scripts/audit-missing-scores-s356.ts`.
+- 2026-05-01 09:00 + 17:15 — Labour Day Partner Bash — likely intentional partner-format
 
-**Third action — visual-test the late-cancel cleanup.** Mark any test athlete as late-cancel after entering a score for them; confirm the score disappears from Leaderboard. For Jürgen Bizjak's specific case tonight: undo his late-cancel via the row's Undo button, then re-mark him as late-cancel — the new endpoint will sweep his score.
+**Second action — Run the S355 capacity backfill SQL in Supabase:**
+`UPDATE wods SET max_capacity = ws.capacity FROM weekly_sessions ws WHERE ws.workout_id = wods.id AND wods.max_capacity IS DISTINCT FROM ws.capacity;` Idempotent. Aligns historical drift after S355 capacity SoT refactor.
 
-**Fourth action (S355 carry-overs still pending):** capacity backfill SQL one-liner; visual-verify women's lift records (Mimi/Sandra/Claudia/Anneke); visual-verify Peter Kroll's records; visual-verify S354's five surfaces (Leaderboard benchmark detail, Coach Score Entry, Kids-class parent block, Coach Schedule confirm/reset).
+**Third action — visual-verify S355 women's lift records** on athlete app for Mimi / Sandra / Claudia / Anneke.
 
-**Third action:** **Run the capacity backfill SQL in Supabase**: `UPDATE wods SET max_capacity = ws.capacity FROM weekly_sessions ws WHERE ws.workout_id = wods.id AND wods.max_capacity IS DISTINCT FROM ws.capacity;` Idempotent. Aligns historical drift after S355 capacity SoT refactor.
+**Fourth action — visual-verify S354's five surfaces on prod:** (a) Athlete Leaderboard → Benchmarks: exercises + description on the gray box. (b) Athlete Leaderboard → WOD subview: select a benchmark item; section preview shows exercises + description. (c) Coach Score Entry (modal + page): teal benchmark-detail block. (d) /member/book: kids-class self-book amber notice. (e) /coach/schedule: This Week / Next Week confirm + Delete buttons with safety guards.
 
-**Fourth action:** Visual-verify S355 + S354 surfaces on prod (capacity field gone from WOD modal; women's lift records visible for Mimi/Sandra/Claudia/Anneke; Peter Kroll's 10 records; S354 benchmark detail surfaces).
-
-**Fifth action:** Paper-card sync (S351 carry) — ~9 holders missing `purchase_date`.
+**Fifth action — paper-card sync (S351 carry):** ~9 ten-card holders still missing `purchase_date`. Each: set date, Recalc + Save once.
 
 **Files to open first if continuing code work:**
-- [hooks/coach/useWODOperations.ts](hooks/coach/useWODOperations.ts) — capacity propagation to `weekly_sessions.capacity` was removed (S355). WOD save no longer touches session.capacity. Comment at line ~30 documents the new contract.
-- [components/coach/WorkoutModal.tsx](components/coach/WorkoutModal.tsx) + [components/coach/WorkoutFormFields.tsx](components/coach/WorkoutFormFields.tsx) — Max Capacity input REMOVED. `WODFormData.maxCapacity` still exists in state (hydrated from session.capacity or default 12) so new-session inserts can stamp something; no UI surface for it.
-- [hooks/coach/useSessionEditing.ts:48-67](hooks/coach/useSessionEditing.ts#L48) — `handleUpdateCapacity` writes BOTH `weekly_sessions.capacity` and `wods.max_capacity`; this is now the only authoritative capacity-edit path.
-- [scripts/import-athlete-lift-records.ts](scripts/import-athlete-lift-records.ts) — `pj`/`push jerk` lift-map fixed (`Power Jerk` was incorrect; barbell_lifts only has `Push Jerk`).
+- [lib/coach/scoreCleanup.ts](lib/coach/scoreCleanup.ts) — shared helper used by 6 deletion paths (S357). Captures WSR/lift_record ids first, deletes reactions pointing at them, then the rows. Service-role required.
+- [app/api/coach/delete-session/route.ts](app/api/coach/delete-session/route.ts) — multi-member cleanup with sibling-session protection: athletes who still have a booking on the same wod via a different session keep their scores.
+- [hooks/coach/useWODOperations.ts](hooks/coach/useWODOperations.ts) — `wods.title` is the UI-driven source-of-truth for the type label; precedence is `title || session_type` at all 10 sync sites (S357). Also: capacity propagation to `weekly_sessions.capacity` was removed (S355).
+- [components/coach/WorkoutFormFields.tsx](components/coach/WorkoutFormFields.tsx) — "Session Type" input is bound to `formData.title`, NOT `formData.session_type`. Half-finished migration; `title` column is marked DEPRECATED in schema but still UI-canonical.
+- [hooks/coach/useSessionEditing.ts:48-67](hooks/coach/useSessionEditing.ts#L48) — `handleUpdateCapacity` writes BOTH `weekly_sessions.capacity` and `wods.max_capacity`; this is the only authoritative capacity-edit path.
 - [components/athlete/LeaderboardView.tsx](components/athlete/LeaderboardView.tsx) — TWO subviews (WOD + Benchmarks) both render benchmark detail (S354). Any future benchmark-detail surface change must land in both branches.
-- [app/api/bookings/create/route.ts:180-208](app/api/bookings/create/route.ts) — kids-class parent self-booking 403 (S354).
-- [app/coach/schedule/page.tsx](app/coach/schedule/page.tsx) + [app/api/sessions/delete-week/route.ts](app/api/sessions/delete-week/route.ts) — Coach Schedule confirm + reset-week (S354).
 
 **Carry-over status:**
-- ⏳ **S356 visual-test on prod after deploy** — cascade-delete rename detection + late-cancel cleanup endpoint. See First + Third actions above.
-- ⏳ **S356 audit re-entry pass** — Chris reviews the 8 high-confidence loss sessions and re-enters real losses. See Second action above.
-- ⏳ **S355 finish 05/05 18:30 re-entry** — original carry-over said 4 athletes still missing (Thomas Graf, Stefan G, Teemu Lian Geisler, Christian Müller, Pt.1 + Pt.2 times). Confirm against the 16 fresh WSRs on `00fe6b2a` whether these athletes are now in or still gapped.
-- ⏳ **S355 capacity backfill SQL** — run the one-liner above in Supabase.
-- ⏳ **S355 verify women's lift records visible** on athlete app for Mimi / Sandra / Claudia / Anneke.
-- ⏳ **S355 verify Peter Kroll's records** visible after his late-import.
-- ⏳ S354 visual-verify on prod the five surfaces above.
-- ⏳ S353 fill in DOB for Lenny Kleinert + Frieda Stromer (both still NULL) so the (age N) span renders on their Members cards.
-- ⏳ S351/S352 paper-card sync — ~9 ten-card holders still missing `purchase_date` (Katja done S354). Each holder: set date, Recalc + Save once.
-- ⏳ S346 gym memberships live test — Add → Edit → Delete flow on `/coach/admin` Memberships tab; cron should auto-expire active rows past `end_date` at 06:00 UTC.
-- ⏳ S345 whiteboard backfill — Nico Enzmann still needs Recalc + Save. Kim Salzgeber done (S351 via bulk reconcile + trial-link).
-- ⏳ S344 deletion-paths forward fix — two paths still skip wsr/lift_records/reactions cleanup: `handleDeleteIncident` ([app/coach/admin/page.tsx:231](app/coach/admin/page.tsx#L231)) + `handleDeleteSession` ([hooks/coach/useWODOperations.ts:534](hooks/coach/useWODOperations.ts#L534)). Plus reactions DELETE missing from all 4 cleanup paths.
-- ⏳ S342 user verification — once Nikolina/Lisa enter the 7d window, confirm Subscriptions Due banner cash bucket with Renew buttons.
+- ✅ **S356 cascade rename detection verified** (S357 — Chris tested with drag-replace, scores survived).
+- ✅ **S356 late-cancel cleanup verified for Jürgen** (S357 — worked on second attempt; first close-and-reopen was a stale-display anomaly).
+- ⏳ **S356 audit re-entry pass** — 8 high-confidence loss sessions. See First action above.
+- ⏳ **S355 finish 05/05 18:30 re-entry** — 4 athletes still missing (Thomas Graf, Stefan G, Teemu Lian Geisler, Christian Müller, Pt.1 + Pt.2 times).
+- ⏳ **S355 capacity backfill SQL** — Second action above.
+- ⏳ **S355 verify women's lift records visible** — Mimi / Sandra / Claudia / Anneke. Third action above.
+- ✅ **S355 Peter Kroll's records verified** (S357).
+- ⏳ S354 visual-verify on prod the five surfaces. Fourth action above.
+- ⏳ S353 fill in DOB for Lenny Kleinert + Frieda Stromer (both still NULL).
+- ⏳ S351/S352 paper-card sync — ~9 ten-card holders still missing `purchase_date`.
+- ⏳ S346 gym memberships live test — Add → Edit → Delete flow on `/coach/admin` Memberships tab.
+- ⏳ S345 whiteboard backfill — Nico Enzmann still needs Recalc + Save.
+- ✅ **S344 deletion-paths forward fix complete** (S357 — all 6 paths use `lib/coach/scoreCleanup.ts`, reactions DELETE added, browser-side paths rewired to service-role endpoints).
+- ⏳ S342 user verification — once Nikolina/Lisa enter the 7d window, confirm Subscriptions Due banner.
 - ⏳ S341 user verification — `/coach/analysis` planner `[ All | RM Testing only ]` toggle.
 - ⏳ S338 verify on production — AKBS Deadlift "WOD Pt.3" leaderboard ordering.
 - ⏳ S336 retroactive bookings carry — Anton (Koffler/Jacht ambiguity), Max Weber, Lenny Kleinert dupe, etc.
 - ⏳ S321 late-cancel TZ fix — still waiting on a real organic cancellation.
 
 **Landmines:**
+- **Session type label is stored in THREE columns (S357).** `wods.title` (UI-driven, marked DEPRECATED in schema but still canonical), `wods.session_type` (mirror), `weekly_sessions.workout_type` (mirror, what athlete book page reads). The Workout Modal's "Session Type" input is bound to `formData.title` at [components/coach/WorkoutFormFields.tsx:48](components/coach/WorkoutFormFields.tsx#L48). Save logic at all 10 sites in [hooks/coach/useWODOperations.ts](hooks/coach/useWODOperations.ts) uses precedence `wodData.title || wodData.session_type` (title wins) and syncs the value across all three columns after every `wods` UPDATE/INSERT. **If you add a new wods write path, replicate this triple-sync** or the athlete app will show stale schedule-template values. Backfill SQL exists in S357 project-history if drift sneaks in.
+- **Score-cleanup helper is shared across 6 deletion paths (S357).** [lib/coach/scoreCleanup.ts](lib/coach/scoreCleanup.ts) `cleanupAthleteScoresForWod` is called by: `/api/bookings/cancel` (athlete self-cancel), `/api/coach/cancel-member-booking`, `/api/coach/mark-late-cancel`, `/api/coach/mark-no-show`, `/api/coach/delete-incident`, `/api/coach/delete-session`. Captures WSR + lift_record ids first, deletes `reactions` pointing at those rows (no FK constraint, manual cleanup), then deletes the rows. **Must be called with a service-role client** — RLS hides cross-user reactions from the cancelling athlete and athlete-owned rows from a coach session. If you add a 7th deletion path, use this helper.
+- **`/api/coach/delete-session` skips cleanup for athletes still booked on the same WOD via a sibling session (S357).** [app/api/coach/delete-session/route.ts](app/api/coach/delete-session/route.ts). When a WOD spans multiple class times (`wods.class_times` array), the same `workout_id` is linked from several `weekly_sessions` rows. Without the sibling-session check, deleting one time slot would wipe scores entered for the class the athlete actually attended. **If you change the WSR FK to `booking_id` instead of `wod_id`, this protection is no longer needed.**
+- **The `delete-session` button is UI-gated to empty sessions only (S357).** [components/coach/CalendarGrid.tsx:352](components/coach/CalendarGrid.tsx#L352) — the trash icon only renders when `isEmptySession && wod.booking_info?.session_id`. So the cleanup branch inside the endpoint is currently defensive — exercisable only via the API or a future UI change that exposes session-delete on populated cards.
 - **Cascade-delete rename detection matches by `type` only, positionally (S356).** [hooks/coach/useWODOperations.ts:80-130](hooks/coach/useWODOperations.ts#L80). When an old section.id is missing from new sections, code looks for an unmatched-new section with the same `type` and migrates WSRs there instead of deleting. If Chris removes one "WOD" section and adds a totally different "WOD" section in the same save, WSRs migrate to the new section (false positive — but no data loss, which is the right trade-off). The lift_records cascade still uses content-based tuple matching, unchanged. **If this becomes a problem, refine the match key to also include `(primary_lift_name)` or `(benchmark_name)` from the section's lifts/benchmarks/forge_benchmarks arrays.** Migration is applied BEFORE the cascade-delete + BEFORE the scoring-fields-flip loop, so subsequent steps see the new section_id consistently.
 - **Late-cancel cleanup is permanent — undo doesn't restore (S356).** [app/api/coach/mark-late-cancel/route.ts](app/api/coach/mark-late-cancel/route.ts) deletes WSRs + lift_records for the booking when marking late-cancel. [hooks/coach/useBookingManagement.ts](hooks/coach/useBookingManagement.ts) `handleUndoLateCancel` only flips status back to `confirmed`; it doesn't restore data. Confirm dialog now warns about deletion. **If you add a "Undo with score restore" feature, you'd need a soft-delete column on WSRs (currently hard delete).** Late-cancel still consumes the 10-card (per the existing UX copy) — endpoint does NOT flip `ten_card_consumed`, unlike `/api/coach/cancel-member-booking` which refunds.
 - **Session capacity has ONE source of truth: `weekly_sessions.capacity` (S355).** [hooks/coach/useSessionEditing.ts:48-67](hooks/coach/useSessionEditing.ts#L48) is the authoritative edit path (writes both `weekly_sessions.capacity` AND `wods.max_capacity` to keep them in sync). The Workout Modal no longer has a Max Capacity input — capacity is edited only via Session Management Modal. `wods.max_capacity` is still written on WOD save (mirrored from `WODFormData.maxCapacity` which itself is hydrated from session.capacity) but **nothing reads it as authoritative** — the column is effectively legacy. **If a future feature needs a capacity-edit surface, hook it through `useSessionEditing` or write a thin wrapper that updates both columns.** Removing the column entirely would also work but requires checking the calendar's WODFormData hydration in `useCoachData.ts:172` first. Backfill SQL (one-shot) aligns drift on existing rows; future writes are drift-proof.
@@ -187,6 +187,13 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 357 (2026-05-20 — Opus 4.7) — WOD SESSION-TYPE DRIFT FIX + S344 DELETION-PATHS FORWARD FIX (FULL SWEEP):**
+- **Athlete book page showed "Open Gym" on Friday 22.05 09:00 while coach saw "WOD".** Root cause: `wods.title` is the UI-driven source-of-truth ("Session Type" input at [components/coach/WorkoutFormFields.tsx:48](components/coach/WorkoutFormFields.tsx#L48) is bound to `formData.title`, NOT `formData.session_type` — schema-deprecated `title` is still UI-canonical, half-finished migration). Save logic used `session_type: wodData.session_type || wodData.title` precedence, so if `session_type` already had a stale value ("Open Gym" from a schedule-template sync), it won over the UI's new "WOD". Athlete page reads `weekly_sessions.workout_type` (a third mirror), which also stayed stale. **Fix:** flipped precedence to `wodData.title || wodData.session_type` at all 10 sites in [hooks/coach/useWODOperations.ts](hooks/coach/useWODOperations.ts), added sync of `weekly_sessions.workout_type` after every wods write. Backfill SQL aligned all three columns in Supabase. Commit `80baa70`.
+- **S344 deletion-paths forward fix — complete sweep.** Extracted shared helper [lib/coach/scoreCleanup.ts](lib/coach/scoreCleanup.ts) (`cleanupAthleteScoresForWod` + `resolveAuthUserId`) that captures WSR/lift_record ids first, deletes `reactions` pointing at them (previously never cleaned anywhere), then deletes the rows. Used by 6 deletion paths. **3 new endpoints:** `/api/coach/delete-incident` (replaces browser-side `handleDeleteIncident` in [app/coach/admin/page.tsx:231](app/coach/admin/page.tsx#L231)), `/api/coach/delete-session` (replaces browser-side `handleDeleteSession` in [hooks/coach/useWODOperations.ts:534](hooks/coach/useWODOperations.ts#L534)), `/api/coach/mark-no-show` (symmetric with mark-late-cancel — `handleMarkNoShow` previously left ghost scores). **3 refactored:** cancel-member-booking, mark-late-cancel, bookings/cancel. The `bookings/cancel` route switched its cleanup section to service-role so reactions actually get deleted (anon-supabase can't delete other users' reactions).
+- **`delete-session` protects sibling-session bookings.** When a WOD spans multiple class times, athletes booked on a sibling session keep their scores — the endpoint queries `weekly_sessions WHERE workout_id = X AND id != current` first, finds members with bookings there, excludes them from the cleanup loop.
+- **Hard-refresh memory saved.** Chris pointed out he always hard-refreshes after any change and doesn't need me to ask. New durable feedback memory at `feedback_chris_always_hard_refreshes.md`.
+- **All 5 paths tested by Chris on prod after deploy.** Dialog text update on cancel-member-booking landed in same PR ("scores will be removed" mention).
+
 **Session 356 (2026-05-19 — Opus 4.7) — WOD SCORE-LOSS ROOT-CAUSE FIX + LATE-CANCEL CLEANUP + WIDER AUDIT:**
 - **Diagnosed the S355 "lost WOD scores" claim correctly.** Cascade-delete in [hooks/coach/useWODOperations.ts](hooks/coach/useWODOperations.ts) was deleting WSRs whose section.id was no longer in the new sections set after a WOD edit. Section IDs use `section-${Date.now()}` and regenerate on drag-drop / remove-and-re-add (5 generators found across `useWorkoutModal.ts`, `useSectionManagement.ts`, `useQuickEdit.ts`), so routine restructures looked like deletions and the confirm dialog presented "Delete N scores from M athletes" as a normal save step. I initially misread the bug as a UI prefill mismatch in `useScoreEntry.ts:213` — Chris pushed back; my survivor-bias DB query couldn't see the deleted rows. Saved feedback memory.
 - **Fix: rename detection in the cascade.** [hooks/coach/useWODOperations.ts:80-130](hooks/coach/useWODOperations.ts#L80). Before deleting WSRs for a removed section.id, code now looks for an unmatched-new section with the same `type` and migrates WSRs there instead. Genuine type-change / actual removal still cascades with confirm. Scoring-fields-flip loop extended to handle migrated section pairs.
@@ -216,14 +223,7 @@ Athlete Tools
 - **Guardian-only auto-select on Book-a-Class** — [app/member/book/page.tsx](app/member/book/page.tsx). FamilyMember type + SELECT pull `guardian_only`. Default `bookingForMemberId` is first family_member when primary is guardian-only (else self, unchanged). Booking-for chip selector filters out the primary entry when guardian-only → no "You" chip rendered. Server-side block at [app/api/bookings/create/route.ts:101](app/api/bookings/create/route.ts#L101) was already in place.
 - **Commits tagged session-352 by mistake** (date boundary slipped) — `e9ff696` (feature) + `4ea2caf` (Chris notes sync). Actual calendar-day work is S353. Not amended (prefer new commits over rewriting history).
 
-**Session 352 (2026-05-15 — Opus 4.7) — KIDS CALENDAR COLOR FIX + GLORIA STOFFER FAMILY→PRIMARY MERGE:**
-- **Kids cards rendered as WOD teal-700 since 2026-04-20.** Root cause: [utils/card-utils.ts:44](utils/card-utils.ts#L44) `KIDS_KEYWORDS` matched via strict equality after lowercasing. Around S295 (2026-04-19/20), Chris + Mimi edited `workout_titles` to add age suffixes — "Kids & Teens 6-9", "FitKids Turnen 4-6", etc. — and none of those exact-match the 5 base keywords. Foundations was already robust because its branch used `lower === k || lower.startsWith(k)`. Fix: same `startsWith` pattern for kids. One-line change, commit `32f50d1`.
-- **Gloria Stoffer family→primary profile merge.** She had a family-member row under Torben Stoffer (`cee4213e-9ebc-4439-a2c6-894dbed61186`) and registered her own standalone profile (`551e4612-a2a8-431f-8862-936f13205631`). 3-statement SQL transaction in Supabase: UPDATE `bookings.member_id` (old→new), UPDATE `wod_section_results.member_id` (old→new), DELETE old members row. Atomic; preserves original `bookings.created_at` and all score history. S351 trigger auto-resynced the new profile's 10-card counter via the member_id UPDATE.
-- **Pre-flight duplicate check returned a false positive.** `GROUP BY session_id HAVING COUNT(*) > 1` flagged the 2026-05-14 10:00 session as a duplicate. Inspection revealed both rows were already on the NEW profile — a `coach_cancelled` row at 10:19 followed by a fresh `confirmed` row at 19:31. Normal cancel-and-rebook, not a cross-profile collision. The check is worth keeping in future merge SOPs but the row-inspection follow-up is mandatory before deleting anything.
-- **Tables NOT migrated for Gloria (zero rows expected for family-member profiles):** `lift_records`, `benchmark_results`, `athlete_achievements`, `reactions` — all keyed off `auth.users.id`, and family-member profiles typically have no auth user. Verified before running the merge.
-- **No new landmines introduced.** Both fixes are operational; no architectural changes; no schema migrations; no new RPCs or endpoints.
-
-**Older sessions (57-351):** See `project-history/` folder.
+**Older sessions (57-352):** See `project-history/` folder.
 
 ---
 
@@ -259,7 +259,7 @@ Athlete Tools
 0b. **S351 production verification.** After Vercel deploys the code: open `/coach/members` → confirm chips unchanged from pre-deploy. Run `npx tsx scripts/probe-ten-card-drift.ts --all` again to confirm 0 drifters (or all drifters are holders without purchase_date — expected). Test the linkage flow on a real new trial that becomes a member.
 0c. **S346 gym memberships live-test on prod.** Add → Edit → Delete a contract; verify daily cron expired any rows past `end_date` at 06:00 UTC.
 0d. **Recalc 10-card counter for Nico Enzmann (S345 carry).** TenCardModal → Recalc → Save. Kim Salzgeber's was resolved via S351 trial-link.
-0e. **S344 deletion-paths forward fix.** Two paths still skip wsr/lift_records/reactions cleanup: (1) `handleDeleteIncident` in [app/coach/admin/page.tsx:231](app/coach/admin/page.tsx#L231), (2) `handleDeleteSession` in [hooks/coach/useWODOperations.ts:534](hooks/coach/useWODOperations.ts#L534). Plus reactions DELETE missing from all 4 cleanup paths. Build `/api/coach/delete-incident` mirroring S344's `/api/coach/cancel-member-booking` shape; add reactions cleanup to all 4. Re-run `npx tsx scripts/sweep-deletion-orphans.ts` post-ship (should still show 0).
+0e. **(S344 deletion-paths forward fix — DONE in S357.** Shared `lib/coach/scoreCleanup.ts` helper now used by all 6 deletion paths; reactions cleanup added; browser-side delete paths replaced with service-role endpoints. Sweep diagnostic: `npx tsx scripts/sweep-deletion-orphans.ts`.)
 0d. **Verify Subscriptions Due banner once Nikolina/Lisa enter 7d window (S342).** Cash-managed rows; renew buttons should call `/api/members/athlete-subscription` and shift end_date to now+30d.
 0e. **Verify RM-test distinction on deploy (S341).** Toggle `[ All | RM Testing only ]` on the planner.
 1. **Verify the AKBS Deadlift leaderboard fix on the production deploy (S338).** Open the WOD's leaderboard for "WOD Pt.3" — Chris (47/20) should rank above Madeleine (48/12). Spot-check Back Squat Testing, BFS 5x5, and Strict Movements/KBOHC.

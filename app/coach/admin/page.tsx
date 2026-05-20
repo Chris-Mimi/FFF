@@ -6,6 +6,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { UserPlus, ArrowLeft, BarChart2, Bell, KeyRound, Settings, ChevronLeft, ChevronRight, ChevronDown, Trash2, X } from 'lucide-react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import { authFetch } from '@/lib/auth-fetch';
 import { NotificationPrompt } from '@/components/ui/NotificationPrompt';
 import MembershipsTab from '@/components/coach/admin/MembershipsTab';
 import { confirm } from '@/lib/confirm';
@@ -235,16 +236,21 @@ export default function AdminToolsPage() {
     const statusLabel = status === 'late_cancel' ? 'Late Cancel' : 'No-Show';
     const ok = await confirm({
       title: 'Delete Incident',
-      message: `Permanently delete the ${statusLabel} record for ${name} on ${date}? This removes the booking row from the database.`,
+      message: `Permanently delete the ${statusLabel} record for ${name} on ${date}? This removes the booking row from the database and clears any scores entered for ${name} on this class.`,
       confirmText: 'Delete',
       variant: 'danger',
     });
     if (!ok) return;
     try {
-      const { error } = await supabase.from('bookings').delete().eq('id', bookingId);
-      if (error) throw error;
+      const res = await authFetch('/api/coach/delete-incident', {
+        method: 'POST',
+        body: JSON.stringify({ bookingId }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error || 'Failed to delete incident');
+      }
       toast.success('Incident deleted');
-      // Optimistic local removal so the UI updates without a full refetch
       setAllIncidents(prev => prev.filter(r => r.bookingId !== bookingId));
     } catch (err) {
       console.error('Error deleting incident:', err);

@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { promoteFromWaitlist } from '@/lib/coach/promoteFromWaitlist';
 import { getBookingRules, getLockLeadMinutesForSessionType, sessionStartInstant } from '@/lib/bookingRules';
+import { cleanupAthleteScoresForWod, resolveAuthUserId } from '@/lib/coach/scoreCleanup';
+
+// Service-role client used ONLY for the score-cleanup step below. Anon-supabase
+// cannot delete reactions (owned by other users) or family-member rows, so the
+// cleanup must run with service role to be complete.
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  { auth: { autoRefreshToken: false, persistSession: false } }
+);
 
 export async function POST(request: NextRequest) {
   try {
@@ -164,37 +174,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Clean up scores for this member on this session's workout
-    const { data: sessionData } = await supabase
+    const { data: sessionData } = await supabaseAdmin
       .from('weekly_sessions')
       .select('workout_id')
       .eq('id', booking.session_id)
       .single();
 
     if (sessionData?.workout_id) {
-      // Capture user_ids from wod_section_results before deletion — lift_records
-      // only has user_id (auth.users.id), which can differ from members.id.
-      const { data: existingResults } = await supabase
-        .from('wod_section_results')
-        .select('user_id')
-        .eq('wod_id', sessionData.workout_id)
-        .or(`member_id.eq.${booking.member_id},user_id.eq.${booking.member_id}`);
-
-      const userIds = [...new Set((existingResults || []).map(r => r.user_id).filter(Boolean))];
-
-      await supabase
-        .from('wod_section_results')
-        .delete()
-        .eq('wod_id', sessionData.workout_id)
-        .or(`member_id.eq.${booking.member_id},user_id.eq.${booking.member_id}`);
-
-      if (userIds.length > 0) {
-        await supabase
-          .from('lift_records')
-          .delete()
-          .eq('wod_id', sessionData.workout_id)
-          .in('user_id', userIds);
-      }
+      const authUserId = await resolveAuthUserId(supabaseAdmin, booking.member_id);
+      await cleanupAthleteScoresForWod(
+        supabaseAdmin,
+        sessionData.workout_id,
+        booking.member_id,
+        authUserId,
+      );
     }
 
     // Auto-promote first waitlist member if cancelled booking was confirmed
