@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 226
-**Updated:** 2026-05-20 (Session 357 — three workstreams: (1) **WOD session-type drift fix** — athletes saw "Open Gym" on Friday 22.05 09:00 while coach saw "WOD". Root cause: deprecated `wods.title` is the UI-driven source-of-truth but `wods.session_type` was being preserved by `wodData.session_type || wodData.title` precedence, leaving stale "Open Gym" on `weekly_sessions.workout_type` (which the athlete book page reads). Flipped precedence to `title || session_type` across 10 sites, added sync of all three columns on every wods write, backfill SQL aligned existing drift. (2) **S344 deletion-paths forward fix — complete sweep.** New shared helper `lib/coach/scoreCleanup.ts` (`cleanupAthleteScoresForWod` + `resolveAuthUserId`) used by 6 deletion paths. Three new endpoints (`/api/coach/delete-incident`, `/api/coach/delete-session`, `/api/coach/mark-no-show`). Three refactored (cancel-member-booking, mark-late-cancel, bookings/cancel). Reactions cleanup added to all six. Browser-side delete paths in admin page + WOD operations rewired to call new endpoints via `authFetch`. (3) `handleMarkNoShow` now wipes scores too, symmetric with mark-late-cancel.)
+**Version:** 227
+**Updated:** 2026-05-21 (Session 358 — Anfisa Bornemann registered the day prior with `whiteboard_name="Anfisa"` set; coach Athletes-tab showed 16 attended but click-filter showed nothing. Diagnosis: `get_all_members_attendance` RPC counts via THREE sources (bookings + linked WSRs + Whiteboard Intro free-text mentions) but the click filter in [hooks/coach/useCoachData.ts:256](hooks/coach/useCoachData.ts#L256) only joins via bookings. Established pattern (Chris has done this multiple times): backfill the bookings via [scripts/backfill-whiteboard-bookings.ts](scripts/backfill-whiteboard-bookings.ts). Result: 16 confirmed bookings inserted for Anfisa across 2025-12-02 → 2026-03-31. Phase-2 byproduct of the same script also updated 13 orphan WSRs (Anne / Madeleine / Martina / Senol / Carla / Petr) — Chris flagged Carla as out of scope (no Whiteboard Intro mention); rollback decision deferred to next session. Then [scripts/remove-anfisa-from-whiteboard-intros.ts](scripts/remove-anfisa-from-whiteboard-intros.ts) stripped "Anfisa" from 16 intro contents — now redundant since she's properly booked.)
 
 ---
 
@@ -21,7 +21,11 @@
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history scan._
 
-**🚨 First action — S356 audit re-entry pass.** Chris reviews the 8 high-confidence loss sessions from `scripts/audit-missing-scores-s356.ts` and re-enters scores for any that were real losses (vs intentional non-scoring like Partner Bash or Open Gym). Re-entries are safe now that the S356 cascade rename detection + S357 deletion-path cleanup are both live.
+**🚨 First action — S358 Phase-2 rollback decision.** The backfill-whiteboard-bookings script's Phase 2 re-attributed 13 historical WSRs to 5 athletes (Anne, Madeleine, Martina, Senol, Carla, Petr) by matching `whiteboard_name` directly. Chris flagged this as off-scope — "Carla Courtois doesn't appear in any Whiteboard Intro, which is the only criteria for these replacements." Decide: rollback all 13, keep all, or split (e.g. only rollback Carla's 2 since she's the clearest outlier). Phase 1 (16 Anfisa bookings) stands.
+
+**Second action — MacBook Pro problem (unrelated to Forge code).** Chris flagged; details to come. Likely related to / overlapping with the existing "Mac Chrome hang" known open issue but possibly distinct.
+
+**Third action — S356 audit re-entry pass.** Chris reviews the 8 high-confidence loss sessions from `scripts/audit-missing-scores-s356.ts` and re-enters scores for any that were real losses (vs intentional non-scoring like Partner Bash or Open Gym).
 - 2026-03-30 17:15 — Deadlift Testing 3 & 1RM, AKBS, HS Hold, Pull-Up Hold (8 × 4)
 - 2026-04-02 18:30 — Open Gym / Filthy Fifty (10 × 1) — likely intentional
 - 2026-04-12 11:00 — TGU, MetCon review (4 × 2)
@@ -29,14 +33,14 @@ _Updated at every session close. The "first 5 minutes of tomorrow" — read this
 - 2026-04-24 17:15 + 18:30 — Weekend WOD #26.11 (14 + 10)
 - 2026-05-01 09:00 + 17:15 — Labour Day Partner Bash — likely intentional partner-format
 
-**Second action — Run the S355 capacity backfill SQL in Supabase:**
+**Fourth action — Run the S355 capacity backfill SQL in Supabase:**
 `UPDATE wods SET max_capacity = ws.capacity FROM weekly_sessions ws WHERE ws.workout_id = wods.id AND wods.max_capacity IS DISTINCT FROM ws.capacity;` Idempotent. Aligns historical drift after S355 capacity SoT refactor.
 
-**Third action — visual-verify S355 women's lift records** on athlete app for Mimi / Sandra / Claudia / Anneke.
+**Fifth action — visual-verify S355 women's lift records** on athlete app for Mimi / Sandra / Claudia / Anneke.
 
-**Fourth action — visual-verify S354's five surfaces on prod:** (a) Athlete Leaderboard → Benchmarks: exercises + description on the gray box. (b) Athlete Leaderboard → WOD subview: select a benchmark item; section preview shows exercises + description. (c) Coach Score Entry (modal + page): teal benchmark-detail block. (d) /member/book: kids-class self-book amber notice. (e) /coach/schedule: This Week / Next Week confirm + Delete buttons with safety guards.
+**Sixth action — visual-verify S354's five surfaces on prod:** (a) Athlete Leaderboard → Benchmarks: exercises + description on the gray box. (b) Athlete Leaderboard → WOD subview: select a benchmark item; section preview shows exercises + description. (c) Coach Score Entry (modal + page): teal benchmark-detail block. (d) /member/book: kids-class self-book amber notice. (e) /coach/schedule: This Week / Next Week confirm + Delete buttons with safety guards.
 
-**Fifth action — paper-card sync (S351 carry):** ~9 ten-card holders still missing `purchase_date`. Each: set date, Recalc + Save once.
+**Seventh action — paper-card sync (S351 carry):** ~9 ten-card holders still missing `purchase_date`. Each: set date, Recalc + Save once.
 
 **Files to open first if continuing code work:**
 - [lib/coach/scoreCleanup.ts](lib/coach/scoreCleanup.ts) — shared helper used by 6 deletion paths (S357). Captures WSR/lift_record ids first, deletes reactions pointing at them, then the rows. Service-role required.
@@ -47,9 +51,12 @@ _Updated at every session close. The "first 5 minutes of tomorrow" — read this
 - [components/athlete/LeaderboardView.tsx](components/athlete/LeaderboardView.tsx) — TWO subviews (WOD + Benchmarks) both render benchmark detail (S354). Any future benchmark-detail surface change must land in both branches.
 
 **Carry-over status:**
+- ⏳ **S358 Phase-2 rollback decision pending** — see First action above. 13 WSR re-attributions for Anne/Madeleine/Martina/Senol/Carla/Petr.
+- ⏳ **MacBook Pro problem** (Chris flagged; unrelated to Forge code). See Second action.
+- ✅ **S358 Anfisa booking backfill applied** — 16 confirmed bookings inserted 2025-12-02 → 2026-03-31; Whiteboard Intros cleaned of her name on the same 16 sessions.
 - ✅ **S356 cascade rename detection verified** (S357 — Chris tested with drag-replace, scores survived).
 - ✅ **S356 late-cancel cleanup verified for Jürgen** (S357 — worked on second attempt; first close-and-reopen was a stale-display anomaly).
-- ⏳ **S356 audit re-entry pass** — 8 high-confidence loss sessions. See First action above.
+- ⏳ **S356 audit re-entry pass** — 8 high-confidence loss sessions. See Third action above.
 - ⏳ **S355 finish 05/05 18:30 re-entry** — 4 athletes still missing (Thomas Graf, Stefan G, Teemu Lian Geisler, Christian Müller, Pt.1 + Pt.2 times).
 - ⏳ **S355 capacity backfill SQL** — Second action above.
 - ⏳ **S355 verify women's lift records visible** — Mimi / Sandra / Claudia / Anneke. Third action above.
@@ -187,6 +194,14 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 358 (2026-05-21 — Opus 4.7) — ANFISA BOOKING BACKFILL + WHITEBOARD-INTRO CLEANUP:**
+- **Anfisa Bornemann surfaced an attendance-count vs filter mismatch.** Coach Athletes-tab showed `16 attended` for her but clicking her name filtered to ~0 workouts; typing "Anfisa" in the search box found them. Root cause: `member.booking_count` comes from `get_all_members_attendance` RPC ([database/update-attendance-functions-include-whiteboard-text.sql](database/update-attendance-functions-include-whiteboard-text.sql)) which UNIONs THREE sources (confirmed bookings + linked WSRs + Whiteboard Intro free-text mentions via POSIX `\y...\y` regex), while the click filter in [hooks/coach/useCoachData.ts:256](hooks/coach/useCoachData.ts#L256) only joins via `bookings WHERE member_id IN selectedMembers AND status='confirmed'`. Anfisa's 16 attendances live almost entirely in source #3 (Whiteboard Intro text).
+- **Established pattern: backfill the bookings.** Chris has done this multiple times for newly-registered whiteboard athletes — preferred over patching the filter. Ran [scripts/backfill-whiteboard-bookings.ts](scripts/backfill-whiteboard-bookings.ts) (existing, generic, dry-run by default). Phase 1: 16 confirmed bookings inserted for Anfisa across 2025-12-02 → 2026-03-31. All matched via her `members.whiteboard_name="Anfisa"`. No multi-session-day ambiguity.
+- **Phase 2 byproduct + scope flag.** Same script also re-attributed 13 orphan `wod_section_results` (whiteboard_name set, member_id NULL) to Anne Schaber (1, first-name fallback), Madeleine Gehring (4), Fenster Martina (3), Senol Özdilek (2), Carla Courtois (2, full-name match), Petr Bezdek (1). Chris flagged this as off-scope — Phase 2 keys off `wod_section_results.whiteboard_name`, NOT Whiteboard Intro text; Carla never appeared in any Whiteboard Intro. Rollback decision deferred to next session (see Next Session Kickoff).
+- **Whiteboard Intro cleanup.** Now that Anfisa is properly booked, her name in the 16 intro texts was redundant. New [scripts/remove-anfisa-from-whiteboard-intros.ts](scripts/remove-anfisa-from-whiteboard-intros.ts) — finds WODs where "Anfisa" appears in `wods.sections[Whiteboard Intro].content` (case-insensitive word boundary), removes the token, collapses stranded comma / slash / whitespace. 16/16 updated; 4 intros became empty strings (days where she was the only mention) — left as empty.
+- **MacBook Pro problem flagged by Chris** at session close (unrelated to Forge code). Tracked as Second action for next session.
+- **No app code changes this session.** Pure data/scripts work.
+
 **Session 357 (2026-05-20 — Opus 4.7) — WOD SESSION-TYPE DRIFT FIX + S344 DELETION-PATHS FORWARD FIX (FULL SWEEP):**
 - **Athlete book page showed "Open Gym" on Friday 22.05 09:00 while coach saw "WOD".** Root cause: `wods.title` is the UI-driven source-of-truth ("Session Type" input at [components/coach/WorkoutFormFields.tsx:48](components/coach/WorkoutFormFields.tsx#L48) is bound to `formData.title`, NOT `formData.session_type` — schema-deprecated `title` is still UI-canonical, half-finished migration). Save logic used `session_type: wodData.session_type || wodData.title` precedence, so if `session_type` already had a stale value ("Open Gym" from a schedule-template sync), it won over the UI's new "WOD". Athlete page reads `weekly_sessions.workout_type` (a third mirror), which also stayed stale. **Fix:** flipped precedence to `wodData.title || wodData.session_type` at all 10 sites in [hooks/coach/useWODOperations.ts](hooks/coach/useWODOperations.ts), added sync of `weekly_sessions.workout_type` after every wods write. Backfill SQL aligned all three columns in Supabase. Commit `80baa70`.
 - **S344 deletion-paths forward fix — complete sweep.** Extracted shared helper [lib/coach/scoreCleanup.ts](lib/coach/scoreCleanup.ts) (`cleanupAthleteScoresForWod` + `resolveAuthUserId`) that captures WSR/lift_record ids first, deletes `reactions` pointing at them (previously never cleaned anywhere), then deletes the rows. Used by 6 deletion paths. **3 new endpoints:** `/api/coach/delete-incident` (replaces browser-side `handleDeleteIncident` in [app/coach/admin/page.tsx:231](app/coach/admin/page.tsx#L231)), `/api/coach/delete-session` (replaces browser-side `handleDeleteSession` in [hooks/coach/useWODOperations.ts:534](hooks/coach/useWODOperations.ts#L534)), `/api/coach/mark-no-show` (symmetric with mark-late-cancel — `handleMarkNoShow` previously left ghost scores). **3 refactored:** cancel-member-booking, mark-late-cancel, bookings/cancel. The `bookings/cancel` route switched its cleanup section to service-role so reactions actually get deleted (anon-supabase can't delete other users' reactions).
@@ -215,15 +230,7 @@ Athlete Tools
 - **No-code diagnostic on Lenny's 10-card chip.** Chris reported chip showed 10/10 vs his expected 10+1/10 after setting Katja's purchase_date + Recalc. Explained the mismatch-display fallback path + two contributing factors: (a) trigger bailed during the NULL-purchase-date window (S351 landmine), (b) pre-S353 bookings on Lenny's row have `ten_card_consumed=false` because his family-member row had no `primary_payment_method` at insert time. Both strata are fossil records; on the next Close & Issue New, the new purchase_date will bound out all pre-renewal rows and everything works correctly going forward. Chris confirmed leaving it.
 - **Label drift across commit messages.** Today's commits ended up tagged `session-354/355/356` progressively, but the calendar-day work is one session, S354. Same drift S353 logged. Not amended — prefer new commits over rewriting published history.
 
-**Session 353 (2026-05-16 — Opus 4.7) — LENNY+FRIEDA FAMILY-MEMBER CLEANUPS + AGES ON CARDS + GUARDIAN-ONLY AUTO-SELECT:**
-- **Lenny Kleinert two-profile merge.** Mum (Katja Brückner) had registered Lenny as primary on her email AND as family_member — two Lenny profiles with the parent profile actually being hers, misnamed. Step 1: set `ten_card_holder_id` + `primary_payment_method='ten_card'` on the family-member row to wire the cascade. Step 2: atomic transaction — DELETE 4 duplicate Profile B bookings (May-9 dupes of April-23 originals — Lenny only attended once each), UPDATE bookings + wod_section_results from A→B, rename Profile A to Katja + `guardian_only=true`. Direction-of-drop mattered: A's bookings had `consumed=true` from S351 backfill, B's had `consumed=false` — dropping the wrong side would silently leave the counter at 5 instead of 9.
-- **Frieda Stromer single-profile cleanup.** Same anti-pattern, only one profile. Used a plpgsql `DO $$ ... END $$` block with `DECLARE v_new_id UUID` to INSERT new family_member row + reference its returning id in the subsequent UPDATEs, all in one transaction. Frieda's `gender='F'` travels to the new row, cleared on Burgl's (mum). Burgl gets `guardian_only=true` + `primary_payment_method='ten_card'`.
-- **A third Katja-named row (Katja Neumann, Wellpass, `neumann-kjl@gmx.de`)** surfaced in the name-search but is a completely different person per Chris — untouched.
-- **`(age N)` on coach Member cards** — [components/coach/members/MemberCard.tsx](components/coach/members/MemberCard.tsx). Subtle gray span next to member name, hidden when DOB is null. Uses the existing `getAge` helper already imported for class-type-buttons gating. Three other surfaces were candidates (Session Management booking list, family booking dropdown, all-three); Chris picked Members-page-only to keep scope tight.
-- **Guardian-only auto-select on Book-a-Class** — [app/member/book/page.tsx](app/member/book/page.tsx). FamilyMember type + SELECT pull `guardian_only`. Default `bookingForMemberId` is first family_member when primary is guardian-only (else self, unchanged). Booking-for chip selector filters out the primary entry when guardian-only → no "You" chip rendered. Server-side block at [app/api/bookings/create/route.ts:101](app/api/bookings/create/route.ts#L101) was already in place.
-- **Commits tagged session-352 by mistake** (date boundary slipped) — `e9ff696` (feature) + `4ea2caf` (Chris notes sync). Actual calendar-day work is S353. Not amended (prefer new commits over rewriting history).
-
-**Older sessions (57-352):** See `project-history/` folder.
+**Older sessions (57-353):** See `project-history/` folder.
 
 ---
 
