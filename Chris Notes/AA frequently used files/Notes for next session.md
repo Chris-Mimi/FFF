@@ -28,9 +28,20 @@ Ask Mimi Silvia Maritati (Diapers & Dumbbells?)
 * Ask Claude for a Magic link script to access athlete's accounts to check screen views so I can help them click the right buttons. I just give Claude the email ad.
 * 
 * Macbook still has internet problem at the box. Old Macbook Pro works fine.
+Script works. Baseline + a sample capture both saved to ~/mac-incident-data/.
+
+When the problem next happens — here's exactly what to do:
+
+Open Terminal (or use a Terminal window that's already open — don't try to launch new apps when the system is jammed)
+Type: ~/mac-incident-data/capture.sh and press Enter
+Takes ~10 seconds; outputs a timestamped file
+Then do your usual recovery (Cmd+Option+Esc or hard restart)
+Next session, tell me to read the incident file and we'll compare it to the baseline
+
 * Still have an issue when the Macbook has been on for a while on 2 Users that I switch to the other user and get a black screen, then I can't type anything or restart without holding down the start button.
 * You can't open the application "System Settings" because it is not responding.
-* 
+* Markus card was already full on 18/05 when he attended a session. He bought a new card on 20/05 using the app and attended another session on that date (yesterday). This means he already has 2 sessions against his card so I added the extra session in the Payment Management modal. On save it shows 1/10 with the !. Which session is it not picking up?
+* Veronika Ebner's card is active!
 * review the rep max calculator to show clearer percentages
 * 
 * Why doesn't the data integrity sql catch things like this?

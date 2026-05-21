@@ -182,13 +182,15 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     if (memberData?.stripe_customer_id && session.subscription) {
       try {
         const stripeSub = await getStripeServer().subscriptions.retrieve(session.subscription as string);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const sub = stripeSub as any;
-        const periodEndIso = sub.current_period_end
-          ? new Date(sub.current_period_end * 1000).toISOString()
+        // Stripe moved current_period_start/end from Subscription to SubscriptionItem in
+        // recent API versions. Reading them off the subscription object returns undefined
+        // and silently writes a "now" fallback (S358).
+        const subItem = stripeSub.items.data[0];
+        const periodEndIso = subItem?.current_period_end
+          ? new Date(subItem.current_period_end * 1000).toISOString()
           : subscriptionEndDate.toISOString();
-        const periodStartIso = sub.current_period_start
-          ? new Date(sub.current_period_start * 1000).toISOString()
+        const periodStartIso = subItem?.current_period_start
+          ? new Date(subItem.current_period_start * 1000).toISOString()
           : now.toISOString();
         const mappedStatus =
           stripeSub.status === 'active' ? 'active' :
@@ -239,14 +241,15 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
 
   const now = new Date();
 
-  // Stripe timestamps are in seconds, need to convert to milliseconds
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const sub = subscription as any;
-  const periodEnd = sub.current_period_end
-    ? new Date(sub.current_period_end * 1000)
+  // Stripe moved current_period_start/end from Subscription to SubscriptionItem in
+  // recent API versions. Reading them off the subscription object returns undefined
+  // and silently writes a "now" fallback (S358).
+  const subItem = subscription.items.data[0];
+  const periodEnd = subItem?.current_period_end
+    ? new Date(subItem.current_period_end * 1000)
     : now;
-  const periodStart = sub.current_period_start
-    ? new Date(sub.current_period_start * 1000)
+  const periodStart = subItem?.current_period_start
+    ? new Date(subItem.current_period_start * 1000)
     : now;
 
   // Determine plan type and tier from price ID

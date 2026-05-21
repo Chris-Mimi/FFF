@@ -92,8 +92,9 @@ async function main() {
     }
 
     const stripeStatus = mapStripeStatus(stripeSub.status);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const stripePeriodEndSec = (stripeSub as any).current_period_end as number | undefined;
+    // Stripe moved current_period_start/end from Subscription to SubscriptionItem in
+    // recent API versions (S358). Read from item.
+    const stripePeriodEndSec = stripeSub.items.data[0]?.current_period_end;
     const stripePeriodEnd = stripePeriodEndSec
       ? new Date(stripePeriodEndSec * 1000).toISOString()
       : s.current_period_end;
