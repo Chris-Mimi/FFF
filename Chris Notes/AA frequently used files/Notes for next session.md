@@ -40,11 +40,16 @@ Next session, tell me to read the incident file and we'll compare it to the base
 
 * Still have an issue when the Macbook has been on for a while on 2 Users that I switch to the other user and get a black screen, then I can't type anything or restart without holding down the start button.
 * You can't open the application "System Settings" because it is not responding.
-* Markus card was already full on 18/05 when he attended a session. He bought a new card on 20/05 using the app and attended another session on that date (yesterday). This means he already has 2 sessions against his card so I added the extra session in the Payment Management modal. On save it shows 1/10 with the !. Which session is it not picking up?
+* 
 * Veronika Ebner's card is active!
 * review the rep max calculator to show clearer percentages
 * 
 * Why doesn't the data integrity sql catch things like this?
+
+
+
+
+
 * 
 * How it works/info/help file like in Planner
 * Review and check how DNF is displayed and used in the athlete leaderboard.
