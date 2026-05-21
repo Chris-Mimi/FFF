@@ -36,6 +36,36 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// DELETE: remove a specific archive row. Coach-only. Used to clean up phantom
+// archive rows from accidental Close & Issue New clicks. Does NOT touch the
+// active card on the member row — purely an audit-trail cleanup.
+export async function DELETE(request: NextRequest) {
+  try {
+    const coach = await requireCoach(request);
+    if (isAuthError(coach)) return coach;
+
+    const { id } = (await request.json()) as { id?: string };
+    if (!id) {
+      return NextResponse.json({ error: 'id is required' }, { status: 400 });
+    }
+
+    const { error } = await supabaseAdmin
+      .from('ten_card_archive')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('ten-card-archive DELETE error:', error);
+      return NextResponse.json({ error: 'Failed to delete archive row' }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('ten-card-archive DELETE error:', error);
+    return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 });
+  }
+}
+
 // PATCH: update notes on a specific archive row. Coach-only. Empty/null notes
 // clear the field (delete-note path).
 export async function PATCH(request: NextRequest) {

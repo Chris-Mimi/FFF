@@ -57,7 +57,7 @@ export const useCoachData = ({
       for (let from = 0; ; from += PAGE) {
         const { data, error } = await supabase
           .from('bookings')
-          .select('session_id, status, is_og, members(name, display_name)')
+          .select('session_id, status, is_og, is_trial, members(name, display_name)')
           .range(from, from + PAGE - 1);
         if (error) throw error;
         if (!data || data.length === 0) break;
@@ -128,13 +128,14 @@ export const useCoachData = ({
         const sessionBookings = allBookings?.filter(b => b.session_id === session.id) || [];
         const trialCount = (session.trial_names as string[] | null)?.length || 0;
         // OG bookings are off-capacity — surfaced as a separate count for the second chip.
-        const confirmedCount = sessionBookings.filter(b => b.status === 'confirmed' && !b.is_og).length + trialCount;
+        // is_trial bookings are also excluded — their seat is already counted via trial_names.
+        const confirmedCount = sessionBookings.filter(b => b.status === 'confirmed' && !b.is_og && !b.is_trial).length + trialCount;
         const ogCount = sessionBookings.filter(b => b.status === 'confirmed' && b.is_og).length;
         const waitlistCount = sessionBookings.filter(b => b.status === 'waitlist').length;
 
         const trialNamesArr = (session.trial_names as string[] | null) || [];
         const bookedMembers = sessionBookings
-          .filter(b => b.status === 'confirmed' || b.status === 'waitlist')
+          .filter(b => (b.status === 'confirmed' || b.status === 'waitlist') && !b.is_trial)
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           .map((b: any) => {
             const m = b.members;

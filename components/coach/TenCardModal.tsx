@@ -543,6 +543,32 @@ export default function TenCardModal({
     }
   };
 
+  const deleteArchive = async (entryId: string) => {
+    if (!await confirm({
+      title: 'Delete Card History Entry',
+      message: 'Permanently delete this archived 10-card record? This only removes the history entry — the active card and current counter are not affected. Use this to clean up accidental Close & Issue New clicks.',
+      confirmText: 'Delete',
+      variant: 'danger',
+    })) {
+      return;
+    }
+    try {
+      const res = await authFetch('/api/coach/ten-card-archive', {
+        method: 'DELETE',
+        body: JSON.stringify({ id: entryId }),
+      });
+      if (!res.ok) {
+        toast.error('Failed to delete archive entry');
+        return;
+      }
+      setArchive(prev => prev.filter(a => a.id !== entryId));
+      toast.success('Archive entry deleted');
+    } catch (e) {
+      console.error('Failed to delete archive entry', e);
+      toast.error('Failed to delete archive entry');
+    }
+  };
+
   const saveArchiveNote = async () => {
     if (!editingNoteArchiveId) return;
     setSavingNote(true);
@@ -967,12 +993,20 @@ export default function TenCardModal({
                                       ) : (
                                         <p className="text-[11px] text-gray-400 italic flex-1">No notes</p>
                                       )}
-                                      <button
-                                        onClick={() => startEditingNote(entry)}
-                                        className="text-[10px] text-blue-600 hover:text-blue-800 underline whitespace-nowrap"
-                                      >
-                                        {entry.notes ? 'Edit' : 'Add note'}
-                                      </button>
+                                      <div className="flex items-center gap-2 whitespace-nowrap">
+                                        <button
+                                          onClick={() => startEditingNote(entry)}
+                                          className="text-[10px] text-blue-600 hover:text-blue-800 underline"
+                                        >
+                                          {entry.notes ? 'Edit' : 'Add note'}
+                                        </button>
+                                        <button
+                                          onClick={() => deleteArchive(entry.id)}
+                                          className="text-[10px] text-red-600 hover:text-red-800 underline"
+                                        >
+                                          Delete
+                                        </button>
+                                      </div>
                                     </div>
                                   )}
                                 </div>
