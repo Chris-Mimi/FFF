@@ -283,40 +283,30 @@ export default function TenCardModal({
     if (!purchaseDateStr || !member) return sessionsUsed;
 
     try {
-      // Holder herself counts only if her effective method is ten_card (so Miriam with
-      // WP + ten_card doesn't burn the kids' card on her own bookings). Sharers always
-      // count when their own effective method resolves to ten_card.
-      const { data: candidates } = await supabase
-        .from('members')
-        .select('id, primary_payment_method, membership_types, ten_card_holder_id')
-        .or(`id.eq.${member.id},ten_card_holder_id.eq.${member.id}`);
-      const debitMemberIds = (candidates || [])
-        .filter(c => {
-          const effective = c.primary_payment_method || (c.membership_types as string[] | null)?.[0] || null;
-          return effective === 'ten_card';
-        })
-        .map(c => c.id);
-      if (debitMemberIds.length === 0) return 0;
-
-      // S351 Path B: source of truth is bookings.ten_card_consumed.
-      // The DB trigger normally keeps the counter in sync; Recalc is a manual
-      // re-sync if anything looks off.
-      const { data: bookings, error } = await supabase
-        .from('bookings')
-        .select('id, weekly_sessions!inner(date)')
-        .in('member_id', debitMemberIds)
-        .eq('ten_card_consumed', true)
-        .gte('weekly_sessions.date', purchaseDateStr);
-
-      if (error) {
-        console.error('Error fetching bookings for recalculation:', error);
+      // Server-side backfill + count: flips ten_card_consumed=true on any in-window
+      // {confirmed, no_show, late_cancel} booking on this card's debit-set that wasn't
+      // already flagged (e.g. bookings made before the member had a payment method
+      // recorded — the Markus/Felix/Annerose class of drift, S359-S361). Service-role
+      // because athlete-owned bookings are RLS-hidden from the coach session.
+      const res = await authFetch('/api/coach/recalc-ten-card', {
+        method: 'POST',
+        body: JSON.stringify({ memberId: member.id }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Recalc failed' }));
+        toast.error(err.error || 'Recalc failed');
         return sessionsUsed;
       }
-
-      const count = bookings?.length || 0;
+      const { count, updated } = (await res.json()) as { count: number; updated: number };
+      if (updated > 0) {
+        toast.success(`Recalc: ${updated} booking${updated === 1 ? '' : 's'} flagged, counter set to ${count}/${tenCardTotal}`);
+      } else {
+        toast.success(`Recalc: counter set to ${count}/${tenCardTotal}`);
+      }
       return count;
     } catch (error) {
       console.error('Error recalculating sessions:', error);
+      toast.error('Recalc failed');
       return sessionsUsed;
     }
   };
@@ -810,7 +800,7 @@ export default function TenCardModal({
                     </button>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
-                    Edit directly, or click Recalc to count confirmed bookings since the purchase date.
+                    Edit directly, or click Recalc to flag every booking since the purchase date as card-consumed and set the counter to the true total.
                   </p>
                 </div>
 
