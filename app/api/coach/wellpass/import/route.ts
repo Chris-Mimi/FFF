@@ -124,9 +124,12 @@ export async function POST(request: NextRequest) {
       result.rows_inserted = checkinRows.length;
     }
 
-    // Auto-link unlinked identities by exact name match against members.name.
-    // Runs every import so that newly-registered athletes get auto-linked retroactively
-    // and identities Chris Track'd manually pick up their match.
+    // Auto-link unlinked identities by name match against members.name.
+    // Normalizes both sides (lowercase + collapse internal whitespace + trim)
+    // so known typos like Petr Bezdek's double-space don't silently fail.
+    // Runs every import so newly-registered athletes get linked retroactively.
+    const normalizeName = (n: string) => n.trim().replace(/\s+/g, ' ').toLowerCase();
+
     const identityIds = Array.from(identityByName.values()).map((i) => i.id);
     if (identityIds.length > 0) {
       const { data: existingLinks } = await supabaseAdmin
@@ -134,22 +137,28 @@ export async function POST(request: NextRequest) {
         .select('wellpass_identity_id')
         .in('wellpass_identity_id', identityIds);
       const linkedIds = new Set((existingLinks ?? []).map((l) => l.wellpass_identity_id));
-      const unlinkedNames = Array.from(identityByName.entries())
-        .filter(([, id]) => !linkedIds.has(id.id))
-        .map(([name]) => name);
 
-      if (unlinkedNames.length > 0) {
-        const { data: matchingMembers } = await supabaseAdmin
+      const unlinkedByNorm = new Map<string, { wellpassName: string; identityId: string }>();
+      for (const [name, identity] of identityByName) {
+        if (linkedIds.has(identity.id)) continue;
+        unlinkedByNorm.set(normalizeName(name), { wellpassName: name, identityId: identity.id });
+      }
+
+      if (unlinkedByNorm.size > 0) {
+        const { data: allMembers } = await supabaseAdmin
           .from('members')
-          .select('id, name')
-          .in('name', unlinkedNames);
-        if (matchingMembers && matchingMembers.length > 0) {
-          const newLinks = matchingMembers
-            .map((m) => {
-              const identity = identityByName.get(m.name);
-              return identity ? { wellpass_identity_id: identity.id, member_id: m.id } : null;
-            })
-            .filter((l): l is { wellpass_identity_id: string; member_id: string } => l !== null);
+          .select('id, name');
+        if (allMembers) {
+          const newLinks: { wellpass_identity_id: string; member_id: string }[] = [];
+          for (const m of allMembers) {
+            if (!m.name) continue;
+            const norm = normalizeName(m.name);
+            const target = unlinkedByNorm.get(norm);
+            if (target) {
+              newLinks.push({ wellpass_identity_id: target.identityId, member_id: m.id });
+              unlinkedByNorm.delete(norm); // first match wins, no duplicate links
+            }
+          }
           if (newLinks.length > 0) {
             await supabaseAdmin
               .from('wellpass_identity_members')

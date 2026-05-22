@@ -354,11 +354,20 @@ function IdentityRow({ row, weekColumns, expanded, onToggleExpand, onPatch, onTo
             {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
             <span className="font-medium">{row.wellpass_name}</span>
           </button>
-          {row.linked_members.length > 0 && (
-            <div className="text-xs text-gray-400 mt-0.5 pl-5">
-              {row.linked_members.map((m) => m.name).join(', ')}
-            </div>
-          )}
+          {(() => {
+            // Hide linked members whose name equals the WP identity name —
+            // those rows are just the self-link and add no info. Only show
+            // the "and also" people (spouse, kids, etc.) under the WP name.
+            const otherNames = row.linked_members
+              .map((m) => m.name)
+              .filter((n) => n.toLowerCase() !== row.wellpass_name.toLowerCase());
+            if (otherNames.length === 0) return null;
+            return (
+              <div className="text-xs text-gray-400 mt-0.5 pl-5">
+                + {otherNames.join(', ')}
+              </div>
+            );
+          })()}
         </td>
         <td className="px-3 py-2 text-center">
           <input
