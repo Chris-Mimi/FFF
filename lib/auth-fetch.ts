@@ -13,7 +13,9 @@ export async function authFetch(url: string, options: RequestInit = {}): Promise
 
   const headers = new Headers(options.headers);
   headers.set('Authorization', `Bearer ${session.access_token}`);
-  if (!headers.has('Content-Type')) {
+  // Default Content-Type to JSON, but skip for FormData uploads — the browser
+  // sets multipart/form-data with the correct boundary automatically.
+  if (!headers.has('Content-Type') && !(options.body instanceof FormData)) {
     headers.set('Content-Type', 'application/json');
   }
 

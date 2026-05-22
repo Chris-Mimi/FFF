@@ -3,11 +3,12 @@
 import TenCardModal from '@/components/coach/TenCardModal';
 import MemberCard from '@/components/coach/members/MemberCard';
 import MemberFilters from '@/components/coach/members/MemberFilters';
+import WellpassTab from '@/components/coach/members/WellpassTab';
 import { useMemberData } from '@/hooks/coach/useMemberData';
 import { useMemberActions } from '@/hooks/coach/useMemberActions';
 import { signOut } from '@/lib/auth';
 import { Member } from '@/types/member';
-import { AlertTriangle, Check, Clock, LogOut, Search, UserCheck, UserX, X } from 'lucide-react';
+import { AlertTriangle, Check, Clock, LogOut, Search, Sparkles, UserCheck, UserX, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -204,52 +205,71 @@ export default function CoachMembersPage() {
               )}
             </div>
           </button>
+          <button
+            onClick={() => setActiveTab('wellpass')}
+            className={`px-3 md:px-6 py-2 md:py-3 font-medium transition-colors duration-200 border-b-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
+              activeTab === 'wellpass'
+                ? 'border-orange-500 text-orange-400'
+                : 'border-transparent text-gray-400 hover:text-gray-300'
+            }`}
+          >
+            <div className="flex items-center gap-1 md:gap-2">
+              <Sparkles size={16} className="md:w-[18px] md:h-[18px]" />
+              Wellpass
+            </div>
+          </button>
         </div>
       </div>
 
-      {/* Filters */}
-      <MemberFilters
-        attendanceTimeframe={attendanceTimeframe}
-        onTimeframeChange={setAttendanceTimeframe}
-        ageFilter={ageFilter}
-        onAgeFilterChange={handleAgeFilterChange}
-        selectedFilters={selectedFilters}
-        onToggleFilter={toggleFilter}
-        onClearFilters={() => setSelectedFilters([])}
-        membershipCounts={membershipCounts}
-        filteredCount={filteredMembers.length}
-        selectedClassTypes={selectedClassTypes}
-        onToggleClassType={toggleClassTypeFilter}
-        onClearClassTypes={() => setSelectedClassTypes([])}
-        hasMembers={members.length > 0}
-      />
+      {/* Filters (hidden on Wellpass tab — that tab manages its own state) */}
+      {activeTab !== 'wellpass' && (
+        <MemberFilters
+          attendanceTimeframe={attendanceTimeframe}
+          onTimeframeChange={setAttendanceTimeframe}
+          ageFilter={ageFilter}
+          onAgeFilterChange={handleAgeFilterChange}
+          selectedFilters={selectedFilters}
+          onToggleFilter={toggleFilter}
+          onClearFilters={() => setSelectedFilters([])}
+          membershipCounts={membershipCounts}
+          filteredCount={filteredMembers.length}
+          selectedClassTypes={selectedClassTypes}
+          onToggleClassType={toggleClassTypeFilter}
+          onClearClassTypes={() => setSelectedClassTypes([])}
+          hasMembers={members.length > 0}
+        />
+      )}
 
-      {/* Search */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
-        <div className="relative">
-          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by name or email…"
-            className="w-full pl-10 pr-10 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
-              aria-label="Clear search"
-            >
-              <X size={18} />
-            </button>
-          )}
+      {/* Search (hidden on Wellpass tab) */}
+      {activeTab !== 'wellpass' && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+          <div className="relative">
+            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by name or email…"
+              className="w-full pl-10 pr-10 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                aria-label="Clear search"
+              >
+                <X size={18} />
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-12">
-        {loading ? (
+        {activeTab === 'wellpass' ? (
+          <WellpassTab />
+        ) : loading ? (
           <div className="text-center py-12">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-teal-500 border-r-transparent"></div>
             <p className="text-gray-400 mt-4">Loading members...</p>

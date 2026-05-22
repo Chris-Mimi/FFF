@@ -1,4 +1,4 @@
-export type MemberStatus = 'pending' | 'active' | 'blocked' | 'subscriptions' | 'at-risk' | 'low-ten-card';
+export type MemberStatus = 'pending' | 'active' | 'blocked' | 'subscriptions' | 'at-risk' | 'low-ten-card' | 'wellpass';
 
 export type MembershipType = 'member' | 'drop_in' | 'ten_card' | 'wellpass' | 'hansefit';
 
@@ -39,6 +39,7 @@ export interface Member {
   primary_payment_method: MembershipType | null;
   ten_card_holder_id: string | null;
   ten_card_holder_name?: string | null;
+  wellpass_booking_restricted: boolean;
 }
 
 // Effective payment method for self-bookings: explicit field wins, else first in membership_types.

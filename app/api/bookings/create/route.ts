@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
       .from('members')
       .select(`
         id, status, membership_types, primary_payment_method, ten_card_holder_id,
-        guardian_only,
+        guardian_only, wellpass_booking_restricted,
         ten_card_sessions_used, ten_card_total, ten_card_expiry_date,
         athlete_subscription_status, athlete_subscription_end
       `)
@@ -103,6 +103,59 @@ export async function POST(request: NextRequest) {
         { error: 'Dein Konto ist nur für Erziehungsberechtigte eingerichtet — du trainierst nicht selbst. Füge zuerst ein Familienmitglied (z.B. dein Kind) hinzu, um einen Kurs zu buchen.' },
         { status: 403 }
       );
+    }
+
+    // Wellpass under-attendance restriction: cap at 1 confirmed booking per Mon–Sun
+    // calendar week when their household has fallen below the WP check-in threshold.
+    // Set by the Wellpass import in /api/coach/wellpass/import; cleared by next import
+    // showing recovery, or manually by the coach via the Wellpass tab.
+    if (member.wellpass_booking_restricted) {
+      // Need session.date for the week calculation — fetch a slim version up front.
+      const { data: sessionForWeek } = await supabase
+        .from('weekly_sessions')
+        .select('date')
+        .eq('id', sessionId)
+        .single();
+      if (sessionForWeek?.date) {
+        const [yy, mm, dd] = sessionForWeek.date.split('-').map(Number);
+        const dt = new Date(Date.UTC(yy, mm - 1, dd));
+        const dow = dt.getUTCDay();
+        const offsetToMon = dow === 0 ? -6 : 1 - dow;
+        const mon = new Date(dt);
+        mon.setUTCDate(dt.getUTCDate() + offsetToMon);
+        const sun = new Date(mon);
+        sun.setUTCDate(mon.getUTCDate() + 6);
+        const fmt = (x: Date) =>
+          `${x.getUTCFullYear()}-${String(x.getUTCMonth() + 1).padStart(2, '0')}-${String(x.getUTCDate()).padStart(2, '0')}`;
+        const monStr = fmt(mon);
+        const sunStr = fmt(sun);
+
+        const { data: weekSessions } = await supabase
+          .from('weekly_sessions')
+          .select('id')
+          .gte('date', monStr)
+          .lte('date', sunStr);
+        const sessionIds = (weekSessions ?? []).map((s) => s.id);
+
+        if (sessionIds.length > 0) {
+          const { count: weekBookings } = await supabase
+            .from('bookings')
+            .select('id', { count: 'exact', head: true })
+            .eq('member_id', bookingMemberId)
+            .eq('status', 'confirmed')
+            .in('session_id', sessionIds);
+
+          if ((weekBookings ?? 0) >= 1) {
+            return NextResponse.json(
+              {
+                error:
+                  'Du hast in dieser Woche bereits einen Kurs gebucht. Wellpass-Mitglieder werden auf 1 Buchung pro Woche begrenzt, wenn die Mindestanzahl an Check-ins in der Vorwoche nicht erreicht wurde. Bitte sprich mit Coach Chris, wenn das ein Fehler ist.',
+              },
+              { status: 403 }
+            );
+          }
+        }
+      }
     }
 
     // Resolve effective payment method: explicit primary_payment_method wins, else first
