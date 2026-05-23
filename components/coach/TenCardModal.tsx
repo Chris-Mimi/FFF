@@ -489,6 +489,32 @@ export default function TenCardModal({
     setPendingSubClose(true);
   };
 
+  const deleteSubArchive = async (entryId: string) => {
+    if (!await confirm({
+      title: 'Delete Subscription History Entry',
+      message: 'Permanently delete this archived subscription record? This only removes the history entry — the active subscription and current status are not affected. Use this to clean up accidental Activate / Renew clicks.',
+      confirmText: 'Delete',
+      variant: 'danger',
+    })) {
+      return;
+    }
+    try {
+      const res = await authFetch('/api/coach/subscription-archive', {
+        method: 'DELETE',
+        body: JSON.stringify({ id: entryId }),
+      });
+      if (!res.ok) {
+        toast.error('Failed to delete history entry');
+        return;
+      }
+      setSubArchive(prev => prev.filter(a => a.id !== entryId));
+      toast.success('History entry deleted');
+    } catch (e) {
+      console.error('Failed to delete subscription history entry', e);
+      toast.error('Failed to delete history entry');
+    }
+  };
+
   const handleCancelPendingSubClose = () => {
     if (!member) return;
     setSubscriptionStatus(member.athlete_subscription_status || 'expired');
@@ -1233,12 +1259,20 @@ export default function TenCardModal({
                                       ) : (
                                         <p className="text-[11px] text-gray-400 italic flex-1">No notes</p>
                                       )}
-                                      <button
-                                        onClick={() => startEditingSubNote(entry)}
-                                        className="text-[10px] text-blue-600 hover:text-blue-800 underline whitespace-nowrap"
-                                      >
-                                        {entry.notes ? 'Edit' : 'Add note'}
-                                      </button>
+                                      <div className="flex items-center gap-2 whitespace-nowrap">
+                                        <button
+                                          onClick={() => startEditingSubNote(entry)}
+                                          className="text-[10px] text-blue-600 hover:text-blue-800 underline"
+                                        >
+                                          {entry.notes ? 'Edit' : 'Add note'}
+                                        </button>
+                                        <button
+                                          onClick={() => deleteSubArchive(entry.id)}
+                                          className="text-[10px] text-red-600 hover:text-red-800 underline"
+                                        >
+                                          Delete
+                                        </button>
+                                      </div>
                                     </div>
                                   )}
                                 </div>

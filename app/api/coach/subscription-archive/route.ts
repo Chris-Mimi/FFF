@@ -36,6 +36,36 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// DELETE: remove a specific subscription archive row. Coach-only. Used to clean up
+// accidental Activate / Renew clicks. Does NOT touch the member's current active
+// subscription — purely an audit-trail cleanup.
+export async function DELETE(request: NextRequest) {
+  try {
+    const coach = await requireCoach(request);
+    if (isAuthError(coach)) return coach;
+
+    const { id } = (await request.json()) as { id?: string };
+    if (!id) {
+      return NextResponse.json({ error: 'id is required' }, { status: 400 });
+    }
+
+    const { error } = await supabaseAdmin
+      .from('subscription_archive')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('subscription-archive DELETE error:', error);
+      return NextResponse.json({ error: 'Failed to delete archive row' }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('subscription-archive DELETE error:', error);
+    return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 });
+  }
+}
+
 export async function PATCH(request: NextRequest) {
   try {
     const coach = await requireCoach(request);
