@@ -119,24 +119,31 @@ export default function MemberCard({
               const past = member.past_ten_card_bookings || 0;
               const upcoming = member.upcoming_ten_card_bookings || 0;
               const total = member.ten_card_total ?? 10;
-              const mismatch = counter !== past + upcoming;
-              // Mismatch (manual override): trust the counter — that's the coach's recorded
-              // truth for this card. Match (auto-incremented): split into past+upcoming when
-              // there are upcoming bookings, otherwise just show the count.
-              const display = mismatch
-                ? `${counter}/${total}`
-                : upcoming > 0
-                  ? `${past}+${upcoming}/${total}`
-                  : `${counter}/${total}`;
+              const offset = member.ten_card_sessions_used_offset || 0;
               const actual = past + upcoming;
               const diff = counter - actual;
-              const tooltip = mismatch
-                ? diff > 0
-                  ? `10-card: ${counter}/${total} used. ${actual} from recorded bookings (${past} past + ${upcoming} upcoming) + ${diff} manually added (e.g. pre-app sessions). Click to manage.`
-                  : `10-card: counter shows ${counter}/${total} but recorded bookings total ${actual} (${past} past + ${upcoming} upcoming) — counter is lower than actual, may need Recalc. Click to manage.`
-                : upcoming > 0
-                  ? `10-card: ${past} past + ${upcoming} upcoming = ${counter}/${total}. Click to manage.`
-                  : `10-card: ${counter}/${total} sessions claimed. Click to manage.`;
+              // Trigger formula is `counter = offset + bookings_count`. If diff
+              // equals offset, the coach's manual override is fully reconciled.
+              // If diff !== offset, something has drifted (booking flags out of
+              // sync, RLS-hidden rows, etc.) and the counter needs a Recalc.
+              const isManualOverride = offset !== 0 && diff === offset;
+              const isDrift = diff !== offset;
+              const display = isManualOverride
+                ? `${counter}/${total}`
+                : isDrift
+                  ? `${counter}/${total}`
+                  : upcoming > 0
+                    ? `${past}+${upcoming}/${total}`
+                    : `${counter}/${total}`;
+              const tooltip = isManualOverride
+                ? `10-card: ${counter}/${total} used. ${actual} from recorded bookings (${past} past + ${upcoming} upcoming) + ${offset} manual session${offset === 1 ? '' : 's'} (e.g. pre-app). Click to manage.`
+                : isDrift
+                  ? diff > offset
+                    ? `10-card: counter shows ${counter}/${total} but recorded bookings + manual override total ${actual + offset} (${past} past + ${upcoming} upcoming${offset !== 0 ? ` + ${offset} manual` : ''}) — counter is higher than expected, may need Recalc. Click to manage.`
+                    : `10-card: counter shows ${counter}/${total} but recorded bookings + manual override total ${actual + offset} (${past} past + ${upcoming} upcoming${offset !== 0 ? ` + ${offset} manual` : ''}) — counter is lower than expected, may need Recalc. Click to manage.`
+                  : upcoming > 0
+                    ? `10-card: ${past} past + ${upcoming} upcoming = ${counter}/${total}. Click to manage.`
+                    : `10-card: ${counter}/${total} sessions claimed. Click to manage.`;
               return (
                 <button
                   onClick={() => onOpenTenCard(member)}
@@ -148,7 +155,12 @@ export default function MemberCard({
                   title={tooltip}
                 >
                   <span>{display}</span>
-                  {mismatch && <span className="text-amber-300" aria-label="counter mismatch">⚠</span>}
+                  {isManualOverride && (
+                    <span className="px-1 rounded bg-amber-300/90 text-amber-900 text-[9px] font-bold leading-none" aria-label={`manual override: ${offset} session${offset === 1 ? '' : 's'}`}>
+                      M
+                    </span>
+                  )}
+                  {isDrift && <span className="text-amber-300" aria-label="counter drift">⚠</span>}
                 </button>
               );
             })()}

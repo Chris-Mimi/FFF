@@ -161,12 +161,16 @@ export async function POST(request: NextRequest) {
     const finalTotal = typeof newTotal === 'number' ? newTotal : total;
     const finalSessionsUsed = typeof newSessionsUsed === 'number' ? newSessionsUsed : 0;
 
+    // Reset offset on the new card. Old offset belongs to the archived card; if it
+    // carries over, the next booking-driven trigger fires `old_offset + 1` instead
+    // of 1 and the new card starts in the wrong state.
     const { error: resetError } = await supabaseAdmin
       .from('members')
       .update({
         ten_card_purchase_date: purchase,
         ten_card_expiry_date: expiry,
         ten_card_sessions_used: finalSessionsUsed,
+        ten_card_sessions_used_offset: finalSessionsUsed,
         ten_card_total: finalTotal,
         ten_card_notes: newNotes ?? null,
       })

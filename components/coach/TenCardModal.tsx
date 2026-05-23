@@ -17,6 +17,7 @@ interface TenCardModalProps {
     display_name?: string | null;
     ten_card_purchase_date: string | null;
     ten_card_sessions_used: number;
+    ten_card_sessions_used_offset?: number;
     ten_card_total?: number;
     ten_card_expiry_date?: string | null;
     ten_card_notes?: string | null;
@@ -42,6 +43,13 @@ export default function TenCardModal({
     return dateStr.includes('T') ? dateStr.split('T')[0] : dateStr.split(' ')[0];
   });
   const [sessionsUsed, setSessionsUsed] = useState(member?.ten_card_sessions_used || 0);
+  // Bookings-count baseline: how many of the persisted `ten_card_sessions_used`
+  // come from real consumed bookings (the trigger formula is
+  // `sessions_used = offset + count(consumed bookings)`). Captured on open so we
+  // can compute the offset delta when the coach types into Sessions Used.
+  const [bookingsCount, setBookingsCount] = useState(
+    (member?.ten_card_sessions_used || 0) - (member?.ten_card_sessions_used_offset || 0)
+  );
   const [tenCardTotal, setTenCardTotal] = useState(member?.ten_card_total || 10);
   const [tenCardExpiry, setTenCardExpiry] = useState(() => {
     if (!member?.ten_card_expiry_date) return '';
@@ -124,6 +132,9 @@ export default function TenCardModal({
       }
       setPurchaseDate(formattedDate);
       setSessionsUsed(member.ten_card_sessions_used || 0);
+      setBookingsCount(
+        (member.ten_card_sessions_used || 0) - (member.ten_card_sessions_used_offset || 0)
+      );
       setTenCardTotal(member.ten_card_total || 10);
 
       let formattedExpiry = '';
@@ -303,6 +314,9 @@ export default function TenCardModal({
       } else {
         toast.success(`Recalc: counter set to ${count}/${tenCardTotal}`);
       }
+      // Endpoint also resets ten_card_sessions_used_offset to 0 — the new bookings
+      // baseline equals the returned count.
+      setBookingsCount(count);
       return count;
     } catch (error) {
       console.error('Error recalculating sessions:', error);
@@ -369,6 +383,10 @@ export default function TenCardModal({
         // values from bookings; the save itself trusts what's typed.
         updateData.ten_card_purchase_date = purchaseDate || null;
         updateData.ten_card_sessions_used = sessionsUsed;
+        // Offset = the slice of the counter that isn't explained by consumed
+        // bookings. Trigger uses `counter = offset + bookings_count`, so we set
+        // `offset = typed - bookings_count_baseline` to keep that invariant.
+        updateData.ten_card_sessions_used_offset = sessionsUsed - bookingsCount;
         updateData.ten_card_total = tenCardTotal;
         updateData.ten_card_expiry_date = tenCardExpiry || null;
         updateData.ten_card_notes = tenCardNotes || null;
@@ -419,6 +437,9 @@ export default function TenCardModal({
     setPurchaseDate(today);
     setTenCardExpiry(expiry);
     setSessionsUsed(0);
+    // New card has zero bookings; baseline resets so any typed Sessions Used during
+    // the pending preview is treated entirely as manual override.
+    setBookingsCount(0);
     setTenCardNotes(''); // New card starts with blank notes; coach types fresh ones for the new card
     setPendingClose(true);
   };
@@ -429,6 +450,9 @@ export default function TenCardModal({
     const original = member.ten_card_purchase_date || '';
     setPurchaseDate(original.includes('T') ? original.split('T')[0] : original);
     setSessionsUsed(member.ten_card_sessions_used || 0);
+    setBookingsCount(
+      (member.ten_card_sessions_used || 0) - (member.ten_card_sessions_used_offset || 0)
+    );
     setTenCardTotal(member.ten_card_total || 10);
     const origExpiry = member.ten_card_expiry_date || '';
     setTenCardExpiry(origExpiry.includes('T') ? origExpiry.split('T')[0] : origExpiry);
@@ -836,8 +860,20 @@ export default function TenCardModal({
                       Recalc
                     </button>
                   </div>
+                  {(sessionsUsed - bookingsCount) !== 0 && (
+                    <div className="mt-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2">
+                      <p className="text-xs font-medium text-amber-900">
+                        Manual override: {sessionsUsed - bookingsCount > 0
+                          ? `includes ${sessionsUsed - bookingsCount} session${sessionsUsed - bookingsCount === 1 ? '' : 's'} not from recorded bookings (e.g. pre-app sessions). See Notes.`
+                          : `${Math.abs(sessionsUsed - bookingsCount)} fewer session${Math.abs(sessionsUsed - bookingsCount) === 1 ? '' : 's'} than recorded bookings — counter lower than the booking history. See Notes.`}
+                      </p>
+                      <p className="text-[11px] text-amber-800 mt-1">
+                        Counter will keep adding new bookings on top. Click Recalc to drop the override and trust bookings only.
+                      </p>
+                    </div>
+                  )}
                   <p className="text-xs text-gray-500 mt-1">
-                    Edit directly, or click Recalc to flag every booking since the purchase date as card-consumed and set the counter to the true total.
+                    Edit directly to record sessions used outside the app (e.g. a card bought pre-launch) — the value sticks and future bookings increment on top. Click Recalc to drop the manual override and rebuild the counter from recorded bookings since the purchase date.
                   </p>
                 </div>
 

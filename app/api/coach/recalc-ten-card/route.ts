@@ -92,6 +92,20 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Recalc means "trust bookings, drop the manual override." The S362 trigger
+    // formula is `ten_card_sessions_used = offset + COUNT(consumed bookings)` — if
+    // offset stays non-zero, the recomputed counter is bookings_count + offset,
+    // which contradicts the user's intent on clicking Recalc.
+    const { error: offsetResetError } = await supabaseAdmin
+      .from('members')
+      .update({ ten_card_sessions_used_offset: 0 })
+      .eq('id', memberId);
+
+    if (offsetResetError) {
+      console.error('recalc-ten-card offset reset error:', offsetResetError);
+      return NextResponse.json({ error: 'Failed to reset manual override' }, { status: 500 });
+    }
+
     const count = bookings?.length || 0;
 
     return NextResponse.json({ count, updated: idsToFlag.length });
