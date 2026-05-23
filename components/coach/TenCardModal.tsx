@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { RefreshCw, X, CreditCard, Calendar, Package, ChevronDown, ChevronRight, History } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { FocusTrap } from '@/components/ui/FocusTrap';
+import { formatDate } from '@/utils/date-utils';
 
 interface TenCardModalProps {
   isOpen: boolean;
@@ -1191,8 +1192,12 @@ export default function TenCardModal({
                       onClick={() => {
                         const endDate = new Date();
                         endDate.setDate(endDate.getDate() + 30);
+                        // `formatDate` avoids the TZ-shift trap that .toISOString().split('T')[0]
+                        // has in CET/CEST (claude-rules hard rule, S335).
+                        const endDateStr = formatDate(endDate);
                         setSubscriptionStatus('trial');
-                        setSubscriptionEnd(endDate.toISOString().split('T')[0]);
+                        setSubscriptionEnd(endDateStr);
+                        toast.success(`Trial set, ends ${formatDateDe(endDateStr)} — click Save Changes to apply`);
                       }}
                       className="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 text-sm rounded-lg transition"
                     >
@@ -1202,6 +1207,7 @@ export default function TenCardModal({
                       onClick={() => {
                         setSubscriptionStatus('active');
                         setSubscriptionEnd('');
+                        toast.success('Status set to Active (unlimited) — click Save Changes to apply');
                       }}
                       className="px-3 py-1.5 bg-green-100 hover:bg-green-200 text-green-700 text-sm rounded-lg transition"
                     >
@@ -1209,8 +1215,10 @@ export default function TenCardModal({
                     </button>
                     <button
                       onClick={() => {
+                        const todayStr = formatDate(new Date());
                         setSubscriptionStatus('expired');
-                        setSubscriptionEnd(new Date().toISOString().split('T')[0]);
+                        setSubscriptionEnd(todayStr);
+                        toast.success(`Status set to Expired (${formatDateDe(todayStr)}) — click Save Changes to apply`);
                       }}
                       className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 text-sm rounded-lg transition"
                     >
