@@ -122,9 +122,28 @@ export default function SubscriptionsDueBanner() {
   const handleRenew = async (memberId: string, action: 'activate_monthly' | 'activate') => {
     setActingId(memberId);
     try {
-      const res = await authFetch('/api/members/athlete-subscription', {
+      // Route through close-subscription so the outgoing month/year gets archived into
+      // subscription_archive — gives a complete history for cash-monthly athletes who
+      // pay 12+ times a year. The legacy /api/members/athlete-subscription activate path
+      // overwrote start/end in place with no archive.
+      const todayDate = new Date();
+      const endDate = new Date(todayDate);
+      if (action === 'activate_monthly') {
+        endDate.setDate(endDate.getDate() + 30);
+      } else {
+        endDate.setFullYear(endDate.getFullYear() + 1);
+      }
+      const fmt = (d: Date) =>
+        `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const res = await authFetch('/api/coach/close-subscription', {
         method: 'POST',
-        body: JSON.stringify({ memberId, action }),
+        body: JSON.stringify({
+          memberId,
+          newStatus: 'active',
+          newStartDate: fmt(todayDate),
+          newEndDate: fmt(endDate),
+          newNotes: '',
+        }),
       });
       if (!res.ok) throw new Error('Renew failed');
       toast.success(action === 'activate_monthly' ? 'Renewed 1 month' : 'Renewed 1 year');
