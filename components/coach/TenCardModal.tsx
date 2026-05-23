@@ -455,21 +455,32 @@ export default function TenCardModal({
     setEditingNoteText('');
   };
 
-  const handleCloseAndRenewSub = async () => {
+  // Unified entry point for activating an athlete-side subscription with a preset duration.
+  // Works for both initial setup (current status='expired'/null) and renewals (active). The
+  // archive happens server-side on Save Changes; for a brand-new athlete the archive row
+  // captures their prior expired/trial state, which is informative history.
+  const startActivation = async (months: 1 | 12) => {
     if (!member) return;
+    const label = months === 1 ? '1 Month' : '1 Year';
+    const currentSummary = subscriptionStatus === 'expired' && !subscriptionEnd
+      ? 'no active subscription'
+      : `${subscriptionStatus}${subscriptionEnd ? ', ends ' + subscriptionEnd : ''}`;
     if (!await confirm({
-      title: 'Close & Renew Subscription',
-      message: `Close this subscription (${subscriptionStatus}${subscriptionEnd ? ', ends ' + subscriptionEnd : ''}) and start a fresh one today? Click Save Changes to commit or Cancel to abort.`,
-      confirmText: 'Close & Renew',
+      title: `Activate ${label} Subscription`,
+      message: `Start a ${label.toLowerCase()} subscription today (current state: ${currentSummary} — will be archived). Click Save Changes to commit or Cancel to abort.`,
+      confirmText: `Activate ${label}`,
       variant: 'default',
     })) {
       return;
     }
 
     const todayDate = new Date();
-    const today = `${todayDate.getFullYear()}-${String(todayDate.getMonth() + 1).padStart(2, '0')}-${String(todayDate.getDate()).padStart(2, '0')}`;
     const endDate = new Date(todayDate);
-    endDate.setFullYear(endDate.getFullYear() + 1);
+    if (months === 12) {
+      endDate.setFullYear(endDate.getFullYear() + 1);
+    } else {
+      endDate.setDate(endDate.getDate() + 30);
+    }
     const newEnd = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`;
 
     setSubscriptionStatus('active');
@@ -1011,15 +1022,15 @@ export default function TenCardModal({
               </>
             ) : (
               <>
-                {/* Close & Renew Subscription Button (top) */}
+                {/* Activate / Renew Subscription buttons */}
                 <div className="pb-4 border-b">
                   {pendingSubClose ? (
                     <div className="rounded-lg border border-amber-300 bg-amber-50 p-3">
                       <p className="text-sm font-medium text-amber-900">
-                        Renew pending — not yet saved
+                        Activation pending — not yet saved
                       </p>
                       <p className="text-xs text-amber-800 mt-1">
-                        New subscription defaults to active, starting today, ending in 1 year. Adjust the fields below if needed.
+                        New subscription: active, starting today, ending <span className="font-semibold">{subscriptionEnd}</span>. Adjust the fields below if needed.
                       </p>
                       <p className="text-xs text-amber-800 mt-1">
                         Click <span className="font-semibold">Save Changes</span> to commit, or <span className="font-semibold">Revert</span> to abort.
@@ -1033,16 +1044,24 @@ export default function TenCardModal({
                     </div>
                   ) : (
                     <>
-                      <button
-                        onClick={handleCloseAndRenewSub}
-                        disabled={subscriptionStatus === 'expired'}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg transition"
-                      >
-                        <RefreshCw size={18} />
-                        Close &amp; Renew
-                      </button>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          onClick={() => startActivation(1)}
+                          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition"
+                        >
+                          <RefreshCw size={18} />
+                          Activate 1 Month
+                        </button>
+                        <button
+                          onClick={() => startActivation(12)}
+                          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition"
+                        >
+                          <RefreshCw size={18} />
+                          Activate 1 Year
+                        </button>
+                      </div>
                       <p className="text-xs text-gray-500 mt-2">
-                        Archives the current subscription with its notes, then starts a fresh one (active, today + 1 year, blank notes). Changes are previewed and only persist when you click Save Changes.
+                        Archives the current subscription (whatever its state), then starts a fresh one (active, today, today + 1 month / 1 year, blank notes). Use Monthly for cash-monthly athletes (Nikolina, Lisa, Anfisa); Yearly for upfront annual. Changes are previewed and only persist when you click Save Changes.
                       </p>
                     </>
                   )}
