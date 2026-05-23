@@ -87,25 +87,6 @@ export async function promoteWaitlistMembers(
 }
 
 /**
- * Update workout capacity (if workout exists)
- * @param supabase - Supabase client
- * @param workoutId - Workout ID (nullable)
- * @param newCapacity - New capacity value
- */
-export async function updateWorkoutCapacity(
-  supabase: SupabaseClient,
-  workoutId: string | null,
-  newCapacity: number
-): Promise<void> {
-  if (!workoutId) return;
-
-  await supabase
-    .from('wods')
-    .update({ max_capacity: newCapacity })
-    .eq('id', workoutId);
-}
-
-/**
  * Promote waitlist members for a session after its capacity has been updated.
  * Handles capacity === 0 (unlimited) by promoting every waitlist entry.
  */

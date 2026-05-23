@@ -24,7 +24,8 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
     if (wodData.workout_name) wodData.workout_name = wodData.workout_name.trim();
 
     // Capacity is owned by weekly_sessions.capacity and edited via Session Management Modal.
-    // wods.max_capacity is preserved on writes for legacy compatibility but never propagated.
+    // New session inserts default to 12; existing sessions are never touched here. The
+    // wods.max_capacity column was dropped in S362 after years of being a drift landmine.
 
     try {
       // Check if we're editing a real workout (not an empty session with 'session-{uuid}' id)
@@ -253,7 +254,6 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
             track_id: wodData.track_id || null,
             workout_type_id: wodData.workout_type_id || null,
             class_times: wodData.classTimes,
-            max_capacity: wodData.maxCapacity,
             date: dateKey,
             sections: wodData.sections,
             coach_notes: wodData.coach_notes || null,
@@ -304,7 +304,6 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
                 track_id: wodData.track_id || null,
                 workout_type_id: wodData.workout_type_id || null,
                 class_times: wodData.classTimes,
-                max_capacity: wodData.maxCapacity,
                 date: dateKey,
                 sections: wodData.sections,
                 coach_notes: wodData.coach_notes || null,
@@ -353,7 +352,6 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
                 track_id: wodData.track_id || null,
                 workout_type_id: wodData.workout_type_id || null,
                 class_times: wodData.classTimes,
-                max_capacity: wodData.maxCapacity,
                 date: dateKey,
                 sections: wodData.sections,
                 coach_notes: wodData.coach_notes || null,
@@ -382,7 +380,7 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
                   date: dateKey,
                   time: time,
                   workout_id: targetWorkoutId,
-                  capacity: wodData.maxCapacity,
+                  capacity: 12,
                   status: 'published',
                 });
               }
@@ -410,7 +408,6 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
               track_id: wodData.track_id || null,
               workout_type_id: wodData.workout_type_id || null,
               class_times: wodData.classTimes,
-              max_capacity: wodData.maxCapacity,
               date: dateKey,
               sections: wodData.sections,
               coach_notes: wodData.coach_notes || null,
@@ -449,7 +446,7 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
                 date: dateKey,
                 time: time,
                 workout_id: newWOD.id,
-                capacity: wodData.maxCapacity,
+                capacity: 12,
                 status: 'published'
               });
             }
@@ -670,7 +667,6 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
             track_id: wod.track_id || null,
             workout_type_id: wod.workout_type_id || null,
             class_times: timesToCreate,
-            max_capacity: wod.maxCapacity,
             date: dateKey,
             sections: wod.sections,
             workout_publish_status: 'draft',
@@ -706,7 +702,6 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
               .from('weekly_sessions')
               .update({
                 workout_id: newWorkout.id,
-                capacity: wod.maxCapacity,
                 status: 'published'
               })
               .eq('id', existingSessions[0].id);
@@ -722,7 +717,7 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
               date: dateKey,
               time: time,
               workout_id: newWorkout.id,
-              capacity: wod.maxCapacity,
+              capacity: 12,
               status: 'published'
             });
           }

@@ -114,7 +114,6 @@ export function useMovementTracking({
         date: s.date,
         sections: wod.sections || [],
         classTimes: [],
-        maxCapacity: 0,
       };
       const wodMovs = getWodMovements(wod.id, wodData);
       const wodMovsLower = new Set(Array.from(wodMovs).map(m => m.toLowerCase()));
@@ -203,7 +202,6 @@ export function useMovementTracking({
               date: s.date,
               sections: wod.sections || [],
               classTimes: [],
-              maxCapacity: 0,
             };
           }
         });

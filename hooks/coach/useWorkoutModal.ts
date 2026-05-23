@@ -83,7 +83,6 @@ export interface WODFormData {
   track_id?: string;
   workout_type_id?: string;
   classTimes: string[];
-  maxCapacity: number;
   date: string;
   time?: string; // Session time (HH:MM:SS format) from weekly_sessions
   sections: WODSection[];
@@ -254,7 +253,6 @@ export function useWorkoutModal(
     track_id: '',
     workout_type_id: '',
     classTimes: [],
-    maxCapacity: 12,
     date: formatDateLocal(date),
     sections: [],
   });
@@ -434,7 +432,6 @@ export function useWorkoutModal(
           track_id: '',
           workout_type_id: '',
           classTimes: [],
-          maxCapacity: 12,
           date: formatDateLocal(date),
           sections: templateSections,
         });

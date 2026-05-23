@@ -82,7 +82,6 @@ export const useQuickEdit = ({ fetchWODs, fetchTracksAndCounts }: UseQuickEditPr
             track_id: quickEditWOD.track_id || null,
             workout_type_id: quickEditWOD.workout_type_id || null,
             class_times: quickEditWOD.classTimes,
-            max_capacity: quickEditWOD.maxCapacity,
             date: quickEditWOD.date,
             sections: quickEditWOD.sections,
             coach_notes: quickEditWOD.coach_notes || null,

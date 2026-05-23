@@ -525,7 +525,6 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
       date: workout.date,
       sections: workout.sections || [],
       classTimes: [],
-      maxCapacity: 0,
     };
 
     const movements = extractMovementsFromWod(wodData, knownExerciseNames, acronymMap, liftExerciseMap);

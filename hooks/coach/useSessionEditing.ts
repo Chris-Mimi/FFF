@@ -6,7 +6,6 @@ import { authFetch } from '@/lib/auth-fetch';
 import {
   validateCapacity,
   promoteWaitlistMembers,
-  updateWorkoutCapacity,
 } from '@/lib/coach/sessionCapacityHelpers';
 import { calculateConfirmedCount } from '@/lib/coach/bookingHelpers';
 import { SessionDetails, Booking } from './useSessionDetails';
@@ -62,9 +61,6 @@ export function useSessionEditing({
         .eq('id', sessionId);
 
       if (error) throw error;
-
-      // Update WOD capacity if exists
-      await updateWorkoutCapacity(supabase, session?.workout_id || null, newCapacity);
 
       // Auto-promote waitlist members if capacity increased
       const spotsOpened = newCapacity - confirmedCount;

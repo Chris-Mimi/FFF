@@ -51,7 +51,6 @@ export default function TVDisplayPage() {
         is_published: data.is_published,
         publish_sections: data.publish_sections,
         classTimes: [],
-        maxCapacity: 0,
       });
       setLoading(false);
     };
