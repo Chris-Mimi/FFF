@@ -172,8 +172,14 @@ export async function POST(request: NextRequest) {
     // Auto-link unlinked identities by name match against members.name.
     // Normalizes both sides (lowercase + collapse internal whitespace + trim)
     // so known typos like Petr Bezdek's double-space don't silently fail.
-    // Runs every import so newly-registered athletes get linked retroactively.
+    // Two passes: (1) exact normalized match, (2) reverse-word-order fallback
+    // for the German export convention "Lastname Firstname" vs our app's
+    // "Firstname Lastname" (e.g. "Keip Andreas" ↔ "Andreas Keip", or
+    // "Fenster Martina" ↔ "Martina Fenster" — S361). Runs every import so
+    // newly-registered athletes get linked retroactively.
     const normalizeName = (n: string) => n.trim().replace(/\s+/g, ' ').toLowerCase();
+    const reverseNormalize = (n: string) =>
+      normalizeName(n.trim().split(/\s+/).reverse().join(' '));
 
     const identityIds = Array.from(identityByName.values()).map((i) => i.id);
     if (identityIds.length > 0) {
@@ -195,15 +201,41 @@ export async function POST(request: NextRequest) {
           .select('id, name');
         if (allMembers) {
           const newLinks: { wellpass_identity_id: string; member_id: string }[] = [];
+
+          // Pass 1: exact normalized match. Members that don't match fall
+          // through to pass 2 below.
+          const unmatchedMembers: { id: string; name: string }[] = [];
           for (const m of allMembers) {
             if (!m.name) continue;
             const norm = normalizeName(m.name);
             const target = unlinkedByNorm.get(norm);
             if (target) {
               newLinks.push({ wellpass_identity_id: target.identityId, member_id: m.id });
-              unlinkedByNorm.delete(norm); // first match wins, no duplicate links
+              unlinkedByNorm.delete(norm); // first match wins
+            } else {
+              unmatchedMembers.push({ id: m.id, name: m.name });
             }
           }
+
+          // Pass 2: reverse-word-order fallback. Build a map keyed on the
+          // reversed form of each STILL-unlinked Wellpass name and try matching
+          // remaining members against it.
+          if (unmatchedMembers.length > 0 && unlinkedByNorm.size > 0) {
+            const unlinkedByReverseNorm = new Map<string, { wellpassName: string; identityId: string }>();
+            for (const target of unlinkedByNorm.values()) {
+              unlinkedByReverseNorm.set(reverseNormalize(target.wellpassName), target);
+            }
+            for (const m of unmatchedMembers) {
+              const norm = normalizeName(m.name);
+              const target = unlinkedByReverseNorm.get(norm);
+              if (target) {
+                newLinks.push({ wellpass_identity_id: target.identityId, member_id: m.id });
+                unlinkedByReverseNorm.delete(norm);
+                unlinkedByNorm.delete(normalizeName(target.wellpassName));
+              }
+            }
+          }
+
           if (newLinks.length > 0) {
             await supabaseAdmin
               .from('wellpass_identity_members')
