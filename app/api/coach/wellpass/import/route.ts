@@ -124,33 +124,38 @@ export async function POST(request: NextRequest) {
       result.rows_inserted = checkinRows.length;
     }
 
-    // Zero-fill tracked identities that are MISSING from this week's Excel.
-    // Without this, an athlete who stops appearing in the export keeps their
-    // last reported counts and the block recompute never reconsiders them
-    // (their identity isn't in touchedIdentityIds). Uses ignoreDuplicates so a
+    // Zero-fill tracked identities that are MISSING from each individual week
+    // of the imported Excel. The check is PER-WEEK — an athlete present in W20
+    // but absent from W21 must still get a W21=0 row, otherwise the block
+    // recompute would read their stale W20 value as the "latest" and miss the
+    // signal that they've stopped checking in. Uses ignoreDuplicates so any
     // pre-existing real value for the same (identity, year, week) is preserved.
-    const importedIdentityIds = new Set(Array.from(identityByName.values()).map((i) => i.id));
     const { data: allTrackedIdentities } = await supabaseAdmin
       .from('wellpass_identities')
       .select('id')
       .eq('tracked', true);
-    const missingTrackedIds: string[] = (allTrackedIdentities ?? [])
-      .map((i) => i.id)
-      .filter((id) => !importedIdentityIds.has(id));
+    const allTrackedIds: string[] = (allTrackedIdentities ?? []).map((i) => i.id);
 
-    if (missingTrackedIds.length > 0) {
+    if (allTrackedIds.length > 0) {
       const zeroRows: typeof checkinRows = [];
       for (const wk of parsed.weeks) {
         const year = isoWeekYear(wk.week_start);
-        for (const idId of missingTrackedIds) {
-          zeroRows.push({
-            wellpass_identity_id: idId,
-            year,
-            week_number: wk.week_number,
-            week_start: wk.week_start,
-            week_end: wk.week_end,
-            checkin_count: 0,
-          });
+        const idsInWeek = new Set<string>();
+        for (const row of wk.rows) {
+          const id = identityByName.get(row.wellpass_name)?.id;
+          if (id) idsInWeek.add(id);
+        }
+        for (const idId of allTrackedIds) {
+          if (!idsInWeek.has(idId)) {
+            zeroRows.push({
+              wellpass_identity_id: idId,
+              year,
+              week_number: wk.week_number,
+              week_start: wk.week_start,
+              week_end: wk.week_end,
+              checkin_count: 0,
+            });
+          }
         }
       }
       if (zeroRows.length > 0) {
@@ -211,10 +216,11 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Recompute block status for everyone tracked — both identities that appeared
-    // in this import AND tracked identities that were missing (now have a 0-row
-    // for the latest week and may need to be auto-blocked).
-    const blocksDelta = await recomputeBlockStatus([...identityIds, ...missingTrackedIds]);
+    // Recompute block status for everyone tracked — covers both identities that
+    // appeared in this import AND tracked identities that may have just received
+    // a 0-row for a week they were absent from.
+    const recomputeScope = Array.from(new Set([...identityIds, ...allTrackedIds]));
+    const blocksDelta = await recomputeBlockStatus(recomputeScope);
     result.blocks_applied = blocksDelta.applied;
     result.blocks_cleared = blocksDelta.cleared;
 
