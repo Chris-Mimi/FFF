@@ -93,6 +93,7 @@ function berlinWallClock(instant: Date) {
     year: parseInt(get('year')),
     month: parseInt(get('month')),
     day: parseInt(get('day')),
+    hour: parseInt(get('hour')),
     dow: dowMap[get('weekday')],
   };
 }
@@ -171,11 +172,19 @@ export function getMaxVisibleSessionDate(rules: BookingRules, now: Date = new Da
 }
 
 // Returns the next upcoming release instant for the given tier, or null if the
-// release has already happened in this calendar week (i.e. next-week slots are
-// already visible/bookable). Used by the /member/book countdown banner.
+// release has already happened OR we're outside the visibility window for the
+// /member/book countdown banner. The banner only renders from 12:00 Berlin on
+// the release day until release fires — avoids athletes seeing a multi-day
+// countdown all week long. The 12:00 cutoff is hardcoded (no UI exposure yet).
 export function getNextReleaseInstant(rules: BookingRules, now: Date = new Date(), restricted: boolean = false): Date | null {
   const { releaseInstant } = computeReleaseAndWeekEnd(rules, now, restricted);
-  return now < releaseInstant ? releaseInstant : null;
+  if (now >= releaseInstant) return null;
+
+  const berlin = berlinWallClock(now);
+  const inVisibilityWindow = berlin.dow === rules.next_week_release_day_of_week && berlin.hour >= 12;
+  if (!inVisibilityWindow) return null;
+
+  return releaseInstant;
 }
 
 export interface SessionTypeLockRule {
