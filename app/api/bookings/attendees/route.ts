@@ -30,10 +30,15 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ attendees: {} });
   }
 
-  // Fetch all confirmed bookings for these sessions
+  // Fetch all confirmed bookings for these sessions. OG and trial bookings are
+  // intentionally excluded from the public attendee list — they don't consume
+  // a seat and aren't part of the visible "who else is in this class" view that
+  // gets shown to other athletes. The viewer's own booking, if marked OG/trial,
+  // is still used to determine whether they're booked in a session (so they see
+  // the attendee list when attending in any form).
   const { data: bookings, error } = await supabaseAdmin
     .from('bookings')
-    .select('session_id, member_id')
+    .select('session_id, member_id, is_og, is_trial')
     .in('session_id', sessionIds)
     .eq('status', 'confirmed');
 
@@ -41,14 +46,20 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to fetch attendees' }, { status: 500 });
   }
 
-  // Group bookings by session, find which sessions the member is in
+  // Group bookings by session. The viewer is added to bookedSessionIds for any
+  // session they're in (including OG/trial). Other members' OG/trial bookings
+  // are skipped — they don't show up on the public attendee list.
   const sessionBookings: Record<string, string[]> = {};
   const bookedSessionIds = new Set<string>();
 
   for (const b of bookings || []) {
+    if (b.member_id === memberId) {
+      bookedSessionIds.add(b.session_id);
+      continue;
+    }
+    if (b.is_og || b.is_trial) continue;
     if (!sessionBookings[b.session_id]) sessionBookings[b.session_id] = [];
     sessionBookings[b.session_id].push(b.member_id);
-    if (b.member_id === memberId) bookedSessionIds.add(b.session_id);
   }
 
   // Collect all other member IDs from sessions where user is booked
@@ -74,10 +85,12 @@ export async function GET(request: NextRequest) {
     nameMap[m.id] = m.display_name || (m.name ? m.name.split(' ')[0] : 'Athlete');
   }
 
-  // Build result: { sessionId: ["Chris", "Mimi"] }
+  // Build result: { sessionId: ["Chris", "Mimi"] }. A session can be in
+  // bookedSessionIds without any entries in sessionBookings (viewer is the
+  // only non-OG/trial booking) — guard with the array fallback.
   const attendees: Record<string, string[]> = {};
   for (const sid of bookedSessionIds) {
-    const names = sessionBookings[sid]
+    const names = (sessionBookings[sid] ?? [])
       .filter((mid) => mid !== memberId && nameMap[mid])
       .map((mid) => nameMap[mid])
       .sort();

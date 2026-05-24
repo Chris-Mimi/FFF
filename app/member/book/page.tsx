@@ -221,10 +221,13 @@ export default function MemberBookingPage() {
           status,
           workout_type,
           is_locked,
+          trial_names,
           bookings (
             id,
             member_id,
-            status
+            status,
+            is_og,
+            is_trial
           )
         `)
         .eq('status', 'published')
@@ -242,6 +245,13 @@ export default function MemberBookingPage() {
         const bookings = session.bookings || [];
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const confirmedBookings = bookings.filter((b: any) => b.status === 'confirmed');
+        // Coach-parity capacity count: exclude OG + trial-linked bookings, add trial_names slots.
+        // OG bookings are off-capacity; trial-linked bookings shadow a trial_names entry so
+        // counting both would double-count the seat. (S343 + S351 + S360 landmine.)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const capacityCount =
+          confirmedBookings.filter((b: any) => !b.is_og && !b.is_trial).length +
+          (Array.isArray(session.trial_names) ? session.trial_names.length : 0);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const waitlistBookings = bookings.filter((b: any) => b.status === 'waitlist');
 
@@ -299,7 +309,7 @@ export default function MemberBookingPage() {
           capacity: session.capacity,
           status: session.status,
           workout_type: workoutType,
-          confirmed_count: confirmedBookings.length,
+          confirmed_count: capacityCount,
           waitlist_count: waitlistBookings.length,
           user_booking_status: selectedMemberBooking ? selectedMemberBooking.status : 'none',
           user_booking_id: selectedMemberBooking?.id || null,
