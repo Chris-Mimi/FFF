@@ -57,6 +57,7 @@ export async function PUT(request: NextRequest) {
     intField('max_bookings_per_day', 1, true),
     intField('max_bookings_per_week', 1, true),
     intField('advance_booking_days', 1, true),
+    intField('wellpass_restricted_release_offset_minutes'),
     validateRelease(),
   ].filter(Boolean);
 

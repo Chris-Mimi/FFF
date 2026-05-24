@@ -16,6 +16,7 @@ type FormState = {
   advance_booking_days: string;
   next_week_release_day_of_week: string;
   next_week_release_time: string; // 'HH:MM' for the input
+  wellpass_restricted_release_offset_minutes: string;
 };
 
 const DAY_LABELS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -30,6 +31,7 @@ const toForm = (r: BookingRules): FormState => ({
   advance_booking_days: r.advance_booking_days == null ? '' : String(r.advance_booking_days),
   next_week_release_day_of_week: String(r.next_week_release_day_of_week),
   next_week_release_time: r.next_week_release_time.slice(0, 5), // 'HH:MM'
+  wellpass_restricted_release_offset_minutes: String(r.wellpass_restricted_release_offset_minutes),
 });
 
 const parseInput = (s: string, nullable: boolean): number | null | 'invalid' => {
@@ -91,6 +93,7 @@ export default function BookingRulesPage() {
       max_bookings_per_day: parseInput(form.max_bookings_per_day, true),
       max_bookings_per_week: parseInput(form.max_bookings_per_week, true),
       advance_booking_days: parseInput(form.advance_booking_days, true),
+      wellpass_restricted_release_offset_minutes: parseInput(form.wellpass_restricted_release_offset_minutes, false),
     };
 
     const invalid = Object.entries(parsed).filter(([, v]) => v === 'invalid').map(([k]) => k);
@@ -292,10 +295,11 @@ export default function BookingRulesPage() {
 
           <div className='mb-5 border-t pt-5'>
             <label className='block text-sm font-medium text-gray-700 mb-1'>
-              Next-week release time
+              Next-week release time (priority tier)
             </label>
             <p className='text-xs text-gray-500 mb-3'>
-              Athletes only see this week&apos;s sessions until this moment, then next week opens.
+              Athletes only see this week&apos;s sessions until this moment, then next week opens
+              for the priority tier (members, app subscribers, compliant Wellpass).
               Lets you program/publish ahead without athletes seeing it. Default: Sunday 14:00.
             </p>
             <div className='flex items-center gap-2'>
@@ -314,6 +318,28 @@ export default function BookingRulesPage() {
                 onChange={(e) => setForm({ ...form, next_week_release_time: e.target.value })}
                 className='w-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#178da6]'
               />
+            </div>
+          </div>
+
+          <div className='mb-5'>
+            <label className='block text-sm font-medium text-gray-700 mb-1'>
+              Wellpass restricted-tier offset
+            </label>
+            <p className='text-xs text-gray-500 mb-3'>
+              How much LATER the restricted tier opens compared to the priority tier above.
+              Restricted tier = Wellpass members whose household fell below the weekly check-in
+              minimum. Set to 0 to disable tiering (everyone opens at the same time).
+              Examples: 60 = +1 hour, 120 = +2 hours.
+            </p>
+            <div className='flex items-center gap-2'>
+              <input
+                type='number'
+                min={0}
+                value={form.wellpass_restricted_release_offset_minutes}
+                onChange={(e) => setForm({ ...form, wellpass_restricted_release_offset_minutes: e.target.value })}
+                className='w-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#178da6]'
+              />
+              <span className='text-sm text-gray-500'>minutes after priority opens</span>
             </div>
           </div>
 
