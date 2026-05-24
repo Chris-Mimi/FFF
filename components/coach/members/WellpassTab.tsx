@@ -436,10 +436,12 @@ function IdentityRow({ row, weekColumns, expanded, onToggleExpand, onPatch, onTo
                     {row.linked_members.map((m) => (
                       <li key={m.member_id} className="flex items-center gap-2">
                         <span className="text-gray-200">{m.name}</span>
-                        <span className="text-gray-500">·</span>
-                        <span className={m.athlete_subscription_status === 'active' ? 'text-teal-400' : 'text-gray-500'}>
-                          {m.athlete_subscription_status}
-                        </span>
+                        {m.athlete_subscription_status === 'active' && (
+                          <>
+                            <span className="text-gray-500">·</span>
+                            <span className="text-teal-400">active</span>
+                          </>
+                        )}
                         {m.wellpass_booking_restricted && (
                           <span className="ml-auto inline-flex items-center gap-1 text-red-400">
                             <Lock size={12} /> blocked
