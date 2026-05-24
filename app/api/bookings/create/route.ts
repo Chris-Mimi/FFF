@@ -281,7 +281,9 @@ export async function POST(request: NextRequest) {
     // Next-week release gate: reject sessions whose date is past the visibility cutoff.
     // Mirrors the athlete-side query filter so determined replays of /api/bookings/create
     // can't bypass the gate (see getMaxVisibleSessionDate for the cutoff logic).
-    const maxVisibleDate = getMaxVisibleSessionDate(rules);
+    // Wellpass-restricted members get the release shifted later — matches the page-side
+    // gating in /member/book.
+    const maxVisibleDate = getMaxVisibleSessionDate(rules, undefined, member.wellpass_booking_restricted === true);
     const sessionDayDate = new Date(`${session.date}T00:00:00`);
     if (sessionDayDate > maxVisibleDate) {
       return NextResponse.json(

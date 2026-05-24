@@ -7,7 +7,8 @@ export interface BookingRules {
   max_bookings_per_week: number | null;
   advance_booking_days: number | null;
   next_week_release_day_of_week: number; // 0=Sun, 1=Mon, ..., 6=Sat (JS getDay)
-  next_week_release_time: string;        // 'HH:MM:SS'
+  next_week_release_time: string;        // 'HH:MM:SS' — priority tier opening (Berlin wall clock)
+  wellpass_restricted_release_offset_minutes: number; // added to base release for Wellpass-restricted members; 0 = same time as priority tier
 }
 
 export const DEFAULT_BOOKING_RULES: BookingRules = {
@@ -18,9 +19,10 @@ export const DEFAULT_BOOKING_RULES: BookingRules = {
   advance_booking_days: null,
   next_week_release_day_of_week: 0,
   next_week_release_time: '14:00:00',
+  wellpass_restricted_release_offset_minutes: 0,
 };
 
-const RULES_COLUMNS = 'ten_card_refund_hours, auto_lock_lead_minutes, max_bookings_per_day, max_bookings_per_week, advance_booking_days, next_week_release_day_of_week, next_week_release_time';
+const RULES_COLUMNS = 'ten_card_refund_hours, auto_lock_lead_minutes, max_bookings_per_day, max_bookings_per_week, advance_booking_days, next_week_release_day_of_week, next_week_release_time, wellpass_restricted_release_offset_minutes';
 
 function adminClient() {
   return createClient(
@@ -76,21 +78,48 @@ export function sessionStartInstant(dateStr: string, timeStr: string): Date {
   return new Date(guess.getTime() - offsetMs);
 }
 
-// Latest session date athletes are allowed to see/book at the given moment.
-// Default config (Sunday 14:00) means: Mon-Sat athletes see only this week (Mon-Sun),
-// Sunday before 14:00 still only this week, Sunday at/after 14:00 unlocks next week.
-//
-// All timestamps are evaluated in Europe/Berlin so the release time stored in
-// next_week_release_time is interpreted as Berlin wall-clock, regardless of the
-// runtime timezone (Vercel runs UTC).
-export function getMaxVisibleSessionDate(rules: BookingRules, now: Date = new Date()): Date {
-  const tz = 'Europe/Berlin';
+const BERLIN_TZ = 'Europe/Berlin';
 
+function berlinWallClock(instant: Date) {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: BERLIN_TZ,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    hour12: false, weekday: 'short',
+  }).formatToParts(instant);
+  const get = (t: string) => parts.find(p => p.type === t)!.value;
+  const dowMap: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+  return {
+    year: parseInt(get('year')),
+    month: parseInt(get('month')),
+    day: parseInt(get('day')),
+    dow: dowMap[get('weekday')],
+  };
+}
+
+function berlinWallTimeToUTC(year: number, month: number, day: number, hour: number, minute: number, second: number): Date {
+  const guess = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: BERLIN_TZ,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    hour12: false,
+  }).formatToParts(guess);
+  const get = (t: string) => parseInt(parts.find(p => p.type === t)!.value);
+  const berlinAsUTC = Date.UTC(get('year'), get('month') - 1, get('day'), get('hour'), get('minute'), get('second'));
+  const offsetMs = berlinAsUTC - guess.getTime();
+  return new Date(guess.getTime() - offsetMs);
+}
+
+// Returns the release instant for the user's tier in the current Berlin week,
+// plus the Monday/Sunday bounds. Restricted-tier members get the base release
+// shifted later by `wellpass_restricted_release_offset_minutes`. Note: this is
+// the release for the upcoming "next week" relative to the calendar week the
+// `now` argument falls in — used by both the visibility gate and the UI countdown.
+function computeReleaseAndWeekEnd(rules: BookingRules, now: Date, restricted: boolean) {
   const berlin = berlinWallClock(now);
   const isoDay = berlin.dow === 0 ? 6 : berlin.dow - 1; // Mon=0, ..., Sun=6
 
-  // Build a UTC-midnight Date for the Berlin calendar day "Monday of this week",
-  // then advance/wind via setUTCDate so DST never shifts the date math.
   const monday = new Date(Date.UTC(berlin.year, berlin.month - 1, berlin.day - isoDay));
   const sunday = new Date(monday);
   sunday.setUTCDate(monday.getUTCDate() + 6);
@@ -100,12 +129,30 @@ export function getMaxVisibleSessionDate(rules: BookingRules, now: Date = new Da
   const releaseDay = new Date(monday);
   releaseDay.setUTCDate(monday.getUTCDate() + releaseIsoDay);
   const [hh, mm, ss = 0] = rules.next_week_release_time.split(':').map(Number);
-  const releaseInstant = berlinWallTimeToUTC(
+  let releaseInstant = berlinWallTimeToUTC(
     releaseDay.getUTCFullYear(),
     releaseDay.getUTCMonth() + 1,
     releaseDay.getUTCDate(),
     hh, mm, ss
   );
+  if (restricted && rules.wellpass_restricted_release_offset_minutes > 0) {
+    releaseInstant = new Date(releaseInstant.getTime() + rules.wellpass_restricted_release_offset_minutes * 60_000);
+  }
+  return { releaseInstant, monday, sunday };
+}
+
+// Latest session date athletes are allowed to see/book at the given moment.
+// Default config (Sunday 14:00) means: Mon-Sat athletes see only this week (Mon-Sun),
+// Sunday before 14:00 still only this week, Sunday at/after 14:00 unlocks next week.
+//
+// Wellpass-restricted members (members.wellpass_booking_restricted=true) see the
+// release shifted later by `wellpass_restricted_release_offset_minutes`.
+//
+// All timestamps are evaluated in Europe/Berlin so the release time stored in
+// next_week_release_time is interpreted as Berlin wall-clock, regardless of the
+// runtime timezone (Vercel runs UTC).
+export function getMaxVisibleSessionDate(rules: BookingRules, now: Date = new Date(), restricted: boolean = false): Date {
+  const { releaseInstant, sunday } = computeReleaseAndWeekEnd(rules, now, restricted);
 
   if (now >= releaseInstant) {
     const endOfNextWeek = new Date(sunday);
@@ -116,38 +163,14 @@ export function getMaxVisibleSessionDate(rules: BookingRules, now: Date = new Da
   const endOfThisWeek = new Date(sunday);
   endOfThisWeek.setUTCHours(23, 59, 59, 999);
   return endOfThisWeek;
+}
 
-  // --- helpers ---
-  function berlinWallClock(instant: Date) {
-    const parts = new Intl.DateTimeFormat('en-CA', {
-      timeZone: tz,
-      year: 'numeric', month: '2-digit', day: '2-digit',
-      hour: '2-digit', minute: '2-digit', second: '2-digit',
-      hour12: false, weekday: 'short',
-    }).formatToParts(instant);
-    const get = (t: string) => parts.find(p => p.type === t)!.value;
-    const dowMap: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
-    return {
-      year: parseInt(get('year')),
-      month: parseInt(get('month')),
-      day: parseInt(get('day')),
-      dow: dowMap[get('weekday')],
-    };
-  }
-
-  function berlinWallTimeToUTC(year: number, month: number, day: number, hour: number, minute: number, second: number): Date {
-    const guess = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
-    const parts = new Intl.DateTimeFormat('en-CA', {
-      timeZone: tz,
-      year: 'numeric', month: '2-digit', day: '2-digit',
-      hour: '2-digit', minute: '2-digit', second: '2-digit',
-      hour12: false,
-    }).formatToParts(guess);
-    const get = (t: string) => parseInt(parts.find(p => p.type === t)!.value);
-    const berlinAsUTC = Date.UTC(get('year'), get('month') - 1, get('day'), get('hour'), get('minute'), get('second'));
-    const offsetMs = berlinAsUTC - guess.getTime();
-    return new Date(guess.getTime() - offsetMs);
-  }
+// Returns the next upcoming release instant for the given tier, or null if the
+// release has already happened in this calendar week (i.e. next-week slots are
+// already visible/bookable). Used by the /member/book countdown banner.
+export function getNextReleaseInstant(rules: BookingRules, now: Date = new Date(), restricted: boolean = false): Date | null {
+  const { releaseInstant } = computeReleaseAndWeekEnd(rules, now, restricted);
+  return now < releaseInstant ? releaseInstant : null;
 }
 
 export interface SessionTypeLockRule {

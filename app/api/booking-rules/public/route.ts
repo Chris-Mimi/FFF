@@ -12,6 +12,7 @@ export async function GET() {
   return NextResponse.json({
     next_week_release_day_of_week: rules.next_week_release_day_of_week,
     next_week_release_time: rules.next_week_release_time,
+    wellpass_restricted_release_offset_minutes: rules.wellpass_restricted_release_offset_minutes,
     auto_lock_lead_minutes: rules.auto_lock_lead_minutes,
     session_type_lock_minutes: perType,
   });

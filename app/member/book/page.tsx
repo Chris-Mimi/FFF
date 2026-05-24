@@ -11,7 +11,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { FocusTrap } from '@/components/ui/FocusTrap';
 import { NotificationPrompt } from '@/components/ui/NotificationPrompt';
-import { getMaxVisibleSessionDate, DEFAULT_BOOKING_RULES, sessionStartInstant } from '@/lib/bookingRules';
+import { getMaxVisibleSessionDate, getNextReleaseInstant, DEFAULT_BOOKING_RULES, sessionStartInstant } from '@/lib/bookingRules';
 
 interface WeeklySession {
   id: string;
@@ -81,14 +81,17 @@ export default function MemberBookingPage() {
   const [bookingForMemberId, setBookingForMemberId] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'booked' | 'wod' | 'foundations' | 'kids'>('all');
   const scrolledForWeekRef = useRef<string | null>(null);
+  const [isWellpassRestricted, setIsWellpassRestricted] = useState<boolean>(false);
   const [releaseConfig, setReleaseConfig] = useState<{
     next_week_release_day_of_week: number;
     next_week_release_time: string;
+    wellpass_restricted_release_offset_minutes: number;
     auto_lock_lead_minutes: number;
     session_type_lock_minutes: Array<{ session_type: string; auto_lock_lead_minutes: number }>;
   }>({
     next_week_release_day_of_week: DEFAULT_BOOKING_RULES.next_week_release_day_of_week,
     next_week_release_time: DEFAULT_BOOKING_RULES.next_week_release_time,
+    wellpass_restricted_release_offset_minutes: DEFAULT_BOOKING_RULES.wellpass_restricted_release_offset_minutes,
     auto_lock_lead_minutes: DEFAULT_BOOKING_RULES.auto_lock_lead_minutes,
     session_type_lock_minutes: [],
   });
@@ -114,7 +117,7 @@ export default function MemberBookingPage() {
       fetchSessions();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [weekStart, user, bookingForMemberId, releaseConfig]);
+  }, [weekStart, user, bookingForMemberId, releaseConfig, isWellpassRestricted]);
 
   // Scroll today's session group into view when viewing the current week.
   // Program drops Sunday, so by mid-week the first days on screen are past and
@@ -143,7 +146,7 @@ export default function MemberBookingPage() {
     // Check if user is a member and get athlete access info (including 10-card)
     const { data: member } = await supabase
       .from('members')
-      .select('id, email, status, athlete_subscription_status, athlete_subscription_end, membership_types, ten_card_sessions_used, ten_card_total, ten_card_expiry_date')
+      .select('id, email, status, athlete_subscription_status, athlete_subscription_end, membership_types, ten_card_sessions_used, ten_card_total, ten_card_expiry_date, wellpass_booking_restricted')
       .eq('id', authUser.id)
       .single();
 
@@ -181,6 +184,8 @@ export default function MemberBookingPage() {
       using10Card: hasTenCardMembership && hasTenCardSessions
     });
 
+    setIsWellpassRestricted(member.wellpass_booking_restricted === true);
+
     setUser({ id: authUser.id, email: authUser.email || '' });
 
     // Fetch family members
@@ -196,11 +201,14 @@ export default function MemberBookingPage() {
       weekEnd.setDate(weekStart.getDate() + 7);
 
       // Time-gate next week: at most, athletes can see up to maxVisibleDate
-      // (defaults to end-of-this-week; bumps to end-of-next-week after Sunday 14:00)
-      const maxVisibleDate = getMaxVisibleSessionDate({
-        ...DEFAULT_BOOKING_RULES,
-        ...releaseConfig,
-      });
+      // (defaults to end-of-this-week; bumps to end-of-next-week after the release time).
+      // Wellpass-restricted members get the release shifted later — server enforces the
+      // same gate in /api/bookings/create.
+      const maxVisibleDate = getMaxVisibleSessionDate(
+        { ...DEFAULT_BOOKING_RULES, ...releaseConfig },
+        undefined,
+        isWellpassRestricted
+      );
 
       // Fetch weekly sessions with booking counts
       const { data: sessionsData, error } = await supabase
@@ -871,6 +879,40 @@ export default function MemberBookingPage() {
           })}
         </div>
 
+        {/* Next-week release countdown — shows when the upcoming release for this
+            member's tier (priority or Wellpass-restricted) is still in the future.
+            Refreshes every 60s via the existing nowMs tick. */}
+        {(() => {
+          const nextRelease = getNextReleaseInstant(
+            { ...DEFAULT_BOOKING_RULES, ...releaseConfig },
+            new Date(nowMs),
+            isWellpassRestricted
+          );
+          if (!nextRelease) return null;
+          const msLeft = nextRelease.getTime() - nowMs;
+          const totalMinutes = Math.max(0, Math.ceil(msLeft / 60_000));
+          const hours = Math.floor(totalMinutes / 60);
+          const minutes = totalMinutes % 60;
+          let countdownText: string;
+          if (totalMinutes < 1) {
+            countdownText = 'gleich';
+          } else if (hours === 0) {
+            countdownText = `in ${minutes} Min.`;
+          } else if (minutes === 0) {
+            countdownText = `in ${hours} Std.`;
+          } else {
+            countdownText = `in ${hours} Std. ${minutes} Min.`;
+          }
+          return (
+            <div className="bg-teal-900/40 border border-teal-700 rounded-lg p-4 mb-4 flex items-start gap-3">
+              <Clock size={20} className="text-teal-300 flex-shrink-0 mt-0.5" />
+              <p className="text-teal-100 font-semibold">
+                Buchungen für nächste Woche öffnen {countdownText}.
+              </p>
+            </div>
+          );
+        })()}
+
         {/* Sessions List */}
         {loading ? (
           <div className="text-center py-12">
@@ -878,11 +920,23 @@ export default function MemberBookingPage() {
             <p className="text-gray-400 mt-4">Loading sessions...</p>
           </div>
         ) : sessions.length === 0 ? (
-          <div className="bg-gray-800 rounded-lg p-12 text-center border border-gray-700">
-            <Calendar size={48} className="mx-auto text-gray-600 mb-4" />
-            <p className="text-gray-400 text-lg mb-2">No sessions available this week</p>
-            <p className="text-gray-500 text-sm">Check back later or try a different week</p>
-          </div>
+          (() => {
+            const nextRelease = getNextReleaseInstant(
+              { ...DEFAULT_BOOKING_RULES, ...releaseConfig },
+              new Date(nowMs),
+              isWellpassRestricted
+            );
+            // Skip the generic message when the release banner above is already
+            // explaining why the next-week view is empty.
+            if (nextRelease) return null;
+            return (
+              <div className="bg-gray-800 rounded-lg p-12 text-center border border-gray-700">
+                <Calendar size={48} className="mx-auto text-gray-600 mb-4" />
+                <p className="text-gray-400 text-lg mb-2">No sessions available this week</p>
+                <p className="text-gray-500 text-sm">Check back later or try a different week</p>
+              </div>
+            );
+          })()
         ) : (
           <div className="space-y-6">
             {/* Group sessions by day */}
