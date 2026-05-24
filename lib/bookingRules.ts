@@ -157,11 +157,16 @@ export function getMaxVisibleSessionDate(rules: BookingRules, now: Date = new Da
   if (now >= releaseInstant) {
     const endOfNextWeek = new Date(sunday);
     endOfNextWeek.setUTCDate(sunday.getUTCDate() + 7);
-    endOfNextWeek.setUTCHours(23, 59, 59, 999);
+    // 12:00 UTC = 13:00/14:00 Berlin — well inside the Berlin calendar Sunday,
+    // so callers that re-format via browser-local `getDate()` (e.g. /member/book's
+    // formatLocalDate) emit the correct "YYYY-MM-DD" for Sunday rather than
+    // rolling over to Monday under CET/CEST. Server-side `>` comparisons against
+    // session-date midnight UTC still work correctly.
+    endOfNextWeek.setUTCHours(12, 0, 0, 0);
     return endOfNextWeek;
   }
   const endOfThisWeek = new Date(sunday);
-  endOfThisWeek.setUTCHours(23, 59, 59, 999);
+  endOfThisWeek.setUTCHours(12, 0, 0, 0);
   return endOfThisWeek;
 }
 
