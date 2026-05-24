@@ -124,6 +124,46 @@ export async function POST(request: NextRequest) {
       result.rows_inserted = checkinRows.length;
     }
 
+    // Zero-fill tracked identities that are MISSING from this week's Excel.
+    // Without this, an athlete who stops appearing in the export keeps their
+    // last reported counts and the block recompute never reconsiders them
+    // (their identity isn't in touchedIdentityIds). Uses ignoreDuplicates so a
+    // pre-existing real value for the same (identity, year, week) is preserved.
+    const importedIdentityIds = new Set(Array.from(identityByName.values()).map((i) => i.id));
+    const { data: allTrackedIdentities } = await supabaseAdmin
+      .from('wellpass_identities')
+      .select('id')
+      .eq('tracked', true);
+    const missingTrackedIds: string[] = (allTrackedIdentities ?? [])
+      .map((i) => i.id)
+      .filter((id) => !importedIdentityIds.has(id));
+
+    if (missingTrackedIds.length > 0) {
+      const zeroRows: typeof checkinRows = [];
+      for (const wk of parsed.weeks) {
+        const year = isoWeekYear(wk.week_start);
+        for (const idId of missingTrackedIds) {
+          zeroRows.push({
+            wellpass_identity_id: idId,
+            year,
+            week_number: wk.week_number,
+            week_start: wk.week_start,
+            week_end: wk.week_end,
+            checkin_count: 0,
+          });
+        }
+      }
+      if (zeroRows.length > 0) {
+        const { error: zErr } = await supabaseAdmin
+          .from('wellpass_weekly_checkins')
+          .upsert(zeroRows, { onConflict: 'wellpass_identity_id,year,week_number', ignoreDuplicates: true });
+        if (zErr) {
+          console.error('[wellpass-import] zero-fill error:', zErr);
+          // Non-fatal — continue with whatever rows landed.
+        }
+      }
+    }
+
     // Auto-link unlinked identities by name match against members.name.
     // Normalizes both sides (lowercase + collapse internal whitespace + trim)
     // so known typos like Petr Bezdek's double-space don't silently fail.
@@ -171,7 +211,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const blocksDelta = await recomputeBlockStatus(identityIds);
+    // Recompute block status for everyone tracked — both identities that appeared
+    // in this import AND tracked identities that were missing (now have a 0-row
+    // for the latest week and may need to be auto-blocked).
+    const blocksDelta = await recomputeBlockStatus([...identityIds, ...missingTrackedIds]);
     result.blocks_applied = blocksDelta.applied;
     result.blocks_cleared = blocksDelta.cleared;
 

@@ -451,7 +451,7 @@ function IdentityRow({ row, weekColumns, expanded, onToggleExpand, onPatch, onTo
                             </button>
                           </span>
                         )}
-                        {!m.wellpass_booking_restricted && row.status === 'below_threshold' && !row.is_exempt && (
+                        {!m.wellpass_booking_restricted && (
                           <button
                             onClick={() => onToggleMemberBlock(m.member_id, true)}
                             className="ml-auto inline-flex items-center gap-1 px-1.5 py-0.5 bg-gray-700 hover:bg-gray-600 rounded text-gray-200"
