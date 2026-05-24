@@ -248,8 +248,8 @@ export default function MemberBookingPage() {
         // Coach-parity capacity count: exclude OG + trial-linked bookings, add trial_names slots.
         // OG bookings are off-capacity; trial-linked bookings shadow a trial_names entry so
         // counting both would double-count the seat. (S343 + S351 + S360 landmine.)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const capacityCount =
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           confirmedBookings.filter((b: any) => !b.is_og && !b.is_trial).length +
           (Array.isArray(session.trial_names) ? session.trial_names.length : 0);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
