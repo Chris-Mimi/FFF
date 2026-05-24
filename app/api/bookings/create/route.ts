@@ -106,10 +106,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Wellpass under-attendance restriction: cap at 1 confirmed booking per Mon–Sun
-    // calendar week when their household has fallen below the WP check-in threshold.
-    // Set by the Wellpass import in /api/coach/wellpass/import; cleared by next import
-    // showing recovery, or manually by the coach via the Wellpass tab.
+    // calendar week PER HOUSEHOLD when their household has fallen below the WP
+    // check-in threshold. "Household" = all members linked to the same wellpass
+    // identity (spouse + kids). Set by the Wellpass import in /api/coach/wellpass/import;
+    // cleared by next import showing recovery, or manually by the coach via the Wellpass tab.
     if (member.wellpass_booking_restricted) {
+      const supabaseAdmin = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      );
+
       // Need session.date for the week calculation — fetch a slim version up front.
       const { data: sessionForWeek } = await supabase
         .from('weekly_sessions')
@@ -138,10 +144,32 @@ export async function POST(request: NextRequest) {
         const sessionIds = (weekSessions ?? []).map((s) => s.id);
 
         if (sessionIds.length > 0) {
-          const { count: weekBookings } = await supabase
+          // Resolve household: all members linked to the same WP identity (or
+          // identities) as the booking member. Service-role required — RLS hides
+          // cross-member household rows from an athlete's own auth context.
+          const { data: ownIdentityRows } = await supabaseAdmin
+            .from('wellpass_identity_members')
+            .select('wellpass_identity_id')
+            .eq('member_id', bookingMemberId);
+          const identityIds = Array.from(
+            new Set((ownIdentityRows ?? []).map((r) => r.wellpass_identity_id))
+          );
+
+          let householdMemberIds: string[] = [bookingMemberId];
+          if (identityIds.length > 0) {
+            const { data: householdRows } = await supabaseAdmin
+              .from('wellpass_identity_members')
+              .select('member_id')
+              .in('wellpass_identity_id', identityIds);
+            const ids = new Set((householdRows ?? []).map((r) => r.member_id));
+            ids.add(bookingMemberId); // defensive
+            householdMemberIds = Array.from(ids);
+          }
+
+          const { count: weekBookings } = await supabaseAdmin
             .from('bookings')
             .select('id', { count: 'exact', head: true })
-            .eq('member_id', bookingMemberId)
+            .in('member_id', householdMemberIds)
             .eq('status', 'confirmed')
             .in('session_id', sessionIds);
 
@@ -149,7 +177,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json(
               {
                 error:
-                  'Du hast in dieser Woche bereits einen Kurs gebucht. Wellpass-Mitglieder werden auf 1 Buchung pro Woche begrenzt, wenn die Mindestanzahl an Check-ins in der Vorwoche nicht erreicht wurde. Bitte sprich mit Coach Chris, wenn das ein Fehler ist.',
+                  'Dein Wellpass-Haushalt hat in dieser Woche bereits einen Kurs gebucht. Wellpass-Haushalte werden auf 1 Buchung pro Woche begrenzt, wenn die Mindestanzahl an Check-ins in der Vorwoche nicht erreicht wurde. Bitte sprich mit Coach Chris, wenn das ein Fehler ist.',
               },
               { status: 403 }
             );
