@@ -36,6 +36,10 @@ export const useDragDrop = () => {
     setDraggedWOD(null);
   };
 
+  const handleDragEnd = () => {
+    setDraggedWOD(null);
+  };
+
   const handleCopyToClipboard = (wod: WODFormData | null, sourceDate: string) => {
     setCopiedWOD(wod ? { wod, sourceDate } : null);
   };
@@ -63,6 +67,7 @@ export const useDragDrop = () => {
     handleDragStart,
     handleDragOver,
     handleDrop,
+    handleDragEnd,
     handleCopyToClipboard,
     handlePasteFromClipboard,
   };

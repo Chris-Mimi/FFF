@@ -150,6 +150,7 @@ export default function CoachDashboard() {
     handleDragStart,
     handleDragOver,
     handleDrop,
+    handleDragEnd,
     handleCopyToClipboard,
     handlePasteFromClipboard,
   } = useDragDrop();
@@ -392,6 +393,7 @@ export default function CoachDashboard() {
                 onDragOver={handleDragOver}
                 onDrop={handleDropWrapper}
                 onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
                 onWODHover={setHoveredWOD}
                 onDragHandleHover={setDragHandleHovered}
                 onCopyWOD={handleCopyToClipboard}

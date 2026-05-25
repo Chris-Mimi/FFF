@@ -74,6 +74,7 @@ interface CalendarGridProps {
   onDragOver: (e: React.DragEvent<HTMLDivElement>) => void;
   onDrop: (e: React.DragEvent<HTMLDivElement>, date: Date) => void;
   onDragStart: (e: React.DragEvent<HTMLDivElement>, wod: WODFormData, dateKey: string) => void;
+  onDragEnd: () => void;
   onWODHover: (id: string | null) => void;
   onDragHandleHover: (id: string | null) => void;
   onCopyWOD: (wod: WODFormData, sourceDate: string) => void;
@@ -108,6 +109,7 @@ export default function CalendarGrid({
   onDragOver,
   onDrop,
   onDragStart,
+  onDragEnd,
   onWODHover,
   onDragHandleHover,
   onCopyWOD,
@@ -140,6 +142,8 @@ export default function CalendarGrid({
     const isLightCard = isEmptySession || isDefaultDraft;
     const isPublished = cardState === 'published';
     const cardId = wod.booking_info?.session_id || wod.id || '';
+    const isLifted = !!draggedWOD && draggedWOD.sourceDate === dateKey && draggedWOD.wod.id === wod.id;
+    const liftedClasses = isLifted ? 'opacity-50 ring-2 ring-teal-500 shadow-lg scale-[0.97]' : '';
     const iconSize = isMonthlyView ? 12 : 14;
     const padding = isMonthlyView ? 'p-1' : 'p-3';
     const marginBottom = isMonthlyView ? 'mb-1' : 'mb-3';
@@ -176,7 +180,7 @@ export default function CalendarGrid({
         }}
         onMouseEnter={() => !isEmptySession && onWODHover(cardId)}
         onMouseLeave={() => onWODHover(null)}
-        className={`workout-card ${marginBottom} ${padding} ${roundedClass} ${textSize} transition group relative cursor-pointer ${cardClasses} ${hoveredWOD === cardId ? 'z-50' : 'z-10'}`}
+        className={`workout-card ${marginBottom} ${padding} ${roundedClass} ${textSize} transition group relative cursor-pointer ${cardClasses} ${liftedClasses} ${hoveredWOD === cardId ? 'z-50' : 'z-10'}`}
         onClick={(e) => {
           const target = e.target as HTMLElement;
           // Don't interfere with button clicks (booking badge, action buttons)
@@ -193,6 +197,7 @@ export default function CalendarGrid({
           <div
             draggable
             onDragStart={(e) => onDragStart(e, wod, dateKey)}
+            onDragEnd={onDragEnd}
             onClick={(e) => e.stopPropagation()}
             onMouseDown={(e) => e.stopPropagation()}
             onMouseEnter={() => onDragHandleHover(cardId)}
