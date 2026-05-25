@@ -12,6 +12,17 @@ export const useDragDrop = () => {
     setDraggedWOD({ wod, sourceDate });
     e.dataTransfer.effectAllowed = 'copy';
     e.dataTransfer.setData('text/plain', 'wod');
+
+    // Use the whole workout card as the drag image, not the tiny grip handle.
+    // Without this, native browsers and the touch polyfill clone the small
+    // GripVertical icon which is invisible-small while dragging on mobile.
+    const handle = e.currentTarget as HTMLElement;
+    const card = handle.closest('.workout-card') as HTMLElement | null;
+    if (card) {
+      const rect = card.getBoundingClientRect();
+      e.dataTransfer.setDragImage(card, e.clientX - rect.left, e.clientY - rect.top);
+    }
+
     window.__draggedWOD = wod;
   };
 

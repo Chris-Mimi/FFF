@@ -14,7 +14,7 @@ export function DragDropTouchPolyfill() {
       // element starts a drag and breaks scrolling on the coach calendar.
       const DDT = (mod as unknown as { DragDropTouch: Record<string, unknown> }).DragDropTouch;
       DDT._ISPRESSHOLDMODE = true;
-      DDT._PRESSHOLDAWAIT = 750;
+      DDT._PRESSHOLDAWAIT = 500;
     });
   }, []);
 
