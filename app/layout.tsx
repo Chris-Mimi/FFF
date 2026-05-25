@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "sonner";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ServiceWorkerRegistrar } from "@/components/ServiceWorkerRegistrar";
+import { DragDropTouchPolyfill } from "@/components/DragDropTouchPolyfill";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -53,6 +54,7 @@ export default function RootLayout({
         <Toaster position="top-center" richColors closeButton />
         <ConfirmDialog />
         <ServiceWorkerRegistrar />
+        <DragDropTouchPolyfill />
         {children}
       </body>
     </html>

@@ -197,7 +197,7 @@ export default function CalendarGrid({
             onMouseDown={(e) => e.stopPropagation()}
             onMouseEnter={() => onDragHandleHover(cardId)}
             onMouseLeave={() => onDragHandleHover(null)}
-            className='absolute top-0 left-0 cursor-grab active:cursor-grabbing p-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-10'
+            className='absolute top-0 left-0 cursor-grab active:cursor-grabbing p-1.5 opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100 transition-opacity z-10'
             title='Drag to copy'
           >
             <GripVertical size={iconSize} className={isPublished ? 'text-white' : 'text-gray-600'} />
