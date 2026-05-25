@@ -173,16 +173,17 @@ function parseTimeToSeconds(time?: string | null): number {
  * This matches CrossFit convention: heavier load at the same scaling = better.
  */
 function compareByScoringType(a: RawSectionResult, b: RawSectionResult, type: string): number {
-  // Weight tiebreaker: for non-weight primary types, higher load ranks first.
-  // Chains through all three load slots (weight_result, weight_result_2, weight_result_3)
-  // so that heavier secondary/tertiary loads (e.g. DB weight in a multi-movement WOD)
-  // are honored before falling through to the primary metric.
+  // Weight tiebreaker: for non-weight primary types, the athlete with the heavier
+  // TOTAL load (sum of all three slots) ranks first. Pre-S366 this was a positional
+  // comparison (slot-by-slot, stop at first differing slot), which unfairly favored
+  // whoever loaded slot 1 heavier — even if the other athlete went much heavier on
+  // slots 2/3. Multi-movement WODs where athletes pick their own per-movement loads
+  // exposed the asymmetry (Gloria 10/8/3 vs Carla 5/16/6: Carla lifted 27kg total
+  // vs Gloria's 21, but Gloria's load-1=10 won under positional).
   if (type !== 'weight') {
-    const aLoads = [a.weight_result || 0, a.weight_result_2 || 0, a.weight_result_3 || 0];
-    const bLoads = [b.weight_result || 0, b.weight_result_2 || 0, b.weight_result_3 || 0];
-    for (let i = 0; i < 3; i++) {
-      if (aLoads[i] !== bLoads[i] && (aLoads[i] > 0 || bLoads[i] > 0)) return bLoads[i] - aLoads[i];
-    }
+    const aTotal = (a.weight_result || 0) + (a.weight_result_2 || 0) + (a.weight_result_3 || 0);
+    const bTotal = (b.weight_result || 0) + (b.weight_result_2 || 0) + (b.weight_result_3 || 0);
+    if (aTotal !== bTotal) return bTotal - aTotal; // heavier total wins
   }
 
   switch (type) {
@@ -699,6 +700,13 @@ export function formatResult(
   scoringType: string,
   scoringFields?: ScoringFieldsForFormat,
 ): string {
+  // Join all non-zero load slots as "60/40/20 kg". Per-slot gating already
+  // happened upstream in toLeaderboardEntry (scoringFields nulls out gated slots).
+  const joinLoads = (...loads: (number | undefined)[]): string | null => {
+    const present = loads.filter((v): v is number => v != null && v > 0);
+    return present.length > 0 ? `${present.join('/')} kg` : null;
+  };
+
   let primary: string;
 
   switch (scoringType) {
@@ -730,9 +738,7 @@ export function formatResult(
     case 'reps_cals':
       primary = `${entry.repsResult || 0} reps + ${entry.caloriesResult || 0} cal`; break;
     case 'weight':
-      primary = entry.weightResult2
-        ? `${entry.weightResult || 0}/${entry.weightResult2} kg`
-        : `${entry.weightResult || 0} kg`;
+      primary = joinLoads(entry.weightResult, entry.weightResult2, entry.weightResult3) || `${entry.weightResult || 0} kg`;
       break;
     case 'calories':
       primary = `${entry.caloriesResult || 0} cal`; break;
@@ -753,12 +759,9 @@ export function formatResult(
   const allowsCals = !scoringFields || scoringFields.calories;
 
   const extras: string[] = [];
-  if (allowsLoad) {
-    if (scoringType !== 'weight' && entry.weightResult) {
-      extras.push(entry.weightResult2 ? `${entry.weightResult}/${entry.weightResult2} kg` : `${entry.weightResult} kg`);
-    } else if (entry.weightResult2) {
-      extras.push(`${entry.weightResult2} kg`);
-    }
+  if (allowsLoad && scoringType !== 'weight') {
+    const loadStr = joinLoads(entry.weightResult, entry.weightResult2, entry.weightResult3);
+    if (loadStr) extras.push(loadStr);
   }
   if (allowsMetres && !['metres'].includes(scoringType) && entry.metresResult) extras.push(`${entry.metresResult} m`);
   if (allowsReps && !['reps', 'reps_cals', 'rounds_reps', 'time', 'max_time', 'time_with_cap', 'time_amrap'].includes(scoringType) && entry.repsResult) extras.push(`${entry.repsResult} reps`);
