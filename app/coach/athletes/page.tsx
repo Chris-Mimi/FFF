@@ -2,14 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, User, Trophy, Dumbbell, BookOpen, CreditCard } from 'lucide-react';
+import { ArrowLeft, User, Trophy, Dumbbell, BookOpen } from 'lucide-react';
 import Image from 'next/image';
 import { getCurrentUser } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import BenchmarksSection from '@/components/coach/athletes/BenchmarksSection';
 import LiftsSection from '@/components/coach/athletes/LiftsSection';
 import LogbookSection from '@/components/coach/athletes/LogbookSection';
-import PaymentsSection from '@/components/coach/athletes/PaymentsSection';
 import AddBenchmarkModal from '@/components/coach/athletes/AddBenchmarkModal';
 import AddLiftModal from '@/components/coach/athletes/AddLiftModal';
 
@@ -30,7 +29,7 @@ export default function CoachAthletesPage() {
   const [athletes, setAthletes] = useState<AthleteProfile[]>([]);
   const [selectedAthlete, setSelectedAthlete] = useState<AthleteProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeSection, setActiveSection] = useState<'benchmarks' | 'lifts' | 'logbook' | 'payments'>(
+  const [activeSection, setActiveSection] = useState<'benchmarks' | 'lifts' | 'logbook'>(
     'benchmarks'
   );
 
@@ -268,17 +267,6 @@ export default function CoachAthletesPage() {
                         <BookOpen size={14} className='hidden md:block md:w-[18px] md:h-[18px]' />
                         Log
                       </button>
-                      <button
-                        onClick={() => setActiveSection('payments')}
-                        className={`flex items-center gap-1 md:gap-2 px-2.5 md:px-6 py-2.5 md:py-4 border-b-2 font-medium text-xs md:text-sm transition whitespace-nowrap ${
-                          activeSection === 'payments'
-                            ? 'border-[#178da6] text-[#178da6]'
-                            : 'border-transparent text-gray-500 hover:text-gray-700'
-                        }`}
-                      >
-                        <CreditCard size={14} className='hidden md:block md:w-[18px] md:h-[18px]' />
-                        Pay
-                      </button>
                     </nav>
                   </div>
 
@@ -300,9 +288,6 @@ export default function CoachAthletesPage() {
                     )}
                     {activeSection === 'logbook' && (
                       <LogbookSection athleteId={selectedAthlete.user_id} />
-                    )}
-                    {activeSection === 'payments' && (
-                      <PaymentsSection memberId={selectedAthlete.user_id} />
                     )}
                   </div>
                 </div>

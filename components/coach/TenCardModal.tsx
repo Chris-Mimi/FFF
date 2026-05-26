@@ -8,6 +8,7 @@ import { RefreshCw, X, CreditCard, Calendar, Package, ChevronDown, ChevronRight,
 import { useState, useEffect } from 'react';
 import { FocusTrap } from '@/components/ui/FocusTrap';
 import { formatDate } from '@/utils/date-utils';
+import StripeSubscriptionsPanel from '@/components/coach/members/StripeSubscriptionsPanel';
 
 interface TenCardModalProps {
   isOpen: boolean;
@@ -1085,6 +1086,14 @@ export default function TenCardModal({
               </>
             ) : (
               <>
+                {/* Stripe subscriptions panel — shows ACTIVE Stripe subs + recent cancellations.
+                    Source of truth for athletes paying through Stripe. The coach-managed
+                    controls below cover cash-only members. */}
+                <div className="pb-4 border-b">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">Stripe Subscriptions</h4>
+                  <StripeSubscriptionsPanel memberId={member.id} />
+                </div>
+
                 {/* Activate / Renew Subscription buttons */}
                 <div className="pb-4 border-b">
                   {pendingSubClose ? (
