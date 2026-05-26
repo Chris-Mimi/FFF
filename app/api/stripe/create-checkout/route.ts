@@ -40,10 +40,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Fetch member to get email, membership types, and check existing customer
+    // Fetch member to get email, membership types, and check existing customer.
+    // athlete_subscription_start is included to gate the free-trial flag: any member
+    // with a non-null start has already used (or is currently using) a trial period,
+    // whether Stripe-driven or coach-granted, so they're not eligible for another.
     const { data: member, error: fetchError } = await supabaseAdmin
       .from('members')
-      .select('id, email, name, stripe_customer_id, membership_types')
+      .select('id, email, name, stripe_customer_id, membership_types, athlete_subscription_start')
       .eq('id', memberId)
       .single();
 
@@ -134,8 +137,16 @@ export async function POST(request: NextRequest) {
       checkoutParams.payment_method_collection = 'always';
     }
 
-    // Add 30-day free trial for monthly subscriptions only (yearly already discounted)
-    if (trial && isSubMode && getBillingPeriod(productType) === 'monthly') {
+    // Add 30-day free trial for monthly subscriptions only (yearly already discounted).
+    // Gate: server enforces one-trial-per-member regardless of client request.
+    // athlete_subscription_start is set on every prior subscription (Stripe or cash),
+    // so a non-null value means this member has already had a free month.
+    const hasUsedTrial = member.athlete_subscription_start != null;
+    const shouldGrantTrial = trial && isSubMode && getBillingPeriod(productType) === 'monthly' && !hasUsedTrial;
+    if (trial && hasUsedTrial) {
+      console.log(`[checkout] Trial denied for member ${memberId}: already used (athlete_subscription_start=${member.athlete_subscription_start})`);
+    }
+    if (shouldGrantTrial) {
       checkoutParams.subscription_data = {
         trial_period_days: 30,
         // Backstop: if a sub somehow ends up trialing without a payment method,

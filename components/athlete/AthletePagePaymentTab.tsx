@@ -15,6 +15,7 @@ interface PaymentStatus {
   tenCardExpiry: string | null;
   stripeCustomerId: string | null;
   membershipTypes: string[];
+  hasUsedTrial: boolean;
 }
 
 interface AthletePagePaymentTabProps {
@@ -38,6 +39,7 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
         .from('members')
         .select(`
           athlete_subscription_status,
+          athlete_subscription_start,
           athlete_subscription_end,
           subscription_tier,
           ten_card_total,
@@ -74,6 +76,7 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
         tenCardExpiry: member.ten_card_expiry_date,
         stripeCustomerId: member.stripe_customer_id,
         membershipTypes: member.membership_types || [],
+        hasUsedTrial: member.athlete_subscription_start != null,
       });
     } catch (err) {
       console.error('Error fetching payment status:', err);
@@ -89,7 +92,8 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
 
     try {
       // Include trial flag for subscription products when athlete has no active/trial subscription
-      const wantsTrial = productType !== '10card' && !hasActiveSubscription && !hasTrial;
+      // AND has never used a trial before. Server also enforces this — see create-checkout route.
+      const wantsTrial = productType !== '10card' && !hasActiveSubscription && !hasTrial && !paymentStatus?.hasUsedTrial;
       const response = await authFetch('/api/stripe/create-checkout', {
         method: 'POST',
         body: JSON.stringify({ productType, memberId: userId, ...(wantsTrial && { trial: true }) }),
@@ -154,6 +158,7 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
   const hasTrial = paymentStatus?.subscriptionStatus === 'trial' &&
     paymentStatus?.subscriptionEnd &&
     new Date(paymentStatus.subscriptionEnd) > new Date();
+  const isTrialEligible = !hasActiveSubscription && !hasTrial && !paymentStatus?.hasUsedTrial;
 
   // Tier rule: only `member` (regular gym members) get the Member discount price.
   // Everyone else — Wellpass, 10-card, Hansefit, Drop-in — pays the Wellpass tier.
@@ -294,7 +299,7 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
                   <div className="flex items-center gap-3 mb-3">
                     <CreditCard className="text-orange-500" size={22} />
                     <h4 className="font-semibold text-gray-900">Monthly</h4>
-                    {!hasActiveSubscription && !hasTrial && (
+                    {isTrialEligible && (
                       <span className="ml-auto text-xs font-medium bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">1 month free</span>
                     )}
                   </div>
@@ -312,8 +317,10 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
                       <Loader2 className="animate-spin" size={20} />
                     ) : hasActiveSubscription ? (
                       'Already Subscribed'
-                    ) : (
+                    ) : isTrialEligible ? (
                       'Start Free Trial'
+                    ) : (
+                      'Subscribe'
                     )}
                   </button>
                 </div>
@@ -364,7 +371,7 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
                   <div className="flex items-center gap-3 mb-3">
                     <CreditCard className="text-blue-500" size={22} />
                     <h4 className="font-semibold text-gray-900">Monthly</h4>
-                    {!hasActiveSubscription && !hasTrial && (
+                    {isTrialEligible && (
                       <span className="ml-auto text-xs font-medium bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">1 month free</span>
                     )}
                   </div>
@@ -382,8 +389,10 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
                       <Loader2 className="animate-spin" size={20} />
                     ) : hasActiveSubscription ? (
                       'Already Subscribed'
-                    ) : (
+                    ) : isTrialEligible ? (
                       'Start Free Trial'
+                    ) : (
+                      'Subscribe'
                     )}
                   </button>
                 </div>

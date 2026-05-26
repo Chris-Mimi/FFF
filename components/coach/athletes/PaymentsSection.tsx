@@ -27,6 +27,7 @@ interface Subscription {
   current_period_start: string | null;
   current_period_end: string | null;
   cancel_at_period_end: boolean;
+  updated_at: string | null;
 }
 
 export default function PaymentsSection({ memberId }: { memberId?: string }) {
@@ -99,7 +100,7 @@ export default function PaymentsSection({ memberId }: { memberId?: string }) {
       // Fetch subscriptions using actual member.id
       const { data: subs, error: subsError } = await supabase
         .from('subscriptions')
-        .select('id, stripe_subscription_id, plan_type, status, current_period_start, current_period_end, cancel_at_period_end')
+        .select('id, stripe_subscription_id, plan_type, status, current_period_start, current_period_end, cancel_at_period_end, updated_at')
         .eq('member_id', member.id)
         .order('created_at', { ascending: false });
 
@@ -243,8 +244,23 @@ export default function PaymentsSection({ memberId }: { memberId?: string }) {
           })()
         ) : (
           <div className='space-y-2 md:space-y-3'>
-            {subscriptions.map(sub => (
-              <div key={sub.id} className='bg-white rounded-lg p-2.5 md:p-3 border border-gray-200'>
+            {subscriptions.map(sub => {
+              const isCancelled = sub.status === 'cancelled';
+              const isPaymentFailed = sub.status === 'past_due' || sub.status === 'unpaid';
+              const isScheduledCancel = sub.status === 'active' && sub.cancel_at_period_end;
+              const cardBorder = isCancelled || isPaymentFailed
+                ? 'border-red-300 bg-red-50/40'
+                : isScheduledCancel
+                ? 'border-amber-300 bg-amber-50/40'
+                : 'border-gray-200';
+              const fmt = (s: string | null) =>
+                s ? new Date(s).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '';
+              const cancelledAt = isCancelled && sub.updated_at ? new Date(sub.updated_at) : null;
+              const cancelledDaysAgo = cancelledAt
+                ? Math.max(0, Math.floor((Date.now() - cancelledAt.getTime()) / (1000 * 60 * 60 * 24)))
+                : null;
+              return (
+              <div key={sub.id} className={`bg-white rounded-lg p-2.5 md:p-3 border ${cardBorder}`}>
                 <div className='flex items-start justify-between gap-2 mb-2'>
                   <div className='min-w-0'>
                     <p className={`font-semibold capitalize text-sm md:text-base ${
@@ -264,17 +280,31 @@ export default function PaymentsSection({ memberId }: { memberId?: string }) {
                         ? 'bg-green-100 text-green-700'
                         : sub.status === 'active'
                         ? 'bg-green-100 text-green-700'
-                        : sub.status === 'cancelled'
-                        ? 'bg-gray-100 text-gray-700'
+                        : isCancelled
+                        ? 'bg-red-100 text-red-800'
                         : 'bg-red-100 text-red-700'
                     }`}
                   >
-                    {sub.status}
+                    {isCancelled ? 'Actively cancelled' : sub.status}
                   </span>
                 </div>
                 {sub.current_period_end && (
                   <p className='text-xs text-gray-600 mb-2'>
-                    Ends: {new Date(sub.current_period_end).toLocaleDateString()}
+                    {isCancelled ? 'Period ended: ' : 'Ends: '}
+                    {fmt(sub.current_period_end)}
+                  </p>
+                )}
+                {isCancelled && cancelledAt && (
+                  <p className='text-xs text-red-700 font-medium mb-2'>
+                    Cancelled {fmt(sub.updated_at)}
+                    {cancelledDaysAgo !== null && cancelledDaysAgo <= 60 && (
+                      <> · {cancelledDaysAgo === 0 ? 'today' : cancelledDaysAgo === 1 ? '1 day ago' : `${cancelledDaysAgo} days ago`}</>
+                    )}
+                  </p>
+                )}
+                {isPaymentFailed && (
+                  <p className='text-xs text-red-700 font-medium mb-2'>
+                    Payment failed — check Stripe
                   </p>
                 )}
                 {sub.status === 'active' && !sub.cancel_at_period_end && (
@@ -287,10 +317,11 @@ export default function PaymentsSection({ memberId }: { memberId?: string }) {
                   </button>
                 )}
                 {sub.cancel_at_period_end && (
-                  <p className='text-xs text-amber-600'>Will cancel at period end</p>
+                  <p className='text-xs text-amber-700 font-medium'>Will cancel at period end</p>
                 )}
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
