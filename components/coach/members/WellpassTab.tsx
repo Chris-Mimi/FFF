@@ -179,6 +179,14 @@ export default function WellpassTab() {
           <p className="text-sm text-gray-400 mt-0.5">
             {tracked.length} tracked households · {untracked.length} untracked names
           </p>
+          <p className="text-xs text-gray-500 mt-0.5">
+            Each week shows <span className="font-mono text-gray-300">sign-ins / bookings</span> ·
+            sign-ins <span className="text-red-400">red</span> when below Min · bookings{' '}
+            <span className="text-green-400">green</span> when ≤ sign-ins,{' '}
+            <span className="text-red-400">red</span> when &gt; sign-ins · Score = lifetime{' '}
+            <span className="text-green-400">+1</span> per sign-in over Min (when bookings ≤ sign-ins),{' '}
+            <span className="text-red-400">−1</span> per sign-in under Min
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <input
@@ -255,6 +263,7 @@ export default function WellpassTab() {
               <th className="px-3 py-2 text-left">Wellpass name</th>
               <th className="px-3 py-2 text-center">Min</th>
               <th className="px-3 py-2 text-center">App?</th>
+              <th className="px-3 py-2 text-center" title="Lifetime running total. +1 per sign-in OVER Min (only if bookings ≤ sign-ins). −1 per sign-in UNDER Min.">Score</th>
               {sortedWeeks.map((w) => (
                 <th key={`${w.week_number}-${w.week_start}`} className="px-2 py-2 text-center font-mono">
                   {formatWeekHeader(w)}
@@ -267,7 +276,7 @@ export default function WellpassTab() {
           <tbody>
             {tracked.length === 0 && (
               <tr>
-                <td colSpan={6 + sortedWeeks.length} className="px-3 py-6 text-center text-gray-400">
+                <td colSpan={7 + sortedWeeks.length} className="px-3 py-6 text-center text-gray-400">
                   No tracked households yet. Run the seed migration and import an Excel workbook.
                 </td>
               </tr>
@@ -345,6 +354,21 @@ function IdentityRow({ row, weekColumns, expanded, onToggleExpand, onPatch, onTo
   for (const w of row.weekly_history) {
     checkinByWeek.set(`${w.year}-${String(w.week_number).padStart(2, '0')}`, w.checkin_count);
   }
+  const bookingByWeek = new Map<string, number>();
+  for (const b of row.weekly_bookings) {
+    bookingByWeek.set(`${b.year}-${String(b.week_number).padStart(2, '0')}`, b.booking_count);
+  }
+
+  const score = row.weekly_history.reduce((acc, w) => {
+    const key = `${w.year}-${String(w.week_number).padStart(2, '0')}`;
+    const bookings = bookingByWeek.get(key) ?? 0;
+    const diff = w.checkin_count - row.min_checkins_required;
+    if (diff < 0) return acc + diff;
+    if (diff > 0 && bookings <= w.checkin_count) return acc + diff;
+    return acc;
+  }, 0);
+  const scoreClass =
+    score > 0 ? 'text-green-400 font-bold' : score < 0 ? 'text-red-400 font-bold' : 'text-gray-500';
 
   return (
     <>
@@ -386,22 +410,36 @@ function IdentityRow({ row, weekColumns, expanded, onToggleExpand, onPatch, onTo
           {hasAnyMember && appPaid && <span className="text-xs text-teal-400 font-medium" title="At least one linked member is paying for the app">💎 paying</span>}
           {hasAnyMember && !appPaid && <span className="text-xs text-gray-500">free</span>}
         </td>
+        <td className={`px-3 py-2 text-center font-mono ${scoreClass}`}>
+          {score > 0 ? `+${score}` : score}
+        </td>
         {weekColumns.map((w) => {
           const key = `${new Date(w.week_start).getFullYear()}-${String(w.week_number).padStart(2, '0')}`;
           const count = checkinByWeek.get(key);
+          const bookings = bookingByWeek.get(key) ?? 0;
           const isLow = count !== undefined && count < row.min_checkins_required;
+          const bookingsOver = count !== undefined && bookings > count;
+          const bookingsClass =
+            count === undefined
+              ? 'text-gray-500'
+              : bookingsOver
+              ? 'text-red-400 font-bold'
+              : 'text-green-400';
           return (
-            <td
-              key={key}
-              className={`px-2 py-2 text-center font-mono ${
-                count === undefined
-                  ? 'text-gray-600'
-                  : isLow
-                  ? 'text-red-400 font-bold'
-                  : 'text-gray-200'
-              }`}
-            >
-              {count === undefined ? '—' : count}
+            <td key={key} className="px-2 py-2 text-center font-mono whitespace-nowrap">
+              <span
+                className={
+                  count === undefined
+                    ? 'text-gray-600'
+                    : isLow
+                    ? 'text-red-400 font-bold'
+                    : 'text-gray-200'
+                }
+              >
+                {count === undefined ? '—' : count}
+              </span>
+              <span className="text-gray-600 mx-1">/</span>
+              <span className={bookingsClass}>{bookings}</span>
             </td>
           );
         })}
@@ -425,7 +463,7 @@ function IdentityRow({ row, weekColumns, expanded, onToggleExpand, onPatch, onTo
       </tr>
       {expanded && (
         <tr className="bg-gray-800/50">
-          <td colSpan={6 + weekColumns.length} className="px-4 py-3 border-t border-gray-700">
+          <td colSpan={7 + weekColumns.length} className="px-4 py-3 border-t border-gray-700">
             <div className="grid md:grid-cols-2 gap-4 text-xs">
               <div>
                 <div className="text-gray-400 font-medium mb-1">Linked members</div>

@@ -45,11 +45,12 @@ Next session, tell me to read the incident file and we'll compare it to the base
 * review the rep max calculator to show clearer percentages
 * 
 * Why doesn't the data integrity sql catch things like this?
-* Subscriptions due banner, when the sub is overdue the warning disappears without any info about whether they have re-subbed or simply lapsed
+* 
 * Give me another column in the WP tab which shows how many times each athlete has booked sessions for that week. Put it next to the Minimum WP login and make the number green if they are equal or under the WP amount or red if they are over the WP minimum
 * check if cancelled app subscriptions reset the sign-up so that they don't get 1 month free next time.
 * Athletes pay tab should be in Members page not on Athletes. This should just be Lifts, Benchmark data the payment doesn't belong there.
-
+* Question: Is there any issue with me posting/publishing a session/workout at 18.30 and at 18.31? I mean, I can't post them at the same time but sometimes (rarely) I need to run 2 workout simoultaneously. 
+* Marion signed up for the app, is her account now freed?
 
 
 * 

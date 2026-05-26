@@ -29,9 +29,16 @@ export interface WellpassLinkedMember {
   wellpass_booking_restricted: boolean;
 }
 
+export interface WellpassWeeklyBookings {
+  year: number;
+  week_number: number;
+  booking_count: number;
+}
+
 export interface WellpassIdentityRow extends WellpassIdentity {
   linked_members: WellpassLinkedMember[];
   weekly_history: WellpassWeeklyCheckin[];
+  weekly_bookings: WellpassWeeklyBookings[];
   is_exempt: boolean;
   latest_week: WellpassWeeklyCheckin | null;
   status: 'ok' | 'below_threshold' | 'untracked' | 'no_data';
