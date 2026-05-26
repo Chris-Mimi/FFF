@@ -83,6 +83,16 @@ export default function SubscriptionsDueBanner() {
       const allStripeSubs = [...(stripeUpcoming ?? []), ...(stripeLapsed ?? [])];
       const stripeMemberIds = new Set(allStripeSubs.map(s => s.member_id));
 
+      // Dedupe key for cash queries: any member with ANY Stripe subscription row should
+      // never appear as cash. Without this, members with an active Stripe sub renewing
+      // outside the 7-day window false-positive as "cash-lapsed" because the Stripe
+      // webhook updates subscriptions.current_period_end on renewal but does NOT touch
+      // members.athlete_subscription_end (which stays frozen at the trial-end date).
+      const { data: allStripeMembers } = await supabase
+        .from('subscriptions')
+        .select('member_id');
+      const anyStripeMemberIds = new Set((allStripeMembers ?? []).map(s => s.member_id));
+
       const stripeMembersById = new Map<string, { name: string | null; display_name: string | null }>();
       if (stripeMemberIds.size > 0) {
         const { data: stripeMembers } = await supabase
@@ -116,7 +126,7 @@ export default function SubscriptionsDueBanner() {
         Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 
       const cashRowsUpcoming: DueRow[] = (cashUpcoming ?? [])
-        .filter(m => !stripeMemberIds.has(m.id))
+        .filter(m => !anyStripeMemberIds.has(m.id))
         .map(m => ({
           memberId: m.id,
           name: m.display_name || m.name || 'Unknown',
@@ -126,7 +136,7 @@ export default function SubscriptionsDueBanner() {
         }));
 
       const cashRowsLapsed: DueRow[] = (cashLapsed ?? [])
-        .filter(m => !stripeMemberIds.has(m.id))
+        .filter(m => !anyStripeMemberIds.has(m.id))
         .map(m => ({
           memberId: m.id,
           name: m.display_name || m.name || 'Unknown',
