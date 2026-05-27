@@ -342,8 +342,10 @@ interface IdentityRowProps {
 function IdentityRow({ row, weekColumns, expanded, onToggleExpand, onPatch, onToggleMemberBlock }: IdentityRowProps) {
   const appPaid = row.linked_members.some((m) => m.athlete_subscription_status === 'active');
   const hasAnyMember = row.linked_members.length > 0;
+  const isPaused = row.status === 'paused';
 
   const statusBadge = (() => {
+    if (isPaused) return <span className="text-amber-400 font-medium">paused</span>;
     if (row.status === 'below_threshold') return <span className="text-red-400 font-medium">&lt; min</span>;
     if (row.status === 'ok') return <span className="text-green-400">ok</span>;
     if (row.status === 'no_data') return <span className="text-gray-500">no data</span>;
@@ -372,7 +374,7 @@ function IdentityRow({ row, weekColumns, expanded, onToggleExpand, onPatch, onTo
 
   return (
     <>
-      <tr className={`border-t border-gray-700 ${row.status === 'below_threshold' ? 'bg-red-900/10' : ''}`}>
+      <tr className={`border-t border-gray-700 ${isPaused ? 'opacity-60' : ''} ${row.status === 'below_threshold' ? 'bg-red-900/10' : ''}`}>
         <td className="px-3 py-2">
           <button onClick={onToggleExpand} className="flex items-center gap-1 text-left text-white hover:text-teal-400">
             {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -410,8 +412,8 @@ function IdentityRow({ row, weekColumns, expanded, onToggleExpand, onPatch, onTo
           {hasAnyMember && appPaid && <span className="text-xs text-teal-400 font-medium" title="At least one linked member is paying for the app">💎 paying</span>}
           {hasAnyMember && !appPaid && <span className="text-xs text-gray-500">free</span>}
         </td>
-        <td className={`px-3 py-2 text-center font-mono ${scoreClass}`}>
-          {score > 0 ? `+${score}` : score}
+        <td className={`px-3 py-2 text-center font-mono ${isPaused ? 'text-gray-600' : scoreClass}`}>
+          {isPaused ? '—' : score > 0 ? `+${score}` : score}
         </td>
         {weekColumns.map((w) => {
           const key = `${new Date(w.week_start).getFullYear()}-${String(w.week_number).padStart(2, '0')}`;
@@ -517,16 +519,49 @@ function IdentityRow({ row, weekColumns, expanded, onToggleExpand, onPatch, onTo
                   className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-xs"
                   placeholder="e.g. wife also attends, needs 6 check-ins"
                 />
-                <button
-                  onClick={() => {
-                    if (confirm(`Stop tracking ${row.wellpass_name}? Their weekly data stays, but the household won't be enforced or shown in the main list.`)) {
-                      onPatch({ tracked: false });
-                    }
-                  }}
-                  className="mt-2 text-xs text-gray-500 hover:text-red-400"
-                >
-                  Untrack this household
-                </button>
+                <div className="mt-3 pt-2 border-t border-gray-700 space-y-2">
+                  {isPaused ? (
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="text-amber-300 text-xs">
+                        <span className="font-medium">Paused</span>
+                        {row.pause_reason && <span className="text-gray-400"> · {row.pause_reason}</span>}
+                        {row.paused_at && (
+                          <span className="text-gray-500"> · since {row.paused_at.slice(0, 10)}</span>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => onPatch({ paused: false })}
+                        className="text-xs px-2 py-1 bg-teal-700 hover:bg-teal-600 text-white rounded"
+                      >
+                        Resume tracking
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        const reason = prompt(
+                          `Pause Wellpass tracking for ${row.wellpass_name}?\n\nReason (optional, e.g. "injured shoulder", "summer vacation"):`,
+                          ''
+                        );
+                        if (reason === null) return; // cancelled
+                        onPatch({ paused: true, pause_reason: reason.trim() || null });
+                      }}
+                      className="text-xs px-2 py-1 bg-amber-700/40 hover:bg-amber-700/60 text-amber-200 rounded"
+                    >
+                      Pause tracking (injury / away)
+                    </button>
+                  )}
+                  <button
+                    onClick={() => {
+                      if (confirm(`Stop tracking ${row.wellpass_name}? Their weekly data stays, but the household won't be enforced or shown in the main list.`)) {
+                        onPatch({ tracked: false });
+                      }
+                    }}
+                    className="block text-xs text-gray-500 hover:text-red-400"
+                  >
+                    Untrack this household
+                  </button>
+                </div>
               </div>
             </div>
           </td>

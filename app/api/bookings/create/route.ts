@@ -155,32 +155,47 @@ export async function POST(request: NextRequest) {
             new Set((ownIdentityRows ?? []).map((r) => r.wellpass_identity_id))
           );
 
-          let householdMemberIds: string[] = [bookingMemberId];
+          // If ANY linked identity is paused (injury/vacation/etc.), lift the
+          // 1/week restriction entirely. Pause is a hard override.
+          let isPaused = false;
           if (identityIds.length > 0) {
-            const { data: householdRows } = await supabaseAdmin
-              .from('wellpass_identity_members')
-              .select('member_id')
-              .in('wellpass_identity_id', identityIds);
-            const ids = new Set((householdRows ?? []).map((r) => r.member_id));
-            ids.add(bookingMemberId); // defensive
-            householdMemberIds = Array.from(ids);
+            const { data: pausedRows } = await supabaseAdmin
+              .from('wellpass_identities')
+              .select('id')
+              .in('id', identityIds)
+              .not('paused_at', 'is', null)
+              .limit(1);
+            isPaused = !!(pausedRows && pausedRows.length > 0);
           }
 
-          const { count: weekBookings } = await supabaseAdmin
-            .from('bookings')
-            .select('id', { count: 'exact', head: true })
-            .in('member_id', householdMemberIds)
-            .eq('status', 'confirmed')
-            .in('session_id', sessionIds);
+          if (!isPaused) {
+            let householdMemberIds: string[] = [bookingMemberId];
+            if (identityIds.length > 0) {
+              const { data: householdRows } = await supabaseAdmin
+                .from('wellpass_identity_members')
+                .select('member_id')
+                .in('wellpass_identity_id', identityIds);
+              const ids = new Set((householdRows ?? []).map((r) => r.member_id));
+              ids.add(bookingMemberId); // defensive
+              householdMemberIds = Array.from(ids);
+            }
 
-          if ((weekBookings ?? 0) >= 1) {
-            return NextResponse.json(
-              {
-                error:
-                  'Dein Wellpass-Haushalt hat in dieser Woche bereits einen Kurs gebucht. Wellpass-Haushalte werden auf 1 Buchung pro Woche begrenzt, wenn die Mindestanzahl an Check-ins in der Vorwoche nicht erreicht wurde. Bitte sprich mit Coach Chris, wenn das ein Fehler ist.',
-              },
-              { status: 403 }
-            );
+            const { count: weekBookings } = await supabaseAdmin
+              .from('bookings')
+              .select('id', { count: 'exact', head: true })
+              .in('member_id', householdMemberIds)
+              .eq('status', 'confirmed')
+              .in('session_id', sessionIds);
+
+            if ((weekBookings ?? 0) >= 1) {
+              return NextResponse.json(
+                {
+                  error:
+                    'Dein Wellpass-Haushalt hat in dieser Woche bereits einen Kurs gebucht. Wellpass-Haushalte werden auf 1 Buchung pro Woche begrenzt, wenn die Mindestanzahl an Check-ins in der Vorwoche nicht erreicht wurde. Bitte sprich mit Coach Chris, wenn das ein Fehler ist.',
+                },
+                { status: 403 }
+              );
+            }
           }
         }
       }

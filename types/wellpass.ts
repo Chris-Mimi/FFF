@@ -7,6 +7,8 @@ export interface WellpassIdentity {
   tracked: boolean;
   exemption_mode: WellpassExemptionMode;
   notes: string | null;
+  paused_at: string | null;
+  pause_reason: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -41,7 +43,7 @@ export interface WellpassIdentityRow extends WellpassIdentity {
   weekly_bookings: WellpassWeeklyBookings[];
   is_exempt: boolean;
   latest_week: WellpassWeeklyCheckin | null;
-  status: 'ok' | 'below_threshold' | 'untracked' | 'no_data';
+  status: 'ok' | 'below_threshold' | 'untracked' | 'no_data' | 'paused';
 }
 
 export interface ParsedWeekSheet {

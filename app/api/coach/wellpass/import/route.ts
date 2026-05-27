@@ -282,13 +282,18 @@ async function recomputeBlockStatus(touchedIdentityIds: string[]): Promise<{
 
   const { data: identities } = await supabaseAdmin
     .from('wellpass_identities')
-    .select('id, wellpass_name, min_checkins_required, tracked, exemption_mode')
+    .select('id, wellpass_name, min_checkins_required, tracked, exemption_mode, paused_at')
     .eq('tracked', true)
     .in('id', touchedIdentityIds);
 
   if (!identities || identities.length === 0) return { applied, cleared };
 
   for (const identity of identities) {
+    // Paused households are excluded from block-status recompute. Pause is a
+    // hard override; existing wellpass_booking_restricted flags stay as-is
+    // (booking-create checks identity pause separately).
+    if (identity.paused_at) continue;
+
     const { data: latestWeek } = await supabaseAdmin
       .from('wellpass_weekly_checkins')
       .select('checkin_count')

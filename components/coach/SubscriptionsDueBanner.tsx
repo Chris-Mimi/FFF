@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { authFetch } from '@/lib/auth-fetch';
 import { toast } from 'sonner';
@@ -93,13 +93,17 @@ export default function SubscriptionsDueBanner() {
         .select('member_id');
       const anyStripeMemberIds = new Set((allStripeMembers ?? []).map(s => s.member_id));
 
-      const stripeMembersById = new Map<string, { name: string | null; display_name: string | null }>();
+      const stripeMembersById = new Map<string, { name: string | null; display_name: string | null; lapsed_banner_dismissed_at: string | null }>();
       if (stripeMemberIds.size > 0) {
         const { data: stripeMembers } = await supabase
           .from('members')
-          .select('id, name, display_name')
+          .select('id, name, display_name, lapsed_banner_dismissed_at')
           .in('id', Array.from(stripeMemberIds));
-        (stripeMembers ?? []).forEach(m => stripeMembersById.set(m.id, { name: m.name, display_name: m.display_name }));
+        (stripeMembers ?? []).forEach(m => stripeMembersById.set(m.id, {
+          name: m.name,
+          display_name: m.display_name,
+          lapsed_banner_dismissed_at: m.lapsed_banner_dismissed_at,
+        }));
       }
 
       // Upcoming cash (next 7 days)
@@ -115,7 +119,7 @@ export default function SubscriptionsDueBanner() {
       // Lapsed cash (past 14 days, includes already-expired-status to surface auto-flips)
       const { data: cashLapsed } = await supabase
         .from('members')
-        .select('id, name, display_name, athlete_subscription_end, athlete_subscription_status')
+        .select('id, name, display_name, athlete_subscription_end, athlete_subscription_status, lapsed_banner_dismissed_at')
         .in('athlete_subscription_status', ['active', 'trial', 'expired', 'past_due'])
         .neq('account_type', 'family_member')
         .not('athlete_subscription_end', 'is', null)
@@ -137,6 +141,11 @@ export default function SubscriptionsDueBanner() {
 
       const cashRowsLapsed: DueRow[] = (cashLapsed ?? [])
         .filter(m => !anyStripeMemberIds.has(m.id))
+        .filter(m => {
+          const dismissedAt = m.lapsed_banner_dismissed_at;
+          if (!dismissedAt) return true;
+          return new Date(dismissedAt) <= new Date(m.athlete_subscription_end!);
+        })
         .map(m => ({
           memberId: m.id,
           name: m.display_name || m.name || 'Unknown',
@@ -163,21 +172,28 @@ export default function SubscriptionsDueBanner() {
         };
       });
 
-      const stripeRowsLapsed: DueRow[] = (stripeLapsed ?? []).map(s => {
-        const member = stripeMembersById.get(s.member_id);
-        const end = new Date(s.current_period_end!);
-        const kind: RowKind = FAILED_PAYMENT_STATUSES.includes(s.status as string)
-          ? 'stripe-lapsed-failed'
-          : 'stripe-lapsed-cancelled';
-        return {
-          memberId: s.member_id,
-          name: member?.display_name || member?.name || 'Unknown',
-          daysLeft: daysBetween(end),
-          endDate: s.current_period_end!,
-          kind,
-          planLabel: s.plan_type,
-        };
-      });
+      const stripeRowsLapsed: DueRow[] = (stripeLapsed ?? [])
+        .filter(s => {
+          const member = stripeMembersById.get(s.member_id);
+          const dismissedAt = member?.lapsed_banner_dismissed_at;
+          if (!dismissedAt) return true;
+          return new Date(dismissedAt) <= new Date(s.current_period_end!);
+        })
+        .map(s => {
+          const member = stripeMembersById.get(s.member_id);
+          const end = new Date(s.current_period_end!);
+          const kind: RowKind = FAILED_PAYMENT_STATUSES.includes(s.status as string)
+            ? 'stripe-lapsed-failed'
+            : 'stripe-lapsed-cancelled';
+          return {
+            memberId: s.member_id,
+            name: member?.display_name || member?.name || 'Unknown',
+            daysLeft: daysBetween(end),
+            endDate: s.current_period_end!,
+            kind,
+            planLabel: s.plan_type,
+          };
+        });
 
       // Sort: lapsed first (most recent first), then upcoming (soonest first).
       const all = [...cashRowsLapsed, ...stripeRowsLapsed, ...cashRowsUpcoming, ...stripeRowsUpcoming]
@@ -194,6 +210,26 @@ export default function SubscriptionsDueBanner() {
       console.error('SubscriptionsDueBanner fetch failed', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDismiss = async (memberId: string) => {
+    setActingId(memberId);
+    // Optimistic removal
+    setRows(prev => prev.filter(r => r.memberId !== memberId));
+    try {
+      const res = await authFetch('/api/coach/dismiss-lapsed-banner', {
+        method: 'POST',
+        body: JSON.stringify({ memberId }),
+      });
+      if (!res.ok) throw new Error('Dismiss failed');
+      toast.success('Dismissed — reappears on re-lapse');
+    } catch (err) {
+      console.error('Dismiss failed', err);
+      toast.error('Failed to dismiss. Refreshing.');
+      await fetchDueRows();
+    } finally {
+      setActingId(null);
     }
   };
 
@@ -334,6 +370,17 @@ export default function SubscriptionsDueBanner() {
                 <span className='px-2 py-0.5 text-xs font-medium rounded bg-red-100 text-red-800 flex-shrink-0'>
                   Payment failed{r.planLabel ? ` · ${r.planLabel}` : ''}
                 </span>
+              )}
+              {isLapsed(r) && (
+                <button
+                  onClick={() => handleDismiss(r.memberId)}
+                  disabled={actingId === r.memberId}
+                  title='Dismiss (reappears on re-lapse)'
+                  aria-label='Dismiss'
+                  className='ml-0.5 p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition disabled:opacity-50 flex-shrink-0'
+                >
+                  <X size={14} />
+                </button>
               )}
             </div>
           ))}

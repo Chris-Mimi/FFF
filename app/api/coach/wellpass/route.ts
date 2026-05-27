@@ -175,6 +175,7 @@ export async function GET(request: NextRequest) {
 
       let status: WellpassIdentityRow['status'];
       if (!identity.tracked) status = 'untracked';
+      else if (identity.paused_at) status = 'paused';
       else if (!latest) status = 'no_data';
       else if (latest.checkin_count < identity.min_checkins_required && !isExempt) status = 'below_threshold';
       else status = 'ok';

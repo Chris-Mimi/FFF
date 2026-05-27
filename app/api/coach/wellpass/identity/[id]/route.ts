@@ -27,6 +27,8 @@ export async function PATCH(
       notes?: string | null;
       add_member_id?: string;
       remove_member_id?: string;
+      paused?: boolean;
+      pause_reason?: string | null;
     };
 
     const update: Record<string, unknown> = {};
@@ -38,6 +40,11 @@ export async function PATCH(
       update.min_checkins_required = Math.trunc(body.min_checkins_required);
     }
     if (body.notes !== undefined) update.notes = body.notes;
+    if (typeof body.paused === 'boolean') {
+      update.paused_at = body.paused ? new Date().toISOString() : null;
+      if (!body.paused) update.pause_reason = null;
+    }
+    if (body.pause_reason !== undefined) update.pause_reason = body.pause_reason;
 
     if (Object.keys(update).length > 0) {
       const { error } = await supabaseAdmin
