@@ -38,18 +38,17 @@ Takes ~10 seconds; outputs a timestamped file
 Then do your usual recovery (Cmd+Option+Esc or hard restart)
 Next session, tell me to read the incident file and we'll compare it to the baseline
 
-* Still have an issue when the Macbook has been on for a while on 2 Users that I switch to the other user and get a black screen, then I can't type anything or restart without holding down the start button.
-* You can't open the application "System Settings" because it is not responding.
+
 * 
-* Veronika Ebner's card is active!
+* Veronika Ebner's Stripe payment is active!
 * review the rep max calculator to show clearer percentages
 * 
 * Why doesn't the data integrity sql catch things like this?
 * 
-* Give me another column in the WP tab which shows how many times each athlete has booked sessions for that week. Put it next to the Minimum WP login and make the number green if they are equal or under the WP amount or red if they are over the WP minimum
-* check if cancelled app subscriptions reset the sign-up so that they don't get 1 month free next time.
-* Athletes pay tab should be in Members page not on Athletes. This should just be Lifts, Benchmark data the payment doesn't belong there.
-* Question: Is there any issue with me posting/publishing a session/workout at 18.30 and at 18.31? I mean, I can't post them at the same time but sometimes (rarely) I need to run 2 workout simoultaneously. 
+* 
+* 
+* 
+* 
 * Marion signed up for the app, is her account now freed?
 
 
@@ -62,7 +61,7 @@ Next session, tell me to read the incident file and we'll compare it to the base
 # Workout Library tab (coach) #
 Integration with website
 Investigate the "Whiteboard Intro" sections appearing in earlier workouts
-2-tier payment family
+
 
 Athlete login:
 
