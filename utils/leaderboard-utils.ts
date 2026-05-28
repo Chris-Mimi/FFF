@@ -21,6 +21,12 @@ export interface LeaderboardEntry {
   gender?: string | null;
   age?: number | null;
   sessionTime?: string;
+  lastResult?: string;
+  lastResultDate?: string;
+  lastScalingLevel?: string;
+  lastScalingLevel2?: string;
+  lastScalingLevel3?: string;
+  lastTrack?: number;
 }
 
 // Gender map for whiteboard-only (unregistered) athletes
@@ -445,7 +451,8 @@ export function rankBenchmarkResults(
   memberNames: Record<string, string>,
   benchmarkType: string,
   memberGenders?: Record<string, string | null>,
-  memberAges?: Record<string, number | null>
+  memberAges?: Record<string, number | null>,
+  rankBy: 'best' | 'last' = 'last'
 ): LeaderboardEntry[] {
   // Determine scoring direction from benchmark type
   const typeLower = benchmarkType.toLowerCase();
@@ -505,6 +512,16 @@ export function rankBenchmarkResults(
     if (isBetter) bestByUser.set(r.user_id, r);
   }
 
+  // Also track the most recent result per user (for "Last Result" display).
+  // Ties on date fall back to insertion order — first-seen wins.
+  const lastByUser = new Map<string, RawBenchmarkResult>();
+  for (const r of valid) {
+    const existing = lastByUser.get(r.user_id);
+    const rDate = r.result_date || '';
+    const eDate = existing?.result_date || '';
+    if (!existing || rDate > eDate) lastByUser.set(r.user_id, r);
+  }
+
   // Sort best results: aggregate scaling score (lower = better) > Track > primary metric
   // Rx=0, Sc1=1, Sc2=2, Sc3=3; sum all set levels for a single comparable score
   const scalingValue: Record<string, number> = { 'Rx': 0, 'Rx(M)': 0, 'Sc1': 1, 'Sc2': 2, 'Sc3': 3 };
@@ -551,47 +568,76 @@ export function rankBenchmarkResults(
     if (bAge === null) return -1;
     return bAge - aAge;
   };
-  const bests = [...bestByUser.values()];
-  bests.sort((a, b) => {
+  // Row order is driven by either each user's BEST result or their LAST result,
+  // depending on `rankBy`. The other column still shows the alternate value.
+  const sortBase = rankBy === 'best' ? [...bestByUser.values()] : [...lastByUser.values()];
+  sortBase.sort((a, b) => {
     const primary = comparePrimary(a, b);
     if (primary !== 0) return primary;
     // Tiebreaker 1: age DESC (older first). Missing DOB ranks below any known age.
     const ageDiff = compareAge(a, b);
     if (ageDiff !== 0) return ageDiff;
-    // Tiebreaker 2: result_date ASC (earlier PR = performed first).
-    const aDate = a.result_date || '9999-99-99';
-    const bDate = b.result_date || '9999-99-99';
-    if (aDate !== bDate) return aDate < bDate ? -1 : 1;
+    // Tiebreaker 2: result_date.
+    //   - When ranking by best: ASC (earlier PR = performed first wins the tie).
+    //   - When ranking by last: DESC (more recent attempt wins the tie).
+    const aDate = a.result_date || (rankBy === 'best' ? '9999-99-99' : '0000-00-00');
+    const bDate = b.result_date || (rankBy === 'best' ? '9999-99-99' : '0000-00-00');
+    if (aDate !== bDate) {
+      if (rankBy === 'best') return aDate < bDate ? -1 : 1;
+      return aDate < bDate ? 1 : -1;
+    }
     return 0;
   });
 
   // Assign ranks — tied entries (same primary chain) share the same rank number.
   const ranks: number[] = [];
-  for (let i = 0; i < bests.length; i++) {
-    if (i > 0 && comparePrimary(bests[i - 1], bests[i]) === 0) {
+  for (let i = 0; i < sortBase.length; i++) {
+    if (i > 0 && comparePrimary(sortBase[i - 1], sortBase[i]) === 0) {
       ranks.push(ranks[i - 1]);
     } else {
       ranks.push(i + 1);
     }
   }
 
-  return bests.map((r, i) => ({
-    id: r.id,
-    userId: r.user_id,
-    memberName: memberNames[r.user_id] || (r.user_id.startsWith('wb:') ? r.user_id.slice(3) : 'Unknown'),
-    rank: ranks[i],
-    timeResult: r.time_result || undefined,
-    repsResult: r.reps_result || undefined,
-    roundsResult: r.rounds_result || undefined,
-    weightResult: r.weight_result || undefined,
-    scalingLevel: r.scaling_level || undefined,
-    scalingLevel2: r.scaling_level_2 || undefined,
-    scalingLevel3: r.scaling_level_3 || undefined,
-    track: r.track || undefined,
-    resultDate: r.result_date,
-    gender: memberGenders?.[r.user_id] ?? (r.user_id.startsWith('wb:') ? getWhiteboardGender(r.user_id.slice(3)) : undefined) ?? undefined,
-    age: memberAges?.[r.user_id] ?? null,
-  }));
+  return sortBase.map((sortRow, i) => {
+    const r = bestByUser.get(sortRow.user_id) || sortRow;
+    const last = lastByUser.get(sortRow.user_id);
+    const lastResult = last
+      ? formatBenchmarkResult({
+          id: last.id,
+          userId: last.user_id,
+          memberName: '',
+          rank: 0,
+          timeResult: last.time_result || undefined,
+          repsResult: last.reps_result || undefined,
+          roundsResult: last.rounds_result || undefined,
+          weightResult: last.weight_result || undefined,
+        }, benchmarkType)
+      : undefined;
+    return {
+      id: r.id,
+      userId: r.user_id,
+      memberName: memberNames[r.user_id] || (r.user_id.startsWith('wb:') ? r.user_id.slice(3) : 'Unknown'),
+      rank: ranks[i],
+      timeResult: r.time_result || undefined,
+      repsResult: r.reps_result || undefined,
+      roundsResult: r.rounds_result || undefined,
+      weightResult: r.weight_result || undefined,
+      scalingLevel: r.scaling_level || undefined,
+      scalingLevel2: r.scaling_level_2 || undefined,
+      scalingLevel3: r.scaling_level_3 || undefined,
+      track: r.track || undefined,
+      resultDate: r.result_date,
+      gender: memberGenders?.[r.user_id] ?? (r.user_id.startsWith('wb:') ? getWhiteboardGender(r.user_id.slice(3)) : undefined) ?? undefined,
+      age: memberAges?.[r.user_id] ?? null,
+      lastResult,
+      lastResultDate: last?.result_date,
+      lastScalingLevel: last?.scaling_level || undefined,
+      lastScalingLevel2: last?.scaling_level_2 || undefined,
+      lastScalingLevel3: last?.scaling_level_3 || undefined,
+      lastTrack: last?.track || undefined,
+    };
+  });
 }
 
 /**

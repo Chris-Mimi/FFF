@@ -1186,21 +1186,17 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
             } else if (selectedItem.type === 'forge_benchmark' && selectedItem.benchmarkId) {
               bmDetail = section.forge_benchmarks?.find(b => b.id === selectedItem.benchmarkId) || null;
             }
-            const hasBmExercises = (bmDetail?.exercises?.length ?? 0) > 0;
             const hasBmDesc = !!bmDetail?.description?.trim();
             const hasContent = !!section.content?.trim();
-            if (!hasBmExercises && !hasBmDesc && !hasContent) return null;
+            if (!hasBmDesc && !hasContent) return null;
 
             return (
               <div className='bg-gray-600 rounded-lg px-3 py-2 text-sm text-white max-h-[160px] overflow-y-auto space-y-1'>
-                {hasBmExercises && (
-                  <div className='font-medium'>{bmDetail!.exercises!.join(' • ')}</div>
-                )}
                 {hasBmDesc && (
                   <div className='whitespace-pre-wrap text-gray-200'>{bmDetail!.description}</div>
                 )}
                 {hasContent && (
-                  <div className={`whitespace-pre-wrap ${(hasBmExercises || hasBmDesc) ? 'text-gray-200 border-t border-white/15 pt-1 mt-1' : ''}`}>
+                  <div className={`whitespace-pre-wrap ${hasBmDesc ? 'text-gray-200 border-t border-white/15 pt-1 mt-1' : ''}`}>
                     {section.content}
                   </div>
                 )}
@@ -1403,6 +1399,7 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
   const [loading, setLoading] = useState(false);
   const [scalingFilter, setScalingFilter] = useState<ScalingFilter>('all');
   const [genderFilter, setGenderFilter] = useState<'all' | 'M' | 'F'>('all');
+  const [rankBy, setRankBy] = useState<'best' | 'last'>('last');
   const { fetchReactions, toggleReaction, getReaction } = useReactions();
 
   // Load benchmark list
@@ -1562,7 +1559,7 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
         memberNames[`member:${memberId}`] = name;
       }
 
-      const ranked = rankBenchmarkResults(filtered, memberNames, selectedBenchmark.type, memberGenders, memberAges);
+      const ranked = rankBenchmarkResults(filtered, memberNames, selectedBenchmark.type, memberGenders, memberAges, rankBy);
       setEntries(ranked);
 
       if (ranked.length > 0) {
@@ -1573,7 +1570,7 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
     } finally {
       setLoading(false);
     }
-  }, [selectedBenchmark, scalingFilter, fetchReactions]);
+  }, [selectedBenchmark, scalingFilter, fetchReactions, rankBy]);
 
   useEffect(() => { loadResults(); }, [loadResults]);
 
@@ -1582,15 +1579,10 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
       {/* Benchmark picker */}
       <BenchmarkDropdown benchmarks={benchmarks} selectedBenchmark={selectedBenchmark} onSelect={setSelectedBenchmark} />
 
-      {/* Benchmark detail: exercises + description */}
-      {(selectedBenchmark?.exercises?.length || selectedBenchmark?.description?.trim()) && (
+      {/* Benchmark detail: description */}
+      {selectedBenchmark?.description?.trim() && (
         <div className='bg-gray-600 rounded-lg px-3 py-2 text-sm text-white max-h-[160px] overflow-y-auto space-y-1'>
-          {selectedBenchmark.exercises && selectedBenchmark.exercises.length > 0 && (
-            <div className='font-medium'>{selectedBenchmark.exercises.join(' • ')}</div>
-          )}
-          {selectedBenchmark.description?.trim() && (
-            <div className='whitespace-pre-wrap text-gray-200'>{selectedBenchmark.description}</div>
-          )}
+          <div className='whitespace-pre-wrap text-gray-200'>{selectedBenchmark.description}</div>
         </div>
       )}
 
@@ -1651,10 +1643,27 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
             <thead>
               <tr className='bg-gray-50 text-xs text-gray-500 uppercase rounded-t-lg'>
                 <th className='px-3 py-2 text-left w-10 rounded-tl-lg'>#</th>
-                <th className='px-3 py-2 text-left'>Athlete</th>
-                <th className='px-3 py-2 text-right'>Best Result</th>
-                <th className='px-1 py-2 text-center w-12'>Scale</th>
-                <th className='px-1 py-2 text-right text-[10px] w-16'>Date</th>
+                <th className='px-3 py-2 text-left w-full'>Athlete</th>
+                <th className='px-3 py-2 text-right whitespace-nowrap'>
+                  <button
+                    type='button'
+                    onClick={() => setRankBy('best')}
+                    className={`uppercase transition ${rankBy === 'best' ? 'text-[#178da6] font-bold underline underline-offset-4' : 'text-gray-500 hover:text-gray-700'}`}
+                    title='Rank by best result'
+                  >
+                    Best
+                  </button>
+                </th>
+                <th className='pl-2 pr-3 py-2 text-right whitespace-nowrap'>
+                  <button
+                    type='button'
+                    onClick={() => setRankBy('last')}
+                    className={`uppercase transition ${rankBy === 'last' ? 'text-[#178da6] font-bold underline underline-offset-4' : 'text-gray-500 hover:text-gray-700'}`}
+                    title='Rank by last result'
+                  >
+                    Last
+                  </button>
+                </th>
                 <th className='px-1 py-2 text-right w-14 rounded-tr-lg'></th>
               </tr>
             </thead>
@@ -1677,45 +1686,102 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
                         {isMe ? 'You' : entry.memberName}
                       </span>
                     </td>
-                    <td className='px-3 py-2.5 text-right'>
+                    <td className='px-3 py-2.5 text-right align-top'>
                       {entry.dnf ? (
                         <span className='text-xs font-bold text-red-500 bg-red-50 px-1.5 py-0.5 rounded'>DNF</span>
                       ) : (
-                        <span className='text-sm font-medium text-gray-900'>
-                          {formatBenchmarkResult(entry, selectedBenchmark?.type)}
-                        </span>
+                        <div className='flex items-start justify-end gap-2'>
+                          <div className='flex items-center gap-0.5 flex-wrap justify-end pt-0.5'>
+                            {entry.scalingLevel && (
+                              <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
+                                isRxLevel(entry.scalingLevel) ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
+                              }`}>
+                                {renderScalingText(entry.scalingLevel)}
+                              </span>
+                            )}
+                            {entry.scalingLevel2 && (
+                              <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
+                                isRxLevel(entry.scalingLevel2) ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
+                              }`}>
+                                {renderScalingText(entry.scalingLevel2)}
+                              </span>
+                            )}
+                            {entry.scalingLevel3 && (
+                              <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
+                                isRxLevel(entry.scalingLevel3) ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
+                              }`}>
+                                {renderScalingText(entry.scalingLevel3)}
+                              </span>
+                            )}
+                            {entry.track && (
+                              <span className={`text-[10px] font-bold px-1 py-0.5 rounded ${
+                                entry.track === 1 ? 'bg-[#178da6]/10 text-[#178da6]'
+                                : entry.track === 2 ? 'bg-amber-100 text-amber-700'
+                                : 'bg-gray-100 text-gray-500'
+                              }`}>
+                                T{entry.track}
+                              </span>
+                            )}
+                          </div>
+                          <div className='flex flex-col items-end'>
+                            <span className='text-sm font-medium text-gray-900 whitespace-nowrap'>
+                              {formatBenchmarkResult(entry, selectedBenchmark?.type)}
+                            </span>
+                            {entry.resultDate && (
+                              <span className='text-[10px] text-gray-500 whitespace-nowrap'>
+                                {new Date(entry.resultDate + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' })}
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       )}
                     </td>
-                    <td className='px-1 py-2.5 text-center'>
-                      <div className='flex items-center justify-center gap-0.5 flex-wrap'>
-                        {entry.scalingLevel && (
-                          <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
-                            isRxLevel(entry.scalingLevel) ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
-                          }`}>
-                            {renderScalingText(entry.scalingLevel)}
-                          </span>
-                        )}
-                        {entry.scalingLevel2 && (
-                          <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
-                            isRxLevel(entry.scalingLevel2) ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
-                          }`}>
-                            {renderScalingText(entry.scalingLevel2)}
-                          </span>
-                        )}
-                        {entry.scalingLevel3 && (
-                          <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
-                            isRxLevel(entry.scalingLevel3) ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
-                          }`}>
-                            {renderScalingText(entry.scalingLevel3)}
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className='px-1 py-2.5 text-right'>
-                      {entry.resultDate && (
-                        <span className='text-[10px] text-gray-500'>
-                          {new Date(entry.resultDate + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-                        </span>
+                    <td className='pl-2 pr-3 py-2.5 text-right align-top'>
+                      {entry.lastResult && entry.lastResult !== '-' ? (
+                        <div className='flex items-start justify-end gap-2'>
+                          <div className='flex items-center gap-0.5 flex-wrap justify-end pt-0.5'>
+                            {entry.lastScalingLevel && (
+                              <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
+                                isRxLevel(entry.lastScalingLevel) ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
+                              }`}>
+                                {renderScalingText(entry.lastScalingLevel)}
+                              </span>
+                            )}
+                            {entry.lastScalingLevel2 && (
+                              <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
+                                isRxLevel(entry.lastScalingLevel2) ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
+                              }`}>
+                                {renderScalingText(entry.lastScalingLevel2)}
+                              </span>
+                            )}
+                            {entry.lastScalingLevel3 && (
+                              <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
+                                isRxLevel(entry.lastScalingLevel3) ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
+                              }`}>
+                                {renderScalingText(entry.lastScalingLevel3)}
+                              </span>
+                            )}
+                            {entry.lastTrack && (
+                              <span className={`text-[10px] font-bold px-1 py-0.5 rounded ${
+                                entry.lastTrack === 1 ? 'bg-[#178da6]/10 text-[#178da6]'
+                                : entry.lastTrack === 2 ? 'bg-amber-100 text-amber-700'
+                                : 'bg-gray-100 text-gray-500'
+                              }`}>
+                                T{entry.lastTrack}
+                              </span>
+                            )}
+                          </div>
+                          <div className='flex flex-col items-end'>
+                            <span className='text-sm font-medium text-gray-900 whitespace-nowrap'>{entry.lastResult}</span>
+                            {entry.lastResultDate && (
+                              <span className='text-[10px] text-gray-500 whitespace-nowrap'>
+                                {new Date(entry.lastResultDate + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' })}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <span className='text-xs text-gray-400'>—</span>
                       )}
                     </td>
                     <td className='px-1 py-2.5 text-right'>
