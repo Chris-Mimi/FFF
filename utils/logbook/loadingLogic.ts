@@ -47,10 +47,12 @@ export async function loadSectionResults(
         // Need to convert to triple-colon format: wodId:::sectionId:::content-N
         let key: string;
         let baseSectionId: string;
+        let isContentZero = false;
         if (result.section_id.includes('-content-')) {
           const parts = result.section_id.split('-content-');
           key = `${result.wod_id}:::${parts[0]}:::content-${parts[1]}`;
           baseSectionId = parts[0];
+          isContentZero = parts[1] === '0';
         } else {
           key = `${result.wod_id}:::${result.section_id}`;
           baseSectionId = result.section_id;
@@ -61,7 +63,7 @@ export async function loadSectionResults(
           coachLockedSections.add(`${result.wod_id}:::${baseSectionId}`);
         }
 
-        newSectionResults[key] = {
+        const sectionResult: SectionResult = {
           time_result: result.time_result || '',
           reps_result: result.reps_result?.toString() || '',
           weight_result: result.weight_result?.toString() || '',
@@ -76,6 +78,17 @@ export async function loadSectionResults(
           task_completed: result.task_completed || false,
           dnf: result.dnf || false,
         };
+
+        newSectionResults[key] = sectionResult;
+
+        // Coach score-entry writes a single `-content-0` WSR row per section that
+        // carries multi-load + multi-scaling data. Mirror it under the benchmark/forge
+        // render keys so the Logbook benchmark UI sees the multi-scale fields that
+        // `benchmark_results` (single-scale only) can't provide.
+        if (isContentZero) {
+          newSectionResults[`${result.wod_id}:::${baseSectionId}:::benchmark-0`] = sectionResult;
+          newSectionResults[`${result.wod_id}:::${baseSectionId}:::forge-0`] = sectionResult;
+        }
       });
       return { results: newSectionResults, coachLockedSections };
     }

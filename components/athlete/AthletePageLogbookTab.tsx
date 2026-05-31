@@ -310,11 +310,15 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
     const loadAllData = async () => {
       if (workouts.length > 0 && selectedDate && userId && !cancelled) {
         const dateStr = formatLocalDate(selectedDate);
-        // Run sequentially to avoid race conditions with state updates
+        // Run sequentially to avoid race conditions with state updates.
+        // Order matters: benchmark/lift results write single-scale data to
+        // :::benchmark-N / :::forge-N / :::lift-N keys; loadSectionResults runs
+        // last so its multi-scale `-content-0` WSR data (now mirrored to
+        // :::benchmark-0 / :::forge-0) overwrites the single-scale entries.
         if (!cancelled) await loadLiftRecords(dateStr);
-        if (!cancelled) await loadSectionResultsWrapper(dateStr);
         if (!cancelled) await loadBenchmarkResultsToSectionWrapper(dateStr);
         if (!cancelled) await loadLiftResultsToSectionWrapper(dateStr);
+        if (!cancelled) await loadSectionResultsWrapper(dateStr);
 
       }
     };

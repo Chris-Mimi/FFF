@@ -45,7 +45,7 @@ Next session, tell me to read the incident file and we'll compare it to the base
 * 
 * Why doesn't the data integrity sql catch things like this?
 * 
-* We need a more user-friendly way for athletes to search their workouts, maybe a mini calendar to click on
+* 
 * 
 * 
 * 
