@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { authFetch } from '@/lib/auth-fetch';
+import { supabase } from '@/lib/supabase';
 import {
   AlertCircle,
   Check,
@@ -42,6 +43,7 @@ export default function WellpassTab() {
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<WellpassImportResult | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [attendanceByMember, setAttendanceByMember] = useState<Map<string, number>>(new Map());
   const [showUntracked, setShowUntracked] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>('urgency');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -64,6 +66,31 @@ export default function WellpassTab() {
   useEffect(() => {
     fetchRows();
   }, []);
+
+  // All-time gym attendance per linked member — same RPC + 'all' window (36500
+  // days back) the Admin "Attended" chip uses, so the numbers match exactly.
+  useEffect(() => {
+    if (!rows) return;
+    const memberIds = Array.from(
+      new Set(rows.flatMap((r) => r.linked_members.map((m) => m.member_id)))
+    );
+    if (memberIds.length === 0) return;
+    (async () => {
+      const { data, error: rpcErr } = await supabase.rpc('get_all_members_attendance', {
+        p_member_ids: memberIds,
+        p_days_back: 36500,
+      });
+      if (rpcErr) {
+        console.error('Wellpass attendance fetch failed', rpcErr);
+        return;
+      }
+      const map = new Map<string, number>();
+      (data ?? []).forEach((r: { member_id: string; attendance_count: number }) => {
+        map.set(r.member_id, Number(r.attendance_count));
+      });
+      setAttendanceByMember(map);
+    })();
+  }, [rows]);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -286,6 +313,7 @@ export default function WellpassTab() {
                 key={row.id}
                 row={row}
                 weekColumns={sortedWeeks}
+                attendanceByMember={attendanceByMember}
                 expanded={expandedId === row.id}
                 onToggleExpand={() => setExpandedId(expandedId === row.id ? null : row.id)}
                 onPatch={(body) => patchIdentity(row.id, body)}
@@ -333,13 +361,14 @@ export default function WellpassTab() {
 interface IdentityRowProps {
   row: WellpassIdentityRow;
   weekColumns: { week_number: number; week_start: string; week_end: string }[];
+  attendanceByMember: Map<string, number>;
   expanded: boolean;
   onToggleExpand: () => void;
   onPatch: (body: Record<string, unknown>) => Promise<void>;
   onToggleMemberBlock: (memberId: string, restricted: boolean) => Promise<void>;
 }
 
-function IdentityRow({ row, weekColumns, expanded, onToggleExpand, onPatch, onToggleMemberBlock }: IdentityRowProps) {
+function IdentityRow({ row, weekColumns, attendanceByMember, expanded, onToggleExpand, onPatch, onToggleMemberBlock }: IdentityRowProps) {
   const appPaid = row.linked_members.some((m) => m.athlete_subscription_status === 'active');
   const hasAnyMember = row.linked_members.length > 0;
   const isPaused = row.status === 'paused';
@@ -371,6 +400,9 @@ function IdentityRow({ row, weekColumns, expanded, onToggleExpand, onPatch, onTo
   }, 0);
   const scoreClass =
     score > 0 ? 'text-green-400 font-bold' : score < 0 ? 'text-red-400 font-bold' : 'text-gray-500';
+
+  // Household lifetime Wellpass logins = sum of every tracked week's check-ins.
+  const totalLogins = row.weekly_history.reduce((acc, w) => acc + w.checkin_count, 0);
 
   return (
     <>
@@ -468,7 +500,12 @@ function IdentityRow({ row, weekColumns, expanded, onToggleExpand, onPatch, onTo
           <td colSpan={7 + weekColumns.length} className="px-4 py-3 border-t border-gray-700">
             <div className="grid md:grid-cols-2 gap-4 text-xs">
               <div>
-                <div className="text-gray-400 font-medium mb-1">Linked members</div>
+                <div className="flex items-baseline justify-between mb-1">
+                  <span className="text-gray-400 font-medium">Linked members</span>
+                  <span className="text-xs text-gray-400">
+                    <span className="text-teal-300 font-semibold font-mono">{totalLogins}</span> Wellpass logins to date
+                  </span>
+                </div>
                 {row.linked_members.length === 0 ? (
                   <div className="text-gray-500 italic">No linked members. Block enforcement is a no-op until linked.</div>
                 ) : (
@@ -476,6 +513,10 @@ function IdentityRow({ row, weekColumns, expanded, onToggleExpand, onPatch, onTo
                     {row.linked_members.map((m) => (
                       <li key={m.member_id} className="flex items-center gap-2">
                         <span className="text-gray-200">{m.name}</span>
+                        <span className="text-gray-500">·</span>
+                        <span className="text-gray-300 font-mono" title="All-time gym attendances (same as Admin Attended chip)">
+                          {attendanceByMember.get(m.member_id) ?? 0} attended
+                        </span>
                         {m.athlete_subscription_status === 'active' && (
                           <>
                             <span className="text-gray-500">·</span>

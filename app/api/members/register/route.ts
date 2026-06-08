@@ -17,7 +17,18 @@ const supabaseAdmin = createClient(
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, password, name, phone } = body;
+    const { email, password, name, phone, website } = body;
+
+    // Honeypot: `website` is a hidden form field real users never see. If it's
+    // filled, this is automated form spam. Return a success-shaped response so
+    // the bot thinks it worked and doesn't retry, but create nothing.
+    if (typeof website === 'string' && website.trim().length > 0) {
+      console.warn('Registration honeypot triggered — rejected silently:', { email, name });
+      return NextResponse.json(
+        { success: true, message: 'Registration successful. Awaiting coach approval.' },
+        { status: 201 }
+      );
+    }
 
     // Validate required fields
     if (!email || !password || !name) {

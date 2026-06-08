@@ -67,11 +67,11 @@ async function filterUserWorkouts(
 
       if (!booking) return null;
 
-      // Parse session datetime and subtract 1 hour to determine if workout details should be visible
+      // Parse session datetime and subtract 2 hours to determine if workout details should be visible
       const sessionDateTime = new Date(`${workout.date}T${sessionData.time}`);
-      const oneHourBeforeSession = new Date(sessionDateTime.getTime() - 60 * 60 * 1000);
+      const twoHoursBeforeSession = new Date(sessionDateTime.getTime() - 2 * 60 * 60 * 1000);
       const now = new Date();
-      const shouldShowDetails = now >= oneHourBeforeSession;
+      const shouldShowDetails = now >= twoHoursBeforeSession;
 
       return {
         ...workout,

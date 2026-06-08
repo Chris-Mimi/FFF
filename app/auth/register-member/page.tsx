@@ -11,7 +11,8 @@ export default function RegisterMemberPage() {
     password: '',
     confirmPassword: '',
     name: '',
-    phone: ''
+    phone: '',
+    website: '' // Honeypot — hidden from humans; bots fill it and get silently rejected.
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
@@ -83,7 +84,8 @@ export default function RegisterMemberPage() {
           email: formData.email,
           password: formData.password,
           name: formData.name.trim(),
-          phone: formData.phone.trim() || null
+          phone: formData.phone.trim() || null,
+          website: formData.website // Honeypot — should always be empty for real users.
         })
       });
 
@@ -145,6 +147,23 @@ export default function RegisterMemberPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Honeypot — visually hidden, off-tab, no autofill. Real users never
+              see or fill this; automated form-spam bots fill every field and get
+              silently rejected server-side. Not type="hidden" (some bots skip
+              those) — a real text input positioned off-screen. */}
+          <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', top: 'auto', width: '1px', height: '1px', overflow: 'hidden' }}>
+            <label htmlFor="website">Website (leave this empty)</label>
+            <input
+              type="text"
+              id="website"
+              name="website"
+              value={formData.website}
+              onChange={handleChange}
+              tabIndex={-1}
+              autoComplete="off"
+            />
+          </div>
+
           {/* Email */}
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">

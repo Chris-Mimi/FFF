@@ -213,10 +213,13 @@ export default function SubscriptionsDueBanner() {
     }
   };
 
-  const handleDismiss = async (memberId: string) => {
+  const handleDismiss = async (memberId: string, kind: RowKind) => {
     setActingId(memberId);
-    // Optimistic removal
-    setRows(prev => prev.filter(r => r.memberId !== memberId));
+    // Optimistic removal — remove ONLY the dismissed row, not every row for this
+    // member. A member can have a lapsed row AND a separate upcoming row (e.g.
+    // Claudia: an old cancelled sub + her new sub due in 4 days). Filtering by
+    // memberId alone wiped both from the live view until a refresh.
+    setRows(prev => prev.filter(r => !(r.memberId === memberId && r.kind === kind)));
     try {
       const res = await authFetch('/api/coach/dismiss-lapsed-banner', {
         method: 'POST',
@@ -373,7 +376,7 @@ export default function SubscriptionsDueBanner() {
               )}
               {isLapsed(r) && (
                 <button
-                  onClick={() => handleDismiss(r.memberId)}
+                  onClick={() => handleDismiss(r.memberId, r.kind)}
                   disabled={actingId === r.memberId}
                   title='Dismiss (reappears on re-lapse)'
                   aria-label='Dismiss'

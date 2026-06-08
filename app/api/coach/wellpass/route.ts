@@ -57,12 +57,31 @@ export async function GET(request: NextRequest) {
       linksByIdentity.set(link.wellpass_identity_id, arr);
     }
 
-    const { data: checkins } = await supabaseAdmin
-      .from('wellpass_weekly_checkins')
-      .select('*')
-      .in('wellpass_identity_id', identityIds)
-      .order('year', { ascending: false })
-      .order('week_number', { ascending: false });
+    // Paginate: wellpass_weekly_checkins grows ~50 rows/week and is already past
+    // PostgREST's 1000-row cap. Without this the oldest weeks silently drop,
+    // undercounting the lifetime-logins sum and the Score. (claude-rules growing-table.)
+    const checkins: WellpassWeeklyCheckin[] = [];
+    {
+      const PAGE = 1000;
+      let from = 0;
+      for (;;) {
+        const { data: page, error: pageErr } = await supabaseAdmin
+          .from('wellpass_weekly_checkins')
+          .select('*')
+          .in('wellpass_identity_id', identityIds)
+          .order('year', { ascending: false })
+          .order('week_number', { ascending: false })
+          .range(from, from + PAGE - 1);
+        if (pageErr) {
+          console.error('[wellpass] checkins page error:', pageErr);
+          break;
+        }
+        if (!page || page.length === 0) break;
+        checkins.push(...(page as WellpassWeeklyCheckin[]));
+        if (page.length < PAGE) break;
+        from += PAGE;
+      }
+    }
 
     const checkinsByIdentity = new Map<string, WellpassWeeklyCheckin[]>();
     for (const c of checkins ?? []) {
