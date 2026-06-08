@@ -4,8 +4,9 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import type { PatternWithExercises, ProgrammingPlanItem, PatternGapResult, WeeklyCoverageMap } from '@/types/planner';
-import { computePatternGaps, detectWeeklyCoverage, generateWeeks } from '@/utils/pattern-analytics';
+import { computePatternGaps, detectWeeklyCoverage, generateWeeks, getMonday } from '@/utils/pattern-analytics';
 import { getExerciseFrequency } from '@/utils/movement-analytics';
+import { formatDate } from '@/utils/date-utils';
 import PatternManager from './PatternManager';
 import PatternExercisePicker from './PatternExercisePicker';
 import PlannerInfoModal from './PlannerInfoModal';
@@ -29,13 +30,33 @@ type ViewMonths = 1 | 3 | 6 | 12;
 const VIEW_TO_WEEKS: Record<ViewMonths, number> = { 1: 5, 3: 13, 6: 26, 12: 52 };
 const VIEW_STORAGE_KEY = 'planner-view-months';
 
-function deriveWindow(viewMonths: ViewMonths, anchorOffsetWeeks: number) {
+// Start-anchored window: the grid's LEFT edge is `startMonday` and it runs
+// forward by the chosen view length. So switching 1↔3↔6↔12mo keeps the same
+// start date instead of re-centering on today (which made the left edge jump).
+function deriveWindow(viewMonths: ViewMonths, startMonday: string) {
   const totalWeeks = VIEW_TO_WEEKS[viewMonths];
-  const pastWeeks = Math.floor((totalWeeks - 1) / 2);
-  const futureWeeks = totalWeeks - 1 - pastWeeks;
-  const anchorDate = new Date();
-  anchorDate.setDate(anchorDate.getDate() + anchorOffsetWeeks * 7);
-  return { pastWeeks, futureWeeks, anchorDate };
+  return {
+    pastWeeks: 0,
+    futureWeeks: totalWeeks - 1,
+    anchorDate: new Date(startMonday + 'T00:00:00'),
+  };
+}
+
+// Shift a Monday-string by N weeks (negative = earlier), returns a Monday string.
+function shiftMonday(mondayStr: string, deltaWeeks: number): string {
+  const d = new Date(mondayStr + 'T00:00:00');
+  d.setDate(d.getDate() + deltaWeeks * 7);
+  return formatDate(d);
+}
+
+// Prev/Next nudge the start by ~1 month, regardless of the view length.
+const STEP_WEEKS = 4;
+
+// Start date that puts today's week roughly in the MIDDLE of a view this long.
+// Used for the initial load + the "Today" (center) button.
+function centeredStart(viewMonths: ViewMonths): string {
+  const halfBack = Math.floor((VIEW_TO_WEEKS[viewMonths] - 1) / 2);
+  return shiftMonday(formatDate(getMonday(new Date())), -halfBack);
 }
 
 export default function PlannerSection({ exercises }: PlannerSectionProps) {
@@ -57,10 +78,12 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
   // Patterns themselves are shared across both tracks.
   const [trackFilter, setTrackFilter] = useState<'adults' | 'kids'>('adults');
 
-  // Date-window controls. viewMonths persists across page loads;
-  // anchor offset resets to 0 (centered on today) each load.
-  const [viewMonths, setViewMonths] = useState<ViewMonths>(3);
-  const [anchorOffsetWeeks, setAnchorOffsetWeeks] = useState(0);
+  // Date-window controls. viewMonths persists across page loads; the start date
+  // (left edge of the grid) defaults to this week's Monday each load. Click a
+  // week header in the grid, or use Prev/Next/Today, to move it.
+  const [viewMonths, setViewMonths] = useState<ViewMonths>(6);
+  const [startMonday, setStartMonday] = useState<string>(() => centeredStart(6));
+  const centeredNow = centeredStart(viewMonths);
 
   // Content filter — restrict the grid to RM-tested exercises only.
   // Non-persistent: defaults to 'all' on every load.
@@ -76,7 +99,11 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
     if (typeof window === 'undefined') return;
     const raw = window.localStorage.getItem(VIEW_STORAGE_KEY);
     if (raw === '1' || raw === '3' || raw === '6' || raw === '12') {
-      setViewMonths(Number(raw) as ViewMonths);
+      const v = Number(raw) as ViewMonths;
+      setViewMonths(v);
+      // Recenter today for the restored view so the initial load is always
+      // today-centered (after this, view changes stay start-anchored).
+      setStartMonday(centeredStart(v));
     }
   }, []);
 
@@ -86,8 +113,8 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
   }, [viewMonths]);
 
   const { pastWeeks, futureWeeks, anchorDate } = useMemo(
-    () => deriveWindow(viewMonths, anchorOffsetWeeks),
-    [viewMonths, anchorOffsetWeeks],
+    () => deriveWindow(viewMonths, startMonday),
+    [viewMonths, startMonday],
   );
   const anchorTime = anchorDate.getTime();
 
@@ -534,25 +561,25 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
       <div className='flex items-center justify-between gap-2 flex-wrap'>
         <div className='flex items-center gap-1'>
           <button
-            onClick={() => setAnchorOffsetWeeks(o => o - Math.max(1, Math.floor(VIEW_TO_WEEKS[viewMonths] / 2)))}
+            onClick={() => setStartMonday(m => shiftMonday(m, -STEP_WEEKS))}
             className='flex items-center gap-1 text-xs px-2.5 py-1 rounded border border-gray-200 text-gray-600 hover:border-[#178da6] hover:text-[#178da6] transition'
-            title='Scroll back'
+            title='Move start ~1 month earlier'
           >
             <ChevronLeft size={14} />
             <span>Prev</span>
           </button>
           <button
-            onClick={() => setAnchorOffsetWeeks(0)}
-            disabled={anchorOffsetWeeks === 0}
+            onClick={() => setStartMonday(centeredNow)}
+            disabled={startMonday === centeredNow}
             className='text-xs px-2.5 py-1 rounded border border-gray-200 text-gray-600 hover:border-[#178da6] hover:text-[#178da6] transition disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-gray-200 disabled:hover:text-gray-600'
             title='Center on today'
           >
             Today
           </button>
           <button
-            onClick={() => setAnchorOffsetWeeks(o => o + Math.max(1, Math.floor(VIEW_TO_WEEKS[viewMonths] / 2)))}
+            onClick={() => setStartMonday(m => shiftMonday(m, STEP_WEEKS))}
             className='flex items-center gap-1 text-xs px-2.5 py-1 rounded border border-gray-200 text-gray-600 hover:border-[#178da6] hover:text-[#178da6] transition'
-            title='Scroll forward'
+            title='Move start ~1 month later'
           >
             <span>Next</span>
             <ChevronRight size={14} />
@@ -589,6 +616,7 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
         futureWeeks={futureWeeks}
         anchorDate={anchorDate}
         contentFilter={contentFilter}
+        onSetStart={setStartMonday}
       />
 
       <UncategorizedExercises

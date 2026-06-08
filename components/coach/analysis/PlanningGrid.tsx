@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, Fragment } from 'react';
+import { useMemo, useState, useRef, useCallback, Fragment } from 'react';
 import { Check, X, ChevronRight, ChevronDown } from 'lucide-react';
 import type { PatternWithExercises, ProgrammingPlanItem, PlanningGridWeek, WeeklyCoverageMap, PatternGapResult } from '@/types/planner';
 import { getMonday, generateWeeks } from '@/utils/pattern-analytics';
@@ -20,6 +20,8 @@ interface PlanningGridProps {
   anchorDate?: Date;
   /** When 'rm-only', a pattern-week only counts as covered if it includes at least one RM-tested exercise. */
   contentFilter?: 'all' | 'rm-only';
+  /** Click a week header to make that week the grid's start (left edge). */
+  onSetStart?: (weekStart: string) => void;
 }
 
 interface SelectedPast {
@@ -42,8 +44,27 @@ export default function PlanningGrid({
   futureWeeks = 12,
   anchorDate,
   contentFilter = 'all',
+  onSetStart,
 }: PlanningGridProps) {
   const [inlineExpandedId, setInlineExpandedId] = useState<string | null>(null);
+
+  // Track the horizontal-scroll container's VISIBLE width. An expanded pattern's
+  // exercise chips live in a full-width colSpan cell; at 6/12-month scale the
+  // table is far wider than the viewport, so without this the chips stretch
+  // across the entire scrolled width. We pin them (sticky) to a div sized to the
+  // visible window instead. Callback ref (not useEffect) so the observer attaches
+  // whenever the scroll div mounts — including after patterns load async, when an
+  // initial empty-state render means the div isn't there on first mount.
+  const [viewportWidth, setViewportWidth] = useState<number>(0);
+  const roRef = useRef<ResizeObserver | null>(null);
+  const scrollRefCb = useCallback((node: HTMLDivElement | null) => {
+    roRef.current?.disconnect();
+    if (!node) return;
+    setViewportWidth(node.clientWidth);
+    const ro = new ResizeObserver(() => setViewportWidth(node.clientWidth));
+    ro.observe(node);
+    roRef.current = ro;
+  }, []);
 
   // Predicate: in rm-only mode a pattern-week is only "covered" if at least
   // one matched exercise carried an rmType.
@@ -101,7 +122,7 @@ export default function PlanningGrid({
       <h3 className='text-sm md:text-base font-semibold text-gray-800 p-3 md:p-4 border-b'>
         Planning Grid
       </h3>
-      <div className='overflow-x-auto'>
+      <div ref={scrollRefCb} className='overflow-x-auto'>
         <table className='min-w-full border-collapse'>
           <thead>
             <tr>
@@ -111,7 +132,7 @@ export default function PlanningGrid({
               {weeks.map(week => (
                 <th
                   key={week.weekStart}
-                  className={`px-1 py-2 text-center text-xs font-medium border-b min-w-[48px] ${
+                  className={`p-0 text-center text-xs font-medium border-b min-w-[48px] ${
                     week.isCurrent
                       ? 'bg-[#178da6]/10 text-[#178da6] font-bold'
                       : week.isPast
@@ -119,7 +140,14 @@ export default function PlanningGrid({
                       : 'bg-white text-gray-600'
                   }`}
                 >
-                  {week.weekLabel}
+                  <button
+                    type='button'
+                    onClick={() => onSetStart?.(week.weekStart)}
+                    className='w-full px-1 py-2 hover:bg-[#178da6]/20 transition cursor-pointer'
+                    title='Start the grid from this week'
+                  >
+                    {week.weekLabel}
+                  </button>
                 </th>
               ))}
             </tr>
@@ -237,13 +265,22 @@ export default function PlanningGrid({
               </tr>
               {isInlineExpanded && (
                 <tr>
-                  <td colSpan={weeks.length + 1} className='bg-gray-50/60 border-b px-3 py-2'>
-                    <PatternExerciseChips
-                      pattern={pattern}
-                      gaps={gaps}
-                      onOpenExercisePicker={onOpenExercisePicker}
-                      onRemoveExercise={onRemoveExercise}
-                    />
+                  <td colSpan={weeks.length + 1} className='bg-gray-50/60 border-b p-0'>
+                    {/* Pinned to the left edge of the scroll viewport and sized
+                        to the visible width, so chips fill the visible window and
+                        wrap within it rather than stretching across the full
+                        scrolled width at 6/12-month scale. */}
+                    <div
+                      className='sticky left-0 px-3 py-2'
+                      style={viewportWidth ? { width: viewportWidth } : undefined}
+                    >
+                      <PatternExerciseChips
+                        pattern={pattern}
+                        gaps={gaps}
+                        onOpenExercisePicker={onOpenExercisePicker}
+                        onRemoveExercise={onRemoveExercise}
+                      />
+                    </div>
                   </td>
                 </tr>
               )}
