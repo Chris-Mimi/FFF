@@ -47,12 +47,32 @@ export async function POST(request: NextRequest) {
     // Load current card state on this member (the holder).
     const { data: member, error: memberError } = await supabaseAdmin
       .from('members')
-      .select('id, name, display_name, ten_card_total, ten_card_sessions_used, ten_card_purchase_date, ten_card_notes')
+      .select('id, name, display_name, ten_card_holder_id, ten_card_total, ten_card_sessions_used, ten_card_purchase_date, ten_card_notes')
       .eq('id', memberId)
       .single();
 
     if (memberError || !member) {
       return NextResponse.json({ error: 'Member not found' }, { status: 404 });
+    }
+
+    // Guard: a shared family card lives on the HOLDER's row; sharers (kids) just
+    // point at it via ten_card_holder_id. Closing on a sharer's row creates a
+    // duplicate card the holder-rollup ignores and pushes the holder's counter
+    // over the limit on Recalc (Lenny Kleinert / Katja Brückner incident). Refuse
+    // and point the coach at the holder.
+    if (member.ten_card_holder_id) {
+      const { data: holder } = await supabaseAdmin
+        .from('members')
+        .select('name, display_name')
+        .eq('id', member.ten_card_holder_id)
+        .single();
+      const holderName = holder?.display_name || holder?.name || 'the card holder';
+      return NextResponse.json(
+        {
+          error: `${member.display_name || member.name} shares ${holderName}'s 10-card. Close and renew it on ${holderName}'s account instead.`,
+        },
+        { status: 400 }
+      );
     }
 
     if (member.ten_card_purchase_date == null) {
