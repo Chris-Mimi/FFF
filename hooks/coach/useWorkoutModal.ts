@@ -475,6 +475,9 @@ export function useWorkoutModal(
     if (dataType === 'wod') {
       // Handle entire WOD drop - get data from window object (set by drag handler in coach page)
       const draggedWODData = window.__draggedWOD;
+      // Clear immediately: the modal-open effect also consumes this global, so a
+      // stale value would be re-injected on the next time the modal opens.
+      window.__draggedWOD = undefined;
       if (draggedWODData) {
         setFormData({
           ...formData,
@@ -487,6 +490,10 @@ export function useWorkoutModal(
     } else if (dataType === 'section') {
       // Handle section drop - get data from window object
       const draggedSectionData = window.__draggedSection;
+      // Clear immediately. The modal-open effect (useEffect above) also reads
+      // window.__draggedSection; if we don't clear it here, re-opening the
+      // workout re-injects the same section, producing a duplicate at the bottom.
+      window.__draggedSection = undefined;
       if (draggedSectionData) {
         const newSection: WODSection = {
           id: `section-${Date.now()}`,
