@@ -73,12 +73,12 @@ export default function CoachAthletesPage() {
 
       if (error) throw error;
 
-      // Only show profiles for APPROVED members. A profile row is created at
+      // Only show profiles for ACTIVE members. A profile row is created at
       // signup (status 'pending'), so without this gate a not-yet-approved
       // registration would appear in the Athletes tab. Allowlist = member exists
-      // AND status is 'active' or 'blocked' (both were approved at some point)
-      // AND not guardian_only (guardians don't train). This also hides orphan
-      // profiles with no member row (e.g. a rejected registration's leftover).
+      // AND status is 'active' AND not guardian_only (guardians don't train).
+      // 'blocked' members are excluded too (S376 — Chris's call). This also hides
+      // orphan profiles with no member row (e.g. a rejected registration's leftover).
       const userIds = (data || []).map(a => a.user_id).filter(Boolean);
       let approvedIds = new Set<string>();
       if (userIds.length > 0) {
@@ -88,7 +88,7 @@ export default function CoachAthletesPage() {
           .in('id', userIds);
         approvedIds = new Set(
           (members || [])
-            .filter(m => !m.guardian_only && (m.status === 'active' || m.status === 'blocked'))
+            .filter(m => !m.guardian_only && m.status === 'active')
             .map(m => m.id)
         );
       }

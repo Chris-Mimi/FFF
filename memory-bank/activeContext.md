@@ -33,10 +33,10 @@ _Updated at every session close. The "first 5 minutes of tomorrow" — read this
 
 **🚨 Next session — Chris asked for a full list of outstanding items to work through together. Roughly in priority order:**
 
-1. **Orphan profiles — Alex Terbrack & Carla Rydval.** Two `athlete_profiles` rows with no `members` row (S375 found 3; the bot `zIyKqEOYPzELmqVzA` was deleted). Decide PER PERSON: if legitimately rejected → delete; if their `members` row vanished unexpectedly → investigate why first (don't assume). List: `npx tsx scripts/find-orphan-athlete-profiles.ts`; delete one: `--id=<profile_id>`. They no longer clutter the Athletes list (S375 approved-only filter) but the rows still physically exist.
-2. **Decision: also hide BLOCKED athletes from the Athletes list?** S375 made it approved-only — shows `active` + `blocked`, hides `pending` + orphans. Chris to confirm whether `blocked` should drop off too (one-line filter change in [app/coach/athletes/page.tsx](app/coach/athletes/page.tsx)).
-3. **Karen 26/01/26 17:15 missing scores manual re-entry.** Re-input 8 scores via coach score-entry modal. Data in `benchmark_results`, not `wod_section_results`. Names: Kathrin Mühlen, Sabrina Lucas, Sandra Lederle, Valerie Mesenburg, Wayne Lucas, Dimitar Peresyov, Zoran Vrbanic, Lukas Simnacher (weights/times in project-history S371). Coach entry dedups on leaderboard.
-4. **Add scaling option to the other 2 Karen wods.** `675cf187-…` (18:30 26/01) + `4479f1c3-…` (28/01). `false→true` toggle safe ([useWODOperations.ts:233](hooks/coach/useWODOperations.ts#L233)).
+1. _✅ DONE S376 — Orphan profiles Alex Terbrack (`theforge@alexterbrack.com`) + Carla Rydval (`carla-muecke@web.de`, NOT the real `c.rydval@web.de`) both deleted via `find-orphan-athlete-profiles.ts --delete`._
+2. _✅ DONE S376 — Athletes list now ACTIVE-only; `blocked` dropped too (Chris's call). Filter in [app/coach/athletes/page.tsx](app/coach/athletes/page.tsx) now `m.status === 'active'`._
+3. _✅ DONE (Chris) — Karen 26/01/26 17:15 8 scores re-entered. Confirmed S376._
+4. _✅ DONE (Chris) — scaling added to the other 2 Karen wods (`675cf187` 18:30 26/01 + `4479f1c3` 28/01). Confirmed S376._
 5. **Spot-check S375 once deployed** (`/coach/analysis` Planner + `/coach/athletes`): RM-only = one row per exercise in the strength group, dot fills only on RM weeks, click→date+RM type; drag-reorder pattern groups (all mode) + exercises (rm mode); Lifts-tab acronym filter chips (DL/BP…).
 
 **Recurring/weekly:**
