@@ -20,15 +20,10 @@ http://192.168.178.75:3000
 * iphone bug (I think) Coach-side: Workouts search box: Mimi can't type anything in the search box
 * Mimi couldn't add a trial athlete
 * Review of blocking system - urgent before next Sunday!
-* Make the Pattern groups in the Planning grid grabbable so I can change the order and make the Movement Patterns follow the order of the Planning Grid
-* RM testing is not correct. Back Squat chip shows that we did it last between 15-28 days when in reality it is over 10 weeks since we did an RM test on Back Squat
 * Workouts page: ability to mute/cancel athletes without clearing the group
 * Kids in Athletes list on Workouts page:
 Need DOB: Engels Frida, Frieda Stromer, Leopold Wischhöfer, Nico Enzmann, 
 Ask Mimi Silvia Maritati (Diapers & Dumbbells?)
-
-- 🟢 HELPFUL NOTES:
-* Planning Grid terminology: the filled marker is a "coverage dot" (solid colored circle with a check = "this was covered that week"; the dashed empty one is the "planning circle" for future weeks). I'll use "coverage dot" precisely from here on.
 
 * Ask Claude for a Magic link script to access athlete's accounts to check screen views so I can help them click the right buttons. I just give Claude the email ad.
 * 
@@ -43,21 +38,11 @@ Takes ~10 seconds; outputs a timestamped file
 Then do your usual recovery (Cmd+Option+Esc or hard restart)
 Next session, tell me to read the incident file and we'll compare it to the baseline
 
-
-* 
 * Veronika Ebner's Stripe payment is active!
 * review the rep max calculator to show clearer percentages
 * 
 * Why doesn't the data integrity sql catch things like this?
-* 
-* 
-* 
-* 
-* 
-* Marion signed up for the app, is her account now freed?
-
-
-* 
+* Marion signed up for the app, is her account now freed
 * How it works/info/help file like in Planner
 * Review and check how DNF is displayed and used in the athlete leaderboard.
 
@@ -66,7 +51,6 @@ Next session, tell me to read the incident file and we'll compare it to the base
 # Workout Library tab (coach) #
 Integration with website
 Investigate the "Whiteboard Intro" sections appearing in earlier workouts
-
 
 Athlete login:
 
@@ -88,47 +72,9 @@ npx tsx scripts/check-whiteboard-name-conflicts.ts
 # Athlete Published Workouts Page #
 Should only show the days on which athlete has attended a workout. For example, if athletes have not attended a workout on a day, the day should not be displayed.
 
-*
-
 # Athlete Leaderboard Page #
 
 # Member Management Page #
-*
 
-# S315 Close → S316 Summary
-
-## Status
-Short close-out session. Cleaned up activeContext Next Steps 1/2/3/3b/6 (historical lifts tab mystery, Sonja Hujo re-entry, OG chip, Trial Athletes flow, Intervals timer) — all confirmed done or closed. Then shipped the **late-cancel gate**: athletes who cancel past the auto-lock threshold now land in `late_cancel` status instead of `cancelled`. Waitlist cancels always stay plain `cancelled`.
-
-## Historical lifts mystery (closed)
-Imported records were visible all along — Chris was looking in the athlete **Lifts** tab but imported records surface under the **Records** tab. No bug. The distinction: Lifts tab reads `barbell_lifts` + a filtered slice; Records tab shows the full `lift_records` history.
-
-## Late-cancel gate — what shipped
-Two files:
-- `app/api/bookings/cancel/route.ts` — imports `getLockLeadMinutesForSessionType`, moves session fetch before the UPDATE, computes `isLocked` (manual `is_locked=true` OR past-threshold), sets status = `'late_cancel'` when a `confirmed` booking is cancelled past the lock threshold. Response now includes `status` field.
-- `app/member/book/page.tsx` — toast branches on `data.status`: late cancels get `toast.warning(...)` with a distinct message.
-
-No schema change — `late_cancel` enum already exists and is rendered coach-side (BookingListItem, SessionManagementModal, Admin attendance rollup).
-
-## Landmines
-* None material. Dev servers still running on both machines — fine; they don't lock anything.
-
-## 📅 Scheduled reminder — 2026-05-01 (check if gate is firing)
-If today is **2026-05-01 or later**, run this query in Supabase SQL editor:
-```sql
-select count(*) as total_late_cancels,
-       max(updated_at) as most_recent
-from bookings
-where status = 'late_cancel'
-  and updated_at >= '2026-04-24';
-
-select m.name, ws.date, ws."time", b.updated_at
-from bookings b
-join members m on m.id = b.member_id
-join weekly_sessions ws on ws.id = b.session_id
-where b.status = 'late_cancel'
-  and b.updated_at >= '2026-04-24'
-order by b.updated_at desc
-limit 5;
-```
-If total is 0 after a week of real usage → flag it, the gate may not be firing. If >0 → the gate is working, mark this reminder done and delete this block.
+- 🟢 HELPFUL NOTES:
+* Planning Grid terminology: the filled marker is a "coverage dot" (solid colored circle with a check = "this was covered that week"; the dashed empty one is the "planning circle" for future weeks). I'll use "coverage dot" precisely from here on.
