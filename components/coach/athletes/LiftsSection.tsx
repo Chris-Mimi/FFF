@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { authFetch } from '@/lib/auth-fetch';
@@ -29,6 +29,10 @@ export default function LiftsSection({
 }) {
   const [results, setResults] = useState<LiftRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  // name (lowercase) → curated acronym, for the filter chips (e.g. "deadlift" → "DL").
+  const [acronymMap, setAcronymMap] = useState<Map<string, string>>(new Map());
+  // Active lift filter (matches lift_name); null = show all.
+  const [selectedLift, setSelectedLift] = useState<string | null>(null);
 
   useEffect(() => {
     if (athleteId) {
@@ -36,6 +40,52 @@ export default function LiftsSection({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [athleteId, refreshTrigger]);
+
+  // Acronyms are global library data — fetch once.
+  useEffect(() => {
+    (async () => {
+      const [liftRes, exRes] = await Promise.all([
+        supabase.from('barbell_lifts').select('name, acronym'),
+        supabase.from('exercises').select('display_name, acronym'),
+      ]);
+      const map = new Map<string, string>();
+      liftRes.data?.forEach(r => {
+        if (r.name && r.acronym) map.set(r.name.toLowerCase(), r.acronym);
+      });
+      // exercises only fill gaps — don't override a curated barbell_lifts acronym.
+      exRes.data?.forEach(r => {
+        if (r.display_name && r.acronym && !map.has(r.display_name.toLowerCase())) {
+          map.set(r.display_name.toLowerCase(), r.acronym);
+        }
+      });
+      setAcronymMap(map);
+    })();
+  }, []);
+
+  // Short label for a lift: curated acronym, else initials (multi-word) or first
+  // 2 letters (single word), uppercased.
+  const acronymFor = (name: string): string => {
+    const hit = acronymMap.get(name.toLowerCase());
+    if (hit) return hit;
+    const words = name.trim().split(/\s+/);
+    if (words.length > 1) return words.map(w => w[0]).join('').slice(0, 3).toUpperCase();
+    return name.slice(0, 2).toUpperCase();
+  };
+
+  // Distinct lifts present in this athlete's records, alphabetical.
+  const distinctLifts = useMemo(
+    () => Array.from(new Set(results.map(r => r.lift_name))).sort((a, b) => a.localeCompare(b)),
+    [results]
+  );
+
+  // Clear the filter if the selected lift is no longer present (athlete switch / delete).
+  useEffect(() => {
+    if (selectedLift && !distinctLifts.includes(selectedLift)) setSelectedLift(null);
+  }, [distinctLifts, selectedLift]);
+
+  const visibleResults = selectedLift
+    ? results.filter(r => r.lift_name === selectedLift)
+    : results;
 
   const fetchResults = async () => {
     if (!athleteId) return;
@@ -101,8 +151,38 @@ export default function LiftsSection({
       {results.length === 0 ? (
         <p className='text-gray-500 text-center py-8'>No lift records recorded yet</p>
       ) : (
-        <div className='space-y-3'>
-          {results.map(result => (
+        <>
+          {/* Filter chips — acronyms for each lift the athlete has logged */}
+          {distinctLifts.length > 1 && (
+            <div className='flex flex-wrap gap-1.5 mb-4'>
+              <button
+                onClick={() => setSelectedLift(null)}
+                className={`px-2.5 py-1 rounded-full text-xs font-semibold transition ${
+                  selectedLift === null
+                    ? 'bg-[#178da6] text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                All
+              </button>
+              {distinctLifts.map(lift => (
+                <button
+                  key={lift}
+                  onClick={() => setSelectedLift(selectedLift === lift ? null : lift)}
+                  title={lift}
+                  className={`px-2.5 py-1 rounded-full text-xs font-semibold transition ${
+                    selectedLift === lift
+                      ? 'bg-[#178da6] text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {acronymFor(lift)}
+                </button>
+              ))}
+            </div>
+          )}
+          <div className='space-y-3'>
+          {visibleResults.map(result => (
             <div
               key={result.id}
               className='flex items-center justify-between p-4 bg-gray-50 rounded-lg'
@@ -133,7 +213,8 @@ export default function LiftsSection({
               </div>
             </div>
           ))}
-        </div>
+          </div>
+        </>
       )}
     </div>
   );

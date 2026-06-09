@@ -73,20 +73,27 @@ export default function CoachAthletesPage() {
 
       if (error) throw error;
 
-      // Filter out guardian_only members — they don't train, so they don't belong in
-      // the Athletes tab even if a stray athlete_profiles row exists for them.
+      // Only show profiles for APPROVED members. A profile row is created at
+      // signup (status 'pending'), so without this gate a not-yet-approved
+      // registration would appear in the Athletes tab. Allowlist = member exists
+      // AND status is 'active' or 'blocked' (both were approved at some point)
+      // AND not guardian_only (guardians don't train). This also hides orphan
+      // profiles with no member row (e.g. a rejected registration's leftover).
       const userIds = (data || []).map(a => a.user_id).filter(Boolean);
-      let guardianOnlyIds = new Set<string>();
+      let approvedIds = new Set<string>();
       if (userIds.length > 0) {
-        const { data: guardians } = await supabase
+        const { data: members } = await supabase
           .from('members')
-          .select('id')
-          .in('id', userIds)
-          .eq('guardian_only', true);
-        guardianOnlyIds = new Set((guardians || []).map(g => g.id));
+          .select('id, status, guardian_only')
+          .in('id', userIds);
+        approvedIds = new Set(
+          (members || [])
+            .filter(m => !m.guardian_only && (m.status === 'active' || m.status === 'blocked'))
+            .map(m => m.id)
+        );
       }
 
-      setAthletes((data || []).filter(a => !guardianOnlyIds.has(a.user_id)));
+      setAthletes((data || []).filter(a => approvedIds.has(a.user_id)));
     } catch (error) {
       console.error('Error fetching athletes:', error);
       setAthletes([]);

@@ -62,6 +62,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // The Athletes page reads athlete_profiles (not members), so the profile row
+    // must be deleted too — otherwise a rejected registration lingers in the
+    // Athletes list as an orphan (members.id === athlete_profiles.user_id === auth uid).
+    const { error: deleteProfileError } = await supabaseAdmin
+      .from('athlete_profiles')
+      .delete()
+      .eq('user_id', memberId);
+
+    if (deleteProfileError) {
+      // Non-fatal: continue to auth deletion so we don't leave a half-rejected state.
+      console.error('Athlete profile delete error:', deleteProfileError);
+    }
+
     const { error: deleteAuthError } = await supabaseAdmin.auth.admin.deleteUser(memberId);
 
     if (deleteAuthError) {
