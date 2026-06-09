@@ -1,8 +1,8 @@
 'use client';
 
 import { useMemo, useState, useRef, useCallback, Fragment } from 'react';
-import { Check, X, ChevronRight, ChevronDown } from 'lucide-react';
-import type { PatternWithExercises, ProgrammingPlanItem, PlanningGridWeek, WeeklyCoverageMap, PatternGapResult } from '@/types/planner';
+import { Check, X, ChevronRight, ChevronDown, GripVertical } from 'lucide-react';
+import type { PatternWithExercises, ProgrammingPlanItem, PlanningGridWeek, WeeklyCoverageMap, PatternGapResult, ExerciseOccurrence } from '@/types/planner';
 import { getMonday, generateWeeks } from '@/utils/pattern-analytics';
 import { formatDate } from '@/utils/date-utils';
 import PatternExerciseChips from './PatternExerciseChips';
@@ -18,16 +18,34 @@ interface PlanningGridProps {
   pastWeeks?: number;
   futureWeeks?: number;
   anchorDate?: Date;
-  /** When 'rm-only', a pattern-week only counts as covered if it includes at least one RM-tested exercise. */
+  /**
+   * 'all': one row per pattern; a coverage dot fills when ANY linked exercise
+   * appeared that week. 'rm-only': the grid explodes into one row per exercise
+   * (grouped under its pattern), and a coverage dot fills only when THAT
+   * exercise had a 1/3/5/10RM test that week.
+   */
   contentFilter?: 'all' | 'rm-only';
   /** Click a week header to make that week the grid's start (left edge). */
   onSetStart?: (weekStart: string) => void;
+  /** Reorder pattern groups (full id list in new order) — used in 'all' mode. */
+  onReorderPatterns?: (orderedIds: string[]) => Promise<void> | void;
+  /** Reorder exercises within one pattern — used in 'rm-only' mode. */
+  onReorderExercises?: (patternId: string, orderedExerciseIds: string[]) => Promise<void> | void;
 }
 
 interface SelectedPast {
   patternId: string;
   patternName: string;
   color: string;
+  weekStart: string;
+  weekLabel: string;
+}
+
+interface SelectedExercise {
+  patternId: string;
+  patternName: string;
+  color: string;
+  exName: string;
   weekStart: string;
   weekLabel: string;
 }
@@ -45,8 +63,47 @@ export default function PlanningGrid({
   anchorDate,
   contentFilter = 'all',
   onSetStart,
+  onReorderPatterns,
+  onReorderExercises,
 }: PlanningGridProps) {
+  const rmOnly = contentFilter === 'rm-only';
   const [inlineExpandedId, setInlineExpandedId] = useState<string | null>(null);
+
+  // Drag-reorder state. Patterns reorder in 'all' mode (group rows); exercises
+  // reorder in 'rm-only' mode (within their group). Native HTML5 DnD — matches
+  // PatternManager + the touch polyfill auto-attaches to draggable handles.
+  const [draggedPatternId, setDraggedPatternId] = useState<string | null>(null);
+  const [dragOverPatternId, setDragOverPatternId] = useState<string | null>(null);
+  const [draggedEx, setDraggedEx] = useState<{ patternId: string; exId: string } | null>(null);
+  const [dragOverExId, setDragOverExId] = useState<string | null>(null);
+
+  const handlePatternDrop = (targetId: string) => {
+    const dragged = draggedPatternId;
+    setDraggedPatternId(null);
+    setDragOverPatternId(null);
+    if (!dragged || dragged === targetId) return;
+    const ids = patterns.map(p => p.id);
+    const from = ids.indexOf(dragged);
+    const to = ids.indexOf(targetId);
+    if (from === -1 || to === -1) return;
+    ids.splice(from, 1);
+    ids.splice(to, 0, dragged);
+    onReorderPatterns?.(ids);
+  };
+
+  const handleExerciseDrop = (patternId: string, targetExId: string, orderedExIds: string[]) => {
+    const dragged = draggedEx;
+    setDraggedEx(null);
+    setDragOverExId(null);
+    if (!dragged || dragged.patternId !== patternId || dragged.exId === targetExId) return;
+    const ids = [...orderedExIds];
+    const from = ids.indexOf(dragged.exId);
+    const to = ids.indexOf(targetExId);
+    if (from === -1 || to === -1) return;
+    ids.splice(from, 1);
+    ids.splice(to, 0, dragged.exId);
+    onReorderExercises?.(patternId, ids);
+  };
 
   // Track the horizontal-scroll container's VISIBLE width. An expanded pattern's
   // exercise chips live in a full-width colSpan cell; at 6/12-month scale the
@@ -71,11 +128,22 @@ export default function PlanningGrid({
   const isWeekCovered = (weekStart: string, patternId: string): boolean => {
     const detail = coverage.get(weekStart)?.get(patternId);
     if (!detail) return false;
-    if (contentFilter === 'rm-only') {
+    if (rmOnly) {
       return detail.exercises.some(ex => !!ex.rmType);
     }
     return true;
   };
+
+  // Per-exercise RM-test occurrences for a given pattern-week (rm-only rows).
+  const exerciseRmOccurrences = (
+    weekStart: string,
+    patternId: string,
+    exName: string
+  ): ExerciseOccurrence[] => {
+    const ex = coverage.get(weekStart)?.get(patternId)?.exercises.find(x => x.name === exName);
+    return ex?.occurrences.filter(o => !!o.rmType) ?? [];
+  };
+
   const anchorTime = anchorDate?.getTime();
   const weeks: PlanningGridWeek[] = useMemo(() => {
     const mondayStrs = generateWeeks(pastWeeks, futureWeeks, anchorTime ? new Date(anchorTime) : undefined);
@@ -92,6 +160,23 @@ export default function PlanningGrid({
     });
   }, [pastWeeks, futureWeeks, anchorTime]);
 
+  // RM-only mode shows ONLY the dedicated RM-testing group (e.g. "Barbell
+  // Strength Testing 1,3,5 & 10RM"). It's identified by the rep-max notation in
+  // its name (a digit immediately followed by "RM", e.g. "10RM") — unique to
+  // that group. Content-based detection can't be used: a movement like Back
+  // Squat lives in several patterns, so its RM occurrence would mark all of them.
+  const rmPatternIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const p of patterns) {
+      if (/\d\s*RM\b/i.test(p.name)) ids.add(p.id);
+    }
+    return ids;
+  }, [patterns]);
+
+  const displayPatterns = rmOnly
+    ? patterns.filter(p => rmPatternIds.has(p.id))
+    : patterns;
+
   // Build plan item lookup: `${patternId}_${weekStart}` → PlanItem
   const planLookup = useMemo(() => {
     const map = new Map<string, ProgrammingPlanItem>();
@@ -102,12 +187,41 @@ export default function PlanningGrid({
   }, [planItems]);
 
   const [selectedPast, setSelectedPast] = useState<SelectedPast | null>(null);
+  const [selectedEx, setSelectedEx] = useState<SelectedExercise | null>(null);
+
   const selectedDetailRaw = selectedPast
     ? coverage.get(selectedPast.weekStart)?.get(selectedPast.patternId) || null
     : null;
-  const selectedDetail = selectedDetailRaw && contentFilter === 'rm-only'
+  const selectedDetail = selectedDetailRaw && rmOnly
     ? { ...selectedDetailRaw, exercises: selectedDetailRaw.exercises.filter(ex => !!ex.rmType) }
     : selectedDetailRaw;
+
+  const selectedExOcc = selectedEx
+    ? exerciseRmOccurrences(selectedEx.weekStart, selectedEx.patternId, selectedEx.exName)
+    : [];
+
+  // Reusable future-week planning circle (dashed = open slot, filled = planned).
+  const renderPlanningCell = (pattern: PatternWithExercises, weekStart: string) => {
+    const isPlanned = planLookup.has(`${pattern.id}_${weekStart}`);
+    return (
+      <button
+        onClick={() => onTogglePlan(pattern.id, weekStart)}
+        className='w-full flex justify-center'
+        title={isPlanned ? 'Remove from plan' : 'Add to plan'}
+      >
+        {isPlanned ? (
+          <div
+            className='w-5 h-5 rounded-full border-2 flex items-center justify-center'
+            style={{ borderColor: pattern.color, backgroundColor: pattern.color + '20' }}
+          >
+            <Check size={10} style={{ color: pattern.color }} />
+          </div>
+        ) : (
+          <div className='w-5 h-5 rounded-full border-2 border-dashed border-gray-300 hover:border-gray-400 transition' />
+        )}
+      </button>
+    );
+  };
 
   if (patterns.length === 0) {
     return (
@@ -121,13 +235,18 @@ export default function PlanningGrid({
     <div className='bg-white rounded-lg shadow-sm border'>
       <h3 className='text-sm md:text-base font-semibold text-gray-800 p-3 md:p-4 border-b'>
         Planning Grid
+        {rmOnly && (
+          <span className='ml-2 text-xs font-normal text-gray-500'>
+            · RM testing — one row per exercise, dot fills on 1/3/5/10RM weeks
+          </span>
+        )}
       </h3>
       <div ref={scrollRefCb} className='overflow-x-auto'>
         <table className='min-w-full border-collapse'>
           <thead>
             <tr>
               <th className='sticky left-0 z-10 bg-gray-100 px-3 py-2 text-left text-xs font-semibold text-gray-600 border-b border-r min-w-[140px] md:min-w-[180px]'>
-                Pattern
+                {rmOnly ? 'Exercise' : 'Pattern'}
               </th>
               {weeks.map(week => (
                 <th
@@ -153,16 +272,192 @@ export default function PlanningGrid({
             </tr>
           </thead>
           <tbody>
-            {patterns.map(pattern => {
+            {rmOnly && displayPatterns.length === 0 && (
+              <tr>
+                <td
+                  colSpan={weeks.length + 1}
+                  className='px-3 py-6 text-center text-sm text-gray-500 border-b'
+                >
+                  No RM-testing group found. Name a movement pattern with rep-max notation (e.g. &ldquo;… 1,3,5 &amp; 10RM&rdquo;) to show it here.
+                </td>
+              </tr>
+            )}
+            {displayPatterns.map(pattern => {
+              // ---- RM-only mode: pattern header row + one row per exercise ----
+              if (rmOnly) {
+                // Stored order (sort_order) — drag a row to reorder.
+                const orderedExercises = pattern.exercises;
+                const exIdOrder = orderedExercises.map(e => e.id);
+                return (
+                  <Fragment key={pattern.id}>
+                    {/* Pattern header — group label + future-week planning circles */}
+                    <tr className='bg-gray-50'>
+                      <td className='sticky left-0 z-10 bg-gray-50 px-3 py-2 border-b border-r'>
+                        <div className='flex items-center gap-1.5'>
+                          <div
+                            className='w-2.5 h-2.5 rounded-full shrink-0'
+                            style={{ backgroundColor: pattern.color }}
+                          />
+                          <span className='text-xs md:text-sm font-semibold text-gray-800 truncate'>
+                            {pattern.name}
+                          </span>
+                        </div>
+                      </td>
+                      {weeks.map(week => (
+                        <td
+                          key={week.weekStart}
+                          className={`px-1 py-2 text-center border-b bg-gray-50 ${
+                            week.isCurrent ? 'bg-[#178da6]/5' : ''
+                          }`}
+                        >
+                          {!week.isPast && !week.isCurrent
+                            ? renderPlanningCell(pattern, week.weekStart)
+                            : null}
+                        </td>
+                      ))}
+                    </tr>
+                    {/* Exercise rows */}
+                    {orderedExercises.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={weeks.length + 1}
+                          className='px-3 py-2 pl-8 text-xs text-gray-400 italic border-b'
+                        >
+                          No exercises in this pattern.
+                        </td>
+                      </tr>
+                    ) : (
+                      orderedExercises.map(ex => {
+                        const exName = ex.display_name || ex.name;
+                        const isDragged = draggedEx?.exId === ex.id && draggedEx?.patternId === pattern.id;
+                        const isDragOver = dragOverExId === ex.id && draggedEx?.patternId === pattern.id;
+                        return (
+                          <tr
+                            key={ex.id}
+                            className={`hover:bg-gray-50/50 ${isDragged ? 'opacity-40' : ''} ${
+                              isDragOver ? 'bg-[#178da6]/10' : ''
+                            }`}
+                            onDragOver={e => {
+                              if (draggedEx?.patternId === pattern.id && draggedEx.exId !== ex.id) {
+                                e.preventDefault();
+                                setDragOverExId(ex.id);
+                              }
+                            }}
+                            onDrop={() => handleExerciseDrop(pattern.id, ex.id, exIdOrder)}
+                          >
+                            <td className='sticky left-0 z-10 bg-white px-3 py-2 pl-6 border-b border-r'>
+                              <div className='flex items-center gap-1.5'>
+                                <span
+                                  draggable
+                                  onDragStart={() => setDraggedEx({ patternId: pattern.id, exId: ex.id })}
+                                  onDragEnd={() => { setDraggedEx(null); setDragOverExId(null); }}
+                                  className='cursor-grab active:cursor-grabbing shrink-0 text-gray-300 hover:text-gray-500 pointer-coarse:opacity-100 transition'
+                                  title='Drag to reorder'
+                                >
+                                  <GripVertical size={13} />
+                                </span>
+                                <span className='text-xs md:text-sm text-gray-700 truncate'>
+                                  {exName}
+                                </span>
+                              </div>
+                            </td>
+                            {weeks.map(week => {
+                              const showCoverage = week.isPast || week.isCurrent;
+                              if (!showCoverage) {
+                                return (
+                                  <td
+                                    key={week.weekStart}
+                                    className='px-1 py-2 border-b'
+                                  />
+                                );
+                              }
+                              const occ = exerciseRmOccurrences(week.weekStart, pattern.id, exName);
+                              const isCov = occ.length > 0;
+                              const isSel =
+                                selectedEx?.patternId === pattern.id &&
+                                selectedEx?.exName === exName &&
+                                selectedEx?.weekStart === week.weekStart;
+                              return (
+                                <td
+                                  key={week.weekStart}
+                                  className={`px-1 py-2 text-center border-b ${
+                                    week.isCurrent ? 'bg-[#178da6]/5' : ''
+                                  }`}
+                                >
+                                  {isCov ? (
+                                    <button
+                                      type='button'
+                                      onClick={() =>
+                                        setSelectedEx(isSel ? null : {
+                                          patternId: pattern.id,
+                                          patternName: pattern.name,
+                                          color: pattern.color,
+                                          exName,
+                                          weekStart: week.weekStart,
+                                          weekLabel: week.weekLabel,
+                                        })
+                                      }
+                                      className='w-full flex justify-center'
+                                      title='Click to see the RM-test date'
+                                    >
+                                      <div
+                                        className={`w-5 h-5 rounded-full flex items-center justify-center transition ${
+                                          isSel ? 'ring-2 ring-offset-1 ring-gray-700' : ''
+                                        }`}
+                                        style={{ backgroundColor: pattern.color }}
+                                      >
+                                        <Check size={12} className='text-white' />
+                                      </div>
+                                    </button>
+                                  ) : (
+                                    <div className='flex justify-center'>
+                                      <div className='w-5 h-5 rounded-full bg-gray-100' />
+                                    </div>
+                                  )}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        );
+                      })
+                    )}
+                  </Fragment>
+                );
+              }
+
+              // ---- 'all' mode: one row per pattern (with inline-expand chips) ----
               const isInlineExpanded = inlineExpandedId === pattern.id;
+              const isPatternDragged = draggedPatternId === pattern.id;
+              const isPatternDragOver = dragOverPatternId === pattern.id;
               return (
               <Fragment key={pattern.id}>
-              <tr className='hover:bg-gray-50/50'>
+              <tr
+                className={`hover:bg-gray-50/50 ${isPatternDragged ? 'opacity-40' : ''} ${
+                  isPatternDragOver ? 'bg-[#178da6]/10' : ''
+                }`}
+                onDragOver={e => {
+                  if (draggedPatternId && draggedPatternId !== pattern.id) {
+                    e.preventDefault();
+                    setDragOverPatternId(pattern.id);
+                  }
+                }}
+                onDrop={() => handlePatternDrop(pattern.id)}
+              >
                 <td className='sticky left-0 z-10 bg-white px-3 py-2 border-b border-r'>
+                  <div className='flex items-center gap-1.5'>
+                  <span
+                    draggable
+                    onDragStart={() => setDraggedPatternId(pattern.id)}
+                    onDragEnd={() => { setDraggedPatternId(null); setDragOverPatternId(null); }}
+                    className='cursor-grab active:cursor-grabbing shrink-0 text-gray-300 hover:text-gray-500 pointer-coarse:opacity-100 transition'
+                    title='Drag to reorder groups'
+                  >
+                    <GripVertical size={13} />
+                  </span>
                   <button
                     type='button'
                     onClick={() => setInlineExpandedId(isInlineExpanded ? null : pattern.id)}
-                    className='flex items-center gap-1.5 w-full text-left hover:text-[#178da6] transition'
+                    className='flex items-center gap-1.5 flex-1 text-left hover:text-[#178da6] transition'
                     title='Show exercises in this pattern'
                   >
                     {isInlineExpanded ? (
@@ -178,10 +473,10 @@ export default function PlanningGrid({
                       {pattern.name}
                     </span>
                   </button>
+                  </div>
                 </td>
                 {weeks.map(week => {
                   const isCovered = isWeekCovered(week.weekStart, pattern.id);
-                  const isPlanned = planLookup.has(`${pattern.id}_${week.weekStart}`);
                   const isSelected =
                     selectedPast?.patternId === pattern.id &&
                     selectedPast?.weekStart === week.weekStart;
@@ -215,27 +510,6 @@ export default function PlanningGrid({
                       </div>
                     </button>
                   );
-                  const renderPlanningButton = (
-                    <button
-                      onClick={() => onTogglePlan(pattern.id, week.weekStart)}
-                      className='w-full flex justify-center'
-                      title={isPlanned ? 'Remove from plan' : 'Add to plan'}
-                    >
-                      {isPlanned ? (
-                        <div
-                          className='w-5 h-5 rounded-full border-2 flex items-center justify-center'
-                          style={{
-                            borderColor: pattern.color,
-                            backgroundColor: pattern.color + '20',
-                          }}
-                        >
-                          <Check size={10} style={{ color: pattern.color }} />
-                        </div>
-                      ) : (
-                        <div className='w-5 h-5 rounded-full border-2 border-dashed border-gray-300 hover:border-gray-400 transition' />
-                      )}
-                    </button>
-                  );
 
                   return (
                     <td
@@ -249,7 +523,7 @@ export default function PlanningGrid({
                           renderCovered
                         ) : week.isCurrent ? (
                           // Current week, no coverage yet: still let coach toggle planning
-                          renderPlanningButton
+                          renderPlanningCell(pattern, week.weekStart)
                         ) : (
                           // Past, no coverage
                           <div className='flex justify-center'>
@@ -257,7 +531,7 @@ export default function PlanningGrid({
                           </div>
                         )
                       ) : (
-                        renderPlanningButton
+                        renderPlanningCell(pattern, week.weekStart)
                       )}
                     </td>
                   );
@@ -290,7 +564,9 @@ export default function PlanningGrid({
           </tbody>
         </table>
       </div>
-      {selectedPast && selectedDetail && selectedDetail.exercises.length > 0 && (
+
+      {/* 'all' mode detail: which exercises covered the selected pattern-week */}
+      {!rmOnly && selectedPast && selectedDetail && selectedDetail.exercises.length > 0 && (
         <div className='border-t bg-gray-50 p-3 md:p-4'>
           <div className='flex items-start justify-between gap-2 mb-2'>
             <div className='flex items-center gap-2 flex-wrap'>
@@ -344,6 +620,54 @@ export default function PlanningGrid({
                 })
               )
               .join(', ')}
+          </div>
+        </div>
+      )}
+
+      {/* rm-only mode detail: the RM-test date(s) for the selected exercise-week */}
+      {rmOnly && selectedEx && selectedExOcc.length > 0 && (
+        <div className='border-t bg-gray-50 p-3 md:p-4'>
+          <div className='flex items-start justify-between gap-2 mb-2'>
+            <div className='flex items-center gap-2 flex-wrap'>
+              <div
+                className='w-2.5 h-2.5 rounded-full shrink-0'
+                style={{ backgroundColor: selectedEx.color }}
+              />
+              <span className='text-sm font-semibold text-gray-800'>
+                {selectedEx.exName}
+              </span>
+              <span className='text-xs text-gray-500'>
+                · {selectedEx.patternName} · week of {selectedEx.weekLabel}
+              </span>
+            </div>
+            <button
+              type='button'
+              onClick={() => setSelectedEx(null)}
+              className='text-gray-400 hover:text-gray-600 shrink-0'
+              aria-label='Close details'
+            >
+              <X size={16} />
+            </button>
+          </div>
+          <div className='flex flex-wrap gap-1.5'>
+            {selectedExOcc.map(o => (
+              <span
+                key={o.date}
+                className='inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs border bg-amber-50 border-amber-300 text-amber-800'
+              >
+                {new Date(o.date + 'T00:00:00').toLocaleDateString('en-GB', {
+                  weekday: 'short',
+                  day: 'numeric',
+                  month: 'short',
+                  year: '2-digit',
+                })}
+                {o.rmType && (
+                  <span className='inline-flex items-center px-1 py-px rounded bg-amber-200 text-amber-900 text-[10px] font-semibold'>
+                    {o.rmType}
+                  </span>
+                )}
+              </span>
+            ))}
           </div>
         </div>
       )}

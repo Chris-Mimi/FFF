@@ -143,8 +143,9 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
     // Fetch exercises for all patterns
     const { data: peData } = await supabase
       .from('movement_pattern_exercises')
-      .select('pattern_id, exercise_id, exercises(id, name, display_name)')
-      .in('pattern_id', patternData.map(p => p.id));
+      .select('pattern_id, exercise_id, sort_order, exercises(id, name, display_name)')
+      .in('pattern_id', patternData.map(p => p.id))
+      .order('sort_order', { nullsFirst: false });
 
     const patternsWithExercises: PatternWithExercises[] = patternData.map(p => ({
       ...p,
@@ -351,6 +352,36 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
     }
   };
 
+  // Reorder exercises WITHIN a pattern (RM-grid drag). orderedIds is the new
+  // exercise-id order for that one pattern; persisted via sort_order.
+  const handleReorderExercises = async (patternId: string, orderedIds: string[]) => {
+    // Optimistic local reorder of that pattern's exercises array.
+    setPatterns(prev =>
+      prev.map(p => {
+        if (p.id !== patternId) return p;
+        const byId = new Map(p.exercises.map(e => [e.id, e]));
+        const reordered = orderedIds
+          .map(id => byId.get(id))
+          .filter((e): e is PatternWithExercises['exercises'][number] => !!e);
+        return { ...p, exercises: reordered };
+      })
+    );
+
+    const updates = orderedIds.map((exId, idx) =>
+      supabase
+        .from('movement_pattern_exercises')
+        .update({ sort_order: idx })
+        .eq('pattern_id', patternId)
+        .eq('exercise_id', exId)
+    );
+    const results = await Promise.all(updates);
+    if (results.some(r => r.error)) {
+      toast.error('Failed to save order');
+      const pats = await fetchPatterns();
+      if (pats) await computeAnalysis(pats, trackFilter);
+    }
+  };
+
   // Exercise management for patterns
   const handleToggleExercise = async (exerciseId: string) => {
     if (!pickerPatternId) return;
@@ -376,7 +407,7 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
       // Add
       const { error } = await supabase
         .from('movement_pattern_exercises')
-        .insert({ pattern_id: pickerPatternId, exercise_id: exerciseId });
+        .insert({ pattern_id: pickerPatternId, exercise_id: exerciseId, sort_order: pattern.exercises.length });
 
       if (error) {
         toast.error('Failed to add exercise');
@@ -389,9 +420,10 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
   };
 
   const handleAssignFromUncategorized = async (exerciseId: string, patternId: string) => {
+    const targetCount = patterns.find(p => p.id === patternId)?.exercises.length ?? 0;
     const { error } = await supabase
       .from('movement_pattern_exercises')
-      .insert({ pattern_id: patternId, exercise_id: exerciseId });
+      .insert({ pattern_id: patternId, exercise_id: exerciseId, sort_order: targetCount });
 
     if (error) {
       toast.error('Failed to assign exercise');
@@ -617,6 +649,8 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
         anchorDate={anchorDate}
         contentFilter={contentFilter}
         onSetStart={setStartMonday}
+        onReorderPatterns={handleReorderPatterns}
+        onReorderExercises={handleReorderExercises}
       />
 
       <UncategorizedExercises

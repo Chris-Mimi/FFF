@@ -190,7 +190,7 @@ export async function detectWeeklyCoverage(
     const mondayStr = formatDate(monday);
 
     for (const pattern of patterns) {
-      const matched: CoveredExercise[] = [];
+      const matched: { name: string; rmType?: CoveredExercise['rmType'] }[] = [];
       for (const e of pattern.exercises) {
         const hitName = metaByLower.get(e.name.toLowerCase());
         const hitDisplay = e.display_name ? metaByLower.get(e.display_name.toLowerCase()) : undefined;
@@ -215,11 +215,17 @@ export async function detectWeeklyCoverage(
         weekMap.set(pattern.id, detail);
       }
       for (const m of matched) {
-        const existing = detail.exercises.find(x => x.name === m.name);
+        let existing = detail.exercises.find(x => x.name === m.name);
         if (!existing) {
-          detail.exercises.push(m);
+          existing = { name: m.name, rmType: m.rmType, occurrences: [] };
+          detail.exercises.push(existing);
         } else if (!existing.rmType && m.rmType) {
           existing.rmType = m.rmType;
+        }
+        // One occurrence per (exercise, workout date). Guards against an exercise
+        // matching twice in the same workout (e.g. via name + display_name).
+        if (!existing.occurrences.some(o => o.date === workout.date)) {
+          existing.occurrences.push({ date: workout.date, rmType: m.rmType });
         }
       }
       if (!detail.dates.includes(workout.date)) detail.dates.push(workout.date);
@@ -229,6 +235,7 @@ export async function detectWeeklyCoverage(
   for (const weekMap of coverage.values()) {
     for (const detail of weekMap.values()) {
       detail.exercises.sort((a, b) => a.name.localeCompare(b.name));
+      detail.exercises.forEach(ex => ex.occurrences.sort((a, b) => a.date.localeCompare(b.date)));
       detail.dates.sort();
     }
   }

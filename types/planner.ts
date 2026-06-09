@@ -52,9 +52,16 @@ export interface PlanningGridWeek {
 
 export type RmTestType = '1RM' | '3RM' | '5RM' | '10RM';
 
+/** A single dated appearance of an exercise within a covered week. */
+export interface ExerciseOccurrence {
+  date: string;        // YYYY-MM-DD
+  rmType?: RmTestType; // present if THIS occurrence was an RM test
+}
+
 export interface CoveredExercise {
   name: string;        // display_name || name
   rmType?: RmTestType; // present if at least one occurrence in the matched week was an RM test
+  occurrences: ExerciseOccurrence[]; // per-date detail within the week (sorted ascending)
 }
 
 export interface PatternWeekCoverage {
