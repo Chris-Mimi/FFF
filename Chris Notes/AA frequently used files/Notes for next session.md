@@ -19,11 +19,16 @@ http://192.168.178.75:3000
 * IDEA: Put names of booked athletes in Whiteboard Intro so they also go into Google Calendar or find another way to register them in Google Calendar.
 * iphone bug (I think) Coach-side: Workouts search box: Mimi can't type anything in the search box
 * Mimi couldn't add a trial athlete
-* 
+* Review of blocking system - urgent before next Sunday!
+* Make the Pattern groups in the Planning grid grabbable so I can change the order and make the Movement Patterns follow the order of the Planning Grid
+* RM testing is not correct. Back Squat chip shows that we did it last between 15-28 days when in reality it is over 10 weeks since we did an RM test on Back Squat
 * Workouts page: ability to mute/cancel athletes without clearing the group
 * Kids in Athletes list on Workouts page:
 Need DOB: Engels Frida, Frieda Stromer, Leopold Wischhöfer, Nico Enzmann, 
 Ask Mimi Silvia Maritati (Diapers & Dumbbells?)
+
+- 🟢 HELPFUL NOTES:
+* Planning Grid terminology: the filled marker is a "coverage dot" (solid colored circle with a check = "this was covered that week"; the dashed empty one is the "planning circle" for future weeks). I'll use "coverage dot" precisely from here on.
 
 * Ask Claude for a Magic link script to access athlete's accounts to check screen views so I can help them click the right buttons. I just give Claude the email ad.
 * 
