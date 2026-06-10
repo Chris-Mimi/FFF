@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { requireCoach, isAuthError } from '@/lib/auth-api';
 import { parseWellpassWorkbook } from '@/lib/coach/wellpassExcelParser';
+import { loadScoringData, computeMetrics, decideBlock } from '@/lib/coach/wellpassScoring';
 import type { WellpassImportResult } from '@/types/wellpass';
 
 const supabaseAdmin = createClient(
@@ -273,6 +274,12 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// Recompute block status using the three-gate redesign (S377):
+//   - 4-week login sum vs 3 × min  (recent dormancy)
+//   - 12-week login sum vs 9 × min (annual pace)
+//   - 13-week login:attendance ratio vs 1.5 (shared identities only)
+// Paused identities are skipped — pause is a hard override and booking-create
+// already checks pause separately.
 async function recomputeBlockStatus(touchedIdentityIds: string[]): Promise<{
   applied: { wellpass_name: string; member_names: string[] }[];
   cleared: { wellpass_name: string; member_names: string[] }[];
@@ -288,53 +295,64 @@ async function recomputeBlockStatus(touchedIdentityIds: string[]): Promise<{
 
   if (!identities || identities.length === 0) return { applied, cleared };
 
+  const consideredIds = identities.filter((i) => !i.paused_at).map((i) => i.id);
+  if (consideredIds.length === 0) return { applied, cleared };
+
+  // Bulk-load linked members for all considered identities.
+  const { data: allLinks } = await supabaseAdmin
+    .from('wellpass_identity_members')
+    .select('wellpass_identity_id, member_id, members!inner(id, name, athlete_subscription_status, wellpass_booking_restricted)')
+    .in('wellpass_identity_id', consideredIds);
+
+  type LinkedMember = {
+    id: string;
+    name: string;
+    athlete_subscription_status: 'trial' | 'active' | 'past_due' | 'expired';
+    wellpass_booking_restricted: boolean;
+  };
+
+  const linksByIdentity = new Map<string, { member_id: string; m: LinkedMember }[]>();
+  const memberToIdentityIds = new Map<string, string[]>();
+  for (const link of allLinks ?? []) {
+    const raw = (link as { members: unknown }).members;
+    const m = (Array.isArray(raw) ? raw[0] : raw) as LinkedMember | undefined;
+    if (!m) continue;
+    const arr = linksByIdentity.get(link.wellpass_identity_id) ?? [];
+    arr.push({ member_id: link.member_id, m });
+    linksByIdentity.set(link.wellpass_identity_id, arr);
+    const idArr = memberToIdentityIds.get(link.member_id) ?? [];
+    if (!idArr.includes(link.wellpass_identity_id)) idArr.push(link.wellpass_identity_id);
+    memberToIdentityIds.set(link.member_id, idArr);
+  }
+
+  const { loginsByIdentity, attendancesByIdentity } = await loadScoringData(
+    supabaseAdmin,
+    consideredIds,
+    memberToIdentityIds
+  );
+
+  const now = new Date();
+
   for (const identity of identities) {
-    // Paused households are excluded from block-status recompute. Pause is a
-    // hard override; existing wellpass_booking_restricted flags stay as-is
-    // (booking-create checks identity pause separately).
     if (identity.paused_at) continue;
 
-    const { data: latestWeek } = await supabaseAdmin
-      .from('wellpass_weekly_checkins')
-      .select('checkin_count')
-      .eq('wellpass_identity_id', identity.id)
-      .order('year', { ascending: false })
-      .order('week_number', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (!latestWeek) continue;
-
-    const { data: links } = await supabaseAdmin
-      .from('wellpass_identity_members')
-      .select('member_id, members!inner(id, name, athlete_subscription_status, wellpass_booking_restricted)')
-      .eq('wellpass_identity_id', identity.id);
-
-    if (!links || links.length === 0) continue;
-
-    type LinkedMember = {
-      id: string;
-      name: string;
-      athlete_subscription_status: 'trial' | 'active' | 'past_due' | 'expired';
-      wellpass_booking_restricted: boolean;
-    };
-    const linkRows = links.map((l) => {
-      const raw = (l as { members: unknown }).members;
-      const m = (Array.isArray(raw) ? raw[0] : raw) as LinkedMember | undefined;
-      return { member_id: l.member_id, m };
-    });
+    const linkRows = linksByIdentity.get(identity.id) ?? [];
+    if (linkRows.length === 0) continue;
 
     let exempt: boolean;
     if (identity.exemption_mode === 'always_exempt') exempt = true;
     else if (identity.exemption_mode === 'always_enforce') exempt = false;
-    else {
-      exempt = linkRows.some((l) => l.m?.athlete_subscription_status === 'active');
-    }
+    else exempt = linkRows.some((l) => l.m.athlete_subscription_status === 'active');
 
-    const shouldBlock = !exempt && latestWeek.checkin_count < identity.min_checkins_required;
+    const isShared = linkRows.length > 1;
+    const logins = loginsByIdentity.get(identity.id) ?? [];
+    const attendances = attendancesByIdentity.get(identity.id) ?? [];
+    const metrics = computeMetrics(logins, attendances, identity, isShared, now);
+    const verdict = decideBlock(metrics, identity, exempt, isShared);
+    const shouldBlock = verdict.shouldBlock;
 
     const memberIds = linkRows.map((l) => l.member_id);
-    const memberNames: string[] = linkRows.map((l) => l.m?.name).filter((n): n is string => Boolean(n));
+    const memberNames = linkRows.map((l) => l.m.name).filter((n): n is string => Boolean(n));
 
     const { error: updateErr } = await supabaseAdmin
       .from('members')
@@ -346,7 +364,7 @@ async function recomputeBlockStatus(touchedIdentityIds: string[]): Promise<{
       continue;
     }
 
-    const wasBlocked = linkRows.some((l) => l.m?.wellpass_booking_restricted === true);
+    const wasBlocked = linkRows.some((l) => l.m.wellpass_booking_restricted === true);
 
     if (shouldBlock && !wasBlocked) {
       applied.push({ wellpass_name: identity.wellpass_name, member_names: memberNames });

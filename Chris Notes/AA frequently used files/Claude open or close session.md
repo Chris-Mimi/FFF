@@ -1,10 +1,12 @@
 # At the START of every Claude session give this prompt:
 
 **Read in ONE parallel call (COPY EXACTLY!!!):**
-/Users/chrishiles/SynologyDrive/CrossFit Hammerschmiede (CFH)/AI Development/forge-functional-fitness/memory-bank/activeContext.md
-/Users/chrishiles/SynologyDrive/CrossFit Hammerschmiede (CFH)/AI Development/forge-functional-fitness/memory-bank/claude-rules.md
+memory-bank/activeContext.md
+memory-bank/claude-rules.md
 
 Plus the most recent file in `project-history/` (run `ls -t project-history | head -1` to find it).
+
+_(Paths are relative to the project root — works on both Macbook and Windows PC. Claude Code opens with the project as cwd.)_
 
 Only read `memory-bank/workflow-protocols.md`, `memory-bank/techContext.md`, or `memory-bank/systemPatterns.md` if the task actually needs them.
 
@@ -33,6 +35,8 @@ Not quite - adjust the timing: Start of every session:
 
 git pull
 ✅ Get latest code changes BEFORE making risky changes:
+
+⚠️ **On Windows PC:** if `git pull` fails with "local changes would be overwritten" and you haven't actually made changes in this session, those are Synology Drive sync artifacts (Macbook is the primary dev machine and pushes to GitHub). Run `git fetch origin && git reset --hard origin/main && git clean -fd` to match remote. See activeContext.md → "DEV ENVIRONMENT" section.
 
 npm run backup
 ✅ Create safety checkpoint

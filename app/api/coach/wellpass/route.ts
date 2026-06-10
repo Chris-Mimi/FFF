@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { requireCoach, isAuthError } from '@/lib/auth-api';
 import type { WellpassIdentityRow, WellpassWeeklyCheckin, WellpassLinkedMember, WellpassWeeklyBookings } from '@/types/wellpass';
+import { loadScoringData, computeMetrics, decideBlock } from '@/lib/coach/wellpassScoring';
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -174,6 +175,24 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // --- Scoring metrics + block reason per identity (Session 377 redesign) ---
+    // The recent-6-week booking buckets above feed the table CELLS; this fetches
+    // full-history attendances so YTD/all-time scores + the 13-week ratio rule
+    // can be computed in the shared lib (also used by the import recompute).
+    const memberToTrackedIdentityIds = new Map<string, string[]>();
+    for (const [identityId, members] of linksByIdentity.entries()) {
+      if (!trackedIdentityIds.includes(identityId)) continue;
+      for (const m of members) {
+        const arr = memberToTrackedIdentityIds.get(m.member_id) ?? [];
+        if (!arr.includes(identityId)) arr.push(identityId);
+        memberToTrackedIdentityIds.set(m.member_id, arr);
+      }
+    }
+    const { loginsByIdentity: scoreLoginsByIdentity, attendancesByIdentity: scoreAttendancesByIdentity } =
+      await loadScoringData(supabaseAdmin, trackedIdentityIds, memberToTrackedIdentityIds);
+
+    const now = new Date();
+
     const rows: WellpassIdentityRow[] = identities.map((identity) => {
       const linked = linksByIdentity.get(identity.id) ?? [];
       const weekly = checkinsByIdentity.get(identity.id) ?? [];
@@ -192,11 +211,17 @@ export async function GET(request: NextRequest) {
       else if (identity.exemption_mode === 'always_enforce') isExempt = false;
       else isExempt = linked.some((m) => m.athlete_subscription_status === 'active');
 
+      const isShared = linked.length > 1;
+      const scoreLogins = scoreLoginsByIdentity.get(identity.id) ?? [];
+      const scoreAttendances = scoreAttendancesByIdentity.get(identity.id) ?? [];
+      const metrics = computeMetrics(scoreLogins, scoreAttendances, identity, isShared, now);
+      const verdict = decideBlock(metrics, identity, isExempt, isShared);
+
       let status: WellpassIdentityRow['status'];
       if (!identity.tracked) status = 'untracked';
       else if (identity.paused_at) status = 'paused';
       else if (!latest) status = 'no_data';
-      else if (latest.checkin_count < identity.min_checkins_required && !isExempt) status = 'below_threshold';
+      else if (verdict.shouldBlock) status = 'below_threshold';
       else status = 'ok';
 
       return {
@@ -207,6 +232,20 @@ export async function GET(request: NextRequest) {
         is_exempt: isExempt,
         latest_week: latest,
         status,
+        // Scoring display fields
+        ytd_logins: metrics.ytd_logins,
+        ytd_target: metrics.ytd_target,
+        ytd_pct: metrics.ytd_pct,
+        ytd_attendances: metrics.ytd_attendances,
+        ytd_ratio: metrics.ytd_ratio,
+        alltime_logins: metrics.alltime_logins,
+        alltime_target: metrics.alltime_target,
+        alltime_pct: metrics.alltime_pct,
+        alltime_attendances: metrics.alltime_attendances,
+        alltime_ratio: metrics.alltime_ratio,
+        block_reason: verdict.reason,
+        ratio_flag: verdict.ratioFlag,
+        is_shared: isShared,
       };
     });
 

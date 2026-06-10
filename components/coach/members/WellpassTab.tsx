@@ -42,6 +42,7 @@ export default function WellpassTab() {
   const [error, setError] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<WellpassImportResult | null>(null);
+  const [unblocking, setUnblocking] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [attendanceByMember, setAttendanceByMember] = useState<Map<string, number>>(new Map());
   const [showUntracked, setShowUntracked] = useState(false);
@@ -133,6 +134,34 @@ export default function WellpassTab() {
     }
   };
 
+  const handleUnblockAll = async () => {
+    const count = (rows ?? []).reduce(
+      (n, r) => n + r.linked_members.filter((m) => m.wellpass_booking_restricted).length,
+      0
+    );
+    if (count === 0) return;
+    if (
+      !confirm(
+        `Unblock all ${count} currently blocked member${count === 1 ? '' : 's'}?\n\n` +
+          `They will be able to book classes normally. ` +
+          `Note: any household still below their weekly minimum will be re-blocked at the next Excel sync.`
+      )
+    )
+      return;
+    setUnblocking(true);
+    setError(null);
+    try {
+      const res = await authFetch('/api/coach/wellpass/unblock-all', { method: 'POST' });
+      if (!res.ok) throw new Error('Failed');
+      await fetchRows();
+    } catch (e) {
+      console.error(e);
+      setError('Unblock all failed');
+    } finally {
+      setUnblocking(false);
+    }
+  };
+
   const toggleMemberRestriction = async (memberId: string, restricted: boolean) => {
     try {
       const res = await authFetch(`/api/coach/wellpass/member/${memberId}/restriction`, {
@@ -169,6 +198,11 @@ export default function WellpassTab() {
 
   const isPayerHousehold = (r: WellpassIdentityRow): boolean =>
     r.linked_members.some((m) => m.athlete_subscription_status === 'active');
+
+  const blockedCount = (rows ?? []).reduce(
+    (n, r) => n + r.linked_members.filter((m) => m.wellpass_booking_restricted).length,
+    0
+  );
 
   const tracked = (rows ?? [])
     .filter((r) => r.tracked)
@@ -210,12 +244,27 @@ export default function WellpassTab() {
             Each week shows <span className="font-mono text-gray-300">sign-ins / bookings</span> ·
             sign-ins <span className="text-red-400">red</span> when below Min · bookings{' '}
             <span className="text-green-400">green</span> when ≤ sign-ins,{' '}
-            <span className="text-red-400">red</span> when &gt; sign-ins · Score = lifetime{' '}
-            <span className="text-green-400">+1</span> per sign-in over Min (when bookings ≤ sign-ins),{' '}
-            <span className="text-red-400">−1</span> per sign-in under Min
+            <span className="text-red-400">red</span> when &gt; sign-ins ·{' '}
+            <span className="font-mono text-gray-300">YTD/All-time</span> = logins as % of target
+            (<span className="text-green-400">≥100</span> /{' '}
+            <span className="text-amber-400">80–99</span> /{' '}
+            <span className="text-red-400">&lt;80</span>) · shared households also show a
+            <span className="font-mono text-gray-300"> 1.x× </span>login:attendance ratio
+            (<span className="text-green-400">≥1.5</span> ok)
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {blockedCount > 0 && (
+            <button
+              onClick={handleUnblockAll}
+              disabled={unblocking}
+              title="Clear the booking-restricted flag on every currently blocked member"
+              className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 text-gray-100 rounded-lg text-sm font-medium"
+            >
+              <LockOpen size={16} />
+              {unblocking ? 'Unblocking…' : `Unblock all (${blockedCount})`}
+            </button>
+          )}
           <input
             ref={fileInputRef}
             type="file"
@@ -290,7 +339,18 @@ export default function WellpassTab() {
               <th className="px-3 py-2 text-left">Wellpass name</th>
               <th className="px-3 py-2 text-center">Min</th>
               <th className="px-3 py-2 text-center">App?</th>
-              <th className="px-3 py-2 text-center" title="Lifetime running total. +1 per sign-in OVER Min (only if bookings ≤ sign-ins). −1 per sign-in UNDER Min.">Score</th>
+              <th
+                className="px-3 py-2 text-center"
+                title="Year-to-date logins as % of YTD target (min × weeks elapsed). Green ≥100, amber 80–99, red <80."
+              >
+                YTD %
+              </th>
+              <th
+                className="px-3 py-2 text-center"
+                title="All-time logins as % of all-time target (min × weeks tracked). Same color scale."
+              >
+                All-time %
+              </th>
               {sortedWeeks.map((w) => (
                 <th key={`${w.week_number}-${w.week_start}`} className="px-2 py-2 text-center font-mono">
                   {formatWeekHeader(w)}
@@ -303,7 +363,7 @@ export default function WellpassTab() {
           <tbody>
             {tracked.length === 0 && (
               <tr>
-                <td colSpan={7 + sortedWeeks.length} className="px-3 py-6 text-center text-gray-400">
+                <td colSpan={8 + sortedWeeks.length} className="px-3 py-6 text-center text-gray-400">
                   No tracked households yet. Run the seed migration and import an Excel workbook.
                 </td>
               </tr>
@@ -373,9 +433,32 @@ function IdentityRow({ row, weekColumns, attendanceByMember, expanded, onToggleE
   const hasAnyMember = row.linked_members.length > 0;
   const isPaused = row.status === 'paused';
 
+  // Human-readable description of WHY we'd block — drives the tooltip on the
+  // status badge. Stays in sync with the rules in lib/coach/wellpassScoring.ts.
+  const blockReasonLabel = (() => {
+    switch (row.block_reason) {
+      case 'recent_dormancy':
+        return 'Last 4 weeks below minimum (recent dormancy)';
+      case 'annual_pace':
+        return 'Last 12 weeks under-pacing the annual target';
+      case 'ratio_sustained':
+        return 'Login:attendance ratio below 1.5× for 13+ weeks (under-padding the spouse-share deal)';
+      default:
+        return null;
+    }
+  })();
+
   const statusBadge = (() => {
     if (isPaused) return <span className="text-amber-400 font-medium">paused</span>;
-    if (row.status === 'below_threshold') return <span className="text-red-400 font-medium">&lt; min</span>;
+    if (row.status === 'below_threshold')
+      return (
+        <span
+          className="text-red-400 font-medium cursor-help"
+          title={blockReasonLabel ?? 'Below threshold'}
+        >
+          &lt; min
+        </span>
+      );
     if (row.status === 'ok') return <span className="text-green-400">ok</span>;
     if (row.status === 'no_data') return <span className="text-gray-500">no data</span>;
     return <span className="text-gray-500">—</span>;
@@ -390,16 +473,11 @@ function IdentityRow({ row, weekColumns, attendanceByMember, expanded, onToggleE
     bookingByWeek.set(`${b.year}-${String(b.week_number).padStart(2, '0')}`, b.booking_count);
   }
 
-  const score = row.weekly_history.reduce((acc, w) => {
-    const key = `${w.year}-${String(w.week_number).padStart(2, '0')}`;
-    const bookings = bookingByWeek.get(key) ?? 0;
-    const diff = w.checkin_count - row.min_checkins_required;
-    if (diff < 0) return acc + diff;
-    if (diff > 0 && bookings <= w.checkin_count) return acc + diff;
-    return acc;
-  }, 0);
-  const scoreClass =
-    score > 0 ? 'text-green-400 font-bold' : score < 0 ? 'text-red-400 font-bold' : 'text-gray-500';
+  const pctClass = (pct: number): string => {
+    if (pct >= 100) return 'text-green-400 font-bold';
+    if (pct >= 80) return 'text-amber-400 font-medium';
+    return 'text-red-400 font-bold';
+  };
 
   // Household lifetime Wellpass logins = sum of every tracked week's check-ins.
   const totalLogins = row.weekly_history.reduce((acc, w) => acc + w.checkin_count, 0);
@@ -411,6 +489,20 @@ function IdentityRow({ row, weekColumns, attendanceByMember, expanded, onToggleE
           <button onClick={onToggleExpand} className="flex items-center gap-1 text-left text-white hover:text-teal-400">
             {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
             <span className="font-medium">{row.wellpass_name}</span>
+            {row.is_shared && row.ytd_ratio !== null && (
+              <span
+                className={`ml-1 px-1.5 py-0.5 rounded text-[10px] font-mono ${
+                  row.ytd_ratio >= 1.5
+                    ? 'bg-green-900/40 text-green-300'
+                    : row.ratio_flag && !isPaused
+                      ? 'bg-amber-900/40 text-amber-300'
+                      : 'bg-gray-700/50 text-gray-400'
+                }`}
+                title={`YTD login:attendance ratio = ${row.ytd_logins} / ${row.ytd_attendances}. Shared households should be ≥ 1.5× — covers rest-day logins for the partner.`}
+              >
+                {row.ytd_ratio.toFixed(2)}×
+              </span>
+            )}
           </button>
           {(() => {
             // Hide linked members whose name equals the WP identity name —
@@ -444,8 +536,29 @@ function IdentityRow({ row, weekColumns, attendanceByMember, expanded, onToggleE
           {hasAnyMember && appPaid && <span className="text-xs text-teal-400 font-medium" title="At least one linked member is paying for the app">💎 paying</span>}
           {hasAnyMember && !appPaid && <span className="text-xs text-gray-500">free</span>}
         </td>
-        <td className={`px-3 py-2 text-center font-mono ${isPaused ? 'text-gray-600' : scoreClass}`}>
-          {isPaused ? '—' : score > 0 ? `+${score}` : score}
+        <td
+          className={`px-3 py-2 text-center font-mono ${
+            isPaused ? 'text-gray-600' : row.ytd_target === 0 ? 'text-gray-500' : pctClass(row.ytd_pct)
+          }`}
+          title={
+            row.ytd_target === 0
+              ? 'No YTD target yet (week 1 of the year)'
+              : `${row.ytd_logins} YTD logins ÷ ${row.ytd_target} target (min × weeks elapsed)`
+          }
+        >
+          {isPaused ? '—' : row.ytd_target === 0 ? '—' : `${row.ytd_pct}%`}
+        </td>
+        <td
+          className={`px-3 py-2 text-center font-mono ${
+            isPaused ? 'text-gray-600' : row.alltime_target === 0 ? 'text-gray-500' : pctClass(row.alltime_pct)
+          }`}
+          title={
+            row.alltime_target === 0
+              ? 'No tracked weeks yet'
+              : `${row.alltime_logins} lifetime logins ÷ ${row.alltime_target} target`
+          }
+        >
+          {isPaused ? '—' : row.alltime_target === 0 ? '—' : `${row.alltime_pct}%`}
         </td>
         {weekColumns.map((w) => {
           const key = `${new Date(w.week_start).getFullYear()}-${String(w.week_number).padStart(2, '0')}`;
@@ -497,7 +610,7 @@ function IdentityRow({ row, weekColumns, attendanceByMember, expanded, onToggleE
       </tr>
       {expanded && (
         <tr className="bg-gray-800/50">
-          <td colSpan={7 + weekColumns.length} className="px-4 py-3 border-t border-gray-700">
+          <td colSpan={8 + weekColumns.length} className="px-4 py-3 border-t border-gray-700">
             <div className="grid md:grid-cols-2 gap-4 text-xs">
               <div>
                 <div className="flex items-baseline justify-between mb-1">

@@ -4,7 +4,27 @@ This opens a Markdown Preview window to the side.
 
 You can also press Cmd + K, then V to open the preview to the side-by-side view.
 
-# Safe Workflow for Local Dev Ports (3000–3009) #
+---
+
+# ⚡ ONE-LINERS — Pick by machine
+
+## 🍎 Mac (Terminal / VS Code bash):
+```bash
+kill -9 $(lsof -t -i :3000-3009)
+```
+
+## 🪟 Windows PC (PowerShell — the default VS Code terminal):
+```powershell
+Get-NetTCPConnection -LocalPort (3000..3009) -ErrorAction SilentlyContinue | %{ Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }
+```
+
+**Why the Mac command fails on the PC:** `lsof` and `kill` are Mac/Linux tools — they don't exist on Windows. The PowerShell version above does the same thing: finds every process listening on ports 3000–3009 and force-stops it. Silently no-ops if nothing's running.
+
+**If you're in Git Bash on the PC instead of PowerShell:** use `powershell -Command "Get-NetTCPConnection -LocalPort (3000..3009) -ErrorAction SilentlyContinue | %{ Stop-Process -Id \$_.OwningProcess -Force -ErrorAction SilentlyContinue }"` — or just open a PowerShell tab.
+
+---
+
+# Safe Workflow for Local Dev Ports (3000–3009) — Mac reference #
 
 # Check which ports are in use
 

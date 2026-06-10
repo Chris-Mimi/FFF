@@ -37,7 +37,33 @@ export interface WellpassWeeklyBookings {
   booking_count: number;
 }
 
-export interface WellpassIdentityRow extends WellpassIdentity {
+export type WellpassBlockReason = 'recent_dormancy' | 'annual_pace' | 'ratio_sustained';
+
+export interface WellpassScoreFields {
+  // YTD (since Jan 1 of current calendar year, ISO weeks)
+  ytd_logins: number;
+  ytd_target: number; // = min × weeks elapsed in year
+  ytd_pct: number; // 0–N percent of YTD target hit; 0 when target=0
+  ytd_attendances: number;
+  ytd_ratio: number | null;
+
+  // All-time (since first imported week for this identity)
+  alltime_logins: number;
+  alltime_target: number;
+  alltime_pct: number;
+  alltime_attendances: number;
+  alltime_ratio: number | null;
+
+  // Block context — what (if anything) the recompute would trip on right now
+  block_reason: WellpassBlockReason | null;
+  // Soft yellow flag: shared identity, ratio below 1.5, not yet sustained enough
+  // to auto-block. Used by the UI for the early-warning chip.
+  ratio_flag: boolean;
+  // Whether the ratio rule applies at all (shared identity = linked_members > 1)
+  is_shared: boolean;
+}
+
+export interface WellpassIdentityRow extends WellpassIdentity, WellpassScoreFields {
   linked_members: WellpassLinkedMember[];
   weekly_history: WellpassWeeklyCheckin[];
   weekly_bookings: WellpassWeeklyBookings[];
