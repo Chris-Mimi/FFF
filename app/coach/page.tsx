@@ -178,6 +178,17 @@ export default function CoachDashboard() {
   const [_resizeStart, _setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const [_isResizingModal, _setIsResizingModal] = useState(false);
 
+  // Deep-link: ?date=YYYY-MM-DD (e.g. from the Toolkit Exercise tab "used Nx"
+  // modal) jumps the calendar straight to that workout's week. Read in an effect
+  // (not the useState initializer) so it runs reliably on the client after mount,
+  // avoiding the SSR/hydration mismatch where the server has no window.
+  useEffect(() => {
+    const dateParam = new URLSearchParams(window.location.search).get('date');
+    if (dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
+      setSelectedDate(new Date(dateParam + 'T00:00:00'));
+    }
+  }, []);
+
   // Persist selectedDate to localStorage
   useEffect(() => {
     if (typeof window !== 'undefined') {

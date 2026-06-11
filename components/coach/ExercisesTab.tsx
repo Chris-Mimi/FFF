@@ -5,6 +5,7 @@ import MultiSelectDropdown from '@/components/coach/MultiSelectDropdown';
 import { supabase } from '@/lib/supabase';
 import { ChevronDown, ChevronRight, Edit2, Plus, Search, Trash2, X, Calendar } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { getExerciseFrequency, type ExerciseFrequency } from '@/utils/movement-analytics';
 
 
@@ -95,6 +96,8 @@ export default function ExercisesTab({
   onSave,
   onOpenVideoModal,
 }: ExercisesTabProps) {
+  const router = useRouter();
+
   // Filter state
   const [availableEquipment, setAvailableEquipment] = useState<string[]>([]);
   const [availableBodyParts, setAvailableBodyParts] = useState<string[]>([]);
@@ -462,6 +465,8 @@ export default function ExercisesTab({
                           className='text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded font-medium hover:bg-purple-200 transition-colors cursor-pointer'
                         >
                           Used {exerciseFrequencies.get(exercise.id)!.count}x
+                          {exerciseFrequencies.get(exercise.id)!.uniqueCount !== exerciseFrequencies.get(exercise.id)!.count
+                            && ` (${exerciseFrequencies.get(exercise.id)!.uniqueCount} unique)`}
                         </button>
                       </div>
                     )}
@@ -512,7 +517,9 @@ export default function ExercisesTab({
             <div className='flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-purple-50'>
               <div>
                 <h3 className='font-semibold text-gray-900'>{detailExercise.name}</h3>
-                <p className='text-xs text-purple-700 mt-0.5'>Used in {detailExercise.count} workout{detailExercise.count !== 1 ? 's' : ''}</p>
+                <p className='text-xs text-purple-700 mt-0.5'>
+                  {detailExercise.uniqueCount} unique · {detailExercise.count} total session{detailExercise.count !== 1 ? 's' : ''}
+                </p>
               </div>
               <button onClick={() => setDetailExercise(null)} className='p-1 text-gray-400 hover:text-gray-600 rounded'>
                 <X size={18} />
@@ -525,7 +532,12 @@ export default function ExercisesTab({
                 <p className='text-sm text-gray-500 p-4'>No workout details available.</p>
               ) : (
                 detailExercise.workouts.map((w, i) => (
-                  <div key={i} className='flex items-center gap-3 px-4 py-3 hover:bg-gray-50'>
+                  <button
+                    key={i}
+                    onClick={() => router.push(`/coach?date=${w.date}`)}
+                    title='Open this week in the calendar'
+                    className='w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-purple-50 transition-colors cursor-pointer'
+                  >
                     <Calendar size={14} className='text-purple-400 flex-shrink-0' />
                     <div>
                       <p className='text-sm font-medium text-gray-800'>
@@ -535,7 +547,7 @@ export default function ExercisesTab({
                         {w.session_type}{w.workout_name ? ` · ${w.workout_name}` : ''}
                       </p>
                     </div>
-                  </div>
+                  </button>
                 ))
               )}
             </div>

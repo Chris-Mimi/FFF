@@ -114,9 +114,10 @@ export interface ExerciseFrequency {
   id: string;
   name: string;
   category: string;
-  count: number;
+  count: number;        // total sessions the exercise was programmed in (matches Workouts-page "total")
+  uniqueCount: number;  // distinct workouts by name (matches Workouts-page "unique")
   lastProgrammed: string; // ISO date string
-  workouts: ExerciseFrequencyWorkout[];
+  workouts: ExerciseFrequencyWorkout[]; // every session, most-recent first
 }
 
 export interface DateRangeFilter {
@@ -506,17 +507,25 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
 
   const workouts = await fetchPublishedWorkouts(filter, 'workouts for exercise frequency');
 
-  // Aggregate exercise data using shared extraction logic
+  // Aggregate exercise data using shared extraction logic.
+  // `sessions` keeps EVERY session the exercise appeared in (one row per
+  // weekly_session, so a workout run at 5 class times = 5 sessions). `uniqueKeys`
+  // dedupes by workout_name to give the "unique workouts" figure — same model the
+  // Workouts-page search uses (S333), so both surfaces agree on "N unique / M total".
+  // The old code keyed everything by a 2-week bucket in a Map, which collapsed
+  // repeats to one entry and silently dropped all but one date.
   const exerciseMap = new Map<string, {
     id: string;
     name: string;
     category: string;
-    uniqueWorkouts: Map<string, ExerciseFrequencyWorkout>;
+    sessions: ExerciseFrequencyWorkout[];
+    uniqueKeys: Set<string>;
     lastProgrammed: string;
   }>();
 
   workouts?.forEach(workout => {
-    const workoutKey = getWorkoutKey(workout);
+    // Match SearchPanel's unique key: workout_name, falling back to id/date.
+    const uniqueKey = workout.workout_name || `${workout.id || workout.date}`;
 
     // Convert to WODFormData for extractMovementsFromWod
     const wodData: WODFormData = {
@@ -529,19 +538,26 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
 
     const movements = extractMovementsFromWod(wodData, knownExerciseNames, acronymMap, liftExerciseMap);
 
+    // Count each exercise at most once per session, even if two movement strings
+    // (name + acronym, say) resolve to the same exercise within this workout.
+    const seenInThisWorkout = new Set<string>();
+
     movements.forEach(movementName => {
       const exercise = exercisesByName.get(movementName.toLowerCase());
       if (!exercise) return;
+      if (seenInThisWorkout.has(exercise.id)) return;
+      seenInThisWorkout.add(exercise.id);
 
-      const existing = exerciseMap.get(exercise.id);
       const workoutEntry: ExerciseFrequencyWorkout = {
         date: workout.date,
         session_type: workout.session_type,
         workout_name: workout.workout_name,
       };
 
+      const existing = exerciseMap.get(exercise.id);
       if (existing) {
-        existing.uniqueWorkouts.set(workoutKey, workoutEntry);
+        existing.sessions.push(workoutEntry);
+        existing.uniqueKeys.add(uniqueKey);
         if (workout.date > existing.lastProgrammed) {
           existing.lastProgrammed = workout.date;
         }
@@ -550,21 +566,23 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
           id: exercise.id,
           name: exercise.name,
           category: exercise.category,
-          uniqueWorkouts: new Map([[workoutKey, workoutEntry]]),
+          sessions: [workoutEntry],
+          uniqueKeys: new Set([uniqueKey]),
           lastProgrammed: workout.date,
         });
       }
     });
   });
 
-  // Convert to array and sort by frequency
+  // Convert to array and sort by total frequency
   const exerciseAnalysis: ExerciseFrequency[] = Array.from(exerciseMap.values()).map(ex => ({
     id: ex.id,
     name: ex.name,
     category: ex.category,
-    count: ex.uniqueWorkouts.size,
+    count: ex.sessions.length,
+    uniqueCount: ex.uniqueKeys.size,
     lastProgrammed: ex.lastProgrammed,
-    workouts: Array.from(ex.uniqueWorkouts.values()).sort((a, b) => b.date.localeCompare(a.date)),
+    workouts: ex.sessions.sort((a, b) => b.date.localeCompare(a.date)),
   }));
 
   return exerciseAnalysis.sort((a, b) => b.count - a.count);
