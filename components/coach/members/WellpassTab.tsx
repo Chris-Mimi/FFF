@@ -454,9 +454,9 @@ function IdentityRow({ row, weekColumns, attendanceByMember, expanded, onToggleE
       return (
         <span
           className="text-red-400 font-medium cursor-help"
-          title={blockReasonLabel ?? 'Below threshold'}
+          title={blockReasonLabel ?? 'Blocked'}
         >
-          &lt; min
+          blocked
         </span>
       );
     if (row.status === 'ok') return <span className="text-green-400">ok</span>;
