@@ -42,17 +42,20 @@ interface FamilyMember {
 
 // Match the kids / foundations matchers in utils/card-utils.ts (S352): startsWith pattern
 // covers age-suffixed names like "Kids & Teens 6-9", "FitKids Turnen 4-6".
-const KIDS_KEYWORDS = ['kids', 'kids & teens', 'kids and teens', 'fitkids turnen', 'elternkind turnen'];
-const FOUNDATIONS_KEYWORDS = ['foundations', 'foundations/wod', 'diapers & dumbbells', 'diapers and dumbbells'];
+// Keywords + input are normalized (strip spaces/hyphens/punctuation) so spelling
+// variants match — e.g. "Eltern-Kind-Turnen (2-6J)" and "ElternKind Turnen".
+const KIDS_KEYWORDS = ['kids', 'kidsteens', 'kidsandteens', 'fitkidsturnen', 'elternkindturnen'];
+const FOUNDATIONS_KEYWORDS = ['foundations', 'diapersdumbbells', 'diapersanddumbbells'];
+const normalizeType = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
 const isKidsClass = (workoutType?: string) => {
   if (!workoutType) return false;
-  const lower = workoutType.toLowerCase();
-  return KIDS_KEYWORDS.some(k => lower === k || lower.startsWith(k));
+  const n = normalizeType(workoutType);
+  return KIDS_KEYWORDS.some(k => n.startsWith(k));
 };
 const isFoundationsClass = (workoutType?: string) => {
   if (!workoutType) return false;
-  const lower = workoutType.toLowerCase();
-  return FOUNDATIONS_KEYWORDS.some(k => lower === k || lower.startsWith(k));
+  const n = normalizeType(workoutType);
+  return FOUNDATIONS_KEYWORDS.some(k => n.startsWith(k));
 };
 
 export default function MemberBookingPage() {
@@ -990,7 +993,9 @@ export default function MemberBookingPage() {
                     {daySessions.map((session) => {
                       const isKids = isKidsClass(session.workout_type);
                       const isFoundations = isFoundationsClass(session.workout_type);
-                      const parentSelfBookingBlocked = isKids && primaryHasFamilyKids && bookingForMemberId === user?.id;
+                      // Kids classes can only be booked under a child's name — block
+                      // ALL adult self-bookings, whether or not a child is registered yet.
+                      const parentSelfBookingBlocked = isKids && bookingForMemberId === user?.id;
                       const borderAccent = isKids
                         ? 'border-l-teal-400'
                         : isFoundations
@@ -1080,8 +1085,10 @@ export default function MemberBookingPage() {
                                 Locked
                               </div>
                             ) : parentSelfBookingBlocked && session.user_booking_status === 'none' ? (
-                              <div className="text-xs text-amber-300 leading-tight max-w-[160px] text-right">
-                                Bitte unter dem Namen deines Kindes buchen
+                              <div className="text-xs text-amber-300 leading-tight max-w-[180px] text-right">
+                                {primaryHasFamilyKids
+                                  ? 'Bitte unter dem Namen deines Kindes buchen'
+                                  : 'This class is for children/teens — please register your child first by clicking the + Family button above.'}
                               </div>
                             ) : session.user_booking_status === 'none' ? (
                               <button

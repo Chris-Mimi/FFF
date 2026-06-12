@@ -32,17 +32,19 @@ export const getCardState = (wod: WODFormData): CardState => {
 
 type SessionTier = 'standard' | 'foundations' | 'kids';
 
-const FOUNDATIONS_KEYWORDS = ['foundations', 'diapers & dumbbells', 'diapers and dumbbells'];
-const KIDS_KEYWORDS = ['kids', 'kids & teens', 'kids and teens', 'fitkids turnen', 'elternkind turnen'];
+// Keywords + input are normalized (strip spaces/hyphens/punctuation) so spelling
+// variants match — e.g. "Eltern-Kind-Turnen (2-6J)" and "ElternKind Turnen".
+const FOUNDATIONS_KEYWORDS = ['foundations', 'diapersdumbbells', 'diapersanddumbbells'];
+const KIDS_KEYWORDS = ['kids', 'kidsteens', 'kidsandteens', 'fitkidsturnen', 'elternkindturnen'];
 
 /**
  * Determine color tier based on session type title
  */
 const getSessionTier = (title?: string): SessionTier => {
   if (!title) return 'standard';
-  const lower = title.toLowerCase();
-  if (KIDS_KEYWORDS.some((k) => lower === k || lower.startsWith(k))) return 'kids';
-  if (FOUNDATIONS_KEYWORDS.some((k) => lower === k || lower.startsWith(k))) return 'foundations';
+  const norm = title.toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (KIDS_KEYWORDS.some((k) => norm.startsWith(k))) return 'kids';
+  if (FOUNDATIONS_KEYWORDS.some((k) => norm.startsWith(k))) return 'foundations';
   return 'standard';
 };
 

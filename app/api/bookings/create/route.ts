@@ -179,29 +179,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Block parents (primary accounts with at least one registered family member) from
-    // booking Kids / Eltern-Kind-Turnen / Teens classes under their own name. They must
-    // book those classes via the primary→family path. They can still book non-kids
-    // classes (WOD, Foundations, etc.) for themselves. Mirrors the inline UI guard in
-    // app/member/book/page.tsx. Uses startsWith to match age-suffixed names like
-    // "Kids & Teens 6-9", "FitKids Turnen 4-6" (matcher source: utils/card-utils.ts).
+    // Kids / Eltern-Kind-Turnen / Teens classes can only be booked under a CHILD's
+    // name (a registered family_member, via the primary→family path), never under the
+    // adult's own name — regardless of whether they've registered a child yet. To book
+    // one, a parent must first register their child as a family member. Non-kids classes
+    // (WOD, Foundations, Diapers & Dumbbells, etc.) are unaffected and bookable for self.
+    // Mirrors the inline UI guard in app/member/book/page.tsx. Normalize (strip
+    // spaces/hyphens/punctuation) so every spelling matches — e.g.
+    // "Eltern-Kind-Turnen (2-6J)" and "ElternKind Turnen" both → "elternkindturnen"
+    // (hyphenated variants previously slipped past the startsWith match).
     if (bookingMemberId === user.id) {
-      const kidsKeywords = ['kids', 'kids & teens', 'kids and teens', 'fitkids turnen', 'elternkind turnen'];
-      const sessionTypeLower = (session.workout_type || '').toLowerCase();
-      const isKidsClass = kidsKeywords.some(k => sessionTypeLower === k || sessionTypeLower.startsWith(k));
+      const kidsKeywords = ['kids', 'kidsteens', 'kidsandteens', 'fitkidsturnen', 'elternkindturnen'];
+      const sessionTypeNorm = (session.workout_type || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      const isKidsClass = sessionTypeNorm !== '' && kidsKeywords.some(k => sessionTypeNorm.startsWith(k));
       if (isKidsClass) {
-        const { data: family } = await supabase
-          .from('members')
-          .select('id')
-          .eq('primary_member_id', user.id)
-          .eq('account_type', 'family_member')
-          .limit(1);
-        if (family && family.length > 0) {
-          return NextResponse.json(
-            { error: 'Diese Klasse ist für Kinder/Jugendliche — bitte buche unter dem Namen deines Kindes (Familienmitglied), nicht unter deinem eigenen.' },
-            { status: 403 }
-          );
-        }
+        return NextResponse.json(
+          { error: 'Diese Klasse ist für Kinder/Jugendliche — bitte registriere dein Kind als Familienmitglied und buche unter seinem Namen, nicht unter deinem eigenen.' },
+          { status: 403 }
+        );
       }
     }
 
