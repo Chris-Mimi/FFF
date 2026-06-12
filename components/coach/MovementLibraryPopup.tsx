@@ -139,6 +139,8 @@ function MovementLibraryPopup({
   // Collapsible sections state
   const [favoritesCollapsed, setFavoritesCollapsed] = useState(false);
   const [recentCollapsed, setRecentCollapsed] = useState(false);
+  // Equipment/Body-Parts filters are rarely used — keep them collapsed by default.
+  const [filtersExpanded, setFiltersExpanded] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [hasFetchedExercises, setHasFetchedExercises] = useState(false);
@@ -759,7 +761,7 @@ function MovementLibraryPopup({
         </div>
 
         {/* Tabs */}
-        <div className='flex border-b border-gray-300 bg-gray-50'>
+        <div className='flex border-b border-gray-300 bg-gray-50 flex-shrink-0'>
           <button
             onClick={() => setActiveTab('exercises')}
             className={`flex-1 px-4 py-3 font-semibold transition ${
@@ -803,7 +805,7 @@ function MovementLibraryPopup({
         </div>
 
         {/* Search Box */}
-        <div className='p-4 border-b'>
+        <div className='p-4 border-b flex-shrink-0'>
           <div className='relative'>
             <Search
               className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400'
@@ -858,10 +860,26 @@ function MovementLibraryPopup({
           </div>
         </div>
 
-        {/* Filter Section (Exercises Tab Only) */}
+        {/* Filter Section (Exercises Tab Only) — collapsed by default, rarely used */}
         {activeTab === 'exercises' && (
-          <div className='px-4 py-3 border-b bg-gray-50'>
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
+          <div className='px-4 py-2 border-b bg-gray-50 flex-shrink-0'>
+            <button
+              type='button'
+              onClick={() => setFiltersExpanded(v => !v)}
+              className='w-full flex items-center justify-between py-1 text-sm font-semibold text-gray-700'
+            >
+              <span className='flex items-center gap-1.5'>
+                Filters
+                {(selectedEquipment.length + selectedBodyParts.length) > 0 && (
+                  <span className='text-xs bg-[#178da6] text-white px-1.5 py-0.5 rounded-full font-medium'>
+                    {selectedEquipment.length + selectedBodyParts.length}
+                  </span>
+                )}
+              </span>
+              {filtersExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+            </button>
+            {filtersExpanded && (
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-3 mt-2'>
               <MultiSelectDropdown
                 label='Equipment'
                 options={availableEquipment}
@@ -877,11 +895,13 @@ function MovementLibraryPopup({
                 placeholder='All body parts'
               />
             </div>
+            )}
           </div>
         )}
 
-        {/* Content Area */}
-        <div className='flex-1 overflow-y-auto p-4'>
+        {/* Content Area — min-h-0 so THIS is the only scroll region (otherwise the
+            flex column overflows and the whole popup scrolls, taking the search box) */}
+        <div className='flex-1 min-h-0 overflow-y-auto p-4'>
           {loading ? (
             <div className='text-center py-8 text-gray-500'>
               <p className='text-sm'>Loading {getTabLabel()}s...</p>
