@@ -167,6 +167,29 @@ function MovementLibraryPopup({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Track the VISUAL viewport on mobile so the popup shrinks when the on-screen
+  // keyboard opens. `fixed inset-0` sizes to the LAYOUT viewport, which the
+  // keyboard does NOT shrink — so with the keyboard up the popup is taller than
+  // the visible area and the browser scrolls the whole thing (header included)
+  // to reveal content behind the keyboard. Sizing to visualViewport.height keeps
+  // the pinned header on screen and confines scrolling to the results list.
+  const [mobileViewport, setMobileViewport] = useState<{ height: number; offsetTop: number } | null>(null);
+  useEffect(() => {
+    const vv = typeof window !== 'undefined' ? window.visualViewport : null;
+    if (!isMobile || !vv) {
+      setMobileViewport(null);
+      return;
+    }
+    const update = () => setMobileViewport({ height: vv.height, offsetTop: vv.offsetTop });
+    update();
+    vv.addEventListener('resize', update);
+    vv.addEventListener('scroll', update);
+    return () => {
+      vv.removeEventListener('resize', update);
+      vv.removeEventListener('scroll', update);
+    };
+  }, [isMobile]);
+
   // Position and size state for draggable/resizable modal
   const [librarySize, setLibrarySize] = useState({ width: 950, height: 850 });
   const [libraryPos, setLibraryPos] = useState({ top: 70, left: 770 }); // Position to right of WorkoutModal
@@ -716,12 +739,18 @@ function MovementLibraryPopup({
 
   return (
     <div
-      className={`fixed ${isMobile ? 'inset-0 z-[100]' : ''}`}
-      style={isMobile ? {} : {
-        top: `${libraryPos.top}px`,
-        left: `${libraryPos.left}px`,
-        zIndex: zIndex || 100,
-      }}
+      className={`fixed ${isMobile ? 'z-[100]' : ''}`}
+      style={
+        isMobile
+          ? mobileViewport
+            ? { top: mobileViewport.offsetTop, left: 0, width: '100%', height: mobileViewport.height }
+            : { top: 0, left: 0, width: '100%', height: '100%' }
+          : {
+              top: `${libraryPos.top}px`,
+              left: `${libraryPos.left}px`,
+              zIndex: zIndex || 100,
+            }
+      }
       onMouseDown={onBringToFront}
     >
       <div
