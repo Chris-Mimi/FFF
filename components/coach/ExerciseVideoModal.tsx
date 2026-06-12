@@ -2,6 +2,7 @@
 
 import { X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { getEmbedUrl } from '@/utils/video-helpers';
 import { FocusTrap } from '@/components/ui/FocusTrap';
 
@@ -156,8 +157,13 @@ export default function ExerciseVideoModal({
   }, [isDragging, isResizing, dragStart, resizeStart]);
 
   if (!isOpen) return null;
+  if (typeof document === 'undefined') return null;
 
-  return (
+  // Portal to <body> so the modal escapes the WorkoutModal panel's stacking
+  // context (the panel sets an explicit z-index, which would otherwise trap
+  // this z-[110] modal behind it) and avoids iOS Safari's quirk of mis-pinning
+  // position:fixed descendants inside an overflow-scrolling container.
+  return createPortal(
     <FocusTrap>
     <>
       {/* Overlay */}
@@ -253,6 +259,7 @@ export default function ExerciseVideoModal({
         )}
       </div>
     </>
-    </FocusTrap>
+    </FocusTrap>,
+    document.body
   );
 }

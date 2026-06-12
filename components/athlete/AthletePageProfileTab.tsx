@@ -239,6 +239,39 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
     );
   }
 
+  // DOB is stored as 'YYYY-MM-DD'. Split into parts for the three dropdowns so
+  // mobile users can jump straight to a birth year instead of scrolling the
+  // native date picker month-by-month.
+  const [dobYear, dobMonth, dobDay] = profile.date_of_birth
+    ? profile.date_of_birth.split('-')
+    : ['', '', ''];
+  const updateDob = (part: 'y' | 'm' | 'd', value: string) => {
+    const y = part === 'y' ? value : dobYear;
+    const m = part === 'm' ? value : dobMonth;
+    const d = part === 'd' ? value : dobDay;
+    // Only store a real date once all three parts are chosen; otherwise clear
+    // it so the save logic writes null rather than a malformed string.
+    const composed = y && m && d ? `${y}-${m}-${d}` : '';
+    setProfile({ ...profile, date_of_birth: composed });
+  };
+  const currentYear = new Date().getFullYear();
+  const dobYears = Array.from({ length: currentYear - 1929 }, (_, i) => currentYear - i);
+  const dobMonths = [
+    { v: '01', label: 'January' },
+    { v: '02', label: 'February' },
+    { v: '03', label: 'March' },
+    { v: '04', label: 'April' },
+    { v: '05', label: 'May' },
+    { v: '06', label: 'June' },
+    { v: '07', label: 'July' },
+    { v: '08', label: 'August' },
+    { v: '09', label: 'September' },
+    { v: '10', label: 'October' },
+    { v: '11', label: 'November' },
+    { v: '12', label: 'December' },
+  ];
+  const dobDays = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, '0'));
+
   return (
     <div className='bg-white rounded-lg shadow p-6'>
       <h2 className='text-2xl font-bold text-gray-900 mb-6'>Profile</h2>
@@ -305,12 +338,55 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
 
           <div>
             <label className='block text-sm font-medium text-gray-700 mb-2'>Date of Birth</label>
+            {/* Desktop: native date picker (calendar popover works fine with a mouse) */}
             <input
               type='date'
               value={profile.date_of_birth}
               onChange={e => setProfile({ ...profile, date_of_birth: e.target.value })}
-              className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
+              className='hidden sm:block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
             />
+            {/* Mobile: three dropdowns so users can jump straight to a birth year */}
+            <div className='grid grid-cols-3 gap-2 sm:hidden'>
+              <select
+                value={dobDay}
+                onChange={e => updateDob('d', e.target.value)}
+                className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
+                aria-label='Day'
+              >
+                <option value=''>Day</option>
+                {dobDays.map(d => (
+                  <option key={d} value={d}>
+                    {Number(d)}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={dobMonth}
+                onChange={e => updateDob('m', e.target.value)}
+                className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
+                aria-label='Month'
+              >
+                <option value=''>Month</option>
+                {dobMonths.map(m => (
+                  <option key={m.v} value={m.v}>
+                    {m.label}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={dobYear}
+                onChange={e => updateDob('y', e.target.value)}
+                className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
+                aria-label='Year'
+              >
+                <option value=''>Year</option>
+                {dobYears.map(y => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div>
