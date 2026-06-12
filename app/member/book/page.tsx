@@ -815,7 +815,7 @@ export default function MemberBookingPage() {
                   onClick={openAddModal}
                   className="px-2 py-0.5 bg-teal-500 hover:bg-teal-600 text-white rounded text-xs font-medium transition-colors whitespace-nowrap"
                 >
-                  + Family
+                  + Familie
                 </button>
               </div>
 
@@ -1088,7 +1088,7 @@ export default function MemberBookingPage() {
                               <div className="text-xs text-amber-300 leading-tight max-w-[180px] text-right">
                                 {primaryHasFamilyKids
                                   ? 'Bitte unter dem Namen deines Kindes buchen'
-                                  : 'Diese Klasse ist für Kinder/Jugendliche — bitte registriere zuerst dein Kind über den Button „+ Family" oben.'}
+                                  : 'Diese Klasse ist für Kinder/Jugendliche — bitte registriere zuerst dein Kind über den Button „+ Familie" oben.'}
                               </div>
                             ) : session.user_booking_status === 'none' ? (
                               <button
