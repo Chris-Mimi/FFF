@@ -149,7 +149,15 @@ function MovementLibraryPopup({
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Mobile detection for responsive layout
-  const [isMobile, setIsMobile] = useState(false);
+  // Initialize from the real viewport width so the FIRST paint is already the
+  // correct layout. Previously this started `false` (desktop) and only flipped
+  // to mobile in the effect below — so on a phone the first render was the
+  // 950×850 desktop box positioned at left:770 (almost entirely off-screen),
+  // then swapped. Android hid the swap; iOS Safari lagged on it, so the popup
+  // "didn't load" and the scroll area got stuck measured against the off-screen box.
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== 'undefined' && window.innerWidth < 1024
+  );
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1024);
     checkMobile();
