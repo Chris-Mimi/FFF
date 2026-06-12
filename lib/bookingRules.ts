@@ -80,7 +80,7 @@ export function sessionStartInstant(dateStr: string, timeStr: string): Date {
 
 const BERLIN_TZ = 'Europe/Berlin';
 
-function berlinWallClock(instant: Date) {
+export function berlinWallClock(instant: Date) {
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone: BERLIN_TZ,
     year: 'numeric', month: '2-digit', day: '2-digit',
@@ -98,7 +98,7 @@ function berlinWallClock(instant: Date) {
   };
 }
 
-function berlinWallTimeToUTC(year: number, month: number, day: number, hour: number, minute: number, second: number): Date {
+export function berlinWallTimeToUTC(year: number, month: number, day: number, hour: number, minute: number, second: number): Date {
   const guess = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone: BERLIN_TZ,

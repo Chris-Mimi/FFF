@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { notifyBookingConfirmed, notifyBookingWaitlisted } from '@/lib/notifications';
-import { getBookingRules, getLockLeadMinutesForSessionType, getMaxVisibleSessionDate, sessionStartInstant } from '@/lib/bookingRules';
+import { getBookingRules, getLockLeadMinutesForSessionType, getMaxVisibleSessionDate, sessionStartInstant, berlinWallClock, berlinWallTimeToUTC } from '@/lib/bookingRules';
 
 export async function POST(request: NextRequest) {
   try {
@@ -103,102 +103,6 @@ export async function POST(request: NextRequest) {
         { error: 'Dein Konto ist nur für Erziehungsberechtigte eingerichtet — du trainierst nicht selbst. Füge zuerst ein Familienmitglied (z.B. dein Kind) hinzu, um einen Kurs zu buchen.' },
         { status: 403 }
       );
-    }
-
-    // Wellpass under-attendance restriction: cap at 1 confirmed booking per Mon–Sun
-    // calendar week PER HOUSEHOLD when their household has fallen below the WP
-    // check-in threshold. "Household" = all members linked to the same wellpass
-    // identity (spouse + kids). Set by the Wellpass import in /api/coach/wellpass/import;
-    // cleared by next import showing recovery, or manually by the coach via the Wellpass tab.
-    if (member.wellpass_booking_restricted) {
-      const supabaseAdmin = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-      );
-
-      // Need session.date for the week calculation — fetch a slim version up front.
-      const { data: sessionForWeek } = await supabase
-        .from('weekly_sessions')
-        .select('date')
-        .eq('id', sessionId)
-        .single();
-      if (sessionForWeek?.date) {
-        const [yy, mm, dd] = sessionForWeek.date.split('-').map(Number);
-        const dt = new Date(Date.UTC(yy, mm - 1, dd));
-        const dow = dt.getUTCDay();
-        const offsetToMon = dow === 0 ? -6 : 1 - dow;
-        const mon = new Date(dt);
-        mon.setUTCDate(dt.getUTCDate() + offsetToMon);
-        const sun = new Date(mon);
-        sun.setUTCDate(mon.getUTCDate() + 6);
-        const fmt = (x: Date) =>
-          `${x.getUTCFullYear()}-${String(x.getUTCMonth() + 1).padStart(2, '0')}-${String(x.getUTCDate()).padStart(2, '0')}`;
-        const monStr = fmt(mon);
-        const sunStr = fmt(sun);
-
-        const { data: weekSessions } = await supabase
-          .from('weekly_sessions')
-          .select('id')
-          .gte('date', monStr)
-          .lte('date', sunStr);
-        const sessionIds = (weekSessions ?? []).map((s) => s.id);
-
-        if (sessionIds.length > 0) {
-          // Resolve household: all members linked to the same WP identity (or
-          // identities) as the booking member. Service-role required — RLS hides
-          // cross-member household rows from an athlete's own auth context.
-          const { data: ownIdentityRows } = await supabaseAdmin
-            .from('wellpass_identity_members')
-            .select('wellpass_identity_id')
-            .eq('member_id', bookingMemberId);
-          const identityIds = Array.from(
-            new Set((ownIdentityRows ?? []).map((r) => r.wellpass_identity_id))
-          );
-
-          // If ANY linked identity is paused (injury/vacation/etc.), lift the
-          // 1/week restriction entirely. Pause is a hard override.
-          let isPaused = false;
-          if (identityIds.length > 0) {
-            const { data: pausedRows } = await supabaseAdmin
-              .from('wellpass_identities')
-              .select('id')
-              .in('id', identityIds)
-              .not('paused_at', 'is', null)
-              .limit(1);
-            isPaused = !!(pausedRows && pausedRows.length > 0);
-          }
-
-          if (!isPaused) {
-            let householdMemberIds: string[] = [bookingMemberId];
-            if (identityIds.length > 0) {
-              const { data: householdRows } = await supabaseAdmin
-                .from('wellpass_identity_members')
-                .select('member_id')
-                .in('wellpass_identity_id', identityIds);
-              const ids = new Set((householdRows ?? []).map((r) => r.member_id));
-              ids.add(bookingMemberId); // defensive
-              householdMemberIds = Array.from(ids);
-            }
-
-            const { count: weekBookings } = await supabaseAdmin
-              .from('bookings')
-              .select('id', { count: 'exact', head: true })
-              .in('member_id', householdMemberIds)
-              .eq('status', 'confirmed')
-              .in('session_id', sessionIds);
-
-            if ((weekBookings ?? 0) >= 1) {
-              return NextResponse.json(
-                {
-                  error:
-                    'Dein Wellpass-Haushalt hat in dieser Woche bereits einen Kurs gebucht. Wellpass-Haushalte werden auf 1 Buchung pro Woche begrenzt, wenn die Mindestanzahl an Check-ins in der Vorwoche nicht erreicht wurde. Bitte sprich mit Coach Chris, wenn das ein Fehler ist.',
-                },
-                { status: 403 }
-              );
-            }
-          }
-        }
-      }
     }
 
     // Resolve effective payment method: explicit primary_payment_method wins, else first
@@ -333,6 +237,68 @@ export async function POST(request: NextRequest) {
         { error: 'This session is not yet open for booking' },
         { status: 403 }
       );
+    }
+
+    // Wellpass under-attendance restriction (release-day cap).
+    // Blocked members (members.wellpass_booking_restricted=true) get their booking
+    // window opened later via the offset above. On top of that, on the RELEASE DAY
+    // itself they may make only ONE booking — so when their (later) window opens they
+    // grab a single class and leave the rest of that day's release for priority
+    // athletes. From the day AFTER release onward there is no special cap; they book
+    // the rest of the week freely (subject to the normal everyone-limits below).
+    // Per-member (not household). Paused identities are fully exempt.
+    if (member.wellpass_booking_restricted) {
+      const nowBerlin = berlinWallClock(new Date());
+      if (nowBerlin.dow === rules.next_week_release_day_of_week) {
+        const supabaseAdmin = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
+
+        // Pause override: if ANY linked identity is paused (injury/vacation), lift
+        // the restriction entirely. Service-role — RLS hides cross-member rows.
+        const { data: ownIdentityRows } = await supabaseAdmin
+          .from('wellpass_identity_members')
+          .select('wellpass_identity_id')
+          .eq('member_id', bookingMemberId);
+        const identityIds = Array.from(
+          new Set((ownIdentityRows ?? []).map((r) => r.wellpass_identity_id))
+        );
+        let isPaused = false;
+        if (identityIds.length > 0) {
+          const { data: pausedRows } = await supabaseAdmin
+            .from('wellpass_identities')
+            .select('id')
+            .in('id', identityIds)
+            .not('paused_at', 'is', null)
+            .limit(1);
+          isPaused = !!(pausedRows && pausedRows.length > 0);
+        }
+
+        if (!isPaused) {
+          // Berlin-day boundaries for "today" → filter bookings.created_at.
+          const dayStart = berlinWallTimeToUTC(nowBerlin.year, nowBerlin.month, nowBerlin.day, 0, 0, 0);
+          const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
+
+          const { count: todaysBookings } = await supabaseAdmin
+            .from('bookings')
+            .select('id', { count: 'exact', head: true })
+            .eq('member_id', bookingMemberId)
+            .eq('status', 'confirmed')
+            .gte('created_at', dayStart.toISOString())
+            .lt('created_at', dayEnd.toISOString());
+
+          if ((todaysBookings ?? 0) >= 1) {
+            return NextResponse.json(
+              {
+                error:
+                  'Als eingeschränktes Wellpass-Mitglied kannst du am Veröffentlichungstag (Sonntag) nur einen Kurs buchen. Ab morgen kannst du den Rest der Woche buchen. Bitte sprich mit Coach Chris, wenn das ein Fehler ist.',
+              },
+              { status: 403 }
+            );
+          }
+        }
+      }
     }
 
     // Advance-booking horizon cap
