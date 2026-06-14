@@ -507,7 +507,14 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
       .eq('is_published', true)
       .order('date', { ascending: true });
 
-    // Deduplicate WODs with same session_type + workout_name (e.g., same workout at 17:15 and 18:30).
+    // Deduplicate WODs by workout_name ONLY (e.g., same workout at 17:15 and 18:30, or the
+    // same workout run as both "WOD" and "Foundations" in one week). The session label
+    // (WOD/Foundations/etc.) must NOT split one workout into separate leaderboard entries —
+    // this matches computeGrouping's name-only key below, which previously diverged: the key
+    // here used `${session_type || title}|${workout_name}` (since 495d977), so a single
+    // workout published under two labels showed as two leaderboard entries.
+    // Every published WOD has a workout_name (enforced at publish), but fall back to id
+    // defensively so a stray nameless draft can't merge with others.
     // Primary: most leaderboard items (most fully programmed). Tiebreaker: longest total section
     // content — gives the coach a deliberate lever to make a sibling "primary" by writing extra
     // notes there. Two identical-but-cloned sessions used to break ties non-deterministically.
@@ -516,7 +523,8 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
     const allWods = (data || []) as WodData[];
     const groups = new Map<string, { best: WodData; bestCount: number; bestContentLen: number; allIds: string[] }>();
     for (const w of allWods) {
-      const key = `${w.session_type || w.title}|${(w.workout_name || '').trim()}`;
+      const trimmedName = (w.workout_name || '').trim();
+      const key = trimmedName || `__id__${w.id}`;
       const count = extractLeaderboardItems(w).length;
       const contentLen = totalContentLength(w);
       const existing = groups.get(key);
