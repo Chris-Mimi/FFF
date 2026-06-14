@@ -242,6 +242,13 @@ export async function POST(request: NextRequest) {
     // athletes. From the day AFTER release onward there is no special cap; they book
     // the rest of the week freely (subject to the normal everyone-limits below).
     // Per-member (not household). Paused identities are fully exempt.
+    // Hoisted so the post-insert reconciliation (after the booking is created) can
+    // re-check atomicity: the count check below is check-then-act, so two requests
+    // fired in quick succession can both read "0 bookings today" before either inserts.
+    let releaseDayCapApplies = false;
+    let releaseDayStart: Date | null = null;
+    const releaseDayCapMessage =
+      'Als eingeschränktes Wellpass-Mitglied kannst du am Veröffentlichungstag (Sonntag) nur einen Kurs buchen. Ab morgen kannst du den Rest der Woche buchen. Bitte sprich mit Coach Chris, wenn das ein Fehler ist.';
     if (member.wellpass_booking_restricted) {
       const nowBerlin = berlinWallClock(new Date());
       if (nowBerlin.dow === rules.next_week_release_day_of_week) {
@@ -272,25 +279,20 @@ export async function POST(request: NextRequest) {
 
         if (!isPaused) {
           // Berlin-day boundaries for "today" → filter bookings.created_at.
-          const dayStart = berlinWallTimeToUTC(nowBerlin.year, nowBerlin.month, nowBerlin.day, 0, 0, 0);
-          const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
+          releaseDayStart = berlinWallTimeToUTC(nowBerlin.year, nowBerlin.month, nowBerlin.day, 0, 0, 0);
+          releaseDayCapApplies = true;
+          const dayEnd = new Date(releaseDayStart.getTime() + 24 * 60 * 60 * 1000);
 
           const { count: todaysBookings } = await supabaseAdmin
             .from('bookings')
             .select('id', { count: 'exact', head: true })
             .eq('member_id', bookingMemberId)
             .eq('status', 'confirmed')
-            .gte('created_at', dayStart.toISOString())
+            .gte('created_at', releaseDayStart.toISOString())
             .lt('created_at', dayEnd.toISOString());
 
           if ((todaysBookings ?? 0) >= 1) {
-            return NextResponse.json(
-              {
-                error:
-                  'Als eingeschränktes Wellpass-Mitglied kannst du am Veröffentlichungstag (Sonntag) nur einen Kurs buchen. Ab morgen kannst du den Rest der Woche buchen. Bitte sprich mit Coach Chris, wenn das ein Fehler ist.',
-              },
-              { status: 403 }
-            );
+            return NextResponse.json({ error: releaseDayCapMessage }, { status: 403 });
           }
         }
       }
@@ -400,6 +402,31 @@ export async function POST(request: NextRequest) {
         { error: 'Failed to create booking' },
         { status: 500 }
       );
+    }
+
+    // Release-day cap — concurrency reconciliation. The pre-check above is check-then-act,
+    // so two rapid requests can both pass it before either inserts (observed: a restricted
+    // member booked 2 sessions ~9s apart on release day). Now that this booking is committed,
+    // re-check: if another CONFIRMED release-day booking by this member was created earlier,
+    // this request lost the race — roll it back. Earliest created_at wins, deterministically.
+    // (Deleting the booking also auto-corrects the ten-card counter via the S351 trigger.)
+    if (releaseDayCapApplies && releaseDayStart && bookingStatus === 'confirmed') {
+      const supabaseAdmin = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      );
+      const { count: earlierBookings } = await supabaseAdmin
+        .from('bookings')
+        .select('id', { count: 'exact', head: true })
+        .eq('member_id', bookingMemberId)
+        .eq('status', 'confirmed')
+        .gte('created_at', releaseDayStart.toISOString())
+        .lt('created_at', booking.created_at)
+        .neq('id', booking.id);
+      if ((earlierBookings ?? 0) >= 1) {
+        await supabaseAdmin.from('bookings').delete().eq('id', booking.id);
+        return NextResponse.json({ error: releaseDayCapMessage }, { status: 403 });
+      }
     }
 
     // For the response, re-read the holder's now-trigger-maintained counter so the UI
