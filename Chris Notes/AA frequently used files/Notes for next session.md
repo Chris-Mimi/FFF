@@ -20,6 +20,7 @@ http://192.168.178.75:3000
 * iphone bug (I think) Coach-side: Workouts search box: Mimi can't type anything in the search box
 * Mimi couldn't add a trial athlete
 - 🔴- 🔴- 🔴 Review of blocking system - URGENT before next Sunday!
+Athletes app: Give me the posssibility to send Athletes who pay for the app a message.
 * Workouts page: ability to mute/cancel athletes without clearing the group
 * Kids in Athletes list on Workouts page:
 Need DOB: Engels Frida, Frieda Stromer, Leopold Wischhöfer, Nico Enzmann, 

@@ -1,7 +1,10 @@
 # Active Context
 
-**Version:** 246
-**Updated:** 2026-06-12 (Session 378 — Toolkit Exercise-tab usage fix + calendar deep-link + Wellpass badge rename. **(1)** [utils/movement-analytics.ts](utils/movement-analytics.ts) `getExerciseFrequency` keyed every result by a 2-week bucket in a Map → repeats of the same workout collapsed to one entry, all but one date dropped, so an exercise run across 5 sessions showed "used 1x" + a single date while the Workouts-page search correctly showed "1 unique / 5 total". Rewrote to record EVERY session (one row per weekly_session; deduped per-session so name+acronym both resolving to one exercise don't double-count) plus a `uniqueCount` of distinct workout names (matches SearchPanel's S333 model). Chip now `Used 5x (1 unique)`; detail header `1 unique · 5 total sessions` + lists all dates. PlannerSection reads only `lastProgrammed` → unaffected; `getExerciseFrequencyById` has no external callers. **(2)** Calendar deep-link: clicking a session row in the usage modal → `router.push('/coach?date=YYYY-MM-DD')`; [app/coach/page.tsx](app/coach/page.tsx) reads the param in a `useEffect` (NOT the useState initializer — SSR runs it with no `window`, hydration then kept today's week → wrong week, caught on dev) and jumps the calendar to that workout's week. Jump-to-week only, no auto-open. **(3)** Wellpass status badge `&lt; min` → `blocked` (`55acdce`) — holdover from the old single-rule system, misleading now it fires on any of the 3 S377 gates; tooltip still names the rule. All verified working on dev. S377 redesign confirmed OK on prod by Chris.)
+**Version:** 247
+**Updated:** 2026-06-14 (Session 379 — Mobile UX fixes + Wellpass blocked-tier booking rule + kids-class child-only booking. **Mobile:** athlete Profile DOB → Day/Month/Year dropdowns on mobile (no month-by-month scroll); manual-booking member-select → A–Z rail on mobile; movement-demo video modal portaled to body (iPhone stacking/scroll fix); Movement Library — lazy-init `isMobile` (off-screen first-paint fix), pinned search box via `min-h-0`+`flex-shrink-0`, collapsible filters (default closed), and `visualViewport` sizing so the header stays pinned when the keyboard opens. **Booking logic:** Wellpass blocked-tier reworked — removed the household 1/week cap, replaced with a release-day cap (1 booking on Sunday, rest from Monday, per-member, pause-exempt); later-window offset unchanged. Kids classes now child-only — normalized the kids/foundations matchers in 3 places so `Eltern-Kind-Turnen (2-6J)` and all spellings match, and ALL adult self-bookings on kids classes are blocked (must register a child via the `+ Familie` button). 9 commits. **Pending:** Mimi iPhone re-tests (video modal + library scroll/keyboard); prod spot-checks for kids-block + Wellpass release-day cap.)
+
+<!-- Older S378: Toolkit Exercise-tab usage fix + calendar deep-link + Wellpass badge rename. **(1)** [utils/movement-analytics.ts](utils/movement-analytics.ts) `getExerciseFrequency` keyed every result by a 2-week bucket in a Map → repeats of the same workout collapsed to one entry, all but one date dropped. Rewrote to record EVERY session + a `uniqueCount` of distinct workout names. Chip now `Used 5x (1 unique)`. **(2)** Calendar deep-link from usage modal → `/coach?date=YYYY-MM-DD`, read in a `useEffect` (not the useState initializer). **(3)** Wellpass status badge `&lt; min` → `blocked` (`55acdce`). -->
+
 
 <!-- Older S377: Wellpass blocking system rewritten end-to-end. **Old rule** ("block if latest week below `min_checkins_required`") punished consistent users for one bad week. **New rule (3 gates, all must pass to be unblocked):** (A) 4-week login sum ≥ 3 × min (recent dormancy); (B) 12-week login sum ≥ 9 × min (annual pace); (C) shared identities only — 13-week login:attendance ratio ≥ 1.5× (under-padding the spouse-share deal). Each gate has a grace period (insufficient data = auto-pass). Math centralized in new [lib/coach/wellpassScoring.ts](lib/coach/wellpassScoring.ts), called by both `/api/coach/wellpass` (GET, for the tab) and `/api/coach/wellpass/import` (recompute). **WellpassTab UI:** old lifetime `+N/-N` Score column replaced by two new columns — **YTD %** + **All-time %** (logins ÷ target × 100; green ≥100 / amber 80–99 / red <80). Shared identities also show an inline **login:attendance ratio chip** under the name (green ≥1.5×, amber below). Status badge on blocked rows now carries a tooltip naming the rule that tripped. **Unblock all (N)** button added in the header — clears `wellpass_booking_restricted` on every blocked member via new [/api/coach/wellpass/unblock-all](app/api/coach/wellpass/unblock-all/route.ts). Also: DEV ENVIRONMENT section added at top (Synology Drive sync between Macbook + Windows PC; GitHub is source of truth); free-ports doc + session-open prompt patched for cross-platform paths. Pre-existing landmine: badge LABEL still says "&lt; min" but now fires for any of the 3 rules; rename to "blocked" pending Chris's call. See project-history for detail. [DONE S378: renamed to "blocked".]) -->
 
@@ -57,33 +60,25 @@ Synology Drive syncs files in the background and is **not git-aware**. When Chri
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history scan._
 
-**🚨 Next session — deploy S378 + spot-check on production, then pick from the open items below.**
+**🚨 Next session — confirm S379 deploy on production, then pick from the open items below.**
 
-S377 Wellpass redesign + the badge rename are **VERIFIED OK by Chris** (dev + prod) ✅. S378 work verified on dev — confirm once deployed:
-1. **Exercise-tab usage chip.** `/coach/benchmarks-lifts` → Exercises tab → search a movement (e.g. "KB Push-Up Hold Pull-Through", "KB Push Press"). The `Used Nx` chip should show the total, with `(N unique)` appended when total ≠ unique. Click it → detail modal header reads `N unique · M total sessions` and lists all dates.
-2. **Calendar deep-link.** Click any session row in that modal → lands on `/coach` with the calendar already on that workout's week (jump-to-week only; you click the card to open).
+All S379 commits pushed + Vercel deploying. **Spot-check on prod once live:**
+1. **Kids classes = child-only.** As a parent on `/member/book`, a kids class (incl. `Eltern-Kind-Turnen (2-6J)`) shows NO Book button under your own name — message points to the `+ Familie` button; booking under a registered child works. Diapers & Dumbbells still bookable for self (foundations, not kids).
+2. **Wellpass release-day cap.** Only testable with a blocked member: set `wellpass_booking_restricted=true` on a test member → on Sunday they can book 1 class, a 2nd same-day is rejected; Monday onward unrestricted. (No one currently blocked → tier dormant by design.)
+3. **Mobile (Mimi's iPhone — the two I couldn't reproduce on Mac):** movement-demo video opens on top of the WOD editor (no need to exit); Movement Library loads correctly + search box stays pinned while scrolling AND with the keyboard open.
+
+**Optional polish:** finish translating the `/member/book` "Select who you're booking for" panel — modal titles "Add/Edit Family Member" + that header are still English.
 
 **Recurring/weekly:**
-- **Sunday Wellpass sync (gated).** `/coach/members` → Wellpass → Sync from Excel before sessions go live. **S377 changes recompute behavior** — first Sunday sync after deploy may produce a different `blocks_applied` / `blocks_cleared` list than expected. Read it carefully; surprises = a household whose old-single-week verdict differed from the new 3-gate verdict.
+- **Sunday Wellpass sync (gated).** `/coach/members` → Wellpass → Sync from Excel before sessions go live. Skim `blocks_applied`/`blocks_cleared` (S377 3-gate verdict may differ from old single-week).
 - **Paper-card sync (S351 carry).** ~12 holders parked pending parent contact. `scripts/list-ten-card-no-purchase-date.ts`. No urgency.
 
 **Open ⏳ items:**
 - **S342** — once Nikolina/Lisa enter the 7d window, confirm Subscriptions Due banner.
-- **S341** — `/coach/analysis` planner `[All | RM Testing only]` toggle verify (S375 exercise-row view — verify it switches cleanly and the right group shows).
+- **S341** — `/coach/analysis` planner `[All | RM Testing only]` toggle verify (S375 exercise-row view).
 - **S338** — verify on production: AKBS Deadlift "WOD Pt.3" leaderboard ordering.
 - **S336** — retroactive bookings: Anton (Koffler/Jacht ambiguity), Max Weber.
-- **S376** — acronym name-mismatch class. If a new rep-max lift shows a junk chip, set its `barbell_lifts.acronym` directly. Worth a one-pass audit of all `barbell_lifts` someday.
-
-**Recurring/weekly:**
-- **Sunday Wellpass sync (gated).** `/coach/members` → Wellpass → Sync from Excel before sessions go live. Skim `blocks_applied`/`blocks_cleared` (S364 zero-fills + recomputes on union).
-- **Paper-card sync (S351 carry).** ~12 holders parked pending parent contact. `scripts/list-ten-card-no-purchase-date.ts`. No urgency — trigger bails on null purchase_date.
-
-**Open ⏳ items:**
-- **S342** — once Nikolina/Lisa enter the 7d window, confirm Subscriptions Due banner.
-- **S341** — `/coach/analysis` planner `[All | RM Testing only]` toggle verify (now the S375 exercise-row view — verify it switches cleanly and the right group shows).
-- **S338** — verify on production: AKBS Deadlift "WOD Pt.3" leaderboard ordering.
-- **S336** — retroactive bookings: Anton (Koffler/Jacht ambiguity), Max Weber.
-- _S321 late-cancel TZ fix — ✅ CONFIRMED S375 (5 `late_cancel` rows since 2026-04-24, gate firing). Closed._
+- **S376** — acronym name-mismatch class. If a new rep-max lift shows a junk chip, set its `barbell_lifts.acronym` directly. One-pass audit someday.
 
 **Files to open first if continuing code work:**
 - [lib/coach/wellpassScoring.ts](lib/coach/wellpassScoring.ts) — **single source of truth** for the 3 block gates + YTD/all-time scoring. Tunable constants at top (`WINDOW_*`, `DEFICIT_MULTIPLIER_*`, `RATIO_THRESHOLD`). Both `/api/coach/wellpass` GET and `/api/coach/wellpass/import` recompute call `computeMetrics` + `decideBlock` so the displayed verdict equals the recompute verdict.
@@ -244,7 +239,7 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
-**Session 379 (2026-06-12 — Opus 4.8) — MOBILE UX FIXES + WELLPASS BLOCKED-TIER + KIDS-CLASS BOOKING RULES (CHECKPOINT — chat continues):**
+**Session 379 (2026-06-12→14 — Opus 4.8) — MOBILE UX FIXES + WELLPASS BLOCKED-TIER + KIDS-CLASS BOOKING RULES (9 COMMITS + CLOSE):**
 - **Kids classes: child-only booking, all spellings, no-child path.** Three matchers shared the same `startsWith` kids keyword list and the hyphenated `"Eltern-Kind-Turnen (2-6J)"` escaped all three (the no-hyphen `"ElternKind Turnen"` was already caught). Normalized keywords + input (strip spaces/hyphens/punctuation) in [app/api/bookings/create/route.ts](app/api/bookings/create/route.ts), [app/member/book/page.tsx](app/member/book/page.tsx) `isKidsClass`/`isFoundationsClass`, and [utils/card-utils.ts](utils/card-utils.ts) `getSessionTier` so every variant matches. Side effect (correct): the hyphenated class now also shows in the Kids tab + gets the kids color tier. ALSO per Chris: kids-class self-bookings are now blocked for **ALL** adults, not just those with a registered family member (removed the `primaryHasFamilyKids`/`family.length>0` gate in both surfaces). Page message for a parent with no registered child: "This class is for children/teens — please register your child first by clicking the + Family button above." (has-child case still shows the German "book under your child's name"). Server 403 fallback guides registering a child. Diapers & Dumbbells = foundations tier, NOT kids → parents still self-book it.
 - **Wellpass blocked-athlete booking rule reworked.** [app/api/bookings/create/route.ts](app/api/bookings/create/route.ts) — REMOVED the old household 1-booking-per-week hard cap. REPLACED with a release-day cap: a `wellpass_booking_restricted` member may make only **1 booking on the release day (Sunday)**; from the day after, no special cap (books the rest of the week if spots remain). Per-individual-member (not household). Pause override kept (paused identity = exempt). The later-window offset (16:00 priority / 18:00 restricted) is unchanged — that's what preserves priority for unblocked athletes. Context: window opens 16:00 but last Sunday class is 11:00, so blocked athletes can only ever book NEXT week's classes when their window opens → "1 on Sunday" = 1 next-week class. Exported `berlinWallClock` + `berlinWallTimeToUTC` from [lib/bookingRules.ts](lib/bookingRules.ts) for the TZ-safe day-boundary math. Server-side enforcement only.
 - **Athlete Profile DOB picker (mobile).** [components/athlete/AthletePageProfileTab.tsx](components/athlete/AthletePageProfileTab.tsx) — native `<input type=date>` forced Android users to scroll the calendar month-by-month to a birth year. Desktop (`sm+`) keeps the native input; mobile (`<sm`) gets three Day/Month/Year dropdowns (year list = current→1930) that compose back into the same `YYYY-MM-DD` string. Empty until all 3 parts chosen (saves `null`, not a malformed date).
@@ -292,14 +287,7 @@ Athlete Tools
 - **Athletes list now approved-only.** [app/coach/athletes/page.tsx](app/coach/athletes/page.tsx) switched from "everyone with a profile minus guardians" to an allowlist: member exists AND status `active`/`blocked` AND not guardian_only. Hides pending registrations (profile created pre-approval) AND orphan profiles. Open Q: also hide `blocked`?
 - **S321 late-cancel TZ gate confirmed.** Gate-check query returned 5 `late_cancel` rows since 2026-04-24 → firing in production. Reminder retired.
 
-**Session 374 (2026-06-08 — Opus 4.8) — PLANNER DATE-WINDOW UX + EXPANDED-CHIPS LAYOUT FIX (1 COMMIT `b31c2f9` + CLOSE):**
-- **Start-anchored Planner grid.** [components/coach/analysis/PlannerSection.tsx](components/coach/analysis/PlannerSection.tsx) — was centered on today (`anchorOffsetWeeks`), so each timescale split past/future differently and the left edge jumped. Now `startMonday` is the left edge and 1/3/6/12mo run FORWARD from it (`deriveWindow` → `pastWeeks:0`). `shiftMonday` + `STEP_WEEKS=4` for Prev/Next nudges.
-- **Click a week header → set as start.** [components/coach/analysis/PlanningGrid.tsx](components/coach/analysis/PlanningGrid.tsx) week `<th>`s are now buttons calling new `onSetStart` prop. Because the grid runs forward-only, clicking moves the start *forward*; Prev/Today go earlier.
-- **Default 6mo, today centered.** `centeredStart(view)` = this-week-Monday − floor((weeks−1)/2). Initial state + the localStorage view-restore effect both center today; "Today" button re-centers (`centeredNow`). After load it's start-anchored.
-- **Expanded-chips fit-to-viewport.** Inline-expanded pattern chips (a `grid grid-cols-2/3/4` in a full-width `colSpan` cell) stretched across the whole scrolled width at 6/12mo. Fixed by measuring the `overflow-x-auto` container via a **callback-ref ResizeObserver** + pinning chips in a `sticky left-0` div sized to the visible width. First attempt used `useEffect([])` which measured nothing — the planner renders an empty state first while patterns load async, so the ref node wasn't present on mount and the empty-deps effect never re-ran. Callback ref fixed it.
-- **Parked for Chris's judgement after use:** Prev/Next step size (~1 month) + whether the start date should persist between visits.
-
-**Older sessions (57-373):** See `project-history/` folder.
+**Older sessions (57-374):** See `project-history/` folder.
 
 ---
 
