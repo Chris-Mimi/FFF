@@ -85,8 +85,11 @@ export interface WellpassImportResult {
   identities_created: number;
   identities_linked: number;
   identities_unmatched: string[];
-  blocks_applied: { wellpass_name: string; member_names: string[] }[];
-  blocks_cleared: { wellpass_name: string; member_names: string[] }[];
+  // Sync is data-only: it NEVER changes wellpass_booking_restricted (blocking is
+  // 100% manual via the Block button / Unblock all). This is the algorithm's
+  // suggestion list — tracked identities under the threshold that are NOT currently
+  // blocked, so the coach can decide whether to block them by hand. S380.
+  suggested_block: { wellpass_name: string; member_names: string[]; reason: string | null }[];
 }
 
 export const isExempt = (

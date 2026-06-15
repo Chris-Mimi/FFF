@@ -314,14 +314,14 @@ export default function WellpassTab() {
             Imported {importResult.weeks_imported} weeks · {importResult.rows_inserted} weekly counts saved
             {importResult.identities_created > 0 && ` · ${importResult.identities_created} new names added`}
           </div>
-          {importResult.blocks_applied.length > 0 && (
+          {importResult.suggested_block.length > 0 ? (
             <div className="text-orange-300 mt-1">
-              🔒 Blocked: {importResult.blocks_applied.map((b) => `${b.wellpass_name} (${b.member_names.join(', ')})`).join('; ')}
+              ⚠️ Under threshold — consider blocking manually ({importResult.suggested_block.length}): {importResult.suggested_block.map((b) => `${b.wellpass_name} (${b.member_names.join(', ')})`).join('; ')}
+              <span className="block text-gray-400 text-xs mt-0.5">Sync never changes blocks — your manual blocks/unblocks stay as you set them.</span>
             </div>
-          )}
-          {importResult.blocks_cleared.length > 0 && (
-            <div className="text-green-300 mt-1">
-              ✓ Cleared: {importResult.blocks_cleared.map((b) => `${b.wellpass_name} (${b.member_names.join(', ')})`).join('; ')}
+          ) : (
+            <div className="text-gray-400 mt-1 text-xs">
+              No new under-threshold athletes to review. (Sync never changes blocks — blocking is manual.)
             </div>
           )}
           {importResult.identities_unmatched.length > 0 && (

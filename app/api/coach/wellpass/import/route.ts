@@ -59,8 +59,7 @@ export async function POST(request: NextRequest) {
       identities_created: 0,
       identities_linked: 0,
       identities_unmatched: [],
-      blocks_applied: [],
-      blocks_cleared: [],
+      suggested_block: [],
     };
 
     const { data: existingIdentities } = await supabaseAdmin
@@ -249,13 +248,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Recompute block status for everyone tracked — covers both identities that
-    // appeared in this import AND tracked identities that may have just received
-    // a 0-row for a week they were absent from.
-    const recomputeScope = Array.from(new Set([...identityIds, ...allTrackedIds]));
-    const blocksDelta = await recomputeBlockStatus(recomputeScope);
-    result.blocks_applied = blocksDelta.applied;
-    result.blocks_cleared = blocksDelta.cleared;
+    // Compute the algorithm's block SUGGESTIONS for everyone tracked. This is
+    // data-only: it does NOT change wellpass_booking_restricted (blocking is 100%
+    // manual). It surfaces tracked identities under the threshold that the coach
+    // hasn't already blocked, as a starting list for manual review.
+    const suggestScope = Array.from(new Set([...identityIds, ...allTrackedIds]));
+    result.suggested_block = await computeBlockSuggestions(suggestScope);
 
     const { data: finalLinks } = await supabaseAdmin
       .from('wellpass_identity_members')
@@ -280,12 +278,14 @@ export async function POST(request: NextRequest) {
 //   - 13-week login:attendance ratio vs 1.5 (shared identities only)
 // Paused identities are skipped — pause is a hard override and booking-create
 // already checks pause separately.
-async function recomputeBlockStatus(touchedIdentityIds: string[]): Promise<{
-  applied: { wellpass_name: string; member_names: string[] }[];
-  cleared: { wellpass_name: string; member_names: string[] }[];
-}> {
-  const applied: { wellpass_name: string; member_names: string[] }[] = [];
-  const cleared: { wellpass_name: string; member_names: string[] }[] = [];
+// Suggestion-only: computes the algorithm verdict for each tracked, non-paused
+// identity and returns those it would block that are NOT already blocked. It does
+// NOT write wellpass_booking_restricted — blocking is 100% manual (S380), so a
+// resync never undoes the coach's hand-set blocks/unblocks.
+async function computeBlockSuggestions(touchedIdentityIds: string[]): Promise<
+  { wellpass_name: string; member_names: string[]; reason: string | null }[]
+> {
+  const suggestions: { wellpass_name: string; member_names: string[]; reason: string | null }[] = [];
 
   const { data: identities } = await supabaseAdmin
     .from('wellpass_identities')
@@ -293,10 +293,10 @@ async function recomputeBlockStatus(touchedIdentityIds: string[]): Promise<{
     .eq('tracked', true)
     .in('id', touchedIdentityIds);
 
-  if (!identities || identities.length === 0) return { applied, cleared };
+  if (!identities || identities.length === 0) return suggestions;
 
   const consideredIds = identities.filter((i) => !i.paused_at).map((i) => i.id);
-  if (consideredIds.length === 0) return { applied, cleared };
+  if (consideredIds.length === 0) return suggestions;
 
   // Bulk-load linked members for all considered identities.
   const { data: allLinks } = await supabaseAdmin
@@ -349,29 +349,20 @@ async function recomputeBlockStatus(touchedIdentityIds: string[]): Promise<{
     const attendances = attendancesByIdentity.get(identity.id) ?? [];
     const metrics = computeMetrics(logins, attendances, identity, isShared, now);
     const verdict = decideBlock(metrics, identity, exempt, isShared);
-    const shouldBlock = verdict.shouldBlock;
 
-    const memberIds = linkRows.map((l) => l.member_id);
+    // Suggest only what the algorithm would block AND the coach hasn't already
+    // blocked. We never write the flag — manual blocks/unblocks are authoritative.
+    if (!verdict.shouldBlock) continue;
+    const alreadyBlocked = linkRows.some((l) => l.m.wellpass_booking_restricted === true);
+    if (alreadyBlocked) continue;
+
     const memberNames = linkRows.map((l) => l.m.name).filter((n): n is string => Boolean(n));
-
-    const { error: updateErr } = await supabaseAdmin
-      .from('members')
-      .update({ wellpass_booking_restricted: shouldBlock })
-      .in('id', memberIds);
-
-    if (updateErr) {
-      console.error('[wellpass-recompute] update error for', identity.wellpass_name, updateErr);
-      continue;
-    }
-
-    const wasBlocked = linkRows.some((l) => l.m.wellpass_booking_restricted === true);
-
-    if (shouldBlock && !wasBlocked) {
-      applied.push({ wellpass_name: identity.wellpass_name, member_names: memberNames });
-    } else if (!shouldBlock && wasBlocked) {
-      cleared.push({ wellpass_name: identity.wellpass_name, member_names: memberNames });
-    }
+    suggestions.push({
+      wellpass_name: identity.wellpass_name,
+      member_names: memberNames,
+      reason: verdict.reason,
+    });
   }
 
-  return { applied, cleared };
+  return suggestions;
 }
