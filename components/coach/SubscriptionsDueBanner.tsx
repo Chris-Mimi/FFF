@@ -227,7 +227,7 @@ export default function SubscriptionsDueBanner() {
         body: JSON.stringify({ memberId }),
       });
       if (!res.ok) throw new Error('Dismiss failed');
-      toast.success('Dismissed — reappears on re-lapse');
+      toast.success('Warning hidden — it returns only if this member lapses again later');
     } catch (err) {
       console.error('Dismiss failed', err);
       toast.error('Failed to dismiss. Refreshing.');
@@ -389,7 +389,7 @@ export default function SubscriptionsDueBanner() {
                 <button
                   onClick={() => handleDismiss(r.memberId, r.kind)}
                   disabled={actingId === r.memberId}
-                  title='Dismiss (reappears on re-lapse)'
+                  title='Hide this warning (returns only if they lapse again later)'
                   aria-label='Dismiss'
                   className='ml-0.5 p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition disabled:opacity-50 flex-shrink-0'
                 >
