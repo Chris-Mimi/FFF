@@ -25,7 +25,6 @@ interface DueRow {
   planLabel?: string | null;
 }
 
-const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 const FOURTEEN_DAYS_MS = 14 * 24 * 60 * 60 * 1000;
 const COLLAPSED_KEY = 'subscriptionsDueBanner:collapsed';
 
@@ -57,20 +56,30 @@ export default function SubscriptionsDueBanner() {
     setLoading(true);
     try {
       const now = new Date();
-      const sevenDaysOut = new Date(now.getTime() + SEVEN_DAYS_MS);
+      const DAY_MS = 24 * 60 * 60 * 1000;
+      // Lead time before the banner warns, by payer type. Cash payers need the most
+      // notice (the coach has to physically collect payment); Stripe trials ending and
+      // cancel-at-period-end subs get the same 5-day notice (catch a convert-or-drop /
+      // a leaver); only genuine auto-renew takes care of itself, so it warns at the last
+      // moment. Tunable here.
+      const cashLeadDays = 5;
+      const trialLeadDays = 5;
+      const autoRenewLeadDays = 2;
       const fourteenDaysBack = new Date(now.getTime() - FOURTEEN_DAYS_MS);
       const nowIso = now.toISOString();
-      const sevenIso = sevenDaysOut.toISOString();
+      const cashAheadIso = new Date(now.getTime() + cashLeadDays * DAY_MS).toISOString();
+      // Fetch Stripe rows within the LONGER lead, then filter each per-kind below.
+      const stripeAheadIso = new Date(now.getTime() + Math.max(trialLeadDays, autoRenewLeadDays) * DAY_MS).toISOString();
       const fourteenBackIso = fourteenDaysBack.toISOString();
 
-      // Upcoming Stripe (next 7 days, still active/trialing)
+      // Upcoming Stripe (auto-renew / trial / cancelling) — only warn 2 days out.
       const { data: stripeUpcoming } = await supabase
         .from('subscriptions')
         .select('member_id, current_period_end, cancel_at_period_end, plan_type, status')
         .in('status', ['active', 'trialing'])
         .not('current_period_end', 'is', null)
         .gte('current_period_end', nowIso)
-        .lte('current_period_end', sevenIso);
+        .lte('current_period_end', stripeAheadIso);
 
       // Lapsed Stripe (period_end in past 14 days, status no longer active)
       const { data: stripeLapsed } = await supabase
@@ -107,7 +116,7 @@ export default function SubscriptionsDueBanner() {
         }));
       }
 
-      // Upcoming cash (next 7 days)
+      // Upcoming cash — warn 5 days out (coach must collect payment).
       const { data: cashUpcoming } = await supabase
         .from('members')
         .select('id, name, display_name, athlete_subscription_end')
@@ -115,7 +124,7 @@ export default function SubscriptionsDueBanner() {
         .neq('account_type', 'family_member')
         .not('athlete_subscription_end', 'is', null)
         .gte('athlete_subscription_end', nowIso)
-        .lte('athlete_subscription_end', sevenIso);
+        .lte('athlete_subscription_end', cashAheadIso);
 
       // Lapsed cash (past 14 days, includes already-expired-status to surface auto-flips)
       const { data: cashLapsed } = await supabase
@@ -155,23 +164,28 @@ export default function SubscriptionsDueBanner() {
           kind: 'cash-lapsed' as RowKind,
         }));
 
-      const stripeRowsUpcoming: DueRow[] = (stripeUpcoming ?? []).map(s => {
-        const member = stripeMembersById.get(s.member_id);
-        const end = new Date(s.current_period_end!);
-        const kind: RowKind = s.cancel_at_period_end
-          ? 'stripe-cancelling'
-          : s.status === 'trialing'
-          ? 'stripe-trial'
-          : 'stripe-auto';
-        return {
-          memberId: s.member_id,
-          name: member?.display_name || member?.name || 'Unknown',
-          daysLeft: Math.max(0, daysBetween(end)),
-          endDate: s.current_period_end!,
-          kind,
-          planLabel: s.plan_type,
-        };
-      });
+      const stripeRowsUpcoming: DueRow[] = (stripeUpcoming ?? [])
+        .map(s => {
+          const member = stripeMembersById.get(s.member_id);
+          const end = new Date(s.current_period_end!);
+          const kind: RowKind = s.cancel_at_period_end
+            ? 'stripe-cancelling'
+            : s.status === 'trialing'
+            ? 'stripe-trial'
+            : 'stripe-auto';
+          return {
+            memberId: s.member_id,
+            name: member?.display_name || member?.name || 'Unknown',
+            daysLeft: Math.max(0, daysBetween(end)),
+            endDate: s.current_period_end!,
+            kind,
+            planLabel: s.plan_type,
+          };
+        })
+        // Only genuine auto-renew warns at the last moment (2 days); trials ending AND
+        // cancel-at-period-end (the member is leaving — you want notice) get the longer,
+        // cash-like 5-day lead. (We fetched within the longer window above.)
+        .filter(r => r.daysLeft <= (r.kind === 'stripe-auto' ? autoRenewLeadDays : trialLeadDays));
 
       const stripeRowsLapsed: DueRow[] = (stripeLapsed ?? [])
         .filter(s => {
