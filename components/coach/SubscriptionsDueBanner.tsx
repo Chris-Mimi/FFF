@@ -214,7 +214,15 @@ export default function SubscriptionsDueBanner() {
     }
   };
 
-  const handleDismiss = async (memberId: string, kind: RowKind) => {
+  const handleDismiss = async (memberId: string, name: string, kind: RowKind) => {
+    // Confirm first — the ✕ silently removes the reminder with no other effect, so
+    // a misclick can wipe a real lapsing member's warning unseen. Require a tap.
+    if (!await confirm({
+      title: `Hide ${name}'s warning?`,
+      message: `Remove ${name} from the Subscriptions Due list? This only hides the reminder — it doesn't cancel or change their subscription. It returns only if they lapse again later.`,
+      confirmText: 'Hide warning',
+    })) return;
+
     setActingId(memberId);
     // Optimistic removal — remove ONLY the dismissed row, not every row for this
     // member. A member can have a lapsed row AND a separate upcoming row (e.g.
@@ -387,7 +395,7 @@ export default function SubscriptionsDueBanner() {
               )}
               {isLapsed(r) && (
                 <button
-                  onClick={() => handleDismiss(r.memberId, r.kind)}
+                  onClick={() => handleDismiss(r.memberId, r.name, r.kind)}
                   disabled={actingId === r.memberId}
                   title='Hide this warning (returns only if they lapse again later)'
                   aria-label='Dismiss'
