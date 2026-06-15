@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { requireCoach, isAuthError } from '@/lib/auth-api';
-import { notifySubscriptionExpiring, notifySubscriptionExpiringCoach } from '@/lib/notifications';
+import { notifySubscriptionExpiringCoach } from '@/lib/notifications';
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -53,9 +53,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, skipped: true });
     }
 
+    // NOTE: we deliberately do NOT notify the athlete that their subscription is
+    // "expiring". Subscriptions are auto-renewing Stripe debits (create-checkout uses
+    // mode:'subscription' + payment_method_collection:'always'), so "expiring in N days"
+    // is misleading — it auto-renews. Reminding a paying member to "think about" their
+    // sub every cycle only prompts churn. Coach-side notification is kept so Chris still
+    // has visibility (e.g. for spotting a sub that won't renew). (S380, Chris's call.)
     const memberName = member.display_name || member.name;
-    notifySubscriptionExpiring(memberId, daysLeft);
     notifySubscriptionExpiringCoach(memberName, daysLeft);
+
+    // Write the per-member daily dedup marker explicitly. Previously this row was a
+    // side effect of the athlete push (sendToUser logs by recipient). Now that we no
+    // longer notify the athlete, write it here so the once-per-day-per-member check
+    // above still suppresses repeat coach notifications across Members-page reloads.
+    await supabaseAdmin.from('notification_log').insert({
+      user_id: memberId,
+      notification_type: 'subscription_expiring',
+      title: 'Subscription expiring',
+      body: `${memberName} — ${daysLeft}d (coach-only)`,
+    });
 
     return NextResponse.json({ success: true, daysLeft });
   } catch (error) {
