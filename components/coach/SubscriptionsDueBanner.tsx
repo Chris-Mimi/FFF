@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { ChevronDown, ChevronRight, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { authFetch } from '@/lib/auth-fetch';
+import { confirm } from '@/lib/confirm';
 import { toast } from 'sonner';
 
 type RowKind =
@@ -236,7 +237,17 @@ export default function SubscriptionsDueBanner() {
     }
   };
 
-  const handleRenew = async (memberId: string, action: 'activate_monthly' | 'activate') => {
+  const handleRenew = async (memberId: string, name: string, action: 'activate_monthly' | 'activate') => {
+    // Confirm first — this grants a free month/year of access instantly with no
+    // payment, and the buttons sit right next to Dismiss. A misclick once silently
+    // gave a friend a full year (S380), so require an explicit confirmation.
+    const label = action === 'activate_monthly' ? '1 month' : '1 year';
+    if (!await confirm({
+      title: `Renew ${name}?`,
+      message: `Mark ${name} as paid for ${label}? This sets their access end date accordingly — no payment is collected. Only do this once they've actually paid.`,
+      confirmText: `Renew ${label}`,
+    })) return;
+
     setActingId(memberId);
     try {
       // Route through close-subscription so the outgoing month/year gets archived into
@@ -334,14 +345,14 @@ export default function SubscriptionsDueBanner() {
               {showRenewButtons(r.kind) && (
                 <div className='flex gap-1.5 flex-shrink-0'>
                   <button
-                    onClick={() => handleRenew(r.memberId, 'activate_monthly')}
+                    onClick={() => handleRenew(r.memberId, r.name, 'activate_monthly')}
                     disabled={actingId === r.memberId}
                     className='px-2 py-1 text-xs font-medium bg-white hover:bg-gray-50 border border-gray-300 rounded transition disabled:opacity-50'
                   >
                     Renew 1 Month
                   </button>
                   <button
-                    onClick={() => handleRenew(r.memberId, 'activate')}
+                    onClick={() => handleRenew(r.memberId, r.name, 'activate')}
                     disabled={actingId === r.memberId}
                     className='px-2 py-1 text-xs font-medium bg-white hover:bg-gray-50 border border-gray-300 rounded transition disabled:opacity-50'
                   >
