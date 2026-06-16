@@ -19,6 +19,7 @@ http://192.168.178.75:3000
 * IDEA: Put names of booked athletes in Whiteboard Intro so they also go into Google Calendar or find another way to register them in Google Calendar.
 * iphone bug (I think) Coach-side: Workouts search box: Mimi can't type anything in the search box
 * Mimi couldn't add a trial athlete
+* Birthday reminders in coaching app
 
 Athletes app: Give me the posssibility to send Athletes who pay for the app a message.
 * Workouts page: ability to mute/cancel athletes without clearing the group
@@ -30,7 +31,7 @@ Ask Mimi Silvia Maritati (Diapers & Dumbbells?)
 Default setting for publish should be NOT to notify athletes.
 * Give me warnings in the Subs due banner 5 days before for cash payers and 2 days before for auto-renew.
 * The ability to mark waitlist athletes as Open Gym without them adding to the booking list
-Dismissed - re-appears on relapse - no warning notification
+* Kathrin should flag in the banner as her sub is about to cancel in 3 days!
 
 * Ask Claude for a Magic link script to access athlete's accounts to check screen views so I can help them click the right buttons. I just give Claude the email ad.
 * 
