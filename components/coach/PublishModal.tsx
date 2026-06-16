@@ -60,8 +60,9 @@ export default function PublishModal({
   const [eventDurationMinutes, setEventDurationMinutes] = useState(
     currentPublishConfig?.eventDurationMinutes || 60
   );
-  // First publish notifies by default; re-publish stays silent unless coach opts in.
-  const [notify, setNotify] = useState(!currentPublishConfig);
+  // Default to NOT notifying athletes on any publish (first or re-publish);
+  // the coach opts in by ticking the box. (S382)
+  const [notify, setNotify] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Reset state when modal opens or currentPublishConfig changes
@@ -87,7 +88,7 @@ export default function PublishModal({
         : (currentPublishConfig?.eventTime || '09:00');
       setEventTime(time);
       setEventDurationMinutes(currentPublishConfig?.eventDurationMinutes || 60);
-      setNotify(!currentPublishConfig);
+      setNotify(false);
     }
   }, [isOpen, currentPublishConfig, sessionTime, sections]);
 
