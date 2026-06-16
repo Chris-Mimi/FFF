@@ -164,11 +164,18 @@ export async function fetchPublishedWorkouts(filter?: DateRangeFilter, label = '
   }
 
   const excludeTypes = filter?.excludeSessionTypes?.map(t => t.toLowerCase()) || [];
+  // Match the excluded type exactly OR as the base of a qualified variant, so
+  // excluding "Kids & Teens" also catches "Kids & Teens (7+)" etc. Exact-match
+  // alone leaked the "(7+)" variant into the Adults view. (S382)
+  const isExcluded = (sessionType: string) => {
+    const st = (sessionType || '').toLowerCase();
+    return excludeTypes.some(t => st === t || st.startsWith(t + ' ') || st.startsWith(t + '('));
+  };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (sessions as any[])
     ?.filter((s) => s.wods !== null && s.wods.workout_publish_status === 'published')
-    .filter((s) => excludeTypes.length === 0 || !excludeTypes.includes((s.wods.session_type || '').toLowerCase()))
+    .filter((s) => excludeTypes.length === 0 || !isExcluded(s.wods.session_type))
     .map((s) => ({
       id: s.wods.id,
       date: s.date,

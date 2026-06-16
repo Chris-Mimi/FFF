@@ -4,6 +4,7 @@
  * when linked exercises last appeared in published workouts.
  */
 
+import { supabase } from '@/lib/supabase';
 import { fetchPublishedWorkouts, fetchAcronymMap, fetchLiftExerciseMap, type DateRangeFilter } from '@/utils/movement-analytics';
 import { extractMovementsFromWod, extractMovementsWithMetadata, type MovementMetadata } from '@/utils/movement-extraction';
 import { formatDate } from '@/utils/date-utils';
@@ -32,19 +33,27 @@ export async function computePatternGaps(
     excludeSessionTypes,
   };
 
-  // Fetch all published workouts in the lookback window + acronym + lift-link maps (parallel)
-  const [workouts, acronymMap, liftExerciseMap] = await Promise.all([
+  // Fetch all published workouts in the lookback window + acronym + lift-link maps
+  // + the full exercise library (parallel)
+  const [workouts, acronymMap, liftExerciseMap, allExRes] = await Promise.all([
     fetchPublishedWorkouts(filter, 'pattern gap analysis'),
     fetchAcronymMap(),
     fetchLiftExerciseMap(),
+    supabase.from('exercises').select('name, display_name'),
   ]);
 
-  // Build set of all known exercise names (for extraction matching)
+  // Seed the known-exercise-name set from the FULL library, not just this
+  // pattern's exercises. If we only knew the pattern names, findMatchingExercise's
+  // substring step would resolve a more-specific variant in a workout (e.g.
+  // "KB Bent Over Row") to the generic pattern exercise it contains as a
+  // substring ("Bent Over Row"), wrongly crediting the barbell movement. With
+  // every exercise known, the specific variant matches itself and is correctly
+  // excluded from a pattern that doesn't contain it. (S382)
   const allExerciseNames = new Set<string>();
-  patterns.forEach(p => p.exercises.forEach(e => {
-    allExerciseNames.add(e.name);
+  (allExRes.data || []).forEach((e: { name: string; display_name: string | null }) => {
+    if (e.name) allExerciseNames.add(e.name);
     if (e.display_name) allExerciseNames.add(e.display_name);
-  }));
+  });
 
   // Extract movements from each workout
   const workoutMovements: { date: string; movements: Set<string> }[] = workouts.map(w => ({
@@ -155,17 +164,22 @@ export async function detectWeeklyCoverage(
   if (patterns.length === 0) return new Map();
 
   const filter: DateRangeFilter = { startDate, endDate, excludeSessionTypes };
-  const [workouts, acronymMap, liftExerciseMap] = await Promise.all([
+  const [workouts, acronymMap, liftExerciseMap, allExRes] = await Promise.all([
     fetchPublishedWorkouts(filter, 'weekly coverage'),
     fetchAcronymMap(),
     fetchLiftExerciseMap(),
+    supabase.from('exercises').select('name, display_name'),
   ]);
 
+  // Seed from the FULL exercise library (not just pattern exercises) so a more-
+  // specific variant in a workout ("KB Bent Over Row") resolves to itself rather
+  // than substring-matching the generic pattern exercise ("Bent Over Row") and
+  // wrongly filling its coverage dot. Same fix as computePatternGaps. (S382)
   const allExerciseNames = new Set<string>();
-  patterns.forEach(p => p.exercises.forEach(e => {
-    allExerciseNames.add(e.name);
+  (allExRes.data || []).forEach((e: { name: string; display_name: string | null }) => {
+    if (e.name) allExerciseNames.add(e.name);
     if (e.display_name) allExerciseNames.add(e.display_name);
-  }));
+  });
 
   const coverage: WeeklyCoverageMap = new Map();
 
