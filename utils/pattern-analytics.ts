@@ -196,9 +196,15 @@ export async function detectWeeklyCoverage(
         const hitDisplay = e.display_name ? metaByLower.get(e.display_name.toLowerCase()) : undefined;
         const hit = hitName || hitDisplay;
         if (hit) {
+          // An exercise can match via BOTH its slug `name` and `display_name`.
+          // Only one of those emitted entries may carry the rmType (e.g. the lift
+          // slot resolves to the display-name key, while the slug key is emitted
+          // by a benchmark exercise list with no RM flag). Empty `{}` metadata is
+          // truthy, so `hitName || hitDisplay` can pick a flag-less match and hide
+          // the rmType — pull it from whichever match actually has it.
           matched.push({
             name: e.display_name || e.name,
-            rmType: hit.rmType,
+            rmType: hitName?.rmType ?? hitDisplay?.rmType,
           });
         }
       }
