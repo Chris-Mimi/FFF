@@ -1,9 +1,9 @@
 # Active Context
 
-**Version:** 248
-**Updated:** 2026-06-15 (Session 380 — Leaderboard grouping fix, Wellpass tweaks, subscription/banner hardening + a deep Stripe-state diagnosis. **Leaderboard:** within-week dedup now groups by `workout_name` ONLY (was `session_type|workout_name`), matching cross-date grouping — a workout published under two labels (WOD + Foundations) no longer splits into two entries. **Wellpass:** (1) release-day 1-booking cap now has a post-insert reconciliation closing a check-then-act race (a blocked athlete booked 2 sessions 9s apart); (2) sync is now DATA-ONLY — it never writes `wellpass_booking_restricted`, only suggests under-threshold athletes; manual blocks/unblocks persist across syncs. **Subscriptions:** stopped notifying athletes their sub is "expiring" (auto-renews → churn nudge); Subscriptions Due banner — confirm dialogs on Renew 1 Month/Year AND the dismiss ✕ (Mimi accidentally clicked Renew 1 Year → gave a friend a free year), clearer dismiss message, and per-payer lead times (cash 5d / Stripe trial + cancel-at-period-end 5d / auto-renew 2d). **Diagnosis:** traced Anna Baur's mystery 1-year sub to that accidental "Renew 1 Year" click via backups + `subscription_archive` (NOT Supabase/Stripe); corrected her record to expired. ~9 commits. **Pending:** prod spot-checks; S379 carry-overs below.)
+**Version:** 249
+**Updated:** 2026-06-16 (Session 381 — Planner RM-filter bug fix + RM-workout rename/calendar sync + Birthdays banner + Birthday login modal + waitlist OG/Remove. **Planner RM-only filter** missed lifts also used in a benchmark that week — truthiness bug in [pattern-analytics.ts](utils/pattern-analytics.ts): empty `{}` slug match shadowed the rmType-carrying display match in `hitName || hitDisplay`. Now `hitName?.rmType ?? hitDisplay?.rmType`. Verified across 94 historical RM tests / 11 lifts. **Renamed 8 RM workouts** to include "Testing" (data-only, 29 rows) so a "Testing" search on the Workouts page surfaces all RM workouts; **synced the 29 Google Calendar event titles** via the service account (titles are publish-time snapshots — DB rename doesn't reach them). **Birthdays banner** on `/coach` (next 7 days, today highlighted, turning-age). **Birthday celebration modal** on athlete login — both athlete app AND `/member/book` (most athletes only book), greets the household so kids are greeted via the parent's login, branded (Forge logo + "Chris & Mimi von The Forge"), CSS confetti, once-per-day shared key in [utils/birthday.ts](utils/birthday.ts). **Waitlist OG** — coach can mark a waitlisted athlete Open Gym (off-cap → confirmed, no displacement); also added a **Remove** button to waitlist rows. ~11 commits. **Pending:** prod spot-checks; S380/S379 carry-overs.)
 
-<!-- Older S379: Mobile UX fixes + Wellpass blocked-tier + kids-class child-only. **Mobile:** DOB Day/Month/Year dropdowns; manual-booking A–Z rail; video modal portaled to body (iPhone); Movement Library lazy-init isMobile + min-h-0 pinned search + collapsible filters + visualViewport keyboard sizing. **Booking:** Wellpass blocked-tier = release-day 1-booking cap (replaced 1/week); kids classes child-only (normalized matchers in 3 places, all adult self-bookings blocked, `+ Familie` button). 9 commits. -->
+<!-- Older S380: Leaderboard grouping fix + Wellpass data-only sync + subscription/banner hardening + Stripe diagnosis. **Leaderboard** within-week dedup groups by `workout_name` ONLY (was `session_type|workout_name`). **Wellpass** release-day cap post-insert reconciliation (race fix); sync DATA-ONLY (never writes `wellpass_booking_restricted`, only suggests). **Subscriptions** athletes no longer notified "expiring"; Due banner confirm dialogs on Renew + dismiss, per-payer lead times. Anna Baur 1-year sub traced to accidental "Renew 1 Year" click, reverted. ~9 commits. -->
 
 
 <!-- Older S378: Toolkit Exercise-tab usage fix + calendar deep-link + Wellpass badge rename. **(1)** [utils/movement-analytics.ts](utils/movement-analytics.ts) `getExerciseFrequency` keyed every result by a 2-week bucket in a Map → repeats of the same workout collapsed to one entry, all but one date dropped. Rewrote to record EVERY session + a `uniqueCount` of distinct workout names. Chip now `Used 5x (1 unique)`. **(2)** Calendar deep-link from usage modal → `/coach?date=YYYY-MM-DD`, read in a `useEffect` (not the useState initializer). **(3)** Wellpass status badge `&lt; min` → `blocked` (`55acdce`). -->
@@ -63,18 +63,21 @@ Synology Drive syncs files in the background and is **not git-aware**. When Chri
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history scan._
 
-**🚨 Next session — confirm S380 + S379 deploys on production, then pick from the open items below.**
+**🚨 Next session — confirm S381 deploys on production, then pick from the open items below.**
 
-All S380 commits pushed (banner-timing change committed at close). **Spot-check on prod once live:**
-1. **Leaderboard grouping.** The 12.06 "Pull-up, T2B…" workout (2× WOD + 1× Foundations/Advanced, all scored) should show as ONE entry on the athlete Benchmarks→leaderboard, not two.
-2. **Subscriptions Due banner.** Renew 1 Month/Year AND the dismiss ✕ now pop a confirm naming the member. Lead times: cash 5d, Stripe trial + cancel-at-period-end 5d, auto-renew 2d. (Tunable consts at top of `fetchDueRows` in [SubscriptionsDueBanner.tsx](components/coach/SubscriptionsDueBanner.tsx).)
-3. **Wellpass sync is data-only now.** Sunday sync shows "⚠️ Under threshold — consider blocking manually" suggestions and NO LONGER auto-blocks/unblocks. Manual blocks must be set by hand (before 16:00/15:00 Sunday release to bite that week). Athletes no longer get "subscription expiring" pushes.
+All S381 commits pushed. **Spot-check on prod once live:**
+1. **Planner RM-only filter** (`/coach/analysis` → planner → `RM Testing only`). All 11 RM-tested lifts (incl. Snatch, now Pendlay Row after Chris added it to the pattern) fill their dots — was missing any RM lift that ALSO appeared in a benchmark that week (Snatch + Isabel). Bug + fix in [pattern-analytics.ts](utils/pattern-analytics.ts).
+2. **Birthdays banner on `/coach`** — shows next 7 days (today's lead, turning-age). Tunable `LOOK_AHEAD_DAYS` in [BirthdaysBanner.tsx](components/coach/BirthdaysBanner.tsx). Today's live cases this session: Sandro Carrozzo (kid, 6), Martina Fenster (51).
+3. **Birthday login modal** — fires on BOTH the athlete app and `/member/book`, once per day per person (shared key). Greets the household (kids via parent login). Test: log in as the parent of a kid whose birthday is today; or set a test account's DOB to today. Branded "Chris & Mimi von The Forge".
+4. **Waitlist OG + Remove** — open a full session → Waitlist rows now have **OG** (joins off-cap, moves to Confirmed) and **Remove** buttons alongside Promote.
 
-**S379 carry (still verify on prod):** kids classes child-only (`Eltern-Kind-Turnen (2-6J)` no self-book, `+ Familie`); Mimi iPhone re-tests (movement-demo video opens over editor; Movement Library loads + search pinned with keyboard up).
+**Open decisions parked this session (ask Chris):**
+- Marking a waitlisted athlete OG does **not** notify them (promoting from waitlist does). Add a notification?
+- A confirmed OG booking still consumes a 10-card like any confirmed booking. Want OG to NOT consume a 10-card session?
 
-**Optional polish:**
-- Translate the `/member/book` "Select who you're booking for" panel — modal titles "Add/Edit Family Member" + that header still English.
-- Chris's idea (his Notes): no new build needed unless asked.
+**S380 carry (verify on prod):** leaderboard name-only grouping (12.06 "Pull-up, T2B…" = ONE entry); Subscriptions Due banner confirm dialogs + per-payer lead times; Wellpass sync data-only.
+
+**S379 carry:** kids classes child-only (`Eltern-Kind-Turnen (2-6J)`); Mimi iPhone re-tests (video over editor; Movement Library search pinned with keyboard up).
 
 **Recurring/weekly:**
 - **Sunday Wellpass sync (gated).** `/coach/members` → Wellpass → Sync from Excel before sessions go live. Skim `blocks_applied`/`blocks_cleared` (S377 3-gate verdict may differ from old single-week).
@@ -250,6 +253,14 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 381 (2026-06-16 — Opus 4.8) — PLANNER RM-FILTER BUG + RM RENAME/CALENDAR SYNC + BIRTHDAYS BANNER + BIRTHDAY LOGIN MODAL + WAITLIST OG/REMOVE (~11 COMMITS + CLOSE):**
+- **Planner RM-only filter missed lifts shared with a benchmark that week** (`6292a56`). [utils/pattern-analytics.ts](utils/pattern-analytics.ts) `detectWeeklyCoverage`: a pattern exercise matches via BOTH slug `name` (`barbell-snatch`) and `display_name` (`Snatch`). The lift's rmType landed on the display match, but the slug key was emitted flag-less by that day's Isabel benchmark. `const hit = hitName || hitDisplay` picked the empty `{}` slug match (truthy!) → `hit.rmType` undefined → RM-only filtered it out. Fix: `rmType: hitName?.rmType ?? hitDisplay?.rmType`. Verified via service-role probe across 94 RM tests / 11 lifts — all surface except Pendlay Row, which wasn't a pattern member (Chris added it).
+- **Renamed 8 RM workouts to include "Testing"** (data-only, 29 `wods` rows; backup taken). Chris wants a "Testing" search on the Workouts page to surface every RM workout (like the planner). Scan was session-type-agnostic + deduped by `workout_name`, so WOD+Foundations of one name renamed together. One was a Kids & Teens class (kept, per Chris). Athlete app reads names live (no republish needed).
+- **Synced 29 Google Calendar event titles** to match. Calendar `summary` = `"<workout_name> - <title>"` is a publish-time snapshot Google holds; the DB rename can't reach it. Patched in place via the **service account** ([publish-workout/route.ts](app/api/google/publish-workout/route.ts) creds — `GOOGLE_SERVICE_ACCOUNT_EMAIL`/`GOOGLE_PRIVATE_KEY`/`GOOGLE_CALENDAR_ID`), `events.patch` summary only, matched by stored `google_event_id`. No dupes/notifications.
+- **Birthdays banner on `/coach`** (`3ceb0fa`). [components/coach/BirthdaysBanner.tsx](components/coach/BirthdaysBanner.tsx) — mirrors SubscriptionsDueBanner (collapse + localStorage), read-only, next 7 days (`LOOK_AHEAD_DAYS`), active members + family (kids), `members.date_of_birth`, string-parsed (no UTC shift). Mounted [app/coach/page.tsx](app/coach/page.tsx).
+- **Birthday celebration modal on athlete login** (`33ea56b`/`365b367`/`940e846`/`cb42976`/`7d163df`). [components/athlete/BirthdayModal.tsx](components/athlete/BirthdayModal.tsx) — portaled to body (iOS), CSS confetti (no dep), Forge logo + "Chris & Mimi von The Forge". Wired into BOTH [app/athlete/page.tsx](app/athlete/page.tsx) and [app/member/book/page.tsx](app/member/book/page.tsx) (most athletes only book). Shared [utils/birthday.ts](utils/birthday.ts): once-per-day key per person, greets the whole household so **kids are greeted via the parent's login** (they have no login). Multiple same-day birthdays joined ("Max und Lena").
+- **Waitlist OG + Remove** (`6e3dda4`/`82079f4`). [toggle-og/route.ts](app/api/bookings/toggle-og/route.ts): marking a `waitlist` booking OG sets `is_og=true, status='confirmed'` → joins off-cap, no displacement (cap math already excludes OG). [SessionManagementModal.tsx](components/coach/SessionManagementModal.tsx) waitlist rows now pass `showOgBtn` + `showCancelBtn` (Remove uses `handleCancelBooking`; cancel route doesn't promote, so removing a waitlister displaces no one). Waitlist had NEVER had a coach Remove button — longstanding gap, not caused by the OG work.
+
 **Session 380 (2026-06-15 — Opus 4.8) — LEADERBOARD GROUPING + WELLPASS DATA-ONLY SYNC + SUBSCRIPTION/BANNER HARDENING + STRIPE DIAGNOSIS (~9 COMMITS + CLOSE):**
 - **Leaderboard groups by `workout_name` only** (`ae0442a`). [components/athlete/LeaderboardView.tsx](components/athlete/LeaderboardView.tsx) `loadWods` keyed on `session_type|workout_name` (since Feb) → a workout published as both WOD + Foundations in one week split into 2 leaderboard entries once BOTH had scores (Chris's 12.06 case). Now name-only, matching `computeGrouping`. (Diagnosis via backups + score counts; not a recent code change — first time both labels were scored.)
 - **Wellpass release-day cap race fixed** (`a1fe1bb`). The 1-booking-on-Sunday cap was check-then-act; a blocked athlete (Claudia) booked 2 sessions 9s apart. Added post-insert reconciliation in [create/route.ts](app/api/bookings/create/route.ts) — earliest created_at wins, later rolls back.
@@ -288,14 +299,7 @@ Athlete Tools
 - **Cross-machine setup (Synology Drive).** Pull on Windows PC initially failed because Synology hadn't finished syncing the Macbook's push from last night. Added **DEV ENVIRONMENT** section at top of activeContext + matching auto-memory + Windows section in `Chris Notes/AA frequently used files/free-ports info & help.md` + relative paths in `Claude open or close session.md` so the session-open prompt works on either machine. PowerShell auto-allowed in `~/.claude/settings.json` to match bash on Macbook. Got `node_modules` back in sync (`npm install` after hard reset).
 - **Parked decisions.** Badge label "&lt; min" is misleading now that the ratio rule can fire — Chris approved rename to "blocked" but didn't lock the wording.
 
-**Session 376 (2026-06-09 — Opus 4.8) — CLOSE S375 CARRY-OVER LIST + LIFTS ACRONYM FIX (2 COMMITS `52d689f`/`74fb764` + CLOSE):**
-- **Orphan profiles cleared.** Alex Terbrack (`theforge@alexterbrack.com`) + Carla Rydval (`carla-muecke@web.de` — NOT the real athlete `c.rydval@web.de`) both deleted via `find-orphan-athlete-profiles.ts --delete`. 0 orphans remaining.
-- **Athletes list now ACTIVE-only.** [app/coach/athletes/page.tsx](app/coach/athletes/page.tsx) filter tightened from `active`/`blocked` → `active` only (Chris's call). Blocked members now drop off the list too.
-- **Karen 26/01 confirmed resolved (Chris).** 8 missing scores re-entered + scaling added to the other 2 Karen wods (`675cf187` 18:30 26/01, `4479f1c3` 28/01) — done manually before this session; carry-over closed.
-- **Lifts-tab acronym fix.** "Strict Overhead Shoulder Press" showed "SOS" (initials fallback) because the lift name doesn't byte-match its exercise ("Strict OH Press"→OHP) and the acronym lookup is exact-match. Set `barbell_lifts.acronym='OHP'` (the map checks `barbell_lifts` before the `exercises` gap-fill, so it wins). Data-only fix, no deploy. Other 3 rep-max lifts work only because their names happen to equal an exercise (BP/OHS/PP).
-- Probe scripts `probe-kb-oh-carry*.ts` (untracked) deleted.
-
-**Older sessions (57-375):** See `project-history/` folder.
+**Older sessions (57-376):** See `project-history/` folder.
 
 ---
 
