@@ -100,7 +100,7 @@ export default function BirthdayModal({ name, onClose }: BirthdayModalProps) {
           Heute feiern wir DICH! Wir wünschen dir ein starkes neues Lebensjahr voller PRs und guter Laune.
         </p>
         <p className='mt-3 text-sm font-semibold text-teal-700'>
-          — Deine Coaches von The Forge 🏋️
+          — Chris & Mimi von The Forge 🏋️
         </p>
         <button
           onClick={onClose}
