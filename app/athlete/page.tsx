@@ -39,6 +39,7 @@ import {
 import NextImage from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState, Suspense } from 'react';
+import BirthdayModal from '@/components/athlete/BirthdayModal';
 
 type TabName = 'profile' | 'workouts' | 'timer' | 'community' | 'logbook' | 'benchmarks' | 'forge-benchmarks' | 'lifts' | 'records' | 'photos' | 'payment' | 'security';
 
@@ -55,6 +56,7 @@ function AthletePageContent() {
     }
   }, [searchParams]);
   const [userName, setUserName] = useState('');
+  const [birthdayName, setBirthdayName] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [showScrollHint, setShowScrollHint] = useState(false);
@@ -135,7 +137,7 @@ function AthletePageContent() {
       // First check if user is an active member with athlete access
       const { data: member } = await supabase
         .from('members')
-        .select('id, name, status, display_name, is_beta_tester')
+        .select('id, name, status, display_name, is_beta_tester, date_of_birth')
         .eq('id', user.id)
         .single();
 
@@ -168,6 +170,28 @@ function AthletePageContent() {
         setActiveProfileId(user.id);
         setSelectedProfileName(member.display_name || member.name);
 
+        // Happy-birthday greeting — once per day. Date-only string parse (no
+        // new Date('YYYY-MM-DD') UTC-shift) compared against local today.
+        if (member.date_of_birth) {
+          const dobParts = String(member.date_of_birth).split('-').map(Number);
+          const now = new Date();
+          if (
+            dobParts.length >= 3 &&
+            !dobParts.some(isNaN) &&
+            dobParts[1] === now.getMonth() + 1 &&
+            dobParts[2] === now.getDate()
+          ) {
+            const todayKey = `birthdayGreeting:${user.id}:${now.getFullYear()}-${dobParts[1]}-${dobParts[2]}`;
+            try {
+              if (window.localStorage.getItem(todayKey) !== '1') {
+                setBirthdayName(member.display_name || member.name);
+              }
+            } catch {
+              setBirthdayName(member.display_name || member.name);
+            }
+          }
+        }
+
         // Fetch family members
         const { data: family } = await supabase
           .from('members')
@@ -189,6 +213,15 @@ function AthletePageContent() {
   const handleLogout = async () => {
     await signOut();
     router.push('/');
+  };
+
+  const dismissBirthday = () => {
+    if (userId) {
+      const now = new Date();
+      const key = `birthdayGreeting:${userId}:${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+      try { window.localStorage.setItem(key, '1'); } catch {}
+    }
+    setBirthdayName(null);
   };
 
   if (loading) {
@@ -284,6 +317,7 @@ function AthletePageContent() {
 
   return (
     <div className='min-h-screen bg-gray-400'>
+      {birthdayName && <BirthdayModal name={birthdayName} onClose={dismissBirthday} />}
       {/* Header */}
       <div className='bg-white shadow'>
         <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
