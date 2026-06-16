@@ -40,7 +40,7 @@ import NextImage from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState, Suspense } from 'react';
 import BirthdayModal from '@/components/athlete/BirthdayModal';
-import { shouldGreetBirthday, markBirthdayGreeted } from '@/utils/birthday';
+import { collectBirthdayGreetings, markBirthdayGreeted, joinNames, type BirthdayPerson } from '@/utils/birthday';
 
 type TabName = 'profile' | 'workouts' | 'timer' | 'community' | 'logbook' | 'benchmarks' | 'forge-benchmarks' | 'lifts' | 'records' | 'photos' | 'payment' | 'security';
 
@@ -57,7 +57,7 @@ function AthletePageContent() {
     }
   }, [searchParams]);
   const [userName, setUserName] = useState('');
-  const [birthdayName, setBirthdayName] = useState<string | null>(null);
+  const [birthdayPeople, setBirthdayPeople] = useState<BirthdayPerson[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [showScrollHint, setShowScrollHint] = useState(false);
@@ -171,22 +171,25 @@ function AthletePageContent() {
         setActiveProfileId(user.id);
         setSelectedProfileName(member.display_name || member.name);
 
-        // Happy-birthday greeting — once per day (shared helper keeps the dedup
-        // key in sync with the book-a-class page).
-        if (shouldGreetBirthday(user.id, member.date_of_birth)) {
-          setBirthdayName(member.display_name || member.name);
-        }
-
         // Fetch family members
         const { data: family } = await supabase
           .from('members')
-          .select('id, display_name, relationship')
+          .select('id, display_name, name, date_of_birth, relationship')
           .eq('primary_member_id', user.id)
           .eq('status', 'active');
 
         if (family && family.length > 0) {
           setFamilyMembers(family as Array<{id: string, display_name: string, relationship: string}>);
         }
+
+        // Happy-birthday greeting across the household (self + active family
+        // members). Kids don't log in, so the parent's login surfaces their
+        // birthday too. Once per person per day; dedup key shared with /member/book.
+        const people = collectBirthdayGreetings([
+          { id: user.id, date_of_birth: member.date_of_birth, display_name: member.display_name, name: member.name },
+          ...(family ?? []),
+        ]);
+        if (people.length > 0) setBirthdayPeople(people);
       }
 
       setLoading(false);
@@ -201,8 +204,8 @@ function AthletePageContent() {
   };
 
   const dismissBirthday = () => {
-    if (userId) markBirthdayGreeted(userId);
-    setBirthdayName(null);
+    birthdayPeople.forEach(p => markBirthdayGreeted(p.id));
+    setBirthdayPeople([]);
   };
 
   if (loading) {
@@ -298,7 +301,9 @@ function AthletePageContent() {
 
   return (
     <div className='min-h-screen bg-gray-400'>
-      {birthdayName && <BirthdayModal name={birthdayName} onClose={dismissBirthday} />}
+      {birthdayPeople.length > 0 && (
+        <BirthdayModal name={joinNames(birthdayPeople.map(p => p.name))} onClose={dismissBirthday} />
+      )}
       {/* Header */}
       <div className='bg-white shadow'>
         <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>

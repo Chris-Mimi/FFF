@@ -35,3 +35,23 @@ export const shouldGreetBirthday = (userId: string, dob: string | null | undefin
 export const markBirthdayGreeted = (userId: string): void => {
   try { window.localStorage.setItem(birthdayGreetingKey(userId), '1'); } catch {}
 };
+
+/** German list join: ["Max"] -> "Max", ["Max","Lena"] -> "Max und Lena". */
+export const joinNames = (names: string[]): string => {
+  if (names.length <= 1) return names[0] ?? '';
+  return `${names.slice(0, -1).join(', ')} und ${names[names.length - 1]}`;
+};
+
+export interface BirthdayPerson { id: string; name: string; }
+
+/**
+ * From a household (the logged-in member + any family members), return everyone
+ * whose birthday is today and who hasn't been greeted yet. Kids don't log in, so
+ * this lets the parent's login surface a child's birthday too.
+ */
+export const collectBirthdayGreetings = (
+  household: { id: string; date_of_birth?: string | null; display_name?: string | null; name?: string | null }[]
+): BirthdayPerson[] =>
+  household
+    .filter(m => shouldGreetBirthday(m.id, m.date_of_birth))
+    .map(m => ({ id: m.id, name: m.display_name || m.name || '' }));
