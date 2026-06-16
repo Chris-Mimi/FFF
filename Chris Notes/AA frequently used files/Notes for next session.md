@@ -30,7 +30,7 @@ Ask Mimi Silvia Maritati (Diapers & Dumbbells?)
 * 
 Default setting for publish should be NOT to notify athletes.
 * 
-* 
+* Workouts page: Custom Movements list:Movement Tracking grid: Give me a numbered list in the Custom Movements and a numbered list across the top of the Tracking Grid. This enables me to locate an exercise quickly rather than counting across. This is an issue in the KB List for example as most exercises have an acronym that begins with K. Identifying a number (as well as the acronym) makes it easier.
 * Kathrin should flag in the banner as her sub is about to cancel in 3 days!
 
 * Ask Claude for a Magic link script to access athlete's accounts to check screen views so I can help them click the right buttons. I just give Claude the email ad.
