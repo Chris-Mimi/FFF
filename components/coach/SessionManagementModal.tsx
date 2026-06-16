@@ -481,6 +481,8 @@ export default function SessionManagementModal({
                           status='waitlist'
                           onPromote={bookingManagement.handlePromoteWaitlist}
                           showPromoteBtn={hasCapacity}
+                          onToggleOg={bookingManagement.handleToggleOg}
+                          showOgBtn={true}
                         />
                       ))}
                     </div>

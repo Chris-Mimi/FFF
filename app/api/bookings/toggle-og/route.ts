@@ -31,7 +31,14 @@ export async function POST(request: NextRequest) {
 
     const { error: updateError } = await supabaseAdmin
       .from('bookings')
-      .update({ is_og: isOg })
+      .update(
+        // Marking a WAITLISTED athlete as OG lets them join Open Gym off-capacity —
+        // OG bookings don't count toward the class max, so confirm them without
+        // needing a freed slot (no waitlist displacement). Cap math already excludes OG.
+        booking.status === 'waitlist' && isOg === true
+          ? { is_og: true, status: 'confirmed' }
+          : { is_og: isOg }
+      )
       .eq('id', bookingId);
 
     if (updateError) {
