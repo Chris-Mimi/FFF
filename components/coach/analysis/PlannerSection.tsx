@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import type { PatternWithExercises, ProgrammingPlanItem, PatternGapResult, WeeklyCoverageMap } from '@/types/planner';
@@ -228,44 +228,29 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
   }, []);
 
   // Initial load
+  // Load patterns once on mount (patterns don't depend on the window or track).
   useEffect(() => {
     const init = async () => {
-      const pats = await fetchPatterns();
+      await fetchPatterns();
       await Promise.all([fetchPlanItems(), fetchExerciseLastDates()]);
-      if (pats && pats.length > 0) {
-        await computeAnalysis(pats, trackFilter);
-      }
     };
     init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Re-fetch patterns and re-compute when track filter changes
+  // Single source of truth for coverage + plan items: recompute whenever the
+  // patterns load OR the date window / track changes. Keying on `patterns` (not
+  // just the window) fixes the initial-load race — a persisted view is restored
+  // AFTER first paint, so the window widens before patterns finish loading. The
+  // old window-only effect bailed on the empty-patterns guard and left coverage
+  // scoped to the default window (dots missing before the default left edge);
+  // toggling the view re-ran it and "fixed" it. (S382)
   useEffect(() => {
-    const refresh = async () => {
-      const pats = await fetchPatterns();
-      await fetchPlanItems();
-      if (pats && pats.length > 0) {
-        await computeAnalysis(pats, trackFilter);
-      }
-    };
-    refresh();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [trackFilter]);
-
-  // Re-fetch plan items + recompute coverage when the date window changes.
-  // Patterns themselves don't depend on the window, so we skip refetching them.
-  const isInitialMount = useRef(true);
-  useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      return;
-    }
     if (patterns.length === 0) return;
     fetchPlanItems();
     computeAnalysis(patterns, trackFilter);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pastWeeks, futureWeeks, anchorTime]);
+  }, [patterns, pastWeeks, futureWeeks, anchorTime, trackFilter]);
 
   // Pattern CRUD
   const handleCreatePattern = async (name: string, color: string) => {
