@@ -19,18 +19,18 @@ http://192.168.178.75:3000
 * IDEA: Put names of booked athletes in Whiteboard Intro so they also go into Google Calendar or find another way to register them in Google Calendar.
 * iphone bug (I think) Coach-side: Workouts search box: Mimi can't type anything in the search box
 * Mimi couldn't add a trial athlete
-* Birthday reminders in coaching app
+* 
 
 Athletes app: Give me the posssibility to send Athletes who pay for the app a message.
 * Workouts page: ability to mute/cancel athletes without clearing the group
 * Kids in Athletes list on Workouts page:
 Need DOB: Engels Frida, Frieda Stromer, Leopold Wischhöfer, Nico Enzmann, 
 Ask Mimi Silvia Maritati (Diapers & Dumbbells?)
-* Claudia wasn't blocked from booking!
-* What messages, warnings, reminders do athletes get who are registered for the app. Once they registered they should get no more notifications.
+* 
+* 
 Default setting for publish should be NOT to notify athletes.
-* Give me warnings in the Subs due banner 5 days before for cash payers and 2 days before for auto-renew.
-* The ability to mark waitlist athletes as Open Gym without them adding to the booking list
+* 
+* 
 * Kathrin should flag in the banner as her sub is about to cancel in 3 days!
 
 * Ask Claude for a Magic link script to access athlete's accounts to check screen views so I can help them click the right buttons. I just give Claude the email ad.
@@ -46,11 +46,11 @@ Takes ~10 seconds; outputs a timestamped file
 Then do your usual recovery (Cmd+Option+Esc or hard restart)
 Next session, tell me to read the incident file and we'll compare it to the baseline
 
-* Veronika Ebner's Stripe payment is active!
+* 
 * review the rep max calculator to show clearer percentages
 * 
 * Why doesn't the data integrity sql catch things like this?
-* Marion signed up for the app, is her account now freed
+* 
 * How it works/info/help file like in Planner
 * Review and check how DNF is displayed and used in the athlete leaderboard.
 
@@ -58,7 +58,7 @@ Next session, tell me to read the incident file and we'll compare it to the base
 
 # Workout Library tab (coach) #
 Integration with website
-Investigate the "Whiteboard Intro" sections appearing in earlier workouts
+
 
 Athlete login:
 
