@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
+import Image from 'next/image';
 
 interface BirthdayModalProps {
   name: string;
@@ -84,12 +85,22 @@ export default function BirthdayModal({ name, onClose }: BirthdayModalProps) {
         style={{ animation: 'forge-birthday-pop 0.45s ease-out' }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className='text-5xl'>🎂</div>
+        <Image
+          src='/icon.png'
+          alt='The Forge'
+          width={64}
+          height={64}
+          className='mx-auto h-16 w-16 object-contain'
+        />
+        <div className='mt-2 text-3xl'>🎉 🎂 🎉</div>
         <h2 className='mt-3 text-xl font-bold text-gray-900'>
-          Alles Gute zum Geburtstag, {name}!
+          Happy Birthday, {name}!
         </h2>
         <p className='mt-2 text-sm text-gray-600'>
-          Wir wünschen dir einen großartigen Tag! 💪🎉
+          Heute feiern wir DICH! Wir wünschen dir ein starkes neues Lebensjahr voller PRs und guter Laune.
+        </p>
+        <p className='mt-3 text-sm font-semibold text-teal-700'>
+          — Deine Coaches von The Forge 🏋️
         </p>
         <button
           onClick={onClose}
