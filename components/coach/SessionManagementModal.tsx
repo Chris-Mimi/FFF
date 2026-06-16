@@ -483,6 +483,8 @@ export default function SessionManagementModal({
                           showPromoteBtn={hasCapacity}
                           onToggleOg={bookingManagement.handleToggleOg}
                           showOgBtn={true}
+                          onCancelBooking={bookingManagement.handleCancelBooking}
+                          showCancelBtn={true}
                         />
                       ))}
                     </div>
