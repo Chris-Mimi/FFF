@@ -125,6 +125,8 @@ export default function SearchPanel({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMaximized, setIsMaximized] = useState(true);
   const [mobileTrackingOpen, setMobileTrackingOpen] = useState(false);
+  // Exercise name hovered in the Custom Movements list → highlight its grid column. (S382)
+  const [highlightedMovement, setHighlightedMovement] = useState<string | null>(null);
   const [showUnique, setShowUnique] = useState(true);
   const [exerciseSearch, setExerciseSearch] = useState('');
   const [exerciseDropdownOpen, setExerciseDropdownOpen] = useState(false);
@@ -887,7 +889,12 @@ export default function SearchPanel({
                       <div key={group.id} className='ml-2 border-l-2 border-amber-300 pl-2 space-y-0.5'>
                         <div className='text-[9px] font-medium text-amber-700'>{group.name}</div>
                         {groupExercises.map(ex => (
-                          <div key={ex.id} className='px-2 py-0.5 rounded text-xs bg-amber-50 text-gray-900 truncate'>
+                          <div
+                            key={ex.id}
+                            className='px-2 py-0.5 rounded text-xs bg-amber-50 text-gray-900 truncate hover:bg-amber-200'
+                            onMouseEnter={() => setHighlightedMovement(ex.display_name || ex.name)}
+                            onMouseLeave={() => setHighlightedMovement(null)}
+                          >
                             {ex.display_name || ex.name}
                           </div>
                         ))}
@@ -946,6 +953,8 @@ export default function SearchPanel({
                             ? 'bg-amber-50 text-gray-900'
                             : 'bg-gray-100 text-gray-400 line-through'
                       }`}
+                      onMouseEnter={() => setHighlightedMovement(ex.display_name || ex.name)}
+                      onMouseLeave={() => setHighlightedMovement(null)}
                       onClick={() => {
                         if (editingGroupExercises && editGroup) {
                           const newIds = isInEditGroup
@@ -1317,6 +1326,7 @@ export default function SearchPanel({
                 selectedMembers={selectedMembers}
                 members={members}
                 acronymByName={acronymByName}
+                highlightedName={highlightedMovement}
               />
             </div>
           )}
@@ -1682,6 +1692,7 @@ export default function SearchPanel({
                   selectedMembers={selectedMembers}
                   members={members}
                   acronymByName={acronymByName}
+                  highlightedName={highlightedMovement}
                 />
               </div>
             </div>

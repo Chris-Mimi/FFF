@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment } from 'react';
+import { Fragment, useEffect, useRef } from 'react';
 import type { TrackedExercise } from '@/lib/exercise-storage';
 import type { TrackingData, LastPerformedData, GlobalLastProgrammedData } from '@/hooks/coach/useMovementTracking';
 
@@ -14,6 +14,9 @@ interface MovementTrackingPanelProps {
   members: Array<{ id: string; name: string; booking_count: number; date_of_birth: string | null }>;
   /** Map of exercise display_name (case-insensitive) → curated acronym (S333) */
   acronymByName?: Map<string, string>;
+  /** Exercise name (display_name||name) currently hovered in the Custom Movements
+   *  list — its column is highlighted + scrolled into view. (S382) */
+  highlightedName?: string | null;
 }
 
 export default function MovementTrackingPanel({
@@ -25,8 +28,19 @@ export default function MovementTrackingPanel({
   selectedMembers,
   members,
   acronymByName,
+  highlightedName,
 }: MovementTrackingPanelProps) {
   const selectedMembersList = members.filter(m => selectedMembers.includes(m.id));
+  const isHi = (name: string) => !!highlightedName && name.toLowerCase() === highlightedName.toLowerCase();
+  const hiRef = useRef<HTMLTableCellElement | null>(null);
+
+  // Bring the hovered column into view if it's scrolled off-screen. 'nearest'
+  // keeps it from jumping vertically.
+  useEffect(() => {
+    if (highlightedName && hiRef.current) {
+      hiRef.current.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+    }
+  }, [highlightedName]);
 
   if (loading) {
     return (
@@ -64,7 +78,8 @@ export default function MovementTrackingPanel({
               {exerciseNames.map((name) => (
                 <th
                   key={name}
-                  className='py-1.5 px-0.5 font-semibold text-gray-700 text-center w-[30px]'
+                  ref={isHi(name) ? hiRef : undefined}
+                  className={`py-1.5 px-0.5 font-semibold text-center w-[30px] ${isHi(name) ? 'bg-amber-200 text-amber-900' : 'text-gray-700'}`}
                   title={name}
                 >
                   <span className='block truncate text-[10px]'>{getCode(name)}</span>
@@ -98,7 +113,7 @@ export default function MovementTrackingPanel({
                   else colorClass = 'text-red-700 font-semibold';
                 }
                 return (
-                  <td key={name} className='py-0.5 px-0.5 text-center'>
+                  <td key={name} className={`py-0.5 px-0.5 text-center ${isHi(name) ? 'bg-amber-100' : ''}`}>
                     <span className={`text-[9px] ${colorClass}`}>
                       {formatted}
                     </span>
@@ -120,7 +135,7 @@ export default function MovementTrackingPanel({
                     {exerciseNames.map(name => {
                       const count = memberData[name] || 0;
                       return (
-                        <td key={name} className='py-1 px-0.5 text-center'>
+                        <td key={name} className={`py-1 px-0.5 text-center ${isHi(name) ? 'bg-amber-100' : ''}`}>
                           <span
                             className={`inline-block min-w-[20px] px-0.5 py-0.5 rounded text-xs font-medium ${
                               count === 0
@@ -152,7 +167,7 @@ export default function MovementTrackingPanel({
                         else colorClass = 'text-red-700 font-semibold';
                       }
                       return (
-                        <td key={name} className='py-0.5 px-0.5 text-center'>
+                        <td key={name} className={`py-0.5 px-0.5 text-center ${isHi(name) ? 'bg-amber-100' : ''}`}>
                           <span className={`text-[9px] ${colorClass}`}>
                             {formatted}
                           </span>
