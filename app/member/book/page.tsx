@@ -10,6 +10,8 @@ import { signOut } from '@/lib/auth';
 import Image from 'next/image';
 import Link from 'next/link';
 import { FocusTrap } from '@/components/ui/FocusTrap';
+import BirthdayModal from '@/components/athlete/BirthdayModal';
+import { shouldGreetBirthday, markBirthdayGreeted } from '@/utils/birthday';
 import { NotificationPrompt } from '@/components/ui/NotificationPrompt';
 import { getMaxVisibleSessionDate, getNextReleaseInstant, DEFAULT_BOOKING_RULES, sessionStartInstant } from '@/lib/bookingRules';
 
@@ -61,6 +63,7 @@ const isFoundationsClass = (workoutType?: string) => {
 export default function MemberBookingPage() {
   const router = useRouter();
   const [user, setUser] = useState<{ id: string; email: string } | null>(null);
+  const [birthdayName, setBirthdayName] = useState<string | null>(null);
   const [weekStart, setWeekStart] = useState<Date>(getInitialWeekStart());
   const [sessions, setSessions] = useState<WeeklySession[]>([]);
   const [loading, setLoading] = useState(true);
@@ -149,7 +152,7 @@ export default function MemberBookingPage() {
     // Check if user is a member and get athlete access info (including 10-card)
     const { data: member } = await supabase
       .from('members')
-      .select('id, email, status, athlete_subscription_status, athlete_subscription_end, membership_types, ten_card_sessions_used, ten_card_total, ten_card_expiry_date, wellpass_booking_restricted')
+      .select('id, email, name, display_name, date_of_birth, status, athlete_subscription_status, athlete_subscription_end, membership_types, ten_card_sessions_used, ten_card_total, ten_card_expiry_date, wellpass_booking_restricted')
       .eq('id', authUser.id)
       .single();
 
@@ -190,6 +193,12 @@ export default function MemberBookingPage() {
     setIsWellpassRestricted(member.wellpass_booking_restricted === true);
 
     setUser({ id: authUser.id, email: authUser.email || '' });
+
+    // Happy-birthday greeting — once per day (shared helper keeps the dedup key
+    // in sync with the athlete app, so it shows on whichever page they open first).
+    if (shouldGreetBirthday(authUser.id, member.date_of_birth)) {
+      setBirthdayName(member.display_name || member.name || '');
+    }
 
     // Fetch family members
     await fetchFamilyMembers(authUser.id);
@@ -634,6 +643,11 @@ export default function MemberBookingPage() {
     }
   };
 
+  const dismissBirthday = () => {
+    if (user) markBirthdayGreeted(user.id);
+    setBirthdayName(null);
+  };
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
@@ -701,6 +715,7 @@ export default function MemberBookingPage() {
 
   return (
     <div className="min-h-screen bg-gray-900">
+      {birthdayName && <BirthdayModal name={birthdayName} onClose={dismissBirthday} />}
       {/* Header */}
       <header className="bg-gray-800 border-b border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">

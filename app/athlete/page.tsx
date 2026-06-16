@@ -40,6 +40,7 @@ import NextImage from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState, Suspense } from 'react';
 import BirthdayModal from '@/components/athlete/BirthdayModal';
+import { shouldGreetBirthday, markBirthdayGreeted } from '@/utils/birthday';
 
 type TabName = 'profile' | 'workouts' | 'timer' | 'community' | 'logbook' | 'benchmarks' | 'forge-benchmarks' | 'lifts' | 'records' | 'photos' | 'payment' | 'security';
 
@@ -170,26 +171,10 @@ function AthletePageContent() {
         setActiveProfileId(user.id);
         setSelectedProfileName(member.display_name || member.name);
 
-        // Happy-birthday greeting — once per day. Date-only string parse (no
-        // new Date('YYYY-MM-DD') UTC-shift) compared against local today.
-        if (member.date_of_birth) {
-          const dobParts = String(member.date_of_birth).split('-').map(Number);
-          const now = new Date();
-          if (
-            dobParts.length >= 3 &&
-            !dobParts.some(isNaN) &&
-            dobParts[1] === now.getMonth() + 1 &&
-            dobParts[2] === now.getDate()
-          ) {
-            const todayKey = `birthdayGreeting:${user.id}:${now.getFullYear()}-${dobParts[1]}-${dobParts[2]}`;
-            try {
-              if (window.localStorage.getItem(todayKey) !== '1') {
-                setBirthdayName(member.display_name || member.name);
-              }
-            } catch {
-              setBirthdayName(member.display_name || member.name);
-            }
-          }
+        // Happy-birthday greeting — once per day (shared helper keeps the dedup
+        // key in sync with the book-a-class page).
+        if (shouldGreetBirthday(user.id, member.date_of_birth)) {
+          setBirthdayName(member.display_name || member.name);
         }
 
         // Fetch family members
@@ -216,11 +201,7 @@ function AthletePageContent() {
   };
 
   const dismissBirthday = () => {
-    if (userId) {
-      const now = new Date();
-      const key = `birthdayGreeting:${userId}:${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
-      try { window.localStorage.setItem(key, '1'); } catch {}
-    }
+    if (userId) markBirthdayGreeted(userId);
     setBirthdayName(null);
   };
 
