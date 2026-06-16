@@ -246,8 +246,12 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
   // scoped to the default window (dots missing before the default left edge);
   // toggling the view re-ran it and "fixed" it. (S382)
   useEffect(() => {
-    if (patterns.length === 0) return;
     fetchPlanItems();
+    // computeAnalysis handles the empty-patterns case itself (clears gaps +
+    // coverage), so we don't early-return here — that keeps the grid correct
+    // when the last pattern is deleted. This is the SOLE recompute trigger:
+    // every pattern edit calls fetchPatterns() → setPatterns(), and that
+    // patterns change re-runs this effect. (S382)
     computeAnalysis(patterns, trackFilter);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [patterns, pastWeeks, futureWeeks, anchorTime, trackFilter]);
@@ -275,8 +279,7 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
       return;
     }
 
-    const pats = await fetchPatterns();
-    if (pats) await computeAnalysis(pats, trackFilter);
+    await fetchPatterns();
     toast.success(`Created "${name}"`);
   };
 
@@ -294,8 +297,7 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
       return;
     }
 
-    const pats = await fetchPatterns();
-    if (pats) await computeAnalysis(pats, trackFilter);
+    await fetchPatterns();
   };
 
   const handleDeletePattern = async (id: string) => {
@@ -309,8 +311,7 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
       return;
     }
 
-    const pats = await fetchPatterns();
-    if (pats) await computeAnalysis(pats, trackFilter);
+    await fetchPatterns();
     toast.success('Pattern deleted');
   };
 
@@ -362,8 +363,7 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
     const results = await Promise.all(updates);
     if (results.some(r => r.error)) {
       toast.error('Failed to save order');
-      const pats = await fetchPatterns();
-      if (pats) await computeAnalysis(pats, trackFilter);
+      await fetchPatterns();
     }
   };
 
@@ -400,8 +400,7 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
       }
     }
 
-    const pats = await fetchPatterns();
-    if (pats) await computeAnalysis(pats, trackFilter);
+    await fetchPatterns();
   };
 
   const handleAssignFromUncategorized = async (exerciseId: string, patternId: string) => {
@@ -418,8 +417,7 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
     const target = patterns.find(p => p.id === patternId);
     toast.success(`Added to "${target?.name || 'pattern'}"`);
 
-    const pats = await fetchPatterns();
-    if (pats) await computeAnalysis(pats, trackFilter);
+    await fetchPatterns();
   };
 
   const handleRemoveExercise = async (patternId: string, exerciseId: string) => {
@@ -434,8 +432,7 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
       return;
     }
 
-    const pats = await fetchPatterns();
-    if (pats) await computeAnalysis(pats, trackFilter);
+    await fetchPatterns();
   };
 
   // Plan item toggle
