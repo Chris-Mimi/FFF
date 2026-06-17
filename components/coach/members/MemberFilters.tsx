@@ -10,8 +10,8 @@ import {
 } from '@/types/member';
 
 interface MemberFiltersProps {
-  attendanceTimeframe: 7 | 30 | 365 | 'all';
-  onTimeframeChange: (value: 7 | 30 | 365 | 'all') => void;
+  attendanceTimeframe: 7 | 30 | 60 | 365 | 'all';
+  onTimeframeChange: (value: 7 | 30 | 60 | 365 | 'all') => void;
   ageFilter: 'all' | 'adults' | 'kids' | '<7' | '7-11' | '12-16' | '7-16';
   onAgeFilterChange: (value: 'all' | 'adults' | 'kids' | '<7' | '7-11' | '12-16' | '7-16') => void;
   selectedFilters: MembershipType[];
@@ -54,12 +54,13 @@ export default function MemberFilters({
             value={attendanceTimeframe}
             onChange={(e) => {
               const value = e.target.value;
-              onTimeframeChange(value === 'all' ? 'all' : parseInt(value) as 7 | 30 | 365);
+              onTimeframeChange(value === 'all' ? 'all' : parseInt(value) as 7 | 30 | 60 | 365);
             }}
             className="px-3 py-1 bg-gray-700 text-white rounded text-sm border border-gray-600"
           >
             <option value="7">Last 7 days</option>
             <option value="30">Last 30 days</option>
+            <option value="60">Last 2 months</option>
             <option value="365">Last 12 months</option>
             <option value="all">All Time</option>
           </select>

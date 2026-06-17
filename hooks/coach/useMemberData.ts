@@ -13,7 +13,7 @@ export function useMemberData() {
   const [selectedFilters, setSelectedFilters] = useState<MembershipType[]>([]);
   const [selectedClassTypes, setSelectedClassTypes] = useState<ClassType[]>([]);
   const [ageFilter, setAgeFilter] = useState<'all' | 'adults' | 'kids' | '<7' | '7-11' | '12-16' | '7-16'>('all');
-  const [attendanceTimeframe, setAttendanceTimeframe] = useState<7 | 30 | 365 | 'all'>('all');
+  const [attendanceTimeframe, setAttendanceTimeframe] = useState<7 | 30 | 60 | 365 | 'all'>('all');
   const [pendingCount, setPendingCount] = useState(0);
   const [atRiskCount, setAtRiskCount] = useState(0);
   const [lowTenCardCount, setLowTenCardCount] = useState(0);
@@ -108,7 +108,7 @@ export function useMemberData() {
     }
   };
 
-  const fetchAtRiskCount = async (timeframe: 7 | 30 | 365 | 'all') => {
+  const fetchAtRiskCount = async (timeframe: 7 | 30 | 60 | 365 | 'all') => {
     try {
       const daysParam = timeframe === 'all' ? 36500 : timeframe;
       const regularTypes = ['member', 'ten_card', 'wellpass', 'hansefit'];
@@ -152,7 +152,7 @@ export function useMemberData() {
     }
   };
 
-  const fetchMembersWithAttendance = async (status: MemberStatus, timeframe: 7 | 30 | 365 | 'all') => {
+  const fetchMembersWithAttendance = async (status: MemberStatus, timeframe: 7 | 30 | 60 | 365 | 'all') => {
     // Wellpass tab manages its own data fetching — skip the members query.
     if (status === 'wellpass') {
       setMembers([]);
