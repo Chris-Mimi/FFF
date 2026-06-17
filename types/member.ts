@@ -1,4 +1,4 @@
-export type MemberStatus = 'pending' | 'active' | 'blocked' | 'subscriptions' | 'at-risk' | 'low-ten-card' | 'wellpass';
+export type MemberStatus = 'pending' | 'active' | 'blocked' | 'subscriptions' | 'at-risk' | 'low-ten-card' | 'wellpass' | 'parked';
 
 export type MembershipType = 'member' | 'drop_in' | 'ten_card' | 'wellpass' | 'hansefit';
 
@@ -41,6 +41,9 @@ export interface Member {
   ten_card_holder_id: string | null;
   ten_card_holder_name?: string | null;
   wellpass_booking_restricted: boolean;
+  // Parked = hidden from Active/At-Risk/Subscriptions/10-Card lists (e.g. once-a-year visitors).
+  // Booking access is unaffected; real `status` stays as-is. "Restart" flips this back to false.
+  parked?: boolean;
 }
 
 // Effective payment method for self-bookings: explicit field wins, else first in membership_types.

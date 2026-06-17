@@ -8,7 +8,7 @@ import { useMemberData } from '@/hooks/coach/useMemberData';
 import { useMemberActions } from '@/hooks/coach/useMemberActions';
 import { signOut } from '@/lib/auth';
 import { Member } from '@/types/member';
-import { AlertTriangle, Check, Clock, LogOut, Search, Sparkles, UserCheck, UserX, X } from 'lucide-react';
+import { AlertTriangle, Check, Clock, LogOut, Pause, Search, Sparkles, UserCheck, UserX, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -55,6 +55,8 @@ export default function CoachMembersPage() {
     handleBlock,
     handleUnapprove,
     handleUnblock,
+    handlePark,
+    handleRestart,
     handleStartTrial,
     handleExtendTrial,
     handleActivateSubscription,
@@ -126,7 +128,7 @@ export default function CoachMembersPage() {
           <button
             onClick={() => setActiveTab('pending')}
             className={`px-3 md:px-6 py-2 md:py-3 font-medium transition-colors duration-200 border-b-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
-              activeTab === 'pending'
+              activeTab === 'pending' || activeTab === 'blocked'
                 ? 'border-teal-500 text-teal-500'
                 : pendingCount > 0
                 ? 'border-transparent text-orange-400 hover:text-orange-300 animate-pulse'
@@ -136,24 +138,11 @@ export default function CoachMembersPage() {
             <div className="flex items-center gap-1 md:gap-2">
               <Clock size={16} className="md:w-[18px] md:h-[18px]" />
               Pending
-              {pendingCount > 0 && activeTab !== 'pending' && (
+              {pendingCount > 0 && activeTab !== 'pending' && activeTab !== 'blocked' && (
                 <span className="inline-flex items-center justify-center w-4 h-4 md:w-5 md:h-5 text-[10px] md:text-xs font-bold text-white bg-orange-500 rounded-full">
                   {pendingCount}
                 </span>
               )}
-            </div>
-          </button>
-          <button
-            onClick={() => setActiveTab('blocked')}
-            className={`px-3 md:px-6 py-2 md:py-3 font-medium transition-colors duration-200 border-b-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
-              activeTab === 'blocked'
-                ? 'border-teal-500 text-teal-500'
-                : 'border-transparent text-gray-400 hover:text-gray-300'
-            }`}
-          >
-            <div className="flex items-center gap-1 md:gap-2">
-              <UserX size={16} className="md:w-[18px] md:h-[18px]" />
-              Blocked
             </div>
           </button>
           <button
@@ -218,6 +207,19 @@ export default function CoachMembersPage() {
               Wellpass
             </div>
           </button>
+          <button
+            onClick={() => setActiveTab('parked')}
+            className={`px-3 md:px-6 py-2 md:py-3 font-medium transition-colors duration-200 border-b-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
+              activeTab === 'parked'
+                ? 'border-teal-500 text-teal-500'
+                : 'border-transparent text-gray-400 hover:text-gray-300'
+            }`}
+          >
+            <div className="flex items-center gap-1 md:gap-2">
+              <Pause size={16} className="md:w-[18px] md:h-[18px]" />
+              Parked
+            </div>
+          </button>
         </div>
       </div>
 
@@ -265,6 +267,37 @@ export default function CoachMembersPage() {
         </div>
       )}
 
+      {/* Pending / Blocked sub-toggle (Blocked is a rare edge case, so it shares the Pending tab) */}
+      {(activeTab === 'pending' || activeTab === 'blocked') && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+          <div className="inline-flex rounded-lg border border-gray-700 overflow-hidden">
+            <button
+              onClick={() => setActiveTab('pending')}
+              className={`flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium transition-colors ${
+                activeTab === 'pending' ? 'bg-teal-500 text-white' : 'bg-gray-800 text-gray-400 hover:text-gray-200'
+              }`}
+            >
+              <Clock size={14} />
+              Pending
+              {pendingCount > 0 && (
+                <span className="inline-flex items-center justify-center w-4 h-4 text-[10px] font-bold text-white bg-orange-500 rounded-full">
+                  {pendingCount}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setActiveTab('blocked')}
+              className={`flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium transition-colors ${
+                activeTab === 'blocked' ? 'bg-teal-500 text-white' : 'bg-gray-800 text-gray-400 hover:text-gray-200'
+              }`}
+            >
+              <UserX size={14} />
+              Blocked
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-12">
         {activeTab === 'wellpass' ? (
@@ -283,6 +316,7 @@ export default function CoachMembersPage() {
               {activeTab === 'subscriptions' && 'No members with subscriptions'}
               {activeTab === 'at-risk' && 'No at-risk members — everyone is attending!'}
               {activeTab === 'low-ten-card' && 'No 10-card members are running low.'}
+              {activeTab === 'parked' && 'No parked members. Park an athlete from the Active tab to hide them here.'}
             </p>
           </div>
         ) : filteredMembers.length === 0 ? (
@@ -305,6 +339,8 @@ export default function CoachMembersPage() {
                 onBlock={handleBlock}
                 onUnapprove={handleUnapprove}
                 onUnblock={handleUnblock}
+                onPark={handlePark}
+                onRestart={handleRestart}
                 onStartTrial={handleStartTrial}
                 onExtendTrial={handleExtendTrial}
                 onActivateSubscription={handleActivateSubscription}

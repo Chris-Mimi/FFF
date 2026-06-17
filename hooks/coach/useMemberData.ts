@@ -91,6 +91,7 @@ export function useMemberData() {
         .from('members')
         .select('ten_card_sessions_used, ten_card_total, membership_types')
         .eq('status', 'active')
+        .neq('parked', true)
         .contains('membership_types', ['ten_card']);
       if (error || !data) {
         setLowTenCardCount(0);
@@ -117,6 +118,7 @@ export function useMemberData() {
         .from('members')
         .select('id, membership_types, guardian_only')
         .eq('status', 'active')
+        .neq('parked', true)
         .eq('guardian_only', false);
 
       if (!activeMembers || activeMembers.length === 0) {
@@ -162,18 +164,24 @@ export function useMemberData() {
     const daysParam = timeframe === 'all' ? 36500 : timeframe;
     setLoading(true);
     try {
-      let query = supabase.from('members').select('id, email, name, display_name, phone, status, account_type, primary_member_id, athlete_trial_start, athlete_subscription_status, athlete_subscription_start, athlete_subscription_end, subscription_tier, created_at, membership_types, ten_card_purchase_date, ten_card_sessions_used, ten_card_sessions_used_offset, ten_card_total, ten_card_expiry_date, ten_card_notes, subscription_notes, date_of_birth, class_types, gender, guardian_only, primary_payment_method, ten_card_holder_id, wellpass_booking_restricted');
+      let query = supabase.from('members').select('id, email, name, display_name, phone, status, account_type, primary_member_id, athlete_trial_start, athlete_subscription_status, athlete_subscription_start, athlete_subscription_end, subscription_tier, created_at, membership_types, ten_card_purchase_date, ten_card_sessions_used, ten_card_sessions_used_offset, ten_card_total, ten_card_expiry_date, ten_card_notes, subscription_notes, date_of_birth, class_types, gender, guardian_only, primary_payment_method, ten_card_holder_id, wellpass_booking_restricted, parked');
 
-      if (status === 'subscriptions') {
+      if (status === 'parked') {
+        query = query.eq('parked', true);
+      } else if (status === 'subscriptions') {
         query = query
           .eq('status', 'active')
+          .neq('parked', true)
           .in('athlete_subscription_status', ['trial', 'active']);
       } else if (status === 'at-risk') {
-        query = query.eq('status', 'active');
+        query = query.eq('status', 'active').neq('parked', true);
       } else if (status === 'low-ten-card') {
         query = query
           .eq('status', 'active')
+          .neq('parked', true)
           .contains('membership_types', ['ten_card']);
+      } else if (status === 'active') {
+        query = query.eq('status', 'active').neq('parked', true);
       } else {
         query = query.eq('status', status);
       }

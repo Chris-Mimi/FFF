@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { AlertTriangle, Check, Clock, Trash2, X } from 'lucide-react';
+import { AlertTriangle, Check, Clock, Pause, Play, Trash2, X } from 'lucide-react';
 import {
   MemberStatus,
   MembershipType,
@@ -27,6 +27,8 @@ interface MemberCardProps {
   onBlock: (memberId: string) => void;
   onUnapprove: (memberId: string) => void;
   onUnblock: (memberId: string) => void;
+  onPark: (memberId: string) => void;
+  onRestart: (memberId: string) => void;
   onStartTrial: (memberId: string, days?: number) => void;
   onExtendTrial: (memberId: string, days?: number) => void;
   onActivateSubscription: (memberId: string) => void;
@@ -69,6 +71,8 @@ export default function MemberCard({
   onBlock,
   onUnapprove,
   onUnblock,
+  onPark,
+  onRestart,
   onStartTrial,
   onExtendTrial,
   onActivateSubscription,
@@ -440,6 +444,15 @@ export default function MemberCard({
                 <Clock size={12} />
                 Unapprove
               </button>
+              <button
+                onClick={() => onPark(member.id)}
+                disabled={processingMemberId === member.id}
+                className="flex items-center gap-1 px-2 py-1 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-amber-400 hover:text-amber-300 rounded transition-colors duration-200 text-xs"
+                title="Park — hide from lists until restarted (booking access unaffected)"
+              >
+                <Pause size={12} />
+                Park
+              </button>
             </div>
 
             {/* Athlete Subscription Management */}
@@ -527,6 +540,19 @@ export default function MemberCard({
             >
               <Check size={16} />
               Unblock
+            </button>
+          </div>
+        )}
+        {activeTab === 'parked' && (
+          <div className="flex gap-2 ml-3">
+            <button
+              onClick={() => onRestart(member.id)}
+              disabled={processingMemberId === member.id}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-green-500 hover:bg-green-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200 text-sm"
+              title="Restart — return to the active lists"
+            >
+              <Play size={16} />
+              Restart
             </button>
           </div>
         )}

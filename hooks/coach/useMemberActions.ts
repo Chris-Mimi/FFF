@@ -132,6 +132,58 @@ export function useMemberActions(
     }
   };
 
+  const handlePark = async (memberId: string) => {
+    if (!await confirm({ title: 'Park Member', message: 'Park this member? They\'ll be hidden from the Active, At-Risk, Subscriptions and 10-Card lists until you Restart them. Booking access is unchanged.', confirmText: 'Park', variant: 'default' })) {
+      return;
+    }
+
+    setProcessingMemberId(memberId);
+    try {
+      const response = await authFetch('/api/members/park', {
+        method: 'POST',
+        body: JSON.stringify({ memberId, parked: true })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to park member');
+      }
+
+      toast.success(data.message || 'Member parked');
+      await refreshData();
+    } catch (error) {
+      console.error('Error parking member:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to park member. Please try again.');
+    } finally {
+      setProcessingMemberId(null);
+    }
+  };
+
+  const handleRestart = async (memberId: string) => {
+    setProcessingMemberId(memberId);
+    try {
+      const response = await authFetch('/api/members/park', {
+        method: 'POST',
+        body: JSON.stringify({ memberId, parked: false })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to restart member');
+      }
+
+      toast.success(data.message || 'Member restarted');
+      await refreshData();
+    } catch (error) {
+      console.error('Error restarting member:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to restart member. Please try again.');
+    } finally {
+      setProcessingMemberId(null);
+    }
+  };
+
   const handleUnblock = async (memberId: string) => {
     if (!await confirm({ title: 'Unblock Member', message: 'Unblock this member? They will be moved to pending status and need re-approval.', confirmText: 'Unblock', variant: 'default' })) {
       return;
@@ -484,6 +536,8 @@ export function useMemberActions(
     handleBlock,
     handleUnapprove,
     handleUnblock,
+    handlePark,
+    handleRestart,
     handleStartTrial,
     handleExtendTrial,
     handleActivateSubscription,
