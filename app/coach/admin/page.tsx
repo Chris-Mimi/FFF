@@ -144,6 +144,11 @@ export default function AdminToolsPage() {
   const [trialStats, setTrialStats] = useState<{ name: string; count: number; dates: string[]; registered: boolean }[]>([]);
   const [trialPanelExpanded, setTrialPanelExpanded] = useState(false);
 
+  // Drop-ins — pulled from weekly_sessions.drop_in_names, respects the same date filter.
+  // One-time visitors (no login), counted for yearly stats.
+  const [dropInStats, setDropInStats] = useState<{ name: string; count: number; dates: string[] }[]>([]);
+  const [dropInPanelExpanded, setDropInPanelExpanded] = useState(false);
+
   useEffect(() => {
     const checkAuth = async () => {
       const user = await getCurrentUser();
@@ -162,6 +167,7 @@ export default function AdminToolsPage() {
     if (loading || memberById.size === 0) return;
     fetchAttendedStats(attendedFilter, selectedMonth, classFilter);
     fetchTrialStats(attendedFilter, selectedMonth);
+    fetchDropInStats(attendedFilter, selectedMonth);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, attendedFilter, selectedMonth, classFilter, memberById]);
 
@@ -294,6 +300,87 @@ export default function AdminToolsPage() {
     } catch (err) {
       console.error('Trial delete error:', err);
       toast.error('Failed to remove trial athlete');
+    }
+  };
+
+  // Strip a drop-in name from every weekly_sessions.drop_in_names array that contains it.
+  const handleDeleteDropIn = async (name: string, totalCount: number) => {
+    const ok = await confirm({
+      title: 'Remove Drop-in',
+      message: `Remove "${name}" from the Drop-ins list? This strips the name from ${totalCount} session${totalCount === 1 ? '' : 's'}.`,
+      confirmText: 'Remove',
+      variant: 'danger',
+    });
+    if (!ok) return;
+    try {
+      const { data: rows, error: fetchErr } = await supabase
+        .from('weekly_sessions')
+        .select('id, drop_in_names')
+        .contains('drop_in_names', [name]);
+      if (fetchErr) throw fetchErr;
+
+      const updates = (rows || []).map(r => {
+        const filtered = ((r.drop_in_names as string[] | null) || []).filter(
+          n => n.trim().toLowerCase() !== name.trim().toLowerCase()
+        );
+        return supabase
+          .from('weekly_sessions')
+          .update({ drop_in_names: filtered.length > 0 ? filtered : null })
+          .eq('id', r.id);
+      });
+      const results = await Promise.all(updates);
+      const firstError = results.find(r => r.error)?.error;
+      if (firstError) throw firstError;
+
+      toast.success(`Removed "${name}" from drop-in list`);
+      setDropInStats(prev => prev.filter(t => t.name !== name));
+    } catch (err) {
+      console.error('Drop-in delete error:', err);
+      toast.error('Failed to remove drop-in');
+    }
+  };
+
+  const fetchDropInStats = async (filter: AttendedFilter, month: { year: number; month: number } | null) => {
+    try {
+      let startDate: string;
+      let endDate: string;
+      if (month) {
+        const range = getMonthRange(month.year, month.month);
+        startDate = range.start;
+        endDate = range.end;
+      } else {
+        const days = getFilterDaysBack(filter);
+        const start = new Date();
+        start.setDate(start.getDate() - days);
+        startDate = start.toISOString().slice(0, 10);
+        endDate = new Date().toISOString().slice(0, 10);
+      }
+
+      const { data, error } = await supabase
+        .from('weekly_sessions')
+        .select('date, drop_in_names')
+        .gte('date', startDate)
+        .lte('date', endDate)
+        .not('drop_in_names', 'is', null);
+      if (error) throw error;
+
+      const byName = new Map<string, { name: string; count: number; dates: Set<string> }>();
+      for (const row of (data || []) as { date: string; drop_in_names: string[] | null }[]) {
+        for (const name of row.drop_in_names || []) {
+          const key = name.trim();
+          if (!key) continue;
+          if (!byName.has(key)) byName.set(key, { name: key, count: 0, dates: new Set() });
+          const entry = byName.get(key)!;
+          entry.count++;
+          entry.dates.add(row.date);
+        }
+      }
+      const arr = Array.from(byName.values())
+        .map(e => ({ name: e.name, count: e.count, dates: Array.from(e.dates).sort() }))
+        .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+      setDropInStats(arr);
+    } catch (err) {
+      console.error('Error fetching drop-in stats:', err);
     }
   };
 
@@ -753,6 +840,53 @@ export default function AdminToolsPage() {
                             </div>
                           );
                         })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {/* Drop-ins panel — collapsible. One-time visitors with no login, counted for
+                  yearly stats. X strips the name from every session's drop_in_names array.
+                  Hidden when Adults/Kids filter is active (drop-ins aren't members). */}
+              {classFilter === 'all' && dropInStats.length > 0 && (() => {
+                const totalSessions = dropInStats.reduce((sum, s) => sum + s.count, 0);
+                return (
+                  <div className='mb-6 bg-purple-50 border border-purple-200 rounded-lg'>
+                    <button
+                      onClick={() => setDropInPanelExpanded(prev => !prev)}
+                      className='w-full flex items-center justify-between px-4 py-3 text-left hover:bg-purple-100/50 transition rounded-lg'
+                    >
+                      <h3 className='text-sm font-semibold text-purple-900 inline-flex items-center gap-1.5'>
+                        <ChevronDown size={14} className={`text-purple-700 transition-transform ${dropInPanelExpanded ? '' : '-rotate-90'}`} />
+                        Drop-ins
+                      </h3>
+                      <span className='text-xs text-purple-700'>
+                        {totalSessions} drop-in{totalSessions === 1 ? '' : 's'} · {dropInStats.length} unique
+                      </span>
+                    </button>
+                    {dropInPanelExpanded && (
+                      <div className='px-4 pb-4 space-y-1.5'>
+                        {dropInStats.map(t => (
+                          <div key={t.name} className='flex items-center justify-between gap-3 bg-white/60 rounded px-2 py-1.5'>
+                            <span className='inline-flex items-center gap-1.5 border bg-white border-purple-200 text-purple-900 text-xs font-medium px-2.5 py-1 rounded-full'>
+                              {t.name}
+                              {t.count > 1 && (
+                                <span className='px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-purple-200 text-purple-900'>×{t.count}</span>
+                              )}
+                            </span>
+                            <span className='text-xs text-gray-600 flex-1 truncate'>
+                              {t.dates.map(d => d.split('-').reverse().join('.')).join(', ')}
+                            </span>
+                            <button
+                              onClick={() => handleDeleteDropIn(t.name, t.count)}
+                              className='text-gray-400 hover:text-red-600 transition'
+                              title='Remove from drop-in list'
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>

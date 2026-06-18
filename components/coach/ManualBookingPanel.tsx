@@ -9,10 +9,12 @@ interface ManualBookingPanelProps {
   onMemberSelect: (memberId: string) => void;
   onAddMember: () => Promise<void>;
   onAddTrialAthlete: () => Promise<void>;
+  onAddDropIn: () => Promise<void>;
   isLoading: boolean;
   capacity: number;
   confirmedCount: number;
   trialCount: number;
+  dropInCount: number;
   isSessionActive: boolean;
 }
 
@@ -30,10 +32,12 @@ export default function ManualBookingPanel({
   onMemberSelect,
   onAddMember,
   onAddTrialAthlete,
+  onAddDropIn,
   isLoading,
   capacity,
   confirmedCount,
   trialCount,
+  dropInCount,
   isSessionActive,
 }: ManualBookingPanelProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -43,6 +47,11 @@ export default function ManualBookingPanel({
     if (value === '__trial__') {
       onMemberSelect('');
       void onAddTrialAthlete();
+      return;
+    }
+    if (value === '__dropin__') {
+      onMemberSelect('');
+      void onAddDropIn();
       return;
     }
     onMemberSelect(value);
@@ -72,7 +81,7 @@ export default function ManualBookingPanel({
   };
 
   const selectedMember = availableMembers.find(m => m.id === selectedMemberId);
-  const totalTaken = confirmedCount + trialCount;
+  const totalTaken = confirmedCount + trialCount + dropInCount;
 
   if (!isSessionActive) return null;
 
@@ -102,6 +111,7 @@ export default function ManualBookingPanel({
             {availableMembers.length === 0 ? 'No available members' : 'Select a member...'}
           </option>
           <option value='__trial__'>+ Trial Athlete (enter name)</option>
+          <option value='__dropin__'>+ Drop-in (enter name)</option>
           {availableMembers.map(member => (
             <option key={member.id} value={member.id}>
               {member.name}
@@ -141,6 +151,16 @@ export default function ManualBookingPanel({
                 className='block w-full text-left px-3 py-2.5 text-[#178da6] font-medium border-b border-gray-100 hover:bg-blue-50'
               >
                 + Trial Athlete (enter name)
+              </button>
+              <button
+                type='button'
+                onClick={() => {
+                  handleSelect('__dropin__');
+                  setMobileOpen(false);
+                }}
+                className='block w-full text-left px-3 py-2.5 text-purple-700 font-medium border-b border-gray-100 hover:bg-purple-50'
+              >
+                + Drop-in (enter name)
               </button>
               {grouped.map(g => (
                 <div

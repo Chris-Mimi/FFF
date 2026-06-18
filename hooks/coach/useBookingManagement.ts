@@ -13,6 +13,7 @@ interface UseBookingManagementProps {
   availableMembers: Member[];
   capacity: number;
   trialNames: string[];
+  dropInNames: string[];
   onRefresh: () => Promise<void>;
   onSessionUpdated: () => void;
 }
@@ -24,6 +25,8 @@ interface UseBookingManagementResult {
   handleManualBooking: () => Promise<void>;
   handleAddTrialAthlete: () => Promise<void>;
   handleRemoveTrialAthlete: (name: string) => Promise<void>;
+  handleAddDropIn: () => Promise<void>;
+  handleRemoveDropIn: (name: string) => Promise<void>;
   handleLinkTrialToMember: (trialName: string, memberId: string) => Promise<void>;
   handleMarkNoShow: (bookingId: string, memberName: string) => Promise<void>;
   handleUndoNoShow: (bookingId: string, memberName: string) => Promise<void>;
@@ -40,6 +43,7 @@ export function useBookingManagement({
   availableMembers,
   capacity,
   trialNames,
+  dropInNames,
   onRefresh,
   onSessionUpdated,
 }: UseBookingManagementProps): UseBookingManagementResult {
@@ -61,7 +65,7 @@ export function useBookingManagement({
 
       // Determine booking status based on capacity (trials count toward capacity)
       const confirmedCount = calculateConfirmedCount(bookings);
-      const bookingStatus = canAddToSession(confirmedCount + trialNames.length, capacity)
+      const bookingStatus = canAddToSession(confirmedCount + trialNames.length + dropInNames.length, capacity)
         ? 'confirmed'
         : 'waitlist';
 
@@ -179,6 +183,52 @@ export function useBookingManagement({
     } catch (error) {
       console.error('Error removing trial athlete:', error);
       toast.error('Failed to remove trial athlete');
+    }
+  };
+
+  const handleAddDropIn = async () => {
+    const raw = window.prompt('Drop-in name (one-time visitor — will appear at top of Score Entry as a whiteboard name):');
+    if (raw === null) return;
+    const name = raw.trim();
+    if (!name) return;
+    if (dropInNames.some(n => n.toLowerCase() === name.toLowerCase())) {
+      toast.warning('That name is already in the drop-in list');
+      return;
+    }
+    try {
+      const { error } = await supabase
+        .from('weekly_sessions')
+        .update({ drop_in_names: [...dropInNames, name] })
+        .eq('id', sessionId);
+      if (error) throw error;
+      await onRefresh();
+      onSessionUpdated();
+      toast.success(`${name} added as drop-in`);
+    } catch (error) {
+      console.error('Error adding drop-in:', error);
+      toast.error('Failed to add drop-in');
+    }
+  };
+
+  const handleRemoveDropIn = async (name: string) => {
+    if (!await confirm({
+      title: 'Remove Drop-in',
+      message: `Remove ${name} from the drop-in list?`,
+      confirmText: 'Remove',
+      variant: 'danger',
+    })) return;
+    try {
+      const { error } = await supabase
+        .from('weekly_sessions')
+        .update({ drop_in_names: dropInNames.filter(n => n !== name) })
+        .eq('id', sessionId);
+      if (error) throw error;
+      await onRefresh();
+      onSessionUpdated();
+      toast.success(`${name} removed`);
+    } catch (error) {
+      console.error('Error removing drop-in:', error);
+      toast.error('Failed to remove drop-in');
     }
   };
 
@@ -407,6 +457,8 @@ export function useBookingManagement({
     handleManualBooking,
     handleAddTrialAthlete,
     handleRemoveTrialAthlete,
+    handleAddDropIn,
+    handleRemoveDropIn,
     handleLinkTrialToMember,
     handleMarkNoShow,
     handleUndoNoShow,

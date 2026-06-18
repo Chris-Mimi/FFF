@@ -66,6 +66,7 @@ export default function SessionManagementModal({
     availableMembers: sessionDetails.availableMembers,
     capacity: sessionDetails.session?.capacity || 0,
     trialNames: sessionDetails.session?.trial_names || [],
+    dropInNames: sessionDetails.session?.drop_in_names || [],
     onRefresh: sessionDetails.fetchSessionDetails,
     onSessionUpdated,
   });
@@ -292,10 +293,12 @@ export default function SessionManagementModal({
                 onMemberSelect={bookingManagement.setSelectedMemberId}
                 onAddMember={bookingManagement.handleManualBooking}
                 onAddTrialAthlete={bookingManagement.handleAddTrialAthlete}
+                onAddDropIn={bookingManagement.handleAddDropIn}
                 isLoading={bookingManagement.addingMember}
                 capacity={sessionDetails.session.capacity}
                 confirmedCount={nonOgConfirmedCount}
                 trialCount={(sessionDetails.session.trial_names || []).length}
+                dropInCount={(sessionDetails.session.drop_in_names || []).length}
                 isSessionActive={sessionDetails.session.status !== 'cancelled'}
               />
 
@@ -375,10 +378,38 @@ export default function SessionManagementModal({
                 </div>
               )}
 
+              {/* Drop-ins (one-time visitors, no login — counted for yearly stats) */}
+              {(sessionDetails.session.drop_in_names || []).length > 0 && (
+                <div>
+                  <h3 className='text-base font-semibold text-gray-800 mb-2'>
+                    Drop-ins ({sessionDetails.session.drop_in_names.length})
+                  </h3>
+                  <div className='flex flex-wrap gap-2'>
+                    {sessionDetails.session.drop_in_names.map(name => (
+                      <div
+                        key={name}
+                        className='inline-flex items-center gap-1.5 bg-purple-100 text-purple-800 text-sm font-medium px-2.5 py-1 rounded-full border border-purple-200'
+                      >
+                        {name}
+                        <button
+                          type='button'
+                          onClick={() => bookingManagement.handleRemoveDropIn(name)}
+                          className='hover:bg-purple-200 rounded-full w-4 h-4 flex items-center justify-center'
+                          title={`Remove ${name}`}
+                          aria-label={`Remove ${name}`}
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Confirmed Bookings */}
               <div>
                 <h3 className='text-base font-semibold text-gray-800 mb-2'>
-                  Confirmed Bookings ({nonOgConfirmedCount + (sessionDetails.session.trial_names || []).length}/{sessionDetails.session.capacity === 0 ? '∞' : sessionDetails.session.capacity})
+                  Confirmed Bookings ({nonOgConfirmedCount + (sessionDetails.session.trial_names || []).length + (sessionDetails.session.drop_in_names || []).length}/{sessionDetails.session.capacity === 0 ? '∞' : sessionDetails.session.capacity})
                   {ogCount > 0 && <span className='ml-2 text-sm font-normal text-blue-700'>· {ogCount} OG</span>}
                 </h3>
                 {confirmedBookings.length === 0 ? (
@@ -467,7 +498,7 @@ export default function SessionManagementModal({
                 const cap = sessionDetails.session.capacity;
                 const hasCapacity =
                   cap === 0 ||
-                  nonOgConfirmedCount + (sessionDetails.session.trial_names || []).length < cap;
+                  nonOgConfirmedCount + (sessionDetails.session.trial_names || []).length + (sessionDetails.session.drop_in_names || []).length < cap;
                 return (
                   <div>
                     <h3 className='text-base font-semibold text-gray-800 mb-2'>

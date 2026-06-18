@@ -21,7 +21,7 @@ export async function GET(
     // 1. Fetch session
     const { data: session, error: sessionError } = await supabaseAdmin
       .from('weekly_sessions')
-      .select('id, date, time, workout_id, capacity, status, trial_names')
+      .select('id, date, time, workout_id, capacity, status, trial_names, drop_in_names')
       .eq('id', sessionId)
       .single();
 
@@ -167,6 +167,25 @@ export async function GET(
         userId: null,
         name: `${trialName} (trial)`,
         whiteboardName: trialName,
+        gender: null,
+      });
+    }
+
+    // 5d. Append drop-ins (one-time visitors, no login) as whiteboard-style entries
+    const dropInNames = (session.drop_in_names as string[] | null) || [];
+    for (const dropInName of dropInNames) {
+      const dropInNameLower = dropInName.toLowerCase();
+      const alreadyAdded = athletes.some(
+        a => (a.whiteboardName && a.whiteboardName.toLowerCase() === dropInNameLower) ||
+             (a.name && a.name.toLowerCase() === dropInNameLower)
+      );
+      if (alreadyAdded) continue;
+      athletes.push({
+        id: `dropin:${dropInName}`,
+        memberId: null,
+        userId: null,
+        name: `${dropInName} (drop-in)`,
+        whiteboardName: dropInName,
         gender: null,
       });
     }

@@ -97,7 +97,9 @@ export default function MemberFilters({
                   if (isKidsFilter) {
                     return ['member', 'ten_card', 'wellpass'].includes(type);
                   }
-                  return true;
+                  // Drop-ins are tracked per-session (Session modal + Admin Drop-ins panel),
+                  // never as registered members, so the DI member chip is always 0 — hide it.
+                  return type !== 'drop_in';
                 })
                 .map(type => (
               <button
