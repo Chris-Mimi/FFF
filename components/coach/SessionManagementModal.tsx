@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Link2, Lock, Trash2, Unlock, X } from 'lucide-react';
+import { Eye, EyeOff, Link2, Lock, Trash2, Unlock, X } from 'lucide-react';
 import { useSessionDetails } from '@/hooks/coach/useSessionDetails';
 import { useSessionEditing } from '@/hooks/coach/useSessionEditing';
 import { useBookingManagement } from '@/hooks/coach/useBookingManagement';
@@ -544,6 +544,18 @@ export default function SessionManagementModal({
                 >
                   {sessionEditing.isEffectivelyLocked ? <Unlock size={16} /> : <Lock size={16} />}
                   {sessionEditing.isEffectivelyLocked ? 'Unlock' : 'Lock'}
+                </button>
+                <button
+                  onClick={sessionEditing.handleToggleAthleteVisibility}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition text-sm ${
+                    sessionEditing.isHiddenFromAthletes
+                      ? 'bg-purple-600 hover:bg-purple-700 text-white'
+                      : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                  }`}
+                  title={sessionEditing.isHiddenFromAthletes ? 'Make this session visible/bookable to athletes' : 'Hide this session from the athlete app (not bookable)'}
+                >
+                  {sessionEditing.isHiddenFromAthletes ? <EyeOff size={16} /> : <Eye size={16} />}
+                  {sessionEditing.isHiddenFromAthletes ? 'Hidden' : 'Hide'}
                 </button>
                 <button
                   onClick={sessionEditing.handleCancelSession}

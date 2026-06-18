@@ -101,6 +101,7 @@ export interface WODFormData {
     capacity: number;
     time?: string;
     booked_members?: string[];
+    status?: string;
   };
   video_clips?: { label: string; url: string }[]; // Manually attached movement demo clips
   has_scores?: boolean; // Whether any scores have been entered for this workout

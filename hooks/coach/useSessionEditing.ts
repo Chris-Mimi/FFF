@@ -30,6 +30,8 @@ interface UseSessionEditingResult {
   handleCancelSession: () => Promise<void>;
   handleToggleLock: () => Promise<void>;
   isEffectivelyLocked: boolean;
+  handleToggleAthleteVisibility: () => Promise<void>;
+  isHiddenFromAthletes: boolean;
 }
 
 export function useSessionEditing({
@@ -162,6 +164,30 @@ export function useSessionEditing({
     }
   };
 
+  // Hidden = session exists but isn't bookable/visible to athletes (status 'draft').
+  // Used for interim copies that shouldn't reach the athlete app. Toggles published↔draft.
+  const isHiddenFromAthletes = session?.status === 'draft';
+
+  const handleToggleAthleteVisibility = async () => {
+    if (!session) return;
+    const newStatus = isHiddenFromAthletes ? 'published' : 'draft';
+    try {
+      const { error } = await supabase
+        .from('weekly_sessions')
+        .update({ status: newStatus })
+        .eq('id', sessionId);
+
+      if (error) throw error;
+
+      await onRefresh();
+      onSessionUpdated();
+      toast.success(newStatus === 'draft' ? 'Hidden from athletes' : 'Visible to athletes');
+    } catch (error) {
+      console.error('Error toggling athlete visibility:', error);
+      toast.error('Failed to update visibility');
+    }
+  };
+
   const handleCancelSession = async () => {
     if (
       !await confirm({
@@ -214,5 +240,7 @@ export function useSessionEditing({
     handleCancelSession,
     handleToggleLock,
     isEffectivelyLocked,
+    handleToggleAthleteVisibility,
+    isHiddenFromAthletes,
   };
 }

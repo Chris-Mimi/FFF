@@ -157,6 +157,7 @@ export const useCoachData = ({
           capacity: session.capacity,
           time: session.time,
           booked_members: bookedMembers as string[],
+          status: session.status,
         };
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

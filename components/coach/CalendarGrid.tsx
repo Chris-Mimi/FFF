@@ -298,6 +298,11 @@ export default function CalendarGrid({
                     {wod.booking_info.og_count} OG
                   </span>
                 )}
+                {wod.booking_info.status === 'draft' && (
+                  <span className="text-[10px] font-bold text-white rounded px-1 py-0.5 bg-purple-600" title="Hidden from athletes — not bookable">
+                    Hidden
+                  </span>
+                )}
                 {/* Booked athletes popover */}
                 {wod.booking_info.booked_members && wod.booking_info.booked_members.length > 0 && (
                   <div className="hidden group-hover/booking:block absolute left-0 bottom-full mb-1 bg-gray-800 border border-gray-600 rounded-lg shadow-xl p-2 z-[300] min-w-[140px] max-w-[200px]">
