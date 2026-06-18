@@ -75,7 +75,7 @@ export default function SessionTimeEditor({
             onChange={(e) => handleMinuteChange(e.target.value)}
             className="px-2 py-1 border rounded bg-white text-gray-900 text-sm"
           >
-            {['00', '15', '30', '45'].map(minute => (
+            {['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'].map(minute => (
               <option key={minute} value={minute}>
                 {minute}
               </option>
