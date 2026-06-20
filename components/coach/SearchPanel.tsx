@@ -709,6 +709,8 @@ export default function SearchPanel({
                           onClick={() => {
                             updateGroupExercises(g.id, [...g.exercise_ids, pendingGroupAdd.exerciseId]);
                             setPendingGroupAdd(null);
+                            // S384: re-open the filtered list so the next match can be added
+                            if (exerciseSearch.trim()) setExerciseDropdownOpen(true);
                           }}
                           className='inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-100 text-amber-900 hover:bg-amber-200 transition-colors'
                         >
@@ -717,7 +719,10 @@ export default function SearchPanel({
                         </button>
                       ))}
                       <button
-                        onClick={() => setPendingGroupAdd(null)}
+                        onClick={() => {
+                          setPendingGroupAdd(null);
+                          if (exerciseSearch.trim()) setExerciseDropdownOpen(true);
+                        }}
                         className='px-2 py-0.5 rounded-full text-[10px] font-medium text-gray-500 hover:bg-gray-100'
                       >
                         Skip
@@ -740,10 +745,12 @@ export default function SearchPanel({
                             display_name: ex.display_name || undefined,
                             category: ex.category,
                           });
-                          setExerciseSearch('');
-                          setExerciseDropdownOpen(false);
+                          // S384: keep the search query so the coach can add several
+                          // matches in a row (e.g. all "drill" movements). The added
+                          // item stays in the list, greyed out as "✓ tracked".
                           // S333: surface group-assignment prompt if any groups exist
                           if (exerciseGroups.length > 0) {
+                            setExerciseDropdownOpen(false);
                             setPendingGroupAdd({ exerciseId: ex.id, displayName: ex.display_name || ex.name });
                           }
                         }}
