@@ -225,8 +225,24 @@ export const extractMovementsFromText = (
     const trimmedLine = line.trim();
     if (!trimmedLine) return;
 
-    // Skip coaching instruction lines
-    if (isInstructionLine(trimmedLine)) return;
+    // Coaching instruction lines (e.g. "Add weight for sets of 1x Hang Power
+    // Snatch + 3 OHS") are normally skipped. But they can still name a real,
+    // programmed movement. In cross-reference mode, salvage any explicit
+    // known-exercise names — longest match wins so "Hang Power Snatch" doesn't
+    // also log a bare "Snatch" — instead of dropping the whole line. No prose
+    // guessing: only library movements are added. (S384)
+    if (isInstructionLine(trimmedLine)) {
+      if (knownLower && knownList) {
+        const lineLower = trimmedLine.toLowerCase();
+        const hits = knownList.filter(
+          ex => ex.length >= 4 && (lineLower.includes(ex) || lineLower.includes(`${ex}s`))
+        );
+        hits
+          .filter(ex => !hits.some(other => other.length > ex.length && other.includes(ex)))
+          .forEach(ex => movements.add(normalizeMovement(ex)));
+      }
+      return;
+    }
 
     // Strip instruction parentheticals BEFORE splitting on commas
     const lineWithoutInstructionParens = stripInstructionParens(trimmedLine);
