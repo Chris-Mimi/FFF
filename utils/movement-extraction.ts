@@ -221,28 +221,38 @@ export const extractMovementsFromText = (
 ): void => {
   const lines = text.split('\n');
 
+  // Cross-reference helper: credit EVERY known library movement named in a chunk
+  // of text — primary movements, "A or B" alternatives, "A & B" pairs, and
+  // scaling options like "(Sc: Pull-Up Banded)". The tracking grid and planner
+  // represent what the class practised / was offered, not each athlete's exact
+  // performance (per-athlete scaling lives in the results modal), so every named
+  // movement counts. Longest match wins per overlap so "Hang Power Snatch"
+  // doesn't also log a bare "Snatch", and "Push-up Strict" isn't swallowed by a
+  // co-listed "Push-up Knees". No prose guessing — only library movements. (S384)
+  const addKnownMovements = (chunk: string) => {
+    if (!knownLower || !knownList) return;
+    const lower = chunk.toLowerCase();
+    const hits = knownList.filter(
+      ex => ex.length >= 4 && (lower.includes(ex) || lower.includes(`${ex}s`))
+    );
+    hits
+      .filter(ex => !hits.some(other => other.length > ex.length && other.includes(ex)))
+      .forEach(ex => movements.add(normalizeMovement(ex)));
+  };
+
   lines.forEach(line => {
     const trimmedLine = line.trim();
     if (!trimmedLine) return;
 
-    // Coaching instruction lines (e.g. "Add weight for sets of 1x Hang Power
-    // Snatch + 3 OHS") are normally skipped. But they can still name a real,
-    // programmed movement. In cross-reference mode, salvage any explicit
-    // known-exercise names — longest match wins so "Hang Power Snatch" doesn't
-    // also log a bare "Snatch" — instead of dropping the whole line. No prose
-    // guessing: only library movements are added. (S384)
-    if (isInstructionLine(trimmedLine)) {
-      if (knownLower && knownList) {
-        const lineLower = trimmedLine.toLowerCase();
-        const hits = knownList.filter(
-          ex => ex.length >= 4 && (lineLower.includes(ex) || lineLower.includes(`${ex}s`))
-        );
-        hits
-          .filter(ex => !hits.some(other => other.length > ex.length && other.includes(ex)))
-          .forEach(ex => movements.add(normalizeMovement(ex)));
-      }
-      return;
-    }
+    // Capture every real library movement named anywhere in the line up front.
+    // This handles "A or B", "A & B" and scaling-option lines uniformly, and
+    // covers instruction lines like "Add weight for sets of 1x Hang Power
+    // Snatch + 3 OHS" that the structured per-part parsing below would skip. (S384)
+    addKnownMovements(trimmedLine);
+
+    // Instruction lines have no further structured movement to parse — the call
+    // above already captured any real movements they named.
+    if (isInstructionLine(trimmedLine)) return;
 
     // Strip instruction parentheticals BEFORE splitting on commas
     const lineWithoutInstructionParens = stripInstructionParens(trimmedLine);
