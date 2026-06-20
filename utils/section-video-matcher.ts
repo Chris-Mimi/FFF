@@ -101,31 +101,39 @@ export function matchSectionExercises(
       continue;
     }
 
-    // Try partial match: exercise name appears anywhere in the line
-    // Handles prefixes like "3x Back Squat", "EMOM: Deadlift", "A1) Box Jumps"
-    // Use original line (lowered) so stripping doesn't remove parts of the exercise name (e.g., "(SU)")
+    // Partial match: an exercise name appears somewhere in the line (e.g. a
+    // multi-movement line like "KB Dead Bug, Plank" or "3x Back Squat").
+    // Use the original line (lowered) so stripping didn't remove parts of the
+    // name (e.g. "(SU)"). Collect EVERY word-boundary match, then accept them
+    // longest-first and skip any that overlap an already-accepted span. This
+    // makes the most specific name win ("KB Dead Bug" beats "Dead Bug") and lets
+    // a single line surface more than one movement. (S384)
     const lineLower = line.toLowerCase();
+    const boundaryChar = /[\s,;:\-–—/|]/;
+    const candidates: { idx: number; len: number; entry: { name: string; displayName: string; videoUrl: string } }[] = [];
     for (const [key, entry] of exerciseMap) {
-      if (seen.has(entry.name.toLowerCase())) continue;
       // Only match exercise names at least 4 chars (avoid false positives like "Row")
       if (key.length < 4) continue;
       const idx = lineLower.indexOf(key);
-      if (idx !== -1) {
-        // Ensure match is at a word boundary (space, punctuation, or line edge on both sides)
-        const charBefore = idx > 0 ? lineLower[idx - 1] : ' ';
-        const charAfter = idx + key.length < lineLower.length ? lineLower[idx + key.length] : ' ';
-        const boundaryChar = /[\s,;:\-–—/|]/;
-        if (!boundaryChar.test(charBefore) || !boundaryChar.test(charAfter)) continue;
-      }
-      if (idx !== -1) {
-        seen.add(entry.name.toLowerCase());
-        matched.push({
-          exerciseName: entry.displayName,
-          videoUrl: entry.videoUrl,
-          lineIndex: i,
-        });
-        break;
-      }
+      if (idx === -1) continue;
+      const charBefore = idx > 0 ? lineLower[idx - 1] : ' ';
+      const charAfter = idx + key.length < lineLower.length ? lineLower[idx + key.length] : ' ';
+      if (!boundaryChar.test(charBefore) || !boundaryChar.test(charAfter)) continue;
+      candidates.push({ idx, len: key.length, entry });
+    }
+    candidates.sort((a, b) => b.len - a.len); // longest (most specific) first
+    const claimed: Array<[number, number]> = [];
+    for (const c of candidates) {
+      const end = c.idx + c.len;
+      if (claimed.some(([s, e]) => c.idx < e && end > s)) continue; // overlaps a longer match
+      if (seen.has(c.entry.name.toLowerCase())) continue;
+      claimed.push([c.idx, end]);
+      seen.add(c.entry.name.toLowerCase());
+      matched.push({
+        exerciseName: c.entry.displayName,
+        videoUrl: c.entry.videoUrl,
+        lineIndex: i,
+      });
     }
   }
 
