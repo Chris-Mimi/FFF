@@ -265,10 +265,16 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
         if (error) throw error;
 
         if (editingWOD.booking_info?.session_id) {
+          // Re-affirm published for an already-visible session, but NEVER unhide a
+          // coach-hidden (draft) or cancelled one — only the Hide/Unhide toggle may
+          // change visibility. The `.neq` filters make this a no-op for draft/
+          // cancelled rows, so editing+saving a workout can't silently unhide it. (S384)
           await supabase
             .from('weekly_sessions')
             .update({ status: 'published' })
-            .eq('id', editingWOD.booking_info.session_id);
+            .eq('id', editingWOD.booking_info.session_id)
+            .neq('status', 'draft')
+            .neq('status', 'cancelled');
         }
 
         // Sync the type label across three columns. wods.title is the UI-driven source
