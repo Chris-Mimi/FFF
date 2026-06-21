@@ -84,6 +84,14 @@ When Chris says something doesn't appear in a workout, it means exactly that —
 ### Don't assume when debugging — verify with data
 Before asserting a cause, query the actual state (DB, file, logs). The script-anon-key blind spot (above) is a concrete example of why.
 
+### Lift-result data invariants (S385 weight-loss incident)
+**Why:** RM-test lift sessions (Back Squat / Front Squat / Pendlay Testing) silently lost athletes' weights and PRs over weeks. Two bugs: (1) lift sections stored `scoring_fields.load:false`, and the S338 edit-cleanup in `useWODOperations.ts` nulls `weight_result` when `load` flips true→false on save — so editing/renaming a lift WOD wiped every athlete's weight; (2) `scoreCleanup.cleanupAthleteScoresForWod` deleted `lift_records` on every booking removal, destroying real PRs when athletes were moved between parallel sessions (silent cancel+re-add) or a session was deleted/recreated.
+
+**How to apply:**
+1. **RM-test lift sections must always be `scoring_fields.load = true`.** `useWODOperations` forces this on save for any section with an `rm_test` lift — don't remove it. `load:false` on an RM section is a corruption signature.
+2. **Never delete `lift_records` as a side-effect of booking/session changes.** They're date-keyed PR history, independent of any booking. `scoreCleanup` clears only `wod_section_results`. Bad records → manual delete-lift on the athlete page.
+3. **After any historical DB restore, re-check two things:** whiteboard rows for athletes who registered *after* the backup (→ leaderboard duplicates, delete the whiteboard row), and scores entered *after* the backup date (→ missing, manual fill). The recovery scripts (`scripts/sweep-rm-lift-weight-loss.ts`, `restore-*`, `rebuild-*`) are the templates.
+
 ---
 
 ## 🪙 Context Efficiency Hard Rules (Session 285)
