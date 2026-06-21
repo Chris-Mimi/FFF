@@ -24,23 +24,25 @@ happen and the leaderboard safeguard stops hiding the weight. Sweep of all 98
 RM-test sections: only the 14 Chris had edited carried `load:false`; the other 84
 were `load:true`/`undefined` and healthy.
 
-**Bug 2 — lift_records deleted on booking removal.** [scoreCleanup.ts](../lib/coach/scoreCleanup.ts)
-`cleanupAthleteScoresForWod` ran on every booking-deletion path (athlete/coach
-cancel, late-cancel, delete-incident, delete-session) and deleted the athlete's
-`lift_records` for the WOD alongside their session score. Per Chris: the only
-people whose bookings get removed are no-shows — who never posted a score — so
-the lift delete was a no-op in normal use. It only ever fired destructively when
-a booking was pulled from an athlete who DID lift: **moving people between
-parallel sessions** (the app does that as a silent cancel + re-add), or
-**deleting/recreating a session**. That silently wiped real PRs. **Fix `f5a3d58`:**
-scoreCleanup now clears only the session-scoped `wod_section_results` (+ its
-reactions); `lift_records` are date-keyed PR history and persist. Bad records are
-removed by hand via the athlete page (delete-lift).
+**Lift-records loss — REAL cause: the April historical-import reset (NOT an app
+action).** Initially mis-diagnosed as `scoreCleanup` deleting `lift_records` on
+booking removal. Chris pushed back (he only ever marks no-shows, who have no
+result) and the data proved him right: the 5 deleted Pendlay athletes' bookings
+are still `confirmed` — no cancel/no-show/delete-session ran. Forensic dig found
+the `lift_records` count dropped on **24-Apr**, the exact day of the **historical
+lift-import project (S313–S315)**. The S315 log states verbatim: *"Confirmed DB
+had been reset since S314 import (only 53 records total, all from live user
+activity)."* So a bulk **reset/re-seed** during that multi-session import wiped
+the live-entered class records, then re-imported from Chris's historical-PR
+master JSON — which didn't include the March testing-day results. The import
+script itself only INSERTs (dedups, never deletes); the destruction was the
+reset, separate from the import. **`f5a3d58` (scoreCleanup no longer deletes
+`lift_records`) is a sound DEFENSIVE fix but was NOT the cause of this loss.**
 
 ## Forensic timeline (from per-date backups)
 - weights intact: Back Squat 74 rows (01.04→17.04), Front Squat 21 rows (24.04→05.05)
-- `lift_records` trimmed: **24.04** (per-athlete, via booking removal) and **11.05**
-- `weight_result` nulled: **05.07** (both series at once, via the load-flip)
+- `lift_records` reset/wiped: **24.04** (historical-import project S313–S315), partial follow-on **11.05**
+- `weight_result` nulled: **07.05** (both series at once, via the load-flip on WOD edit)
 
 ## Recovery (fresh backup taken first; dry-run before each write)
 - WSR weights restored by-id from `2026-04-17` (Back Squat, 54 updates + 20 re-inserts)
@@ -63,8 +65,16 @@ Post-recovery sweep: 0 damaged sections, 0 registered athletes missing a record.
   any historical restore.
 - **`load:false` on an `rm_test` lift section = corruption signature.** RM sections
   should always be `load:true`.
-- **scoreCleanup must never delete `lift_records`** — they are cross-session PR
-  history, not session-scoped data.
+- **Never reset/truncate/unscoped-DELETE a live-data table.** The real PR loss was
+  the April import reset, not the app. Imports = INSERT-only + deduped + scoped;
+  backup first; scope deletes to a `source` filter.
+- **Mis-diagnosis lesson:** trust Chris's domain statement ("I only remove
+  no-shows") — it falsified three of my proposed mechanisms before the data did.
+  Verify the trigger (booking status, git/session log around the date) before
+  asserting a cause or shipping a "fix" for it.
+- **Detection gap:** nothing compared `wod_section_results` weights to
+  `lift_records`, so the loss hid ~2 months → new parity check
+  `scripts/check-wsr-liftrecord-parity.ts`.
 
 ## Parked feature (not a bug)
 Parallel-session "move" still loses the athlete's **whiteboard score** for that
