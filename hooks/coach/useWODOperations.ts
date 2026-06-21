@@ -23,6 +23,23 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
     // Trim workout_name to prevent whitespace-only differences splitting leaderboard results
     if (wodData.workout_name) wodData.workout_name = wodData.workout_name.trim();
 
+    // RM-test lift sections store the lifted weight as their score, so they MUST
+    // carry scoring_fields.load = true. The score-entry grid synthesises this in
+    // memory (useScoreEntry) but never persisted it, leaving the stored WOD with
+    // load:false/undefined. That was a silent data-loss trap: the edit-cleanup
+    // below nulls weight_result whenever load flips true→false, so re-saving one
+    // of these WODs (e.g. to rename the lift) wiped every athlete's lifted weight
+    // — the Back Squat Testing 3&1RM incident. Forcing load:true here makes that
+    // flip impossible and stops the leaderboard safeguard from hiding the weight.
+    for (const s of (wodData.sections || []) as Array<{
+      lifts?: Array<{ rm_test?: string }>;
+      scoring_fields?: { load?: boolean };
+    }>) {
+      if (s.lifts?.some(l => l.rm_test) && s.scoring_fields?.load !== true) {
+        s.scoring_fields = { ...s.scoring_fields, load: true };
+      }
+    }
+
     // Capacity is owned by weekly_sessions.capacity and edited via Session Management Modal.
     // New session inserts default to 12; existing sessions are never touched here. The
     // wods.max_capacity column was dropped in S362 after years of being a drift landmine.
