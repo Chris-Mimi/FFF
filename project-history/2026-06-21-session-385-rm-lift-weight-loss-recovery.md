@@ -81,9 +81,32 @@ Parallel-session "move" still loses the athlete's **whiteboard score** for that
 day — the cancel+re-add re-adds them blank. Only their PR is now protected. A
 proper one-click "move booking that carries the score" is the real cure.
 
+## Safeguard + 33 more losses found
+Built `scripts/check-wsr-liftrecord-parity.ts` — flags any weighted RM result in
+`wod_section_results` (registered athlete) with no matching `lift_records` row.
+First run found **33 further silent losses** beyond the W13/Pendlay sets
+(Clean & Jerk 5RM 28.04 + 04.05, Bench Press, Deadlift, Back Squat, Strict OHP).
+`scripts/rebuild-missing-lift-records.ts` rebuilt all 33 from intact WSR weights;
+parity then 100% clean (**103 lift records rebuilt in total**). Wired the check to
+a **monthly GitHub Action** (`.github/workflows/lift-parity-check.yml`) — exits
+non-zero on a finding so the job fails and GitHub emails Chris; needs repo secrets
+`SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` (Chris added them; test run green).
+
+## Supabase key rotation (the leaked service_role key)
+The old `service_role` key had passed through chat, so we rotated it. Migrated to
+Supabase's new API keys (`sb_publishable_` / `sb_secret_`), updated all 3 places
+(Vercel, `.env.local`, GitHub secret), redeployed, verified all green, then
+**disabled the legacy JWT keys** — old key now dead, no users logged out. Env var
+names unchanged. Recorded in `techContext.md`. (Vercel "mark Sensitive" on the 6
+plaintext secret vars was considered and **declined** — delete/recreate risk on
+live secrets outweighs the gain for a 2-person team.)
+
 ## Scripts (committed)
 `sweep-rm-lift-weight-loss`, `find-weight-backups`, `restore-w13-lift-weights`,
 `rebuild-w13-lift-records`, `rebuild-pendlay-lift-records`,
+`rebuild-missing-lift-records`, `check-wsr-liftrecord-parity`,
 `diagnose-w13-lift-mismatch(2)`.
 
-Commits: `866bba3` (load fix), `6afc589` (recovery tooling), `f5a3d58` (scoreCleanup).
+Commits: `866bba3` (load fix), `6afc589` (recovery tooling), `f5a3d58`
+(scoreCleanup), `23af54f` (root-cause correction + parity check), `d221bf2`
+(33-record rebuild), `4d0fdc9`+`de77a6a` (monthly Action), `b9bcc13` (key-rotation note).
