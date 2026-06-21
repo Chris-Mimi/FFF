@@ -30,12 +30,12 @@ Ask Mimi Silvia Maritati (Diapers & Dumbbells?)
 * 
 Default setting for publish should be NOT to notify athletes.
 * At-Risk put the list in order from most recent to least recent attendance
-* Di needs to be re-evaluated. Maybe a DI added to the Session management modal like Trial Athlete. 
-* Workouts page: Custom Movements list:Movement Tracking grid: Give me a numbered list in the Custom Movements and a numbered list across the top of the Tracking Grid. This enables me to locate an exercise quickly rather than counting across. This is an issue in the KB List for example as most exercises have an acronym that begins with K. Identifying a number (as well as the acronym) makes it easier.
+* 
+* 
 * Kathrin should flag in the banner as her sub is about to cancel in 3 days!
 
 * Ask Claude for a Magic link script to access athlete's accounts to check screen views so I can help them click the right buttons. I just give Claude the email ad.
-* 
+* One thing I'd flag for later (not now): the parallel-session "move" still loses the athlete's whiteboard score for that day (the re-add doesn't carry it over) — only their PR is now safe. A proper one-click "move booking that keeps the score" is the real cure, but that's a feature, not a bug fix. Want me to note it in the memory bank for a future session? - I don't understand, explain in simple terms.
 * Macbook still has internet problem at the box. Old Macbook Pro works fine.
 Script works. Baseline + a sample capture both saved to ~/mac-incident-data/.
 
