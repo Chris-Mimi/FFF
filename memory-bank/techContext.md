@@ -74,10 +74,23 @@ Timestamp: 2025-10-26
 
 ### Environment Variables
 
+**🔑 Supabase API keys migrated to the new system (2026-06-21, S385).** Legacy
+JWT keys (`eyJ…` anon + service_role) are **DISABLED** at the source. The project
+now uses Supabase's new API keys — env var **names are unchanged**, only the
+values changed type:
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` now holds the **publishable** key (`sb_publishable_…`)
+- `SUPABASE_SERVICE_ROLE_KEY` now holds the **secret** key (`sb_secret_…`)
+
+If you see `sb_secret_`/`sb_publishable_` instead of `eyJ…`, that's expected — don't
+"fix" it. Keys live in 3 places (kept in sync): Vercel env, local `.env.local`,
+and the GitHub Actions secret `SUPABASE_SERVICE_ROLE_KEY`. No Supabase Edge
+Functions. (Rotation was triggered because the old service_role key was exposed;
+it's now revoked.)
+
 ```bash
 # Supabase (Required)
 NEXT_PUBLIC_SUPABASE_URL=          # Supabase project URL
-NEXT_PUBLIC_SUPABASE_ANON_KEY=     # Supabase anonymous/public key
+NEXT_PUBLIC_SUPABASE_ANON_KEY=     # Supabase publishable key (sb_publishable_…)
 
 # Google Calendar (Optional - Publishing feature)
 GOOGLE_SERVICE_ACCOUNT_EMAIL=      # Service account email
