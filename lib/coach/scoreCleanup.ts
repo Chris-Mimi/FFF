@@ -6,10 +6,23 @@ export interface ScoreCleanupResult {
   reactionsDeleted: number;
 }
 
-// Removes a single athlete's scores attached to one WOD: wod_section_results,
-// lift_records, and any reactions pointing at those rows. Used by every
+// Removes a single athlete's SESSION score attached to one WOD:
+// wod_section_results plus any reactions pointing at those rows. Used by every
 // booking-deletion path (athlete cancel, coach cancel, late-cancel,
-// delete-incident, delete-session) to guarantee no ghost scores remain.
+// delete-incident, delete-session) to guarantee no ghost scores remain on the
+// session whiteboard / leaderboard.
+//
+// Deliberately does NOT delete lift_records. A lift_record is the athlete's
+// personal-record history, keyed to a DATE, independent of any booking. The
+// only people whose bookings get removed are no-shows — who never posted a
+// score — so deleting their records was always a no-op in practice. It only
+// ever fired destructively when a booking was pulled out from under an athlete
+// who DID attend and lift: moving people between parallel sessions (a silent
+// cancel + re-add), deleting/recreating a session, or regenerating the week.
+// That silently wiped real PRs (the March/April Back Squat + Pendlay testing
+// loss). A lift someone actually posted stays in their record book no matter
+// how the booking is shuffled; genuinely-bad records are removed by hand via
+// the athlete page (delete-lift).
 //
 // MUST be called with a service-role client. RLS hides cross-user reactions
 // from the cancelling athlete and hides athlete-owned rows from a coach
@@ -27,28 +40,17 @@ export async function cleanupAthleteScoresForWod(
 ): Promise<ScoreCleanupResult> {
   const userIdFilter = authUserId ?? memberId;
 
-  // Capture row ids before deletion — reactions FK by target_id and need
+  // Capture WSR row ids before deletion — reactions FK by target_id and need
   // the actual ids to clean up.
   const { data: existingResults } = await supabaseAdmin
     .from('wod_section_results')
-    .select('id, user_id')
+    .select('id')
     .eq('wod_id', wodId)
     .or(`member_id.eq.${memberId},user_id.eq.${userIdFilter}`);
 
   const wsrIds = (existingResults || []).map(r => r.id as string);
-  const userIds = [...new Set((existingResults || []).map(r => r.user_id).filter(Boolean) as string[])];
 
-  let liftRecordIds: string[] = [];
-  if (userIds.length > 0) {
-    const { data: existingLifts } = await supabaseAdmin
-      .from('lift_records')
-      .select('id')
-      .eq('wod_id', wodId)
-      .in('user_id', userIds);
-    liftRecordIds = (existingLifts || []).map(r => r.id as string);
-  }
-
-  // Reactions first — no FK constraint, so they'd be orphaned if WSR/lift
+  // Reactions first — no FK constraint, so they'd be orphaned if the WSR
   // rows are deleted before this step.
   let reactionsDeleted = 0;
   if (wsrIds.length > 0) {
@@ -59,14 +61,6 @@ export async function cleanupAthleteScoresForWod(
       .in('target_id', wsrIds);
     reactionsDeleted += count ?? 0;
   }
-  if (liftRecordIds.length > 0) {
-    const { count } = await supabaseAdmin
-      .from('reactions')
-      .delete({ count: 'exact' })
-      .eq('target_type', 'lift_record')
-      .in('target_id', liftRecordIds);
-    reactionsDeleted += count ?? 0;
-  }
 
   const { count: wsrCount } = await supabaseAdmin
     .from('wod_section_results')
@@ -74,19 +68,9 @@ export async function cleanupAthleteScoresForWod(
     .eq('wod_id', wodId)
     .or(`member_id.eq.${memberId},user_id.eq.${userIdFilter}`);
 
-  let liftRecordsDeleted = 0;
-  if (userIds.length > 0) {
-    const { count } = await supabaseAdmin
-      .from('lift_records')
-      .delete({ count: 'exact' })
-      .eq('wod_id', wodId)
-      .in('user_id', userIds);
-    liftRecordsDeleted = count ?? 0;
-  }
-
   return {
     wsrDeleted: wsrCount ?? 0,
-    liftRecordsDeleted,
+    liftRecordsDeleted: 0, // never deleted here — see header
     reactionsDeleted,
   };
 }
