@@ -1,0 +1,37 @@
+# Monthly integrity check for silent lift-record loss (S385).
+# Runs scripts/check-wsr-liftrecord-parity.ts in the cloud once a month.
+# The script exits non-zero when it finds a weighted RM result with no matching
+# lift_record, which FAILS this job — GitHub then emails the repo owner. When
+# everything matches it passes silently.
+#
+# One-time setup: add two repository secrets (Settings → Secrets and variables →
+# Actions → New repository secret):
+#   SUPABASE_URL                = your project URL (https://xxxx.supabase.co)
+#   SUPABASE_SERVICE_ROLE_KEY   = the service_role key
+# You can also run it on demand from the Actions tab ("Run workflow").
+
+name: Lift-record parity check
+
+on:
+  schedule:
+    - cron: '0 6 1 * *' # 06:00 UTC on the 1st of every month
+  workflow_dispatch: {} # manual "Run workflow" button
+
+jobs:
+  parity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Run parity check
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npx tsx scripts/check-wsr-liftrecord-parity.ts

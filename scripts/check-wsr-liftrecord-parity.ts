@@ -105,5 +105,13 @@ async function main() {
     console.log(`🚩 ${missing.length} results with NO matching lift_record (silent PR loss):`);
     missing.sort().forEach((m) => console.log('   ' + m));
   }
+  return missing.length;
 }
-main().then(() => process.exit(0));
+// Exit non-zero when records are missing so CI (the monthly GitHub Action) fails
+// and emails Chris. Exit 2 on an unexpected error so a crash can't read as "OK".
+main()
+  .then((bad) => process.exit(bad > 0 ? 1 : 0))
+  .catch((err) => {
+    console.error('❌ parity check crashed:', err);
+    process.exit(2);
+  });
