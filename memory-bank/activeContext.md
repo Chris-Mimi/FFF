@@ -71,14 +71,16 @@ Synology Drive syncs files in the background and is **not git-aware**. When Chri
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history scan._
 
-**🚨 Next session — S385 lift recovery is DONE & verified. Confirm S384 + S383 fixes on prod, then pick from the open items below.**
+**🚨 Next session — S385 lift recovery DONE & verified (parity check now 100% clean). Confirm S384 + S383 fixes on prod, then pick from the open items below.**
 
-**S385 spot-checks (RM-test recovery, commits `866bba3`/`6afc589`/`f5a3d58` live):**
-1. **Leaderboards** — Back Squat Testing 3&1RM, Front Squat Testing 5RM, Pendlay Row 5RM should show the full field, each athlete once (no whiteboard-vs-registered double-ups).
-2. **Regression check** — edit + save one of these RM-test WODs (e.g. rename a lift) → weights must SURVIVE (was the bug). Move an athlete between parallel sessions → their lift PR must SURVIVE.
-3. **After ANY future historical backup restore:** re-check for (a) whiteboard dups from later-registered athletes, and (b) scores entered after the backup date (missing → manual fill). [restore landmine]
+**S385 spot-checks (RM-test recovery + safeguard; commits `866bba3`/`6afc589`/`f5a3d58`/`23af54f`/`d221bf2` live):**
+1. **Leaderboards** — Back Squat Testing 3&1RM, Front Squat 5RM, Pendlay Row 5RM, **Clean & Jerk 5RM (28.04 + 04.05)**, Bench Press / Deadlift testing → full field, each athlete once (no whiteboard-vs-registered double-ups). 103 lift records rebuilt total (70 W13/Pendlay + 33 from the parity sweep).
+2. **Regression check** — edit + save an RM-test WOD (rename a lift) → weights SURVIVE (was the bug).
+3. **Run the safeguard periodically:** `npx tsx scripts/check-wsr-liftrecord-parity.ts` — flags any weighted RM result with no lift_record (silent PR loss). Should print "✅ Parity OK". Add to the monthly orphan/integrity checks.
 
-**Parked feature (S385, not a bug):** parallel-session "move" still loses the athlete's *whiteboard* score for that day (cancel+re-add re-adds blank) — only the PR is now protected. Real cure = one-click "move that carries the score."
+**Root cause (corrected):** lift_records loss was the **April historical-import RESET (S313–S315)**, NOT booking removal/no-show (Chris removed nobody — bookings stayed `confirmed`). Weights loss was the separate `load:false` edit-nulling bug. Both fixed; see claude-rules "Lift-result data invariants".
+
+**Parked (S385, not a bug):** parallel-session "move" loses the *whiteboard* score (cancel+re-add re-adds blank); PR is now safe. Real cure = one-click "move that carries the score." **Optional:** `source` column on `lift_records` so future imports can't touch live records (only if more bulk imports planned).
 
 **S384 spot-checks (all 5 commits live, `6b748e1`→`d26f152`):**
 1. **Workouts → Custom Movements search** — type "drill", allocate one to a group → the rest stay listed (no retype); added one greyed "✓ tracked".
