@@ -22,6 +22,7 @@ export interface AthleteAchievement {
   user_id: string;
   achievement_id: string;
   achieved_date: string;
+  is_prior?: boolean; // athlete already had this skill before joining (no specific gym date)
   awarded_by?: string;
   notes?: string;
   created_at: string;

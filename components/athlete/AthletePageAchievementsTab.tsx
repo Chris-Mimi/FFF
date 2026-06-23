@@ -52,6 +52,7 @@ export default function AthletePageAchievementsTab({ userId }: AthletePageAchiev
   const [claimModal, setClaimModal] = useState<AchievementDefinition | null>(null);
   const [claimDate, setClaimDate] = useState(new Date().toISOString().split('T')[0]);
   const [claimNotes, setClaimNotes] = useState('');
+  const [claimIsPrior, setClaimIsPrior] = useState(false);
   const [saving, setSaving] = useState(false);
   const [detailModal, setDetailModal] = useState<(AchievementDefinition & { unlocked?: AthleteAchievement }) | null>(null);
   const [editingDate, setEditingDate] = useState(false);
@@ -158,17 +159,13 @@ export default function AthletePageAchievementsTab({ userId }: AthletePageAchiev
     });
   };
 
-  // Check if a tier is the next claimable one in its branch
-  const isNextClaimable = (branchTiers: (AchievementDefinition & { unlocked?: AthleteAchievement })[], tier: AchievementDefinition & { unlocked?: AthleteAchievement }) => {
-    if (tier.unlocked) return false; // Already unlocked
-    // Find the highest unlocked tier in this branch
-    let highestUnlocked = 0;
+  // Highest unlocked tier number in a branch (0 if none unlocked).
+  const highestUnlockedTier = (branchTiers: (AchievementDefinition & { unlocked?: AthleteAchievement })[]) => {
+    let highest = 0;
     for (const t of branchTiers) {
-      if (t.unlocked && t.tier > highestUnlocked) {
-        highestUnlocked = t.tier;
-      }
+      if (t.unlocked && t.tier > highest) highest = t.tier;
     }
-    return tier.tier === highestUnlocked + 1;
+    return highest;
   };
 
   const handleClaim = async () => {
@@ -179,6 +176,7 @@ export default function AthletePageAchievementsTab({ userId }: AthletePageAchiev
       user_id: userId,
       achievement_id: claimModal.id,
       achieved_date: claimDate,
+      is_prior: claimIsPrior,
       notes: claimNotes || null,
     });
 
@@ -196,6 +194,7 @@ export default function AthletePageAchievementsTab({ userId }: AthletePageAchiev
     toast.success(`🏆 ${claimModal.name} unlocked!`);
     setClaimModal(null);
     setClaimNotes('');
+    setClaimIsPrior(false);
     setClaimDate(new Date().toISOString().split('T')[0]);
     setSaving(false);
     fetchData();
@@ -381,7 +380,9 @@ export default function AthletePageAchievementsTab({ userId }: AthletePageAchiev
             {/* Branch rows */}
             {!collapsedCategories.has(category) && (
               <div className="divide-y divide-gray-600/30">
-                {branches.map(({ branch, tiers }) => (
+                {branches.map(({ branch, tiers }) => {
+                  const highest = highestUnlockedTier(tiers);
+                  return (
                   <div key={branch} className="px-3 py-2 sm:px-4 sm:py-3">
                     {/* Branch name */}
                     <div className="font-semibold text-gray-300 text-sm mb-2">
@@ -392,7 +393,11 @@ export default function AthletePageAchievementsTab({ userId }: AthletePageAchiev
                     <div className="flex flex-wrap gap-2">
                       {tiers.map((def) => {
                         const isUnlocked = !!def.unlocked;
-                        const canClaim = isNextClaimable(tiers, def);
+                        // Claimable = the next goal OR a lower tier skipped past (e.g. an
+                        // athlete who came in already able to do a higher tier). Lock only
+                        // tiers beyond the next step.
+                        const canClaim = !isUnlocked && def.tier <= highest + 1;
+                        const isNextGoal = !isUnlocked && def.tier === highest + 1;
                         const isLocked = !isUnlocked && !canClaim;
                         const ds = DIFFICULTY_BADGE_STYLES[def.difficulty] || DIFFICULTY_BADGE_STYLES.bronze;
 
@@ -406,6 +411,7 @@ export default function AthletePageAchievementsTab({ userId }: AthletePageAchiev
                               } else if (canClaim) {
                                 setClaimDate(new Date().toISOString().split('T')[0]);
                                 setClaimNotes('');
+                                setClaimIsPrior(false);
                                 setClaimModal(def);
                               }
                             }}
@@ -415,7 +421,7 @@ export default function AthletePageAchievementsTab({ userId }: AthletePageAchiev
                               ${isUnlocked
                                 ? `${ds.bg} border-2 ${ds.border} ${ds.name} hover:brightness-125 cursor-pointer`
                                 : canClaim
-                                  ? `${ds.bg} border-2 border-dashed ${ds.border} ${ds.name} hover:brightness-125 cursor-pointer animate-pulse-subtle`
+                                  ? `${ds.bg} border-2 border-dashed ${ds.border} ${ds.name} hover:brightness-125 cursor-pointer ${isNextGoal ? 'animate-pulse-subtle' : ''}`
                                   : `${ds.bg} border ${ds.border} ${ds.name} cursor-not-allowed opacity-40`
                               }
                             `}
@@ -438,6 +444,11 @@ export default function AthletePageAchievementsTab({ userId }: AthletePageAchiev
                               {'★'.repeat(def.tier)}
                             </span>
                             <span>{def.name}</span>
+                            {isUnlocked && def.unlocked?.is_prior && (
+                              <span className={`text-[10px] px-1.5 py-0.5 rounded-full border ${ds.border} ${ds.star} opacity-90`}>
+                                Prior
+                              </span>
+                            )}
                             {(() => {
                               const multiplier = parseBodyweightMultiplier(def.name);
                               if (multiplier && weightKg) {
@@ -460,7 +471,8 @@ export default function AthletePageAchievementsTab({ userId }: AthletePageAchiev
                       })}
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -488,18 +500,49 @@ export default function AthletePageAchievementsTab({ userId }: AthletePageAchiev
               </div>
 
               <div className="space-y-3 mb-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    <Calendar size={14} className="inline mr-1" />
-                    Date achieved
-                  </label>
-                  <input
-                    type="date"
-                    value={claimDate}
-                    onChange={(e) => setClaimDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                  />
+                {/* Achieved on a date vs. prior skill (already had it before joining) */}
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setClaimIsPrior(false)}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium border transition ${
+                      !claimIsPrior
+                        ? 'bg-amber-500 text-white border-amber-500'
+                        : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    Achieved on a date
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setClaimIsPrior(true)}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium border transition ${
+                      claimIsPrior
+                        ? 'bg-amber-500 text-white border-amber-500'
+                        : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    Prior skill
+                  </button>
                 </div>
+                {claimIsPrior ? (
+                  <p className="text-xs text-gray-500">
+                    Already could do this before joining — no specific date recorded.
+                  </p>
+                ) : (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <Calendar size={14} className="inline mr-1" />
+                      Date achieved
+                    </label>
+                    <input
+                      type="date"
+                      value={claimDate}
+                      onChange={(e) => setClaimDate(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                    />
+                  </div>
+                )}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Notes (optional)
@@ -555,6 +598,12 @@ export default function AthletePageAchievementsTab({ userId }: AthletePageAchiev
               </div>
 
               <div className="space-y-2 mb-6 text-sm">
+                {detailModal.unlocked.is_prior ? (
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-500">Status</span>
+                  <span className="text-gray-900 font-medium">Prior skill (before joining)</span>
+                </div>
+                ) : (
                 <div className="flex justify-between items-center">
                   <span className="text-gray-500">Date achieved</span>
                   {editingDate ? (
@@ -592,6 +641,7 @@ export default function AthletePageAchievementsTab({ userId }: AthletePageAchiev
                     </button>
                   )}
                 </div>
+                )}
                 {detailModal.unlocked.awarded_by && (
                   <div className="flex justify-between">
                     <span className="text-gray-500">Awarded by</span>
