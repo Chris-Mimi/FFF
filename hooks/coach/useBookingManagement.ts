@@ -195,15 +195,21 @@ export function useBookingManagement({
       toast.warning('That name is already in the drop-in list');
       return;
     }
+    // If this name was previously added as a trial, move it over (don't leave it
+    // in both lists — it would show as both Trial and Drop-in in the modal).
+    const matchingTrial = trialNames.find(n => n.toLowerCase() === name.toLowerCase());
     try {
       const { error } = await supabase
         .from('weekly_sessions')
-        .update({ drop_in_names: [...dropInNames, name] })
+        .update({
+          drop_in_names: [...dropInNames, name],
+          ...(matchingTrial ? { trial_names: trialNames.filter(n => n !== matchingTrial) } : {}),
+        })
         .eq('id', sessionId);
       if (error) throw error;
       await onRefresh();
       onSessionUpdated();
-      toast.success(`${name} added as drop-in`);
+      toast.success(matchingTrial ? `${name} moved from trial to drop-in` : `${name} added as drop-in`);
     } catch (error) {
       console.error('Error adding drop-in:', error);
       toast.error('Failed to add drop-in');
