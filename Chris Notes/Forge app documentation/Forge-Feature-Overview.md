@@ -78,6 +78,7 @@ There's no app-switching, no spreadsheets, no whiteboards that get erased. Just 
 - **Bodyweight calculator on achievements** — achievements with bodyweight percentages (e.g. "Bench Press @ 50% Bodyweight") automatically display the target weight in kg based on the athlete's profile weight
 - **Award achievements** — recognise athlete milestones with a tap. Athletes see their badges on their profile
 - **Self-claim with approval** — athletes can claim achievements they've earned; coaches verify and approve
+- **"Prior skill" claim** — athletes who could already do a movement before joining (e.g. arrive able to do a strict pull-up) can claim a badge as a prior skill with no specific date; it shows a "Prior" tag instead of an achieved date. Lower tiers are also claimable when a higher one is already earned, so a skipped/assisted entry tier never shows a misleading lock — while forward progression stays gated (you still can't jump ahead more than one tier)
 
 ### Gym Display Mode
 
