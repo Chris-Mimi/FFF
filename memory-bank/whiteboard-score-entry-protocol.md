@@ -19,7 +19,9 @@
 
 ## Steps
 
-1. **Get the image.** Stored in `whiteboard_photos` (query by `photo_label` / `workout_week`; `photo_url` is public — `curl` then Read it), or Chris gives a file path. One photo can cover several sessions.
+1. **Get the image.** Stored in `whiteboard_photos`; `photo_url` is public — `curl` then Read it. One photo can cover several sessions.
+   - **Label convention is 100% consistent: `YYYY Week WW.N`** (e.g. `2026 Week 25.1`, `2026 Week 25.2`) — year + ISO week number + photo index within that week. So to pull a week's boards: `photo_label ILIKE '2026 Week 25.%'` (or `workout_week = '2026-W25'`). Chris can just give the label or the session date.
+   - Fallback: Chris gives a file path (ask for it — don't search his disk).
 
 2. **Transcribe to a verification table** — Athlete · Lift · Type (3RM/1RM/5RM…) · Value. Flag any uncertain cell with ⚠️. **Never write blind.**
 
