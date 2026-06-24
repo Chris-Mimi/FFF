@@ -112,7 +112,7 @@ Petra - Petra Dempfle
 Ralph - Ralph Gerlach
 Regina - Regina Peresyova
 Robert - Robert Miff
-Rosita - Rosita Blum
+Rosita, Rosi - Rosita Blum
 Sabrina - Sabrina Lucas
 Sandra - Sandra Lederle
 Sebastian - Sebastian Pfeiffer
