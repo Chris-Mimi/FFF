@@ -1,0 +1,49 @@
+# Whiteboard Score-Entry Protocol
+
+**Cue phrase:** Chris says *"run the whiteboard protocol for [photo name / session]"* → follow these steps. Born from S386 (Week-7 OHP/PP recovery from photo "2026 Week 7.1").
+
+**Purpose:** turn a photographed gym whiteboard into stored scores — `lift_records` (athlete PR/Records view) **and** `wod_section_results` (coach results modal + session leaderboard).
+
+---
+
+## Definitive name map
+`Chris Notes/Forge app documentation/Athletes booking list.md` — the source of truth for **whiteboard alias → registered athlete**. Format `Alias1, Alias2 - Full Name`, split into KIDS / ADULTS. Match every whiteboard name through this list. If a name isn't there, ASK Chris (new athlete / kid / parent-only / one-off drop-in / unregistered whiteboard-only) — don't guess.
+
+## Canonical lift names (whiteboard shorthand → `lift_records.lift_name` / section `lifts[].name`)
+- OHP → `Strict Overhead Shoulder Press`
+- PP → `Push Press`
+- BS → `Back Squat`, FS → `Front Squat`, OHS → `Overhead Squat`, DL → `Deadlift`
+- Confirm any unfamiliar shorthand against existing `lift_records.lift_name` values before writing.
+
+---
+
+## Steps
+
+1. **Get the image.** Stored in `whiteboard_photos` (query by `photo_label` / `workout_week`; `photo_url` is public — `curl` then Read it), or Chris gives a file path. One photo can cover several sessions.
+
+2. **Transcribe to a verification table** — Athlete · Lift · Type (3RM/1RM/5RM…) · Value. Flag any uncertain cell with ⚠️. **Never write blind.**
+
+3. **Chris verifies** the table against the photo and corrects misreads. This is the safety net — these are permanent PRs.
+
+4. **Resolve names → members** via the list above. Map each athlete to their **confirmed session** (via `bookings`) to get the correct `lift_date` / session. Surface anyone booked in two sessions, or not booked at all.
+
+5. **Read each session's wod sections.** RM lift sections have `scoring_fields.load=true` and a `lifts[0]` carrying `{ name, rm_test }`. Map each board value to its section by **lift name + rm_test** (don't hardcode section IDs — they differ per wod, esp. after a copy).
+
+6. **Write (INSERT-only, deduped, scoped; dry-run first):**
+   - **Registered athletes** → `lift_records` (`user_id`, `lift_name`, `weight_kg`, `reps`, `rep_max_type`, `calculated_1rm` = Epley for >1 rep else null, `lift_date`) **and** `wod_section_results` (`section_id = "<section.id>-content-0"`, weight in `weight_result`, `member_id` + `user_id`, `whiteboard_name` null). For this gym `member.id == auth user id`.
+   - **Whiteboard-only / unregistered** → `wod_section_results` with `whiteboard_name` only (no `lift_records` possible). Or Chris enters via the app.
+   - A member must have a **confirmed booking** on the session for their WSR row to show in the coach modal — book them if needed (no 10-card debit: `ten_card_consumed:false`).
+
+7. **Verify one session first** in the coach results modal, get Chris's OK, then roll out the rest.
+
+8. **Parity check:** `npx tsx scripts/check-wsr-liftrecord-parity.ts` → expect "✅ Parity OK".
+
+9. **Commit** the recovery script for traceability.
+
+## Templates to copy
+- `scripts/restore-week7-ohp-pp-liftrecords.ts` — lift_records write
+- `scripts/restore-week7-ohp-pp-wsr.ts` — WSR write (lift→section by name+rm_test, user_id resolve, dedupe)
+- `scripts/link-jenny-whiteboard-to-pascal.ts` — link a whiteboard alias to a member across all their sessions
+
+## Why both tables (don't forget)
+`lift_records` feeds the athlete's **Records/Lifts** PR view. `wod_section_results` feeds the **coach results modal** + leaderboard. Writing only one leaves the other empty (the S386 trap).

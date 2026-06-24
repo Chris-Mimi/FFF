@@ -8,6 +8,7 @@ Fabian
 BenH
 Ella
 Frieda
+Hannah S - Hannah Sterk
 Johnny
 Lenny - Lenny Kleinert
 Lani
@@ -31,115 +32,111 @@ NinaH
 
 ADULTS:
 Aline - Aline von Rüden
-AndreasK - Andreas Keip BETA
-Anfisa Anfisa Bornemann
-AnjaB - Anja Biechele
-AnjaG - Anja Götte
-AnnaHa - Anna Hartmann
-AnnaHo - Anna Hohenadl
-Anne - Anne Schaber
-Anneke - Anneke Spegele BETA
+Andreas K, Andreas - Andreas Keip
+Anfisa - Anfisa Bornemann
+Anja B - Anja Biechele
+Anja G - Anja Götte
+Anna Ha - Anna Hartmann
+Anna Ho - Anna Hohenadl
+Anna K - Anna Krautwald
+Anne, Anne S - Anne Schaber
+Anneke, Anni - Anneke Spegele
 Annerose - Annerose Streit 
-AnneS - Anne Schaber
 Steven - Steven Zaft
+Bettina - Bettina Krämer
+Bianca - Bianca Haertel
 Bodo - Bodo Lehmann
+Carla - Carla Courtois
 Carmine - Carmine Carrozzo
 Carole - Carole Schultz
-Chris - Chris Hiles BETA
-ChristianM - Christian Müller
-ChristianT - Christian Tanner
-Claudia - Claudia Hermann
-DanielB - Daniel Bratz
-DanielG - Daniel G
-DanielS - Daniel Steller
-David - David Montgomery BETA
+Chris - Chris Hiles
+Christian M - Christian Müller
+Christian T - Christian Tanner
+Claudia - Claudia Herrmann
+Dani, Daniela - Daniela Simm
+Daniel B - Daniel Braatz
+Daniel S - Daniel Steller
+David, Dave - David Montgomery
 Denis - Denis Koffler
-Dimitar - Dimitar Peresyov
-Dinny - Dinny Bratz
+Dimitar, Dimi - Dimitar Peresyov
+Dinny - Dinny Braatz
 Dor - Dor Ilan
-FranziskaH - Franziska Herndorf
-FranziskaK - Franziska Kary
+Emily - Emily Reichle
+Felix - Felix Rug
+Felix W - Felix Wolleschensky
+Franziska H, Franzi H - Franziska Herndorf
+Franziska K, Franzi K - Franziska Kary
 Gloria - Gloria Stoffer
 Peter - Peter Kroll
-HannahS - Hannah Sterk
+Helen - Helen Schüler
 Ina - Ina Steller
 Irene - Irene Koffler
-ChristianT - Christian Tanner
-Jenny - Jenny Pascal
+Jenny - Pascal Evghenia
 Jens - Jens Jensen
 Jolanda - Jolanda Greif
-JuliaW - Julia Weihe
-Jürgen - Jürgen Bizjak
-JürgenB - Jürgen Bizjak
+Julia W, Julia - Julia Weihe
+Jürgen, Jürgen B - Jürgen Bizjak
 Justine - Justine Baumstark
-Katharina - Katharina Herbst
-KathiH - Katharina Herbst
+Katharina, Kathi, Kathi H - Katharina Herbst
 Kathrin - Kathrin Mühlen
 Katja - Katja Neumann
+Kim - Kim Salzgeber
 Leah - Leah Mesche
-Lena - Lena Jähn BETA
-LisaB - Lisa Bettinger
-LisaV - Lisa Vrbanic
-Lukas - Lukas Simnacher
-LukasS - Lukas Simnacher BETA
-Madeleine - Madeleine Gehring
-Manuel - Manuel Hengge
-ManuelH - Manuel Hengge
-Marion - Marion Weber
-MarionW - Marion Weber
+Lena - Lena Jähn
+Lisa B - Lisa Bettinger
+Lisa V, Lisa - Lisa Vrbanic
+Lukas, Lukas S - Lukas Simnacher
+Madeleine, Madi - Madeleine Gehring
+Manuel, Manuel H - Manuel Hengge
+Marion, Marion W - Marion Weber
 Markus - Markus Fischer
 Martina - Martina Fenster
-MichaelaE - Michaela Eder
-MichaelaS - Michaela Stadler
-MichaelG - Michael Göschel
-MichaelJ - Michael Junkes
-MichaelM - Michael Maier
-MichaelS - Michael Städele BETA
-MichaelW - Michael Weber
-Mimi - Mimi Hiles BETA
-Minja - Minja dogan
+Michaela E, Michi E - Michaela Eder
+Michaela S, - Michaela Stadler
+Michael G, Michi G - Michael Göschel
+Michael J, Michi J - Michael Junkes
+Michael M, Michi M - Michael Maier
+Michael S, Michi S - Michael Städele
+Michael W, Michi W - Michael Weber
+Mimi - Mimi Hiles
+Minja - Minja Dogan
 Miriam - Miriam Jacht
-NikolinaK - Nikolina Keskic
-NikolinaV - Nikolina Vlasalija BETA
+Moritz - Moritz Schröter
+Nikolina K, Niko K - Nikolina Keskic
+Nikolina V, Niko, Niko V - Nikolina Vlasalija
 Nils - Nils Weihe
-Sergej - Sergej Felsing
-Wayne - Wayne Lucas BETA
 Patrik - Patrik Gruber
-Paul - Paul Bielinski BETA
-PaulB - Paul Bielinski BETA
+Paul, Paul B - Paul Bielenski
 Petr - Petr Bezdek
 Petra - Petra Dempfle
 Ralph - Ralph Gerlach
 Regina - Regina Peresyova
 Robert - Robert Miff
-Rosita - Rosiat Blum
+Rosita - Rosita Blum
 Sabrina - Sabrina Lucas
 Sandra - Sandra Lederle
 Sebastian - Sebastian Pfeiffer
 Senol - Senol Ozdilek
+Sergej - Sergej Felsing
 Sigrid - Sigrid Kalfuss
-Sole - Soledad Rättich
-Soledad - Soledad Rättich
-Sonja - Sonja Hujo
-SonjaH - Sonja Hujo
-Stefan - Stefan Glocker
+Sole, Soledad - Soledad
+Sonja, SonjaH  - Sonja Hujo
+Stefan, Stefan G - Stefan Glocker
 Steven - Steven Zaft
-Susanne - Susanne Glocker
-SusanneG - Susanne Glocker
-Sven - Sven Hujo
-SvenH - Sven Hujo
+Susanne, Susi, Susi G - Susanne Glocker
+Sven, Sven H - Sven Hujo
 Tabea - Tabea von Eichmann
 Teemu - Teemu Geisler
-ThomasG - Thomas Graf
-ThomasH - Thomas Herbst
-ThomasS - Thomas Spegele BETA
-Tobias - Tobias Götte
-TobiasB - Tobias Baumstark
-TobiasG - Tobias Götte
-TobiasW (turned up without booking)
+Thomas G - Thomas Graf
+Thomas H - Thomas Herbst
+Thomas S - Thomas Spegele
+Tobias G, Tobi G - Tobias Götte
+Tobias B, Tobi B- Tobias Baumstark
+Tobias W - ?
 Torben - Torben Stoffer
 Valerie - Valerie Mesenburg
-Veronika - Veronika Ebner
+Veronika, Vero - Veronika Ebner
+Volker - Volker Gabler
 Wayne - Wayne Lucas BETA
 Zoran - Zoran Vrbanic
 
