@@ -31,6 +31,12 @@ So when replicating it by script, **always write BOTH tables together, as one un
    - Fallback: Chris gives a file path (ask for it — don't search his disk).
 
 2. **Transcribe to a verification table** — Athlete · Lift · Type (3RM/1RM/5RM…) · Value. Flag any uncertain cell with ⚠️. **Never write blind.**
+   **Accuracy measures (the S386 lesson — a plausible wrong digit slipped through: read 45, was 40):**
+   - **Two independent read passes.** Read the board, then re-read each numeric column a second time WITHOUT looking at the first answer; flag every cell where the two passes disagree. This is the main defence against a confident single misread.
+   - **Zoom per cell.** For the values actually written, read a cropped/zoomed region of each number, not the whole-board image — digit accuracy is much higher.
+   - **Flag confusable tails.** Any last digit that could be 0-or-5 (or 1-or-7) gets a ⚠️ even when I think I know it — these are the silent failures.
+   - **Cross-check vs history.** Compare each registered athlete's new lift to their existing `lift_records` range; flag anything out of range. (Note: the 1RM ≥ 3RM check is necessary but NOT sufficient — 45 ≥ 37.5 looked valid.)
+   - Ask Chris to verify the ⚠️ cells **against the photo**, not just by reading my table (a plausible number rubber-stamps too easily).
 
 3. **Chris verifies** the table against the photo and corrects misreads. This is the safety net — these are permanent PRs.
 
