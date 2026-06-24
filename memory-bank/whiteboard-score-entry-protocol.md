@@ -37,6 +37,7 @@ So when replicating it by script, **always write BOTH tables together, as one un
    - **Flag confusable tails.** Any last digit that could be 0-or-5 (or 1-or-7) gets a ⚠️ even when I think I know it — these are the silent failures.
    - **Cross-check vs history.** Compare each registered athlete's new lift to their existing `lift_records` range; flag anything out of range. (Note: the 1RM ≥ 3RM check is necessary but NOT sufficient — 45 ≥ 37.5 looked valid.)
    - Ask Chris to verify the ⚠️ cells **against the photo**, not just by reading my table (a plausible number rubber-stamps too easily).
+   - **Decimals are dots** (Chris writes `37.5`, never a comma). Board-writing tips Chris follows: `Chris Notes/Forge app documentation/Whiteboard writing tips.md`.
 
 3. **Chris verifies** the table against the photo and corrects misreads. This is the safety net — these are permanent PRs.
 
