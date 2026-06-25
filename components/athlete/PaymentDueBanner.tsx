@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase';
 // Cash members get a 4-day grace past their subscription end before access is
 // cut, plus a reminder starting 2 days before the end date (Chris, S388).
 const GRACE_DAYS = 4;
-const LEAD_DAYS = 4; // TEMP S389: 4 to test with a member who has 3 days left; revert to 2.
+const LEAD_DAYS = 2;
 const MS_DAY = 24 * 60 * 60 * 1000;
 
 interface PaymentDueBannerProps {
