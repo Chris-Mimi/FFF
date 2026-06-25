@@ -31,7 +31,7 @@ Ask Mimi Silvia Maritati (Diapers & Dumbbells?)
 Default setting for publish should be NOT to notify athletes.
 * At-Risk put the list in order from most recent to least recent attendance
 * 
-* Match Jenny to her profile
+* 
 * Make a Whiteboard namelist to match their profiles to automate putting scores in
 * Kathrin should flag in the banner as her sub is about to cancel in 3 days!
 
