@@ -111,8 +111,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   const now = new Date();
 
-  if (productType === '10card') {
-    // Activate 10-card
+  if (productType === '10card' || productType === '10card_kids') {
+    // Activate 10-card (adult and kids cards are identical: 10 sessions, 12 months)
     const expiryDate = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000); // 12 months from now
 
     await supabaseAdmin

@@ -29,13 +29,14 @@ export const STRIPE_PRICE_IDS = {
   wellpass_monthly: process.env.STRIPE_PRICE_WELLPASS_MONTHLY_ID,
   wellpass_yearly: process.env.STRIPE_PRICE_WELLPASS_YEARLY_ID,
   tenCard: process.env.STRIPE_PRICE_10CARD_ID,
+  tenCardKids: process.env.STRIPE_PRICE_10CARD_KIDS_ID,
 };
 
 // Subscription tiers
 export type SubscriptionTier = 'member' | 'wellpass';
 
 // Product types for checkout
-export type ProductType = 'member_monthly' | 'member_yearly' | 'wellpass_monthly' | 'wellpass_yearly' | '10card';
+export type ProductType = 'member_monthly' | 'member_yearly' | 'wellpass_monthly' | 'wellpass_yearly' | '10card' | '10card_kids';
 
 // Helper to get the correct price ID
 export function getPriceId(productType: ProductType): string | undefined {
@@ -50,6 +51,8 @@ export function getPriceId(productType: ProductType): string | undefined {
       return STRIPE_PRICE_IDS.wellpass_yearly;
     case '10card':
       return STRIPE_PRICE_IDS.tenCard;
+    case '10card_kids':
+      return STRIPE_PRICE_IDS.tenCardKids;
     default:
       return undefined;
   }
@@ -57,7 +60,7 @@ export function getPriceId(productType: ProductType): string | undefined {
 
 // Helper to determine if product is a subscription
 export function isSubscription(productType: ProductType): boolean {
-  return productType !== '10card';
+  return productType !== '10card' && productType !== '10card_kids';
 }
 
 // Helper to extract tier from product type

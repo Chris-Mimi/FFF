@@ -86,14 +86,14 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
     }
   };
 
-  const handlePurchase = async (productType: 'member_monthly' | 'member_yearly' | 'wellpass_monthly' | 'wellpass_yearly' | '10card') => {
+  const handlePurchase = async (productType: 'member_monthly' | 'member_yearly' | 'wellpass_monthly' | 'wellpass_yearly' | '10card' | '10card_kids') => {
     setPurchasing(productType);
     setError(null);
 
     try {
       // Include trial flag for subscription products when athlete has no active/trial subscription
       // AND has never used a trial before. Server also enforces this — see create-checkout route.
-      const wantsTrial = productType !== '10card' && !hasActiveSubscription && !hasTrial && !paymentStatus?.hasUsedTrial;
+      const wantsTrial = productType !== '10card' && productType !== '10card_kids' && !hasActiveSubscription && !hasTrial && !paymentStatus?.hasUsedTrial;
       const response = await authFetch('/api/stripe/create-checkout', {
         method: 'POST',
         body: JSON.stringify({ productType, memberId: userId, ...(wantsTrial && { trial: true }) }),
@@ -442,8 +442,8 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
           <p className="text-sm text-gray-500 mt-1">For non-members who attend regularly without a gym membership</p>
         </div>
 
-        <div className="max-w-md">
-          {/* 10-Card */}
+        <div className="grid sm:grid-cols-2 gap-6 max-w-3xl">
+          {/* 10-Card (Adult) */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
             <div className="p-6 flex flex-col flex-grow">
               <div className="flex items-center gap-3 mb-4">
@@ -475,6 +475,43 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
                   <Loader2 className="animate-spin" size={20} />
                 ) : (
                   'Buy 10-Card'
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* 10-Card (Kids) */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+            <div className="p-6 flex flex-col flex-grow">
+              <div className="flex items-center gap-3 mb-4">
+                <Package className="text-purple-500" size={24} />
+                <h3 className="font-semibold text-gray-900">Kids 10-Card</h3>
+              </div>
+              <p className="text-3xl font-bold text-gray-900 mb-1">
+                &euro;85
+                <span className="text-sm font-normal text-gray-500 ml-1">one-time</span>
+              </p>
+              <p className="text-gray-500 text-sm mb-6">&euro;8.50 per session. Valid for 12 months.</p>
+              <ul className="space-y-2 text-sm text-gray-600 mb-6 flex-grow">
+                <li className="flex items-center gap-2">
+                  <CheckCircle size={16} className="text-purple-500" /> 10 kids&apos; sessions
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle size={16} className="text-purple-500" /> Use at your own pace
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle size={16} className="text-purple-500" /> 12-month validity
+                </li>
+              </ul>
+              <button
+                onClick={() => handlePurchase('10card_kids')}
+                disabled={!!purchasing}
+                className="w-full py-3 bg-purple-500 hover:bg-purple-600 disabled:bg-gray-300 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
+                {purchasing === '10card_kids' ? (
+                  <Loader2 className="animate-spin" size={20} />
+                ) : (
+                  'Buy Kids 10-Card'
                 )}
               </button>
             </div>
