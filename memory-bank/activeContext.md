@@ -75,12 +75,9 @@ Synology Drive syncs files in the background and is **not git-aware**. When Chri
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history scan._
 
-**🚨 Next session — S388 shipped the cash-payment grace + reminder banner (bug fix) and a clean empty-results audit (no losses). FIRST: verify the cash-grace feature on prod (below), then the still-pending S384/S383 spot-checks.**
+**🚨 Next session — S388/S389 cash-payment grace + reminder banner is DONE and VERIFIED ON PROD. FIRST: the still-pending S384/S383 spot-checks.**
 
-**S388 cash-grace verify (prod) — NOT yet verified live:**
-1. **Banner** — set a cash member's `athlete_subscription_end` to ~1 day out (or 1–2 days ago) in Supabase, log in as them → amber *"Mitgliedschaft fällig… noch X Tage"* banner shows on the athlete app AND `/member/book`; dismiss persists for the day; they keep full app access. Set it >4 days ago → banner gone + access cut on next coach Members-page load.
-2. **Stripe exclusion** — a Stripe (auto-renew) member near their period end must NOT see the banner.
-3. Files: [PaymentDueBanner.tsx](components/athlete/PaymentDueBanner.tsx), grace in [useMemberData.ts](hooks/coach/useMemberData.ts) `autoExpireSubscriptions` (cash `active` only; `cashGraceCutoff = now − 4d`).
+**S388 cash-grace — ✅ VERIFIED ON PROD (S389):** cash member (lisa.paval@web.de) saw the banner; Stripe payer (marion.sontheimer) + trial (pkpeterkroll0807) correctly saw nothing. S389 also polished the banner per Chris: solid amber bg + larger bold text, and a 🙂 in a small white circular badge so it pops against the orange. `LEAD_DAYS` temporarily bumped to 4 for testing then reverted to 2. Files: [PaymentDueBanner.tsx](components/athlete/PaymentDueBanner.tsx), grace in [useMemberData.ts](hooks/coach/useMemberData.ts) `autoExpireSubscriptions` (cash `active` only; `cashGraceCutoff = now − 4d`).
 
 **Done this session (no action needed):** S386 prod checks ✅ (Chris confirmed all 3); orphan-check SQL ✅ fixed in Supabase; empty-results audit ✅ no losses ([audit-empty-results.ts](scripts/audit-empty-results.ts), rerun anytime).
 
