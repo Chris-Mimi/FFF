@@ -2,7 +2,7 @@
 
 import { authFetch } from '@/lib/auth-fetch';
 import { supabase } from '@/lib/supabase';
-import { CreditCard, Calendar, Package, ExternalLink, Loader2, CheckCircle, AlertCircle, Dumbbell, Trophy, BarChart3, Users, Timer, Calculator, Camera, Activity, Share2, Bell } from 'lucide-react';
+import { CreditCard, Calendar, Package, ExternalLink, Loader2, CheckCircle, AlertCircle, Dumbbell, Trophy, BarChart3, Users, Timer, Calculator, Camera, Activity, Share2, Bell, Sparkles } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface PaymentStatus {
@@ -290,6 +290,9 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
             </li>
             <li className="flex items-center gap-2">
               <Calculator size={16} className="text-[#178da6]" /> 1RM / rep-max calculator
+            </li>
+            <li className="flex items-center gap-2">
+              <Sparkles size={16} className="text-[#178da6]" /> Automatic PR detection
             </li>
             <li className="flex items-center gap-2">
               <Camera size={16} className="text-[#178da6]" /> Whiteboard photo logging
