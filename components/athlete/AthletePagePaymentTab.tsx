@@ -480,11 +480,11 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
             </div>
           </div>
 
-          {/* 10-Card (Kids) */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+          {/* 10-Card (Kids) — pastel theme to distinguish from the adult card */}
+          <div className="bg-pink-50 rounded-xl shadow-sm border border-pink-200 overflow-hidden flex flex-col">
             <div className="p-6 flex flex-col flex-grow">
               <div className="flex items-center gap-3 mb-4">
-                <Package className="text-purple-500" size={24} />
+                <Package className="text-pink-400" size={24} />
                 <h3 className="font-semibold text-gray-900">Kids 10-Card</h3>
               </div>
               <p className="text-3xl font-bold text-gray-900 mb-1">
@@ -494,19 +494,19 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
               <p className="text-gray-500 text-sm mb-6">&euro;8.50 per session. Valid for 12 months.</p>
               <ul className="space-y-2 text-sm text-gray-600 mb-6 flex-grow">
                 <li className="flex items-center gap-2">
-                  <CheckCircle size={16} className="text-purple-500" /> 10 kids&apos; sessions
+                  <CheckCircle size={16} className="text-pink-400" /> 10 kids&apos; sessions
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle size={16} className="text-purple-500" /> Use at your own pace
+                  <CheckCircle size={16} className="text-pink-400" /> Use at your own pace
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle size={16} className="text-purple-500" /> 12-month validity
+                  <CheckCircle size={16} className="text-pink-400" /> 12-month validity
                 </li>
               </ul>
               <button
                 onClick={() => handlePurchase('10card_kids')}
                 disabled={!!purchasing}
-                className="w-full py-3 bg-purple-500 hover:bg-purple-600 disabled:bg-gray-300 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+                className="w-full py-3 bg-pink-400 hover:bg-pink-500 disabled:bg-gray-300 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
               >
                 {purchasing === '10card_kids' ? (
                   <Loader2 className="animate-spin" size={20} />
