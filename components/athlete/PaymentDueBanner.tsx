@@ -72,15 +72,15 @@ export default function PaymentDueBanner({ memberId, status, subscriptionEnd }: 
   };
 
   return (
-    <div className="bg-amber-500/15 border-b border-amber-500/40 text-amber-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between gap-3">
-        <p className="text-sm font-medium">{message}</p>
+    <div className="bg-amber-500 border-b-2 border-amber-600 text-amber-950 shadow-md">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between gap-3">
+        <p className="text-base sm:text-lg font-semibold">{message}</p>
         <button
           onClick={handleDismiss}
           aria-label="Schließen"
-          className="text-amber-300 hover:text-amber-100 flex-shrink-0"
+          className="text-amber-900 hover:text-amber-950 flex-shrink-0"
         >
-          <X size={18} />
+          <X size={22} />
         </button>
       </div>
     </div>
