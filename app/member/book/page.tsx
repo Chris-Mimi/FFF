@@ -4,6 +4,7 @@ import { confirm } from '@/lib/confirm';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import PaymentDueBanner from '@/components/athlete/PaymentDueBanner';
 import { toast } from 'sonner';
 import { Calendar, Users, Clock, LogOut, ChevronLeft, ChevronRight, X, Check, Edit2, Trash2, User, Lock } from 'lucide-react';
 import { signOut } from '@/lib/auth';
@@ -88,6 +89,7 @@ export default function MemberBookingPage() {
   const [filter, setFilter] = useState<'all' | 'booked' | 'wod' | 'foundations' | 'kids'>('all');
   const scrolledForWeekRef = useRef<string | null>(null);
   const [isWellpassRestricted, setIsWellpassRestricted] = useState<boolean>(false);
+  const [loggedInMemberId, setLoggedInMemberId] = useState<string | null>(null);
   const [releaseConfig, setReleaseConfig] = useState<{
     next_week_release_day_of_week: number;
     next_week_release_time: string;
@@ -191,6 +193,7 @@ export default function MemberBookingPage() {
     });
 
     setIsWellpassRestricted(member.wellpass_booking_restricted === true);
+    setLoggedInMemberId(authUser.id);
 
     setUser({ id: authUser.id, email: authUser.email || '' });
 
@@ -719,6 +722,11 @@ export default function MemberBookingPage() {
       {birthdayPeople.length > 0 && (
         <BirthdayModal name={joinNames(birthdayPeople.map(p => p.name))} onClose={dismissBirthday} />
       )}
+      <PaymentDueBanner
+        memberId={loggedInMemberId || ''}
+        status={athleteStatus?.status ?? null}
+        subscriptionEnd={athleteStatus?.trialEnd ?? null}
+      />
       {/* Header */}
       <header className="bg-gray-800 border-b border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">

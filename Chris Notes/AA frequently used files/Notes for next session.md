@@ -1,16 +1,12 @@
-This document is a template with headings to show you where the issue is or where the improvement needs to be. Headings appear inside "#". If they are not followed by a "*" and text, ignore them, otherwise, read the text and act accordingly.
+This document is only for Chris and should NEVER be read by Claude. 
+It should be committed and pushed as all other changes are.
+
+This document is a template with headings to show me where the issue is or where the improvement needs to be, or simply reminders for me as I'm working on other thoings and I have an idea. Headings appear inside "#". If they are not followed by a "*" and text, ignore them, otherwise, read the text and act accordingly.
 
 # Mobile URL #
 http://192.168.178.75:3000
 
-# Next Session — First Action #
-* **Live-test the late-cancel gate shipped in S316.**
-  1. Pick any booking on a locked-window session (or set `auto_lock_lead_minutes` to a large value so "now" is inside the lock window).
-  2. Cancel from the athlete app.
-  3. Expect toast: *"Booking cancelled. This is past the lock time, so it is recorded as a late cancel."*
-  4. Open the coach SessionManagementModal for that session → confirm the booking shows under Late Cancel with the purple chip.
-  5. Open Admin → Attendance rollup → confirm the late_cancel is counted in the rollup.
-  6. Sanity check: cancel a booking well before the lock window → expect normal *"Booking cancelled"* toast, status = `cancelled`.
+
 
 # FIRST. FIX BUGS MAKE IMPROVEMENTS #
 # Coach Login #
@@ -20,15 +16,15 @@ http://192.168.178.75:3000
 * iphone bug (I think) Coach-side: Workouts search box: Mimi can't type anything in the search box
 * Mimi couldn't add a trial athlete
 * Something in the results modal to show that an athlete modified a movement (HR) etc
+* Option to buy a kids 10-card in the app
 
-Athletes app: Give me the posssibility to send Athletes who pay for the app a message.
+Athletes app: Give me the possibility to send Athletes who pay for the app a message.
 * Workouts page: ability to mute/cancel athletes without clearing the group
-* Kids in Athletes list on Workouts page:
+* 
 Need DOB: Engels Frida, Frieda Stromer, Leopold Wischhöfer, Nico Enzmann, 
 Ask Mimi Silvia Maritati (Diapers & Dumbbells?)
 * 
 * 
-Default setting for publish should be NOT to notify athletes.
 * At-Risk put the list in order from most recent to least recent attendance
 * 
 * 

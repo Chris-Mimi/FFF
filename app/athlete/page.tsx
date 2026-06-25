@@ -18,6 +18,7 @@ import UpgradePrompt from '@/components/athlete/UpgradePrompt';
 import { NotificationPrompt } from '@/components/ui/NotificationPrompt';
 import { getCurrentUser, signOut } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
+import PaymentDueBanner from '@/components/athlete/PaymentDueBanner';
 import { toast } from 'sonner';
 import {
   Award,
@@ -78,6 +79,7 @@ function AthletePageContent() {
   const [selectedProfileName, setSelectedProfileName] = useState('');
   const [hasFullAccess, setHasFullAccess] = useState(false);
   const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null);
+  const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
   const tabsNavRef = useRef<HTMLDivElement>(null);
 
   // Check if tabs need scrolling + track scroll position for fade indicators
@@ -158,6 +160,7 @@ function AthletePageContent() {
         if (!fullAccess && !rpcError && subscriptionData && subscriptionData.length > 0) {
           const { subscription_status, subscription_end } = subscriptionData[0];
           setSubscriptionStatus(subscription_status);
+          setSubscriptionEnd(subscription_end);
           const now = new Date();
           const trialEnd = subscription_end ? new Date(subscription_end) : null;
           fullAccess =
@@ -414,6 +417,8 @@ function AthletePageContent() {
           )}
         </div>
       </div>
+
+      <PaymentDueBanner memberId={userId || ''} status={subscriptionStatus} subscriptionEnd={subscriptionEnd} />
 
       {/* Tab Content */}
       <div className='max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-4 sm:py-8'>{renderTabContent()}</div>
