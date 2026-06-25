@@ -63,8 +63,8 @@ export default function PaymentDueBanner({ memberId, status, subscriptionEnd }: 
   const inGrace = daysLeft <= 0;
   const graceRemaining = GRACE_DAYS + daysLeft; // access days still left during grace
   const message = inGrace
-    ? `Deine Mitgliedschaft ist fällig. Bitte zahle bar, um deinen Zugang zu behalten — noch ${graceRemaining} ${graceRemaining === 1 ? 'Tag' : 'Tage'}. :)`
-    : `Deine Mitgliedschaft läuft in ${daysLeft} ${daysLeft === 1 ? 'Tag' : 'Tagen'} ab. Bitte denke an deine Barzahlung. :)`;
+    ? `Deine Mitgliedschaft ist fällig. Bitte zahle bar, um deinen Zugang zu behalten — noch ${graceRemaining} ${graceRemaining === 1 ? 'Tag' : 'Tage'}.`
+    : `Deine Mitgliedschaft läuft in ${daysLeft} ${daysLeft === 1 ? 'Tag' : 'Tagen'} ab. Bitte denke an deine Barzahlung.`;
 
   const handleDismiss = () => {
     if (typeof window !== 'undefined') localStorage.setItem(dismissKey, '1');
@@ -74,7 +74,10 @@ export default function PaymentDueBanner({ memberId, status, subscriptionEnd }: 
   return (
     <div className="bg-amber-500 border-b-2 border-amber-600 text-amber-950 shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between gap-3">
-        <p className="text-base sm:text-lg font-semibold">{message}</p>
+        <p className="text-base sm:text-lg font-semibold flex items-center gap-2">
+          <span>{message}</span>
+          <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-white shadow-sm text-lg leading-none flex-shrink-0">🙂</span>
+        </p>
         <button
           onClick={handleDismiss}
           aria-label="Schließen"
