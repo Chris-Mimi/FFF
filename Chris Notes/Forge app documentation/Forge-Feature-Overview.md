@@ -171,6 +171,7 @@ There's no app-switching, no spreadsheets, no whiteboards that get erased. Just 
 |------|-------|--------------|
 | **Free Member** | €0 | Class booking |
 | **10-Card Pass** | €150 | 10 drop-in sessions |
+| **Kids 10-Card Pass** | €85 | 10 drop-in sessions (kids price) |
 | **Athlete Monthly (Members)** | €8/mo | Full athlete features (logbook, records, leaderboards, achievements, timer, notifications) |
 | **Athlete Yearly (Members)** | €80/yr | Same as monthly — save €16 |
 | **Athlete Monthly (Wellpass)** | €10/mo | Full athlete features |
