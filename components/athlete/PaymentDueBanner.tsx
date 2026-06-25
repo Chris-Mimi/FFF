@@ -63,8 +63,8 @@ export default function PaymentDueBanner({ memberId, status, subscriptionEnd }: 
   const inGrace = daysLeft <= 0;
   const graceRemaining = GRACE_DAYS + daysLeft; // access days still left during grace
   const message = inGrace
-    ? `Deine Mitgliedschaft ist fällig. Bitte zahle bar, um deinen Zugang zu behalten — noch ${graceRemaining} ${graceRemaining === 1 ? 'Tag' : 'Tage'}.`
-    : `Deine Mitgliedschaft läuft in ${daysLeft} ${daysLeft === 1 ? 'Tag' : 'Tagen'} ab. Bitte denke an deine Barzahlung.`;
+    ? `Deine Mitgliedschaft ist fällig. Bitte zahle bar, um deinen Zugang zu behalten — noch ${graceRemaining} ${graceRemaining === 1 ? 'Tag' : 'Tage'}. 🙂`
+    : `Deine Mitgliedschaft läuft in ${daysLeft} ${daysLeft === 1 ? 'Tag' : 'Tagen'} ab. Bitte denke an deine Barzahlung. 🙂`;
 
   const handleDismiss = () => {
     if (typeof window !== 'undefined') localStorage.setItem(dismissKey, '1');
