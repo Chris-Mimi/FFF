@@ -145,22 +145,35 @@ export interface PublishedWorkout {
  * Shared by all frequency analysis functions.
  */
 export async function fetchPublishedWorkouts(filter?: DateRangeFilter, label = 'workouts'): Promise<PublishedWorkout[]> {
-  let query = supabase
-    .from('weekly_sessions')
-    .select('date, wods(id, date, session_type, workout_name, workout_week, sections, workout_publish_status)');
+  // Paginate: weekly_sessions is a growing table and a single .select() silently
+  // caps at PostgREST's 1000-row default. Without this, a long lookback window
+  // (e.g. scrolling the Planner grid back > ~12 months) drops the OLDEST sessions,
+  // making old exercises wrongly read "Never" and erasing old grid dots.
+  const PAGE = 1000;
+  const sessions: { date: string; wods: unknown }[] = [];
+  for (let from = 0; ; from += PAGE) {
+    let query = supabase
+      .from('weekly_sessions')
+      .select('date, wods(id, date, session_type, workout_name, workout_week, sections, workout_publish_status)')
+      .order('date', { ascending: false })
+      .range(from, from + PAGE - 1);
 
-  if (filter?.startDate) {
-    query = query.gte('date', filter.startDate);
-  }
-  if (filter?.endDate) {
-    query = query.lte('date', filter.endDate);
-  }
+    if (filter?.startDate) {
+      query = query.gte('date', filter.startDate);
+    }
+    if (filter?.endDate) {
+      query = query.lte('date', filter.endDate);
+    }
 
-  const { data: sessions, error } = await query;
+    const { data: page, error } = await query;
 
-  if (error) {
-    console.error(`Error fetching ${label}:`, error);
-    return [];
+    if (error) {
+      console.error(`Error fetching ${label}:`, error);
+      return [];
+    }
+    if (!page || page.length === 0) break;
+    sessions.push(...(page as { date: string; wods: unknown }[]));
+    if (page.length < PAGE) break;
   }
 
   const excludeTypes = filter?.excludeSessionTypes?.map(t => t.toLowerCase()) || [];

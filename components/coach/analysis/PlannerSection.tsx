@@ -202,8 +202,17 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
     const startDate = weeks[0];
     const endDate = weeks[weeks.length - 1];
 
+    // Chip recency must look back at least as far as the leftmost visible grid
+    // week — otherwise a week older than the fixed window shows a coverage check
+    // in the grid while its exercise chip still reads grey "Never" (16-week floor
+    // for when the grid is anchored at/after today).
+    const weeksBackToGridStart = Math.ceil(
+      (Date.now() - new Date(startDate + 'T00:00:00').getTime()) / (7 * 86400000)
+    );
+    const gapLookbackWeeks = Math.max(16, weeksBackToGridStart);
+
     const [gapResults, coverageResults] = await Promise.all([
-      computePatternGaps(pats, 16, excludeSessionTypes),
+      computePatternGaps(pats, gapLookbackWeeks, excludeSessionTypes),
       detectWeeklyCoverage(pats, startDate, endDate, excludeSessionTypes),
     ]);
 
