@@ -216,7 +216,7 @@ export default function WhiteboardGallery({
           >
             <button
               onClick={handleCloseModal}
-              className='absolute -top-12 right-0 bg-white text-gray-700 p-2 rounded-full hover:bg-gray-100 z-10 shadow-lg'
+              className='absolute top-2 right-2 bg-white text-gray-700 p-2.5 rounded-full hover:bg-gray-100 z-10 shadow-lg'
               aria-label='Close modal'
             >
               <X size={24} />
