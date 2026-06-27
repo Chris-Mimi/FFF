@@ -38,6 +38,13 @@ So when replicating it by script, **always write BOTH tables together, as one un
    - **Cross-check vs history.** Compare each registered athlete's new lift to their existing `lift_records` range; flag anything out of range. (Note: the 1RM ≥ 3RM check is necessary but NOT sufficient — 45 ≥ 37.5 looked valid.)
    - Ask Chris to verify the ⚠️ cells **against the photo**, not just by reading my table (a plausible number rubber-stamps too easily).
    - **Decimals are dots** (Chris writes `37.5`, never a comma). Board-writing tips Chris follows: `Chris Notes/Forge app documentation/Whiteboard writing tips.md`.
+   - **The letter after a first name is a CAPITAL surname initial** (S389 misread: read "Thomas G" as "Thomas h"). All surname initials on the board are capitals — `Thomas G` = Graf, `Thomas H` = Herbst, `Anna K`/`AnnaKr` = Krautwald. Never treat that letter as part of the first name. When the initial is ambiguous, **reconcile against who is actually booked** in the session (Thomas Graf was booked, Herbst wasn't → it's Graf). The booking list is the tiebreaker.
+
+   **Scaling tier + load convention (S389) — for KB / barbell metcons with weighted tiers:**
+   - Chris records **both a scaling level (Rx/Sc1/Sc2/Sc3) AND the actual load** so the leaderboard ranks *within* a tier by weight (Sc3 @ 6kg ranks above Sc3 @ 4kg).
+   - The tier comes from the section's prescription, which is **gender-split `W/M`** (e.g. KB BOR `16/24kg, 12/20kg, 8/16kg` → Rx=W16/M24, Sc1=W12/M20, Sc2=W8/M16, Sc3=below). Read gender from `members.gender` (`F`/`M`) — don't infer from the name.
+   - **In-between weights take the lower tier they clear**, and the load differentiates (woman @ 10kg ≥ Sc2's 8 but < Sc1's 12 → `Sc2`, load 10). Write `scaling_level` = tier on the metcon WSR alongside `weight_result` = load.
+   - When the board writes "Rx" instead of a number, fill the prescribed Rx load (men's vs women's column). Apply tiers **consistently across every session of the same workout** — if one session has tiers and another doesn't, the pooled leaderboard ranks wrong.
 
 3. **Chris verifies** the table against the photo and corrects misreads. This is the safety net — these are permanent PRs.
 
