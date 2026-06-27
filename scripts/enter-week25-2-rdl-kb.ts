@@ -28,6 +28,16 @@ const RM_REPS = 5;
 
 const epley = (w: number, reps: number) => reps === 1 ? w : Math.round(w * 36 / (37 - reps) * 10) / 10;
 
+// KB BOR scaling tiers from prescription "16/24kg, 12/20kg, 8/16kg" (W/M).
+function kbTier(gender: string | null | undefined, load: number): string {
+  const g = (gender || '').toUpperCase().startsWith('M') ? 'M' : 'W';
+  const [rx, sc1, sc2] = g === 'M' ? [24, 20, 16] : [16, 12, 8];
+  if (load >= rx) return 'Rx';
+  if (load >= sc1) return 'Sc1';
+  if (load >= sc2) return 'Sc2';
+  return 'Sc3';
+}
+
 type Row = { name: string; rdl: number; kb: number; rounds: number; reps: number | null };
 
 const SESSIONS: Record<string, { sessionId: string; wodId: string; rows: Row[] }> = {
@@ -97,11 +107,11 @@ async function run() {
 
   for (const [label, sess] of Object.entries(SESSIONS)) {
     const { data: bookings } = await sb.from('bookings')
-      .select('is_og, members(id, name, email)').eq('session_id', sess.sessionId).eq('status', 'confirmed');
-    const byName = new Map<string, { id: string; email: string; og: boolean }>();
+      .select('is_og, members(id, name, email, gender)').eq('session_id', sess.sessionId).eq('status', 'confirmed');
+    const byName = new Map<string, { id: string; email: string; og: boolean; gender: string }>();
     for (const b of bookings || []) {
       const m: any = (b as any).members;
-      if (m) byName.set(m.name, { id: m.id, email: m.email, og: (b as any).is_og });
+      if (m) byName.set(m.name, { id: m.id, email: m.email, og: (b as any).is_og, gender: m.gender });
     }
 
     console.log(`\n========== ${label} (wod ${sess.wodId}) ==========`);
@@ -111,11 +121,12 @@ async function run() {
       if (!m) { console.log(`  ⚠️ NO confirmed booking for "${r.name}" — SKIPPED`); continue; }
       if (m.og) { console.log(`  ⚠️ "${r.name}" is OG — SKIPPED`); continue; }
       const userId = emailToUserId.get(m.email) || null;
-      console.log(`  ${r.name.padEnd(22)} RDL ${String(r.rdl).padEnd(5)}(1RM≈${epley(r.rdl, RM_REPS)}) | KB ${String(r.kb).padEnd(3)} | ${r.rounds}+${r.reps ?? 0}${userId ? '' : '  ⚠️ no user_id (no lift_record)'}`);
+      const tier = kbTier(m.gender, r.kb);
+      console.log(`  ${r.name.padEnd(22)} RDL ${String(r.rdl).padEnd(5)}(1RM≈${epley(r.rdl, RM_REPS)}) | KB ${tier} ${String(r.kb).padEnd(3)} | ${r.rounds}+${r.reps ?? 0}${userId ? '' : '  ⚠️ no user_id (no lift_record)'}`);
 
       if (writeTarget === label) {
         const strengthWsr = { ...baseWsr(sess.wodId, m.id, userId, RDL_SECTION), weight_result: r.rdl };
-        const kbWsr = { ...baseWsr(sess.wodId, m.id, userId, KB_SECTION), weight_result: r.kb, rounds_result: r.rounds, reps_result: r.reps };
+        const kbWsr = { ...baseWsr(sess.wodId, m.id, userId, KB_SECTION), weight_result: r.kb, rounds_result: r.rounds, reps_result: r.reps, scaling_level: tier };
         const e1 = await upsertWsr(strengthWsr); if (e1.error) console.log(`    ❌ RDL WSR: ${e1.error.message}`);
         const e2 = await upsertWsr(kbWsr); if (e2.error) console.log(`    ❌ KB WSR: ${e2.error.message}`);
         if (userId) { const e3 = await upsertLift(userId, r.rdl, sess.wodId); if (e3.error) console.log(`    ❌ lift_record: ${e3.error.message}`); }
