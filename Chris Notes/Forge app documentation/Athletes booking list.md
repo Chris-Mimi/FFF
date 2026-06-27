@@ -38,7 +38,7 @@ Anja B - Anja Biechele
 Anja G - Anja Götte
 Anna Ha - Anna Hartmann
 Anna Ho - Anna Hohenadl
-Anna K - Anna Krautwald
+Anna K, AnnaKr - Anna Krautwald
 Anne, Anne S - Anne Schaber
 Anneke, Anni - Anneke Spegele
 Annerose - Annerose Streit 
