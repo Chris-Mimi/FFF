@@ -43,6 +43,7 @@ So when replicating it by script, **always write BOTH tables together, as one un
    **Scaling tier + load convention (S389) — for KB / barbell metcons with weighted tiers:**
    - Chris records **both a scaling level (Rx/Sc1/Sc2/Sc3) AND the actual load** so the leaderboard ranks *within* a tier by weight (Sc3 @ 6kg ranks above Sc3 @ 4kg).
    - The tier comes from the section's prescription, which is **gender-split `W/M`** (e.g. KB BOR `16/24kg, 12/20kg, 8/16kg` → Rx=W16/M24, Sc1=W12/M20, Sc2=W8/M16, Sc3=below). Read gender from `members.gender` (`F`/`M`) — don't infer from the name.
+   - **If `members.gender` is blank, STOP and ask Chris** — never silently default (a blank-gender man would be mis-tiered, e.g. 16kg marked Rx instead of Sc2). As of S389, 14 members had no gender; Chris was filling them in.
    - **In-between weights take the lower tier they clear**, and the load differentiates (woman @ 10kg ≥ Sc2's 8 but < Sc1's 12 → `Sc2`, load 10). Write `scaling_level` = tier on the metcon WSR alongside `weight_result` = load.
    - When the board writes "Rx" instead of a number, fill the prescribed Rx load (men's vs women's column). Apply tiers **consistently across every session of the same workout** — if one session has tiers and another doesn't, the pooled leaderboard ranks wrong.
 
