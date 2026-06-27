@@ -16,7 +16,7 @@ http://192.168.178.75:3000
 * iphone bug (I think) Coach-side: Workouts search box: Mimi can't type anything in the search box
 * Mimi couldn't add a trial athlete
 * Something in the results modal to show that an athlete modified a movement (HR) etc
-* Option to buy a kids 10-card in the app
+* Check new "none attended" function on Workouts page
 
 Athletes app: Give me the possibility to send Athletes who pay for the app a message.
 * Workouts page: ability to mute/cancel athletes without clearing the group
@@ -24,11 +24,11 @@ Athletes app: Give me the possibility to send Athletes who pay for the app a mes
 Need DOB: Engels Frida, Frieda Stromer, Leopold Wischhöfer, Nico Enzmann, 
 Ask Mimi Silvia Maritati (Diapers & Dumbbells?)
 * 
-* 
+* New protocol: memory-bank/whiteboard-score-entry-protocol.md. Next time, just say "run the whiteboard protocol for [photo]" and give the name of the WOD and the date/s and times. Give also any Drop-ins or unknown names in the session. Whether it's an RM/Strength day or a MetCon. I'll: pull the image → transcribe to a verification table → you confirm → map names via the list → write lift_records + WSR → verify one session → parity check. 
+
+
 * At-Risk put the list in order from most recent to least recent attendance
 * 
-* 
-* Make a Whiteboard namelist to match their profiles to automate putting scores in
 * Kathrin should flag in the banner as her sub is about to cancel in 3 days!
 
 * Ask Claude for a Magic link script to access athlete's accounts to check screen views so I can help them click the right buttons. I just give Claude the email ad.

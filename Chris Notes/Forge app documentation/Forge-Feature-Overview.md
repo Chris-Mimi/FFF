@@ -37,6 +37,7 @@ There's no app-switching, no spreadsheets, no whiteboards that get erased. Just 
 - **Exercise groups** — save named presets of tracked exercises (e.g., "Barbell Strength", "Oly Lifts") and toggle entire groups on or off with one click. Group exercises appear nested under their chip for a clean overview
 - **Workout deduplication** — search results intelligently group repeated workouts so you see unique programming, not duplicates
 - **Filter by track, type, section, or athlete** — slice your programming data any way you need
+- **"Not done by selected" filter** — select a group of athletes, then flip one chip to show only the workouts that *none* of them has ever attended. Perfect for picking a benchmark or session that's brand-new to a whole group (a small-group class, a make-up session, a fair head-to-head) without anyone having a prior-attempt advantage. Stacks with the search box and the other filters, so you can narrow it to e.g. only adult WODs none of the group has done
 
 ### Member & Class Management
 
