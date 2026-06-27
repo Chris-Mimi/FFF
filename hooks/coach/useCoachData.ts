@@ -3,6 +3,7 @@
 import { WODFormData, WODSection } from '@/components/coach/WorkoutModal';
 import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
 import { supabase } from '@/lib/supabase';
+import { authFetch } from '@/lib/auth-fetch';
 import { extractMovements, extractMovementsFromWod, type AcronymMap, type LiftExerciseMap } from '@/utils/movement-extraction';
 import { fetchLiftExerciseMap } from '@/utils/movement-analytics';
 import { useEffect, useState } from 'react';
@@ -16,6 +17,7 @@ interface UseCoachDataProps {
   includedSectionTypes: string[];
   selectedSectionTypeFilter: string[];
   selectedMembers: string[];
+  notDoneBySelected: boolean;
 }
 
 export const useCoachData = ({
@@ -27,6 +29,7 @@ export const useCoachData = ({
   includedSectionTypes,
   selectedSectionTypeFilter,
   selectedMembers,
+  notDoneBySelected,
 }: UseCoachDataProps) => {
   const [wods, setWods] = useState<Record<string, WODFormData[]>>({});
   const [tracks, setTracks] = useState<Array<{ id: string; name: string }>>([]);
@@ -255,8 +258,11 @@ export const useCoachData = ({
           query = query.in('wods.track_id', selectedTracks);
         }
 
-        // Filter by member bookings
-        if (selectedMembers.length > 0) {
+        // Filter by member bookings. Normally selecting athletes restricts the
+        // search to workouts they DID attend. When notDoneBySelected is on we want
+        // the inverse, so we skip this restriction here (search all workouts) and
+        // instead EXCLUDE attended workout names after the other filters run.
+        if (selectedMembers.length > 0 && !notDoneBySelected) {
           const { data: memberBookings } = await supabase
             .from('bookings')
             .select('session_id')
@@ -443,6 +449,21 @@ export const useCoachData = ({
           );
         }
 
+        // "Not done by selected": drop workouts whose name ANY selected athlete
+        // has attended (confirmed booking). Server-side via the coach API so RLS
+        // doesn't hide other members' bookings. Unnamed workouts can't be matched
+        // to attendance, so they're kept.
+        if (notDoneBySelected && selectedMembers.length > 0) {
+          try {
+            const res = await authFetch(`/api/coach/attended-workouts?memberIds=${selectedMembers.join(',')}`);
+            const { workoutNames } = await res.json();
+            const attended = new Set<string>(workoutNames || []);
+            filteredResults = filteredResults.filter(wod => !wod.workout_name || !attended.has(wod.workout_name));
+          } catch (e) {
+            console.error('Failed to load attended workouts:', e);
+          }
+        }
+
         setSearchResults(filteredResults);
 
         const allMovements = extractMovements(filteredResults, exerciseNames.size > 0 ? exerciseNames : undefined, acronymMap, liftExerciseMap);
@@ -454,7 +475,7 @@ export const useCoachData = ({
 
     const timeoutId = setTimeout(searchWODs, 300);
     return () => clearTimeout(timeoutId);
-  }, [searchQuery, selectedMovements, selectedWorkoutTypes, selectedTracks, selectedSessionTypes, includedSectionTypes, selectedSectionTypeFilter, selectedMembers, exerciseNames, acronymMap, liftExerciseMap, displayNameToAcronyms]);
+  }, [searchQuery, selectedMovements, selectedWorkoutTypes, selectedTracks, selectedSessionTypes, includedSectionTypes, selectedSectionTypeFilter, selectedMembers, notDoneBySelected, exerciseNames, acronymMap, liftExerciseMap, displayNameToAcronyms]);
 
   const fetchExerciseNames = async () => {
     try {

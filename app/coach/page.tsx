@@ -87,6 +87,7 @@ export default function CoachDashboard() {
   const [selectedSearchWOD, setSelectedSearchWOD] = useState<WODFormData | null>(null);
   const [hoveredSearchWOD, setHoveredSearchWOD] = useState<WODFormData | null>(null);
   const [notesPanelOpen, setNotesPanelOpen] = useState(false);
+  const [notDoneBySelected, setNotDoneBySelected] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('coach_selected_athletes', JSON.stringify(selectedMembers));
@@ -134,6 +135,7 @@ export default function CoachDashboard() {
     includedSectionTypes,
     selectedSectionTypeFilter,
     selectedMembers,
+    notDoneBySelected,
   });
 
   const { handleSaveWOD, handleDeleteWOD, handleDeleteWODToEmpty, handleDeleteWODPermanently, handleDeleteSession, handleCopyWOD } = useWODOperations({
@@ -487,6 +489,8 @@ export default function CoachDashboard() {
           exerciseList={exerciseList}
           selectedMembers={selectedMembers}
           onSelectedMembersChange={setSelectedMembers}
+          notDoneBySelected={notDoneBySelected}
+          onNotDoneBySelectedChange={setNotDoneBySelected}
           selectedSearchWOD={selectedSearchWOD}
           onSelectedSearchWODChange={setSelectedSearchWOD}
           hoveredWOD={hoveredSearchWOD}

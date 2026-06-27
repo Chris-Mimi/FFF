@@ -60,6 +60,8 @@ interface SearchPanelProps {
   exerciseList: Array<{ id: string; name: string; display_name: string | null; category: string; acronym: string | null }>;
   selectedMembers: string[];
   onSelectedMembersChange: (members: string[]) => void;
+  notDoneBySelected: boolean;
+  onNotDoneBySelectedChange: (value: boolean) => void;
   selectedSearchWOD: WODFormData | null;
   onSelectedSearchWODChange: (wod: WODFormData | null) => void;
   hoveredWOD: WODFormData | null;
@@ -112,6 +114,8 @@ export default function SearchPanel({
   exerciseList,
   selectedMembers,
   onSelectedMembersChange,
+  notDoneBySelected,
+  onNotDoneBySelectedChange,
   selectedSearchWOD,
   onSelectedSearchWODChange,
   hoveredWOD,
@@ -1365,6 +1369,22 @@ export default function SearchPanel({
                     title={showUnique ? 'Showing unique workouts (by name). Click for all sessions.' : 'Showing all sessions. Click for unique workouts.'}
                   >
                     {showUnique ? 'Unique' : 'All'}
+                  </button>
+                  <button
+                    onClick={() => onNotDoneBySelectedChange(!notDoneBySelected)}
+                    disabled={selectedMembers.length === 0}
+                    className={`text-[10px] px-1.5 py-0.5 rounded border transition ${
+                      selectedMembers.length === 0
+                        ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                        : notDoneBySelected
+                        ? 'bg-[#178da6] text-white border-[#178da6]'
+                        : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400'
+                    }`}
+                    title={selectedMembers.length === 0
+                      ? 'Select one or more athletes first'
+                      : `Show only workouts none of the ${selectedMembers.length} selected athlete(s) have attended`}
+                  >
+                    Not done by selected
                   </button>
                 </div>
                 <div className='space-y-2 sm:space-y-3 relative'>
