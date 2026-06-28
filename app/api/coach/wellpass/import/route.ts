@@ -286,6 +286,10 @@ async function computeBlockSuggestions(touchedIdentityIds: string[]): Promise<
   { wellpass_name: string; member_names: string[]; reason: string | null }[]
 > {
   const suggestions: { wellpass_name: string; member_names: string[]; reason: string | null }[] = [];
+  // Identities the algorithm would block this sync — used to re-arm the amber
+  // "review" badge (clear the coach's previous triage) so a still-slacking
+  // household resurfaces each week instead of staying acknowledged forever.
+  const reflagIds: string[] = [];
 
   const { data: identities } = await supabaseAdmin
     .from('wellpass_identities')
@@ -353,6 +357,9 @@ async function computeBlockSuggestions(touchedIdentityIds: string[]): Promise<
     // Suggest only what the algorithm would block AND the coach hasn't already
     // blocked. We never write the flag — manual blocks/unblocks are authoritative.
     if (!verdict.shouldBlock) continue;
+    // Re-arm the review badge for everyone the rules flag this sync, even if the
+    // coach already blocked them (a no-op there — blocked rows show "blocked").
+    reflagIds.push(identity.id);
     const alreadyBlocked = linkRows.some((l) => l.m.wellpass_booking_restricted === true);
     if (alreadyBlocked) continue;
 
@@ -362,6 +369,14 @@ async function computeBlockSuggestions(touchedIdentityIds: string[]): Promise<
       member_names: memberNames,
       reason: verdict.reason,
     });
+  }
+
+  if (reflagIds.length > 0) {
+    const { error: reflagErr } = await supabaseAdmin
+      .from('wellpass_identities')
+      .update({ review_cleared: false })
+      .in('id', reflagIds);
+    if (reflagErr) console.error('[wellpass-import] re-flag review error:', reflagErr);
   }
 
   return suggestions;

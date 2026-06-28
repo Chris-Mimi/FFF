@@ -177,6 +177,60 @@ export default function WellpassTab() {
     }
   };
 
+  // Set a household's effective status from the status chip. Fans out to the
+  // per-member restriction flag + the identity (pause / review-cleared) in one
+  // batch, then refetches once. blocked = restrict everyone; ok/review = lift
+  // every restriction (ok acknowledges the flag, review puts it back on the
+  // to-do list); paused = pause the identity.
+  const setHouseholdStatus = async (
+    row: WellpassIdentityRow,
+    target: 'blocked' | 'ok' | 'review' | 'paused'
+  ) => {
+    setError(null);
+    const restrict = (memberId: string, restricted: boolean) =>
+      authFetch(`/api/coach/wellpass/member/${memberId}/restriction`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ restricted }),
+      });
+    const patch = (body: Record<string, unknown>) =>
+      authFetch(`/api/coach/wellpass/identity/${row.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+
+    const calls: Promise<Response>[] = [];
+    const identityBody: Record<string, unknown> = {};
+
+    if (target === 'paused') {
+      identityBody.paused = true;
+    } else {
+      if (row.paused_at) identityBody.paused = false; // leaving the paused state
+      if (target === 'blocked') {
+        identityBody.review_cleared = true; // resolved by blocking
+        for (const m of row.linked_members) {
+          if (!m.wellpass_booking_restricted) calls.push(restrict(m.member_id, true));
+        }
+      } else {
+        identityBody.review_cleared = target === 'ok'; // ok = acknowledged, review = re-flag
+        for (const m of row.linked_members) {
+          if (m.wellpass_booking_restricted) calls.push(restrict(m.member_id, false));
+        }
+      }
+    }
+    if (Object.keys(identityBody).length > 0) calls.push(patch(identityBody));
+
+    try {
+      const results = await Promise.all(calls);
+      if (results.some((r) => !r.ok)) throw new Error('Failed');
+      await fetchRows();
+    } catch (e) {
+      console.error(e);
+      setError('Failed to update status');
+    }
+  };
+
   if (loading) {
     return (
       <div className="text-center py-12">
@@ -378,6 +432,7 @@ export default function WellpassTab() {
                 onToggleExpand={() => setExpandedId(expandedId === row.id ? null : row.id)}
                 onPatch={(body) => patchIdentity(row.id, body)}
                 onToggleMemberBlock={toggleMemberRestriction}
+                onSetStatus={(target) => setHouseholdStatus(row, target)}
               />
             ))}
           </tbody>
@@ -426,9 +481,11 @@ interface IdentityRowProps {
   onToggleExpand: () => void;
   onPatch: (body: Record<string, unknown>) => Promise<void>;
   onToggleMemberBlock: (memberId: string, restricted: boolean) => Promise<void>;
+  onSetStatus: (target: 'blocked' | 'ok' | 'review' | 'paused') => Promise<void>;
 }
 
-function IdentityRow({ row, weekColumns, attendanceByMember, expanded, onToggleExpand, onPatch, onToggleMemberBlock }: IdentityRowProps) {
+function IdentityRow({ row, weekColumns, attendanceByMember, expanded, onToggleExpand, onPatch, onToggleMemberBlock, onSetStatus }: IdentityRowProps) {
+  const [statusMenuOpen, setStatusMenuOpen] = useState(false);
   const appPaid = row.linked_members.some((m) => m.athlete_subscription_status === 'active');
   const hasAnyMember = row.linked_members.length > 0;
   const isPaused = row.status === 'paused';
@@ -481,6 +538,17 @@ function IdentityRow({ row, weekColumns, attendanceByMember, expanded, onToggleE
     if (row.status === 'no_data') return <span className="text-gray-500">no data</span>;
     return <span className="text-gray-500">—</span>;
   })();
+
+  // Effective status for the chip menu's current-selection checkmark.
+  const currentStatus: 'blocked' | 'ok' | 'review' | 'paused' | null = isPaused
+    ? 'paused'
+    : anyMemberBlocked
+      ? 'blocked'
+      : row.status === 'below_threshold'
+        ? 'review'
+        : row.status === 'ok'
+          ? 'ok'
+          : null;
 
   const checkinByWeek = new Map<string, number>();
   for (const w of row.weekly_history) {
@@ -609,7 +677,46 @@ function IdentityRow({ row, weekColumns, attendanceByMember, expanded, onToggleE
           );
         })}
         <td className="px-3 py-2 text-center text-xs">
-          {statusBadge}
+          <div className="relative inline-block">
+            <button
+              type="button"
+              onClick={() => setStatusMenuOpen((o) => !o)}
+              className="inline-flex items-center gap-0.5 rounded px-1 py-0.5 hover:bg-gray-700/60"
+              title="Set status"
+            >
+              {statusBadge}
+              <ChevronDown size={11} className="text-gray-500" />
+            </button>
+            {statusMenuOpen && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setStatusMenuOpen(false)} />
+                <div className="absolute right-0 z-20 mt-1 w-36 rounded-md border border-gray-600 bg-gray-800 py-1 shadow-lg text-left">
+                  {([
+                    ['ok', 'ok', 'text-green-400'],
+                    ['review', 'review', 'text-amber-400'],
+                    ['blocked', 'blocked', 'text-red-400'],
+                    ['paused', 'paused', 'text-amber-400'],
+                  ] as const).map(([value, label, color]) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => {
+                        setStatusMenuOpen(false);
+                        if (value !== currentStatus) void onSetStatus(value);
+                      }}
+                      className="flex w-full items-center gap-2 px-3 py-1.5 hover:bg-gray-700"
+                    >
+                      <Check
+                        size={12}
+                        className={value === currentStatus ? 'text-teal-400' : 'invisible'}
+                      />
+                      <span className={`${color} font-medium`}>{label}</span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
           {row.is_exempt && row.status === 'below_threshold' && (
             <div className="text-teal-400 text-[10px] mt-0.5">(exempt)</div>
           )}

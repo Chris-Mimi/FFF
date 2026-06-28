@@ -221,7 +221,9 @@ export async function GET(request: NextRequest) {
       if (!identity.tracked) status = 'untracked';
       else if (identity.paused_at) status = 'paused';
       else if (!latest) status = 'no_data';
-      else if (verdict.shouldBlock) status = 'below_threshold';
+      // shouldBlock = scoring suggestion only. Once the coach triages it
+      // (review_cleared), drop back to 'ok' until the next sync re-flags them.
+      else if (verdict.shouldBlock && !identity.review_cleared) status = 'below_threshold';
       else status = 'ok';
 
       return {

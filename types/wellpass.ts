@@ -9,6 +9,10 @@ export interface WellpassIdentity {
   notes: string | null;
   paused_at: string | null;
   pause_reason: string | null;
+  // Coach has triaged the current "review" flag (scoring says block, but they've
+  // decided not to). Hides the amber review badge until the next Excel sync
+  // re-flags them if still under threshold. Does NOT affect enforcement.
+  review_cleared: boolean;
   created_at: string;
   updated_at: string;
 }

@@ -29,6 +29,7 @@ export async function PATCH(
       remove_member_id?: string;
       paused?: boolean;
       pause_reason?: string | null;
+      review_cleared?: boolean;
     };
 
     const update: Record<string, unknown> = {};
@@ -45,6 +46,7 @@ export async function PATCH(
       if (!body.paused) update.pause_reason = null;
     }
     if (body.pause_reason !== undefined) update.pause_reason = body.pause_reason;
+    if (typeof body.review_cleared === 'boolean') update.review_cleared = body.review_cleared;
 
     if (Object.keys(update).length > 0) {
       const { error } = await supabaseAdmin
