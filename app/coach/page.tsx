@@ -17,6 +17,7 @@ import { getCurrentUser, signOut } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
+import { usePersistedState } from '@/hooks/usePersistedState';
 import {
   useCoachData,
   useWODOperations,
@@ -74,24 +75,16 @@ export default function CoachDashboard() {
   const [selectedMovements, setSelectedMovements] = useState<string[]>([]);
   const [selectedWorkoutTypes, setSelectedWorkoutTypes] = useState<string[]>([]);
   const [selectedTracks, setSelectedTracks] = useState<string[]>([]);
-  const [selectedSessionTypes, setSelectedSessionTypes] = useState<string[]>([]);
+  // Session Types + Athletes persist across navigation + logout (localStorage)
+  // so the coach's selection is intact next time the Workouts page opens.
+  const [selectedSessionTypes, setSelectedSessionTypes] = usePersistedState<string[]>('coach_workouts_session_types', []);
   const [includedSectionTypes, setIncludedSectionTypes] = useState<string[]>([]);
   const [selectedSectionTypeFilter, setSelectedSectionTypeFilter] = useState<string[]>([]);
-  const [selectedMembers, setSelectedMembers] = useState<string[]>(() => {
-    if (typeof window === 'undefined') return [];
-    try {
-      const stored = localStorage.getItem('coach_selected_athletes');
-      return stored ? JSON.parse(stored) : [];
-    } catch { return []; }
-  });
+  const [selectedMembers, setSelectedMembers] = usePersistedState<string[]>('coach_selected_athletes', []);
   const [selectedSearchWOD, setSelectedSearchWOD] = useState<WODFormData | null>(null);
   const [hoveredSearchWOD, setHoveredSearchWOD] = useState<WODFormData | null>(null);
   const [notesPanelOpen, setNotesPanelOpen] = useState(false);
   const [notDoneBySelected, setNotDoneBySelected] = useState(false);
-
-  useEffect(() => {
-    localStorage.setItem('coach_selected_athletes', JSON.stringify(selectedMembers));
-  }, [selectedMembers]);
 
   // Session management
   const [sessionManagementModal, setSessionManagementModal] = useState<{

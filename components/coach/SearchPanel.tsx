@@ -383,8 +383,8 @@ export default function SearchPanel({
 
           {/* Movements Section */}
           <details className='border-b'>
-            <summary className='px-3 py-2 font-semibold text-sm text-gray-900 cursor-pointer hover:bg-gray-100 flex items-center justify-between'>
-              <span>Movements</span>
+            <summary className={`px-3 py-2 font-semibold text-sm cursor-pointer hover:bg-gray-100 flex items-center justify-between ${selectedMovements.length > 0 ? 'bg-[#178da6]/10 text-[#178da6] border-l-2 border-[#178da6]' : 'text-gray-900'}`}>
+              <span>Movements{selectedMovements.length > 0 && <span className='ml-1 text-xs opacity-75'>({selectedMovements.length})</span>}</span>
             </summary>
             <div className='px-2 py-2 space-y-1'>
               {Array.from(movements.entries())
@@ -421,8 +421,8 @@ export default function SearchPanel({
 
           {/* Workout Types Section */}
           <details className='border-b'>
-            <summary className='px-3 py-2 font-semibold text-sm text-gray-900 cursor-pointer hover:bg-gray-100 flex items-center justify-between'>
-              <span>Workout Types</span>
+            <summary className={`px-3 py-2 font-semibold text-sm cursor-pointer hover:bg-gray-100 flex items-center justify-between ${selectedWorkoutTypes.length > 0 ? 'bg-[#178da6]/10 text-[#178da6] border-l-2 border-[#178da6]' : 'text-gray-900'}`}>
+              <span>Workout Types{selectedWorkoutTypes.length > 0 && <span className='ml-1 text-xs opacity-75'>({selectedWorkoutTypes.length})</span>}</span>
             </summary>
             <div className='px-2 py-2 space-y-1'>
               {workoutTypes.map(type => {
@@ -460,8 +460,8 @@ export default function SearchPanel({
 
           {/* Tracks Section */}
           <details className='border-b'>
-            <summary className='px-3 py-2 font-semibold text-sm text-gray-900 cursor-pointer hover:bg-gray-100 flex items-center justify-between'>
-              <span>Tracks</span>
+            <summary className={`px-3 py-2 font-semibold text-sm cursor-pointer hover:bg-gray-100 flex items-center justify-between ${selectedTracks.length > 0 ? 'bg-[#178da6]/10 text-[#178da6] border-l-2 border-[#178da6]' : 'text-gray-900'}`}>
+              <span>Tracks{selectedTracks.length > 0 && <span className='ml-1 text-xs opacity-75'>({selectedTracks.length})</span>}</span>
             </summary>
             <div className='px-2 py-2 space-y-1'>
               {tracks.map(track => (
@@ -496,8 +496,17 @@ export default function SearchPanel({
 
           {/* Session Types Section */}
           <details className='border-b'>
-            <summary className='px-3 py-2 font-semibold text-sm text-gray-900 cursor-pointer hover:bg-gray-100 flex items-center justify-between'>
-              <span>Session Types</span>
+            <summary className={`px-3 py-2 font-semibold text-sm cursor-pointer hover:bg-gray-100 flex items-center justify-between ${selectedSessionTypes.length > 0 ? 'bg-[#178da6]/10 text-[#178da6] border-l-2 border-[#178da6]' : 'text-gray-900'}`}>
+              <span>Session Types{selectedSessionTypes.length > 0 && <span className='ml-1 text-xs opacity-75'>({selectedSessionTypes.length})</span>}</span>
+              {selectedSessionTypes.length > 0 && (
+                <button
+                  onClick={e => { e.preventDefault(); onSelectedSessionTypesChange([]); }}
+                  className='text-[10px] text-gray-400 hover:text-red-500 px-1'
+                  title='Clear session types'
+                >
+                  clear
+                </button>
+              )}
             </summary>
             <div className='px-2 py-2 space-y-1'>
               {sessionTypes.map(sessionType => (
@@ -532,8 +541,8 @@ export default function SearchPanel({
 
           {/* Section Types Filter */}
           <details className='border-b'>
-            <summary className='px-3 py-2 font-semibold text-sm text-gray-900 cursor-pointer hover:bg-gray-100 flex items-center justify-between'>
-              <span>Section Types{selectedSectionTypeFilter.length > 0 && <span className='ml-1 text-xs text-gray-500'>({selectedSectionTypeFilter.length})</span>}</span>
+            <summary className={`px-3 py-2 font-semibold text-sm cursor-pointer hover:bg-gray-100 flex items-center justify-between ${selectedSectionTypeFilter.length > 0 ? 'bg-[#178da6]/10 text-[#178da6] border-l-2 border-[#178da6]' : 'text-gray-900'}`}>
+              <span>Section Types{selectedSectionTypeFilter.length > 0 && <span className='ml-1 text-xs opacity-75'>({selectedSectionTypeFilter.length})</span>}</span>
               {selectedSectionTypeFilter.length > 0 && (
                 <button
                   onClick={e => { e.preventDefault(); onSelectedSectionTypeFilterChange([]); }}
@@ -579,8 +588,8 @@ export default function SearchPanel({
 
           {/* Athletes Section */}
           <details className='border-b'>
-            <summary className='px-3 py-2 font-semibold text-sm text-gray-900 cursor-pointer hover:bg-gray-100 flex items-center justify-between'>
-              <span>Athletes{selectedMembers.length > 0 && <span className='ml-1 text-xs text-gray-500'>({selectedMembers.length})</span>}</span>
+            <summary className={`px-3 py-2 font-semibold text-sm cursor-pointer hover:bg-gray-100 flex items-center justify-between ${selectedMembers.length > 0 ? 'bg-[#178da6]/10 text-[#178da6] border-l-2 border-[#178da6]' : 'text-gray-900'}`}>
+              <span>Athletes{selectedMembers.length > 0 && <span className='ml-1 text-xs opacity-75'>({selectedMembers.length})</span>}</span>
               {selectedMembers.length > 0 && (
                 <button
                   onClick={e => { e.preventDefault(); onSelectedMembersChange([]); }}
