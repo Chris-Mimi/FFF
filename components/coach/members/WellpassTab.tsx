@@ -448,15 +448,33 @@ function IdentityRow({ row, weekColumns, attendanceByMember, expanded, onToggleE
     }
   })();
 
+  // Actual enforcement state — true when any linked member is really
+  // booking-restricted. Distinct from row.status === 'below_threshold', which is
+  // only the scoring SUGGESTION (S377: sync suggests, Chris blocks manually).
+  const anyMemberBlocked = row.linked_members.some((m) => m.wellpass_booking_restricted);
+
   const statusBadge = (() => {
     if (isPaused) return <span className="text-amber-400 font-medium">paused</span>;
-    if (row.status === 'below_threshold')
+    // Red "blocked" = actually enforced. Reserve it for real restrictions so the
+    // badge matches the per-member Lock state inside the row.
+    if (anyMemberBlocked)
       return (
         <span
           className="text-red-400 font-medium cursor-help"
-          title={blockReasonLabel ?? 'Blocked'}
+          title={blockReasonLabel ?? 'Booking-restricted'}
         >
           blocked
+        </span>
+      );
+    // Amber "review" = the rules flag this household but you haven't blocked them
+    // yet — a to-do signal, not an enforcement state.
+    if (row.status === 'below_threshold')
+      return (
+        <span
+          className="text-amber-400 font-medium cursor-help"
+          title={blockReasonLabel ? `${blockReasonLabel} — not yet blocked` : 'Flagged — not yet blocked'}
+        >
+          review
         </span>
       );
     if (row.status === 'ok') return <span className="text-green-400">ok</span>;
@@ -484,7 +502,7 @@ function IdentityRow({ row, weekColumns, attendanceByMember, expanded, onToggleE
 
   return (
     <>
-      <tr className={`border-t border-gray-700 ${isPaused ? 'opacity-60' : ''} ${row.status === 'below_threshold' ? 'bg-red-900/10' : ''}`}>
+      <tr className={`border-t border-gray-700 ${isPaused ? 'opacity-60' : ''} ${anyMemberBlocked ? 'bg-red-900/10' : row.status === 'below_threshold' ? 'bg-amber-900/10' : ''}`}>
         <td className="px-3 py-2">
           <button onClick={onToggleExpand} className="flex items-center gap-1 text-left text-white hover:text-teal-400">
             {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
