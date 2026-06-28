@@ -9,6 +9,7 @@ import remarkBreaks from 'remark-breaks';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { formatLift, formatBenchmark, formatForgeBenchmark } from '@/utils/logbook/formatters';
 import { useTrackedExercises, useExerciseGroups } from '@/lib/exercise-storage';
+import { useSessionTypeGroups } from '@/lib/session-type-storage';
 import { useMovementTracking } from '@/hooks/coach/useMovementTracking';
 import MovementTrackingPanel from './MovementTrackingPanel';
 import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
@@ -152,6 +153,19 @@ export default function SearchPanel({
   const [editingGroupExercises, setEditingGroupExercises] = useState<string | null>(null);
   // S333: after adding from the search dropdown, prompt to drop the new exercise into a group.
   const [pendingGroupAdd, setPendingGroupAdd] = useState<{ exerciseId: string; displayName: string } | null>(null);
+
+  // Session Type groups (named bundles e.g. Adults / Kids)
+  const {
+    groups: sessionTypeGroups,
+    createGroup: createSessionTypeGroup,
+    deleteGroup: deleteSessionTypeGroup,
+    renameGroup: renameSessionTypeGroup,
+    updateGroupSessionTypes,
+  } = useSessionTypeGroups();
+  const [showSTGroupNameInput, setShowSTGroupNameInput] = useState(false);
+  const [newSTGroupName, setNewSTGroupName] = useState('');
+  const [editingSTGroupId, setEditingSTGroupId] = useState<string | null>(null);
+  const [editingSTGroupMembers, setEditingSTGroupMembers] = useState<string | null>(null);
 
   const trackedIdSet = useMemo(() => new Set(trackedExercises.map(e => e.id)), [trackedExercises]);
 
@@ -509,30 +523,181 @@ export default function SearchPanel({
               )}
             </summary>
             <div className='px-2 py-2 space-y-1'>
-              {sessionTypes.map(sessionType => (
-                <button
-                  key={sessionType}
-                  onClick={() => {
-                    onSelectedSessionTypesChange(
-                      selectedSessionTypes.includes(sessionType)
-                        ? selectedSessionTypes.filter(t => t !== sessionType)
-                        : [...selectedSessionTypes, sessionType]
+              {/* Session Type groups (e.g. Adults / Kids) */}
+              {(sessionTypeGroups.length > 0 || selectedSessionTypes.length > 0) && (
+                <div className='flex flex-wrap items-center gap-1 pb-1'>
+                  {sessionTypeGroups.map(group => {
+                    const isActive =
+                      group.session_types.length > 0 &&
+                      group.session_types.length === selectedSessionTypes.length &&
+                      group.session_types.every(t => selectedSessionTypes.includes(t));
+                    return (
+                      <div key={group.id} className='relative group/stchip'>
+                        <button
+                          onClick={() => {
+                            // Replace mode: active group → clear; otherwise show only this group
+                            onSelectedSessionTypesChange(isActive ? [] : group.session_types);
+                          }}
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium transition-colors ${
+                            isActive
+                              ? 'bg-[#178da6] text-white hover:bg-[#14758c]'
+                              : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                          }`}
+                          title={`${group.session_types.length} session types — click to ${isActive ? 'clear' : 'show only this group'}`}
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-white' : 'bg-gray-400'}`} />
+                          {group.name}
+                        </button>
+                        {editingSTGroupId === group.id ? (
+                          <div className='absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded shadow-lg z-30 p-2 min-w-[140px]'>
+                            <input
+                              type='text'
+                              defaultValue={group.name}
+                              autoFocus
+                              className='w-full px-1.5 py-0.5 text-[10px] border border-gray-300 rounded mb-1'
+                              onKeyDown={e => {
+                                if (e.key === 'Enter') {
+                                  const val = (e.target as HTMLInputElement).value.trim();
+                                  if (val && val !== group.name) renameSessionTypeGroup(group.id, val);
+                                  setEditingSTGroupId(null);
+                                }
+                                if (e.key === 'Escape') setEditingSTGroupId(null);
+                              }}
+                              onBlur={e => {
+                                const related = e.relatedTarget as HTMLElement;
+                                if (related?.closest('[data-stgroup-menu]')) return;
+                                const val = e.target.value.trim();
+                                if (val && val !== group.name) renameSessionTypeGroup(group.id, val);
+                                setEditingSTGroupId(null);
+                              }}
+                            />
+                            <button
+                              data-stgroup-menu
+                              onClick={() => { setEditingSTGroupMembers(group.id); setEditingSTGroupId(null); }}
+                              className='w-full text-left px-1.5 py-0.5 text-[10px] text-gray-700 hover:bg-gray-100 rounded'
+                            >
+                              Edit session types
+                            </button>
+                            <button
+                              data-stgroup-menu
+                              onClick={() => { deleteSessionTypeGroup(group.id); setEditingSTGroupId(null); }}
+                              className='w-full text-left px-1.5 py-0.5 text-[10px] text-red-600 hover:bg-red-50 rounded'
+                            >
+                              Delete group
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={e => { e.stopPropagation(); setEditingSTGroupId(group.id); }}
+                            className='absolute -top-1 -right-1 hidden group-hover/stchip:flex w-3.5 h-3.5 items-center justify-center rounded-full bg-gray-200 hover:bg-gray-300 text-gray-500'
+                            title='Edit group'
+                          >
+                            <span className='text-[8px] leading-none'>✎</span>
+                          </button>
+                        )}
+                      </div>
                     );
-                  }}
-                  className={`w-full text-left px-2 py-1 rounded text-xs flex justify-between items-center transition ${
-                    selectedSessionTypes.includes(sessionType)
-                      ? 'bg-[#178da6] text-white'
-                      : 'hover:bg-gray-200 text-gray-900'
-                  }`}
-                >
-                  <span className='truncate'>{sessionType}</span>
-                  <span
-                    className={`text-xs ml-1 ${selectedSessionTypes.includes(sessionType) ? 'opacity-75' : 'text-gray-500'}`}
+                  })}
+                  {/* Save current selection as a group */}
+                  {selectedSessionTypes.length > 0 && !showSTGroupNameInput && !editingSTGroupMembers && (
+                    <button
+                      onClick={() => setShowSTGroupNameInput(true)}
+                      className='inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-50 text-gray-400 hover:bg-gray-100 hover:text-gray-600 border border-dashed border-gray-300'
+                    >
+                      + Save as Group
+                    </button>
+                  )}
+                  {showSTGroupNameInput && (
+                    <input
+                      type='text'
+                      value={newSTGroupName}
+                      onChange={e => setNewSTGroupName(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' && newSTGroupName.trim()) {
+                          createSessionTypeGroup(newSTGroupName.trim(), selectedSessionTypes);
+                          setNewSTGroupName('');
+                          setShowSTGroupNameInput(false);
+                        }
+                        if (e.key === 'Escape') { setNewSTGroupName(''); setShowSTGroupNameInput(false); }
+                      }}
+                      onBlur={() => {
+                        if (newSTGroupName.trim()) createSessionTypeGroup(newSTGroupName.trim(), selectedSessionTypes);
+                        setNewSTGroupName('');
+                        setShowSTGroupNameInput(false);
+                      }}
+                      autoFocus
+                      placeholder='Group name...'
+                      className='px-2 py-0.5 text-[10px] border border-gray-300 rounded-full w-24 focus:ring-1 focus:ring-[#178da6] focus:border-transparent'
+                    />
+                  )}
+                </div>
+              )}
+
+              {/* Edit-group-members header */}
+              {editingSTGroupMembers && (() => {
+                const g = sessionTypeGroups.find(x => x.id === editingSTGroupMembers);
+                if (!g) return null;
+                return (
+                  <div className='flex items-center justify-between px-2 py-1 bg-[#178da6]/10 rounded text-[10px] font-medium text-[#178da6]'>
+                    <span>Editing: {g.name} ({g.session_types.length})</span>
+                    <button
+                      onClick={() => setEditingSTGroupMembers(null)}
+                      className='px-1.5 py-0.5 bg-[#178da6] text-white hover:bg-[#14758c] rounded'
+                    >
+                      Done
+                    </button>
+                  </div>
+                );
+              })()}
+
+              {sessionTypes.map(sessionType => {
+                const editGroup = editingSTGroupMembers ? sessionTypeGroups.find(g => g.id === editingSTGroupMembers) : null;
+                const inEditGroup = editGroup ? editGroup.session_types.includes(sessionType) : false;
+                const isSelected = editingSTGroupMembers ? inEditGroup : selectedSessionTypes.includes(sessionType);
+                return (
+                  <button
+                    key={sessionType}
+                    onClick={() => {
+                      if (editingSTGroupMembers && editGroup) {
+                        const next = inEditGroup
+                          ? editGroup.session_types.filter(t => t !== sessionType)
+                          : [...editGroup.session_types, sessionType];
+                        updateGroupSessionTypes(editingSTGroupMembers, next);
+                      } else {
+                        onSelectedSessionTypesChange(
+                          selectedSessionTypes.includes(sessionType)
+                            ? selectedSessionTypes.filter(t => t !== sessionType)
+                            : [...selectedSessionTypes, sessionType]
+                        );
+                      }
+                    }}
+                    className={`w-full text-left px-2 py-1 rounded text-xs flex justify-between items-center transition ${
+                      isSelected
+                        ? 'bg-[#178da6] text-white'
+                        : 'hover:bg-gray-200 text-gray-900'
+                    }`}
+                    title={editingSTGroupMembers
+                      ? inEditGroup ? 'Click to remove from group' : 'Click to add to group'
+                      : undefined}
                   >
-                    {sessionTypeCounts[sessionType] || 0}
-                  </span>
-                </button>
-              ))}
+                    <span className='truncate flex items-center gap-1.5'>
+                      {editingSTGroupMembers && (
+                        <span className={`w-3 h-3 rounded border flex items-center justify-center flex-shrink-0 ${
+                          inEditGroup ? 'bg-white border-white text-[#178da6]' : 'border-gray-300'
+                        }`}>
+                          {inEditGroup && <span className='text-[8px]'>✓</span>}
+                        </span>
+                      )}
+                      {sessionType}
+                    </span>
+                    <span
+                      className={`text-xs ml-1 ${isSelected ? 'opacity-75' : 'text-gray-500'}`}
+                    >
+                      {sessionTypeCounts[sessionType] || 0}
+                    </span>
+                  </button>
+                );
+              })}
               {sessionTypes.length === 0 && (
                 <p className='text-xs text-gray-500 px-2 py-1'>No session types found</p>
               )}
