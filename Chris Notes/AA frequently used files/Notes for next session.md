@@ -44,12 +44,12 @@ Takes ~10 seconds; outputs a timestamped file
 Then do your usual recovery (Cmd+Option+Esc or hard restart)
 Next session, tell me to read the incident file and we'll compare it to the baseline
 
-* 
+* Exercise library: Check the criteria for the order in which the exercises appear. KB Clean appears after KB Push Press!
 * review the rep max calculator to show clearer percentages
 * Athlete app:Lifts graph: Dates are evenly spaced across the bottom axis but if an athlete has 3 results in 2025 for example, they shouldn't be spaced out as if they were done on 3 seperate years (we test RM usually once a year but sometimes we repeat them)
 
 * Why doesn't the data integrity sql catch things like this?
-* 
+* Planner: click on an exercise in the planner grid and it shows all the instances of that exercise in the workouts
 * How it works/info/help file like in Planner
 * Review and check how DNF is displayed and used in the athlete leaderboard.
 

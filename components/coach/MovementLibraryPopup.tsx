@@ -612,6 +612,16 @@ function MovementLibraryPopup({
       grouped[exercise.category].push(exercise);
     });
 
+    // Sort within each category by the LABEL the user actually sees
+    // (display_name || name) — the DB query orders by `name`, but e.g.
+    // "KB Clean" has name "Kettlebell Clean", so by raw name it sorted after
+    // "KB Push Press". Sort by display label so the list reads alphabetically.
+    Object.values(grouped).forEach(list =>
+      list.sort((a, b) =>
+        (a.display_name || a.name).localeCompare(b.display_name || b.name)
+      )
+    );
+
     return grouped;
   }, [exercises, selectedEquipment, selectedBodyParts, debouncedSearch]);
 
