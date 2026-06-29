@@ -489,6 +489,7 @@ export default function CoachDashboard() {
           hoveredWOD={hoveredSearchWOD}
           onHoveredWODChange={setHoveredSearchWOD}
           onDragStart={handleDragStart}
+          onCopyWOD={handleCopyToClipboard}
           onSectionDragStart={handleSectionDragStart}
           onEditWOD={(wod) => {
             setEditingWOD(wod);

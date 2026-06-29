@@ -1,7 +1,7 @@
 'use client';
 
 import { WODFormData, WODSection } from './WorkoutModal';
-import { GripVertical, Search, X, Menu, Maximize2, Minimize2, ChevronDown, ChevronUp } from 'lucide-react';
+import { GripVertical, Search, X, Menu, Maximize2, Minimize2, ChevronDown, ChevronUp, Copy } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
@@ -68,6 +68,7 @@ interface SearchPanelProps {
   hoveredWOD: WODFormData | null;
   onHoveredWODChange: (wod: WODFormData | null) => void;
   onDragStart: (e: React.DragEvent, wod: WODFormData, sourceDate: string) => void;
+  onCopyWOD: (wod: WODFormData, sourceDate: string) => void;
   onSectionDragStart: (
     e: React.DragEvent,
     section: {
@@ -122,6 +123,7 @@ export default function SearchPanel({
   hoveredWOD,
   onHoveredWODChange,
   onDragStart,
+  onCopyWOD,
   onSectionDragStart,
   onEditWOD,
   onCreateWorkout,
@@ -1528,7 +1530,7 @@ export default function SearchPanel({
               selectedSessionTypes.length > 0 ||
               selectedSectionTypeFilter.length > 0 ||
               selectedMembers.length > 0) && (
-              <div className='flex-1 overflow-y-auto overscroll-contain p-2 sm:p-3 pr-5 sm:pr-8'>
+              <div className='flex-1 overflow-y-auto overscroll-contain px-4 py-2 sm:p-3 sm:pr-8'>
                 <div className='flex items-center gap-2 mb-2 sm:mb-3'>
                   <h3 className='font-semibold text-sm sm:text-base text-gray-900'>
                     Results ({displayedResults.length})
@@ -1641,6 +1643,18 @@ export default function SearchPanel({
                             N
                           </span>
                         )}
+                        {/* Copy whole workout to clipboard, then close panel so Paste shows on every day */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onCopyWOD(wod, wod.date);
+                            onClose();
+                          }}
+                          className='absolute bottom-1.5 right-1.5 p-1 text-[#178da6] bg-white border border-gray-200 rounded shadow-sm hover:bg-gray-50 transition z-10'
+                          title='Copy workout — then tap Paste on any day'
+                        >
+                          <Copy size={14} />
+                        </button>
                         <div className='text-[10px] sm:text-xs text-gray-500 mb-1 flex items-center gap-1.5'>
                           <span>{formattedDate}{formattedTime && ` at ${formattedTime}`}</span>
                           {showUnique && wod.workout_name && (uniqueSessionCounts.get(wod.workout_name) ?? 0) > 1 && (
@@ -1714,12 +1728,25 @@ export default function SearchPanel({
           {/* WOD Detail View */}
           {selectedSearchWOD && (
             <div className='flex-1 overflow-y-auto p-2 sm:p-3 lg:p-4'>
-              <button
-                onClick={() => onSelectedSearchWODChange(null)}
-                className='text-xs sm:text-sm text-[#178da6] hover:text-[#14758c] mb-2 sm:mb-4 flex items-center gap-1'
-              >
-                ← Back to results
-              </button>
+              <div className='flex items-center justify-between mb-2 sm:mb-4 gap-2'>
+                <button
+                  onClick={() => onSelectedSearchWODChange(null)}
+                  className='text-xs sm:text-sm text-[#178da6] hover:text-[#14758c] flex items-center gap-1'
+                >
+                  ← Back to results
+                </button>
+                <button
+                  onClick={() => {
+                    onCopyWOD(selectedSearchWOD, selectedSearchWOD.date);
+                    onClose();
+                  }}
+                  className='flex items-center gap-1.5 px-3 py-1.5 bg-[#178da6] hover:bg-[#14758c] text-white text-xs sm:text-sm font-medium rounded-lg shadow-sm transition flex-shrink-0'
+                  title='Copy this workout, then tap Paste on any day'
+                >
+                  <Copy size={15} />
+                  Copy workout
+                </button>
+              </div>
 
               {/* Draggable Entire WOD */}
               <div
