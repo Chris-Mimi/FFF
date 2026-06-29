@@ -132,6 +132,17 @@ export default function SearchPanel({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMaximized, setIsMaximized] = useState(true);
   const [mobileTrackingOpen, setMobileTrackingOpen] = useState(false);
+  // Drag is desktop-only (sm+). On touch/mobile the draggable result cards let
+  // the drag-drop-touch polyfill swallow the swipe, making the list impossible
+  // to scroll — and mobile now has the explicit Copy button instead. (matches sm: breakpoint)
+  const [canDrag, setCanDrag] = useState(true);
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 640px)');
+    const update = () => setCanDrag(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
   // Exercise name hovered in the Custom Movements list → highlight its grid column. (S382)
   const [highlightedMovement, setHighlightedMovement] = useState<string | null>(null);
   const [showUnique, setShowUnique] = useState(true);
@@ -1623,7 +1634,7 @@ export default function SearchPanel({
                     return (
                       <div
                         key={wod.id}
-                        draggable
+                        draggable={canDrag}
                         onDragStart={e => onDragStart(e, wod, wod.date)}
                         onClick={() => onSelectedSearchWODChange(wod)}
                         onMouseEnter={() => onHoveredWODChange(wod)}
