@@ -18,8 +18,10 @@ const supabaseAdmin = createClient(
 );
 
 export async function GET(request: NextRequest) {
+  // Fail closed: if the secret isn't configured, reject everything rather
+  // than leaving this service-role endpoint open to the public internet.
   const authHeader = request.headers.get('authorization');
-  if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
 

@@ -31,6 +31,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Ownership guard: a member may only check out for themselves or for a
+    // family member they own (parents paying for their kids). Without this, any
+    // logged-in athlete could start a checkout tied to an arbitrary memberId
+    // and expose that member's email on the Stripe checkout page.
+    if (memberId !== user.id) {
+      const { data: familyMember } = await supabaseAdmin
+        .from('members')
+        .select('id, primary_member_id, account_type')
+        .eq('id', memberId)
+        .single();
+
+      if (
+        !familyMember ||
+        familyMember.account_type !== 'family_member' ||
+        familyMember.primary_member_id !== user.id
+      ) {
+        return NextResponse.json(
+          { error: 'You can only pay for your own account or your family members' },
+          { status: 403 }
+        );
+      }
+    }
+
     // Get price ID for the product
     const priceId = getPriceId(productType);
     if (!priceId) {
