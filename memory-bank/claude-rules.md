@@ -76,7 +76,11 @@ These are project-wide rules that survive account/machine switches because they'
 ### Date + time strings: never `new Date(\`${date}T${time}\`)` or `.toISOString().split('T')[0]`
 **Why:** S335 incident — Book-a-Class lock check used `new Date(\`${session.date}T${session.time}\`)` which JavaScript interprets as runtime-local (UTC on Vercel), producing a 2h offset on prod and firing "Class is locked" warnings 2h early. S330 flagged `.toISOString().split('T')[0]` as the same TZ bug class — it shifts local-midnight in Germany (UTC+1/+2) back to the previous day in UTC.
 
-**How to apply:** For session start instants → `sessionStartInstant(date, time)` from `lib/bookingRules.ts`. For "today as YYYY-MM-DD" → `formatDate(d)` from `utils/date-utils.ts`. If you find `new Date(\`${...}T${...}\`)` or `.toISOString().split('T')[0]` anywhere in this codebase, treat it as suspect and replace.
+**How to apply:** For session start instants → `sessionStartInstant(date, time)` from `lib/bookingRules.ts`. If you find `new Date(\`${...}T${...}\`)` or `.toISOString().split('T')[0]` anywhere in this codebase, treat it as suspect and replace.
+
+For "today as YYYY-MM-DD" the correct helper **depends on where the code runs** (S393):
+- **Browser code** (components/hooks) → `formatDate(d)` from `utils/date-utils.ts`. It uses `getFullYear/getMonth/getDate`, which read the *runtime's* timezone — Berlin in the user's browser, so correct there.
+- **Server code** (API routes, `app/api/**`, cron) → `berlinToday()` from `lib/bookingRules.ts`. On Vercel the runtime is **UTC** (no `TZ` env var set), so `formatDate` AND `.toISOString().split('T')[0]` BOTH yield the UTC date there — wrong for the ~2h after Berlin midnight (a record logged at 00:30 Berlin gets dated yesterday). `berlinToday()` formats `new Date()` explicitly in `Europe/Berlin` via `Intl`. **Do not "fix" a server-side date bug with `formatDate` — it's a no-op there.** S393 fixed 6 persisted-date defaults (award / benchmark-results / movement-results) this way.
 
 ### Trust the user's statements exactly as given
 When Chris says something doesn't appear in a workout, it means exactly that — don't invent explanations or assume he's mistaken. He will explicitly say when he's unsure.
