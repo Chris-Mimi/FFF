@@ -96,6 +96,7 @@ _Updated at every session close. The "first 5 minutes of tomorrow" — read this
 **Done this session (no action needed):** Whiteboard scores entered for Weeks 26.2 / 25.2 / 25.1 (RDL 5RM + KB metcon + TGU metcon) with gender-split KB scaling tiers across all sessions; parity OK. AnnaKr alias added to booking list; Chris filled the 14 blank-gender members. Protocol doc updated (surname initials, scaling tiers, blank-gender stop-and-ask). Scripts: [enter-week26-2-tgu-metcon.ts](scripts/enter-week26-2-tgu-metcon.ts), [enter-week25-2-rdl-kb.ts](scripts/enter-week25-2-rdl-kb.ts), [enter-week25-1-rdl-kb.ts](scripts/enter-week25-1-rdl-kb.ts).
 
 **Outstanding (Chris manual / future):**
+- **Audit Pass 4 — best candidate for a Fable 5 test-drive (S393).** Passes 1–3 (auth, data-loss, timezone) are DONE — 7 fixes, commits `45a3acf`, `16de732`, `26ed7e1`. Pass 4 = the *reasoning* slice (silent partial-failures, webhook races, "success toast hiding a 0-row write") — the one part that pattern-search can't do and where Fable 5's long-horizon capability would actually earn its premium. Cue: *"run audit pass 4 (cross-cutting reasoning) on Fable 5."* Scope was Security + Data-integrity only (Performance + architecture deliberately not audited). Also still deferred: `members/check-status` is an open email-enumeration endpoint (LOW) — rate-limit/remove only if Chris wants.
 - **Backup-gap audit (worth a sweep):** other RM-testing weeks in the **2025-12-09 → 2026-03-19 backup gap** may also have silently lost results with NO DB-recoverable source — whiteboard photos are the only recovery path. Now easy: *"run the whiteboard protocol for [week]"* (see [protocol](memory-bank/whiteboard-score-entry-protocol.md)).
 
 **S384 spot-checks (all 5 commits live, `6b748e1`→`d26f152`):**
@@ -121,6 +122,7 @@ _Updated at every session close. The "first 5 minutes of tomorrow" — read this
 **Recurring/weekly:**
 - **Sunday Wellpass sync (gated).** `/coach/members` → Wellpass → Sync from Excel before sessions go live. Skim `blocks_applied`/`blocks_cleared`.
 - **Paper-card sync (S351 carry).** ~12 holders parked pending parent contact. `scripts/list-ten-card-no-purchase-date.ts`. No urgency.
+- **Quarterly security + data-integrity scan (est. S393).** Re-run the mechanical audit passes 1–3 (unguarded routes, unfiltered growing-table reads → the 1000-row cap is invisible until a table crosses 1000, and the gym grows ~330 bookings/mo, timezone anti-patterns). Cheap — the exact greps live in the S393 project-history. **Next due: ~2026-10-03**, then every 3 months (2027-01-03, 2027-04-03…). Also run right after any big feature batch. (The monthly WSR/lift-parity GitHub Action from S385 already guards the single most expensive bug continuously.)
 
 **Open ⏳ items:**
 - **S342** — once Nikolina/Lisa enter the 7d window, confirm Subscriptions Due banner.
