@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { requireCoach, isAuthError } from '@/lib/auth-api';
 import { notifyAchievementAwarded } from '@/lib/notifications';
+import { berlinToday } from '@/lib/bookingRules';
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -85,7 +86,7 @@ export async function POST(request: NextRequest) {
       .insert({
         user_id: userId,
         achievement_id: achievementId,
-        achieved_date: achievedDate || new Date().toISOString().split('T')[0],
+        achieved_date: achievedDate || berlinToday(),
         awarded_by: awardedBy,
         notes: notes || null,
       })

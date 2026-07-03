@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { requireAuth, isAuthError } from '@/lib/auth-api';
 import { notifyPrAchieved } from '@/lib/notifications';
+import { berlinToday } from '@/lib/bookingRules';
 
 // Use service role for admin operations
 const supabaseAdmin = createClient(
@@ -95,7 +96,7 @@ export async function POST(request: NextRequest) {
         .from('benchmark_results')
         .select('id')
         .eq('user_id', userId)
-        .eq('result_date', resultDate || new Date().toISOString().split('T')[0]);
+        .eq('result_date', resultDate || berlinToday());
 
       if (forgeBenchmarkId) {
         query.eq('forge_benchmark_id', forgeBenchmarkId);
@@ -234,7 +235,7 @@ export async function POST(request: NextRequest) {
           scaling_level_2: scalingLevel2 || null,
           scaling_level_3: scalingLevel3 || null,
           notes: notes || null,
-          result_date: resultDate || new Date().toISOString().split('T')[0]
+          result_date: resultDate || berlinToday()
         });
 
       if (error) {
@@ -252,7 +253,7 @@ export async function POST(request: NextRequest) {
         .select('time_result, reps_result, weight_result')
         .eq('user_id', userId)
         .eq('benchmark_name', benchmarkName)
-        .neq('result_date', resultDate || new Date().toISOString().split('T')[0])
+        .neq('result_date', resultDate || berlinToday())
         .order('result_date', { ascending: false });
 
       if (previousResults && previousResults.length > 0) {

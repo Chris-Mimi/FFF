@@ -98,6 +98,13 @@ export function berlinWallClock(instant: Date) {
   };
 }
 
+// Today's date as YYYY-MM-DD in Europe/Berlin. Safe on the UTC server, where
+// `new Date().toISOString().split('T')[0]` and local getters both yield the UTC
+// date — wrong for the ~2h after Berlin midnight. en-CA formats as YYYY-MM-DD.
+export function berlinToday(): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: BERLIN_TZ }).format(new Date());
+}
+
 export function berlinWallTimeToUTC(year: number, month: number, day: number, hour: number, minute: number, second: number): Date {
   const guess = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
   const parts = new Intl.DateTimeFormat('en-CA', {

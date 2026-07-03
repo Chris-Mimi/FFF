@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { requireCoach, isAuthError } from '@/lib/auth-api';
+import { berlinToday } from '@/lib/bookingRules';
 
 // Use service role for admin operations
 const supabaseAdmin = createClient(
@@ -93,7 +94,7 @@ export async function POST(request: NextRequest) {
       ? calculateOneRepMax(parsedWeight, parsedReps)
       : null;
 
-    const dateToUse = resultDate || new Date().toISOString().split('T')[0];
+    const dateToUse = resultDate || berlinToday();
     const repSchemeValue = repScheme || null;
 
     // Check if a result already exists for this user + movement + date + rep_scheme

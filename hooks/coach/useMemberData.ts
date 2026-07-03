@@ -22,30 +22,39 @@ export function useMemberData() {
 
   const fetchUnlinkedWhiteboardNames = async () => {
     try {
-      const [scoresRes, membersRes] = await Promise.all([
-        supabase
+      // Paginate the scores query — wod_section_results is a large growing table,
+      // so an unbounded select caps at 1000 rows and silently drops names (S349).
+      const PAGE = 1000;
+      const scoreNames: string[] = [];
+      for (let from = 0; ; from += PAGE) {
+        const { data, error } = await supabase
           .from('wod_section_results')
           .select('whiteboard_name')
           .not('whiteboard_name', 'is', null)
-          .is('member_id', null),
-        supabase
-          .from('members')
-          .select('whiteboard_name')
-          .not('whiteboard_name', 'is', null),
-      ]);
+          .is('member_id', null)
+          .range(from, from + PAGE - 1);
+        if (error) {
+          console.error('Error fetching unlinked whiteboard names:', error);
+          return;
+        }
+        if (!data || data.length === 0) break;
+        for (const r of data) scoreNames.push(r.whiteboard_name as string);
+        if (data.length < PAGE) break;
+      }
 
-      if (scoresRes.error || membersRes.error) {
-        console.error(
-          'Error fetching unlinked whiteboard names:',
-          scoresRes.error || membersRes.error
-        );
+      const { data: memberRows, error: membersErr } = await supabase
+        .from('members')
+        .select('whiteboard_name')
+        .not('whiteboard_name', 'is', null);
+      if (membersErr) {
+        console.error('Error fetching unlinked whiteboard names:', membersErr);
         return;
       }
 
       const assigned = new Set(
-        (membersRes.data || []).map(m => (m.whiteboard_name as string).toLowerCase())
+        (memberRows || []).map(m => (m.whiteboard_name as string).toLowerCase())
       );
-      const unique = [...new Set((scoresRes.data || []).map(r => r.whiteboard_name as string))]
+      const unique = [...new Set(scoreNames)]
         .filter(name => !assigned.has(name.toLowerCase()))
         .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
       setUnlinkedWhiteboardNames(unique);

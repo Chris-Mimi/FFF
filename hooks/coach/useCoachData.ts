@@ -81,7 +81,11 @@ export const useCoachData = ({
         if (data.length < PAGE) break;
       }
 
-      // Fetch sessions with related WODs
+      // Fetch sessions with related WODs — paginated to bypass the 1000-row cap
+      // so the newest sessions can't silently drop off the calendar (S349).
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const allSessions: any[] = [];
+      for (let sFrom = 0; ; sFrom += PAGE) {
       const { data, error } = await supabase
         .from('weekly_sessions')
         .select(`
@@ -114,15 +118,20 @@ export const useCoachData = ({
           )
         `)
         .order('date', { ascending: true })
-        .order('time', { ascending: true });
+        .order('time', { ascending: true })
+        .range(sFrom, sFrom + PAGE - 1);
 
       if (error) {
         console.error('Error fetching sessions:', error);
         throw error;
       }
+      if (!data || data.length === 0) break;
+      allSessions.push(...data);
+      if (data.length < PAGE) break;
+      }
 
       const grouped: Record<string, WODFormData[]> = {};
-      data?.forEach((session) => {
+      allSessions.forEach((session) => {
         const dateKey = session.date;
         if (!grouped[dateKey]) {
           grouped[dateKey] = [];
