@@ -172,6 +172,18 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
       return;
     }
 
+    // Guard against the top-of-list year mistap: a current-year (or future) DOB
+    // is always a typo (it filed adults under Kids on the Workouts filter). The
+    // youngest genuine members are born in prior years, so this never blocks a
+    // real birthday.
+    if (profile.date_of_birth) {
+      const dobYear = parseInt(profile.date_of_birth.slice(0, 4), 10);
+      if (dobYear >= new Date().getFullYear()) {
+        toast.warning('Please check the date of birth — the year can’t be this year or later.');
+        return;
+      }
+    }
+
     try {
       // Check if profile exists (get most recent if duplicates exist)
       const { data: existingProfile, error: _fetchError } = await supabase
@@ -255,7 +267,11 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
     setProfile({ ...profile, date_of_birth: composed });
   };
   const currentYear = new Date().getFullYear();
-  const dobYears = Array.from({ length: currentYear - 1929 }, (_, i) => currentYear - i);
+  // Youngest selectable birth year = last year. A current-year/future DOB is
+  // always a top-of-list mistap (the "2026" typos that hid adults under Kids).
+  const maxDobYear = currentYear - 1;
+  const maxDobDate = `${maxDobYear}-12-31`;
+  const dobYears = Array.from({ length: maxDobYear - 1929 }, (_, i) => maxDobYear - i);
   const dobMonths = [
     { v: '01', label: 'January' },
     { v: '02', label: 'February' },
@@ -342,6 +358,7 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
             <input
               type='date'
               value={profile.date_of_birth}
+              max={maxDobDate}
               onChange={e => setProfile({ ...profile, date_of_birth: e.target.value })}
               className='hidden sm:block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
             />
