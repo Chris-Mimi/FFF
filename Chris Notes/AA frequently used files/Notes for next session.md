@@ -23,7 +23,7 @@ Athletes app: Give me the possibility to send Athletes who pay for the app a mes
 * 
 Need DOB: Engels Frida, Frieda Stromer, Leopold Wischhöfer, Nico Enzmann, 
 Ask Mimi Silvia Maritati (Diapers & Dumbbells?)
-* 
+* Workouts page. Names in the Movement Tracking grid should stay fixed only the exercises should scroll left and right
 * New protocol: memory-bank/whiteboard-score-entry-protocol.md. Next time, just say "run the whiteboard protocol for [photo]" and give the name of the WOD and the date/s and times. Give also any Drop-ins or unknown names in the session. Whether it's an RM/Strength day or a MetCon. I'll: pull the image → transcribe to a verification table → you confirm → map names via the list → write lift_records + WSR → verify one session → parity check. 
 
 
@@ -44,7 +44,7 @@ Takes ~10 seconds; outputs a timestamped file
 Then do your usual recovery (Cmd+Option+Esc or hard restart)
 Next session, tell me to read the incident file and we'll compare it to the baseline
 
-* Exercise library: Check the criteria for the order in which the exercises appear. KB Clean appears after KB Push Press!
+* Exercise library: 
 * review the rep max calculator to show clearer percentages
 * Athlete app:Lifts graph: Dates are evenly spaced across the bottom axis but if an athlete has 3 results in 2025 for example, they shouldn't be spaced out as if they were done on 3 seperate years (we test RM usually once a year but sometimes we repeat them)
 
