@@ -72,7 +72,7 @@ export default function MovementTrackingPanel({
         <table className='text-xs table-fixed min-w-max'>
           <thead className='sticky top-0 bg-white z-10'>
             <tr className='border-b-2 border-gray-500'>
-              <th className='text-left px-2 py-1.5 font-semibold text-gray-700 w-[120px]'>
+              <th className='text-left px-2 py-1.5 font-semibold text-gray-700 w-[120px] sticky left-0 bg-white z-20'>
                 Athlete
               </th>
               {exerciseNames.map((name) => (
@@ -87,7 +87,7 @@ export default function MovementTrackingPanel({
               ))}
             </tr>
             <tr className='border-b-2 border-gray-500 bg-gray-100'>
-              <td className='px-2 py-0.5 text-[9px] text-gray-600 italic w-[120px] relative group cursor-help'>
+              <td className='px-2 py-0.5 text-[9px] text-gray-600 italic w-[120px] sticky left-0 bg-gray-100 z-20 group cursor-help'>
                 <span className='truncate block'>last programmed</span>
                 <div className='absolute left-0 top-full mt-1 hidden group-hover:block bg-gray-800 text-white text-[10px] rounded px-2 py-1.5 whitespace-nowrap z-50 shadow-lg'>
                   <span className='text-green-400'>Green: ≤14 days</span>
@@ -129,7 +129,7 @@ export default function MovementTrackingPanel({
               return (
                 <Fragment key={member.id}>
                   <tr className='border-b border-gray-400 hover:bg-gray-300'>
-                    <td className='px-2 py-1.5 font-medium text-gray-900 truncate w-[120px]'>
+                    <td className='px-2 py-1.5 font-medium text-gray-900 truncate w-[120px] sticky left-0 bg-white z-10'>
                       {member.name}
                     </td>
                     {exerciseNames.map(name => {
@@ -150,7 +150,7 @@ export default function MovementTrackingPanel({
                     })}
                   </tr>
                   <tr className='border-b border-gray-400 bg-gray-100'>
-                    <td className='px-2 py-0.5 text-[9px] text-gray-600 italic truncate w-[120px]'>
+                    <td className='px-2 py-0.5 text-[9px] text-gray-600 italic truncate w-[120px] sticky left-0 bg-gray-100 z-10'>
                       last
                     </td>
                     {exerciseNames.map(name => {
