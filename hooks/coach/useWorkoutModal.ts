@@ -779,7 +779,12 @@ export function useWorkoutModal(
       if (onClose) {
         onClose(); // Close modal to refresh calendar
       }
-      toast.success('Workout published successfully!');
+      if (responseData.bookingSessionReady === false) {
+        // Published, but the bookable session write failed — don't fake a clean success. (S393)
+        toast.warning(responseData.message || 'Workout published, but athletes may not be able to book yet. Please re-publish.');
+      } else {
+        toast.success('Workout published successfully!');
+      }
     } catch (error) {
       console.error('Error publishing workout:', error);
       toast.error('Failed to publish workout. Please try again.');

@@ -430,6 +430,10 @@ export async function POST(request: NextRequest) {
       .eq('workout_id', workoutId)
       .single();
 
+    // Track whether the bookable session is actually ready. A swallowed failure
+    // here means the coach sees "published" but athletes have nothing to book /
+    // the session stays unpublished. (S393)
+    let bookingSessionReady = true;
     if (!existingSession) {
       const { error: sessionError } = await supabaseAdmin
         .from('weekly_sessions')
@@ -443,17 +447,22 @@ export async function POST(request: NextRequest) {
 
       if (sessionError) {
         console.error('Error creating weekly session:', sessionError);
-        // Don't fail the whole publish if session creation fails
+        bookingSessionReady = false;
       }
     } else {
       // Update existing session to published
-      await supabaseAdmin
+      const { error: sessionUpdateError } = await supabaseAdmin
         .from('weekly_sessions')
         .update({
           time: publishConfig.eventTime,
           status: 'published',
         })
         .eq('id', existingSession.id);
+
+      if (sessionUpdateError) {
+        console.error('Error updating weekly session:', sessionUpdateError);
+        bookingSessionReady = false;
+      }
     }
 
     // Fire-and-forget push notification to subscribed members.
@@ -467,9 +476,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: googleCalendarConfigured
-        ? 'Workout published successfully'
-        : 'Workout published successfully (Google Calendar not configured)',
+      bookingSessionReady,
+      message: !bookingSessionReady
+        ? 'Workout published, but the booking session could not be set up — athletes may not be able to book yet. Please re-publish.'
+        : googleCalendarConfigured
+          ? 'Workout published successfully'
+          : 'Workout published successfully (Google Calendar not configured)',
       calendarEventId,
       googleCalendarSynced: googleCalendarConfigured && !!calendarEventId,
     });

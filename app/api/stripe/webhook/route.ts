@@ -115,7 +115,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     // Activate 10-card (adult and kids cards are identical: 10 sessions, 12 months)
     const expiryDate = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000); // 12 months from now
 
-    await supabaseAdmin
+    const { error: cardError } = await supabaseAdmin
       .from('members')
       .update({
         ten_card_purchase_date: now.toISOString(),
@@ -125,6 +125,15 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
         updated_at: now.toISOString(),
       })
       .eq('id', memberId);
+
+    if (cardError) {
+      // The member has PAID but the card wasn't activated, and a one-time
+      // payment has no follow-up webhook to self-heal. Throw so the POST returns
+      // 500 and Stripe retries the event, rather than swallowing it (200 = "done"
+      // to Stripe = money taken, no product). (S393)
+      console.error(`10-card activation failed for member ${memberId}:`, cardError);
+      throw new Error(`10-card activation DB write failed for member ${memberId}`);
+    }
 
   } else if (session.subscription) {
     // Extract tier and billing period from metadata
@@ -322,14 +331,21 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 
   const now = new Date();
 
-  // Update subscription record
-  await supabaseAdmin
+  // Update subscription record. Cancellation is a one-time event with no
+  // follow-up webhook, so a swallowed failure would leave the row 'active' and
+  // the member with access they no longer pay for. Throw → Stripe retries. (S393)
+  const { error: subCancelError } = await supabaseAdmin
     .from('subscriptions')
     .update({
       status: 'cancelled',
       updated_at: now.toISOString(),
     })
     .eq('stripe_subscription_id', subscription.id);
+
+  if (subCancelError) {
+    console.error(`Subscription cancel write failed for ${subscription.id}:`, subCancelError);
+    throw new Error(`Subscription cancel DB write failed for ${subscription.id}`);
+  }
 
   // Check if member has any other active subscriptions
   const { data: activeSubscriptions } = await supabaseAdmin
@@ -340,7 +356,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 
   // If no other active subscriptions, expire the member's access
   if (!activeSubscriptions || activeSubscriptions.length === 0) {
-    await supabaseAdmin
+    const { error: memberExpireError } = await supabaseAdmin
       .from('members')
       .update({
         athlete_subscription_status: 'expired',
@@ -348,6 +364,11 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
         updated_at: now.toISOString(),
       })
       .eq('id', member.id);
+
+    if (memberExpireError) {
+      console.error(`Member expire write failed for ${member.id}:`, memberExpireError);
+      throw new Error(`Member expire DB write failed for ${member.id}`);
+    }
   }
 
 }
