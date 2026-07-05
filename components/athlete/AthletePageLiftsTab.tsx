@@ -219,6 +219,8 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
     const prWeight = results.length > 0 ? Math.max(...results.map(r => r.weight_kg)) : 0;
 
     return results.map(entry => ({
+      // ts drives the (time-proportional) x-axis; date is the human label for tooltips
+      ts: new Date(entry.lift_date).getTime(),
       date: new Date(entry.lift_date).toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
@@ -228,6 +230,15 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
       calculated1rm: entry.calculated_1rm,
       isPR: entry.weight_kg === prWeight,
     }));
+  };
+
+  // Format an x-axis timestamp back into the two-line "Mon Day / Year" label.
+  const formatAxisTick = (ts: number) => {
+    const d = new Date(ts);
+    return {
+      line1: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      line2: String(d.getFullYear()),
+    };
   };
 
   // Custom dot component to render PR badges (all red)
@@ -253,7 +264,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
     const charts: Array<{
       type: 'RM';
       label: string;
-      data: Array<{ date: string; weight: number; isPR: boolean }>;
+      data: Array<{ ts: number; date: string; weight: number; isPR: boolean }>;
       count?: number;
     }> = [];
 
@@ -280,6 +291,7 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
           type: 'RM',
           label: repMaxType,
           data: sorted.map(entry => ({
+            ts: new Date(entry.lift_date).getTime(),
             date: new Date(entry.lift_date).toLocaleDateString('en-US', {
               month: 'short',
               day: 'numeric',
@@ -512,17 +524,15 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                                 <ResponsiveContainer width='100%' height={200} className='[&_svg]:outline-none'>
                                   <LineChart data={chart.data} margin={{ top: 5, right: 10, left: -10, bottom: 15 }}>
                                     <CartesianGrid strokeDasharray='3 3' stroke='white' />
-                                    <XAxis dataKey='date' tick={({ x, y, payload }: { x: number; y: number; payload: { value: string } }) => {
-                                      const parts = payload.value.replace(',', '').split(' ');
-                                      const line1 = `${parts[0]} ${parts[1]}`;
-                                      const line2 = parts[2];
+                                    <XAxis dataKey='ts' type='number' domain={['dataMin', 'dataMax']} ticks={chart.data.map(d => d.ts)} tick={({ x, y, payload }: { x: number; y: number; payload: { value: number } }) => {
+                                      const { line1, line2 } = formatAxisTick(payload.value);
                                       return (
                                         <g transform={`translate(${x},${y})`}>
                                           <text x={0} y={0} dy={10} textAnchor='middle' fontSize={10}>{line1}</text>
                                           <text x={0} y={0} dy={22} textAnchor='middle' fontSize={10} fill='#999'>{line2}</text>
                                         </g>
                                       );
-                                    }} padding={{ left: 20, right: 20 }} interval={0} />
+                                    }} padding={{ left: 20, right: 20 }} />
                                     <YAxis width={35} tick={{ fontSize: 10 }} domain={[(min: number) => Math.floor(min * 0.9), (max: number) => Math.ceil(max * 1.05)]} />
                                     <Tooltip
                                       isAnimationActive={false}
@@ -758,17 +768,15 @@ export default function AthletePageLiftsTab({ userId }: AthletePageLiftsTabProps
                   margin={{ top: 5, right: 10, left: -10, bottom: 15 }}
                 >
                   <CartesianGrid strokeDasharray='3 3' stroke='white' />
-                  <XAxis dataKey='date' tick={({ x, y, payload }: { x: number; y: number; payload: { value: string } }) => {
-                    const parts = payload.value.replace(',', '').split(' ');
-                    const line1 = `${parts[0]} ${parts[1]}`;
-                    const line2 = parts[2];
+                  <XAxis dataKey='ts' type='number' domain={['dataMin', 'dataMax']} ticks={getLiftChartData(chartLift, chartRepMaxType).map(d => d.ts)} tick={({ x, y, payload }: { x: number; y: number; payload: { value: number } }) => {
+                    const { line1, line2 } = formatAxisTick(payload.value);
                     return (
                       <g transform={`translate(${x},${y})`}>
                         <text x={0} y={0} dy={10} textAnchor='middle' fontSize={10} fill='#f3f4f6'>{line1}</text>
                         <text x={0} y={0} dy={22} textAnchor='middle' fontSize={10} fill='#999'>{line2}</text>
                       </g>
                     );
-                  }} padding={{ left: 20, right: 20 }} interval={0} />
+                  }} padding={{ left: 20, right: 20 }} />
                   <YAxis width={35} tick={{ fill: '#f3f4f6', fontSize: 10 }} domain={[(min: number) => Math.floor(min * 0.9), (max: number) => Math.ceil(max * 1.05)]} />
                   <Tooltip
                     cursor={{ stroke: '#999', strokeWidth: 1.5 }}
