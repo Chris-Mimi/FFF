@@ -352,6 +352,34 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 
 }
 
+// Resolve the subscription id from an invoice across Stripe API-version changes.
+// Stripe has relocated this field over time (the S358 class of bug that a blanket
+// `as any` hides): older API versions expose `invoice.subscription`; newer ones
+// moved it under `invoice.parent.subscription_details.subscription` and onto each
+// line item. Check every known location instead of trusting one shape.
+function resolveInvoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
+  const pick = (v: unknown): string | null =>
+    typeof v === 'string'
+      ? v
+      : v && typeof v === 'object' && 'id' in v
+        ? String((v as { id: string }).id)
+        : null;
+
+  const inv = invoice as unknown as {
+    subscription?: unknown;
+    parent?: { subscription_details?: { subscription?: unknown } | null } | null;
+    lines?: { data?: Array<{ subscription?: unknown; parent?: { subscription_item_details?: { subscription?: unknown } | null } | null }> };
+  };
+
+  return (
+    pick(inv.subscription) ||
+    pick(inv.parent?.subscription_details?.subscription) ||
+    pick(inv.lines?.data?.[0]?.subscription) ||
+    pick(inv.lines?.data?.[0]?.parent?.subscription_item_details?.subscription) ||
+    null
+  );
+}
+
 // Handle failed payment
 async function handlePaymentFailed(invoice: Stripe.Invoice) {
   const customerId = invoice.customer as string;
@@ -371,27 +399,35 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
   const now = new Date();
 
   // Update subscription status to past_due if it's a subscription invoice
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const inv = invoice as any;
-  if (inv.subscription) {
-    await supabaseAdmin
+  const subscriptionId = resolveInvoiceSubscriptionId(invoice);
+  if (subscriptionId) {
+    const { error: subErr } = await supabaseAdmin
       .from('subscriptions')
       .update({
         status: 'past_due',
         updated_at: now.toISOString(),
       })
-      .eq('stripe_subscription_id', inv.subscription as string);
+      .eq('stripe_subscription_id', subscriptionId);
+    if (subErr) console.error('handlePaymentFailed: subscriptions update failed:', subErr);
 
     // Also update member status so athlete app access reflects the failed payment
-    await supabaseAdmin
+    const { error: memErr } = await supabaseAdmin
       .from('members')
       .update({
         athlete_subscription_status: 'past_due',
         updated_at: now.toISOString(),
       })
       .eq('id', member.id);
+    if (memErr) console.error('handlePaymentFailed: member update failed:', memErr);
 
     // Notify coaches about the failed payment
     notifyPaymentFailed(member.name);
+  } else if (invoice.billing_reason?.startsWith('subscription')) {
+    // It IS a subscription invoice but no subscription id resolved — almost
+    // certainly a Stripe field relocation. Surface it loudly instead of the old
+    // silent skip, which would leave the member with access and no coach alert.
+    console.error(
+      `handlePaymentFailed: subscription invoice ${invoice.id} (member ${member.id}) had no resolvable subscription id — NOT marked past_due. Check Stripe API version / invoice shape.`
+    );
   }
 }

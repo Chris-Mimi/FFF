@@ -28,7 +28,12 @@ export function useMemberActions(
       }
 
       const linkedMsg = data.linkedScores ? ` (${data.linkedScores} scores linked)` : '';
-      toast.success((data.message || 'Member approved successfully') + linkedMsg);
+      if (data.unlinkedScores > 0) {
+        // Some whiteboard scores collided with the member's own entries — warn, don't hide it
+        toast.warning((data.message || 'Member approved') + linkedMsg);
+      } else {
+        toast.success((data.message || 'Member approved successfully') + linkedMsg);
+      }
       await refreshData();
       await refreshPendingCount();
       if (refreshWhiteboardNames) await refreshWhiteboardNames();

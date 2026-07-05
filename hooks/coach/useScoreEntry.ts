@@ -402,7 +402,14 @@ export function useScoreEntry(sessionId: string) {
       const parts: string[] = [];
       if (data.saved > 0) parts.push(`${data.saved} saved`);
       if (data.deleted > 0) parts.push(`${data.deleted} deleted`);
-      toast.success(parts.join(', ') || 'No changes');
+      if (data.errors && data.errors.length > 0) {
+        // Partial failure: some scores or their Records/lift entries didn't save.
+        // Never report a clean success — that's how the S371 lost-scores bug hid. (S393)
+        console.error('Score save partial failure:', data.errors);
+        toast.warning(`${parts.join(', ') || 'Saved'} — but ${data.errors.length} didn't fully save. Re-check those athletes and save again.`);
+      } else {
+        toast.success(parts.join(', ') || 'No changes');
+      }
     } catch (error) {
       console.error('Error saving scores:', error);
       toast.error('Failed to save scores');

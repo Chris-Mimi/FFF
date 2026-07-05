@@ -78,26 +78,69 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Migrate whiteboard scores: link old whiteboard_name results to this member
+    // Migrate whiteboard scores: link old whiteboard_name results to this member.
+    // A member may already have self-entered a score for the same session. The
+    // unique constraint (user_id, wod_id, section_id, workout_date) means those
+    // rows CANNOT be relabeled to this member. Previously the whole bulk UPDATE
+    // was all-or-nothing: one collision failed every row, the error was only
+    // logged, and approval still returned success — leaving the whiteboard name
+    // duplicated next to the registered athlete on the leaderboard (the
+    // whiteboard-duplicates bug). Now: migrate the rows that CAN be linked, and
+    // report the rest so the coach can resolve them manually.
     let linkedScores = 0;
+    let unlinkedScores = 0;
     if (whiteboardName) {
-      const { data: wbResults, error: wbError } = await supabaseAdmin
+      const { data: wbRows, error: wbFetchError } = await supabaseAdmin
         .from('wod_section_results')
-        .update({
-          member_id: memberId,
-          user_id: memberId,
-          whiteboard_name: null,
-          updated_at: now.toISOString(),
-        })
+        .select('id, wod_id, section_id, workout_date')
         .eq('whiteboard_name', whiteboardName)
-        .is('member_id', null)
-        .select('id');
+        .is('member_id', null);
 
-      if (wbError) {
-        console.error('Whiteboard score migration error:', wbError);
-      } else {
-        linkedScores = wbResults?.length || 0;
-        console.log(`Linked ${linkedScores} whiteboard scores ("${whiteboardName}") to member ${memberId}`);
+      if (wbFetchError) {
+        console.error('Whiteboard score lookup error:', wbFetchError);
+      } else if (wbRows && wbRows.length > 0) {
+        // Sessions this member already has a score for → constraint would collide
+        const { data: ownRows } = await supabaseAdmin
+          .from('wod_section_results')
+          .select('wod_id, section_id, workout_date')
+          .eq('user_id', memberId);
+        const takenKeys = new Set(
+          (ownRows || []).map(r => `${r.wod_id}|${r.section_id}|${r.workout_date}`)
+        );
+
+        const migratableIds: string[] = [];
+        for (const row of wbRows) {
+          const key = `${row.wod_id}|${row.section_id}|${row.workout_date}`;
+          if (takenKeys.has(key)) {
+            unlinkedScores++; // member already has a score for this session
+          } else {
+            takenKeys.add(key); // also guards two whiteboard rows for one session
+            migratableIds.push(row.id);
+          }
+        }
+
+        if (migratableIds.length > 0) {
+          const { data: linked, error: wbUpdateError } = await supabaseAdmin
+            .from('wod_section_results')
+            .update({
+              member_id: memberId,
+              user_id: memberId,
+              whiteboard_name: null,
+              updated_at: now.toISOString(),
+            })
+            .in('id', migratableIds)
+            .select('id');
+
+          if (wbUpdateError) {
+            console.error('Whiteboard score migration error:', wbUpdateError);
+            unlinkedScores += migratableIds.length;
+          } else {
+            linkedScores = linked?.length || 0;
+          }
+        }
+        console.log(
+          `Whiteboard migration for member ${memberId} ("${whiteboardName}"): linked ${linkedScores}, unlinked ${unlinkedScores}`
+        );
       }
     }
 
@@ -157,8 +200,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        message: 'Member approved - can now book classes',
+        message: unlinkedScores > 0
+          ? `Member approved. ${unlinkedScores} whiteboard score${unlinkedScores === 1 ? '' : 's'} couldn't be auto-linked (member already has a score for that session) — review manually.`
+          : 'Member approved - can now book classes',
         linkedScores,
+        unlinkedScores,
         member: {
           id: updatedMember.id,
           email: updatedMember.email,

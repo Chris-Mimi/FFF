@@ -134,14 +134,20 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
             migrations.set(removedOfType[i].id, candidates[i].id);
           }
         }
+        // Athlete-data writes (section_id migrations, score/lift deletes, scoring-
+        // field clears) are collected here and applied together at the end via the
+        // service-role endpoint. Running them on the coach's browser token would
+        // silently match 0 rows under athlete RLS (the S344 ghost-score bug). (S393)
+        const sectionMigrations: { fromKey: string; toKey: string }[] = [];
         for (const [oldId, newId] of migrations) {
-          const { error: migrateErr } = await supabase
-            .from('wod_section_results')
-            .update({ section_id: `${newId}-content-0` })
-            .eq('wod_id', editingWOD.id!)
-            .eq('section_id', `${oldId}-content-0`);
-          if (migrateErr) throw migrateErr;
+          sectionMigrations.push({
+            fromKey: `${oldId}-content-0`,
+            toKey: `${newId}-content-0`,
+          });
         }
+        let deleteSectionKeys: string[] = [];
+        let deleteLiftRecordIds: string[] = [];
+        const fieldClears: { sectionKey: string; columns: string[] }[] = [];
 
         const removedSections = allRemovedSections.filter(s => !migrations.has(s.id));
         const removedSectionIds = removedSections.map(s => s.id);
@@ -201,19 +207,10 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
             });
             if (!ok) return;
             if (rowCount > 0) {
-              const { error: delErr } = await supabase
-                .from('wod_section_results')
-                .delete()
-                .eq('wod_id', editingWOD.id!)
-                .in('section_id', removedKeys);
-              if (delErr) throw delErr;
+              deleteSectionKeys = removedKeys;
             }
             if (liftCount > 0) {
-              const { error: liftDelErr } = await supabase
-                .from('lift_records')
-                .delete()
-                .in('id', liftRowsToDelete);
-              if (liftDelErr) throw liftDelErr;
+              deleteLiftRecordIds = liftRowsToDelete;
             }
           }
         }
@@ -252,12 +249,36 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
             }
           }
           if (Object.keys(cleared).length > 0) {
-            // WSRs now live at newId-content-0 (migration already applied).
-            await supabase
-              .from('wod_section_results')
-              .update(cleared)
-              .eq('wod_id', editingWOD.id!)
-              .eq('section_id', `${newS.id}-content-0`);
+            // WSRs now live at newId-content-0 (server applies the migration first).
+            fieldClears.push({
+              sectionKey: `${newS.id}-content-0`,
+              columns: Object.keys(cleared),
+            });
+          }
+        }
+
+        // Apply every athlete-data write server-side (service role) so none of them
+        // silently no-ops under RLS. If it fails, stop before touching the WOD so the
+        // coach isn't told the edit saved when the score cleanup didn't. (S393)
+        if (
+          sectionMigrations.length > 0 ||
+          deleteSectionKeys.length > 0 ||
+          deleteLiftRecordIds.length > 0 ||
+          fieldClears.length > 0
+        ) {
+          const cleanupRes = await authFetch('/api/sessions/edit-section-results', {
+            method: 'POST',
+            body: JSON.stringify({
+              wodId: editingWOD.id!,
+              migrations: sectionMigrations,
+              deleteSectionKeys,
+              deleteLiftRecordIds,
+              fieldClears,
+            }),
+          });
+          if (!cleanupRes.ok) {
+            toast.error('Could not update athlete scores for the edited sections. No changes saved — please try again.');
+            return;
           }
         }
 

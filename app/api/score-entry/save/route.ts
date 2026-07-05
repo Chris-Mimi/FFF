@@ -405,13 +405,17 @@ export async function POST(request: NextRequest) {
 
           if (existingLift) {
             // Update existing record
-            await supabaseAdmin
+            const { error: liftErr } = await supabaseAdmin
               .from('lift_records')
               .update({ weight_kg: weight, calculated_1rm: calculated1rm, wod_id: wodId })
               .eq('id', existingLift.id);
+            if (liftErr) {
+              console.error('Lift record update error:', liftErr);
+              errors.push(`Score saved but lift record failed for ${rmLift.liftName}`);
+            }
           } else {
             // Insert new record
-            const { data: newRecord } = await supabaseAdmin
+            const { data: newRecord, error: liftErr } = await supabaseAdmin
               .from('lift_records')
               .insert({
                 user_id: userId,
@@ -425,6 +429,10 @@ export async function POST(request: NextRequest) {
               })
               .select('id')
               .single();
+            if (liftErr) {
+              console.error('Lift record insert error:', liftErr);
+              errors.push(`Score saved but lift record failed for ${rmLift.liftName}`);
+            }
 
             // PR detection
             if (newRecord) {
@@ -480,12 +488,16 @@ export async function POST(request: NextRequest) {
             .maybeSingle();
 
           if (existingLift) {
-            await supabaseAdmin
+            const { error: liftErr } = await supabaseAdmin
               .from('lift_records')
               .update({ weight_kg: weight, reps, calculated_1rm: calculated1rm, wod_id: wodId })
               .eq('id', existingLift.id);
+            if (liftErr) {
+              console.error('Non-RM lift record update error:', liftErr);
+              errors.push(`Score saved but lift record failed for ${nonRmLift.liftName}`);
+            }
           } else {
-            await supabaseAdmin
+            const { error: liftErr } = await supabaseAdmin
               .from('lift_records')
               .insert({
                 user_id: userId,
@@ -497,6 +509,10 @@ export async function POST(request: NextRequest) {
                 lift_date: workoutDate,
                 wod_id: wodId,
               });
+            if (liftErr) {
+              console.error('Non-RM lift record insert error:', liftErr);
+              errors.push(`Score saved but lift record failed for ${nonRmLift.liftName}`);
+            }
           }
           nonRmSaved++;
         }
@@ -583,14 +599,22 @@ export async function POST(request: NextRequest) {
             };
 
             if (existing) {
-              await supabaseAdmin
+              const { error: bmErr } = await supabaseAdmin
                 .from('benchmark_results')
                 .update({ ...payload, updated_at: new Date().toISOString() })
                 .eq('id', existing.id);
+              if (bmErr) {
+                console.error('Benchmark result update error:', bmErr);
+                errors.push(`Score saved but Records/Benchmarks entry failed for ${t.name}`);
+              }
             } else {
-              await supabaseAdmin
+              const { error: bmErr } = await supabaseAdmin
                 .from('benchmark_results')
                 .insert(payload);
+              if (bmErr) {
+                console.error('Benchmark result insert error:', bmErr);
+                errors.push(`Score saved but Records/Benchmarks entry failed for ${t.name}`);
+              }
             }
           }
         }
