@@ -795,7 +795,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
         if (bmSectionIds.length > 0) {
           const { data: wsrResults } = await supabase
             .from('wod_section_results')
-            .select('id, user_id, member_id, whiteboard_name, time_result, reps_result, weight_result, weight_result_2, weight_result_3, rounds_result, calories_result, metres_result, scaling_level, scaling_level_2, scaling_level_3, track, task_completed, dnf, workout_date')
+            .select('id, user_id, member_id, whiteboard_name, time_result, reps_result, weight_result, weight_result_2, weight_result_3, rounds_result, calories_result, metres_result, scaling_level, scaling_level_2, scaling_level_3, track, task_completed, dnf, modified, modified_note, workout_date')
             .in('wod_id', bmWodIds)
             .in('section_id', bmSectionIds);
           if (wsrResults) coachEntries = wsrResults as unknown as (RawSectionResult & { member_id?: string })[];
@@ -917,7 +917,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
 
         const { data: results } = await supabase
           .from('wod_section_results')
-          .select('id, user_id, member_id, wod_id, whiteboard_name, time_result, reps_result, weight_result, weight_result_2, weight_result_3, rounds_result, calories_result, metres_result, scaling_level, scaling_level_2, scaling_level_3, track, task_completed, dnf, workout_date')
+          .select('id, user_id, member_id, wod_id, whiteboard_name, time_result, reps_result, weight_result, weight_result_2, weight_result_3, rounds_result, calories_result, metres_result, scaling_level, scaling_level_2, scaling_level_3, track, task_completed, dnf, modified, modified_note, workout_date')
           .in('wod_id', contentWodIds)
           .in('section_id', contentSectionIds);
 
@@ -1306,6 +1306,12 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
                               {isBenchmarkItem ? formatBenchmarkResult(entry, selectedItem?.benchmarkType) : formatResult(entry, activeScoringType, selectedSectionScoringFields)}
                             </span>
                           )}
+                          {entry.modified && (
+                            <span
+                              className='ml-1 text-sm font-extrabold text-red-500 cursor-help'
+                              title={entry.modifiedNote ? `Movement adapted: ${entry.modifiedNote} — see whiteboard` : 'Movement adapted for mobility — see whiteboard'}
+                            >!</span>
+                          )}
                         </td>
                         {showScalingFilter && (
                           <td className='px-1 py-2.5 text-center'>
@@ -1466,7 +1472,7 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
         const sectionIds = [...new Set(wodSectionPairs.map(p => p.sectionId))];
         const { data: wsrResults } = await supabase
           .from('wod_section_results')
-          .select('id, user_id, member_id, whiteboard_name, time_result, reps_result, weight_result, weight_result_2, weight_result_3, rounds_result, calories_result, metres_result, scaling_level, scaling_level_2, scaling_level_3, track, task_completed, dnf, workout_date')
+          .select('id, user_id, member_id, whiteboard_name, time_result, reps_result, weight_result, weight_result_2, weight_result_3, rounds_result, calories_result, metres_result, scaling_level, scaling_level_2, scaling_level_3, track, task_completed, dnf, modified, modified_note, workout_date')
           .in('wod_id', wodIds)
           .in('section_id', sectionIds);
         if (wsrResults) coachEntries = wsrResults as unknown as (RawSectionResult & { member_id?: string })[];
@@ -1734,6 +1740,12 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
                           <div className='flex flex-col items-end'>
                             <span className='text-sm font-medium text-gray-900 whitespace-nowrap'>
                               {formatBenchmarkResult(entry, selectedBenchmark?.type)}
+                              {entry.modified && (
+                                <span
+                                  className='ml-1 font-extrabold text-red-500 cursor-help'
+                                  title={entry.modifiedNote ? `Movement adapted: ${entry.modifiedNote} — see whiteboard` : 'Movement adapted for mobility — see whiteboard'}
+                                >!</span>
+                              )}
                             </span>
                             {entry.resultDate && (
                               <span className='text-[10px] text-gray-500 whitespace-nowrap'>

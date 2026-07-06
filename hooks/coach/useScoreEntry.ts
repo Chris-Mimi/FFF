@@ -75,6 +75,8 @@ export interface AthleteScoreValues {
   metres_result: string;
   task_completed: boolean;
   dnf: boolean;
+  modified: boolean;
+  modified_note: string;
 }
 
 interface ExistingResult {
@@ -96,6 +98,8 @@ interface ExistingResult {
   metres_result: number | null;
   task_completed: boolean | null;
   dnf: boolean | null;
+  modified: boolean | null;
+  modified_note: string | null;
 }
 
 interface SessionData {
@@ -129,6 +133,8 @@ export const emptyScoreValues: AthleteScoreValues = {
   metres_result: '',
   task_completed: false,
   dnf: false,
+  modified: false,
+  modified_note: '',
 };
 
 export function useScoreEntry(sessionId: string) {
@@ -228,6 +234,8 @@ export function useScoreEntry(sessionId: string) {
           metres_result: result.metres_result != null ? String(result.metres_result) : '',
           task_completed: result.task_completed || false,
           dnf: result.dnf || false,
+          modified: result.modified || false,
+          modified_note: result.modified_note || '',
         };
       }
       setScores(prefilled);
@@ -280,7 +288,8 @@ export function useScoreEntry(sessionId: string) {
                 !values.calories_result &&
                 !values.metres_result &&
                 !values.task_completed &&
-                !values.dnf
+                !values.dnf &&
+                !values.modified
               ) {
                 return null;
               }
@@ -303,6 +312,8 @@ export function useScoreEntry(sessionId: string) {
                 metres_result: values.metres_result ? parseFloat(values.metres_result) : null,
                 task_completed: values.task_completed || null,
                 dnf: values.dnf || null,
+                modified: values.modified || null,
+                modified_note: values.modified ? (values.modified_note || null) : null,
               };
             })
             .filter(Boolean)
@@ -328,7 +339,8 @@ export function useScoreEntry(sessionId: string) {
             !values.calories_result &&
             !values.metres_result &&
             !values.task_completed &&
-            !values.dnf
+            !values.dnf &&
+            !values.modified
           );
           if (!isEmpty) continue;
 

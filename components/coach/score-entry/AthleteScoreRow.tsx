@@ -45,7 +45,8 @@ export default function AthleteScoreRow({
   const trackValue = currentValues.track || '';
 
   return (
-    <div className={`flex items-center gap-3 py-2 px-3 border-b border-gray-100 ${currentValues.dnf ? 'bg-red-50/50' : 'hover:bg-gray-50/50'}`}>
+    <div className={`border-b border-gray-100 ${currentValues.dnf ? 'bg-red-50/50' : currentValues.modified ? 'bg-orange-50/40' : 'hover:bg-gray-50/50'}`}>
+    <div className="flex items-center gap-3 py-2 px-3">
       <div className={`${scoringFields.track ? 'w-44 min-w-[11rem]' : 'w-32 min-w-[8rem]'} flex items-center gap-1.5`}>
         <span className="text-sm font-medium text-gray-800 truncate">{athleteName}</span>
         <button
@@ -59,6 +60,18 @@ export default function AthleteScoreRow({
           title="Did Not Finish"
         >
           DNF
+        </button>
+        <button
+          type="button"
+          onClick={() => onChange(athleteId, sectionId, { modified: !currentValues.modified })}
+          className={`flex-shrink-0 w-4 text-center text-[11px] font-bold px-1 py-0.5 rounded transition-colors ${
+            currentValues.modified
+              ? 'bg-red-500 text-white'
+              : 'bg-gray-100 text-gray-300 hover:bg-gray-200 hover:text-gray-500'
+          }`}
+          title="Movement adapted for mobility (e.g. heels on plates) — see whiteboard. Does not affect score."
+        >
+          !
         </button>
         {scoringFields.track && (
           <div className="flex gap-0.5 flex-shrink-0">
@@ -101,6 +114,10 @@ export default function AthleteScoreRow({
             if (scoringFields.metres && previousValues.metres_result) updates.metres_result = previousValues.metres_result;
             if (scoringFields.checkbox) updates.task_completed = previousValues.task_completed;
             if (previousValues.dnf) updates.dnf = previousValues.dnf;
+            if (previousValues.modified) {
+              updates.modified = previousValues.modified;
+              updates.modified_note = previousValues.modified_note;
+            }
             onChange(athleteId, sectionId, updates);
           }}
           className="w-5 h-5 flex items-center justify-center text-gray-300 hover:text-[#178da6] hover:bg-gray-100 rounded transition-colors flex-shrink-0"
@@ -134,6 +151,18 @@ export default function AthleteScoreRow({
           hideDnf
         />
       </div>
+      </div>
+      {currentValues.modified && (
+        <div className="px-3 pb-2 -mt-1">
+          <input
+            type="text"
+            value={currentValues.modified_note}
+            onChange={(e) => onChange(athleteId, sectionId, { modified_note: e.target.value })}
+            placeholder="Mod note (optional, e.g. heels on plates) — also written on whiteboard"
+            className="w-full text-xs px-2 py-1 border border-orange-200 rounded bg-orange-50/60 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-red-400"
+          />
+        </div>
+      )}
     </div>
   );
 }

@@ -17,6 +17,8 @@ export interface LeaderboardEntry {
   track?: number;
   taskCompleted?: boolean;
   dnf?: boolean;
+  modified?: boolean;
+  modifiedNote?: string;
   resultDate?: string;
   gender?: string | null;
   age?: number | null;
@@ -82,6 +84,8 @@ export interface RawSectionResult {
   track?: number | null;
   task_completed?: boolean | null;
   dnf?: boolean | null;
+  modified?: boolean | null;
+  modified_note?: string | null;
   workout_date?: string | null;
   wod_id?: string | null;
   session_time?: string | null; // "HH:MM" — annotated by caller for tiebreakers
@@ -438,6 +442,8 @@ export function rankSectionResults(
     track: r.track || undefined,
     taskCompleted: r.task_completed ?? undefined,
     dnf: r.dnf ?? undefined,
+    modified: r.modified ?? undefined,
+    modifiedNote: r.modified_note ?? undefined,
     resultDate: r.workout_date || undefined,
     gender: memberGenders?.[r.user_id] ?? getWhiteboardGender(r.whiteboard_name) ?? undefined,
   }));
