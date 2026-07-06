@@ -85,6 +85,19 @@ const SESSIONS: Session[] = [
       { name: 'Michael Weber',      dl: 110, amrapReps: 34, amrapWt: 90,  plankOk: true,     pullReps: 17, pullScale: 'Sc1', hsTime: '2:40', hsScale: 'Sc1' },
     ],
   },
+  {
+    // Added S394 — 5 new athletes from the Friday-morning 03/07 09:00 session
+    // (re-uploaded 27.2 photo). HS "Sc" = Sc2 here (Chris-confirmed for this crew).
+    label: '03/07 09:00', sessionId: '986df67d-6962-40f7-a757-545cd829d2a9',
+    wodId: 'ab6ca890-f492-4e00-9116-57c63681c0dd', date: '2026-07-03',
+    rows: [
+      { name: 'Michael Städele', dl: 130, amrapReps: 23, amrapWt: 110, plankOk: true,     pullReps: 28, pullScale: 'Rx',  hsTime: '1:30', hsScale: 'Rx'  },
+      { name: 'Senol Özdilek',   dl: 140, amrapReps: 21, amrapWt: 110, plankTime: '1:40', pullReps: 4,  pullScale: 'Sc3', hsTime: '0:50', hsScale: 'Sc2' },
+      { name: 'Aline von Rüden', dl: 85,  amrapReps: 31, amrapWt: 65,  plankTime: '2:30', pullReps: 15, pullScale: 'Sc3', hsTime: '0:28', hsScale: 'Sc2' },
+      { name: 'Irene Koffler',   dl: 70,  amrapReps: 24, amrapWt: 56,  plankTime: '1:04', pullReps: 13, pullScale: 'Sc2', hsTime: '0:40', hsScale: 'Sc2' },
+      { name: 'Mimi Hiles',      dl: 100, amrapReps: 27, amrapWt: 80,  plankOk: true,     pullReps: 9,  pullScale: 'Rx',  hsTime: '3:00', hsScale: 'Rx'  },
+    ],
+  },
 ];
 
 const epley = (w: number, reps: number) => Math.round(w * (1 + reps / 30));
