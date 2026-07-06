@@ -16,6 +16,12 @@ So when replicating it by script, **always write BOTH tables together, as one un
 ## Definitive name map
 `Chris Notes/Forge app documentation/Athletes booking list.md` — the source of truth for **whiteboard alias → registered athlete**. Format `Alias1, Alias2 - Full Name`, split into KIDS / ADULTS. Match every whiteboard name through this list. If a name isn't there, ASK Chris (new athlete / kid / parent-only / one-off drop-in / unregistered whiteboard-only) — don't guess.
 
+## Board shorthand legend (Chris-confirmed, S394 — note these, don't re-ask)
+- **Strict Pull-up band colours → scaling:** Rx = strict (no band), **P/Bk/R = Sc1**, **G (Green) = Sc2**, **B (Blue, strongest band) = Sc3**. `B+G` (two bands) = Sc3.
+- **"ok" written in a timed Hold column = held the full cap** (e.g. 3:00), not blank. Record the cap time.
+- **"ok" / "AB" used as a whole column (not a hold) can mean the Track:** `ok = Track 1`, `AB = Track 2`. Confirm which meaning per board — a Hold column's "ok" = full time; a Run/Track column's ok/AB = track number.
+- **DNF** = no valid finish time (write per the section's DNF convention, not a fake time).
+
 ## Canonical lift names (whiteboard shorthand → `lift_records.lift_name` / section `lifts[].name`)
 - OHP → `Strict Overhead Shoulder Press`
 - PP → `Push Press`
