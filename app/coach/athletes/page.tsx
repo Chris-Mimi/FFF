@@ -84,11 +84,11 @@ export default function CoachAthletesPage() {
       if (userIds.length > 0) {
         const { data: members } = await supabase
           .from('members')
-          .select('id, status, guardian_only')
+          .select('id, status, guardian_only, parked')
           .in('id', userIds);
         approvedIds = new Set(
           (members || [])
-            .filter(m => !m.guardian_only && m.status === 'active')
+            .filter(m => !m.guardian_only && m.status === 'active' && !m.parked)
             .map(m => m.id)
         );
       }

@@ -556,6 +556,7 @@ export const useCoachData = ({
         .select('id, name, display_name, date_of_birth')
         .eq('status', 'active')
         .eq('guardian_only', false)
+        .neq('parked', true)
         .order('name', { ascending: true });
 
       if (membersError) throw membersError;
