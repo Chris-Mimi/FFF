@@ -46,7 +46,7 @@ Next session, tell me to read the incident file and we'll compare it to the base
 
 * Exercise library: 
 * review the rep max calculator to show clearer percentages
-* Athlete app:Lifts graph: Dates are evenly spaced across the bottom axis but if an athlete has 3 results in 2025 for example, they shouldn't be spaced out as if they were done on 3 seperate years (we test RM usually once a year but sometimes we repeat them)
+* 
 
 * Why doesn't the data integrity sql catch things like this?
 * Planner: click on an exercise in the planner grid and it shows all the instances of that exercise in the workouts
