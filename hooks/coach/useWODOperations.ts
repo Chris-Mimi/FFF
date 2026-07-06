@@ -756,13 +756,16 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
               await supabase.from('weekly_sessions').delete().in('id', duplicateIds);
             }
           } else {
-            // Create new session
+            // Create new session — pasting into an EMPTY calendar slot (no existing
+            // session/template) defaults to 'draft' = Hidden from athletes, so an
+            // interim copy isn't mistaken for a bookable class. Coach un-hides via the
+            // Session Management modal if it should go live.
             await supabase.from('weekly_sessions').insert({
               date: dateKey,
               time: time,
               workout_id: newWorkout.id,
               capacity: 12,
-              status: 'published'
+              status: 'draft'
             });
           }
         }
