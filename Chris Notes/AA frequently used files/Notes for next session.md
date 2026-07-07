@@ -46,7 +46,7 @@ Next session, tell me to read the incident file and we'll compare it to the base
 
 * Exercise library: 
 * review the rep max calculator to show clearer percentages
-* 
+* There's no option to Block from Parked tab on the Members page
 
 * Why doesn't the data integrity sql catch things like this?
 * Planner: click on an exercise in the planner grid and it shows all the instances of that exercise in the workouts
