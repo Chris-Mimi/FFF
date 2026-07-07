@@ -58,6 +58,7 @@ export async function POST(request: NextRequest) {
       .update({
         status: 'blocked',
         athlete_subscription_status: 'expired', // Revoke athlete access
+        parked: false, // Blocking supersedes parked — move cleanly out of the Parked tab
         updated_at: new Date().toISOString()
       })
       .eq('id', memberId)

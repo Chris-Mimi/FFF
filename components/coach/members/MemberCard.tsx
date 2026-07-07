@@ -554,6 +554,15 @@ export default function MemberCard({
               <Play size={16} />
               Restart
             </button>
+            <button
+              onClick={() => onBlock(member.id)}
+              disabled={processingMemberId === member.id}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200 text-sm"
+              title="Block — revoke booking/login access"
+            >
+              <X size={16} />
+              Block
+            </button>
           </div>
         )}
       </div>
