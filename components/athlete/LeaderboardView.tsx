@@ -1310,7 +1310,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
                             <span className='group relative ml-1 inline-block cursor-help align-baseline'>
                               <span className='text-sm font-extrabold text-red-500'>!</span>
                               <span className='pointer-events-none absolute bottom-full right-0 z-50 mb-1 hidden w-max max-w-[200px] whitespace-normal rounded bg-gray-900 px-2 py-1 text-left text-[11px] font-normal leading-snug text-white shadow-lg group-hover:block'>
-                                {entry.modifiedNote ? `Movement adapted: ${entry.modifiedNote} — see whiteboard` : 'Movement adapted for mobility — see whiteboard'}
+                                {entry.modifiedNote ? `Movement adapted: ${entry.modifiedNote}` : 'Movement adapted for mobility — see whiteboard'}
                               </span>
                             </span>
                           )}
@@ -1746,7 +1746,7 @@ function BenchmarkLeaderboard({ userId }: { userId: string }) {
                                 <span className='group relative ml-1 inline-block cursor-help align-baseline'>
                                   <span className='font-extrabold text-red-500'>!</span>
                                   <span className='pointer-events-none absolute bottom-full right-0 z-50 mb-1 hidden w-max max-w-[200px] whitespace-normal rounded bg-gray-900 px-2 py-1 text-left text-[11px] font-normal leading-snug text-white shadow-lg group-hover:block'>
-                                    {entry.modifiedNote ? `Movement adapted: ${entry.modifiedNote} — see whiteboard` : 'Movement adapted for mobility — see whiteboard'}
+                                    {entry.modifiedNote ? `Movement adapted: ${entry.modifiedNote}` : 'Movement adapted for mobility — see whiteboard'}
                                   </span>
                                 </span>
                               )}
