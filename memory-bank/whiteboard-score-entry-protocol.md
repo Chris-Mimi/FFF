@@ -41,6 +41,7 @@ So when replicating it by script, **always write BOTH tables together, as one un
    - **Two independent read passes.** Read the board, then re-read each numeric column a second time WITHOUT looking at the first answer; flag every cell where the two passes disagree. This is the main defence against a confident single misread.
    - **Zoom per cell.** For the values actually written, read a cropped/zoomed region of each number, not the whole-board image — digit accuracy is much higher.
    - **Flag confusable tails.** Any last digit that could be 0-or-5 (or 1-or-7) gets a ⚠️ even when I think I know it — these are the silent failures.
+   - **Chris's `7` is ALWAYS crossed (European crossbar).** An angular top-stroke digit *without* a crossbar is a **`1`**, not a 7 (S396: read Leah "6+1" as "6+7", AnneS "7+1" as "7+7" — the leading 7s had crossbars, the trailing 1s did not). When two digits in the same board look similar, the crossbar is the tiebreaker.
    - **Cross-check vs history.** Compare each registered athlete's new lift to their existing `lift_records` range; flag anything out of range. (Note: the 1RM ≥ 3RM check is necessary but NOT sufficient — 45 ≥ 37.5 looked valid.)
    - Ask Chris to verify the ⚠️ cells **against the photo**, not just by reading my table (a plausible number rubber-stamps too easily).
    - **Decimals are dots** (Chris writes `37.5`, never a comma). Board-writing tips Chris follows: `Chris Notes/Forge app documentation/Whiteboard writing tips.md`.
