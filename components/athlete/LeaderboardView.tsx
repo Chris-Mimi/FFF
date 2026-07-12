@@ -932,9 +932,12 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
 
         const scoringType = selectedItem.scoringType || 'time';
         const sectionScoringFields = selectedItem.scoringFields;
-        if (isGrouped) {
-          filtered = bestResultPerUser(filtered, scoringType, sectionScoringFields);
-        }
+        // Always keep only each athlete's best result. A WOD's sibling sessions
+        // (same workout run at several class times in a week) are pooled into one
+        // leaderboard, so an athlete who repeats the WOD should rank once — on their
+        // best score — rather than appear multiple times. No-op when a user has a
+        // single result; also covers the cross-week grouped case.
+        filtered = bestResultPerUser(filtered, scoringType, sectionScoringFields);
 
         const userIds = [...new Set(filtered.map(r => r.user_id))];
         const { names: memberNames, genders: fetchedGenders, ages: fetchedAges } = await fetchMemberNames(userIds);
