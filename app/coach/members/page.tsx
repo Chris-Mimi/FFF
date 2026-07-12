@@ -128,7 +128,7 @@ export default function CoachMembersPage() {
           <button
             onClick={() => setActiveTab('pending')}
             className={`px-3 md:px-6 py-2 md:py-3 font-medium transition-colors duration-200 border-b-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
-              activeTab === 'pending' || activeTab === 'blocked'
+              activeTab === 'pending' || activeTab === 'blocked' || activeTab === 'parked'
                 ? 'border-teal-500 text-teal-500'
                 : pendingCount > 0
                 ? 'border-transparent text-orange-400 hover:text-orange-300 animate-pulse'
@@ -138,7 +138,7 @@ export default function CoachMembersPage() {
             <div className="flex items-center gap-1 md:gap-2">
               <Clock size={16} className="md:w-[18px] md:h-[18px]" />
               Pending
-              {pendingCount > 0 && activeTab !== 'pending' && activeTab !== 'blocked' && (
+              {pendingCount > 0 && activeTab !== 'pending' && activeTab !== 'blocked' && activeTab !== 'parked' && (
                 <span className="inline-flex items-center justify-center w-4 h-4 md:w-5 md:h-5 text-[10px] md:text-xs font-bold text-white bg-orange-500 rounded-full">
                   {pendingCount}
                 </span>
@@ -207,19 +207,6 @@ export default function CoachMembersPage() {
               Wellpass
             </div>
           </button>
-          <button
-            onClick={() => setActiveTab('parked')}
-            className={`px-3 md:px-6 py-2 md:py-3 font-medium transition-colors duration-200 border-b-2 text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
-              activeTab === 'parked'
-                ? 'border-teal-500 text-teal-500'
-                : 'border-transparent text-gray-400 hover:text-gray-300'
-            }`}
-          >
-            <div className="flex items-center gap-1 md:gap-2">
-              <Pause size={16} className="md:w-[18px] md:h-[18px]" />
-              Parked
-            </div>
-          </button>
         </div>
       </div>
 
@@ -267,8 +254,8 @@ export default function CoachMembersPage() {
         </div>
       )}
 
-      {/* Pending / Blocked sub-toggle (Blocked is a rare edge case, so it shares the Pending tab) */}
-      {(activeTab === 'pending' || activeTab === 'blocked') && (
+      {/* Pending / Blocked / Parked sub-toggle (rare edge-case states, grouped under one tab) */}
+      {(activeTab === 'pending' || activeTab === 'blocked' || activeTab === 'parked') && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
           <div className="inline-flex rounded-lg border border-gray-700 overflow-hidden">
             <button
@@ -293,6 +280,15 @@ export default function CoachMembersPage() {
             >
               <UserX size={14} />
               Blocked
+            </button>
+            <button
+              onClick={() => setActiveTab('parked')}
+              className={`flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium transition-colors ${
+                activeTab === 'parked' ? 'bg-teal-500 text-white' : 'bg-gray-800 text-gray-400 hover:text-gray-200'
+              }`}
+            >
+              <Pause size={14} />
+              Parked
             </button>
           </div>
         </div>
