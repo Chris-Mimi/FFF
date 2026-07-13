@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { sessionStartInstant } from '@/lib/bookingRules';
 import { formatLocalDate, getWeekDates, getMonthCalendarDays, WOD } from '@/utils/logbook-utils';
 
 interface UseLogbookDataProps {
@@ -67,8 +68,9 @@ async function filterUserWorkouts(
 
       if (!booking) return null;
 
-      // Parse session datetime and subtract 2 hours to determine if workout details should be visible
-      const sessionDateTime = new Date(`${workout.date}T${sessionData.time}`);
+      // Parse session datetime as Berlin wall-clock (not device-local) and subtract
+      // 2 hours to determine if workout details should be visible
+      const sessionDateTime = sessionStartInstant(workout.date, sessionData.time);
       const twoHoursBeforeSession = new Date(sessionDateTime.getTime() - 2 * 60 * 60 * 1000);
       const now = new Date();
       const shouldShowDetails = now >= twoHoursBeforeSession;

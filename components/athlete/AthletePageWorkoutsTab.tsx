@@ -2,6 +2,7 @@
 
 import { supabase } from '@/lib/supabase';
 import { authFetch } from '@/lib/auth-fetch';
+import { sessionStartInstant } from '@/lib/bookingRules';
 import { ChevronLeft, ChevronRight, Image as ImageIcon, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
@@ -292,8 +293,9 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
         const session = booking.weekly_sessions;
         const workout = session?.wods;
 
-        // Parse session datetime and subtract 2 hours to determine if workout details should be visible
-        const sessionDateTime = new Date(`${session.date}T${session.time}`);
+        // Parse session datetime as Berlin wall-clock (not device-local) and subtract
+        // 2 hours to determine if workout details should be visible
+        const sessionDateTime = sessionStartInstant(session.date, session.time);
         const twoHoursBeforeSession = new Date(sessionDateTime.getTime() - 2 * 60 * 60 * 1000);
         const now = new Date();
         const shouldShowDetails = now >= twoHoursBeforeSession;
