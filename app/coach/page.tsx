@@ -81,6 +81,7 @@ export default function CoachDashboard() {
   const [includedSectionTypes, setIncludedSectionTypes] = useState<string[]>([]);
   const [selectedSectionTypeFilter, setSelectedSectionTypeFilter] = useState<string[]>([]);
   const [selectedMembers, setSelectedMembers] = usePersistedState<string[]>('coach_selected_athletes', []);
+  const [athletesMuted, setAthletesMuted] = usePersistedState<boolean>('coach_selected_athletes_muted', false);
   const [selectedSearchWOD, setSelectedSearchWOD] = useState<WODFormData | null>(null);
   const [hoveredSearchWOD, setHoveredSearchWOD] = useState<WODFormData | null>(null);
   const [notesPanelOpen, setNotesPanelOpen] = useState(false);
@@ -127,7 +128,7 @@ export default function CoachDashboard() {
     selectedSessionTypes,
     includedSectionTypes,
     selectedSectionTypeFilter,
-    selectedMembers,
+    selectedMembers: athletesMuted ? [] : selectedMembers,
     notDoneBySelected,
   });
 
@@ -482,6 +483,8 @@ export default function CoachDashboard() {
           exerciseList={exerciseList}
           selectedMembers={selectedMembers}
           onSelectedMembersChange={setSelectedMembers}
+          athletesMuted={athletesMuted}
+          onAthletesMutedChange={setAthletesMuted}
           notDoneBySelected={notDoneBySelected}
           onNotDoneBySelectedChange={setNotDoneBySelected}
           selectedSearchWOD={selectedSearchWOD}

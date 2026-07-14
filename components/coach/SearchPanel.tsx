@@ -61,6 +61,8 @@ interface SearchPanelProps {
   exerciseList: Array<{ id: string; name: string; display_name: string | null; category: string; acronym: string | null }>;
   selectedMembers: string[];
   onSelectedMembersChange: (members: string[]) => void;
+  athletesMuted: boolean;
+  onAthletesMutedChange: (value: boolean) => void;
   notDoneBySelected: boolean;
   onNotDoneBySelectedChange: (value: boolean) => void;
   selectedSearchWOD: WODFormData | null;
@@ -116,6 +118,8 @@ export default function SearchPanel({
   exerciseList,
   selectedMembers,
   onSelectedMembersChange,
+  athletesMuted,
+  onAthletesMutedChange,
   notDoneBySelected,
   onNotDoneBySelectedChange,
   selectedSearchWOD,
@@ -243,6 +247,9 @@ export default function SearchPanel({
     };
     return { adultMembers: sortSelected(adults), kidMembers: sortSelected(kids) };
   }, [members, selectedMembers]);
+
+  // A muted athlete selection stays in the list but no longer filters results.
+  const athletesFilterActive = selectedMembers.length > 0 && !athletesMuted;
 
   // Deduplicate search results by workout_name (Session 333 — was bi-weekly bucket
   // before, but a workout repeated across weeks created N "unique" rows). Now: one
@@ -766,19 +773,28 @@ export default function SearchPanel({
 
           {/* Athletes Section */}
           <details className='border-b'>
-            <summary className={`px-3 py-2 font-semibold text-sm cursor-pointer hover:bg-gray-100 flex items-center justify-between ${selectedMembers.length > 0 ? 'bg-[#178da6]/10 text-[#178da6] border-l-2 border-[#178da6]' : 'text-gray-900'}`}>
-              <span>Athletes{selectedMembers.length > 0 && <span className='ml-1 text-xs opacity-75'>({selectedMembers.length})</span>}</span>
+            <summary className={`px-3 py-2 font-semibold text-sm cursor-pointer hover:bg-gray-100 flex items-center justify-between ${selectedMembers.length > 0 && !athletesMuted ? 'bg-[#178da6]/10 text-[#178da6] border-l-2 border-[#178da6]' : 'text-gray-900'}`}>
+              <span>Athletes{selectedMembers.length > 0 && <span className='ml-1 text-xs opacity-75'>({selectedMembers.length}{athletesMuted ? ' muted' : ''})</span>}</span>
               {selectedMembers.length > 0 && (
-                <button
-                  onClick={e => { e.preventDefault(); onSelectedMembersChange([]); }}
-                  className='text-[10px] text-gray-400 hover:text-red-500 px-1'
-                  title='Clear athletes'
-                >
-                  clear
-                </button>
+                <span className='flex items-center gap-1'>
+                  <button
+                    onClick={e => { e.preventDefault(); onAthletesMutedChange(!athletesMuted); }}
+                    className={`text-[10px] px-1 ${athletesMuted ? 'text-[#178da6] hover:text-[#0f6b7f]' : 'text-gray-400 hover:text-[#178da6]'}`}
+                    title={athletesMuted ? 'Re-activate this athlete selection' : 'Keep the list but stop filtering by it'}
+                  >
+                    {athletesMuted ? 'unmute' : 'mute'}
+                  </button>
+                  <button
+                    onClick={e => { e.preventDefault(); onSelectedMembersChange([]); }}
+                    className='text-[10px] text-gray-400 hover:text-red-500 px-1'
+                    title='Clear athletes'
+                  >
+                    clear
+                  </button>
+                </span>
               )}
             </summary>
-            <div className='px-2 py-2 space-y-1'>
+            <div className={`px-2 py-2 space-y-1 ${athletesMuted ? 'opacity-60' : ''}`}>
               {adultMembers.map(member => (
                 <button
                   key={member.id}
@@ -1368,7 +1384,7 @@ export default function SearchPanel({
               selectedTracks.length > 0 ||
               selectedSessionTypes.length > 0 ||
               selectedSectionTypeFilter.length > 0 ||
-              selectedMembers.length > 0) && (
+              athletesFilterActive) && (
               <div className='flex flex-wrap gap-1 sm:gap-2 mt-2 sm:mt-3'>
                 {searchQuery && (
                   <span className='inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-[#178da6] text-white text-[10px] sm:text-xs rounded-full'>
@@ -1483,7 +1499,7 @@ export default function SearchPanel({
                     </button>
                   </span>
                 ))}
-                {selectedMembers.map(memberId => {
+                {athletesFilterActive && selectedMembers.map(memberId => {
                   const member = members.find(m => m.id === memberId);
                   return member ? (
                     <span
@@ -1540,7 +1556,7 @@ export default function SearchPanel({
               selectedTracks.length > 0 ||
               selectedSessionTypes.length > 0 ||
               selectedSectionTypeFilter.length > 0 ||
-              selectedMembers.length > 0) && (
+              athletesFilterActive) && (
               <div className='flex-1 overflow-y-auto overscroll-contain px-4 py-2 sm:p-3 sm:pr-8'>
                 <div className='flex items-center gap-2 mb-2 sm:mb-3'>
                   <h3 className='font-semibold text-sm sm:text-base text-gray-900'>
@@ -1559,9 +1575,9 @@ export default function SearchPanel({
                   </button>
                   <button
                     onClick={() => onNotDoneBySelectedChange(!notDoneBySelected)}
-                    disabled={selectedMembers.length === 0}
+                    disabled={!athletesFilterActive}
                     className={`text-[10px] px-1.5 py-0.5 rounded border transition ${
-                      selectedMembers.length === 0
+                      !athletesFilterActive
                         ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
                         : notDoneBySelected
                         ? 'bg-[#178da6] text-white border-[#178da6]'
@@ -1569,6 +1585,8 @@ export default function SearchPanel({
                     }`}
                     title={selectedMembers.length === 0
                       ? 'Select one or more athletes first'
+                      : athletesMuted
+                      ? 'Athlete selection is muted — unmute it to use this'
                       : `Show only workouts none of the ${selectedMembers.length} selected athlete(s) have attended`}
                   >
                     Not done by selected
