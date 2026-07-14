@@ -33,24 +33,41 @@ if (!fs.existsSync(BACKUP_DIR)) {
   fs.mkdirSync(BACKUP_DIR, { recursive: true });
 }
 
+// PostgREST caps a single .select() at 1000 rows (no error, silently truncated).
+// Page through with .range() so tables >1000 rows are backed up in full.
+const PAGE_SIZE = 1000;
+
 async function backupTable(tableName: string, _description: string) {
   console.log(`📦 Backing up ${tableName}...`);
 
   try {
-    const { data, error } = await supabase
-      .from(tableName)
-      .select('*');
+    const rows: unknown[] = [];
+    let from = 0;
 
-    if (error) {
-      console.error(`   ❌ Error: ${error.message}`);
-      return false;
+    for (;;) {
+      const { data, error } = await supabase
+        .from(tableName)
+        .select('*')
+        .range(from, from + PAGE_SIZE - 1);
+
+      if (error) {
+        console.error(`   ❌ Error: ${error.message}`);
+        return false;
+      }
+
+      const page = data ?? [];
+      rows.push(...page);
+
+      // Last page: fewer rows than a full page means we've reached the end.
+      if (page.length < PAGE_SIZE) break;
+      from += PAGE_SIZE;
     }
 
     const filename = `${timestamp}_${tableName}.json`;
     const filepath = path.join(BACKUP_DIR, filename);
 
-    fs.writeFileSync(filepath, JSON.stringify(data, null, 2));
-    console.log(`   ✅ Saved ${data?.length || 0} records to ${filename}`);
+    fs.writeFileSync(filepath, JSON.stringify(rows, null, 2));
+    console.log(`   ✅ Saved ${rows.length} records to ${filename}`);
     return true;
   } catch (error) {
     console.error(`   ❌ Failed to backup ${tableName}:`, error);
