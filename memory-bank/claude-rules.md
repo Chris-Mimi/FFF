@@ -28,6 +28,13 @@ These are project-wide rules that survive account/machine switches because they'
 
 **How to apply:** When writing or running a one-off inspection script that queries RLS-protected tables, use `SUPABASE_SERVICE_ROLE_KEY`. The existing scripts in `scripts/` (e.g. `check-ghost-scaling.ts`) use anon — don't trust their output for tables behind RLS without verifying with service role.
 
+### Supabase queries: always check `.error` — `data: null` is not "no rows"
+**Why:** S399 — a diagnostic query selected columns that don't exist on `weekly_sessions` (`session_type`, `workout_name`, `wod_id` — the real one is `workout_id`). PostgREST returned `{ data: null, error: { code: '42703' } }`, but the script only logged `data`, so a hard **column-does-not-exist error looked identical to an empty result**. I wrongly concluded "no sessions exist" and started widening the search when the table was fine.
+
+**How to apply:**
+1. **Never infer "empty" from `data == null` alone.** `null` + error = the query *failed*; `[]` + no error = genuinely no rows. Log/inspect `.error` on every one-off Supabase call before drawing a conclusion.
+2. **Don't guess column names.** One `select('*').limit(1)` reveals the real schema. This gym's `weekly_sessions` uses `workout_id` (→ `wods.id`), and has no `session_type`/`workout_name` columns.
+
 ### Never `.from(growing_table).select()` without a narrowing filter or pagination
 **Why:** S349 incident — the 10-card chip on the Members page silently broke because `useMemberData` fetched all 2,019 active bookings in one shot. PostgREST's default response cap is 1,000 rows; the request succeeds with no error, returns the first 1,000 ordered by insert sequence, and the rest are invisible. The chip's math was correct on the data it received; the data was just secretly half of reality. Audit found four more queries with the same shape; two were almost certainly already truncating without producing a noticeable symptom.
 
