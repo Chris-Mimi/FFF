@@ -70,10 +70,12 @@ const SESS = {
   const wsrs: WSR[] = [];
   const mkRows = (label: string, wod: string, r: Row, memberId: string | null, wbName: string | null) => {
     const base = { wod_id: wod, workout_date: DATE, member_id: memberId, user_id: memberId, whiteboard_name: wbName };
+    // WSR section_id MUST be `${sectionId}-content-0` (app/leaderboard format — save/route.ts:215).
+    const cid = (s: string) => `${s}-content-0`;
     const out: WSR[] = [];
-    out.push({ ...base, section_id: SEC_METRES, metres_result: r[1], _label: label });
-    if (r[2] != null) out.push({ ...base, section_id: SEC_SITUP, reps_result: r[2], _label: label });
-    out.push({ ...base, section_id: SEC_RC, reps_result: r[3], scaling_level: r[4], _label: label });
+    out.push({ ...base, section_id: cid(SEC_METRES), metres_result: r[1], _label: label });
+    if (r[2] != null) out.push({ ...base, section_id: cid(SEC_SITUP), reps_result: r[2], _label: label });
+    out.push({ ...base, section_id: cid(SEC_RC), reps_result: r[3], scaling_level: r[4], _label: label });
     return out;
   };
 
