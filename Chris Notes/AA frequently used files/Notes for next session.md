@@ -16,7 +16,7 @@ http://192.168.178.75:3000
 * iphone bug (I think) Coach-side: Workouts search box: Mimi can't type anything in the search box
 * Mimi couldn't add a trial athlete
 * Something in the results modal to show that an athlete modified a movement (HR) etc
-* Check new "none attended" function on Workouts page
+* 
 
 Athletes app: Give me the possibility to send Athletes who pay for the app a message.
 * Workouts page: ability to mute/cancel athletes without clearing the group
@@ -28,7 +28,7 @@ Ask Mimi Silvia Maritati (Diapers & Dumbbells?)
 
 
 * At-Risk put the list in order from most recent to least recent attendance
-* 
+* Weekend WOD #26.2 not done by selected first showed correctly then did not appear
 * 
 
 * Ask Claude for a Magic link script to access athlete's accounts to check screen views so I can help them click the right buttons. I just give Claude the email ad.
@@ -46,7 +46,7 @@ Next session, tell me to read the incident file and we'll compare it to the base
 
 * Exercise library: 
 * review the rep max calculator to show clearer percentages
-* There's no option to Block from Parked tab on the Members page
+* 
 
 * Why doesn't the data integrity sql catch things like this?
 * Planner: click on an exercise in the planner grid and it shows all the instances of that exercise in the workouts

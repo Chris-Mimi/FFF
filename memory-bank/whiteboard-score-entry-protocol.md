@@ -65,11 +65,16 @@ So when replicating it by script, **always write BOTH tables together, as one un
    - **Whiteboard-only / unregistered** → `wod_section_results` with `whiteboard_name` only (no `lift_records` possible). Or Chris enters via the app.
    - A member must have a **confirmed booking** on the session for their WSR row to show in the coach modal — book them if needed (no 10-card debit: `ten_card_consumed:false`).
 
-7. **Verify one session first** in the coach results modal, get Chris's OK, then roll out the rest.
+7. **⚠️ Publish the scored sections (the `publish_sections` landmine — S398).** A direct-DB WSR write is **invisible** in both the coach results modal AND the athlete leaderboard unless the section's id is in the wod's `publish_sections` array. The app's score-entry save route auto-adds it ([save/route.ts:362](../app/api/score-entry/save/route.ts#L362)); a script **bypasses that step**, so a section that wasn't already published stays hidden even though the rows are saved correctly (S398 29.2: Pt.1 vanished from the 17:15 modal while 18:30 — already published — was fine).
+   - After writing WSR rows, **union each scored `section.id` into `wods.publish_sections`** for that wod (append if missing; don't drop existing ids). The gate reads the bare `section.id`, not the `-content-0` WSR suffix.
+   - Then **sweep every touched session** to confirm no scored section is still absent from its `publish_sections`.
+   - Manual fallback if a section still shows hidden: toggle its publish off/on in the modal (S398 needed two toggles before it registered).
 
-8. **Parity check:** `npx tsx scripts/check-wsr-liftrecord-parity.ts` → expect "✅ Parity OK".
+8. **Verify one session first** in the coach results modal, get Chris's OK, then roll out the rest.
 
-9. **Commit** the recovery script for traceability.
+9. **Parity check:** `npx tsx scripts/check-wsr-liftrecord-parity.ts` → expect "✅ Parity OK".
+
+10. **Commit** the recovery script for traceability.
 
 ## Templates to copy
 - `scripts/restore-week7-ohp-pp-liftrecords.ts` — lift_records write
