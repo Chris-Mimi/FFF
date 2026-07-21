@@ -394,7 +394,12 @@ export const useCoachData = ({
               }).join(' ');
             };
 
-            if (includedSectionTypes.length === 0) {
+            if (wod.is_private) {
+              // Private events: the workout stays findable by NAME/title only — its
+              // exercises (section content, movements, notes) must NOT be searchable,
+              // so typing an exercise never surfaces a private event. (S399)
+              combinedText = `${wod.title} ${wod.workout_name || ''}`;
+            } else if (includedSectionTypes.length === 0) {
               // "All" selected - search everything
               const sectionsContent = wod.sections.map(s => s.content).join(' ');
               const structuredMovements = getStructuredMovements(wod.sections);
