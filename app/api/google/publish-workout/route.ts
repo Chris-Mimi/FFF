@@ -426,7 +426,7 @@ export async function POST(request: NextRequest) {
     // Auto-create weekly_session for booking if it doesn't exist (use admin client to bypass RLS)
     const { data: existingSession } = await supabaseAdmin
       .from('weekly_sessions')
-      .select('id')
+      .select('id, is_private')
       .eq('workout_id', workoutId)
       .single();
 
@@ -450,12 +450,13 @@ export async function POST(request: NextRequest) {
         bookingSessionReady = false;
       }
     } else {
-      // Update existing session to published
+      // Update existing session to published — but a Private event stays hidden
+      // from athletes (draft), so publishing its workout can't re-expose it. (S399)
       const { error: sessionUpdateError } = await supabaseAdmin
         .from('weekly_sessions')
         .update({
           time: publishConfig.eventTime,
-          status: 'published',
+          status: existingSession.is_private ? 'draft' : 'published',
         })
         .eq('id', existingSession.id);
 

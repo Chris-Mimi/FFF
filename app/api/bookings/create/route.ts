@@ -172,7 +172,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (session.status !== 'published') {
+    if (session.status !== 'published' || session.is_private) {
+      // Private events are never bookable by athletes, whatever their status. (S399)
       return NextResponse.json(
         { error: 'This session is not available for booking' },
         { status: 400 }

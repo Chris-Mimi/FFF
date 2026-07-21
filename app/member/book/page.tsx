@@ -246,6 +246,7 @@ export default function MemberBookingPage() {
           )
         `)
         .eq('status', 'published')
+        .neq('is_private', true) // Private events are never visible/bookable to athletes, regardless of status (S399)
         .gte('date', formatLocalDate(weekStart))
         .lt('date', formatLocalDate(weekEnd))
         .lte('date', formatLocalDate(maxVisibleDate))
