@@ -1237,6 +1237,20 @@ export default function SearchPanel({
               />
             </div>
 
+            {/* Private events filter — always visible so it can be used from a blank
+                search to list all private sessions without remembering dates. */}
+            <button
+              onClick={() => onPrivateOnlyChange(!privateOnly)}
+              className={`mt-2 text-[10px] sm:text-xs px-2 py-0.5 sm:py-1 rounded-full font-medium transition ${
+                privateOnly
+                  ? 'bg-indigo-700 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+              title='Show only Private events (special / non-WOD sessions hidden from athletes & analytics)'
+            >
+              {privateOnly ? '✓ Private events' : 'Private events'}
+            </button>
+
             {/* Section Type Filter Buttons */}
             <div className='mt-2 sm:mt-3'>
               <div className='text-[10px] sm:text-xs font-semibold text-gray-700 mb-1 sm:mb-2'>Include in search:</div>
@@ -1594,17 +1608,6 @@ export default function SearchPanel({
                       : `Show only workouts none of the ${selectedMembers.length} selected athlete(s) have attended`}
                   >
                     Not done by selected
-                  </button>
-                  <button
-                    onClick={() => onPrivateOnlyChange(!privateOnly)}
-                    className={`text-[10px] px-1.5 py-0.5 rounded border transition ${
-                      privateOnly
-                        ? 'bg-indigo-700 text-white border-indigo-700'
-                        : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400'
-                    }`}
-                    title='Show only Private events (special / non-WOD sessions hidden from athletes & analytics)'
-                  >
-                    Private events
                   </button>
                 </div>
                 <div className='space-y-2 sm:space-y-3 relative'>
