@@ -391,6 +391,7 @@ export default function SearchPanel({
               onSelectedSessionTypesChange([]);
               onIncludedSectionTypesChange([]);
               onSelectedSectionTypeFilterChange([]);
+              onPrivateOnlyChange(false);
               setSidebarOpen(false);
               setIsMaximized(false);
               // Note: movements map should be reset in parent component
@@ -1402,6 +1403,7 @@ export default function SearchPanel({
               selectedTracks.length > 0 ||
               selectedSessionTypes.length > 0 ||
               selectedSectionTypeFilter.length > 0 ||
+              privateOnly ||
               athletesFilterActive) && (
               <div className='flex flex-wrap gap-1 sm:gap-2 mt-2 sm:mt-3'>
                 {searchQuery && (
@@ -1574,6 +1576,7 @@ export default function SearchPanel({
               selectedTracks.length > 0 ||
               selectedSessionTypes.length > 0 ||
               selectedSectionTypeFilter.length > 0 ||
+              privateOnly ||
               athletesFilterActive) && (
               <div className='flex-1 overflow-y-auto overscroll-contain px-4 py-2 sm:p-3 sm:pr-8'>
                 <div className='flex items-center gap-2 mb-2 sm:mb-3'>
