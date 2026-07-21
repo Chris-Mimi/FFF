@@ -18,6 +18,7 @@ interface UseCoachDataProps {
   selectedSectionTypeFilter: string[];
   selectedMembers: string[];
   notDoneBySelected: boolean;
+  privateOnly: boolean;
 }
 
 export const useCoachData = ({
@@ -30,6 +31,7 @@ export const useCoachData = ({
   selectedSectionTypeFilter,
   selectedMembers,
   notDoneBySelected,
+  privateOnly,
 }: UseCoachDataProps) => {
   const [wods, setWods] = useState<Record<string, WODFormData[]>>({});
   const [tracks, setTracks] = useState<Array<{ id: string; name: string }>>([]);
@@ -94,6 +96,7 @@ export const useCoachData = ({
           time,
           capacity,
           status,
+          is_private,
           workout_id,
           workout_type,
           trial_names,
@@ -191,6 +194,7 @@ export const useCoachData = ({
             sections: workout.sections,
             coach_notes: workout.coach_notes || undefined,
             is_published: workout.is_published || false,
+            is_private: session.is_private || false,
             workout_publish_status: publishStatus,
             google_event_id: workout.google_event_id || null,
             publish_time: workout.publish_time || undefined,
@@ -207,6 +211,7 @@ export const useCoachData = ({
             sections: [],
             classTimes: [],
             is_published: false,
+            is_private: session.is_private || false,
             workout_publish_status: null,
             booking_info: bookingInfo,
           });
@@ -230,7 +235,8 @@ export const useCoachData = ({
       !selectedTracks.length &&
       !selectedSessionTypes.length &&
       !selectedSectionTypeFilter.length &&
-      !selectedMembers.length
+      !selectedMembers.length &&
+      !privateOnly
     ) {
       setSearchResults([]);
       setMovements(new Map());
@@ -245,6 +251,7 @@ export const useCoachData = ({
             id,
             date,
             time,
+            is_private,
             wods!inner (
               id,
               title,
@@ -322,6 +329,7 @@ export const useCoachData = ({
               sections: wod.sections,
               coach_notes: wod.coach_notes || undefined,
               is_published: wod.is_published || false,
+              is_private: session.is_private || false,
               google_event_id: wod.google_event_id || null,
             };
           }) || [];
@@ -429,6 +437,9 @@ export const useCoachData = ({
         if (selectedMovements.length > 0) {
           const knownNames = exerciseNames.size > 0 ? exerciseNames : undefined;
           filteredResults = filteredResults.filter(wod => {
+            // Private events are excluded from movement-based discovery — their
+            // exercises must not be retrievable via the Movements filter. (S399)
+            if (wod.is_private) return false;
             const wodMovements = extractMovementsFromWod(wod, knownNames, acronymMap, liftExerciseMap);
             return selectedMovements.every(movement =>
               wodMovements.has(movement)
@@ -473,9 +484,17 @@ export const useCoachData = ({
           }
         }
 
+        // "Private events only" — lets the coach list all private sessions without
+        // remembering dates (special events, non-WOD sessions). (S399)
+        if (privateOnly) {
+          filteredResults = filteredResults.filter(wod => wod.is_private);
+        }
+
         setSearchResults(filteredResults);
 
-        const allMovements = extractMovements(filteredResults, exerciseNames.size > 0 ? exerciseNames : undefined, acronymMap, liftExerciseMap);
+        // Build the searchable Movements list from NON-private results only, so a
+        // private event's exercises never appear as filter options. (S399)
+        const allMovements = extractMovements(filteredResults.filter(w => !w.is_private), exerciseNames.size > 0 ? exerciseNames : undefined, acronymMap, liftExerciseMap);
         setMovements(allMovements);
       } catch (error) {
         console.error('Error searching WODs:', error);
@@ -484,7 +503,7 @@ export const useCoachData = ({
 
     const timeoutId = setTimeout(searchWODs, 300);
     return () => clearTimeout(timeoutId);
-  }, [searchQuery, selectedMovements, selectedWorkoutTypes, selectedTracks, selectedSessionTypes, includedSectionTypes, selectedSectionTypeFilter, selectedMembers, notDoneBySelected, exerciseNames, acronymMap, liftExerciseMap, displayNameToAcronyms]);
+  }, [searchQuery, selectedMovements, selectedWorkoutTypes, selectedTracks, selectedSessionTypes, includedSectionTypes, selectedSectionTypeFilter, selectedMembers, notDoneBySelected, privateOnly, exerciseNames, acronymMap, liftExerciseMap, displayNameToAcronyms]);
 
   const fetchExerciseNames = async () => {
     try {
@@ -631,6 +650,7 @@ export const useCoachData = ({
             )
           `)
           .eq('wods.workout_publish_status', 'published')
+          .neq('is_private', true) // Private events don't pad the filter facet counts (S399)
           .range(from, from + PAGE - 1);
         if (error) throw error;
         if (!data || data.length === 0) break;

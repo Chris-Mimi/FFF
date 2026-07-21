@@ -154,7 +154,7 @@ export async function fetchPublishedWorkouts(filter?: DateRangeFilter, label = '
   for (let from = 0; ; from += PAGE) {
     let query = supabase
       .from('weekly_sessions')
-      .select('date, wods(id, date, session_type, workout_name, workout_week, sections, workout_publish_status)')
+      .select('date, is_private, wods(id, date, session_type, workout_name, workout_week, sections, workout_publish_status)')
       .order('date', { ascending: false })
       .range(from, from + PAGE - 1);
 
@@ -187,7 +187,9 @@ export async function fetchPublishedWorkouts(filter?: DateRangeFilter, label = '
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (sessions as any[])
-    ?.filter((s) => s.wods !== null && s.wods.workout_publish_status === 'published')
+    // Private events (special events / non-WOD sessions) are excluded from ALL
+    // movement analytics — Planner, tracking grid, toolkit, frequency charts. (S399)
+    ?.filter((s) => s.wods !== null && s.wods.workout_publish_status === 'published' && !s.is_private)
     .filter((s) => excludeTypes.length === 0 || !isExcluded(s.wods.session_type))
     .map((s) => ({
       id: s.wods.id,

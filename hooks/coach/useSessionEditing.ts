@@ -32,6 +32,8 @@ interface UseSessionEditingResult {
   isEffectivelyLocked: boolean;
   handleToggleAthleteVisibility: () => Promise<void>;
   isHiddenFromAthletes: boolean;
+  handleTogglePrivate: () => Promise<void>;
+  isPrivate: boolean;
 }
 
 export function useSessionEditing({
@@ -188,6 +190,31 @@ export function useSessionEditing({
     }
   };
 
+  // Private event: hidden from athletes AND its exercises excluded from search /
+  // Planner / movement analytics. One combined switch — sets is_private and forces
+  // status to draft (turning Private off restores the session to published/visible).
+  const isPrivate = session?.is_private === true;
+
+  const handleTogglePrivate = async () => {
+    if (!session) return;
+    const makePrivate = !isPrivate;
+    try {
+      const { error } = await supabase
+        .from('weekly_sessions')
+        .update({ is_private: makePrivate, status: makePrivate ? 'draft' : 'published' })
+        .eq('id', sessionId);
+
+      if (error) throw error;
+
+      await onRefresh();
+      onSessionUpdated();
+      toast.success(makePrivate ? 'Private event — hidden from athletes & analytics' : 'No longer private');
+    } catch (error) {
+      console.error('Error toggling private event:', error);
+      toast.error('Failed to update private setting');
+    }
+  };
+
   const handleCancelSession = async () => {
     if (
       !await confirm({
@@ -242,5 +269,7 @@ export function useSessionEditing({
     isEffectivelyLocked,
     handleToggleAthleteVisibility,
     isHiddenFromAthletes,
+    handleTogglePrivate,
+    isPrivate,
   };
 }

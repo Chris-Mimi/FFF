@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Eye, EyeOff, Link2, Lock, Trash2, Unlock, X } from 'lucide-react';
+import { Eye, EyeOff, Link2, Lock, Trash2, Unlock, X, ShieldOff, Shield } from 'lucide-react';
 import { useSessionDetails } from '@/hooks/coach/useSessionDetails';
 import { useSessionEditing } from '@/hooks/coach/useSessionEditing';
 import { useBookingManagement } from '@/hooks/coach/useBookingManagement';
@@ -556,6 +556,18 @@ export default function SessionManagementModal({
                 >
                   {sessionEditing.isHiddenFromAthletes ? <EyeOff size={16} /> : <Eye size={16} />}
                   {sessionEditing.isHiddenFromAthletes ? 'Hidden' : 'Hide'}
+                </button>
+                <button
+                  onClick={sessionEditing.handleTogglePrivate}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition text-sm ${
+                    sessionEditing.isPrivate
+                      ? 'bg-indigo-700 hover:bg-indigo-800 text-white'
+                      : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                  }`}
+                  title={sessionEditing.isPrivate ? 'Make this a normal session (visible + exercises tracked)' : 'Private event: hide from athletes AND exclude its exercises from search, Planner & analytics (for special events / non-WOD sessions)'}
+                >
+                  {sessionEditing.isPrivate ? <Shield size={16} /> : <ShieldOff size={16} />}
+                  {sessionEditing.isPrivate ? 'Private' : 'Private'}
                 </button>
                 <button
                   onClick={sessionEditing.handleCancelSession}

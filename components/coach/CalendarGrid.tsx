@@ -298,7 +298,11 @@ export default function CalendarGrid({
                     {wod.booking_info.og_count} OG
                   </span>
                 )}
-                {wod.booking_info.status === 'draft' && (
+                {wod.is_private ? (
+                  <span className="text-[10px] font-bold text-white rounded px-1 py-0.5 bg-indigo-700" title="Private event — hidden from athletes AND excluded from search, Planner & analytics">
+                    Private
+                  </span>
+                ) : wod.booking_info.status === 'draft' && (
                   <span className="text-[10px] font-bold text-white rounded px-1 py-0.5 bg-purple-600" title="Hidden from athletes — not bookable">
                     Hidden
                   </span>

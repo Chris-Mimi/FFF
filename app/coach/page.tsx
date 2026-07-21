@@ -86,6 +86,7 @@ export default function CoachDashboard() {
   const [hoveredSearchWOD, setHoveredSearchWOD] = useState<WODFormData | null>(null);
   const [notesPanelOpen, setNotesPanelOpen] = useState(false);
   const [notDoneBySelected, setNotDoneBySelected] = useState(false);
+  const [privateOnly, setPrivateOnly] = useState(false);
 
   // Session management
   const [sessionManagementModal, setSessionManagementModal] = useState<{
@@ -130,6 +131,7 @@ export default function CoachDashboard() {
     selectedSectionTypeFilter,
     selectedMembers: athletesMuted ? [] : selectedMembers,
     notDoneBySelected,
+    privateOnly,
   });
 
   const { handleSaveWOD, handleDeleteWOD, handleDeleteWODToEmpty, handleDeleteWODPermanently, handleDeleteSession, handleCopyWOD } = useWODOperations({
@@ -487,6 +489,8 @@ export default function CoachDashboard() {
           onAthletesMutedChange={setAthletesMuted}
           notDoneBySelected={notDoneBySelected}
           onNotDoneBySelectedChange={setNotDoneBySelected}
+          privateOnly={privateOnly}
+          onPrivateOnlyChange={setPrivateOnly}
           selectedSearchWOD={selectedSearchWOD}
           onSelectedSearchWODChange={setSelectedSearchWOD}
           hoveredWOD={hoveredSearchWOD}

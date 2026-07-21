@@ -236,6 +236,7 @@ export default function AnalysisPage() {
             id,
             date,
             time,
+            is_private,
             workout_id,
             wods (
               id,
@@ -249,6 +250,7 @@ export default function AnalysisPage() {
           `)
           .gte('date', startDateStr)
           .lte('date', endDateStr)
+          .neq('is_private', true) // exclude Private events from analysis (S399)
           .range(from, from + PAGE - 1);
 
         if (error) throw error;

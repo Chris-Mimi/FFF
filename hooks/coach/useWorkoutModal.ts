@@ -88,6 +88,7 @@ export interface WODFormData {
   sections: WODSection[];
   coach_notes?: string;
   is_published?: boolean;
+  is_private?: boolean; // Private event: hidden from athletes AND its exercises excluded from search/Planner/analytics (per-session flag on weekly_sessions)
   workout_publish_status?: string | null; // 'draft' | 'published' | null (null = no workout)
   google_event_id?: string | null;
   publish_time?: string; // Time workout was/will be published (HH:MM:SS format)

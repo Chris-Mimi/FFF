@@ -65,6 +65,8 @@ interface SearchPanelProps {
   onAthletesMutedChange: (value: boolean) => void;
   notDoneBySelected: boolean;
   onNotDoneBySelectedChange: (value: boolean) => void;
+  privateOnly: boolean;
+  onPrivateOnlyChange: (value: boolean) => void;
   selectedSearchWOD: WODFormData | null;
   onSelectedSearchWODChange: (wod: WODFormData | null) => void;
   hoveredWOD: WODFormData | null;
@@ -122,6 +124,8 @@ export default function SearchPanel({
   onAthletesMutedChange,
   notDoneBySelected,
   onNotDoneBySelectedChange,
+  privateOnly,
+  onPrivateOnlyChange,
   selectedSearchWOD,
   onSelectedSearchWODChange,
   hoveredWOD,
@@ -1590,6 +1594,17 @@ export default function SearchPanel({
                       : `Show only workouts none of the ${selectedMembers.length} selected athlete(s) have attended`}
                   >
                     Not done by selected
+                  </button>
+                  <button
+                    onClick={() => onPrivateOnlyChange(!privateOnly)}
+                    className={`text-[10px] px-1.5 py-0.5 rounded border transition ${
+                      privateOnly
+                        ? 'bg-indigo-700 text-white border-indigo-700'
+                        : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400'
+                    }`}
+                    title='Show only Private events (special / non-WOD sessions hidden from athletes & analytics)'
+                  >
+                    Private events
                   </button>
                 </div>
                 <div className='space-y-2 sm:space-y-3 relative'>

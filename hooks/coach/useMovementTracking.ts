@@ -89,6 +89,7 @@ export function useMovementTracking({
           )
         `)
         .eq('wods.workout_publish_status', 'published')
+        .neq('is_private', true) // exclude Private events from the movement tracking grid (S399)
         .range(from, from + PAGE - 1);
       if (error) { fetchError = error; break; }
       if (!data || data.length === 0) break;
@@ -188,7 +189,8 @@ export function useMovementTracking({
             )
           `)
           .in('id', batch)
-          .eq('wods.workout_publish_status', 'published');
+          .eq('wods.workout_publish_status', 'published')
+          .neq('is_private', true); // exclude Private events (S399)
 
         if (sErr) throw sErr;
 

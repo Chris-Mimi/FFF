@@ -25,11 +25,12 @@ Need DOB: Engels Frida, Frieda Stromer, Leopold Wischhöfer, Nico Enzmann,
 Ask Mimi Silvia Maritati (Diapers & Dumbbells?)
 * Review what the section filter chips do in the Workouts page. 
 * New protocol: memory-bank/whiteboard-score-entry-protocol.md. Next time, just say "run the whiteboard protocol for [photo]" and give the name of the WOD and the date/s and times. Give also any Drop-ins or unknown names in the session. Whether it's an RM/Strength day or a MetCon. I'll: pull the image → transcribe to a verification table → you confirm → map names via the list → write lift_records + WSR → verify one session → parity check. 
+* IDEA for new app. Pianio tutorials, YT clips, own recordings and sheet music all in one webapp
 
 
 * At-Risk put the list in order from most recent to least recent attendance
 * Weekend WOD #26.2 not done by selected first showed correctly then did not appear
-* 
+* Clicking on any exercise in the planner should show exactly every time that exercise was programmed within the timescale.
 
 * Ask Claude for a Magic link script to access athlete's accounts to check screen views so I can help them click the right buttons. I just give Claude the email ad.
 * One thing I'd flag for later (not now): the parallel-session "move" still loses the athlete's whiteboard score for that day (the re-add doesn't carry it over) — only their PR is now safe. A proper one-click "move booking that keeps the score" is the real cure, but that's a feature, not a bug fix. Want me to note it in the memory bank for a future session? - I don't understand, explain in simple terms.
