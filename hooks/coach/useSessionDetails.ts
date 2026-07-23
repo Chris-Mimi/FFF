@@ -13,6 +13,7 @@ export interface SessionDetails {
   workout_id: string;
   is_locked: boolean | null;
   is_private: boolean;
+  pre_cancel_status: string | null;
   trial_names: string[];
   drop_in_names: string[];
 }

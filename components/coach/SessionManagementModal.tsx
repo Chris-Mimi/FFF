@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Eye, EyeOff, Link2, Lock, Trash2, Unlock, X, ShieldOff, Shield } from 'lucide-react';
+import { Eye, EyeOff, Link2, Lock, RotateCcw, Trash2, Unlock, X, ShieldOff, Shield } from 'lucide-react';
 import { useSessionDetails } from '@/hooks/coach/useSessionDetails';
 import { useSessionEditing } from '@/hooks/coach/useSessionEditing';
 import { useBookingManagement } from '@/hooks/coach/useBookingManagement';
@@ -577,6 +577,16 @@ export default function SessionManagementModal({
                   Cancel Session
                 </button>
               </div>
+            )}
+            {sessionDetails.session.status === 'cancelled' && (
+              <button
+                onClick={sessionEditing.handleRestoreSession}
+                className='flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition text-sm'
+                title='Reopen this session and restore its bookings (undo an accidental cancel)'
+              >
+                <RotateCcw size={16} />
+                Restore Session
+              </button>
             )}
             <button
               onClick={onClose}

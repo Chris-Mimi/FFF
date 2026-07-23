@@ -28,6 +28,7 @@ interface UseSessionEditingResult {
   handleUpdateCapacity: () => Promise<void>;
   handleUpdateTime: () => Promise<void>;
   handleCancelSession: () => Promise<void>;
+  handleRestoreSession: () => Promise<void>;
   handleToggleLock: () => Promise<void>;
   isEffectivelyLocked: boolean;
   handleToggleAthleteVisibility: () => Promise<void>;
@@ -228,19 +229,29 @@ export function useSessionEditing({
     }
 
     try {
+      // Remember the session's prior status so Restore can reopen it to exactly
+      // what it was (published, or draft for a hidden/private session).
+      const priorSessionStatus = session?.status ?? 'published';
       const { error } = await supabase
         .from('weekly_sessions')
-        .update({ status: 'cancelled' })
+        .update({ status: 'cancelled', pre_cancel_status: priorSessionStatus })
         .eq('id', sessionId);
 
       if (error) throw error;
 
-      // Cancel all bookings
+      // Cancel all bookings, tagging each with its prior status so Restore can put
+      // it back exactly — and so Restore never touches a booking an athlete
+      // cancelled themselves (those keep a NULL pre_cancel_status).
       await supabase
         .from('bookings')
-        .update({ status: 'cancelled' })
+        .update({ status: 'cancelled', pre_cancel_status: 'confirmed' })
         .eq('session_id', sessionId)
-        .in('status', ['confirmed', 'waitlist']);
+        .eq('status', 'confirmed');
+      await supabase
+        .from('bookings')
+        .update({ status: 'cancelled', pre_cancel_status: 'waitlist' })
+        .eq('session_id', sessionId)
+        .eq('status', 'waitlist');
 
       // Notify affected members (fire-and-forget)
       authFetch('/api/notifications/session-cancelled', {
@@ -257,6 +268,49 @@ export function useSessionEditing({
     }
   };
 
+  // Undo an accidental session cancel. Reopens the session to its prior status and
+  // restores only the bookings THIS cancel flipped (tagged with pre_cancel_status),
+  // back to their exact prior status — athlete self-cancels are left untouched.
+  const handleRestoreSession = async () => {
+    if (
+      !await confirm({
+        title: 'Restore Session',
+        message: 'Reopen this session and restore its bookings? Athletes who cancelled themselves stay cancelled.',
+        confirmText: 'Restore Session',
+      })
+    ) {
+      return;
+    }
+
+    try {
+      const restoreStatus = session?.pre_cancel_status ?? 'published';
+      const { error } = await supabase
+        .from('weekly_sessions')
+        .update({ status: restoreStatus, pre_cancel_status: null })
+        .eq('id', sessionId);
+
+      if (error) throw error;
+
+      await supabase
+        .from('bookings')
+        .update({ status: 'confirmed', pre_cancel_status: null })
+        .eq('session_id', sessionId)
+        .eq('pre_cancel_status', 'confirmed');
+      await supabase
+        .from('bookings')
+        .update({ status: 'waitlist', pre_cancel_status: null })
+        .eq('session_id', sessionId)
+        .eq('pre_cancel_status', 'waitlist');
+
+      toast.success('Session restored.');
+      await onRefresh();
+      onSessionUpdated();
+    } catch (error) {
+      console.error('Error restoring session:', error);
+      toast.error('Failed to restore session');
+    }
+  };
+
   return {
     editingCapacity,
     editingTime,
@@ -265,6 +319,7 @@ export function useSessionEditing({
     handleUpdateCapacity,
     handleUpdateTime,
     handleCancelSession,
+    handleRestoreSession,
     handleToggleLock,
     isEffectivelyLocked,
     handleToggleAthleteVisibility,
