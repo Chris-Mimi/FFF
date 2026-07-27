@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { AlertTriangle, Check, Clock, Pause, Play, Trash2, X } from 'lucide-react';
+import { AlertTriangle, Check, Clock, Link2, Pause, Play, Trash2, X } from 'lucide-react';
 import {
   MemberStatus,
   MembershipType,
@@ -118,7 +118,27 @@ export default function MemberCard({
                 Guardian
               </span>
             )}
-            {member.membership_types?.includes('ten_card') && (() => {
+            {/* Sharer (kid on a parent's shared card): show the shared balance + own
+                usage. The card itself is managed on the holder's profile, so this is
+                an info chip, not a button. */}
+            {member.membership_types?.includes('ten_card') && member.ten_card_holder_id && (() => {
+              const used = member.shared_card_used ?? 0;
+              const total = member.shared_card_total ?? 10;
+              const own = member.own_ten_card_used ?? 0;
+              const holderName = member.shared_card_holder_name || 'family';
+              return (
+                <span
+                  className={`px-2 py-0.5 rounded text-xs font-medium flex items-center gap-1 ${
+                    used >= total - 1 ? 'bg-red-600 text-white' : 'bg-purple-600 text-white'
+                  }`}
+                  title={`Shares ${holderName}'s 10-card — ${used}/${total} used by the family; ${member.display_name || member.name} has used ${own}. Manage the card on ${holderName}'s profile.`}
+                >
+                  <Link2 size={11} />
+                  {used}/{total} · used {own}
+                </span>
+              );
+            })()}
+            {member.membership_types?.includes('ten_card') && !member.ten_card_holder_id && (() => {
               const counter = member.ten_card_sessions_used || 0;
               const past = member.past_ten_card_bookings || 0;
               const upcoming = member.upcoming_ten_card_bookings || 0;

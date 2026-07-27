@@ -33,6 +33,14 @@ export interface Member {
   last_attendance_date?: string | null;
   upcoming_ten_card_bookings?: number;
   past_ten_card_bookings?: number;
+  // Family shared-card fields — populated on SHARERS (members whose ten_card_holder_id
+  // points at another member). The card lives on the holder; these mirror the holder's
+  // balance onto the kid's profile, plus own_ten_card_used = this member's own
+  // contribution to the shared card.
+  shared_card_holder_name?: string | null;
+  shared_card_used?: number | null;
+  shared_card_total?: number | null;
+  own_ten_card_used?: number;
   date_of_birth: string | null;
   class_types: ClassType[];
   gender: 'M' | 'F' | null;

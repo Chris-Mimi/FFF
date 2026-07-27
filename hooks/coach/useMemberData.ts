@@ -274,6 +274,9 @@ export function useMemberData() {
       // manual-override mismatches (e.g. coach typed in a counter without bookings).
       const upcomingTenCardMap: Record<string, number> = {};
       const pastTenCardMap: Record<string, number> = {};
+      // Per-member (booker's own) count of consumed bookings toward whichever card
+      // they debit — so a sharer kid's profile can show "used N of the shared card".
+      const ownTenCardMap: Record<string, number> = {};
       const tenCardHolders = (membersData || [])
         .filter(m => (m.membership_types || []).includes('ten_card'));
       if (tenCardHolders.length > 0) {
@@ -333,20 +336,44 @@ export function useMemberData() {
           if (sessionMs >= nowMs) {
             if (row.status !== 'confirmed') return; // only confirmed reserves a future slot
             upcomingTenCardMap[holderId] = (upcomingTenCardMap[holderId] || 0) + 1;
+            ownTenCardMap[booker.id] = (ownTenCardMap[booker.id] || 0) + 1;
           } else {
             pastTenCardMap[holderId] = (pastTenCardMap[holderId] || 0) + 1;
+            ownTenCardMap[booker.id] = (ownTenCardMap[booker.id] || 0) + 1;
           }
         });
       }
 
-      let membersWithAttendance = (membersData || []).map(member => ({
-        ...member,
-        subscription_plan_type: planTypeMap[member.id] || null,
-        attendance_count: attendanceMap[member.id] || 0,
-        last_attendance_date: lastAttendanceMap[member.id] || null,
-        upcoming_ten_card_bookings: upcomingTenCardMap[member.id] || 0,
-        past_ten_card_bookings: pastTenCardMap[member.id] || 0,
-      }));
+      // Holder card lookup so a sharer's profile can mirror the holder's balance.
+      const holderCardById = new Map(
+        tenCardHolders.map(m => [
+          m.id,
+          {
+            used: m.ten_card_sessions_used ?? 0,
+            total: m.ten_card_total ?? 10,
+            name: m.display_name || m.name,
+          },
+        ])
+      );
+
+      let membersWithAttendance = (membersData || []).map(member => {
+        // Sharer (kid on a parent's card): mirror the holder's balance + own usage.
+        const sharedCard = member.ten_card_holder_id
+          ? holderCardById.get(member.ten_card_holder_id) ?? null
+          : null;
+        return {
+          ...member,
+          subscription_plan_type: planTypeMap[member.id] || null,
+          attendance_count: attendanceMap[member.id] || 0,
+          last_attendance_date: lastAttendanceMap[member.id] || null,
+          upcoming_ten_card_bookings: upcomingTenCardMap[member.id] || 0,
+          past_ten_card_bookings: pastTenCardMap[member.id] || 0,
+          own_ten_card_used: ownTenCardMap[member.id] || 0,
+          shared_card_holder_name: sharedCard?.name ?? null,
+          shared_card_used: sharedCard ? sharedCard.used : null,
+          shared_card_total: sharedCard ? sharedCard.total : null,
+        };
+      });
 
       // Family members inherit subscription status from their primary member
       const familyMembers = membersWithAttendance.filter(m => m.account_type === 'family_member' && m.primary_member_id);
