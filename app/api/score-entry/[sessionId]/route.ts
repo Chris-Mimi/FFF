@@ -103,54 +103,10 @@ export async function GET(
         gender: m.gender || null,
       }));
 
-    // 5b. Parse Whiteboard Intro section for additional attendees
-    const sections = wod.sections as { id: string; type: string; content: string }[] || [];
-    const whiteboardSection = sections.find(s => s.type === 'Whiteboard Intro');
-    if (whiteboardSection && whiteboardSection.content) {
-      // Strip HTML tags, then split by comma
-      const rawContent = whiteboardSection.content.replace(/<[^>]*>/g, '').trim();
-      const whiteboardNames = rawContent
-        .split(',')
-        .map((n: string) => n.trim())
-        .filter((n: string) => n.length > 0);
-
-      // Build dedup set from booked members: both whiteboard_name AND member name
-      const bookedMemberIds = members.map((m: { id: string }) => m.id);
-      const bookedNamesSet = new Set<string>();
-      // Add booked member names (always available)
-      for (const m of members as { id: string; name: string | null; display_name: string | null }[]) {
-        const resolved = m.display_name || m.name;
-        if (!resolved) continue;
-        // Add first name (whiteboard typically uses first name only)
-        const firstName = resolved.split(' ')[0];
-        bookedNamesSet.add(firstName.toLowerCase());
-        bookedNamesSet.add(resolved.toLowerCase());
-      }
-      // Also add explicit whiteboard_name values
-      if (bookedMemberIds.length > 0) {
-        const { data: bookedMembers } = await supabaseAdmin
-          .from('members')
-          .select('whiteboard_name')
-          .in('id', bookedMemberIds)
-          .not('whiteboard_name', 'is', null);
-        for (const m of bookedMembers || []) {
-          bookedNamesSet.add((m.whiteboard_name as string).toLowerCase());
-        }
-      }
-
-      // Add whiteboard-only athletes (not already in booked list)
-      for (const wbName of whiteboardNames) {
-        if (bookedNamesSet.has(wbName.toLowerCase())) continue;
-        athletes.push({
-          id: `wb:${wbName}`,
-          memberId: null,
-          userId: null,
-          name: wbName,
-          whiteboardName: wbName,
-          gender: null,
-        });
-      }
-    }
+    // 5b. (Removed) Whiteboard-Intro-section name parsing.
+    // The intro section is free text; comma-splitting it turned prose into bogus
+    // whiteboard-only attendee rows. All attendees are registered/booked members now —
+    // trials + drop-ins below cover the only remaining name-only (unregistered) cases.
 
     // 5c. Append trial athletes (pre-known, not yet registered) as whiteboard-style entries
     const trialNames = (session.trial_names as string[] | null) || [];
