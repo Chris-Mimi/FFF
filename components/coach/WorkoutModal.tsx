@@ -118,14 +118,15 @@ export default function WorkoutModal({
 
         {/* WOD Panel - full width on mobile, 800px on desktop */}
         <div
-          className='fixed left-0 top-[72px] h-[calc(100vh-72px)] w-full lg:w-[800px] bg-white shadow-2xl flex flex-col border-r-2 border-[#178da6] border-t border-gray-400 animate-slide-in-left'
+          className='fixed left-0 top-[72px] h-[calc(100vh-72px)] w-full lg:w-[800px] bg-white shadow-2xl flex flex-col overflow-x-hidden border-r-2 border-[#178da6] border-t border-gray-400 animate-slide-in-left'
           style={{
             zIndex: hook.workoutPanelZIndex,
-            // On mobile, pin to the visual viewport (below the 72px nav) so the
-            // on-screen keyboard shrinks the panel instead of scrolling the sticky
-            // "Library / + Section" bar off the top (S379).
+            // On mobile, fill the visual viewport so (a) the editor covers the whole
+            // screen — no coach nav peeking above it — and (b) the on-screen keyboard
+            // shrinks the panel instead of scrolling the sticky "Library / + Section"
+            // bar off the top (S379). Desktop keeps the top-[72px] 800px side panel.
             ...(isMobile && mobileViewport
-              ? { top: mobileViewport.offsetTop + 72, height: mobileViewport.height - 72 }
+              ? { top: mobileViewport.offsetTop, height: mobileViewport.height }
               : {}),
           }}
           onMouseDown={hook.bringWorkoutToFront}
@@ -171,7 +172,7 @@ export default function WorkoutModal({
           {/* Content Area - Form Only */}
           <form
             onSubmit={hook.handleSubmit}
-            className='flex-1 min-h-0 overflow-y-auto p-6 space-y-6'
+            className='flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-6 space-y-6'
             onDragOver={hook.handlePanelDragOver}
             onDragLeave={hook.handlePanelDragLeave}
             onDrop={hook.handlePanelDrop}
