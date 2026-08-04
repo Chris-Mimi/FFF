@@ -15,7 +15,8 @@ http://192.168.178.75:3000
 * IDEA: Put names of booked athletes in Whiteboard Intro so they also go into Google Calendar or find another way to register them in Google Calendar.
 * iphone bug (I think) Coach-side: Workouts search box: Mimi can't type anything in the search box
 * Mimi couldn't add a trial athlete
-* 
+* Mobile view: Library should always stay at the top when scrolling through the sections
+* AThlete App: Shouldn't show Private events!
 * 
 
 Athletes app: Give me the possibility to send Athletes who pay for the app a message.

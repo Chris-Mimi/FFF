@@ -505,6 +505,9 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
       .gte('date', mondayStr)
       .lte('date', sundayStr)
       .eq('is_published', true)
+      // Private events are never visible to athletes, regardless of status — exclude their
+      // sessions from the inner join so the workout drops off the leaderboard (S399/S402).
+      .neq('weekly_sessions.is_private', true)
       .order('date', { ascending: true });
 
     // Deduplicate WODs by workout_name ONLY (e.g., same workout at 17:15 and 18:30, or the
