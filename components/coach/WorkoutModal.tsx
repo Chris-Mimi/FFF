@@ -12,6 +12,7 @@ import CoachNotesPanel from '@/components/coach/CoachNotesPanel';
 import MovementDemosBar from '@/components/coach/MovementDemosBar';
 import { useWorkoutModal, WODFormData } from '@/hooks/coach/useWorkoutModal';
 import { FocusTrap } from '@/components/ui/FocusTrap';
+import { useEffect, useState } from 'react';
 
 // Re-export types for backwards compatibility
 export type { WODFormData, WODSection } from '@/hooks/coach/useWorkoutModal';
@@ -57,6 +58,39 @@ export default function WorkoutModal({
   // Use hook's live sessionTime (updated after inline time edit), falling back to editingWOD prop
   const publishSessionTime = hook.sessionTime || editingWOD?.publish_time || editingWOD?.booking_info?.time;
 
+  // Track the VISUAL viewport on mobile so the panel shrinks when the on-screen
+  // keyboard opens (S379). The panel is sized with `100vh`, which measures the
+  // LAYOUT viewport — the keyboard does NOT shrink it — so tapping into a section's
+  // text field made the whole fixed panel taller than the visible area and the
+  // browser scrolled it, carrying the sticky "Library / + Section" bar off the top.
+  // Sizing to visualViewport keeps that bar pinned at the top of the screen.
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== 'undefined' && window.innerWidth < 1024
+  );
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const [mobileViewport, setMobileViewport] = useState<{ height: number; offsetTop: number } | null>(null);
+  useEffect(() => {
+    const vv = typeof window !== 'undefined' ? window.visualViewport : null;
+    if (!isMobile || !vv) {
+      setMobileViewport(null);
+      return;
+    }
+    const update = () => setMobileViewport({ height: vv.height, offsetTop: vv.offsetTop });
+    update();
+    vv.addEventListener('resize', update);
+    vv.addEventListener('scroll', update);
+    return () => {
+      vv.removeEventListener('resize', update);
+      vv.removeEventListener('scroll', update);
+    };
+  }, [isMobile]);
+
   if (!isOpen) return null;
 
   const totalDuration = hook.getTotalDuration();
@@ -85,7 +119,15 @@ export default function WorkoutModal({
         {/* WOD Panel - full width on mobile, 800px on desktop */}
         <div
           className='fixed left-0 top-[72px] h-[calc(100vh-72px)] w-full lg:w-[800px] bg-white shadow-2xl flex flex-col border-r-2 border-[#178da6] border-t border-gray-400 animate-slide-in-left'
-          style={{ zIndex: hook.workoutPanelZIndex }}
+          style={{
+            zIndex: hook.workoutPanelZIndex,
+            // On mobile, pin to the visual viewport (below the 72px nav) so the
+            // on-screen keyboard shrinks the panel instead of scrolling the sticky
+            // "Library / + Section" bar off the top (S379).
+            ...(isMobile && mobileViewport
+              ? { top: mobileViewport.offsetTop + 72, height: mobileViewport.height - 72 }
+              : {}),
+          }}
           onMouseDown={hook.bringWorkoutToFront}
         >
           {/* Header */}
@@ -129,7 +171,7 @@ export default function WorkoutModal({
           {/* Content Area - Form Only */}
           <form
             onSubmit={hook.handleSubmit}
-            className='flex-1 overflow-y-auto p-6 space-y-6'
+            className='flex-1 min-h-0 overflow-y-auto p-6 space-y-6'
             onDragOver={hook.handlePanelDragOver}
             onDragLeave={hook.handlePanelDragLeave}
             onDrop={hook.handlePanelDrop}
