@@ -207,9 +207,14 @@ export default function AthletePageProfileTab({ userName, userId }: AthletePageP
         avatar_url: avatarUrl || null,
       };
 
-      // Always update members table for consistency
+      // Always update members table for consistency. Keep display_name (what the
+      // "Viewing as" selector + Book-a-class filters actually render) in sync with
+      // name — otherwise a rename shows the old name everywhere but the profile form.
       const memberUpdate: Record<string, string | null> = {};
-      if (profile.full_name) memberUpdate.name = profile.full_name;
+      if (profile.full_name) {
+        memberUpdate.name = profile.full_name;
+        memberUpdate.display_name = profile.full_name;
+      }
       memberUpdate.gender = gender || null;
       memberUpdate.date_of_birth = profile.date_of_birth || null;
       if (Object.keys(memberUpdate).length > 0) {

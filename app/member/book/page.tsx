@@ -461,6 +461,9 @@ export default function MemberBookingPage() {
       const { error } = await supabase
         .from('members')
         .update({
+          // Keep name + display_name in sync (add-family sets both equal); editing
+          // only display_name left `name` stale and diverging from the UI (S402).
+          name: familyFormData.display_name.trim(),
           display_name: familyFormData.display_name.trim(),
           date_of_birth: familyFormData.date_of_birth || null,
           relationship: familyFormData.relationship
