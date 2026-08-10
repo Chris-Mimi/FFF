@@ -16,8 +16,8 @@ http://192.168.178.75:3000
 * iphone bug (I think) Coach-side: Workouts search box: Mimi can't type anything in the search box
 * Mimi couldn't add a trial athlete
 * Michi S can't see other athletes booked
-* 
-* 
+* Another improvement. I'd like to be able to click on an exercise in the planner
+* Kids 1.7, 27.7 31.7 needs exercises
 
 Athletes app: Give me the possibility to send Athletes who pay for the app a message.
 * 
