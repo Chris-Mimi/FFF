@@ -221,7 +221,7 @@ export default function PlanningGrid({
     return m;
   }, [patterns, selectedPast]);
 
-  // Last 3 UNIQUE workouts (deduped by workout_name, else date) the selected
+  // Last 5 UNIQUE workouts (deduped by workout_name, else date) the selected
   // chip's exercise was programmed in, most-recent first. `workouts` is already
   // sorted newest-first by getExerciseFrequency.
   const chipLast3 = useMemo(() => {
@@ -235,7 +235,7 @@ export default function PlanningGrid({
       if (seen.has(key)) continue;
       seen.add(key);
       out.push({ key, workout_name: w.workout_name, date: w.date });
-      if (out.length === 3) break;
+      if (out.length === 5) break;
     }
     return out;
   }, [selectedChipExId, exerciseHistory]);
@@ -655,7 +655,7 @@ export default function PlanningGrid({
                     onLoadExerciseHistory?.();
                     setSelectedChipExId(isChipSel ? null : exId);
                   }}
-                  title={exId ? 'Click for the last 3 unique workouts' : undefined}
+                  title={exId ? 'Click for the last 5 unique workouts' : undefined}
                   className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs border transition ${
                     ex.rmType
                       ? 'bg-amber-50 border-amber-300 text-amber-800'
@@ -691,7 +691,7 @@ export default function PlanningGrid({
           {selectedChipExId && (
             <div className='mt-3 pt-3 border-t border-gray-200'>
               <div className='text-xs font-semibold text-gray-700 mb-1.5'>
-                Last 3 unique workouts ·{' '}
+                Last 5 unique workouts ·{' '}
                 {selectedDetail.exercises.find(ex => chipNameToExId.get(ex.name) === selectedChipExId)?.name}
               </div>
               {historyLoading ? (
