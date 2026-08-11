@@ -113,6 +113,7 @@ export interface ExerciseFrequencyWorkout {
 export interface ExerciseFrequency {
   id: string;
   name: string;
+  display_name: string | null;
   category: string;
   count: number;        // total sessions the exercise was programmed in (matches Workouts-page "total")
   uniqueCount: number;  // distinct workouts by name (matches Workouts-page "unique")
@@ -516,13 +517,13 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
   const exercisesData = exRes.data;
 
   // Build name→exercise lookup (case-insensitive, by name and display_name)
-  const exercisesByName = new Map<string, { id: string; name: string; category: string }>();
+  const exercisesByName = new Map<string, { id: string; name: string; display_name: string | null; category: string }>();
   const knownExerciseNames = new Set<string>();
   exercisesData?.forEach(ex => {
-    exercisesByName.set(ex.name.toLowerCase(), { id: ex.id, name: ex.name, category: ex.category });
+    exercisesByName.set(ex.name.toLowerCase(), { id: ex.id, name: ex.name, display_name: ex.display_name, category: ex.category });
     knownExerciseNames.add(ex.name);
     if (ex.display_name && ex.display_name.toLowerCase() !== ex.name.toLowerCase()) {
-      exercisesByName.set(ex.display_name.toLowerCase(), { id: ex.id, name: ex.name, category: ex.category });
+      exercisesByName.set(ex.display_name.toLowerCase(), { id: ex.id, name: ex.name, display_name: ex.display_name, category: ex.category });
       knownExerciseNames.add(ex.display_name);
     }
   });
@@ -539,6 +540,7 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
   const exerciseMap = new Map<string, {
     id: string;
     name: string;
+    display_name: string | null;
     category: string;
     sessions: ExerciseFrequencyWorkout[];
     uniqueKeys: Set<string>;
@@ -587,6 +589,7 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
         exerciseMap.set(exercise.id, {
           id: exercise.id,
           name: exercise.name,
+          display_name: exercise.display_name,
           category: exercise.category,
           sessions: [workoutEntry],
           uniqueKeys: new Set([uniqueKey]),
@@ -600,6 +603,7 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
   const exerciseAnalysis: ExerciseFrequency[] = Array.from(exerciseMap.values()).map(ex => ({
     id: ex.id,
     name: ex.name,
+    display_name: ex.display_name,
     category: ex.category,
     count: ex.sessions.length,
     uniqueCount: ex.uniqueKeys.size,

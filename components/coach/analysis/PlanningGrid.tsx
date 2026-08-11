@@ -199,34 +199,25 @@ export default function PlanningGrid({
 
   const [selectedPast, setSelectedPast] = useState<SelectedPast | null>(null);
   const [selectedEx, setSelectedEx] = useState<SelectedExercise | null>(null);
-  // Exercise id whose "last 3 unique workouts" popover is open inside the
-  // 'all'-mode group-dot detail panel (null = none).
-  const [selectedChipExId, setSelectedChipExId] = useState<string | null>(null);
+  // Exercise chip name (display_name || name) whose "last 5 unique workouts"
+  // popover is open inside the 'all'-mode group-dot detail panel (null = none).
+  const [selectedChipName, setSelectedChipName] = useState<string | null>(null);
 
   // Open/close a group-dot detail panel. Clearing the panel or switching to a
   // different pattern-week also closes any open exercise-chip popover.
   const selectPast = (next: SelectedPast | null) => {
-    setSelectedChipExId(null);
+    setSelectedChipName(null);
     setSelectedPast(next);
   };
 
-  // Resolve chip name (display_name || name) → exercise id, for the selected
-  // pattern's exercises. Coverage chips carry only the name; the pattern's own
-  // exercise list carries the id we key programming history by.
-  const chipNameToExId = useMemo(() => {
-    const m = new Map<string, string>();
-    if (!selectedPast) return m;
-    const pat = patterns.find(p => p.id === selectedPast.patternId);
-    pat?.exercises.forEach(e => m.set(e.display_name || e.name, e.id));
-    return m;
-  }, [patterns, selectedPast]);
-
   // Last 5 UNIQUE workouts (deduped by workout_name, else date) the selected
-  // chip's exercise was programmed in, most-recent first. `workouts` is already
-  // sorted newest-first by getExerciseFrequency.
+  // chip's exercise was programmed in, most-recent first. Looked up by NAME
+  // (not exercise id) — mirrors how the coverage dot matches, and dodges the
+  // duplicate-display_name id divergence (e.g. two "Good Morning" records).
+  // `workouts` is already sorted newest-first by getExerciseFrequency.
   const chipLast3 = useMemo(() => {
-    if (!selectedChipExId || !exerciseHistory) return [];
-    const freq = exerciseHistory.get(selectedChipExId);
+    if (!selectedChipName || !exerciseHistory) return [];
+    const freq = exerciseHistory.get(selectedChipName.toLowerCase());
     if (!freq) return [];
     const seen = new Set<string>();
     const out: { key: string; workout_name: string | null; date: string }[] = [];
@@ -238,7 +229,7 @@ export default function PlanningGrid({
       if (out.length === 5) break;
     }
     return out;
-  }, [selectedChipExId, exerciseHistory]);
+  }, [selectedChipName, exerciseHistory]);
 
   const selectedDetailRaw = selectedPast
     ? coverage.get(selectedPast.weekStart)?.get(selectedPast.patternId) || null
@@ -643,26 +634,23 @@ export default function PlanningGrid({
           </div>
           <div className='flex flex-wrap gap-1.5 mb-2'>
             {selectedDetail.exercises.map(ex => {
-              const exId = chipNameToExId.get(ex.name);
-              const isChipSel = !!exId && selectedChipExId === exId;
+              const isChipSel = selectedChipName === ex.name;
               return (
                 <button
                   key={ex.name}
                   type='button'
-                  disabled={!exId}
                   onClick={() => {
-                    if (!exId) return;
                     onLoadExerciseHistory?.();
-                    setSelectedChipExId(isChipSel ? null : exId);
+                    setSelectedChipName(isChipSel ? null : ex.name);
                   }}
-                  title={exId ? 'Click for the last 5 unique workouts' : undefined}
-                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs border transition ${
+                  title='Click for the last 5 unique workouts'
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs border transition cursor-pointer hover:border-[#178da6] ${
                     ex.rmType
                       ? 'bg-amber-50 border-amber-300 text-amber-800'
                       : 'bg-white border-gray-200 text-gray-700'
                   } ${
                     isChipSel ? 'ring-2 ring-offset-1 ring-gray-700' : ''
-                  } ${exId ? 'hover:border-[#178da6] cursor-pointer' : 'cursor-default'}`}
+                  }`}
                 >
                   {ex.name}
                   {ex.rmType && (
@@ -687,12 +675,11 @@ export default function PlanningGrid({
               .join(', ')}
           </div>
 
-          {/* Last-3-unique-workouts popover for the clicked exercise chip */}
-          {selectedChipExId && (
+          {/* Last-5-unique-workouts popover for the clicked exercise chip */}
+          {selectedChipName && (
             <div className='mt-3 pt-3 border-t border-gray-200'>
               <div className='text-xs font-semibold text-gray-700 mb-1.5'>
-                Last 5 unique workouts ·{' '}
-                {selectedDetail.exercises.find(ex => chipNameToExId.get(ex.name) === selectedChipExId)?.name}
+                Last 5 unique workouts · {selectedChipName}
               </div>
               {historyLoading ? (
                 <div className='text-xs text-gray-400 italic'>Loading…</div>

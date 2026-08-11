@@ -68,10 +68,10 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
   const [, setGapLoading] = useState(false);
   const [exerciseLastDates, setExerciseLastDates] = useState<Map<string, string>>(new Map());
 
-  // Full-history exercise programming map (id → frequency incl. every workout),
-  // for the "last 3 unique workouts" popover when a coach clicks an exercise
-  // chip in a group-dot detail panel. Lazily loaded on first chip click (one
-  // all-history fetch), then cached for the session.
+  // Full-history exercise programming map (lowercased name/display_name →
+  // frequency incl. every workout), for the "last 5 unique workouts" popover
+  // when a coach clicks an exercise chip in a group-dot detail panel. Lazily
+  // loaded on first chip click (one all-history fetch), then cached.
   const [exerciseHistory, setExerciseHistory] = useState<Map<string, ExerciseFrequency>>(new Map());
   const [historyLoading, setHistoryLoading] = useState(false);
   const historyLoadedRef = useRef(false);
@@ -251,8 +251,15 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
     historyLoadedRef.current = true;
     setHistoryLoading(true);
     const freq = await getExerciseFrequency();
+    // Key by lowercased name AND display_name so a chip (which carries
+    // display_name || name) resolves even when two exercise records share a
+    // display_name (e.g. "Good Morning" as both barbell-good-morning and
+    // good-morning) — matching by name mirrors how the coverage dot matches.
     const map = new Map<string, ExerciseFrequency>();
-    freq.forEach(f => map.set(f.id, f));
+    freq.forEach(f => {
+      if (f.name) map.set(f.name.toLowerCase(), f);
+      if (f.display_name) map.set(f.display_name.toLowerCase(), f);
+    });
     setExerciseHistory(map);
     setHistoryLoading(false);
   }, []);
