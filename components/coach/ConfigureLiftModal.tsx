@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { GripVertical, ChevronDown, X, ArrowUp, ArrowDown } from 'lucide-react';
+import { GripVertical, ChevronDown, X, ArrowUp, ArrowDown, Bookmark, Plus } from 'lucide-react';
 import type { BarbellLift, ConfiguredLift, VariableSet, WODSection } from '@/types/movements';
+import { useLiftPresets, type LiftPresetConfig } from '@/lib/lift-preset-storage';
 
 interface ConfigureLiftModalProps {
   isOpen: boolean;
@@ -75,6 +76,11 @@ function ConfigureLiftModal({
   // RM Test state
   const [rmTest, setRmTest] = useState<'1RM' | '3RM' | '5RM' | '10RM' | null>(null);
 
+  // Saved rep-scheme presets (per lift). `presetName` drives the inline
+  // save input; null means the input is hidden.
+  const { presets, savePreset, deletePreset } = useLiftPresets();
+  const [presetName, setPresetName] = useState<string | null>(null);
+
   // Draggable state
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -83,6 +89,7 @@ function ConfigureLiftModal({
   // Position modal to the right of WorkoutModal on open (centered on mobile)
   useEffect(() => {
     if (isOpen) {
+      setPresetName(null);
       if (window.innerWidth < 768) {
         setPosition({ x: 0, y: 0 });
       } else {
@@ -230,6 +237,59 @@ function ConfigureLiftModal({
     // Don't close modal - let user add multiple items
   };
 
+  // Snapshot the current scheme (RM / constant / variable) for saving as a preset.
+  const buildCurrentConfig = (): LiftPresetConfig => {
+    if (rmTest) {
+      return { rep_type: 'constant', sets: 1, reps: parseInt(rmTest.replace('RM', '')), rm_test: rmTest };
+    }
+    if (repType === 'constant') {
+      return { rep_type: 'constant', sets, reps, percentage_1rm: percentage };
+    }
+    return { rep_type: 'variable', variable_sets: variableSets };
+  };
+
+  // Load a saved preset back into the form.
+  const applyPreset = (config: LiftPresetConfig) => {
+    if (config.rm_test) {
+      setRmTest(config.rm_test);
+      setRepType('constant');
+      setSets(config.sets ?? 1);
+      setReps(config.reps ?? parseInt(config.rm_test.replace('RM', '')));
+      return;
+    }
+    setRmTest(null);
+    setRepType(config.rep_type);
+    if (config.rep_type === 'constant') {
+      setSets(config.sets ?? 5);
+      setReps(config.reps ?? 5);
+      setPercentage(config.percentage_1rm);
+    } else {
+      setVariableSets(
+        config.variable_sets && config.variable_sets.length > 0
+          ? config.variable_sets
+          : DEFAULT_VARIABLE_SETS
+      );
+    }
+  };
+
+  const handleSavePreset = async () => {
+    if (!lift) return;
+    const name = (presetName || '').trim();
+    if (!name) {
+      toast.warning('Enter a preset name');
+      return;
+    }
+    try {
+      await savePreset(lift.id, name, buildCurrentConfig());
+      toast.success(`Saved "${name}"`);
+      setPresetName(null);
+    } catch {
+      toast.error('Failed to save preset');
+    }
+  };
+
+  const liftPresets = presets.filter(p => p.lift_id === lift.id);
+
   // Format display text for drag handle
   const getDisplayText = () => {
     if (rmTest) {
@@ -311,6 +371,83 @@ function ConfigureLiftModal({
           }`}>
             <GripVertical size={20} className='text-gray-400' />
             <span className='font-semibold'>{getDisplayText()}</span>
+          </div>
+
+          {/* Saved presets (per lift) */}
+          <div className='rounded-lg border border-gray-200 p-3'>
+            <div className='flex items-center gap-1.5 mb-2 text-sm font-semibold text-gray-700'>
+              <Bookmark size={15} className='text-[#178da6]' />
+              Saved presets
+            </div>
+            <div className='flex flex-wrap items-center gap-1.5'>
+              {liftPresets.length === 0 && presetName === null && (
+                <span className='text-xs text-gray-400'>
+                  None yet for {lift.name}. Set it up below, then save.
+                </span>
+              )}
+              {liftPresets.map(p => (
+                <span
+                  key={p.id}
+                  className='inline-flex items-center rounded-full border border-gray-300 bg-white text-xs text-gray-700 hover:border-[#178da6] transition'
+                >
+                  <button
+                    type='button'
+                    onClick={() => applyPreset(p.config)}
+                    className='pl-3 pr-1.5 py-1 font-medium'
+                    title='Apply this preset'
+                  >
+                    {p.name}
+                  </button>
+                  <button
+                    type='button'
+                    onClick={() => deletePreset(p.id)}
+                    className='pr-2 pl-0.5 py-1 text-gray-300 hover:text-red-600'
+                    title='Delete preset'
+                    aria-label={`Delete preset ${p.name}`}
+                  >
+                    <X size={13} />
+                  </button>
+                </span>
+              ))}
+              {presetName === null ? (
+                <button
+                  type='button'
+                  onClick={() => setPresetName('')}
+                  className='inline-flex items-center gap-1 rounded-full border border-dashed border-gray-300 px-3 py-1 text-xs font-medium text-gray-600 hover:border-[#178da6] hover:text-[#178da6] transition'
+                >
+                  <Plus size={13} /> Save current
+                </button>
+              ) : (
+                <div className='inline-flex items-center gap-1'>
+                  <input
+                    autoFocus
+                    value={presetName}
+                    onChange={e => setPresetName(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') handleSavePreset();
+                      if (e.key === 'Escape') setPresetName(null);
+                    }}
+                    placeholder='Preset name'
+                    className='w-32 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
+                  />
+                  <button
+                    type='button'
+                    onClick={handleSavePreset}
+                    className='px-2.5 py-1 text-xs font-semibold text-white bg-[#178da6] hover:bg-[#14758c] rounded transition'
+                  >
+                    Save
+                  </button>
+                  <button
+                    type='button'
+                    onClick={() => setPresetName(null)}
+                    className='px-1 py-1 text-gray-400 hover:text-gray-600'
+                    aria-label='Cancel saving preset'
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* RM Test Toggle */}
