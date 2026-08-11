@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import type { PatternWithExercises, ProgrammingPlanItem, PatternGapResult, WeeklyCoverageMap } from '@/types/planner';
 import { computePatternGaps, detectWeeklyCoverage, generateWeeks, getMonday } from '@/utils/pattern-analytics';
-import { getExerciseFrequency } from '@/utils/movement-analytics';
+import { getExerciseFrequency, type ExerciseFrequency } from '@/utils/movement-analytics';
 import { formatDate } from '@/utils/date-utils';
 import PatternManager from './PatternManager';
 import PatternExercisePicker from './PatternExercisePicker';
@@ -67,6 +67,14 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
   const [, setLoading] = useState(true);
   const [, setGapLoading] = useState(false);
   const [exerciseLastDates, setExerciseLastDates] = useState<Map<string, string>>(new Map());
+
+  // Full-history exercise programming map (id → frequency incl. every workout),
+  // for the "last 3 unique workouts" popover when a coach clicks an exercise
+  // chip in a group-dot detail panel. Lazily loaded on first chip click (one
+  // all-history fetch), then cached for the session.
+  const [exerciseHistory, setExerciseHistory] = useState<Map<string, ExerciseFrequency>>(new Map());
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const historyLoadedRef = useRef(false);
 
   // Exercise picker state
   const [pickerPatternId, setPickerPatternId] = useState<string | null>(null);
@@ -234,6 +242,19 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
       dateMap.set(ex.id, ex.lastProgrammed);
     });
     setExerciseLastDates(dateMap);
+  }, []);
+
+  // Lazy full-history load for the "last 3 unique workouts" chip popover.
+  // No date filter → true "last 3 times programmed" regardless of how far back.
+  const loadExerciseHistory = useCallback(async () => {
+    if (historyLoadedRef.current) return;
+    historyLoadedRef.current = true;
+    setHistoryLoading(true);
+    const freq = await getExerciseFrequency();
+    const map = new Map<string, ExerciseFrequency>();
+    freq.forEach(f => map.set(f.id, f));
+    setExerciseHistory(map);
+    setHistoryLoading(false);
   }, []);
 
   // Initial load
@@ -642,6 +663,9 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
         onSetStart={setStartMonday}
         onReorderPatterns={handleReorderPatterns}
         onReorderExercises={handleReorderExercises}
+        exerciseHistory={exerciseHistory}
+        historyLoading={historyLoading}
+        onLoadExerciseHistory={loadExerciseHistory}
       />
 
       <UncategorizedExercises

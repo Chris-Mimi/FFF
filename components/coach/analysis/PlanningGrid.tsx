@@ -3,6 +3,7 @@
 import { useMemo, useState, useRef, useCallback, Fragment } from 'react';
 import { Check, X, ChevronRight, ChevronDown, GripVertical } from 'lucide-react';
 import type { PatternWithExercises, ProgrammingPlanItem, PlanningGridWeek, WeeklyCoverageMap, PatternGapResult, ExerciseOccurrence } from '@/types/planner';
+import type { ExerciseFrequency } from '@/utils/movement-analytics';
 import { getMonday, generateWeeks } from '@/utils/pattern-analytics';
 import { formatDate } from '@/utils/date-utils';
 import PatternExerciseChips from './PatternExerciseChips';
@@ -31,6 +32,13 @@ interface PlanningGridProps {
   onReorderPatterns?: (orderedIds: string[]) => Promise<void> | void;
   /** Reorder exercises within one pattern — used in 'rm-only' mode. */
   onReorderExercises?: (patternId: string, orderedExerciseIds: string[]) => Promise<void> | void;
+  /** Full-history exercise frequency map (exercise id → frequency), for the
+   *  "last 3 unique workouts" popover when a coach clicks an exercise chip. */
+  exerciseHistory?: Map<string, ExerciseFrequency>;
+  /** True while the history map is being fetched (first chip click). */
+  historyLoading?: boolean;
+  /** Trigger the lazy full-history load (called on first exercise-chip click). */
+  onLoadExerciseHistory?: () => void;
 }
 
 interface SelectedPast {
@@ -65,6 +73,9 @@ export default function PlanningGrid({
   onSetStart,
   onReorderPatterns,
   onReorderExercises,
+  exerciseHistory,
+  historyLoading = false,
+  onLoadExerciseHistory,
 }: PlanningGridProps) {
   const rmOnly = contentFilter === 'rm-only';
   const [inlineExpandedId, setInlineExpandedId] = useState<string | null>(null);
@@ -188,6 +199,46 @@ export default function PlanningGrid({
 
   const [selectedPast, setSelectedPast] = useState<SelectedPast | null>(null);
   const [selectedEx, setSelectedEx] = useState<SelectedExercise | null>(null);
+  // Exercise id whose "last 3 unique workouts" popover is open inside the
+  // 'all'-mode group-dot detail panel (null = none).
+  const [selectedChipExId, setSelectedChipExId] = useState<string | null>(null);
+
+  // Open/close a group-dot detail panel. Clearing the panel or switching to a
+  // different pattern-week also closes any open exercise-chip popover.
+  const selectPast = (next: SelectedPast | null) => {
+    setSelectedChipExId(null);
+    setSelectedPast(next);
+  };
+
+  // Resolve chip name (display_name || name) → exercise id, for the selected
+  // pattern's exercises. Coverage chips carry only the name; the pattern's own
+  // exercise list carries the id we key programming history by.
+  const chipNameToExId = useMemo(() => {
+    const m = new Map<string, string>();
+    if (!selectedPast) return m;
+    const pat = patterns.find(p => p.id === selectedPast.patternId);
+    pat?.exercises.forEach(e => m.set(e.display_name || e.name, e.id));
+    return m;
+  }, [patterns, selectedPast]);
+
+  // Last 3 UNIQUE workouts (deduped by workout_name, else date) the selected
+  // chip's exercise was programmed in, most-recent first. `workouts` is already
+  // sorted newest-first by getExerciseFrequency.
+  const chipLast3 = useMemo(() => {
+    if (!selectedChipExId || !exerciseHistory) return [];
+    const freq = exerciseHistory.get(selectedChipExId);
+    if (!freq) return [];
+    const seen = new Set<string>();
+    const out: { key: string; workout_name: string | null; date: string }[] = [];
+    for (const w of freq.workouts) {
+      const key = (w.workout_name || '').trim() || w.date;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push({ key, workout_name: w.workout_name, date: w.date });
+      if (out.length === 3) break;
+    }
+    return out;
+  }, [selectedChipExId, exerciseHistory]);
 
   const selectedDetailRaw = selectedPast
     ? coverage.get(selectedPast.weekStart)?.get(selectedPast.patternId) || null
@@ -489,7 +540,7 @@ export default function PlanningGrid({
                     <button
                       type='button'
                       onClick={() =>
-                        setSelectedPast(isSelected ? null : {
+                        selectPast(isSelected ? null : {
                           patternId: pattern.id,
                           patternName: pattern.name,
                           color: pattern.color,
@@ -583,7 +634,7 @@ export default function PlanningGrid({
             </div>
             <button
               type='button'
-              onClick={() => setSelectedPast(null)}
+              onClick={() => selectPast(null)}
               className='text-gray-400 hover:text-gray-600 shrink-0'
               aria-label='Close details'
             >
@@ -591,23 +642,37 @@ export default function PlanningGrid({
             </button>
           </div>
           <div className='flex flex-wrap gap-1.5 mb-2'>
-            {selectedDetail.exercises.map(ex => (
-              <span
-                key={ex.name}
-                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs border ${
-                  ex.rmType
-                    ? 'bg-amber-50 border-amber-300 text-amber-800'
-                    : 'bg-white border-gray-200 text-gray-700'
-                }`}
-              >
-                {ex.name}
-                {ex.rmType && (
-                  <span className='inline-flex items-center px-1 py-px rounded bg-amber-200 text-amber-900 text-[10px] font-semibold'>
-                    {ex.rmType}
-                  </span>
-                )}
-              </span>
-            ))}
+            {selectedDetail.exercises.map(ex => {
+              const exId = chipNameToExId.get(ex.name);
+              const isChipSel = !!exId && selectedChipExId === exId;
+              return (
+                <button
+                  key={ex.name}
+                  type='button'
+                  disabled={!exId}
+                  onClick={() => {
+                    if (!exId) return;
+                    onLoadExerciseHistory?.();
+                    setSelectedChipExId(isChipSel ? null : exId);
+                  }}
+                  title={exId ? 'Click for the last 3 unique workouts' : undefined}
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs border transition ${
+                    ex.rmType
+                      ? 'bg-amber-50 border-amber-300 text-amber-800'
+                      : 'bg-white border-gray-200 text-gray-700'
+                  } ${
+                    isChipSel ? 'ring-2 ring-offset-1 ring-gray-700' : ''
+                  } ${exId ? 'hover:border-[#178da6] cursor-pointer' : 'cursor-default'}`}
+                >
+                  {ex.name}
+                  {ex.rmType && (
+                    <span className='inline-flex items-center px-1 py-px rounded bg-amber-200 text-amber-900 text-[10px] font-semibold'>
+                      {ex.rmType}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
           <div className='text-xs text-gray-500'>
             Programmed on:{' '}
@@ -621,6 +686,40 @@ export default function PlanningGrid({
               )
               .join(', ')}
           </div>
+
+          {/* Last-3-unique-workouts popover for the clicked exercise chip */}
+          {selectedChipExId && (
+            <div className='mt-3 pt-3 border-t border-gray-200'>
+              <div className='text-xs font-semibold text-gray-700 mb-1.5'>
+                Last 3 unique workouts ·{' '}
+                {selectedDetail.exercises.find(ex => chipNameToExId.get(ex.name) === selectedChipExId)?.name}
+              </div>
+              {historyLoading ? (
+                <div className='text-xs text-gray-400 italic'>Loading…</div>
+              ) : chipLast3.length === 0 ? (
+                <div className='text-xs text-gray-400 italic'>No programming history found.</div>
+              ) : (
+                <ol className='space-y-1'>
+                  {chipLast3.map((w, i) => (
+                    <li key={w.key} className='flex items-baseline gap-2 text-xs'>
+                      <span className='text-gray-400 shrink-0'>{i + 1}.</span>
+                      <span className='font-medium text-gray-800'>
+                        {w.workout_name || 'Untitled workout'}
+                      </span>
+                      <span className='text-gray-500 shrink-0'>
+                        {new Date(w.date + 'T00:00:00').toLocaleDateString('en-GB', {
+                          weekday: 'short',
+                          day: 'numeric',
+                          month: 'short',
+                          year: '2-digit',
+                        })}
+                      </span>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </div>
+          )}
         </div>
       )}
 
