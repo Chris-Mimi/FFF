@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Plus, Edit2, Trash2, ChevronDown, ChevronRight, Settings, GripVertical } from 'lucide-react';
 import type { PatternWithExercises, PatternGapResult } from '@/types/planner';
+import type { ExerciseFrequency } from '@/utils/movement-analytics';
 import PatternExerciseChips from './PatternExerciseChips';
 
 interface PatternManagerProps {
@@ -14,10 +15,16 @@ interface PatternManagerProps {
   onOpenExercisePicker: (patternId: string) => void;
   onRemoveExercise: (patternId: string, exerciseId: string) => Promise<void>;
   onReorderPatterns: (reorderedIds: string[]) => Promise<void>;
+  /** Move an exercise from one pattern group to another (drag-drop). */
+  onMoveExercise: (fromPatternId: string, toPatternId: string, exerciseId: string) => Promise<void>;
   expandedPatternId: string | null;
   onExpandedPatternChange: (id: string | null) => void;
   isPanelOpen: boolean;
   onPanelOpenChange: (open: boolean) => void;
+  /** Full-history exercise frequency map (lowercased name/display_name → freq). */
+  exerciseHistory?: Map<string, ExerciseFrequency>;
+  historyLoading?: boolean;
+  onLoadExerciseHistory?: () => void;
 }
 
 const PATTERN_COLORS = [
@@ -35,10 +42,14 @@ export default function PatternManager({
   onOpenExercisePicker,
   onRemoveExercise,
   onReorderPatterns,
+  onMoveExercise,
   expandedPatternId,
   onExpandedPatternChange,
   isPanelOpen,
   onPanelOpenChange,
+  exerciseHistory,
+  historyLoading = false,
+  onLoadExerciseHistory,
 }: PatternManagerProps) {
   const isOpen = isPanelOpen;
   const setIsOpen = onPanelOpenChange;
@@ -54,6 +65,8 @@ export default function PatternManager({
   const [creating, setCreating] = useState(false);
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
+  // Dragging an exercise chip between groups (distinct from reordering patterns).
+  const [draggedExercise, setDraggedExercise] = useState<{ patternId: string; exerciseId: string } | null>(null);
 
   const handleDragStart = (patternId: string) => {
     setDraggedId(patternId);
@@ -61,12 +74,27 @@ export default function PatternManager({
 
   const handleDragOver = (e: React.DragEvent, patternId: string) => {
     e.preventDefault();
+    // Moving an exercise: highlight any group other than its source.
+    if (draggedExercise) {
+      if (patternId !== draggedExercise.patternId) setDragOverId(patternId);
+      return;
+    }
     if (patternId !== draggedId) {
       setDragOverId(patternId);
     }
   };
 
   const handleDrop = async (targetId: string) => {
+    // Exercise move takes priority when one is in flight.
+    if (draggedExercise) {
+      const src = draggedExercise;
+      setDraggedExercise(null);
+      setDragOverId(null);
+      if (src.patternId !== targetId) {
+        await onMoveExercise(src.patternId, targetId, src.exerciseId);
+      }
+      return;
+    }
     if (!draggedId || draggedId === targetId) {
       setDraggedId(null);
       setDragOverId(null);
@@ -86,6 +114,7 @@ export default function PatternManager({
   const handleDragEnd = () => {
     setDraggedId(null);
     setDragOverId(null);
+    setDraggedExercise(null);
   };
 
   const handleCreate = async () => {
@@ -313,6 +342,14 @@ export default function PatternManager({
                       gaps={gaps}
                       onOpenExercisePicker={onOpenExercisePicker}
                       onRemoveExercise={onRemoveExercise}
+                      exerciseHistory={exerciseHistory}
+                      historyLoading={historyLoading}
+                      onLoadExerciseHistory={onLoadExerciseHistory}
+                      draggableExercises
+                      onExerciseDragStart={(patternId, exerciseId) =>
+                        setDraggedExercise({ patternId, exerciseId })
+                      }
+                      onExerciseDragEnd={handleDragEnd}
                     />
                   </div>
                 )}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X } from 'lucide-react';
+import { X, GripVertical } from 'lucide-react';
 import type { PatternWithExercises, PatternGapResult } from '@/types/planner';
 import { lastUniqueWorkouts, type ExerciseFrequency } from '@/utils/movement-analytics';
 
@@ -32,6 +32,10 @@ interface Props {
   exerciseHistory?: Map<string, ExerciseFrequency>;
   historyLoading?: boolean;
   onLoadExerciseHistory?: () => void;
+  /** When true, each chip gets a drag handle to move it to another group. */
+  draggableExercises?: boolean;
+  onExerciseDragStart?: (patternId: string, exerciseId: string) => void;
+  onExerciseDragEnd?: () => void;
 }
 
 export default function PatternExerciseChips({
@@ -42,6 +46,9 @@ export default function PatternExerciseChips({
   exerciseHistory,
   historyLoading = false,
   onLoadExerciseHistory,
+  draggableExercises = false,
+  onExerciseDragStart,
+  onExerciseDragEnd,
 }: Props) {
   // Exercise id whose "last 5 unique workouts" popover is open (null = none).
   const [openExId, setOpenExId] = useState<string | null>(null);
@@ -109,6 +116,17 @@ export default function PatternExerciseChips({
               }`}
               title={`Last programmed: ${formatExerciseDate(lastDate)}`}
             >
+              {draggableExercises && (
+                <span
+                  draggable
+                  onDragStart={() => onExerciseDragStart?.(pattern.id, ex.id)}
+                  onDragEnd={() => onExerciseDragEnd?.()}
+                  className='cursor-grab active:cursor-grabbing shrink-0 text-gray-300 hover:text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity mr-0.5'
+                  title='Drag to another group'
+                >
+                  <GripVertical size={12} />
+                </span>
+              )}
               <button
                 type='button'
                 onClick={() => {

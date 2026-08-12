@@ -475,6 +475,41 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
     await fetchPatterns();
   };
 
+  // Move an exercise from one pattern group to another (drag-drop in the
+  // Movement Patterns panel). Insert into the target first (skip if already
+  // there), then remove from the source — so a failure never orphans it.
+  const handleMoveExercise = async (fromPatternId: string, toPatternId: string, exerciseId: string) => {
+    if (fromPatternId === toPatternId) return;
+
+    const target = patterns.find(p => p.id === toPatternId);
+    const alreadyInTarget = target?.exercises.some(e => e.id === exerciseId);
+
+    if (!alreadyInTarget) {
+      const { error } = await supabase
+        .from('movement_pattern_exercises')
+        .insert({ pattern_id: toPatternId, exercise_id: exerciseId, sort_order: target?.exercises.length ?? 0 });
+      if (error) {
+        toast.error('Failed to move exercise');
+        return;
+      }
+    }
+
+    const { error: delError } = await supabase
+      .from('movement_pattern_exercises')
+      .delete()
+      .eq('pattern_id', fromPatternId)
+      .eq('exercise_id', exerciseId);
+
+    if (delError) {
+      toast.error('Failed to move exercise');
+      await fetchPatterns();
+      return;
+    }
+
+    await fetchPatterns();
+    toast.success(`Moved to "${target?.name ?? 'group'}"`);
+  };
+
   // Plan item toggle
   const handleTogglePlan = async (patternId: string, weekStart: string) => {
     const { data: user } = await supabase.auth.getUser();
@@ -578,10 +613,14 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
         onOpenExercisePicker={setPickerPatternId}
         onRemoveExercise={handleRemoveExercise}
         onReorderPatterns={handleReorderPatterns}
+        onMoveExercise={handleMoveExercise}
         expandedPatternId={expandedPatternId}
         onExpandedPatternChange={setExpandedPatternId}
         isPanelOpen={patternsPanelOpen}
         onPanelOpenChange={setPatternsPanelOpen}
+        exerciseHistory={exerciseHistory}
+        historyLoading={historyLoading}
+        onLoadExerciseHistory={loadExerciseHistory}
       />
 
       {/* Content filter (RM testing focus) */}
