@@ -5,14 +5,17 @@ import { X } from 'lucide-react';
 import type { PatternWithExercises, PatternGapResult } from '@/types/planner';
 import { lastUniqueWorkouts, type ExerciseFrequency } from '@/utils/movement-analytics';
 
-/** Same color thresholds as Movement Tracking panel (day-based) */
+// Day-based recency bands. "Never" (no date at all) is rendered as a distinct
+// faded dark-grey so a genuinely-unused exercise stands out at a glance — a cue
+// to retire it. 90+ days (programmed, but long ago) is a light grey.
 const getExerciseDateColor = (date: string | undefined): string => {
-  if (!date) return 'bg-gray-100 text-gray-500';
+  if (!date) return 'bg-gray-500 text-white border-gray-500'; // Never
   const days = Math.floor((Date.now() - new Date(date + 'T00:00:00').getTime()) / 86400000);
   if (days <= 14) return 'bg-green-50 text-green-700 border-green-200';
   if (days <= 28) return 'bg-yellow-50 text-yellow-600 border-yellow-200';
   if (days <= 60) return 'bg-orange-50 text-orange-600 border-orange-200';
-  return 'bg-red-50 text-red-700 border-red-200';
+  if (days <= 90) return 'bg-red-50 text-red-700 border-red-200';
+  return 'bg-gray-100 text-gray-500 border-gray-200'; // 90+ days (3 months+)
 };
 
 const formatExerciseDate = (date: string | undefined): string => {
@@ -57,11 +60,19 @@ export default function PatternExerciseChips({
   }
 
   const gap = gaps.find(g => g.patternId === pattern.id);
+
+  // Authoritative last-programmed date: prefer FULL history (same source as the
+  // popover) so a chip only reads grey/"Never" when it truly has no history.
+  // Fall back to the gap-analysis window date if history isn't loaded yet.
+  const dateFor = (displayName: string): string | undefined =>
+    exerciseHistory?.get(displayName.toLowerCase())?.lastProgrammed
+    || gap?.exerciseLastDates[displayName];
+
   const sortedExercises = [...pattern.exercises].sort((a, b) => {
     const aName = a.display_name || a.name;
     const bName = b.display_name || b.name;
-    const aDate = gap?.exerciseLastDates[aName];
-    const bDate = gap?.exerciseLastDates[bName];
+    const aDate = dateFor(aName);
+    const bDate = dateFor(bName);
     // Most recently programmed first, never programmed last, then alphabetical
     const aDays = aDate ? Math.floor((Date.now() - new Date(aDate + 'T00:00:00').getTime()) / 86400000) : 99999;
     const bDays = bDate ? Math.floor((Date.now() - new Date(bDate + 'T00:00:00').getTime()) / 86400000) : 99999;
@@ -77,16 +88,17 @@ export default function PatternExerciseChips({
   return (
     <div className='space-y-2'>
       <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1.5'>
-        <div className='col-span-2 md:col-span-3 lg:col-span-4 flex items-center gap-3 text-[10px] text-gray-500 pb-0.5'>
+        <div className='col-span-2 md:col-span-3 lg:col-span-4 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[10px] text-gray-500 pb-0.5'>
           <span className='text-green-600'>● ≤14 days</span>
           <span className='text-yellow-500'>● 15–28 days</span>
           <span className='text-orange-500'>● 29–60 days</span>
-          <span className='text-red-600'>● 60+ days</span>
-          <span className='text-gray-400'>● Never</span>
+          <span className='text-red-600'>● 61–90 days</span>
+          <span className='text-gray-400'>● 90+ days</span>
+          <span className='text-gray-700'>● Never</span>
         </div>
         {sortedExercises.map(ex => {
           const displayName = ex.display_name || ex.name;
-          const lastDate = gap?.exerciseLastDates[displayName];
+          const lastDate = dateFor(displayName);
           const colorClass = getExerciseDateColor(lastDate);
           const isOpen = openExId === ex.id;
           return (

@@ -269,7 +269,10 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
   useEffect(() => {
     const init = async () => {
       await fetchPatterns();
-      await Promise.all([fetchPlanItems(), fetchExerciseLastDates()]);
+      // loadExerciseHistory is eager (not just on chip click) so the group
+      // chips can colour by FULL programming history — otherwise a chip reads
+      // grey "Never" for anything outside the gap-analysis lookback window.
+      await Promise.all([fetchPlanItems(), fetchExerciseLastDates(), loadExerciseHistory()]);
     };
     init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
