@@ -52,6 +52,9 @@ export default function PatternExerciseChips({
 }: Props) {
   // Exercise id whose "last 5 unique workouts" popover is open (null = none).
   const [openExId, setOpenExId] = useState<string | null>(null);
+  // Sort order: false = most-recently-programmed first (default); true = stalest
+  // / never-programmed first, to surface retire candidates.
+  const [staleFirst, setStaleFirst] = useState(false);
   if (pattern.exercises.length === 0) {
     return (
       <p className='text-xs text-gray-400 italic'>
@@ -80,10 +83,10 @@ export default function PatternExerciseChips({
     const bName = b.display_name || b.name;
     const aDate = dateFor(aName);
     const bDate = dateFor(bName);
-    // Most recently programmed first, never programmed last, then alphabetical
+    // Default: recent first, never last. staleFirst flips it (never/oldest first).
     const aDays = aDate ? Math.floor((Date.now() - new Date(aDate + 'T00:00:00').getTime()) / 86400000) : 99999;
     const bDays = bDate ? Math.floor((Date.now() - new Date(bDate + 'T00:00:00').getTime()) / 86400000) : 99999;
-    if (aDays !== bDays) return aDays - bDays;
+    if (aDays !== bDays) return staleFirst ? bDays - aDays : aDays - bDays;
     return aName.localeCompare(bName);
   });
 
@@ -102,6 +105,14 @@ export default function PatternExerciseChips({
           <span className='text-red-600'>● 61–90 days</span>
           <span className='text-gray-400'>● 90+ days</span>
           <span className='text-gray-700'>● Never</span>
+          <button
+            type='button'
+            onClick={() => setStaleFirst(v => !v)}
+            className='ml-auto text-[10px] px-1.5 py-0.5 rounded border border-gray-200 text-gray-600 hover:border-[#178da6] hover:text-[#178da6] transition'
+            title='Toggle sort order'
+          >
+            Sort: {staleFirst ? 'stale/never first' : 'recent first'}
+          </button>
         </div>
         {sortedExercises.map(ex => {
           const displayName = ex.display_name || ex.name;
