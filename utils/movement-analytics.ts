@@ -622,6 +622,28 @@ export async function getExerciseFrequencyById(exerciseId: string, filter?: Date
   return allExercises.find(ex => ex.id === exerciseId) || null;
 }
 
+/**
+ * The most-recent N UNIQUE workouts from a frequency `workouts` list, deduped by
+ * workout_name (falling back to date). Input is assumed newest-first (as
+ * getExerciseFrequency returns it). Used by the Planner "last N unique workouts"
+ * popovers so a workout run at 5 class times counts once.
+ */
+export function lastUniqueWorkouts(
+  workouts: ExerciseFrequencyWorkout[],
+  limit = 5
+): ExerciseFrequencyWorkout[] {
+  const seen = new Set<string>();
+  const out: ExerciseFrequencyWorkout[] = [];
+  for (const w of workouts) {
+    const key = (w.workout_name || '').trim() || w.date;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(w);
+    if (out.length === limit) break;
+  }
+  return out;
+}
+
 // ============================================
 // Combined Movement Analysis
 // ============================================

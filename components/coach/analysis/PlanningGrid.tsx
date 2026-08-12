@@ -3,7 +3,7 @@
 import { useMemo, useState, useRef, useCallback, Fragment } from 'react';
 import { Check, X, ChevronRight, ChevronDown, GripVertical } from 'lucide-react';
 import type { PatternWithExercises, ProgrammingPlanItem, PlanningGridWeek, WeeklyCoverageMap, PatternGapResult, ExerciseOccurrence } from '@/types/planner';
-import type { ExerciseFrequency } from '@/utils/movement-analytics';
+import { lastUniqueWorkouts, type ExerciseFrequency } from '@/utils/movement-analytics';
 import { getMonday, generateWeeks } from '@/utils/pattern-analytics';
 import { formatDate } from '@/utils/date-utils';
 import PatternExerciseChips from './PatternExerciseChips';
@@ -219,16 +219,7 @@ export default function PlanningGrid({
     if (!selectedChipName || !exerciseHistory) return [];
     const freq = exerciseHistory.get(selectedChipName.toLowerCase());
     if (!freq) return [];
-    const seen = new Set<string>();
-    const out: { key: string; workout_name: string | null; date: string }[] = [];
-    for (const w of freq.workouts) {
-      const key = (w.workout_name || '').trim() || w.date;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      out.push({ key, workout_name: w.workout_name, date: w.date });
-      if (out.length === 5) break;
-    }
-    return out;
+    return lastUniqueWorkouts(freq.workouts, 5);
   }, [selectedChipName, exerciseHistory]);
 
   const selectedDetailRaw = selectedPast
@@ -595,6 +586,9 @@ export default function PlanningGrid({
                         gaps={gaps}
                         onOpenExercisePicker={onOpenExercisePicker}
                         onRemoveExercise={onRemoveExercise}
+                        exerciseHistory={exerciseHistory}
+                        historyLoading={historyLoading}
+                        onLoadExerciseHistory={onLoadExerciseHistory}
                       />
                     </div>
                   </td>
@@ -688,7 +682,7 @@ export default function PlanningGrid({
               ) : (
                 <ol className='space-y-1'>
                   {chipLast3.map((w, i) => (
-                    <li key={w.key} className='flex items-baseline gap-2 text-xs'>
+                    <li key={`${w.workout_name ?? w.date}-${i}`} className='flex items-baseline gap-2 text-xs'>
                       <span className='text-gray-400 shrink-0'>{i + 1}.</span>
                       <span className='font-medium text-gray-800'>
                         {w.workout_name || 'Untitled workout'}
