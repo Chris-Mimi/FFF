@@ -648,6 +648,23 @@ function WODSectionComponent({
                   </span>
                 </label>
               </div>
+
+              {/* Live preview in the DISPLAY font (not the monospace editor), so
+                  the coach can see how the content renders on the calendar / TV
+                  screen. Shown when the content looks tabular or the toggle is on.
+                  Toggling the checkbox flips it between proportional and mono. */}
+              {section.content?.trim() && (section.monospace || /\t|  +|\|/.test(section.content)) && (
+                <div className='rounded border border-gray-200 bg-gray-50 p-2'>
+                  <div className='text-[10px] font-medium uppercase tracking-wide text-gray-400 mb-1'>
+                    Preview (calendar / screen){section.monospace ? ' · monospace' : ''}
+                  </div>
+                  <div className='overflow-x-auto'>
+                    <div className={`text-xs text-gray-700 whitespace-pre-wrap${section.monospace ? ' font-mono' : ''}`}>
+                      {section.content}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           ) : null}
         </div>
