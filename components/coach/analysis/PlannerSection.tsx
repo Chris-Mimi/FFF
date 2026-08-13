@@ -103,6 +103,23 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
   const [expandedPatternId, setExpandedPatternId] = useState<string | null>(null);
   const [patternsPanelOpen, setPatternsPanelOpen] = useState(false);
 
+  // Planning Grid collapse — persisted so it stays out of the way while the
+  // coach works in the Movement Patterns / Uncategorised panels.
+  const [gridOpen, setGridOpen] = useState(true);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    setGridOpen(window.localStorage.getItem('planner-grid-open') !== 'false');
+  }, []);
+  const toggleGrid = useCallback(() => {
+    setGridOpen(prev => {
+      const next = !prev;
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem('planner-grid-open', String(next));
+      }
+      return next;
+    });
+  }, []);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const raw = window.localStorage.getItem(VIEW_STORAGE_KEY);
@@ -688,6 +705,8 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
         onLoadExerciseHistory={loadExerciseHistory}
       />
 
+      {gridOpen && (
+      <>
       {/* Content filter (RM testing focus) */}
       <div className='flex items-center gap-2'>
         <span className='text-xs font-medium text-gray-500'>Show:</span>
@@ -761,6 +780,8 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
           ))}
         </div>
       </div>
+      </>
+      )}
 
       <PlanningGrid
         patterns={patterns}
@@ -780,6 +801,8 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
         exerciseHistory={exerciseHistory}
         historyLoading={historyLoading}
         onLoadExerciseHistory={loadExerciseHistory}
+        open={gridOpen}
+        onToggle={toggleGrid}
       />
 
       <UncategorizedExercises

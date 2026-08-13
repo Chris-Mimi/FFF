@@ -32,6 +32,9 @@ interface PlanningGridProps {
   onReorderPatterns?: (orderedIds: string[]) => Promise<void> | void;
   /** Reorder exercises within one pattern — used in 'rm-only' mode. */
   onReorderExercises?: (patternId: string, orderedExerciseIds: string[]) => Promise<void> | void;
+  /** Collapsed/expanded state of the grid body (header stays visible). */
+  open?: boolean;
+  onToggle?: () => void;
   /** Full-history exercise frequency map (exercise id → frequency), for the
    *  "last 3 unique workouts" popover when a coach clicks an exercise chip. */
   exerciseHistory?: Map<string, ExerciseFrequency>;
@@ -76,6 +79,8 @@ export default function PlanningGrid({
   exerciseHistory,
   historyLoading = false,
   onLoadExerciseHistory,
+  open = true,
+  onToggle,
 }: PlanningGridProps) {
   const rmOnly = contentFilter === 'rm-only';
   const [inlineExpandedId, setInlineExpandedId] = useState<string | null>(null);
@@ -266,14 +271,21 @@ export default function PlanningGrid({
 
   return (
     <div className='bg-white rounded-lg shadow-sm border'>
-      <h3 className='text-sm md:text-base font-semibold text-gray-800 p-3 md:p-4 border-b'>
-        Planning Grid
-        {rmOnly && (
-          <span className='ml-2 text-xs font-normal text-gray-500'>
+      <button
+        type='button'
+        onClick={() => onToggle?.()}
+        className={`w-full flex items-center gap-2 text-sm md:text-base font-semibold text-gray-800 p-3 md:p-4 hover:bg-gray-50 transition ${open ? 'border-b' : ''}`}
+      >
+        {open ? <ChevronDown size={18} className='shrink-0 text-gray-500' /> : <ChevronRight size={18} className='shrink-0 text-gray-500' />}
+        <span>Planning Grid</span>
+        {rmOnly && open && (
+          <span className='text-xs font-normal text-gray-500'>
             · RM testing — one row per exercise, dot fills on 1/3/5/10RM weeks
           </span>
         )}
-      </h3>
+      </button>
+      {open && (
+      <>
       <div ref={scrollRefCb} className='overflow-x-auto'>
         <table className='min-w-full border-collapse'>
           <thead>
@@ -750,6 +762,8 @@ export default function PlanningGrid({
             ))}
           </div>
         </div>
+      )}
+      </>
       )}
     </div>
   );
