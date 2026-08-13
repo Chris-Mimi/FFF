@@ -632,9 +632,22 @@ function WODSectionComponent({
                 data-section-id={section.id}
                 className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent font-mono text-sm bg-white resize-none overflow-hidden min-h-[80px] text-gray-900 placeholder-gray-400'
               />
-              <p className='text-xs text-gray-600'>
-                Tip: Use * for bullet points, add reps/sets, cut/paste, reorder freely
-              </p>
+              <div className='flex items-center justify-between gap-2 flex-wrap'>
+                <p className='text-xs text-gray-600'>
+                  Tip: Use * for bullet points, add reps/sets, cut/paste, reorder freely
+                </p>
+                <label className='flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer shrink-0'>
+                  <input
+                    type='checkbox'
+                    checked={!!section.monospace}
+                    onChange={e => onUpdate({ monospace: e.target.checked })}
+                    className='cursor-pointer accent-[#178da6]'
+                  />
+                  <span title='Show this section in a fixed-width font so pasted tables keep their columns aligned'>
+                    Keep table layout (monospace)
+                  </span>
+                </label>
+              </div>
             </div>
           ) : null}
         </div>

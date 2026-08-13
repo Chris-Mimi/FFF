@@ -44,6 +44,7 @@ interface WodSection {
   duration: number;
   content?: string;
   workout_type_id?: string;
+  monospace?: boolean;
   scoring_fields?: ScoringFields;
   lifts?: Array<{
     name: string;
@@ -1210,7 +1211,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
                   <div className='whitespace-pre-wrap text-gray-200'>{bmDetail!.description}</div>
                 )}
                 {hasContent && (
-                  <div className={`whitespace-pre-wrap ${hasBmDesc ? 'text-gray-200 border-t border-white/15 pt-1 mt-1' : ''}`}>
+                  <div className={`whitespace-pre-wrap ${section.monospace ? 'font-mono ' : ''}${hasBmDesc ? 'text-gray-200 border-t border-white/15 pt-1 mt-1' : ''}`}>
                     {section.content}
                   </div>
                 )}

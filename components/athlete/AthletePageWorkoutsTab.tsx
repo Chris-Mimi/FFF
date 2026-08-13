@@ -19,6 +19,7 @@ interface WorkoutSection {
   forge_benchmarks?: ConfiguredForgeBenchmark[];
   intent_notes?: string;
   show_intent_to_athletes?: boolean;
+  monospace?: boolean;
 }
 
 interface SectionResult {
@@ -559,7 +560,7 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
                           {(section.duration > 0) && ` (${section.duration} min)`}
                         </div>
                         {section.content && (
-                          <div className='text-xs text-gray-700 whitespace-pre-wrap mb-2'>{section.content}</div>
+                          <div className={`text-xs text-gray-700 whitespace-pre-wrap mb-2${section.monospace ? ' font-mono' : ''}`}>{section.content}</div>
                         )}
                         {hasResultData && (
                           <div className='bg-green-50 border border-green-200 rounded p-2'>
@@ -746,7 +747,7 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
 
                           {/* Free-form content */}
                           {section.content && (
-                            <div className='text-xs text-gray-700 whitespace-pre-wrap'>
+                            <div className={`text-xs text-gray-700 whitespace-pre-wrap${section.monospace ? ' font-mono' : ''}`}>
                               {section.content}
                             </div>
                           )}

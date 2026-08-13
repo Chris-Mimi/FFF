@@ -234,7 +234,7 @@ export default function TVDisplayPage() {
 
                   {/* Free-form Content */}
                   {section.content?.trim() && (
-                    <div className={`${bodySize} text-gray-200 whitespace-pre-wrap leading-relaxed mt-4 transition-all`}>
+                    <div className={`${bodySize} text-gray-200 whitespace-pre-wrap leading-relaxed mt-4 transition-all${section.monospace ? ' font-mono' : ''}`}>
                       {section.content}
                     </div>
                   )}

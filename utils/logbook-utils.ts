@@ -28,6 +28,7 @@ export interface WOD {
     type: string;
     content: string;
     duration?: string;
+    monospace?: boolean;
     lifts?: ConfiguredLift[];
     benchmarks?: ConfiguredBenchmark[];
     forge_benchmarks?: ConfiguredForgeBenchmark[];

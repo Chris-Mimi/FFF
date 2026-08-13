@@ -340,7 +340,7 @@ export default function PublishModal({
 
                           {/* Content */}
                           {section.content && (
-                            <div className='whitespace-pre-wrap'>
+                            <div className={`whitespace-pre-wrap${section.monospace ? ' font-mono' : ''}`}>
                               {section.content}
                             </div>
                           )}

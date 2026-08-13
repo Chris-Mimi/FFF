@@ -664,7 +664,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                           if (hasStructuredItems) {
                             // Just display as instructions/notes (no scoring inputs)
                             return (
-                              <div className='text-sm text-gray-700 whitespace-pre-wrap italic mt-2'>
+                              <div className={`text-sm text-gray-700 whitespace-pre-wrap italic mt-2${section.monospace ? ' font-mono' : ''}`}>
                                 {section.content}
                               </div>
                             );
@@ -685,7 +685,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
 
                           // Scoring fields enabled - show content only (scoring inputs now inline in header)
                           return (
-                            <div className='text-sm text-gray-700 whitespace-pre-wrap mt-2'>
+                            <div className={`text-sm text-gray-700 whitespace-pre-wrap mt-2${section.monospace ? ' font-mono' : ''}`}>
                               {section.content}
                             </div>
                           );

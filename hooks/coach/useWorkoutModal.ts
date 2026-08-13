@@ -53,6 +53,10 @@ export interface WODSection {
   intent_notes?: string;
   show_intent_to_athletes?: boolean;
 
+  // Render `content` in a monospace font wherever shown (opt-in per section) so
+  // space-aligned tables keep their columns. Unset = normal proportional font.
+  monospace?: boolean;
+
   // Configurable scoring fields (determines which inputs athletes see)
   scoring_fields?: {
     time?: boolean;           // Show time input (mm:ss) — lower is better

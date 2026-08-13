@@ -337,7 +337,7 @@ export default function SearchPanel({
     // Add text content
     if (section.content && section.content.trim()) {
       parts.push(
-        <div key='content' className='whitespace-pre-wrap'>
+        <div key='content' className={`whitespace-pre-wrap${section.monospace ? ' font-mono' : ''}`}>
           {section.content}
         </div>
       );

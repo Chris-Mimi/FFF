@@ -450,7 +450,7 @@ export default function CalendarGrid({
 
                       {/* Display free-form content */}
                       {section.content && (
-                        <div className='text-xs text-gray-700 whitespace-pre-wrap'>{section.content}</div>
+                        <div className={`text-xs text-gray-700 whitespace-pre-wrap${section.monospace ? ' font-mono' : ''}`}>{section.content}</div>
                       )}
                     </div>
                   ))
