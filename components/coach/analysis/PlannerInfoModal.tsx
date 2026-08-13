@@ -58,6 +58,10 @@ export default function PlannerInfoModal({ isOpen, onClose }: PlannerInfoModalPr
                   <b>Click any past dot</b> to drill in — a panel below the grid shows the matched
                   exercises and the dates they were programmed.
                 </li>
+                <li>
+                  In that panel, <b>click any exercise chip</b> to see the last 5 <i>unique</i>
+                  workouts it appeared in (a workout run at several class times counts once).
+                </li>
               </ul>
             </section>
 
@@ -88,6 +92,36 @@ export default function PlannerInfoModal({ isOpen, onClose }: PlannerInfoModalPr
                 <li><b>Yellow</b> — past warning threshold (default 3 weeks)</li>
                 <li><b>Red</b> — past overdue threshold (default 6 weeks)</li>
                 <li><b>Grey</b> — never programmed</li>
+              </ul>
+            </section>
+
+            <section>
+              <h4 className='font-semibold text-gray-900 mb-1'>Inside a pattern — exercise chips</h4>
+              <p className='mb-1'>
+                Expand a pattern (the chevron in the <b>Movement Patterns</b> panel, or a group row
+                in the grid) to see its exercises as chips. Each chip is coloured by when it was
+                last programmed, across your <b>full history</b>:
+              </p>
+              <ul className='list-disc ml-5 space-y-0.5'>
+                <li><b>Green</b> — ≤14 days</li>
+                <li><b>Yellow</b> — 15–28 days</li>
+                <li><b>Orange</b> — 29–60 days</li>
+                <li><b>Red</b> — 61–90 days</li>
+                <li><b>Light grey</b> — 90+ days</li>
+                <li><b>Faded dark grey</b> — never programmed (a candidate to retire)</li>
+              </ul>
+              <ul className='list-disc ml-5 space-y-0.5 mt-1.5'>
+                <li>
+                  <b>Click a chip</b> to see the last 5 <i>unique</i> workouts it appeared in.
+                </li>
+                <li>
+                  <b>Sort toggle</b> (top-right of the chips) — flip between <i>recent first</i> and
+                  <i>stale/never first</i> to bring retire candidates to the top.
+                </li>
+                <li>
+                  <b>Drag a chip</b> (grab the handle that appears on hover) onto another pattern&rsquo;s
+                  row in the Movement Patterns panel to move it into that group.
+                </li>
               </ul>
             </section>
 
