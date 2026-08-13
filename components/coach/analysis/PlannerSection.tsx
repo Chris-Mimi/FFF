@@ -546,6 +546,33 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
     toast.success(`Moved ${exerciseIds.length} to "${target?.name ?? 'group'}"`);
   };
 
+  // Copy several exercises to another group WITHOUT removing them from the
+  // source — patterns can legitimately share an exercise (no exclusivity rule).
+  const handleCopyExercises = async (fromPatternId: string, toPatternId: string, exerciseIds: string[]) => {
+    if (fromPatternId === toPatternId || exerciseIds.length === 0) return;
+
+    const target = patterns.find(p => p.id === toPatternId);
+    const targetIds = new Set(target?.exercises.map(e => e.id));
+    const baseOrder = target?.exercises.length ?? 0;
+    const toInsert = exerciseIds
+      .filter(id => !targetIds.has(id))
+      .map((id, i) => ({ pattern_id: toPatternId, exercise_id: id, sort_order: baseOrder + i }));
+
+    if (toInsert.length === 0) {
+      toast.info(`Already in "${target?.name ?? 'that group'}"`);
+      return;
+    }
+
+    const { error } = await supabase.from('movement_pattern_exercises').insert(toInsert);
+    if (error) {
+      toast.error('Failed to copy exercises');
+      return;
+    }
+
+    await fetchPatterns();
+    toast.success(`Copied ${toInsert.length} to "${target?.name ?? 'group'}"`);
+  };
+
   // Plan item toggle
   const handleTogglePlan = async (patternId: string, weekStart: string) => {
     const { data: user } = await supabase.auth.getUser();
@@ -651,6 +678,7 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
         onReorderPatterns={handleReorderPatterns}
         onMoveExercise={handleMoveExercise}
         onMoveExercises={handleMoveExercises}
+        onCopyExercises={handleCopyExercises}
         expandedPatternId={expandedPatternId}
         onExpandedPatternChange={setExpandedPatternId}
         isPanelOpen={patternsPanelOpen}

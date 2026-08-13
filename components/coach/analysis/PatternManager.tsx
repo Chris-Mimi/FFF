@@ -19,6 +19,8 @@ interface PatternManagerProps {
   onMoveExercise: (fromPatternId: string, toPatternId: string, exerciseId: string) => Promise<void>;
   /** Move several selected exercises to another group (multi-select move). */
   onMoveExercises: (fromPatternId: string, toPatternId: string, exerciseIds: string[]) => Promise<void>;
+  /** Copy several selected exercises to another group (keeps the originals). */
+  onCopyExercises: (fromPatternId: string, toPatternId: string, exerciseIds: string[]) => Promise<void>;
   expandedPatternId: string | null;
   onExpandedPatternChange: (id: string | null) => void;
   isPanelOpen: boolean;
@@ -46,6 +48,7 @@ export default function PatternManager({
   onReorderPatterns,
   onMoveExercise,
   onMoveExercises,
+  onCopyExercises,
   expandedPatternId,
   onExpandedPatternChange,
   isPanelOpen,
@@ -358,6 +361,7 @@ export default function PatternManager({
                         .filter(p => p.id !== pattern.id)
                         .map(p => ({ id: p.id, name: p.name, color: p.color }))}
                       onMoveExercises={onMoveExercises}
+                      onCopyExercises={onCopyExercises}
                     />
                   </div>
                 )}

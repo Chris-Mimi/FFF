@@ -123,8 +123,9 @@ export default function PlannerInfoModal({ isOpen, onClose }: PlannerInfoModalPr
                   row in the Movement Patterns panel to move it into that group.
                 </li>
                 <li>
-                  <b>Select</b> (button by the sort toggle) — tick several chips, then pick a group in
-                  <b> Move to…</b> to move them all at once.
+                  <b>Select</b> (button by the sort toggle) — tick several chips, choose <b>Move</b>
+                  {' '}(removes them here) or <b>Copy</b> (keeps them here too), then pick a target
+                  group to apply it to all of them at once.
                 </li>
               </ul>
             </section>

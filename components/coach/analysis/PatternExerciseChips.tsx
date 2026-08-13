@@ -42,6 +42,7 @@ interface Props {
   /** Other patterns this group's exercises can be moved to (id/name/color). */
   otherPatterns?: { id: string; name: string; color: string }[];
   onMoveExercises?: (fromPatternId: string, toPatternId: string, exerciseIds: string[]) => Promise<void>;
+  onCopyExercises?: (fromPatternId: string, toPatternId: string, exerciseIds: string[]) => Promise<void>;
 }
 
 export default function PatternExerciseChips({
@@ -58,6 +59,7 @@ export default function PatternExerciseChips({
   selectableExercises = false,
   otherPatterns = [],
   onMoveExercises,
+  onCopyExercises,
 }: Props) {
   // Exercise id whose "last 5 unique workouts" popover is open (null = none).
   const [openExId, setOpenExId] = useState<string | null>(null);
@@ -68,6 +70,8 @@ export default function PatternExerciseChips({
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [moving, setMoving] = useState(false);
+  // 'move' removes from this group; 'copy' keeps the originals here too.
+  const [applyMode, setApplyMode] = useState<'move' | 'copy'>('move');
 
   const toggleSelectMode = () => {
     setSelectMode(m => !m);
@@ -83,10 +87,12 @@ export default function PatternExerciseChips({
     });
   };
 
-  const doMove = async (toPatternId: string) => {
-    if (!onMoveExercises || selectedIds.size === 0 || !toPatternId) return;
+  const doApply = async (toPatternId: string) => {
+    if (selectedIds.size === 0 || !toPatternId) return;
+    const fn = applyMode === 'copy' ? onCopyExercises : onMoveExercises;
+    if (!fn) return;
     setMoving(true);
-    await onMoveExercises(pattern.id, toPatternId, Array.from(selectedIds));
+    await fn(pattern.id, toPatternId, Array.from(selectedIds));
     setMoving(false);
     setSelectedIds(new Set());
     setSelectMode(false);
@@ -171,13 +177,33 @@ export default function PatternExerciseChips({
             <span className='font-medium text-gray-700'>
               {selectedIds.size} selected
             </span>
+            {/* Move vs Copy toggle */}
+            <div className='flex rounded border border-gray-300 overflow-hidden'>
+              {(['move', 'copy'] as const).map(m => (
+                <button
+                  key={m}
+                  type='button'
+                  onClick={() => setApplyMode(m)}
+                  className={`px-2 py-1 capitalize transition ${
+                    applyMode === m
+                      ? 'bg-[#178da6] text-white'
+                      : 'bg-white text-gray-600 hover:bg-gray-50'
+                  } ${m === 'copy' ? 'border-l border-gray-300' : ''}`}
+                  title={m === 'move' ? 'Remove from this group' : 'Keep the originals here too'}
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
             <select
               value=''
               disabled={selectedIds.size === 0 || moving || otherPatterns.length === 0}
-              onChange={e => doMove(e.target.value)}
+              onChange={e => doApply(e.target.value)}
               className='px-2 py-1 border border-gray-300 rounded text-xs text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed'
             >
-              <option value=''>{moving ? 'Moving…' : 'Move to…'}</option>
+              <option value=''>
+                {moving ? 'Working…' : applyMode === 'copy' ? 'Copy to…' : 'Move to…'}
+              </option>
               {otherPatterns.map(p => (
                 <option key={p.id} value={p.id}>{p.name}</option>
               ))}
