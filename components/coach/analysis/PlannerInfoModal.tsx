@@ -46,6 +46,11 @@ export default function PlannerInfoModal({ isOpen, onClose }: PlannerInfoModalPr
                 Adults excludes &ldquo;Kids &amp; Teens&rdquo; sessions; Kids excludes everything
                 else.
               </p>
+              <p className='mt-1'>
+                In the Adults track a second <b>Session</b> toggle narrows it further: <b>All</b> (the
+                full adult mix), <b>WOD</b> (WOD sessions only), or <b>Foundations</b> (Foundations +
+                Foundations/WOD).
+              </p>
             </section>
 
             <section>

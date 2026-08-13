@@ -86,6 +86,11 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
   // Patterns themselves are shared across both tracks.
   const [trackFilter, setTrackFilter] = useState<'adults' | 'kids'>('adults');
 
+  // Within the Adults track, further restrict coverage/gap analysis by session
+  // type. 'wod' = WOD only; 'foundations' = Foundations + Foundations/WOD;
+  // 'all' = the full adult mix (current behaviour). Ignored for the Kids track.
+  const [sessionFilter, setSessionFilter] = useState<'all' | 'wod' | 'foundations'>('all');
+
   // Date-window controls. viewMonths persists across page loads; the start date
   // (left edge of the grid) defaults to this week's Monday each load. Click a
   // week header in the grid, or use Prev/Next/Today, to move it.
@@ -209,7 +214,11 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
   }, [pastWeeks, futureWeeks, anchorTime]);
 
   // Compute gap analysis and coverage
-  const computeAnalysis = useCallback(async (pats: PatternWithExercises[], filter: 'adults' | 'kids' = 'adults') => {
+  const computeAnalysis = useCallback(async (
+    pats: PatternWithExercises[],
+    filter: 'adults' | 'kids' = 'adults',
+    session: 'all' | 'wod' | 'foundations' = 'all',
+  ) => {
     if (pats.length === 0) {
       setGaps([]);
       setCoverage(new Map());
@@ -219,9 +228,19 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
     setGapLoading(true);
 
     // Adults: exclude Kids & Teens. Kids: exclude everything except Kids & Teens.
-    const excludeSessionTypes = filter === 'adults'
+    let excludeSessionTypes = filter === 'adults'
       ? ['Kids & Teens']
       : ['WOD', 'Foundations', 'Foundations/WOD', 'Endurance', 'Session', 'Specialty/Party/Other'];
+
+    // Adults-only session sub-filter. 'wod' keeps only WOD; 'foundations' keeps
+    // Foundations + Foundations/WOD. Achieved by excluding the other adult types.
+    if (filter === 'adults') {
+      if (session === 'wod') {
+        excludeSessionTypes = ['Kids & Teens', 'Foundations', 'Foundations/WOD', 'Endurance', 'Session', 'Specialty/Party/Other'];
+      } else if (session === 'foundations') {
+        excludeSessionTypes = ['Kids & Teens', 'WOD', 'Endurance', 'Session', 'Specialty/Party/Other'];
+      }
+    }
 
     const weeks = generateWeeks(pastWeeks, futureWeeks, new Date(anchorTime));
     const startDate = weeks[0];
@@ -309,9 +328,9 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
     // when the last pattern is deleted. This is the SOLE recompute trigger:
     // every pattern edit calls fetchPatterns() → setPatterns(), and that
     // patterns change re-runs this effect. (S382)
-    computeAnalysis(patterns, trackFilter);
+    computeAnalysis(patterns, trackFilter, sessionFilter);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [patterns, pastWeeks, futureWeeks, anchorTime, trackFilter]);
+  }, [patterns, pastWeeks, futureWeeks, anchorTime, trackFilter, sessionFilter]);
 
   // Pattern CRUD
   const handleCreatePattern = async (name: string, color: string) => {
@@ -673,6 +692,30 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
               Kids & Teens
             </button>
           </div>
+
+          {/* Adults-only session sub-filter */}
+          {trackFilter === 'adults' && (
+            <>
+              <span className='text-xs font-medium text-gray-500 ml-1'>Session:</span>
+              <div className='flex rounded-lg border border-gray-200 overflow-hidden'>
+                {([['all', 'All'], ['wod', 'WOD'], ['foundations', 'Foundations']] as const).map(([val, label], i) => (
+                  <button
+                    key={val}
+                    onClick={() => setSessionFilter(val)}
+                    className={`px-3 py-1 text-xs font-medium transition ${
+                      i > 0 ? 'border-l border-gray-200' : ''
+                    } ${
+                      sessionFilter === val
+                        ? 'bg-[#178da6] text-white'
+                        : 'bg-white text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </div>
         <button
           onClick={() => setInfoOpen(true)}
