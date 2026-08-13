@@ -510,6 +510,42 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
     toast.success(`Moved to "${target?.name ?? 'group'}"`);
   };
 
+  // Bulk version of handleMoveExercise — moves several selected exercises from
+  // one group to another (multi-select move). Same insert-then-delete ordering.
+  const handleMoveExercises = async (fromPatternId: string, toPatternId: string, exerciseIds: string[]) => {
+    if (fromPatternId === toPatternId || exerciseIds.length === 0) return;
+
+    const target = patterns.find(p => p.id === toPatternId);
+    const targetIds = new Set(target?.exercises.map(e => e.id));
+    const baseOrder = target?.exercises.length ?? 0;
+    const toInsert = exerciseIds
+      .filter(id => !targetIds.has(id))
+      .map((id, i) => ({ pattern_id: toPatternId, exercise_id: id, sort_order: baseOrder + i }));
+
+    if (toInsert.length > 0) {
+      const { error } = await supabase.from('movement_pattern_exercises').insert(toInsert);
+      if (error) {
+        toast.error('Failed to move exercises');
+        return;
+      }
+    }
+
+    const { error: delError } = await supabase
+      .from('movement_pattern_exercises')
+      .delete()
+      .eq('pattern_id', fromPatternId)
+      .in('exercise_id', exerciseIds);
+
+    if (delError) {
+      toast.error('Failed to move exercises');
+      await fetchPatterns();
+      return;
+    }
+
+    await fetchPatterns();
+    toast.success(`Moved ${exerciseIds.length} to "${target?.name ?? 'group'}"`);
+  };
+
   // Plan item toggle
   const handleTogglePlan = async (patternId: string, weekStart: string) => {
     const { data: user } = await supabase.auth.getUser();
@@ -614,6 +650,7 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
         onRemoveExercise={handleRemoveExercise}
         onReorderPatterns={handleReorderPatterns}
         onMoveExercise={handleMoveExercise}
+        onMoveExercises={handleMoveExercises}
         expandedPatternId={expandedPatternId}
         onExpandedPatternChange={setExpandedPatternId}
         isPanelOpen={patternsPanelOpen}

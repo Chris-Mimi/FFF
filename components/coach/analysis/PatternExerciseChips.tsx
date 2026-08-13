@@ -36,6 +36,12 @@ interface Props {
   draggableExercises?: boolean;
   onExerciseDragStart?: (patternId: string, exerciseId: string) => void;
   onExerciseDragEnd?: () => void;
+  /** When true, a "Select" mode lets the coach tick several chips and move them
+   *  together to another group. */
+  selectableExercises?: boolean;
+  /** Other patterns this group's exercises can be moved to (id/name/color). */
+  otherPatterns?: { id: string; name: string; color: string }[];
+  onMoveExercises?: (fromPatternId: string, toPatternId: string, exerciseIds: string[]) => Promise<void>;
 }
 
 export default function PatternExerciseChips({
@@ -49,12 +55,42 @@ export default function PatternExerciseChips({
   draggableExercises = false,
   onExerciseDragStart,
   onExerciseDragEnd,
+  selectableExercises = false,
+  otherPatterns = [],
+  onMoveExercises,
 }: Props) {
   // Exercise id whose "last 5 unique workouts" popover is open (null = none).
   const [openExId, setOpenExId] = useState<string | null>(null);
   // Sort order: false = most-recently-programmed first (default); true = stalest
   // / never-programmed first, to surface retire candidates.
   const [staleFirst, setStaleFirst] = useState(false);
+  // Multi-select move state.
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [moving, setMoving] = useState(false);
+
+  const toggleSelectMode = () => {
+    setSelectMode(m => !m);
+    setSelectedIds(new Set());
+    setOpenExId(null);
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const doMove = async (toPatternId: string) => {
+    if (!onMoveExercises || selectedIds.size === 0 || !toPatternId) return;
+    setMoving(true);
+    await onMoveExercises(pattern.id, toPatternId, Array.from(selectedIds));
+    setMoving(false);
+    setSelectedIds(new Set());
+    setSelectMode(false);
+  };
   if (pattern.exercises.length === 0) {
     return (
       <p className='text-xs text-gray-400 italic'>
@@ -113,21 +149,73 @@ export default function PatternExerciseChips({
           >
             Sort: {staleFirst ? 'stale/never first' : 'recent first'}
           </button>
+          {selectableExercises && (
+            <button
+              type='button'
+              onClick={toggleSelectMode}
+              className={`text-[10px] px-1.5 py-0.5 rounded border transition ${
+                selectMode
+                  ? 'bg-[#178da6] text-white border-[#178da6]'
+                  : 'border-gray-200 text-gray-600 hover:border-[#178da6] hover:text-[#178da6]'
+              }`}
+              title='Select several exercises to move together'
+            >
+              {selectMode ? 'Cancel' : 'Select'}
+            </button>
+          )}
         </div>
+
+        {/* Multi-select move bar */}
+        {selectMode && (
+          <div className='col-span-2 md:col-span-3 lg:col-span-4 flex flex-wrap items-center gap-2 rounded border border-[#178da6]/30 bg-[#178da6]/5 px-2 py-1.5 text-xs'>
+            <span className='font-medium text-gray-700'>
+              {selectedIds.size} selected
+            </span>
+            <select
+              value=''
+              disabled={selectedIds.size === 0 || moving || otherPatterns.length === 0}
+              onChange={e => doMove(e.target.value)}
+              className='px-2 py-1 border border-gray-300 rounded text-xs text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed'
+            >
+              <option value=''>{moving ? 'Moving…' : 'Move to…'}</option>
+              {otherPatterns.map(p => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+            {selectedIds.size > 0 && (
+              <button
+                type='button'
+                onClick={() => setSelectedIds(new Set())}
+                className='text-gray-500 hover:text-gray-700'
+              >
+                Clear
+              </button>
+            )}
+            <span className='text-gray-400'>· tap chips to select</span>
+          </div>
+        )}
         {sortedExercises.map(ex => {
           const displayName = ex.display_name || ex.name;
           const lastDate = dateFor(displayName);
           const colorClass = getExerciseDateColor(lastDate);
           const isOpen = openExId === ex.id;
+          const isSelected = selectedIds.has(ex.id);
           return (
             <div
               key={ex.id}
               className={`group flex items-center justify-between px-2 py-1.5 rounded border text-xs ${colorClass} ${
-                isOpen ? 'ring-2 ring-offset-1 ring-gray-500' : ''
-              }`}
+                selectMode && isSelected ? 'ring-2 ring-offset-1 ring-[#178da6]' : ''
+              } ${!selectMode && isOpen ? 'ring-2 ring-offset-1 ring-gray-500' : ''}`}
               title={`Last programmed: ${formatExerciseDate(lastDate)}`}
             >
-              {draggableExercises && (
+              {selectMode ? (
+                <input
+                  type='checkbox'
+                  checked={isSelected}
+                  onChange={() => toggleSelect(ex.id)}
+                  className='shrink-0 mr-1.5 cursor-pointer accent-[#178da6]'
+                />
+              ) : draggableExercises && (
                 <span
                   draggable
                   onDragStart={() => onExerciseDragStart?.(pattern.id, ex.id)}
@@ -141,21 +229,27 @@ export default function PatternExerciseChips({
               <button
                 type='button'
                 onClick={() => {
+                  if (selectMode) {
+                    toggleSelect(ex.id);
+                    return;
+                  }
                   onLoadExerciseHistory?.();
                   setOpenExId(isOpen ? null : ex.id);
                 }}
                 className='truncate mr-1 text-left flex-1 hover:underline cursor-pointer'
-                title='Click for the last 5 unique workouts'
+                title={selectMode ? 'Tap to select' : 'Click for the last 5 unique workouts'}
               >
                 {displayName}
               </button>
-              <button
-                onClick={() => onRemoveExercise(pattern.id, ex.id)}
-                className='opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 shrink-0 transition-opacity'
-                title='Remove from pattern'
-              >
-                <X size={12} />
-              </button>
+              {!selectMode && (
+                <button
+                  onClick={() => onRemoveExercise(pattern.id, ex.id)}
+                  className='opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 shrink-0 transition-opacity'
+                  title='Remove from pattern'
+                >
+                  <X size={12} />
+                </button>
+              )}
             </div>
           );
         })}

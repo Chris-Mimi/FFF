@@ -122,6 +122,10 @@ export default function PlannerInfoModal({ isOpen, onClose }: PlannerInfoModalPr
                   <b>Drag a chip</b> (grab the handle that appears on hover) onto another pattern&rsquo;s
                   row in the Movement Patterns panel to move it into that group.
                 </li>
+                <li>
+                  <b>Select</b> (button by the sort toggle) — tick several chips, then pick a group in
+                  <b> Move to…</b> to move them all at once.
+                </li>
               </ul>
             </section>
 
