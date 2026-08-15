@@ -90,7 +90,7 @@ const PATTERN_COLORS = [
   '#770909', // maroon
   '#F20202', // red
   '#F99639', // orange
-  '#E8F86D', // yellow
+  '#FBF04D', // yellow
   '#80F982', // green
   '#8AFFF3', // aqua
   '#C2DFFF', // pale blue
