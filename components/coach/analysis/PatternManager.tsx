@@ -95,7 +95,7 @@ const PATTERN_COLORS = [
   '#22C55E', // green
   '#009E8F', // teal
   '#22C7E0', // cyan
-  '#2E7FE6', // blue
+  '#1D4ED8', // blue (darker royal blue)
   '#4B3FCF', // indigo
   '#9333EA', // violet
   '#C026D3', // magenta
