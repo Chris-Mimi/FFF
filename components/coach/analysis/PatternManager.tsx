@@ -33,8 +33,10 @@ interface PatternManagerProps {
 
 const PATTERN_COLORS = [
   '#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6',
-  '#EC4899', '#06B6D4', '#F97316', '#84CC16', '#14B8A6',
+  '#F472B6', '#06B6D4', '#F97316', '#84CC16', '#14B8A6',
   '#FACC15', '#92400E',
+  '#1D4ED8', // royal blue
+  '#FDE047', // bright yellow
 ];
 
 export default function PatternManager({
