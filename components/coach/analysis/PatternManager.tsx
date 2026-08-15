@@ -85,21 +85,20 @@ interface PatternManagerProps {
   onLoadExerciseHistory?: () => void;
 }
 
-// Spectrum-ordered (red → pink), chosen for maximum separation between
-// neighbours — no near-duplicate pairs.
+// Coach-picked, spectrum-ordered (maroon → pink).
 const PATTERN_COLORS = [
-  '#DC2626', // red
-  '#F97316', // orange
-  '#FACC15', // yellow
-  '#A9D608', // lime
-  '#22C55E', // green
-  '#009E8F', // teal
-  '#22C7E0', // cyan
-  '#1D4ED8', // blue (darker royal blue)
-  '#4B3FCF', // indigo
-  '#9333EA', // violet
-  '#C026D3', // magenta
-  '#EC4899', // pink
+  '#770909', // maroon
+  '#F20202', // red
+  '#F99639', // orange
+  '#E8F86D', // yellow
+  '#80F982', // green
+  '#8AFFF3', // aqua
+  '#C2DFFF', // pale blue
+  '#5196D6', // blue
+  '#1A0BBC', // indigo
+  '#830BF4', // violet
+  '#E367F4', // magenta
+  '#F4CDE0', // pink
 ];
 
 export default function PatternManager({
