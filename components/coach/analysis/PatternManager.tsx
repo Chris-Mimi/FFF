@@ -1,10 +1,64 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Plus, Edit2, Trash2, ChevronDown, ChevronRight, Settings, GripVertical } from 'lucide-react';
 import type { PatternWithExercises, PatternGapResult } from '@/types/planner';
 import type { ExerciseFrequency } from '@/utils/movement-analytics';
 import PatternExerciseChips from './PatternExerciseChips';
+
+// A colour swatch that opens a small palette popover on click (instead of
+// cycling). Shared by the per-pattern dots and the "new pattern" swatch.
+function ColorDot({
+  color,
+  onChange,
+  size = 'w-5 h-5',
+  className = '',
+}: {
+  color: string;
+  onChange: (c: string) => void;
+  size?: string;
+  className?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [open]);
+
+  return (
+    <div ref={ref} className='relative shrink-0'>
+      <button
+        type='button'
+        className={`${size} ${className} rounded-full hover:ring-2 hover:ring-offset-1 hover:ring-gray-300 transition`}
+        style={{ backgroundColor: color }}
+        onClick={() => setOpen(o => !o)}
+        title='Click to pick a colour'
+      />
+      {open && (
+        <div className='absolute left-0 top-full mt-1 z-30 bg-white border border-gray-200 rounded-lg shadow-lg p-2 grid grid-cols-4 gap-1.5 w-max'>
+          {PATTERN_COLORS.map(c => (
+            <button
+              key={c}
+              type='button'
+              onClick={() => { onChange(c); setOpen(false); }}
+              className={`w-5 h-5 rounded-full hover:ring-2 hover:ring-offset-1 hover:ring-gray-400 transition ${
+                c.toLowerCase() === color.toLowerCase() ? 'ring-2 ring-offset-1 ring-gray-700' : ''
+              }`}
+              style={{ backgroundColor: c }}
+              title={c}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 interface PatternManagerProps {
   patterns: PatternWithExercises[];
@@ -164,14 +218,11 @@ export default function PatternManager({
         <div className='px-3 pb-3 md:px-4 md:pb-4 space-y-3'>
           {/* Create new pattern */}
           <div className='flex gap-2 items-center'>
-            <div
-              className='w-6 h-6 rounded-full cursor-pointer border-2 border-gray-300 shrink-0'
-              style={{ backgroundColor: newColor }}
-              onClick={() => {
-                const idx = PATTERN_COLORS.indexOf(newColor);
-                setNewColor(PATTERN_COLORS[(idx + 1) % PATTERN_COLORS.length]);
-              }}
-              title='Click to change color'
+            <ColorDot
+              color={newColor}
+              onChange={setNewColor}
+              size='w-6 h-6'
+              className='border-2 border-gray-300'
             />
             <input
               type='text'
@@ -232,15 +283,9 @@ export default function PatternManager({
                     )}
                   </button>
 
-                  <button
-                    className='w-5 h-5 rounded-full shrink-0 hover:ring-2 hover:ring-offset-1 hover:ring-gray-300 transition'
-                    style={{ backgroundColor: pattern.color }}
-                    onClick={() => {
-                      const idx = PATTERN_COLORS.indexOf(pattern.color);
-                      const nextColor = PATTERN_COLORS[(idx + 1) % PATTERN_COLORS.length];
-                      onUpdatePattern(pattern.id, { color: nextColor });
-                    }}
-                    title='Click to change color'
+                  <ColorDot
+                    color={pattern.color}
+                    onChange={(c) => onUpdatePattern(pattern.id, { color: c })}
                   />
 
                   {editingId === pattern.id ? (
