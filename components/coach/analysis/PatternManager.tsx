@@ -233,7 +233,7 @@ export default function PatternManager({
                   </button>
 
                   <button
-                    className='w-3 h-3 rounded-full shrink-0 hover:ring-2 hover:ring-offset-1 hover:ring-gray-300 transition'
+                    className='w-5 h-5 rounded-full shrink-0 hover:ring-2 hover:ring-offset-1 hover:ring-gray-300 transition'
                     style={{ backgroundColor: pattern.color }}
                     onClick={() => {
                       const idx = PATTERN_COLORS.indexOf(pattern.color);
