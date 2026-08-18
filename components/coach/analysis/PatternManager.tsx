@@ -316,7 +316,10 @@ export default function PatternManager({
                   )}
 
                   <span className='text-xs text-gray-400 shrink-0'>
-                    {pattern.exercises.length} exercise{pattern.exercises.length !== 1 ? 's' : ''}
+                    {pattern.exercises.length}
+                    <span className='hidden sm:inline'>
+                      {' '}exercise{pattern.exercises.length !== 1 ? 's' : ''}
+                    </span>
                   </span>
 
                   <button
