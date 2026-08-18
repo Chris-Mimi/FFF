@@ -668,7 +668,7 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
     <div className='space-y-4'>
       {/* Track filter toggle + Info button */}
       <div className='flex items-center justify-between gap-2 flex-wrap'>
-        <div className='flex items-center gap-2'>
+        <div className='flex items-center gap-2 flex-wrap'>
           <span className='text-xs font-medium text-gray-500'>Track:</span>
           <div className='flex rounded-lg border border-gray-200 overflow-hidden'>
             <button
