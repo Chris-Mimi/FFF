@@ -695,7 +695,7 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
 
           {/* Adults-only session sub-filter */}
           {trackFilter === 'adults' && (
-            <>
+            <div className='flex items-center gap-2'>
               <span className='text-xs font-medium text-gray-500 ml-1'>Session:</span>
               <div className='flex rounded-lg border border-gray-200 overflow-hidden'>
                 {([['all', 'All'], ['wod', 'WOD'], ['foundations', 'Foundations']] as const).map(([val, label], i) => (
@@ -714,7 +714,7 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
                   </button>
                 ))}
               </div>
-            </>
+            </div>
           )}
         </div>
         <button
