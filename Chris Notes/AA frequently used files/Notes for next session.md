@@ -15,8 +15,8 @@ http://192.168.178.75:3000
 * IDEA: Put names of booked athletes in Whiteboard Intro so they also go into Google Calendar or find another way to register them in Google Calendar.
 * iphone bug (I think) Coach-side: Workouts search box: Mimi can't type anything in the search box
 * Mimi couldn't add a trial athlete
-* Michi S can't see other athletes booked
-* Another improvement. I'd like to be able to click on an exercise in the planner
+* 
+* 
 * Kids 1.7, 27.7 31.7 needs exercises
 
 Athletes app: Give me the possibility to send Athletes who pay for the app a message.
@@ -31,7 +31,7 @@ Ask Mimi Silvia Maritati (Diapers & Dumbbells?)
 
 * At-Risk put the list in order from most recent to least recent attendance
 * Weekend WOD #26.2 not done by selected first showed correctly then did not appear
-* Clicking on any exercise in the planner should show exactly every time that exercise was programmed within the timescale.
+* 
 
 * 
 * One thing I'd flag for later (not now): the parallel-session "move" still loses the athlete's whiteboard score for that day (the re-add doesn't carry it over) — only their PR is now safe. A proper one-click "move booking that keeps the score" is the real cure, but that's a feature, not a bug fix. Want me to note it in the memory bank for a future session? - I don't understand, explain in simple terms.
