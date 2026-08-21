@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
   // Collect all other member IDs from sessions where user is booked
   const otherMemberIds = new Set<string>();
   for (const sid of bookedSessionIds) {
-    for (const mid of sessionBookings[sid]) {
+    for (const mid of sessionBookings[sid] ?? []) {
       if (mid !== memberId) otherMemberIds.add(mid);
     }
   }

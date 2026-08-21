@@ -21,7 +21,7 @@ http://192.168.178.75:3000
 
 Athletes app: Give me the possibility to send Athletes who pay for the app a message.
 * 
-* 
+* NOTE: Eufy clip saved to Mac: Foam roller movements from 10.06.26 to sav e to YT and then link in app exercises.
 Need DOB: Engels Frida, Frieda Stromer, Leopold Wischhöfer, Nico Enzmann, 
 Ask Mimi Silvia Maritati (Diapers & Dumbbells?)
 * Review what the section filter chips do in the Workouts page. 
