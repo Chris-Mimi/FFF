@@ -349,7 +349,13 @@ export default function MemberBookingPage() {
           if (authSession) {
             const res = await fetch(
               `/api/bookings/attendees?sessionIds=${bookedSessionIds.join(',')}&memberId=${bookingForMemberId}`,
-              { headers: { Authorization: `Bearer ${authSession.access_token}` } }
+              {
+                headers: { Authorization: `Bearer ${authSession.access_token}` },
+                // Never serve a stale attendee list from the phone's HTTP cache
+                // — the URL is stable per booked-session set, so a cached early
+                // response would keep hiding members who booked in afterwards.
+                cache: 'no-store',
+              }
             );
             if (res.ok) {
               const { attendees } = await res.json();

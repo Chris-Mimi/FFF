@@ -97,5 +97,8 @@ export async function GET(request: NextRequest) {
     if (names.length > 0) attendees[sid] = names;
   }
 
-  return NextResponse.json({ attendees });
+  return NextResponse.json(
+    { attendees },
+    { headers: { 'Cache-Control': 'no-store' } }
+  );
 }
