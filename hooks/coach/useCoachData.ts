@@ -4,6 +4,7 @@ import { WODFormData, WODSection } from '@/components/coach/WorkoutModal';
 import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
 import { supabase } from '@/lib/supabase';
 import { authFetch } from '@/lib/auth-fetch';
+import { sessionStartInstant, sessionAutoLockInstant } from '@/lib/bookingRules';
 import { extractMovements, extractMovementsFromWod, type AcronymMap, type LiftExerciseMap } from '@/utils/movement-extraction';
 import { fetchLiftExerciseMap } from '@/utils/movement-analytics';
 import { useEffect, useState } from 'react';
@@ -97,6 +98,7 @@ export const useCoachData = ({
           capacity,
           status,
           is_private,
+          is_locked,
           workout_id,
           workout_type,
           trial_names,
@@ -133,6 +135,22 @@ export const useCoachData = ({
       if (data.length < PAGE) break;
       }
 
+      // Booking-rules snapshot for the calendar lock badge — mirrors the athlete
+      // book page + server guard so the badge matches what athletes actually see.
+      // Public endpoint, no auth. On failure, manual locks still show; auto ones don't.
+      let lockCfg: {
+        auto_lock_lead_minutes: number;
+        session_type_lock_minutes: Array<{ session_type: string; auto_lock_lead_minutes: number }>;
+        morning_lock_enabled: boolean;
+        morning_cutoff_time: string;
+        morning_lock_time: string;
+      } | null = null;
+      try {
+        const r = await fetch('/api/booking-rules/public');
+        if (r.ok) lockCfg = await r.json();
+      } catch { /* leave null */ }
+      const nowMs = Date.now();
+
       const grouped: Record<string, WODFormData[]> = {};
       allSessions.forEach((session) => {
         const dateKey = session.date;
@@ -164,6 +182,23 @@ export const useCoachData = ({
           .concat(dropInNamesArr.map(n => `${n} (drop-in)`))
           .sort((a: string, b: string) => a.localeCompare(b));
 
+        // Effective lock state for the calendar badge. Manual lock (is_locked=true)
+        // always counts; auto-lock (is_locked=null) uses the same lead-time + morning
+        // rule as the athlete guard. Only badge sessions that haven't started yet —
+        // a past session is trivially locked and would just clutter the calendar.
+        const leadMinutes =
+          lockCfg?.session_type_lock_minutes.find(r => r.session_type === session.workout_type)?.auto_lock_lead_minutes
+          ?? lockCfg?.auto_lock_lead_minutes
+          ?? 0;
+        const startMs = sessionStartInstant(session.date, session.time).getTime();
+        const lockAtMs = lockCfg
+          ? sessionAutoLockInstant(session.date, session.time, leadMinutes, lockCfg).getTime()
+          : startMs;
+        const effectivelyLocked =
+          session.is_locked === true ||
+          (session.is_locked === null && lockAtMs <= nowMs);
+        const lockedBadge = effectivelyLocked && startMs > nowMs;
+
         const bookingInfo = {
           session_id: session.id,
           confirmed_count: confirmedCount,
@@ -173,6 +208,8 @@ export const useCoachData = ({
           time: session.time,
           booked_members: bookedMembers as string[],
           status: session.status,
+          locked: lockedBadge,
+          locked_manually: session.is_locked === true,
         };
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

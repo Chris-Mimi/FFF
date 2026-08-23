@@ -1,7 +1,8 @@
 import { confirm } from '@/lib/confirm';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
+import { sessionAutoLockInstant, DEFAULT_BOOKING_RULES } from '@/lib/bookingRules';
 import { authFetch } from '@/lib/auth-fetch';
 import {
   validateCapacity,
@@ -48,6 +49,22 @@ export function useSessionEditing({
 }: UseSessionEditingProps): UseSessionEditingResult {
   const [editingCapacity, setEditingCapacity] = useState(false);
   const [editingTime, setEditingTime] = useState(false);
+
+  // Booking-rules snapshot so the modal's lock indicator matches what athletes
+  // actually experience (auto lead-time + morning rule), not just manual locks.
+  // Public endpoint, no auth. Falls back to defaults on failure.
+  const [lockCfg, setLockCfg] = useState<{
+    auto_lock_lead_minutes: number;
+    morning_lock_enabled: boolean;
+    morning_cutoff_time: string;
+    morning_lock_time: string;
+  } | null>(null);
+  useEffect(() => {
+    fetch('/api/booking-rules/public')
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => { if (d) setLockCfg(d); })
+      .catch(() => { /* keep null → indicator reflects manual + past-start only */ });
+  }, []);
 
   const handleUpdateCapacity = async () => {
     const confirmedCount = calculateConfirmedCount(bookings);
@@ -133,14 +150,20 @@ export function useSessionEditing({
     }
   };
 
-  // Compute effective lock state: locked if is_locked=true, or is_locked=null and session start time has passed
+  // Compute effective lock state: locked if is_locked=true (manual), or is_locked=null
+  // (auto mode) and the lead-time / morning-lock threshold has passed. Mirrors the
+  // athlete book page + server guard via the shared helper so the coach indicator
+  // agrees with what athletes see. (workout_type isn't on SessionDetails, so the
+  // per-type lead override isn't applied here — the morning rule is time-based and
+  // fully accurate; the global lead covers the rest.)
   const isEffectivelyLocked = (() => {
     if (!session) return false;
     if (session.is_locked === true) return true;
     if (session.is_locked === false) return false;
-    // is_locked is null → auto mode: locked if session start time has passed
-    const sessionDateTime = new Date(`${session.date}T${session.time}`);
-    return sessionDateTime < new Date();
+    const dateStr = session.date.split('T')[0];
+    const lead = lockCfg?.auto_lock_lead_minutes ?? DEFAULT_BOOKING_RULES.auto_lock_lead_minutes;
+    const lockAt = sessionAutoLockInstant(dateStr, session.time, lead, lockCfg ?? undefined);
+    return lockAt <= new Date();
   })();
 
   const handleToggleLock = async () => {

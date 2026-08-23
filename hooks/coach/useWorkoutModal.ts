@@ -107,6 +107,8 @@ export interface WODFormData {
     time?: string;
     booked_members?: string[];
     status?: string;
+    locked?: boolean;          // effectively locked (manual or auto) AND not yet started
+    locked_manually?: boolean; // is_locked === true (coach clicked Lock)
   };
   video_clips?: { label: string; url: string }[]; // Manually attached movement demo clips
   has_scores?: boolean; // Whether any scores have been entered for this workout

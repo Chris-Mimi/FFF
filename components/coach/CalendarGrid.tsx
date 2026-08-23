@@ -11,6 +11,7 @@ import {
   ChevronRight,
   Monitor,
   ClipboardList,
+  Lock,
 } from 'lucide-react';
 import { getCardState, getCardClasses } from '@/utils/card-utils';
 import { formatDate, getWeekNumber } from '@/utils/date-utils';
@@ -305,6 +306,17 @@ export default function CalendarGrid({
                 ) : wod.booking_info.status === 'draft' && (
                   <span className="text-[10px] font-bold text-white rounded px-1 py-0.5 bg-purple-600" title="Hidden from athletes — not bookable">
                     Hidden
+                  </span>
+                )}
+                {wod.booking_info.locked && (
+                  <span
+                    className="inline-flex items-center gap-0.5 text-[10px] font-bold text-white rounded px-1 py-0.5 bg-gray-600"
+                    title={wod.booking_info.locked_manually
+                      ? 'Locked manually — not accepting bookings'
+                      : 'Auto-locked — booking closed before class start'}
+                  >
+                    <Lock size={9} strokeWidth={2.5} />
+                    Locked
                   </span>
                 )}
                 {/* Booked athletes popover */}
