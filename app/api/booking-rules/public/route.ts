@@ -15,5 +15,8 @@ export async function GET() {
     wellpass_restricted_release_offset_minutes: rules.wellpass_restricted_release_offset_minutes,
     auto_lock_lead_minutes: rules.auto_lock_lead_minutes,
     session_type_lock_minutes: perType,
+    morning_lock_enabled: rules.morning_lock_enabled,
+    morning_cutoff_time: rules.morning_cutoff_time,
+    morning_lock_time: rules.morning_lock_time,
   });
 }

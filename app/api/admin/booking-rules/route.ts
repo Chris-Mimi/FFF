@@ -51,6 +51,25 @@ export async function PUT(request: NextRequest) {
     return null;
   };
 
+  // Validate the morning-lock fields: a boolean toggle + two time-of-day strings.
+  const validateMorningLock = (): string | null => {
+    if ('morning_lock_enabled' in body) {
+      const v = body.morning_lock_enabled;
+      if (typeof v !== 'boolean') return 'morning_lock_enabled must be a boolean';
+      patch.morning_lock_enabled = v;
+    }
+    for (const key of ['morning_cutoff_time', 'morning_lock_time'] as const) {
+      if (key in body) {
+        const v = body[key];
+        if (typeof v !== 'string' || !/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/.test(v)) {
+          return `${key} must be HH:MM or HH:MM:SS`;
+        }
+        patch[key] = v.length === 5 ? `${v}:00` : v;
+      }
+    }
+    return null;
+  };
+
   const errors = [
     intField('ten_card_refund_hours'),
     intField('auto_lock_lead_minutes'),
@@ -59,6 +78,7 @@ export async function PUT(request: NextRequest) {
     intField('advance_booking_days', 1, true),
     intField('wellpass_restricted_release_offset_minutes'),
     validateRelease(),
+    validateMorningLock(),
   ].filter(Boolean);
 
   if (errors.length > 0) {

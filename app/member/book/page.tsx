@@ -14,7 +14,7 @@ import { FocusTrap } from '@/components/ui/FocusTrap';
 import BirthdayModal from '@/components/athlete/BirthdayModal';
 import { collectBirthdayGreetings, markBirthdayGreeted, joinNames, type BirthdayPerson } from '@/utils/birthday';
 import { NotificationPrompt } from '@/components/ui/NotificationPrompt';
-import { getMaxVisibleSessionDate, getNextReleaseInstant, DEFAULT_BOOKING_RULES, sessionStartInstant } from '@/lib/bookingRules';
+import { getMaxVisibleSessionDate, getNextReleaseInstant, DEFAULT_BOOKING_RULES, sessionAutoLockInstant } from '@/lib/bookingRules';
 
 interface WeeklySession {
   id: string;
@@ -96,12 +96,18 @@ export default function MemberBookingPage() {
     wellpass_restricted_release_offset_minutes: number;
     auto_lock_lead_minutes: number;
     session_type_lock_minutes: Array<{ session_type: string; auto_lock_lead_minutes: number }>;
+    morning_lock_enabled: boolean;
+    morning_cutoff_time: string;
+    morning_lock_time: string;
   }>({
     next_week_release_day_of_week: DEFAULT_BOOKING_RULES.next_week_release_day_of_week,
     next_week_release_time: DEFAULT_BOOKING_RULES.next_week_release_time,
     wellpass_restricted_release_offset_minutes: DEFAULT_BOOKING_RULES.wellpass_restricted_release_offset_minutes,
     auto_lock_lead_minutes: DEFAULT_BOOKING_RULES.auto_lock_lead_minutes,
     session_type_lock_minutes: [],
+    morning_lock_enabled: DEFAULT_BOOKING_RULES.morning_lock_enabled,
+    morning_cutoff_time: DEFAULT_BOOKING_RULES.morning_cutoff_time,
+    morning_lock_time: DEFAULT_BOOKING_RULES.morning_lock_time,
   });
   // Tick every 60s so card countdowns refresh without a full re-fetch.
   const [nowMs, setNowMs] = useState<number>(() => Date.now());
@@ -306,14 +312,14 @@ export default function MemberBookingPage() {
 
         const workoutType = session.workout_type || 'Class';
 
-        // Compute effective lock using Berlin-wall-clock session start, minus per-type lead minutes.
-        // (Per-type override → global override → 0.) Same shape as the server-side guard.
-        const startInstant = sessionStartInstant(session.date, session.time);
+        // Compute effective lock using the shared helper — per-type lead minutes
+        // (per-type override → global override → 0) combined with the optional
+        // morning-lock rule. Identical logic to the server-side booking guard.
         const leadMinutes =
           releaseConfig.session_type_lock_minutes.find(r => r.session_type === workoutType)?.auto_lock_lead_minutes
           ?? releaseConfig.auto_lock_lead_minutes
           ?? 0;
-        const lockAtMs = startInstant.getTime() - leadMinutes * 60_000;
+        const lockAtMs = sessionAutoLockInstant(session.date, session.time, leadMinutes, releaseConfig).getTime();
         const effectivelyLocked =
           session.is_locked === true ||
           (session.is_locked === null && lockAtMs <= Date.now());

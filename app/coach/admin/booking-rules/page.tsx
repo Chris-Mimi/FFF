@@ -17,6 +17,9 @@ type FormState = {
   next_week_release_day_of_week: string;
   next_week_release_time: string; // 'HH:MM' for the input
   wellpass_restricted_release_offset_minutes: string;
+  morning_lock_enabled: boolean;
+  morning_cutoff_time: string; // 'HH:MM' for the input
+  morning_lock_time: string;   // 'HH:MM' for the input
 };
 
 const DAY_LABELS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -32,6 +35,9 @@ const toForm = (r: BookingRules): FormState => ({
   next_week_release_day_of_week: String(r.next_week_release_day_of_week),
   next_week_release_time: r.next_week_release_time.slice(0, 5), // 'HH:MM'
   wellpass_restricted_release_offset_minutes: String(r.wellpass_restricted_release_offset_minutes),
+  morning_lock_enabled: r.morning_lock_enabled,
+  morning_cutoff_time: r.morning_cutoff_time.slice(0, 5), // 'HH:MM'
+  morning_lock_time: r.morning_lock_time.slice(0, 5),     // 'HH:MM'
 });
 
 const parseInput = (s: string, nullable: boolean): number | null | 'invalid' => {
@@ -111,6 +117,16 @@ export default function BookingRulesPage() {
       setMessage({ kind: 'err', text: 'Release time must be HH:MM.' });
       return;
     }
+    if (form.morning_lock_enabled) {
+      if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(form.morning_cutoff_time)) {
+        setMessage({ kind: 'err', text: 'Morning cutoff time must be HH:MM.' });
+        return;
+      }
+      if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(form.morning_lock_time)) {
+        setMessage({ kind: 'err', text: 'Morning lock time must be HH:MM.' });
+        return;
+      }
+    }
 
     // Per-session-type: blank = null (fall back to global); otherwise non-negative integer.
     const perTypeUpdates: { session_type: string; auto_lock_lead_minutes: number | null }[] = [];
@@ -142,6 +158,9 @@ export default function BookingRulesPage() {
             ...parsed,
             next_week_release_day_of_week: releaseDay,
             next_week_release_time: form.next_week_release_time,
+            morning_lock_enabled: form.morning_lock_enabled,
+            morning_cutoff_time: form.morning_cutoff_time,
+            morning_lock_time: form.morning_lock_time,
           }),
         }),
         authFetch('/api/admin/booking-rules/session-types', {
@@ -181,7 +200,7 @@ export default function BookingRulesPage() {
   }
 
   const field = (
-    key: keyof FormState,
+    key: { [K in keyof FormState]: FormState[K] extends string ? K : never }[keyof FormState],
     label: string,
     suffix: string,
     helper: string,
@@ -269,6 +288,46 @@ export default function BookingRulesPage() {
                 ))}
               </div>
             )}
+          </div>
+
+          <div className='mb-5 border-t pt-5'>
+            <label className='flex items-center gap-2 text-sm font-medium text-gray-700 mb-1 cursor-pointer'>
+              <input
+                type='checkbox'
+                checked={form.morning_lock_enabled}
+                onChange={(e) => setForm({ ...form, morning_lock_enabled: e.target.checked })}
+                className='cursor-pointer'
+              />
+              Lock morning sessions the evening before
+            </label>
+            <p className='text-xs text-gray-500 mb-3'>
+              When on, any session starting before the cutoff time counts as a “morning” session
+              and stops taking bookings at the lock time on the previous day — regardless of its
+              session type. Evening sessions are unaffected. This overrides the lead-time settings
+              above for morning sessions when it closes booking earlier.
+            </p>
+            <div className={`space-y-2 ${form.morning_lock_enabled ? '' : 'opacity-50 pointer-events-none'}`}>
+              <div className='flex items-center gap-2'>
+                <span className='w-56 text-sm text-gray-700'>Morning cutoff (before)</span>
+                <input
+                  type='time'
+                  value={form.morning_cutoff_time}
+                  onChange={(e) => setForm({ ...form, morning_cutoff_time: e.target.value })}
+                  className='w-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#178da6]'
+                />
+                <span className='text-sm text-gray-500'>sessions starting before this are “morning”</span>
+              </div>
+              <div className='flex items-center gap-2'>
+                <span className='w-56 text-sm text-gray-700'>Lock at (previous evening)</span>
+                <input
+                  type='time'
+                  value={form.morning_lock_time}
+                  onChange={(e) => setForm({ ...form, morning_lock_time: e.target.value })}
+                  className='w-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#178da6]'
+                />
+                <span className='text-sm text-gray-500'>booking closes at this time the day before</span>
+              </div>
+            </div>
           </div>
 
           {field(

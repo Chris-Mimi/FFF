@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { promoteFromWaitlist } from '@/lib/coach/promoteFromWaitlist';
-import { getBookingRules, getLockLeadMinutesForSessionType, sessionStartInstant } from '@/lib/bookingRules';
+import { getBookingRules, getLockLeadMinutesForSessionType, sessionStartInstant, sessionAutoLockInstant } from '@/lib/bookingRules';
 import { cleanupAthleteScoresForWod, resolveAuthUserId } from '@/lib/coach/scoreCleanup';
 
 // Service-role client used ONLY for the score-cleanup step below. Anon-supabase
@@ -108,11 +108,11 @@ export async function POST(request: NextRequest) {
 
     // Decide final status: confirmed bookings cancelled past the auto-lock threshold
     // become 'late_cancel' (audit trail). Waitlist cancels are always plain 'cancelled'.
+    const rules = await getBookingRules();
     let newStatus: 'cancelled' | 'late_cancel' = 'cancelled';
     if (booking.status === 'confirmed' && session) {
       const leadMinutes = await getLockLeadMinutesForSessionType(session.workout_type);
-      const sessionDateTime = sessionStartInstant(session.date, session.time);
-      const lockThreshold = new Date(sessionDateTime.getTime() - leadMinutes * 60 * 1000);
+      const lockThreshold = sessionAutoLockInstant(session.date, session.time, leadMinutes, rules);
       const isLocked =
         session.is_locked === true ||
         (session.is_locked === null && lockThreshold < new Date());
@@ -137,7 +137,6 @@ export async function POST(request: NextRequest) {
       isTenCardCancel = effectiveMethod === 'ten_card';
 
       if (isTenCardCancel && session) {
-        const rules = await getBookingRules();
         const gracePeriodHours = rules.ten_card_refund_hours;
         const sessionDateTime = sessionStartInstant(session.date, session.time);
         const now = new Date();

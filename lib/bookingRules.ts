@@ -9,6 +9,9 @@ export interface BookingRules {
   next_week_release_day_of_week: number; // 0=Sun, 1=Mon, ..., 6=Sat (JS getDay)
   next_week_release_time: string;        // 'HH:MM:SS' — priority tier opening (Berlin wall clock)
   wellpass_restricted_release_offset_minutes: number; // added to base release for Wellpass-restricted members; 0 = same time as priority tier
+  morning_lock_enabled: boolean;         // when true, sessions starting before morning_cutoff_time auto-lock the evening before
+  morning_cutoff_time: string;           // 'HH:MM:SS' — a session is "morning" if its start time is before this (Berlin wall clock)
+  morning_lock_time: string;             // 'HH:MM:SS' — Berlin wall-clock time on the PREVIOUS day when morning sessions lock
 }
 
 export const DEFAULT_BOOKING_RULES: BookingRules = {
@@ -20,9 +23,12 @@ export const DEFAULT_BOOKING_RULES: BookingRules = {
   next_week_release_day_of_week: 0,
   next_week_release_time: '14:00:00',
   wellpass_restricted_release_offset_minutes: 0,
+  morning_lock_enabled: false,
+  morning_cutoff_time: '12:00:00',
+  morning_lock_time: '20:00:00',
 };
 
-const RULES_COLUMNS = 'ten_card_refund_hours, auto_lock_lead_minutes, max_bookings_per_day, max_bookings_per_week, advance_booking_days, next_week_release_day_of_week, next_week_release_time, wellpass_restricted_release_offset_minutes';
+const RULES_COLUMNS = 'ten_card_refund_hours, auto_lock_lead_minutes, max_bookings_per_day, max_bookings_per_week, advance_booking_days, next_week_release_day_of_week, next_week_release_time, wellpass_restricted_release_offset_minutes, morning_lock_enabled, morning_cutoff_time, morning_lock_time';
 
 function adminClient() {
   return createClient(
@@ -117,6 +123,47 @@ export function berlinWallTimeToUTC(year: number, month: number, day: number, ho
   const berlinAsUTC = Date.UTC(get('year'), get('month') - 1, get('day'), get('hour'), get('minute'), get('second'));
   const offsetMs = berlinAsUTC - guess.getTime();
   return new Date(guess.getTime() - offsetMs);
+}
+
+// The morning-lock config subset of BookingRules. Passed to sessionAutoLockInstant
+// so both server routes and the athlete book page compute the lock identically.
+export interface MorningLockConfig {
+  morning_lock_enabled: boolean;
+  morning_cutoff_time: string; // 'HH:MM:SS'
+  morning_lock_time: string;   // 'HH:MM:SS'
+}
+
+// Previous calendar day for a 'YYYY-MM-DD' string. Pure calendar arithmetic
+// (anchored at noon UTC so a DST transition can't roll the date), no timezone.
+function previousCalendarDay(dateStr: string): string {
+  const [y, mo, d] = dateStr.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, mo - 1, d, 12, 0, 0));
+  dt.setUTCDate(dt.getUTCDate() - 1);
+  return dt.toISOString().split('T')[0];
+}
+
+// The UTC instant at which an auto-mode session (is_locked === null) closes for
+// booking. Combines the standard lead-time-before-start lock with the optional
+// "morning sessions lock the evening before" rule — whichever comes first wins.
+// A session counts as "morning" if its start time is before morning_cutoff_time;
+// it then locks at morning_lock_time on the PREVIOUS calendar day (Berlin wall clock).
+export function sessionAutoLockInstant(
+  dateStr: string,
+  timeStr: string,
+  leadMinutes: number,
+  morning?: MorningLockConfig | null
+): Date {
+  const start = sessionStartInstant(dateStr, timeStr);
+  let lockAt = new Date(start.getTime() - leadMinutes * 60_000);
+
+  if (morning?.morning_lock_enabled && timeStr.slice(0, 5) < morning.morning_cutoff_time.slice(0, 5)) {
+    const prevDay = previousCalendarDay(dateStr);
+    const [py, pmo, pd] = prevDay.split('-').map(Number);
+    const [lh, lm, ls = 0] = morning.morning_lock_time.split(':').map(Number);
+    const morningLockAt = berlinWallTimeToUTC(py, pmo, pd, lh, lm, ls);
+    if (morningLockAt < lockAt) lockAt = morningLockAt;
+  }
+  return lockAt;
 }
 
 // Returns the release instant for the user's tier in the current Berlin week,
