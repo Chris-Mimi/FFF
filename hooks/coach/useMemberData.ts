@@ -479,10 +479,10 @@ export function useMemberData() {
   const expiredIdsRef = useRef<Set<string>>(new Set());
   const autoExpireSubscriptions = async (membersList: Member[], stripeSubMap: Record<string, string>) => {
     const now = new Date();
-    // Cash subs get a 4-day grace past their end date before access is cut (S388,
-    // Chris's call — being blocked the instant payment slips is unfriendly). Trials
-    // still expire on their end date.
-    const cashGraceCutoff = new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000);
+    // Cash subs get a 7-day grace past their end date before access is cut (S407,
+    // Chris's call — being blocked the instant payment slips is unfriendly, and the
+    // athlete app warns them to pay during the grace). Trials still expire on end date.
+    const cashGraceCutoff = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     const expired = membersList.filter(m => {
       if (m.account_type === 'family_member') return false;
       if (!m.athlete_subscription_end) return false;

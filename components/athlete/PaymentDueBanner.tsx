@@ -4,9 +4,10 @@ import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
-// Cash members get a 4-day grace past their subscription end before access is
-// cut, plus a reminder starting 2 days before the end date (Chris, S388).
-const GRACE_DAYS = 4;
+// Cash members get a 7-day grace past their subscription end before access is
+// cut, plus a reminder starting 2 days before the end date (Chris, S407). Must
+// match cashGraceCutoff in hooks/coach/useMemberData.ts.
+const GRACE_DAYS = 7;
 const LEAD_DAYS = 2;
 const MS_DAY = 24 * 60 * 60 * 1000;
 

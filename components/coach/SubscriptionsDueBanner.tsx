@@ -25,7 +25,6 @@ interface DueRow {
   planLabel?: string | null;
 }
 
-const FOURTEEN_DAYS_MS = 14 * 24 * 60 * 60 * 1000;
 const COLLAPSED_KEY = 'subscriptionsDueBanner:collapsed';
 
 const LAPSED_STRIPE_STATUSES = ['cancelled', 'past_due', 'unpaid', 'incomplete_expired'];
@@ -65,12 +64,10 @@ export default function SubscriptionsDueBanner() {
       const cashLeadDays = 5;
       const trialLeadDays = 5;
       const autoRenewLeadDays = 2;
-      const fourteenDaysBack = new Date(now.getTime() - FOURTEEN_DAYS_MS);
       const nowIso = now.toISOString();
       const cashAheadIso = new Date(now.getTime() + cashLeadDays * DAY_MS).toISOString();
       // Fetch Stripe rows within the LONGER lead, then filter each per-kind below.
       const stripeAheadIso = new Date(now.getTime() + Math.max(trialLeadDays, autoRenewLeadDays) * DAY_MS).toISOString();
-      const fourteenBackIso = fourteenDaysBack.toISOString();
 
       // Upcoming Stripe (auto-renew / trial / cancelling) — only warn 2 days out.
       const { data: stripeUpcoming } = await supabase
@@ -81,13 +78,13 @@ export default function SubscriptionsDueBanner() {
         .gte('current_period_end', nowIso)
         .lte('current_period_end', stripeAheadIso);
 
-      // Lapsed Stripe (period_end in past 14 days, status no longer active)
+      // Lapsed Stripe (period_end in the past, status no longer active). No time floor —
+      // a lapsed warning stays up until the coach renews or dismisses it (S407).
       const { data: stripeLapsed } = await supabase
         .from('subscriptions')
         .select('member_id, current_period_end, cancel_at_period_end, plan_type, status')
         .in('status', LAPSED_STRIPE_STATUSES)
         .not('current_period_end', 'is', null)
-        .gte('current_period_end', fourteenBackIso)
         .lt('current_period_end', nowIso);
 
       const allStripeSubs = [...(stripeUpcoming ?? []), ...(stripeLapsed ?? [])];
@@ -126,14 +123,14 @@ export default function SubscriptionsDueBanner() {
         .gte('athlete_subscription_end', nowIso)
         .lte('athlete_subscription_end', cashAheadIso);
 
-      // Lapsed cash (past 14 days, includes already-expired-status to surface auto-flips)
+      // Lapsed cash (includes already-expired-status to surface auto-flips). No time floor —
+      // the warning stays up until the coach renews or dismisses it (S407).
       const { data: cashLapsed } = await supabase
         .from('members')
         .select('id, name, display_name, athlete_subscription_end, athlete_subscription_status, lapsed_banner_dismissed_at')
         .in('athlete_subscription_status', ['active', 'trial', 'expired', 'past_due'])
         .neq('account_type', 'family_member')
         .not('athlete_subscription_end', 'is', null)
-        .gte('athlete_subscription_end', fourteenBackIso)
         .lt('athlete_subscription_end', nowIso);
 
       const daysBetween = (end: Date) =>
