@@ -1,4 +1,9 @@
-import { getExerciseFrequency } from '@/utils/movement-analytics';
+import {
+  getExerciseFrequency,
+  getLiftFrequency,
+  getBenchmarkFrequency,
+  getForgeBenchmarkFrequency,
+} from '@/utils/movement-analytics';
 
 // ============================================================================
 // Exercise recency bands — the single source of truth for the "how long since I
@@ -66,28 +71,38 @@ export function formatExerciseRecency(date: string | undefined | null): string {
 }
 
 // ----------------------------------------------------------------------------
-// Session cache for the full-history recency map (exercise id → last-programmed
-// ISO date). getExerciseFrequency() scans the entire published-workout history,
-// so we run it ONCE per page session and share the promise across every popup
-// open. The Planner pays the same cost on mount; this makes the library popup
-// free after the first open.
+// Session cache for the full-history recency maps (library-item id → last-used
+// ISO date). Each frequency fn scans the entire published-workout history, so we
+// run it ONCE per page session and share the promise across every popup open.
+// The Planner pays the same cost on mount; this makes the library popup free
+// after the first open. One cached loader per library type (exercise / lift /
+// benchmark / forge) — each has its own id space.
 // ----------------------------------------------------------------------------
-let _recencyMapPromise: Promise<Map<string, string>> | null = null;
+type RecencyRow = { id: string; lastProgrammed?: string; lastUsed?: string };
 
-export function getExerciseRecencyMap(force = false): Promise<Map<string, string>> {
-  if (!_recencyMapPromise || force) {
-    _recencyMapPromise = getExerciseFrequency()
-      .then((freqs) => {
-        const map = new Map<string, string>();
-        freqs.forEach((f) => {
-          if (f.lastProgrammed) map.set(f.id, f.lastProgrammed);
+function makeRecencyMapLoader(fetchRows: () => Promise<RecencyRow[]>) {
+  let promise: Promise<Map<string, string>> | null = null;
+  return (force = false): Promise<Map<string, string>> => {
+    if (!promise || force) {
+      promise = fetchRows()
+        .then((rows) => {
+          const map = new Map<string, string>();
+          rows.forEach((r) => {
+            const date = r.lastProgrammed ?? r.lastUsed;
+            if (date) map.set(r.id, date);
+          });
+          return map;
+        })
+        .catch((err) => {
+          promise = null; // let a later open retry after a failed scan
+          throw err;
         });
-        return map;
-      })
-      .catch((err) => {
-        _recencyMapPromise = null; // let a later open retry after a failed scan
-        throw err;
-      });
-  }
-  return _recencyMapPromise;
+    }
+    return promise;
+  };
 }
+
+export const getExerciseRecencyMap = makeRecencyMapLoader(() => getExerciseFrequency());
+export const getLiftRecencyMap = makeRecencyMapLoader(() => getLiftFrequency());
+export const getBenchmarkRecencyMap = makeRecencyMapLoader(() => getBenchmarkFrequency());
+export const getForgeRecencyMap = makeRecencyMapLoader(() => getForgeBenchmarkFrequency());

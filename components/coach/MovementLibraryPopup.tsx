@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { FocusTrap } from '@/components/ui/FocusTrap';
 import type { BarbellLift, Benchmark, ForgeBenchmark } from '@/types/movements';
 import { useUserFavorites } from '@/utils/exercise-favorites';
-import { getExerciseRecencyDotColor, formatExerciseRecency, getExerciseRecencyMap } from '@/utils/exercise-recency';
+import { getExerciseRecencyDotColor, formatExerciseRecency, getExerciseRecencyMap, getLiftRecencyMap, getBenchmarkRecencyMap, getForgeRecencyMap } from '@/utils/exercise-recency';
 import { ChevronDown, ChevronRight, Edit2, Library, Search, Star, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
@@ -105,9 +105,13 @@ function MovementLibraryPopup({
 
   // Data states
   const [exercises, setExercises] = useState<Exercise[]>([]);
-  // Full-history recency map (exercise id → last-programmed ISO date) for the
-  // usage dots. Loaded once per session and cached in the util (see getExerciseRecencyMap).
+  // Full-history recency maps (library-item id → last-used ISO date) for the usage
+  // dots, one per tab. Loaded once per session and cached in the util; the active
+  // tab's map drives the shared legend (see currentRecencyLoaded).
   const [recencyMap, setRecencyMap] = useState<Map<string, string> | null>(null);
+  const [liftRecencyMap, setLiftRecencyMap] = useState<Map<string, string> | null>(null);
+  const [benchmarkRecencyMap, setBenchmarkRecencyMap] = useState<Map<string, string> | null>(null);
+  const [forgeRecencyMap, setForgeRecencyMap] = useState<Map<string, string> | null>(null);
   const [lifts, setLifts] = useState<BarbellLift[]>([]);
   const [benchmarks, setBenchmarks] = useState<Benchmark[]>([]);
   const [forgeBenchmarks, setForgeBenchmarks] = useState<ForgeBenchmark[]>([]);
@@ -353,6 +357,7 @@ function MovementLibraryPopup({
       });
       setLifts(merged);
       setHasFetchedLifts(true);
+      getLiftRecencyMap().then(setLiftRecencyMap).catch(() => {});
     } catch (error) {
       console.error('Error fetching lifts:', error);
     } finally {
@@ -370,6 +375,7 @@ function MovementLibraryPopup({
       if (error) throw error;
       setBenchmarks(data || []);
       setHasFetchedBenchmarks(true);
+      getBenchmarkRecencyMap().then(setBenchmarkRecencyMap).catch(() => {});
     } catch (error) {
       console.error('Error fetching benchmarks:', error);
     } finally {
@@ -387,6 +393,7 @@ function MovementLibraryPopup({
       if (error) throw error;
       setForgeBenchmarks(data || []);
       setHasFetchedForge(true);
+      getForgeRecencyMap().then(setForgeRecencyMap).catch(() => {});
     } catch (error) {
       console.error('Error fetching forge benchmarks:', error);
     } finally {
@@ -695,11 +702,12 @@ function MovementLibraryPopup({
 
   if (!isOpen) return null;
 
-  // Leading usage-recency dot for an exercise row (same bands as the Planner).
-  // Rendered only once the history map has loaded, so rows don't flash grey first.
-  const recencyDot = (exerciseId: string) => {
-    if (!recencyMap) return null;
-    const last = recencyMap.get(exerciseId);
+  // Leading usage-recency dot for a library row (same bands as the Planner).
+  // Rendered only once the relevant history map has loaded, so rows don't flash
+  // grey first. `map` is the per-tab id→last-used map.
+  const recencyDot = (map: Map<string, string> | null, id: string) => {
+    if (!map) return null;
+    const last = map.get(id);
     return (
       <span
         className={`inline-block w-2 h-2 rounded-full mr-1.5 shrink-0 align-middle ${getExerciseRecencyDotColor(last)}`}
@@ -707,6 +715,13 @@ function MovementLibraryPopup({
       />
     );
   };
+
+  // Has the current tab's recency map loaded? Drives the shared legend.
+  const currentRecencyLoaded =
+    (activeTab === 'exercises' && !!recencyMap) ||
+    (activeTab === 'lifts' && !!liftRecencyMap) ||
+    (activeTab === 'benchmarks' && !!benchmarkRecencyMap) ||
+    (activeTab === 'forge' && !!forgeRecencyMap);
 
   const handleSelectExercise = (exerciseName: string, exerciseData?: Exercise) => {
     onSelectExercise(exerciseName);
@@ -966,22 +981,24 @@ function MovementLibraryPopup({
             </div>
           ) : (
             <>
+              {/* Usage-recency legend — the dot before each item shows how long
+                  since it was last programmed (same bands as the Planner). Shown on
+                  whichever tab has its history map loaded. */}
+              {currentRecencyLoaded && (
+                <div className='mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-gray-500'>
+                  <span className='font-medium text-gray-600'>Last used:</span>
+                  <span className='flex items-center gap-1'><span className='w-2 h-2 rounded-full bg-green-500' />≤2 wk</span>
+                  <span className='flex items-center gap-1'><span className='w-2 h-2 rounded-full bg-yellow-400' />≤4 wk</span>
+                  <span className='flex items-center gap-1'><span className='w-2 h-2 rounded-full bg-orange-400' />≤2 mo</span>
+                  <span className='flex items-center gap-1'><span className='w-2 h-2 rounded-full bg-red-500' />≤3 mo</span>
+                  <span className='flex items-center gap-1'><span className='w-2 h-2 rounded-full bg-gray-400' />3 mo+</span>
+                  <span className='flex items-center gap-1'><span className='w-2 h-2 rounded-full bg-gray-300' />never</span>
+                </div>
+              )}
+
               {/* Exercises Tab */}
               {activeTab === 'exercises' && (
                 <>
-                  {/* Usage-recency legend — the dot before each exercise shows how
-                      long since it was last programmed (same bands as the Planner). */}
-                  {recencyMap && (
-                    <div className='mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-gray-500'>
-                      <span className='font-medium text-gray-600'>Last used:</span>
-                      <span className='flex items-center gap-1'><span className='w-2 h-2 rounded-full bg-green-500' />≤2 wk</span>
-                      <span className='flex items-center gap-1'><span className='w-2 h-2 rounded-full bg-yellow-400' />≤4 wk</span>
-                      <span className='flex items-center gap-1'><span className='w-2 h-2 rounded-full bg-orange-400' />≤2 mo</span>
-                      <span className='flex items-center gap-1'><span className='w-2 h-2 rounded-full bg-red-500' />≤3 mo</span>
-                      <span className='flex items-center gap-1'><span className='w-2 h-2 rounded-full bg-gray-400' />3 mo+</span>
-                      <span className='flex items-center gap-1'><span className='w-2 h-2 rounded-full bg-gray-300' />never</span>
-                    </div>
-                  )}
                   {/* Favorites Section */}
                   {favorites.length > 0 ? (
                     <div className='mb-4'>
@@ -1004,7 +1021,7 @@ function MovementLibraryPopup({
                                 className='w-full text-left px-0.5 py-0.5 hover:bg-[#178da6] hover:text-white transition text-xs text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis pr-10'
                                 title={exercise.description || undefined}
                               >
-                                {recencyDot(exercise.id)}
+                                {recencyDot(recencyMap, exercise.id)}
                                 {exercise.display_name || exercise.name}
                                 {exercise.video_url && (
                                   <span
@@ -1076,7 +1093,7 @@ function MovementLibraryPopup({
                                   className='w-full text-left px-0.5 py-0.5 hover:bg-[#178da6] hover:text-white transition text-xs text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis pr-10'
                                   title={fullExercise?.description || undefined}
                                 >
-                                  {recencyDot(exercise.id)}
+                                  {recencyDot(recencyMap, exercise.id)}
                                   {exercise.display_name || exercise.name}
                                   {fullExercise?.video_url && (
                                     <span
@@ -1147,7 +1164,7 @@ function MovementLibraryPopup({
                                 className='w-full text-left px-0.5 py-0.5 hover:bg-[#178da6] hover:text-white transition text-xs text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis pr-10'
                                 title={exercise.description || undefined}
                               >
-                                {recencyDot(exercise.id)}
+                                {recencyDot(recencyMap, exercise.id)}
                                 {exercise.acronym && (
                                   <span className='font-mono text-[10px] font-semibold text-teal-700 mr-1.5'>{exercise.acronym}</span>
                                 )}
@@ -1222,6 +1239,7 @@ function MovementLibraryPopup({
                               className='text-left px-0.5 py-0.5 hover:bg-[#178da6] hover:text-white transition text-xs text-gray-900 flex items-center justify-between whitespace-nowrap overflow-hidden'
                             >
                               <span className='overflow-hidden text-ellipsis'>
+                                {recencyDot(liftRecencyMap, lift.id)}
                                 {liftAcr && (
                                   <span className='font-mono text-[10px] font-semibold text-teal-700 mr-1.5'>{liftAcr}</span>
                                 )}
@@ -1255,6 +1273,7 @@ function MovementLibraryPopup({
                         className='text-left px-0.5 py-0.5 hover:bg-[#178da6] hover:text-white transition text-xs text-gray-900 flex items-center justify-between whitespace-nowrap overflow-hidden'
                       >
                         <span className='overflow-hidden text-ellipsis'>
+                          {recencyDot(benchmarkRecencyMap, benchmark.id)}
                           {bmAcr && (
                             <span className='font-mono text-[10px] font-semibold text-teal-700 mr-1.5'>{bmAcr}</span>
                           )}
@@ -1285,6 +1304,7 @@ function MovementLibraryPopup({
                         className='text-left px-0.5 py-0.5 hover:bg-[#178da6] hover:text-white transition text-xs text-gray-900 flex items-center justify-between whitespace-nowrap overflow-hidden'
                       >
                         <span className='overflow-hidden text-ellipsis'>
+                          {recencyDot(forgeRecencyMap, forge.id)}
                           {fAcr && (
                             <span className='font-mono text-[10px] font-semibold text-teal-700 mr-1.5'>{fAcr}</span>
                           )}
