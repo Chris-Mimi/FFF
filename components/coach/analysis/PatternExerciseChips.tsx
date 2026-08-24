@@ -4,24 +4,7 @@ import { useState } from 'react';
 import { X, GripVertical } from 'lucide-react';
 import type { PatternWithExercises, PatternGapResult } from '@/types/planner';
 import { lastUniqueWorkouts, type ExerciseFrequency } from '@/utils/movement-analytics';
-
-// Day-based recency bands. "Never" (no date at all) is rendered as a distinct
-// faded dark-grey so a genuinely-unused exercise stands out at a glance — a cue
-// to retire it. 90+ days (programmed, but long ago) is a light grey.
-const getExerciseDateColor = (date: string | undefined): string => {
-  if (!date) return 'bg-gray-500 text-white border-gray-500'; // Never
-  const days = Math.floor((Date.now() - new Date(date + 'T00:00:00').getTime()) / 86400000);
-  if (days <= 14) return 'bg-green-50 text-green-700 border-green-200';
-  if (days <= 28) return 'bg-yellow-50 text-yellow-600 border-yellow-200';
-  if (days <= 60) return 'bg-orange-50 text-orange-600 border-orange-200';
-  if (days <= 90) return 'bg-red-50 text-red-700 border-red-200';
-  return 'bg-gray-100 text-gray-500 border-gray-200'; // 90+ days (3 months+)
-};
-
-const formatExerciseDate = (date: string | undefined): string => {
-  if (!date) return 'Never';
-  return new Date(date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-};
+import { getExerciseRecencyPillColor as getExerciseDateColor, formatExerciseDate } from '@/utils/exercise-recency';
 
 interface Props {
   pattern: PatternWithExercises;
