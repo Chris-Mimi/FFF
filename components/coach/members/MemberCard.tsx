@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { AlertTriangle, Check, Clock, Link2, Pause, Play, Trash2, X } from 'lucide-react';
+import { AlertTriangle, Check, Clock, Link2, Pause, Pencil, Play, Trash2, X } from 'lucide-react';
 import {
   MemberStatus,
   MembershipType,
@@ -29,6 +29,7 @@ interface MemberCardProps {
   onUnblock: (memberId: string) => void;
   onPark: (memberId: string) => void;
   onRestart: (memberId: string) => void;
+  onSaveReason: (memberId: string, field: 'park_reason' | 'block_reason', reason: string) => Promise<void>;
   onStartTrial: (memberId: string, days?: number) => void;
   onExtendTrial: (memberId: string, days?: number) => void;
   onActivateSubscription: (memberId: string) => void;
@@ -61,6 +62,83 @@ function formatLastAttended(dateStr: string): string {
   return months === 1 ? '1 month ago' : `${months} months ago`;
 }
 
+// Inline add/edit for the coach-only park/block reason on Parked/Blocked rows.
+function ReasonEditor({
+  memberId,
+  field,
+  label,
+  reason,
+  colorClass,
+  disabled,
+  onSave,
+}: {
+  memberId: string;
+  field: 'park_reason' | 'block_reason';
+  label: string;
+  reason: string | null | undefined;
+  colorClass: string;
+  disabled: boolean;
+  onSave: (memberId: string, field: 'park_reason' | 'block_reason', reason: string) => Promise<void>;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(reason ?? '');
+
+  const startEdit = () => {
+    setValue(reason ?? '');
+    setEditing(true);
+  };
+
+  const save = async () => {
+    setEditing(false);
+    if (value.trim() === (reason ?? '').trim()) return; // no change
+    await onSave(memberId, field, value.trim());
+  };
+
+  if (editing) {
+    return (
+      <div className="md:col-span-2 flex items-center gap-2">
+        <span className="text-gray-400 shrink-0">{label}:</span>
+        <input
+          type="text"
+          autoFocus
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') save();
+            if (e.key === 'Escape') setEditing(false);
+          }}
+          placeholder="Reason (internal note)"
+          className="flex-1 min-w-0 rounded border border-gray-600 bg-gray-900 px-2 py-1 text-sm text-white focus:border-teal-500 focus:outline-none"
+        />
+        <button onClick={save} disabled={disabled} title="Save" className="shrink-0 text-green-400 hover:text-green-300 disabled:opacity-50">
+          <Check size={16} />
+        </button>
+        <button onClick={() => setEditing(false)} title="Cancel" className="shrink-0 text-gray-400 hover:text-gray-200">
+          <X size={16} />
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="md:col-span-2 flex items-center gap-2">
+      <span className="text-gray-400 shrink-0">{label}:</span>
+      {reason ? (
+        <>
+          <span className={`font-medium ${colorClass} truncate`}>{reason}</span>
+          <button onClick={startEdit} title="Edit reason" className="shrink-0 text-gray-500 hover:text-gray-300">
+            <Pencil size={13} />
+          </button>
+        </>
+      ) : (
+        <button onClick={startEdit} className="text-gray-500 hover:text-teal-300 italic">
+          + add reason
+        </button>
+      )}
+    </div>
+  );
+}
+
 export default function MemberCard({
   member,
   activeTab,
@@ -73,6 +151,7 @@ export default function MemberCard({
   onUnblock,
   onPark,
   onRestart,
+  onSaveReason,
   onStartTrial,
   onExtendTrial,
   onActivateSubscription,
@@ -227,17 +306,27 @@ export default function MemberCard({
               <span className="text-gray-400">Registered:</span>{' '}
               <span className="text-white">{formatMemberDate(member.created_at)}</span>
             </div>
-            {activeTab === 'parked' && member.park_reason && (
-              <div className="md:col-span-2">
-                <span className="text-gray-400">Parked reason:</span>{' '}
-                <span className="font-medium text-amber-300">{member.park_reason}</span>
-              </div>
+            {activeTab === 'parked' && (
+              <ReasonEditor
+                memberId={member.id}
+                field="park_reason"
+                label="Parked reason"
+                reason={member.park_reason}
+                colorClass="text-amber-300"
+                disabled={processingMemberId === member.id}
+                onSave={onSaveReason}
+              />
             )}
-            {activeTab === 'blocked' && member.block_reason && (
-              <div className="md:col-span-2">
-                <span className="text-gray-400">Block reason:</span>{' '}
-                <span className="font-medium text-red-300">{member.block_reason}</span>
-              </div>
+            {activeTab === 'blocked' && (
+              <ReasonEditor
+                memberId={member.id}
+                field="block_reason"
+                label="Block reason"
+                reason={member.block_reason}
+                colorClass="text-red-300"
+                disabled={processingMemberId === member.id}
+                onSave={onSaveReason}
+              />
             )}
             {activeTab === 'active' && (
               <>

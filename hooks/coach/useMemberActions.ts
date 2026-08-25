@@ -228,6 +228,32 @@ export function useMemberActions(
     }
   };
 
+  // Edit the coach-only park/block reason in place (for members already parked/blocked).
+  const handleSaveReason = async (
+    memberId: string,
+    field: 'park_reason' | 'block_reason',
+    reason: string
+  ) => {
+    setProcessingMemberId(memberId);
+    try {
+      const response = await authFetch('/api/members/status-reason', {
+        method: 'POST',
+        body: JSON.stringify({ memberId, field, reason })
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to save reason');
+      }
+      toast.success(data.message || 'Reason saved');
+      await refreshData();
+    } catch (error) {
+      console.error('Error saving reason:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to save reason. Please try again.');
+    } finally {
+      setProcessingMemberId(null);
+    }
+  };
+
   const handleStartTrial = async (memberId: string, days: number = 30) => {
     if (!await confirm({ title: 'Start Trial', message: `Start ${days}-day athlete trial for this member?`, confirmText: 'Start Trial', variant: 'default' })) {
       return;
@@ -553,6 +579,7 @@ export function useMemberActions(
     handleUnblock,
     handlePark,
     handleRestart,
+    handleSaveReason,
     handleStartTrial,
     handleExtendTrial,
     handleActivateSubscription,

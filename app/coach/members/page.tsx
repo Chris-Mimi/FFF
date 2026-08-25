@@ -57,6 +57,7 @@ export default function CoachMembersPage() {
     handleUnblock,
     handlePark,
     handleRestart,
+    handleSaveReason,
     handleStartTrial,
     handleExtendTrial,
     handleActivateSubscription,
@@ -337,6 +338,7 @@ export default function CoachMembersPage() {
                 onUnblock={handleUnblock}
                 onPark={handlePark}
                 onRestart={handleRestart}
+                onSaveReason={handleSaveReason}
                 onStartTrial={handleStartTrial}
                 onExtendTrial={handleExtendTrial}
                 onActivateSubscription={handleActivateSubscription}
