@@ -263,6 +263,28 @@ export function notifyNewMemberRegistered(memberName: string, memberEmail: strin
 }
 
 /**
+ * Notify coaches that a PARKED member has booked a session — a sign they're
+ * coming back, so the coach can Restart them from the Parked tab.
+ */
+export function notifyParkedMemberBooked(memberName: string, sessionDate: string, sessionTime: string): void {
+  const dateFormatted = new Date(sessionDate + 'T00:00:00').toLocaleDateString('de-DE', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  });
+
+  const payload: PushPayload = {
+    title: 'Parked athlete is back',
+    body: `${memberName} booked ${dateFormatted} at ${sessionTime}. Restart them?`,
+    data: { url: '/coach/members', type: 'parked_member_booked' },
+  };
+
+  sendToCoaches(payload, 'parked_member_booked').catch((err) =>
+    console.error('notifyParkedMemberBooked failed:', err)
+  );
+}
+
+/**
  * Notify coaches that a member's payment has failed.
  */
 export function notifyPaymentFailed(memberName: string): void {

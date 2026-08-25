@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
-import { notifyBookingConfirmed, notifyBookingWaitlisted } from '@/lib/notifications';
+import { notifyBookingConfirmed, notifyBookingWaitlisted, notifyParkedMemberBooked } from '@/lib/notifications';
 import { getBookingRules, getLockLeadMinutesForSessionType, getMaxVisibleSessionDate, sessionAutoLockInstant, berlinWallClock, berlinWallTimeToUTC } from '@/lib/bookingRules';
 
 export async function POST(request: NextRequest) {
@@ -449,6 +449,28 @@ export async function POST(request: NextRequest) {
     } else {
       notifyBookingWaitlisted(bookingMemberId, session.date, session.time);
     }
+
+    // If a PARKED athlete just booked, they're likely returning — nudge the coaches
+    // so they can Restart the member. Fire-and-forget; never blocks the booking.
+    // Service-role read so RLS can't hide the parked flag (booker may be a parent).
+    void (async () => {
+      try {
+        const admin = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
+        const { data: bm } = await admin
+          .from('members')
+          .select('name, display_name, parked')
+          .eq('id', bookingMemberId)
+          .single();
+        if (bm?.parked) {
+          notifyParkedMemberBooked(bm.display_name || bm.name || 'A parked athlete', session.date, session.time);
+        }
+      } catch (err) {
+        console.error('parked-rebook notify failed:', err);
+      }
+    })();
 
     // Build response with payment info for UI warnings
     const response: {
