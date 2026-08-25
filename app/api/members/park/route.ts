@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { requireCoach, isAuthError } from '@/lib/auth-api';
+import { setMemberNote } from '@/lib/coach/memberNotes';
 
 // Use service role for admin operations
 const supabaseAdmin = createClient(
@@ -44,18 +45,16 @@ export async function POST(request: NextRequest) {
 
     const { error: updateError } = await supabaseAdmin
       .from('members')
-      .update({
-        parked,
-        // Store the reason on park; clear it on restart (parked:false).
-        park_reason: parked && typeof reason === 'string' && reason.trim() ? reason.trim() : null,
-        updated_at: new Date().toISOString()
-      })
+      .update({ parked, updated_at: new Date().toISOString() })
       .eq('id', memberId);
 
     if (updateError) {
       console.error('Member park error:', updateError);
       return NextResponse.json({ error: 'Failed to update member' }, { status: 500 });
     }
+
+    // Store the coach-only reason on park; clear it on restart. Best-effort.
+    await setMemberNote(supabaseAdmin, memberId, 'park_reason', parked ? reason : null);
 
     return NextResponse.json(
       { success: true, message: parked ? 'Member parked' : 'Member restarted' },

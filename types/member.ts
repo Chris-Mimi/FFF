@@ -52,8 +52,10 @@ export interface Member {
   // Parked = hidden from Active/At-Risk/Subscriptions/10-Card lists (e.g. once-a-year visitors).
   // Booking access is unaffected; real `status` stays as-is. "Restart" flips this back to false.
   parked?: boolean;
-  // Coach-only internal notes on why a member was parked / blocked. Optional;
-  // shown on the Parked / Blocked tabs. Cleared on Restart / Unblock.
+  // Coach-only internal notes on why a member was parked / blocked. Stored in the
+  // coach-RLS-only `coach_member_notes` table (NOT on members — athletes can read
+  // their own members row), merged in for the Parked / Blocked tabs. Optional;
+  // cleared on Restart / Unblock.
   park_reason?: string | null;
   block_reason?: string | null;
 }

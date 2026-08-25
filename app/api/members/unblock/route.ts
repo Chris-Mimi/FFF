@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { requireCoach, isAuthError } from '@/lib/auth-api';
+import { setMemberNote } from '@/lib/coach/memberNotes';
 
 // Use service role for admin operations
 const supabaseAdmin = createClient(
@@ -57,7 +58,6 @@ export async function POST(request: NextRequest) {
       .from('members')
       .update({
         status: 'pending',
-        block_reason: null, // clear the block note on unblock
         updated_at: new Date().toISOString()
       })
       .eq('id', memberId)
@@ -71,6 +71,9 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
+
+    // Clear the coach-only block note on unblock. Best-effort.
+    await setMemberNote(supabaseAdmin, memberId, 'block_reason', null);
 
     return NextResponse.json(
       {

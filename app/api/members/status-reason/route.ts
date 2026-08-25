@@ -31,9 +31,11 @@ export async function POST(request: NextRequest) {
     const value = typeof reason === 'string' && reason.trim() ? reason.trim() : null;
 
     const { error: updateError } = await supabaseAdmin
-      .from('members')
-      .update({ [field]: value, updated_at: new Date().toISOString() })
-      .eq('id', memberId);
+      .from('coach_member_notes')
+      .upsert(
+        { member_id: memberId, [field]: value, updated_at: new Date().toISOString() },
+        { onConflict: 'member_id' }
+      );
 
     if (updateError) {
       console.error('status-reason update error:', updateError);

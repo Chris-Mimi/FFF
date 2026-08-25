@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { requireCoach, isAuthError } from '@/lib/auth-api';
 import { cancelFutureBookingsForMember } from '@/lib/coach/memberBookingCleanup';
+import { setMemberNote } from '@/lib/coach/memberNotes';
 
 // Use service role for admin operations
 const supabaseAdmin = createClient(
@@ -59,7 +60,6 @@ export async function POST(request: NextRequest) {
         status: 'blocked',
         athlete_subscription_status: 'expired', // Revoke athlete access
         parked: false, // Blocking supersedes parked — move cleanly out of the Parked tab
-        block_reason: typeof reason === 'string' && reason.trim() ? reason.trim() : null,
         updated_at: new Date().toISOString()
       })
       .eq('id', memberId)
@@ -73,6 +73,9 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
+
+    // Store the coach-only block reason (best-effort; never fails the block).
+    await setMemberNote(supabaseAdmin, memberId, 'block_reason', reason);
 
     const cancelledCount = await cancelFutureBookingsForMember(supabaseAdmin, memberId);
 
