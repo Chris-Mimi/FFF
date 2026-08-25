@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     if (isAuthError(coach)) return coach;
 
     const body = await request.json();
-    const { memberId } = body;
+    const { memberId, reason } = body;
 
     // Validate required fields
     if (!memberId) {
@@ -59,6 +59,7 @@ export async function POST(request: NextRequest) {
         status: 'blocked',
         athlete_subscription_status: 'expired', // Revoke athlete access
         parked: false, // Blocking supersedes parked — move cleanly out of the Parked tab
+        block_reason: typeof reason === 'string' && reason.trim() ? reason.trim() : null,
         updated_at: new Date().toISOString()
       })
       .eq('id', memberId)

@@ -1,4 +1,4 @@
-import { confirm } from '@/lib/confirm';
+import { confirm, confirmWithReason } from '@/lib/confirm';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { authFetch } from '@/lib/auth-fetch';
@@ -46,15 +46,20 @@ export function useMemberActions(
   };
 
   const handleBlock = async (memberId: string) => {
-    if (!await confirm({ title: 'Block Member', message: 'Are you sure you want to block this member? They will lose access to their account.', confirmText: 'Block', variant: 'danger' })) {
-      return;
-    }
+    const reason = await confirmWithReason({
+      title: 'Block Member',
+      message: 'Are you sure you want to block this member? They will lose access to their account.',
+      confirmText: 'Block',
+      variant: 'danger',
+      input: { label: 'Reason (optional, internal note)', placeholder: 'e.g. repeated no-shows, moved away' },
+    });
+    if (reason === null) return; // cancelled
 
     setProcessingMemberId(memberId);
     try {
       const response = await authFetch('/api/members/block', {
         method: 'POST',
-        body: JSON.stringify({ memberId })
+        body: JSON.stringify({ memberId, reason })
       });
 
       const data = await response.json();
@@ -138,15 +143,20 @@ export function useMemberActions(
   };
 
   const handlePark = async (memberId: string) => {
-    if (!await confirm({ title: 'Park Member', message: 'Park this member? They\'ll be hidden from the Active, At-Risk, Subscriptions and 10-Card lists until you Restart them. Booking access is unchanged.', confirmText: 'Park', variant: 'default' })) {
-      return;
-    }
+    const reason = await confirmWithReason({
+      title: 'Park Member',
+      message: 'Park this member? They\'ll be hidden from the Active, At-Risk, Subscriptions and 10-Card lists until you Restart them. Booking access is unchanged.',
+      confirmText: 'Park',
+      variant: 'default',
+      input: { label: 'Reason (optional, internal note)', placeholder: 'e.g. once-a-year visitor, on a break' },
+    });
+    if (reason === null) return; // cancelled
 
     setProcessingMemberId(memberId);
     try {
       const response = await authFetch('/api/members/park', {
         method: 'POST',
-        body: JSON.stringify({ memberId, parked: true })
+        body: JSON.stringify({ memberId, parked: true, reason })
       });
 
       const data = await response.json();

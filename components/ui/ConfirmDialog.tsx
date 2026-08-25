@@ -7,12 +7,21 @@ import { FocusTrap } from './FocusTrap';
 
 export function ConfirmDialog() {
   const [options, setOptions] = useState<ConfirmOptions | null>(null);
+  const [inputValue, setInputValue] = useState('');
 
   useEffect(() => {
     return subscribe(setOptions);
   }, []);
 
-  const handleConfirm = useCallback(() => resolveConfirm(true), []);
+  // Reset the input each time a new dialog opens.
+  useEffect(() => {
+    setInputValue(options?.input?.defaultValue ?? '');
+  }, [options]);
+
+  const handleConfirm = useCallback(
+    () => resolveConfirm(true, options?.input ? inputValue.trim() : null),
+    [options, inputValue]
+  );
   const handleCancel = useCallback(() => resolveConfirm(false), []);
 
   useEffect(() => {
@@ -27,6 +36,7 @@ export function ConfirmDialog() {
   if (!options) return null;
 
   const isDanger = options.variant === 'danger';
+  const confirmDisabled = !!options.input?.required && inputValue.trim().length === 0;
 
   return (
     <FocusTrap>
@@ -56,6 +66,27 @@ export function ConfirmDialog() {
             </div>
           </div>
 
+          {options.input && (
+            <div className="mt-4">
+              {options.input.label && (
+                <label className="mb-1 block text-sm font-medium text-gray-700">
+                  {options.input.label}
+                </label>
+              )}
+              <input
+                type="text"
+                autoFocus
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !confirmDisabled) handleConfirm();
+                }}
+                placeholder={options.input.placeholder}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+              />
+            </div>
+          )}
+
           <div className="mt-6 flex justify-end gap-3">
             <button
               onClick={handleCancel}
@@ -65,8 +96,9 @@ export function ConfirmDialog() {
             </button>
             <button
               onClick={handleConfirm}
-              autoFocus
-              className={`rounded-lg px-4 py-2 text-sm font-medium text-white min-h-[44px] ${
+              autoFocus={!options.input}
+              disabled={confirmDisabled}
+              className={`rounded-lg px-4 py-2 text-sm font-medium text-white min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed ${
                 isDanger
                   ? 'bg-red-600 hover:bg-red-700'
                   : 'bg-teal-600 hover:bg-teal-700'

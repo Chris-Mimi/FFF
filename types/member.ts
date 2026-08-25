@@ -52,6 +52,10 @@ export interface Member {
   // Parked = hidden from Active/At-Risk/Subscriptions/10-Card lists (e.g. once-a-year visitors).
   // Booking access is unaffected; real `status` stays as-is. "Restart" flips this back to false.
   parked?: boolean;
+  // Coach-only internal notes on why a member was parked / blocked. Optional;
+  // shown on the Parked / Blocked tabs. Cleared on Restart / Unblock.
+  park_reason?: string | null;
+  block_reason?: string | null;
 }
 
 // Effective payment method for self-bookings: explicit field wins, else first in membership_types.

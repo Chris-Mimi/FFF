@@ -57,6 +57,7 @@ export async function POST(request: NextRequest) {
       .from('members')
       .update({
         status: 'pending',
+        block_reason: null, // clear the block note on unblock
         updated_at: new Date().toISOString()
       })
       .eq('id', memberId)

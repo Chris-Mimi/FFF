@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     if (isAuthError(coach)) return coach;
 
     const body = await request.json();
-    const { memberId, parked } = body;
+    const { memberId, parked, reason } = body;
 
     if (!memberId || typeof parked !== 'boolean') {
       return NextResponse.json(
@@ -44,7 +44,12 @@ export async function POST(request: NextRequest) {
 
     const { error: updateError } = await supabaseAdmin
       .from('members')
-      .update({ parked, updated_at: new Date().toISOString() })
+      .update({
+        parked,
+        // Store the reason on park; clear it on restart (parked:false).
+        park_reason: parked && typeof reason === 'string' && reason.trim() ? reason.trim() : null,
+        updated_at: new Date().toISOString()
+      })
       .eq('id', memberId);
 
     if (updateError) {

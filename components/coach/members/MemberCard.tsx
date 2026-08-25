@@ -227,6 +227,18 @@ export default function MemberCard({
               <span className="text-gray-400">Registered:</span>{' '}
               <span className="text-white">{formatMemberDate(member.created_at)}</span>
             </div>
+            {activeTab === 'parked' && member.park_reason && (
+              <div className="md:col-span-2">
+                <span className="text-gray-400">Parked reason:</span>{' '}
+                <span className="font-medium text-amber-300">{member.park_reason}</span>
+              </div>
+            )}
+            {activeTab === 'blocked' && member.block_reason && (
+              <div className="md:col-span-2">
+                <span className="text-gray-400">Block reason:</span>{' '}
+                <span className="font-medium text-red-300">{member.block_reason}</span>
+              </div>
+            )}
             {activeTab === 'active' && (
               <>
                 <div>
