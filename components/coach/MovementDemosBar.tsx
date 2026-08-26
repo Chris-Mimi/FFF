@@ -1,9 +1,10 @@
 'use client';
 
-import { ChevronDown, Link, Play, Plus, Video, X } from 'lucide-react';
+import { ChevronDown, Info, Link, Play, Plus, Video, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { matchAllSectionsExercises, type MatchedExerciseVideo } from '@/utils/section-video-matcher';
+import { matchAllSectionsExercises, type MatchedExerciseInfo } from '@/utils/section-video-matcher';
 import ExerciseVideoModal from '@/components/coach/ExerciseVideoModal';
+import MovementInfoModal from '@/components/coach/MovementInfoModal';
 
 interface VideoClip {
   label: string;
@@ -12,7 +13,7 @@ interface VideoClip {
 
 interface MovementDemosBarProps {
   sections: { content: string }[];
-  exercises: { name: string; display_name?: string; video_url: string | null }[];
+  exercises: { name: string; display_name?: string; video_url: string | null; description: string | null }[];
   videoClips: VideoClip[];
   onVideoClipsChange: (clips: VideoClip[]) => void;
 }
@@ -33,8 +34,12 @@ export default function MovementDemosBar({
   const [selectedVideoUrl, setSelectedVideoUrl] = useState('');
   const [selectedVideoName, setSelectedVideoName] = useState('');
 
-  // Auto-detect exercises with videos across all sections (deduplicated)
-  const autoDetectedVideos: MatchedExerciseVideo[] = useMemo(
+  // Description panel state
+  const [infoMovement, setInfoMovement] = useState<MatchedExerciseInfo | null>(null);
+
+  // Auto-detect exercises with reference material (video and/or description)
+  // across all sections (deduplicated)
+  const autoDetectedVideos: MatchedExerciseInfo[] = useMemo(
     () => matchAllSectionsExercises(sections, exercises),
     [sections, exercises]
   );
@@ -67,8 +72,8 @@ export default function MovementDemosBar({
         className='w-full flex items-center gap-2 px-3 py-2 text-xs text-gray-500 hover:text-[#178da6] border border-dashed border-gray-300 rounded-lg hover:border-[#178da6] transition'
       >
         <Video size={14} />
-        Movement Demos
-        <span className='text-gray-400'>— attach video clips</span>
+        Movement Info
+        <span className='text-gray-400'>— descriptions &amp; video clips</span>
       </button>
     );
   }
@@ -84,7 +89,7 @@ export default function MovementDemosBar({
         >
           <div className='flex items-center gap-2'>
             <Video size={14} className='text-purple-600' />
-            <span className='text-xs font-semibold text-purple-800'>Movement Demos</span>
+            <span className='text-xs font-semibold text-purple-800'>Movement Info</span>
             {totalCount > 0 && (
               <span className='text-xs bg-purple-200 text-purple-700 px-1.5 py-0.5 rounded-full font-medium'>
                 {totalCount}
@@ -109,18 +114,47 @@ export default function MovementDemosBar({
             {/* Auto-detected + manual clips */}
             {totalCount > 0 && (
               <div className='flex flex-wrap gap-1.5'>
-                {/* Auto-detected exercise videos */}
+                {/* Auto-detected movements — a play button when the library has a
+                    video, and the name itself opens the written description. Both
+                    stay one click, so attaching descriptions never costs a click on
+                    the video path. */}
                 {autoDetectedVideos.map((match, idx) => (
-                  <button
+                  <div
                     key={`auto-${idx}`}
-                    type='button'
-                    onClick={() => openVideo(match.exerciseName, match.videoUrl)}
-                    className='inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-white text-purple-700 border border-purple-200 rounded-md hover:bg-purple-100 transition'
-                    title={`Play video: ${match.exerciseName}`}
+                    className='inline-flex items-stretch bg-white border border-purple-200 rounded-md overflow-hidden'
                   >
-                    <Play size={12} className='fill-purple-600 text-purple-600' />
-                    {match.exerciseName}
-                  </button>
+                    {match.videoUrl && (
+                      <button
+                        type='button'
+                        onClick={() => openVideo(match.exerciseName, match.videoUrl!)}
+                        className='inline-flex items-center px-1.5 py-1 text-purple-700 hover:bg-purple-100 transition'
+                        title={`Play video: ${match.exerciseName}`}
+                        aria-label={`Play video: ${match.exerciseName}`}
+                      >
+                        <Play size={12} className='fill-purple-600 text-purple-600' />
+                      </button>
+                    )}
+                    <button
+                      type='button'
+                      onClick={() =>
+                        match.description
+                          ? setInfoMovement(match)
+                          : match.videoUrl && openVideo(match.exerciseName, match.videoUrl)
+                      }
+                      disabled={!match.description && !match.videoUrl}
+                      className={`inline-flex items-center gap-1 pr-2 py-1 text-xs font-medium text-purple-700 transition ${
+                        match.videoUrl ? 'pl-1' : 'pl-2'
+                      } ${match.description || match.videoUrl ? 'hover:bg-purple-100' : ''}`}
+                      title={
+                        match.description
+                          ? `Show description: ${match.exerciseName}`
+                          : match.exerciseName
+                      }
+                    >
+                      {match.exerciseName}
+                      {match.description && <Info size={11} className='text-sky-600 flex-shrink-0' />}
+                    </button>
+                  </div>
                 ))}
 
                 {/* Manually attached clips */}
@@ -195,12 +229,22 @@ export default function MovementDemosBar({
 
             {totalCount === 0 && !showAddClip && (
               <p className='text-xs text-purple-500 italic'>
-                Video clips will appear automatically when exercises in your sections have linked videos.
+                Movements appear here automatically when exercises in your sections have a description or a linked video in the library.
               </p>
             )}
           </div>
         )}
       </div>
+
+      {/* Movement description panel */}
+      <MovementInfoModal
+        isOpen={infoMovement !== null}
+        onClose={() => setInfoMovement(null)}
+        exerciseName={infoMovement?.exerciseName || ''}
+        description={infoMovement?.description || null}
+        videoUrl={infoMovement?.videoUrl || null}
+        onPlayVideo={openVideo}
+      />
 
       {/* Video Playback Modal */}
       <ExerciseVideoModal

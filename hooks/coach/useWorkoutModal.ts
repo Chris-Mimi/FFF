@@ -157,7 +157,7 @@ export interface UseWorkoutModalResult {
   workoutTitles: WorkoutTitle[];
   loadingTracks: boolean;
   notesPanelOpen: boolean;
-  exercisesForVideo: { name: string; display_name?: string; video_url: string | null }[];
+  exercisesForVideo: { name: string; display_name?: string; video_url: string | null; description: string | null }[];
   isDragOver: boolean;
   notesModalSize: { width: number; height: number };
   notesModalPos: { bottom: number; left: number };
@@ -273,7 +273,7 @@ export function useWorkoutModal(
   const [sectionTypes, setSectionTypes] = useState<SectionType[]>([]);
   const [workoutTitles, setWorkoutTitles] = useState<WorkoutTitle[]>([]);
   const [loadingTracks, setLoadingTracks] = useState(false);
-  const [exercisesForVideo, setExercisesForVideo] = useState<{ name: string; display_name?: string; video_url: string | null }[]>([]);
+  const [exercisesForVideo, setExercisesForVideo] = useState<{ name: string; display_name?: string; video_url: string | null; description: string | null }[]>([]);
   const [notesPanelOpen, setNotesPanelOpen] = useState(initialNotesOpen);
   const [isDragOver, setIsDragOver] = useState(false);
   const [publishModalOpen, setPublishModalOpen] = useState(false);
@@ -319,6 +319,27 @@ export function useWorkoutModal(
     fetchTracksAndTypes();
   }, []);
 
+  // Exercise catalogue for the Movement Info bar. Paginated because PostgREST
+  // silently caps an unfiltered select at 1000 rows — the table is at ~716 and
+  // growing, and a silent truncation would make later-alphabet movements stop
+  // matching with no error anywhere.
+  const fetchAllExercisesForInfoBar = async () => {
+    const rows: { name: string; display_name?: string; video_url: string | null; description: string | null }[] = [];
+    const PAGE = 1000;
+    for (let from = 0; ; from += PAGE) {
+      const { data, error } = await supabase
+        .from('exercises')
+        .select('name, display_name, video_url, description')
+        .order('name')
+        .range(from, from + PAGE - 1);
+      if (error) return { data: null, error };
+      if (!data || data.length === 0) break;
+      rows.push(...data);
+      if (data.length < PAGE) break;
+    }
+    return { data: rows, error: null };
+  };
+
   const fetchTracksAndTypes = async () => {
     setLoadingTracks(true);
     try {
@@ -327,7 +348,7 @@ export function useWorkoutModal(
         supabase.from('workout_types').select('*').order('name'),
         supabase.from('section_types').select('*').order('display_order'),
         supabase.from('workout_titles').select('*').eq('active', true).order('display_order'),
-        supabase.from('exercises').select('name, display_name, video_url').order('name'),
+        fetchAllExercisesForInfoBar(),
       ]);
 
       if (tracksResult.error) throw tracksResult.error;

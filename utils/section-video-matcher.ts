@@ -1,12 +1,15 @@
 /**
  * Matches exercise names found in section content text against the exercise database.
- * Returns exercises that have a video_url for auto-detected video play buttons.
+ * Returns exercises that have reference material attached — a video_url, a written
+ * description, or both — so the Movement Info bar can surface them without the coach
+ * having to open the Movement Library or copy the text into the workout.
  */
 
-export interface MatchedExerciseVideo {
-  exerciseName: string;  // Display name or name from DB
-  videoUrl: string;      // The video URL
-  lineIndex: number;     // Which line in the content it was found on
+export interface MatchedExerciseInfo {
+  exerciseName: string;          // Display name or name from DB
+  videoUrl: string | null;       // The video URL, when one is attached
+  description: string | null;    // The written description, when one is attached
+  lineIndex: number;             // Which line in the content it was found on
 }
 
 interface SectionLike {
@@ -17,35 +20,46 @@ interface ExerciseRecord {
   name: string;
   display_name?: string;
   video_url: string | null;
+  description?: string | null;
+}
+
+interface ExerciseEntry {
+  name: string;
+  displayName: string;
+  videoUrl: string | null;
+  description: string | null;
 }
 
 /**
  * Scan section content for exercise names that exist in the exercises database
- * and have a video_url. Returns matched exercises sorted by line order.
+ * and have reference material. Returns matched exercises sorted by line order.
  *
  * Matching logic:
  * - Splits content by lines
  * - Strips bullet markers (*, -, numbers) and leading whitespace
  * - Strips trailing rep/set info (e.g., "3x10", "@ 70%", "(each side)")
  * - Matches against exercise name and display_name (case-insensitive)
- * - Only returns exercises that have a non-null video_url
+ * - Only returns exercises that have a video_url OR a non-empty description
  */
 export function matchSectionExercises(
   content: string,
   exercises: ExerciseRecord[]
-): MatchedExerciseVideo[] {
+): MatchedExerciseInfo[] {
   if (!content?.trim() || !exercises?.length) return [];
 
-  // Pre-build a lookup map: lowercase name -> exercise (with video)
-  const exerciseMap = new Map<string, { name: string; displayName: string; videoUrl: string }>();
+  // Pre-build a lookup map: lowercase name -> exercise (with reference material)
+  const exerciseMap = new Map<string, ExerciseEntry>();
 
   for (const ex of exercises) {
-    if (!ex.video_url) continue;
+    const description = ex.description?.trim() || null;
+    // Skip exercises with nothing to show — no video and no written description.
+    if (!ex.video_url && !description) continue;
 
-    const entry = {
+    const entry: ExerciseEntry = {
       name: ex.name,
       displayName: ex.display_name || ex.name,
       videoUrl: ex.video_url,
+      description,
     };
 
     // Index by both name and display_name (lowercase)
@@ -58,7 +72,7 @@ export function matchSectionExercises(
   if (exerciseMap.size === 0) return [];
 
   const lines = content.split('\n');
-  const matched: MatchedExerciseVideo[] = [];
+  const matched: MatchedExerciseInfo[] = [];
   const seen = new Set<string>(); // Avoid duplicates if same exercise on multiple lines
 
   for (let i = 0; i < lines.length; i++) {
@@ -96,6 +110,7 @@ export function matchSectionExercises(
       matched.push({
         exerciseName: exactMatch.displayName,
         videoUrl: exactMatch.videoUrl,
+        description: exactMatch.description,
         lineIndex: i,
       });
       continue;
@@ -110,7 +125,7 @@ export function matchSectionExercises(
     // a single line surface more than one movement. (S384)
     const lineLower = line.toLowerCase();
     const boundaryChar = /[\s,;:\-–—/|]/;
-    const candidates: { idx: number; len: number; entry: { name: string; displayName: string; videoUrl: string } }[] = [];
+    const candidates: { idx: number; len: number; entry: ExerciseEntry }[] = [];
     for (const [key, entry] of exerciseMap) {
       // Only match exercise names at least 4 chars (avoid false positives like "Row")
       if (key.length < 4) continue;
@@ -132,6 +147,7 @@ export function matchSectionExercises(
       matched.push({
         exerciseName: c.entry.displayName,
         videoUrl: c.entry.videoUrl,
+        description: c.entry.description,
         lineIndex: i,
       });
     }
@@ -141,13 +157,13 @@ export function matchSectionExercises(
 }
 
 /**
- * Scan ALL sections' content for exercise names with video URLs.
- * Returns a deduplicated list of matched exercises (alphabetically sorted).
+ * Scan ALL sections' content for exercise names with reference material.
+ * Returns a deduplicated list of matched exercises.
  */
 export function matchAllSectionsExercises(
   sections: SectionLike[],
   exercises: ExerciseRecord[]
-): MatchedExerciseVideo[] {
+): MatchedExerciseInfo[] {
   if (!sections?.length || !exercises?.length) return [];
 
   // Combine all section content into one string for matching
