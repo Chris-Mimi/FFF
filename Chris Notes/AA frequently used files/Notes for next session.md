@@ -31,7 +31,7 @@ Ask Mimi Silvia Maritati (Diapers & Dumbbells?)
 
 * At-Risk put the list in order from most recent to least recent attendance
 * Weekend WOD #26.2 not done by selected first showed correctly then did not appear
-* 
+* Michi asked about a way to search past workouts in teh AThlete App
 
 * 
 * One thing I'd flag for later (not now): the parallel-session "move" still loses the athlete's whiteboard score for that day (the re-add doesn't carry it over) — only their PR is now safe. A proper one-click "move booking that keeps the score" is the real cure, but that's a feature, not a bug fix. Want me to note it in the memory bank for a future session? - I don't understand, explain in simple terms.
