@@ -117,6 +117,72 @@ const KNOWN_TABLES = [
   'wod_section_results', 'wods', 'workout_logs', 'workout_titles', 'workout_types',
 ];
 
+
+/**
+ * Retention: keep only the newest N backup runs on disk.
+ *
+ * Every run writes one file per table (~5.6 MB across ~50 tables) and nothing
+ * ever removed them, so `backups/` had grown to 84 runs / 471 MB. It also lives
+ * inside SynologyDrive, so each run syncs to the NAS and down to the other
+ * machine — the cost is ongoing, not just local disk.
+ *
+ * Only files matching `YYYY-MM-DD_*.json` in BACKUP_DIR are considered, and the
+ * current run's date is never a deletion candidate. Override with
+ * `BACKUP_KEEP_RUNS=n npm run backup`, or set 0 to disable pruning entirely.
+ *
+ * Why 40 and not a tidier 20: backups run ~10x/month, so 40 is ~4 months. The
+ * S385 lift-record loss went unnoticed for ~2 months — a 20-run (2-month)
+ * window would expire the backups right around the point such a loss gets
+ * noticed. 40 keeps roughly double the known detection lag.
+ */
+const KEEP_RUNS = Number(process.env.BACKUP_KEEP_RUNS ?? 40);
+
+function pruneOldBackups() {
+  if (!Number.isFinite(KEEP_RUNS) || KEEP_RUNS <= 0) {
+    console.log('🗂️  Retention disabled (BACKUP_KEEP_RUNS <= 0) — keeping every run.');
+    return;
+  }
+
+  const filePattern = /^(\d{4}-\d{2}-\d{2})_.+\.json$/;
+  const byDate = new Map<string, string[]>();
+
+  for (const name of fs.readdirSync(BACKUP_DIR)) {
+    const m = filePattern.exec(name);
+    if (!m) continue; // leave anything not matching the run pattern alone
+    const list = byDate.get(m[1]) ?? [];
+    list.push(name);
+    byDate.set(m[1], list);
+  }
+
+  const dates = [...byDate.keys()].sort().reverse(); // newest first
+  if (dates.length <= KEEP_RUNS) {
+    console.log(`🗂️  ${dates.length} backup run(s) on disk — under the ${KEEP_RUNS}-run limit, nothing pruned.`);
+    return;
+  }
+
+  const doomed = dates.slice(KEEP_RUNS).filter(d => d !== timestamp); // never today's
+  let files = 0;
+  let bytes = 0;
+
+  for (const date of doomed) {
+    for (const name of byDate.get(date) ?? []) {
+      const full = path.join(BACKUP_DIR, name);
+      try {
+        bytes += fs.statSync(full).size;
+        fs.unlinkSync(full);
+        files++;
+      } catch (err) {
+        console.error(`   ⚠️  Could not remove ${name}:`, (err as Error).message);
+      }
+    }
+  }
+
+  console.log(
+    `🗂️  Retention: kept the newest ${KEEP_RUNS} run(s), removed ${doomed.length} older run(s) ` +
+    `(${files} files, ${(bytes / 1024 / 1024).toFixed(1)} MB).`
+  );
+}
+
 async function main() {
   console.log('═'.repeat(60));
   console.log('🛡️  CRITICAL DATA BACKUP');
@@ -151,6 +217,14 @@ async function main() {
   }
 
   console.log(`📊 Total tables backed up: ${Object.values(results).filter(v => v).length}/${tables.length}`);
+
+  // Only prune once this run has written a complete snapshot — never trade a
+  // good old backup for a failed new one.
+  if (manifest.success) {
+    pruneOldBackups();
+  } else {
+    console.log('🗂️  Retention skipped — this run had failures, keeping all existing backups.');
+  }
   console.log('═'.repeat(60));
   console.log('');
   console.log('💡 Next steps:');
