@@ -16,7 +16,7 @@ http://192.168.178.75:3000
 * iphone bug (I think) Coach-side: Workouts search box: Mimi can't type anything in the search box
 * Mimi couldn't add a trial athlete
 * Mimi's phone when scrolling selects a workout and copies it over anotehr workout and we have no way of getting the workout back.
-* 
+* Bear Crawl chase around the ring (battle rope), WB Squat Carries
 * Kids 1.7, 27.7 31.7 needs exercises
 
 Athletes app: Give me the possibility to send Athletes who pay for the app a message.
