@@ -63,16 +63,33 @@ Row    1000m
 Bike   2000m
 ```
 
-### Box-drawing characters
-If you want a proper framed table: `┌ ─ ┬ ┐ │ ├ ┼ ┤ └ ┴ ┘`
-
-### Block characters
-For a crude bar or intensity scale: `█ ▓ ▒ ░`
+### Framed tables
+Use `|`, `-` and `+` — all on your keyboard.
 
 ```
-Set 1  ████████░░  80%
-Set 2  █████████░  90%
++-------+-----+------+
+| Round | Cal | KB   |
++-------+-----+------+
+|   1   | 20  | 24kg |
+|   2   | 15  | 24kg |
++-------+-----+------+
 ```
+
+### Bars and intensity scales
+Use `#` and `.` inside brackets.
+
+```
+Set 1  [########..]  80%
+Set 2  [#########.]  90%
+```
+
+> **Stick to ordinary keyboard characters.** It's tempting to reach for the prettier
+> box-drawing (`┌ ─ ┬ ┐ │`) or block (`█ ▓ ▒ ░`) characters. **They don't work here.**
+> The app's fixed-width font (Geist Mono) is loaded with the Latin character set only,
+> which doesn't include them — so the browser quietly swaps in a different font just for
+> those characters, at a different width, and your columns drift apart. That's the exact
+> problem you were trying to avoid. Anything you can type directly on the keyboard is
+> safe; anything you had to hunt for in a symbol picker probably isn't.
 
 ---
 
@@ -119,6 +136,7 @@ Open or hover the result to see it laid out correctly.
 ## Quick checklist
 
 - [ ] Built the table with **spaces**, not tabs
+- [ ] Only ordinary keyboard characters (no box-drawing or block symbols)
 - [ ] Lines under ~30 characters
 - [ ] Ticked **Keep table layout (monospace)**
 - [ ] Checked the **Preview (calendar / screen)** panel — not the editor box
