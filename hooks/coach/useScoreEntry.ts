@@ -29,6 +29,8 @@ export interface WodSection {
   lifts?: ConfiguredLift[];
   benchmarks?: ConfiguredBenchmark[];
   forge_benchmarks?: ConfiguredForgeBenchmark[];
+  /** Opt-in monospace rendering for `content` (see types/movements.ts). */
+  monospace?: boolean;
 }
 
 /** Returns the first rm_test lift in a section, or null */

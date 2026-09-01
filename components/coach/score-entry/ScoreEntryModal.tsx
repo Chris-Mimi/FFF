@@ -166,8 +166,15 @@ export default function ScoreEntryModal({ sessionId, onClose }: ScoreEntryModalP
 
                 {/* Section content preview */}
                 {selectedSection?.content && (
-                  <div className="mt-2 px-3 py-2 bg-gray-50 rounded border border-gray-200 text-xs text-gray-600 whitespace-pre-line max-h-32 overflow-y-auto">
-                    {selectedSection.content}
+                  <div className="mt-2 px-3 py-2 bg-gray-50 rounded border border-gray-200 text-xs text-gray-600 max-h-32 overflow-y-auto overflow-x-auto">
+                    {/* pre-line collapsed runs of spaces, which flattened any
+                        space-aligned table. pre-wrap keeps them; a monospace
+                        section uses pre + horizontal scroll so a wide table row
+                        scrolls instead of wrapping (a wrapped row loses the
+                        column alignment entirely). */}
+                    <div className={selectedSection.monospace ? 'font-mono whitespace-pre' : 'whitespace-pre-wrap'}>
+                      {selectedSection.content}
+                    </div>
                   </div>
                 )}
               </div>

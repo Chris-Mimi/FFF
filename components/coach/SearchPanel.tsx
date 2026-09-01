@@ -1733,7 +1733,7 @@ export default function SearchPanel({
                               {previewSection.type}
                             </div>
                             <div
-                              className='text-[10px] sm:text-xs text-gray-700 whitespace-pre-wrap line-clamp-2 sm:line-clamp-3'
+                              className={`text-[10px] sm:text-xs text-gray-700 whitespace-pre-wrap line-clamp-2 sm:line-clamp-3${previewSection.monospace ? ' font-mono' : ''}`}
                               dangerouslySetInnerHTML={{
                                 __html: highlightText(previewText, searchTerms),
                               }}
