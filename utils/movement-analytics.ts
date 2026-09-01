@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
 import { extractMovementsFromWod, type AcronymMap } from '@/utils/movement-extraction';
 import type { WODFormData } from '@/components/coach/WorkoutModal';
+import { fetchAllExercises } from '@/utils/fetch-all-exercises';
 
 /**
  * Fetch the lift-name → linked-exercise-name map. Walks `barbell_lifts.exercise_id`
@@ -57,7 +58,7 @@ export async function fetchLiftExerciseMap(): Promise<Map<string, string>> {
  */
 export async function fetchAcronymMap(): Promise<AcronymMap> {
   const [exRes, liftRes, bmRes, fbRes] = await Promise.all([
-    supabase.from('exercises').select('display_name, acronym'),
+    fetchAllExercises<{ display_name: string | null; acronym: string | null }>('display_name, acronym'),
     supabase.from('barbell_lifts').select('name, acronym'),
     supabase.from('benchmark_workouts').select('name, acronym'),
     supabase.from('forge_benchmarks').select('name, acronym'),
@@ -505,7 +506,7 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
   // source of truth — using fetchAcronymMap() here so all extractor call sites
   // share one definition).
   const [exRes, acronymMap, liftExerciseMap] = await Promise.all([
-    supabase.from('exercises').select('id, name, display_name, category'),
+    fetchAllExercises<{ id: string; name: string; display_name: string | null; category: string }>('id, name, display_name, category'),
     fetchAcronymMap(),
     fetchLiftExerciseMap(),
   ]);

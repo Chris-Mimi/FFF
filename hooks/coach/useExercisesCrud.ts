@@ -2,6 +2,7 @@ import { confirm } from '@/lib/confirm';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
+import { fetchAllExercises } from '@/utils/fetch-all-exercises';
 
 export interface Exercise {
   id: string;
@@ -34,10 +35,7 @@ export function useExercisesCrud() {
 
   const fetchExercises = async () => {
     try {
-      const { data, error } = await supabase
-        .from('exercises')
-        .select('*')
-        .order('category', { ascending: true});
+      const { data, error } = await fetchAllExercises<Exercise>('*', 'category');
 
       if (error) throw error;
       setExercises(data || []);

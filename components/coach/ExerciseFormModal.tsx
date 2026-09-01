@@ -3,8 +3,8 @@
 import { X } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { toast } from 'sonner';
-import { supabase } from '@/lib/supabase';
 import { FocusTrap } from '@/components/ui/FocusTrap';
+import { fetchAllExercises } from '@/utils/fetch-all-exercises';
 
 // Predefined category order
 const EXERCISE_CATEGORY_ORDER = [
@@ -230,11 +230,8 @@ export default function ExerciseFormModal({
 
   // Fetch all exercises for template selection AND autocomplete suggestions
   useEffect(() => {
-    const fetchAllExercises = async () => {
-      const { data: exercises } = await supabase
-        .from('exercises')
-        .select('*')
-        .order('name');
+    const loadAllExercises = async () => {
+      const { data: exercises } = await fetchAllExercises<Exercise>('*', 'name');
 
       if (exercises) {
         setAllExercises(exercises as Exercise[]);
@@ -257,7 +254,7 @@ export default function ExerciseFormModal({
     };
 
     if (isOpen) {
-      fetchAllExercises();
+      loadAllExercises();
     }
   }, [isOpen]);
 
@@ -322,9 +319,7 @@ export default function ExerciseFormModal({
   // Fetch categories and subcategories from exercises
   useEffect(() => {
     const fetchCategoriesAndSubcategories = async () => {
-      const { data: exercises } = await supabase
-        .from('exercises')
-        .select('category, subcategory');
+      const { data: exercises } = await fetchAllExercises<{ category: string | null; subcategory: string | null }>('category, subcategory');
 
       if (exercises) {
         // Build category -> subcategories mapping

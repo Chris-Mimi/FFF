@@ -4,12 +4,12 @@
  * when linked exercises last appeared in published workouts.
  */
 
-import { supabase } from '@/lib/supabase';
 import { fetchPublishedWorkouts, fetchAcronymMap, fetchLiftExerciseMap, type DateRangeFilter } from '@/utils/movement-analytics';
 import { extractMovementsFromWod, extractMovementsWithMetadata, type MovementMetadata } from '@/utils/movement-extraction';
 import { formatDate } from '@/utils/date-utils';
 import type { PatternWithExercises, PatternGapResult, WeeklyCoverageMap, PatternWeekCoverage, CoveredExercise } from '@/types/planner';
 import type { WODFormData } from '@/components/coach/WorkoutModal';
+import { fetchAllExercises } from '@/utils/fetch-all-exercises';
 
 /**
  * Compute gap analysis for all movement patterns.
@@ -39,7 +39,7 @@ export async function computePatternGaps(
     fetchPublishedWorkouts(filter, 'pattern gap analysis'),
     fetchAcronymMap(),
     fetchLiftExerciseMap(),
-    supabase.from('exercises').select('name, display_name'),
+    fetchAllExercises<{ name: string; display_name: string | null }>('name, display_name'),
   ]);
 
   // Seed the known-exercise-name set from the FULL library, not just this
@@ -168,7 +168,7 @@ export async function detectWeeklyCoverage(
     fetchPublishedWorkouts(filter, 'weekly coverage'),
     fetchAcronymMap(),
     fetchLiftExerciseMap(),
-    supabase.from('exercises').select('name, display_name'),
+    fetchAllExercises<{ name: string; display_name: string | null }>('name, display_name'),
   ]);
 
   // Seed from the FULL exercise library (not just pattern exercises) so a more-

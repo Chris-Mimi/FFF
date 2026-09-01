@@ -2,11 +2,11 @@
 
 import ExerciseFormModal from '@/components/coach/ExerciseFormModal';
 import MultiSelectDropdown from '@/components/coach/MultiSelectDropdown';
-import { supabase } from '@/lib/supabase';
 import { ChevronDown, ChevronRight, Edit2, Plus, Search, Trash2, X, Calendar } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getExerciseFrequency, type ExerciseFrequency } from '@/utils/movement-analytics';
+import { fetchAllExercises } from '@/utils/fetch-all-exercises';
 
 
 // Define category ordering (workout flow)
@@ -115,9 +115,7 @@ export default function ExercisesTab({
   useEffect(() => {
     const fetchDistinctFilters = async () => {
       try {
-        const { data: exerciseData, error } = await supabase
-          .from('exercises')
-          .select('equipment, body_parts');
+        const { data: exerciseData, error } = await fetchAllExercises<{ equipment: string[] | null; body_parts: string[] | null }>('equipment, body_parts');
 
         if (error) throw error;
 

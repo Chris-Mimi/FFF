@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { authFetch } from '@/lib/auth-fetch';
 import { confirm } from '@/lib/confirm';
 import { toast } from 'sonner';
+import { fetchAllExercises } from '@/utils/fetch-all-exercises';
 
 interface LiftRecord {
   id: string;
@@ -46,7 +47,7 @@ export default function LiftsSection({
     (async () => {
       const [liftRes, exRes] = await Promise.all([
         supabase.from('barbell_lifts').select('name, acronym'),
-        supabase.from('exercises').select('display_name, acronym'),
+        fetchAllExercises<{ display_name: string | null; acronym: string | null }>('display_name, acronym'),
       ]);
       const map = new Map<string, string>();
       liftRes.data?.forEach(r => {

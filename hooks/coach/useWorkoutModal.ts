@@ -9,6 +9,7 @@ import type { BarbellLift, Benchmark, ForgeBenchmark, ConfiguredLift, Configured
 import { useSectionManagement } from './useSectionManagement';
 import { useMovementConfiguration } from './useMovementConfiguration';
 import { useModalResizing } from './useModalResizing';
+import { fetchAllExercises } from '@/utils/fetch-all-exercises';
 
 // Format date to YYYY-MM-DD using local timezone
 const formatDateLocal = (date: Date): string => {
@@ -319,27 +320,6 @@ export function useWorkoutModal(
     fetchTracksAndTypes();
   }, []);
 
-  // Exercise catalogue for the Movement Info bar. Paginated because PostgREST
-  // silently caps an unfiltered select at 1000 rows — the table is at ~716 and
-  // growing, and a silent truncation would make later-alphabet movements stop
-  // matching with no error anywhere.
-  const fetchAllExercisesForInfoBar = async () => {
-    const rows: { name: string; display_name?: string; video_url: string | null; description: string | null }[] = [];
-    const PAGE = 1000;
-    for (let from = 0; ; from += PAGE) {
-      const { data, error } = await supabase
-        .from('exercises')
-        .select('name, display_name, video_url, description')
-        .order('name')
-        .range(from, from + PAGE - 1);
-      if (error) return { data: null, error };
-      if (!data || data.length === 0) break;
-      rows.push(...data);
-      if (data.length < PAGE) break;
-    }
-    return { data: rows, error: null };
-  };
-
   const fetchTracksAndTypes = async () => {
     setLoadingTracks(true);
     try {
@@ -348,7 +328,7 @@ export function useWorkoutModal(
         supabase.from('workout_types').select('*').order('name'),
         supabase.from('section_types').select('*').order('display_order'),
         supabase.from('workout_titles').select('*').eq('active', true).order('display_order'),
-        fetchAllExercisesForInfoBar(),
+        fetchAllExercises<{ name: string; display_name?: string; video_url: string | null; description: string | null }>('name, display_name, video_url, description', 'name'),
       ]);
 
       if (tracksResult.error) throw tracksResult.error;

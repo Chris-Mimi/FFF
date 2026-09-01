@@ -8,6 +8,7 @@ import { sessionStartInstant, sessionAutoLockInstant } from '@/lib/bookingRules'
 import { extractMovements, extractMovementsFromWod, type AcronymMap, type LiftExerciseMap } from '@/utils/movement-extraction';
 import { fetchLiftExerciseMap } from '@/utils/movement-analytics';
 import { useEffect, useState } from 'react';
+import { fetchAllExercises } from '@/utils/fetch-all-exercises';
 
 interface UseCoachDataProps {
   searchQuery: string;
@@ -553,7 +554,7 @@ export const useCoachData = ({
       // so the WOD-search and movement-extraction paths can resolve any code
       // (S333 — replaces the S303 tags-as-acronym pattern with a curated column).
       const [exRes, liftRes, bmRes, fbRes] = await Promise.all([
-        supabase.from('exercises').select('id, name, display_name, category, acronym'),
+        fetchAllExercises<{ id: string; name: string; display_name: string | null; category: string; acronym: string | null }>('id, name, display_name, category, acronym'),
         // S335 — when a lift is linked to an exercise, the exercise's acronym wins; use it as fallback below.
         supabase.from('barbell_lifts').select('name, acronym, exercises:exercise_id(acronym)'),
         supabase.from('benchmark_workouts').select('name, acronym'),

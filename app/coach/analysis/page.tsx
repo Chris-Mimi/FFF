@@ -15,6 +15,7 @@ import {
 import { ArrowLeft, BarChart3, Calendar, LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { fetchAllExercises } from '@/utils/fetch-all-exercises';
 
 // Exercise category ordering (workout flow)
 const CATEGORY_ORDER = [
@@ -179,7 +180,7 @@ export default function AnalysisPage() {
     try {
       const [typesResult, exercisesResult] = await Promise.all([
         supabase.from('workout_types').select('*').order('name'),
-        supabase.from('exercises').select('id, name, display_name, acronym, category, subcategory, equipment, body_parts, difficulty').order('name'),
+        fetchAllExercises<Exercise>('id, name, display_name, acronym, category, subcategory, equipment, body_parts, difficulty', 'name'),
       ]);
 
       if (typesResult.error) throw typesResult.error;

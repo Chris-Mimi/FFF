@@ -11,6 +11,7 @@ import { ChevronDown, ChevronRight, Edit2, Library, Search, Star, X } from 'luci
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import ExerciseVideoModal from './ExerciseVideoModal';
+import { fetchAllExercises } from '@/utils/fetch-all-exercises';
 import ExerciseFormModal from './ExerciseFormModal';
 import MultiSelectDropdown from './MultiSelectDropdown';
 
@@ -304,7 +305,7 @@ function MovementLibraryPopup({
   const fetchExercises = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.from('exercises').select('*').order('name');
+      const { data, error } = await fetchAllExercises<Exercise>('*', 'name');
       if (error) throw error;
       setExercises(data || []);
       setHasFetchedExercises(true);
