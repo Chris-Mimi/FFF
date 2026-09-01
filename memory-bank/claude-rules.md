@@ -53,6 +53,26 @@ These are project-wide rules that survive account/machine switches because they'
 
 **Proactive check on new features.** Whenever I'm about to write a new hook or page that reads from a growing table, run through the checklist above BEFORE shipping. Don't wait for Chris to see the chip break. The bug class is invisible until the table crosses 1,000 rows — by then the wrong data has been rendering for weeks.
 
+**Full audit — 2026-09-01 (S409). Result: CLEAN. Don't repeat this sweep; re-check only if a table's shape changes.**
+Counted every public table, then hand-checked every read of the 10 largest.
+
+| Table | Rows | Status |
+|:---|---:|:---|
+| `notification_log` | 10,068 | Safe — write-only log; the one read is a same-day dedupe (`.eq` + `.gte/.lte`). See retention note below. |
+| `bookings` | 4,408 | Safe — every read `.eq`/`.in` on session or member; admin page paginates. |
+| `wod_section_results` | 3,611 | Safe — all reads `.eq('wod_id')` / `.in('member_id')`. |
+| `lift_records` | 2,346 | Safe — all reads `.eq('user_id')`. |
+| `wellpass_weekly_checkins` | 1,579 | Safe — `.in()` + `.range()` loops already in place. |
+| `exercises` | 716 | **Fixed S409** — all 11 reads now via `fetchAllExercises()`. |
+| `movement_pattern_exercises` | 687 | Safe — `.in('pattern_id')`. |
+| `weekly_sessions` | 531 | Safe — date-sliced or `.range()` paginated. |
+| `wods` | 529 | Safe — date-sliced; `searchWODs` has a deliberate 2000 cap + `[search-limit-tripwire]` warn at 90%. |
+| `benchmark_results` | 362 | Safe. |
+
+**Why `exercises` was the only casualty:** it's the one big table the app wants *in its entirety* (Library popup, Planner, filter dropdowns). Everywhere else the code asks for a slice — one session, one athlete, one week — which is naturally bounded. **That's the tell to look for in new code:** a read with no natural slice is the one that needs pagination.
+
+**Method note:** an automated "no narrowing filter within N lines" scan produced **12 false positives** — all were filtered or paginated, just written across a long multi-line `.select()` so the guard sat outside the window. Read the full statement before believing such a scan. (The S408 audit under-reported for the mirror-image reason: its grep only matched the single-line form and missed 4 sites.)
+
 **For the full reasoning, the kitchen/dining-room analogy I use with Chris, the 7-item scaling-trap map, and the search-UX options:** see `memory-bank/database-and-growth.md`. Read it on demand when a scaling question comes up; don't pull it into every session.
 
 ### Documentation filing — use the navigation map, don't litter the project root
