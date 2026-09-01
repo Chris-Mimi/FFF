@@ -15,7 +15,7 @@ http://192.168.178.75:3000
 * IDEA: Put names of booked athletes in Whiteboard Intro so they also go into Google Calendar or find another way to register them in Google Calendar.
 * iphone bug (I think) Coach-side: Workouts search box: Mimi can't type anything in the search box
 * Mimi couldn't add a trial athlete
-* 
+* Mimi's phone when scrolling selects a workout and copies it over anotehr workout and we have no way of getting the workout back.
 * 
 * Kids 1.7, 27.7 31.7 needs exercises
 
