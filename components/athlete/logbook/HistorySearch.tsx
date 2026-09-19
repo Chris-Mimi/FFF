@@ -117,7 +117,7 @@ export default function HistorySearch({ userId, onOpenLeaderboard }: HistorySear
         )}
 
         {suggestions.length > 0 && (
-          <ul className='absolute z-20 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden'>
+          <ul className='absolute z-20 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-y-auto'>
             {suggestions.map((name) => (
               <li key={name}>
                 <button
