@@ -1,7 +1,9 @@
-# Session 410 — whiteboard entry (weeks 35 + 3), publish_sections bug, RM-load audit
+# Session 410 — whiteboard weeks 35 + 3, publish_sections bug, athlete history search
 
 **Date:** 2026-09-19 · **Model:** Opus 5
-**Status:** 5 commits, all pushed, tsc + lint + build clean. 72 score rows + 3 lift_records written.
+**Status:** 9 commits, all pushed, tsc + lint + build clean. 72 score rows + 3 lift_records
+written. Two of my own conclusions corrected mid-session (§5, §7) — both recorded because
+each nearly caused a wrong "fix".
 
 ---
 
@@ -29,9 +31,8 @@ one confirmed booking in that session.
 reads an impossible `4:70` hang + 15-or-13 load + Lunge ×40 for DUs), and Sabrina's + Steven's
 plate/thruster loads. Justine + Daniela Struben had a ditto+smiley = took part, no score.
 
-**Verification artifact.** Published a side-by-side page (both boards embedded + tables +
-flagged cells) so Chris could check against the photos rather than a terminal table:
-<https://claude.ai/code/artifact/946e98a8-2c2c-4b80-9ab6-e66df518a95f>
+Verification artifact (boards embedded beside the tables, so Chris checked against the
+photos not a terminal dump): <https://claude.ai/code/artifact/946e98a8-2c2c-4b80-9ab6-e66df518a95f>
 
 ## 2. Week 3 whiteboard entry — 19 rows, 3 sessions (`dbed0d6`)
 
@@ -42,10 +43,9 @@ bookings exactly; the **last four names were a different day** — Chris confirm
 same WOD on **14.01 at 09:30**, and those four are exactly that session's bookings.
 **Lesson: a dated block header is not a session boundary.** The booking match is.
 
-Board columns mapped 1:1 (Barbell HPC → load, T2B → scaling, R+R → rounds_reps). Board's
-"Ninja" is **Minja Dogan** — resolved via the bookings, not by name-guessing. Senol has a load
-and a scale but no score; saved that way. The Tabata drills section has no board column and was
-deliberately left unscored.
+Columns mapped 1:1 (HPC → load, T2B → scaling, R+R → rounds_reps). Board's "Ninja" is
+**Minja Dogan**, resolved via bookings not name-guessing. Senol saved with load+scale, no
+score. Tabata drills section has no board column — left unscored.
 
 ## 3. Nils Weihe — 3 missing lift_records restored (`2c6f849`)
 
@@ -93,10 +93,10 @@ unpublishing — but it's an open decision.
 
 Two corrections I made mid-session, both worth recording so they aren't re-derived:
 
-**(a) 24.04 Front Squat Testing — not data loss.** The 5 scores on the deleted section are
-**exact duplicates** (80/75/45/42.5/40) of 5 live ones. Chris entered them on 28.04, replaced
-the Strength section, re-entered the same five on 30.04. The old rows are invisible leftovers.
-The restore script's guard (section must still exist on the wod) correctly refused to "fix" it.
+**(a) 24.04 Front Squat Testing — not data loss.** Those 5 scores are **exact duplicates**
+(80/75/45/42.5/40) of 5 live ones: entered 28.04, Strength section replaced, re-entered
+30.04. Invisible leftovers. The restore script's guard (section must still exist on the wod)
+correctly refused to "fix" it.
 
 **(b) 137 weights are NOT at risk — I misread the S385 condition.** New audit
 `scripts/audit-rm-sections-load-off.ts` found **22 RM sections across 555 wods** with
@@ -116,15 +116,95 @@ impossible into the only state from which a later toggle-off can wipe them.** De
 done. The audit script is committed (`8caa326`) so the state stays visible and a real
 `load: false` regression is easy to spot.
 
+## 6. Distance input took tenths of a metre (`7fd147d`)
+
+`step='0.1'` let the spinner move in tenths and accepted 400.5m; calories (the comparable
+field) sets no step at all. Now `step='1'`. `ScoringFieldInputs` is shared, so the athlete
+logbook was fixed too. All 54 stored values were already whole — no data change.
+
+## 7. Athlete workout-history search (`3de885a`, `ad02cdf`)
+
+Athletes could only find a past score by knowing its date — no search existed anywhere in
+the athlete app. Shipped a Search view in the Logbook (`utils/athlete-history-search.ts`,
+`hooks/athlete/useHistorySearch.ts`, `components/athlete/logbook/HistorySearch.tsx`):
+browse chips + type-ahead, scores inline, jump to the leaderboard.
+
+**Two approaches were built and thrown away — that's the value here:**
+
+1. **Catalogue matching via `matchAllSectionsExercises` — FAILED on live data.** It looks
+   for the exact catalogue name in the text, so "Jump Rope Double-Unders (DUs)" never
+   matched the written "Jump Rope Double-Unders". On the 28.08 workout it returned five
+   warm-up drills and **zero** real movements. Typecheck said nothing; only running it
+   against a real athlete exposed it. **Never make that matcher the backbone of something
+   that must be complete** — it's tuned for the coach's Movement Info bar where a missed
+   chip is free. Left untouched.
+2. **Exercise `acronym` as fallback — rejected.** Internal codes (PLVR, BUT, ARR), not
+   whiteboard shorthand. "BUT" would match the word.
+
+**What worked: the workout NAME is the index.** All 556 wods have a `workout_name` and
+Chris writes it as the movement list ("Run, T2B, Burpee, Bear Crawl, WBs"). Splitting on
+`,`/`&` yields the gym's vocabulary — Push-up 43, Pull-up 35, PP 31, DUs 25, T2B 21, BJ 19
+— in the shorthand athletes read on the whiteboard. **Chris volunteered this**; it's the
+decision that made the feature work.
+
+**Only published sections are searchable.** Warm-ups/drills never reach athletes, and the
+Whiteboard Intro holds athlete names as body text. Mirrors `getPublishedSections`.
+
+**Type-ahead cap 8 → 25 + scrollable (`ad02cdf`).** On Chris's 194-term history, 18 of 22
+prefixes overflowed 8 ("pull" hid 3, "kb" 11). For a feature premised on athletes not
+recalling terms, dropping matches defeats it.
+
+Verified live: Chris 93 workouts/194 terms in 18ms, Miriam 95/196 in 2ms. Each athlete sees
+only their own terms (194 of the gym's 387), confirmed-bookings only. Of 3,659 member score
+rows, just 2 lack a confirmed booking — negligible edge.
+
+## 8. "Skierg" → "SkiErg" rename — assessed safe, Chris made the change
+
+All name matching is case-insensitive (`section-video-matcher.ts:66-68,107-108`;
+`useMovementTracking` too); everything else links by exercise **id**. Clincher: workout text
+was *already* mixed — `Skierg` x253, `SkiErg` x66, `skierg` x5 across 176 wods, working
+fine. Catalogue already held "C2 SkiErg Alternating Arms" capitalised, so the rename removed
+an inconsistency. Slug `c2-skierg` untouched. Residual: `SkiErgs` (x3) matches neither.
+
+## 9. Chris deleted a booked session — and NOTHING told the athletes
+
+He deleted the 20.09 10:00 session (12 athletes booked). Bookings were **cascade-deleted**
+with it: 0 orphans across all 4,595 rows, and the wod went too.
+
+**Recovery attempt.** Local backups were 18 days old (1 Sep) — useless, all 12 bookings
+were made this week. `notification_log` yielded only **4** names (Teemu, Julia, Rosita,
+Lukas) with timestamps. Chris reconstructed the rest from the Workouts-page selection.
+Mid-investigation I wrongly doubted the 4 because Teemu's "20. Sept" notification sat
+beside a booking for 14.09 — the real explanation is that he booked **two** sessions in one
+action and only the 20.09 row died. Multi-booking in one click is normal here (Lukas booked
+3 at once); don't read one booking per notification.
+
+**⚠️ THE REAL FINDING:** `app/api/coach/delete-session/route.ts` imports no notification
+helper at all. Removing ONE booking notifies that athlete ("Booking Removed"); deleting a
+whole session — far more disruptive — notifies **nobody**. Verified empirically: the last
+notification of any kind that day was 13:52, hours before the deletion. All 12 still
+believed they were booked. **Unfixed; needs Chris's go-ahead.**
+
+**Second open question:** only 4 of 12 bookings left a `notification_log` trace, even
+though the coach-booking path logs its own message and the search covered it. The log is
+missing entries it should hold — worth investigating before trusting it for recovery again.
+
 ---
 
 ## Carry-overs
 
-- **Nothing to verify from S410** — every write was verified in-session (suffix, member_id,
-  user_id, publish_sections, no dupes) and both boards were checked by Chris before writing.
-- The publish fix goes live on the **next Vercel deploy**.
+- **⭐ The athlete history search is the one thing needing a live look** — built and
+  verified against real data, but never opened in a running app. Check how the chip list
+  feels at ~194 terms on a phone.
+- **Nothing else from S410 needs verifying** — every write was checked in-session and both
+  boards were verified by Chris before writing.
+- **Three athlete-facing changes ship on the next Vercel deploy:** history search, the
+  whole-metres input, and the publish fix.
+- **⚠️ Deleting a session still notifies nobody** (section 9). Chris's call.
+- **Open:** `notification_log` recorded only 4 of 12 bookings for the deleted session.
 - Open decision: unpublish clearing `publish_sections`.
 - Left alone on purpose: the 20 RM sections with unset `scoring_fields`; the 5 duplicate
   Front Squat rows on 24.04.
-- Chris has since entered Martina, the Sabrina/Steven loads, and the rest of board 3.1 himself.
+- Chris entered Martina, the Sabrina/Steven loads, and the rest of board 3.1 himself.
+- Chris renamed "C2 Skierg" → "C2 SkiErg"; slug unchanged.
 - The S402–S408 verification backlog is **still parked**, untouched since S409.

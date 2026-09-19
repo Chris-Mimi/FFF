@@ -126,6 +126,7 @@ There's no app-switching, no spreadsheets, no whiteboards that get erased. Just 
 - **Detailed logbook** — log every section of every workout: time, reps, weight, rounds, calories, metres, scaling level, and coach-defined scoring fields
 - **Day, week, and month views** — browse your training history from any angle
 - **Whiteboard photos** — snap a photo of the whiteboard and attach it to your log entry
+- **Search your training history** — "when did I last do Toes to Bar?" Tap a movement from your own history, or type part of a name, and every workout you did it in comes back with your score already showing. One tap opens that workout's leaderboard. The movement list is drawn from the workouts *you* have actually trained, in the same shorthand your coach writes on the whiteboard — so you can recognise a movement instead of having to remember its exact name
 - **Personal activity log** — alongside the Forge logbook, athletes can record their own workouts on a Personal toggle: swims, runs, hikes, holiday gym sessions, external CrossFit drop-ins, etc. Quick-add a date, activity type, optional duration, distance, effort (1–5), and free-text notes. Pick from a curated preset list or add your own custom activities (Klettern, Tennis, anything you do) — your custom names save to your personal dropdown for next time, with one-tap delete to remove typos. Use the app as your full personal training tracker, not just for class days
 
 ### Performance Tracking
