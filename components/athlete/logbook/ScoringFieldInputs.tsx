@@ -366,7 +366,7 @@ export default function ScoringFieldInputs({
           <input
             {...fieldAttrs('metres')}
             type='number'
-            step='0.1'
+            step='1'
             min='0'
             max='99999'
             placeholder='Distance'
