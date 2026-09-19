@@ -18,6 +18,7 @@ import WeekView from './logbook/WeekView';
 import MonthView from './logbook/MonthView';
 import WhiteboardSection from './logbook/WhiteboardSection';
 import PhotoModal from './logbook/PhotoModal';
+import HistorySearch from './logbook/HistorySearch';
 import PersonalActivitiesView from './personal/PersonalActivitiesView';
 import { formatLift, formatBenchmark, formatForgeBenchmark } from '@/utils/logbook/formatters';
 import { saveSectionResult } from '@/utils/logbook/savingLogic';
@@ -44,12 +45,17 @@ interface AthletePageLogbookTabProps {
   initialDate?: Date;
   initialViewMode?: 'day' | 'week' | 'month';
   onDateChange?: (date: Date) => void;
+  /** Open the leaderboard for a given workout date (parent switches tab) */
+  onNavigateToLeaderboard?: (date: Date) => void;
 }
 
-export default function AthletePageLogbookTab({ userId, initialDate, initialViewMode, onDateChange }: AthletePageLogbookTabProps) {
+export default function AthletePageLogbookTab({ userId, initialDate, initialViewMode, onDateChange, onNavigateToLeaderboard }: AthletePageLogbookTabProps) {
   const savingRef = useRef(false);
   const [isSaving, setIsSaving] = useState(false);
   const [logbookMode, setLogbookMode] = useState<'forge' | 'personal'>('forge');
+  // Search is its own view rather than a `viewMode` — viewMode drives a date-scoped
+  // fetch in useLogbookData, and search is not date-scoped.
+  const [searchOpen, setSearchOpen] = useState(false);
   // State management via custom hook
   const state = useAthleteLogbookState(initialDate, initialViewMode);
   const {
@@ -374,15 +380,18 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
       ) : (
         <>
 
-      {/* Day/Week/Month View Mode Toggle (Forge mode only) */}
+      {/* Day/Week/Month/Search View Mode Toggle (Forge mode only) */}
       <div className='flex justify-end mb-6'>
         <div className='flex bg-gray-100 rounded-lg p-1'>
           {(['day', 'week', 'month'] as const).map((mode) => (
             <button
               key={mode}
-              onClick={() => setViewMode(mode)}
+              onClick={() => {
+                setSearchOpen(false);
+                setViewMode(mode);
+              }}
               className={`px-4 py-2 rounded-md text-sm font-medium transition ${
-                viewMode === mode
+                !searchOpen && viewMode === mode
                   ? 'bg-[#178da6] text-white'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
@@ -390,11 +399,32 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
               {mode.charAt(0).toUpperCase() + mode.slice(1)}
             </button>
           ))}
+          <button
+            onClick={() => setSearchOpen(true)}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition ${
+              searchOpen
+                ? 'bg-[#178da6] text-white'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Search
+          </button>
         </div>
       </div>
 
+      {/* Search View — find a past workout by movement, name or date */}
+      {searchOpen && (
+        <HistorySearch
+          userId={userId}
+          onOpenLeaderboard={(date) => {
+            const [y, m, d] = date.split('-').map(Number);
+            onNavigateToLeaderboard?.(new Date(y, m - 1, d));
+          }}
+        />
+      )}
+
       {/* Day View */}
-      {viewMode === 'day' && (
+      {!searchOpen && viewMode === 'day' && (
         <div>
           <NavigationControls
             viewMode='day'
@@ -779,7 +809,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
       )}
 
       {/* Week View */}
-      {viewMode === 'week' && (
+      {!searchOpen && viewMode === 'week' && (
         <div>
           <NavigationControls
             viewMode='week'
@@ -799,7 +829,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
       )}
 
       {/* Month View */}
-      {viewMode === 'month' && (
+      {!searchOpen && viewMode === 'month' && (
         <div>
           <NavigationControls
             viewMode='month'

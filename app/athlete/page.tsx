@@ -270,6 +270,10 @@ function AthletePageContent() {
             initialDate={selectedDate}
             initialViewMode='day'
             onDateChange={setSelectedDate}
+            onNavigateToLeaderboard={(date) => {
+              setSelectedDate(date);
+              setActiveTab('community');
+            }}
           />
         );
       case 'benchmarks':
