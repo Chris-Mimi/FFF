@@ -90,6 +90,42 @@ Counted every public table, then hand-checked every read of the 10 largest.
 4. **When renaming or moving anything, update `WHERE-IS-EVERYTHING.md`** in the same commit so the map stays accurate.
 5. **`WHERE-IS-EVERYTHING.md` (project root)** is the navigation index. If I'm about to create a doc and I'm unsure where it goes, the table in that file answers it.
 
+### `wods.publish_sections` has two writers — never overwrite it wholesale (S410)
+**Why:** S410 — Chris entered 12 Sumo Deadlift scores, renamed the workout, re-published it, and the whole section vanished from the scoring modal. The scores were never touched. That column gates whether a section renders in the **coach results modal** and on the **athlete leaderboard**, and two features write it with opposite semantics:
+
+| Writer | Behaviour |
+|:---|:---|
+| `app/api/score-entry/save/route.ts` | **appends** each scored section, so it renders |
+| publish dialog → `app/api/google/publish-workout/route.ts` | **overwrote** it with the coach's ticked sections |
+
+So any re-publish after score entry blanked the appended entry. Renaming a workout is enough to go through the publish flow again.
+
+**How to apply:**
+1. **Any new code that writes `publish_sections` must merge, never replace.** Union with the sections that already have `wod_section_results` rows. The publish route does this as of S410.
+2. **Diagnostic fingerprint for "my scores disappeared":** compare `wods.updated_at` against the newest `wod_section_results.updated_at` for that wod. A WOD saved *after* its scores is this bug. Both historical occurrences showed it (15:11 vs 15:07; 08:23 vs 08:22).
+3. **Before declaring data loss, check whether the rows still exist.** Both times they did — only the visibility flag was gone. Sweeping all 3,726 WSR rows found exactly 2 occurrences, so treat a third as suspicious rather than routine.
+4. **⚠️ Still open:** *un*publishing sets `publish_sections: null`, which blinds the coach modal the same way. Deliberately not changed — suppressing athlete visibility is the point of unpublishing — but if a coach reports missing scores on an unpublished workout, this is why.
+
+### An RM section with `scoring_fields` UNSET is not the S385 hazard — don't "fix" it (S410)
+**Why:** S410 — an audit found 22 RM-test sections across 555 wods where `scoring_fields.load` isn't `true`, 20 of them holding **137 recorded weights**. I read that as the S385 weight-loss signature and recommended setting `load: true`. **That was wrong, and the "fix" would have made it worse.**
+
+- The edit-cleanup in `useWODOperations` clears `weight_result` only on `oldSf[field] === true && newSf[field] !== true` — a genuine **true → false** flip.
+- On all 20 sections `scoring_fields` is **entirely unset**, so `load` is `undefined`, never `true`, and the clear **cannot fire**.
+- [useScoreEntry.ts:155-162](../hooks/coach/useScoreEntry.ts#L155-L162) separately **synthesises `load: true`** for any section holding an `rm_test` lift, which is why those weights were always enterable and display correctly.
+- The save route's `maskRecord` also skips masking entirely when a section has no `scoring_fields` (`if (!sf) return record`), so weights persist fine.
+
+**How to apply:** the hazard is `load: false` on a section that previously had `load: true` — **not** `undefined`. Setting `load: true` on these sections would move them from a state where the wipe is *impossible* into the only state from which a later toggle-off can wipe them. Leave them alone. `scripts/audit-rm-sections-load-off.ts` re-runs the check and distinguishes the two; a genuine `load:false` on an RM section with weights is the thing to act on.
+
+### Whiteboard score entry: resolve names through bookings, not board layout (S410)
+**Why:** S410 entered 72 rows across two weeks. Every session split was confirmed by matching a board block against that session's **confirmed bookings** — and it caught something layout never would have: a block headed `12.1.26` actually contained a **third session from 14.01 09:30**. Board colour groupings did *not* reliably track sessions.
+
+**How to apply:**
+1. Build the resolver so it **throws unless a name maps to exactly one confirmed booking in that session**. Never pair by board order or ink colour alone.
+2. **A dated block header is not a session boundary.** Ask Chris when a group doesn't match any booking list.
+3. **Check the section can hold the board's metrics before transcribing.** S410 hit 18 rows with nowhere to go (a section with only `load, scaling, scaling_2` against a board recording four scores); Chris switched `reps` + `max_time` on and they went in. Same shape as the S396 mid-task field add.
+4. **The score columns drift upward against the names on Chris's boards** — about half a row by the bottom. Matching counts end-to-end (19/19/19) plus both ends anchoring is what validates the pairing; ask him to eyeball it.
+5. **Linking a whiteboard name to a login profile never creates `lift_records`** — it relabels the WSR rows only, so the score shows on the workout while the athlete's Lifts page stays empty (S410: Nils Weihe, 3 PRs). Run `scripts/check-wsr-liftrecord-parity.ts` after any such link, not just after score entry.
+
 ### Coach UI mutations on athlete-owned data must run server-side with service-role
 **Why:** S344 incident — `useBookingManagement.handleCancelBooking` ran wsr/lift_records cleanup browser-side using the coach's auth token. RLS hid the athlete's rows from the coach's session, so the cleanup matched 0 rows. The action appeared to succeed (toast fired) but athletes ended up with ghost scores forever — a silent partial-cleanup bug.
 
