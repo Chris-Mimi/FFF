@@ -402,6 +402,28 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // `publish_sections` has two writers. This dialog sets it to the sections the coach
+    // ticked for athletes; the score-entry save route APPENDS any section that gets a
+    // score, because the same column gates whether that section renders in the coach
+    // results modal and on the leaderboard. A plain overwrite here therefore hides
+    // already-scored sections: enter scores, then re-publish (renaming a workout is
+    // enough), and the appended entry is gone while the scores sit there invisible.
+    // Union the two so a re-publish can never blank a section that has scores.
+    const { data: scoredRows, error: scoredError } = await supabaseAdmin
+      .from('wod_section_results')
+      .select('section_id')
+      .eq('wod_id', workoutId);
+    if (scoredError) {
+      console.error('Error reading scored sections:', scoredError);
+      return NextResponse.json({ error: 'Failed to publish workout' }, { status: 500 });
+    }
+    const scoredSectionIds = [
+      ...new Set((scoredRows ?? []).map((r) => r.section_id.replace(/-content-0$/, ''))),
+    ];
+    const publishSections = [
+      ...new Set([...(publishConfig.selectedSectionIds ?? []), ...scoredSectionIds]),
+    ];
+
     // Update workout in database (use admin client to bypass RLS)
     const { error: updateError } = await supabaseAdmin
       .from('wods')
@@ -410,7 +432,7 @@ export async function POST(request: NextRequest) {
         workout_publish_status: 'published',
         publish_time: publishConfig.eventTime,
         publish_duration: publishConfig.eventDurationMinutes,
-        publish_sections: publishConfig.selectedSectionIds,
+        publish_sections: publishSections,
         google_event_id: calendarEventId,
       })
       .eq('id', workoutId);
