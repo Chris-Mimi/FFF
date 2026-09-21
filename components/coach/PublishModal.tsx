@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { WODSection } from './WorkoutModal';
 import { FocusTrap } from '@/components/ui/FocusTrap';
 import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark, VariableSet } from '@/types/movements';
+import { formatPercent, formatPercentList } from '@/utils/logbook/formatters';
 
 interface PublishModalProps {
   isOpen: boolean;
@@ -257,23 +258,18 @@ export default function PublishModal({
                     const formatLift = (lift: ConfiguredLift): string => {
                       if (lift.rep_type === 'constant') {
                         const base = `${lift.name} ${lift.sets}x${lift.reps}`;
-                        return lift.percentage_1rm ? `${base} @ ${lift.percentage_1rm}%` : base;
+                        return lift.percentage_1rm ? `${base} @ ${formatPercent(lift.percentage_1rm, lift.percentage_plus)}` : base;
                       } else {
                         const reps = lift.variable_sets?.map((s: VariableSet) => s.reps).join('-') || '';
-                        const percentages = lift.variable_sets?.map((s: VariableSet) => s.percentage_1rm) || [];
+                        // Unlike the other surfaces this one tolerates gaps, so drop the
+                        // blank sets before formatting rather than bailing out entirely.
+                        const definedSets = (lift.variable_sets || [])
+                          .filter((s: VariableSet) => s.percentage_1rm !== undefined && s.percentage_1rm !== null);
 
                         let base = `${lift.name} ${reps}`;
 
-                        const definedPercentages = percentages.filter(p => p !== undefined && p !== null);
-                        if (definedPercentages.length > 0) {
-                          const percentageString = percentages
-                            .map(p => p !== undefined && p !== null ? p.toString() : '')
-                            .filter(p => p !== '')
-                            .join('-');
-
-                          if (percentageString) {
-                            base += ` @ ${percentageString}%`;
-                          }
+                        if (definedSets.length > 0) {
+                          base += ` @ ${formatPercentList(definedSets)}`;
                         }
 
                         return base;

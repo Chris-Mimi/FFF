@@ -3,6 +3,7 @@
 import { ChevronDown, GripVertical, Trash2, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { WODSection, ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
+import { formatPercent, formatPercentList } from '@/utils/logbook/formatters';
 
 interface WorkoutType {
   id: string;
@@ -27,19 +28,19 @@ function formatLift(lift: ConfiguredLift): string {
   }
   if (lift.rep_type === 'constant') {
     const base = `${lift.name} ${lift.sets}x${lift.reps}`;
-    return lift.percentage_1rm ? `${base} @ ${lift.percentage_1rm}%` : base;
+    return lift.percentage_1rm ? `${base} @ ${formatPercent(lift.percentage_1rm, lift.percentage_plus)}` : base;
   } else {
     // Variable reps: show as "5-3-1" format
     const reps = lift.variable_sets?.map(s => s.reps).join('-') || '';
-    const percentages = lift.variable_sets?.map(s => s.percentage_1rm) || [];
+    const pctSets = lift.variable_sets || [];
 
     let base = `${lift.name} ${reps}`;
 
     // Only show percentages if ALL sets have them defined (no undefined/null values)
-    const allHavePercentages = percentages.length > 0 && percentages.every(p => p !== undefined && p !== null);
+    const allHavePercentages = pctSets.length > 0 && pctSets.every(s => s.percentage_1rm !== undefined && s.percentage_1rm !== null);
     if (allHavePercentages) {
       // Show ALL percentages for each set: "40-40-50-50-50-50-50%"
-      base += ` @ ${percentages.join('-')}%`;
+      base += ` @ ${formatPercentList(pctSets)}`;
     }
 
     return base;

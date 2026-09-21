@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { GripVertical, ChevronDown, X, ArrowUp, ArrowDown, Bookmark, Plus } from 'lucide-react';
 import type { BarbellLift, ConfiguredLift, VariableSet, WODSection } from '@/types/movements';
 import { useLiftPresets, type LiftPresetConfig } from '@/lib/lift-preset-storage';
+import { formatPercent } from '@/utils/logbook/formatters';
 
 interface ConfigureLiftModalProps {
   isOpen: boolean;
@@ -68,6 +69,8 @@ function ConfigureLiftModal({
   const [sets, setSets] = useState(5);
   const [reps, setReps] = useState(5);
   const [percentage, setPercentage] = useState<number | undefined>(undefined);
+  // "100%+" — marks the percentage as a floor rather than a target.
+  const [percentagePlus, setPercentagePlus] = useState(false);
 
   // Variable reps state — initialised from last persisted scheme so the modal
   // opens in the state the coach left it the last time they configured one.
@@ -110,6 +113,7 @@ function ConfigureLiftModal({
         setSets(existingLift.sets || 5);
         setReps(existingLift.reps || 5);
         setPercentage(existingLift.percentage_1rm);
+        setPercentagePlus(existingLift.percentage_plus || false);
       } else {
         setVariableSets(existingLift.variable_sets || [{ set_number: 1, reps: 5, percentage_1rm: undefined }]);
       }
@@ -124,6 +128,7 @@ function ConfigureLiftModal({
       setSets(5);
       setReps(5);
       setPercentage(undefined);
+      setPercentagePlus(false);
       setVariableSets(readStoredVariableSets());
     }
   }, [editingLift]);
@@ -207,7 +212,11 @@ function ConfigureLiftModal({
     });
   };
 
-  const handleUpdateVariableSet = (index: number, field: 'reps' | 'percentage_1rm', value: number | undefined) => {
+  const handleUpdateVariableSet = (
+    index: number,
+    field: 'reps' | 'percentage_1rm' | 'percentage_plus',
+    value: number | boolean | undefined
+  ) => {
     setVariableSets(prev =>
       prev.map((set, idx) =>
         idx === index ? { ...set, [field]: value } : set
@@ -228,7 +237,7 @@ function ConfigureLiftModal({
       ...(rmTest
         ? { sets: 1, reps: parseInt(rmTest.replace('RM', '')), rm_test: rmTest }
         : repType === 'constant'
-          ? { sets, reps, percentage_1rm: percentage }
+          ? { sets, reps, percentage_1rm: percentage, percentage_plus: percentage ? percentagePlus : undefined }
           : { variable_sets: variableSets }),
       visibility: 'everyone',
     };
@@ -243,7 +252,7 @@ function ConfigureLiftModal({
       return { rep_type: 'constant', sets: 1, reps: parseInt(rmTest.replace('RM', '')), rm_test: rmTest };
     }
     if (repType === 'constant') {
-      return { rep_type: 'constant', sets, reps, percentage_1rm: percentage };
+      return { rep_type: 'constant', sets, reps, percentage_1rm: percentage, percentage_plus: percentage ? percentagePlus : undefined };
     }
     return { rep_type: 'variable', variable_sets: variableSets };
   };
@@ -263,6 +272,7 @@ function ConfigureLiftModal({
       setSets(config.sets ?? 5);
       setReps(config.reps ?? 5);
       setPercentage(config.percentage_1rm);
+      setPercentagePlus(config.percentage_plus || false);
     } else {
       setVariableSets(
         config.variable_sets && config.variable_sets.length > 0
@@ -297,7 +307,7 @@ function ConfigureLiftModal({
     }
     if (repType === 'constant') {
       const base = `${lift.name} ${sets}x${reps}`;
-      return percentage ? `${base} @ ${percentage}%` : base;
+      return percentage ? `${base} @ ${formatPercent(percentage, percentagePlus)}` : base;
     } else {
       const repsText = variableSets.map(s => s.reps).join('-');
       return `${lift.name} ${repsText}`;
@@ -619,11 +629,31 @@ function ConfigureLiftModal({
                     onChange={e => setPercentage(e.target.value ? parseInt(e.target.value) : undefined)}
                     placeholder='e.g., 75'
                     min='0'
-                    max='120'
+                    max='200'
                     className='flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
                   />
                   <span className='text-gray-600 font-semibold'>%</span>
+                  <button
+                    type='button'
+                    onClick={() => setPercentagePlus(prev => !prev)}
+                    disabled={!percentage}
+                    aria-pressed={percentagePlus}
+                    title='Mark as a minimum — displays as "100%+"'
+                    className={`px-3 py-2 rounded-lg font-semibold border transition disabled:opacity-40 disabled:cursor-not-allowed ${
+                      percentagePlus
+                        ? 'bg-[#178da6] border-[#178da6] text-white'
+                        : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    +
+                  </button>
                 </div>
+                {percentage ? (
+                  <p className='mt-1 text-xs text-gray-500'>
+                    Shows as <span className='font-semibold'>{formatPercent(percentage, percentagePlus)}</span>
+                    {percentagePlus ? ' — athletes see this as a minimum, not a target.' : ''}
+                  </p>
+                ) : null}
               </div>
             </div>
           )}
@@ -655,15 +685,32 @@ function ConfigureLiftModal({
                           />
                         </td>
                         <td className='px-4 py-2'>
-                          <input
-                            type='number'
-                            value={set.percentage_1rm || ''}
-                            onChange={e => handleUpdateVariableSet(idx, 'percentage_1rm', e.target.value ? parseInt(e.target.value) : undefined)}
-                            placeholder='%'
-                            className='w-full px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
-                            min='0'
-                            max='120'
-                          />
+                          <div className='flex items-center gap-1'>
+                            <input
+                              type='number'
+                              value={set.percentage_1rm || ''}
+                              onChange={e => handleUpdateVariableSet(idx, 'percentage_1rm', e.target.value ? parseInt(e.target.value) : undefined)}
+                              placeholder='%'
+                              className='w-full px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900'
+                              min='0'
+                              max='200'
+                            />
+                            <button
+                              type='button'
+                              onClick={() => handleUpdateVariableSet(idx, 'percentage_plus', !set.percentage_plus)}
+                              disabled={!set.percentage_1rm}
+                              aria-pressed={!!set.percentage_plus}
+                              aria-label={`Mark set ${set.set_number} as a minimum percentage`}
+                              title='Mark as a minimum — displays as "95%+"'
+                              className={`px-2 py-1 rounded font-semibold border transition disabled:opacity-40 disabled:cursor-not-allowed ${
+                                set.percentage_plus
+                                  ? 'bg-[#178da6] border-[#178da6] text-white'
+                                  : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
+                              }`}
+                            >
+                              +
+                            </button>
+                          </div>
                         </td>
                         <td className='px-4 py-2 text-center'>
                           <div className='flex items-center justify-center gap-1'>

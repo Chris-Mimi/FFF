@@ -11,6 +11,8 @@ export interface VariableSet {
   set_number: number;
   reps: number;
   percentage_1rm?: number;
+  // "100%+" — the percentage is a floor, not a target ("go at least this heavy")
+  percentage_plus?: boolean;
 }
 
 export interface ConfiguredLift {
@@ -22,6 +24,8 @@ export interface ConfiguredLift {
   sets?: number;
   reps?: number;
   percentage_1rm?: number;
+  // "100%+" — the percentage is a floor, not a target ("go at least this heavy")
+  percentage_plus?: boolean;
 
   // Variable reps: Per-set configuration with individual reps and percentages
   variable_sets?: VariableSet[];

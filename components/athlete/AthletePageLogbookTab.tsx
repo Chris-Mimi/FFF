@@ -20,7 +20,7 @@ import WhiteboardSection from './logbook/WhiteboardSection';
 import PhotoModal from './logbook/PhotoModal';
 import HistorySearch from './logbook/HistorySearch';
 import PersonalActivitiesView from './personal/PersonalActivitiesView';
-import { formatLift, formatBenchmark, formatForgeBenchmark } from '@/utils/logbook/formatters';
+import { formatLift, formatBenchmark, formatForgeBenchmark, formatPercentList } from '@/utils/logbook/formatters';
 import { saveSectionResult } from '@/utils/logbook/savingLogic';
 import { loadSectionResults, loadBenchmarkResultsToSection, loadLiftResultsToSection } from '@/utils/logbook/loadingLogic';
 
@@ -547,16 +547,17 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                                         <>
                                           <div>≡ {lift.name} {lift.variable_sets.map(s => s.reps).join('-')}</div>
                                           {(() => {
-                                            const percentages = lift.variable_sets.map(s => s.percentage_1rm);
-                                            const allHavePercentages = percentages.every(p => p !== undefined && p !== null);
+                                            const pctSets = lift.variable_sets;
+                                            const allHavePercentages = pctSets.every(s => s.percentage_1rm !== undefined && s.percentage_1rm !== null);
                                             if (!allHavePercentages) return null;
                                             const athlete1RM = best1RMMap[lift.name];
                                             return (
                                               <div>
-                                                @ {percentages.join('-')}%
+                                                @ {formatPercentList(pctSets)}
                                                 {athlete1RM ? (
                                                   <span className='text-blue-600 ml-1'>
-                                                    ({percentages.map(p => roundToPlate((p as number) / 100 * athlete1RM)).join('-')} kg)
+                                                    {/* A "+" set is a floor, so its suggested weight carries the sign too */}
+                                                    ({pctSets.map(s => `${roundToPlate((s.percentage_1rm as number) / 100 * athlete1RM)}${s.percentage_plus ? '+' : ''}`).join('-')} kg)
                                                   </span>
                                                 ) : null}
                                               </div>
@@ -568,7 +569,7 @@ export default function AthletePageLogbookTab({ userId, initialDate, initialView
                                           ≡ {formatLift(lift)}
                                           {lift.percentage_1rm && best1RMMap[lift.name] ? (
                                             <span className='text-blue-600 ml-1 font-normal'>
-                                              ({roundToPlate(lift.percentage_1rm / 100 * best1RMMap[lift.name])} kg)
+                                              ({roundToPlate(lift.percentage_1rm / 100 * best1RMMap[lift.name])}{lift.percentage_plus ? '+' : ''} kg)
                                             </span>
                                           ) : null}
                                         </>

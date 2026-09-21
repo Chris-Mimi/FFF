@@ -15,6 +15,7 @@ export interface LiftPresetConfig {
   sets?: number;
   reps?: number;
   percentage_1rm?: number;
+  percentage_plus?: boolean;
   variable_sets?: VariableSet[];
   rm_test?: '1RM' | '3RM' | '5RM' | '10RM';
 }
