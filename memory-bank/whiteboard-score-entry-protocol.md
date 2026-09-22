@@ -21,6 +21,15 @@ So when replicating it by script, **always write BOTH tables together, as one un
 - **"ok" written in a timed Hold column = held the full cap** (e.g. 3:00), not blank. Record the cap time.
 - **"ok" / "AB" used as a whole column (not a hold) can mean the Track:** `ok = Track 1`, `AB = Track 2`. Confirm which meaning per board — a Hold column's "ok" = full time; a Run/Track column's ok/AB = track number.
 - **DNF** = no valid finish time (write per the section's DNF convention, not a fake time).
+- **Track: an unmarked athlete on a board that marks ANY "Trk2" is Track 1** (Chris-confirmed,
+  S411). He only writes the exception. **Fill the blanks in as Track 1 — never leave them null.**
+  `leaderboard-utils.ts` compares track *before* scaling and treats a missing track as `4`, so a
+  half-filled column silently ranks the unmarked athletes below everyone marked, for no reason
+  they earned. Either the whole session has tracks or none of it does.
+- **The Track field must be switched ON in the section** (`scoring_fields.track`) or the 1/2/3
+  buttons don't render in the coach modal — but the save route never strips `track`, so a
+  script-written value lands in the DB and *still* skews the leaderboard while being invisible
+  to the coach. Enable it whenever a board carries track marks (S411).
 
 ## Canonical lift names (whiteboard shorthand → `lift_records.lift_name` / section `lifts[].name`)
 - OHP → `Strict Overhead Shoulder Press`
