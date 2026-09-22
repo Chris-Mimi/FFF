@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { authFetch } from '@/lib/auth-fetch';
 import { sessionStartInstant, sessionAutoLockInstant } from '@/lib/bookingRules';
 import { extractMovements, extractMovementsFromWod, type AcronymMap, type LiftExerciseMap } from '@/utils/movement-extraction';
+import { matchesSearch } from '@/utils/search-pattern';
 import { fetchLiftExerciseMap } from '@/utils/movement-analytics';
 import { useEffect, useState } from 'react';
 import { fetchAllExercises } from '@/utils/fetch-all-exercises';
@@ -466,13 +467,13 @@ export const useCoachData = ({
             const acrLookup = acronymMap.get(searchPhrase.toLowerCase());
             if (acrLookup && !phrases.includes(acrLookup)) phrases.push(acrLookup);
 
-            const matchesAny = phrases.some(phrase => {
-              const escaped = phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-              // \b word boundary so "Ring" doesn't match "hamstring" or "during".
-              // Trailing space in the raw query → require end-of-word too (exact match).
-              const pattern = endAnchor ? `\\b${escaped}\\b` : `\\b${escaped}`;
-              return new RegExp(pattern, 'i').test(combinedText);
-            });
+            // Word boundary so "Ring" doesn't match "hamstring" or "during";
+            // trailing space in the raw query → require end-of-word too.
+            // buildSearchPattern drops the boundary on a side where it can't
+            // apply, so punctuation-leading queries like "#26." still match.
+            const matchesAny = phrases.some(phrase =>
+              matchesSearch(combinedText, phrase, endAnchor)
+            );
             return matchesAny;
           });
         }
