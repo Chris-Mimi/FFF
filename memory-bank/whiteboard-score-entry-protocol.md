@@ -54,7 +54,22 @@ So when replicating it by script, **always write BOTH tables together, as one un
    - **In-between weights take the lower tier they clear**, and the load differentiates (woman @ 10kg ≥ Sc2's 8 but < Sc1's 12 → `Sc2`, load 10). Write `scaling_level` = tier on the metcon WSR alongside `weight_result` = load.
    - When the board writes "Rx" instead of a number, fill the prescribed Rx load (men's vs women's column). Apply tiers **consistently across every session of the same workout** — if one session has tiers and another doesn't, the pooled leaderboard ranks wrong.
 
-3. **Chris verifies** the table against the photo and corrects misreads. This is the safety net — these are permanent PRs.
+3. **⚡ WRITE FIRST, REPORT AFTER (S411 — supersedes the old "wait for Chris" step).**
+   Do **not** stop and ask Chris to adjudicate ambiguous data. Pick the most likely
+   reading, write it, and hand him a short numbered list of what was uncertain
+   *afterwards*, most-likely-wrong first. Correcting a cell takes him seconds; a
+   round-trip costs far more, and he enters other boards in parallel while I work —
+   a blocking question stalls both of us.
+   - **Still flag in the report:** every ⚠️ cell, what I chose, and why.
+   - **Safe enabling changes are mine to make** — if the board carries a metric the
+     section has no field for, switch the field **on** and note it (S411: `scaling_3`
+     for a Toes-to-Rings column; Chris confirmed this is the initiative he wants).
+     Turning a field *on* is safe; turning one *off* wipes results.
+   - **What still needs asking:** anything destructive, irreversible, or outside the
+     agreed task (a second session on the same board, a bulk correction). Ask about
+     the *task*, never about a digit.
+   - The accuracy measures in step 2 are what make writing-first safe — don't skip
+     the two passes just because Chris can correct afterwards.
 
 4. **Resolve names → members** via the list above. Map each athlete to their **confirmed session** (via `bookings`) to get the correct `lift_date` / session. Surface anyone booked in two sessions, or not booked at all.
 
