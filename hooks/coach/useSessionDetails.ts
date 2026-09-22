@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { filterAvailableMembers } from '@/lib/coach/bookingHelpers';
 import { padTime } from '@/lib/coach/modalStateHelpers';
+import { formatDate } from '@/utils/date-utils';
 
 export interface SessionDetails {
   id: string;
@@ -29,6 +30,14 @@ export interface Booking {
   // null if athlete isn't paying with a 10-card on this booking. Otherwise the
   // holder's remaining sessions (counter delta, can be negative for overage per S347).
   tenCardRemaining: number | null;
+  // Raw card state behind `tenCardRemaining`, so the booking row can always show
+  // "used/total" — coaches get asked "how many has my kid used?" at the desk and
+  // shouldn't have to leave the modal for the Members page to answer it.
+  tenCardUsed: number | null;
+  tenCardTotal: number | null;
+  // True when this athlete books against someone else's card (family sharing),
+  // so the count shown is the whole family's, not just theirs.
+  tenCardShared: boolean;
   member: {
     id: string;
     name: string | null;
@@ -190,12 +199,28 @@ export function useSessionDetails(
         const raw = (booking as any).members;
         const effective = raw?.primary_payment_method || raw?.membership_types?.[0] || null;
         let tenCardRemaining: number | null = null;
+        let tenCardUsed: number | null = null;
+        let tenCardTotal: number | null = null;
+        let tenCardShared = false;
         if (effective === 'ten_card' && raw) {
           const holderId = (raw.ten_card_holder_id as string | null) || raw.id;
           const card = holderMap.get(holderId);
           // Only attribute if the session falls within the active card's window.
-          if (card?.purchaseDate && sessionDateForBooking >= card.purchaseDate) {
+          // A card with no purchase_date has no knowable window (22 of 68 holders
+          // are paper-card carry-overs), so fall back to "today onwards": the live
+          // counter is correct for sessions that haven't happened yet, and past
+          // sessions stay unlabelled rather than being scored against a card that
+          // may not have been the one in force at the time.
+          const withinWindow = card
+            ? card.purchaseDate
+              ? sessionDateForBooking >= card.purchaseDate
+              : sessionDateForBooking >= formatDate(new Date())
+            : false;
+          if (card && withinWindow) {
             tenCardRemaining = card.total - card.used;
+            tenCardUsed = card.used;
+            tenCardTotal = card.total;
+            tenCardShared = !!raw.ten_card_holder_id;
           }
         }
         return {
@@ -207,6 +232,9 @@ export function useSessionDetails(
           is_trial: booking.is_trial ?? false,
           linked_trial_name: (booking as { linked_trial_name?: string | null }).linked_trial_name ?? null,
           tenCardRemaining,
+          tenCardUsed,
+          tenCardTotal,
+          tenCardShared,
           // Strip the 10-card fields from the public member shape; downstream only
           // needs the original five.
           member: {

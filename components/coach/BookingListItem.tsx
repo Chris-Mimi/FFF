@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowUp, Undo2, UserX, X } from 'lucide-react';
+import { ArrowUp, Link2, Undo2, UserX, X } from 'lucide-react';
 import { Booking } from '@/hooks/coach/useSessionDetails';
 
 interface BookingListItemProps {
@@ -59,6 +59,20 @@ export default function BookingListItem({
               : null
       : null;
 
+  // Always surface the card count on an active booking, not just when it's
+  // running low — coaches get asked "how many has my kid used?" at the desk and
+  // shouldn't have to leave for the Members page to answer.
+  const showCardCount =
+    showCardWarning && booking.tenCardUsed !== null && booking.tenCardTotal !== null;
+  const cardCountLabel = showCardCount
+    ? `${booking.tenCardUsed}/${booking.tenCardTotal}`
+    : null;
+  const cardCountTitle = showCardCount
+    ? booking.tenCardShared
+      ? `Shares a family 10-card — ${booking.tenCardUsed} of ${booking.tenCardTotal} used by the family so far. Manage it on the card holder's profile.`
+      : `10-card: ${booking.tenCardUsed} of ${booking.tenCardTotal} sessions used.`
+    : undefined;
+
   // Determine background color based on status, with a 10-card warning tier
   // overriding the confirmed default when relevant.
   const bgClass =
@@ -105,6 +119,17 @@ export default function BookingListItem({
         {isFamilyMember && (
           <span className='text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded'>
             family
+          </span>
+        )}
+        {cardCountLabel && (
+          <span
+            className={`text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5 ${
+              cardTier ? 'bg-white/80 text-gray-800' : 'bg-purple-600 text-white'
+            }`}
+            title={cardCountTitle}
+          >
+            {booking.tenCardShared && <Link2 size={9} />}
+            {cardCountLabel}
           </span>
         )}
         {cardTier === 'overage' && (
