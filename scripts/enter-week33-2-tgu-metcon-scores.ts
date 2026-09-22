@@ -49,7 +49,7 @@ interface BoardRow {
 // Column order on the board: TGU | T2R | Push-up | V-Up | RKBS | R+R
 const BOARD: BoardRow[] = [
   { board: 'Annakr',     tgu: 8,  t2r: 'Sc1', pushup: 'Sc1', vup: 'Sc2', kbs: 8,  rounds: 3,    reps: 32,   track: null },
-  { board: 'Gloria',     tgu: 6,  t2r: 'Sc2', pushup: 'Sc2', vup: 'Sc2', kbs: 8,  rounds: 3,    reps: 0,    track: 2    },
+  { board: 'Gloria',     tgu: 8,  t2r: 'Sc2', pushup: 'Sc2', vup: 'Sc2', kbs: 8,  rounds: 3,    reps: 0,    track: 2    },
   { board: 'Daniela(T)', tgu: 4,  t2r: 'Sc2', pushup: 'Sc3', vup: 'Sc3', kbs: 8,  rounds: null, reps: null, track: 2    },
   { board: 'Justine',    tgu: 8,  t2r: 'Sc1', pushup: 'Sc2', vup: 'Sc2', kbs: 12, rounds: 3,    reps: 0,    track: 2    },
   { board: 'Regina',     tgu: 8,  t2r: 'Sc1', pushup: 'Sc2', vup: 'Sc2', kbs: 12, rounds: 3,    reps: 0,    track: null },

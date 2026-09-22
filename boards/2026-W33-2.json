@@ -1,0 +1,20 @@
+{
+  "note": "2026 Week 33.2 — 16.08 10:00 TGU metcon (already entered; regression fixture)",
+  "sessions": [{
+    "date": "2026-08-16",
+    "time": "10:00",
+    "sectionId": "section-1773398698408-4",
+    "rows": [
+      { "member": "Anna Kr",            "weight_result": 8,  "weight_result_2": 8,  "scaling_level": "Sc1", "scaling_level_2": "Sc2", "scaling_level_3": "Sc1", "rounds_result": 3, "reps_result": 32 },
+      { "member": "Gloria Stoffer",     "weight_result": 8,  "weight_result_2": 8,  "scaling_level": "Sc2", "scaling_level_2": "Sc2", "scaling_level_3": "Sc2", "rounds_result": 3, "reps_result": 0, "track": 2 },
+      { "member": "Daniela Struben",    "weight_result": 4,  "weight_result_2": 8,  "scaling_level": "Sc3", "scaling_level_2": "Sc3", "scaling_level_3": "Sc2", "track": 2 },
+      { "member": "Justine Baumstark",  "weight_result": 8,  "weight_result_2": 12, "scaling_level": "Sc2", "scaling_level_2": "Sc2", "scaling_level_3": "Sc1", "rounds_result": 3, "reps_result": 0, "track": 2 },
+      { "member": "Regina Peresyova",   "weight_result": 8,  "weight_result_2": 12, "scaling_level": "Sc2", "scaling_level_2": "Sc2", "scaling_level_3": "Sc1", "rounds_result": 3, "reps_result": 0 },
+      { "member": "David Montgomery",   "weight_result": 12, "weight_result_2": 20, "scaling_level": "Rx",  "scaling_level_2": "Sc2", "scaling_level_3": "Sc1", "rounds_result": 2, "reps_result": 30, "track": 2 },
+      { "member": "Christian Tanner",   "weight_result": 20, "weight_result_2": 20, "scaling_level": "Rx",  "scaling_level_2": "Sc1", "scaling_level_3": "Sc1", "rounds_result": 2, "reps_result": 20 },
+      { "member": "Teemu Lian Geisler", "weight_result": 10, "weight_result_2": 12, "scaling_level": "Rx",  "scaling_level_2": "Sc1", "scaling_level_3": "Rx",  "rounds_result": 4, "reps_result": 20 },
+      { "member": "Thomas Graf",        "weight_result": 12, "weight_result_2": 20, "scaling_level": "Sc1", "scaling_level_2": "Sc2", "scaling_level_3": "Sc1", "rounds_result": 2, "reps_result": 30 },
+      { "member": "Senol Özdilek",      "weight_result": 8,  "weight_result_2": 12, "scaling_level": "Sc2", "scaling_level_2": "Sc2", "scaling_level_3": "Sc1", "rounds_result": 3, "reps_result": 0 }
+    ]
+  }]
+}
