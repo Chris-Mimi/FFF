@@ -1,0 +1,39 @@
+{
+  "note": "2026 Week 38.3 — 20.9 AMRAP (GHDHE/DB FP/Row/V-Up/Ski/Pull-up). load = DB kg, scaling = Pull-up, scaling_2 = V-Up. Bottom 4 names bracketed 'Wk 39' = Mon 21.9 10:00. Skipped (not booked on 20.9): Christian T, Sebastian (Pfeiffer), Chris.",
+  "sessions": [
+    {
+      "date": "2026-09-20",
+      "time": "10:00",
+      "sectionId": "section-1770216576384",
+      "rows": [
+        { "member": "Rosita Blum",     "weight_result": 7.5,  "scaling_level": "Sc2", "scaling_level_2": "Sc2", "rounds_result": 2, "reps_result": 20 },
+        { "member": "Lukas Simnacher", "weight_result": 22.5, "scaling_level": "Rx",  "scaling_level_2": "Rx",  "rounds_result": 4, "reps_result": 0 },
+        { "member": "Markus Fischer",  "weight_result": 22.5, "scaling_level": "Rx",  "scaling_level_2": "Sc2", "rounds_result": 3, "reps_result": 50 },
+        { "member": "Sven Hujo",       "weight_result": 15,   "scaling_level": "Sc1", "scaling_level_2": "Sc2", "rounds_result": 3, "reps_result": 50 },
+        { "member": "Thomas Graf",     "weight_result": 17.5, "scaling_level": "Sc1", "scaling_level_2": "Sc2", "rounds_result": 3, "reps_result": 20 },
+        { "member": "Tobias Schiegg",  "weight_result": 17.5, "scaling_level": "Sc2", "scaling_level_2": "Sc2", "rounds_result": 3, "reps_result": 40 }
+      ]
+    },
+    {
+      "date": "2026-09-20",
+      "time": "11:00",
+      "sectionId": "section-1770216576384",
+      "rows": [
+        { "member": "Anna Kr",       "weight_result": 10,   "scaling_level": "Sc2", "scaling_level_2": "Sc2", "rounds_result": 4, "reps_result": 0 },
+        { "member": "Jan Huelbig",   "weight_result": 17.5, "scaling_level": "Sc2", "scaling_level_2": "Sc2", "rounds_result": 4, "reps_result": 0 },
+        { "member": "Senol Özdilek", "weight_result": 15,   "scaling_level": "Sc1", "scaling_level_2": "Sc2", "rounds_result": 4, "reps_result": 20 }
+      ]
+    },
+    {
+      "date": "2026-09-21",
+      "time": "10:00",
+      "sectionId": "section-1770216576384",
+      "rows": [
+        { "member": "Daniela Simm",    "weight_result": 10,   "scaling_level": "Sc1", "scaling_level_2": "Sc2", "rounds_result": 4, "reps_result": 0 },
+        { "member": "Julia Weihe",     "weight_result": 7.5,  "scaling_level": "Sc1", "scaling_level_2": "Sc2", "rounds_result": 4, "reps_result": 0 },
+        { "member": "Mimi Hiles",      "weight_result": 15,   "scaling_level": "Rx",  "scaling_level_2": "Rx",  "rounds_result": 4, "reps_result": 4 },
+        { "member": "Michael Städele", "weight_result": 22.5, "scaling_level": "Rx",  "scaling_level_2": "Rx",  "rounds_result": 4, "reps_result": 24 }
+      ]
+    }
+  ]
+}
