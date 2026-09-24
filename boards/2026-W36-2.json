@@ -1,0 +1,869 @@
+{
+ "note": "2026 Week 36.2 — 2.9 Tabata (4 sections: GHD Sit-Up w/ scaling, Airbike, GHD HE, Airbike; board scaling col = Sit-Up only). 4.9 Weekend WOD: Pt1 Franny (time; TC = rounds 0 + reps done of 90; Sc = Sc1; load = DB kg, Rx 10/15), Pt2 Hyrox AMRAP -> metres (1 round = 100m), Pt3 reps = pull-ups + dips summed, scaling = pull-up tier, scaling_2 = dip tier (band-only 'Sc' -> pull-up Sc2 / dip Sc1). Booked: Amelie 2.9 18:30, Petra + Antonia (Toni) 4.9 18:30. Skipped: Jessica (all dashes), Sergej (OG). 36.1 already entered.",
+ "sessions": [
+  {
+   "date": "2026-09-02",
+   "time": "09:30",
+   "sectionId": "section-1788090449758-4",
+   "rows": [
+    {
+     "member": "Michael Städele",
+     "scaling_level": "Rx",
+     "reps_result": 62
+    },
+    {
+     "member": "Irene Koffler",
+     "scaling_level": "Sc2",
+     "reps_result": 48
+    },
+    {
+     "member": "Daniela Simm",
+     "scaling_level": "Sc2",
+     "reps_result": 60
+    },
+    {
+     "member": "Anna Kr",
+     "scaling_level": "Sc2",
+     "reps_result": 49
+    },
+    {
+     "member": "Mimi Hiles",
+     "scaling_level": "Rx",
+     "reps_result": 74
+    }
+   ]
+  },
+  {
+   "date": "2026-09-02",
+   "time": "09:30",
+   "sectionId": "section-1788352409058",
+   "rows": [
+    {
+     "member": "Michael Städele",
+     "reps_result": 51
+    },
+    {
+     "member": "Irene Koffler",
+     "reps_result": 36
+    },
+    {
+     "member": "Daniela Simm",
+     "reps_result": 54
+    },
+    {
+     "member": "Anna Kr",
+     "reps_result": 44
+    },
+    {
+     "member": "Mimi Hiles",
+     "reps_result": 50
+    }
+   ]
+  },
+  {
+   "date": "2026-09-02",
+   "time": "09:30",
+   "sectionId": "section-1788352479608",
+   "rows": [
+    {
+     "member": "Michael Städele",
+     "reps_result": 94
+    },
+    {
+     "member": "Irene Koffler",
+     "reps_result": 54
+    },
+    {
+     "member": "Daniela Simm",
+     "reps_result": 73
+    },
+    {
+     "member": "Anna Kr",
+     "reps_result": 65
+    },
+    {
+     "member": "Mimi Hiles",
+     "reps_result": 86
+    }
+   ]
+  },
+  {
+   "date": "2026-09-02",
+   "time": "09:30",
+   "sectionId": "section-1788352489816",
+   "rows": [
+    {
+     "member": "Michael Städele",
+     "reps_result": 53
+    },
+    {
+     "member": "Irene Koffler",
+     "reps_result": 32
+    },
+    {
+     "member": "Daniela Simm",
+     "reps_result": 46
+    },
+    {
+     "member": "Anna Kr",
+     "reps_result": 36
+    },
+    {
+     "member": "Mimi Hiles",
+     "reps_result": 46
+    }
+   ]
+  },
+  {
+   "date": "2026-09-02",
+   "time": "17:15",
+   "sectionId": "section-1788090449758-4",
+   "rows": [
+    {
+     "member": "Valerie Mesenburg",
+     "scaling_level": "Rx",
+     "reps_result": 49
+    },
+    {
+     "member": "Lena Jähn",
+     "scaling_level": "Rx",
+     "reps_result": 55
+    },
+    {
+     "member": "Claudia Herrmann",
+     "scaling_level": "Rx",
+     "reps_result": 64
+    },
+    {
+     "member": "Nikolina Vlasalija",
+     "scaling_level": "Rx",
+     "reps_result": 40
+    },
+    {
+     "member": "Julia Weihe",
+     "scaling_level": "Sc1",
+     "reps_result": 45
+    },
+    {
+     "member": "Sabrina Lucas",
+     "scaling_level": "Sc2",
+     "reps_result": 65
+    },
+    {
+     "member": "Lukas Simnacher",
+     "scaling_level": "Rx",
+     "reps_result": 62
+    },
+    {
+     "member": "Paul Bielenski",
+     "scaling_level": "Rx",
+     "reps_result": 46
+    },
+    {
+     "member": "Steven Zaft",
+     "scaling_level": "Rx",
+     "reps_result": 37
+    },
+    {
+     "member": "Wayne Lucas",
+     "scaling_level": "Rx",
+     "reps_result": 66
+    }
+   ]
+  },
+  {
+   "date": "2026-09-02",
+   "time": "17:15",
+   "sectionId": "section-1788352409058",
+   "rows": [
+    {
+     "member": "Valerie Mesenburg",
+     "reps_result": 45
+    },
+    {
+     "member": "Lena Jähn",
+     "reps_result": 42
+    },
+    {
+     "member": "Claudia Herrmann",
+     "reps_result": 38
+    },
+    {
+     "member": "Nikolina Vlasalija",
+     "reps_result": 27
+    },
+    {
+     "member": "Julia Weihe",
+     "reps_result": 34
+    },
+    {
+     "member": "Sabrina Lucas",
+     "reps_result": 39
+    },
+    {
+     "member": "Lukas Simnacher",
+     "reps_result": 67
+    },
+    {
+     "member": "Paul Bielenski",
+     "reps_result": 60
+    },
+    {
+     "member": "Steven Zaft",
+     "reps_result": 40
+    },
+    {
+     "member": "Wayne Lucas",
+     "reps_result": 66
+    }
+   ]
+  },
+  {
+   "date": "2026-09-02",
+   "time": "17:15",
+   "sectionId": "section-1788352479608",
+   "rows": [
+    {
+     "member": "Valerie Mesenburg",
+     "reps_result": 85
+    },
+    {
+     "member": "Lena Jähn",
+     "reps_result": 8
+    },
+    {
+     "member": "Claudia Herrmann",
+     "reps_result": 84
+    },
+    {
+     "member": "Nikolina Vlasalija",
+     "reps_result": 65
+    },
+    {
+     "member": "Julia Weihe",
+     "reps_result": 105
+    },
+    {
+     "member": "Sabrina Lucas",
+     "reps_result": 75
+    },
+    {
+     "member": "Lukas Simnacher",
+     "reps_result": 87
+    },
+    {
+     "member": "Paul Bielenski",
+     "reps_result": 70
+    },
+    {
+     "member": "Steven Zaft",
+     "reps_result": 48
+    },
+    {
+     "member": "Wayne Lucas",
+     "reps_result": 102
+    }
+   ]
+  },
+  {
+   "date": "2026-09-02",
+   "time": "17:15",
+   "sectionId": "section-1788352489816",
+   "rows": [
+    {
+     "member": "Valerie Mesenburg",
+     "reps_result": 41
+    },
+    {
+     "member": "Lena Jähn",
+     "reps_result": 40
+    },
+    {
+     "member": "Claudia Herrmann",
+     "reps_result": 6
+    },
+    {
+     "member": "Nikolina Vlasalija",
+     "reps_result": 26
+    },
+    {
+     "member": "Julia Weihe",
+     "reps_result": 29
+    },
+    {
+     "member": "Sabrina Lucas",
+     "reps_result": 37
+    },
+    {
+     "member": "Lukas Simnacher",
+     "reps_result": 65
+    },
+    {
+     "member": "Paul Bielenski",
+     "reps_result": 51
+    },
+    {
+     "member": "Steven Zaft",
+     "reps_result": 39
+    },
+    {
+     "member": "Wayne Lucas",
+     "reps_result": 56
+    }
+   ]
+  },
+  {
+   "date": "2026-09-02",
+   "time": "18:30",
+   "sectionId": "section-1788090449758-4",
+   "rows": [
+    {
+     "member": "Amelie Kirch",
+     "book": true,
+     "scaling_level": "Sc1",
+     "reps_result": 68
+    },
+    {
+     "member": "Anja Götte",
+     "scaling_level": "Rx",
+     "reps_result": 55
+    },
+    {
+     "member": "Justine Baumstark",
+     "scaling_level": "Sc2",
+     "reps_result": 16
+    },
+    {
+     "member": "Martina Fenster",
+     "scaling_level": "Sc3",
+     "reps_result": 72
+    },
+    {
+     "member": "Christian Tanner",
+     "scaling_level": "Rx",
+     "reps_result": 42
+    },
+    {
+     "member": "Thomas Spegele",
+     "scaling_level": "Sc1",
+     "reps_result": 32
+    },
+    {
+     "member": "Tobias Götte",
+     "scaling_level": "Rx",
+     "reps_result": 32
+    }
+   ]
+  },
+  {
+   "date": "2026-09-02",
+   "time": "18:30",
+   "sectionId": "section-1788352409058",
+   "rows": [
+    {
+     "member": "Amelie Kirch",
+     "book": true,
+     "reps_result": 44
+    },
+    {
+     "member": "Anja Götte",
+     "reps_result": 32
+    },
+    {
+     "member": "Justine Baumstark",
+     "reps_result": 48
+    },
+    {
+     "member": "Martina Fenster",
+     "reps_result": 39
+    },
+    {
+     "member": "Christian Tanner",
+     "reps_result": 53
+    },
+    {
+     "member": "Thomas Spegele",
+     "reps_result": 58
+    },
+    {
+     "member": "Tobias Götte",
+     "reps_result": 44
+    }
+   ]
+  },
+  {
+   "date": "2026-09-02",
+   "time": "18:30",
+   "sectionId": "section-1788352479608",
+   "rows": [
+    {
+     "member": "Amelie Kirch",
+     "book": true,
+     "reps_result": 72
+    },
+    {
+     "member": "Anja Götte",
+     "reps_result": 105
+    },
+    {
+     "member": "Justine Baumstark",
+     "reps_result": 16
+    },
+    {
+     "member": "Martina Fenster",
+     "reps_result": 87
+    },
+    {
+     "member": "Christian Tanner",
+     "reps_result": 62
+    },
+    {
+     "member": "Thomas Spegele",
+     "reps_result": 75
+    },
+    {
+     "member": "Tobias Götte",
+     "reps_result": 36
+    }
+   ]
+  },
+  {
+   "date": "2026-09-02",
+   "time": "18:30",
+   "sectionId": "section-1788352489816",
+   "rows": [
+    {
+     "member": "Amelie Kirch",
+     "book": true,
+     "reps_result": 42
+    },
+    {
+     "member": "Anja Götte",
+     "reps_result": 27
+    },
+    {
+     "member": "Justine Baumstark",
+     "reps_result": 16
+    },
+    {
+     "member": "Martina Fenster",
+     "reps_result": 40
+    },
+    {
+     "member": "Christian Tanner",
+     "reps_result": 51
+    },
+    {
+     "member": "Thomas Spegele",
+     "reps_result": 53
+    },
+    {
+     "member": "Tobias Götte",
+     "reps_result": 46
+    }
+   ]
+  },
+  {
+   "date": "2026-09-04",
+   "time": "09:00",
+   "sectionId": "section-1788090451202-4",
+   "rows": [
+    {
+     "member": "Michael Städele",
+     "scaling_level": "Rx",
+     "weight_result": 15,
+     "time_result": "5:27"
+    },
+    {
+     "member": "Lukas Simnacher",
+     "scaling_level": "Rx",
+     "weight_result": 15,
+     "rounds_result": 0,
+     "reps_result": 68
+    },
+    {
+     "member": "Irene Koffler",
+     "scaling_level": "Sc1",
+     "weight_result": 7.5,
+     "time_result": "6:25"
+    },
+    {
+     "member": "Julia Weihe",
+     "scaling_level": "Sc1",
+     "weight_result": 5,
+     "time_result": "7:07"
+    },
+    {
+     "member": "Aline von Rüden",
+     "scaling_level": "Sc1",
+     "weight_result": 5,
+     "time_result": "5:56"
+    },
+    {
+     "member": "Sonja Hujo",
+     "scaling_level": "Sc1",
+     "weight_result": 5,
+     "time_result": "7:22"
+    },
+    {
+     "member": "Mimi Hiles",
+     "scaling_level": "Rx",
+     "weight_result": 10,
+     "time_result": "7:15"
+    }
+   ]
+  },
+  {
+   "date": "2026-09-04",
+   "time": "09:00",
+   "sectionId": "section-1788475546153",
+   "rows": [
+    {
+     "member": "Michael Städele",
+     "metres_result": 210
+    },
+    {
+     "member": "Lukas Simnacher",
+     "metres_result": 228
+    },
+    {
+     "member": "Irene Koffler",
+     "metres_result": 150
+    },
+    {
+     "member": "Julia Weihe",
+     "metres_result": 130
+    },
+    {
+     "member": "Aline von Rüden",
+     "metres_result": 110
+    },
+    {
+     "member": "Sonja Hujo",
+     "metres_result": 200
+    },
+    {
+     "member": "Mimi Hiles",
+     "metres_result": 205
+    }
+   ]
+  },
+  {
+   "date": "2026-09-04",
+   "time": "09:00",
+   "sectionId": "section-1788475568538",
+   "rows": [
+    {
+     "member": "Michael Städele",
+     "scaling_level": "Rx",
+     "reps_result": 10
+    },
+    {
+     "member": "Lukas Simnacher",
+     "scaling_level": "Rx",
+     "reps_result": 24,
+     "scaling_level_2": "Rx"
+    },
+    {
+     "member": "Irene Koffler",
+     "scaling_level": "Sc3",
+     "reps_result": 37,
+     "scaling_level_2": "Sc1"
+    },
+    {
+     "member": "Julia Weihe",
+     "scaling_level": "Sc3",
+     "reps_result": 49,
+     "scaling_level_2": "Sc1"
+    },
+    {
+     "member": "Aline von Rüden",
+     "scaling_level": "Sc3",
+     "reps_result": 40,
+     "scaling_level_2": "Sc2"
+    },
+    {
+     "member": "Sonja Hujo",
+     "scaling_level": "Sc3",
+     "reps_result": 42,
+     "scaling_level_2": "Sc2"
+    },
+    {
+     "member": "Mimi Hiles",
+     "scaling_level": "Sc1",
+     "reps_result": 43,
+     "scaling_level_2": "Sc1"
+    }
+   ]
+  },
+  {
+   "date": "2026-09-04",
+   "time": "17:15",
+   "sectionId": "section-1788090451202-4",
+   "rows": [
+    {
+     "member": "Amelie Kirch",
+     "scaling_level": "Sc1",
+     "weight_result": 7.5,
+     "time_result": "5:51"
+    },
+    {
+     "member": "Lena Jähn",
+     "scaling_level": "Sc1",
+     "weight_result": 7.5,
+     "time_result": "5:05"
+    },
+    {
+     "member": "Martina Fenster",
+     "scaling_level": "Sc1",
+     "weight_result": 5,
+     "rounds_result": 0,
+     "reps_result": 81
+    },
+    {
+     "member": "Miriam Jacht",
+     "scaling_level": "Sc1",
+     "weight_result": 7.5,
+     "time_result": "6:49"
+    },
+    {
+     "member": "Nikolina Vlasalija",
+     "scaling_level": "Sc1",
+     "weight_result": 5,
+     "time_result": "8:00"
+    },
+    {
+     "member": "Christian Tanner",
+     "scaling_level": "Sc1",
+     "weight_result": 15,
+     "time_result": "7:50"
+    },
+    {
+     "member": "Paul Bielenski",
+     "scaling_level": "Sc1",
+     "weight_result": 15,
+     "time_result": "7:30"
+    },
+    {
+     "member": "Thomas Graf",
+     "scaling_level": "Sc1",
+     "weight_result": 10,
+     "time_result": "7:51"
+    },
+    {
+     "member": "Wayne Lucas",
+     "scaling_level": "Sc1",
+     "weight_result": 15,
+     "rounds_result": 0,
+     "reps_result": 72
+    }
+   ]
+  },
+  {
+   "date": "2026-09-04",
+   "time": "17:15",
+   "sectionId": "section-1788475546153",
+   "rows": [
+    {
+     "member": "Amelie Kirch",
+     "metres_result": 230
+    },
+    {
+     "member": "Lena Jähn",
+     "metres_result": 230
+    },
+    {
+     "member": "Martina Fenster",
+     "metres_result": 110
+    },
+    {
+     "member": "Miriam Jacht",
+     "metres_result": 220
+    },
+    {
+     "member": "Nikolina Vlasalija",
+     "metres_result": 100
+    },
+    {
+     "member": "Christian Tanner",
+     "metres_result": 210
+    },
+    {
+     "member": "Paul Bielenski",
+     "metres_result": 140
+    },
+    {
+     "member": "Thomas Graf",
+     "metres_result": 120
+    },
+    {
+     "member": "Wayne Lucas",
+     "metres_result": 230
+    }
+   ]
+  },
+  {
+   "date": "2026-09-04",
+   "time": "17:15",
+   "sectionId": "section-1788475568538",
+   "rows": [
+    {
+     "member": "Amelie Kirch",
+     "scaling_level": "Sc2",
+     "reps_result": 52,
+     "scaling_level_2": "Sc1"
+    },
+    {
+     "member": "Lena Jähn",
+     "scaling_level": "Sc1",
+     "reps_result": 23,
+     "scaling_level_2": "Rx"
+    },
+    {
+     "member": "Martina Fenster",
+     "scaling_level": "Sc2",
+     "reps_result": 41,
+     "scaling_level_2": "Sc1"
+    },
+    {
+     "member": "Miriam Jacht",
+     "scaling_level": "Sc2",
+     "reps_result": 60,
+     "scaling_level_2": "Sc1"
+    },
+    {
+     "member": "Nikolina Vlasalija",
+     "scaling_level": "Sc2",
+     "reps_result": 65,
+     "scaling_level_2": "Sc1"
+    },
+    {
+     "member": "Christian Tanner",
+     "scaling_level": "Sc2",
+     "reps_result": 28,
+     "scaling_level_2": "Rx"
+    },
+    {
+     "member": "Paul Bielenski",
+     "scaling_level": "Sc1",
+     "reps_result": 36,
+     "scaling_level_2": "Rx"
+    },
+    {
+     "member": "Thomas Graf",
+     "scaling_level": "Sc2",
+     "reps_result": 41,
+     "scaling_level_2": "Sc1"
+    },
+    {
+     "member": "Wayne Lucas",
+     "scaling_level": "Sc1",
+     "reps_result": 30,
+     "scaling_level_2": "Rx"
+    }
+   ]
+  },
+  {
+   "date": "2026-09-04",
+   "time": "18:30",
+   "sectionId": "section-1788090451202-4",
+   "rows": [
+    {
+     "member": "Petra Dempfle",
+     "book": true,
+     "scaling_level": "Sc1",
+     "weight_result": 5,
+     "time_result": "6:00"
+    },
+    {
+     "member": "Daniela Struben",
+     "scaling_level": "Sc1",
+     "weight_result": 2.5,
+     "time_result": "8:00"
+    },
+    {
+     "member": "Franziska Herndorf",
+     "scaling_level": "Sc1",
+     "weight_result": 5,
+     "time_result": "6:36"
+    },
+    {
+     "member": "Antonia Seitz",
+     "book": true,
+     "scaling_level": "Sc1",
+     "weight_result": 7.5,
+     "time_result": "6:30"
+    },
+    {
+     "member": "Bodo Lehmann",
+     "scaling_level": "Sc1",
+     "weight_result": 10,
+     "time_result": "8:00"
+    },
+    {
+     "member": "Sebastian Pfeiffer",
+     "scaling_level": "Rx",
+     "weight_result": 15,
+     "rounds_result": 0,
+     "reps_result": 78
+    }
+   ]
+  },
+  {
+   "date": "2026-09-04",
+   "time": "18:30",
+   "sectionId": "section-1788475546153",
+   "rows": [
+    {
+     "member": "Franziska Herndorf",
+     "metres_result": 200
+    },
+    {
+     "member": "Antonia Seitz",
+     "book": true,
+     "metres_result": 200
+    },
+    {
+     "member": "Bodo Lehmann",
+     "metres_result": 210
+    },
+    {
+     "member": "Sebastian Pfeiffer",
+     "metres_result": 200
+    }
+   ]
+  },
+  {
+   "date": "2026-09-04",
+   "time": "18:30",
+   "sectionId": "section-1788475568538",
+   "rows": [
+    {
+     "member": "Franziska Herndorf",
+     "scaling_level": "Sc2",
+     "reps_result": 70,
+     "scaling_level_2": "Sc1"
+    },
+    {
+     "member": "Antonia Seitz",
+     "book": true,
+     "scaling_level": "Sc2",
+     "reps_result": 37,
+     "scaling_level_2": "Sc1"
+    },
+    {
+     "member": "Bodo Lehmann",
+     "scaling_level": "Sc2",
+     "reps_result": 64,
+     "scaling_level_2": "Sc1"
+    },
+    {
+     "member": "Sebastian Pfeiffer",
+     "scaling_level": "Sc1",
+     "reps_result": 40,
+     "scaling_level_2": "Rx"
+    }
+   ]
+  }
+ ]
+}
