@@ -1,0 +1,35 @@
+{
+ "note": "2026 Week 5.2 (31.01 corner) + 5.4 (01.02). 31.1 Endurance #26.3 Hyrox ladder: load = WB kg (Rx 6F/9M), load_2 = Farmers Carry kg per DB (Rx 16F/24M; Teemu 20). Tyre 'M' + arrows ignored. 1.2 E3MOM: load = KB kg, scaling = V-Up (Sc/Sc1+ -> Sc1; arrow = Sc for rest). Jenny = Pascal Evghenia. MichaelaS whiteboard-only (no member). Elena skipped (no score).",
+ "sessions": [
+  {"date": "2026-01-31", "time": "10:00", "sectionId": "section-1769973009987", "rows": [
+   {"member": "Kathrin Mühlen",    "weight_result": 6, "weight_result_2": 16, "rounds_result": 2, "reps_result": 245},
+   {"member": "Lena Jähn",         "weight_result": 6, "weight_result_2": 16, "rounds_result": 2, "reps_result": 109},
+   {"member": "Miriam Jacht",      "weight_result": 5, "weight_result_2": 16, "rounds_result": 2, "reps_result": 0},
+   {"member": "Katharina Herbst",  "weight_result": 6, "weight_result_2": 16, "rounds_result": 2, "reps_result": 190},
+   {"member": "Soledad",           "weight_result": 5, "weight_result_2": 16, "rounds_result": 1, "reps_result": 168},
+   {"member": "Sabrina Lucas",     "weight_result": 5, "weight_result_2": 16, "rounds_result": 2, "reps_result": 40},
+   {"member": "Jürgen Bizjak",     "weight_result": 7, "weight_result_2": 24, "rounds_result": 2, "reps_result": 39},
+   {"member": "Teemu Lian Geisler","weight_result": 6, "weight_result_2": 20, "rounds_result": 2, "reps_result": 95}
+  ]},
+  {"date": "2026-02-01", "time": "10:00", "sectionId": "section-1769906478889", "rows": [
+   {"member": "Susi Glocker",       "weight_result": 8,  "scaling_level": "Rx",  "rounds_result": 6, "reps_result": 18},
+   {"member": "Anne Schaber",       "weight_result": 12, "scaling_level": "Rx",  "rounds_result": 5, "reps_result": 17},
+   {"member": "Rosita Blum",        "weight_result": 8,  "scaling_level": "Sc1", "rounds_result": 4, "reps_result": 0},
+   {"member": "Nikolina Vlasalija", "weight_result": 8,  "scaling_level": "Sc1", "rounds_result": 3, "reps_result": 12, "modified": true, "modified_note": "KB 8/10kg"},
+   {"member": "Pascal Evghenia",    "weight_result": 8,  "scaling_level": "Sc1", "rounds_result": 4, "reps_result": 0},
+   {"member": "Mimi Hiles",         "weight_result": 16, "scaling_level": "Rx",  "rounds_result": 6, "reps_result": 22},
+   {"member": "Stefan G",           "weight_result": 12, "scaling_level": "Rx",  "rounds_result": 6, "reps_result": 12},
+   {"member": "David Montgomery",   "weight_result": 12, "scaling_level": "Sc1", "rounds_result": 5, "reps_result": 0}
+  ]},
+  {"date": "2026-02-01", "time": "11:00", "sectionId": "section-1769906478889", "rows": [
+   {"member": "Aline von Rüden",   "weight_result": 12, "scaling_level": "Sc1", "rounds_result": 4, "reps_result": 0},
+   {"member": "Anna Hartmann",     "weight_result": 8,  "scaling_level": "Sc1", "rounds_result": 4, "reps_result": 0},
+   {"whiteboard": "MichaelaS",     "weight_result": 8,  "scaling_level": "Sc1", "rounds_result": 5, "reps_result": 0},
+   {"member": "Katja Neumann",     "weight_result": 8,  "scaling_level": "Sc1", "rounds_result": 4, "reps_result": 4},
+   {"member": "Franziska Kary",    "weight_result": 8,  "scaling_level": "Sc1", "rounds_result": 5, "reps_result": 0},
+   {"member": "Veronika Ebner",    "weight_result": 8,  "scaling_level": "Sc1", "rounds_result": 4, "reps_result": 0},
+   {"member": "Michael Weber",     "weight_result": 12, "scaling_level": "Sc1", "rounds_result": 6, "reps_result": 0},
+   {"member": "Carmine Carrozzo",  "weight_result": 10, "scaling_level": "Sc1", "rounds_result": 4, "reps_result": 0}
+  ]}
+ ]
+}
