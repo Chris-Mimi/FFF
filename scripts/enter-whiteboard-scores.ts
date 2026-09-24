@@ -34,6 +34,9 @@
  * get wrong. `member` is matched against the confirmed booking list (substring,
  * must hit exactly one); `whiteboard` is for unregistered names, which get a WSR
  * row and no lift_record (none is possible without a user).
+ * `"book": true` on a member row = trained but never booked: the script books
+ * them into that session first (confirmed; 10-card trigger counts it). Guess
+ * the class, write it, tell Chris after — his standing instruction (S413).
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -144,6 +147,37 @@ async function doSession(spec: SessionSpec) {
   type B = { members: { id: string; name: string | null; display_name: string | null } };
   const confirmed = ((bookings || []) as unknown as B[])
     .map(b => ({ id: b.members.id, name: b.members.display_name || b.members.name || '' }));
+
+  // --- "book": true — athlete trained but never booked. Chris's rule (S413):
+  // guess the class, book them, tell him after. Resolves against ACTIVE members
+  // (1:1 or throw), then inserts a confirmed booking — the 10-card trigger
+  // counts it like any other. An existing cancelled row is flipped instead.
+  for (const row of spec.rows.filter(r => r.book && r.member)) {
+    const needle = String(row.member).toLowerCase();
+    if (confirmed.some(c => c.name.toLowerCase().includes(needle))) continue;
+    const { data: mem, error: mErr } = await db
+      .from('members')
+      .select('id, name, display_name')
+      .eq('status', 'active');
+    if (mErr) throw new Error(`members: ${mErr.message}`);
+    const hits = (mem || []).filter(m => (m.display_name || m.name || '').toLowerCase().includes(needle));
+    if (hits.length !== 1) {
+      throw new Error(`book: "${row.member}" matched ${hits.length} active members (need exactly 1): ${hits.map(h => h.display_name || h.name).join(', ')}`);
+    }
+    const m = hits[0];
+    const name = m.display_name || m.name || '';
+    console.log(`📅 Booking ${name} into ${spec.date} ${timeLabel} (not booked — trained per board)`);
+    if (COMMIT) {
+      const { data: prior, error: pErr } = await db
+        .from('bookings').select('id').eq('session_id', session.id).eq('member_id', m.id).maybeSingle();
+      if (pErr) throw new Error(`bookings lookup: ${pErr.message}`);
+      const { error } = prior
+        ? await db.from('bookings').update({ status: 'confirmed' }).eq('id', prior.id)
+        : await db.from('bookings').insert({ session_id: session.id, member_id: m.id, status: 'confirmed' });
+      if (error) throw new Error(`book ${name}: ${error.message}`);
+    }
+    confirmed.push({ id: m.id, name });
+  }
 
   const resolved = spec.rows.map(row => {
     if (row.whiteboard) return { row, member: null as null | { id: string; name: string } };
