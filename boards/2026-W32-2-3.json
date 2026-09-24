@@ -1,0 +1,26 @@
+{
+ "note": "2026 Week 32.2 + 32.3. 8.8 Endurance #26.14: reps = sum of all stations as written (BBJ m + Lunge m + Sled lanes + WB reps + Tyre + Farmers Carry m, per SCORING line); load = WB kg (6 unless board says 5kg); Kathrin 490.5 rounded to 490; Carole (OG) skipped. 9.8: load = KB kg, scaling = C2B/T2B tier; Martina + Miriam booked (not booked, on board).",
+ "sessions": [
+  {"date": "2026-08-08", "time": "09:00", "sectionId": "section-1785674810379-4", "rows": [
+   {"member": "Kathrin Mühlen", "reps_result": 490, "weight_result": 6},
+   {"member": "Lena Jähn",      "reps_result": 430, "weight_result": 6},
+   {"member": "Sonja Hujo",     "reps_result": 256, "weight_result": 5},
+   {"member": "Sabrina Lucas",  "reps_result": 288, "weight_result": 5},
+   {"member": "Mimi Hiles",     "reps_result": 341, "weight_result": 6}
+  ]},
+  {"date": "2026-08-09", "time": "10:00", "sectionId": "section-1780825796284-3", "rows": [
+   {"member": "Carla Courtois",   "scaling_level": "Sc2", "weight_result": 8,  "rounds_result": 4, "reps_result": 25},
+   {"member": "Gloria Stoffer",   "scaling_level": "Sc2", "weight_result": 6,  "rounds_result": 3, "reps_result": 40},
+   {"member": "Julia Weihe",      "scaling_level": "Sc2", "weight_result": 8,  "rounds_result": 4, "reps_result": 0},
+   {"member": "Martina Fenster",  "book": true, "scaling_level": "Sc2", "weight_result": 12, "rounds_result": 4, "reps_result": 0},
+   {"member": "Miriam Jacht",     "book": true, "scaling_level": "Sc1", "weight_result": 12, "rounds_result": 4, "reps_result": 27},
+   {"member": "Justine Baumstark","scaling_level": "Sc2", "weight_result": 12, "rounds_result": 3, "reps_result": 16},
+   {"member": "Helen Schüler",    "scaling_level": "Sc2", "weight_result": 8,  "rounds_result": 4, "reps_result": 53},
+   {"member": "Rosita Blum",      "scaling_level": "Sc2", "weight_result": 8,  "rounds_result": 3, "reps_result": 40},
+   {"member": "Christian Tanner", "scaling_level": "Sc1", "weight_result": 20, "rounds_result": 4, "reps_result": 0},
+   {"member": "Daniel Braatz",    "scaling_level": "Sc1", "weight_result": 20, "rounds_result": 4, "reps_result": 45},
+   {"member": "Thomas Graf",      "scaling_level": "Sc1", "weight_result": 20, "rounds_result": 4, "reps_result": 0},
+   {"member": "Tobias Schiegg",   "scaling_level": "Sc2", "weight_result": 12, "rounds_result": 4, "reps_result": 0}
+  ]}
+ ]
+}
