@@ -31,6 +31,8 @@ So when replicating it by script, **always write BOTH tables together, as one un
   script-written value lands in the DB and *still* skews the leaderboard while being invisible
   to the coach. Enable it whenever a board carries track marks (S411).
 
+- **Endurance boards: `Nx` on sled push / tyre pull = N lanes × 10m** (S413). "11.5x" = 115m. Convert before summing a "reps + metres" total.
+
 ## Canonical lift names (whiteboard shorthand → `lift_records.lift_name` / section `lifts[].name`)
 - OHP → `Strict Overhead Shoulder Press`
 - PP → `Push Press`
