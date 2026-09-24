@@ -41,6 +41,8 @@ So when replicating it by script, **always write BOTH tables together, as one un
 
 ## Steps
 
+0. **Coverage sweep first (S413).** Before reading any photo, run the preflight for **every day of the ISO week** and list each session with bookings whose published scored section has `rows:0`. Compare that list against the photos, and tell Chris up front which sessions have no board ("20.9 10:00+11:00 unscored — photo missing?"). Working photo-by-photo only covers what's been uploaded, so a missing board goes unnoticed.
+
 1. **Get the image.** Stored in `whiteboard_photos`; `photo_url` is public — `curl` then Read it. One photo can cover several sessions.
    - **Label convention is 100% consistent: `YYYY Week WW.N`** (e.g. `2026 Week 25.1`, `2026 Week 25.2`) — year + ISO week number + photo index within that week. So to pull a week's boards: `photo_label ILIKE '2026 Week 25.%'` (or `workout_week = '2026-W25'`). Chris can just give the label or the session date.
    - Fallback: Chris gives a file path (ask for it — don't search his disk).
