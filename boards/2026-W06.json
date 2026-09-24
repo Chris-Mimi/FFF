@@ -1,0 +1,537 @@
+{
+ "note": "2026 Week 6. 6.1 = 2.2 10:00 (WOD from 30.1, TC = rounds 0 + reps of 290). 6.2 right = 4.2 + 6.2 metcon: scaling=V-Up, scaling_2=Pull-up (band colours dropped), track 1 / Foundations half-reps = track 2. 6.3 = Weekend WOD #26.5 burpee rounds (LOWER is better) in reps; Steven (booked 6.2 17:15 AND 7.2 10:00) put in 6.2; Mimi + Michi S booked into 7.2 10:00. 6.4 = 8.2: scaling=Rope, scaling_2=Push-up, load=OHS kg (PVC = no load); Sole booked 10:00. WB-only: Ina, LisaB, Sabine. 3.2 Clean Basics: no board.",
+ "sessions": [
+  {
+   "date": "2026-02-02",
+   "time": "10:00",
+   "sectionId": "section-1769888185053",
+   "rows": [
+    {
+     "member": "Michael Städele",
+     "scaling_level": "Rx",
+     "time_result": "14:37"
+    },
+    {
+     "member": "Irene Koffler",
+     "scaling_level": "Sc1",
+     "rounds_result": 0,
+     "reps_result": 247
+    },
+    {
+     "member": "Mimi Hiles",
+     "scaling_level": "Rx",
+     "time_result": "17:54"
+    }
+   ]
+  },
+  {
+   "date": "2026-02-04",
+   "time": "17:15",
+   "sectionId": "section-1770216576384",
+   "rows": [
+    {
+     "member": "Anja Götte",
+     "scaling_level": "Rx",
+     "scaling_level_2": "Rx",
+     "rounds_result": 2,
+     "reps_result": 20,
+     "track": 1
+    },
+    {
+     "member": "Sabrina Lucas",
+     "scaling_level": "Sc1",
+     "scaling_level_2": "Sc1",
+     "rounds_result": 2,
+     "reps_result": 0,
+     "track": 1
+    },
+    {
+     "member": "Lena Jähn",
+     "scaling_level": "Sc1",
+     "scaling_level_2": "Sc1",
+     "rounds_result": 2,
+     "reps_result": 20,
+     "track": 1
+    },
+    {
+     "member": "Paul Bielenski",
+     "scaling_level": "Rx",
+     "scaling_level_2": "Sc1",
+     "rounds_result": 2,
+     "reps_result": 10,
+     "track": 1
+    },
+    {
+     "member": "Wayne Lucas",
+     "scaling_level": "Sc1",
+     "scaling_level_2": "Rx",
+     "rounds_result": 2,
+     "reps_result": 0,
+     "track": 1,
+     "modified": true,
+     "modified_note": "GHDHE -> 40kg SM"
+    },
+    {
+     "member": "Senol Özdilek",
+     "scaling_level": "Sc1",
+     "scaling_level_2": "Sc1",
+     "rounds_result": 2,
+     "reps_result": 20,
+     "track": 1
+    },
+    {
+     "member": "Lukas Simnacher",
+     "scaling_level": "Sc1",
+     "scaling_level_2": "Rx",
+     "rounds_result": 2,
+     "reps_result": 29,
+     "track": 1
+    },
+    {
+     "member": "Chris Hiles",
+     "scaling_level": "Rx",
+     "scaling_level_2": "Rx",
+     "rounds_result": 2,
+     "reps_result": 50,
+     "track": 1
+    }
+   ]
+  },
+  {
+   "date": "2026-02-04",
+   "time": "18:30",
+   "sectionId": "section-1770216576384",
+   "rows": [
+    {
+     "member": "Anneke Spegele",
+     "scaling_level": "Rx",
+     "scaling_level_2": "Sc1",
+     "rounds_result": 2,
+     "reps_result": 0,
+     "track": 1
+    },
+    {
+     "member": "Thomas Spegele",
+     "scaling_level": "Rx",
+     "scaling_level_2": "Rx",
+     "rounds_result": 2,
+     "reps_result": 40,
+     "track": 1
+    },
+    {
+     "member": "Patrik Gruber",
+     "scaling_level": "Sc1",
+     "scaling_level_2": "Sc1",
+     "rounds_result": 2,
+     "reps_result": 0,
+     "track": 1
+    },
+    {
+     "member": "Sergej Felsing",
+     "scaling_level": "Sc1",
+     "scaling_level_2": "Rx",
+     "rounds_result": 2,
+     "reps_result": 30,
+     "track": 1
+    },
+    {
+     "member": "Daniel Braatz",
+     "scaling_level": "Sc1",
+     "scaling_level_2": "Rx",
+     "rounds_result": 2,
+     "reps_result": 30,
+     "track": 1
+    },
+    {
+     "member": "Denis Koffler",
+     "scaling_level": "Sc1",
+     "scaling_level_2": "Sc1",
+     "rounds_result": 1,
+     "reps_result": 62,
+     "track": 1
+    }
+   ]
+  },
+  {
+   "date": "2026-02-06",
+   "time": "09:00",
+   "sectionId": "section-1770216576384",
+   "rows": [
+    {
+     "member": "Michael Städele",
+     "scaling_level": "Rx",
+     "scaling_level_2": "Rx",
+     "rounds_result": 2,
+     "reps_result": 67,
+     "track": 1
+    },
+    {
+     "member": "Stefan G",
+     "scaling_level": "Rx",
+     "scaling_level_2": "Sc1",
+     "rounds_result": 2,
+     "reps_result": 46,
+     "track": 1
+    },
+    {
+     "member": "Irene Koffler",
+     "scaling_level": "Sc1",
+     "scaling_level_2": "Sc1",
+     "rounds_result": 1,
+     "reps_result": 80,
+     "track": 1
+    },
+    {
+     "member": "Mimi Hiles",
+     "scaling_level": "Rx",
+     "scaling_level_2": "Rx",
+     "rounds_result": 2,
+     "reps_result": 26,
+     "track": 1
+    }
+   ]
+  },
+  {
+   "date": "2026-02-06",
+   "time": "18:30",
+   "sectionId": "section-1770216576384",
+   "rows": [
+    {
+     "member": "Lisa Vrbanic",
+     "scaling_level": "Sc1",
+     "scaling_level_2": "Sc1",
+     "rounds_result": 3,
+     "reps_result": 0,
+     "track": 2
+    },
+    {
+     "member": "Nikolina Vlasalija",
+     "scaling_level": "Sc1",
+     "scaling_level_2": "Sc1",
+     "rounds_result": 3,
+     "reps_result": 0,
+     "track": 2
+    },
+    {
+     "member": "Marion Weber",
+     "scaling_level": "Sc1",
+     "scaling_level_2": "Sc1",
+     "rounds_result": 3,
+     "reps_result": 0,
+     "track": 2
+    },
+    {
+     "whiteboard": "Ina",
+     "scaling_level": "Sc1",
+     "scaling_level_2": "Sc1",
+     "rounds_result": 3,
+     "reps_result": 0,
+     "track": 2
+    },
+    {
+     "member": "Andreas Keip",
+     "scaling_level": "Sc1",
+     "scaling_level_2": "Sc1",
+     "rounds_result": 3,
+     "reps_result": 23,
+     "track": 2
+    },
+    {
+     "member": "Thomas Herbst",
+     "scaling_level": "Sc1",
+     "scaling_level_2": "Sc1",
+     "rounds_result": 3,
+     "reps_result": 20,
+     "track": 2
+    },
+    {
+     "member": "Michael Maier",
+     "scaling_level": "Sc1",
+     "scaling_level_2": "Rx",
+     "rounds_result": 3,
+     "reps_result": 10,
+     "track": 2
+    }
+   ]
+  },
+  {
+   "date": "2026-02-06",
+   "time": "17:15",
+   "sectionId": "section-1770383562826",
+   "rows": [
+    {
+     "member": "Sandra Lederle",
+     "reps_result": 15
+    },
+    {
+     "member": "Anja Götte",
+     "reps_result": 8
+    },
+    {
+     "member": "Valerie Mesenburg",
+     "reps_result": 8
+    },
+    {
+     "whiteboard": "LisaB",
+     "reps_result": 15
+    },
+    {
+     "member": "Paul Bielenski",
+     "reps_result": 15
+    },
+    {
+     "member": "Wayne Lucas",
+     "reps_result": 15
+    },
+    {
+     "member": "Christian Tanner",
+     "reps_result": 15
+    },
+    {
+     "member": "Zoran Vrbanic",
+     "reps_result": 12
+    },
+    {
+     "member": "Dimitar Peresyov",
+     "reps_result": 15
+    },
+    {
+     "member": "Lukas Simnacher",
+     "reps_result": 14
+    },
+    {
+     "member": "Patrik Gruber",
+     "reps_result": 15
+    },
+    {
+     "member": "Steven Zaft",
+     "reps_result": 16
+    }
+   ]
+  },
+  {
+   "date": "2026-02-07",
+   "time": "10:00",
+   "sectionId": "section-1770383562826",
+   "rows": [
+    {
+     "member": "Jürgen Bizjak",
+     "reps_result": 20
+    },
+    {
+     "member": "Sven Hujo",
+     "reps_result": 16
+    },
+    {
+     "member": "Teemu Lian Geisler",
+     "reps_result": 16
+    },
+    {
+     "member": "Sonja Hujo",
+     "reps_result": 16
+    },
+    {
+     "member": "Sabrina Lucas",
+     "reps_result": 16
+    },
+    {
+     "member": "Anna Hartmann",
+     "reps_result": 16
+    },
+    {
+     "member": "Soledad",
+     "reps_result": 12
+    },
+    {
+     "whiteboard": "Sabine",
+     "reps_result": 16
+    },
+    {
+     "member": "Mimi Hiles",
+     "book": true,
+     "reps_result": 12
+    },
+    {
+     "member": "Michael Städele",
+     "book": true,
+     "reps_result": 1,
+     "modified": true,
+     "modified_note": "32 mins"
+    }
+   ]
+  },
+  {
+   "date": "2026-02-08",
+   "time": "10:00",
+   "sectionId": "section-1770501614652",
+   "rows": [
+    {
+     "member": "Madeleine Gehring",
+     "scaling_level": "Rx",
+     "rounds_result": 5,
+     "reps_result": 10,
+     "scaling_level_2": "Sc1",
+     "weight_result": 15
+    },
+    {
+     "member": "Kathrin Mühlen",
+     "scaling_level": "Rx",
+     "rounds_result": 7,
+     "reps_result": 12,
+     "scaling_level_2": "Rx",
+     "weight_result": 20
+    },
+    {
+     "member": "Rosita Blum",
+     "scaling_level": "Sc1",
+     "rounds_result": 4,
+     "reps_result": 7,
+     "scaling_level_2": "Sc1",
+     "weight_result": 7.5
+    },
+    {
+     "member": "Nikolina Vlasalija",
+     "scaling_level": "Sc1",
+     "rounds_result": 4,
+     "reps_result": 0,
+     "scaling_level_2": "Sc1",
+     "weight_result": 10
+    },
+    {
+     "member": "Justine Baumstark",
+     "scaling_level": "Sc1",
+     "rounds_result": 3,
+     "reps_result": 7,
+     "scaling_level_2": "Sc1",
+     "weight_result": 17.5
+    },
+    {
+     "member": "Soledad",
+     "scaling_level": "Rx",
+     "rounds_result": 4,
+     "reps_result": 1,
+     "book": true,
+     "scaling_level_2": "Sc1",
+     "weight_result": 12.5
+    },
+    {
+     "member": "Lukas Simnacher",
+     "scaling_level": "Rx",
+     "rounds_result": 5,
+     "reps_result": 2,
+     "scaling_level_2": "Rx",
+     "weight_result": 45
+    },
+    {
+     "member": "Steven Zaft",
+     "scaling_level": "Rx",
+     "rounds_result": 4,
+     "reps_result": 7,
+     "scaling_level_2": "Rx",
+     "weight_result": 15
+    },
+    {
+     "member": "Torben Stoffer",
+     "scaling_level": "Rx",
+     "rounds_result": 5,
+     "reps_result": 11,
+     "scaling_level_2": "Rx",
+     "weight_result": 15
+    }
+   ]
+  },
+  {
+   "date": "2026-02-08",
+   "time": "11:00",
+   "sectionId": "section-1770501614652",
+   "rows": [
+    {
+     "member": "Gloria Stoffer",
+     "scaling_level": "Sc1",
+     "rounds_result": 6,
+     "reps_result": 0,
+     "scaling_level_2": "Sc1",
+     "modified": true,
+     "modified_note": "PVC"
+    },
+    {
+     "member": "Regina Peresyova",
+     "scaling_level": "Sc1",
+     "rounds_result": 6,
+     "reps_result": 7,
+     "scaling_level_2": "Sc1",
+     "weight_result": 7.5
+    },
+    {
+     "member": "Veronika Ebner",
+     "scaling_level": "Sc1",
+     "rounds_result": 6,
+     "reps_result": 0,
+     "scaling_level_2": "Sc1",
+     "modified": true,
+     "modified_note": "PVC (HR)"
+    },
+    {
+     "member": "Jolanda Greif",
+     "scaling_level": "Sc1",
+     "rounds_result": 5,
+     "reps_result": 7,
+     "scaling_level_2": "Sc1",
+     "modified": true,
+     "modified_note": "PVC (HR)"
+    },
+    {
+     "member": "Franziska Kary",
+     "scaling_level": "Sc1",
+     "rounds_result": 6,
+     "reps_result": 0,
+     "scaling_level_2": "Rx",
+     "modified": true,
+     "modified_note": "PVC (HR)"
+    },
+    {
+     "whiteboard": "LisaB",
+     "scaling_level": "Rx",
+     "rounds_result": 7,
+     "reps_result": 1,
+     "scaling_level_2": "Rx",
+     "weight_result": 10
+    },
+    {
+     "member": "Mimi Hiles",
+     "scaling_level": "Rx",
+     "rounds_result": 7,
+     "reps_result": 8,
+     "scaling_level_2": "Rx",
+     "weight_result": 20
+    },
+    {
+     "member": "Carmine Carrozzo",
+     "scaling_level": "Sc1",
+     "rounds_result": 4,
+     "reps_result": 0,
+     "scaling_level_2": "Rx",
+     "modified": true,
+     "modified_note": "PVC (HR)"
+    },
+    {
+     "member": "Thomas Herbst",
+     "scaling_level": "Rx",
+     "rounds_result": 5,
+     "reps_result": 7,
+     "scaling_level_2": "Rx",
+     "modified": true,
+     "modified_note": "PVC"
+    },
+    {
+     "member": "Thomas Graf",
+     "scaling_level": "Sc1",
+     "rounds_result": 5,
+     "reps_result": 4,
+     "modified": true,
+     "modified_note": "PVC (HR)"
+    }
+   ]
+  }
+ ]
+}
