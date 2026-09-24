@@ -1,5 +1,5 @@
 {
- "note": "2026 Week 6. 6.1 = 2.2 10:00 (WOD from 30.1, TC = rounds 0 + reps of 290). 6.2 right = 4.2 + 6.2 metcon: scaling=V-Up, scaling_2=Pull-up (band colours dropped), track 1 / Foundations half-reps = track 2. 6.3 = Weekend WOD #26.5 burpee rounds (LOWER is better) in reps; Steven (booked 6.2 17:15 AND 7.2 10:00) put in 6.2; Mimi + Michi S booked into 7.2 10:00. 6.4 = 8.2: scaling=Rope, scaling_2=Push-up, load=OHS kg (PVC = no load); Sole booked 10:00. WB-only: Ina, LisaB, Sabine. 3.2 Clean Basics: no board.",
+ "note": "2026 Week 6. 6.1 = 2.2 10:00 (WOD from 30.1, TC = rounds 0 + reps of 290). 6.2 right = 4.2 + 6.2 metcon: scaling=V-Up, scaling_2=Pull-up (band colours dropped), track 1 / Foundations half-reps = track 2. 6.3 = Weekend WOD #26.5 score = 32 minus burpee rounds (Chris, S413); Steven (booked 6.2 17:15 AND 7.2 10:00) put in 6.2; Mimi + Michi S booked into 7.2 10:00. 6.4 = 8.2: scaling=Rope, scaling_2=Push-up, load=OHS kg (PVC = no load); Sole booked 10:00. WB-only: Ina, LisaB, Sabine. 3.2 Clean Basics: no board.",
  "sessions": [
   {
    "date": "2026-02-02",
@@ -261,47 +261,47 @@
    "rows": [
     {
      "member": "Sandra Lederle",
-     "reps_result": 15
+     "reps_result": 17
     },
     {
      "member": "Anja Götte",
-     "reps_result": 8
+     "reps_result": 24
     },
     {
      "member": "Valerie Mesenburg",
-     "reps_result": 8
+     "reps_result": 24
     },
     {
      "whiteboard": "LisaB",
-     "reps_result": 15
+     "reps_result": 17
     },
     {
      "member": "Paul Bielenski",
-     "reps_result": 15
+     "reps_result": 17
     },
     {
      "member": "Wayne Lucas",
-     "reps_result": 15
+     "reps_result": 17
     },
     {
      "member": "Christian Tanner",
-     "reps_result": 15
+     "reps_result": 17
     },
     {
      "member": "Zoran Vrbanic",
-     "reps_result": 12
+     "reps_result": 20
     },
     {
      "member": "Dimitar Peresyov",
-     "reps_result": 15
+     "reps_result": 17
     },
     {
      "member": "Lukas Simnacher",
-     "reps_result": 14
+     "reps_result": 18
     },
     {
      "member": "Patrik Gruber",
-     "reps_result": 15
+     "reps_result": 17
     },
     {
      "member": "Steven Zaft",
@@ -316,7 +316,7 @@
    "rows": [
     {
      "member": "Jürgen Bizjak",
-     "reps_result": 20
+     "reps_result": 12
     },
     {
      "member": "Sven Hujo",
@@ -340,7 +340,7 @@
     },
     {
      "member": "Soledad",
-     "reps_result": 12
+     "reps_result": 20
     },
     {
      "whiteboard": "Sabine",
@@ -349,12 +349,12 @@
     {
      "member": "Mimi Hiles",
      "book": true,
-     "reps_result": 12
+     "reps_result": 20
     },
     {
      "member": "Michael Städele",
      "book": true,
-     "reps_result": 1,
+     "reps_result": 31,
      "modified": true,
      "modified_note": "32 mins"
     }
