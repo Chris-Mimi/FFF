@@ -1,0 +1,60 @@
+{
+  "note": "2026 Week 38.1 — 12 min AMRAP (DBDL+BSU/Ski/DBDP/Row/DBGS). Board dated 14.2.26 = typo for 14.9. Rx load = 15F/22.5M; scaling = Devil's Press (DP:Sc -> Sc1). 10:00 barbell rows already existed.",
+  "sessions": [
+    {
+      "date": "2026-09-14",
+      "time": "17:15",
+      "sectionId": "section-1789394992919",
+      "rows": [
+        { "member": "Miriam Jacht",       "weight_result": 10,   "scaling_level": "Rx", "rounds_result": 2, "reps_result": 24, "modified": true, "modified_note": "AB+Rower" },
+        { "member": "Dimitar Peresyov",   "weight_result": 22.5, "scaling_level": "Rx", "rounds_result": 3, "reps_result": 0 },
+        { "member": "Lukas Simnacher",    "weight_result": 22.5, "scaling_level": "Rx", "rounds_result": 3, "reps_result": 6 },
+        { "member": "Sergej Felsing",     "weight_result": 22.5, "scaling_level": "Rx", "rounds_result": 2, "reps_result": 36 },
+        { "member": "Steven Zaft",        "weight_result": 22.5, "scaling_level": "Rx", "rounds_result": 2, "reps_result": 2 },
+        { "member": "Chris Hiles",        "weight_result": 22.5, "scaling_level": "Rx", "rounds_result": 2, "reps_result": 36 }
+      ]
+    },
+    {
+      "date": "2026-09-14",
+      "time": "18:30",
+      "sectionId": "section-1789394992919",
+      "rows": [
+        { "member": "Aline von Rüden",    "weight_result": 12.5, "scaling_level": "Sc1", "rounds_result": 2, "reps_result": 4 },
+        { "member": "Amelie Kirch",       "weight_result": 12.5, "scaling_level": "Rx",  "rounds_result": 3, "reps_result": 4 },
+        { "member": "Anneke Spegele",     "weight_result": 15,   "scaling_level": "Rx",  "rounds_result": 2, "reps_result": 32 },
+        { "member": "Julia Weihe",        "weight_result": 12.5, "scaling_level": "Sc1", "rounds_result": 2, "reps_result": 10 },
+        { "member": "Kathrin Mühlen",     "weight_result": 15,   "scaling_level": "Rx",  "rounds_result": 3, "reps_result": 3 },
+        { "member": "Christian Tanner",   "weight_result": 22.5, "scaling_level": "Rx",  "rounds_result": 2, "reps_result": 12 },
+        { "member": "Paul Bielenski",     "weight_result": 22.5, "scaling_level": "Rx",  "rounds_result": 2, "reps_result": 36 },
+        { "member": "Thomas Spegele",     "weight_result": 22.5, "scaling_level": "Rx",  "rounds_result": 3, "reps_result": 3 },
+        { "member": "Tobias Götte",       "weight_result": 22.5, "scaling_level": "Rx",  "rounds_result": 2, "reps_result": 14 }
+      ]
+    },
+    {
+      "date": "2026-09-15",
+      "time": "18:30",
+      "sectionId": "section-1789394992919",
+      "rows": [
+        { "member": "Franziska Herndorf", "weight_result": 10,   "scaling_level": "Sc1", "rounds_result": 2, "reps_result": 17 },
+        { "member": "Susi Glocker",       "weight_result": 10,   "scaling_level": "Sc1", "rounds_result": 2, "reps_result": 21 },
+        { "member": "Daniel Braatz",      "weight_result": 15,   "scaling_level": "Rx",  "rounds_result": 2, "reps_result": 29 },
+        { "member": "Jan Huelbig",        "weight_result": 12.5, "scaling_level": "Rx",  "rounds_result": 2, "reps_result": 6 },
+        { "member": "Stefan G",           "weight_result": 15,   "scaling_level": "Rx",  "rounds_result": 2, "reps_result": 26 },
+        { "member": "Thomas Graf",        "weight_result": 17.5, "scaling_level": "Rx",  "rounds_result": 2, "reps_result": 6 }
+      ]
+    },
+    {
+      "date": "2026-09-16",
+      "time": "09:30",
+      "sectionId": "section-1789394992919",
+      "rows": [
+        { "member": "Senol Özdilek",      "weight_result": 15,   "scaling_level": "Rx",  "rounds_result": 2, "reps_result": 30 },
+        { "member": "Carmine Carrozzo",   "weight_result": 15,   "scaling_level": "Rx",  "rounds_result": 1, "reps_result": 24 },
+        { "member": "Irene Koffler",      "weight_result": 12.5, "scaling_level": "Sc1", "rounds_result": 2, "reps_result": 18 },
+        { "member": "Emily Reichle",      "weight_result": 7.5,  "scaling_level": "Sc1", "rounds_result": 2, "reps_result": 18 },
+        { "member": "Anna Kr",            "weight_result": 10,   "scaling_level": "Sc1", "rounds_result": 2, "reps_result": 22 },
+        { "member": "Mimi Hiles",         "weight_result": 15,   "scaling_level": "Rx",  "rounds_result": 2, "reps_result": 23 }
+      ]
+    }
+  ]
+}

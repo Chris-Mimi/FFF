@@ -1,0 +1,80 @@
+{
+  "note": "2026 Week 38.2 — (a) 16.9 Barbell Clean max reps: scaling = clean tier from load (F 35/30/25/20, M 52/43/35/30). (b) 18.9 30/15 min AMRAP: reps = total T2B, scaling = T2B, load = WB kg (Rx = 6F/9M), scaling_2 = WB Sc1/Sc2 from board, track per arrow (unmarked = Trk1). Skipped: Miriam (16.9, not booked), Anja + Tobi G (19.9, already entered), Teemu Endurance 19.9 (-70m OTC, no metres field).",
+  "sessions": [
+    {
+      "date": "2026-09-16",
+      "time": "17:15",
+      "sectionId": "section-1777295797120",
+      "rows": [
+        { "member": "Amelie Kirch",      "weight_result": 30, "scaling_level": "Sc1", "reps_result": 49 },
+        { "member": "Claudia Herrmann",  "weight_result": 30, "scaling_level": "Sc1", "reps_result": 30 },
+        { "member": "Justine Baumstark", "weight_result": 25, "scaling_level": "Sc2", "reps_result": 21 },
+        { "member": "Valerie Mesenburg", "weight_result": 20, "scaling_level": "Sc3", "reps_result": 33 },
+        { "member": "Lukas Simnacher",   "weight_result": 52, "scaling_level": "Rx",  "reps_result": 32 },
+        { "member": "Chris Hiles",       "weight_result": 52, "scaling_level": "Rx",  "reps_result": 24 }
+      ]
+    },
+    {
+      "date": "2026-09-16",
+      "time": "18:30",
+      "sectionId": "section-1777295797120",
+      "rows": [
+        { "member": "Anneke Spegele",  "weight_result": 30,   "scaling_level": "Sc1", "reps_result": 33 },
+        { "member": "Anja Götte",      "weight_result": 20,   "scaling_level": "Sc3", "reps_result": 41 },
+        { "member": "Carla Courtois",  "weight_result": 30,   "scaling_level": "Sc1", "reps_result": 32 },
+        { "member": "Dinny Braatz",    "weight_result": 27.5, "scaling_level": "Sc2", "reps_result": 36 },
+        { "member": "Julia Weihe",     "weight_result": 20,   "scaling_level": "Sc3", "reps_result": 21 },
+        { "member": "Susi Glocker",    "weight_result": 30,   "scaling_level": "Sc1", "reps_result": 39 },
+        { "member": "Paul Bielenski",  "weight_result": 52,   "scaling_level": "Rx",  "reps_result": 30 },
+        { "member": "Stefan G",        "weight_result": 40,   "scaling_level": "Sc2", "reps_result": 27 },
+        { "member": "Thomas Spegele",  "weight_result": 43,   "scaling_level": "Sc1", "reps_result": 24 },
+        { "member": "Tobias Götte",    "weight_result": 52,   "scaling_level": "Rx",  "reps_result": 33 }
+      ]
+    },
+    {
+      "date": "2026-09-18",
+      "time": "09:00",
+      "sectionId": "section-1789668343057",
+      "rows": [
+        { "member": "Sven Hujo",          "reps_result": 39, "scaling_level": "Sc2", "weight_result": 6, "scaling_level_2": "Rx", "track": 1 },
+        { "member": "Senol Özdilek",      "reps_result": 30, "scaling_level": "Sc2", "weight_result": 9, "scaling_level_2": "Rx", "track": 1 },
+        { "member": "Teemu Lian Geisler", "reps_result": 40, "scaling_level": "Rx",  "weight_result": 5, "scaling_level_2": "Rx", "track": 1, "modified": true, "modified_note": "WB 5kg to 4th line" },
+        { "member": "Michael Städele",    "reps_result": 69, "scaling_level": "Rx",  "weight_result": 9, "scaling_level_2": "Rx", "track": 1 },
+        { "member": "Irene Koffler",      "reps_result": 30, "scaling_level": "Sc2", "weight_result": 6, "scaling_level_2": "Rx", "track": 1 },
+        { "member": "Anna Kr",            "reps_result": 47, "scaling_level": "Sc2", "weight_result": 3, "scaling_level_2": "Rx", "track": 1, "modified": true, "modified_note": "Run + Row" },
+        { "member": "Julia Weihe",        "reps_result": 39, "scaling_level": "Sc2", "weight_result": 4, "scaling_level_2": "Rx", "track": 1 },
+        { "member": "Mimi Hiles",         "reps_result": 45, "scaling_level": "Rx",  "weight_result": 6, "scaling_level_2": "Rx", "track": 1 }
+      ]
+    },
+    {
+      "date": "2026-09-18",
+      "time": "17:15",
+      "sectionId": "section-1789668343057",
+      "rows": [
+        { "member": "Valerie Mesenburg", "reps_result": 42, "scaling_level": "Sc1", "weight_result": 6, "scaling_level_2": "Rx", "track": 1 },
+        { "member": "Dimitar Peresyov",  "reps_result": 50, "scaling_level": "Rx",  "weight_result": 9, "scaling_level_2": "Rx", "track": 1 },
+        { "member": "Lukas Simnacher",   "reps_result": 58, "scaling_level": "Rx",  "weight_result": 9, "scaling_level_2": "Rx", "track": 1 },
+        { "member": "Sergej Felsing",    "reps_result": 45, "scaling_level": "Rx",  "weight_result": 9, "scaling_level_2": "Rx", "track": 1 },
+        { "member": "Chris Hiles",       "reps_result": 55, "scaling_level": "Rx",  "weight_result": 9, "scaling_level_2": "Rx", "track": 1 },
+        { "member": "Carmine Carrozzo",  "reps_result": 30, "scaling_level": "Sc2", "weight_result": 9, "scaling_level_2": "Rx", "track": 1 },
+        { "member": "Justine Baumstark",                    "scaling_level": "Sc2", "weight_result": 6, "scaling_level_2": "Rx", "track": 2 }
+      ]
+    },
+    {
+      "date": "2026-09-18",
+      "time": "18:30",
+      "sectionId": "section-1789668343057",
+      "rows": [
+        { "whiteboard": "Angela Schulz",    "reps_result": 27, "scaling_level": "Sc1",                     "scaling_level_2": "Sc2", "track": 2 },
+        { "member": "Emily Reichle",        "reps_result": 14, "scaling_level": "Sc1", "weight_result": 6, "scaling_level_2": "Rx",  "track": 2 },
+        { "member": "Carla Courtois",       "reps_result": 15, "scaling_level": "Sc1", "weight_result": 6, "scaling_level_2": "Rx",  "track": 2 },
+        { "member": "Daniela Struben",                         "scaling_level": "Sc1",                     "scaling_level_2": "Sc2", "track": 2 },
+        { "member": "Susi Glocker",         "reps_result": 70, "scaling_level": "Sc2", "weight_result": 6, "scaling_level_2": "Rx",  "track": 2 },
+        { "whiteboard": "Paula",            "reps_result": 53, "scaling_level": "Sc2",                     "scaling_level_2": "Sc2", "track": 2 },
+        { "whiteboard": "Christian Schulz", "reps_result": 55, "scaling_level": "Sc2",                     "scaling_level_2": "Sc2", "track": 2 },
+        { "member": "Jan Huelbig",          "reps_result": 42, "scaling_level": "Sc2",                     "scaling_level_2": "Sc2", "track": 2 },
+        { "member": "Bodo Lehmann",         "reps_result": 64, "scaling_level": "Sc2",                     "scaling_level_2": "Sc1", "track": 2 }
+      ]
+    }
+  ]
+}
