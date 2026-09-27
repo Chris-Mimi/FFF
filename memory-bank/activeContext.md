@@ -1,7 +1,9 @@
 # Active Context
 
-**Version:** 280
-**Updated:** 2026-09-24 (Session 412 — Opus 5.5. **Admin-only: no code.** Chris confirmed every outstanding verification OK, declined delete-session notifications, took the 15.08 Endurance block himself, and connected the Gmail / Google Calendar / Google Drive connectors. Session 411 detail is in the Current Status block below.)
+**Version:** 281
+**Updated:** 2026-09-27 (Session 413 — Opus 5.5. **Whiteboard catch-up: Weeks 38, 36, 39, 6 + 32 (8–9.8) + 5 (31.1–1.2) — ~550 WSR rows, 13 auto-bookings, all Chris-checked OK.** New `"book": true` option in the score writer + protocol rules (coverage sweep, skip kids/D&D/Thursday, Endurance `x` = 10m). No app code.)
+
+<!-- Older S412: 2026-09-24 (Session 412 — Opus 5.5. **Admin-only: no code.** Chris confirmed every outstanding verification OK, declined delete-session notifications, took the 15.08 Endurance block himself, and connected the Gmail / Google Calendar / Google Drive connectors. Session 411 detail is in the Current Status block below.) -->
 
 <!-- Older S409: 2026-09-01 (Session 409 — Opus 5. **Pagination sweep + full growing-table audit + retention jobs. 5 commits, pushed, tsc+lint+build clean.** **(1) `exercises` pagination (`fe84f58`):** new [utils/fetch-all-exercises.ts](utils/fetch-all-exercises.ts) pages past the 1000-row cap; **11 call sites, not the 7 S408 reported** — its grep only matched the single-line form and missed 4 multi-line ones (two build the category/equipment filter dropdowns). Verified live: exactly 716 rows, no dupes/gaps, at page sizes down to 7. **(2) Full growing-table audit (`47b0be6`) — CLEAN.** 5 tables are already OVER the cap (`notification_log` 10,068, `bookings` 4,408, `wod_section_results` 3,611, `lift_records` 2,346, `wellpass_weekly_checkins` 1,579) and all are safe — every read is id/date-sliced or already paginated. Table recorded in claude-rules; **don't repeat this sweep.** **(3) Score-entry monospace fix (`b82055d`):** both score-entry surfaces used `whitespace-pre-line`, which *collapses runs of spaces*, flattening any table built with the S403 toggle; `WodSection` in [useScoreEntry.ts](hooks/coach/useScoreEntry.ts) was a separate type missing the `monospace` field. **(4) New doc + correction:** `Workout-Section-Table-Formatting.md`; box-drawing/block chars **don't work** — Geist Mono is loaded `subsets: ["latin"]` so those glyphs fall back to another font at a different width and break alignment. ASCII only. **(5) Retention (`f9c1ab6`):** notification_log 90-day prune folded into the daily cron (write-only table; sole reader looks at TODAY only); `backups/` keeps newest 40 runs (40 not 20 — S385's loss went unnoticed ~2 months). **Two prunes executed with Chris's approval:** notification_log 10,068→1,456; backups 471MB/85 runs→324MB/40 runs. ⚠️ 9 git-tracked backup files from 2025-12-09 (force-added despite .gitignore) were removed by the prune — still in git history.) -->
 
@@ -131,7 +133,13 @@ Synology Drive syncs files in the background and is **not git-aware**. When Chri
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history file._
 
-**🚨 Next session — S412 was admin-only (no code). Every outstanding verification is confirmed OK by Chris. NEW: Gmail / Google Calendar / Google Drive connectors are now connected — use them when a task needs Chris's calendar or Drive files (e.g. session planning, reading a file without an export). Remaining parked items: WOD copy-over guard (S404), paper-card backlog, next-intl i18n.**
+**🚨 Next session — S413 was whiteboard-only and Chris checked every score OK. No carry-overs. Parked: WOD copy-over guard (S404), paper-card backlog, next-intl i18n. Open offer (unanswered): make the Workouts-page athlete count only count sessions with a published workout (Open Gym inflates it — Nicole Rauh "2" vs 1 shown).**
+
+**S413 whiteboard rules (all in `memory-bank/whiteboard-score-entry-protocol.md`):**
+- **Step 0 = coverage sweep.** Preflight every day of the ISO week, list sessions with bookings + `rows:0`, compare to photos, tell Chris which have no board. **Skip kids classes, Diapers & Dumbbells, and Thursdays** (member-led Endurance, rarely scored).
+- **Unbooked on the board → don't ask.** Guess the class, add `"book": true` to the row (writer books them, 10-card trigger counts it, flips a cancelled row back to confirmed), list them in the report.
+- **Endurance `Nx` on sled/tyre = N × 10m.** Weekend-WOD "lose a point per burpee round" → store `32 − rounds` so higher = better (no lower-is-better support exists).
+- **Check existing rows first** — athletes self-enter with `member_id` NULL but `user_id` set (Michi S, 23.9); the writer dedupes on member_id and would duplicate them.
 
 **⚡ THE BIG ONE — how Chris wants me to work (he said it twice in S411):**
 - **WRITE FIRST, REPORT AFTER.** Never stop and ask him to adjudicate ambiguous data — an unclear digit, a dash that might mean DNF. Write the best reading, then hand him a short numbered list of what was uncertain. *"I can correct that in 20 seconds manually… your job is to save me time."*
@@ -233,6 +241,14 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 413 (2026-09-27 — Opus 5.5) — WHITEBOARD CATCH-UP, 6 WEEKS (board files only, no app code, all pushed)**
+- Entered Weeks 38 (38.1–38.3), 36.2, 32 (8–9.8), 5 (31.1–1.2), 6, 39 via `boards/*.json` + `enter-whiteboard-scores.ts`. ~550 WSR rows; Chris checked all OK.
+- **Writer gained `"book": true`** (`a192fab`) — books an unbooked athlete into the guessed class before writing. 13 bookings made this session.
+- **Protocol:** coverage sweep first (I missed 38.3's sessions working photo-by-photo), skip kids/D&D/Thursday, Endurance `x` = 10m, burpee-penalty = `32 − rounds`.
+- Corrections after Chris's review: 8.8 Endurance totals (sled/tyre ×10m), Weekend WOD #26.5 inverted to 32 − rounds.
+- Nicole Rauh "2 but 1 shown" = one of her 2 attended sessions was Open Gym (no workout). Offered a count fix — not answered.
+- Magic link: abauer@verlag-bauer.de.
+
 **Session 412 (2026-09-24 — Opus 5.5) — ADMIN / TRIAGE (no code)**
 - Chris confirmed OK: S411 deploy checks (100%+, 10-card chip, `#26.` search, Logbook search, metres input), S408 Movement Info bar, S407 park-reason read, S402 mobile editor on both phones, Sunday Wellpass sync.
 - **Decided NO:** deleting a session will not notify athletes. Don't build it.
@@ -270,15 +286,7 @@ Athlete Tools
 - **Retention jobs (`f9c1ab6`) + 2 approved prunes.** notification_log → 90-day retention in the existing daily cron (safe: write-only table, sole reader inspects TODAY only). `backups/` → newest 40 runs (`BACKUP_KEEP_RUNS` overrides; skipped entirely if the run had failures). **40 not 20** — ~10 runs/month and S385's loss went unnoticed ~2 months. Executed: notification_log 10,068→**1,456** (backup taken first, so deleted rows live in `2026-09-01_notification_log.json`); backups 471MB/85 runs→**324MB/40 runs**. ⚠️ 9 git-tracked 2025-12-09 backup files (force-added despite .gitignore) removed by the prune — still in git history.
 - **Mac disk (side investigation, not project work).** Storage pane says 344.85GB free; `df`+`system_profiler` both say **37.88GB** — the gap is "purgeable", but there are **no TM/APFS snapshots** and iCloud is 841MB, so that figure looks stale. Disk genuinely ~96% full = live suspect for the app-launch failures. Found `Movies/CacheClip` **27GB** (19,368 `.dvcc` + 485 `.pfl`, nothing newer than 24 Jan, Resolve closed) — safe, **Chris deleting it himself**. ~396GB still unaccounted: `du` is blind to TCC-protected paths; `~/Library/Application Support/MobileSync` (iOS backups) is the lead.
 
-**Session 408 (2026-08-26 — Opus 5) — MOVEMENT INFO BAR: EXERCISE DESCRIPTIONS IN THE WORKOUT BUILDER (1 COMMIT + CLOSE, pushed, tsc+lint+build clean, Chris testing live):**
-- **The ask.** Chris was copying movement mechanics (e.g. the 3 progressive levels of the Ring Muscle-Up Floor Assisted drill) into a section's Intent/Stimulus or Notes — duplication that burns session-level fields on movement-level content. He wanted library descriptions reachable from the modal the way attached videos already are.
-- **Why it was nearly free (`a9399bb`).** The top bar already scanned section text and matched names via `matchAllSectionsExercises`. Descriptions were absent for two reasons only: the fetch didn't select `description`, and the matcher hard-dropped `if (!ex.video_url) continue`. Coverage counted live: **716 exercises, 713 with a description, 298 with a video** — the bar fired on ~40% of movements, now ~100%.
-- **Shipped.** [section-video-matcher.ts](utils/section-video-matcher.ts) keeps video **OR** description and carries the text (`MatchedExerciseVideo`→`MatchedExerciseInfo`; matching logic incl. the S384 longest-match overlap pass **untouched**). New [MovementInfoModal.tsx](components/coach/MovementInfoModal.tsx) — `whitespace-pre-wrap` so drill levels keep line breaks, `z-[105]` **below** `ExerciseVideoModal`'s `z-[110]` so Play opens on top, portals to `<body>`. [MovementDemosBar.tsx](components/coach/MovementDemosBar.tsx) chips = two buttons in one shell (**▶ video stays ONE click**, name opens description, blue ℹ marks it); label *Movement Demos*→*Movement Info*. [useWorkoutModal.ts](hooks/coach/useWorkoutModal.ts) selects `description` + paginates.
-- **Rejected: a separate description bar.** 713 vs 298 means the video set is almost entirely a *subset*, so the same movement would list in both rows; two collapsible headers also eat space above the sections in a modal with two sessions of mobile-space work (S402, S405). Would only have been right if video/text served different purposes (play for the class vs read before coaching) — Chris confirmed they don't.
-- **Intent/Stimulus left alone** at `maxLength={500}` (auto-growing textarea, [WODSectionComponent.tsx:614](components/coach/WODSectionComponent.tsx#L614)). If it resurfaces: raise the cap **and** clamp the TV render — `app/tv/[id]/page.tsx` prints intent untruncated at up to `text-5xl` above the workout, and shows it regardless of the "Show to athletes" checkbox.
-- **Verified** against the live catalogue: `Ring Muscle-Up Floor Assisted drill` (video Y, 529ch), `Back Squat` (**no video**, 231ch — previously dropped entirely), `KB Dead Bug` (video Y, 319ch).
-
-**Older sessions (57-407):** See `project-history/` folder.
+**Older sessions (57-408):** See `project-history/` folder.
 
 ---
 
@@ -306,6 +314,7 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
+1. **S413 — optional, only if Chris says yes:** Workouts-page athlete count (`get_all_members_attendance`, [useCoachData.ts:626](hooks/coach/useCoachData.ts#L626)) counts Open Gym attendance, so the number can exceed the workouts shown. Fix = count only sessions with a published workout.
 1. **S410 — optional follow-ups.** (a) `notification_log` held only 4 of 12 bookings for that session — worth understanding before trusting it for recovery again. (b) Unpublishing a workout still clears `publish_sections`, blinding the coach modal the same way the S410 bug did — left alone deliberately, since hiding from athletes is the point of unpublishing. (c) Chip noise from naming variants ("Pull-up" / "Pull-ups" / "Pull-up Strict") — fix by tidying names, not code.
 1. **S410 — score entry needs nothing.** Weeks 35 and 3 fully entered and verified; Chris completed Martina, the Sabrina/Steven loads and the rest of board 3.1 himself.
 1. **S409 — no verification needed.** Pagination/audit/retention are infrastructure; all verified in-session against live data. Nothing for Chris to test.
