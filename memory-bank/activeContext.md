@@ -320,7 +320,8 @@ Athlete Tools
 1. **S409 — no verification needed.** Pagination/audit/retention are infrastructure; all verified in-session against live data. Nothing for Chris to test.
 1. **S404 — nothing to verify** (colour/UX, tested live). If Chris asks, offer a **confirm/undo guard** for copy-over of a published single-session WOD (the unrecoverable data-loss path), and offer to deepen the pale palette picks (`#C2DFFF`,`#F4CDE0`,`#E8F86D`).
 1. **S403 — nothing to verify.** All Planner/preset/monospace features were built + confirmed working live in-session; `lift_rep_scheme_presets` SQL run by Chris. Optional follow-on (only if asked): drag from Uncategorised into a group (already served by its "Move to…" button).
-1. **S402 — Verify Whiteboard 32.1 "The Ghost" 17:15 modal** (`f33363c`): 2026-08-07 17:15, 10 rows incl Justine DNF; leaderboard ranks within Rx/Sc1/Sc2. Julia Weihe deliberately skipped.
+1. **S414 — 27.07 17:15 scores lost to the S404 paste-over bug (27 Aug 19:21 UTC; old wod `100f5d44` deleted with 9 WSR).** Backup `2026-08-26_wod_section_results.json` has all 9; ✅ **Restored** (9 rows inserted onto current wod `1e37d80b`, S414). Backup sweep: no other loss. Undo guard shipped `b00a1c9`; athlete-count fix `bd5786e`.
+1. ~~S402 — Whiteboard 32.1 "The Ghost"~~ ✅ Chris verified S414.
 1. **S401 — Spot-check whiteboard 31.1 + 31.3 on prod** (see ⚡ Next Session Kickoff): 31.1 27.7 17:15 modal + FS-kg/tier leaderboard; 31.3 29.7 18:30 OHS modified flag + new DUs (Scaling 2) column renders.
 1. **S401 — Verify score-entry fix on prod** (`4618f93`): results modal lists booked members + trial/drop-in only, no stray whiteboard-name rows from intro text.
 1. **S400 — Verify the 3 fixes on prod** (see ⚡ Next Session Kickoff): Restore-session button reopens + restores bookings; Jacht kids show shared `6/10 · used N` chip; auth self-heal (watch for freeze recurrence).

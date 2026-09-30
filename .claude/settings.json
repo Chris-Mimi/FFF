@@ -7,6 +7,7 @@
       "Glob",
       "Grep",
       "Bash",
+      "Bash(npx tsx scripts/enter-whiteboard-scores.ts:*)",
       "Agent",
       "TodoWrite",
       "WebFetch",
