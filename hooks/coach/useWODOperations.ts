@@ -630,64 +630,42 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
       // Calculate workout_week for target date
       const targetWorkoutWeek = calculateWorkoutWeek(targetDate);
 
-      // Collect old WOD IDs and clean up Calendar events before overwriting
+      // Collect old WOD IDs before overwriting. S414 — the destructive cleanup
+      // (Calendar event delete + orphaned-wod delete) is DEFERRED until the Undo
+      // toast closes, so an accidental paste over a published workout can be
+      // reverted. `restoreSessions` holds each overwritten session's prior state.
       const oldWodIds: string[] = [];
+      const restoreSessions: Array<{ id: string; workout_id: string | null; status: string | null; workout_type: string | null }> = [];
+      const createdSessionIds: string[] = [];
 
       if (targetSessionId) {
         // Find the old workout linked to this session
         const { data: oldSession } = await supabase
           .from('weekly_sessions')
-          .select('workout_id')
+          .select('id, workout_id, status, workout_type')
           .eq('id', targetSessionId)
           .single();
 
         if (oldSession?.workout_id) {
           oldWodIds.push(oldSession.workout_id);
-          const { data: oldWod } = await supabase
-            .from('wods')
-            .select('google_event_id')
-            .eq('id', oldSession.workout_id)
-            .single();
-
-          if (oldWod?.google_event_id) {
-            try {
-              await authFetch(`/api/google/publish-workout?workoutId=${oldSession.workout_id}`, {
-                method: 'DELETE',
-              });
-            } catch {
-              // Continue even if calendar cleanup fails
-            }
-          }
+          restoreSessions.push(oldSession);
         }
       } else if (timesToCreate.length > 0) {
         // Find old workouts at matching date/time slots
         for (const time of timesToCreate) {
           const { data: oldSessions } = await supabase
             .from('weekly_sessions')
-            .select('id, workout_id')
+            .select('id, workout_id, status, workout_type')
             .eq('date', dateKey)
             .eq('time', time);
 
           if (oldSessions && oldSessions.length > 0) {
+            // First session at this slot gets repointed below — remember its state
+            restoreSessions.push(oldSessions[0]);
             // Collect unique workout IDs for cleanup
             for (const s of oldSessions) {
               if (s.workout_id && !oldWodIds.includes(s.workout_id)) {
                 oldWodIds.push(s.workout_id);
-                const { data: oldWod } = await supabase
-                  .from('wods')
-                  .select('google_event_id')
-                  .eq('id', s.workout_id)
-                  .single();
-
-                if (oldWod?.google_event_id) {
-                  try {
-                    await authFetch(`/api/google/publish-workout?workoutId=${s.workout_id}`, {
-                      method: 'DELETE',
-                    });
-                  } catch {
-                    // Continue even if calendar cleanup fails
-                  }
-                }
               }
             }
 
@@ -760,13 +738,18 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
             // session/template) defaults to 'draft' = Hidden from athletes, so an
             // interim copy isn't mistaken for a bookable class. Coach un-hides via the
             // Session Management modal if it should go live.
-            await supabase.from('weekly_sessions').insert({
-              date: dateKey,
-              time: time,
-              workout_id: newWorkout.id,
-              capacity: 12,
-              status: 'draft'
-            });
+            const { data: created } = await supabase
+              .from('weekly_sessions')
+              .insert({
+                date: dateKey,
+                time: time,
+                workout_id: newWorkout.id,
+                capacity: 12,
+                status: 'draft'
+              })
+              .select('id')
+              .single();
+            if (created) createdSessionIds.push(created.id);
           }
         }
       }
@@ -778,9 +761,9 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
           .eq('workout_id', newWorkout.id);
       }
 
-      // Clean up old workouts: only delete if no sessions still reference them
-      if (oldWodIds.length > 0) {
-        const orphanWodIds: string[] = [];
+      // Clean up old workouts: remove their Calendar events and delete any that
+      // no session references any more. Runs once, after the Undo window.
+      const finalizeCleanup = async () => {
         for (const wodId of oldWodIds) {
           const { data: refs } = await supabase
             .from('weekly_sessions')
@@ -788,28 +771,75 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
             .eq('workout_id', wodId)
             .limit(1);
 
-          if (!refs || refs.length === 0) {
-            orphanWodIds.push(wodId);
-          }
-        }
+          if (refs && refs.length > 0) continue;
 
-        if (orphanWodIds.length > 0) {
+          const { data: oldWod } = await supabase
+            .from('wods')
+            .select('google_event_id')
+            .eq('id', wodId)
+            .single();
+
+          if (oldWod?.google_event_id) {
+            try {
+              await authFetch(`/api/google/publish-workout?workoutId=${wodId}`, {
+                method: 'DELETE',
+              });
+            } catch {
+              // Continue even if calendar cleanup fails
+            }
+          }
+
           // Delete athlete results via service role API (RLS blocks coach from deleting athlete data)
           try {
             await authFetch('/api/sessions/cleanup-results', {
               method: 'DELETE',
-              body: JSON.stringify({ wodIds: orphanWodIds }),
+              body: JSON.stringify({ wodIds: [wodId] }),
             });
           } catch {
             // Continue even if cleanup fails
           }
 
-          // Delete the orphaned workout rows
-          await supabase
-            .from('wods')
-            .delete()
-            .in('id', orphanWodIds);
+          // Delete the orphaned workout row
+          await supabase.from('wods').delete().eq('id', wodId);
         }
+      };
+
+      if (oldWodIds.length > 0 && newWorkout) {
+        let settled = false;
+        const finalize = () => {
+          if (settled) return;
+          settled = true;
+          void finalizeCleanup();
+        };
+        const undo = async () => {
+          if (settled) return;
+          settled = true;
+          try {
+            for (const s of restoreSessions) {
+              await supabase
+                .from('weekly_sessions')
+                .update({ workout_id: s.workout_id, status: s.status, workout_type: s.workout_type })
+                .eq('id', s.id);
+            }
+            if (createdSessionIds.length > 0) {
+              await supabase.from('weekly_sessions').delete().in('id', createdSessionIds);
+            }
+            await supabase.from('wods').delete().eq('id', newWorkout.id);
+            await fetchWODs();
+            await fetchTracksAndCounts();
+            toast.success('Paste undone — previous workout restored');
+          } catch (err) {
+            console.error('Error undoing paste:', err);
+            toast.error('Undo failed. Please check the session.');
+          }
+        };
+        toast('Workout replaced', {
+          description: 'The previous workout at this slot was overwritten.',
+          duration: 15000,
+          action: { label: 'Undo', onClick: () => { void undo(); } },
+          onAutoClose: finalize,
+          onDismiss: finalize,
+        });
       }
 
       await fetchWODs();
