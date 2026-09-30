@@ -48,6 +48,7 @@ Claude reads these files at session start to know the state of the project. **Ch
 | [techContext.md](memory-bank/techContext.md) | Tech stack, environment variables, core configuration. |
 | [systemPatterns.md](memory-bank/systemPatterns.md) | Code conventions and patterns used across the project. |
 | [workflow-protocols.md](memory-bank/workflow-protocols.md) | Token efficiency rules, agent delegation guidance. |
+| [movement-recency-queries.md](memory-bank/movement-recency-queries.md) | Agreed rules for "which movements/lifts haven't we done for N weeks?" planning questions — section scopes, staple definition, standard-question log. Read on demand. |
 | [historical-features.md](memory-bank/historical-features.md) | Older feature history that's been rotated out of activeContext. |
 
 ### 📁 `Chris Notes/` — **Chris's personal notes and references**
