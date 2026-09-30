@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { notifyBookingConfirmed, notifyBookingWaitlisted, notifyParkedMemberBooked } from '@/lib/notifications';
-import { getBookingRules, getLockLeadMinutesForSessionType, getMaxVisibleSessionDate, sessionAutoLockInstant, berlinWallClock, berlinWallTimeToUTC } from '@/lib/bookingRules';
+import { getBookingRules, getLockLeadMinutesForSessionType, getMaxVisibleSessionDate, sessionAutoLockInstant, berlinWallClock, berlinWallTimeToUTC, isMinor } from '@/lib/bookingRules';
 
 export async function POST(request: NextRequest) {
   try {
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
       .from('members')
       .select(`
         id, status, membership_types, primary_payment_method, ten_card_holder_id,
-        guardian_only, wellpass_booking_restricted,
+        guardian_only, wellpass_booking_restricted, date_of_birth,
         ten_card_sessions_used, ten_card_total, ten_card_expiry_date,
         athlete_subscription_status, athlete_subscription_end
       `)
@@ -189,7 +189,8 @@ export async function POST(request: NextRequest) {
     // spaces/hyphens/punctuation) so every spelling matches — e.g.
     // "Eltern-Kind-Turnen (2-6J)" and "ElternKind Turnen" both → "elternkindturnen"
     // (hyphenated variants previously slipped past the startsWith match).
-    if (bookingMemberId === user.id) {
+    // S414: a minor with their own login (by date_of_birth) may book for themselves.
+    if (bookingMemberId === user.id && !isMinor(member.date_of_birth)) {
       const kidsKeywords = ['kids', 'kidsteens', 'kidsandteens', 'fitkidsturnen', 'elternkindturnen'];
       const sessionTypeNorm = (session.workout_type || '').toLowerCase().replace(/[^a-z0-9]/g, '');
       const isKidsClass = sessionTypeNorm !== '' && kidsKeywords.some(k => sessionTypeNorm.startsWith(k));

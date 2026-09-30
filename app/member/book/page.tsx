@@ -14,7 +14,7 @@ import { FocusTrap } from '@/components/ui/FocusTrap';
 import BirthdayModal from '@/components/athlete/BirthdayModal';
 import { collectBirthdayGreetings, markBirthdayGreeted, joinNames, type BirthdayPerson } from '@/utils/birthday';
 import { NotificationPrompt } from '@/components/ui/NotificationPrompt';
-import { getMaxVisibleSessionDate, getNextReleaseInstant, DEFAULT_BOOKING_RULES, sessionAutoLockInstant } from '@/lib/bookingRules';
+import { getMaxVisibleSessionDate, getNextReleaseInstant, DEFAULT_BOOKING_RULES, sessionAutoLockInstant, isMinor } from '@/lib/bookingRules';
 
 interface WeeklySession {
   id: string;
@@ -1011,6 +1011,7 @@ export default function MemberBookingPage() {
               // kids classes under their own name. They can still book non-kids classes
               // for themselves. Mirrors the server-side guard in /api/bookings/create.
               const primaryHasFamilyKids = familyMembers.some(fm => fm.account_type === 'family_member');
+              const selfIsMinor = isMinor(familyMembers.find(fm => fm.id === user?.id)?.date_of_birth);
 
               if (filteredSessions.length === 0) {
                 return (
@@ -1037,7 +1038,8 @@ export default function MemberBookingPage() {
                       const isFoundations = isFoundationsClass(session.workout_type);
                       // Kids classes can only be booked under a child's name — block
                       // ALL adult self-bookings, whether or not a child is registered yet.
-                      const parentSelfBookingBlocked = isKids && bookingForMemberId === user?.id;
+                      // S414: a minor with their own login (by DOB) may book for themselves.
+                      const parentSelfBookingBlocked = isKids && bookingForMemberId === user?.id && !selfIsMinor;
                       const borderAccent = isKids
                         ? 'border-l-teal-400'
                         : isFoundations

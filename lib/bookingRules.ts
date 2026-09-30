@@ -111,6 +111,20 @@ export function berlinToday(): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: BERLIN_TZ }).format(new Date());
 }
 
+/**
+ * True when a YYYY-MM-DD date of birth is under 18 on today's Berlin date.
+ * Missing/invalid DOB → false (treated as adult). Used to let a child with their
+ * own login (e.g. Fabian Siebert, S414) book kids classes under their own name.
+ */
+export function isMinor(dateOfBirth: string | null | undefined): boolean {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(dateOfBirth || '');
+  if (!m) return false;
+  const [ty, tm, td] = berlinToday().split('-').map(Number);
+  const [by, bm, bd] = [Number(m[1]), Number(m[2]), Number(m[3])];
+  const age = ty - by - (tm < bm || (tm === bm && td < bd) ? 1 : 0);
+  return age < 18;
+}
+
 export function berlinWallTimeToUTC(year: number, month: number, day: number, hour: number, minute: number, second: number): Date {
   const guess = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
   const parts = new Intl.DateTimeFormat('en-CA', {
