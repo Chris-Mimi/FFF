@@ -20,7 +20,9 @@ Chris asks planning questions like *"which lifts haven't we done for 2 months?"*
 
 ## Staples
 
-- **Staple** = appeared in an **In a WOD** section at least **12 times in the last 12 months** (~once a month).
+Tool: `scripts/movement-recency.ts` (read-only; `--scope wod|trained|warmup`, `--weeks`, `--staple`, `--months`, `--kids`). Counts distinct dates, not class times.
+
+- **Staple** = appeared in an **In a WOD** section at least **10 times in the last 10 months** ( nearly once a month).
 - **Overdue** = no appearance for the period Chris names.
 
 ## Lifts and name variants — depend on the question
@@ -45,5 +47,5 @@ Chris asks planning questions like *"which lifts haven't we done for 2 months?"*
 | # | Question as Chris phrases it | Interpretation |
 |:---|:---|:---|
 | 1 | "Which lifts haven't we done for N months?" | _TBD on first ask — RM lifts or any barbell lift?_ |
-| 2 | "Which staple movements haven't appeared in a WOD for N weeks?" | Staple rule above; In-a-WOD scope; families merged |
+| 2 | "Which staple movements haven't appeared in a WOD for N weeks?" | `npx tsx scripts/movement-recency.ts --weeks N` (defaults: wod scope, staple ≥10 in 10 mo). Then cross-check variants in the "fresh staples" list and report family status per item. First run S414: 6 overdue. |
 | 3 | "Give me a warm-up featuring underused movements" | Warm-up scope; rank by longest since last use in warm-ups |
