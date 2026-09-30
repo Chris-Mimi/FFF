@@ -1,7 +1,9 @@
 # Active Context
 
-**Version:** 281
-**Updated:** 2026-09-27 (Session 413 — Opus 5.5. **Whiteboard catch-up: Weeks 38, 36, 39, 6 + 32 (8–9.8) + 5 (31.1–1.2) — ~550 WSR rows, 13 auto-bookings, all Chris-checked OK.** New `"book": true` option in the score writer + protocol rules (coverage sweep, skip kids/D&D/Thursday, Endurance `x` = 10m). No app code.)
+**Version:** 282
+**Updated:** 2026-09-30 (Session 414 — Opus 5.5. **Athlete-count fix, paste-over Undo, 27.07 17:15 scores restored (lost to the S404 paste bug), under-18 kids self-booking, movement-recency tooling + agreed query rules. S399–S402 + Karen checks all closed.**)
+
+<!-- Older S413: 2026-09-27 (Session 413 — Opus 5.5. **Whiteboard catch-up: Weeks 38, 36, 39, 6 + 32 (8–9.8) + 5 (31.1–1.2) — ~550 WSR rows, 13 auto-bookings, all Chris-checked OK.** New `"book": true` option in the score writer + protocol rules (coverage sweep, skip kids/D&D/Thursday, Endurance `x` = 10m). No app code.) -->
 
 <!-- Older S412: 2026-09-24 (Session 412 — Opus 5.5. **Admin-only: no code.** Chris confirmed every outstanding verification OK, declined delete-session notifications, took the 15.08 Endurance block himself, and connected the Gmail / Google Calendar / Google Drive connectors. Session 411 detail is in the Current Status block below.) -->
 
@@ -133,7 +135,12 @@ Synology Drive syncs files in the background and is **not git-aware**. When Chri
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history file._
 
-**🚨 Next session — S413 was whiteboard-only and Chris checked every score OK. No carry-overs. Parked: WOD copy-over guard (S404), paper-card backlog, next-intl i18n. Open offer (unanswered): make the Workouts-page athlete count only count sessions with a published workout (Open Gym inflates it — Nicole Rauh "2" vs 1 shown).**
+**🚨 Next session — S414 shipped 3 code changes (athlete count, paste Undo, under-18 self-booking) + restored 27.07 17:15. No verification owed except: Fabian Siebert (14) should now book Kids classes under his own name — Chris tested via magic link. Parked: paper-card backlog, next-intl i18n, Week 40 whiteboard (week just started). Planning questions → `memory-bank/movement-recency-queries.md` + `scripts/movement-recency.ts`.**
+
+**S414 lessons:**
+- **Never delete a booking as "cleanup" — even a cancelled one.** It may be a late cancel on a 10-card; move it to the real profile and record timestamps first (auto-memory `feedback_cancelled_bookings_carry_meaning`).
+- **Lift-recency answers must include exercise-level variants** (Hang Power Snatch isn't in `barbell_lifts`) — Chris caught "no power snatch since April" against the Movement Tracker.
+- **Auto mode blocks prod-DB writes and settings edits** even with Chris's OK; `enter-whiteboard-scores.ts` now has its own allow rule in `.claude/settings.json` (untested under auto mode).
 
 **S413 whiteboard rules (all in `memory-bank/whiteboard-score-entry-protocol.md`):**
 - **Step 0 = coverage sweep.** Preflight every day of the ISO week, list sessions with bookings + `rows:0`, compare to photos, tell Chris which have no board. **Skip kids classes, Diapers & Dumbbells, and Thursdays** (member-led Endurance, rarely scored).
@@ -241,6 +248,14 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 414 (2026-09-30 — Opus 5.5) — COUNT FIX, PASTE UNDO, SCORE RESTORE, KIDS SELF-BOOKING, RECENCY TOOLING (all pushed, tsc+lint+build clean)**
+- **Workouts-page athlete count (`bd5786e`)** now counts only confirmed bookings in sessions with a **published** workout (was `get_all_members_attendance`, which counts Open Gym). Paginated. Other callers of the RPC (Members, Wellpass, Admin) untouched on purpose.
+- **Paste-over Undo (`b00a1c9`)** in `handleCopyWOD`: Calendar-event delete + orphaned-wod delete deferred until a 15s "Workout replaced — Undo" toast closes; Undo restores each session's `workout_id/status/workout_type`, deletes created sessions + the pasted wod.
+- **27.07 17:15 — 9 scores restored** from `backups/2026-08-26` onto current wod `1e37d80b`. Lost 27 Aug when a paste hard-deleted wod `100f5d44` (the S404 bug). Backup sweep 26 May→27 Sep: only loss.
+- **Under-18 self-booking (`70ea7bc`)**: new `isMinor(dob)` in `lib/bookingRules.ts` (Berlin date; no DOB = adult); server + book-page guard. Deleted Fabian's duplicate "Fabi" family profile — ⚠️ also deleted its late-cancel booking (mistake; Chris re-created it on Fabian).
+- **Movement recency:** `memory-bank/movement-recency-queries.md` (scopes: WOD = WOD+Pt.1–6; staple ≥10 in 10 mo, Chris-edited) + `scripts/movement-recency.ts`. Answered: overdue staples, barbell lifts not done in 6 wks, 10 snatch warm-ups.
+- Closed: S399–S402 prod checks, Karen 26/01 (already done). `.claude/settings.json` allow rule for the whiteboard writer.
+
 **Session 413 (2026-09-27 — Opus 5.5) — WHITEBOARD CATCH-UP, 6 WEEKS (board files only, no app code, all pushed)**
 - Entered Weeks 38 (38.1–38.3), 36.2, 32 (8–9.8), 5 (31.1–1.2), 6, 39 via `boards/*.json` + `enter-whiteboard-scores.ts`. ~550 WSR rows; Chris checked all OK.
 - **Writer gained `"book": true`** (`a192fab`) — books an unbooked athlete into the guessed class before writing. 13 bookings made this session.
@@ -278,15 +293,7 @@ Athlete Tools
 - **"C2 Skierg" → "C2 SkiErg" rename — assessed safe, Chris made the change.** All name matching is case-insensitive and everything else links by exercise id; the workout text was *already* mixed (`Skierg` ×253, `SkiErg` ×66) across 176 wods and working. Slug `c2-skierg` untouched.
 - **⚠️ Chris deleted a booked session (20.09 10:00, 12 athletes) — nobody was notified.** Bookings cascade-deleted (0 orphans of 4,595). Local backups were 18 days stale; `notification_log` yielded only **4** of the 12 names. **Root finding: `app/api/coach/delete-session/route.ts` imports no notification helper** — removing ONE booking notifies that athlete, deleting a whole session notifies nobody. Chris reconstructed the list himself. See Known Open Issues.
 
-**Session 409 (2026-09-01 — Opus 5) — PAGINATION SWEEP + GROWING-TABLE AUDIT + RETENTION (5 COMMITS + CLOSE, all pushed, tsc+lint+build clean):**
-- **`exercises` pagination sweep (`fe84f58`).** New [utils/fetch-all-exercises.ts](utils/fetch-all-exercises.ts) — `fetchAllExercises(columns, orderBy)` pages past the 1000-row cap, same `{data,error}` shape so `Promise.all` sites swapped over untouched. **11 sites, not 7:** S408's grep matched only the single-line form and missed `ExerciseFormModal` (×2), `ExercisesTab`, `useExercisesCrud` — two of which build the category/equipment filter dropdowns. `useWorkoutModal`'s S408 local loop replaced by the shared helper. Generics deliberately mirror each call site's existing assumption (`category: string`) so no type-semantic drift. **Verified live:** 716 rows, no dupes/gaps, at page sizes down to 7 (103 round-trips).
-- **Full growing-table audit (`47b0be6`) — result CLEAN, recorded in claude-rules, don't repeat.** Every public table counted, every read of the 10 largest hand-checked. Five are already OVER the cap and all safe (reads are id/date-sliced or paginated). **Why `exercises` was the only casualty:** it's the one big table the app wants *in its entirety*; everywhere else asks for a naturally-bounded slice. **That's the tell for new code.** Method lesson: single-line greps under-report (S408 missed 4); "no filter within N lines" scans over-report (12 false positives here) — read the whole statement.
-- **Score-entry monospace fix (`b82055d`).** Both score-entry surfaces rendered `content` with `whitespace-pre-line`, which collapses runs of spaces → S403 tables flattened on the one screen used while entering scores. Now `pre-wrap`, and a monospace section uses `whitespace-pre` + `overflow-x-auto` so a wide row scrolls rather than wraps. Root cause of the miss: `WodSection` in [useScoreEntry.ts:23](hooks/coach/useScoreEntry.ts#L23) is a separate type that never gained `monospace`. Search teaser also honours the font now (cosmetic, still clamped).
-- **New doc + a correction (`1c62b65`).** `Chris Notes/Forge app documentation/Workout-Section-Table-Formatting.md`. First draft suggested box-drawing/block characters — **they break alignment here**: Geist Mono loads with `subsets: ["latin"]` ([app/layout.tsx:15-18](app/layout.tsx#L15-L18)), so U+2500+/U+2580+ fall back to another font at a different advance width. ASCII only (`+-|` frames, `[####....]` bars).
-- **Retention jobs (`f9c1ab6`) + 2 approved prunes.** notification_log → 90-day retention in the existing daily cron (safe: write-only table, sole reader inspects TODAY only). `backups/` → newest 40 runs (`BACKUP_KEEP_RUNS` overrides; skipped entirely if the run had failures). **40 not 20** — ~10 runs/month and S385's loss went unnoticed ~2 months. Executed: notification_log 10,068→**1,456** (backup taken first, so deleted rows live in `2026-09-01_notification_log.json`); backups 471MB/85 runs→**324MB/40 runs**. ⚠️ 9 git-tracked 2025-12-09 backup files (force-added despite .gitignore) removed by the prune — still in git history.
-- **Mac disk (side investigation, not project work).** Storage pane says 344.85GB free; `df`+`system_profiler` both say **37.88GB** — the gap is "purgeable", but there are **no TM/APFS snapshots** and iCloud is 841MB, so that figure looks stale. Disk genuinely ~96% full = live suspect for the app-launch failures. Found `Movies/CacheClip` **27GB** (19,368 `.dvcc` + 485 `.pfl`, nothing newer than 24 Jan, Resolve closed) — safe, **Chris deleting it himself**. ~396GB still unaccounted: `du` is blind to TCC-protected paths; `~/Library/Application Support/MobileSync` (iOS backups) is the lead.
-
-**Older sessions (57-408):** See `project-history/` folder.
+**Older sessions (57-409):** See `project-history/` folder.
 
 ---
 
@@ -314,7 +321,6 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-1. **S413 — optional, only if Chris says yes:** Workouts-page athlete count (`get_all_members_attendance`, [useCoachData.ts:626](hooks/coach/useCoachData.ts#L626)) counts Open Gym attendance, so the number can exceed the workouts shown. Fix = count only sessions with a published workout.
 1. **S410 — optional follow-ups.** (a) `notification_log` held only 4 of 12 bookings for that session — worth understanding before trusting it for recovery again. (b) Unpublishing a workout still clears `publish_sections`, blinding the coach modal the same way the S410 bug did — left alone deliberately, since hiding from athletes is the point of unpublishing. (c) Chip noise from naming variants ("Pull-up" / "Pull-ups" / "Pull-up Strict") — fix by tidying names, not code.
 1. **S410 — score entry needs nothing.** Weeks 35 and 3 fully entered and verified; Chris completed Martina, the Sabrina/Steven loads and the rest of board 3.1 himself.
 1. **S409 — no verification needed.** Pagination/audit/retention are infrastructure; all verified in-session against live data. Nothing for Chris to test.
