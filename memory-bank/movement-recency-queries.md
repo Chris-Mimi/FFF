@@ -46,6 +46,6 @@ Tool: `scripts/movement-recency.ts` (read-only; `--scope wod|trained|warmup`, `-
 
 | # | Question as Chris phrases it | Interpretation |
 |:---|:---|:---|
-| 1 | "Which (barbell) lifts haven't we done for N weeks/months?" | S414 answer: the 20 lifts in `barbell_lifts` (via `exercise_id` link), last date in **trained-at-all** scope, with a second column for **in a WOD**. Run the script twice (`--scope trained --staple 0 --json`, `--scope wod --staple 0 --json`) and join on `exercise_id`. Group by lift category. Chris didn't object — refine if he does. |
+| 1 | "Which (barbell) lifts haven't we done for N weeks/months?" | S414 answer: the 20 lifts in `barbell_lifts` (via `exercise_id` link), last date in **trained-at-all** scope, with a second column for **in a WOD**. Run the script twice (`--scope trained --staple 0 --json`, `--scope wod --staple 0 --json`) and join on `exercise_id`. Group by lift category. **Also check the exercise-level variants** (Hang Power Clean/Snatch, etc. aren't in `barbell_lifts`) before claiming a family gap — S414 I said "no power snatch since April" while Hang Power Snatch was on 14.07 (Chris caught it in the Movement Tracker). |
 | 2 | "Which staple movements haven't appeared in a WOD for N weeks?" | `npx tsx scripts/movement-recency.ts --weeks N` (defaults: wod scope, staple ≥10 in 10 mo). Then cross-check variants in the "fresh staples" list and report family status per item. First run S414: 6 overdue. |
 | 3 | "Give me a warm-up featuring underused movements" | Warm-up scope; rank by longest since last use in warm-ups |
