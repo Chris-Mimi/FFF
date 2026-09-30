@@ -324,8 +324,6 @@ Athlete Tools
 1. ✅ **S399–S402 prod checks all verified by Chris (S414)** — Private events, Restore Session, Jacht shared chip, auth self-heal, score-entry intro fix, 31.1/31.3 + 32.1 boards.
 0. **S372 — Verify athlete Logbook multi-scale fix on prod.** After Vercel deploy: open athlete app → Logbook → date with a multi-scale benchmark entry (e.g. Friday 20.02.26 17:15 "Tabata This"). Expected: all 3 Scale levels + 3 loads show, matching the Leaderboard. Spot-check another benchmark/forge section. Single-scale entries must be unchanged.
 0a. **S371 — Verify athlete Benchmarks leaderboard rework on prod.** Athlete app → Leaderboard → Benchmarks → any benchmark. Expected: Best + Last columns, clickable headers toggle rank, default = Last. Description-only above the table.
-0b. **S371 — Re-enter Karen 26/01/26 17:15 scores manually.** 8 athletes' scores exist in `benchmark_results` but not `wod_section_results`; modal looks empty. Names + values in project-history S371. Coach entry takes priority on leaderboard so dedup is automatic.
-0c. **S371 — Add scaling option to the 2 other Karen wods.** `675cf187` (18:30 26/01, 6 WSRs) + `4479f1c3` (28/01, 4 WSRs). Safe (`false→true` toggle doesn't null data).
 0d. **Sunday Wellpass sync (gated, weekly).** `/coach/members` → Wellpass → Sync from Excel before sessions go live each Sunday. Skim `blocks_applied`/`blocks_cleared` list.
 0e. **Paper-card sync remainders (~12 holders)** — parked pending parent contact. List via `npx tsx scripts/list-ten-card-no-purchase-date.ts`. Frida Engels has a duplicate row from a parent-kid mix-up — clean up when speaking to mum.
 0f. **Verify RM-test distinction on deploy (S341).** Toggle `[ All | RM Testing only ]` on the planner.
