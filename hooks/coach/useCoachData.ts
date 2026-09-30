@@ -624,17 +624,31 @@ export const useCoachData = ({
 
       if (membersError) throw membersError;
 
+      // S414 — count only sessions with a PUBLISHED workout, i.e. the same set the
+      // athlete filter shows in search. get_all_members_attendance counts every
+      // attended session incl. Open Gym, so the number could exceed the workouts
+      // listed. Paginated: bookings is a growing table (>1000 rows).
       const memberIds = (membersData || []).map(m => m.id);
-      const { data: attendanceData, error: attError } = await supabase.rpc(
-        'get_all_members_attendance',
-        { p_member_ids: memberIds, p_days_back: 36500 }
-      );
+      const sessionsByMember: Record<string, Set<string>> = {};
+      for (let from = 0; ; from += 1000) {
+        const { data: bookingRows, error: bookingError } = await supabase
+          .from('bookings')
+          .select('member_id, session_id, weekly_sessions!inner(wods!inner(workout_publish_status))')
+          .in('member_id', memberIds)
+          .eq('status', 'confirmed')
+          .eq('weekly_sessions.wods.workout_publish_status', 'published')
+          .range(from, from + 999);
 
-      if (attError) throw attError;
+        if (bookingError) throw bookingError;
+        (bookingRows || []).forEach(b => {
+          (sessionsByMember[b.member_id] ??= new Set()).add(b.session_id);
+        });
+        if (!bookingRows || bookingRows.length < 1000) break;
+      }
 
       const memberCounts: Record<string, number> = {};
-      (attendanceData || []).forEach((row: { member_id: string; attendance_count: number }) => {
-        memberCounts[row.member_id] = Number(row.attendance_count);
+      Object.entries(sessionsByMember).forEach(([memberId, sessions]) => {
+        memberCounts[memberId] = sessions.size;
       });
 
       setMembers(
