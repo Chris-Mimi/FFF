@@ -137,6 +137,8 @@ _Updated at every session close. The "first 5 minutes of tomorrow" — read this
 
 **🚨 Next session — S414 shipped 3 code changes (athlete count, paste Undo, under-18 self-booking) + restored 27.07 17:15. No verification owed except: Fabian Siebert (14) should now book Kids classes under his own name — Chris tested via magic link. Parked: paper-card backlog, next-intl i18n, Week 40 whiteboard (week just started). Planning questions → `memory-bank/movement-recency-queries.md` + `scripts/movement-recency.ts`.**
 
+**🔔 REMIND CHRIS on the Windows PC (S415):** add `"claudeCode.initialPermissionMode": "acceptEdits",` to VS Code user settings (Ctrl+Shift+P → "Preferences: Open User Settings (JSON)"). Auto mode's server-side classifier ignores our allow rules and blocks prod-DB writes; Mac already fixed. Remove this line once done.
+
 **S414 lessons:**
 - **Never delete a booking as "cleanup" — even a cancelled one.** It may be a late cancel on a 10-card; move it to the real profile and record timestamps first (auto-memory `feedback_cancelled_bookings_carry_meaning`).
 - **Lift-recency answers must include exercise-level variants** (Hang Power Snatch isn't in `barbell_lifts`) — Chris caught "no power snatch since April" against the Movement Tracker.

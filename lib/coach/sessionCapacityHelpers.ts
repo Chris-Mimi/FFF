@@ -58,27 +58,23 @@ export async function promoteWaitlistMembers(
 
   // Promote each waitlist member
   for (const booking of waitlistBookings) {
-    // Update booking status
-    await supabase
-      .from('bookings')
-      .update({ status: 'confirmed', updated_at: new Date().toISOString() })
-      .eq('id', booking.id);
-
-    // Increment 10-card if applicable
+    // A promoted 10-card booking eats a session. Set the flag in the same UPDATE —
+    // the S351 DB trigger derives ten_card_sessions_used (holder + sharers) from it.
     const { data: member } = await supabase
       .from('members')
-      .select('membership_types, ten_card_sessions_used')
+      .select('primary_payment_method, membership_types')
       .eq('id', booking.member_id)
       .single();
+    const effective = member?.primary_payment_method || member?.membership_types?.[0] || null;
 
-    if (member?.membership_types?.includes('ten_card')) {
-      await supabase
-        .from('members')
-        .update({
-          ten_card_sessions_used: (member.ten_card_sessions_used || 0) + 1,
-        })
-        .eq('id', booking.member_id);
-    }
+    await supabase
+      .from('bookings')
+      .update({
+        status: 'confirmed',
+        updated_at: new Date().toISOString(),
+        ten_card_consumed: effective === 'ten_card',
+      })
+      .eq('id', booking.id);
 
     promotedMemberIds.push(booking.member_id);
   }

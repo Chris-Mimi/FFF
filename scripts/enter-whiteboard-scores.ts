@@ -157,7 +157,7 @@ async function doSession(spec: SessionSpec) {
     if (confirmed.some(c => c.name.toLowerCase().includes(needle))) continue;
     const { data: mem, error: mErr } = await db
       .from('members')
-      .select('id, name, display_name')
+      .select('id, name, display_name, primary_payment_method, membership_types')
       .eq('status', 'active');
     if (mErr) throw new Error(`members: ${mErr.message}`);
     const hits = (mem || []).filter(m => (m.display_name || m.name || '').toLowerCase().includes(needle));
@@ -171,9 +171,11 @@ async function doSession(spec: SessionSpec) {
       const { data: prior, error: pErr } = await db
         .from('bookings').select('id').eq('session_id', session.id).eq('member_id', m.id).maybeSingle();
       if (pErr) throw new Error(`bookings lookup: ${pErr.message}`);
+      // The 10-card trigger only counts rows flagged ten_card_consumed — set it here.
+      const consumes = (m.primary_payment_method || m.membership_types?.[0]) === 'ten_card';
       const { error } = prior
-        ? await db.from('bookings').update({ status: 'confirmed' }).eq('id', prior.id)
-        : await db.from('bookings').insert({ session_id: session.id, member_id: m.id, status: 'confirmed' });
+        ? await db.from('bookings').update({ status: 'confirmed', ten_card_consumed: consumes }).eq('id', prior.id)
+        : await db.from('bookings').insert({ session_id: session.id, member_id: m.id, status: 'confirmed', ten_card_consumed: consumes });
       if (error) throw new Error(`book ${name}: ${error.message}`);
     }
     confirmed.push({ id: m.id, name });

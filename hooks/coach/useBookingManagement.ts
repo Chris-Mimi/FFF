@@ -69,6 +69,15 @@ export function useBookingManagement({
         ? 'confirmed'
         : 'waitlist';
 
+      // A confirmed 10-card booking eats a session from the holder's card. Set the
+      // flag on insert — the S351 DB trigger derives ten_card_sessions_used from it
+      // (holder + sharers), so a manual counter bump would just be overwritten.
+      const effectiveMethod = getEffectivePaymentMethod({
+        primary_payment_method: selectedMember.primary_payment_method as never,
+        membership_types: selectedMember.membership_types as never,
+      });
+      const consumesCard = bookingStatus === 'confirmed' && effectiveMethod === 'ten_card';
+
       // Create booking
       const { error: bookingError } = await supabase
         .from('bookings')
@@ -77,37 +86,10 @@ export function useBookingManagement({
           member_id: selectedMemberId,
           status: bookingStatus,
           booked_at: new Date().toISOString(),
+          ten_card_consumed: consumesCard,
         });
 
       if (bookingError) throw bookingError;
-
-      // Increment 10-card sessions used on the holder's card (walk to ten_card_holder_id
-      // for family-shared cards, e.g. Miriam's kids debit Miriam's card).
-      const effectiveMethod = getEffectivePaymentMethod({
-        primary_payment_method: selectedMember.primary_payment_method as never,
-        membership_types: selectedMember.membership_types as never,
-      });
-      if (bookingStatus === 'confirmed' && effectiveMethod === 'ten_card') {
-        const holderId = selectedMember.ten_card_holder_id || selectedMember.id;
-        let holderUsed = selectedMember.ten_card_sessions_used || 0;
-        if (holderId !== selectedMember.id) {
-          const { data: holder } = await supabase
-            .from('members')
-            .select('ten_card_sessions_used')
-            .eq('id', holderId)
-            .single();
-          holderUsed = holder?.ten_card_sessions_used || 0;
-        }
-        const { error: updateError } = await supabase
-          .from('members')
-          .update({ ten_card_sessions_used: holderUsed + 1 })
-          .eq('id', holderId);
-
-        if (updateError) {
-          console.error('Failed to increment 10-card sessions:', updateError);
-          // Don't fail the booking for this
-        }
-      }
 
       // Notify member (fire-and-forget)
       authFetch('/api/notifications/coach-booking', {
