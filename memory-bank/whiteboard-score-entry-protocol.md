@@ -37,7 +37,9 @@ So when replicating it by script, **always write BOTH tables together, as one un
   18:30 and had to move him). Bookings are still the tiebreaker for booked names.
 - **Snatch/lift "total" scores (S415):** `6x15 6x 7x 7x 8x` = 6 reps @ 15kg, then reps at the same
   weight until a new weight is written. Score = Σ reps × weight, stored in `weight_result`.
-- **`TC-50` in a Time column = time cap, 50 reps short** (S415).
+- **`TC-50` in a Time column = time cap, 50 reps short** (S415). A bare `-90` means the same.
+  Store as **no `time_result` + `reps_result` = total reps − N** — the `time_with_cap` leaderboard
+  ranks finishers by time, then cap-hitters by reps. `DNF 20/50 Burpee` = `dnf: true` + reps done.
 - **Endurance boards: `Nx` on sled push / tyre pull = N lanes × 10m** (S413). "11.5x" = 115m. Convert before summing a "reps + metres" total.
 
 ## Canonical lift names (whiteboard shorthand → `lift_records.lift_name` / section `lifts[].name`)
