@@ -1,0 +1,271 @@
+{
+ "note": "2026 Week 40.1 right — Filthy Fifty / Dirty Thirty 02.10 (TC-N stored as no time + reps 500-N)",
+ "sessions": [
+  {
+   "date": "2026-10-02",
+   "time": "09:00",
+   "sectionId": "section-1774340895578-4",
+   "rows": [
+    {
+     "member": "Michael Städele",
+     "weight_result": 24,
+     "weight_result_2": 20,
+     "weight_result_3": 9,
+     "scaling_level": "Rx",
+     "scaling_level_2": "Rx",
+     "scaling_level_3": "Rx",
+     "track": 1,
+     "time_result": "28:47"
+    },
+    {
+     "whiteboard": "Robert",
+     "weight_result": 24,
+     "weight_result_2": 20,
+     "weight_result_3": 9,
+     "scaling_level": "Rx",
+     "scaling_level_2": "Rx",
+     "scaling_level_3": "Sc1",
+     "track": 1,
+     "reps_result": 450
+    },
+    {
+     "member": "Sebastian",
+     "weight_result": 24,
+     "weight_result_2": 20,
+     "weight_result_3": 9,
+     "scaling_level": "Rx",
+     "scaling_level_2": "Rx",
+     "scaling_level_3": "Sc1",
+     "track": 1,
+     "reps_result": 385
+    },
+    {
+     "member": "Sven",
+     "weight_result_2": 20,
+     "weight_result_3": 6,
+     "scaling_level": "Sc1",
+     "scaling_level_2": "Sc1",
+     "scaling_level_3": "Sc1",
+     "track": 1,
+     "time_result": "35:24"
+    },
+    {
+     "member": "Gloria",
+     "weight_result": 6,
+     "weight_result_2": 15,
+     "weight_result_3": 4,
+     "scaling_level": "Sc1",
+     "scaling_level_2": "Sc2",
+     "scaling_level_3": "Sc1",
+     "track": 3,
+     "time_result": "33:56"
+    },
+    {
+     "member": "Anna Kr",
+     "weight_result": 16,
+     "weight_result_2": 15,
+     "weight_result_3": 3,
+     "scaling_level": "Rx",
+     "scaling_level_2": "Sc1",
+     "scaling_level_3": "Sc1",
+     "track": 2
+    },
+    {
+     "member": "Julia",
+     "weight_result": 8,
+     "weight_result_2": 10,
+     "weight_result_3": 4,
+     "scaling_level": "Rx",
+     "scaling_level_2": "Sc1",
+     "scaling_level_3": "Sc1",
+     "track": 2,
+     "reps_result": 470
+    },
+    {
+     "member": "Martina",
+     "weight_result": 16,
+     "weight_result_2": 10,
+     "weight_result_3": 3,
+     "scaling_level": "Sc1",
+     "scaling_level_2": "Sc1",
+     "scaling_level_3": "Sc2",
+     "track": 2,
+     "reps_result": 440,
+     "modified": true,
+     "modified_note": "DUs: 1 min SkiErg"
+    }
+   ]
+  },
+  {
+   "date": "2026-10-02",
+   "time": "17:15",
+   "sectionId": "section-1774340895578-4",
+   "rows": [
+    {
+     "member": "Anja",
+     "weight_result": 16,
+     "weight_result_2": 15,
+     "weight_result_3": 5,
+     "scaling_level": "Rx",
+     "scaling_level_2": "Sc1",
+     "scaling_level_3": "Rx",
+     "track": 1,
+     "reps_result": 420,
+     "dnf": true,
+     "modified_note": "DNF at Burpee 20/50"
+    },
+    {
+     "member": "Nikolina",
+     "weight_result": 10,
+     "weight_result_2": 10,
+     "weight_result_3": 3,
+     "scaling_level": "Sc1",
+     "scaling_level_2": "Sc1",
+     "scaling_level_3": "Sc1",
+     "track": 1
+    },
+    {
+     "member": "Christian Müller",
+     "weight_result": 20,
+     "weight_result_2": 20,
+     "weight_result_3": 9,
+     "scaling_level": "Rx",
+     "scaling_level_2": "Rx",
+     "scaling_level_3": "Sc1",
+     "track": 1,
+     "reps_result": 280,
+     "dnf": true,
+     "modified_note": "DNF at PP 30/50"
+    },
+    {
+     "member": "Christian Tanner",
+     "weight_result": 20,
+     "weight_result_2": 20,
+     "weight_result_3": 9,
+     "scaling_level": "Rx",
+     "scaling_level_2": "Sc1",
+     "scaling_level_3": "Sc2",
+     "track": 1,
+     "time_result": "39:59"
+    },
+    {
+     "member": "Dimitar",
+     "weight_result": 24,
+     "weight_result_2": 20,
+     "weight_result_3": 9,
+     "scaling_level": "Rx",
+     "scaling_level_2": "Rx",
+     "scaling_level_3": "Rx",
+     "track": 1,
+     "reps_result": 410
+    },
+    {
+     "member": "Paul",
+     "weight_result": 24,
+     "weight_result_2": 20,
+     "weight_result_3": 9,
+     "scaling_level": "Rx",
+     "scaling_level_2": "Rx",
+     "scaling_level_3": "Rx",
+     "track": 1,
+     "reps_result": 410
+    },
+    {
+     "member": "Tobias",
+     "weight_result": 24,
+     "weight_result_2": 20,
+     "weight_result_3": 9,
+     "scaling_level": "Rx",
+     "scaling_level_2": "Rx",
+     "scaling_level_3": "Rx",
+     "track": 1,
+     "reps_result": 410
+    },
+    {
+     "member": "Wayne",
+     "weight_result": 24,
+     "weight_result_2": 20,
+     "weight_result_3": 9,
+     "scaling_level": "Rx",
+     "scaling_level_2": "Rx",
+     "scaling_level_3": "Rx",
+     "track": 1,
+     "time_result": "31:42"
+    }
+   ]
+  },
+  {
+   "date": "2026-10-02",
+   "time": "18:30",
+   "sectionId": "section-1774340895578-4",
+   "rows": [
+    {
+     "member": "Anna Hartmann",
+     "weight_result": 10,
+     "weight_result_2": 10,
+     "weight_result_3": 4,
+     "scaling_level": "Rx",
+     "scaling_level_2": "Sc1",
+     "scaling_level_3": "Sc2",
+     "track": 2,
+     "reps_result": 345
+    },
+    {
+     "member": "Daniela",
+     "weight_result": 4,
+     "weight_result_2": 7.5,
+     "weight_result_3": 3,
+     "scaling_level": "Rx",
+     "scaling_level_2": "Sc3",
+     "scaling_level_3": "Sc2",
+     "track": 2,
+     "reps_result": 330
+    },
+    {
+     "member": "Magdalena",
+     "weight_result": 6,
+     "weight_result_2": 10,
+     "weight_result_3": 3,
+     "scaling_level": "Rx",
+     "scaling_level_2": "Sc3",
+     "scaling_level_3": "Sc2",
+     "track": 2,
+     "reps_result": 330
+    },
+    {
+     "member": "Marion",
+     "weight_result": 8,
+     "weight_result_2": 15,
+     "weight_result_3": 4,
+     "scaling_level": "Rx",
+     "scaling_level_2": "Sc1",
+     "scaling_level_3": "Sc2",
+     "track": 2,
+     "reps_result": 345
+    },
+    {
+     "member": "Toni",
+     "weight_result": 12,
+     "weight_result_2": 15,
+     "weight_result_3": 6,
+     "scaling_level": "Rx",
+     "scaling_level_2": "Sc1",
+     "scaling_level_3": "Sc2",
+     "track": 2,
+     "reps_result": 345
+    },
+    {
+     "member": "Bodo",
+     "weight_result": 20,
+     "weight_result_2": 20,
+     "weight_result_3": 7,
+     "scaling_level": "Rx",
+     "scaling_level_2": "Sc1",
+     "scaling_level_3": "Sc2",
+     "track": 3,
+     "time_result": "24:30"
+    }
+   ]
+  }
+ ]
+}
