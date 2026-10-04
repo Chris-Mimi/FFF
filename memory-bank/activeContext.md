@@ -139,6 +139,8 @@ _Updated at every session close. The "first 5 minutes of tomorrow" — read this
 
 **🔔 REMIND CHRIS on the Windows PC (S415):** add `"claudeCode.initialPermissionMode": "acceptEdits",` to VS Code user settings (Ctrl+Shift+P → "Preferences: Open User Settings (JSON)"). Auto mode's server-side classifier ignores our allow rules and blocks prod-DB writes; Mac already fixed. Remove this line once done.
 
+**🔔 Chris checking (S415):** Alois Weihe, Magnus Weber, Michael Weber have `primary_payment_method = ten_card` but `membership_types = [wellpass]` → app treats them as 10-card. Clear or fix per his answer. (Marina Labudda = guardian-only, card is for Max & Ole — leave. Athlete Test 1 = test account — leave.)
+
 **S414 lessons:**
 - **Never delete a booking as "cleanup" — even a cancelled one.** It may be a late cancel on a 10-card; move it to the real profile and record timestamps first (auto-memory `feedback_cancelled_bookings_carry_meaning`).
 - **Lift-recency answers must include exercise-level variants** (Hang Power Snatch isn't in `barbell_lifts`) — Chris caught "no power snatch since April" against the Movement Tracker.
