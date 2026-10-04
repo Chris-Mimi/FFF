@@ -1,0 +1,14 @@
+{
+ "note": "2026 Week 40.2 top block — 30.09 09:30 repeat of 23.09 DB Man Maker WOD (load/scaling = 2xDB, scaling_2 = GHD)",
+ "sessions": [{
+  "date": "2026-09-30", "time": "09:30", "sectionId": "section-1786885195732-4",
+  "rows": [
+   { "member": "Michael Städele", "weight_result": 20, "scaling_level": "Rx", "scaling_level_2": "Rx", "rounds_result": 3, "reps_result": 22 },
+   { "member": "Sven", "weight_result": 12.5, "scaling_level": "Rx", "scaling_level_2": "Rx", "rounds_result": 3, "reps_result": 22 },
+   { "member": "Anna Kr", "weight_result": 7.5, "scaling_level": "Sc2", "scaling_level_2": "Sc1", "rounds_result": 3, "reps_result": 22 },
+   { "member": "Irene", "weight_result": 10, "scaling_level": "Sc1", "scaling_level_2": "Sc1", "rounds_result": 3, "reps_result": 1 },
+   { "member": "Martina", "weight_result": 5, "scaling_level": "Sc1", "scaling_level_2": "Sc2", "rounds_result": 3, "reps_result": 29 },
+   { "member": "Mimi", "weight_result": 15, "scaling_level": "Rx", "scaling_level_2": "Rx", "rounds_result": 4 }
+  ]
+ }]
+}

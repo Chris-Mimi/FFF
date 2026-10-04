@@ -31,6 +31,13 @@ So when replicating it by script, **always write BOTH tables together, as one un
   script-written value lands in the DB and *still* skews the leaderboard while being invisible
   to the coach. Enable it whenever a board carries track marks (S411).
 
+- **Board order within each class = girls first, then boys** (Chris, S415). A class boundary is where
+  the boys end and the next girls start — that's how to place an unbooked name. S415: "Chris" sat
+  below Steven (a boy) and above Jana (a girl) → he's the last boy of 17:15, not in 18:30 (I guessed
+  18:30 and had to move him). Bookings are still the tiebreaker for booked names.
+- **Snatch/lift "total" scores (S415):** `6x15 6x 7x 7x 8x` = 6 reps @ 15kg, then reps at the same
+  weight until a new weight is written. Score = Σ reps × weight, stored in `weight_result`.
+- **`TC-50` in a Time column = time cap, 50 reps short** (S415).
 - **Endurance boards: `Nx` on sled push / tyre pull = N lanes × 10m** (S413). "11.5x" = 115m. Convert before summing a "reps + metres" total.
 
 ## Canonical lift names (whiteboard shorthand → `lift_records.lift_name` / section `lifts[].name`)
