@@ -258,6 +258,9 @@ export default function MemberCard({
                   title={tooltip}
                 >
                   <span>{display}</span>
+                  {counter > total && (
+                    <span className="font-bold">· +{counter - total} over</span>
+                  )}
                   {isManualOverride && (
                     <span className="px-1 rounded bg-amber-300/90 text-amber-900 text-[9px] font-bold leading-none" aria-label={`manual override: ${offset} session${offset === 1 ? '' : 's'}`}>
                       M

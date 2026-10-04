@@ -3,6 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 import { stripe, getStripeServer, getTierFromPriceId, getPlanTypeFromPriceId } from '@/lib/stripe';
 import { notifyPaymentFailed } from '@/lib/notifications';
 import Stripe from 'stripe';
+import { berlinToday } from '@/lib/bookingRules';
+import { renewTenCard } from '@/lib/tenCardRenewal';
 
 // Use service role for admin operations
 const supabaseAdmin = createClient(
@@ -115,13 +117,35 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     // Activate 10-card (adult and kids cards are identical: 10 sessions, 12 months)
     const expiryDate = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000); // 12 months from now
 
+    // Existing card → renew like the coach's "Close & Issue New": archive it and
+    // carry sessions attended past its total onto the new card (S415). The Stripe
+    // session id in the new card's notes makes a retried event a no-op.
+    const { data: current, error: curErr } = await supabaseAdmin
+      .from('members')
+      .select('ten_card_purchase_date, ten_card_holder_id, ten_card_notes')
+      .eq('id', memberId)
+      .single();
+    if (curErr) throw new Error(`10-card lookup failed for member ${memberId}: ${curErr.message}`);
+    if (current.ten_card_notes?.includes(session.id)) return;
+
+    if (current.ten_card_purchase_date && !current.ten_card_holder_id) {
+      // Throws on failure → 500 → Stripe retries (see S393 note below).
+      await renewTenCard(supabaseAdmin, memberId, {
+        paidOn: berlinToday(),
+        newNotes: `Bought in app (Stripe ${session.id})`,
+      });
+      return;
+    }
+
     const { error: cardError } = await supabaseAdmin
       .from('members')
       .update({
         ten_card_purchase_date: now.toISOString(),
         ten_card_sessions_used: 0,
+        ten_card_sessions_used_offset: 0,
         ten_card_total: 10,
         ten_card_expiry_date: expiryDate.toISOString(),
+        ten_card_notes: `Bought in app (Stripe ${session.id})`,
         updated_at: now.toISOString(),
       })
       .eq('id', memberId);

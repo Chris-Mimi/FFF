@@ -9,6 +9,13 @@ import { useState, useEffect } from 'react';
 import { FocusTrap } from '@/components/ui/FocusTrap';
 import { formatDate } from '@/utils/date-utils';
 import StripeSubscriptionsPanel from '@/components/coach/members/StripeSubscriptionsPanel';
+import type { CarryOverPlan } from '@/lib/tenCardRenewal';
+
+// YYYY-MM-DD → DD.MM.YY
+const fmtDe = (d: string) => {
+  const [y, m, day] = d.split('-');
+  return `${day}.${m}.${y.slice(2)}`;
+};
 
 interface TenCardModalProps {
   isOpen: boolean;
@@ -97,6 +104,8 @@ export default function TenCardModal({
   const [archiveLoading, setArchiveLoading] = useState(false);
   const [expandedArchiveIds, setExpandedArchiveIds] = useState<Set<string>>(new Set());
   const [pendingClose, setPendingClose] = useState(false);
+  const [carryPreview, setCarryPreview] = useState<CarryOverPlan | null>(null);
+  const [previewSessionsUsed, setPreviewSessionsUsed] = useState(0);
   const [editingNoteArchiveId, setEditingNoteArchiveId] = useState<string | null>(null);
   const [editingNoteText, setEditingNoteText] = useState('');
   const [savingNote, setSavingNote] = useState(false);
@@ -340,7 +349,9 @@ export default function TenCardModal({
             newPurchaseDate: purchaseDate || undefined,
             newExpiryDate: tenCardExpiry || undefined,
             newTotal: tenCardTotal,
-            newSessionsUsed: sessionsUsed,
+            // Only an explicit edit overrides; otherwise the server counts the
+            // carried / in-window bookings itself.
+            newSessionsUsed: sessionsUsed !== previewSessionsUsed ? sessionsUsed : undefined,
             newNotes: tenCardNotes || undefined,
           }),
         });
@@ -420,9 +431,25 @@ export default function TenCardModal({
   // closes the modal without persisting.
   const handleCloseAndIssueNew = async () => {
     if (!member) return;
+
+    // Sessions attended after the card was full carry over onto the new card (S415).
+    let plan: CarryOverPlan = { carried: [], carryStart: null };
+    try {
+      const res = await authFetch('/api/coach/close-ten-card', {
+        method: 'POST',
+        body: JSON.stringify({ memberId: member.id, preview: true }),
+      });
+      if (res.ok) plan = await res.json();
+    } catch (error) {
+      console.error('Carry-over preview failed:', error);
+    }
+    const n = plan.carried.length;
+
     if (!await confirm({
       title: 'Close & Issue New 10-Card',
-      message: `Close this card with ${sessionsUsed}/${tenCardTotal} sessions used and start a fresh card today? The closed card will appear in Card History after you click Save Changes. Click Cancel to abort.`,
+      message: n > 0
+        ? `This card is ${n} over. Close it at ${tenCardTotal}/${tenCardTotal} and start a new card with ${n}/${tenCardTotal} already used (from ${fmtDe(plan.carryStart!)})? The closed card will appear in Card History after you click Save Changes. Click Cancel to abort.`
+        : `Close this card with ${sessionsUsed}/${tenCardTotal} sessions used and start a fresh card today? The closed card will appear in Card History after you click Save Changes. Click Cancel to abort.`,
       confirmText: 'Close & Issue New',
       variant: 'default',
     })) {
@@ -436,13 +463,15 @@ export default function TenCardModal({
     expiryDate.setFullYear(expiryDate.getFullYear() + 1);
     const expiry = `${expiryDate.getFullYear()}-${String(expiryDate.getMonth() + 1).padStart(2, '0')}-${String(expiryDate.getDate()).padStart(2, '0')}`;
 
-    setPurchaseDate(today);
+    // With carry-over the card starts on the first overflow session; expiry still
+    // runs 12 months from today (the payment date).
+    setPurchaseDate(plan.carryStart || today);
     setTenCardExpiry(expiry);
-    setSessionsUsed(0);
-    // New card has zero bookings; baseline resets so any typed Sessions Used during
-    // the pending preview is treated entirely as manual override.
-    setBookingsCount(0);
-    setTenCardNotes(''); // New card starts with blank notes; coach types fresh ones for the new card
+    setSessionsUsed(n);
+    setPreviewSessionsUsed(n);
+    setBookingsCount(n);
+    setCarryPreview(plan);
+    setTenCardNotes(''); // New card starts with blank notes; the server adds the carry-over note
     setPendingClose(true);
   };
 
@@ -459,6 +488,7 @@ export default function TenCardModal({
     const origExpiry = member.ten_card_expiry_date || '';
     setTenCardExpiry(origExpiry.includes('T') ? origExpiry.split('T')[0] : origExpiry);
     setTenCardNotes(member.ten_card_notes || '');
+    setCarryPreview(null);
     setPendingClose(false);
   };
 
@@ -758,9 +788,15 @@ export default function TenCardModal({
                       <p className="text-sm font-medium text-amber-900">
                         Close pending — not yet saved
                       </p>
-                      <p className="text-xs text-amber-800 mt-1">
-                        New card defaults to today. <span className="font-semibold">Change Purchase Date below</span> if the new card should start on a different day (e.g. tomorrow, when today&apos;s session was the last on the old card).
-                      </p>
+                      {carryPreview && carryPreview.carried.length > 0 ? (
+                        <p className="text-xs text-amber-800 mt-1">
+                          <span className="font-semibold">{carryPreview.carried.length} session{carryPreview.carried.length === 1 ? '' : 's'} carried over</span> from the full card ({carryPreview.carried.map(c => fmtDe(c.date)).join(', ')}). The new card starts {fmtDe(carryPreview.carryStart!)} so they count on it; expiry is 12 months from today.
+                        </p>
+                      ) : (
+                        <p className="text-xs text-amber-800 mt-1">
+                          New card defaults to today. <span className="font-semibold">Change Purchase Date below</span> if the new card should start on a different day (e.g. tomorrow, when today&apos;s session was the last on the old card).
+                        </p>
+                      )}
                       <p className="text-xs text-amber-800 mt-1">
                         Click <span className="font-semibold">Save Changes</span> to commit, or <span className="font-semibold">Revert</span> to abort.
                       </p>
