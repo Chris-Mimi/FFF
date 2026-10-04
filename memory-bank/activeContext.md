@@ -1,7 +1,9 @@
 # Active Context
 
-**Version:** 282
-**Updated:** 2026-09-30 (Session 414 — Opus 5.5. **Athlete-count fix, paste-over Undo, 27.07 17:15 scores restored (lost to the S404 paste bug), under-18 kids self-booking, movement-recency tooling + agreed query rules. S399–S402 + Karen checks all closed.**)
+**Version:** 283
+**Updated:** 2026-10-04 (Session 415 — Opus 5.5. **10-card overhaul: uncounted coach-added bookings fixed, 10-session DB cap removed, overflow carry-over on renew/Stripe, "+N over" chip, auto-recalc on start date, card sharing between any two members. Push leak on shared browsers fixed (detach on logout). Week 40 whiteboard entered (~110 rows). Auto-mode blocking fixed on Mac.**)
+
+<!-- Older S414: 2026-09-30 (Session 414 — Opus 5.5. **Athlete-count fix, paste-over Undo, 27.07 17:15 scores restored (lost to the S404 paste bug), under-18 kids self-booking, movement-recency tooling + agreed query rules. S399–S402 + Karen checks all closed.**) -->
 
 <!-- Older S413: 2026-09-27 (Session 413 — Opus 5.5. **Whiteboard catch-up: Weeks 38, 36, 39, 6 + 32 (8–9.8) + 5 (31.1–1.2) — ~550 WSR rows, 13 auto-bookings, all Chris-checked OK.** New `"book": true` option in the score writer + protocol rules (coverage sweep, skip kids/D&D/Thursday, Endurance `x` = 10m). No app code.) -->
 
@@ -135,16 +137,21 @@ Synology Drive syncs files in the background and is **not git-aware**. When Chri
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history file._
 
-**🚨 Next session — S414 shipped 3 code changes (athlete count, paste Undo, under-18 self-booking) + restored 27.07 17:15. No verification owed except: Fabian Siebert (14) should now book Kids classes under his own name — Chris tested via magic link. Parked: paper-card backlog, next-intl i18n, Week 40 whiteboard (week just started). Planning questions → `memory-bank/movement-recency-queries.md` + `scripts/movement-recency.ts`.**
+**🚨 Next session — S415 shipped a lot of 10-card code; nothing broken known, but three things want a live look (Next Steps S415). Week 40 whiteboard done except 28.09 10:00 (Chris checking for a photo). Parked: paper-card backlog, next-intl i18n.**
 
 **🔔 REMIND CHRIS on the Windows PC (S415):** add `"claudeCode.initialPermissionMode": "acceptEdits",` to VS Code user settings (Ctrl+Shift+P → "Preferences: Open User Settings (JSON)"). Auto mode's server-side classifier ignores our allow rules and blocks prod-DB writes; Mac already fixed. Remove this line once done.
 
-**🔔 Chris checking (S415):** Alois Weihe, Magnus Weber, Michael Weber have `primary_payment_method = ten_card` but `membership_types = [wellpass]` → app treats them as 10-card. Clear or fix per his answer. (Marina Labudda = guardian-only, card is for Max & Ole — leave. Athlete Test 1 = test account — leave.)
+**🔔 Chris checking (S415) — ask for his answers:**
+- **Alois Weihe, Magnus Weber, Michael Weber:** `primary_payment_method = ten_card` but `membership_types = [wellpass]` → app treats them as 10-card. Clear or fix per his answer. (Athlete Test 1 = test account — leave.)
+- **Marina Labudda:** guardian-only, `primary_payment_method = ten_card`, no types — her card is for Max & Ole. But Max and Ole each have their **own** card (both started 20.05, both **10/10 full**), nothing linked to Marina. Chris to confirm that's right (one card per boy) and whether new cards are due.
+- 28.09 10:00 Back Squat 5RM board — photo missing?
 
-**S414 lessons:**
-- **Never delete a booking as "cleanup" — even a cancelled one.** It may be a late cancel on a 10-card; move it to the real profile and record timestamps first (auto-memory `feedback_cancelled_bookings_carry_meaning`).
-- **Lift-recency answers must include exercise-level variants** (Hang Power Snatch isn't in `barbell_lifts`) — Chris caught "no power snatch since April" against the Movement Tracker.
-- **Auto mode blocks prod-DB writes and settings edits** even with Chris's OK; `enter-whiteboard-scores.ts` now has its own allow rule in `.claude/settings.json` (untested under auto mode).
+**S415 lessons:**
+- **A DB CHECK capped `ten_card_sessions_used <= 10`** (from the original setup) — the app's soft-cap/"Over by N" design could never work; athlete bookings past 10 errored, coaches added them instead, and those never counted. Chris dropped it. **When the app "should" show X and doesn't, check DB constraints.**
+- **Every booking-creating path must set `ten_card_consumed`** — coach add, waitlist promote, whiteboard `book:true` were all missing it (the S351 trigger overwrites manual counter bumps).
+- **Whiteboard board order = girls first, then boys, per class** — that's how to place an unbooked name (I put Chris in 18:30; he was last boy of 17:15).
+- **`push_subscriptions` is many-accounts-per-endpoint by design** (family phones) — a coach logging in as an athlete kept getting their pushes. Now detached on logout.
+- **Auto mode (VS Code ≥2.1.281) ignores allow rules** — start in acceptEdits (`claudeCode.initialPermissionMode`).
 
 **S413 whiteboard rules (all in `memory-bank/whiteboard-score-entry-protocol.md`):**
 - **Step 0 = coverage sweep.** Preflight every day of the ISO week, list sessions with bookings + `rows:0`, compare to photos, tell Chris which have no board. **Skip kids classes, Diapers & Dumbbells, and Thursdays** (member-led Endurance, rarely scored).
@@ -252,6 +259,14 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 415 (2026-10-04 — Opus 5.5) — 10-CARD OVERHAUL + PUSH LEAK + WEEK 40 WHITEBOARD (all pushed, tsc+lint+build clean)**
+- **Root cause of undercounted cards:** DB CHECK `ten_card_sessions_used <= 10` (Chris dropped it) + coach-add / waitlist-promote / whiteboard `book` never set `ten_card_consumed` (`a01f158`). Fixed 9 undercounted members + Jan + Aline; Aline's card renewed with 4 sessions carried.
+- **Carry-over (`8b397f4`):** `lib/tenCardRenewal.ts` `renewTenCard()` used by Close & Issue New and the Stripe 10-card webhook (idempotent via session id in notes) — archive first `total` sessions, new card starts on first overflow date, expiry = paid + 12 mo. Modal previews it; chip shows "+N over".
+- **Auto-recalc on start-date save (`c8fcfcf`)** (Gloria: paid Fri, entered Sun → chip 0). **Card sharing between any two members (`76b024e`)** — "Share a card…" picker; link/unlink recounts both cards (recalc `keepOffset` + explicit `recompute_ten_card_for_holder`). Unticking a membership type clears a stale Pay-with.
+- **Push leak (`f94291c`):** Chris's Chrome registered under Anfisa + 2 others (logged in as them in May) → got her "You're in". Removed 4 rows; logout now detaches the browser from that account.
+- **Week 40 whiteboard:** DL 10RM + metcon (28–29.09), Snatch Σ reps×kg (30.09), 30.09 09:30 DB Man Maker repeat, Filthy Fifty 02.10 (TC-N → no time + reps 500−N). Boards `boards/2026-W40*.json`.
+- Auto mode blocking → `claudeCode.initialPermissionMode: acceptEdits` on Mac.
+
 **Session 414 (2026-09-30 — Opus 5.5) — COUNT FIX, PASTE UNDO, SCORE RESTORE, KIDS SELF-BOOKING, RECENCY TOOLING (all pushed, tsc+lint+build clean)**
 - **Workouts-page athlete count (`bd5786e`)** now counts only confirmed bookings in sessions with a **published** workout (was `get_all_members_attendance`, which counts Open Gym). Paginated. Other callers of the RPC (Members, Wellpass, Admin) untouched on purpose.
 - **Paste-over Undo (`b00a1c9`)** in `handleCopyWOD`: Calendar-event delete + orphaned-wod delete deferred until a 15s "Workout replaced — Undo" toast closes; Undo restores each session's `workout_id/status/workout_type`, deletes created sessions + the pasted wod.
@@ -285,19 +300,7 @@ Athlete Tools
 - **Track conventions (`ad7b336`).** Unmarked on a board marking any `Trk2` = **Track 1**, and the blanks must be filled: `leaderboard-utils.ts:380-382` sorts track *before* scaling and treats missing as `4`, so a half-filled column demotes the unmarked. Also: `scoring_fields.track` gates the modal buttons but **not** the save route, so a script-written track skews rank while invisible — **a refresh doesn't reveal it, the field must be enabled**.
 - **🐛 Search ignored any punctuation query (`849a7dd`).** `Endurance` found "Endurance #26.1" but **`#26.` found nothing**: the `\b` prefix needs a word char immediately before the `#`, which never exists after a space. Also killed `(6/9kg)`, `-Ups` and **any umlaut-leading German term** (JS `\w` is ASCII-only). Two copies of the same buggy matcher — Workouts search and Movement Library — now share `utils/search-pattern.ts`.
 
-**Session 410 (2026-09-19 — Opus 5) — WHITEBOARD CATCH-UP (WEEKS 35 + 3) + PUBLISH_SECTIONS BUG + 2 CORRECTIONS (5 COMMITS + CLOSE, all pushed, tsc+lint+build clean):**
-- **Week 35 — 53 rows, 7 sessions (`63d4359`, `scripts/enter-week35-whiteboard.ts`).** Boards 35.1+35.2. **Names resolved through each session's own confirmed bookings, not board order** — every block matched a booking list exactly, which is what makes the splits provable rather than guessed. Chris decided the field mappings where the board carried more metrics than the section had fields: 28.08 `reps` = S2OH+DUs summed and `max_time` = hang+HS summed (**he switched `reps`+`max_time` on in the WOD first — 18 rows had nowhere to go until he did**); 26.08 18:30 three stations summed into rounds; 24.08 everyone Rx on the Russian Twist with Michael W's "15kg" being the barbell; 26.08 17:15 everyone Rx on the HS Hold with the written Rx/Sc being the **DU** scaling. Verification artifact (both boards embedded beside the tables): <https://claude.ai/code/artifact/946e98a8-2c2c-4b80-9ab6-e66df518a95f>
-- **Week 3 — 19 rows, 3 sessions (`dbed0d6`, `scripts/enter-week3-whiteboard.ts`).** Board `2026 Week 3.1` left block, headed `12.1.26`, actually covered **three** sessions: 17:15 (11) + 18:30 (4) + the last four names who did the same WOD on **14.01 at 09:30**. Columns mapped 1:1 (HPC→load, T2B→scaling, R+R→rounds_reps). Board's "Ninja" is **Minja Dogan**, resolved via bookings. Senol saved with load+scale and no score. Tabata drills section has no board column — deliberately unscored.
-- **Nils Weihe — 3 missing `lift_records` restored (`2c6f849`).** Parity check flagged Back Squat 1RM 65 / 3RM 60 (23.03) + Pendlay Row 5RM 50 (25.03). **Root cause (from Chris): scores entered under a whiteboard name can't have a lift_record, and linking them to a login profile later relabels the WSR rows but never creates the paired lift_records** — score shows on the workout, athlete's Lifts page stays empty. Same family as the S394/S395 approve-migration gaps. Restored from the WSR rows after re-verifying weight+date against them. **Parity now ✅ across all 908 weighted RM results.**
-- **🐛 `publish_sections` has two writers that disagree (`ceca307`).** Chris entered 12 Sumo DL scores on the 30.01 Foundations WOD, then the section vanished from the scoring modal. Scores were never lost: the column gates whether a section renders, and the **score-save route appends** to it while the **publish dialog overwrites** it with the coach's ticked sections. He renamed the workout and re-published at 15:11; scores had saved at 15:07. **Diagnostic fingerprint: `wods.updated_at` later than the latest `wod_section_results.updated_at`.** Publish route now unions the dialog's selection with every section that already has a WSR row. Sweep of all 3,726 WSR rows found **exactly 2** occurrences. ⚠️ **Unpublish still sets `publish_sections: null`** and blinds the coach modal the same way — left alone deliberately (hiding from athletes is the point), but it's an open decision.
-- **Correction 1 — the 24.04 "orphans" are harmless duplicates.** The 5 scores on a deleted section of *Front Squat Testing 5RM* are exact copies (80/75/45/42.5/40) of 5 live ones: Chris entered them 28.04, replaced the Strength section, re-entered the same five 30.04. The restore script's guard (section must still exist on the wod) correctly refused to "fix" it.
-- **Correction 2 — the RM-load alarm was wrong; 137 weights are NOT at risk.** New `scripts/audit-rm-sections-load-off.ts` (`8caa326`) found 22 RM sections across 555 wods with `load` not true, 20 holding 137 weights. I called it the S385 signature; it is the opposite. **Deliberately not "fixed" — see claude-rules for why setting `load:true` would make it worse.**
-- **⭐ Athlete workout-history search (`3de885a` + `ad02cdf`) — the session's main feature.** Logbook gains a **Search** view beside Day/Week/Month: browse chips, type-ahead, scores inline, jump to that workout's leaderboard. **Two approaches were built and thrown away before this worked** — (a) matching the 719-row exercise catalogue via `matchAllSectionsExercises` returned **five warm-up drills and zero real movements** on the 28.08 workout, because it needs the exact catalogue name in the text ("Jump Rope Double-Unders (DUs)" ≠ written "Jump Rope Double-Unders"); (b) exercise `acronym` is internal codes (PLVR, BUT, ARR), not whiteboard shorthand. **What worked — Chris's own suggestion — is that the workout NAME is the index:** all 556 wods have a `workout_name` written as the movement list, so splitting it yields the gym's shorthand (Push-up 43, Pull-up 35, PP 31, DUs 25, T2B 21). **Only published sections are searchable** — warm-ups never reach athletes and the Whiteboard Intro holds athlete names. Type-ahead cap raised 8→25 (18 of 22 prefixes overflowed 8). Verified live: 93 workouts/194 terms in 18ms. **Never opened in a running app — that's the one thing to check.**
-- **Metres input took tenths of a metre (`7fd147d`).** `step='0.1'` → `step='1'`; `ScoringFieldInputs` is shared so the athlete logbook is fixed too. All 54 stored values were already whole.
-- **"C2 Skierg" → "C2 SkiErg" rename — assessed safe, Chris made the change.** All name matching is case-insensitive and everything else links by exercise id; the workout text was *already* mixed (`Skierg` ×253, `SkiErg` ×66) across 176 wods and working. Slug `c2-skierg` untouched.
-- **⚠️ Chris deleted a booked session (20.09 10:00, 12 athletes) — nobody was notified.** Bookings cascade-deleted (0 orphans of 4,595). Local backups were 18 days stale; `notification_log` yielded only **4** of the 12 names. **Root finding: `app/api/coach/delete-session/route.ts` imports no notification helper** — removing ONE booking notifies that athlete, deleting a whole session notifies nobody. Chris reconstructed the list himself. See Known Open Issues.
-
-**Older sessions (57-409):** See `project-history/` folder.
+**Older sessions (57-410):** See `project-history/` folder.
 
 ---
 
@@ -325,6 +328,8 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
+1. **S415 — live checks (not yet exercised in the app):** (a) next time a coach adds a 10-card member to a class, the chip goes +1; (b) first **Close & Issue New on an over-limit card** — preview shows the carried sessions/dates; (c) link Torben → Gloria via **Share a card…** and confirm both chips update; (d) log out of an athlete account in Chris's browser and confirm their pushes stop.
+1. **S415 — Chris's pending answers:** Alois/Magnus/Michael pay-with, Marina/Max/Ole cards, 28.09 10:00 board (see Kickoff).
 1. **S410 — optional follow-ups.** (a) `notification_log` held only 4 of 12 bookings for that session — worth understanding before trusting it for recovery again. (b) Unpublishing a workout still clears `publish_sections`, blinding the coach modal the same way the S410 bug did — left alone deliberately, since hiding from athletes is the point of unpublishing. (c) Chip noise from naming variants ("Pull-up" / "Pull-ups" / "Pull-up Strict") — fix by tidying names, not code.
 1. **S410 — score entry needs nothing.** Weeks 35 and 3 fully entered and verified; Chris completed Martina, the Sabrina/Steven loads and the rest of board 3.1 himself.
 1. **S409 — no verification needed.** Pagination/audit/retention are infrastructure; all verified in-session against live data. Nothing for Chris to test.

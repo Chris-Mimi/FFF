@@ -30,6 +30,7 @@ Ask Mimi Silvia Maritati (Diapers & Dumbbells?)
 * IDEA for new app. Piano tutorials, YT clips, own recordings and sheet music all in one webapp
 * Ask Claude how good would he be at reading the Planner, Workouts page and planning a workout based on movements we haven't done for a while.
 * Clicking on 10-card should open the 10-card modal in Members
+* 
 
 
 * At-Risk put the list in order from most recent to least recent attendance
