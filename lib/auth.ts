@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { authFetch } from './auth-fetch';
 import { User } from '@supabase/supabase-js';
 
 /**
@@ -20,10 +21,34 @@ export async function getCurrentUser(): Promise<User | null> {
 }
 
 /**
+ * Detach this browser's push registration from the account that is logging out.
+ * One browser can be registered under several accounts (family phones), so the
+ * browser subscription itself stays — only this account's row goes. Without it a
+ * coach who logged in as an athlete keeps receiving that athlete's pushes (S415).
+ * Best-effort and capped at 2s so logout never hangs.
+ */
+async function detachPushSubscription(): Promise<void> {
+  if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return;
+  const work = (async () => {
+    const registration = await navigator.serviceWorker.getRegistration();
+    const subscription = await registration?.pushManager.getSubscription();
+    if (!subscription) return;
+    await authFetch('/api/notifications/unsubscribe', {
+      method: 'POST',
+      body: JSON.stringify({ endpoint: subscription.endpoint }),
+    });
+  })();
+  await Promise.race([work, new Promise(resolve => setTimeout(resolve, 2000))]).catch(err =>
+    console.error('Push detach on logout failed:', err)
+  );
+}
+
+/**
  * Sign out the current user
  */
 export async function signOut(): Promise<void> {
   try {
+    await detachPushSubscription();
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
   } catch (error) {
