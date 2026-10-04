@@ -417,6 +417,20 @@ export default function TenCardModal({
       if (error) {
         throw error;
       }
+
+      // New/changed card start date: bookings made before the card was recorded
+      // (e.g. paid Friday, entered Sunday) aren't flagged ten_card_consumed, so the
+      // trigger-maintained chip would stay at 0 until a manual Recalc (S415, Gloria
+      // Stoffer). Run it automatically unless the coach typed Sessions Used by hand.
+      if (activeSection === '10card' && purchaseDate) {
+        const orig = member.ten_card_purchase_date || '';
+        const origDate = orig.includes('T') ? orig.split('T')[0] : orig.split(' ')[0];
+        const typedByHand = sessionsUsed !== (member.ten_card_sessions_used || 0);
+        if (purchaseDate !== origDate && !typedByHand) {
+          await recalculateSessionsUsed(purchaseDate);
+        }
+      }
+
       onUpdate();
       onClose();
     } catch (_error) {
