@@ -444,16 +444,31 @@ export function useMemberActions(
         ? currentTypes.filter(t => t !== type)
         : [...currentTypes, type];
 
+      // A "Pay with" pointing at a type that's no longer held would keep debiting
+      // (or not debiting) by the old method, and the Pay-with row hides below 2
+      // types so the coach can't see it (S415: Torben = ten_card, pay with wellpass).
+      const update: { membership_types: MembershipType[]; primary_payment_method?: null } = { membership_types: newTypes };
+      if (currentTypes.includes(type)) {
+        const { data: cur } = await supabase
+          .from('members')
+          .select('primary_payment_method')
+          .eq('id', memberId)
+          .single();
+        if (cur?.primary_payment_method && !newTypes.includes(cur.primary_payment_method)) {
+          update.primary_payment_method = null;
+        }
+      }
+
       const { error } = await supabase
         .from('members')
-        .update({ membership_types: newTypes })
+        .update(update)
         .eq('id', memberId);
 
       if (error) throw error;
 
       setMembers(prevMembers =>
         prevMembers.map(m =>
-          m.id === memberId ? { ...m, membership_types: newTypes } : m
+          m.id === memberId ? { ...m, ...update } : m
         )
       );
     } catch (error) {
@@ -528,6 +543,13 @@ export function useMemberActions(
 
   const handleSetTenCardHolder = async (memberId: string, holderId: string | null) => {
     try {
+      const { data: before } = await supabase
+        .from('members')
+        .select('ten_card_holder_id')
+        .eq('id', memberId)
+        .single();
+      const oldHolderId = before?.ten_card_holder_id ?? null;
+
       const { error } = await supabase
         .from('members')
         .update({ ten_card_holder_id: holderId })
@@ -535,11 +557,21 @@ export function useMemberActions(
 
       if (error) throw error;
 
-      setMembers(prevMembers =>
-        prevMembers.map(m =>
-          m.id === memberId ? { ...m, ten_card_holder_id: holderId } : m
+      // Recount the cards on both sides: the new holder picks up the sharer's
+      // in-window bookings (flagging any made before the link), the old holder
+      // drops them. Keeps any manual adjustment on those cards (S415).
+      const affected = [oldHolderId, holderId, holderId ? null : memberId].filter(
+        (id): id is string => !!id
+      );
+      await Promise.all(
+        [...new Set(affected)].map(id =>
+          authFetch('/api/coach/recalc-ten-card', {
+            method: 'POST',
+            body: JSON.stringify({ memberId: id, keepOffset: true }),
+          }).catch(err => console.error('10-card recount failed for', id, err))
         )
       );
+      await refreshData();
     } catch (error) {
       console.error('Error updating 10-card holder:', error);
       toast.error('Failed to update 10-card holder');

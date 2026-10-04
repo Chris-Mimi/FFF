@@ -16,7 +16,9 @@ export async function POST(request: NextRequest) {
     const coach = await requireCoach(request);
     if (isAuthError(coach)) return coach;
 
-    const { memberId } = (await request.json()) as { memberId?: string };
+    // keepOffset: flag bookings + recount but keep the coach's manual adjustment
+    // (used when a sharer is linked/unlinked — S415).
+    const { memberId, keepOffset } = (await request.json()) as { memberId?: string; keepOffset?: boolean };
     if (!memberId) {
       return NextResponse.json({ error: 'memberId is required' }, { status: 400 });
     }
@@ -96,14 +98,24 @@ export async function POST(request: NextRequest) {
     // formula is `ten_card_sessions_used = offset + COUNT(consumed bookings)` — if
     // offset stays non-zero, the recomputed counter is bookings_count + offset,
     // which contradicts the user's intent on clicking Recalc.
-    const { error: offsetResetError } = await supabaseAdmin
-      .from('members')
-      .update({ ten_card_sessions_used_offset: 0 })
-      .eq('id', memberId);
+    if (!keepOffset) {
+      const { error: offsetResetError } = await supabaseAdmin
+        .from('members')
+        .update({ ten_card_sessions_used_offset: 0 })
+        .eq('id', memberId);
 
-    if (offsetResetError) {
-      console.error('recalc-ten-card offset reset error:', offsetResetError);
-      return NextResponse.json({ error: 'Failed to reset manual override' }, { status: 500 });
+      if (offsetResetError) {
+        console.error('recalc-ten-card offset reset error:', offsetResetError);
+        return NextResponse.json({ error: 'Failed to reset manual override' }, { status: 500 });
+      }
+    }
+
+    // The trigger only fires on booking changes; an offset reset or a sharer
+    // link/unlink changes nothing there, so recount explicitly.
+    const { error: recomputeError } = await supabaseAdmin.rpc('recompute_ten_card_for_holder', { p_holder_id: memberId });
+    if (recomputeError) {
+      console.error('recalc-ten-card recompute error:', recomputeError);
+      return NextResponse.json({ error: 'Failed to recount card' }, { status: 500 });
     }
 
     const count = bookings?.length || 0;

@@ -16,6 +16,58 @@ import {
   getTrialStatus,
   getEffectivePaymentMethod,
 } from '@/types/member';
+import { supabase } from '@/lib/supabase';
+
+/**
+ * "Share a card…" — link this member to any other member's 10-card. Loads
+ * candidate holders on demand: active members with a card who aren't themselves
+ * sharing someone else's (no chains).
+ */
+function ShareCardPicker({ memberId, onPick }: { memberId: string; onPick: (holderId: string) => void }) {
+  const [holders, setHolders] = useState<{ id: string; name: string }[] | null>(null);
+
+  const load = async () => {
+    const { data, error } = await supabase
+      .from('members')
+      .select('id, name, display_name')
+      .eq('status', 'active')
+      .not('ten_card_purchase_date', 'is', null)
+      .is('ten_card_holder_id', null)
+      .neq('id', memberId)
+      .order('name');
+    if (error) {
+      console.error('Failed to load 10-card holders:', error);
+      return;
+    }
+    setHolders((data || []).map(m => ({ id: m.id, name: m.display_name || m.name })));
+  };
+
+  if (!holders) {
+    return (
+      <button
+        onClick={load}
+        className="px-2 py-1 rounded text-xs font-medium cursor-pointer transition bg-gray-700 text-gray-300 hover:bg-gray-600"
+        title="Debit another member's 10-card on this member's bookings (e.g. a couple sharing one card)"
+      >
+        Share a card…
+      </button>
+    );
+  }
+  return (
+    <select
+      autoFocus
+      defaultValue=""
+      onChange={e => e.target.value && onPick(e.target.value)}
+      onBlur={() => setHolders(null)}
+      className="px-2 py-1 bg-gray-700 border border-gray-600 rounded text-xs text-white focus:outline-none focus:border-purple-500"
+    >
+      <option value="" disabled>Choose card holder…</option>
+      {holders.map(h => (
+        <option key={h.id} value={h.id}>{h.name}</option>
+      ))}
+    </select>
+  );
+}
 
 interface MemberCardProps {
   member: Member;
@@ -419,36 +471,42 @@ export default function MemberCard({
               is ten_card. Lets coach mark "this kid shares the parent's 10-card" (e.g., Miriam's
               three kids on one card). When off, the kid debits their own 10-card.
               Hidden for 'member'/'wellpass'/etc. family members where 10-card sharing is irrelevant. */}
-          {member.account_type === 'family_member' &&
-            member.primary_member_id &&
-            member.primary_member_name &&
-            getEffectivePaymentMethod(member) === 'ten_card' && (
-            <div className="flex gap-2 mt-2 items-center flex-wrap">
-              <span className="text-xs text-gray-400 font-medium">10-card debits:</span>
-              <button
-                onClick={() => onSetTenCardHolder(member.id, null)}
-                className={`px-2 py-1 rounded text-xs font-medium cursor-pointer transition ${
-                  !member.ten_card_holder_id
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                }`}
-                title="This member's own 10-card is debited on their bookings"
-              >
-                Own card
-              </button>
-              <button
-                onClick={() => onSetTenCardHolder(member.id, member.primary_member_id)}
-                className={`px-2 py-1 rounded text-xs font-medium cursor-pointer transition ${
-                  member.ten_card_holder_id === member.primary_member_id
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                }`}
-                title={`${member.primary_member_name}'s 10-card is debited on this member's bookings`}
-              >
-                {member.primary_member_name}&apos;s card
-              </button>
-            </div>
-          )}
+          {getEffectivePaymentMethod(member) === 'ten_card' && (() => {
+            const hasPrimary = member.account_type === 'family_member' && member.primary_member_id && member.primary_member_name;
+            // Linked to someone other than the family primary (e.g. Gloria + Torben
+            // Stoffer, two separate logins sharing one card — S415).
+            const otherHolder = member.ten_card_holder_id && member.ten_card_holder_id !== member.primary_member_id;
+            const chip = (active: boolean) => `px-2 py-1 rounded text-xs font-medium cursor-pointer transition ${
+              active ? 'bg-purple-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+            }`;
+            return (
+              <div className="flex gap-2 mt-2 items-center flex-wrap">
+                <span className="text-xs text-gray-400 font-medium">10-card debits:</span>
+                <button
+                  onClick={() => onSetTenCardHolder(member.id, null)}
+                  className={chip(!member.ten_card_holder_id)}
+                  title="This member's own 10-card is debited on their bookings"
+                >
+                  Own card
+                </button>
+                {hasPrimary && (
+                  <button
+                    onClick={() => onSetTenCardHolder(member.id, member.primary_member_id!)}
+                    className={chip(member.ten_card_holder_id === member.primary_member_id)}
+                    title={`${member.primary_member_name}'s 10-card is debited on this member's bookings`}
+                  >
+                    {member.primary_member_name}&apos;s card
+                  </button>
+                )}
+                {otherHolder && (
+                  <span className={chip(true)} title="This member's bookings are debited from another member's 10-card">
+                    {member.shared_card_holder_name || 'Shared'}&apos;s card
+                  </span>
+                )}
+                <ShareCardPicker memberId={member.id} onPick={holderId => onSetTenCardHolder(member.id, holderId)} />
+              </div>
+            );
+          })()}
 
           {/* Gender Toggle */}
           <div className="flex gap-2 mt-2 items-center">
