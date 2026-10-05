@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { authFetch } from '@/lib/auth-fetch';
 import { toast } from 'sonner';
@@ -26,8 +25,8 @@ export default function TenCardBalance({ loggedInMemberId, refreshKey }: TenCard
   const [cards, setCards] = useState<TenCardStatus[]>([]);
   const [buying, setBuying] = useState<string | null>(null);
 
-  // Parent buying for a child: straight to Stripe checkout tied to the child, so the
-  // webhook renews the child's card (the payment tab only buys for the logged-in member).
+  // Straight to Stripe checkout tied to the card's holder (self or own child), so the
+  // webhook renews that card; product (Kids vs adult) is decided server-side.
   const buyFor = async (card: TenCardStatus) => {
     if (!card.buyProduct) return;
     setBuying(card.holderId);
@@ -134,10 +133,7 @@ export default function TenCardBalance({ loggedInMemberId, refreshKey }: TenCard
       {warnings.map(w => (
         <p key={w.key} className={`mt-2 text-xs ${w.tone === 'red' ? 'text-red-300' : 'text-yellow-200'}`}>
           {w.text}
-          {/* Own card → payment tab; own child's card → direct checkout for the child. */}
-          {w.own ? (
-            <> <Link href="/athlete?tab=payment" className="underline font-semibold">10er-Karte kaufen</Link></>
-          ) : w.card.buyProduct && (
+          {w.card.buyProduct && (
             <>
               {' '}
               <button
@@ -145,7 +141,9 @@ export default function TenCardBalance({ loggedInMemberId, refreshKey }: TenCard
                 disabled={buying !== null}
                 className="underline font-semibold disabled:opacity-50"
               >
-                {buying === w.card.holderId ? 'Wird geöffnet…' : `10er-Karte für ${w.card.holderName.split(' ')[0]} kaufen`}
+                {buying === w.card.holderId
+                  ? 'Wird geöffnet…'
+                  : w.own ? '10er-Karte kaufen' : `10er-Karte für ${w.card.holderName.split(' ')[0]} kaufen`}
               </button>
             </>
           )}

@@ -42,6 +42,8 @@ const CARD_COLS =
   'id, name, display_name, membership_types, primary_payment_method, ten_card_holder_id, ten_card_total, ten_card_sessions_used, ten_card_expiry_date, account_type, primary_member_id, date_of_birth';
 
 const label = (m: CardMember) => m.display_name || m.name || '';
+const debitsOwnCard = (m: CardMember) =>
+  (m.primary_payment_method || m.membership_types?.[0] || null) === 'ten_card';
 
 export async function getHouseholdTenCards(db: SupabaseClient, userId: string): Promise<TenCardStatus[]> {
   const { data: household, error: hhError } = await db
@@ -89,22 +91,26 @@ export async function getHouseholdTenCards(db: SupabaseClient, userId: string): 
     const booker = bookerById.get(row.member_id);
     if (!ws?.date || !booker) continue;
     // Same debit rule as /api/bookings/create.
-    const effectiveMethod = booker.primary_payment_method || booker.membership_types?.[0] || null;
-    if (effectiveMethod !== 'ten_card') continue;
+    if (!debitsOwnCard(booker)) continue;
     if (sessionStartInstant(ws.date, ws.time || '00:00:00').getTime() < nowMs) continue;
     const holderId = booker.ten_card_holder_id || booker.id;
     upcomingByHolder[holderId] = (upcomingByHolder[holderId] || 0) + 1;
   }
 
   return holders.map(h => {
+    const cardSharers = sharers.filter(s => s.ten_card_holder_id === h.id);
+    // Kids card when everyone booking on it is under 18 — Irene/Miriam hold a card
+    // only their kids use (their own bookings go on member/Wellpass).
+    const users = [...(debitsOwnCard(h) ? [h] : []), ...cardSharers];
+    const kidsOnly = users.length > 0 && users.every(u => isMinor(u.date_of_birth));
     const total = h.ten_card_total ?? 10;
     const used = h.ten_card_sessions_used ?? 0;
     const expiry = h.ten_card_expiry_date ? h.ten_card_expiry_date.split('T')[0] : null;
     return {
       holderId: h.id,
       holderName: label(h),
-      sharedBy: sharers.filter(s => s.ten_card_holder_id === h.id && s.id !== userId).map(label),
-      sharedWithViewer: sharers.some(s => s.ten_card_holder_id === h.id && s.id === userId),
+      sharedBy: cardSharers.filter(s => s.id !== userId).map(label),
+      sharedWithViewer: cardSharers.some(s => s.id === userId),
       total,
       used,
       remaining: total - used,
@@ -113,7 +119,7 @@ export async function getHouseholdTenCards(db: SupabaseClient, userId: string): 
       expired: !!expiry && expiry < today,
       // Mirrors the create-checkout ownership guard: self, or a family member you own.
       buyProduct: h.id === userId || (h.account_type === 'family_member' && h.primary_member_id === userId)
-        ? (isMinor(h.date_of_birth) ? '10card_kids' : '10card')
+        ? (kidsOnly ? '10card_kids' : '10card')
         : null,
     };
   });
