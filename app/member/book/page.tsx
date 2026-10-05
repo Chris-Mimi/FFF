@@ -12,6 +12,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { FocusTrap } from '@/components/ui/FocusTrap';
 import BirthdayModal from '@/components/athlete/BirthdayModal';
+import TenCardBalance from '@/components/athlete/TenCardBalance';
 import { collectBirthdayGreetings, markBirthdayGreeted, joinNames, type BirthdayPerson } from '@/utils/birthday';
 import { NotificationPrompt } from '@/components/ui/NotificationPrompt';
 import { getMaxVisibleSessionDate, getNextReleaseInstant, DEFAULT_BOOKING_RULES, sessionAutoLockInstant, isMinor } from '@/lib/bookingRules';
@@ -819,6 +820,8 @@ export default function MemberBookingPage() {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-12">
+        <TenCardBalance loggedInMemberId={loggedInMemberId} refreshKey={sessions} />
+
         {/* Week Navigation */}
         <div className="flex items-center justify-between mb-6">
           <button
