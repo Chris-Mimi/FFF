@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Ticket } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { TenCardStatus } from '@/lib/tenCardStatus';
 
@@ -100,7 +99,6 @@ export default function TenCardBalance({ loggedInMemberId, refreshKey }: TenCard
               title={details}
               className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium text-white ${red ? 'bg-red-600' : 'bg-purple-600'}`}
             >
-              <Ticket size={12} className="flex-shrink-0" />
               <span>{label}</span>
               <span>{display}</span>
               {card.expired
