@@ -19,6 +19,7 @@ type CardMember = {
   account_type: string | null;
   primary_member_id: string | null;
   date_of_birth: string | null;
+  guardian_only: boolean | null;
 };
 
 export type TenCardStatus = {
@@ -39,7 +40,7 @@ export type TenCardStatus = {
 };
 
 const CARD_COLS =
-  'id, name, display_name, membership_types, primary_payment_method, ten_card_holder_id, ten_card_total, ten_card_sessions_used, ten_card_expiry_date, account_type, primary_member_id, date_of_birth';
+  'id, name, display_name, membership_types, primary_payment_method, ten_card_holder_id, ten_card_total, ten_card_sessions_used, ten_card_expiry_date, account_type, primary_member_id, date_of_birth, guardian_only';
 
 const label = (m: CardMember) => m.display_name || m.name || '';
 const debitsOwnCard = (m: CardMember) =>
@@ -100,8 +101,9 @@ export async function getHouseholdTenCards(db: SupabaseClient, userId: string): 
   return holders.map(h => {
     const cardSharers = sharers.filter(s => s.ten_card_holder_id === h.id);
     // Kids card when everyone booking on it is under 18 — Irene/Miriam hold a card
-    // only their kids use (their own bookings go on member/Wellpass).
-    const users = [...(debitsOwnCard(h) ? [h] : []), ...cardSharers];
+    // only their kids use (their own bookings go on member/Wellpass); a guardian-only
+    // holder (Stefanie Neumann) doesn't train at all.
+    const users = [...(debitsOwnCard(h) && !h.guardian_only ? [h] : []), ...cardSharers];
     const kidsOnly = users.length > 0 && users.every(u => isMinor(u.date_of_birth));
     const total = h.ten_card_total ?? 10;
     const used = h.ten_card_sessions_used ?? 0;
