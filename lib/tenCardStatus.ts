@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { berlinToday, sessionStartInstant } from '@/lib/bookingRules';
+import { berlinToday, isMinor, sessionStartInstant } from '@/lib/bookingRules';
 
 // Server-only (pass a service-role client). Athlete-facing 10-card balances for a
 // logged-in household: own card, the kids' cards, or a card shared with another
@@ -16,6 +16,9 @@ type CardMember = {
   ten_card_total: number | null;
   ten_card_sessions_used: number | null;
   ten_card_expiry_date: string | null;
+  account_type: string | null;
+  primary_member_id: string | null;
+  date_of_birth: string | null;
 };
 
 export type TenCardStatus = {
@@ -31,10 +34,12 @@ export type TenCardStatus = {
   upcoming: number;
   expiryDate: string | null;
   expired: boolean;
+  /** Stripe product the viewer can buy for this card's holder (self or own child); null = can't. */
+  buyProduct: '10card' | '10card_kids' | null;
 };
 
 const CARD_COLS =
-  'id, name, display_name, membership_types, primary_payment_method, ten_card_holder_id, ten_card_total, ten_card_sessions_used, ten_card_expiry_date';
+  'id, name, display_name, membership_types, primary_payment_method, ten_card_holder_id, ten_card_total, ten_card_sessions_used, ten_card_expiry_date, account_type, primary_member_id, date_of_birth';
 
 const label = (m: CardMember) => m.display_name || m.name || '';
 
@@ -106,6 +111,10 @@ export async function getHouseholdTenCards(db: SupabaseClient, userId: string): 
       upcoming: upcomingByHolder[h.id] || 0,
       expiryDate: expiry,
       expired: !!expiry && expiry < today,
+      // Mirrors the create-checkout ownership guard: self, or a family member you own.
+      buyProduct: h.id === userId || (h.account_type === 'family_member' && h.primary_member_id === userId)
+        ? (isMinor(h.date_of_birth) ? '10card_kids' : '10card')
+        : null,
     };
   });
 }

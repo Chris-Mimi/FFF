@@ -80,7 +80,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!member.email) {
+    // Kids usually have no email of their own — a parent paying for them gets the
+    // receipt. (Ownership was checked above, so user here is the guardian.)
+    const checkoutEmail = member.email || (memberId !== user.id ? user.email : null);
+    if (!checkoutEmail) {
       return NextResponse.json(
         { error: 'Member email is required for payment' },
         { status: 400 }
@@ -108,7 +111,7 @@ export async function POST(request: NextRequest) {
 
     if (!customerId) {
       const customer = await stripe.customers.create({
-        email: member.email,
+        email: checkoutEmail,
         name: member.name || undefined,
         metadata: {
           member_id: memberId

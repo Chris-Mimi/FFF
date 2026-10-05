@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import { authFetch } from '@/lib/auth-fetch';
+import { toast } from 'sonner';
 import type { TenCardStatus } from '@/lib/tenCardStatus';
 
 interface TenCardBalanceProps {
@@ -22,6 +24,27 @@ const formatDate = (ymd: string) => {
  */
 export default function TenCardBalance({ loggedInMemberId, refreshKey }: TenCardBalanceProps) {
   const [cards, setCards] = useState<TenCardStatus[]>([]);
+  const [buying, setBuying] = useState<string | null>(null);
+
+  // Parent buying for a child: straight to Stripe checkout tied to the child, so the
+  // webhook renews the child's card (the payment tab only buys for the logged-in member).
+  const buyFor = async (card: TenCardStatus) => {
+    if (!card.buyProduct) return;
+    setBuying(card.holderId);
+    try {
+      const res = await authFetch('/api/stripe/create-checkout', {
+        method: 'POST',
+        body: JSON.stringify({ productType: card.buyProduct, memberId: card.holderId }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.url) throw new Error(data.error || 'checkout failed');
+      window.location.href = data.url;
+    } catch (err) {
+      console.error('10-card checkout error:', err);
+      toast.error('Kauf konnte nicht gestartet werden. Bitte versuche es erneut.');
+      setBuying(null);
+    }
+  };
 
   useEffect(() => {
     if (!loggedInMemberId) return;
@@ -69,7 +92,7 @@ export default function TenCardBalance({ loggedInMemberId, refreshKey }: TenCard
         : `Auf ${onCard} sind nur noch ${card.remaining} Sessions frei.`;
       tone = 'yellow';
     }
-    return text ? [{ key: card.holderId, text, tone, own }] : [];
+    return text ? [{ key: card.holderId, text, tone, own, card }] : [];
   });
 
   return (
@@ -111,9 +134,20 @@ export default function TenCardBalance({ loggedInMemberId, refreshKey }: TenCard
       {warnings.map(w => (
         <p key={w.key} className={`mt-2 text-xs ${w.tone === 'red' ? 'text-red-300' : 'text-yellow-200'}`}>
           {w.text}
-          {/* The in-app purchase buys a card for the logged-in member only. */}
-          {w.own && (
+          {/* Own card → payment tab; own child's card → direct checkout for the child. */}
+          {w.own ? (
             <> <Link href="/athlete?tab=payment" className="underline font-semibold">10er-Karte kaufen</Link></>
+          ) : w.card.buyProduct && (
+            <>
+              {' '}
+              <button
+                onClick={() => buyFor(w.card)}
+                disabled={buying !== null}
+                className="underline font-semibold disabled:opacity-50"
+              >
+                {buying === w.card.holderId ? 'Wird geöffnet…' : `10er-Karte für ${w.card.holderName.split(' ')[0]} kaufen`}
+              </button>
+            </>
           )}
         </p>
       ))}
