@@ -30,14 +30,17 @@ Ask Mimi Silvia Maritati (Diapers & Dumbbells?)
 * IDEA for new app. Piano tutorials, YT clips, own recordings and sheet music all in one webapp
 * Ask Claude how good would he be at reading the Planner, Workouts page and planning a workout based on movements we haven't done for a while.
 * Clicking on 10-card should open the 10-card modal in Members
-* 
+* Ask Claude about Ionos web hosting etc
+* Bench Press we did last in Week 38 but it doesn't show up in the Planner in Upper Body Horizontal Press
+* Pendlay Row in my app: May 29 2026 220kg was an accumulated score but it went in the app as a 5rm
+* Lenny's mum (mausibrueckner) has Lenny as her login name
 
 
 * At-Risk put the list in order from most recent to least recent attendance
 * Weekend WOD #26.2 not done by selected first showed correctly then did not appear
 * Michi asked about a way to search past workouts in the AThlete App
 
-* 
+
 * One thing I'd flag for later (not now): the parallel-session "move" still loses the athlete's whiteboard score for that day (the re-add doesn't carry it over) — only their PR is now safe. A proper one-click "move booking that keeps the score" is the real cure, but that's a feature, not a bug fix. Want me to note it in the memory bank for a future session? - I don't understand, explain in simple terms.
 * Macbook still has internet problem at the box. Old Macbook Pro works fine.
 Script works. Baseline + a sample capture both saved to ~/mac-incident-data/.

@@ -150,6 +150,21 @@ For "today as YYYY-MM-DD" the correct helper **depends on where the code runs** 
 - **Browser code** (components/hooks) → `formatDate(d)` from `utils/date-utils.ts`. It uses `getFullYear/getMonth/getDate`, which read the *runtime's* timezone — Berlin in the user's browser, so correct there.
 - **Server code** (API routes, `app/api/**`, cron) → `berlinToday()` from `lib/bookingRules.ts`. On Vercel the runtime is **UTC** (no `TZ` env var set), so `formatDate` AND `.toISOString().split('T')[0]` BOTH yield the UTC date there — wrong for the ~2h after Berlin midnight (a record logged at 00:30 Berlin gets dated yesterday). `berlinToday()` formats `new Date()` explicitly in `Europe/Berlin` via `Intl`. **Do not "fix" a server-side date bug with `formatDate` — it's a no-op there.** S393 fixed 6 persisted-date defaults (award / benchmark-results / movement-results) this way.
 
+### Verify before explaining — use the names Chris sees (S416)
+**Why:** S416 — I explained 10-card counters with invented terms ("ticked", "written by hand") and guessed mechanisms that the data then disproved (claimed saving the 10-card window would re-break Raffael's card; it fixed it). Chris spent several rounds chasing clarity: "it shouldn't be the case that I am chasing you to communicate clearly with me."
+
+**How to apply:** before answering "why does X happen", query the row / read the code path. Explain with on-screen labels (Sessions Used, Total Sessions, the chip), give the action in his UI, and say "unverified" rather than filling a gap with a plausible story.
+
+### `next build` type-checks `scripts/` — check the exit code (S416)
+**Why:** a type error in a one-off script (`scripts/audit-ten-cards.ts`) failed two Vercel deploys; `npm run build 2>&1 | grep …` printed "Compiled successfully" and hid the failure.
+
+**How to apply:** run `npm run build > /tmp/…/build.log 2>&1; echo $?` and require `0` before pushing. Scripts must type-check like app code.
+
+### Deleting a `wods` row cascades its `lift_records` (S416)
+**Why:** copy-over deleted the replaced workout → 12 Back Squat 5RM records vanished with it (21.09). Restored from backup.
+
+**How to apply:** never delete a wod that still has results. Copy-over now moves results first (`/api/sessions/move-results`) and keeps the old wod if anything can't move. Any new delete path must do the same.
+
 ### Trust the user's statements exactly as given
 When Chris says something doesn't appear in a workout, it means exactly that — don't invent explanations or assume he's mistaken. He will explicitly say when he's unsure.
 

@@ -1,7 +1,9 @@
 # Active Context
 
-**Version:** 283
-**Updated:** 2026-10-04 (Session 415 — Opus 5.5. **10-card overhaul: uncounted coach-added bookings fixed, 10-session DB cap removed, overflow carry-over on renew/Stripe, "+N over" chip, auto-recalc on start date, card sharing between any two members. Push leak on shared browsers fixed (detach on logout). Week 40 whiteboard entered (~110 rows). Auto-mode blocking fixed on Mac.**)
+**Version:** 284
+**Updated:** 2026-10-06 (Session 416 — Opus 5.5. **10-card system completed end to end: athlete/parent balance chip + buy links (kids → child's card, Kids card auto-picked), renewal never double-counts + leftover moves over, any card size, 1-over booking cap (waitlist counted), 1-month expiry grace, Cancel Session refunds cards, no-show push, kids' pushes → parent. Copy-over now MOVES scores (21.09 restored: 24 WSR + 12 lift records). 10-card audit script + data cleanup. Week 40.3 whiteboard.**)
+
+<!-- Older S415: 2026-10-04 (Session 415 — Opus 5.5. **10-card overhaul: uncounted coach-added bookings fixed, 10-session DB cap removed, overflow carry-over on renew/Stripe, "+N over" chip, auto-recalc on start date, card sharing between any two members. Push leak on shared browsers fixed (detach on logout). Week 40 whiteboard entered (~110 rows). Auto-mode blocking fixed on Mac.**) -->
 
 <!-- Older S414: 2026-09-30 (Session 414 — Opus 5.5. **Athlete-count fix, paste-over Undo, 27.07 17:15 scores restored (lost to the S404 paste bug), under-18 kids self-booking, movement-recency tooling + agreed query rules. S399–S402 + Karen checks all closed.**) -->
 
@@ -137,21 +139,21 @@ Synology Drive syncs files in the background and is **not git-aware**. When Chri
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history file._
 
-**🚨 Next session — S415 shipped a lot of 10-card code; nothing broken known, but three things want a live look (Next Steps S415). Week 40 whiteboard done except 28.09 10:00 (Chris checking for a photo). Parked: paper-card backlog, next-intl i18n.**
+**🚨 Next session — S416 shipped a lot of athlete-facing 10-card + notification code, none of it exercised live by a real athlete yet (Next Steps S416). Nothing known broken. Parked: paper-card backlog, next-intl i18n.**
 
-**🔔 REMIND CHRIS on the Windows PC (S415):** add `"claudeCode.initialPermissionMode": "acceptEdits",` to VS Code user settings (Ctrl+Shift+P → "Preferences: Open User Settings (JSON)"). Auto mode's server-side classifier ignores our allow rules and blocks prod-DB writes; Mac already fixed. Remove this line once done.
+**🔔 REMIND CHRIS on the Windows PC (S415):** add `"claudeCode.initialPermissionMode": "acceptEdits",` to VS Code user settings (Ctrl+Shift+P → "Preferences: Open User Settings (JSON)"). Mac already fixed. Remove this line once done.
 
-**🔔 Chris checking (S415) — ask for his answers:**
-- **Alois Weihe, Magnus Weber, Michael Weber:** `primary_payment_method = ten_card` but `membership_types = [wellpass]` → app treats them as 10-card. Clear or fix per his answer. (Athlete Test 1 = test account — leave.)
-- **Marina Labudda:** guardian-only, `primary_payment_method = ten_card`, no types — her card is for Max & Ole. But Max and Ole each have their **own** card (both started 20.05, both **10/10 full**), nothing linked to Marina. Chris to confirm that's right (one card per boy) and whether new cards are due.
-- 28.09 10:00 Back Squat 5RM board — photo missing?
+**🔔 Open with Chris (S416):**
+- Lenny Kleinert: parent login (mausibrueckner@web.de) is NAMED "Lenny Kleinert" — Chris checking.
+- Alois Weihe / Michael Weber pay-with ten_card vs types [wellpass] — Chris: "edge cases", leave.
+- Offered, not answered: translate the older English pushes ("Session Cancelled", "Booking Removed"…) and non-10-card booking messages to German.
 
-**S415 lessons:**
-- **A DB CHECK capped `ten_card_sessions_used <= 10`** (from the original setup) — the app's soft-cap/"Over by N" design could never work; athlete bookings past 10 errored, coaches added them instead, and those never counted. Chris dropped it. **When the app "should" show X and doesn't, check DB constraints.**
-- **Every booking-creating path must set `ten_card_consumed`** — coach add, waitlist promote, whiteboard `book:true` were all missing it (the S351 trigger overwrites manual counter bumps).
-- **Whiteboard board order = girls first, then boys, per class** — that's how to place an unbooked name (I put Chris in 18:30; he was last boy of 17:15).
-- **`push_subscriptions` is many-accounts-per-endpoint by design** (family phones) — a coach logging in as an athlete kept getting their pushes. Now detached on logout.
-- **Auto mode (VS Code ≥2.1.281) ignores allow rules** — start in acceptEdits (`claudeCode.initialPermissionMode`).
+**S416 lessons:**
+- **VERIFY BEFORE EXPLAINING.** Chris had to chase me several rounds on the 10-card "ticks/adjustment" explanation; I guessed mechanisms ("written by hand", "saving the window re-breaks it") that the data disproved. Query the row / read the code first, use on-screen field names (Sessions Used, Total Sessions). Auto-memory `feedback_be_precise_verify_before_explaining.md`.
+- **`npm run build` type-checks `scripts/` too.** A type error in `scripts/audit-ten-cards.ts` failed two Vercel deploys while my `build | grep` looked green. Check the build EXIT CODE (`npm run build > log; echo $?`), never a grepped tail.
+- **Deleting a wod cascades its `lift_records`** (FK). Copy-over was the one path that deleted a scored wod — now moves results first (`/api/sessions/move-results`) and keeps the old wod if anything can't move.
+- **Push goes to a login.** Kids have none → every kid notification was silently dropped until `sendToUser` redirected family members without devices to the parent.
+- **Trial fee policy** (auto-memory `project_trial_fee_and_ten_card.md`): €10 trial waived if a 10-card is bought immediately; paid trial + later card → compensate with Total Sessions 11 (never by lowering Sessions Used — Recalc / start-date change wipes that).
 
 **S413 whiteboard rules (all in `memory-bank/whiteboard-score-entry-protocol.md`):**
 - **Step 0 = coverage sweep.** Preflight every day of the ISO week, list sessions with bookings + `rows:0`, compare to photos, tell Chris which have no board. **Skip kids classes, Diapers & Dumbbells, and Thursdays** (member-led Endurance, rarely scored).
@@ -186,8 +188,8 @@ _Updated at every session close. The "first 5 minutes of tomorrow" — read this
 
 **First actions / open items:**
 **S412 status (Chris, 2026-09-24):** S411 deploy checks ✅ all OK · Movement Info bar ✅ · S407 park-reason read ✅ · S402 mobile editor on both phones ✅ · Sunday Wellpass sync ✅. **15.08 Endurance block — Chris entering it himself (messy), don't do it.** **Delete-session notification — Chris decided NO, don't build.**
-1. **Parked, come back to:** WOD-overwrite confirm/undo guard (S404), paper-card backlog (0e), next-intl i18n.
-7. **⚠️ WOD-overwrite data-loss (S404, no fix shipped).** Copying a workout over a published single-session WOD hard-deletes the original. Offer a confirm/undo guard if he raises it.
+1. **Parked, come back to:** paper-card backlog (0e), next-intl i18n.
+7. ✅ **WOD-overwrite data-loss CLOSED (S416).** Undo (S414) + scores now move onto the new copy; old wod kept if any score can't move.
 8. **Open decision:** unpublishing a workout still clears `publish_sections`, blinding the coach modal the same way the S410 bug did. Left alone deliberately.
 
 **Chris's Mac (not project work, only if he raises it):** disk is genuinely ~96% full. Capture script at `~/mac-incident-data/capture.sh` — run it when the next app-launch/auth freeze hits.
@@ -259,6 +261,14 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 416 (2026-10-05→06 — Opus 5.5) — 10-CARD END TO END + COPY-OVER SCORE SAFETY + NOTIFICATIONS (all pushed, build exit 0)**
+- **Athlete/parent 10-card chip on Book a Class** (`TenCardBalance` + `/api/bookings/ten-card-status` via `lib/tenCardStatus.ts`, service role for cross-household shares): coach-chip format `8+2/10`, German warnings, buy links → direct Stripe checkout; parent buys for own child; Kids card iff every card user is <18 (guardian-only holder excluded); checkout falls back to parent email. Old own-row banners removed.
+- **Renewal (`lib/tenCardRenewal.ts`)**: new card starts at exactly the carried sessions (no double count — Markus 01.07); unused sessions on a still-valid card → new card size 10+leftover; expired leftovers flagged. **Any card size 1–50**; window hints: Total Sessions GIVES, Sessions Used RECORDS.
+- **Booking rules**: 1 over then blocked (open waitlist spots count); expired card bookable 1 month then blocked; German confirmations. **Cancel Session refunds 10-card sessions** (Restore re-debits), cancel push only to affected. **No-show push** (German). **Kids' pushes → parent** with child's first name.
+- **Copy-over moves scores** to the new copy (`065555b`); 21.09 17:15/18:30 restored (24 WSR + 12 Back Squat lift records, backup 04.10, parity OK).
+- **10-card audit** `scripts/audit-ten-cards.ts` (pre-start / unflagged / drift / no-start / pay-with) → Chris fixed Emilia, Silvia, Franziska, Raffael, Viktoria, Aries, Markus (start 02.07); Emily → 11 sessions, no adjustment.
+- Week 40.3 (04.10 10:00/11:00 AMRAP, 23 rows) — Chris checked OK. Many magic links.
+
 **Session 415 (2026-10-04 — Opus 5.5) — 10-CARD OVERHAUL + PUSH LEAK + WEEK 40 WHITEBOARD (all pushed, tsc+lint+build clean)**
 - **Root cause of undercounted cards:** DB CHECK `ten_card_sessions_used <= 10` (Chris dropped it) + coach-add / waitlist-promote / whiteboard `book` never set `ten_card_consumed` (`a01f158`). Fixed 9 undercounted members + Jan + Aline; Aline's card renewed with 4 sessions carried.
 - **Carry-over (`8b397f4`):** `lib/tenCardRenewal.ts` `renewTenCard()` used by Close & Issue New and the Stripe 10-card webhook (idempotent via session id in notes) — archive first `total` sessions, new card starts on first overflow date, expiry = paid + 12 mo. Modal previews it; chip shows "+N over".
@@ -290,25 +300,16 @@ Athlete Tools
 - Parked for later: WOD copy-over guard (S404), paper-card backlog (0e), next-intl i18n.
 - Connected the claude.ai Gmail / Google Calendar / Google Drive connectors (via `/mcp` in Claude Code).
 
-**Session 411 (2026-09-22 — Opus 5) — "100%+" LIFTS + 10-CARD CHIP + WHITEBOARD TOOLING + SEARCH BUG (8 COMMITS, all pushed, clean)**
-- **`100%+` lift percentages (`bdf9922`).** `+` toggle beside the % box and per set on variable waves (`75%-85%-95%+`, the Wendler "+" set). Stored as a separate `percentage_plus` boolean — no migration, lives in the section JSON. **Chris's real question was whether it disturbs athlete calculations: there is exactly ONE calculation anywhere** — the Logbook's suggested-kg bracket ([AthletePageLogbookTab.tsx:569-571](../components/athlete/AthletePageLogbookTab.tsx#L569-L571)); everywhere else the % is pure text. Consolidated **five near-identical (already drifted) copies** of the lift formatter into `formatPercent`/`formatPercentList`.
-- **Reverted my own scope creep (`cdaf05f`).** I raised the % spinner `max` 120→200 unasked; Chris challenged it and was right. `max` only limits the arrows here, so 120 was a loose typo guard. **Ship the ask, don't widen guard rails nobody mentioned.**
-- **10-card usage always visible in Session Management (`b9dd4d8`).** Booking rows show `used/total` for every 10-card athlete so desk questions don't need the Members page; shared family cards get a link icon and one combined count. **The find:** 22 of 68 own-card holders have **no `ten_card_purchase_date`**, so the old "is this session inside the card window" check could never be true — they showed nothing at all. Falls back to "today onwards" where no date exists.
-- **Week 33.2 — 16.08 10:00 TGU metcon, 10 rows (`5454914`).** 10/10 names resolved 1:1 against confirmed bookings. MetCon (no `lifts[]`) → WSR only; parity clean at 908/908. Enabled `scaling_3` + `track` because the board carried 6 columns against 5 fields. **Misread Gloria's 8 as a 6** — his 8 can have an unjoined bottom loop; **count strokes, not closures**.
-- **⚡ Protocol change — WRITE FIRST, REPORT AFTER (`fab5d80`).** Chris twice: don't stop and ask about a digit, he corrects it in seconds and works other boards in parallel. **Safe enabling changes (a scoring field switched ON) are mine to make** — he called that out as the initiative he wants.
-- **Whiteboard tooling (`b0fa261`).** `scripts/whiteboard-preflight.ts` (read-only: ids, sections, fields, bookings + gender, photo download) and `scripts/enter-whiteboard-scores.ts` (board JSON → WSR + lift_records). Replaces five ad-hoc queries and the bespoke per-board script. **Skip-if-already-scored guard means Chris can enter sessions in the app while a board is mid-flight.**
-- **Track conventions (`ad7b336`).** Unmarked on a board marking any `Trk2` = **Track 1**, and the blanks must be filled: `leaderboard-utils.ts:380-382` sorts track *before* scaling and treats missing as `4`, so a half-filled column demotes the unmarked. Also: `scoring_fields.track` gates the modal buttons but **not** the save route, so a script-written track skews rank while invisible — **a refresh doesn't reveal it, the field must be enabled**.
-- **🐛 Search ignored any punctuation query (`849a7dd`).** `Endurance` found "Endurance #26.1" but **`#26.` found nothing**: the `\b` prefix needs a word char immediately before the `#`, which never exists after a space. Also killed `(6/9kg)`, `-Ups` and **any umlaut-leading German term** (JS `\w` is ASCII-only). Two copies of the same buggy matcher — Workouts search and Movement Library — now share `utils/search-pattern.ts`.
-
-**Older sessions (57-410):** See `project-history/` folder.
+**Older sessions (57-411):** See `project-history/` folder.
 
 ---
 
 ## 🚨 Known Open Issues
 
 - **Partial `track` columns silently demote athletes (S411)** — `leaderboard-utils.ts:380-382` compares track *before* scaling and treats a missing track as `4`. If a session has tracks on some athletes and not others, the unmarked ones rank below everyone marked. Convention: unmarked on a board that marks any `Trk2` = Track 1, so **fill the blanks**. Not a code bug — a data-entry hazard.
-- **`ten_card_purchase_date` missing on 22 of 68 own-card holders (S411)** — any logic gated on "is this session inside the card's window" silently excludes a third of them. The 10-card chip now falls back to "today onwards", but new code touching card windows must handle the null. Root cause is the parked paper-card backlog (Next Steps 0e).
-- **Deleting a session notifies nobody (S410 — Chris decided S412: leave as is, don't build)** — `app/api/coach/delete-session/route.ts` imports no notification helper, so a coach deleting a session silently removes every booking (cascade FK) with no message to the athletes. Removing a *single* booking DOES notify. Hit live in S410: 12 athletes booked into 20.09 10:00, session deleted, nobody told. Fix is a notify loop over the bookings before the delete — needs Chris's go-ahead on wording.
+- **Cancelling a pre-booked session after a renewal can show `-1/10` (S416)** — when the old card was filled by future bookings, the new card's offset is negative; an in-time cancel of one of those makes Sessions Used −1. Numbers are right (11 available), display odd. Offered to tidy, not asked for.
+- **`ten_card_purchase_date` missing on 19 of 75 card holders (S411, recount S416)** — any logic gated on "is this session inside the card's window" silently excludes a third of them. The 10-card chip now falls back to "today onwards", but new code touching card windows must handle the null. Root cause is the parked paper-card backlog (Next Steps 0e).
+- **Deleting a session notifies nobody (S410 — Chris decided S412: leave as is; S416: use Cancel Session when athletes are booked — it notifies AND refunds 10-cards)** — `app/api/coach/delete-session/route.ts` imports no notification helper, so a coach deleting a session silently removes every booking (cascade FK) with no message to the athletes. Removing a *single* booking DOES notify. Hit live in S410: 12 athletes booked into 20.09 10:00, session deleted, nobody told. Fix is a notify loop over the bookings before the delete — needs Chris's go-ahead on wording.
 - **`notification_log` is incomplete as a booking record (S410)** — only 4 of 12 bookings for the deleted session left a trace, despite the coach-booking path logging its own message. Unexplained; don't rely on it for recovery without caveating.
 - **Mac Chrome hang (recurring, system-level)** — Chris's Macbook: after working a while, apps bounce in dock but won't launch ("Google Chrome is not responding"). Only full Mac restart fixes it. Happens increasingly often. Directly affects Forge pushes: Chrome in half-dead state = stuck GCM "Connecting", so Mac push never arrives. Not a Forge code issue; dedicated session needed. Diagnostic starting points: Activity Monitor Memory Pressure, disk free %, Chrome Helper memory leaks, `~/Library/Logs/DiagnosticReports/` for spindumps. (Session 292.)
 - **Mac push delivery (downstream of above)** — Mac never receives FCM pushes even with clean DB subs + healthy SW. `chrome://gcm-internals/` shows Connection State "Connecting". Will auto-resolve once the Chrome-hang root cause is fixed. Android push unaffected.
@@ -328,8 +329,9 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
+1. **S416 — live checks (nothing exercised by a real athlete yet):** (a) a parent's Book a Class shows kids' chips + "10er-Karte für X kaufen" opens Stripe with the right product (cancel, don't pay); (b) a 1-over athlete gets the German block on the next booking; (c) Cancel Session → 10-card chip drops, Restore → back; (d) mark a no-show → athlete (or parent) gets "Nicht erschienen"; (e) copy a workout over a scored one on a past date → scores still there after the Undo toast closes.
 1. **S415 — live checks (not yet exercised in the app):** (a) next time a coach adds a 10-card member to a class, the chip goes +1; (b) first **Close & Issue New on an over-limit card** — preview shows the carried sessions/dates; (c) link Torben → Gloria via **Share a card…** and confirm both chips update; (d) log out of an athlete account in Chris's browser and confirm their pushes stop.
-1. **S415 — Chris's pending answers:** Alois/Magnus/Michael pay-with, Marina/Max/Ole cards, 28.09 10:00 board (see Kickoff).
+1. **S415 answers closed in S416:** Alois/Michael = edge cases (leave); Marina/Max/Ole = one card per boy (both full, parent can now buy in app).
 1. **S410 — optional follow-ups.** (a) `notification_log` held only 4 of 12 bookings for that session — worth understanding before trusting it for recovery again. (b) Unpublishing a workout still clears `publish_sections`, blinding the coach modal the same way the S410 bug did — left alone deliberately, since hiding from athletes is the point of unpublishing. (c) Chip noise from naming variants ("Pull-up" / "Pull-ups" / "Pull-up Strict") — fix by tidying names, not code.
 1. **S410 — score entry needs nothing.** Weeks 35 and 3 fully entered and verified; Chris completed Martina, the Sabrina/Steven loads and the rest of board 3.1 himself.
 1. **S409 — no verification needed.** Pagination/audit/retention are infrastructure; all verified in-session against live data. Nothing for Chris to test.
