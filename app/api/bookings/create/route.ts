@@ -197,8 +197,8 @@ export async function POST(request: NextRequest) {
       if (tenCardRemaining - openWaitlist < 0) {
         return NextResponse.json(
           { error: tenCardRemaining < 0
-            ? 'Deine 10er-Karte ist bereits um 1 Session überzogen. Bitte kaufe eine neue 10er-Karte in der App – oder schreib uns, dass du bar bezahlst, dann schalten wir dich wieder frei.'
-            : 'Deine 10er-Karte ist voll und dein Wartelistenplatz zählt schon als Session über dem Limit. Bitte kaufe eine neue 10er-Karte in der App – oder schreib uns, dass du bar bezahlst, dann schalten wir dich wieder frei.' },
+            ? 'Deine 10er-Karte ist bereits um 1 Session überzogen. Bitte kaufe eine neue 10er-Karte in der App – oder schreib uns, dann schalten wir dich wieder frei.'
+            : 'Deine 10er-Karte ist voll und dein Wartelistenplatz zählt schon als Session über dem Limit. Bitte kaufe eine neue 10er-Karte in der App – oder schreib uns, dann schalten wir dich wieder frei.' },
           { status: 402 } // Payment Required
         );
       }

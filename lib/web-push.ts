@@ -83,12 +83,40 @@ export async function sendToUser(
   payload: PushPayload,
   notificationType?: string
 ): Promise<void> {
-  // Check user preference if type provided
+  let recipientId = userId;
+  let message = payload;
+
+  let { data: subs } = await supabaseAdmin
+    .from('push_subscriptions')
+    .select('id, endpoint, p256dh, auth, user_id')
+    .eq('user_id', recipientId);
+
+  // Kids have no login of their own, so nothing about them ever arrived. Send it
+  // to the parent instead, with the child's first name in front (S416). Only when
+  // the family member has no devices themselves (e.g. a spouse with own login).
+  if (!subs || subs.length === 0) {
+    const { data: m } = await supabaseAdmin
+      .from('members')
+      .select('account_type, primary_member_id, display_name, name')
+      .eq('id', userId)
+      .maybeSingle();
+    if (m?.account_type !== 'family_member' || !m.primary_member_id) return;
+    recipientId = m.primary_member_id;
+    const first = (m.display_name || m.name || '').split(' ')[0];
+    message = first ? { ...payload, title: `${first}: ${payload.title}` } : payload;
+    ({ data: subs } = await supabaseAdmin
+      .from('push_subscriptions')
+      .select('id, endpoint, p256dh, auth, user_id')
+      .eq('user_id', recipientId));
+    if (!subs || subs.length === 0) return;
+  }
+
+  // Check the recipient's preference if type provided
   if (notificationType) {
     const { data: prefs } = await supabaseAdmin
       .from('notification_preferences')
       .select(notificationType)
-      .eq('user_id', userId)
+      .eq('user_id', recipientId)
       .maybeSingle();
 
     // If prefs exist and this type is explicitly off, skip
@@ -96,23 +124,16 @@ export async function sendToUser(
     if (prefs && (prefs as Record<string, any>)[notificationType] === false) return;
   }
 
-  const { data: subs } = await supabaseAdmin
-    .from('push_subscriptions')
-    .select('id, endpoint, p256dh, auth, user_id')
-    .eq('user_id', userId);
-
-  if (!subs || subs.length === 0) return;
-
   // Log notification
   await supabaseAdmin.from('notification_log').insert({
-    user_id: userId,
+    user_id: recipientId,
     notification_type: notificationType || 'unknown',
-    title: payload.title,
-    body: payload.body,
-    data: payload.data || null,
+    title: message.title,
+    body: message.body,
+    data: message.data || null,
   });
 
-  await Promise.allSettled(subs.map((sub) => sendToSubscription(sub, payload)));
+  await Promise.allSettled(subs.map((sub) => sendToSubscription(sub, message)));
 }
 
 /**

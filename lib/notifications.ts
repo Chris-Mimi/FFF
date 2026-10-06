@@ -108,6 +108,40 @@ export function notifySessionCancelled(userId: string, sessionDate: string, sess
 }
 
 /**
+ * Notify an athlete (or, for a child, the parent — sendToUser redirects) that
+ * the coach marked them as a no-show (S416). German, athlete-facing.
+ */
+export function notifyNoShow(
+  memberId: string,
+  sessionDate: string,
+  sessionTime: string,
+  opts: { childFirstName?: string | null; tenCard: boolean }
+): void {
+  const dateFormatted = new Date(sessionDate + 'T00:00:00').toLocaleDateString('de-DE', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  });
+  const time = sessionTime.slice(0, 5);
+  const who = opts.childFirstName
+    ? `${opts.childFirstName} war für ${dateFormatted} um ${time} gebucht, ist aber nicht erschienen.`
+    : `Du warst für ${dateFormatted} um ${time} gebucht, bist aber nicht erschienen.`;
+  const tail = opts.tenCard
+    ? ` Die Session wird von ${opts.childFirstName ? 'der' : 'deiner'} 10er-Karte abgezogen.`
+    : ' Bitte storniere rechtzeitig, wenn du nicht kommen kannst.';
+
+  const payload: PushPayload = {
+    title: 'Nicht erschienen',
+    body: who + tail,
+    data: { url: '/member/book', type: 'session_cancelled' },
+  };
+
+  sendToUser(memberId, payload, 'session_cancelled').catch((err) =>
+    console.error('notifyNoShow failed:', err)
+  );
+}
+
+/**
  * Notify a user that the coach added them to a session.
  */
 export function notifyCoachBooked(userId: string, sessionDate: string, sessionTime: string, status: 'confirmed' | 'waitlist'): void {

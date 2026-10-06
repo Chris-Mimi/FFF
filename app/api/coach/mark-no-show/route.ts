@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { requireCoach, isAuthError } from '@/lib/auth-api';
 import { cleanupAthleteScoresForWod, resolveAuthUserId } from '@/lib/coach/scoreCleanup';
+import { notifyNoShow } from '@/lib/notifications';
 
 // Symmetric with /api/coach/mark-late-cancel: marking no-show should also clear
 // any score that was entered for the athlete on this class (typically via
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest) {
 
     const { data: booking, error: fetchError } = await supabaseAdmin
       .from('bookings')
-      .select('id, member_id, session_id, status')
+      .select('id, member_id, session_id, status, ten_card_consumed')
       .eq('id', bookingId)
       .single();
 
@@ -49,9 +50,23 @@ export async function POST(request: NextRequest) {
 
     const { data: session } = await supabaseAdmin
       .from('weekly_sessions')
-      .select('workout_id')
+      .select('workout_id, date, time')
       .eq('id', booking.session_id)
       .single();
+
+    // Tell the athlete (a child's parent via sendToUser) — fire-and-forget, S416.
+    // Only on the first marking, so re-saving an existing no-show doesn't re-notify.
+    if (session && booking.status !== 'no_show') {
+      const { data: m } = await supabaseAdmin
+        .from('members')
+        .select('account_type, display_name, name')
+        .eq('id', memberId)
+        .maybeSingle();
+      notifyNoShow(memberId, session.date, session.time, {
+        childFirstName: m?.account_type === 'family_member' ? (m.display_name || m.name || '').split(' ')[0] || null : null,
+        tenCard: booking.ten_card_consumed === true,
+      });
+    }
 
     let wsrDeleted = 0;
     let liftRecordsDeleted = 0;
