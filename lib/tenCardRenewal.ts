@@ -23,6 +23,8 @@ type CardBooking = BookingSnapshot & { member_id: string; consumed: boolean };
 export type CarryOverPlan = {
   carried: { date: string; time: string }[];
   carryStart: string | null; // YYYY-MM-DD of the first overflow session
+  leftover: number;          // unused sessions on the old card (bought early)
+  leftoverExpired: boolean;  // old card already expired → leftover NOT added automatically
 };
 
 export type RenewOptions = {
@@ -48,7 +50,7 @@ const plusOneYear = (d: string) => {
 async function loadCard(db: SupabaseClient, memberId: string) {
   const { data: member, error } = await db
     .from('members')
-    .select('id, name, display_name, ten_card_holder_id, ten_card_total, ten_card_sessions_used, ten_card_sessions_used_offset, ten_card_purchase_date, ten_card_notes')
+    .select('id, name, display_name, ten_card_holder_id, ten_card_total, ten_card_sessions_used, ten_card_sessions_used_offset, ten_card_purchase_date, ten_card_expiry_date, ten_card_notes')
     .eq('id', memberId)
     .single();
   if (error || !member) throw new Error('Member not found');
@@ -106,15 +108,23 @@ function splitOverflow(bookings: CardBooking[], total: number, offset: number) {
   const consumed = bookings.filter(b => b.consumed);
   const slots = Math.max(0, total - offset); // offset = pre-app sessions already on the card
   const carried = consumed.slice(slots);
-  return { carried, carriedIds: new Set(carried.map(b => b.booking_id)) };
+  // Bought early (S416, Markus): sessions still unused on the old card move to the new one.
+  const leftover = Math.max(0, slots - consumed.length);
+  return { carried, carriedIds: new Set(carried.map(b => b.booking_id)), leftover };
 }
 
-export async function planTenCardCarryOver(db: SupabaseClient, memberId: string): Promise<CarryOverPlan> {
+// Leftover sessions move over automatically only while the old card is valid;
+// an expired card's leftovers are the coach's call (Chris, S416).
+const isExpired = (expiry: string | null, onDate: string) => !!expiry && dateOnly(expiry) < onDate;
+
+export async function planTenCardCarryOver(db: SupabaseClient, memberId: string, paidOn: string): Promise<CarryOverPlan> {
   const { member, bookings } = await loadCard(db, memberId);
-  const { carried } = splitOverflow(bookings, member.ten_card_total ?? 10, member.ten_card_sessions_used_offset || 0);
+  const { carried, leftover } = splitOverflow(bookings, member.ten_card_total ?? 10, member.ten_card_sessions_used_offset || 0);
   return {
     carried: carried.map(b => ({ date: b.date, time: b.time })),
     carryStart: carried[0]?.date ?? null,
+    leftover,
+    leftoverExpired: isExpired(member.ten_card_expiry_date, paidOn),
   };
 }
 
@@ -129,12 +139,18 @@ export async function renewTenCard(db: SupabaseClient, memberId: string, opts: R
 
   const total: number = member.ten_card_total ?? 10;
   const used: number = member.ten_card_sessions_used ?? 0;
-  const { carried, carriedIds } = splitOverflow(bookings, total, member.ten_card_sessions_used_offset || 0);
+  const { carried, carriedIds, leftover } = splitOverflow(bookings, total, member.ten_card_sessions_used_offset || 0);
   const carryStart = carried[0]?.date ?? null;
+  const leftoverExpired = isExpired(member.ten_card_expiry_date, opts.paidOn);
+  const plural = (n: number) => (n === 1 ? '' : 's');
 
   const carryNote = carried.length
-    ? `${carried.length} session${carried.length === 1 ? '' : 's'} attended after this card was full carried to the next card (${carried.map(b => fmtDe(b.date)).join(', ')}).`
-    : null;
+    ? `${carried.length} session${plural(carried.length)} attended after this card was full carried to the next card (${carried.map(b => fmtDe(b.date)).join(', ')}).`
+    : leftover > 0
+      ? leftoverExpired
+        ? `${leftover} unused session${plural(leftover)} NOT moved to the next card — this card had expired.`
+        : `${leftover} unused session${plural(leftover)} moved to the next card.`
+      : null;
 
   const { error: archiveError } = await db.from('ten_card_archive').insert({
     member_id: memberId,
@@ -150,21 +166,24 @@ export async function renewTenCard(db: SupabaseClient, memberId: string, opts: R
 
   const purchase = opts.newPurchaseDate || carryStart || opts.paidOn;
   const expiry = opts.newExpiryDate || plusOneYear(opts.paidOn);
-  const finalTotal = typeof opts.newTotal === 'number' ? opts.newTotal : total;
+  const addLeftover = leftover > 0 && !leftoverExpired;
+  const finalTotal = typeof opts.newTotal === 'number' ? opts.newTotal : total + (addLeftover ? leftover : 0);
 
-  // Bookings the trigger will count on the new card. If the last old-card session
-  // shares a date with the first carried one, it falls inside the new window too.
+  // Bookings the trigger will count on the new card. A session archived on the old
+  // card can fall inside the new window too (same day as the purchase or the first
+  // carried session) — it must not count twice (S416, Markus 01.07), so the new card
+  // starts at exactly the carried sessions and the offset absorbs the rest.
   const inNewWindow = bookings.filter(b => b.consumed && b.date >= purchase).length;
   const isCarry = carried.length > 0 && purchase === carryStart;
-  const sessionsUsed = typeof opts.newSessionsUsed === 'number'
-    ? opts.newSessionsUsed
-    : isCarry ? carried.length : inNewWindow;
+  const sessionsUsed = typeof opts.newSessionsUsed === 'number' ? opts.newSessionsUsed : carried.length;
   // Trigger formula: used = offset + COUNT(consumed bookings since purchase).
   const offset = sessionsUsed - inNewWindow;
 
   const autoNote = isCarry
-    ? `Paid ${fmtDe(opts.paidOn)}. Started ${fmtDe(purchase)} to carry over ${carried.length} session${carried.length === 1 ? '' : 's'} from the previous card (${carried.map(b => fmtDe(b.date)).join(', ')}).`
-    : null;
+    ? `Paid ${fmtDe(opts.paidOn)}. Started ${fmtDe(purchase)} to carry over ${carried.length} session${plural(carried.length)} from the previous card (${carried.map(b => fmtDe(b.date)).join(', ')}).`
+    : addLeftover && finalTotal === total + leftover
+      ? `Includes ${leftover} unused session${plural(leftover)} from the previous card (${total} + ${leftover}).`
+      : null;
 
   const { error: resetError } = await db
     .from('members')

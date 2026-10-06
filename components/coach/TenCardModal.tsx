@@ -447,7 +447,7 @@ export default function TenCardModal({
     if (!member) return;
 
     // Sessions attended after the card was full carry over onto the new card (S415).
-    let plan: CarryOverPlan = { carried: [], carryStart: null };
+    let plan: CarryOverPlan = { carried: [], carryStart: null, leftover: 0, leftoverExpired: false };
     try {
       const res = await authFetch('/api/coach/close-ten-card', {
         method: 'POST',
@@ -458,12 +458,19 @@ export default function TenCardModal({
       console.error('Carry-over preview failed:', error);
     }
     const n = plan.carried.length;
+    const left = plan.leftover;
+    // Unused sessions on a still-valid card move to the new one as extra size (S416).
+    const newTotal = tenCardTotal + (left > 0 && !plan.leftoverExpired ? left : 0);
 
     if (!await confirm({
       title: 'Close & Issue New 10-Card',
       message: n > 0
         ? `This card is ${n} over. Close it at ${tenCardTotal}/${tenCardTotal} and start a new card with ${n}/${tenCardTotal} already used (from ${fmtDe(plan.carryStart!)})? The closed card will appear in Card History after you click Save Changes. Click Cancel to abort.`
-        : `Close this card with ${sessionsUsed}/${tenCardTotal} sessions used and start a fresh card today? The closed card will appear in Card History after you click Save Changes. Click Cancel to abort.`,
+        : left > 0 && !plan.leftoverExpired
+          ? `This card still has ${left} unused session${left === 1 ? '' : 's'}. Close it and start a new card of ${newTotal} (${tenCardTotal} + ${left}) today? The closed card will appear in Card History after you click Save Changes. Click Cancel to abort.`
+          : left > 0
+            ? `This card has expired with ${left} unused session${left === 1 ? '' : 's'}. They are NOT added to the new card — raise Total Sessions if you want to give them. Close it and start a fresh card today? Click Cancel to abort.`
+            : `Close this card with ${sessionsUsed}/${tenCardTotal} sessions used and start a fresh card today? The closed card will appear in Card History after you click Save Changes. Click Cancel to abort.`,
       confirmText: 'Close & Issue New',
       variant: 'default',
     })) {
@@ -481,6 +488,7 @@ export default function TenCardModal({
     // runs 12 months from today (the payment date).
     setPurchaseDate(plan.carryStart || today);
     setTenCardExpiry(expiry);
+    setTenCardTotal(newTotal);
     setSessionsUsed(n);
     setPreviewSessionsUsed(n);
     setBookingsCount(n);
@@ -805,6 +813,14 @@ export default function TenCardModal({
                       {carryPreview && carryPreview.carried.length > 0 ? (
                         <p className="text-xs text-amber-800 mt-1">
                           <span className="font-semibold">{carryPreview.carried.length} session{carryPreview.carried.length === 1 ? '' : 's'} carried over</span> from the full card ({carryPreview.carried.map(c => fmtDe(c.date)).join(', ')}). The new card starts {fmtDe(carryPreview.carryStart!)} so they count on it; expiry is 12 months from today.
+                        </p>
+                      ) : carryPreview && carryPreview.leftover > 0 ? (
+                        <p className="text-xs text-amber-800 mt-1">
+                          {carryPreview.leftoverExpired ? (
+                            <><span className="font-semibold">{carryPreview.leftover} unused session{carryPreview.leftover === 1 ? '' : 's'} on an expired card</span> — not added. Raise Total Sessions below if you want to give them.</>
+                          ) : (
+                            <><span className="font-semibold">{carryPreview.leftover} unused session{carryPreview.leftover === 1 ? '' : 's'} moved over</span> — Total Sessions below includes them.</>
+                          )}
                         </p>
                       ) : (
                         <p className="text-xs text-amber-800 mt-1">

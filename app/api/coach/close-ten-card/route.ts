@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
       preview?: boolean;         // true = return the carry-over plan only, write nothing
       newPurchaseDate?: string;  // YYYY-MM-DD; defaults to first carried session, else today
       newExpiryDate?: string;    // YYYY-MM-DD; defaults to today + 12 months
-      newTotal?: number;         // defaults to current card's total
+      newTotal?: number;         // defaults to current card's total (+ unused sessions if still valid)
       newSessionsUsed?: number;  // defaults to the carried-over count
       newNotes?: string;         // notes to set on the NEW active card (old notes are archived)
     };
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (preview) {
-      return NextResponse.json(await planTenCardCarryOver(supabaseAdmin, memberId));
+      return NextResponse.json(await planTenCardCarryOver(supabaseAdmin, memberId, berlinToday()));
     }
 
     try {
