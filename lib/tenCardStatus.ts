@@ -35,12 +35,19 @@ export type TenCardStatus = {
   upcoming: number;
   expiryDate: string | null;
   expired: boolean;
+  /** Expired cards stay bookable until this date (expiry + 1 month), mirrors /api/bookings/create. */
+  graceUntil: string | null;
   /** Stripe product the viewer can buy for this card's holder (self or own child); null = can't. */
   buyProduct: '10card' | '10card_kids' | null;
 };
 
 const CARD_COLS =
   'id, name, display_name, membership_types, primary_payment_method, ten_card_holder_id, ten_card_total, ten_card_sessions_used, ten_card_expiry_date, account_type, primary_member_id, date_of_birth, guardian_only';
+
+const plusOneMonth = (ymd: string) => {
+  const [y, m, d] = ymd.split('-').map(Number);
+  return new Date(Date.UTC(y, m, d)).toISOString().slice(0, 10); // same roll-over as the booking route
+};
 
 const label = (m: CardMember) => m.display_name || m.name || '';
 const debitsOwnCard = (m: CardMember) =>
@@ -119,6 +126,7 @@ export async function getHouseholdTenCards(db: SupabaseClient, userId: string): 
       upcoming: upcomingByHolder[h.id] || 0,
       expiryDate: expiry,
       expired: !!expiry && expiry < today,
+      graceUntil: expiry ? plusOneMonth(expiry) : null,
       // Mirrors the create-checkout ownership guard: self, or a family member you own.
       buyProduct: h.id === userId || (h.account_type === 'family_member' && h.primary_member_id === userId)
         ? (kidsOnly ? '10card_kids' : '10card')

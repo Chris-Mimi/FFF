@@ -265,11 +265,14 @@ export function useSessionEditing({
       // Cancel all bookings, tagging each with its prior status so Restore can put
       // it back exactly — and so Restore never touches a booking an athlete
       // cancelled themselves (those keep a NULL pre_cancel_status).
-      await supabase
+      // A coach-cancelled class is never charged to a 10-card (S416): clearing the
+      // flag lets the DB trigger give the session back. Restore charges it again.
+      const { error: cancelBookingsError } = await supabase
         .from('bookings')
-        .update({ status: 'cancelled', pre_cancel_status: 'confirmed' })
+        .update({ status: 'cancelled', pre_cancel_status: 'confirmed', ten_card_consumed: false })
         .eq('session_id', sessionId)
         .eq('status', 'confirmed');
+      if (cancelBookingsError) throw cancelBookingsError;
       await supabase
         .from('bookings')
         .update({ status: 'cancelled', pre_cancel_status: 'waitlist' })
@@ -314,11 +317,36 @@ export function useSessionEditing({
 
       if (error) throw error;
 
-      await supabase
+      // Bookings this cancel flipped from confirmed — read before restoring so the
+      // 10-card debit can be re-applied (same rule as /api/bookings/create: a
+      // confirmed booking debits iff the booker's effective method is ten_card).
+      const { data: toRestore, error: readError } = await supabase
+        .from('bookings')
+        .select('id, members!inner(primary_payment_method, membership_types)')
+        .eq('session_id', sessionId)
+        .eq('pre_cancel_status', 'confirmed');
+      if (readError) throw readError;
+      type RestoreRow = { id: string; members: { primary_payment_method: string | null; membership_types: string[] | null } | { primary_payment_method: string | null; membership_types: string[] | null }[] };
+      const cardBookingIds = ((toRestore || []) as RestoreRow[])
+        .filter(b => {
+          const m = Array.isArray(b.members) ? b.members[0] : b.members;
+          return (m?.primary_payment_method || m?.membership_types?.[0] || null) === 'ten_card';
+        })
+        .map(b => b.id);
+
+      const { error: restoreError } = await supabase
         .from('bookings')
         .update({ status: 'confirmed', pre_cancel_status: null })
         .eq('session_id', sessionId)
         .eq('pre_cancel_status', 'confirmed');
+      if (restoreError) throw restoreError;
+      if (cardBookingIds.length > 0) {
+        const { error: debitError } = await supabase
+          .from('bookings')
+          .update({ ten_card_consumed: true })
+          .in('id', cardBookingIds);
+        if (debitError) throw debitError;
+      }
       await supabase
         .from('bookings')
         .update({ status: 'waitlist', pre_cancel_status: null })

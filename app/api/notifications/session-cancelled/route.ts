@@ -31,12 +31,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 });
     }
 
-    // Get all members who had confirmed or waitlist bookings (now cancelled)
+    // Only members this cancel affected — bookings it flipped carry pre_cancel_status;
+    // athletes who had already cancelled themselves (NULL) aren't told again (S416).
     const { data: cancelledBookings } = await supabaseAdmin
       .from('bookings')
       .select('member_id')
       .eq('session_id', sessionId)
-      .eq('status', 'cancelled');
+      .eq('status', 'cancelled')
+      .not('pre_cancel_status', 'is', null);
 
     if (!cancelledBookings || cancelledBookings.length === 0) {
       return NextResponse.json({ success: true, notified: 0 });

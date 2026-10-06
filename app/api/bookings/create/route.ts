@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { notifyBookingConfirmed, notifyBookingWaitlisted, notifyParkedMemberBooked } from '@/lib/notifications';
-import { getBookingRules, getLockLeadMinutesForSessionType, getMaxVisibleSessionDate, sessionAutoLockInstant, berlinWallClock, berlinWallTimeToUTC, isMinor } from '@/lib/bookingRules';
+import { getBookingRules, getLockLeadMinutesForSessionType, getMaxVisibleSessionDate, sessionAutoLockInstant, berlinWallClock, berlinWallTimeToUTC, isMinor, berlinToday } from '@/lib/bookingRules';
 
 export async function POST(request: NextRequest) {
   try {
@@ -110,7 +110,6 @@ export async function POST(request: NextRequest) {
     // wellpass + ten_card; her self-bookings should not burn her kids' card).
     const effectiveMethod = member.primary_payment_method || member.membership_types?.[0] || null;
     const usesTenCard = effectiveMethod === 'ten_card';
-    const now = new Date();
 
     // Resolve 10-card holder. NULL = debit own card; otherwise debit a different member's
     // card (kid sharing parent's card, e.g. Miriam's three kids).
@@ -137,6 +136,7 @@ export async function POST(request: NextRequest) {
 
     // Validate 10-card balance and expiry on the holder's card.
     let tenCardRemaining = 0;
+    let tenCardExpiredOn: string | null = null; // set while booking inside the 1-month grace
     if (usesTenCard) {
       if (!holderCard) {
         return NextResponse.json(
@@ -147,15 +147,33 @@ export async function POST(request: NextRequest) {
       const total = holderCard.ten_card_total || 10;
       const used = holderCard.ten_card_sessions_used || 0;
       tenCardRemaining = total - used;
-      const expired = holderCard.ten_card_expiry_date && new Date(holderCard.ten_card_expiry_date) < now;
-      if (expired) {
+
+      // Expired: still bookable for 1 month after the expiry date, then blocked
+      // (Chris, S416 — expiry is flexible for regulars; long-expired is case by case).
+      const expiry = holderCard.ten_card_expiry_date ? holderCard.ten_card_expiry_date.split('T')[0] : null;
+      const today = berlinToday();
+      if (expiry && expiry < today) {
+        const [ey, em, ed] = expiry.split('-').map(Number);
+        const g = new Date(Date.UTC(ey, em, ed)); // expiry + 1 month (JS rolls the month)
+        const graceEnd = g.toISOString().slice(0, 10);
+        if (today > graceEnd) {
+          return NextResponse.json(
+            { error: 'Deine 10er-Karte ist seit über einem Monat abgelaufen. Bitte kaufe eine neue 10er-Karte in der App oder melde dich bei uns.' },
+            { status: 402 } // Payment Required
+          );
+        }
+        tenCardExpiredOn = expiry;
+      }
+
+      // Full card: one session over is allowed, then blocked until a new card is
+      // bought in the app or the coach renews it after cash payment (Chris, S416).
+      // Coach-added bookings don't go through this route, so the coach can still add.
+      if (tenCardRemaining < 0) {
         return NextResponse.json(
-          { error: 'The 10-card has expired. Please purchase a new 10-card to book classes.' },
+          { error: 'Deine 10er-Karte ist bereits um 1 Session überzogen. Bitte kaufe eine neue 10er-Karte in der App – oder schreib uns, dass du bar bezahlst, dann schalten wir dich wieder frei.' },
           { status: 402 } // Payment Required
         );
       }
-      // Card-full is NOT a hard block — booking proceeds; counter increments past total.
-      // Coach reviews via Members → 10-Card tab and decides how to resolve.
     }
 
     // Check if session exists and is published
@@ -503,14 +521,17 @@ export async function POST(request: NextRequest) {
       };
 
       if (newTenCardRemaining < 0) {
-        const over = -newTenCardRemaining;
-        response.message = `⚠️ Session booked, but your 10-card is over its limit by ${over}. Please purchase a new 10-card.`;
+        response.message = '⚠️ Session gebucht – deine 10er-Karte ist jetzt um 1 Session überzogen. Weitere Buchungen sind erst mit einer neuen 10er-Karte möglich.';
       } else if (newTenCardRemaining === 0) {
         response.message = '🎫 This was your FINAL 10-card session! Session booked successfully.';
       } else if (newTenCardRemaining === 1) {
         response.message = '⚠️ LAST SESSION REMAINING on your 10-card! Session booked successfully.';
       } else if (newTenCardRemaining <= 3) {
         response.message += ` ⚠️ (${newTenCardRemaining} sessions remaining on your 10-card)`;
+      }
+      if (tenCardExpiredOn) {
+        const [y, m, d] = tenCardExpiredOn.split('-');
+        response.message += ` ⚠️ Deine 10er-Karte ist am ${d}.${m}.${y} abgelaufen – bitte kaufe bald eine neue.`;
       }
     }
 

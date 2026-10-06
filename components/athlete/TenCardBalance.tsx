@@ -12,6 +12,10 @@ interface TenCardBalanceProps {
   refreshKey: unknown;
 }
 
+// Browser runs in Berlin for our athletes, so local date parts = Berlin date.
+const formatYmd = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
 const formatDate = (ymd: string) => {
   const [y, m, d] = ymd.split('-');
   return `${d}.${m}.${y}`;
@@ -78,10 +82,13 @@ export default function TenCardBalance({ loggedInMemberId, refreshKey }: TenCard
     const over = Math.max(0, -card.remaining);
     let text: string | null = null;
     let tone: 'red' | 'yellow' = 'red';
-    if (card.expired) text = `${WhoseCard} ist abgelaufen – bitte kaufe eine neue 10er-Karte.`;
+    const today = formatYmd(new Date());
+    if (card.expired) text = card.graceUntil && today <= card.graceUntil
+      ? `${WhoseCard} ist abgelaufen – Buchen ist noch bis ${formatDate(card.graceUntil)} möglich. Bitte kaufe eine neue 10er-Karte.`
+      : `${WhoseCard} ist abgelaufen – Buchen ist erst mit einer neuen 10er-Karte wieder möglich.`;
     else if (over > 0) text = over === 1
-      ? `${WhoseCard} ist um 1 Session überzogen – bitte kaufe eine neue 10er-Karte. Die zusätzliche Session wird auf die neue Karte übertragen.`
-      : `${WhoseCard} ist um ${over} Sessions überzogen – bitte kaufe eine neue 10er-Karte. Die zusätzlichen Sessions werden auf die neue Karte übertragen.`;
+      ? `${WhoseCard} ist um 1 Session überzogen – weitere Buchungen sind erst mit einer neuen 10er-Karte möglich. Die zusätzliche Session wird auf die neue Karte übertragen.`
+      : `${WhoseCard} ist um ${over} Sessions überzogen – weitere Buchungen sind erst mit einer neuen 10er-Karte möglich. Die zusätzlichen Sessions werden auf die neue Karte übertragen.`;
     else if (card.remaining === 0) text = card.upcoming > 0
       ? `Inklusive der bereits gebuchten Sessions wird ${whoseCard} voll sein – bitte kaufe eine neue.`
       : `${WhoseCard} ist voll – bitte kaufe eine neue 10er-Karte.`;
