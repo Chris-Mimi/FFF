@@ -520,14 +520,17 @@ export async function POST(request: NextRequest) {
         lowSessionsWarning: newTenCardRemaining <= 3
       };
 
+      // 10-card bookings get the whole message in German (athlete-facing, S416).
       if (newTenCardRemaining < 0) {
         response.message = '⚠️ Session gebucht – deine 10er-Karte ist jetzt um 1 Session überzogen. Weitere Buchungen sind erst mit einer neuen 10er-Karte möglich.';
       } else if (newTenCardRemaining === 0) {
-        response.message = '🎫 This was your FINAL 10-card session! Session booked successfully.';
+        response.message = '🎫 Session gebucht – das war die letzte Session auf deiner 10er-Karte!';
       } else if (newTenCardRemaining === 1) {
-        response.message = '⚠️ LAST SESSION REMAINING on your 10-card! Session booked successfully.';
+        response.message = '⚠️ Session gebucht – nur noch 1 Session auf deiner 10er-Karte!';
       } else if (newTenCardRemaining <= 3) {
-        response.message += ` ⚠️ (${newTenCardRemaining} sessions remaining on your 10-card)`;
+        response.message = `Session gebucht. ⚠️ Noch ${newTenCardRemaining} Sessions auf deiner 10er-Karte.`;
+      } else {
+        response.message = 'Session gebucht.';
       }
       if (tenCardExpiredOn) {
         const [y, m, d] = tenCardExpiredOn.split('-');
