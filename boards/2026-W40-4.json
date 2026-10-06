@@ -1,0 +1,42 @@
+{
+  "note": "2026 Week 40.3 — Sun 04.10 Ring Gymnastics & Wallball WOD, 14-min AMRAP. Rounds = rounds_result + reps_result; WB = Load 1 (Rx = 6 F / 9 M); Jumps (Wallball Lateral Hop Over) = scaling Rx / sc→Sc1.",
+  "sessions": [
+    {
+      "date": "2026-10-04",
+      "time": "10:00",
+      "sectionId": "section-1790514632189-4",
+      "rows": [
+        { "member": "Carmine", "rounds_result": 4, "reps_result": 10, "weight_result": 9, "scaling_level": "Rx" },
+        { "member": "Christian Tanner", "rounds_result": 5, "reps_result": 10, "weight_result": 9, "scaling_level": "Rx" },
+        { "member": "Tobias Schiegg", "rounds_result": 5, "reps_result": 5, "weight_result": 9, "scaling_level": "Rx" },
+        { "member": "Sven", "rounds_result": 5, "reps_result": 40, "weight_result": 9, "scaling_level": "Rx" },
+        { "member": "Thomas Graf", "rounds_result": 4, "reps_result": 0, "weight_result": 9, "scaling_level": "Rx" },
+        { "whiteboard": "Manuel Hengge", "rounds_result": 3, "reps_result": 30, "weight_result": 6, "scaling_level": "Sc1" },
+        { "member": "Justine", "rounds_result": 3, "reps_result": 10, "weight_result": 5, "scaling_level": "Rx" },
+        { "member": "Rosita", "rounds_result": 3, "reps_result": 0, "weight_result": 6, "scaling_level": "Sc1" },
+        { "member": "Sonja", "rounds_result": 5, "reps_result": 0, "weight_result": 6, "scaling_level": "Sc1" },
+        { "member": "Marion", "rounds_result": 5, "reps_result": 10, "weight_result": 6, "scaling_level": "Sc1" },
+        { "member": "Gloria", "rounds_result": 4, "reps_result": 0, "weight_result": 4, "scaling_level": "Sc1" },
+        { "member": "Valerie", "rounds_result": 6, "reps_result": 10, "weight_result": 6, "scaling_level": "Rx" },
+        { "member": "Nikolina", "rounds_result": 3, "reps_result": 50, "weight_result": 6, "scaling_level": "Sc1" },
+        { "member": "Amelie", "rounds_result": 5, "reps_result": 26, "weight_result": 6, "scaling_level": "Rx" }
+      ]
+    },
+    {
+      "date": "2026-10-04",
+      "time": "11:00",
+      "sectionId": "section-1790514632189-4",
+      "rows": [
+        { "member": "Aline", "rounds_result": 3, "reps_result": 10, "weight_result": 6, "scaling_level": "Rx" },
+        { "member": "Anna Kr", "rounds_result": 4, "reps_result": 30, "weight_result": 6, "scaling_level": "Rx" },
+        { "member": "Katja", "rounds_result": 5, "reps_result": 1, "weight_result": 4, "scaling_level": "Sc1" },
+        { "member": "Ruby", "rounds_result": 6, "reps_result": 10, "weight_result": 6, "scaling_level": "Rx" },
+        { "member": "Toni", "rounds_result": 4, "reps_result": 40, "weight_result": 6, "scaling_level": "Rx" },
+        { "whiteboard": "Simone (half blind)", "rounds_result": 4, "reps_result": 20, "scaling_level": "Sc1" },
+        { "whiteboard": "Anita", "rounds_result": 4, "reps_result": 40, "weight_result": 3, "scaling_level": "Sc1" },
+        { "member": "Jan", "rounds_result": 4, "reps_result": 10, "weight_result": 9, "scaling_level": "Rx" },
+        { "member": "Sermet", "rounds_result": 4, "reps_result": 0, "weight_result": 7, "scaling_level": "Rx" }
+      ]
+    }
+  ]
+}
