@@ -37,12 +37,13 @@ const eff = (m: M) => m.primary_payment_method || m.membership_types?.[0] || nul
 const ymd = (s: string | null) => (s ? s.split('T')[0] : null);
 const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berlin' }).format(new Date());
 
-async function all<T>(build: (from: number) => PromiseLike<{ data: T[] | null; error: unknown }>): Promise<T[]> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function all<T>(build: (from: number) => PromiseLike<{ data: any[] | null; error: unknown }>): Promise<T[]> {
   const out: T[] = [];
   for (let from = 0; ; from += 1000) {
     const { data, error } = await build(from);
     if (error) throw error;
-    out.push(...(data || []));
+    out.push(...((data || []) as T[]));
     if (!data || data.length < 1000) return out;
   }
 }
