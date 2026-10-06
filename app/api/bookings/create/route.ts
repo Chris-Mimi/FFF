@@ -168,9 +168,37 @@ export async function POST(request: NextRequest) {
       // Full card: one session over is allowed, then blocked until a new card is
       // bought in the app or the coach renews it after cash payment (Chris, S416).
       // Coach-added bookings don't go through this route, so the coach can still add.
-      if (tenCardRemaining < 0) {
+      // Open waitlist spots count as booked: a later promotion debits the card, so
+      // without this a full card could reach 2 over via the waitlist. Service role —
+      // a shared card's other bookers are hidden from this athlete by RLS.
+      let openWaitlist = 0;
+      if (holderId) {
+        const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+        const { data: cardUsers, error: cuErr } = await admin
+          .from('members')
+          .select('id, primary_payment_method, membership_types')
+          .or(`id.eq.${holderId},ten_card_holder_id.eq.${holderId}`);
+        const ids = (cardUsers || [])
+          .filter(u => (u.primary_payment_method || u.membership_types?.[0] || null) === 'ten_card')
+          .map(u => u.id as string);
+        if (!cuErr && ids.length > 0) {
+          const { count, error: wlErr } = await admin
+            .from('bookings')
+            .select('id, weekly_sessions!inner(date)', { count: 'exact', head: true })
+            .in('member_id', ids)
+            .eq('status', 'waitlist')
+            .gte('weekly_sessions.date', today);
+          if (wlErr) console.error('10-card waitlist count failed:', wlErr); // fail open
+          else openWaitlist = count || 0;
+        } else if (cuErr) {
+          console.error('10-card users lookup failed:', cuErr); // fail open
+        }
+      }
+      if (tenCardRemaining - openWaitlist < 0) {
         return NextResponse.json(
-          { error: 'Deine 10er-Karte ist bereits um 1 Session überzogen. Bitte kaufe eine neue 10er-Karte in der App – oder schreib uns, dass du bar bezahlst, dann schalten wir dich wieder frei.' },
+          { error: tenCardRemaining < 0
+            ? 'Deine 10er-Karte ist bereits um 1 Session überzogen. Bitte kaufe eine neue 10er-Karte in der App – oder schreib uns, dass du bar bezahlst, dann schalten wir dich wieder frei.'
+            : 'Deine 10er-Karte ist voll und dein Wartelistenplatz zählt schon als Session über dem Limit. Bitte kaufe eine neue 10er-Karte in der App – oder schreib uns, dass du bar bezahlst, dann schalten wir dich wieder frei.' },
           { status: 402 } // Payment Required
         );
       }
