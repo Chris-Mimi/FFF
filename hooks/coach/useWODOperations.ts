@@ -773,6 +773,26 @@ export const useWODOperations = ({ fetchWODs, fetchTracksAndCounts }: UseWODOper
 
           if (refs && refs.length > 0) continue;
 
+          // Scores move onto the new copy (S416 — 21.09 lost 24 scores + 12 lift
+          // records here). If any can't move (different sections) or the move fails,
+          // keep the old workout: deleting it would delete those scores with it.
+          let remaining = -1;
+          try {
+            const res = await authFetch('/api/sessions/move-results', {
+              method: 'POST',
+              body: JSON.stringify({ fromWodId: wodId, toWodId: newWorkout!.id }),
+            });
+            if (res.ok) remaining = (await res.json()).remaining;
+          } catch {
+            // remaining stays -1 → keep the old workout
+          }
+          if (remaining !== 0) {
+            if (remaining > 0) {
+              toast.warning(`${remaining} score${remaining === 1 ? '' : 's'} from the replaced workout couldn't move (different sections) — the old workout was kept so they aren't lost.`);
+            }
+            continue;
+          }
+
           const { data: oldWod } = await supabase
             .from('wods')
             .select('google_event_id')
