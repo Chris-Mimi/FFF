@@ -884,7 +884,10 @@ export default function TenCardModal({
                     onChange={(e) => setTenCardTotal(Math.max(1, Math.min(50, Number(e.target.value) || 1)))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Standard is 10.</p>
+                  <div className="mt-2 rounded-md border border-green-300 bg-green-50 px-3 py-2 text-xs text-green-900">
+                    <p className="font-semibold">Use this to GIVE extra or free sessions.</p>
+                    <p className="mt-0.5">Standard is 10. Raise it for a paid trial (11), leftover sessions from an old card, or a goodwill session. Recalc never changes this number.</p>
+                  </div>
                 </div>
 
                 {/* Expiry Date */}
@@ -937,13 +940,16 @@ export default function TenCardModal({
                           : `${Math.abs(sessionsUsed - bookingsCount)} fewer session${Math.abs(sessionsUsed - bookingsCount) === 1 ? '' : 's'} than recorded bookings — counter lower than the booking history. See Notes.`}
                       </p>
                       <p className="text-[11px] text-amber-800 mt-1">
-                        Counter will keep adding new bookings on top. Click Recalc to drop the override and trust bookings only.
+                        {sessionsUsed - bookingsCount < 0
+                          ? 'If this is a free or compensation session, set Total Sessions instead — Recalc or a start-date change will wipe this.'
+                          : 'Counter will keep adding new bookings on top. Recalc or a start-date change wipes this and trusts bookings only.'}
                       </p>
                     </div>
                   )}
-                  <p className="text-xs text-gray-500 mt-1">
-                    Edit directly to record sessions used outside the app (e.g. a card bought pre-launch) — the value sticks and future bookings increment on top. Click Recalc to drop the manual override and rebuild the counter from recorded bookings since the purchase date.
-                  </p>
+                  <div className="mt-2 rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-xs text-gray-700">
+                    <p className="font-semibold text-gray-900">Only for sessions that really happened outside the app.</p>
+                    <p className="mt-0.5">E.g. sessions on a paper card before the app. <span className="font-semibold">Never lower it to give free sessions</span> — raise Total Sessions instead. Anything typed here is wiped by Recalc or a start-date change, which recount from bookings only.</p>
+                  </div>
                 </div>
 
                 {/* Notes — free-text for payment-tracking on this card */}
