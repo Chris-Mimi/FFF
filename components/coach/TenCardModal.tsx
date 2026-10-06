@@ -859,15 +859,16 @@ export default function TenCardModal({
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Total Sessions
                   </label>
-                  <select
+                  {/* Any size, e.g. 11 for 10 when a paid trial is compensated (S416). */}
+                  <input
+                    type="number"
+                    min={1}
+                    max={50}
                     value={tenCardTotal}
-                    onChange={(e) => setTenCardTotal(Number(e.target.value))}
+                    onChange={(e) => setTenCardTotal(Math.max(1, Math.min(50, Number(e.target.value) || 1)))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900"
-                  >
-                    <option value={5}>5 sessions</option>
-                    <option value={10}>10 sessions (standard)</option>
-                    <option value={20}>20 sessions</option>
-                  </select>
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Standard is 10.</p>
                 </div>
 
                 {/* Expiry Date */}
