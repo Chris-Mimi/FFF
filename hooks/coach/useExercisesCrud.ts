@@ -71,6 +71,10 @@ export function useExercisesCrud() {
     } catch (error: any) {
       console.error('Error saving exercise:', error);
       console.error('Error details:', JSON.stringify(error, null, 2));
+      if (error?.code === '23505') {
+        toast.error(`An exercise named "${exerciseData.display_name || exerciseData.name}" already exists`);
+        return;
+      }
       const errorMessage = error?.message || error?.error_description || error?.msg || 'Unknown error';
       toast.error(`Error saving exercise: ${errorMessage}`);
     }

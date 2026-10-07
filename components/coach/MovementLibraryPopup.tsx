@@ -540,6 +540,10 @@ function MovementLibraryPopup({
       await fetchExercises();
     } catch (error: unknown) {
       console.error('Error saving exercise:', error);
+      if ((error as { code?: string })?.code === '23505') {
+        toast.error(`An exercise named "${exerciseData.display_name || exerciseData.name}" already exists`);
+        return;
+      }
       toast.error(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
