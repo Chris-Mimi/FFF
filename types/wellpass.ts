@@ -124,6 +124,10 @@ export interface WellpassSigninStatus {
   attended_total: number;
   /** First synced week (YYYY-MM-DD). */
   since: string;
-  /** signins_total − attended_total; below 0 = in debt, flag until back to 0. */
+  /** Pass has more than one linked member → owes 1.5 sign-ins per class. */
+  shared: boolean;
+  /** Sign-ins owed: attended_total, or ⌈1.5 × attended_total⌉ on a shared pass. */
+  required_total: number;
+  /** signins_total − required_total; below 0 = in debt, flag until back to 0. */
   credit: number;
 }

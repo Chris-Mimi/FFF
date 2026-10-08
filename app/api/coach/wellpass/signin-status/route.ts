@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { requireCoach, isAuthError } from '@/lib/auth-api';
+import { RATIO_THRESHOLD } from '@/lib/coach/wellpassScoring';
 import type { WellpassSigninWeek, WellpassSigninStatus } from '@/types/wellpass';
 
 const supabaseAdmin = createClient(
@@ -115,6 +116,8 @@ export async function POST(request: NextRequest) {
           .select('member_id, weekly_sessions!inner(date)')
           .in('member_id', [...identitiesByMember.keys()])
           .eq('status', 'confirmed')
+          // Classes paid with a 10-card aren't on the Wellpass pass.
+          .eq('ten_card_consumed', false)
           .gte('weekly_sessions.date', minDate)
           .lte('weekly_sessions.date', maxDate)
           .range(from, from + 999);
@@ -147,6 +150,13 @@ export async function POST(request: NextRequest) {
       }));
       const signins = all.reduce((sum, w) => sum + w.checkin_count, 0);
       const attended = attendedByIdentity.get(identity.id) ?? 0;
+      // Shared passes owe 1.5 sign-ins per class (Wellpass tab rule). "Shared" =
+      // more than one linked member AND a weekly minimum above the solo 3 — Chris
+      // sets couples to 6; a pass he left at 3 (e.g. a kid linked, rarely trains)
+      // is treated as solo.
+      const shared =
+        (allLinks ?? []).filter(l => l.wellpass_identity_id === identity.id).length > 1 && min > 3;
+      const required = shared ? Math.ceil(attended * RATIO_THRESHOLD) : attended;
       status[memberId] = {
         wellpass_name: identity.wellpass_name,
         min_required: min,
@@ -155,7 +165,9 @@ export async function POST(request: NextRequest) {
         signins_total: signins,
         attended_total: attended,
         since: spanByIdentity.get(identity.id)!.from,
-        credit: signins - attended,
+        shared,
+        required_total: required,
+        credit: signins - required,
       };
     }
 

@@ -107,7 +107,8 @@ export default function BookingListItem({
     ? [
         `Wellpass credit${wp!.wellpass_name.split(' ')[0] !== memberFirstName ? ` (${wp!.wellpass_name}'s pass)` : ''}:`,
         `Since ${wp!.since.slice(8, 10)}.${wp!.since.slice(5, 7)}.${wp!.since.slice(0, 4)}: signed in ${wp!.signins_total}×, attended ${wp!.attended_total} classes.`,
-        `${Math.abs(wp!.credit)} sign-ins short — flags until sign-ins catch up with classes.`,
+        ...(wp!.shared ? [`Shared pass: needs 1.5 sign-ins per class = ${wp!.required_total}.`] : []),
+        `${Math.abs(wp!.credit)} sign-ins short — flags until they catch up.`,
         `Counts only weeks already in a Wellpass sync.`,
       ].join('\n')
     : undefined;
