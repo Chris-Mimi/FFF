@@ -170,6 +170,11 @@ For "today as YYYY-MM-DD" the correct helper **depends on where the code runs** 
 
 **How to apply:** only `section.lifts` creates Lifts entries (RM and non-RM). Same for variations that would distort the lift's history — e.g. Paused Bench (S418) uses the "Bench Press with Pause" exercise, not the Bench Press lift. A load that is a total must come from the Exercise Library + Load chip. "Has a login" ≠ "has the Athlete App" (`athlete_subscription_status = 'active'`) — check which one a question is about.
 
+### Kids' results are keyed by their member id (S418)
+**Why:** family members (kids) have no email/login, so the save route resolved no user and silently skipped `benchmark_results` + `lift_records` — Neo's coach-entered rower time never reached his Forge Benchmarks page. The athlete app shows a kid's profile under their **member id** (parent's "viewing as").
+
+**How to apply:** `resolveUserId()` in `app/api/score-entry/save/route.ts` — auth id via email, else the member id for family members (`primary_member_id` set, no email). Any new writer of athlete-page tables must do the same. No FK blocks it (`benchmark_results.user_id` accepts a member id). `neo@the-forge-functional-fitness.de` is Chris's test account — leave it.
+
 ### Trust the user's statements exactly as given
 When Chris says something doesn't appear in a workout, it means exactly that — don't invent explanations or assume he's mistaken. He will explicitly say when he's unsure.
 

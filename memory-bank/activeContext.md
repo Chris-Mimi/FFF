@@ -143,6 +143,8 @@ _Updated at every session close. The "first 5 minutes of tomorrow" — read this
 
 **✅ S418 — Whiteboard Week 41.1 + 41.2 DONE + Chris-checked:** 97 WSR + 33 lift_records (`boards/2026-W41*.json`). Booked Anja Götte (05.10 18:30), Jan Huelbig (06.10 18:30 — his 05.10 no-show also used his 10-card, Chris OK'd), Mimi (07.10 09:30). Sven's scores stay on 05.10 (did it twice). CF Kids 1km Rower 05.10 = Chris doing it.
 
+**✅ S418 — Kids' scores now reach their athlete pages (`82cf768`):** save route skipped benchmark/lift entries for anyone without a login (all kids). Fixed + backfilled 8 (05.10 rower ×4, 06.07 rower ×3, 25.05 Neo Murph). **Chris to confirm on Neo's Forge Benchmarks page after deploy.**
+
 **S418 — S417 lift-entry decisions:**
 1. ✅ **Whiteboard writer matches the app** (`65e280b`) — `enter-whiteboard-scores.ts` now writes `lift_records` for non-RM lift sections too (rep_scheme, wod_id, dedupe on user/lift/date/rep_scheme).
 2. ✅ **Paused Bench Press — NOT a Lifts entry (Chris).** Paused reps are much lighter → misleading in Bench Press history. Chris swapped lift→exercise "Bench Press with Pause" on all 5 copies (08.04 17:15+18:30, 13.04 10:00, 18.06 17:15, 19.06 09:00); I deleted all 22 Bench Press 5x5 entries from those wods (backup `backups/2026-10-08_deleted-paused-bench-liftrecords.json`). 34 scores untouched. **Don't backfill or recreate them.** Chris's 2nd reason: the Planner shows whether a movement came from Lifts or Exercises.
