@@ -1,5 +1,5 @@
 # TEMPORARY (S418) — fails on purpose to confirm GitHub's failure email reaches Chris.
-# Delete after the email is confirmed.
+# Delete after the email is confirmed. (retest 2)
 name: Email test (delete me)
 
 on:
