@@ -167,16 +167,21 @@ export async function POST(request: NextRequest) {
     const memberIds = [...new Set(memberScores.map(s => s.memberId!))];
     const memberIdToEmail: Record<string, string> = {};
     const emailToUserId: Record<string, string> = {};
+    // Family members (kids) have no email and no login. The athlete app shows their
+    // profile under their member id (parent's "viewing as"), so their Lifts /
+    // Benchmarks / Records entries are keyed by that id (S418 — Neo's rower result).
+    const familyMemberIds = new Set<string>();
 
     if (memberIds.length > 0) {
       const { data: members } = await supabaseAdmin
         .from('members')
-        .select('id, email')
+        .select('id, email, primary_member_id')
         .in('id', memberIds);
 
       const memberEmails = (members || []).map(m => m.email);
       for (const m of members || []) {
         memberIdToEmail[m.id] = m.email;
+        if (!m.email && m.primary_member_id) familyMemberIds.add(m.id);
       }
 
       if (memberEmails.length > 0) {
@@ -191,6 +196,13 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const resolveUserId = (memberId: string): string | null => {
+      const memberEmail = memberIdToEmail[memberId];
+      const authId = memberEmail ? emailToUserId[memberEmail] : undefined;
+      if (authId) return authId;
+      return familyMemberIds.has(memberId) ? memberId : null;
+    };
+
     // Build upsert records
     const records = [];
 
@@ -203,8 +215,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: validationError }, { status: 400 });
       }
 
-      const memberEmail = memberIdToEmail[score.memberId!];
-      const userId = memberEmail ? emailToUserId[memberEmail] || null : null;
+      const userId = resolveUserId(score.memberId!);
 
       records.push(maskRecord({
         wod_id: wodId,
@@ -390,8 +401,7 @@ export async function POST(request: NextRequest) {
           // Resolve user_id for this score
           let userId: string | null = null;
           if (score.memberId) {
-            const memberEmail = memberIdToEmail[score.memberId];
-            userId = memberEmail ? emailToUserId[memberEmail] || null : null;
+            userId = resolveUserId(score.memberId);
           }
           // Whiteboard-only athletes can't have lift_records (no user account)
           if (!userId) continue;
@@ -474,8 +484,7 @@ export async function POST(request: NextRequest) {
           // Resolve user_id for this score
           let userId: string | null = null;
           if (score.memberId) {
-            const memberEmail = memberIdToEmail[score.memberId];
-            userId = memberEmail ? emailToUserId[memberEmail] || null : null;
+            userId = resolveUserId(score.memberId);
           }
           // Whiteboard-only athletes can't have lift_records (no user account)
           if (!userId) continue;
@@ -538,8 +547,7 @@ export async function POST(request: NextRequest) {
           if (isScoreEmpty(score)) continue;
           if (!score.memberId) continue; // whiteboard-only athletes have no auth user
 
-          const memberEmail = memberIdToEmail[score.memberId];
-          const userId = memberEmail ? emailToUserId[memberEmail] || null : null;
+          const userId = resolveUserId(score.memberId);
           if (!userId) continue;
 
           const bm = benchmarks?.[score.sectionId];
@@ -655,8 +663,7 @@ export async function POST(request: NextRequest) {
         // Fallback: try matching by user_id if member_id match failed
         // (handles records saved from athlete logbook with user_id but no member_id)
         if (!existing && del.memberId) {
-          const memberEmail = memberIdToEmail[del.memberId];
-          const userId = memberEmail ? emailToUserId[memberEmail] : null;
+          const userId = resolveUserId(del.memberId);
           if (userId) {
             const { data: byUser } = await supabaseAdmin
               .from('wod_section_results')
