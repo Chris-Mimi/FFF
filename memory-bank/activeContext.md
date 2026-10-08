@@ -145,7 +145,7 @@ _Updated at every session close. The "first 5 minutes of tomorrow" — read this
 
 **First: Chris to confirm the S418 kids fix live** — Neo's Forge Benchmarks page shows the C2 Rower 1km 5:21 (05.10) and 5:10 (06.07). Then the next whiteboard week or whatever Chris brings.
 
-**✅ S418 (after close) — 25.09 09:00 scores recovered:** Chris overwrote the workout, then pasted it back. Copy-over had KEPT the original wod `17dcf4c7` with its 24 scores (6 athletes) but nothing pointed at it; moved them onto the pasted copy `d4fb984d` (identical sections). Old wod now empty, left in place. **Chris to confirm in the 09:00 results modal.** If this repeats: look for an unlinked wod of the same date holding the scores before re-entering from a board.
+**✅ S418 (after close) — 25.09 09:00 scores recovered:** Chris overwrote the workout, then pasted it back. Copy-over had KEPT the original wod `17dcf4c7` with its 24 scores (6 athletes) but nothing pointed at it; moved them onto the pasted copy `d4fb984d` (identical sections). Old wod now empty, left in place. Chris confirmed OK. If this repeats: look for an unlinked wod of the same date holding the scores before re-entering from a board.
 
 **S418 rules now in force (details in claude-rules + project-history):**
 - **Kids' results are keyed by their member id** — `resolveUserId()` in the save route. Any new writer of Lifts/Benchmarks/Records tables must do the same.
