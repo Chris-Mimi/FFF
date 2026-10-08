@@ -9,7 +9,8 @@
  *   - `section_id` carries the `-content-0` suffix, or the leaderboard can't see it (S399)
  *   - scored sections get unioned into `publish_sections`, never replaced (S398/S410)
  *   - missing scoring_fields are switched ON automatically (safe direction only)
- *   - RM sections get their paired `lift_records` written in the same pass (S386)
+ *   - lift sections (RM and non-RM, e.g. 5x5) get their paired `lift_records`
+ *     written in the same pass, exactly as the coach save route does (S386/S418)
  *   - refuses to overwrite rows that already exist
  *
  * See memory-bank/whiteboard-score-entry-protocol.md.
@@ -246,10 +247,40 @@ async function doSession(spec: SessionSpec) {
   if (skipped.length) console.log(`  (skipped, already scored: ${skipped.join(', ')})`);
   if (!records.length) { console.log('Nothing new to write for this session.'); return; }
 
-  // --- RM sections: the paired lift_records write (S386 — never one without the other) ---
-  const lifts = (section.lifts as { name: string; rm_test?: string }[] | undefined) || [];
+  // --- Lift sections: the paired lift_records write (S386 — never one without the other) ---
+  // Mirrors the save route: RM sections AND non-RM lift sections (5x5 etc., S418).
+  // Only `section.lifts` creates Lifts entries — an Exercise-Library load (a total) never does.
+  type SectionLift = {
+    name: string; rm_test?: string; rep_type?: string; sets?: number; reps?: number;
+    variable_sets?: { reps: number }[];
+  };
+  const lifts = ((section.lifts as SectionLift[] | undefined) || []).filter(l => l.name);
   const rmLift = lifts.find(l => l.rm_test);
+  const nonRmLift = rmLift ? undefined : lifts[0];
   const liftRecords: Record<string, unknown>[] = [];
+  if (nonRmLift) {
+    // Same rep_scheme / reps derivation as getNonRmLift in hooks/coach/useScoreEntry.ts
+    const repScheme = nonRmLift.rep_type === 'constant'
+      ? `${nonRmLift.sets || 1}x${nonRmLift.reps || 1}`
+      : nonRmLift.variable_sets?.map(s => s.reps).join('-') || '1';
+    const reps = nonRmLift.rep_type === 'constant' ? (nonRmLift.reps || 1) : (nonRmLift.variable_sets?.[0]?.reps || 1);
+    for (const r of records) {
+      if (!r.user_id || r.weight_result == null) continue;
+      liftRecords.push({
+        user_id: r.user_id,
+        lift_name: nonRmLift.name,
+        weight_kg: r.weight_result,
+        reps,
+        rep_scheme: repScheme,
+        calculated_1rm: epley(Number(r.weight_result), reps),
+        lift_date: spec.date,
+        wod_id: wod.id,
+        notes: 'Whiteboard entry',
+      });
+    }
+    console.log(`Lift section (${nonRmLift.name} ${repScheme}) → ${liftRecords.length} paired lift_records`);
+    console.log('  ⚠️  Load must be ONE set\'s weight. A total of several sets belongs on an Exercise + Load chip, not a lift.');
+  }
   if (rmLift) {
     const reps = Number(String(rmLift.rm_test).replace('RM', '')) || 1;
     for (const r of records) {
@@ -282,12 +313,13 @@ async function doSession(spec: SessionSpec) {
   if (liftRecords.length) {
     const { data: exLr, error: lrRead } = await db
       .from('lift_records')
-      .select('user_id, lift_name, lift_date, rep_max_type')
+      .select('user_id, lift_name, lift_date, rep_max_type, rep_scheme')
       .eq('lift_date', spec.date)
-      .eq('lift_name', rmLift!.name);
+      .eq('lift_name', (rmLift || nonRmLift)!.name);
     if (lrRead) throw new Error(`lift_records read: ${lrRead.message}`);
-    const key = (r: { user_id: unknown; lift_name: unknown; lift_date: unknown; rep_max_type: unknown }) =>
-      `${r.user_id}|${r.lift_name}|${r.lift_date}|${r.rep_max_type}`;
+    // RM dedupes on rep_max_type; non-RM on rep_scheme (same key the save route upserts on)
+    const key = (r: { user_id: unknown; lift_name: unknown; lift_date: unknown; rep_max_type?: unknown; rep_scheme?: unknown }) =>
+      `${r.user_id}|${r.lift_name}|${r.lift_date}|${rmLift ? r.rep_max_type : r.rep_scheme}`;
     const have = new Set((exLr || []).map(key));
     const fresh = liftRecords.filter(r => !have.has(key(r as never)));
     if (fresh.length) {
