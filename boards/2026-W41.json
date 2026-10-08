@@ -1,0 +1,540 @@
+{
+ "note": "2026 Week 41.1 + 41.2",
+ "sessions": [
+  {
+   "date": "2026-10-05",
+   "time": "10:00",
+   "sectionId": "section-1790599154657",
+   "rows": [
+    {
+     "member": "Michael Städele",
+     "weight_result": 120
+    },
+    {
+     "member": "Irene Koffler",
+     "weight_result": 70
+    },
+    {
+     "member": "Daniela Simm",
+     "weight_result": 80
+    },
+    {
+     "member": "Mimi Hiles",
+     "weight_result": 100
+    }
+   ]
+  },
+  {
+   "date": "2026-10-05",
+   "time": "10:00",
+   "sectionId": "section-1790598668919",
+   "rows": [
+    {
+     "member": "Irene Koffler",
+     "weight_result": 10,
+     "scaling_level": "Sc1",
+     "rounds_result": 2,
+     "reps_result": 320
+    },
+    {
+     "member": "Daniela Simm",
+     "weight_result": 12,
+     "scaling_level": "Rx",
+     "rounds_result": 2,
+     "reps_result": 250
+    },
+    {
+     "member": "Mimi Hiles",
+     "weight_result": 12,
+     "scaling_level": "Sc2",
+     "rounds_result": 3,
+     "reps_result": 230,
+     "modified": true,
+     "modified_note": "Run replaced by 800m Airbike"
+    }
+   ]
+  },
+  {
+   "date": "2026-10-05",
+   "time": "17:15",
+   "sectionId": "section-1791207094494",
+   "rows": [
+    {
+     "member": "Amelie Kirch",
+     "weight_result": 30
+    },
+    {
+     "member": "Claudia Herrmann",
+     "weight_result": 40
+    },
+    {
+     "member": "Nikolina",
+     "weight_result": 20
+    },
+    {
+     "member": "Sabrina Lucas",
+     "weight_result": 27.5
+    },
+    {
+     "member": "Valerie",
+     "weight_result": 30
+    },
+    {
+     "member": "Dimitar",
+     "weight_result": 70
+    },
+    {
+     "member": "Lukas Simnacher",
+     "weight_result": 70
+    },
+    {
+     "member": "Sven Hujo",
+     "weight_result": 65
+    },
+    {
+     "member": "Wayne Lucas",
+     "weight_result": 50
+    }
+   ]
+  },
+  {
+   "date": "2026-10-05",
+   "time": "17:15",
+   "sectionId": "section-1791117957555-4",
+   "rows": [
+    {
+     "member": "Amelie Kirch",
+     "reps_result": 7,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Claudia Herrmann",
+     "reps_result": 7,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Nikolina",
+     "reps_result": 3,
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Sabrina Lucas",
+     "reps_result": 7,
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Valerie",
+     "reps_result": 7,
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Dimitar",
+     "reps_result": 6,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Lukas Simnacher",
+     "reps_result": 9,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Sven Hujo",
+     "reps_result": 8,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Wayne Lucas",
+     "reps_result": 9,
+     "scaling_level": "Rx"
+    }
+   ]
+  },
+  {
+   "date": "2026-10-05",
+   "time": "17:15",
+   "sectionId": "section-1791207285298",
+   "rows": [
+    {
+     "member": "Amelie Kirch",
+     "metres_result": 50
+    },
+    {
+     "member": "Claudia Herrmann",
+     "metres_result": 30
+    },
+    {
+     "member": "Nikolina",
+     "metres_result": 15
+    },
+    {
+     "member": "Sabrina Lucas",
+     "metres_result": 40
+    },
+    {
+     "member": "Valerie",
+     "metres_result": 50
+    },
+    {
+     "member": "Dimitar",
+     "metres_result": 40
+    },
+    {
+     "member": "Lukas Simnacher",
+     "metres_result": 50
+    },
+    {
+     "member": "Sven Hujo",
+     "metres_result": 50
+    },
+    {
+     "member": "Wayne Lucas",
+     "metres_result": 55
+    }
+   ]
+  },
+  {
+   "date": "2026-10-05",
+   "time": "18:30",
+   "sectionId": "section-1791207094494",
+   "rows": [
+    {
+     "member": "Anfisa",
+     "weight_result": 25
+    },
+    {
+     "member": "Anja Götte",
+     "weight_result": 30,
+     "book": true
+    },
+    {
+     "member": "Anneke",
+     "weight_result": 35
+    },
+    {
+     "member": "Markus Fischer",
+     "weight_result": 40
+    },
+    {
+     "member": "Paul Bielenski",
+     "weight_result": 90
+    },
+    {
+     "member": "Thomas Spegele",
+     "weight_result": 70
+    },
+    {
+     "member": "Tobias Götte",
+     "weight_result": 70
+    }
+   ]
+  },
+  {
+   "date": "2026-10-05",
+   "time": "18:30",
+   "sectionId": "section-1791117957555-4",
+   "rows": [
+    {
+     "member": "Anfisa",
+     "reps_result": 5,
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Anja Götte",
+     "reps_result": 6,
+     "scaling_level": "Rx",
+     "book": true
+    },
+    {
+     "member": "Anneke",
+     "reps_result": 7,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Markus Fischer",
+     "reps_result": 6,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Paul Bielenski",
+     "reps_result": 4,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Thomas Spegele",
+     "reps_result": 8,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Tobias Götte",
+     "reps_result": 2,
+     "scaling_level": "Rx"
+    }
+   ]
+  },
+  {
+   "date": "2026-10-05",
+   "time": "18:30",
+   "sectionId": "section-1791207285298",
+   "rows": [
+    {
+     "member": "Anja Götte",
+     "metres_result": 35,
+     "book": true
+    },
+    {
+     "member": "Anneke",
+     "metres_result": 40
+    },
+    {
+     "member": "Markus Fischer",
+     "metres_result": 20
+    },
+    {
+     "member": "Paul Bielenski",
+     "metres_result": 35
+    },
+    {
+     "member": "Thomas Spegele",
+     "metres_result": 20
+    },
+    {
+     "member": "Tobias Götte",
+     "metres_result": 30
+    }
+   ]
+  },
+  {
+   "date": "2026-10-06",
+   "time": "18:30",
+   "sectionId": "section-1791207094494",
+   "rows": [
+    {
+     "member": "Angela Schulz",
+     "weight_result": 25
+    },
+    {
+     "member": "Jolanda",
+     "weight_result": 25
+    },
+    {
+     "member": "Marion Heider",
+     "weight_result": 17.5
+    },
+    {
+     "member": "Martina Fenster",
+     "weight_result": 37.5
+    },
+    {
+     "member": "Nicole Rauh",
+     "weight_result": 27.5
+    },
+    {
+     "member": "Toni Seitz",
+     "weight_result": 40
+    },
+    {
+     "member": "David Montgomery",
+     "weight_result": 45,
+     "modified": true,
+     "modified_note": "Paused",
+     "no_lift_record": true
+    },
+    {
+     "member": "Jan Huelbig",
+     "weight_result": 45,
+     "book": true
+    },
+    {
+     "member": "Stefan G",
+     "weight_result": 45
+    }
+   ]
+  },
+  {
+   "date": "2026-10-06",
+   "time": "18:30",
+   "sectionId": "section-1791117957555-4",
+   "rows": [
+    {
+     "member": "Angela Schulz",
+     "reps_result": 7,
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Jolanda",
+     "reps_result": 8,
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Marion Heider",
+     "reps_result": 3,
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Martina Fenster",
+     "reps_result": 10,
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Nicole Rauh",
+     "reps_result": 6,
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Toni Seitz",
+     "reps_result": 5,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "David Montgomery",
+     "reps_result": 2,
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Jan Huelbig",
+     "reps_result": 2,
+     "scaling_level": "Rx",
+     "book": true
+    },
+    {
+     "member": "Stefan G",
+     "reps_result": 5,
+     "scaling_level": "Rx"
+    }
+   ]
+  },
+  {
+   "date": "2026-10-06",
+   "time": "18:30",
+   "sectionId": "section-1791207285298",
+   "rows": [
+    {
+     "member": "Angela Schulz",
+     "metres_result": 20
+    },
+    {
+     "member": "Jolanda",
+     "metres_result": 15
+    },
+    {
+     "member": "Marion Heider",
+     "metres_result": 10
+    },
+    {
+     "member": "Martina Fenster",
+     "metres_result": 45
+    },
+    {
+     "member": "Nicole Rauh",
+     "metres_result": 10
+    },
+    {
+     "member": "Toni Seitz",
+     "metres_result": 30
+    },
+    {
+     "member": "David Montgomery",
+     "metres_result": 5
+    },
+    {
+     "member": "Jan Huelbig",
+     "metres_result": 5,
+     "book": true
+    },
+    {
+     "member": "Stefan G",
+     "metres_result": 25
+    }
+   ]
+  },
+  {
+   "date": "2026-10-07",
+   "time": "09:30",
+   "sectionId": "section-1791207094494",
+   "rows": [
+    {
+     "member": "Michael Städele",
+     "weight_result": 75
+    },
+    {
+     "member": "Irene Koffler",
+     "weight_result": 35
+    },
+    {
+     "member": "Anna Kr",
+     "weight_result": 35
+    },
+    {
+     "member": "Aline",
+     "weight_result": 45
+    },
+    {
+     "member": "Mimi Hiles",
+     "weight_result": 45,
+     "book": true
+    }
+   ]
+  },
+  {
+   "date": "2026-10-07",
+   "time": "09:30",
+   "sectionId": "section-1791117957555-4",
+   "rows": [
+    {
+     "member": "Michael Städele",
+     "reps_result": 10,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Irene Koffler",
+     "reps_result": 5,
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Anna Kr",
+     "reps_result": 9,
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Aline",
+     "reps_result": 4,
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Mimi Hiles",
+     "reps_result": 7,
+     "scaling_level": "Rx",
+     "book": true
+    }
+   ]
+  },
+  {
+   "date": "2026-10-07",
+   "time": "09:30",
+   "sectionId": "section-1791207285298",
+   "rows": [
+    {
+     "member": "Michael Städele",
+     "metres_result": 35
+    },
+    {
+     "member": "Irene Koffler",
+     "metres_result": 25
+    },
+    {
+     "member": "Anna Kr",
+     "metres_result": 25
+    },
+    {
+     "member": "Aline",
+     "metres_result": 10
+    },
+    {
+     "member": "Mimi Hiles",
+     "metres_result": 55,
+     "book": true
+    }
+   ]
+  }
+ ]
+}

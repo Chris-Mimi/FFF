@@ -38,6 +38,8 @@
  * `"book": true` on a member row = trained but never booked: the script books
  * them into that session first (confirmed; 10-card trigger counts it). Guess
  * the class, write it, tell Chris after — his standing instruction (S413).
+ * `"no_lift_record": true` = score only, no Lifts entry — for a result that isn't
+ * a clean test of the lift (e.g. paused reps on an RM day, S418).
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -218,6 +220,7 @@ async function doSession(spec: SessionSpec) {
   const now = new Date().toISOString();
   const records: Record<string, unknown>[] = [];
   const skipped: string[] = [];
+  const noLift = new Set<unknown>();
 
   for (const { row, member } of resolved) {
     const who = member ? member.name : String(row.whiteboard);
@@ -239,6 +242,7 @@ async function doSession(spec: SessionSpec) {
     };
     for (const k of VALUE_KEYS) if (row[k] !== undefined) rec[k] = row[k];
     records.push(rec);
+    if (row.no_lift_record && member) noLift.add(member.id);
 
     const bits = VALUE_KEYS.filter(k => row[k] !== undefined && row[k] !== null)
       .map(k => `${k.replace(/_result$/, '').replace(/^scaling_level/, 'sc')}=${row[k]}`);
@@ -265,7 +269,7 @@ async function doSession(spec: SessionSpec) {
       : nonRmLift.variable_sets?.map(s => s.reps).join('-') || '1';
     const reps = nonRmLift.rep_type === 'constant' ? (nonRmLift.reps || 1) : (nonRmLift.variable_sets?.[0]?.reps || 1);
     for (const r of records) {
-      if (!r.user_id || r.weight_result == null) continue;
+      if (!r.user_id || r.weight_result == null || noLift.has(r.user_id)) continue;
       liftRecords.push({
         user_id: r.user_id,
         lift_name: nonRmLift.name,
@@ -284,7 +288,7 @@ async function doSession(spec: SessionSpec) {
   if (rmLift) {
     const reps = Number(String(rmLift.rm_test).replace('RM', '')) || 1;
     for (const r of records) {
-      if (!r.user_id || r.weight_result == null) continue;
+      if (!r.user_id || r.weight_result == null || noLift.has(r.user_id)) continue;
       liftRecords.push({
         user_id: r.user_id,
         lift_name: rmLift.name,
