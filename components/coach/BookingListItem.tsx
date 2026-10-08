@@ -99,7 +99,6 @@ export default function BookingListItem({
     ? [
         `Wellpass sign-ins${wp.wellpass_name.split(' ')[0] !== memberFirstName ? ` (${wp.wellpass_name}'s pass)` : ''}:`,
         ...wp.weeks.map(w => `Week ${w.week_number} (from ${w.week_start.slice(8, 10)}.${w.week_start.slice(5, 7)}): ${w.checkin_count} of ${wp.min_required}`),
-        `Minimum ${wp.min_required} a week, even on days they don't train — remind them.`,
       ].join('\n')
     : undefined;
   const wpInDebt = !!wp && wp.credit < 0;
