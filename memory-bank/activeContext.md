@@ -1,7 +1,9 @@
 # Active Context
 
-**Version:** 284
-**Updated:** 2026-10-06 (Session 416 — Opus 5.5. **10-card system completed end to end: athlete/parent balance chip + buy links (kids → child's card, Kids card auto-picked), renewal never double-counts + leftover moves over, any card size, 1-over booking cap (waitlist counted), 1-month expiry grace, Cancel Session refunds cards, no-show push, kids' pushes → parent. Copy-over now MOVES scores (21.09 restored: 24 WSR + 12 lift records). 10-card audit script + data cleanup. Week 40.3 whiteboard.**)
+**Version:** 285
+**Updated:** 2026-10-08 (Session 417 — Opus 5.5. **Good Morning duplicate fixed (names swapped, new lift, unique-name index + toast). Pendlay Row 29.05 accumulated loads had become Lifts entries — 6 deleted, Chris swapped the lift→exercise on all 4 Weekend WOD #26.14 copies. Found: whiteboard writer skips non-RM lift sections (app doesn't) — 3 decisions pending.**)
+
+<!-- Older S416: 2026-10-06 (Session 416 — Opus 5.5. **10-card system completed end to end: athlete/parent balance chip + buy links (kids → child's card, Kids card auto-picked), renewal never double-counts + leftover moves over, any card size, 1-over booking cap (waitlist counted), 1-month expiry grace, Cancel Session refunds cards, no-show push, kids' pushes → parent. Copy-over now MOVES scores (21.09 restored: 24 WSR + 12 lift records). 10-card audit script + data cleanup. Week 40.3 whiteboard.**) -->
 
 <!-- Older S415: 2026-10-04 (Session 415 — Opus 5.5. **10-card overhaul: uncounted coach-added bookings fixed, 10-session DB cap removed, overflow carry-over on renew/Stripe, "+N over" chip, auto-recalc on start date, card sharing between any two members. Push leak on shared browsers fixed (detach on logout). Week 40 whiteboard entered (~110 rows). Auto-mode blocking fixed on Mac.**) -->
 
@@ -139,7 +141,16 @@ Synology Drive syncs files in the background and is **not git-aware**. When Chri
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history file._
 
-**🚨 Next session — S416 shipped a lot of athlete-facing 10-card + notification code, none of it exercised live by a real athlete yet (Next Steps S416). Nothing known broken. Parked: paper-card backlog, next-intl i18n.**
+**🚨 Next session — FIRST: get Chris's answer on the 3 S417 lift-entry decisions (reply format `1 OK, 2 per-set, 3 OK`):**
+1. **Whiteboard writer should match the app** — `scripts/enter-whiteboard-scores.ts` writes `lift_records` for RM-test sections only; the app's save route ([save/route.ts:467-524](app/api/score-entry/save/route.ts#L467-L524)) ALSO writes them for non-RM lift sections (5x5 etc.). Proposed: writer does both.
+2. **Backfill Bench Press 5x5 08.04 (7 athletes) + 13.04 (4)** — scores with no Lifts entry. ONLY if those loads are one set's weight, not totals — ask Chris.
+3. **Extend `scripts/check-wsr-liftrecord-parity.ts`** to non-RM lift sections (it only checks `rm_test`, so this gap was never flagged).
+
+**Chris's rule (S417), now his workflow:** a section's load is ONE set's weight → add the lift from the **Lifts modal** (creates Lifts-page entries). Load is a TOTAL (accumulated sets) → add the exercise from the **Exercise Library** + Load chip (score only, no Lifts entry). Only `section.lifts` triggers Lifts entries ([useScoreEntry.ts:45-54](hooks/coach/useScoreEntry.ts#L45-L54)).
+
+**S416 live checks still on hold** (Chris: "we'll come back to them") — items 6+ in S417's list: S416/S415 live checks, Lenny Kleinert, German pushes, Windows acceptEdits.
+
+**✅ S417 — Pendlay Row 29.05 DONE:** loads there are totals of the last 3 sets; the 17:15 modal re-save (11.07) turned them into Lifts entries (220 kg ×5 → "Est. 1RM 247.5"). 6 deleted (backup `backups/2026-10-08_deleted-pendlay-2905-accumulated-liftrecords.json`); Christian Tanner's 150 had already been deleted 21–23.08 (likely by him). Chris swapped lift→exercise on all 4 copies (29.05 ×2, 08.07, 17.07). **Don't recreate any Lifts entry for Weekend WOD #26.14.**
 
 **✅ S417 (2026-10-07/08) — Good Morning duplicate, DONE + Chris-verified:** display names swapped (barbell = "Barbell Good Morning", Pre-Workout bodyweight = "Good Morning") so warm-up text maps to bodyweight with no workout edits; "with plates" = bodyweight (Chris). New lift "Barbell Good Morning" (Pull) in `barbell_lifts`. Unique index `exercises_display_name_unique` (migration `20261007000000`, Chris ran it) + duplicate-name toast (`5df1b73`). Planner checked OK. Planner matches exercises by TEXT (longest name wins) — renaming an exercise changes which past workouts count for it.
 
@@ -331,6 +342,7 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
+1. **S417 — 3 lift-entry decisions pending (see ⚡ Kickoff):** writer parity for non-RM lifts; Bench 5x5 08.04/13.04 backfill (11, only if per-set); parity check extension.
 1. **S416 — live checks (nothing exercised by a real athlete yet):** (a) a parent's Book a Class shows kids' chips + "10er-Karte für X kaufen" opens Stripe with the right product (cancel, don't pay); (b) a 1-over athlete gets the German block on the next booking; (c) Cancel Session → 10-card chip drops, Restore → back; (d) mark a no-show → athlete (or parent) gets "Nicht erschienen"; (e) copy a workout over a scored one on a past date → scores still there after the Undo toast closes.
 1. **S415 — live checks (not yet exercised in the app):** (a) next time a coach adds a 10-card member to a class, the chip goes +1; (b) first **Close & Issue New on an over-limit card** — preview shows the carried sessions/dates; (c) link Torben → Gloria via **Share a card…** and confirm both chips update; (d) log out of an athlete account in Chris's browser and confirm their pushes stop.
 1. **S415 answers closed in S416:** Alois/Michael = edge cases (leave); Marina/Max/Ole = one card per boy (both full, parent can now buy in app).

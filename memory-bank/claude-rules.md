@@ -165,6 +165,11 @@ For "today as YYYY-MM-DD" the correct helper **depends on where the code runs** 
 
 **How to apply:** never delete a wod that still has results. Copy-over now moves results first (`/api/sessions/move-results`) and keeps the old wod if anything can't move. Any new delete path must do the same.
 
+### Lifts-modal lift = one set's weight; accumulated totals use an Exercise (S417)
+**Why:** Pendlay Row 29.05 load was the total of 3 sets, but the section held a Lifts-modal 5x5 lift, so the coach-modal save wrote "220 kg × 5" Lifts entries (Est. 1RM 247.5) for every athlete with a login — Athlete App or not.
+
+**How to apply:** only `section.lifts` creates Lifts entries (RM and non-RM). A load that is a total must come from the Exercise Library + Load chip. "Has a login" ≠ "has the Athlete App" (`athlete_subscription_status = 'active'`) — check which one a question is about.
+
 ### Trust the user's statements exactly as given
 When Chris says something doesn't appear in a workout, it means exactly that — don't invent explanations or assume he's mistaken. He will explicitly say when he's unsure.
 
