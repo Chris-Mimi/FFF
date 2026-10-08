@@ -144,7 +144,7 @@ _Updated at every session close. The "first 5 minutes of tomorrow" — read this
 **S418 — S417 lift-entry decisions:**
 1. ✅ **Whiteboard writer matches the app** (`65e280b`) — `enter-whiteboard-scores.ts` now writes `lift_records` for non-RM lift sections too (rep_scheme, wod_id, dedupe on user/lift/date/rep_scheme).
 2. ✅ **Paused Bench Press — NOT a Lifts entry (Chris).** Paused reps are much lighter → misleading in Bench Press history. Chris swapped lift→exercise "Bench Press with Pause" on all 5 copies (08.04 17:15+18:30, 13.04 10:00, 18.06 17:15, 19.06 09:00); I deleted all 22 Bench Press 5x5 entries from those wods (backup `backups/2026-10-08_deleted-paused-bench-liftrecords.json`). 34 scores untouched. **Don't backfill or recreate them.** Chris's 2nd reason: the Planner shows whether a movement came from Lifts or Exercises.
-3. ⏳ **Extend `scripts/check-wsr-liftrecord-parity.ts`** to non-RM lift sections — explained, awaiting `3 OK`. Report-only (could flag athlete-deleted entries).
+3. ✅ **Parity check covers non-RM lift sections** — run clean (960 RM + 3 non-RM). **Open (unverified):** 30 `Clean & Jerk 5x5` Lifts entries (27.04/28.04/04.05, 17.5–60kg) point at "Clean & Jerk Testing 5RM" wods that no longer hold a C&J 5x5 lift — offered to Chris.
 
 **Chris's rule (S417), now his workflow:** a section's load is ONE set's weight → add the lift from the **Lifts modal** (creates Lifts-page entries). Load is a TOTAL (accumulated sets) → add the exercise from the **Exercise Library** + Load chip (score only, no Lifts entry). Only `section.lifts` triggers Lifts entries ([useScoreEntry.ts:45-54](hooks/coach/useScoreEntry.ts#L45-L54)).
 
@@ -342,7 +342,7 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-1. **S417/S418 lift entries:** writer parity ✅, paused bench swap + 22 deleted ✅; parity-check extension awaiting `3 OK`.
+1. **S417/S418 lift entries:** writer parity ✅, paused bench swap + 22 deleted ✅; parity check extended ✅; C&J 5x5 entries offered.
 1. **S416 — live checks (nothing exercised by a real athlete yet):** (a) a parent's Book a Class shows kids' chips + "10er-Karte für X kaufen" opens Stripe with the right product (cancel, don't pay); (b) a 1-over athlete gets the German block on the next booking; (c) Cancel Session → 10-card chip drops, Restore → back; (d) mark a no-show → athlete (or parent) gets "Nicht erschienen"; (e) copy a workout over a scored one on a past date → scores still there after the Undo toast closes.
 1. **S415 — live checks (not yet exercised in the app):** (a) next time a coach adds a 10-card member to a class, the chip goes +1; (b) first **Close & Issue New on an over-limit card** — preview shows the carried sessions/dates; (c) link Torben → Gloria via **Share a card…** and confirm both chips update; (d) log out of an athlete account in Chris's browser and confirm their pushes stop.
 1. **S415 answers closed in S416:** Alois/Michael = edge cases (leave); Marina/Max/Ole = one card per boy (both full, parent can now buy in app).

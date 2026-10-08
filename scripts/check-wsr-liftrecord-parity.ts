@@ -3,7 +3,8 @@
  *
  * Every weighted RM-test result in wod_section_results for a REGISTERED athlete
  * (member_id set) should have a matching lift_records row (same user, lift, rep-
- * max type, date). When they diverge, a lift PR has been silently lost — exactly
+ * max type, date). Since S418 the same goes for non-RM lift sections (5x5 etc. —
+ * matched on user, lift, rep_scheme, date, the key the save route upserts on). When they diverge, a lift PR has been silently lost — exactly
  * the April-import-reset failure that hid for ~2 months because nothing compared
  * the two tables.
  *
@@ -21,6 +22,10 @@ const supabase = createClient(
 );
 
 type RmLift = { name: string; rmTest: string };
+type SectionLift = { name?: string; rm_test?: string; rep_type?: string; sets?: number; reps?: number; variable_sets?: { reps: number }[] };
+// Same derivation as getNonRmLift in hooks/coach/useScoreEntry.ts
+const repSchemeOf = (l: SectionLift) =>
+  l.rep_type === 'constant' ? `${l.sets || 1}x${l.reps || 1}` : l.variable_sets?.map((s) => s.reps).join('-') || '1';
 const findRmLifts = (o: any, out: RmLift[] = []): RmLift[] => {
   if (!o || typeof o !== 'object') return out;
   if (o.rm_test && o.name) out.push({ name: o.name, rmTest: o.rm_test });
@@ -32,15 +37,23 @@ const findRmLifts = (o: any, out: RmLift[] = []): RmLift[] => {
 };
 
 async function main() {
-  // 1. Build map: `${wod_id}|${section-content-id}` -> { liftName, rmTest, date }
+  // 1. Build map: `${wod_id}|${section-content-id}` -> { liftName, rmTest | repScheme, date }
   const sectionLift = new Map<string, { liftName: string; rmTest: string; date: string }>();
+  const sectionNonRm = new Map<string, { liftName: string; repScheme: string; date: string }>();
   let from = 0;
   while (true) {
-    const { data } = await supabase.from('wods').select('id, date, sections').range(from, from + 499);
-    if (!data || !data.length) break;
+    const { data, error } = await supabase.from('wods').select('id, date, sections').range(from, from + 499);
+    if (error) throw error;
+    if (!data.length) break;
     for (const w of data) {
       for (const sec of (w.sections as any[]) || []) {
         const lifts = findRmLifts(sec);
+        if (lifts.length === 0) {
+          // Non-RM lift section: the save route uses the first named lift
+          const l = ((sec.lifts as SectionLift[] | undefined) || []).find((x) => x.name);
+          if (l) sectionNonRm.set(`${w.id}|${sec.id}-content-0`, { liftName: l.name!, repScheme: repSchemeOf(l), date: w.date as string });
+          continue;
+        }
         if (lifts.length !== 1) continue; // 1 RM lift per section is the norm; skip ambiguous
         sectionLift.set(`${w.id}|${sec.id}-content-0`, {
           liftName: lifts[0].name,
@@ -55,35 +68,54 @@ async function main() {
 
   // 2. Pull all lift_records into a lookup set (paginated — table is past 1k rows)
   const lrSet = new Set<string>();
+  const lrSchemeSet = new Set<string>();
   from = 0;
   while (true) {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('lift_records')
-      .select('user_id, lift_name, rep_max_type, lift_date')
+      .select('user_id, lift_name, rep_max_type, rep_scheme, lift_date')
       .range(from, from + 999);
-    if (!data || !data.length) break;
-    for (const r of data) lrSet.add(`${r.user_id}|${r.lift_name}|${r.rep_max_type}|${r.lift_date}`);
+    if (error) throw error;
+    if (!data.length) break;
+    for (const r of data) {
+      lrSet.add(`${r.user_id}|${r.lift_name}|${r.rep_max_type}|${r.lift_date}`);
+      lrSchemeSet.add(`${r.user_id}|${r.lift_name}|${r.rep_scheme}|${r.lift_date}`);
+    }
     if (data.length < 1000) break;
     from += 1000;
   }
 
   // 3. Walk weighted, registered RM-section WSR rows; flag any with no lift_record
-  const { data: mem } = await supabase.from('members').select('id, name');
+  const { data: mem, error: memErr } = await supabase.from('members').select('id, name');
+  if (memErr) throw memErr;
   const id2name = new Map((mem || []).map((m: any) => [m.id, m.name]));
 
   const missing: string[] = [];
+  const missingNonRm: string[] = [];
   let checked = 0;
+  let checkedNonRm = 0;
   from = 0;
   while (true) {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('wod_section_results')
       .select('wod_id, section_id, member_id, weight_result, workout_date')
       .not('member_id', 'is', null)
       .not('weight_result', 'is', null)
       .range(from, from + 999);
-    if (!data || !data.length) break;
+    if (error) throw error;
+    if (!data.length) break;
     for (const r of data) {
       if ((r.weight_result ?? 0) <= 0) continue;
+      const nonRm = sectionNonRm.get(`${r.wod_id}|${r.section_id}`);
+      if (nonRm) {
+        checkedNonRm++;
+        if (!lrSchemeSet.has(`${r.member_id}|${nonRm.liftName}|${nonRm.repScheme}|${r.workout_date}`)) {
+          missingNonRm.push(
+            `${nonRm.date}  ${(id2name.get(r.member_id!) || r.member_id!.slice(0, 8)).padEnd(22)} ${nonRm.liftName} ${nonRm.repScheme}: ${r.weight_result}kg  (wod ${r.wod_id.slice(0, 8)})`
+          );
+        }
+        continue;
+      }
       const lift = sectionLift.get(`${r.wod_id}|${r.section_id}`);
       if (!lift) continue; // not an RM-test lift section
       checked++;
@@ -105,7 +137,17 @@ async function main() {
     console.log(`🚩 ${missing.length} results with NO matching lift_record (silent PR loss):`);
     missing.sort().forEach((m) => console.log('   ' + m));
   }
-  return missing.length;
+
+  console.log(`\nChecked ${checkedNonRm} weighted non-RM lift results (5x5 etc.).\n`);
+  if (missingNonRm.length === 0) {
+    console.log('✅ Parity OK — every weighted non-RM lift result has a matching lift_record.');
+  } else {
+    // Report only. A gap can also be an athlete deleting their own entry, or a load
+    // that is a TOTAL (belongs on an Exercise + Load chip, not a lift — S417/S418).
+    console.log(`🚩 ${missingNonRm.length} non-RM lift results with NO matching lift_record:`);
+    missingNonRm.sort().forEach((m) => console.log('   ' + m));
+  }
+  return missing.length + missingNonRm.length;
 }
 // Exit non-zero when records are missing so CI (the monthly GitHub Action) fails
 // and emails Chris. Exit 2 on an unexpected error so a crash can't read as "OK".
