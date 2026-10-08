@@ -141,6 +141,8 @@ _Updated at every session close. The "first 5 minutes of tomorrow" — read this
 
 **🚨 Next session — S416 shipped a lot of athlete-facing 10-card + notification code, none of it exercised live by a real athlete yet (Next Steps S416). Nothing known broken. Parked: paper-card backlog, next-intl i18n.**
 
+**✅ S417 (2026-10-07/08) — Good Morning duplicate, DONE + Chris-verified:** display names swapped (barbell = "Barbell Good Morning", Pre-Workout bodyweight = "Good Morning") so warm-up text maps to bodyweight with no workout edits; "with plates" = bodyweight (Chris). New lift "Barbell Good Morning" (Pull) in `barbell_lifts`. Unique index `exercises_display_name_unique` (migration `20261007000000`, Chris ran it) + duplicate-name toast (`5df1b73`). Planner checked OK. Planner matches exercises by TEXT (longest name wins) — renaming an exercise changes which past workouts count for it.
+
 **🔔 REMIND CHRIS on the Windows PC (S415):** add `"claudeCode.initialPermissionMode": "acceptEdits",` to VS Code user settings (Ctrl+Shift+P → "Preferences: Open User Settings (JSON)"). Mac already fixed. Remove this line once done.
 
 **🔔 Open with Chris (S416):**
