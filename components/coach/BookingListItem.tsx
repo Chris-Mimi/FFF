@@ -102,6 +102,15 @@ export default function BookingListItem({
         `Minimum ${wp.min_required} a week, even on days they don't train — remind them.`,
       ].join('\n')
     : undefined;
+  const wpInDebt = !!wp && wp.credit < 0;
+  const wpDebtTitle = wpInDebt
+    ? [
+        `Wellpass credit${wp!.wellpass_name.split(' ')[0] !== memberFirstName ? ` (${wp!.wellpass_name}'s pass)` : ''}:`,
+        `Since ${wp!.since.slice(8, 10)}.${wp!.since.slice(5, 7)}.${wp!.since.slice(0, 4)}: signed in ${wp!.signins_total}×, attended ${wp!.attended_total} classes.`,
+        `${Math.abs(wp!.credit)} sign-ins short — flags until sign-ins catch up with classes.`,
+        `Counts only weeks already in a Wellpass sync.`,
+      ].join('\n')
+    : undefined;
 
   const formatDateTime = (iso: string) =>
     new Date(iso).toLocaleString('en-GB', {
@@ -169,6 +178,14 @@ export default function BookingListItem({
             title={wpTitle}
           >
             WP sign-ins {wp.weeks[0].checkin_count}/{wp.min_required}
+          </span>
+        )}
+        {wpInDebt && (
+          <span
+            className='text-[10px] font-bold text-white bg-red-600 px-1.5 py-0.5 rounded cursor-help whitespace-pre-line'
+            title={wpDebtTitle}
+          >
+            WP credit {wp!.credit}
           </span>
         )}
         <span className='text-xs text-gray-500'>

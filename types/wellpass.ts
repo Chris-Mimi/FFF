@@ -119,4 +119,11 @@ export interface WellpassSigninStatus {
   weeks: WellpassSigninWeek[];
   /** Newest synced week is below the minimum — mention it at the session. */
   low: boolean;
+  /** All synced weeks: sign-ins vs classes attended (whole household) in those weeks. */
+  signins_total: number;
+  attended_total: number;
+  /** First synced week (YYYY-MM-DD). */
+  since: string;
+  /** signins_total − attended_total; below 0 = in debt, flag until back to 0. */
+  credit: number;
 }
