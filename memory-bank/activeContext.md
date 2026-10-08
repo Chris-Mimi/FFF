@@ -147,6 +147,8 @@ _Updated at every session close. The "first 5 minutes of tomorrow" — read this
 
 **✅ S418 (after close) — 25.09 09:00 scores recovered:** Chris overwrote the workout, then pasted it back. Copy-over had KEPT the original wod `17dcf4c7` with its 24 scores (6 athletes) but nothing pointed at it; moved them onto the pasted copy `d4fb984d` (identical sections). Old wod now empty, left in place. Chris confirmed OK. If this repeats: look for an unlinked wod of the same date holding the scores before re-entering from a board.
 
+**✅ S418 (after close) — Wellpass sign-in reminder (`edf3033`):** Session Management modal shows an orange "WP sign-ins N/min" badge on booked athletes whose last synced Wellpass week is below the pass's `min_checkins_required` (tracked, un-paused passes only; shared passes use their own min, e.g. 6). Coach API `/api/coach/wellpass/signin-status` (service role). Dry run on 08–11.10 bookings: 6 of 22 flagged (Sermet 1/3, Lukas 2/3, Magdalena 2/3, Lucases 3/6, Dimitar 5/6). **Chris to check it live.** Also: Sermet + Bianca Härtel linked, sync folds umlauts (`0c63c84`).
+
 **S418 rules now in force (details in claude-rules + project-history):**
 - **Kids' results are keyed by their member id** — `resolveUserId()` in the save route. Any new writer of Lifts/Benchmarks/Records tables must do the same.
 - **Lifts entries = one clean set's weight.** Totals or distorting variations (accumulated sets, paused bench) → Exercise Library + Load chip. "Raised" (bar on blocks, mobility) still gets a Lifts entry.
