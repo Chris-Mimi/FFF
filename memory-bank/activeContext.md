@@ -163,7 +163,7 @@ _Updated at every session close. The "first 5 minutes of tomorrow" — read this
 
 **🔔 Open with Chris (S416):**
 - **Stoffer (S418, parked by Chris):** Wellpass ran out → Gloria + Torben bought a 10-card (Torben already shares Gloria's card). Torben's old Wellpass entry is still linked to him. If he gets Wellpass back, Chris may want Gloria added to it — wait for him.
-- **Wellpass tab has no manual link button** — links only come from Sync from Excel (name match, one member per name). I link extras directly (Sergej → Liane Felsing done S418). Offered a "Link member" button; not asked for.
+- **Wellpass tab has no manual link button** — links only come from Sync from Excel (name match, one member per name). I link extras directly (Sergej → Liane Felsing, Sermet Güler, Bianca Härtel done S418; sync now treats ä/ö/ü/ß = ae/oe/ue/ss). Offered a "Link member" button; not asked for.
 - Lenny Kleinert: parent login (mausibrueckner@web.de) is NAMED "Lenny Kleinert" — Chris checking.
 - Alois Weihe / Michael Weber pay-with ten_card vs types [wellpass] — Chris: "edge cases", leave.
 - Offered, not answered: translate the older English pushes ("Session Cancelled", "Booking Removed"…) and non-10-card booking messages to German.

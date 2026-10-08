@@ -177,7 +177,11 @@ export async function POST(request: NextRequest) {
     // "Firstname Lastname" (e.g. "Keip Andreas" ↔ "Andreas Keip", or
     // "Fenster Martina" ↔ "Martina Fenster" — S361). Runs every import so
     // newly-registered athletes get linked retroactively.
-    const normalizeName = (n: string) => n.trim().replace(/\s+/g, ' ').toLowerCase();
+    // Umlauts fold to their ae/oe/ue/ss spelling — Wellpass writes "Güler",
+    // members often type "Gueler" (S418: Sermet Güler, Bianca Härtel).
+    const normalizeName = (n: string) =>
+      n.trim().replace(/\s+/g, ' ').toLowerCase()
+        .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss');
     const reverseNormalize = (n: string) =>
       normalizeName(n.trim().split(/\s+/).reverse().join(' '));
 
