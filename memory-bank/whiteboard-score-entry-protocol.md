@@ -40,6 +40,8 @@ So when replicating it by script, **always write BOTH tables together, as one un
 - **`TC-50` in a Time column = time cap, 50 reps short** (S415). A bare `-90` means the same.
   Store as **no `time_result` + `reps_result` = total reps − N** — the `time_with_cap` leaderboard
   ranks finishers by time, then cap-hitters by reps. `DNF 20/50 Burpee` = `dnf: true` + reps done.
+- **"Raised" next to a lift load = bar raised off the floor (mobility)** (S418 — I misread it as "Paused"). Score + `modified_note`, and it STILL gets a Lifts entry. Not the paused-bench case.
+- **Improved scores are overwritten in place (S418).** If an athlete repeats the workout later in the week, Chris/Mimi change the numbers on their original row — no second row. So a booked athlete missing from a later block may be inside an earlier one.
 - **Endurance boards: `Nx` on sled push / tyre pull = N lanes × 10m** (S413). "11.5x" = 115m. Convert before summing a "reps + metres" total.
 
 ## Canonical lift names (whiteboard shorthand → `lift_records.lift_name` / section `lifts[].name`)
