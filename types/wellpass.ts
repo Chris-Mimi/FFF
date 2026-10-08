@@ -104,3 +104,19 @@ export const isExempt = (
   if (identity.exemption_mode === 'always_enforce') return false;
   return linkedMembers.some((m) => m.athlete_subscription_status === 'active');
 };
+
+/** Session Management modal reminder (S418) — see app/api/coach/wellpass/signin-status. */
+export interface WellpassSigninWeek {
+  week_number: number;
+  week_start: string;
+  checkin_count: number;
+}
+
+export interface WellpassSigninStatus {
+  wellpass_name: string;
+  min_required: number;
+  /** Most recent synced weeks, newest first (max 2). */
+  weeks: WellpassSigninWeek[];
+  /** Newest synced week is below the minimum — mention it at the session. */
+  low: boolean;
+}

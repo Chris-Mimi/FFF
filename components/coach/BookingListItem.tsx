@@ -92,6 +92,17 @@ export default function BookingListItem({
                   ? 'bg-gray-100 border border-gray-200'
                   : 'bg-gray-50 border';
 
+  // Wellpass sign-in reminder (S418) — last synced week below the minimum.
+  const wp = showCardWarning ? booking.wellpass : null;
+  const memberFirstName = memberName.split(' ')[0];
+  const wpTitle = wp?.low
+    ? [
+        `Wellpass sign-ins${wp.wellpass_name.split(' ')[0] !== memberFirstName ? ` (${wp.wellpass_name}'s pass)` : ''}:`,
+        ...wp.weeks.map(w => `Week ${w.week_number} (from ${w.week_start.slice(8, 10)}.${w.week_start.slice(5, 7)}): ${w.checkin_count} of ${wp.min_required}`),
+        `Minimum ${wp.min_required} a week, even on days they don't train — remind them.`,
+      ].join('\n')
+    : undefined;
+
   const formatDateTime = (iso: string) =>
     new Date(iso).toLocaleString('en-GB', {
       day: '2-digit', month: '2-digit', year: 'numeric',
@@ -150,6 +161,14 @@ export default function BookingListItem({
         {cardTier === 'low' && (
           <span className='text-[10px] font-bold text-amber-900 bg-amber-200 px-1.5 py-0.5 rounded'>
             2 left
+          </span>
+        )}
+        {wp?.low && (
+          <span
+            className='text-[10px] font-bold text-white bg-orange-500 px-1.5 py-0.5 rounded cursor-help whitespace-pre-line'
+            title={wpTitle}
+          >
+            WP sign-ins {wp.weeks[0].checkin_count}/{wp.min_required}
           </span>
         )}
         <span className='text-xs text-gray-500'>

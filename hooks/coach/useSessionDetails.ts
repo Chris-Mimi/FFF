@@ -4,6 +4,8 @@ import { supabase } from '@/lib/supabase';
 import { filterAvailableMembers } from '@/lib/coach/bookingHelpers';
 import { padTime } from '@/lib/coach/modalStateHelpers';
 import { formatDate } from '@/utils/date-utils';
+import { authFetch } from '@/lib/auth-fetch';
+import type { WellpassSigninStatus } from '@/types/wellpass';
 
 export interface SessionDetails {
   id: string;
@@ -38,6 +40,9 @@ export interface Booking {
   // True when this athlete books against someone else's card (family sharing),
   // so the count shown is the whole family's, not just theirs.
   tenCardShared: boolean;
+  // Wellpass sign-in reminder (S418): set when the athlete is linked to a tracked
+  // Wellpass pass; `low` = last synced week below the minimum (3).
+  wellpass: WellpassSigninStatus | null;
   member: {
     id: string;
     name: string | null;
@@ -235,6 +240,7 @@ export function useSessionDetails(
           tenCardUsed,
           tenCardTotal,
           tenCardShared,
+          wellpass: null as WellpassSigninStatus | null,
           // Strip the 10-card fields from the public member shape; downstream only
           // needs the original five.
           member: {
@@ -248,6 +254,24 @@ export function useSessionDetails(
       });
 
       setBookings(transformedBookings);
+
+      // Wellpass sign-in status lives behind service-role RLS → coach API.
+      // Best-effort: the modal works without it.
+      const bookerIds = [...new Set(transformedBookings.map(b => b.member.id).filter(Boolean))];
+      if (bookerIds.length > 0) {
+        authFetch('/api/coach/wellpass/signin-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ memberIds: bookerIds }),
+        })
+          .then(res => (res.ok ? res.json() : null))
+          .then((json: { status?: Record<string, WellpassSigninStatus> } | null) => {
+            const status = json?.status;
+            if (!status || Object.keys(status).length === 0) return;
+            setBookings(prev => prev.map(b => ({ ...b, wellpass: status[b.member.id] ?? null })));
+          })
+          .catch(err => console.error('Wellpass sign-in status failed:', err));
+      }
 
       // Fetch all active members for manual booking
       const { data: membersData, error: membersError } = await supabase
