@@ -847,9 +847,16 @@ export default function TenCardModal({
                         <RefreshCw size={18} />
                         Close &amp; Issue New
                       </button>
-                      <p className="text-xs text-gray-500 mt-2">
-                        Archives the current card with its bookings, then issues a fresh card (purchase today, expiry +12 months, 0 sessions used). Changes are previewed in the form fields and only persist when you click Save Changes.
-                      </p>
+                      <div className="text-xs text-gray-600 mt-2 rounded-lg bg-gray-50 border border-gray-200 p-3 space-y-1">
+                        <p className="font-semibold text-gray-700">New card paid in cash (card full or over):</p>
+                        <ol className="list-decimal list-inside space-y-0.5">
+                          <li>Click <span className="font-semibold">Close &amp; Issue New</span> and confirm.</li>
+                          <li>Check the amber box: sessions over the old card move onto the new one, and Purchase Date jumps to the first of them. Over by 2 → new card starts at 2/10.</li>
+                          <li>Don&apos;t type in Sessions Used — the carry-over sets it.</li>
+                          <li>Click <span className="font-semibold">Save Changes</span>. The old card goes to Card History.</li>
+                        </ol>
+                        <p>Bought in the app (Stripe)? Nothing to do — it renews by itself.</p>
+                      </div>
                     </>
                   )}
                 </div>
