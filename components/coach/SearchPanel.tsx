@@ -231,7 +231,11 @@ export default function SearchPanel({
     exerciseNames: exerciseNamesSet,
   });
 
-  // Split members into kids (<16) and adults, with selected members sorted to top
+  // Split members into kids (<16) and adults, with selected members sorted to top.
+  // The order is frozen at the selection the panel OPENED with (the panel unmounts
+  // when closed): an athlete clicked mid-list stays put instead of jumping to the
+  // top and shifting the list under the cursor (S418).
+  const [selectedOnOpen] = useState(selectedMembers);
   const { adultMembers, kidMembers } = useMemo(() => {
     const now = new Date();
     const kids: typeof members = [];
@@ -245,12 +249,12 @@ export default function SearchPanel({
       adults.push(m);
     }
     const sortSelected = (list: typeof members) => {
-      const sel = list.filter(m => selectedMembers.includes(m.id));
-      const unsel = list.filter(m => !selectedMembers.includes(m.id));
+      const sel = list.filter(m => selectedOnOpen.includes(m.id));
+      const unsel = list.filter(m => !selectedOnOpen.includes(m.id));
       return [...sel, ...unsel];
     };
     return { adultMembers: sortSelected(adults), kidMembers: sortSelected(kids) };
-  }, [members, selectedMembers]);
+  }, [members, selectedOnOpen]);
 
   // A muted athlete selection stays in the list but no longer filters results.
   const athletesFilterActive = selectedMembers.length > 0 && !athletesMuted;
