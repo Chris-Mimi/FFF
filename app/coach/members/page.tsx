@@ -4,6 +4,7 @@ import TenCardModal from '@/components/coach/TenCardModal';
 import MemberCard from '@/components/coach/members/MemberCard';
 import MemberFilters from '@/components/coach/members/MemberFilters';
 import WellpassTab from '@/components/coach/members/WellpassTab';
+import SubscriptionCounts from '@/components/coach/members/SubscriptionCounts';
 import { useMemberData } from '@/hooks/coach/useMemberData';
 import { useMemberActions } from '@/hooks/coach/useMemberActions';
 import { signOut } from '@/lib/auth';
@@ -292,6 +293,13 @@ export default function CoachMembersPage() {
               Parked
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Athlete App monthly vs yearly totals (S418) */}
+      {activeTab === 'subscriptions' && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+          <SubscriptionCounts />
         </div>
       )}
 
