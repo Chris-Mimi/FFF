@@ -367,8 +367,8 @@ export function useBookingManagement({
         method: 'POST',
         body: JSON.stringify({ bookingId }),
       });
+      const j = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const j = await res.json().catch(() => ({}));
         throw new Error(j.error || 'cancel failed');
       }
 
@@ -381,7 +381,11 @@ export function useBookingManagement({
 
       await onRefresh();
       onSessionUpdated();
-      toast.success(`${memberName}'s booking removed`);
+      toast.success(
+        j.promotedMemberId
+          ? `${memberName}'s booking removed — first on the waitlist moved into the class`
+          : `${memberName}'s booking removed`
+      );
     } catch (error) {
       console.error('Error removing booking:', error);
       toast.error('Failed to remove booking');

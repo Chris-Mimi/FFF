@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { requireCoach, isAuthError } from '@/lib/auth-api';
 import { cleanupAthleteScoresForWod, resolveAuthUserId } from '@/lib/coach/scoreCleanup';
+import { promoteFromWaitlist } from '@/lib/coach/promoteFromWaitlist';
+import { sessionStartInstant } from '@/lib/bookingRules';
 
 // Service-role client bypasses RLS so cleanup of cross-user wod_section_results
 // + lift_records + reactions actually completes. The browser-side equivalent in
@@ -26,7 +28,7 @@ export async function POST(request: NextRequest) {
 
     const { data: booking, error: fetchError } = await supabaseAdmin
       .from('bookings')
-      .select('id, member_id, session_id, status, is_trial')
+      .select('id, member_id, session_id, status, is_trial, is_og')
       .eq('id', bookingId)
       .single();
 
@@ -60,9 +62,47 @@ export async function POST(request: NextRequest) {
 
     const { data: session } = await supabaseAdmin
       .from('weekly_sessions')
-      .select('workout_id')
+      .select('workout_id, date, time, capacity, trial_names, drop_in_names')
       .eq('id', booking.session_id)
       .single();
+
+    // Freed a place → promote the longest-waiting waitlister, like an athlete's
+    // own cancel does (S418: Annerose stayed on the waitlist after a coach
+    // removal). Only for upcoming sessions, only if a place is really free —
+    // same count as the Session Management modal (OG + is_trial excluded,
+    // trial/drop-in names included). Capacity 0 = unlimited, no waitlist.
+    let promotedMemberId: string | null = null;
+    if (
+      session &&
+      booking.status === 'confirmed' &&
+      !booking.is_og &&
+      !isTrialBooking &&
+      session.capacity > 0 &&
+      sessionStartInstant(String(session.date).slice(0, 10), session.time) > new Date()
+    ) {
+      const { data: confirmed, error: countErr } = await supabaseAdmin
+        .from('bookings')
+        .select('id')
+        .eq('session_id', booking.session_id)
+        .eq('status', 'confirmed')
+        .eq('is_og', false)
+        .eq('is_trial', false);
+      if (countErr) {
+        console.error('cancel-member-booking capacity count failed:', countErr);
+      } else {
+        const taken =
+          (confirmed?.length ?? 0) +
+          ((session.trial_names as string[] | null)?.length ?? 0) +
+          ((session.drop_in_names as string[] | null)?.length ?? 0);
+        if (taken < session.capacity) {
+          const result = await promoteFromWaitlist(supabaseAdmin, booking.session_id, {
+            date: session.date,
+            time: session.time,
+          });
+          promotedMemberId = result.promotedMemberId;
+        }
+      }
+    }
 
     let wsrDeleted = 0;
     let liftRecordsDeleted = 0;
@@ -83,6 +123,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      promotedMemberId,
       wsrDeleted,
       liftRecordsDeleted,
       reactionsDeleted,
