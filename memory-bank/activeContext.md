@@ -164,6 +164,7 @@ _Updated at every session close. The "first 5 minutes of tomorrow" — read this
 **🔔 REMIND CHRIS on the Windows PC (S415):** add `"claudeCode.initialPermissionMode": "acceptEdits",` to VS Code user settings (Ctrl+Shift+P → "Preferences: Open User Settings (JSON)"). Mac already fixed. Remove this line once done. **S418: Chris will take the Mac to the box and do it there — keep reminding each session start.**
 
 **🔔 Open with Chris (S416):**
+- **Michael Weber (S418, done):** on wife Marion's Wellpass for now → Pay with switched ten_card → wellpass, 09.10 + 11.10 bookings un-flagged. Card 5/10 has no purchase date (paper card) so app bookings never counted. When he returns to the 10-card: switch Pay with back + enter the purchase date.
 - **Stoffer (S418, parked by Chris):** Wellpass ran out → Gloria + Torben bought a 10-card (Torben already shares Gloria's card). Torben's old Wellpass entry is still linked to him. If he gets Wellpass back, Chris may want Gloria added to it — wait for him.
 - **Wellpass tab has no manual link button** — links only come from Sync from Excel (name match, one member per name). I link extras directly (Sergej → Liane Felsing, Sermet Güler, Bianca Härtel done S418; sync now treats ä/ö/ü/ß = ae/oe/ue/ss). Offered a "Link member" button; not asked for.
 - Lenny Kleinert: parent login (mausibrueckner@web.de) is NAMED "Lenny Kleinert" — Chris checking.
