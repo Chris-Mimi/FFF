@@ -132,6 +132,19 @@ function MovementLibraryPopup({
   const [showCreateLiftModal, setShowCreateLiftModal] = useState(false);
   const [showCreateExerciseModal, setShowCreateExerciseModal] = useState(false);
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
+  // Stable object for ExerciseFormModal: its reset effect depends on this prop,
+  // so a fresh object per render would wipe unsaved edits on any re-render (S418).
+  const editingExerciseForForm = useMemo(
+    () =>
+      editingExercise
+        ? {
+            ...editingExercise,
+            equipment: editingExercise.equipment ?? undefined,
+            body_parts: editingExercise.body_parts ?? undefined,
+          }
+        : null,
+    [editingExercise]
+  );
 
   // Form states for creating new items
   const [benchmarkForm, setBenchmarkForm] = useState({ name: '', type: 'For Time', description: '', has_scaling: true });
@@ -1531,11 +1544,7 @@ function MovementLibraryPopup({
           setEditingExercise(null);
         }}
         onSave={handleSaveExercise}
-        editingExercise={editingExercise ? {
-          ...editingExercise,
-          equipment: editingExercise.equipment ?? undefined,
-          body_parts: editingExercise.body_parts ?? undefined,
-        } : null}
+        editingExercise={editingExerciseForForm}
       />
     </div>
   );

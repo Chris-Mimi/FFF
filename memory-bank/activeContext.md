@@ -323,7 +323,7 @@ Athlete Tools
 
 ## 🚨 Known Open Issues
 
-- **Stale-login freeze recurred 09.10 (S418)** despite the S400 middleware self-heal — typing in Library → Edit Exercise and tab clicks dead; clearing site data fixed it. If it recurs, investigate why the self-heal didn't fire. Separate latent bug found, NOT fixed (Chris didn't ask): `MovementLibraryPopup` passes a new `editingExercise` object every render and `ExerciseFormModal`'s reset effect depends on it → any Library re-render wipes unsaved edits. Fix = `useMemo` the prop.
+- **Stale-login freeze recurred 09.10 (S418)** despite the S400 middleware self-heal — typing in Library → Edit Exercise and tab clicks dead; clearing site data fixed it. If it recurs, investigate why the self-heal didn't fire. Fixed S418 (Chris asked): `MovementLibraryPopup` passes a new `editingExercise` object every render and `ExerciseFormModal`'s reset effect depends on it → any Library re-render wipes unsaved edits. Fix = `useMemo` the prop.
 
 - **Partial `track` columns silently demote athletes (S411)** — `leaderboard-utils.ts:380-382` compares track *before* scaling and treats a missing track as `4`. If a session has tracks on some athletes and not others, the unmarked ones rank below everyone marked. Convention: unmarked on a board that marks any `Trk2` = Track 1, so **fill the blanks**. Not a code bug — a data-entry hazard.
 - **Cancelling a pre-booked session after a renewal can show `-1/10` (S416)** — when the old card was filled by future bookings, the new card's offset is negative; an in-time cancel of one of those makes Sessions Used −1. Numbers are right (11 available), display odd. Offered to tidy, not asked for.
