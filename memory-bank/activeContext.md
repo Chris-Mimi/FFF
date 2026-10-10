@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 286
-**Updated:** 2026-10-08 (Session 418 — Opus 5.5. **Lift-entry cleanup closed: writer + parity check cover non-RM lifts, paused bench → exercise (22 deleted), C&J 5x5 duplicates (30 deleted). Week 41.1+41.2 whiteboard (97 WSR). Kids' coach-entered scores now reach their athlete pages (save-route fix + 8 backfilled). GitHub failure email confirmed.**)
+**Version:** 287
+**Updated:** 2026-10-10 (Session 418 continued after first close — Opus 5.5. **Wellpass sign-in + credit badges in Session Management; coach Remove now promotes the waitlist; kids' scores reach athlete pages; Members → Subscriptions shows €8/€10/yearly totals incl. cash; Library edit-form + athlete-filter scroll fixes; 10-card cash-renewal help in the modal; Custom Movements groups filled (+4 new groups).**)
 
 <!-- Older S417: 2026-10-08 (Session 417 — Opus 5.5. **Good Morning duplicate fixed (names swapped, new lift, unique-name index + toast). Pendlay Row 29.05 accumulated loads had become Lifts entries — 6 deleted, Chris swapped the lift→exercise on all 4 Weekend WOD #26.14 copies.**) -->
 
@@ -143,13 +143,17 @@ Synology Drive syncs files in the background and is **not git-aware**. When Chri
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history file._
 
-**First: Chris to confirm the S418 kids fix live** — Neo's Forge Benchmarks page shows the C2 Rower 1km 5:21 (05.10) and 5:10 (06.07). Then the next whiteboard week or whatever Chris brings.
+**First — Chris to confirm live (all S418, shipped):**
+1. Neo's Forge Benchmarks shows C2 Rower 1km 5:21 (05.10) + 5:10 (06.07) — kids' scores fix (`82cf768`).
+2. Session Management: orange "WP sign-ins N/min" + red "WP credit −N" badges (Carmine −3, Sermet −2, Lucases −30 as shared 1.5×).
+3. Coach **Remove** on an upcoming class promotes the first waitlister (toast says so) — `d76e5d1`.
+4. Members → Subscriptions top line: "6 monthly €8 · 12 monthly €10 (2 cash) · 15 yearly (6 cash) · 1 in trial".
+5. Workouts → Athletes filter keeps its place on click; Library → Edit Exercise keeps typed text.
+6. Custom Movements: groups now populated; list = 242. New groups: Bar & Ring Muscle-up, Holds, Gymnastics: HS, Gymnastics: Rings.
 
-**✅ S418 (after close) — 25.09 09:00 scores recovered:** Chris overwrote the workout, then pasted it back. Copy-over had KEPT the original wod `17dcf4c7` with its 24 scores (6 athletes) but nothing pointed at it; moved them onto the pasted copy `d4fb984d` (identical sections). Old wod now empty, left in place. Chris confirmed OK. If this repeats: look for an unlinked wod of the same date holding the scores before re-entering from a board.
+**S418 data done (no action):** 25.09 09:00 scores moved back onto the pasted copy; Petra/Annerose cash renewals = Close & Issue New (steps now in the modal); Michael Weber Pay with → Wellpass; Sergej → Liane Felsing, Sermet Güler, Bianca Härtel linked on Wellpass; Annerose promoted 09.10 18:30; L-Sit scaling text added to Parallettes L-Sit Hold description.
 
-**✅ S418 (after close) — Wellpass sign-in reminder (`edf3033`):** Session Management modal shows an orange "WP sign-ins N/min" badge on booked athletes whose last synced Wellpass week is below the pass's `min_checkins_required` (tracked, un-paused passes only; shared passes use their own min, e.g. 6). Coach API `/api/coach/wellpass/signin-status` (service role). Dry run on 08–11.10 bookings: 6 of 22 flagged (Sermet 1/3, Lukas 2/3, Magdalena 2/3, Lucases 3/6, Dimitar 5/6). **+ credit badge:** red "WP credit −N" when all synced sign-ins < classes attended in the same weeks (whole household); Carmine −3 (60/63), Sermet −2. Shared passes (linked >1 AND min >3) owe ⌈1.5 × classes⌉ → Lucases −30; 10-card-paid classes excluded (Alois, Michael Weber). **Chris to check both live.** Also: Sermet + Bianca Härtel linked, sync folds umlauts (`0c63c84`).
-
-**✅ S418 — Custom Movements groups filled:** ~60 movements added across 8 groups + new "Bar & Ring Muscle-up" and "Holds"; dead ids removed. **Gotcha:** `exercise_groups.exercise_ids` only render if each id is also in `coach_tracked_exercises` for that coach (the Custom Movements list) — add there too (`active:false`), or the group looks empty.
+**Gotcha (Custom Movements):** `exercise_groups.exercise_ids` only render if each id is also in `coach_tracked_exercises` (the list built via "Add exercise..."). Add there too (`active:false`).
 
 **S418 rules now in force (details in claude-rules + project-history):**
 - **Kids' results are keyed by their member id** — `resolveUserId()` in the save route. Any new writer of Lifts/Benchmarks/Records tables must do the same.
@@ -286,11 +290,12 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
-**Session 418 (2026-10-08 — Opus 5.5) — LIFT-ENTRY CLEANUP + WEEK 41 + KIDS' ATHLETE PAGES (all pushed, build exit 0)**
-- Whiteboard writer writes non-RM lift entries (`65e280b`); parity check covers non-RM (`ab544a4`); GitHub failure email tested → chris@.
-- Paused Bench Press: Chris swapped lift→exercise on 5 wods; 22 Lifts entries deleted. C&J 27.04–04.05: 30 duplicate 5x5 entries deleted (5RM kept).
-- Week 41.1+41.2: DL 10RM + KB AMRAP (05.10 10:00), Pendlay 10RM + Burpee Pull-up + Bear Crawl ×4 sessions — 97 WSR + 33 lift_records; booked Anja Götte, Jan Huelbig, Mimi.
-- **Kids' scores → athlete pages (`82cf768`):** save route skipped benchmark/lift entries for anyone without a login; now uses the child's member id. 8 entries backfilled.
+**Session 418 (2026-10-08→10 — Opus 5.5) — LIFT-ENTRY CLEANUP, WEEK 41, KIDS' PAGES, WELLPASS BADGES, SUBSCRIPTION TOTALS (all pushed, build exit 0)**
+- Lift entries: writer + parity cover non-RM; paused bench → exercise (22 deleted); C&J 5x5 duplicates (30 deleted); GitHub failure email confirmed. Week 41.1+41.2 (97 WSR).
+- Kids' coach-entered scores now reach athlete pages (`82cf768`, 8 backfilled). 25.09 09:00 scores recovered from the kept original wod.
+- Wellpass: sync folds umlauts (`0c63c84`); Session Management sign-in + credit badges (`edf3033`/`77fce4f`/`22b7b1e`).
+- Coach Remove promotes waitlist (`d76e5d1`); Members → Subscriptions €8/€10/yearly + cash totals (`402912c`); 10-card cash-renewal help (`201df0e`).
+- Fixes: Library edit form reset (`0f8c115`), athlete filter jump (`61377c1`). Custom Movements groups filled (+4 groups, +102 list entries).
 
 **Session 417 (2026-10-07→08 — Opus 5.5) — GOOD MORNING DUPLICATE + PENDLAY ACCUMULATED LOADS**
 - Good Morning display names swapped, new lift "Barbell Good Morning", unique-name index + toast (`5df1b73`).
@@ -351,7 +356,7 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-1. **S418 — confirm kids fix live** (Neo's Forge Benchmarks shows the rower times). Lift-entry work from S417/S418 is closed.
+1. **S418 — 6 live checks** listed in ⚡ Kickoff (kids page, WP badges, waitlist promote, subscription totals, filter/edit fixes, Custom Movements groups).
 1. **S416 — live checks (nothing exercised by a real athlete yet):** (a) a parent's Book a Class shows kids' chips + "10er-Karte für X kaufen" opens Stripe with the right product (cancel, don't pay); (b) a 1-over athlete gets the German block on the next booking; (c) Cancel Session → 10-card chip drops, Restore → back; (d) mark a no-show → athlete (or parent) gets "Nicht erschienen"; (e) copy a workout over a scored one on a past date → scores still there after the Undo toast closes.
 1. **S415 — live checks (not yet exercised in the app):** (a) next time a coach adds a 10-card member to a class, the chip goes +1; (b) first **Close & Issue New on an over-limit card** — preview shows the carried sessions/dates; (c) link Torben → Gloria via **Share a card…** and confirm both chips update; (d) log out of an athlete account in Chris's browser and confirm their pushes stop.
 1. **S415 answers closed in S416:** Alois/Michael = edge cases (leave); Marina/Max/Ole = one card per boy (both full, parent can now buy in app).

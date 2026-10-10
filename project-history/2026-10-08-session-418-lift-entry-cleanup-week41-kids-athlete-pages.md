@@ -38,3 +38,27 @@ Neo's rower time saved in the modal but not on his Forge Benchmarks page. Family
 ## Rejected
 - Making the parity check ignore "modified" scores to accommodate Dave — moot once "Raised" was understood.
 - Moving Sven's scores to 07.10 — Chris: doesn't matter, he did it twice.
+
+---
+
+## Part 2 (after first close, 08.10 → 10.10)
+
+| Commit / action | What |
+|:---|:---|
+| DB | 25.09 09:00: 24 scores sat on the kept original wod `17dcf4c7` (copy-over safety net) — moved onto the pasted copy |
+| DB | Wellpass links: Sergej → Liane Felsing, Sermet Güler, Bianca Härtel; `0c63c84` sync folds ä/ö/ü/ß |
+| `edf3033`, `77fce4f`, `22b7b1e`, `0953228` | Session Management: "WP sign-ins N/min" (last synced week < pass min) + "WP credit −N" (all synced sign-ins − classes in same weeks; shared = >1 linked AND min >3 → 1.5×; 10-card classes excluded) |
+| `0f8c115` | Library Edit Exercise: memoised prop so a re-render can't wipe typed edits (the actual "can't type" was the stale-login freeze — site data cleared) |
+| `61377c1` | Workouts athlete filter: order frozen at panel open, no jump on click |
+| `d76e5d1` + DB | Coach Remove promotes the first waitlister (upcoming + place free); Annerose promoted 09.10 18:30 |
+| `618fdc8`, `201df0e` | 10-card modal: cash-renewal steps under Close & Issue New (Stripe uses the same carry-over) |
+| DB | Michael Weber Pay with ten_card → wellpass (on Marion's pass); Parallettes L-Sit Hold description += Feb scaling text |
+| `221a6a7`, `f6eea10`, `402912c` | Members → Subscriptions totals: €8 / €10 monthly, yearly, trial; cash/PayPal = coach-activated with end date, ≤62 days monthly, gym members €8 else €10; coaches excluded |
+| DB | Custom Movements: ~110 movements into groups, 4 new groups, 4 dead ids removed, list 140 → 242 |
+
+**Lessons**
+- `exercise_groups` only render ids that are also in `coach_tracked_exercises` — I wrote groups only and they looked empty.
+- Explain with on-screen names: "the list" confused Chris until named as the Custom Movements list built via "Add exercise...".
+- Local `.env.local` holds Stripe **test** keys — live Stripe counts must come from the `subscriptions` table.
+- Price tier lives on `members.subscription_tier` (member €8 / wellpass €10), not in `subscriptions`.
+- Movement-recency question #5 (athlete-group circuit picks) added to `memory-bank/movement-recency-queries.md`.
