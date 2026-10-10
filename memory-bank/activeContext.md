@@ -149,6 +149,8 @@ _Updated at every session close. The "first 5 minutes of tomorrow" — read this
 
 **✅ S418 (after close) — Wellpass sign-in reminder (`edf3033`):** Session Management modal shows an orange "WP sign-ins N/min" badge on booked athletes whose last synced Wellpass week is below the pass's `min_checkins_required` (tracked, un-paused passes only; shared passes use their own min, e.g. 6). Coach API `/api/coach/wellpass/signin-status` (service role). Dry run on 08–11.10 bookings: 6 of 22 flagged (Sermet 1/3, Lukas 2/3, Magdalena 2/3, Lucases 3/6, Dimitar 5/6). **+ credit badge:** red "WP credit −N" when all synced sign-ins < classes attended in the same weeks (whole household); Carmine −3 (60/63), Sermet −2. Shared passes (linked >1 AND min >3) owe ⌈1.5 × classes⌉ → Lucases −30; 10-card-paid classes excluded (Alois, Michael Weber). **Chris to check both live.** Also: Sermet + Bianca Härtel linked, sync folds umlauts (`0c63c84`).
 
+**✅ S418 — Custom Movements groups filled:** ~60 movements added across 8 groups + new "Bar & Ring Muscle-up" and "Holds"; dead ids removed. **Gotcha:** `exercise_groups.exercise_ids` only render if each id is also in `coach_tracked_exercises` for that coach (the Custom Movements list) — add there too (`active:false`), or the group looks empty.
+
 **S418 rules now in force (details in claude-rules + project-history):**
 - **Kids' results are keyed by their member id** — `resolveUserId()` in the save route. Any new writer of Lifts/Benchmarks/Records tables must do the same.
 - **Lifts entries = one clean set's weight.** Totals or distorting variations (accumulated sets, paused bench) → Exercise Library + Load chip. "Raised" (bar on blocks, mobility) still gets a Lifts entry.
