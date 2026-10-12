@@ -175,6 +175,14 @@ For "today as YYYY-MM-DD" the correct helper **depends on where the code runs** 
 
 **How to apply:** `resolveUserId()` in `app/api/score-entry/save/route.ts` — auth id via email, else the member id for family members (`primary_member_id` set, no email). Any new writer of athlete-page tables must do the same. No FK blocks it (`benchmark_results.user_id` accepts a member id). `neo@the-forge-functional-fitness.de` is Chris's test account — leave it.
 
+### "Survives hard refresh, cured by clearing site data, fine in Incognito" = saved browser state, not login (S419)
+**Why:** the coach tabs went dead three times (S398, S418, S419) and were twice blamed on a corrupted login cookie without evidence; S400 even shipped a middleware "self-heal" for it. Real cause: the muted Athletes filter (saved in localStorage) passed a fresh `[]` into `useCoachData` every render → its effect set new state every render → endless silent re-render → `router.push` never committed.
+
+**How to apply:**
+1. That symptom trio points at **localStorage-persisted UI state** first. Ask Chris to type a sub-page address directly: if it loads, the login is fine.
+2. Buttons that set state work but `router.push` does nothing + no network traffic + clean console = a **render loop** on that page.
+3. **Never pass a fresh `[]` / `{}` literal into a hook whose effect depends on it** — use a module-level constant or `useMemo`.
+
 ### Trust the user's statements exactly as given
 When Chris says something doesn't appear in a workout, it means exactly that — don't invent explanations or assume he's mistaken. He will explicitly say when he's unsure.
 
