@@ -229,15 +229,26 @@ export const extractMovementsFromText = (
   // movement counts. Longest match wins per overlap so "Hang Power Snatch"
   // doesn't also log a bare "Snatch", and "Push-up Strict" isn't swallowed by a
   // co-listed "Push-up Knees". No prose guessing — only library movements. (S384)
+  // The overlap is judged per position, not per line: "Bench Press superset with
+  // DB Bench Press" names both, so the bare one only loses the occurrence that
+  // sits inside the longer name. (S419)
   const addKnownMovements = (chunk: string) => {
     if (!knownLower || !knownList) return;
     const lower = chunk.toLowerCase();
-    const hits = knownList.filter(
-      ex => ex.length >= 4 && (lower.includes(ex) || lower.includes(`${ex}s`))
-    );
+    const positions = (ex: string) => {
+      const found: number[] = [];
+      for (let i = lower.indexOf(ex); i !== -1; i = lower.indexOf(ex, i + 1)) found.push(i);
+      return found;
+    };
+    const hits = knownList
+      .filter(ex => ex.length >= 4 && lower.includes(ex))
+      .map(ex => ({ ex, at: positions(ex) }));
     hits
-      .filter(ex => !hits.some(other => other.length > ex.length && other.includes(ex)))
-      .forEach(ex => movements.add(normalizeMovement(ex)));
+      .filter(({ ex, at }) => at.some(i => !hits.some(other =>
+        other.ex.length > ex.length &&
+        other.at.some(p => p <= i && i + ex.length <= p + other.ex.length)
+      )))
+      .forEach(({ ex }) => movements.add(normalizeMovement(ex)));
   };
 
   lines.forEach(line => {
