@@ -1,5 +1,9 @@
 import { sendToUser, sendToAllMembers, sendToCoaches, type PushPayload } from './web-push';
 
+// Athlete-facing pushes are German (all members are German); coach-facing ones stay
+// English. Athlete bodies avoid "du" where they can: a child's push goes to the
+// parent with the child's first name in front of the title (sendToUser).
+
 /**
  * Notify all subscribed members that a new workout has been published.
  * Fire-and-forget — errors are logged but never block the caller.
@@ -12,7 +16,7 @@ export function notifyWodPublished(workoutName: string, workoutDate: string): vo
   });
 
   const payload: PushPayload = {
-    title: 'New Workout Published',
+    title: 'Neues Workout online',
     body: workoutName ? `${workoutName} — ${dateFormatted}` : dateFormatted,
     data: { url: '/member/book', type: 'wod_published' },
   };
@@ -33,9 +37,11 @@ export function notifyBookingConfirmed(userId: string, sessionDate: string, sess
     month: 'short',
   });
 
+  const time = sessionTime.slice(0, 5);
+
   const payload: PushPayload = {
-    title: 'Booking Confirmed',
-    body: `You're in! ${dateFormatted} at ${sessionTime}`,
+    title: 'Buchung bestätigt',
+    body: `Platz gesichert – ${dateFormatted} um ${time} Uhr`,
     data: { url: '/member/book', type: 'booking_confirmed' },
   };
 
@@ -54,9 +60,11 @@ export function notifyBookingWaitlisted(userId: string, sessionDate: string, ses
     month: 'short',
   });
 
+  const time = sessionTime.slice(0, 5);
+
   const payload: PushPayload = {
-    title: 'Waitlisted',
-    body: `Class full — you're on the waitlist for ${dateFormatted} at ${sessionTime}`,
+    title: 'Warteliste',
+    body: `Session voll – Wartelistenplatz für ${dateFormatted} um ${time} Uhr`,
     data: { url: '/member/book', type: 'booking_waitlisted' },
   };
 
@@ -75,9 +83,11 @@ export function notifyWaitlistPromoted(userId: string, sessionDate: string, sess
     month: 'short',
   });
 
+  const time = sessionTime.slice(0, 5);
+
   const payload: PushPayload = {
-    title: 'Spot Opened!',
-    body: `You're in! Promoted from waitlist — ${dateFormatted} at ${sessionTime}`,
+    title: 'Platz frei geworden!',
+    body: `Von der Warteliste nachgerückt – ${dateFormatted} um ${time} Uhr ist jetzt fest gebucht`,
     data: { url: '/member/book', type: 'booking_promoted' },
   };
 
@@ -96,9 +106,11 @@ export function notifySessionCancelled(userId: string, sessionDate: string, sess
     month: 'short',
   });
 
+  const time = sessionTime.slice(0, 5);
+
   const payload: PushPayload = {
-    title: 'Session Cancelled',
-    body: `${dateFormatted} at ${sessionTime} has been cancelled by your coach`,
+    title: 'Session abgesagt',
+    body: `${dateFormatted} um ${time} Uhr wurde vom Coach abgesagt`,
     data: { url: '/member/book', type: 'session_cancelled' },
   };
 
@@ -151,12 +163,14 @@ export function notifyCoachBooked(userId: string, sessionDate: string, sessionTi
     month: 'short',
   });
 
+  const time = sessionTime.slice(0, 5);
+
   const isConfirmed = status === 'confirmed';
   const payload: PushPayload = {
-    title: isConfirmed ? 'Booked by Coach' : 'Waitlisted by Coach',
+    title: isConfirmed ? 'Vom Coach gebucht' : 'Warteliste',
     body: isConfirmed
-      ? `Your coach booked you in for ${dateFormatted} at ${sessionTime}`
-      : `Your coach added you to the waitlist for ${dateFormatted} at ${sessionTime}`,
+      ? `Vom Coach eingebucht für ${dateFormatted} um ${time} Uhr`
+      : `Vom Coach auf die Warteliste gesetzt – ${dateFormatted} um ${time} Uhr`,
     data: { url: '/member/book', type: isConfirmed ? 'booking_confirmed' : 'booking_waitlisted' },
   };
 
@@ -176,9 +190,11 @@ export function notifyCoachRemoved(userId: string, sessionDate: string, sessionT
     month: 'short',
   });
 
+  const time = sessionTime.slice(0, 5);
+
   const payload: PushPayload = {
-    title: 'Booking Removed',
-    body: `Your coach removed your booking for ${dateFormatted} at ${sessionTime}`,
+    title: 'Buchung entfernt',
+    body: `Der Coach hat die Buchung für ${dateFormatted} um ${time} Uhr entfernt`,
     data: { url: '/member/book', type: 'session_cancelled' },
   };
 
@@ -192,7 +208,7 @@ export function notifyCoachRemoved(userId: string, sessionDate: string, sessionT
  */
 export function notifyPrAchieved(userId: string, liftOrBenchmark: string, value: string): void {
   const payload: PushPayload = {
-    title: 'New PR!',
+    title: 'Neuer PR!',
     body: `${liftOrBenchmark}: ${value}`,
     data: { url: '/athlete?tab=records', type: 'pr_achieved' },
   };
@@ -207,8 +223,8 @@ export function notifyPrAchieved(userId: string, liftOrBenchmark: string, value:
  */
 export function notifyAchievementAwarded(userId: string, achievementName: string): void {
   const payload: PushPayload = {
-    title: 'Achievement Unlocked!',
-    body: `Your coach awarded you: ${achievementName}`,
+    title: 'Erfolg freigeschaltet!',
+    body: `Vom Coach verliehen: ${achievementName}`,
     data: { url: '/athlete?tab=records', type: 'achievement_awarded' },
   };
 
@@ -223,10 +239,10 @@ export function notifyAchievementAwarded(userId: string, achievementName: string
  */
 export function notifyScoreRecorded(userId: string, workoutName: string): void {
   const payload: PushPayload = {
-    title: 'Score Recorded',
+    title: 'Ergebnis eingetragen',
     body: workoutName
-      ? `Your coach recorded your score for ${workoutName}`
-      : 'Your coach recorded your score',
+      ? `Der Coach hat das Ergebnis für ${workoutName} eingetragen`
+      : 'Der Coach hat das Ergebnis eingetragen',
     data: { url: '/athlete?tab=workouts', type: 'score_recorded' },
   };
 
@@ -256,8 +272,8 @@ export async function notifyScoreQuery(athleteName: string, workoutName: string,
  */
 export function notifySubscriptionExpiring(userId: string, daysLeft: number): void {
   const payload: PushPayload = {
-    title: 'Subscription Expiring',
-    body: `Your Forge Athlete subscription expires in ${daysLeft} days. Contact your coach to renew.`,
+    title: 'Abo läuft aus',
+    body: `Dein Forge Athlete Abo läuft in ${daysLeft} Tagen aus. Sprich deinen Coach an, um zu verlängern.`,
     data: { url: '/athlete', type: 'subscription_expiring' },
   };
 
